@@ -84,7 +84,7 @@ separate asset alongside the archives (it already globs the build artifacts).
 A consumer verifies an archive with:
 
 ```sh
-gh attestation verify spec-spine-<tag>-<triple>.tar.gz --repo bartekus/spec-spine
+gh attestation verify spec-spine-<tag>-<triple>.tar.gz --repo stagecraft-ing/spec-spine
 ```
 
 The SBOM and attestation are **deterministic-input metadata**: the dependency

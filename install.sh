@@ -1,5 +1,5 @@
 #!/bin/sh
-# spec-spine installer: curl -fsSL https://raw.githubusercontent.com/bartekus/spec-spine/main/install.sh | sh
+# spec-spine installer: curl -fsSL https://raw.githubusercontent.com/stagecraft-ing/spec-spine/main/install.sh | sh
 #
 # Detects your platform/arch, downloads the matching release archive and its
 # .sha256 sidecar from GitHub Releases, verifies the checksum, and drops the
@@ -19,7 +19,7 @@
 
 set -eu
 
-REPO="bartekus/spec-spine"
+REPO="stagecraft-ing/spec-spine"
 BIN="spec-spine"
 
 say()  { printf 'spec-spine: %s\n' "$1" >&2; }

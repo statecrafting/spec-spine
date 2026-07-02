@@ -39,9 +39,9 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/bartekus/spec-spine"
-Repository = "https://github.com/bartekus/spec-spine"
-Issues = "https://github.com/bartekus/spec-spine/issues"
+Homepage = "https://github.com/stagecraft-ing/spec-spine"
+Repository = "https://github.com/stagecraft-ing/spec-spine"
+Issues = "https://github.com/stagecraft-ing/spec-spine/issues"
 
 # Same command name on every host. On a supported host the platform wheel's
 # bundled binary provides `spec-spine`; on an unsupported host this sdist
