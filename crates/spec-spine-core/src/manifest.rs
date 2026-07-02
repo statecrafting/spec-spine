@@ -67,7 +67,7 @@ fn discover_rust(
     let mut members: Vec<String> = Vec::new();
     if let Ok(src) = fs::read_to_string(&root_manifest) {
         manifests.push(root_manifest.clone());
-        if let Ok(doc) = src.parse::<toml::Value>() {
+        if let Ok(doc) = toml::from_str::<toml::Value>(&src) {
             // A root [package], if present, is itself a crate.
             if doc.get("package").is_some() {
                 if let Some(rec) = parse_cargo(
@@ -124,7 +124,7 @@ fn parse_cargo(
     diags: &mut Vec<Diagnostic>,
 ) -> Option<PackageRecord> {
     let src = fs::read_to_string(manifest).ok()?;
-    let doc = match src.parse::<toml::Value>() {
+    let doc = match toml::from_str::<toml::Value>(&src) {
         Ok(d) => d,
         Err(e) => {
             diags.push(diag(
