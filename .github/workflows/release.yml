@@ -50,7 +50,7 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Add target (no-op if native)
         run: rustup target add ${{ matrix.triple }}
       - name: Build release binary
@@ -110,11 +110,11 @@ jobs:
           set -euo pipefail
           node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync(process.argv[1],'utf8'));const n=(d.components||[]).length;console.log('SBOM components:',n);if(n===0){console.error('refusing to ship an SBOM with zero components (syft cataloger regression?)');process.exit(1);}" "${ARCHIVE_BASE}.cdx.json"
       - name: Attest build provenance for the archive
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: ${{ env.ARCHIVE_FILE }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: archive-${{ matrix.triple }}
           path: |
@@ -132,7 +132,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: dist
           pattern: archive-*
@@ -140,7 +140,7 @@ jobs:
       - name: List release assets
         run: ls -la dist
       - name: Create / update the GitHub Release
-        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
         with:
           files: dist/*
           fail_on_unmatched_files: true
@@ -151,7 +151,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Publish types, core, cli (tolerate versions already on crates.io)
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
@@ -182,7 +182,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Gate on NPM_TOKEN: absent the secret, the whole job is a clean no-op (a
       # skip, never a red X), the same posture as the crates.io token. The first
@@ -200,7 +200,7 @@ jobs:
             echo "::notice title=npm publish skipped::NPM_TOKEN secret not set; skipping npm publish"
           fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         if: steps.gate.outputs.present == 'true'
         with:
           node-version: 20
@@ -208,7 +208,7 @@ jobs:
 
       # The npm platform packages bundle the prebuilt binaries directly, so they
       # are assembled from the build job's archives (no second Rust build).
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         if: steps.gate.outputs.present == 'true'
         with:
           path: dist/archives
@@ -273,7 +273,7 @@ jobs:
       name: pypi
       url: https://pypi.org/p/spec-spine
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Gate on a repository variable, not a secret: Trusted Publishing has no
       # token to detect. Absent/false => clean skip (a notice, never a red X),
@@ -291,7 +291,7 @@ jobs:
             echo "::notice title=PyPI publish skipped::vars.PYPI_TRUSTED_PUBLISHING is not 'true'; skipping PyPI publish"
           fi
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         if: steps.gate.outputs.present == 'true'
         with:
           python-version: "3.12"
@@ -303,7 +303,7 @@ jobs:
       # The wheels bundle the prebuilt binaries directly, so they are assembled
       # from the build job's archives (no second Rust build) -- exactly the
       # publish-npm pattern.
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         if: steps.gate.outputs.present == 'true'
         with:
           path: dist/archives

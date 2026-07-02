@@ -30,7 +30,7 @@ jobs:
     name: build · test · clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # rust-toolchain.toml pins the exact channel (+ rustfmt, clippy).
       - name: Show toolchain
         run: rustc --version && cargo --version
@@ -63,7 +63,7 @@ jobs:
     name: self-governance (compile · index · lint · couple)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Full history so the coupling gate can diff against the merge base.
           fetch-depth: 0
