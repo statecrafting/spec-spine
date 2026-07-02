@@ -1,6 +1,6 @@
 # spec-spine (npm)
 
-**The [`spec-spine`](https://github.com/bartekus/spec-spine) CLI, distributed as a
+**The [`spec-spine`](https://github.com/stagecraft-ing/spec-spine) CLI, distributed as a
 prebuilt binary through npm. No Rust toolchain required.**
 
 spec-spine turns a markdown spec corpus into a deterministic, hash-verifiable
@@ -66,10 +66,10 @@ version always runs a known binary.
 
 ```sh
 cargo install spec-spine-cli                                          # from crates.io
-curl -fsSL https://raw.githubusercontent.com/bartekus/spec-spine/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/stagecraft-ing/spec-spine/main/install.sh | sh
 ```
 
 ## License
 
-Apache-2.0. See the [repository](https://github.com/bartekus/spec-spine) for full
+Apache-2.0. See the [repository](https://github.com/stagecraft-ing/spec-spine) for full
 documentation, the Rust library API, and the design docs.

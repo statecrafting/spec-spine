@@ -144,7 +144,7 @@ function platformPackageJson(target, version) {
     license: 'Apache-2.0',
     repository: {
       type: 'git',
-      url: 'git+https://github.com/bartekus/spec-spine.git',
+      url: 'git+https://github.com/stagecraft-ing/spec-spine.git',
     },
     os: [t.os],
     cpu: [t.cpu],

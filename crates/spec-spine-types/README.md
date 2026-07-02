@@ -1,6 +1,6 @@
 # spec-spine-types
 
-Typed data substrate for [spec-spine](https://github.com/bartekus/spec-spine):
+Typed data substrate for [spec-spine](https://github.com/stagecraft-ing/spec-spine):
 DTOs, the spec frontmatter grammar, the `Config` model, the authority-unit and
 typed-edge grammar, schema-version constants, and the stable `Error` enum.
 

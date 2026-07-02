@@ -1,4 +1,4 @@
-# [spec-spine](https://stagecraft-ing.github.io/spec-spine/) [![CI](https://github.com/bartekus/spec-spine/actions/workflows/ci.yml/badge.svg)](https://github.com/bartekus/spec-spine/actions/workflows/ci.yml)
+# [spec-spine](https://stagecraft-ing.github.io/spec-spine/) [![CI](https://github.com/stagecraft-ing/spec-spine/actions/workflows/ci.yml/badge.svg)](https://github.com/stagecraft-ing/spec-spine/actions/workflows/ci.yml)
 ![Spec Spine Intent Evolution](.github/img/spec-spine-github-banner.jpg)
 
 **A typed, hash-verifiable authority ledger over a markdown spec corpus.**
@@ -30,7 +30,7 @@ contents)`**: same inputs, byte-identical output, on every platform.
 ```sh
 cargo install spec-spine-cli                                           # from crates.io
 # or, no Rust toolchain:
-curl -fsSL https://raw.githubusercontent.com/bartekus/spec-spine/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/stagecraft-ing/spec-spine/main/install.sh | sh
 # or, in a TS/JS repo (prebuilt binary, no Rust toolchain):
 npm i -D spec-spine
 # or, in a Python repo (prebuilt wheel, no Rust toolchain):
