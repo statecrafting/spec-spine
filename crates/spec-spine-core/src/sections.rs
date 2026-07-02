@@ -443,7 +443,7 @@ fn mapping_key(trimmed: &str) -> Option<String> {
 /// indexing). A malformed manifest yields no sections (the anchor falls to I-006).
 fn cargo_toml_sections(content: &str) -> Vec<(String, LineSpan)> {
     const MAX_DEPTH: usize = 4;
-    let Ok(doc) = toml_edit::ImDocument::parse(content) else {
+    let Ok(doc) = toml_edit::Document::parse(content) else {
         return Vec::new();
     };
     let mut tables: Vec<(Vec<String>, usize)> = Vec::new(); // (path, start byte)
@@ -505,7 +505,18 @@ fn collect_toml(
         let own_span = item.span();
         if let Some(sub) = item.as_table() {
             let child_min = collect_toml(sub, prefix, tables, leaves, max_depth);
-            let start = own_span.as_ref().map(|s| s.start).or(child_min);
+            // A table's start byte is the earliest byte of its subtree: its own
+            // header when present, else its first child. toml_edit 0.25 began
+            // giving the implicit parent tables of a composite header (the `a`
+            // and `a.b` of `[a.b.c]`) a span that points mid-header, LATER than
+            // the composite child's span start; folding in `child_min` keeps the
+            // next-sibling boundary decor- and toml_edit-version-independent
+            // (in 0.22 those implicit tables carried no span and fell to child_min).
+            let start = match (own_span.as_ref().map(|s| s.start), child_min) {
+                (Some(a), Some(b)) => Some(a.min(b)),
+                (Some(a), None) => Some(a),
+                (None, b) => b,
+            };
             if let Some(st) = start {
                 // A dotted-key assignment (`version.workspace = true`) is modeled
                 // as a `Table` but is not a `[header]`-delimited section, so it is
