@@ -95,12 +95,19 @@ pub struct Waiver    { pub reason: String }
 // Build a Waiver from a PR body using the configured keyword:
 pub fn parse_waiver(cfg: &Config, pr_body: &str) -> Option<Waiver>;
 
-// Mechanical dependency-only auto-waiver (spec 005 §3.5), used when
-// `coupling.auto_waive_dependency_only` is set and no PR-body waiver is present:
+// Mechanical dependency-only auto-waiver (spec 005 §3.5; cargo + workflow
+// classes added by spec 030), used when `coupling.auto_waive_dependency_only`
+// is set and no PR-body waiver is present. dependency_only_waiver dispatches
+// per manifest class; is_dependency_manifest is the CLI pre-filter predicate:
 pub struct FileContents { pub path: String, pub base: String, pub head: String }
 pub fn dependency_only_waiver(files: &[FileContents]) -> Option<Waiver>;
-pub fn dependency_only_change(base: &str, head: &str) -> bool;  // both are package.json text
+pub fn is_dependency_manifest(path: &str) -> bool;      // package.json | Cargo.toml | workflow yaml
+pub fn dependency_only_change(base: &str, head: &str) -> bool;           // package.json text
+pub fn cargo_dependency_only_change(base: &str, head: &str) -> bool;     // Cargo.toml text
+pub fn workflow_dependency_only_change(base: &str, head: &str) -> bool;  // workflow yaml text
 pub fn is_package_json(path: &str) -> bool;
+pub fn is_cargo_toml(path: &str) -> bool;
+pub fn is_workflow_yaml(path: &str) -> bool;
 
 // Is a path covered by the bypass floor (+ configured `coupling.bypass_prefixes`)?
 pub fn is_bypassed_path(cfg: &Config, index: &CodebaseIndex, path: &str) -> bool;

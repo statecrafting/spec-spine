@@ -70,6 +70,6 @@
     "summary": "The PR-time coupling gate (spec-spine.md guardrail 2): cross-reference every changed code path against the authority graph and refuse the merge when code drifts from the spec that owns it. A pure function of (config, registry, index, diff, waiver); the CLI parses `git diff --no-color -U0 --no-renames base...head` (quotepath off, end-of-options) into a typed DiffInput so git stays out of core. Matches a diff hunk to its owning unit at file, section, and symbol granularity; is amends-aware with the FR-005 strict-expansion guard; transfers authority across supersedes; honors PR-body waivers and an additive bypass list. Establishes the couple engine and the `spec-spine couple` subcommand.\n",
     "title": "The coupling gate: join the two views and refuse drift"
   },
-  "shardHash": "83725ffabb1a56f600e871e4acc07f858651bbbbfecdc9a39f72d66cfd02e1fe",
+  "shardHash": "30e189c73064b85c7749a819b5d0323a3e18f3ec7bb38f9134946c1b670cb2af",
   "specVersion": "1.1.0"
 }

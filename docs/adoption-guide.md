@@ -205,7 +205,7 @@ divergence observed across the reference repos. Every sub-table is
 | `branding.compiler_id` / `indexer_id` | ids stamped in emitted `build` metadata | `"spec-spine"` |
 | `coupling.bypass_prefixes` | **additions** to the built-in bypass floor (additive; cannot remove a floor entry) | `[]` |
 | `coupling.waiver_keyword` | the PR-body waiver keyword | `"Spec-Drift-Waiver:"` |
-| `coupling.auto_waive_dependency_only` | when `true` and no PR-body waiver is present, mechanically self-waives PRs where every non-bypassed changed path is a `package.json` with only dependency version-string changes (the dependabot-class path); fail-closed on anything more (spec 005 §3.5) | `false` |
+| `coupling.auto_waive_dependency_only` | when `true` and no PR-body waiver is present, mechanically self-waives PRs where every non-bypassed changed path is a recognized dependency manifest with only version-pin changes: a `package.json` dependency table, a `Cargo.toml` dependency version, or a claimed `.github/workflows/*.yml` `uses:` action ref (the dependabot-class path); fail-closed on anything more (spec 005 §3.5, extended by spec 030) | `false` |
 | `provenance.uri_schemes` | open kind→scheme map for provenance URIs | `{ knowledge = "knowledge://", code-fingerprint = "fingerprint://" }` |
 | `frontmatter.extra_known_keys` | recognized frontmatter keys added without forking the types crate | `[]` |
 

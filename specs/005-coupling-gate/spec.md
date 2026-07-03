@@ -164,6 +164,12 @@ either the predecessor or the successor clears the path.
   Git-diff mode only (`--paths-from` carries no content). The freshness
   half of the dependabot story is spec 004 §3.5's governance-projection
   hashing, which keeps a dep-only bump from staling the committed index.
+  **Spec 030 extends this mechanism** to two more ecosystems under the same
+  opt-in flag: a `Cargo.toml` whose only change is dependency version
+  specifiers, and a claimed `.github/workflows/*.yml` whose only change is the
+  `@ref` of `uses:` action references. The whole-diff rule is unchanged (every
+  non-bypassed path must be a recognized manifest whose change is
+  dependency-only); the paired cargo freshness projection also lands in 004 §3.5.
 
 ### 3.6 Granularity reconciliation (the crate-spec vs file-establishes question)
 

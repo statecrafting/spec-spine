@@ -124,10 +124,17 @@ Rationale: dependency tables are not a governed input (the indexer never
 reads them), so a dependabot-class version bump must not stale the committed
 index (the bot can neither re-index nor edit a PR body), while a change to
 any field the indexer *does* read still does. An unparseable manifest falls
-back to raw bytes: over-hashing is the fail-closed direction. Cargo and pnpm
-manifests still fold as raw bytes. Upgrading across this amendment changes
-every npm-bearing repo's computed hash once: re-run `spec-spine index` when
-bumping the dependency.
+back to raw bytes: over-hashing is the fail-closed direction. Upgrading across
+this amendment changes every npm-bearing repo's computed hash once: re-run
+`spec-spine index` when bumping the dependency.
+
+**Cargo.toml folds as its own governance projection too** (spec 030, extending
+this amendment to the cargo ecosystem): the parsed manifest with its dependency
+tables (`dependencies` / `dev-dependencies` / `build-dependencies`, at the top
+level and under `[workspace]` / `[target.<cfg>]`) stripped, so a cargo version
+bump is not a hashed input while everything the indexer reads (name, version,
+edition, the `[package.metadata.<ns>]` binding, `[lib]` / `[bin]` presence)
+still stales the shard. pnpm manifests still fold as raw bytes.
 
 ### 3.6 Traceability and diagnostics
 

@@ -51,8 +51,9 @@ pub use couple::{
     is_bypassed_path, parse_waiver,
 };
 pub use dep_only::{
-    DEPENDENCY_TABLES, FileContents, dependency_only_change, dependency_only_waiver,
-    is_package_json,
+    CARGO_DEPENDENCY_TABLES, DEPENDENCY_TABLES, FileContents, cargo_dependency_only_change,
+    dependency_only_change, dependency_only_waiver, is_cargo_toml, is_dependency_manifest,
+    is_package_json, is_workflow_yaml, workflow_dependency_only_change,
 };
 pub use index::{
     Freshness, IndexOutcome, IndexShardSet, authorities, check_index_freshness,

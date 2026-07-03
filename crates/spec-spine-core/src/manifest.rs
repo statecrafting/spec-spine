@@ -309,6 +309,69 @@ pub fn npm_hash_projection(content: &str, namespace: &str) -> Option<String> {
     serde_json::to_string(&serde_json::Value::Object(proj)).ok()
 }
 
+/// Cargo dependency tables stripped from the governance projection: a
+/// dependabot-class version bump lives entirely inside these (at the top level,
+/// under `[workspace]`, or under `[target.<cfg>]`). Mirrors
+/// `dep_only::CARGO_DEPENDENCY_TABLES`.
+const CARGO_DEP_TABLES: &[&str] = &["dependencies", "dev-dependencies", "build-dependencies"];
+
+/// The governance projection of a Cargo manifest (spec 030, extending the
+/// 2026-06-11 npm projection to the cargo ecosystem). The manifest with its
+/// dependency tables removed, rendered as canonical JSON so the hash is
+/// deterministic (the same sorted-key path the npm projection folds through).
+/// A dependabot-class version bump changes only a stripped table, so it leaves
+/// the projection (and the shard hash) unchanged, while any other edit (name,
+/// version, edition, `[package.metadata.<ns>]`, a `[lib]` / `[bin]` presence
+/// flip that would move the package kind, a feature-flag change, a new table)
+/// still stales it. `None` (unparseable / not a table) tells the caller to fall
+/// back to raw bytes: over-hashing is the fail-closed direction.
+pub fn cargo_hash_projection(content: &str) -> Option<String> {
+    let mut doc: toml::Value = toml::from_str(content).ok()?;
+    let table = doc.as_table_mut()?;
+    strip_cargo_dep_tables(table);
+    serde_json::to_string(&toml_to_json(&doc)).ok()
+}
+
+/// Remove the cargo dependency tables at every location cargo allows them.
+fn strip_cargo_dep_tables(table: &mut toml::Table) {
+    for key in CARGO_DEP_TABLES {
+        table.remove(*key);
+    }
+    if let Some(toml::Value::Table(ws)) = table.get_mut("workspace") {
+        ws.remove("dependencies");
+    }
+    if let Some(toml::Value::Table(targets)) = table.get_mut("target") {
+        for (_, cfg) in targets.iter_mut() {
+            if let toml::Value::Table(cfg) = cfg {
+                for key in CARGO_DEP_TABLES {
+                    cfg.remove(*key);
+                }
+            }
+        }
+    }
+}
+
+/// Deterministic TOML → JSON, so the cargo projection hashes through the same
+/// canonical (sorted-key) serializer the npm projection uses. `Datetime` folds
+/// to its string form; a non-finite float folds to null (cargo manifests carry
+/// none of either in practice).
+fn toml_to_json(value: &toml::Value) -> serde_json::Value {
+    use serde_json::Value as J;
+    match value {
+        toml::Value::String(s) => J::String(s.clone()),
+        toml::Value::Integer(i) => J::Number((*i).into()),
+        toml::Value::Float(f) => serde_json::Number::from_f64(*f).map_or(J::Null, J::Number),
+        toml::Value::Boolean(b) => J::Bool(*b),
+        toml::Value::Datetime(d) => J::String(d.to_string()),
+        toml::Value::Array(a) => J::Array(a.iter().map(toml_to_json).collect()),
+        toml::Value::Table(t) => J::Object(
+            t.iter()
+                .map(|(k, v)| (k.clone(), toml_to_json(v)))
+                .collect(),
+        ),
+    }
+}
+
 // ===== shared =====
 
 /// Rebase a workspace-member glob declared in `decl` (a repo-relative declaration

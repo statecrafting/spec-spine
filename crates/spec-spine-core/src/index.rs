@@ -1013,9 +1013,11 @@ fn package_manifest_rel(package: &PackageRecord) -> String {
 }
 
 /// The hash a per-package index shard self-describes: its manifest folded with
-/// the global-inputs scalar. npm manifests fold as their governance projection
-/// (spec 004 §3.5): a dependabot-class dependency bump leaves the shard fresh,
-/// while a name / workspaces / spec-metadata change stales it.
+/// the global-inputs scalar. npm and cargo manifests fold as their governance
+/// projection (spec 004 §3.5; cargo added by spec 030): a dependabot-class
+/// dependency bump leaves the shard fresh, while a change to a field the
+/// indexer reads (name / version / workspaces / spec-metadata / package kind)
+/// stales it.
 fn package_shard_hash(
     repo_root: &Path,
     package: &PackageRecord,
@@ -1028,6 +1030,8 @@ fn package_shard_hash(
         let piece = if manifest_rel.ends_with("package.json") {
             crate::manifest::npm_hash_projection(&content, &cfg.manifest.metadata_namespace)
                 .unwrap_or(content)
+        } else if manifest_rel.ends_with("Cargo.toml") {
+            crate::manifest::cargo_hash_projection(&content).unwrap_or(content)
         } else {
             content
         };
