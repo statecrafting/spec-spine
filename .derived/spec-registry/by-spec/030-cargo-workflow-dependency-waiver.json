@@ -1,0 +1,78 @@
+{
+  "record": {
+    "amends": [
+      "004-codebase-index",
+      "005-coupling-gate"
+    ],
+    "created": "2026-07-03",
+    "dependsOn": [
+      "004-codebase-index",
+      "005-coupling-gate"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/manifest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/dep_only.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/couple.rs"
+        }
+      }
+    ],
+    "id": "030-cargo-workflow-dependency-waiver",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "sectionHeadings": [
+      "030: Cargo and workflow dependabot bumps self-clear",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Cargo freshness projection (amends 004 §3.5)",
+      "3.2 Cargo dependency-only auto-waiver (amends 005 §3.5)",
+      "3.3 Workflow dependency-only auto-waiver (amends 005 §3.5)",
+      "3.4 The whole-diff rule is unchanged",
+      "3.5 Config, determinism, and report shape",
+      "3.6 Tests (minimum)",
+      "4. Out of scope"
+    ],
+    "specPath": "specs/030-cargo-workflow-dependency-waiver/spec.md",
+    "status": "approved",
+    "summary": "Amends 004 §3.5 and 005 §3.5, extending the paired 2026-06-11 npm dependency-only mechanism to the cargo and GitHub Actions ecosystems so a dependabot-class bump self-clears without a human waiver. Freshness half: Cargo.toml folds into the index content hash as a governance projection (its dependency tables stripped), mirroring npm, so a version bump leaves the committed shards fresh. Coupling half: the mechanical auto-waiver recognizes a Cargo.toml whose only change is dependency version specifiers, and a `.github/workflows/*.yml` whose only change is the `@ref` of `uses:` action references. Every non-version edit (a new or removed dependency, a feature / git / path change, a `run:` / `with:` edit, an added step or table, an unpinned action, a spec-metadata edit) still refuses the waiver, fail-closed. A claimed workflow file (007/008/021's release.yml) and a crate whose direct dependencies dependabot bumps are the live acceptance tests.\n",
+    "title": "Cargo and workflow dependabot bumps self-clear: freshness projection + auto-waiver"
+  },
+  "shardHash": "8a7d53e4b894e9762ea1401b3c84443c5d2e49e1e55274168de7c487176f7a78",
+  "specVersion": "1.1.0"
+}

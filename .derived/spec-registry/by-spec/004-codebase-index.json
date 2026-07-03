@@ -58,6 +58,6 @@
     "summary": "The codebase indexer (code-as-source view): discover compilation units via the configurable manifest namespace, link code to specs three ways, resolve the file/section/symbol unit grammar to physical (file, line-span) locations (tree-sitter for symbols, Rust + TypeScript in v1), emit a deterministic index.json with a content-hash staleness mechanism, and answer authorities(unit). Establishes the manifest/section/symbol resolution layer and the `spec-spine index` CLI subcommand.\n",
     "title": "Codebase index and the file/section/symbol unit grammar"
   },
-  "shardHash": "c39532ea6057b9b570aab1c24eb948c1d7402e47b1aac71ae108b7bb889762f7",
+  "shardHash": "61a32ded0a0b85b3402157ad886ec058b3c596c908f72f9651c87104b13e23bb",
   "specVersion": "1.1.0"
 }

@@ -400,3 +400,157 @@ fn claimed_floor_path_refuses_the_auto_waiver() {
         String::from_utf8_lossy(&out.stderr)
     );
 }
+
+// ===== spec 030: cargo + workflow dependabot-class paths =====
+
+/// A minimal governed repo: one cargo crate discovered and floor-owned by spec
+/// 001-a via its manifest metadata, with one external dependency to bump.
+fn setup_cargo(root: &Path, auto_waive: bool) {
+    if auto_waive {
+        write(
+            root,
+            "spec-spine.toml",
+            "[coupling]\nauto_waive_dependency_only = true\n",
+        );
+    }
+    write(root, "Cargo.toml", "[workspace]\nmembers = [\"crate-a\"]\n");
+    write(
+        root,
+        "crate-a/Cargo.toml",
+        "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n\
+         [package.metadata.spec-spine]\nspec = \"001-a\"\n\
+         [dependencies]\nserde = \"1.0.0\"\n",
+    );
+    write(root, "crate-a/src/lib.rs", "pub fn a() {}\n");
+    write(
+        root,
+        "specs/001-a/spec.md",
+        "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\nestablishes:\n  - \"crate-a/src/lib.rs\"\n---\n# 001-a\n## body\n",
+    );
+}
+
+#[test]
+fn cargo_dependency_bump_stays_fresh_and_auto_waives() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_cargo(root, true);
+    git_in(root, &["init", "-q"]);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base"]);
+
+    // Dependabot-style cargo bump: a dependency version only. No re-index, no
+    // spec edit, no PR body. The Cargo.toml is floor-owned by 001-a.
+    write(
+        root,
+        "crate-a/Cargo.toml",
+        "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n\
+         [package.metadata.spec-spine]\nspec = \"001-a\"\n\
+         [dependencies]\nserde = \"1.0.5\"\n",
+    );
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "bump"]);
+
+    // (a) Still FRESH: the cargo governance projection (spec 004 §3.5, spec 030)
+    // strips dependency tables, so a version bump is not a hashed input.
+    let fresh = index_check(root);
+    assert_eq!(
+        code(&fresh),
+        0,
+        "index must stay fresh on a cargo dep-only bump: {}",
+        String::from_utf8_lossy(&fresh.stderr)
+    );
+
+    // (b) The coupling gate self-waives (spec 005 §3.5, extended by spec 030).
+    let out = couple_git(root);
+    assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        String::from_utf8_lossy(&out.stdout).contains("auto-waived"),
+        "stdout: {}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+}
+
+#[test]
+fn cargo_feature_edit_without_bump_still_drifts() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_cargo(root, true);
+    git_in(root, &["init", "-q"]);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base"]);
+
+    // A feature-set change hiding as a dependency edit: not dependency-only.
+    write(
+        root,
+        "crate-a/Cargo.toml",
+        "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n\
+         [package.metadata.spec-spine]\nspec = \"001-a\"\n\
+         [dependencies]\nserde = { version = \"1.0.0\", features = [\"derive\"] }\n",
+    );
+    refresh(root); // a shape flip may alter nothing the indexer reads; refresh anyway
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "features"]);
+
+    let out = couple_git(root);
+    assert_eq!(
+        code(&out),
+        1,
+        "a features edit must refuse the cargo auto-waiver: {}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+}
+
+#[test]
+fn workflow_uses_bump_auto_waives() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    // Reuse the cargo repo for a valid, indexable tree, then add a workflow
+    // file explicitly claimed by a spec (so it overrides the .github/ floor).
+    setup_cargo(root, true);
+    write(
+        root,
+        ".github/workflows/ci.yml",
+        "name: CI\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    \
+         steps:\n      - uses: actions/checkout@v4\n      - run: cargo test\n",
+    );
+    write(
+        root,
+        "specs/002-ci/spec.md",
+        "---\nid: \"002-ci\"\ntitle: \"CI\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\nestablishes:\n  - \".github/workflows/ci.yml\"\n---\n# 002-ci\n## body\n",
+    );
+    git_in(root, &["init", "-q"]);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base"]);
+
+    // Dependabot github-actions bump: the action ref only. No re-index (a file
+    // unit carries no span, so it is not a hashed input), no spec edit.
+    write(
+        root,
+        ".github/workflows/ci.yml",
+        "name: CI\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    \
+         steps:\n      - uses: actions/checkout@v5\n      - run: cargo test\n",
+    );
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "bump-action"]);
+
+    let fresh = index_check(root);
+    assert_eq!(
+        code(&fresh),
+        0,
+        "a file-unit workflow bump must not stale the index: {}",
+        String::from_utf8_lossy(&fresh.stderr)
+    );
+
+    let out = couple_git(root);
+    assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        String::from_utf8_lossy(&out.stdout).contains("auto-waived"),
+        "stdout: {}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+}

@@ -100,11 +100,13 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> 
     Ok(parse_unified_diff(&raw))
 }
 
-/// Attempt the spec 005 §3.5 mechanical auto-waiver: every non-bypassed
-/// changed path must be a `package.json` whose base→head change is
-/// dependency-only. Contents come from `git show` at the **merge base** (the
-/// diff is three-dot, so the base side is `merge-base(base, head)`, not the
-/// base branch tip) and at `head`. Any git failure refuses the auto-waiver
+/// Attempt the spec 005 §3.5 mechanical auto-waiver (extended to cargo and
+/// workflow manifests by spec 030): every non-bypassed changed path must be a
+/// recognized dependency manifest (`package.json` / `Cargo.toml` /
+/// `.github/workflows/*.yml`) whose base→head change is confined to dependency
+/// version pins. Contents come from `git show` at the **merge base** (the diff
+/// is three-dot, so the base side is `merge-base(base, head)`, not the base
+/// branch tip) and at `head`. Any git failure refuses the auto-waiver
 /// fail-closed rather than erroring the gate.
 ///
 /// The bypass verdict is claim-aware (spec 009): it assembles the committed
@@ -127,11 +129,12 @@ fn try_dependency_only_waiver(
         .filter(|f| !is_bypassed_path(cfg, &index, &f.path))
         .collect();
     // Cheap pre-filter before any git spawn: the waiver can only ever apply
-    // when every non-bypassed path is a package.json manifest.
+    // when every non-bypassed path is a recognized dependency manifest
+    // (package.json / Cargo.toml / workflow YAML).
     if candidates.is_empty()
         || !candidates
             .iter()
-            .all(|f| spec_spine_core::is_package_json(&f.path))
+            .all(|f| spec_spine_core::is_dependency_manifest(&f.path))
     {
         return Ok(None);
     }
