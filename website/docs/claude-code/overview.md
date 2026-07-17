@@ -10,7 +10,7 @@ This section is an adoption guide. It teaches you how to drive spec-spine with
 [Claude Code](https://claude.ai/code) using a ready-made kit: a complete set of
 skills, agents, and rules that chain into a single governed development loop.
 
-The kit lives in this repository under [`kit/`](https://github.com/stagecraft-ing/spec-spine/tree/main/kit).
+The kit lives in this repository under [`kit/`](https://github.com/statecrafting/spec-spine/tree/main/kit).
 It is Apache-2.0, substrate-agnostic, and built to be copied into any repository
 that adopts spec-spine. These pages explain what each piece does and how to
 adapt it; the files themselves are in `kit/.claude/`.

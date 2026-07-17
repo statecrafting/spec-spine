@@ -21,13 +21,13 @@ cargo install spec-spine-cli --version 0.8.0 --locked
 If you do not have a Rust toolchain, you can install the prebuilt binary using the shell installer. The script detects your platform and architecture, downloads the matching release archive, verifies its checksum, and installs the binary.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/stagecraft-ing/spec-spine/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/statecrafting/spec-spine/main/install.sh | sh
 ```
 
 You can pin a specific version and target directory using environment variables:
 
 ```bash
-SPEC_SPINE_VERSION=v0.8.0 SPEC_SPINE_BIN_DIR=~/.local/bin curl -fsSL https://raw.githubusercontent.com/stagecraft-ing/spec-spine/main/install.sh | sh
+SPEC_SPINE_VERSION=v0.8.0 SPEC_SPINE_BIN_DIR=~/.local/bin curl -fsSL https://raw.githubusercontent.com/statecrafting/spec-spine/main/install.sh | sh
 ```
 
 ## npm (TypeScript/JavaScript)

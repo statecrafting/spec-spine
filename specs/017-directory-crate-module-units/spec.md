@@ -74,7 +74,7 @@ as the `INDEX_SCHEMA_VERSION` minor bump alone.
 three, and composing with the spec-015 `{ unit: … }` wrapper):
 
 ```yaml
-- { kind: directory, path: "platform/services/stagecraft/api/db" }
+- { kind: directory, path: "platform/services/statecraft/api/db" }
 - { kind: crate, id: "factory-engine" }       # Cargo or npm manifest name
 - { kind: module, id: "my_crate::serialization" }
 ```

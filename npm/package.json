@@ -12,14 +12,14 @@
     "rust",
     "deterministic"
   ],
-  "homepage": "https://github.com/stagecraft-ing/spec-spine#readme",
+  "homepage": "https://github.com/statecrafting/spec-spine#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stagecraft-ing/spec-spine.git",
+    "url": "git+https://github.com/statecrafting/spec-spine.git",
     "directory": "npm"
   },
   "bugs": {
-    "url": "https://github.com/stagecraft-ing/spec-spine/issues"
+    "url": "https://github.com/statecrafting/spec-spine/issues"
   },
   "license": "Apache-2.0",
   "author": "The spec-spine Authors",
