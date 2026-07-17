@@ -90,7 +90,7 @@ same `build` matrix (no second Rust build):
 Verify a downloaded archive:
 
 ```sh
-gh attestation verify spec-spine-<tag>-<triple>.tar.gz --repo stagecraft-ing/spec-spine
+gh attestation verify spec-spine-<tag>-<triple>.tar.gz --repo statecrafting/spec-spine
 ```
 
 These steps run only on a `v*` tag (the release workflow is tag-gated), so they

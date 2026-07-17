@@ -272,7 +272,7 @@ waiver_keyword = "Spec-Drift-Waiver:"
 
 [provenance]
 # OPEN scheme registry: the closed enum forced edits to shared types
-# (OAP stagecraft://,xray-fingerprint:// vs aide knowledge://,fingerprint://).
+# (OAP statecraft://,xray-fingerprint:// vs aide knowledge://,fingerprint://).
 # Map of provenance kind → URI scheme. Adopters add/override freely.
 [provenance.uri_schemes]
 knowledge        = "knowledge://"

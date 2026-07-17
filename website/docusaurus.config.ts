@@ -8,10 +8,10 @@ const config: Config = {
   favicon: 'img/favicon.ico',
 
   // For GitHub Pages: custom domain later -> baseUrl: '/' plus static/CNAME
-  url: 'https://stagecraft-ing.github.io',
+  url: 'https://statecrafting.github.io',
   baseUrl: '/spec-spine/',
 
-  organizationName: 'stagecraft-ing',
+  organizationName: 'statecrafting',
   projectName: 'spec-spine',
 
   onBrokenLinks: 'throw',
@@ -35,7 +35,7 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           editUrl:
-            'https://github.com/stagecraft-ing/spec-spine/tree/main/website/',
+            'https://github.com/statecrafting/spec-spine/tree/main/website/',
         },
         blog: false,
         theme: {
@@ -56,7 +56,7 @@ const config: Config = {
           label: 'Docs',
         },
         {
-          href: 'https://github.com/stagecraft-ing/spec-spine',
+          href: 'https://github.com/statecrafting/spec-spine',
           label: 'GitHub',
           position: 'right',
         },
@@ -87,7 +87,7 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/stagecraft-ing/spec-spine',
+              href: 'https://github.com/statecrafting/spec-spine',
             },
             {
               label: 'crates.io',

@@ -24,7 +24,7 @@ cargo install spec-spine-cli      # yields a `spec-spine` binary on your PATH
 ### Prebuilt binary (no Rust toolchain)
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/stagecraft-ing/spec-spine/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/statecrafting/spec-spine/main/install.sh | sh
 ```
 
 The script detects your platform/arch, downloads the matching release archive

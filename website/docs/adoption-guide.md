@@ -110,7 +110,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - run: curl -fsSL https://raw.githubusercontent.com/stagecraft-ing/spec-spine/main/install.sh | sh
+      - run: curl -fsSL https://raw.githubusercontent.com/statecrafting/spec-spine/main/install.sh | sh
       - run: spec-spine compile
       - run: spec-spine index check
       - run: spec-spine lint --fail-on-warn

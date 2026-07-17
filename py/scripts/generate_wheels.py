@@ -137,9 +137,9 @@ def _metadata(version: str, requires_python: str) -> bytes:
         "owning spec. Ships the prebuilt binary; no Rust toolchain required.\n"
         "License-Expression: Apache-2.0\n"
         "License-File: LICENSE\n"
-        "Project-URL: Homepage, https://github.com/stagecraft-ing/spec-spine\n"
-        "Project-URL: Repository, https://github.com/stagecraft-ing/spec-spine\n"
-        "Project-URL: Issues, https://github.com/stagecraft-ing/spec-spine/issues\n"
+        "Project-URL: Homepage, https://github.com/statecrafting/spec-spine\n"
+        "Project-URL: Repository, https://github.com/statecrafting/spec-spine\n"
+        "Project-URL: Issues, https://github.com/statecrafting/spec-spine/issues\n"
         "Keywords: spec,specification,authority,governance,coupling,cli,rust,deterministic\n"
         "Classifier: Development Status :: 4 - Beta\n"
         "Classifier: Environment :: Console\n"
@@ -150,7 +150,7 @@ def _metadata(version: str, requires_python: str) -> bytes:
         "\n"
         "Prebuilt `spec-spine` binary wheel. The binary is installed to your "
         "environment's scripts directory; `spec-spine`/`uvx spec-spine` runs it "
-        "directly. See https://github.com/stagecraft-ing/spec-spine#readme.\n"
+        "directly. See https://github.com/statecrafting/spec-spine#readme.\n"
     )
     return body.encode("utf-8")
 

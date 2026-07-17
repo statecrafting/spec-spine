@@ -27,7 +27,7 @@ and the three core rules.
 
 ## 2. Copy the kit
 
-The kit is the [`kit/`](https://github.com/stagecraft-ing/spec-spine/tree/main/kit)
+The kit is the [`kit/`](https://github.com/statecrafting/spec-spine/tree/main/kit)
 directory in the spec-spine repository. Copy its `.claude/` tree into your
 repository root, plus the config templates if you do not already have them:
 

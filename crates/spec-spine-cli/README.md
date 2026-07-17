@@ -30,4 +30,4 @@ See [docs/adoption-guide.md] for the full install → init → annotate → wire
 walkthrough. License: Apache-2.0.
 
 [`spec-spine-core`]: https://crates.io/crates/spec-spine-core
-[docs/adoption-guide.md]: https://github.com/stagecraft-ing/spec-spine/blob/main/docs/adoption-guide.md
+[docs/adoption-guide.md]: https://github.com/statecrafting/spec-spine/blob/main/docs/adoption-guide.md

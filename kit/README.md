@@ -1,7 +1,7 @@
 # spec-spine Claude Code Kit
 
 A ready-to-copy Claude Code skill kit for any repository that adopts
-[spec-spine](https://github.com/stagecraft-ing/spec-spine). It layers a complete
+[spec-spine](https://github.com/statecrafting/spec-spine). It layers a complete
 governed-development loop on top of the spec-spine substrate: session
 initialization, planning, implementation, validation, adversarial review,
 conventional commits, and gated PR creation.
