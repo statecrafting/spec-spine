@@ -64,12 +64,29 @@ compiles in memory and compares **without writing**. Read the exit code:
 - **`0` (fresh):** the committed shards are exactly what the corpus compiles to,
   so the lifecycle counts reflect the current `specs/*/spec.md` frontmatter.
   Report nothing.
-- **`2` (stale):** report "Spec registry: stale, run `spec-spine compile` and
-  commit" and name the drifted shards from its stderr, then continue. The
+- **`2` (stale):** *first check stderr, see the CLI-version note below.* If it
+  is a genuine staleness report, name the drifted shards from stderr, report
+  "Spec registry: stale, run `spec-spine compile` and commit", and continue. The
   lifecycle counts come from the committed ledger and are therefore the stale
   ones; say so rather than presenting them as current.
 - **`1` (validation failed):** the corpus itself is broken. Surface the
   violations and report the counts as unverified.
+- **any other non-zero** (`3` is I/O, parse, schema, or config; a missing binary
+  gives whatever the shell returns): treat freshness as unknown, report the
+  stderr verbatim, and continue. Never report "fresh" for a code you did not
+  recognize.
+
+The counts are formatted in step 2, after every parallel read has returned, so
+the freshness verdict is always in hand before the lifecycle numbers are
+written down. Do not emit counts earlier.
+
+> **CLI version.** `compile --check` needs a `spec-spine` new enough to ship it.
+> An older CLI rejects the unknown flag with **exit 2 as well**, the same code
+> as "stale", so the two are distinguishable only by stderr: a rejection says
+> `error: unexpected argument '--check'`, while a real staleness report names
+> shards. Reporting a version problem as spec drift would send someone chasing a
+> phantom, so check the message before believing the code. To resolve it, either
+> upgrade, or use the gitignored-derived variant below until you do.
 
 Do **not** substitute a plain `spec-spine compile` here. Writing repairs the
 tree as a side effect of reading it, which hides that the *committed* copy was
@@ -78,12 +95,10 @@ already on the branch. `/init` reports; it does not silently mutate.
 
 If you **gitignore** the derived directory instead, there is nothing committed
 to compare against and both freshness gates would report everything missing.
-Drop `compile --check` and `index check` from step 1 and run plain `spec-spine
-compile` and `spec-spine index` there, to build the artifacts for the session.
-
-> `compile --check` needs a `spec-spine` new enough to ship it. On an older CLI
-> the flag is rejected; either upgrade, or use the gitignored-derived variant
-> above until you do.
+Drop `compile --check` and `index check`, and instead run plain `spec-spine
+compile` and `spec-spine index` **before** the rest of step 1: those two write
+the artifacts that the `registry` and `index` reads below them consume, so for
+this variant only, step 1 is no longer order-free.
 
 **CLI missing:** if `spec-spine --version` fails, run `/setup`. Do NOT fall back
 to ad-hoc parsing of `.derived/**/*.json`.
