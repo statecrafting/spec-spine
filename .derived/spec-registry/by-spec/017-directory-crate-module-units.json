@@ -83,6 +83,6 @@
     "summary": "Lifts the v1 unit-grammar limitation (`docs/design/00-architecture.md` §2.2, Q5): the three reserved kinds (`directory`, `crate`, and `module`) are now parsed and resolved alongside `file`/`section`/`symbol`. A `directory` unit resolves to its subtree (existence-checked, I-007 on miss); a `crate` unit resolves a manifest name against the discovered package inventory to that package's directory subtree (I-003 on miss, hyphen/underscore interchangeable); a `module` unit resolves a `::`-qualified Rust module path via a new module index; file-modules whole-file, top-level inline `mod` blocks to their span (I-008 on miss). The registry/index schemas are permissive on the unit payload, so this is an additive MINOR (`INDEX_SCHEMA_VERSION` 0.2.0 → 0.3.0) with no schema-file edit. Unblocks adopting the OAP corpus, which authors these three kinds across ~192 unit declarations (93 `directory`, 99 `crate`, 1 `module`) with no mass frontmatter migration.\n",
     "title": "Authority units: resolve the reserved directory / crate / module kinds"
   },
-  "shardHash": "94f909f1a86ecc36103aa32f3ba13a5c7b0d32fd5aae939a30ceebe61603b368",
+  "shardHash": "66b30cc522e37d801ff5adb7848e579afe16a8dd051fbff18797f996cbd8b08a",
   "specVersion": "1.1.0"
 }
