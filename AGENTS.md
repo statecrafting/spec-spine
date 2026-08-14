@@ -47,12 +47,17 @@ The protocol drives the library through its own built binary, `target/release/sp
 `/init` asks with `spec-spine compile --check` (spec 031), which compiles in memory and compares against the committed shards **without writing**. Read the exit code:
 
 - **`0` (fresh):** the committed shards are exactly what the corpus compiles to, so the lifecycle counts below reflect the current `specs/*/spec.md` frontmatter. Report nothing.
-- **`2` (stale):** report "Spec registry: stale, run `spec-spine compile` and commit" **and name the drifted shards from its stderr**, then continue. The lifecycle counts come from the committed ledger and are therefore the stale ones; say so rather than presenting them as current.
+- **`2` (stale):** *read stderr before believing it* (see **Stale binary** below). For a genuine staleness report, report "Spec registry: stale, run `spec-spine compile` and commit" **and name the drifted shards from its stderr**, then continue. The lifecycle counts come from the committed ledger and are therefore the stale ones; say so rather than presenting them as current.
 - **`1` (validation failed):** the corpus itself is broken. Surface the violations, and report the lifecycle counts as **unverified**: they still come from the committed ledger, but with the corpus failing validation there is no way to say whether that ledger corresponds to it. Fixing the violations is the first task of the session, not an aside.
+- **any other non-zero** (`3` is I/O / parse / schema / config): treat freshness as unknown, report stderr verbatim, and continue. Never report "fresh" for an exit code you did not recognize.
+
+The counts are formatted in step 2, after every parallel read has returned, so the verdict is always in hand before the numbers are written down.
+
+**Stale binary:** `target/release/spec-spine` is whatever was last built, which is not necessarily this checkout. A binary predating `compile --check` rejects the unknown flag with **exit 2**, the same code as "stale", so the two separate only by stderr: a rejection says `error: unexpected argument '--check'`, while a real report names shards. Rebuild (`cargo build --release -p spec-spine-cli`) and re-run rather than reporting phantom drift. Rebuilding is cheap and is the right reflex whenever the binary predates recent commits.
 
 Do **not** substitute a plain `spec-spine compile` here. Writing would repair the tree as a side effect of reading it, which hides the fact that the *committed* copy was stale: the drift then looks like an uncommitted local edit instead of a defect on the branch (this is exactly how the spec 017/021 drift reached `main` unnoticed). `/init` reports; it does not silently mutate.
 
-**Binary missing:** if the `spec-spine` binary is not built, run `cargo build --release -p spec-spine-cli` and continue. Do NOT fall back to ad-hoc parsing of `.derived/**`.
+**Binary missing or stale:** if the `spec-spine` binary is not built, or predates the commits in this checkout, run `cargo build --release -p spec-spine-cli` and continue (see **Stale binary** above for why a stale one misreports freshness). Do NOT fall back to ad-hoc parsing of `.derived/**`.
 
 If any file is missing: log "not found" and continue.
 
