@@ -1,7 +1,7 @@
 ---
 id: "031-registry-freshness-check"
 title: "Registry freshness: `spec-spine compile --check`"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-08-14"
 implementation: complete

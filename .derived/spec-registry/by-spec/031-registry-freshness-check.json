@@ -89,10 +89,10 @@
       "4. Out of scope"
     ],
     "specPath": "specs/031-registry-freshness-check/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The committed spec-registry shard tree had no freshness gate. `index check` (spec 004) covers only the codebase-index tree, and `compile` is a validation gate that rewrites the shards without ever asserting the committed copies matched, so editing a spec.md and forgetting to recompile lands stale shardHash values with CI green (this is what PR #61 did to specs 017 and 021). This spec adds `spec-spine compile --check`: a non-writing gate that compiles in memory and compares the result byte-for-byte against the committed shards, exiting 2 on staleness exactly as `index check` does. It closes the registry/index asymmetry with a first-class command rather than a repo-local git tree check, so every adopter that commits its registry gets the same guarantee spec-spine gets.\n",
     "title": "Registry freshness: `spec-spine compile --check`"
   },
-  "shardHash": "559875a381e5c5cfcbc461813d17e2cb4d780979df285fd094e9dd3c3839aa0b",
+  "shardHash": "9784eef8c7adec1409fd733efb0611b2c4a75cbab41b8266a1e9cd40dee159a2",
   "specVersion": "1.1.0"
 }
