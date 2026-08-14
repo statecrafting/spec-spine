@@ -704,6 +704,14 @@ fn freshness_report_caps_the_named_shards() {
         detail.contains("and 5 more"),
         "expected a capped tail: {detail}"
     );
+    // Spec 031 3.3: one line per stale shard, so a CI log stays greppable.
+    // A count line + 20 capped entries + the "and N more" tail = 22 lines.
+    let lines: Vec<&str> = detail.lines().collect();
+    assert_eq!(lines.len(), 22, "one line per shard, capped: {detail}");
+    assert!(
+        lines[1..].iter().all(|l| l.starts_with("  ")),
+        "shard lines are indented under the count line: {detail}"
+    );
 }
 
 #[test]

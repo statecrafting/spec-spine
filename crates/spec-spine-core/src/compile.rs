@@ -501,16 +501,19 @@ pub fn compare_committed_registry(
     }
     stale.sort();
     let total = stale.len();
-    let listed = if total > STALE_REPORT_CAP {
-        let mut head = stale[..STALE_REPORT_CAP].join(", ");
-        head.push_str(&format!(", and {} more", total - STALE_REPORT_CAP));
-        head
-    } else {
-        stale.join(", ")
-    };
+    // One line per stale shard (spec 031 §3.3), so a CI log stays greppable and
+    // each finding is its own line rather than one wrapped blob.
+    let mut lines: Vec<String> = stale
+        .iter()
+        .take(STALE_REPORT_CAP)
+        .map(|s| format!("  {s}"))
+        .collect();
+    if total > STALE_REPORT_CAP {
+        lines.push(format!("  and {} more", total - STALE_REPORT_CAP));
+    }
     Ok(Freshness::Stale {
         expected: format!("{} shard(s) matching the corpus", expected.len()),
-        actual: format!("{total} stale shard(s): {listed}"),
+        actual: format!("{total} stale shard(s):\n{}", lines.join("\n")),
     })
 }
 

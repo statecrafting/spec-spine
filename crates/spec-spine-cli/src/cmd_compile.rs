@@ -44,7 +44,12 @@ pub fn run(repo: &Path, check: bool) -> Result<u8, Error> {
                 );
                 Ok(0)
             }
-            // Stale detail goes to stderr so it surfaces in a CI log.
+            // Stale detail goes to stderr so it surfaces in a CI log. `actual`
+            // is already the count line plus one line per stale shard; the
+            // paired `expected` ("N shard(s) matching the corpus") is
+            // deliberately not printed, because the operator's next action does
+            // not depend on it. It stays on the typed verdict for library and
+            // JSON-facade consumers.
             Freshness::Stale { actual, .. } => {
                 eprintln!("{actual}");
                 eprintln!("spec-registry is STALE: run `spec-spine compile` and commit the result");

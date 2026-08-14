@@ -178,6 +178,12 @@ pub fn check_freshness_json(config_json: &str, repo_root: &str) -> Result<String
 /// [`check_freshness_json`] so a binding handles one verdict type for both
 /// committed trees. Staleness only: the validation verdict rides on
 /// [`compile_json`].
+///
+/// Each call compiles the corpus, so a consumer that wants *both* verdicts
+/// pays two compile passes across this and [`compile_json`]. That is the cost
+/// of keeping the facade one-verdict-per-call; a caller that minds it should
+/// use the typed API ([`compile`] once, then [`compare_committed_registry`]),
+/// which is what the CLI does.
 pub fn check_registry_freshness_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
     let value = freshness_to_json(check_registry_freshness(
