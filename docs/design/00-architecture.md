@@ -441,7 +441,7 @@ pub fn scaffold_init_json  (config_json: &str)                  -> Result<String
 ### 5.2 CLI: one multi-call `spec-spine` binary (recommended; no blocker found)
 
 ```
-spec-spine compile                                  # → .derived/spec-registry/by-spec/ shards (+ build-meta.json)
+spec-spine compile [--check]                        # → .derived/spec-registry/by-spec/ shards (+ build-meta.json); --check verifies the committed shards without writing (spec 031)
 spec-spine index   [check | render | orphans]       # check = per-shard staleness gate; default subcmd writes the index shard trees
 spec-spine registry list|show|status-report|relationships
 spec-spine lint    [--fail-on-warn] [--fail-on-info]

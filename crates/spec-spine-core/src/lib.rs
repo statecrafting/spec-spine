@@ -43,8 +43,9 @@ pub use attest::{
     AttestOptions, AttestOutcome, VerifyOutcome, attest, attestation_hash, verify_recompute,
 };
 pub use compile::{
-    CompileOutcome, MAX_UNDECLARED_EXTRA_FRONTMATTER, RegistryShardSet, compile,
-    load_committed_registry, registry_dir, registry_shard_files,
+    CompileOutcome, MAX_UNDECLARED_EXTRA_FRONTMATTER, RegistryShardSet, check_registry_freshness,
+    compare_committed_registry, compile, load_committed_registry, registry_dir,
+    registry_shard_files,
 };
 pub use couple::{
     CoupleReport, DEFAULT_BYPASS_PREFIXES, DiffFile, DiffInput, Waiver, couple, couple_with,
@@ -165,13 +166,34 @@ pub fn lint_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
 /// Check index freshness, returning `{ "fresh": bool, "expected"?, "actual"? }`.
 pub fn check_freshness_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
-    let value = match check_index_freshness(&config, std::path::Path::new(repo_root))? {
+    let value = freshness_to_json(check_index_freshness(
+        &config,
+        std::path::Path::new(repo_root),
+    )?);
+    Ok(value.to_string())
+}
+
+/// Check registry-shard freshness (spec 031), returning the same
+/// `{ "fresh": bool, "expected"?, "actual"? }` shape as
+/// [`check_freshness_json`] so a binding handles one verdict type for both
+/// committed trees. Staleness only: the validation verdict rides on
+/// [`compile_json`].
+pub fn check_registry_freshness_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
+    let config = config_from_json(config_json)?;
+    let value = freshness_to_json(check_registry_freshness(
+        &config,
+        std::path::Path::new(repo_root),
+    )?);
+    Ok(value.to_string())
+}
+
+fn freshness_to_json(freshness: Freshness) -> serde_json::Value {
+    match freshness {
         Freshness::Fresh => serde_json::json!({ "fresh": true }),
         Freshness::Stale { expected, actual } => {
             serde_json::json!({ "fresh": false, "expected": expected, "actual": actual })
         }
-    };
-    Ok(value.to_string())
+    }
 }
 
 /// Render the committed index as markdown (spec 011). `index_json` is the

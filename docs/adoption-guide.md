@@ -152,7 +152,13 @@ jobs:
         with:
           fetch-depth: 0          # full history so the gate can diff the merge base
       - run: cargo install spec-spine-cli   # or download the prebuilt binary
-      - run: spec-spine compile             # validation gate (exit 1 on failure)
+      # If you commit .derived/, use `compile --check`: it validates AND proves
+      # the committed registry shards match the corpus, without writing (exit 1
+      # invalid, 2 stale). If you gitignore .derived/, use plain `spec-spine
+      # compile` instead, since there is no committed artifact to compare.
+      # Never run --check after a writing compile: it would compare the shards
+      # against files the same job just overwrote and pass unconditionally.
+      - run: spec-spine compile --check     # validation + registry freshness
       - run: spec-spine index check         # staleness gate (exit 2 if stale)
       - run: spec-spine lint --fail-on-warn
       - name: Coupling gate

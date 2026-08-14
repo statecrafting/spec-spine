@@ -61,7 +61,7 @@ install → init → annotate → wire-CI walkthrough.
 
 | Command | Capability |
 |---|---|
-| `spec-spine compile` | validate frontmatter, emit the deterministic registry |
+| `spec-spine compile` / `compile --check` | validate frontmatter, emit the deterministic registry / verify the committed shards match without writing |
 | `spec-spine index` / `index check` / `index render` / `index orphans` | emit the codebase index / check staleness / render it as markdown / list orphaned specs |
 | `spec-spine registry list\|show\|status-report\|relationships` | typed read-only queries |
 | `spec-spine lint [--fail-on-warn] [--fail-on-info]` | corpus well-formedness |

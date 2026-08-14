@@ -3,22 +3,55 @@
 //! `build-meta.json` sidecar. The single monolithic `registry.json` is no
 //! longer emitted, so two PRs that add or edit different specs write disjoint
 //! files and never conflict on a global content-hash line.
+//!
+//! `--check` (spec 031) is the non-writing form: it compiles in memory and
+//! compares against the committed shards, the registry counterpart of
+//! `index check`.
 
 use std::fs;
 use std::path::Path;
 
 use spec_spine_core::shard::{self, BY_SPEC_DIR};
-use spec_spine_core::{registry_dir, registry_shard_files};
+use spec_spine_core::{
+    CompileOutcome, Freshness, compare_committed_registry, registry_dir, registry_shard_files,
+};
 use spec_spine_types::{BUILD_META_SCHEMA_VERSION, BuildMeta, Error, Severity};
 use time::OffsetDateTime;
 use time::format_description::well_known::Rfc3339;
 
 use crate::load_repo_config;
 
-/// Returns the process exit code: `0` if validation passed, `1` if it failed.
-pub fn run(repo: &Path) -> Result<u8, Error> {
+/// Returns the process exit code.
+///
+/// Writing form: `0` if validation passed, `1` if it failed. `--check` form:
+/// `0` fresh, `1` validation failed, `2` stale (spec 031 §3.2). Validation
+/// outranks staleness, because a corpus that does not validate cannot vouch
+/// for its shards.
+pub fn run(repo: &Path, check: bool) -> Result<u8, Error> {
     let cfg = load_repo_config(repo)?;
     let outcome = spec_spine_core::compile(&cfg, repo)?;
+
+    if check {
+        if !outcome.validation_passed {
+            report_validation_failure(&outcome);
+            return Ok(1);
+        }
+        return match compare_committed_registry(&cfg, repo, &outcome.shards)? {
+            Freshness::Fresh => {
+                println!(
+                    "spec-registry is fresh: {} shard(s) match the corpus",
+                    outcome.registry.specs.len()
+                );
+                Ok(0)
+            }
+            // Stale detail goes to stderr so it surfaces in a CI log.
+            Freshness::Stale { actual, .. } => {
+                eprintln!("{actual}");
+                eprintln!("spec-registry is STALE: run `spec-spine compile` and commit the result");
+                Ok(2)
+            }
+        };
+    }
 
     let out_dir = registry_dir(&cfg, repo);
     fs::create_dir_all(&out_dir)
@@ -52,13 +85,6 @@ pub fn run(repo: &Path) -> Result<u8, Error> {
     fs::write(&meta_path, meta_json)
         .map_err(|e| Error::Io(format!("write {}: {e}", meta_path.display())))?;
 
-    let errors = outcome
-        .registry
-        .validation
-        .violations
-        .iter()
-        .filter(|v| v.severity == Severity::Error)
-        .count();
     let warnings = outcome
         .registry
         .validation
@@ -76,19 +102,34 @@ pub fn run(repo: &Path) -> Result<u8, Error> {
         );
         Ok(0)
     } else {
-        // Validation failures go to stderr so they surface in CI logs.
-        for v in &outcome.registry.validation.violations {
-            if v.severity == Severity::Error {
-                let at = v.path.as_deref().unwrap_or("-");
-                eprintln!("  {} [{}] {}", v.code, at, v.message);
-            }
-        }
-        eprintln!(
-            "validation FAILED: {errors} error(s), {warnings} warning(s) across {} spec(s)",
-            outcome.registry.specs.len()
-        );
+        report_validation_failure(&outcome);
         Ok(1)
     }
+}
+
+/// Print every error-tier violation, then the summary. Always stderr, so the
+/// failures surface in a CI log. Shared by the writing and `--check` forms so
+/// both fail with the same diagnostic.
+fn report_validation_failure(outcome: &CompileOutcome) {
+    let violations = &outcome.registry.validation.violations;
+    for v in violations {
+        if v.severity == Severity::Error {
+            let at = v.path.as_deref().unwrap_or("-");
+            eprintln!("  {} [{}] {}", v.code, at, v.message);
+        }
+    }
+    let errors = violations
+        .iter()
+        .filter(|v| v.severity == Severity::Error)
+        .count();
+    let warnings = violations
+        .iter()
+        .filter(|v| v.severity == Severity::Warning)
+        .count();
+    eprintln!(
+        "validation FAILED: {errors} error(s), {warnings} warning(s) across {} spec(s)",
+        outcome.registry.specs.len()
+    );
 }
 
 fn now_rfc3339() -> String {

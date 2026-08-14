@@ -568,3 +568,162 @@ fn dangling_short_id_is_left_unchanged_and_still_warns() {
         .unwrap();
     assert_eq!(rec.depends_on, vec!["999".to_string()]);
 }
+
+// ===== registry freshness, `compile --check` (spec 031) =====
+
+/// Emit the shard tree the way the CLI does, so a freshness check has a
+/// committed artifact to compare against.
+fn write_shards(root: &Path, cfg: &Config) {
+    let outcome = compile(cfg, root).unwrap();
+    let dir = spec_spine_core::registry_dir(cfg, root).join(spec_spine_core::shard::BY_SPEC_DIR);
+    let files = spec_spine_core::registry_shard_files(&outcome.shards).unwrap();
+    spec_spine_core::shard::sync_dir(&dir, &files).unwrap();
+}
+
+fn stale_detail(f: &spec_spine_core::Freshness) -> String {
+    match f {
+        spec_spine_core::Freshness::Fresh => panic!("expected stale, got fresh"),
+        spec_spine_core::Freshness::Stale { actual, .. } => actual.clone(),
+    }
+}
+
+#[test]
+fn freshness_check_passes_on_a_just_compiled_tree_and_writes_nothing() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "001-alpha", "001-alpha", "");
+    write_spec(tmp.path(), "002-beta", "002-beta", "");
+    let cfg = Config::default();
+    write_shards(tmp.path(), &cfg);
+
+    let by_spec =
+        spec_spine_core::registry_dir(&cfg, tmp.path()).join(spec_spine_core::shard::BY_SPEC_DIR);
+    let before = spec_spine_core::shard::read_shard_files(&by_spec).unwrap();
+
+    let verdict = spec_spine_core::check_registry_freshness(&cfg, tmp.path()).unwrap();
+    assert_eq!(verdict, spec_spine_core::Freshness::Fresh);
+
+    // Spec 031 3.1: --check never writes. The shard bytes are untouched and no
+    // build-meta.json appears.
+    let after = spec_spine_core::shard::read_shard_files(&by_spec).unwrap();
+    assert_eq!(before, after, "--check must not rewrite the shard tree");
+    assert!(
+        !spec_spine_core::registry_dir(&cfg, tmp.path())
+            .join("build-meta.json")
+            .exists(),
+        "--check must not write the wall-clock sidecar"
+    );
+}
+
+#[test]
+fn edited_spec_without_recompiling_reads_as_modified() {
+    // The PR #61 regression, pinned: a spec.md body edit that never made it
+    // into the committed shard.
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "001-alpha", "001-alpha", "");
+    let cfg = Config::default();
+    write_shards(tmp.path(), &cfg);
+
+    let spec_md = tmp.path().join("specs/001-alpha/spec.md");
+    let edited = fs::read_to_string(&spec_md).unwrap() + "\nA new body paragraph.\n";
+    fs::write(&spec_md, edited).unwrap();
+
+    let detail =
+        stale_detail(&spec_spine_core::check_registry_freshness(&cfg, tmp.path()).unwrap());
+    assert!(
+        detail.contains("modified 001-alpha.json"),
+        "expected a modified shard, got: {detail}"
+    );
+}
+
+#[test]
+fn added_spec_without_recompiling_reads_as_missing() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "001-alpha", "001-alpha", "");
+    let cfg = Config::default();
+    write_shards(tmp.path(), &cfg);
+
+    // A brand-new spec whose shard was never emitted: invisible to a
+    // content-only comparison, which is why the check compares sets.
+    write_spec(tmp.path(), "002-beta", "002-beta", "");
+
+    let detail =
+        stale_detail(&spec_spine_core::check_registry_freshness(&cfg, tmp.path()).unwrap());
+    assert!(
+        detail.contains("missing 002-beta.json"),
+        "expected a missing shard, got: {detail}"
+    );
+}
+
+#[test]
+fn removed_spec_leaves_an_orphaned_shard() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "001-alpha", "001-alpha", "");
+    write_spec(tmp.path(), "002-beta", "002-beta", "");
+    let cfg = Config::default();
+    write_shards(tmp.path(), &cfg);
+
+    fs::remove_dir_all(tmp.path().join("specs/002-beta")).unwrap();
+
+    let detail =
+        stale_detail(&spec_spine_core::check_registry_freshness(&cfg, tmp.path()).unwrap());
+    assert!(
+        detail.contains("orphaned 002-beta.json"),
+        "expected an orphaned shard, got: {detail}"
+    );
+}
+
+#[test]
+fn unbuilt_registry_is_stale_not_an_error() {
+    // Spec 031 3.2: a registry that was never built is not vouching for the
+    // corpus. Stale (2), never Err (3).
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "001-alpha", "001-alpha", "");
+    let cfg = Config::default();
+
+    let detail =
+        stale_detail(&spec_spine_core::check_registry_freshness(&cfg, tmp.path()).unwrap());
+    assert!(
+        detail.contains("missing 001-alpha.json"),
+        "expected every shard missing, got: {detail}"
+    );
+}
+
+#[test]
+fn freshness_report_caps_the_named_shards() {
+    // A corpus-wide restamp must not flood a CI log (spec 031 3.3).
+    let tmp = tempfile::tempdir().unwrap();
+    let cfg = Config::default();
+    for n in 1..=25 {
+        write_spec(tmp.path(), &format!("{n:03}-s"), &format!("{n:03}-s"), "");
+    }
+
+    let detail =
+        stale_detail(&spec_spine_core::check_registry_freshness(&cfg, tmp.path()).unwrap());
+    assert!(detail.starts_with("25 stale shard(s):"), "got: {detail}");
+    assert!(
+        detail.contains("and 5 more"),
+        "expected a capped tail: {detail}"
+    );
+}
+
+#[test]
+fn registry_freshness_facade_reports_both_verdicts() {
+    // The FFI seam: one verdict shape for both committed trees (spec 031 3.1).
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "001-alpha", "001-alpha", "");
+    let cfg = Config::default();
+    let cfg_json = serde_json::to_string(&cfg).unwrap();
+    let root = tmp.path().to_str().unwrap();
+
+    let stale = spec_spine_core::check_registry_freshness_json(&cfg_json, root).unwrap();
+    let stale: serde_json::Value = serde_json::from_str(&stale).unwrap();
+    assert_eq!(stale["fresh"], serde_json::json!(false));
+    assert!(stale["actual"].as_str().unwrap().contains("missing"));
+
+    write_shards(tmp.path(), &cfg);
+    let fresh = spec_spine_core::check_registry_freshness_json(&cfg_json, root).unwrap();
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(&fresh).unwrap(),
+        serde_json::json!({ "fresh": true })
+    );
+}
