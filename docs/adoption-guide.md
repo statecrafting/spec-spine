@@ -152,12 +152,11 @@ jobs:
         with:
           fetch-depth: 0          # full history so the gate can diff the merge base
       - run: cargo install spec-spine-cli   # or download the prebuilt binary
-      # If you commit .derived/, use `compile --check`: it validates AND proves
-      # the committed registry shards match the corpus, without writing (exit 1
-      # invalid, 2 stale). If you gitignore .derived/, use plain `spec-spine
-      # compile` instead, since there is no committed artifact to compare.
-      # Never run --check after a writing compile: it would compare the shards
-      # against files the same job just overwrote and pass unconditionally.
+      # `compile --check` validates the frontmatter AND proves the committed
+      # registry shards match the corpus, without writing (exit 1 invalid,
+      # 2 stale). Never run it after a plain `spec-spine compile` in the same
+      # job: it would compare the shards against files that run just overwrote
+      # and pass unconditionally.
       - run: spec-spine compile --check     # validation + registry freshness
       - run: spec-spine index check         # staleness gate (exit 2 if stale)
       - run: spec-spine lint --fail-on-warn
@@ -172,6 +171,13 @@ jobs:
             --head HEAD \
             --pr-body /tmp/pr-body.txt
 ```
+
+Both freshness steps (`compile --check` and `index check`) compare against
+**committed** artifacts, so this job assumes you commit `.derived/` as described
+in §3. If you gitignore the derived tree instead, drop both `--check`/`check`
+forms and run plain `spec-spine compile` and `spec-spine index` to build the
+artifacts in-job: with nothing committed to compare against, the freshness gates
+would report every shard missing and fail permanently.
 
 This repo dogfoods exactly this pattern; see
 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
