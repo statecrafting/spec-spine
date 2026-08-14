@@ -15,6 +15,7 @@ use spec_spine_types::{
     parse_frontmatter_with, split_frontmatter,
 };
 
+use crate::index::Freshness;
 use crate::{canonical_json, hash, markdown, shard};
 
 /// Validation codes whose verdict depends on the whole corpus, not one spec:
@@ -429,6 +430,91 @@ pub fn registry_shard_files(shards: &RegistryShardSet) -> Result<Vec<(String, St
             ))
         })
         .collect()
+}
+
+/// The cap on how many stale shards a freshness report names (spec 031 §3.3),
+/// so a corpus-wide restamp reports `and N more` instead of flooding a CI log.
+const STALE_REPORT_CAP: usize = 20;
+
+/// Registry-shard freshness (spec 031): does the committed shard tree equal what
+/// the current corpus compiles to? Compiles in memory and delegates to
+/// [`compare_committed_registry`]; **never writes**.
+///
+/// Reports staleness only. Validation is a separate verdict carried on
+/// [`CompileOutcome`]; a caller that needs both (the CLI, which must rank
+/// validation above staleness) should call [`compile`] and
+/// [`compare_committed_registry`] directly rather than compiling twice.
+pub fn check_registry_freshness(cfg: &Config, repo_root: &Path) -> Result<Freshness, Error> {
+    let outcome = compile(cfg, repo_root)?;
+    compare_committed_registry(cfg, repo_root, &outcome.shards)
+}
+
+/// Compare a freshly compiled shard set against the committed one, byte for
+/// byte (spec 031 §3.1).
+///
+/// The comparison is over the serialized shard *bytes*, not the `shardHash`
+/// field: canonical emission makes a fresh compile reproducible, so an exact
+/// comparison is both the simplest and the strictest check, catching a stale
+/// hash, a hand-edited body, and a schema restamp alike. (The index side
+/// compares recomputed hashes instead only because re-resolving code spans is
+/// expensive; a registry shard is cheap to re-emit.)
+///
+/// Three drift classes are reported together: `modified` (bytes differ),
+/// `missing` (a spec with no committed shard), and `orphaned` (a committed
+/// shard with no spec). The latter two are set-membership failures, invisible
+/// to a content comparison alone, which is why this compares sets.
+///
+/// An unbuilt registry reads as `Stale`, not [`Error::Io`]: a registry that was
+/// never built is by definition not vouching for the corpus (same reasoning as
+/// spec 012 §3.3 for an index predating its slice config).
+pub fn compare_committed_registry(
+    cfg: &Config,
+    repo_root: &Path,
+    shards: &RegistryShardSet,
+) -> Result<Freshness, Error> {
+    let expected: BTreeMap<String, String> = registry_shard_files(shards)?.into_iter().collect();
+    let by_spec = registry_dir(cfg, repo_root).join(shard::BY_SPEC_DIR);
+    // `read_shard_files` yields an empty list for a missing dir, which is what
+    // turns an unbuilt registry into "every shard missing" (stale) rather than
+    // an I/O error.
+    let committed: BTreeMap<String, Vec<u8>> =
+        shard::read_shard_files(&by_spec)?.into_iter().collect();
+
+    let mut stale: Vec<String> = Vec::new();
+    for (name, content) in &expected {
+        match committed.get(name) {
+            None => stale.push(format!("missing {name}")),
+            Some(bytes) if bytes.as_slice() != content.as_bytes() => {
+                stale.push(format!("modified {name}"));
+            }
+            Some(_) => {}
+        }
+    }
+    for name in committed.keys() {
+        if !expected.contains_key(name) {
+            stale.push(format!("orphaned {name}"));
+        }
+    }
+
+    if stale.is_empty() {
+        return Ok(Freshness::Fresh);
+    }
+    stale.sort();
+    let total = stale.len();
+    // One line per stale shard (spec 031 §3.3), so a CI log stays greppable and
+    // each finding is its own line rather than one wrapped blob.
+    let mut lines: Vec<String> = stale
+        .iter()
+        .take(STALE_REPORT_CAP)
+        .map(|s| format!("  {s}"))
+        .collect();
+    if total > STALE_REPORT_CAP {
+        lines.push(format!("  and {} more", total - STALE_REPORT_CAP));
+    }
+    Ok(Freshness::Stale {
+        expected: format!("{} shard(s) matching the corpus", expected.len()),
+        actual: format!("{total} stale shard(s):\n{}", lines.join("\n")),
+    })
 }
 
 /// Read and parse the committed registry shards (gating each shard's MAJOR at

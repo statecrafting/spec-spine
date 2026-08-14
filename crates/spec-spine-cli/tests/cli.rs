@@ -529,3 +529,68 @@ fn lint_fail_on_warn_gating() {
         .unwrap();
     assert_eq!(code(&strict), 1, "--fail-on-warn fails on a warning");
 }
+
+#[test]
+fn compile_check_exit_contract() {
+    // Spec 031 3.2: 0 fresh, 1 validation failed, 2 stale. Validation outranks
+    // staleness.
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "001-a", "001-a", "approved");
+    let run = |args: &[&str]| {
+        bin()
+            .arg("--repo")
+            .arg(tmp.path())
+            .args(args)
+            .output()
+            .unwrap()
+    };
+
+    // Never compiled: the committed registry is not vouching for anything.
+    assert_eq!(
+        code(&run(&["compile", "--check"])),
+        2,
+        "unbuilt -> stale (2)"
+    );
+
+    assert_eq!(code(&run(&["compile"])), 0);
+    assert_eq!(
+        code(&run(&["compile", "--check"])),
+        0,
+        "just compiled -> fresh (0)"
+    );
+
+    // --check must not have written anything, so a second check still agrees
+    // and no build-meta sidecar was produced by it.
+    let meta = tmp.path().join(".derived/spec-registry/build-meta.json");
+    let meta_before = fs::read(&meta).unwrap();
+    assert_eq!(code(&run(&["compile", "--check"])), 0);
+    assert_eq!(
+        fs::read(&meta).unwrap(),
+        meta_before,
+        "--check must not restamp build-meta.json"
+    );
+
+    // Edit a spec.md without recompiling: the PR #61 regression.
+    let spec_md = tmp.path().join("specs/001-a/spec.md");
+    let edited = fs::read_to_string(&spec_md).unwrap() + "\nmore body\n";
+    fs::write(&spec_md, edited).unwrap();
+    let stale = run(&["compile", "--check"]);
+    assert_eq!(code(&stale), 2, "edited spec, stale shard -> 2");
+    assert!(
+        String::from_utf8_lossy(&stale.stderr).contains("modified 001-a.json"),
+        "stale detail belongs on stderr: {}",
+        String::from_utf8_lossy(&stale.stderr)
+    );
+
+    // Break validation while the shard is ALSO stale: validation wins (1).
+    fs::write(
+        &spec_md,
+        "---\nid: \"mismatched\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-06-08\"\nsummary: \"s\"\n---\n",
+    )
+    .unwrap();
+    assert_eq!(
+        code(&run(&["compile", "--check"])),
+        1,
+        "validation outranks staleness"
+    );
+}

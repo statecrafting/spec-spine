@@ -36,7 +36,13 @@ struct Cli {
 #[derive(Subcommand)]
 enum Command {
     /// Compile specs/*/spec.md into a deterministic registry.
-    Compile,
+    Compile {
+        /// Verify the committed shards match the corpus without writing
+        /// anything (exit 2 if stale). The registry counterpart of
+        /// `index check`.
+        #[arg(long)]
+        check: bool,
+    },
     /// Read-only queries over the compiled registry.
     Registry {
         #[command(subcommand)]
@@ -121,7 +127,7 @@ fn main() -> ExitCode {
     };
 
     let result = match &cli.command {
-        Command::Compile => cmd_compile::run(&repo),
+        Command::Compile { check } => cmd_compile::run(&repo, *check),
         Command::Registry { query } => cmd_registry::run(&repo, query),
         Command::Index { action } => cmd_index::run(&repo, action.as_ref()),
         Command::Lint {

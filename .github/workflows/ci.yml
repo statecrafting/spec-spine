@@ -69,31 +69,17 @@ jobs:
           fetch-depth: 0
       - name: Build CLI
         run: cargo build --bin spec-spine --locked
-      - name: Compile registry (validation gate)
-        run: ./target/debug/spec-spine compile
-      # Registry-shard freshness. `compile` above is only a *validation* gate: it
-      # rewrites .derived/spec-registry/by-spec/ and reports frontmatter errors,
-      # but says nothing about whether the *committed* shards matched. The index
-      # side has a first-class staleness command (`index check`, spec 004); the
-      # registry side has none, so freshness is asserted against the git tree
-      # instead. Because `compile` is a pure function of (config, spec sources),
-      # a clean tree here proves the committed shards are exactly what the
-      # current specs/*/spec.md compile to. Without this, editing a spec.md and
-      # forgetting to recompile lands stale shardHash values on main with CI
-      # green (this is what PR #61 did to specs 017 and 021).
-      # --untracked-files=all so an added spec's brand-new shard, which no diff
-      # would show, also fails; build-meta.json is gitignored and stays invisible.
-      - name: Registry-shard freshness (committed shards must match the specs)
-        run: |
-          set -euo pipefail
-          dirty="$(git status --porcelain --untracked-files=all -- .derived/spec-registry)"
-          if [ -n "$dirty" ]; then
-            echo "::error::Committed spec-registry shards are stale. Run 'spec-spine compile' and commit the result."
-            echo "$dirty"
-            git diff -- .derived/spec-registry
-            exit 2
-          fi
-          echo "spec-registry shards are fresh"
+      # Validation AND registry-shard freshness in one self-contained gate
+      # (spec 031). `compile --check` compiles in memory and compares against
+      # the committed shards without writing, so it exits 1 on a frontmatter
+      # violation and 2 when a spec.md was edited without recompiling (which is
+      # what PR #61 did to specs 017 and 021, undetected).
+      #
+      # It must NOT be sequenced after a writing `compile`: that would compare
+      # the committed shards against files the same job just overwrote, and the
+      # gate would silently pass forever. Nothing here writes to .derived.
+      - name: Compile registry (validation + shard freshness)
+        run: ./target/debug/spec-spine compile --check
       - name: Codebase index freshness (committed artifacts must be current)
         run: ./target/debug/spec-spine index check
       - name: Conformance lint (fail on warn)
