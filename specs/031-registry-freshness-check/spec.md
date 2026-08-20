@@ -1,7 +1,7 @@
 ---
 id: "031-registry-freshness-check"
 title: "Registry freshness: `spec-spine compile --check`"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-08-14"
 implementation: complete
@@ -127,8 +127,14 @@ reader treats a missing registry dir as `Error::Io`.
 Fresh prints one line naming the shard count. Stale prints one line per stale
 shard, classified, to **stderr** (so CI logs surface it), then a summary line,
 and is capped at 20 shards with an `and N more` tail so a corpus-wide restamp
-does not flood the log. Message text is not part of the contract; exit codes
-are.
+does not flood the log.
+
+The stale report's **structure is contractual**, because a consumer reads it:
+the `/init` protocol (`AGENTS.md` § New Sessions) reports the drifted shard
+names back to the operator, and exit 2 alone cannot say *which* shard moved.
+Specifically, each stale shard occupies its own stderr line and carries its
+drift class. The exact wording around those lines (the count line, the summary
+line) is not contractual, and neither is anything on the fresh path.
 
 ### 3.4 Determinism
 

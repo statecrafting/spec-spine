@@ -17,13 +17,13 @@ The protocol drives the library through its own built binary, `target/release/sp
    `.claude/rules/adversarial-prompt-refusal.md` (the three the library
    scaffolds for every adopter via `spec-spine init`, and which it
    carries for itself).
-1. **Refresh the registry, then parallel reads.** Run `spec-spine
-   compile` *first* (see **Registry freshness** below), then dispatch the
-   following simultaneously:
+1. **Parallel reads.** Dispatch the following simultaneously (nothing here
+   mutates the working tree, so there is no required ordering):
    - `CLAUDE.md`: project overview and conventions
    - `README.md`: full project description
    - `standards/spec/contract.md`: normative spec-system summary
    - `standards/spec/constitution.md`: durable principles (tier 2)
+   - `spec-spine compile --check`: freshness gate for the spec registry (non-fatal; see **Registry freshness** below)
    - `spec-spine index check`: staleness gate for the codebase index (non-fatal)
    - `spec-spine index render`: markdown projection of the committed index
    - `spec-spine registry status-report --json --nonzero-only`: lifecycle counts per status
@@ -40,11 +40,24 @@ The protocol drives the library through its own built binary, `target/release/sp
 
 **Read discipline:** the init protocol MUST NOT parse `.derived/**/*.json` directly (no `python`, `jq`, `awk`, `sed` against compiled artifacts). All structural and lifecycle data comes from the `spec-spine` subcommands (`registry`, `index`) and the rendered markdown view. See `.claude/rules/governed-artifact-reads.md`.
 
-**Staleness surface:** if `spec-spine index check` exits non-zero, include "Codebase index: stale, run `spec-spine index`" in the summary and continue. If the index is not built and `render` fails, report "Codebase index: not built" and continue without structural counts.
+**Staleness surface:** both committed trees have their own gate, and each is non-fatal to `/init`: report it in the summary and continue. If `spec-spine index check` exits non-zero, include "Codebase index: stale, run `spec-spine index`". If the index is not built and `render` fails, report "Codebase index: not built" and continue without structural counts. The registry half is `spec-spine compile --check`, whose verdicts are spelled out under **Registry freshness** below.
 
-**Registry freshness:** spec-spine **commits** its compiled artifacts. Since spec 024 both views are committed as per-unit shard trees: `.derived/spec-registry/by-spec/<id>.json` and `.derived/codebase-index/{by-spec,by-package}/*.json` are tracked (only `.derived/**/build-meta.json` is gitignored; no monolithic `registry.json`/`index.json` is committed). The committed shard set is the reference for lifecycle queries. `/init` still runs `spec-spine compile` *first* because compile is deterministic: on a fresh tree it is a no-op that leaves the tracked shards byte-identical, so it costs nothing; but if it changes a shard, the committed copy was stale and the refreshed counts are the correct ones (regenerate and commit the shards before relying on them). Either way the lifecycle counts reflect the current `specs/*/spec.md` frontmatter.
+**Registry freshness:** spec-spine **commits** its compiled artifacts. Since spec 024 both views are committed as per-unit shard trees: `.derived/spec-registry/by-spec/<id>.json` and `.derived/codebase-index/{by-spec,by-package}/*.json` are tracked (only `.derived/**/build-meta.json` is gitignored; no monolithic `registry.json`/`index.json` is committed). The committed shard set is the reference for lifecycle queries, so `/init` has to know whether it is current.
 
-**Binary missing:** if the `spec-spine` binary is not built, run `cargo build --release -p spec-spine-cli` and continue. Do NOT fall back to ad-hoc parsing of `.derived/**`.
+`/init` asks with `spec-spine compile --check` (spec 031), which compiles in memory and compares against the committed shards **without writing**. Read the exit code:
+
+- **`0` (fresh):** the committed shards are exactly what the corpus compiles to, so the lifecycle counts below reflect the current `specs/*/spec.md` frontmatter. Report nothing.
+- **`2` (stale):** *read stderr before believing it* (see **Stale binary** below). For a genuine staleness report, report "Spec registry: stale, run `spec-spine compile` and commit" **and name the drifted shards from its stderr**, then continue. The lifecycle counts come from the committed ledger and are therefore the stale ones; say so rather than presenting them as current.
+- **`1` (validation failed):** the corpus itself is broken. Surface the violations, and report the lifecycle counts as **unverified**: they still come from the committed ledger, but with the corpus failing validation there is no way to say whether that ledger corresponds to it. Fixing the violations is the first task of the session, not an aside.
+- **any other non-zero** (`3` is I/O / parse / schema / config): treat freshness as unknown, report stderr verbatim, and continue. Never report "fresh" for an exit code you did not recognize.
+
+The counts are formatted in step 2, after every parallel read has returned, so the verdict is always in hand before the numbers are written down.
+
+**Stale binary:** `target/release/spec-spine` is whatever was last built, which is not necessarily this checkout. A binary predating `compile --check` rejects the unknown flag with **exit 2**, the same code as "stale", so the two separate only by stderr: a rejection says `error: unexpected argument '--check'`, while a real report names shards. Rebuild (`cargo build --release -p spec-spine-cli`) and re-run rather than reporting phantom drift. Rebuilding is cheap and is the right reflex whenever the binary predates recent commits.
+
+Do **not** substitute a plain `spec-spine compile` here. Writing would repair the tree as a side effect of reading it, which hides the fact that the *committed* copy was stale: the drift then looks like an uncommitted local edit instead of a defect on the branch (this is exactly how the spec 017/021 drift reached `main` unnoticed). `/init` reports; it does not silently mutate.
+
+**Binary missing or stale:** if the `spec-spine` binary is not built, or predates the commits in this checkout, run `cargo build --release -p spec-spine-cli` and continue (see **Stale binary** above for why a stale one misreports freshness). Do NOT fall back to ad-hoc parsing of `.derived/**`.
 
 If any file is missing: log "not found" and continue.
 
