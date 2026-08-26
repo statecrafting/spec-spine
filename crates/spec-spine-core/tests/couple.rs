@@ -706,3 +706,183 @@ fn is_bypassed_path_is_claim_aware() {
         "src/lib.rs"
     ));
 }
+
+// ── spec 032: the C-002 coverage ratchet ──────────────────────────────────
+
+/// `require_ownership = true`, everything else default.
+fn coverage_config() -> Config {
+    let mut cfg = Config::default();
+    cfg.coupling.require_ownership = true;
+    cfg
+}
+
+fn run_with(
+    cfg: &Config,
+    index: &CodebaseIndex,
+    registry: &Registry,
+    diff: &DiffInput,
+) -> spec_spine_core::CoupleReport {
+    couple_with(cfg, registry, index, diff, None).unwrap()
+}
+
+/// An index in which nothing claims `src/stray.rs`.
+fn index_claiming_lib_only() -> CodebaseIndex {
+    index_from(json!([{
+        "specId": "001-a",
+        "implementingPaths": [],
+        "resolvedUnits": [{
+            "unit": { "kind": "file", "path": "src/lib.rs" },
+            "sourceField": "establishes",
+            "ownership": true,
+            "locations": [{ "file": "src/lib.rs" }]
+        }]
+    }]))
+}
+
+#[test]
+fn unclaimed_path_is_skipped_by_default() {
+    // The pre-032 behavior, pinned: an unclaimed path is not a coupling concern.
+    let report = run(
+        &index_claiming_lib_only(),
+        &empty_registry(),
+        &diff(vec![file("src/stray.rs", &[LineSpan::new(1, 2)])]),
+    );
+    assert!(report.violations.is_empty(), "{:?}", report.violations);
+    assert_eq!(
+        report.checked_paths, 1,
+        "the path is walked, just not judged"
+    );
+}
+
+#[test]
+fn unclaimed_path_is_c002_under_require_ownership() {
+    let report = run_with(
+        &coverage_config(),
+        &index_claiming_lib_only(),
+        &empty_registry(),
+        &diff(vec![file("src/stray.rs", &[LineSpan::new(1, 2)])]),
+    );
+    assert_eq!(report.violations.len(), 1, "{:?}", report.violations);
+    assert_eq!(report.violations[0].code, "C-002");
+    assert_eq!(report.violations[0].path.as_deref(), Some("src/stray.rs"));
+    assert!(report.has_blocking_drift());
+}
+
+#[test]
+fn bypassed_paths_never_raise_c002() {
+    // Floor entries and adopter additions alike: coverage is asked only of
+    // paths the gate would otherwise judge.
+    let mut cfg = coverage_config();
+    cfg.coupling.bypass_prefixes.push("vendor/".to_string());
+    let report = run_with(
+        &cfg,
+        &index_claiming_lib_only(),
+        &empty_registry(),
+        &diff(vec![
+            file("docs/adr.md", &[]),     // floor
+            file("Cargo.lock", &[]),      // floor (tail-suffix)
+            file(".derived/x.json", &[]), // floor
+            file("vendor/thing.rs", &[]), // adopter addition
+        ]),
+    );
+    assert!(report.violations.is_empty(), "{:?}", report.violations);
+    assert_eq!(report.checked_paths, 0);
+}
+
+#[test]
+fn c001_and_c002_are_mutually_exclusive() {
+    // One diff, two paths: the claimed one drifts (C-001), the unclaimed one
+    // is uncovered (C-002). Neither path raises both codes.
+    let report = run_with(
+        &coverage_config(),
+        &index_claiming_lib_only(),
+        &empty_registry(),
+        &diff(vec![
+            file("src/lib.rs", &[LineSpan::new(5, 8)]),
+            file("src/stray.rs", &[LineSpan::new(1, 2)]),
+        ]),
+    );
+    assert_eq!(report.violations.len(), 2, "{:?}", report.violations);
+    let by_path: Vec<(&str, &str)> = report
+        .violations
+        .iter()
+        .map(|v| (v.path.as_deref().unwrap(), v.code.as_str()))
+        .collect();
+    assert_eq!(
+        by_path,
+        vec![("src/lib.rs", "C-001"), ("src/stray.rs", "C-002")]
+    );
+}
+
+#[test]
+fn explicitly_claimed_bypass_path_raises_c001_not_c002() {
+    // Spec 009: an explicit claim beats the floor. Such a path has an owner by
+    // construction, so it can only ever be C-001.
+    let index = index_from(json!([{
+        "specId": "001-a",
+        "implementingPaths": [],
+        "resolvedUnits": [{
+            "unit": { "kind": "file", "path": ".github/workflows/ci.yml" },
+            "sourceField": "establishes",
+            "ownership": true,
+            "locations": [{ "file": ".github/workflows/ci.yml" }]
+        }]
+    }]));
+    let report = run_with(
+        &coverage_config(),
+        &index,
+        &empty_registry(),
+        &diff(vec![file(".github/workflows/ci.yml", &[])]),
+    );
+    assert_eq!(report.violations.len(), 1, "{:?}", report.violations);
+    assert_eq!(report.violations[0].code, "C-001");
+}
+
+#[test]
+fn waiver_suppresses_c002_exactly_as_c001() {
+    let waiver = Waiver {
+        reason: "vendored drop, spec to follow".to_string(),
+    };
+    let report = couple_with(
+        &coverage_config(),
+        &empty_registry(),
+        &index_claiming_lib_only(),
+        &diff(vec![file("src/stray.rs", &[LineSpan::new(1, 2)])]),
+        Some(&waiver),
+    )
+    .unwrap();
+    assert_eq!(
+        report.violations.len(),
+        1,
+        "the violation is still reported"
+    );
+    assert_eq!(report.violations[0].code, "C-002");
+    assert!(!report.has_blocking_drift(), "but the waiver clears it");
+}
+
+#[test]
+fn manifest_directory_claim_covers_its_subtree_under_require_ownership() {
+    // The other half of spec 032 §3.3: a manifest-metadata directory claim owns
+    // every file beneath it, so no file in the package raises C-002. Pinned
+    // against `package_spec_ref_claims_its_files` on the index side — the
+    // coverage predictor and the gate must agree about this set.
+    let index = index_from(json!([{
+        "specId": "001-a",
+        "implementingPaths": [{ "path": "crates/x", "source": "manifest-metadata" }],
+        "resolvedUnits": []
+    }]));
+    let report = run_with(
+        &coverage_config(),
+        &index,
+        &empty_registry(),
+        &diff(vec![file(
+            "crates/x/src/deep/thing.rs",
+            &[LineSpan::new(1, 2)],
+        )]),
+    );
+    assert_eq!(report.violations.len(), 1, "{:?}", report.violations);
+    assert_eq!(
+        report.violations[0].code, "C-001",
+        "owned by the manifest claim, so it drifts rather than being uncovered"
+    );
+}

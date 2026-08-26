@@ -77,6 +77,23 @@ pub struct Traceability {
     pub orphaned_specs: Vec<String>,
     /// Package paths with no governing spec.
     pub untraced_code: Vec<String>,
+    /// Source files inside a discovered package that no implementing path
+    /// claims (spec 032). File-granular, unlike `untraced_code`: this is the
+    /// number an adopter drives to empty before turning on
+    /// `[coupling] require_ownership`. Defaults to empty so a `1.1.0` document
+    /// still deserializes.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub untraced_files: Vec<String>,
+    /// Total source files enumerated across discovered packages (spec 032):
+    /// the denominator `untraced_files` is measured against. Carried rather
+    /// than re-derived so a consumer can report coverage from the document
+    /// alone. Defaults to `0` so a `1.1.0` document still deserializes.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub source_file_count: usize,
+}
+
+fn is_zero(n: &usize) -> bool {
+    *n == 0
 }
 
 /// One spec's mapping onto the code.

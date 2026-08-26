@@ -1,14 +1,11 @@
 {
   "mapping": {
     "dependsOn": [
-      "001-compile-registry",
-      "005-coupling-gate"
+      "004-codebase-index",
+      "005-coupling-gate",
+      "011-index-render-orphans"
     ],
     "implementingPaths": [
-      {
-        "path": "crates/spec-spine-core/src/compile.rs",
-        "source": "spec-edge"
-      },
       {
         "path": "crates/spec-spine-core/src/couple.rs",
         "source": "spec-edge"
@@ -18,15 +15,7 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/lint.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/src/query.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/tests/compile.rs",
+        "path": "crates/spec-spine-core/src/render.rs",
         "source": "spec-edge"
       },
       {
@@ -34,19 +23,23 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/edges.rs",
+        "path": "crates/spec-spine-core/tests/index.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/frontmatter.rs",
+        "path": "crates/spec-spine-core/tests/render.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/lib.rs",
+        "path": "crates/spec-spine-types/schemas/codebase-index.schema.json",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/registry.rs",
+        "path": "crates/spec-spine-types/src/codebase.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/config.rs",
         "source": "spec-edge"
       },
       {
@@ -58,24 +51,11 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/tests/grammar.rs",
+        "path": "docs/design/00-architecture.md",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/src/compile.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/compile.rs"
-        }
-      },
       {
         "locations": [
           {
@@ -105,40 +85,14 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/lint.rs"
+            "file": "crates/spec-spine-core/src/render.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/lint.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/src/query.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/query.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/tests/compile.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/compile.rs"
+          "path": "crates/spec-spine-core/src/render.rs"
         }
       },
       {
@@ -157,53 +111,66 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/edges.rs"
+            "file": "crates/spec-spine-core/tests/index.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/edges.rs"
+          "path": "crates/spec-spine-core/tests/index.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/frontmatter.rs"
+            "file": "crates/spec-spine-core/tests/render.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/frontmatter.rs"
+          "path": "crates/spec-spine-core/tests/render.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/lib.rs"
+            "file": "crates/spec-spine-types/schemas/codebase-index.schema.json"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/lib.rs"
+          "path": "crates/spec-spine-types/schemas/codebase-index.schema.json"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/registry.rs"
+            "file": "crates/spec-spine-types/src/codebase.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/registry.rs"
+          "path": "crates/spec-spine-types/src/codebase.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/config.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
         }
       },
       {
@@ -235,20 +202,20 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/tests/grammar.rs"
+            "file": "docs/design/00-architecture.md"
           }
         ],
-        "ownership": true,
-        "sourceField": "extends",
+        "ownership": false,
+        "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/tests/grammar.rs"
+          "path": "docs/design/00-architecture.md"
         }
       }
     ],
-    "specId": "019-structured-partial-supersedes",
+    "specId": "032-ownership-coverage",
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "5e54c6259d4e3081eabfaebfc2e3be7d4ffdb07678f0875a4b611516b3dda38b"
+  "shardHash": "e112cc055033963104fc5dab9dd1f6797ae84e0420e822a37cf195e70b2f4b34"
 }

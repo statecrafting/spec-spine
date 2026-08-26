@@ -35,7 +35,9 @@
       "properties": {
         "mappings": { "type": "array", "items": { "$ref": "#/$defs/traceMapping" } },
         "orphanedSpecs": { "type": "array", "items": { "type": "string" } },
-        "untracedCode": { "type": "array", "items": { "type": "string" } }
+        "untracedCode": { "type": "array", "items": { "type": "string" } },
+        "untracedFiles": { "type": "array", "items": { "type": "string" } },
+        "sourceFileCount": { "type": "integer", "minimum": 0 }
       }
     },
     "diagnostics": {

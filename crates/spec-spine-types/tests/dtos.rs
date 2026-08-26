@@ -73,8 +73,9 @@ fn schema_versions_are_pinned() {
     // 028), optional `references` provenance `derived_at` timestamp.
     assert_eq!(REGISTRY_SCHEMA_VERSION, "1.1.0");
     // 1.1.0: additive MINOR (spec 025): unresolved-unit severity tiers (W-001 /
-    // W-002 warnings) on top of the spec-024 sharded MAJOR.
-    assert_eq!(INDEX_SCHEMA_VERSION, "1.1.0");
+    // W-002 warnings) on top of the spec-024 sharded MAJOR. 1.2.0: additive
+    // MINOR (spec 032), `traceability.untracedFiles`.
+    assert_eq!(INDEX_SCHEMA_VERSION, "1.2.0");
     assert_eq!(BUILD_META_SCHEMA_VERSION, "0.1.0");
     assert_eq!(CONFIG_VERSION, "0.1.0");
 }

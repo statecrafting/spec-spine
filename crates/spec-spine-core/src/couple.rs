@@ -142,7 +142,21 @@ pub fn couple_with(
 
         let owners = owners_for_path(path, &file.hunks, index, &superseders);
         if owners.is_empty() {
-            continue; // unclaimed path, not a coupling concern
+            // Unclaimed. By default not a coupling concern; under the spec-032
+            // coverage ratchet it is `C-002`. The two codes are mutually
+            // exclusive by construction: `C-001` needs a non-empty owner set,
+            // `C-002` an empty one, so one path never raises both.
+            if cfg.coupling.require_ownership {
+                violations.push(Violation {
+                    code: "C-002".to_string(),
+                    severity: Severity::Error,
+                    message: format!(
+                        "'{path}' is not claimed by any spec (require_ownership is on)"
+                    ),
+                    path: Some(path.clone()),
+                });
+            }
+            continue;
         }
         if any_owner_in_diff(&owners, &diff_paths) {
             continue; // primary-owner heuristic: any one owner's spec.md cleared it

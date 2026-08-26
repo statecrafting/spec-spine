@@ -189,6 +189,15 @@ pub struct CouplingConfig {
     /// version string (a new package, a `scripts` edit, spec-binding
     /// metadata) refuses the auto-waiver, fail-closed. Default `false`.
     pub auto_waive_dependency_only: bool,
+    /// Opt-in coverage ratchet (spec 032). When `true`, a changed path that
+    /// survives the bypass filter and is claimed by **no** spec is a `C-002`
+    /// violation, rather than being skipped as "not a coupling concern".
+    /// Default `false`: `C-001` holds for any corpus the day it is written,
+    /// but coverage is only true of a repo that has already claimed every
+    /// governed file, so defaulting this on would fail every adopter's next
+    /// PR. The intended path is to drive `traceability.untracedFiles` to
+    /// empty, then set this to defend it.
+    pub require_ownership: bool,
 }
 
 impl Default for CouplingConfig {
@@ -200,6 +209,7 @@ impl Default for CouplingConfig {
             bypass_prefixes: Vec::new(),
             waiver_keyword: "Spec-Drift-Waiver:".to_string(),
             auto_waive_dependency_only: false,
+            require_ownership: false,
         }
     }
 }

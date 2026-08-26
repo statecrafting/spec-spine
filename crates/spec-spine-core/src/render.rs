@@ -71,10 +71,34 @@ pub fn render_markdown(config: &Config, index: &CodebaseIndex) -> String {
             m.resolved_units.len(),
         );
     }
+    // Coverage (spec 032 §3.4): the distance to `require_ownership`.
+    let total = index.traceability.source_file_count;
+    if total > 0 {
+        let untraced = index.traceability.untraced_files.len();
+        let claimed = total.saturating_sub(untraced);
+        let pct = (claimed as f64) * 100.0 / (total as f64);
+        if untraced == 0 {
+            let _ = writeln!(
+                out,
+                "\n- coverage: {claimed}/{total} files claimed (100.0%)"
+            );
+        } else {
+            let _ = writeln!(
+                out,
+                "\n- coverage: {claimed}/{total} files claimed ({pct:.1}%), {untraced} untraced"
+            );
+        }
+    }
     if !index.traceability.orphaned_specs.is_empty() {
         out.push_str("\n### Orphaned specs\n\n");
         for id in orphans(index) {
             let _ = writeln!(out, "- {id}");
+        }
+    }
+    if !index.traceability.untraced_files.is_empty() {
+        out.push_str("\n### Untraced files\n\n");
+        for path in &index.traceability.untraced_files {
+            let _ = writeln!(out, "- {path}");
         }
     }
     if !index.traceability.untraced_code.is_empty() {

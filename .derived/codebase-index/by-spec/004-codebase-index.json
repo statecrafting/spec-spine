@@ -130,6 +130,6 @@
     "specId": "004-codebase-index",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.2.0",
   "shardHash": "09f22d551db233e4560ab907f0fe2298cbfc720a19fe99528fb33eb1daf53576"
 }

@@ -35,7 +35,11 @@ pub const REGISTRY_SCHEMA_VERSION: &str = "1.1.0";
 /// non-blocking `W-001` (draft/pending owning) or `W-002` (non-owning reference)
 /// warning instead of a hard error; the `warnings` tier and free-form diagnostic
 /// `code` already exist, so no schema-file edit is needed.
-pub const INDEX_SCHEMA_VERSION: &str = "1.1.0";
+/// `1.2.0`: additive `traceability.untracedFiles` (spec 032), the file-granular
+/// unclaimed-source list that `[coupling] require_ownership` is driven from. The
+/// field lands in the recomputed aggregate view, so no committed shard body
+/// changes; the permissive shard schema needs no edit.
+pub const INDEX_SCHEMA_VERSION: &str = "1.2.0";
 
 /// `schemaVersion` emitted in `build-meta.json` (the non-deterministic artifact).
 pub const BUILD_META_SCHEMA_VERSION: &str = "0.1.0";

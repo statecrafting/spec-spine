@@ -83,6 +83,6 @@
     "specId": "026-resolution-discovery-fixes",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.2.0",
   "shardHash": "49c5fa1e8c9093637e0e31c18e2c70820cfe87fb7f03409481fa04ede68ab200"
 }

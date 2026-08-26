@@ -269,6 +269,11 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
         .collect();
     untraced_code.sort();
 
+    // untraced files (spec 032): file-granular, beside the package-granular
+    // list above. The two answer different questions and may disagree.
+    let (untraced_files, source_file_count) =
+        compute_untraced_files(cfg, repo_root, &discovered.packages, &claimed);
+
     // --- shard projection + aggregate content hash (spec 024) ---
     // Each shard self-describes its input hash; the aggregate `build.contentHash`
     // is the fold of those hashes (recomputable on read from the shard set, never
@@ -313,6 +318,8 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
             mappings,
             orphaned_specs,
             untraced_code,
+            untraced_files,
+            source_file_count,
         },
         diagnostics,
     };
@@ -604,6 +611,8 @@ pub fn load_committed_index(
         .map(|p| p.path.clone())
         .collect();
     untraced_code.sort();
+    let (untraced_files, source_file_count) =
+        compute_untraced_files(cfg, repo_root, &packages, &claimed);
 
     Ok(CodebaseIndex {
         schema_version: INDEX_SCHEMA_VERSION.to_string(),
@@ -619,6 +628,8 @@ pub fn load_committed_index(
             mappings,
             orphaned_specs,
             untraced_code,
+            untraced_files,
+            source_file_count,
         },
         diagnostics,
     })
@@ -909,10 +920,14 @@ fn scan_comment_headers(
     all_ids: &BTreeSet<String>,
 ) -> Vec<(String, String)> {
     let mut links: Vec<(String, String)> = Vec::new();
-    let exts = ["rs", "ts", "tsx", "js", "jsx", "go", "py", "sh"];
     for pkg in packages {
         let pkg_dir = repo_root.join(&pkg.path);
-        for file in walk_source(&pkg_dir, &exts, repo_root, &cfg.index.resolver_exclusions) {
+        for file in walk_source(
+            &pkg_dir,
+            &SOURCE_EXTS,
+            repo_root,
+            &cfg.index.resolver_exclusions,
+        ) {
             let Ok(content) = fs::read_to_string(&file) else {
                 continue;
             };
@@ -1053,6 +1068,58 @@ fn glob_files(repo_root: &Path, pattern: &str) -> Vec<PathBuf> {
     out.sort();
     out.dedup();
     out
+}
+
+/// The source extensions the resolver already trusts: the set
+/// `scan_comment_headers` scans and `untraced_files` counts (spec 032). One
+/// list, so the coverage denominator and the spec-binding scan can never
+/// disagree about what counts as a source file.
+pub(crate) const SOURCE_EXTS: [&str; 8] = ["rs", "ts", "tsx", "js", "jsx", "go", "py", "sh"];
+
+/// File-granular unclaimed source (spec 032 §3.3): every source file inside a
+/// discovered package that no implementing path claims.
+///
+/// A claim covers a file when it equals it or is a directory prefix of it, so a
+/// subtree claim (`crates/foo/src/`) covers its files without enumerating each.
+/// A package-level `spec_ref` deliberately does **not** claim files: ownership
+/// for the gate comes from unit claims, and this field exists to predict
+/// `C-002`. Pure and deterministic: `walk_source` sorts every directory listing
+/// before descending, and the result is sorted and deduped.
+fn compute_untraced_files(
+    cfg: &spec_spine_types::Config,
+    repo_root: &Path,
+    packages: &[spec_spine_types::PackageRecord],
+    claimed: &BTreeSet<&str>,
+) -> (Vec<String>, usize) {
+    let mut out: Vec<String> = Vec::new();
+    let mut all: Vec<String> = Vec::new();
+    for pkg in packages {
+        let pkg_dir = repo_root.join(&pkg.path);
+        for file in walk_source(
+            &pkg_dir,
+            &SOURCE_EXTS,
+            repo_root,
+            &cfg.index.resolver_exclusions,
+        ) {
+            let rel = rel_posix(repo_root, &file);
+            let is_claimed = claimed.iter().any(|c| {
+                // A subtree claim keeps its trailing `/` (`crates/foo/src/`);
+                // a file claim has none. Normalize before comparing so both
+                // forms cover the files beneath them.
+                let c = c.trim_end_matches('/');
+                rel == c || rel.starts_with(&format!("{c}/"))
+            });
+            if !is_claimed {
+                out.push(rel.clone());
+            }
+            all.push(rel);
+        }
+    }
+    out.sort();
+    out.dedup();
+    all.sort();
+    all.dedup();
+    (out, all.len())
 }
 
 fn walk_source(dir: &Path, exts: &[&str], repo_root: &Path, exclusions: &[String]) -> Vec<PathBuf> {

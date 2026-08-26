@@ -151,3 +151,63 @@ fn orphans_are_id_sorted() {
     let empty = load_index(EMPTY_SECTIONS_FIXTURE.as_bytes()).unwrap();
     assert!(orphans(&empty).is_empty());
 }
+
+// ── spec 032: the coverage line ───────────────────────────────────────────
+
+fn index_with_coverage(
+    untraced: serde_json::Value,
+    total: usize,
+) -> spec_spine_types::CodebaseIndex {
+    serde_json::from_value(serde_json::json!({
+        "schemaVersion": "1.2.0",
+        "build": {
+            "indexerId": "t", "indexerVersion": "0.1.0",
+            "repoRoot": ".", "contentHash": "t"
+        },
+        "packages": [],
+        "traceability": {
+            "mappings": [],
+            "orphanedSpecs": [],
+            "untracedCode": [],
+            "untracedFiles": untraced,
+            "sourceFileCount": total
+        },
+        "diagnostics": { "warnings": [], "errors": [] }
+    }))
+    .expect("index json")
+}
+
+#[test]
+fn renders_partial_coverage_line_and_untraced_files() {
+    let idx = index_with_coverage(serde_json::json!(["pkg/src/b.rs", "pkg/src/a.rs"]), 10);
+    let md = spec_spine_core::render_markdown(&spec_spine_types::Config::default(), &idx);
+    assert!(
+        md.contains("- coverage: 8/10 files claimed (80.0%), 2 untraced"),
+        "{md}"
+    );
+    assert!(md.contains("### Untraced files"), "{md}");
+    assert!(md.contains("- pkg/src/b.rs"), "{md}");
+}
+
+#[test]
+fn renders_full_coverage_without_an_untraced_section() {
+    let idx = index_with_coverage(serde_json::json!([]), 10);
+    let md = spec_spine_core::render_markdown(&spec_spine_types::Config::default(), &idx);
+    assert!(
+        md.contains("- coverage: 10/10 files claimed (100.0%)"),
+        "{md}"
+    );
+    assert!(
+        !md.contains("untraced"),
+        "no untraced section when empty: {md}"
+    );
+}
+
+#[test]
+fn omits_the_coverage_line_for_a_pre_032_document() {
+    // A 1.1.0 index carries neither field; the line is omitted rather than
+    // rendering a fabricated 0/0.
+    let idx = index_with_coverage(serde_json::json!([]), 0);
+    let md = spec_spine_core::render_markdown(&spec_spine_types::Config::default(), &idx);
+    assert!(!md.contains("coverage:"), "{md}");
+}

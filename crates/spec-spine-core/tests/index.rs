@@ -723,3 +723,122 @@ fn unresolved_module_unit_is_blocking_diagnostic_i008() {
     let idx = index(&Config::default(), fx.path()).unwrap().index;
     assert!(idx.diagnostics.errors.iter().any(|d| d.code == "I-008"));
 }
+
+// ── spec 032: file-granular coverage ──────────────────────────────────────
+
+/// One Rust package: a claimed file, a subtree claim, an unclaimed file, and a
+/// file inside an excluded directory.
+fn coverage_fixture() -> tempfile::TempDir {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(r, "Cargo.toml", "[workspace]\nmembers = [\"pkg\"]\n");
+    write(
+        r,
+        "pkg/Cargo.toml",
+        "[package]\nname = \"pkg\"\nversion = \"0.1.0\"\n",
+    );
+    write(r, "pkg/src/lib.rs", "pub fn a() {}\n");
+    write(r, "pkg/src/sub/covered.rs", "pub fn b() {}\n");
+    write(r, "pkg/src/stray.rs", "pub fn c() {}\n");
+    write(r, "pkg/generated/gen.rs", "pub fn d() {}\n");
+    write(
+        r,
+        "specs/001-x/spec.md",
+        &spec(
+            "001-x",
+            "establishes:\n  - \"pkg/src/lib.rs\"\n  - \"pkg/src/sub/\"\n",
+        ),
+    );
+    tmp
+}
+
+fn coverage_cfg() -> Config {
+    let mut cfg = Config::default();
+    cfg.index.resolver_exclusions.push("generated".to_string());
+    cfg
+}
+
+#[test]
+fn untraced_files_lists_only_unclaimed_source() {
+    let fx = coverage_fixture();
+    let idx = index(&coverage_cfg(), fx.path()).unwrap().index;
+    assert_eq!(
+        idx.traceability.untraced_files,
+        vec!["pkg/src/stray.rs".to_string()],
+        "claimed file and subtree-covered file are excluded; \
+         the excluded directory is never walked"
+    );
+    // Denominator counts what was walked: lib.rs + sub/covered.rs + stray.rs.
+    assert_eq!(idx.traceability.source_file_count, 3);
+}
+
+#[test]
+fn untraced_files_is_sorted_deduped_and_deterministic() {
+    let fx = coverage_fixture();
+    let cfg = coverage_cfg();
+    let a = index(&cfg, fx.path()).unwrap().index.traceability;
+    let b = index(&cfg, fx.path()).unwrap().index.traceability;
+    assert_eq!(a.untraced_files, b.untraced_files);
+    assert_eq!(a.source_file_count, b.source_file_count);
+    let mut sorted = a.untraced_files.clone();
+    sorted.sort();
+    sorted.dedup();
+    assert_eq!(a.untraced_files, sorted);
+}
+
+#[test]
+fn package_spec_ref_claims_its_files() {
+    // Spec 032 §3.3: manifest metadata lands in `implementingPaths` as a
+    // directory claim, and the coupling gate treats that as ownership of the
+    // whole subtree. The coverage predictor must read the same set, or it would
+    // report files that `require_ownership` was never going to flag.
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(r, "Cargo.toml", "[workspace]\nmembers = [\"pkg\"]\n");
+    write(
+        r,
+        "pkg/Cargo.toml",
+        "[package]\nname = \"pkg\"\nversion = \"0.1.0\"\n\
+         [package.metadata.spec-spine]\nspec = \"001-x\"\n",
+    );
+    write(r, "pkg/src/lib.rs", "pub fn a() {}\n");
+    write(r, "specs/001-x/spec.md", &spec("001-x", ""));
+
+    let idx = index(&Config::default(), r).unwrap().index;
+    assert!(
+        idx.traceability.untraced_code.is_empty(),
+        "the package is governed by its manifest spec_ref"
+    );
+    assert!(
+        idx.traceability.untraced_files.is_empty(),
+        "the manifest claim covers the whole package: {:?}",
+        idx.traceability.untraced_files
+    );
+    assert_eq!(idx.traceability.source_file_count, 1);
+}
+
+#[test]
+fn full_coverage_reports_an_empty_untraced_list() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(r, "Cargo.toml", "[workspace]\nmembers = [\"pkg\"]\n");
+    write(
+        r,
+        "pkg/Cargo.toml",
+        "[package]\nname = \"pkg\"\nversion = \"0.1.0\"\n",
+    );
+    write(r, "pkg/src/lib.rs", "pub fn a() {}\n");
+    write(r, "pkg/src/other.rs", "pub fn b() {}\n");
+    write(
+        r,
+        "specs/001-x/spec.md",
+        &spec("001-x", "establishes:\n  - \"pkg/src/\"\n"),
+    );
+    let idx = index(&Config::default(), r).unwrap().index;
+    assert!(
+        idx.traceability.untraced_files.is_empty(),
+        "{:?}",
+        idx.traceability.untraced_files
+    );
+    assert_eq!(idx.traceability.source_file_count, 2);
+}
