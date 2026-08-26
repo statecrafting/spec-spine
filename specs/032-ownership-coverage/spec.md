@@ -124,7 +124,15 @@ decision applies unchanged and in the same order:
 2. **Explicit claims still beat the floor.** Spec 009's precedence is untouched:
    a path with a resolved unit claim is checked even if it is on the floor — and
    such a path has an owner by construction, so it can never raise `C-002`.
-3. **Waivers still clear it.** `C-002` is an ordinary violation, so the PR-body
+3. **The corpus is exempt.** A path under `layout.specs_dir` never raises
+   `C-002`. A `spec.md` *is* the authority, so "which spec claims this spec?" is
+   a category error rather than a coverage gap — without this, turning the flag
+   on raises a violation for every spec in the corpus, which is what dogfooding
+   this spec's own commit did before the exemption existed. It is deliberately
+   **not** a new bypass-floor entry: the floor is spec 005's and changing it
+   would alter `C-001` too. Corpus paths stay fully visible to `C-001`, so a
+   corpus file that is explicitly claimed still drifts normally.
+4. **Waivers still clear it.** `C-002` is an ordinary violation, so the PR-body
    `Spec-Drift-Waiver:` line and the spec 005 §3.5 dependency-only auto-waiver
    suppress the failure exactly as they do for `C-001`, with the violations
    still printed. No new waiver vocabulary.
@@ -253,6 +261,8 @@ verdict `couple_with` produces.
 - A path with owners changed without its spec yields `C-001` only — the two
   codes never both fire for one path.
 - A PR-body waiver suppresses a `C-002` failure exactly as it does `C-001`.
+- A path under the corpus directory raises no `C-002`, and the exemption tracks
+  a reconfigured `layout.specs_dir` rather than a hardcoded `specs/`.
 - `untracedFiles` lists an unclaimed file inside a governed package, omits one
   covered by a subtree claim, and omits one matched by `resolver_exclusions`.
 - A package with a `spec_ref` and no unit claims reports its files as **claimed**

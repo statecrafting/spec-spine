@@ -146,7 +146,7 @@ pub fn couple_with(
             // coverage ratchet it is `C-002`. The two codes are mutually
             // exclusive by construction: `C-001` needs a non-empty owner set,
             // `C-002` an empty one, so one path never raises both.
-            if cfg.coupling.require_ownership {
+            if cfg.coupling.require_ownership && !is_corpus_path(cfg, path) {
                 violations.push(Violation {
                     code: "C-002".to_string(),
                     severity: Severity::Error,
@@ -181,6 +181,19 @@ pub fn couple_with(
         waiver: waiver.map(|w| w.reason.clone()),
         checked_paths,
     })
+}
+
+/// Is this path part of the **corpus** rather than the code it governs?
+///
+/// A `spec.md` is the authority itself, so "which spec claims this spec?" is a
+/// category error, not a coverage gap: under spec 032's `require_ownership` the
+/// corpus would otherwise raise `C-002` on every spec it contains. Exempt from
+/// `C-002` only — the path stays fully visible to `C-001`, so a corpus file that
+/// *is* explicitly claimed still drifts normally, and the bypass floor is
+/// untouched (this is not a new floor entry).
+fn is_corpus_path(cfg: &Config, path: &str) -> bool {
+    let dir = cfg.layout.specs_dir.trim_end_matches('/');
+    !dir.is_empty() && path.starts_with(&format!("{dir}/"))
 }
 
 /// The effective bypass verdict for one path: hardcoded floor ∪ adopter list

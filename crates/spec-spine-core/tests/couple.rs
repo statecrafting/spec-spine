@@ -886,3 +886,41 @@ fn manifest_directory_claim_covers_its_subtree_under_require_ownership() {
         "owned by the manifest claim, so it drifts rather than being uncovered"
     );
 }
+
+#[test]
+fn corpus_paths_are_exempt_from_c002() {
+    // Caught by dogfooding the ratchet on spec 032's own commit: nothing claims
+    // `specs/`, so every spec.md raised C-002. A spec is the authority, not a
+    // derivation of one. Exempt from C-002 only — C-001 still sees the path.
+    let report = run_with(
+        &coverage_config(),
+        &index_claiming_lib_only(),
+        &empty_registry(),
+        &diff(vec![
+            file("specs/007-new/spec.md", &[]),
+            file("src/stray.rs", &[LineSpan::new(1, 2)]),
+        ]),
+    );
+    assert_eq!(report.violations.len(), 1, "{:?}", report.violations);
+    assert_eq!(report.violations[0].path.as_deref(), Some("src/stray.rs"));
+}
+
+#[test]
+fn corpus_exemption_follows_the_configured_specs_dir() {
+    let mut cfg = coverage_config();
+    cfg.layout.specs_dir = "governance".to_string();
+    let report = run_with(
+        &cfg,
+        &index_claiming_lib_only(),
+        &empty_registry(),
+        &diff(vec![
+            file("governance/007-new/spec.md", &[]),
+            file("specs/007-new/spec.md", &[]), // no longer the corpus dir
+        ]),
+    );
+    assert_eq!(report.violations.len(), 1, "{:?}", report.violations);
+    assert_eq!(
+        report.violations[0].path.as_deref(),
+        Some("specs/007-new/spec.md")
+    );
+}

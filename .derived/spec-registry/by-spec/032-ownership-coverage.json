@@ -129,6 +129,6 @@
     "summary": "spec-spine refuses drift but has never required coverage. The gate skips a changed path that no spec claims (`couple.rs`: \"unclaimed path, not a coupling concern\"), and the only coverage-ish signal, `traceability.untracedCode`, is computed at *package* granularity, so a crate with one governed file and two hundred ungoverned ones reports as fully traced. Nothing anywhere consumes it. The consequence is that \"this application is fully specified\" is not a state the tool can assert: a corpus can be complete, every gate green, and most of the codebase invisible to the ledger. This spec closes that in two additive pieces. (1) `[coupling] require_ownership` (default **false**) turns an unclaimed, non-bypassed, changed path into a first-class `C-002` violation, so coverage becomes a PR-time ratchet on the same diff the gate already walks. (2) `traceability.untracedFiles` reports every unclaimed source file, so the coverage number is honest and an adopter can see the distance to totality before opting in. Both are additive: `require_ownership` defaults off (turning it on by default would red every adopter, this repo included), and the new index field is an `INDEX_SCHEMA_VERSION` MINOR.\n",
     "title": "Coverage: the unclaimed-path gate (`C-002`) and file-granular untraced reporting"
   },
-  "shardHash": "59044fc78c17e12a26fb345ed7acaa14c539e1d73ffa7897cf2718009a052efc",
+  "shardHash": "9df053619655a5d4728e142210397ef23fcaf8fdfa3aa935d510c32f3fb8a833",
   "specVersion": "1.1.0"
 }
