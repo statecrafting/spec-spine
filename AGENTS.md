@@ -26,6 +26,7 @@ The protocol drives the library through its own built binary, `target/release/sp
    - `spec-spine compile --check`: freshness gate for the spec registry (non-fatal; see **Registry freshness** below)
    - `spec-spine index check`: staleness gate for the codebase index (non-fatal)
    - `spec-spine index render`: markdown projection of the committed index
+   - `spec-spine index coverage`: which source files no spec specifically claims (spec 032; non-fatal, exit 2 if the index is stale)
    - `spec-spine registry status-report --json --nonzero-only`: lifecycle counts per status
    - `spec-spine registry list --ids-only`: spec id list (for latest-spec detection)
    - `ls crates/`: library crate layout

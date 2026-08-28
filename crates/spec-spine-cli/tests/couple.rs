@@ -554,3 +554,91 @@ fn workflow_uses_bump_auto_waives() {
         String::from_utf8_lossy(&out.stdout)
     );
 }
+
+// ===== spec 032: the ownership ratchet, end to end =====
+
+/// A crate with no manifest floor: `src/lib.rs` is claimed by a file unit,
+/// anything else under it is unowned. `require_ownership` is on.
+fn setup_ratchet(root: &Path) {
+    write(root, "Cargo.toml", "[workspace]\nmembers = [\"crate-a\"]\n");
+    write(
+        root,
+        "crate-a/Cargo.toml",
+        "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n",
+    );
+    write(root, "crate-a/src/lib.rs", "pub fn a() {}\n");
+    write(
+        root,
+        "specs/001-a/spec.md",
+        "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\nestablishes:\n  - \"crate-a/src/lib.rs\"\n---\n# 001-a\n## body\n",
+    );
+    write(
+        root,
+        "spec-spine.toml",
+        "[coupling]\nrequire_ownership = true\n",
+    );
+}
+
+#[test]
+fn ratchet_refuses_new_unowned_source_and_allows_its_deletion() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_ratchet(root);
+    git_in(root, &["init", "-q"]);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base"]);
+
+    // Add an unowned source file: C-002, exit 1, named as such.
+    write(root, "crate-a/src/extra.rs", "pub fn extra() {}\n");
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "add unowned"]);
+    let refused = couple_git(root);
+    let stderr = String::from_utf8_lossy(&refused.stderr);
+    assert_eq!(code(&refused), 1, "{stderr}");
+    assert!(stderr.contains("1 unclaimed (C-002"), "{stderr}");
+    assert!(
+        stderr.contains("'crate-a/src/extra.rs' is not claimed by any spec"),
+        "{stderr}"
+    );
+
+    // A PR-body waiver clears it like any violation.
+    write(
+        root,
+        "pr-body.txt",
+        "Spec-Drift-Waiver: vendored drop, spec to follow\n",
+    );
+    let waived = bin()
+        .arg("--repo")
+        .arg(root)
+        .args(["couple", "--base", "HEAD~1", "--head", "HEAD", "--pr-body"])
+        .arg(root.join("pr-body.txt"))
+        .output()
+        .unwrap();
+    assert_eq!(code(&waived), 0);
+    assert!(String::from_utf8_lossy(&waived.stdout).contains("waived"));
+
+    // Deleting the unowned file is how coverage goes up: no C-002, exit 0.
+    fs::remove_file(root.join("crate-a/src/extra.rs")).unwrap();
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "remove unowned"]);
+    let allowed = couple_git(root);
+    assert_eq!(
+        code(&allowed),
+        0,
+        "{}",
+        String::from_utf8_lossy(&allowed.stderr)
+    );
+
+    // And the whole-tree assertion agrees: fully specified again.
+    let full = bin()
+        .arg("--repo")
+        .arg(root)
+        .args(["index", "coverage", "--fail-on-untraced"])
+        .output()
+        .unwrap();
+    assert_eq!(code(&full), 0, "{}", String::from_utf8_lossy(&full.stderr));
+}

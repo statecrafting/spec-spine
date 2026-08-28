@@ -269,6 +269,10 @@ indexer_id  = "spec-spine"
 bypass_prefixes = []
 # The PR-body waiver keyword (free-text reason follows the colon).
 waiver_keyword = "Spec-Drift-Waiver:"
+# Spec 032: refuse a changed source file that no spec specifically claims
+# (C-002). Off by default: full coverage is a state a repo reaches, not one it
+# inherits. `spec-spine index coverage` reports the distance.
+require_ownership = false
 
 [provenance]
 # OPEN scheme registry: the closed enum forced edits to shared types
@@ -661,7 +665,10 @@ checks; full enumeration lands in the Phase 1/3/4 specs):
   errors) fails `index check`.
 - **`C###`**: *coupling* gate violations (spec 005). `C-001` = a changed,
   non-bypassed path lacks an authoring edit to any spec that owns it (and no
-  waiver excuses it) → exit 1.
+  waiver excuses it) → exit 1. `C-002` (spec 032, only with `[coupling]
+  require_ownership`) = a changed source file inside a package that no spec
+  specifically claims (floor-only or unowned) → exit 1; one path raises at
+  most one of the two.
 
 ### 10.4 Deliberately dropped from the generic core (overlay territory)
 

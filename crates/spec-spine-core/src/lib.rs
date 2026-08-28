@@ -9,13 +9,14 @@
 //! parses the diff and passes a typed [`DiffInput`] in). The public API returns
 //! owned, `serde`-serializable DTOs (from [`spec_spine_types`]); the
 //! JSON-in/JSON-out facade ([`compile_json`], [`query_json`], [`index_json`],
-//! [`lint_json`], [`couple_json`], [`scaffold_init_json`], …) is the seam future
+//! [`lint_json`], [`couple_json`], [`coverage_json`], [`scaffold_init_json`], …) is the seam future
 //! FFI bindings wrap.
 
 pub mod attest;
 mod canonical_json;
 pub mod compile;
 pub mod couple;
+pub mod coverage;
 pub mod dep_only;
 mod hash;
 pub mod index;
@@ -36,7 +37,8 @@ use spec_spine_types::{Config, CorpusAttestation, Error, Status, load_config};
 // Re-export the type substrate so callers depend on one crate.
 pub use spec_spine_types as types;
 pub use spec_spine_types::{
-    CodebaseIndex, Frontmatter, REGISTRY_SCHEMA_VERSION, Registry, SpecRecord, Unit, Violation,
+    CodebaseIndex, CoverageReport, Frontmatter, PackageCoverage, REGISTRY_SCHEMA_VERSION, Registry,
+    SpecRecord, Unit, Violation,
 };
 
 pub use attest::{
@@ -50,6 +52,10 @@ pub use compile::{
 pub use couple::{
     CoupleReport, DEFAULT_BYPASS_PREFIXES, DiffFile, DiffInput, Waiver, couple, couple_with,
     is_bypassed_path, parse_waiver,
+};
+pub use coverage::{
+    Ownership, SOURCE_EXTS, classify, coverage, coverage_with, enumerate_source_files,
+    in_coverage_universe,
 };
 pub use dep_only::{
     CARGO_DEPENDENCY_TABLES, DEPENDENCY_TABLES, FileContents, cargo_dependency_only_change,
@@ -200,6 +206,15 @@ fn freshness_to_json(freshness: Freshness) -> serde_json::Value {
             serde_json::json!({ "fresh": false, "expected": expected, "actual": actual })
         }
     }
+}
+
+/// Report file-granular ownership coverage against the committed index (spec
+/// 032), returning the [`CoverageReport`] as JSON. Freshness-guarded like
+/// `couple`: a stale committed index is [`Error::Stale`] (exit 2), never a
+/// report over the wrong ledger.
+pub fn coverage_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
+    let config = config_from_json(config_json)?;
+    to_json(&coverage(&config, std::path::Path::new(repo_root))?)
 }
 
 /// Render the committed index as markdown (spec 011). `index_json` is the

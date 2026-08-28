@@ -594,3 +594,83 @@ fn compile_check_exit_contract() {
         "validation outranks staleness"
     );
 }
+
+#[test]
+fn index_coverage_reports_and_gates() {
+    // Spec 032: `index coverage` is a freshness-guarded read verb over the
+    // tree and the committed index; `--fail-on-untraced` is the whole-tree
+    // "fully specified" assertion.
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    let write = |rel: &str, content: &str| {
+        let p = r.join(rel);
+        fs::create_dir_all(p.parent().unwrap()).unwrap();
+        fs::write(p, content).unwrap();
+    };
+    write(
+        "Cargo.toml",
+        "[package]\nname = \"root\"\nversion = \"0.1.0\"\n",
+    );
+    write("src/lib.rs", "pub fn a() {}\n");
+    write("src/other.rs", "pub fn b() {}\n");
+    write(
+        "specs/001-a/spec.md",
+        "---\nid: \"001-a\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-06-08\"\nsummary: \"s\"\nestablishes:\n  - \"src/lib.rs\"\n---\n# 001-a\n",
+    );
+    let run = |args: &[&str]| bin().arg("--repo").arg(r).args(args).output().unwrap();
+
+    assert_eq!(
+        code(&run(&["index", "coverage"])),
+        3,
+        "no committed index -> artifact missing (3)"
+    );
+    assert_eq!(code(&run(&["index"])), 0);
+
+    let text = run(&["index", "coverage"]);
+    assert_eq!(code(&text), 0, "a report, not a gate");
+    let out = String::from_utf8_lossy(&text.stdout);
+    assert!(
+        out.contains(
+            "coverage: 1/2 source files specifically claimed (50.0%); 0 floor-only, 1 unclaimed"
+        ),
+        "{out}"
+    );
+    assert!(
+        out.contains("unclaimed (no owning spec):\n  src/other.rs"),
+        "{out}"
+    );
+
+    let json = run(&["index", "coverage", "--json"]);
+    assert_eq!(code(&json), 0);
+    let report: serde_json::Value = serde_json::from_slice(&json.stdout).unwrap();
+    assert_eq!(report["sourceFiles"], 2);
+    assert_eq!(report["claimedFiles"], 1);
+    assert_eq!(
+        report["unclaimedFiles"],
+        serde_json::json!(["src/other.rs"])
+    );
+
+    assert_eq!(
+        code(&run(&["index", "coverage", "--fail-on-untraced"])),
+        1,
+        "an untraced file fails the assertion"
+    );
+
+    // Claim the file, re-index: fully specified.
+    write(
+        "specs/001-a/spec.md",
+        "---\nid: \"001-a\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-06-08\"\nsummary: \"s\"\nestablishes:\n  - \"src/\"\n---\n# 001-a\n",
+    );
+    assert_eq!(
+        code(&run(&["index", "coverage"])),
+        2,
+        "stale index -> 2, never a report over the wrong ledger"
+    );
+    assert_eq!(code(&run(&["index"])), 0);
+    let full = run(&["index", "coverage", "--fail-on-untraced"]);
+    assert_eq!(code(&full), 0, "{}", String::from_utf8_lossy(&full.stderr));
+    assert!(
+        String::from_utf8_lossy(&full.stdout)
+            .contains("coverage: 2/2 source files specifically claimed (100.0%)")
+    );
+}

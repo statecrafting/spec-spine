@@ -34,6 +34,7 @@ cargo run -p spec-spine-cli -- compile                 # writes .derived/spec-re
 cargo run -p spec-spine-cli -- index check             # staleness gate (exit 2 if stale)
 cargo run -p spec-spine-cli -- lint --fail-on-warn
 cargo run -p spec-spine-cli -- couple --base origin/main --head HEAD
+cargo run -p spec-spine-cli -- index coverage            # which source files no spec specifically claims (spec 032)
 ```
 
 Exit codes are a stable contract: `0` ok · `1` validation failure / not found /
@@ -91,7 +92,11 @@ Since spec 024 both are stored **sharded** (one committed file per authority uni
 `spec-registry/by-spec/<id>.json`, `codebase-index/by-spec/<id>.json`,
 `codebase-index/by-package/<slug>.json`); the aggregate view is recomputed from
 the shard set on read, never committed. The **gate chain is `compile → index →
-lint → couple`**. The
+lint → couple`**. `index coverage` (spec 032) is the read verb beside it: it
+reports, per source file, whether a spec specifically claims it, only a
+manifest floor covers it, or nothing does; `[coupling] require_ownership`
+turns that into a `C-002` refusal on the gate (off in this repo, by decision,
+with the five floor-only files named in `spec-spine.toml`). The
 coupling clearance algorithm (amends-awareness, the strict-expansion guard,
 waiver parsing, bypass matching) is ported behaviorally intact from OAP. Modules
 cite their source; preserve the cited semantics when editing `couple.rs`.

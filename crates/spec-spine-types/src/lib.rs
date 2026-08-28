@@ -13,6 +13,7 @@
 //!
 //! ## Layout
 //! - [`config`]: the `spec-spine.toml` model ([`Config`]).
+//! - [`coverage`]: the ownership-coverage report DTOs (spec 032).
 //! - [`frontmatter`]: the authored grammar ([`Frontmatter`], [`parse_frontmatter`]).
 //! - [`unit`] / [`edges`]: the authority-unit and relationship vocabulary.
 //! - [`registry`]: the compiled spec-as-source DTOs ([`Registry`]).
@@ -22,6 +23,7 @@
 pub mod attest;
 pub mod codebase;
 pub mod config;
+pub mod coverage;
 pub mod edges;
 pub mod error;
 pub mod frontmatter;
@@ -45,6 +47,7 @@ pub use config::{
     AllowlistConfig, BrandingConfig, Config, CouplingConfig, FrontmatterConfig, IndexConfig,
     LayoutConfig, ManifestConfig, ProvenanceConfig, load_config,
 };
+pub use coverage::{CoverageReport, PackageCoverage};
 pub use edges::{
     CoAuthorityItem, ConstrainItem, ExtendItem, Origin, Provenance, ReferenceItem, RefineItem,
     SupersedeItem, SupersedeScope, SupersedeScoped,

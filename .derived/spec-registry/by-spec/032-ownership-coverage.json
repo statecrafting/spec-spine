@@ -1,0 +1,142 @@
+{
+  "record": {
+    "created": "2026-08-28",
+    "dependsOn": [
+      "004-codebase-index",
+      "005-coupling-gate",
+      "009-coupling-floor-claim-precedence"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/coverage.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/coverage.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/coverage.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      }
+    ],
+    "id": "032-ownership-coverage",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-architecture.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "032: Ownership coverage",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Ownership tiers",
+      "3.2 The universe",
+      "3.3 `spec-spine index coverage`",
+      "3.4 `C-002`: the ownership ratchet",
+      "3.5 Why `require_ownership` defaults off",
+      "3.6 Deletions",
+      "3.7 Determinism",
+      "3.8 Measured on this repo",
+      "3.9 Tests (minimum)",
+      "4. Out of scope"
+    ],
+    "specPath": "specs/032-ownership-coverage/spec.md",
+    "status": "draft",
+    "summary": "spec-spine refuses drift but has never required coverage. The coupling gate skips a changed path that no spec claims (\"not a coupling concern\"), and the only coverage-shaped signal, `traceability.untracedCode`, is package-granular and read by nothing, so a crate with one governed file and two hundred ungoverned ones reports as traced. \"This application is fully specified\" is therefore not a state the tool can assert. This spec adds two additive pieces that share one definition of ownership. `spec-spine index coverage` reports, per source file, whether a spec *specifically* claims it (a resolved unit or a comment header), whether only a package's manifest floor covers it, or whether nothing does; `--fail-on-untraced` turns that into the whole-tree assertion. `[coupling] require_ownership` (default false) makes the gate ask the same question of every changed source file and refuse a floor-only or unowned one as `C-002`, the PR-time ratchet. Coverage is a read verb over the tree and the committed ledger, like `index check`: nothing new is committed, no schema version moves, and the report predicts the gate exactly because both call one classifier over one universe.\n",
+    "title": "Ownership coverage: `spec-spine index coverage` and the `C-002` ratchet"
+  },
+  "shardHash": "562354b6106b4cab27995e4f3a47d77a41321dbe37429ff030613ee12ae7c8e2",
+  "specVersion": "1.1.0"
+}

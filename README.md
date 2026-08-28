@@ -62,10 +62,10 @@ install → init → annotate → wire-CI walkthrough.
 | Command | Capability |
 |---|---|
 | `spec-spine compile` / `compile --check` | validate frontmatter, emit the deterministic registry / verify the committed shards match without writing |
-| `spec-spine index` / `index check` / `index render` / `index orphans` | emit the codebase index / check staleness / render it as markdown / list orphaned specs |
+| `spec-spine index` / `index check` / `index render` / `index orphans` / `index coverage` | emit the codebase index / check staleness / render it as markdown / list orphaned specs / report which source files no spec specifically claims (`--fail-on-untraced` asserts full coverage) |
 | `spec-spine registry list\|show\|status-report\|relationships` | typed read-only queries |
 | `spec-spine lint [--fail-on-warn] [--fail-on-info]` | corpus well-formedness |
-| `spec-spine couple` | the PR-time coupling gate (refuses drift) |
+| `spec-spine couple` | the PR-time coupling gate (refuses drift; with `[coupling] require_ownership` also refuses a changed source file no spec claims) |
 | `spec-spine init [--force]` | scaffold a new adopter |
 
 Exit codes: `0` ok · `1` validation failure / not found / drift · `2` stale ·

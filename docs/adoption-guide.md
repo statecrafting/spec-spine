@@ -193,6 +193,34 @@ Spec-Drift-Waiver: refactor moves helper out of the owned section; behavior unch
 
 The waiver is global to the run and downgrades violations to warnings.
 
+### Coverage: "is everything specified?"
+
+The gate above refuses drift in code a spec claims; it says nothing about code
+no spec claims. `spec-spine index coverage` (spec 032) answers that, per
+source file, against the committed index:
+
+```sh
+spec-spine index coverage                      # the report (exit 2 if the index is stale)
+spec-spine index coverage --json               # the same as a CoverageReport
+spec-spine index coverage --fail-on-untraced   # exit 1 unless every source file is claimed
+```
+
+A file is **specifically claimed** when a resolved unit (file, section,
+symbol, directory, crate, module) or a `// Spec:` comment header covers it.
+A file only a manifest floor (`[package.metadata.<ns>].spec`) covers is
+**floor-only**: the floor is the right safety net for drift and a useless
+coverage signal, so it counts as debt here. Anything else is **unclaimed**.
+The universe is source files inside discovered packages, minus
+`resolver_exclusions` and bypassed paths; prose, manifests, workflows and
+config are never counted.
+
+To turn coverage into a PR-time ratchet, set `[coupling] require_ownership =
+true`: a changed floor-only or unclaimed source file is then a `C-002`
+violation (waivable like `C-001`; deletions are exempt). The report predicts
+the gate exactly, both read one classifier over one universe. The intended
+sequence: read the report, flip the flag to stop new debt, drive the lists to
+empty, then add `--fail-on-untraced` to CI to defend the state.
+
 ---
 
 ## Config: `spec-spine.toml`
@@ -217,6 +245,7 @@ divergence observed across the reference repos. Every sub-table is
 | `branding.compiler_id` / `indexer_id` | ids stamped in emitted `build` metadata | `"spec-spine"` |
 | `coupling.bypass_prefixes` | **additions** to the built-in bypass floor (additive; cannot remove a floor entry) | `[]` |
 | `coupling.waiver_keyword` | the PR-body waiver keyword | `"Spec-Drift-Waiver:"` |
+| `coupling.require_ownership` | the ownership ratchet (spec 032): a changed source file inside a package that no spec **specifically** claims (a resolved unit or a `// Spec:` header; a manifest floor alone does not count) is a `C-002` violation. Read `spec-spine index coverage` first; turn on to stop new debt | `false` |
 | `coupling.auto_waive_dependency_only` | when `true` and no PR-body waiver is present, mechanically self-waives PRs where every non-bypassed changed path is a recognized dependency manifest with only version-pin changes: a `package.json` dependency table, a `Cargo.toml` dependency version, or a claimed `.github/workflows/*.yml` `uses:` action ref (the dependabot-class path); fail-closed on anything more (spec 005 §3.5, extended by spec 030) | `false` |
 | `provenance.uri_schemes` | open kind→scheme map for provenance URIs | `{ knowledge = "knowledge://", code-fingerprint = "fingerprint://" }` |
 | `frontmatter.extra_known_keys` | recognized frontmatter keys added without forking the types crate | `[]` |

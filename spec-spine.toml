@@ -45,6 +45,13 @@ indexer_id  = "spec-spine"
 # a README tweak would read as code drift. `**/README.md` = tail-suffix match.
 bypass_prefixes = ["**/README.md"]
 waiver_keyword = "Spec-Drift-Waiver:"
+# Spec 032: refuse a changed source file that no spec specifically claims
+# (C-002). Off here on purpose: `spec-spine index coverage` reports this repo at
+# 59/64 (five files owned only by their crate's manifest floor, see 032 §3.8),
+# and claiming them means editing the tier-1 bootstrap spec, a human's call.
+# The path to adopt is: read the report, flip this on to stop new debt, drive
+# the lists to empty, then add `index coverage --fail-on-untraced` to CI.
+require_ownership = false
 
 [provenance.uri_schemes]
 knowledge        = "knowledge://"

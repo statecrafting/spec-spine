@@ -6,6 +6,11 @@
 //! **`git` never runs here**: the CLI parses `git diff --no-color -U0
 //! base...head` into a typed [`DiffInput`] and passes it in.
 //!
+//! Spec 032 adds a second, opt-in verdict: with `[coupling] require_ownership`
+//! on, a changed source file that no spec *specifically* owns is `C-002`. The
+//! ownership question is answered by [`crate::coverage`], the same classifier
+//! `spec-spine index coverage` reports with, so the report predicts the gate.
+//!
 //! The behavioral semantics are ported intact from OAP
 //! `tools/spec-spine/spec-code-coupling-check/src/lib.rs`
 //! (`legitimate_owners` + the FR-005 strict-expansion guard, `is_bypass_against`,
@@ -19,6 +24,7 @@ use std::path::Path;
 use serde::{Deserialize, Serialize};
 use spec_spine_types::{CodebaseIndex, Config, Error, LineSpan, Registry, Severity, Violation};
 
+use crate::coverage::{Ownership, classify, in_coverage_universe};
 use crate::index::{Freshness, check_index_freshness};
 
 /// The hardcoded generic bypass floor (spec 005 §3.5): the **single built-in
@@ -59,6 +65,13 @@ pub struct DiffFile {
     pub path: String,
     #[serde(default)]
     pub hunks: Vec<LineSpan>,
+    /// The path no longer exists at head (the CLI sets this from a
+    /// `+++ /dev/null` header). Drift (`C-001`) treats a deletion like any
+    /// whole-file change; the ownership ratchet (`C-002`, spec 032) never
+    /// refuses one, since removing unowned code is how coverage goes up.
+    /// Additive: absent in older `couple_json` requests, so it defaults off.
+    #[serde(default)]
+    pub deleted: bool,
 }
 
 /// A PR-body waiver: the trimmed reason after the configured keyword.
@@ -140,9 +153,37 @@ pub fn couple_with(
         }
         checked_paths += 1;
 
+        // Spec 032: the ownership ratchet. Asked before the drift question,
+        // over exactly the universe `index coverage` reports on, so the report
+        // predicts this arm. A deleted path is never refused for lacking an
+        // owner. `C-002` takes precedence over `C-001` for one path (claiming
+        // the file in a spec resolves both), so a path raises at most one code.
+        if cfg.coupling.require_ownership && !file.deleted && in_coverage_universe(cfg, index, path)
+        {
+            let message = match classify(index, path) {
+                Ownership::Specific => None,
+                Ownership::FloorOnly(floors) => Some(format!(
+                    "'{path}' has no specific owning spec; only the package floor of {} covers it (require_ownership is on)",
+                    floors.join(", ")
+                )),
+                Ownership::Unowned => Some(format!(
+                    "'{path}' is not claimed by any spec (require_ownership is on)"
+                )),
+            };
+            if let Some(message) = message {
+                violations.push(Violation {
+                    code: "C-002".to_string(),
+                    severity: Severity::Error,
+                    message,
+                    path: Some(path.clone()),
+                });
+                continue;
+            }
+        }
+
         let owners = owners_for_path(path, &file.hunks, index, &superseders);
         if owners.is_empty() {
-            continue; // unclaimed path, not a coupling concern
+            continue; // unclaimed path: not a drift concern (see the ratchet above)
         }
         if any_owner_in_diff(&owners, &diff_paths) {
             continue; // primary-owner heuristic: any one owner's spec.md cleared it
@@ -349,7 +390,7 @@ fn span_overlaps_hunk(span: Option<LineSpan>, hunk: LineSpan) -> bool {
 /// Slash-anchored prefix match: a directory `claim` (trailing `/`, or any path
 /// treated as a directory) owns every file under it; an exact path matches
 /// itself (ported from OAP `claim_matches`).
-fn claim_matches(claim: &str, path: &str) -> bool {
+pub(crate) fn claim_matches(claim: &str, path: &str) -> bool {
     if claim == path {
         return true;
     }

@@ -17,6 +17,7 @@ use spec_spine_types::{
     parse_frontmatter_with,
 };
 
+use crate::coverage::SOURCE_EXTS;
 use crate::manifest;
 use crate::pathutil::{is_excluded, rel_posix};
 use crate::sections;
@@ -909,10 +910,17 @@ fn scan_comment_headers(
     all_ids: &BTreeSet<String>,
 ) -> Vec<(String, String)> {
     let mut links: Vec<(String, String)> = Vec::new();
-    let exts = ["rs", "ts", "tsx", "js", "jsx", "go", "py", "sh"];
+    // The extension list is shared with the coverage universe (spec 032) so
+    // the spec-binding scan and the coverage denominator agree on what a
+    // source file is.
     for pkg in packages {
         let pkg_dir = repo_root.join(&pkg.path);
-        for file in walk_source(&pkg_dir, &exts, repo_root, &cfg.index.resolver_exclusions) {
+        for file in walk_source(
+            &pkg_dir,
+            SOURCE_EXTS,
+            repo_root,
+            &cfg.index.resolver_exclusions,
+        ) {
             let Ok(content) = fs::read_to_string(&file) else {
                 continue;
             };
@@ -1055,7 +1063,14 @@ fn glob_files(repo_root: &Path, pattern: &str) -> Vec<PathBuf> {
     out
 }
 
-fn walk_source(dir: &Path, exts: &[&str], repo_root: &Path, exclusions: &[String]) -> Vec<PathBuf> {
+/// Sorted source files under `dir` (by extension), pruning
+/// `index.resolver_exclusions`. Shared with the coverage universe (spec 032).
+pub(crate) fn walk_source(
+    dir: &Path,
+    exts: &[&str],
+    repo_root: &Path,
+    exclusions: &[String],
+) -> Vec<PathBuf> {
     let mut out = Vec::new();
     walk(dir, exts, repo_root, exclusions, &mut out);
     out.sort();

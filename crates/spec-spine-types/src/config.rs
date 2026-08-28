@@ -189,6 +189,17 @@ pub struct CouplingConfig {
     /// version string (a new package, a `scripts` edit, spec-binding
     /// metadata) refuses the auto-waiver, fail-closed. Default `false`.
     pub auto_waive_dependency_only: bool,
+    /// Opt-in ownership ratchet (spec 032). When `true`, a changed source file
+    /// inside a discovered package that no spec **specifically** claims is a
+    /// `C-002` violation instead of being skipped as "not a coupling concern".
+    /// Specific means a resolved ownership-bearing unit (file / section /
+    /// symbol / directory / crate / module) or a `// Spec:` comment header;
+    /// a manifest floor alone (`[package.metadata.<ns>].spec`, spec 005 §3.6)
+    /// does not count, because it covers a whole package regardless of what
+    /// anyone has thought about. Default `false`: `C-001` holds for any
+    /// corpus the day it is written, but full coverage is a state a repo has
+    /// to reach first. `spec-spine index coverage` reports the distance.
+    pub require_ownership: bool,
 }
 
 impl Default for CouplingConfig {
@@ -200,6 +211,7 @@ impl Default for CouplingConfig {
             bypass_prefixes: Vec::new(),
             waiver_keyword: "Spec-Drift-Waiver:".to_string(),
             auto_waive_dependency_only: false,
+            require_ownership: false,
         }
     }
 }
