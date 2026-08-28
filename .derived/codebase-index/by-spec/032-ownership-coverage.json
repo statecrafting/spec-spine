@@ -248,8 +248,8 @@
       }
     ],
     "specId": "032-ownership-coverage",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "790f1465d780230e724e57bcdd47867ec69aae71856dcd9f34bd5cfc2c33e645"
+  "shardHash": "1d93aa9bc737ab9b4220be0678eae5bea3563e0f72856291725cf9594064b0ce"
 }

@@ -1,7 +1,7 @@
 ---
 id: "032-ownership-coverage"
 title: "Ownership coverage: `spec-spine index coverage` and the `C-002` ratchet"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-08-28"
 implementation: complete
