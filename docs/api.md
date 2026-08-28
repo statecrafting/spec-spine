@@ -72,6 +72,15 @@ pub fn check_index_freshness(cfg: &Config, repo_root: &Path) -> Result<Freshness
 
 // Per-slice staleness (spec 012): `name` is a configured `[index.slices]` key.
 pub fn check_slice_freshness(cfg: &Config, repo_root: &Path, name: &str) -> Result<Freshness, Error>;
+
+// Ownership coverage (spec 032): which source files no spec specifically
+// claims. Freshness-guarded like `couple` (a stale index is Error::Stale);
+// the pure form takes an already-loaded index and a path listing.
+pub fn coverage     (cfg: &Config, repo_root: &Path) -> Result<CoverageReport, Error>;
+pub fn coverage_with(cfg: &Config, index: &CodebaseIndex, files: &[String]) -> CoverageReport;
+pub fn classify(index: &CodebaseIndex, path: &str) -> Ownership;   // Specific | FloorOnly(ids) | Unowned
+pub fn in_coverage_universe(cfg: &Config, index: &CodebaseIndex, path: &str) -> bool;
+pub fn enumerate_source_files(cfg: &Config, repo_root: &Path, index: &CodebaseIndex) -> Vec<String>;
 ```
 
 Returned outcomes carry both the typed struct and the canonical bytes the CLI
@@ -89,7 +98,8 @@ The gate never shells out; the caller passes a parsed diff:
 
 ```rust
 pub struct DiffInput { pub files: Vec<DiffFile> }
-pub struct DiffFile  { pub path: String, pub hunks: Vec<LineSpan> }  // empty hunks ⇒ whole-file change
+pub struct DiffFile  { pub path: String, pub hunks: Vec<LineSpan>,    // empty hunks ⇒ whole-file change
+                       pub deleted: bool }                            // `+++ /dev/null`; C-002 skips it (spec 032)
 pub struct Waiver    { pub reason: String }
 
 // Build a Waiver from a PR body using the configured keyword:
@@ -225,6 +235,7 @@ pub fn compile_json        (config_json: &str, repo_root: &str) -> Result<String
 pub fn index_json          (config_json: &str, repo_root: &str) -> Result<String, Error>;
 pub fn lint_json           (config_json: &str, repo_root: &str) -> Result<String, Error>;
 pub fn check_freshness_json(config_json: &str, repo_root: &str) -> Result<String, Error>;
+pub fn coverage_json       (config_json: &str, repo_root: &str) -> Result<String, Error>;
 pub fn couple_json         (request_json: &str)                 -> Result<String, Error>;
 pub fn query_json          (request_json: &str)                 -> Result<String, Error>;
 pub fn render_json         (config_json: &str, index_json: &str) -> Result<String, Error>;
@@ -241,6 +252,9 @@ pub fn scaffold_init_json  (config_json: &str)                  -> Result<String
 - `couple_json` request: `{ "config"?: Config, "repoRoot": string, "diff":
   DiffInput, "waiver"?: { "reason": string } }`.
 - `check_freshness_json` returns `{ "fresh": bool, "expected"?, "actual"? }`.
+- `coverage_json` (spec 032) returns the `CoverageReport`: `sourceFiles`,
+  `claimedFiles`, the sorted `floorOnlyFiles` / `unclaimedFiles` lists, and
+  per-package counts. A stale committed index is `Error::Stale`, not a report.
 - `render_json` (spec 011) takes `config_json` and the aggregate index JSON
   text and returns the markdown projection (a JSON-encoded string).
   `orphans_json` (spec 011) takes only the index JSON text and returns the

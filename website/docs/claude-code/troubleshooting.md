@@ -53,7 +53,9 @@ to a spec. **Fix (waiver):** include a `Spec-Drift-Waiver` block in the PR body
 at creation time (requires explicit user approval; the agent never adds it
 alone). Paths on the bypass floor (`.github/**`, `docs/**`, lockfiles) and any
 `[coupling] bypass_prefixes` in `spec-spine.toml` are exempt; unowned paths clear
-automatically.
+automatically unless `[coupling] require_ownership` is on, in which case a
+changed source file no spec specifically claims is a `C-002` (claim it in a
+spec's owning edge, or waive). `spec-spine index coverage` lists those files.
 
 ## "pr-prep regenerated `.derived/`"
 

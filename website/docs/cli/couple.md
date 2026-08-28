@@ -16,7 +16,9 @@ spec-spine couple --base <ref> --head <ref> [--pr-body FILE] [--paths-from FILE]
 
 ## Description
 
-The coupling gate cross-references every modified code path against the authority graph. If a path is changed but its owning spec is not part of the diff (and no waiver is present), the gate fails.
+The coupling gate cross-references every modified code path against the authority graph. If a path is changed but its owning spec is not part of the diff (and no waiver is present), the gate fails with `C-001`.
+
+A path no spec owns is skipped by default. With `[coupling] require_ownership = true` (spec 032), a changed source file inside a discovered package that no spec *specifically* claims (a manifest floor alone does not count) fails with `C-002` instead; deletions are exempt, and a waiver clears it like any violation. `spec-spine index coverage` lists exactly the files that flag would refuse.
 
 It uses `git diff --no-color -U0 base...head` to determine the changed paths.
 

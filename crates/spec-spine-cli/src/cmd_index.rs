@@ -2,8 +2,10 @@
 //! under `<derived>/codebase-index/{by-spec,by-package}/`; `spec-spine index
 //! check`: per-shard staleness; `spec-spine index render` / `index orphans`:
 //! read-side projections of the committed shard set (spec 011; never recompute,
-//! never check freshness). The single monolithic `index.json` is no longer
-//! emitted, so PRs touching different specs/packages write disjoint files.
+//! never check freshness); `spec-spine index coverage`: file-granular
+//! ownership coverage of the tree against the committed shards (spec 032;
+//! freshness-guarded like `couple`). The single monolithic `index.json` is no
+//! longer emitted, so PRs touching different specs/packages write disjoint files.
 
 use std::fs;
 use std::path::Path;
@@ -11,10 +13,10 @@ use std::path::Path;
 use clap::Subcommand;
 use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
 use spec_spine_core::{
-    Freshness, check_index_freshness, check_slice_freshness, index, index_dir, index_shard_files,
-    load_committed_index, orphans, render_markdown, slices_path,
+    Freshness, check_index_freshness, check_slice_freshness, coverage, index, index_dir,
+    index_shard_files, load_committed_index, orphans, render_markdown, slices_path,
 };
-use spec_spine_types::{Config, Error};
+use spec_spine_types::{Config, CoverageReport, Error};
 
 use crate::load_repo_config;
 
@@ -32,6 +34,14 @@ pub enum IndexAction {
     Orphans {
         #[arg(long)]
         json: bool,
+    },
+    /// Report which source files no spec specifically claims (spec 032).
+    Coverage {
+        #[arg(long)]
+        json: bool,
+        /// Fail (exit 1) unless every source file has a specific owning spec.
+        #[arg(long)]
+        fail_on_untraced: bool,
     },
 }
 
@@ -58,6 +68,26 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 }
             }
             Ok(0)
+        }
+        Some(IndexAction::Coverage {
+            json,
+            fail_on_untraced,
+        }) => {
+            // Freshness-guarded inside `coverage`: a stale index is `Error::Stale`
+            // (exit 2), so the report never describes the wrong ledger.
+            let report = coverage(&cfg, repo)?;
+            if *json {
+                let s = serde_json::to_string_pretty(&report)
+                    .map_err(|e| Error::Schema(e.to_string()))?;
+                println!("{s}");
+            } else {
+                print!("{}", render_coverage(&report));
+            }
+            Ok(if *fail_on_untraced && !report.is_fully_claimed() {
+                1
+            } else {
+                0
+            })
         }
         Some(IndexAction::Check { slice }) => {
             let (freshness, subject) = match slice {
@@ -115,6 +145,56 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             Ok(0)
         }
     }
+}
+
+/// The human form of the coverage report: one headline, one line per package,
+/// then the two debt lists (omitted when empty).
+fn render_coverage(report: &CoverageReport) -> String {
+    use std::fmt::Write as _;
+    let mut out = String::new();
+    let total = report.source_files;
+    if total == 0 {
+        out.push_str("coverage: no source files under any discovered package\n");
+        return out;
+    }
+    let pct = (report.claimed_files as f64) * 100.0 / (total as f64);
+    let _ = writeln!(
+        out,
+        "coverage: {}/{total} source files specifically claimed ({pct:.1}%); {} floor-only, {} unclaimed",
+        report.claimed_files,
+        report.floor_only_files.len(),
+        report.unclaimed_files.len()
+    );
+    for p in &report.packages {
+        let path = if p.path.is_empty() {
+            "."
+        } else {
+            p.path.as_str()
+        };
+        let floor = p
+            .floor_spec
+            .as_deref()
+            .map(|s| format!("floor {s}"))
+            .unwrap_or_else(|| "no floor".to_string());
+        let _ = writeln!(
+            out,
+            "  {path} ({floor}): {}/{} claimed, {} floor-only, {} unclaimed",
+            p.claimed_files, p.source_files, p.floor_only, p.unclaimed
+        );
+    }
+    if !report.floor_only_files.is_empty() {
+        out.push_str("\nfloor-only (owned only by a package floor; claim in a spec):\n");
+        for f in &report.floor_only_files {
+            let _ = writeln!(out, "  {f}");
+        }
+    }
+    if !report.unclaimed_files.is_empty() {
+        out.push_str("\nunclaimed (no owning spec):\n");
+        for f in &report.unclaimed_files {
+            let _ = writeln!(out, "  {f}");
+        }
+    }
+    out
 }
 
 /// Write (or remove) the per-slice sidecar `slices.json` (spec 012/024). The

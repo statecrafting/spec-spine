@@ -82,6 +82,13 @@ jobs:
         run: ./target/debug/spec-spine compile --check
       - name: Codebase index freshness (committed artifacts must be current)
         run: ./target/debug/spec-spine index check
+      # Informational (spec 032): which source files no spec specifically
+      # claims. Exit 0 on a report (2 only when stale, which the step above
+      # already refuses). The gate form is `[coupling] require_ownership`
+      # (off here by decision, see spec-spine.toml) and, once the lists are
+      # empty, `index coverage --fail-on-untraced`.
+      - name: Ownership coverage (report)
+        run: ./target/debug/spec-spine index coverage
       - name: Conformance lint (fail on warn)
         run: ./target/debug/spec-spine lint --fail-on-warn
       # The coupling gate is a PR-time gate (spec 005 §1): it joins the spec and

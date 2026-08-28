@@ -1,12 +1,25 @@
 {
   "mapping": {
     "dependsOn": [
-      "001-compile-registry",
-      "005-coupling-gate"
+      "004-codebase-index",
+      "005-coupling-gate",
+      "009-coupling-floor-claim-precedence"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-core/src/compile.rs",
+        "path": "crates/spec-spine-cli/src/cmd_couple.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/src/cmd_index.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/couple.rs",
         "source": "spec-edge"
       },
       {
@@ -14,19 +27,15 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/coverage.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/index.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/lint.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/src/query.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/tests/compile.rs",
+        "path": "crates/spec-spine-core/src/lib.rs",
         "source": "spec-edge"
       },
       {
@@ -34,11 +43,15 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/edges.rs",
+        "path": "crates/spec-spine-core/tests/coverage.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/frontmatter.rs",
+        "path": "crates/spec-spine-types/src/config.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/coverage.rs",
         "source": "spec-edge"
       },
       {
@@ -46,19 +59,7 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/registry.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-types/src/version.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-types/tests/dtos.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-types/tests/grammar.rs",
+        "path": "docs/design/00-architecture.md",
         "source": "spec-edge"
       }
     ],
@@ -66,14 +67,92 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/compile.rs"
+            "file": "crates/spec-spine-core/src/coverage.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/coverage.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/coverage.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/coverage.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/coverage.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/coverage.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_couple.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/compile.rs"
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_index.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/cli.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/couple.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/couple.rs"
         }
       },
       {
@@ -105,40 +184,14 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/lint.rs"
+            "file": "crates/spec-spine-core/src/lib.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/lint.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/src/query.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/query.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/tests/compile.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/compile.rs"
+          "path": "crates/spec-spine-core/src/lib.rs"
         }
       },
       {
@@ -157,27 +210,14 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/edges.rs"
+            "file": "crates/spec-spine-types/src/config.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/edges.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-types/src/frontmatter.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-types/src/frontmatter.rs"
+          "path": "crates/spec-spine-types/src/config.rs"
         }
       },
       {
@@ -196,59 +236,20 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/registry.rs"
+            "file": "docs/design/00-architecture.md"
           }
         ],
-        "ownership": true,
-        "sourceField": "extends",
+        "ownership": false,
+        "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/registry.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-types/src/version.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-types/src/version.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-types/tests/dtos.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-types/tests/dtos.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-types/tests/grammar.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-types/tests/grammar.rs"
+          "path": "docs/design/00-architecture.md"
         }
       }
     ],
-    "specId": "019-structured-partial-supersedes",
-    "specStatus": "approved"
+    "specId": "032-ownership-coverage",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "d2b76d73490724d06edbad5ef8cc037adf4744cdef31a6e9a71530f28b9dfc4e"
+  "shardHash": "790f1465d780230e724e57bcdd47867ec69aae71856dcd9f34bd5cfc2c33e645"
 }

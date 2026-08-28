@@ -59,6 +59,8 @@ bypass_prefixes = []
 waiver_keyword = "Spec-Drift-Waiver:"
 # Auto-waive PRs that only change dependency versions in package.json.
 auto_waive_dependency_only = false
+# Refuse a changed source file that no spec specifically claims (C-002).
+require_ownership = false
 
 [provenance.uri_schemes]
 # Open map of provenance kind to URI scheme.
@@ -95,6 +97,7 @@ extra_known_keys = []
 - **`bypass_prefixes`**: An additive list of path prefixes that bypass the coupling gate. This adds to the built-in floor (which includes `.github/`, `docs/`, lockfiles, etc.). You cannot remove entries from the built-in floor.
 - **`waiver_keyword`**: The string the gate looks for in a PR body to apply a waiver.
 - **`auto_waive_dependency_only`**: If `true`, the gate mechanically self-waives PRs where every non-bypassed changed path is a `package.json` with only dependency version-string changes (e.g., Dependabot PRs).
+- **`require_ownership`**: If `true`, a changed source file inside a discovered package that no spec *specifically* claims (a resolved unit or a `// Spec:` header; a manifest floor alone does not count) is a `C-002` violation. Deletions are exempt and waivers apply. Read `spec-spine index coverage` first: it lists exactly the files this flag would refuse. Default `false`.
 
 ### `[provenance.uri_schemes]`
 - An open map defining URI schemes for different provenance kinds.

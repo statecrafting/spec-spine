@@ -48,17 +48,36 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
     let report = couple(&cfg, repo, &diff, waiver.as_ref())?;
 
     if report.has_blocking_drift() {
-        eprintln!(
-            "spec-spine couple: {} drift violation(s): a changed path lacks an authoring edit to an owning spec.\n",
-            report.violations.len()
-        );
-        for v in &report.violations {
-            eprintln!("  {}", v.message);
+        let unclaimed = report
+            .violations
+            .iter()
+            .filter(|v| v.code == "C-002")
+            .count();
+        let drift = report.violations.len() - unclaimed;
+        if unclaimed == 0 {
+            eprintln!(
+                "spec-spine couple: {drift} drift violation(s): a changed path lacks an authoring edit to an owning spec.\n"
+            );
+        } else {
+            eprintln!(
+                "spec-spine couple: {} violation(s): {drift} drift (C-001), {unclaimed} unclaimed (C-002, require_ownership is on).\n",
+                report.violations.len()
+            );
         }
-        eprintln!(
-            "\nResolve by editing an owning spec's spec.md, or add a '{}' line to the PR body.",
-            cfg.coupling.waiver_keyword
-        );
+        for v in &report.violations {
+            eprintln!("  {} {}", v.code, v.message);
+        }
+        if unclaimed == 0 {
+            eprintln!(
+                "\nResolve by editing an owning spec's spec.md, or add a '{}' line to the PR body.",
+                cfg.coupling.waiver_keyword
+            );
+        } else {
+            eprintln!(
+                "\nResolve by editing an owning spec's spec.md (C-001), claiming the path in a spec's owning edge (C-002), or add a '{}' line to the PR body.",
+                cfg.coupling.waiver_keyword
+            );
+        }
     } else if let Some(reason) = &report.waiver {
         println!(
             "spec-spine couple: {} violation(s) {}, reason: {reason}",
@@ -91,6 +110,9 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> 
             .map(|p| DiffFile {
                 path: p.to_string(),
                 hunks: Vec::new(),
+                // `--paths-from` carries no history, so a listed path is never
+                // known to be a deletion: the ratchet judges it as an edit.
+                deleted: false,
             })
             .collect();
         return Ok(DiffInput { files });
@@ -220,10 +242,17 @@ fn run_git_diff(repo: &Path, base: &str, head: &str) -> Result<String, Error> {
 
 /// Parse `git diff --no-color -U0` output into a [`DiffInput`]. New-side hunk
 /// ranges become inclusive [`LineSpan`]s; a deleted file (`+++ /dev/null`) is
-/// registered with no hunks (a whole-file change).
+/// registered with no hunks (a whole-file change) and flagged `deleted` so the
+/// spec 032 ownership ratchet can leave it alone.
 fn parse_unified_diff(diff_text: &str) -> DiffInput {
     use std::collections::BTreeMap;
-    let mut files: BTreeMap<String, Vec<LineSpan>> = BTreeMap::new();
+    /// Per-path accumulator: new-side hunks and whether the path was deleted.
+    #[derive(Default)]
+    struct Entry {
+        hunks: Vec<LineSpan>,
+        deleted: bool,
+    }
+    let mut files: BTreeMap<String, Entry> = BTreeMap::new();
     let mut current_path: Option<String> = None;
     let mut minus_path: Option<String> = None;
 
@@ -232,19 +261,21 @@ fn parse_unified_diff(diff_text: &str) -> DiffInput {
             minus_path = strip_diff_prefix(rest.trim());
         } else if let Some(rest) = line.strip_prefix("+++ ") {
             let p = rest.trim();
-            if p == "/dev/null" {
+            let deleted = p == "/dev/null";
+            if deleted {
                 // Deletion: the changed path is the old (minus) side, whole-file.
                 current_path = minus_path.clone();
             } else {
                 current_path = strip_diff_prefix(p);
             }
             if let Some(path) = &current_path {
-                files.entry(path.clone()).or_default();
+                let entry = files.entry(path.clone()).or_default();
+                entry.deleted = deleted;
             }
         } else if line.starts_with("@@") {
             if let Some(path) = &current_path {
                 if let Some(span) = parse_hunk_header(line) {
-                    files.entry(path.clone()).or_default().push(span);
+                    files.entry(path.clone()).or_default().hunks.push(span);
                 }
             }
         }
@@ -253,7 +284,11 @@ fn parse_unified_diff(diff_text: &str) -> DiffInput {
     DiffInput {
         files: files
             .into_iter()
-            .map(|(path, hunks)| DiffFile { path, hunks })
+            .map(|(path, entry)| DiffFile {
+                path,
+                hunks: entry.hunks,
+                deleted: entry.deleted,
+            })
             .collect(),
     }
 }
@@ -331,6 +366,22 @@ mod tests {
         let d = parse_unified_diff(diff);
         let f = d.files.iter().find(|f| f.path == "gone.rs").unwrap();
         assert!(f.hunks.is_empty(), "deletion ⇒ whole-file (no hunks)");
+        assert!(f.deleted, "deletion is flagged for the ownership ratchet");
+    }
+
+    #[test]
+    fn modified_and_added_files_are_not_deleted() {
+        let diff = "diff --git a/Makefile b/Makefile\n\
+                    --- a/Makefile\n\
+                    +++ b/Makefile\n\
+                    @@ -10,2 +10,3 @@ ctx\n\
+                    diff --git a/new.rs b/new.rs\n\
+                    new file mode 100644\n\
+                    --- /dev/null\n\
+                    +++ b/new.rs\n\
+                    @@ -0,0 +1,3 @@\n";
+        let d = parse_unified_diff(diff);
+        assert!(d.files.iter().all(|f| !f.deleted), "{:?}", d.files);
     }
 
     #[test]

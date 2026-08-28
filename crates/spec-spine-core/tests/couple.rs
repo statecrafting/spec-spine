@@ -9,13 +9,19 @@ use spec_spine_core::{DiffFile, DiffInput, Waiver, couple_with};
 use spec_spine_types::{CodebaseIndex, Config, LineSpan, Registry};
 
 fn index_from(mappings: Value) -> CodebaseIndex {
+    index_with_packages(json!([]), mappings)
+}
+
+/// Like [`index_from`] but with a package inventory, which the spec 032
+/// ownership ratchet needs (its universe is "source files inside a package").
+fn index_with_packages(packages: Value, mappings: Value) -> CodebaseIndex {
     serde_json::from_value(json!({
         "schemaVersion": "0.1.0",
         "build": {
             "indexerId": "t", "indexerVersion": "0.1.0",
             "repoRoot": ".", "contentHash": "t"
         },
-        "packages": [],
+        "packages": packages,
         "traceability": {
             "mappings": mappings,
             "orphanedSpecs": [],
@@ -48,6 +54,15 @@ fn file(path: &str, hunks: &[LineSpan]) -> DiffFile {
     DiffFile {
         path: path.to_string(),
         hunks: hunks.to_vec(),
+        deleted: false,
+    }
+}
+
+fn deleted(path: &str) -> DiffFile {
+    DiffFile {
+        path: path.to_string(),
+        hunks: Vec::new(),
+        deleted: true,
     }
 }
 
@@ -705,4 +720,343 @@ fn is_bypassed_path_is_claim_aware() {
         &index,
         "src/lib.rs"
     ));
+}
+
+// ── spec 032: the ownership ratchet (C-002) ───────────────────────────────
+
+/// `require_ownership = true`, everything else default.
+fn ratchet_config() -> Config {
+    let mut cfg = Config::default();
+    cfg.coupling.require_ownership = true;
+    cfg
+}
+
+fn run_with(
+    cfg: &Config,
+    index: &CodebaseIndex,
+    diff: &DiffInput,
+    waiver: Option<&Waiver>,
+) -> spec_spine_core::CoupleReport {
+    couple_with(cfg, &empty_registry(), index, diff, waiver).unwrap()
+}
+
+fn codes(report: &spec_spine_core::CoupleReport) -> Vec<(&str, &str)> {
+    report
+        .violations
+        .iter()
+        .map(|v| (v.path.as_deref().unwrap_or(""), v.code.as_str()))
+        .collect()
+}
+
+/// One crate at `crates/x` whose manifest names `000-floor`. Spec `001-a`
+/// claims `src/lib.rs` by file unit and `src/hdr.rs` by comment header; spec
+/// `002-r` only *references* `src/ref.rs` (its location still lands in
+/// `implementingPaths` as a spec-edge path, which must not count).
+fn floored_index() -> CodebaseIndex {
+    index_with_packages(
+        json!([{ "name": "x", "path": "crates/x", "kind": "rust-lib", "specRef": "000-floor" }]),
+        json!([
+            {
+                "specId": "000-floor",
+                "implementingPaths": [{ "path": "crates/x", "source": "manifest-metadata" }],
+                "resolvedUnits": []
+            },
+            {
+                "specId": "001-a",
+                "implementingPaths": [
+                    { "path": "crates/x/src/hdr.rs", "source": "comment-header" },
+                    { "path": "crates/x/src/lib.rs", "source": "spec-edge" }
+                ],
+                "resolvedUnits": [{
+                    "unit": { "kind": "file", "path": "crates/x/src/lib.rs" },
+                    "sourceField": "establishes",
+                    "ownership": true,
+                    "locations": [{ "file": "crates/x/src/lib.rs" }]
+                }]
+            },
+            {
+                "specId": "002-r",
+                "implementingPaths": [{ "path": "crates/x/src/ref.rs", "source": "spec-edge" }],
+                "resolvedUnits": [{
+                    "unit": { "kind": "file", "path": "crates/x/src/ref.rs" },
+                    "sourceField": "references",
+                    "ownership": false,
+                    "locations": [{ "file": "crates/x/src/ref.rs" }]
+                }]
+            }
+        ]),
+    )
+}
+
+/// The same crate with no manifest floor: an unclaimed file has no owner at all.
+fn unfloored_index() -> CodebaseIndex {
+    index_with_packages(
+        json!([{ "name": "x", "path": "crates/x", "kind": "rust-lib" }]),
+        json!([{
+            "specId": "001-a",
+            "implementingPaths": [{ "path": "crates/x/src/lib.rs", "source": "spec-edge" }],
+            "resolvedUnits": [{
+                "unit": { "kind": "file", "path": "crates/x/src/lib.rs" },
+                "sourceField": "establishes",
+                "ownership": true,
+                "locations": [{ "file": "crates/x/src/lib.rs" }]
+            }]
+        }]),
+    )
+}
+
+#[test]
+fn ratchet_off_skips_an_unowned_path() {
+    // The pre-032 contract, pinned: an unowned path is not a coupling concern.
+    let report = run_with(
+        &Config::default(),
+        &unfloored_index(),
+        &diff(vec![file("crates/x/src/stray.rs", &[LineSpan::new(1, 2)])]),
+        None,
+    );
+    assert!(report.violations.is_empty(), "{:?}", report.violations);
+    assert_eq!(report.checked_paths, 1, "walked, just not judged");
+}
+
+#[test]
+fn ratchet_on_refuses_an_unowned_path() {
+    let report = run_with(
+        &ratchet_config(),
+        &unfloored_index(),
+        &diff(vec![file("crates/x/src/stray.rs", &[LineSpan::new(1, 2)])]),
+        None,
+    );
+    assert_eq!(codes(&report), vec![("crates/x/src/stray.rs", "C-002")]);
+    assert!(
+        report.violations[0]
+            .message
+            .contains("is not claimed by any spec"),
+        "{}",
+        report.violations[0].message
+    );
+    assert!(report.has_blocking_drift());
+}
+
+#[test]
+fn floor_only_path_is_c002_naming_the_floor() {
+    // Owned by the manifest floor and nothing else. Without the ratchet this
+    // is C-001 (the floor is an owner); with it, the floor is debt.
+    let report = run_with(
+        &ratchet_config(),
+        &floored_index(),
+        &diff(vec![file("crates/x/src/stray.rs", &[LineSpan::new(1, 2)])]),
+        None,
+    );
+    assert_eq!(codes(&report), vec![("crates/x/src/stray.rs", "C-002")]);
+    let msg = &report.violations[0].message;
+    assert!(msg.contains("only the package floor of 000-floor"), "{msg}");
+
+    // Editing the floor spec clears drift, never coverage: the ratchet is not a
+    // clearance rule, it is a claim requirement.
+    let report = run_with(
+        &ratchet_config(),
+        &floored_index(),
+        &diff(vec![
+            file("crates/x/src/stray.rs", &[LineSpan::new(1, 2)]),
+            file("specs/000-floor/spec.md", &[]),
+        ]),
+        None,
+    );
+    assert_eq!(codes(&report), vec![("crates/x/src/stray.rs", "C-002")]);
+}
+
+#[test]
+fn floor_only_path_without_the_ratchet_is_plain_c001() {
+    let report = run_with(
+        &Config::default(),
+        &floored_index(),
+        &diff(vec![file("crates/x/src/stray.rs", &[LineSpan::new(1, 2)])]),
+        None,
+    );
+    assert_eq!(codes(&report), vec![("crates/x/src/stray.rs", "C-001")]);
+}
+
+#[test]
+fn unit_claimed_path_is_c001_not_c002() {
+    // A specific claim satisfies the ratchet; drift is judged as before.
+    let report = run_with(
+        &ratchet_config(),
+        &floored_index(),
+        &diff(vec![file("crates/x/src/lib.rs", &[LineSpan::new(1, 2)])]),
+        None,
+    );
+    assert_eq!(codes(&report), vec![("crates/x/src/lib.rs", "C-001")]);
+    let cleared = run_with(
+        &ratchet_config(),
+        &floored_index(),
+        &diff(vec![
+            file("crates/x/src/lib.rs", &[LineSpan::new(1, 2)]),
+            file("specs/001-a/spec.md", &[]),
+        ]),
+        None,
+    );
+    assert!(cleared.violations.is_empty(), "{:?}", cleared.violations);
+}
+
+#[test]
+fn header_claimed_path_is_specific() {
+    let report = run_with(
+        &ratchet_config(),
+        &floored_index(),
+        &diff(vec![
+            file("crates/x/src/hdr.rs", &[LineSpan::new(1, 2)]),
+            file("specs/001-a/spec.md", &[]),
+        ]),
+        None,
+    );
+    assert!(report.violations.is_empty(), "{:?}", report.violations);
+}
+
+#[test]
+fn references_never_satisfy_the_ratchet() {
+    // 002-r references ref.rs; that is context, not ownership. The file is
+    // floor-only, and the message names the floor, not the referencing spec.
+    let report = run_with(
+        &ratchet_config(),
+        &floored_index(),
+        &diff(vec![
+            file("crates/x/src/ref.rs", &[LineSpan::new(1, 2)]),
+            file("specs/002-r/spec.md", &[]),
+        ]),
+        None,
+    );
+    assert_eq!(codes(&report), vec![("crates/x/src/ref.rs", "C-002")]);
+    let msg = &report.violations[0].message;
+    assert!(msg.contains("000-floor") && !msg.contains("002-r"), "{msg}");
+}
+
+#[test]
+fn deleted_paths_are_never_c002() {
+    // Removing unowned code is how coverage goes up.
+    let report = run_with(
+        &ratchet_config(),
+        &unfloored_index(),
+        &diff(vec![deleted("crates/x/src/stray.rs")]),
+        None,
+    );
+    assert!(report.violations.is_empty(), "{:?}", report.violations);
+
+    // A deleted floor-only file: no C-002 either. Drift (C-001) still applies
+    // to it exactly as to any whole-file change of an owned path.
+    let report = run_with(
+        &ratchet_config(),
+        &floored_index(),
+        &diff(vec![deleted("crates/x/src/stray.rs")]),
+        None,
+    );
+    assert_eq!(codes(&report), vec![("crates/x/src/stray.rs", "C-001")]);
+}
+
+#[test]
+fn paths_outside_the_universe_never_raise_c002() {
+    // Not source, not in a package, or pruned by resolver_exclusions: the
+    // ratchet asks its question only where `index coverage` counts.
+    let report = run_with(
+        &ratchet_config(),
+        &unfloored_index(),
+        &diff(vec![
+            file("spec-spine.toml", &[]),            // not a source file
+            file("crates/x/notes.md", &[]),          // not a source file
+            file("scripts/tool.py", &[]),            // outside every package
+            file("crates/x/target/gen.rs", &[]),     // excluded directory
+            file("crates/x/node_modules/a.js", &[]), // excluded directory
+        ]),
+        None,
+    );
+    assert!(report.violations.is_empty(), "{:?}", report.violations);
+}
+
+#[test]
+fn bypassed_paths_never_raise_c002() {
+    // The floor and adopter additions are filtered before the question is
+    // asked, so coverage is asked only of paths the gate would judge.
+    let mut cfg = ratchet_config();
+    cfg.coupling
+        .bypass_prefixes
+        .push("crates/x/vendor/".to_string());
+    let report = run_with(
+        &cfg,
+        &unfloored_index(),
+        &diff(vec![
+            file("crates/x/vendor/v.rs", &[LineSpan::new(1, 1)]),
+            file(".derived/x.json", &[]),
+        ]),
+        None,
+    );
+    assert!(report.violations.is_empty(), "{:?}", report.violations);
+    assert_eq!(report.checked_paths, 0);
+}
+
+#[test]
+fn explicit_claim_under_bypass_is_c001_not_c002() {
+    // Spec 009: an explicit unit claim beats the bypass set. Such a path has a
+    // specific owner by construction, so it can only ever be C-001.
+    let mut cfg = ratchet_config();
+    cfg.coupling
+        .bypass_prefixes
+        .push("crates/x/vendor/".to_string());
+    let index = index_with_packages(
+        json!([{ "name": "x", "path": "crates/x", "kind": "rust-lib" }]),
+        json!([{
+            "specId": "001-a",
+            "implementingPaths": [],
+            "resolvedUnits": [{
+                "unit": { "kind": "file", "path": "crates/x/vendor/v.rs" },
+                "sourceField": "establishes",
+                "ownership": true,
+                "locations": [{ "file": "crates/x/vendor/v.rs" }]
+            }]
+        }]),
+    );
+    let report = run_with(
+        &cfg,
+        &index,
+        &diff(vec![file("crates/x/vendor/v.rs", &[LineSpan::new(1, 1)])]),
+        None,
+    );
+    assert_eq!(codes(&report), vec![("crates/x/vendor/v.rs", "C-001")]);
+}
+
+#[test]
+fn waiver_clears_c002_exactly_as_c001() {
+    let waiver = Waiver {
+        reason: "vendored drop; spec to follow".to_string(),
+    };
+    let report = run_with(
+        &ratchet_config(),
+        &unfloored_index(),
+        &diff(vec![file("crates/x/src/stray.rs", &[LineSpan::new(1, 2)])]),
+        Some(&waiver),
+    );
+    assert_eq!(codes(&report), vec![("crates/x/src/stray.rs", "C-002")]);
+    assert!(
+        !report.has_blocking_drift(),
+        "retained for review, not blocking"
+    );
+}
+
+#[test]
+fn one_diff_can_carry_both_codes_but_one_path_carries_one() {
+    let report = run_with(
+        &ratchet_config(),
+        &floored_index(),
+        &diff(vec![
+            file("crates/x/src/stray.rs", &[LineSpan::new(1, 2)]),
+            file("crates/x/src/lib.rs", &[LineSpan::new(1, 2)]),
+        ]),
+        None,
+    );
+    assert_eq!(
+        codes(&report),
+        vec![
+            ("crates/x/src/lib.rs", "C-001"),
+            ("crates/x/src/stray.rs", "C-002")
+        ],
+        "sorted by path; each path raises exactly one code"
+    );
 }
