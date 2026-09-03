@@ -749,6 +749,44 @@ fn closed_reader_exits_cleanly_rather_than_panicking() {
     );
 }
 
+/// Byte offsets of panicking **stdout** macro calls on one source line.
+///
+/// Every occurrence is examined, not just the first: `println!(` also occurs
+/// inside `eprintln!(`, so a line carrying a stderr call before a real stdout
+/// one would otherwise be cleared by its first match and the real call never
+/// seen. A gate meant to be permanent proof cannot have a false negative.
+fn panicking_stdout_macros(line: &str) -> Vec<usize> {
+    let mut hits = Vec::new();
+    if line.trim_start().starts_with("//") {
+        return hits;
+    }
+    for mac in ["print!(", "println!("] {
+        let mut from = 0;
+        while let Some(rel) = line[from..].find(mac) {
+            let at = from + rel;
+            // Stderr keeps the panicking macros by design (spec 035 §3.3).
+            let is_stderr = at > 0 && line.as_bytes()[at - 1] == b'e';
+            if !is_stderr {
+                hits.push(at);
+            }
+            from = at + mac.len();
+        }
+    }
+    hits
+}
+
+#[test]
+fn scanner_does_not_let_a_stderr_call_mask_a_stdout_one() {
+    assert!(panicking_stdout_macros(r#"eprintln!("x");"#).is_empty());
+    assert!(panicking_stdout_macros(r#"eprint!("x");"#).is_empty());
+    assert!(panicking_stdout_macros("// println!(\"a comment\");").is_empty());
+    assert!(!panicking_stdout_macros(r#"println!("x");"#).is_empty());
+    assert!(!panicking_stdout_macros(r#"print!("x");"#).is_empty());
+    // The regression: the stderr call comes first and must not clear the line.
+    assert!(!panicking_stdout_macros(r#"eprintln!("{}", x); println!("{}", y);"#).is_empty());
+    assert!(!panicking_stdout_macros(r#"eprint!("{}", x); print!("{}", y);"#).is_empty());
+}
+
 /// Spec 035 §3.5(3). The block path (`index render`, `index coverage`) cannot be
 /// exercised by a pipe-breaking test: its output fits inside a pipe buffer on
 /// any corpus small enough to build in one, so such a test could never fail.
@@ -781,23 +819,12 @@ fn no_panicking_stdout_macro_remains_in_the_cli() {
         let text = fs::read_to_string(&path).unwrap();
         for (n, raw) in text.lines().enumerate() {
             let line = raw.trim_start();
-            // Comments name these macros when explaining why they are not used.
-            if line.starts_with("//") {
-                continue;
-            }
-            // `print!(` also occurs inside `eprint!(`, and `println!(` inside
-            // `eprintln!(`; stderr keeps the panicking macros by design (§3.3).
-            for mac in ["print!(", "println!("] {
-                if let Some(at) = line.find(mac) {
-                    let is_stderr = at > 0 && line.as_bytes()[at - 1] == b'e';
-                    if !is_stderr {
-                        offenders.push(format!(
-                            "{}:{}: {line}",
-                            path.strip_prefix(&src).unwrap_or(&path).display(),
-                            n + 1
-                        ));
-                    }
-                }
+            if !panicking_stdout_macros(line).is_empty() {
+                offenders.push(format!(
+                    "{}:{}: {line}",
+                    path.strip_prefix(&src).unwrap_or(&path).display(),
+                    n + 1
+                ));
             }
         }
     }
