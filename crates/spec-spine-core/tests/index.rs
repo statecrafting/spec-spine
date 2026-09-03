@@ -723,3 +723,123 @@ fn unresolved_module_unit_is_blocking_diagnostic_i008() {
     let idx = index(&Config::default(), fx.path()).unwrap().index;
     assert!(idx.diagnostics.errors.iter().any(|d| d.code == "I-008"));
 }
+
+// ===== spec 034: `references` is non-owning, so it seeds no implementing path =====
+
+/// AC-1: an owning edge contributes an implementing path; a `references` edge to
+/// an equally-real file does not.
+#[test]
+fn references_unit_does_not_seed_implementing_paths() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = []\n");
+    write(tmp.path(), "src/owned.rs", "pub fn a() {}\n");
+    write(tmp.path(), "src/cited.rs", "pub fn b() {}\n");
+    write(
+        tmp.path(),
+        "specs/001-x/spec.md",
+        &spec(
+            "001-x",
+            "establishes:\n  - \"src/owned.rs\"\nreferences:\n  - { unit: { kind: file, path: \"src/cited.rs\" }, role: context }\n",
+        ),
+    );
+
+    let idx = index(&Config::default(), tmp.path()).unwrap().index;
+    let m = mapping(&idx, "001-x");
+    let paths: Vec<&str> = m
+        .implementing_paths
+        .iter()
+        .map(|p| p.path.as_str())
+        .collect();
+
+    assert!(
+        paths.contains(&"src/owned.rs"),
+        "owning edge must claim: {paths:?}"
+    );
+    assert!(
+        !paths.contains(&"src/cited.rs"),
+        "`references` is non-owning and must not claim: {paths:?}"
+    );
+}
+
+/// AC-2: the reference is filtered from the ownership view only. Its provenance
+/// survives in `resolved_units`, flagged `ownership: false`, so a consumer can
+/// still see that the spec cites the file.
+#[test]
+fn references_unit_survives_in_resolved_units() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = []\n");
+    write(tmp.path(), "src/cited.rs", "pub fn b() {}\n");
+    write(
+        tmp.path(),
+        "specs/001-x/spec.md",
+        &spec(
+            "001-x",
+            "references:\n  - { unit: { kind: file, path: \"src/cited.rs\" }, role: context }\n",
+        ),
+    );
+
+    let idx = index(&Config::default(), tmp.path()).unwrap().index;
+    let m = mapping(&idx, "001-x");
+    let cited = m
+        .resolved_units
+        .iter()
+        .find(|u| matches!(&u.unit, Unit::File { path } if path == "src/cited.rs"))
+        .expect("the reference is still recorded");
+    assert!(!cited.ownership, "a `references` unit is non-owning");
+    assert_eq!(cited.locations.len(), 1, "and it still resolves");
+
+    // This spec now claims nothing, so it is orphaned. That is the intended
+    // reading (it implements nothing), and it must stay a report, not a
+    // refusal: an orphan is surfaced by `index orphans`, never as a blocking
+    // diagnostic, or dropping the spurious claim would have turned into a gate
+    // failure for every spec that only cites.
+    assert!(
+        idx.traceability
+            .orphaned_specs
+            .contains(&"001-x".to_string()),
+        "a spec with only `references` implements nothing: {:?}",
+        idx.traceability.orphaned_specs
+    );
+    assert!(
+        idx.diagnostics.errors.is_empty(),
+        "being orphaned is reported, never blocking: {:?}",
+        idx.diagnostics.errors
+    );
+}
+
+/// AC-3, the reported defect end to end: a spec that merely `references`
+/// another spec's `spec.md` was named its `C-001` owner, so that spec could not
+/// be edited without either touching an unrelated spec or filing a waiver.
+#[test]
+fn references_does_not_confer_c001_ownership() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = []\n");
+    write(tmp.path(), "specs/001-x/spec.md", &spec("001-x", ""));
+    write(
+        tmp.path(),
+        "specs/002-y/spec.md",
+        &spec(
+            "002-y",
+            "references:\n  - { unit: { kind: file, path: \"specs/001-x/spec.md\" }, role: context }\n",
+        ),
+    );
+
+    let cfg = Config::default();
+    let registry = spec_spine_core::compile(&cfg, tmp.path()).unwrap().registry;
+    let idx = index(&cfg, tmp.path()).unwrap().index;
+
+    // 001 edits its own spec.md and nothing else.
+    let diff = spec_spine_core::DiffInput {
+        files: vec![spec_spine_core::DiffFile {
+            path: "specs/001-x/spec.md".to_string(),
+            hunks: vec![],
+            deleted: false,
+        }],
+    };
+    let report = spec_spine_core::couple_with(&cfg, &registry, &idx, &diff, None).unwrap();
+    assert!(
+        !report.has_blocking_drift(),
+        "a spec editing its own spec.md must clear; 002 only cites it: {:?}",
+        report.violations
+    );
+}

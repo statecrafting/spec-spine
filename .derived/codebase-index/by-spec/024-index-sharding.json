@@ -108,18 +108,6 @@
       {
         "path": "crates/spec-spine-types/tests/dtos.rs",
         "source": "spec-edge"
-      },
-      {
-        "path": "docs/design/00-architecture.md",
-        "source": "spec-edge"
-      },
-      {
-        "path": "specs/012-index-hash-slices/spec.md",
-        "source": "spec-edge"
-      },
-      {
-        "path": "specs/020-derived-artifact-merge-driver/spec.md",
-        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [

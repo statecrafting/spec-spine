@@ -28,14 +28,6 @@
       {
         "path": "crates/spec-spine-core/tests/compile.rs",
         "source": "spec-edge"
-      },
-      {
-        "path": "docs/design/00-architecture.md",
-        "source": "spec-edge"
-      },
-      {
-        "path": "specs/004-codebase-index/spec.md",
-        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [

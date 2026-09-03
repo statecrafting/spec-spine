@@ -176,11 +176,23 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
                 &mut unit_diags,
             );
             classify_unresolved(&mut spec_diags, unit_diags, *ownership, in_flight);
-            for loc in &locations {
-                paths
-                    .entry(loc.file.clone())
-                    .or_default()
-                    .insert(TraceSource::SpecEdge);
+            // Only an owning edge contributes an implementing path (spec 034).
+            // `references` is non-owning by definition, so a file a spec merely
+            // cites is not a file it implements. Every consumer of
+            // `implementing_paths` reads it as a claim: `owners_for_path` and
+            // `owners_of_unit` treat a listed path as whole-file ownership, and
+            // `orphaned_specs` / coverage read it as "this spec claims
+            // something". Seeding it from a non-owning unit made all of them
+            // wrong at once, so the filter belongs here at the single source
+            // rather than at each consumer. The reference itself is not lost:
+            // it stays in `resolved_units` with `ownership: false`.
+            if *ownership {
+                for loc in &locations {
+                    paths
+                        .entry(loc.file.clone())
+                        .or_default()
+                        .insert(TraceSource::SpecEdge);
+                }
             }
             resolved_units.push(ResolvedUnit {
                 unit: unit.clone(),
