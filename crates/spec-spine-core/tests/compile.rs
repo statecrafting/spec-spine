@@ -569,6 +569,181 @@ fn dangling_short_id_is_left_unchanged_and_still_warns() {
     assert_eq!(rec.depends_on, vec!["999".to_string()]);
 }
 
+// ===== V-014: depends_on cycles (spec 033) =====
+
+fn cycle_violation(outcome: &spec_spine_core::CompileOutcome) -> spec_spine_types::Violation {
+    outcome
+        .registry
+        .validation
+        .violations
+        .iter()
+        .find(|v| v.code == "V-014")
+        .cloned()
+        .expect("V-014 expected")
+}
+
+#[test]
+fn two_spec_dependency_cycle_is_an_error_naming_the_path() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "010-a", "010-a", "depends_on: [\"011-b\"]\n");
+    write_spec(tmp.path(), "011-b", "011-b", "depends_on: [\"010-a\"]\n");
+    let cfg = Config::default();
+
+    let outcome = compile(&cfg, tmp.path()).unwrap();
+
+    assert!(!outcome.validation_passed, "a cycle must fail validation");
+    let v = cycle_violation(&outcome);
+    assert_eq!(v.severity, Severity::Error);
+    assert_eq!(v.message, "depends_on cycle: 010-a -> 011-b -> 010-a");
+    // Anchored at the spec the path starts from, so the diagnostic points
+    // somewhere a reader can open.
+    assert_eq!(v.path.as_deref(), Some("specs/010-a/spec.md"));
+    // Every id on the cycle resolves, so its sibling check stays quiet: V-014
+    // is the only thing that can see this.
+    assert!(!codes(&outcome).contains(&"V-010".to_string()));
+}
+
+#[test]
+fn self_dependency_is_a_cycle() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "010-a", "010-a", "depends_on: [\"010-a\"]\n");
+    let cfg = Config::default();
+
+    let outcome = compile(&cfg, tmp.path()).unwrap();
+
+    assert!(!outcome.validation_passed);
+    assert_eq!(
+        cycle_violation(&outcome).message,
+        "depends_on cycle: 010-a -> 010-a"
+    );
+}
+
+#[test]
+fn cycle_reached_through_a_longer_chain_names_only_the_loop() {
+    // 010 -> 011 -> 012 -> 013 -> 011: the entry spec is on the path to the
+    // cycle but not on the cycle, so it must not appear in the reported loop.
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "010-a", "010-a", "depends_on: [\"011-b\"]\n");
+    write_spec(tmp.path(), "011-b", "011-b", "depends_on: [\"012-c\"]\n");
+    write_spec(tmp.path(), "012-c", "012-c", "depends_on: [\"013-d\"]\n");
+    write_spec(tmp.path(), "013-d", "013-d", "depends_on: [\"011-b\"]\n");
+    let cfg = Config::default();
+
+    let outcome = compile(&cfg, tmp.path()).unwrap();
+
+    let v = cycle_violation(&outcome);
+    assert_eq!(
+        v.message,
+        "depends_on cycle: 011-b -> 012-c -> 013-d -> 011-b"
+    );
+    assert_eq!(v.path.as_deref(), Some("specs/011-b/spec.md"));
+}
+
+#[test]
+fn a_cycle_written_with_short_ids_is_still_a_cycle() {
+    // Spec 016 resolves `011` to `011-b` before the records are built, so the
+    // detector must see the resolved graph, not the authored text.
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "010-a", "010-a", "depends_on: [\"011\"]\n");
+    write_spec(tmp.path(), "011-b", "011-b", "depends_on: [\"010\"]\n");
+    let cfg = Config::default();
+
+    let outcome = compile(&cfg, tmp.path()).unwrap();
+
+    assert_eq!(
+        cycle_violation(&outcome).message,
+        "depends_on cycle: 010-a -> 011-b -> 010-a"
+    );
+}
+
+#[test]
+fn a_dangling_dependency_is_v010_and_never_a_cycle() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "010-a", "010-a", "depends_on: [\"999-gone\"]\n");
+    let cfg = Config::default();
+
+    let outcome = compile(&cfg, tmp.path()).unwrap();
+
+    assert!(codes(&outcome).contains(&"V-010".to_string()));
+    assert!(!codes(&outcome).contains(&"V-014".to_string()));
+}
+
+#[test]
+fn a_diamond_is_not_a_cycle() {
+    // Two paths to one dependency revisit a BLACK node; only a GREY one (still
+    // on the current path) is a cycle.
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "010-base", "010-base", "");
+    write_spec(tmp.path(), "011-l", "011-l", "depends_on: [\"010-base\"]\n");
+    write_spec(tmp.path(), "012-r", "012-r", "depends_on: [\"010-base\"]\n");
+    write_spec(
+        tmp.path(),
+        "013-top",
+        "013-top",
+        "depends_on: [\"011-l\", \"012-r\"]\n",
+    );
+    let cfg = Config::default();
+
+    let outcome = compile(&cfg, tmp.path()).unwrap();
+
+    assert!(outcome.validation_passed);
+    assert!(!codes(&outcome).contains(&"V-014".to_string()));
+}
+
+#[test]
+fn the_reported_cycle_is_deterministic_across_runs() {
+    // Two disjoint cycles: whichever is reported, it must be the same one
+    // every time, since only that makes the registry reproducible.
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "010-a", "010-a", "depends_on: [\"011-b\"]\n");
+    write_spec(tmp.path(), "011-b", "011-b", "depends_on: [\"010-a\"]\n");
+    write_spec(tmp.path(), "020-c", "020-c", "depends_on: [\"021-d\"]\n");
+    write_spec(tmp.path(), "021-d", "021-d", "depends_on: [\"020-c\"]\n");
+    let cfg = Config::default();
+
+    let first = compile(&cfg, tmp.path()).unwrap();
+    let second = compile(&cfg, tmp.path()).unwrap();
+
+    assert_eq!(first.json, second.json);
+    assert_eq!(
+        cycle_violation(&first).message,
+        cycle_violation(&second).message
+    );
+}
+
+#[test]
+fn the_cycle_is_not_stored_in_a_shard_but_is_recomputed_on_read() {
+    // Cross-spec codes never land in a shard (a sibling's PR would stale it),
+    // so the committed reader has to re-derive V-014. Both paths run the same
+    // detector, so the two views agree.
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "010-a", "010-a", "depends_on: [\"011-b\"]\n");
+    write_spec(tmp.path(), "011-b", "011-b", "depends_on: [\"010-a\"]\n");
+    let cfg = Config::default();
+    let outcome = compile(&cfg, tmp.path()).unwrap();
+    for shard in &outcome.shards.spec_shards {
+        assert!(
+            !shard.local_violations.iter().any(|v| v.code == "V-014"),
+            "V-014 must not be stored per shard"
+        );
+    }
+
+    write_shards(tmp.path(), &cfg);
+    let committed = spec_spine_core::load_committed_registry(&cfg, tmp.path()).unwrap();
+
+    let from_shards: Vec<&spec_spine_types::Violation> = committed
+        .validation
+        .violations
+        .iter()
+        .filter(|v| v.code == "V-014")
+        .collect();
+    assert_eq!(from_shards.len(), 1);
+    assert_eq!(
+        from_shards[0].message,
+        "depends_on cycle: 010-a -> 011-b -> 010-a"
+    );
+}
+
 // ===== registry freshness, `compile --check` (spec 031) =====
 
 /// Emit the shard tree the way the CLI does, so a freshness check has a

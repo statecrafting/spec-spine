@@ -19,10 +19,11 @@ use crate::index::Freshness;
 use crate::{canonical_json, hash, markdown, shard};
 
 /// Validation codes whose verdict depends on the whole corpus, not one spec:
-/// duplicate id/prefix and dangling/unresolved edge targets. They are NOT
-/// stored per registry shard (storing them would let a sibling spec's PR stale
-/// this shard); they are recomputed from the assembled record set on read.
-const CROSS_SPEC_CODES: &[&str] = &["V-003", "V-004", "V-008", "V-010"];
+/// duplicate id/prefix, dangling/unresolved edge targets, and a `depends_on`
+/// cycle. They are NOT stored per registry shard (storing them would let a
+/// sibling spec's PR stale this shard); they are recomputed from the assembled
+/// record set on read.
+const CROSS_SPEC_CODES: &[&str] = &["V-003", "V-004", "V-008", "V-010", "V-014"];
 
 /// The cap on **undeclared** `extra_frontmatter` keys before `V-007` fires.
 /// Keys listed in `frontmatter.extra_known_keys` are intentional and exempt;
@@ -169,6 +170,9 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
         records.push(build_record(p.fm, p.spec_path, &p.body));
     }
     records.sort_by(|a, b| a.id.cmp(&b.id));
+    // V-014 reads the records, not the parsed frontmatter, so it sees the
+    // short-id-resolved `depends_on` (spec 016) rather than the authored text.
+    detect_dependency_cycle(&records, &mut violations);
 
     // --- shard projection + aggregate content hash (spec 024) ---
     // One shard per spec, each carrying its compiled record, its corpus-
@@ -364,6 +368,86 @@ fn detect_duplicates(specs: &[(String, String)], out: &mut Vec<Violation>) {
                 format!("duplicate spec id '{id}' ({count} specs)"),
                 None,
             ));
+        }
+    }
+}
+
+/// V-014 (error): a cycle in the `depends_on` graph (spec 033).
+///
+/// spec-spine attaches no scheduling semantics to `depends_on`, but a cycle is
+/// a corpus defect under any reading: the edge says one spec's authority rests
+/// on another's, and a cycle asserts that of every spec on it at once. It is
+/// also the one `depends_on` defect its sibling check cannot see, because every
+/// id on a cycle resolves; V-010 fires only on a dangling target.
+///
+/// Iterative DFS over an explicit stack, so a deep corpus cannot overflow the
+/// real one. Edges leaving the corpus are skipped (V-010's finding, not this
+/// one). Start order is `records` order, which both callers sort by id, and
+/// child order is authored order, so which cycle is found is a pure function of
+/// the corpus. One cycle is reported per compile: the path names every spec on
+/// it, and breaking it is what reveals any other.
+fn detect_dependency_cycle(records: &[SpecRecord], out: &mut Vec<Violation>) {
+    const WHITE: u8 = 0;
+    const GREY: u8 = 1;
+    const BLACK: u8 = 2;
+
+    let ids: std::collections::BTreeSet<&str> = records.iter().map(|r| r.id.as_str()).collect();
+    let mut deps: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
+    let mut spec_paths: BTreeMap<&str, &str> = BTreeMap::new();
+    for r in records {
+        deps.insert(
+            r.id.as_str(),
+            r.depends_on
+                .iter()
+                .map(String::as_str)
+                .filter(|d| ids.contains(d))
+                .collect(),
+        );
+        spec_paths.insert(r.id.as_str(), r.spec_path.as_str());
+    }
+    let mut color: BTreeMap<&str, u8> = ids.iter().map(|id| (*id, WHITE)).collect();
+
+    for r in records {
+        if color.get(r.id.as_str()).copied().unwrap_or(BLACK) != WHITE {
+            continue;
+        }
+        // (spec id, index of the next depends_on entry to walk from it).
+        let mut stack: Vec<(&str, usize)> = vec![(r.id.as_str(), 0)];
+        color.insert(r.id.as_str(), GREY);
+        while let Some(&(node, at)) = stack.last() {
+            let Some(child) = deps.get(node).and_then(|d| d.get(at)).copied() else {
+                color.insert(node, BLACK);
+                stack.pop();
+                continue;
+            };
+            if let Some(top) = stack.last_mut() {
+                top.1 = at + 1;
+            }
+            match color.get(child).copied().unwrap_or(BLACK) {
+                WHITE => {
+                    color.insert(child, GREY);
+                    stack.push((child, 0));
+                }
+                GREY => {
+                    // `child` is still on the current path, so everything from
+                    // its position up to the top of the stack is the cycle;
+                    // naming it once more closes the path into a loop.
+                    let from = stack.iter().position(|&(n, _)| n == child).unwrap_or(0);
+                    let mut cycle: Vec<&str> = stack[from..].iter().map(|&(n, _)| n).collect();
+                    cycle.push(child);
+                    let at_path = cycle
+                        .first()
+                        .and_then(|id| spec_paths.get(*id))
+                        .map(|p| p.to_string());
+                    out.push(error(
+                        "V-014",
+                        format!("depends_on cycle: {}", cycle.join(" -> ")),
+                        at_path,
+                    ));
+                    return;
+                }
+                _ => {}
+            }
         }
     }
 }
@@ -574,10 +658,12 @@ pub fn load_committed_registry(cfg: &Config, repo_root: &Path) -> Result<Registr
     })
 }
 
-/// Re-derive the corpus-wide validation findings (V-003/004/008/010) from the
-/// assembled records. A local mirror of the cross-spec checks in [`compile`]
-/// (kept equal by value, not linkage), so the assembled registry's validation
-/// matches a fresh compile's for a corpus that has any. Records are id-sorted,
+/// Re-derive the corpus-wide validation findings (V-003/004/008/010/014) from
+/// the assembled records. A local mirror of the cross-spec checks in
+/// [`compile`] (kept equal by value for V-003/004/008/010, and by linkage for
+/// V-014, which both paths reach through [`detect_dependency_cycle`]), so the
+/// assembled registry's validation matches a fresh compile's for a corpus that
+/// has any. Records are id-sorted,
 /// which equals compile's discovery order, so V-004's "shared by" pairing agrees.
 fn recompute_cross_spec_violations(records: &[SpecRecord]) -> Vec<Violation> {
     let mut out: Vec<Violation> = Vec::new();
@@ -613,6 +699,7 @@ fn recompute_cross_spec_violations(records: &[SpecRecord]) -> Vec<Violation> {
             }
         }
     }
+    detect_dependency_cycle(records, &mut out);
     out
 }
 

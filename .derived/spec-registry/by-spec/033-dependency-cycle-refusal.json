@@ -1,0 +1,50 @@
+{
+  "record": {
+    "created": "2026-09-03",
+    "dependsOn": [
+      "001-compile-registry",
+      "016-short-id-resolution"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/compile.rs"
+        }
+      }
+    ],
+    "id": "033-dependency-cycle-refusal",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionHeadings": [
+      "033: Dependency cycle refusal",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The check",
+      "3.2 Cross-spec, so never sharded",
+      "3.3 Determinism",
+      "3.4 Placement: compile, not lint",
+      "3.5 Tests (minimum)",
+      "4. Out of scope"
+    ],
+    "specPath": "specs/033-dependency-cycle-refusal/spec.md",
+    "status": "approved",
+    "summary": "`depends_on` is the one edge whose graph shape spec-spine never checked. A dangling target is a `V-010` warning, but a cycle passes: two specs that depend on each other compile with zero warnings and lint clean at every severity, so a corpus can be green and structurally unexecutable. This spec adds `V-014`, an error-tier, corpus-wide check that reports a cycle in the resolved `depends_on` graph and names the path. It is the sibling of `V-010` and lives beside it in `compile.rs`, the first step of the gate chain and the step `compile --check` verifies, so a cycle fails the build at the earliest point and no new verb is introduced. `V-014` joins `CROSS_SPEC_CODES`, so it is never stored in a registry shard and is recomputed from the assembled records on read; both the fresh-compile and committed-shard paths reach one detector, so the two views cannot disagree. Scheduling semantics stay out: readiness, contract pinning and downstream invalidation depend on merge history and a run journal, which are not a pure function of the corpus and therefore not spec-spine's to compute.\n",
+    "title": "Dependency cycle refusal: the `V-014` corpus-wide check on `depends_on`"
+  },
+  "shardHash": "edc8debf7e8ab3ca2314bdba9ee2271f52f069309dbfa8807b969749a3030a4d",
+  "specVersion": "1.1.0"
+}
