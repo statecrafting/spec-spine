@@ -36,7 +36,7 @@
       }
     ],
     "id": "026-resolution-discovery-fixes",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -66,6 +66,6 @@
     "summary": "Three mechanical correctness fixes surfaced by the OAP spec-217 Phase-0 dry run of 0.5.0, all in the indexer's resolution and discovery paths, none changing any schema or DTO shape. (1) Non-workflow YAML (Helm values, infra manifests) is dispatched to the CI-jobs parser, so its `# region:` markers never resolve and a declared section unit on one raises a spurious I-006; route foreign YAML to the region parser, which is exactly the whole-file / region ownership spec 022 §3.2 already promised foreign structured configs (retiring §4's deliberately-deferred D4). (2) A Makefile `## tag:` is silently overwritten when a second `## tag:` precedes any consuming target, so a tagged region is never emitted; make the pending tag deterministic so it is never silently lost. (3) Workspace-member globs declared in a NON-root workspace file (a nested `pnpm-workspace.yaml`) are resolved against the repo root instead of the declaration file's directory, so they match nothing; pre-join such globs with the declaration file's parent. A related lower-priority guard covers a `standalone_rust_workspaces` entry that ends in `Cargo.toml`. Pairs with spec 025 (the severity policy); these are the mechanical half of the 0.6.0 indexer work.\n",
     "title": "Indexer resolution + discovery fixes: foreign-YAML regions, Makefile tags, nested-workspace globs"
   },
-  "shardHash": "9e58738f6bd1670e3d89ab0e7bc11abefa48c2a7495383f58bdec19ab7a2327f",
+  "shardHash": "e2c011b1a493629bba2ae7656d3b8fd9cdc68fbb2cc9d87676f71cb8bbe87ebb",
   "specVersion": "1.1.0"
 }

@@ -5,7 +5,7 @@ status: approved
 kind: "tooling"
 created: "2026-06-17"
 owner: "The spec-spine Authors"
-implementation: pending
+implementation: complete
 risk: medium
 depends_on:
   - "001-compile-registry"   # the registry relationship graph: the authority source
