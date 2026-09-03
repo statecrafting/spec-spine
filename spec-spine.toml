@@ -47,11 +47,25 @@ bypass_prefixes = ["**/README.md"]
 waiver_keyword = "Spec-Drift-Waiver:"
 # Spec 032: refuse a changed source file that no spec specifically claims
 # (C-002). Off here on purpose: `spec-spine index coverage` reports this repo at
-# 59/64 (five files owned only by their crate's manifest floor, see 032 §3.8),
+# 60/65 (five files owned only by their crate's manifest floor, see 032 §3.8),
 # and claiming them means editing the tier-1 bootstrap spec, a human's call.
 # The path to adopt is: read the report, flip this on to stop new debt, drive
 # the lists to empty, then add `index coverage --fail-on-untraced` to CI.
 require_ownership = false
+
+# Spec 005 §3.5, extended to cargo and workflow manifests by spec 030: clear a
+# change whose every non-bypassed path is a dependency-only manifest edit, with
+# no other change in the diff. The waiver is mechanical, not a judgement: the
+# CLI re-reads each manifest at base and at head and refuses to waive unless the
+# only difference is dependency versions, and any git failure refuses it too.
+# On for the reason 030 was written. A Dependabot PR cannot add a
+# `Spec-Drift-Waiver:` line to its own body, and its restricted token has no
+# access to the secret store, so without this a routine `Cargo.toml` or
+# `.github/workflows/*.yml` version bump is unmergeable: it trips C-001 against
+# an owning spec that has nothing to say about a patch-level dependency bump.
+# Note this does NOT weaken the gate for source edits; a diff containing any
+# non-manifest change falls straight through to the ordinary drift check.
+auto_waive_dependency_only = true
 
 [provenance.uri_schemes]
 knowledge        = "knowledge://"
