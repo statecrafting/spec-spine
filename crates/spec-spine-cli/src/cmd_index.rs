@@ -61,10 +61,10 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             if *json {
                 let s =
                     serde_json::to_string_pretty(&ids).map_err(|e| Error::Schema(e.to_string()))?;
-                println!("{s}");
+                outln!("{s}");
             } else {
                 for id in ids {
-                    println!("{id}");
+                    outln!("{id}");
                 }
             }
             Ok(0)
@@ -79,7 +79,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             if *json {
                 let s = serde_json::to_string_pretty(&report)
                     .map_err(|e| Error::Schema(e.to_string()))?;
-                println!("{s}");
+                outln!("{s}");
             } else {
                 print!("{}", render_coverage(&report));
             }
@@ -99,7 +99,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             };
             match freshness {
                 Freshness::Fresh => {
-                    println!("{subject} is fresh");
+                    outln!("{subject} is fresh");
                     Ok(0)
                 }
                 Freshness::Stale { expected, actual } => {
@@ -135,7 +135,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 let at = diag.path.as_deref().unwrap_or("-");
                 eprintln!("  {} [{}] {}", diag.code, at, diag.message);
             }
-            println!(
+            outln!(
                 "indexed {} package(s), {} mapping(s) -> {} ({} error diagnostic(s))",
                 idx.packages.len(),
                 idx.traceability.mappings.len(),

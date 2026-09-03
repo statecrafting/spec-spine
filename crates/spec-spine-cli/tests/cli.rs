@@ -674,3 +674,77 @@ fn index_coverage_reports_and_gates() {
             .contains("coverage: 2/2 source files specifically claimed (100.0%)")
     );
 }
+
+// ===== spec 035: a reader that stops early is not an error =====
+
+/// `println!` unwraps its write, so a closed reader panicked the process:
+/// `spec-spine registry list --json | head` exited **101** with a backtrace,
+/// outside the documented 0/1/2/3 contract. Piping into `head` or a pager is
+/// ordinary use.
+///
+/// The fixture is deliberately oversized. The child must still be mid-write
+/// when the reader goes away, so the output has to exceed the OS pipe buffer
+/// (64 KiB on Linux, smaller on some platforms); 30 specs with an 8 KiB summary
+/// each is comfortably past any of them.
+#[test]
+fn closed_reader_exits_cleanly_rather_than_panicking() {
+    use std::io::Read;
+    use std::process::Stdio;
+
+    let tmp = tempfile::tempdir().unwrap();
+    let filler = "x".repeat(8192);
+    for i in 0..30 {
+        let id = format!("{i:03}-spec");
+        let dir = tmp.path().join("specs").join(&id);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(
+            dir.join("spec.md"),
+            format!(
+                "---\nid: \"{id}\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-06-08\"\nsummary: \"{filler}\"\n---\n# {id}\n"
+            ),
+        )
+        .unwrap();
+    }
+
+    // `registry list` reads the committed shards, so the corpus has to exist.
+    let compiled = bin()
+        .arg("--repo")
+        .arg(tmp.path())
+        .arg("compile")
+        .output()
+        .unwrap();
+    assert_eq!(code(&compiled), 0, "fixture must compile");
+
+    let mut child = bin()
+        .arg("--repo")
+        .arg(tmp.path())
+        .args(["registry", "list", "--json"])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+
+    // Read a little, then close the pipe: exactly what `| head -c 32` does.
+    let mut stdout = child.stdout.take().unwrap();
+    let mut buf = [0u8; 32];
+    let _ = stdout.read(&mut buf);
+    drop(stdout);
+
+    let out = child.wait_with_output().unwrap();
+    let stderr = String::from_utf8_lossy(&out.stderr);
+
+    assert_ne!(
+        out.status.code(),
+        Some(101),
+        "a closed reader must not panic the process; stderr: {stderr}"
+    );
+    assert!(
+        !stderr.contains("panicked"),
+        "no panic should reach stderr; stderr: {stderr}"
+    );
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "a reader that stops early is a normal end; stderr: {stderr}"
+    );
+}

@@ -22,7 +22,7 @@ pub fn run(repo: &Path, force: bool) -> Result<u8, Error> {
     for file in &scaffold.files {
         let abs = repo.join(&file.rel_path);
         if abs.exists() && !force && !file.overwrite {
-            println!("  skip (exists): {}", file.rel_path);
+            outln!("  skip (exists): {}", file.rel_path);
             skipped += 1;
             continue;
         }
@@ -32,11 +32,11 @@ pub fn run(repo: &Path, force: bool) -> Result<u8, Error> {
         }
         fs::write(&abs, &file.contents)
             .map_err(|e| Error::Io(format!("write {}: {e}", abs.display())))?;
-        println!("  write: {}", file.rel_path);
+        outln!("  write: {}", file.rel_path);
         written += 1;
     }
 
-    println!(
+    outln!(
         "spec-spine init: {written} file(s) written, {skipped} skipped{}. Next: customize \
          specs/000-bootstrap/spec.md, then run `spec-spine compile`.",
         if force { " (--force)" } else { "" }

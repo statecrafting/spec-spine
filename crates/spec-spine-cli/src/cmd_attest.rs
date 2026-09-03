@@ -70,8 +70,8 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
     } else {
         "spec-corpus"
     };
-    println!("attested {scope} -> {}", attestation_path.display());
-    println!("  attestationHash: {}", outcome.attestation_hash);
+    outln!("attested {scope} -> {}", attestation_path.display());
+    outln!("  attestationHash: {}", outcome.attestation_hash);
 
     if let Some((signing_key, key_id)) = signer {
         let ledger_seal = seal::sign(
@@ -86,7 +86,7 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
         let seal_path = out_dir.join("attestation.sig");
         fs::write(&seal_path, seal_json)
             .map_err(|e| Error::Io(format!("write {}: {e}", seal_path.display())))?;
-        println!(
+        outln!(
             "sealed -> {} (alg ed25519, keyId {})",
             seal_path.display(),
             ledger_seal.key_id

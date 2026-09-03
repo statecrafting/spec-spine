@@ -20,13 +20,13 @@ pub fn run(repo: &Path, fail_on_warn: bool, fail_on_info: bool) -> Result<u8, Er
             Severity::Info => "info",
         };
         let at = v.path.as_deref().unwrap_or("-");
-        println!("  {} [{tier}] [{}] {}", v.code, at, v.message);
+        outln!("  {} [{tier}] [{}] {}", v.code, at, v.message);
     }
 
     let errors = report.count(Severity::Error);
     let warnings = report.count(Severity::Warning);
     let infos = report.count(Severity::Info);
-    println!("lint: {errors} error(s), {warnings} warning(s), {infos} info");
+    outln!("lint: {errors} error(s), {warnings} warning(s), {infos} info");
 
     let fail = errors > 0 || (fail_on_warn && warnings > 0) || (fail_on_info && infos > 0);
     Ok(if fail { 1 } else { 0 })

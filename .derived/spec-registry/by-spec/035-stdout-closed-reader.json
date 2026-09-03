@@ -1,0 +1,120 @@
+{
+  "record": {
+    "created": "2026-09-03",
+    "dependsOn": [
+      "001-compile-registry",
+      "002-registry-query"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/out.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_init.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_lint.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/verify_attestation.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      }
+    ],
+    "id": "035-stdout-closed-reader",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionHeadings": [
+      "035: A closed reader is not an error",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One helper, three outcomes",
+      "3.2 Why not the two shorter fixes",
+      "3.3 Stderr is deliberately unchanged",
+      "3.4 Determinism and output are unaffected",
+      "3.5 Tests (minimum)",
+      "4. Out of scope"
+    ],
+    "specPath": "specs/035-stdout-closed-reader/spec.md",
+    "status": "draft",
+    "summary": "Exit codes are a stable contract: 0 ok, 1 validation failure, 2 stale, 3 I/O. The CLI could exit 101. `println!` unwraps its write, so a reader that stops early made the process panic: `spec-spine registry list --json | head` printed a Rust backtrace and exited 101, and under `set -o pipefail` that failed the surrounding script. Piping into `head`, `less` or `grep -q` is ordinary use, not an error condition. This spec routes every CLI stdout write through one helper that classifies the write instead of unwrapping it: a closed reader ends the process 0, because the consumer got what it asked for, and a genuine I/O failure reports and exits 3, which is the code the contract already assigns to I/O. Stderr keeps `eprintln!`: diagnostics are small, and a broken stderr has nowhere left to report itself. The fix is not `unsafe` SIGPIPE restoration, which `forbid(unsafe_code)` rules out workspace-wide, and not a panic hook, which would match on a message string the standard library is free to change.\n",
+    "title": "A closed reader is not an error: stdout writes stop panicking the CLI"
+  },
+  "shardHash": "53aca72e07d2ceab196eb7942d0835be81c95eaa925893500348413f3d241ae0",
+  "specVersion": "1.1.0"
+}

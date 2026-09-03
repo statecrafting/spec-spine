@@ -3,6 +3,15 @@
 //! typed `Error` to a stable process exit code. All `process::exit`, stdout, and
 //! `git`/clock side effects live here, never in the library.
 
+/// `println!` for stdout that does not panic when the reader goes away.
+///
+/// Defined before the `mod` items below so every submodule sees it (textual
+/// macro scoping). See `out.rs` for why this exists (spec 035).
+macro_rules! outln {
+    () => { $crate::out::line(format_args!("")) };
+    ($($arg:tt)*) => { $crate::out::line(format_args!($($arg)*)) };
+}
+
 mod cmd_attest;
 mod cmd_compile;
 mod cmd_couple;
@@ -10,6 +19,7 @@ mod cmd_index;
 mod cmd_init;
 mod cmd_lint;
 mod cmd_registry;
+mod out;
 mod seal;
 mod verify_attestation;
 
