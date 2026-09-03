@@ -5,7 +5,7 @@ status: approved
 kind: "tooling"
 created: "2026-06-18"
 owner: "The spec-spine Authors"
-implementation: pending
+implementation: complete
 risk: low
 depends_on:
   - "004-codebase-index"          # section resolution + manifest discovery
