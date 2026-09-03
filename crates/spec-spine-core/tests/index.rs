@@ -787,6 +787,24 @@ fn references_unit_survives_in_resolved_units() {
         .expect("the reference is still recorded");
     assert!(!cited.ownership, "a `references` unit is non-owning");
     assert_eq!(cited.locations.len(), 1, "and it still resolves");
+
+    // This spec now claims nothing, so it is orphaned. That is the intended
+    // reading (it implements nothing), and it must stay a report, not a
+    // refusal: an orphan is surfaced by `index orphans`, never as a blocking
+    // diagnostic, or dropping the spurious claim would have turned into a gate
+    // failure for every spec that only cites.
+    assert!(
+        idx.traceability
+            .orphaned_specs
+            .contains(&"001-x".to_string()),
+        "a spec with only `references` implements nothing: {:?}",
+        idx.traceability.orphaned_specs
+    );
+    assert!(
+        idx.diagnostics.errors.is_empty(),
+        "being orphaned is reported, never blocking: {:?}",
+        idx.diagnostics.errors
+    );
 }
 
 /// AC-3, the reported defect end to end: a spec that merely `references`
