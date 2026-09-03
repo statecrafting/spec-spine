@@ -4,11 +4,27 @@
       {
         "path": "crates/spec-spine-types",
         "source": "manifest-metadata"
+      },
+      {
+        "path": "crates/spec-spine-types/src/error.rs",
+        "source": "comment-header"
+      },
+      {
+        "path": "crates/spec-spine-types/tests/config.rs",
+        "source": "comment-header"
+      },
+      {
+        "path": "crates/spec-spine-types/tests/dogfood.rs",
+        "source": "comment-header"
+      },
+      {
+        "path": "crates/spec-spine-types/tests/schema.rs",
+        "source": "comment-header"
       }
     ],
     "specId": "000-spec-spine-bootstrap",
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "e33c2bc84127b084737102fff6bf56a4f374019589cc67f4d0d2bd4d106d1019"
+  "shardHash": "8dbf2ce0a95323d16e647f5ab8c71d5b6746ffb6032ab66d670c37baf5c6a19f"
 }

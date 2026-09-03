@@ -15,6 +15,10 @@
       {
         "path": "crates/spec-spine-core/src/query.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/query.rs",
+        "source": "comment-header"
       }
     ],
     "resolvedUnits": [
@@ -62,5 +66,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "5f74cb99bb80d40d8c2c6a8092d560d8025b522017184b2ee5b3d00dcaf47def"
+  "shardHash": "54be2356dce69ca45c056d1b6da37985e71178ceb6545a5708dbd830d574abfa"
 }

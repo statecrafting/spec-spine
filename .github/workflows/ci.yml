@@ -82,13 +82,17 @@ jobs:
         run: ./target/debug/spec-spine compile --check
       - name: Codebase index freshness (committed artifacts must be current)
         run: ./target/debug/spec-spine index check
-      # Informational (spec 032): which source files no spec specifically
-      # claims. Exit 0 on a report (2 only when stale, which the step above
-      # already refuses). The gate form is `[coupling] require_ownership`
-      # (off here by decision, see spec-spine.toml) and, once the lists are
-      # empty, `index coverage --fail-on-untraced`.
-      - name: Ownership coverage (report)
-        run: ./target/debug/spec-spine index coverage
+      # Enforced (spec 032): every source file must be specifically claimed by
+      # a spec, not merely covered by its package's manifest floor. This repo
+      # drove the floor-only list to empty by annotating the last five files
+      # with `// Spec:` headers, so the ratchet's final step now applies:
+      # `--fail-on-untraced` exits 1 on any new debt, defending 65/65 instead of
+      # reporting it. The PR-time half is `[coupling] require_ownership` in
+      # spec-spine.toml, which refuses a *changed* unclaimed file; this step is
+      # the whole-tree half, which also catches a file added with no diff
+      # context. Exit 2 remains staleness, already refused by the step above.
+      - name: Ownership coverage (enforced)
+        run: ./target/debug/spec-spine index coverage --fail-on-untraced
       - name: Conformance lint (fail on warn)
         run: ./target/debug/spec-spine lint --fail-on-warn
       # The coupling gate is a PR-time gate (spec 005 §1): it joins the spec and

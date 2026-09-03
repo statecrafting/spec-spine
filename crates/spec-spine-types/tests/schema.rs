@@ -1,3 +1,4 @@
+// Spec: specs/000-spec-spine-bootstrap/spec.md
 //! The embedded schemas must be valid JSON and aligned with the version consts.
 
 use spec_spine_types::{
