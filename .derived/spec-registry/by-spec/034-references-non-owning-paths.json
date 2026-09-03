@@ -44,10 +44,10 @@
       "4. Out of scope"
     ],
     "specPath": "specs/034-references-non-owning-paths/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The contract says `references` is the only non-owning edge and that the coupling gate ignores it. The indexer did not implement that. It seeded a spec's `implementingPaths` from every resolved unit location, owning or not, so a file a spec merely cited became a file it claimed. Every consumer reads that field as a claim: `couple.rs` treats a listed path as whole-file ownership, the indexer's own `owners_of_unit` does the same, and `orphaned_specs` and coverage read a non-empty list as \"this spec claims something\". One wrong seed made all of them wrong together. The observable defect is that a spec could not edit its own `spec.md` without a waiver once any other spec referenced it: on this corpus, changing `specs/020-derived-artifact-merge-driver/spec.md` was refused as `C-001` with `024-index-sharding`, which only cites it, named as the sole owner. This spec filters the seed by the `ownership` flag the loop already holds, at the single source rather than at each consumer. The citation is not lost: it stays in `resolvedUnits` with `ownership: false`, so provenance is preserved and only the ownership view changes. No DTO or schema shape changes.\n",
     "title": "`references` seeds no implementing path: closing the C-001 ownership leak"
   },
-  "shardHash": "e65bc1a8286f01eab71f0cc6f40c2d67ad3da355637d3ebd52ca9355da4c8fa6",
+  "shardHash": "54c4e2be071d742b419ccdc8b70ecadd39892f1a48caeb37901f21565e5eb805",
   "specVersion": "1.1.0"
 }

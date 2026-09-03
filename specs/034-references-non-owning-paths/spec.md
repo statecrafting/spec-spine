@@ -1,7 +1,7 @@
 ---
 id: "034-references-non-owning-paths"
 title: "`references` seeds no implementing path: closing the C-001 ownership leak"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-03"
 implementation: complete

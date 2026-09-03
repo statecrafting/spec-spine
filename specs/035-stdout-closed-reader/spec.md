@@ -1,7 +1,7 @@
 ---
 id: "035-stdout-closed-reader"
 title: "A closed reader is not an error: stdout writes stop panicking the CLI"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-03"
 implementation: complete
