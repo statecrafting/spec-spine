@@ -43,8 +43,8 @@
       }
     ],
     "specId": "033-dependency-cycle-refusal",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "3d3355f2d45a5c16debe8613b4f0e19655eb6212c14cee7f1a599e96dc37ff60"
+  "shardHash": "41437c528ed2f1d2e921c9579807ce10ca75907d2c595853c353db89e49d8034"
 }

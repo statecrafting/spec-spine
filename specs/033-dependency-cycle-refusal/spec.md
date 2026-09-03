@@ -1,7 +1,7 @@
 ---
 id: "033-dependency-cycle-refusal"
 title: "Dependency cycle refusal: the `V-014` corpus-wide check on `depends_on`"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-03"
 implementation: complete
@@ -37,8 +37,8 @@ summary: >
 
 ## 1. Purpose
 
-Of the eight typed edges, `depends_on` is the only one that describes an
-ordering. spec-spine validates that its targets exist (`V-010`, a warning since
+Beside the eight typed edges, `depends_on` is the one frontmatter relation that
+describes an ordering. spec-spine validates that its targets exist (`V-010`, a warning since
 spec 001) and nothing else about the shape of the graph they form. A cycle
 therefore compiled clean, before this spec:
 
