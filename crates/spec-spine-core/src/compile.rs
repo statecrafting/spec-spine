@@ -408,7 +408,19 @@ fn detect_dependency_cycle(records: &[SpecRecord], out: &mut Vec<Violation>) {
     let mut color: BTreeMap<&str, u8> = ids.iter().map(|id| (*id, WHITE)).collect();
 
     for r in records {
-        if color.get(r.id.as_str()).copied().unwrap_or(BLACK) != WHITE {
+        // `color` is seeded from `ids`, which is collected from these same
+        // `records` four lines up, and no later insert adds a key (every
+        // `child` is filtered through `ids`). The fallback is therefore
+        // unreachable. It defaults to WHITE rather than BLACK so that if it
+        // ever became reachable the node would still be walked: a redundant
+        // walk is harmless, whereas defaulting to BLACK would skip the node
+        // and miss a cycle rooted there, which is the one outcome a gate must
+        // never produce silently.
+        debug_assert!(
+            color.contains_key(r.id.as_str()),
+            "dependency-cycle detector: record id absent from the color map"
+        );
+        if color.get(r.id.as_str()).copied().unwrap_or(WHITE) != WHITE {
             continue;
         }
         // (spec id, index of the next depends_on entry to walk from it).
@@ -432,18 +444,34 @@ fn detect_dependency_cycle(records: &[SpecRecord], out: &mut Vec<Violation>) {
                     // `child` is still on the current path, so everything from
                     // its position up to the top of the stack is the cycle;
                     // naming it once more closes the path into a loop.
-                    let from = stack.iter().position(|&(n, _)| n == child).unwrap_or(0);
-                    let mut cycle: Vec<&str> = stack[from..].iter().map(|&(n, _)| n).collect();
-                    cycle.push(child);
-                    let at_path = cycle
-                        .first()
-                        .and_then(|id| spec_paths.get(*id))
-                        .map(|p| p.to_string());
-                    out.push(error(
-                        "V-014",
-                        format!("depends_on cycle: {}", cycle.join(" -> ")),
-                        at_path,
-                    ));
+                    //
+                    // GREY holds exactly while a node is on the current stack:
+                    // set on push, cleared to BLACK on pop. The search
+                    // therefore always hits, and `debug_assert` makes a broken
+                    // invariant fail `cargo test` loudly. Release does not
+                    // panic (that would abort the gate outside its documented
+                    // exit codes) and does not invent a path either: reaching
+                    // this arm proves a cycle through `child` exists, so the
+                    // fallback reports that much and drops only the precision
+                    // it can no longer vouch for.
+                    let entry = stack.iter().position(|&(n, _)| n == child);
+                    debug_assert!(
+                        entry.is_some(),
+                        "dependency-cycle detector: GREY node absent from the stack"
+                    );
+                    // `child` is the spec the cycle re-enters, so it is on the
+                    // cycle whichever branch below runs.
+                    let at_path = spec_paths.get(child).map(|p| p.to_string());
+                    let message = match entry {
+                        Some(from) => {
+                            let mut cycle: Vec<&str> =
+                                stack[from..].iter().map(|&(n, _)| n).collect();
+                            cycle.push(child);
+                            format!("depends_on cycle: {}", cycle.join(" -> "))
+                        }
+                        None => format!("depends_on cycle through '{child}'"),
+                    };
+                    out.push(error("V-014", message, at_path));
                     return;
                 }
                 _ => {}
