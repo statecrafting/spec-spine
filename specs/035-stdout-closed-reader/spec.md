@@ -77,17 +77,27 @@ one.
 
 ## 2. Territory
 
-`out.rs`, new: the write helper and its classification. `main.rs`: the `outln!`
-macro and the module declaration. The eight command modules and
-`verify_attestation.rs`: their stdout call sites. `tests/cli.rs`: the end-to-end
-acceptance test.
+`out.rs`, new: the two write entry points and their shared classification.
+`main.rs`: the `outln!` and `out!` macros and the module declaration. The eight
+command modules and `verify_attestation.rs`: their stdout call sites, including
+the two `print!` block writes in `cmd_index.rs` that emit the rendered
+projections. `tests/cli.rs`: the end-to-end acceptance test.
 
 ## 3. Behavior
 
-### 3.1 One helper, three outcomes
+### 3.1 Two entry points, one classifier, three outcomes
 
-Every stdout line in the CLI goes through one function that writes to a locked
-handle and classifies the result rather than unwrapping it:
+The CLI writes stdout two ways, and both must be covered. Most sites emit one
+formatted line (`println!`). The rendered projections, `index render` and
+`index coverage`, build their whole output as a single string that already ends
+in a newline and emit it with `print!`, which panics identically. A line-only
+helper would have left those two sites unguarded while the rule read as though
+they were covered.
+
+So there are two entry points, `line` (appends a newline) and `block` (writes
+verbatim), sharing one classifier. No CLI stdout write uses `println!` or
+`print!` directly. Both entry points classify the write rather than unwrapping
+it:
 
 | outcome | when | process |
 |---|---|---|
@@ -137,6 +147,12 @@ changes.
 2. End to end: the binary emitting more than a pipe buffer, whose reader closes
    after 32 bytes, exits `0`, does not exit `101`, and prints no panic to
    stderr.
+3. The block path (`index render`, `index coverage`) is covered by
+   construction rather than by a pipe-breaking test: it shares the classifier
+   with the line path, and its output on any corpus small enough to build in a
+   test fits inside a pipe buffer, so such a test could not fail. What is
+   asserted instead is the property that makes the guarantee total: no
+   `print!` or `println!` remains at a CLI stdout site.
 
 ## 4. Out of scope
 

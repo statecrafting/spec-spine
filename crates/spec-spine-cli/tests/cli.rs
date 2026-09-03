@@ -748,3 +748,49 @@ fn closed_reader_exits_cleanly_rather_than_panicking() {
         "a reader that stops early is a normal end; stderr: {stderr}"
     );
 }
+
+/// Spec 035 §3.5(3). The block path (`index render`, `index coverage`) cannot be
+/// exercised by a pipe-breaking test: its output fits inside a pipe buffer on
+/// any corpus small enough to build in one, so such a test could never fail.
+/// The guarantee is asserted structurally instead. This is the check that would
+/// have caught the two `print!` sites a line-only migration left behind.
+#[test]
+fn no_panicking_stdout_macro_remains_in_the_cli() {
+    let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let mut offenders: Vec<String> = Vec::new();
+
+    for entry in fs::read_dir(&src).unwrap() {
+        let path = entry.unwrap().path();
+        if path.extension().is_none_or(|e| e != "rs") {
+            continue;
+        }
+        let text = fs::read_to_string(&path).unwrap();
+        for (n, raw) in text.lines().enumerate() {
+            let line = raw.trim_start();
+            // Comments name these macros when explaining why they are not used.
+            if line.starts_with("//") {
+                continue;
+            }
+            // `print!(` also occurs inside `eprint!(`, and `println!(` inside
+            // `eprintln!(`; stderr keeps the panicking macros by design (§3.3).
+            for mac in ["print!(", "println!("] {
+                if let Some(at) = line.find(mac) {
+                    let is_stderr = at > 0 && line.as_bytes()[at - 1] == b'e';
+                    if !is_stderr {
+                        offenders.push(format!(
+                            "{}:{}: {line}",
+                            path.file_name().unwrap().to_string_lossy(),
+                            n + 1
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "CLI stdout must go through out.rs, not a panicking macro (spec 035):\n{}",
+        offenders.join("\n")
+    );
+}

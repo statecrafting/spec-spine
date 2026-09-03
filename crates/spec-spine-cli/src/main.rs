@@ -12,6 +12,12 @@ macro_rules! outln {
     ($($arg:tt)*) => { $crate::out::line(format_args!($($arg)*)) };
 }
 
+/// `print!` for stdout that does not panic when the reader goes away. For
+/// pre-formatted blocks that already carry their own trailing newline.
+macro_rules! out {
+    ($($arg:tt)*) => { $crate::out::block(format_args!($($arg)*)) };
+}
+
 mod cmd_attest;
 mod cmd_compile;
 mod cmd_couple;

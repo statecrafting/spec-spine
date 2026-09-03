@@ -52,7 +52,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
     match action {
         Some(IndexAction::Render) => {
             let idx = load_committed_index(&cfg, repo)?;
-            print!("{}", render_markdown(&cfg, &idx));
+            out!("{}", render_markdown(&cfg, &idx));
             Ok(0)
         }
         Some(IndexAction::Orphans { json }) => {
@@ -81,7 +81,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                     .map_err(|e| Error::Schema(e.to_string()))?;
                 outln!("{s}");
             } else {
-                print!("{}", render_coverage(&report));
+                out!("{}", render_coverage(&report));
             }
             Ok(if *fail_on_untraced && !report.is_fully_claimed() {
                 1

@@ -55,6 +55,27 @@ pub(crate) fn line(args: Arguments<'_>) {
     }
 }
 
+/// Write a pre-formatted block to stdout verbatim, adding no newline.
+///
+/// The rendered projections (`index render`, `index coverage`) build their
+/// whole output as a single string that already ends in a newline, so they need
+/// a write that does not append a second one. Same classification as [`line`].
+pub(crate) fn block(args: Arguments<'_>) {
+    let stdout = io::stdout();
+    let mut handle = stdout.lock();
+    let res = write!(handle, "{args}").and_then(|()| handle.flush());
+    match classify(&res) {
+        Outcome::Wrote => {}
+        Outcome::ReaderGone => std::process::exit(0),
+        Outcome::Failed => {
+            if let Err(e) = res {
+                eprintln!("spec-spine: cannot write to stdout: {e}");
+            }
+            std::process::exit(3);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{Outcome, classify};
