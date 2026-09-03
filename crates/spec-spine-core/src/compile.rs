@@ -439,28 +439,34 @@ fn detect_dependency_cycle(records: &[SpecRecord], out: &mut Vec<Violation>) {
                     // `child` is still on the current path, so everything from
                     // its position up to the top of the stack is the cycle;
                     // naming it once more closes the path into a loop.
-                    // GREY holds exactly while a node is on the current
-                    // stack: set on push, cleared to BLACK on pop. The search
-                    // therefore always hits. Assert it in debug, because the
-                    // fallback would still report a real cycle but would name
-                    // the DFS root instead of the spec the cycle re-enters.
+                    //
+                    // GREY holds exactly while a node is on the current stack:
+                    // set on push, cleared to BLACK on pop. The search
+                    // therefore always hits, and `debug_assert` makes a broken
+                    // invariant fail `cargo test` loudly. Release does not
+                    // panic (that would abort the gate outside its documented
+                    // exit codes) and does not invent a path either: reaching
+                    // this arm proves a cycle through `child` exists, so the
+                    // fallback reports that much and drops only the precision
+                    // it can no longer vouch for.
                     let entry = stack.iter().position(|&(n, _)| n == child);
                     debug_assert!(
                         entry.is_some(),
                         "V-014: GREY node absent from the current stack"
                     );
-                    let from = entry.unwrap_or(0);
-                    let mut cycle: Vec<&str> = stack[from..].iter().map(|&(n, _)| n).collect();
-                    cycle.push(child);
-                    let at_path = cycle
-                        .first()
-                        .and_then(|id| spec_paths.get(*id))
-                        .map(|p| p.to_string());
-                    out.push(error(
-                        "V-014",
-                        format!("depends_on cycle: {}", cycle.join(" -> ")),
-                        at_path,
-                    ));
+                    // `child` is the spec the cycle re-enters, so it is on the
+                    // cycle whichever branch below runs.
+                    let at_path = spec_paths.get(child).map(|p| p.to_string());
+                    let message = match entry {
+                        Some(from) => {
+                            let mut cycle: Vec<&str> =
+                                stack[from..].iter().map(|&(n, _)| n).collect();
+                            cycle.push(child);
+                            format!("depends_on cycle: {}", cycle.join(" -> "))
+                        }
+                        None => format!("depends_on cycle through '{child}'"),
+                    };
+                    out.push(error("V-014", message, at_path));
                     return;
                 }
                 _ => {}
