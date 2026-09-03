@@ -46,10 +46,6 @@
       {
         "path": "crates/spec-spine-types/src/lib.rs",
         "source": "spec-edge"
-      },
-      {
-        "path": "docs/design/00-architecture.md",
-        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [

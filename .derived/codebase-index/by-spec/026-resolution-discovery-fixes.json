@@ -20,10 +20,6 @@
       {
         "path": "crates/spec-spine-core/tests/index.rs",
         "source": "spec-edge"
-      },
-      {
-        "path": "docs/design/00-architecture.md",
-        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [

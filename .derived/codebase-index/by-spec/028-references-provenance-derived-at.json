@@ -19,10 +19,6 @@
       {
         "path": "crates/spec-spine-types/tests/grammar.rs",
         "source": "spec-edge"
-      },
-      {
-        "path": "docs/design/00-architecture.md",
-        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
