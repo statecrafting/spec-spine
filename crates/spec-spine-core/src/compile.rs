@@ -408,14 +408,19 @@ fn detect_dependency_cycle(records: &[SpecRecord], out: &mut Vec<Violation>) {
     let mut color: BTreeMap<&str, u8> = ids.iter().map(|id| (*id, WHITE)).collect();
 
     for r in records {
-        // Every record id was seeded into `color` above, so the fallback is
-        // unreachable. Assert it in debug rather than let a future change
-        // silently skip a start node and miss a cycle entirely.
+        // `color` is seeded from `ids`, which is collected from these same
+        // `records` four lines up, and no later insert adds a key (every
+        // `child` is filtered through `ids`). The fallback is therefore
+        // unreachable. It defaults to WHITE rather than BLACK so that if it
+        // ever became reachable the node would still be walked: a redundant
+        // walk is harmless, whereas defaulting to BLACK would skip the node
+        // and miss a cycle rooted there, which is the one outcome a gate must
+        // never produce silently.
         debug_assert!(
             color.contains_key(r.id.as_str()),
-            "V-014: record id absent from the color map"
+            "dependency-cycle detector: record id absent from the color map"
         );
-        if color.get(r.id.as_str()).copied().unwrap_or(BLACK) != WHITE {
+        if color.get(r.id.as_str()).copied().unwrap_or(WHITE) != WHITE {
             continue;
         }
         // (spec id, index of the next depends_on entry to walk from it).
@@ -452,7 +457,7 @@ fn detect_dependency_cycle(records: &[SpecRecord], out: &mut Vec<Violation>) {
                     let entry = stack.iter().position(|&(n, _)| n == child);
                     debug_assert!(
                         entry.is_some(),
-                        "V-014: GREY node absent from the current stack"
+                        "dependency-cycle detector: GREY node absent from the stack"
                     );
                     // `child` is the spec the cycle re-enters, so it is on the
                     // cycle whichever branch below runs.
