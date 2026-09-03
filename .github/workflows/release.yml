@@ -98,7 +98,7 @@ jobs:
       # or branch rewrite upstream cannot alter a release build; Dependabot
       # (.github/dependabot.yml) proposes SHA bumps for review.
       - name: Generate per-target CycloneDX SBOM
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
         with:
           path: .                                    # syft's cargo cataloger reads the committed Cargo.lock
           format: cyclonedx-json
@@ -140,7 +140,7 @@ jobs:
       - name: List release assets
         run: ls -la dist
       - name: Create / update the GitHub Release
-        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           files: dist/*
           fail_on_unmatched_files: true
@@ -200,7 +200,7 @@ jobs:
             echo "::notice title=npm publish skipped::NPM_TOKEN secret not set; skipping npm publish"
           fi
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         if: steps.gate.outputs.present == 'true'
         with:
           node-version: 20
@@ -291,7 +291,7 @@ jobs:
             echo "::notice title=PyPI publish skipped::vars.PYPI_TRUSTED_PUBLISHING is not 'true'; skipping PyPI publish"
           fi
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         if: steps.gate.outputs.present == 'true'
         with:
           python-version: "3.12"
@@ -331,7 +331,7 @@ jobs:
       # token is stored in the repo.
       - name: Publish to PyPI (idempotent; signed)
         if: steps.gate.outputs.present == 'true'
-        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
         with:
           packages-dir: py/dist/pypi
           skip-existing: true
