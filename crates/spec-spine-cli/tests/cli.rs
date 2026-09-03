@@ -674,3 +674,164 @@ fn index_coverage_reports_and_gates() {
             .contains("coverage: 2/2 source files specifically claimed (100.0%)")
     );
 }
+
+// ===== spec 035: a reader that stops early is not an error =====
+
+/// `println!` unwraps its write, so a closed reader panicked the process:
+/// `spec-spine registry list --json | head` exited **101** with a backtrace,
+/// outside the documented 0/1/2/3 contract. Piping into `head` or a pager is
+/// ordinary use.
+///
+/// The fixture is deliberately oversized. The child must still be mid-write
+/// when the reader goes away, so the output has to exceed the OS pipe buffer
+/// (64 KiB on Linux, smaller on some platforms); 30 specs with an 8 KiB summary
+/// each is comfortably past any of them.
+#[test]
+fn closed_reader_exits_cleanly_rather_than_panicking() {
+    use std::io::Read;
+    use std::process::Stdio;
+
+    let tmp = tempfile::tempdir().unwrap();
+    let filler = "x".repeat(8192);
+    for i in 0..30 {
+        let id = format!("{i:03}-spec");
+        let dir = tmp.path().join("specs").join(&id);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(
+            dir.join("spec.md"),
+            format!(
+                "---\nid: \"{id}\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-06-08\"\nsummary: \"{filler}\"\n---\n# {id}\n"
+            ),
+        )
+        .unwrap();
+    }
+
+    // `registry list` reads the committed shards, so the corpus has to exist.
+    let compiled = bin()
+        .arg("--repo")
+        .arg(tmp.path())
+        .arg("compile")
+        .output()
+        .unwrap();
+    assert_eq!(code(&compiled), 0, "fixture must compile");
+
+    let mut child = bin()
+        .arg("--repo")
+        .arg(tmp.path())
+        .args(["registry", "list", "--json"])
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+
+    // Read a little, then close the pipe: exactly what `| head -c 32` does.
+    let mut stdout = child.stdout.take().unwrap();
+    let mut buf = [0u8; 32];
+    let _ = stdout.read(&mut buf);
+    drop(stdout);
+
+    let out = child.wait_with_output().unwrap();
+    let stderr = String::from_utf8_lossy(&out.stderr);
+
+    assert_ne!(
+        out.status.code(),
+        Some(101),
+        "a closed reader must not panic the process; stderr: {stderr}"
+    );
+    assert!(
+        !stderr.contains("panicked"),
+        "no panic should reach stderr; stderr: {stderr}"
+    );
+    assert_eq!(
+        out.status.code(),
+        Some(0),
+        "a reader that stops early is a normal end; stderr: {stderr}"
+    );
+}
+
+/// Byte offsets of panicking **stdout** macro calls on one source line.
+///
+/// Every occurrence is examined, not just the first: `println!(` also occurs
+/// inside `eprintln!(`, so a line carrying a stderr call before a real stdout
+/// one would otherwise be cleared by its first match and the real call never
+/// seen. A gate meant to be permanent proof cannot have a false negative.
+fn panicking_stdout_macros(line: &str) -> Vec<usize> {
+    let mut hits = Vec::new();
+    if line.trim_start().starts_with("//") {
+        return hits;
+    }
+    for mac in ["print!(", "println!("] {
+        let mut from = 0;
+        while let Some(rel) = line[from..].find(mac) {
+            let at = from + rel;
+            // Stderr keeps the panicking macros by design (spec 035 §3.3).
+            let is_stderr = at > 0 && line.as_bytes()[at - 1] == b'e';
+            if !is_stderr {
+                hits.push(at);
+            }
+            from = at + mac.len();
+        }
+    }
+    hits
+}
+
+#[test]
+fn scanner_does_not_let_a_stderr_call_mask_a_stdout_one() {
+    assert!(panicking_stdout_macros(r#"eprintln!("x");"#).is_empty());
+    assert!(panicking_stdout_macros(r#"eprint!("x");"#).is_empty());
+    assert!(panicking_stdout_macros("// println!(\"a comment\");").is_empty());
+    assert!(!panicking_stdout_macros(r#"println!("x");"#).is_empty());
+    assert!(!panicking_stdout_macros(r#"print!("x");"#).is_empty());
+    // The regression: the stderr call comes first and must not clear the line.
+    assert!(!panicking_stdout_macros(r#"eprintln!("{}", x); println!("{}", y);"#).is_empty());
+    assert!(!panicking_stdout_macros(r#"eprint!("{}", x); print!("{}", y);"#).is_empty());
+}
+
+/// Spec 035 §3.5(3). The block path (`index render`, `index coverage`) cannot be
+/// exercised by a pipe-breaking test: its output fits inside a pipe buffer on
+/// any corpus small enough to build in one, so such a test could never fail.
+/// The guarantee is asserted structurally instead. This is the check that would
+/// have caught the two `print!` sites a line-only migration left behind.
+#[test]
+fn no_panicking_stdout_macro_remains_in_the_cli() {
+    let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let mut offenders: Vec<String> = Vec::new();
+
+    // Recursive: `src/` is flat today, but a future `src/util/` must not escape
+    // the enforcement by being invisible to it.
+    let mut dirs = vec![src.clone()];
+    let mut files: Vec<std::path::PathBuf> = Vec::new();
+    while let Some(dir) = dirs.pop() {
+        for entry in fs::read_dir(&dir).unwrap() {
+            let p = entry.unwrap().path();
+            if p.is_dir() {
+                dirs.push(p);
+            } else {
+                files.push(p);
+            }
+        }
+    }
+
+    for path in files {
+        if path.extension().is_none_or(|e| e != "rs") {
+            continue;
+        }
+        let text = fs::read_to_string(&path).unwrap();
+        for (n, raw) in text.lines().enumerate() {
+            let line = raw.trim_start();
+            if !panicking_stdout_macros(line).is_empty() {
+                offenders.push(format!(
+                    "{}:{}: {line}",
+                    path.strip_prefix(&src).unwrap_or(&path).display(),
+                    n + 1
+                ));
+            }
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "CLI stdout must go through out.rs, not a panicking macro (spec 035):\n{}",
+        offenders.join("\n")
+    );
+}

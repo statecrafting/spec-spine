@@ -79,16 +79,16 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
             );
         }
     } else if let Some(reason) = &report.waiver {
-        println!(
+        outln!(
             "spec-spine couple: {} violation(s) {}, reason: {reason}",
             report.violations.len(),
             if auto_waived { "auto-waived" } else { "waived" }
         );
         for v in &report.violations {
-            println!("  {} (waived)", v.message);
+            outln!("  {} (waived)", v.message);
         }
     } else {
-        println!(
+        outln!(
             "spec-spine couple: OK: {} path(s) checked, no drift.",
             report.checked_paths
         );

@@ -48,7 +48,7 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     if args.recompute {
         match verify_recompute(&cfg, repo, &attestation)? {
             VerifyOutcome::Match => {
-                println!("recompute: MATCH (the corpus reproduces this attestation)");
+                outln!("recompute: MATCH (the corpus reproduces this attestation)");
             }
             VerifyOutcome::VersionMismatch { expected, actual } => {
                 eprintln!(
@@ -87,7 +87,7 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
         // and the seal stops verifying.
         let hash = attestation_hash(&attestation)?;
         if seal::verify(&hash, &ledger_seal, &verifying_key)? {
-            println!("signature: VALID (sealed by keyId {})", ledger_seal.key_id);
+            outln!("signature: VALID (sealed by keyId {})", ledger_seal.key_id);
         } else {
             eprintln!(
                 "signature: INVALID (the seal does not verify against the supplied public key)"

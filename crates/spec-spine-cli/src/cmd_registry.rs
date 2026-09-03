@@ -70,7 +70,7 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                     print_json(&ids)?;
                 } else {
                     for id in ids {
-                        println!("{id}");
+                        outln!("{id}");
                     }
                 }
             } else {
@@ -78,10 +78,10 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 if *json {
                     print_json(&specs)?;
                 } else if specs.is_empty() {
-                    println!("(no specs)");
+                    outln!("(no specs)");
                 } else {
                     for s in specs {
-                        println!("{}  {:<11}  {}", s.id, status_label(s.status), s.title);
+                        outln!("{}  {:<11}  {}", s.id, status_label(s.status), s.title);
                     }
                 }
             }
@@ -91,12 +91,12 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
             if *json {
                 print_json(spec)?;
             } else {
-                println!("id:      {}", spec.id);
-                println!("title:   {}", spec.title);
-                println!("status:  {}", status_label(spec.status));
-                println!("created: {}", spec.created);
-                println!("path:    {}", spec.spec_path);
-                println!("summary: {}", spec.summary.trim());
+                outln!("id:      {}", spec.id);
+                outln!("title:   {}", spec.title);
+                outln!("status:  {}", status_label(spec.status));
+                outln!("created: {}", spec.created);
+                outln!("path:    {}", spec.spec_path);
+                outln!("summary: {}", spec.summary.trim());
             }
         }
         RegistryQuery::StatusReport { json, nonzero_only } => {
@@ -106,7 +106,7 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 if *json {
                     print_json(&projected)?;
                 } else {
-                    println!("total:      {}", projected.total);
+                    outln!("total:      {}", projected.total);
                     print_count("draft:     ", projected.draft);
                     print_count("approved:  ", projected.approved);
                     print_count("superseded:", projected.superseded);
@@ -115,11 +115,11 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
             } else if *json {
                 print_json(&report)?;
             } else {
-                println!("total:      {}", report.total);
-                println!("draft:      {}", report.draft);
-                println!("approved:   {}", report.approved);
-                println!("superseded: {}", report.superseded);
-                println!("retired:    {}", report.retired);
+                outln!("total:      {}", report.total);
+                outln!("draft:      {}", report.draft);
+                outln!("approved:   {}", report.approved);
+                outln!("superseded: {}", report.superseded);
+                outln!("retired:    {}", report.retired);
             }
         }
         RegistryQuery::Relationships { id, json } => {
@@ -127,7 +127,7 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
             if *json {
                 print_json(&view)?;
             } else {
-                println!("{}", view.id);
+                outln!("{}", view.id);
                 print_ids("depends_on", &view.depends_on);
                 print_ids("supersedes", &view.supersedes);
                 print_ids("amends", &view.amends);
@@ -163,18 +163,18 @@ fn status_label(s: Status) -> &'static str {
 
 fn print_count(label: &str, count: Option<usize>) {
     if let Some(n) = count {
-        println!("{label} {n}");
+        outln!("{label} {n}");
     }
 }
 
 fn print_ids(label: &str, ids: &[String]) {
     if !ids.is_empty() {
-        println!("  {label}: {}", ids.join(", "));
+        outln!("  {label}: {}", ids.join(", "));
     }
 }
 
 fn print_json<T: serde::Serialize>(value: &T) -> Result<(), Error> {
     let s = serde_json::to_string_pretty(value).map_err(|e| Error::Schema(e.to_string()))?;
-    println!("{s}");
+    outln!("{s}");
     Ok(())
 }

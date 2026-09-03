@@ -38,7 +38,7 @@ pub fn run(repo: &Path, check: bool) -> Result<u8, Error> {
         }
         return match compare_committed_registry(&cfg, repo, &outcome.shards)? {
             Freshness::Fresh => {
-                println!(
+                outln!(
                     "spec-registry is fresh: {} shard(s) match the corpus",
                     outcome.registry.specs.len()
                 );
@@ -99,7 +99,7 @@ pub fn run(repo: &Path, check: bool) -> Result<u8, Error> {
         .count();
 
     if outcome.validation_passed {
-        println!(
+        outln!(
             "compiled {} spec(s) -> {} ({} warning(s))",
             outcome.registry.specs.len(),
             by_spec.display(),
