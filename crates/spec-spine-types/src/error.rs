@@ -1,3 +1,4 @@
+// Spec: specs/000-spec-spine-bootstrap/spec.md
 //! The single, stable error type for spec-spine.
 //!
 //! Every variant maps to a stable CLI exit code (see [`Error::exit_code`]); the

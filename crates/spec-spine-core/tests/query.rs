@@ -1,3 +1,4 @@
+// Spec: specs/002-registry-query/spec.md
 //! Query: load_registry version gating + list / show / status_report /
 //! relationships over a compiled registry.
 

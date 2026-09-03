@@ -1,3 +1,4 @@
+// Spec: specs/000-spec-spine-bootstrap/spec.md
 //! Dogfood: this repo's own bootstrap spec must parse through the types crate.
 //!
 //! The authored frontmatter of `specs/000` must conform to the grammar this

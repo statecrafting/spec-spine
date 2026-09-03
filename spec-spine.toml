@@ -46,12 +46,15 @@ indexer_id  = "spec-spine"
 bypass_prefixes = ["**/README.md"]
 waiver_keyword = "Spec-Drift-Waiver:"
 # Spec 032: refuse a changed source file that no spec specifically claims
-# (C-002). Off here on purpose: `spec-spine index coverage` reports this repo at
-# 60/65 (five files owned only by their crate's manifest floor, see 032 §3.8),
-# and claiming them means editing the tier-1 bootstrap spec, a human's call.
-# The path to adopt is: read the report, flip this on to stop new debt, drive
-# the lists to empty, then add `index coverage --fail-on-untraced` to CI.
-require_ownership = false
+# (C-002). ON here: the debt 032 §3.8 named is retired. Those five files are
+# claimed by `// Spec: specs/<id>/spec.md` headers in the files themselves
+# rather than by new frontmatter units, because a header is a file naming the
+# spec that already governs it, which is exactly what was true and never
+# written down. That also keeps the claim out of the tier-1 bootstrap spec:
+# nothing in specs/000 changed. `index coverage` now reports 65/65, and CI
+# defends it with `index coverage --fail-on-untraced`. This knob is the PR-time
+# half: a changed source file no spec specifically claims is C-002.
+require_ownership = true
 
 # Spec 005 §3.5, extended to cargo and workflow manifests by spec 030: clear a
 # change whose every non-bypassed path is a dependency-only manifest edit, with

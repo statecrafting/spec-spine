@@ -1,3 +1,4 @@
+// Spec: specs/000-spec-spine-bootstrap/spec.md
 //! Config tests: absent (defaults), minimal, full, malformed (clean error).
 
 use spec_spine_types::{Config, Error, load_config};
