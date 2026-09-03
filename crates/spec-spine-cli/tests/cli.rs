@@ -759,8 +759,22 @@ fn no_panicking_stdout_macro_remains_in_the_cli() {
     let src = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let mut offenders: Vec<String> = Vec::new();
 
-    for entry in fs::read_dir(&src).unwrap() {
-        let path = entry.unwrap().path();
+    // Recursive: `src/` is flat today, but a future `src/util/` must not escape
+    // the enforcement by being invisible to it.
+    let mut dirs = vec![src.clone()];
+    let mut files: Vec<std::path::PathBuf> = Vec::new();
+    while let Some(dir) = dirs.pop() {
+        for entry in fs::read_dir(&dir).unwrap() {
+            let p = entry.unwrap().path();
+            if p.is_dir() {
+                dirs.push(p);
+            } else {
+                files.push(p);
+            }
+        }
+    }
+
+    for path in files {
         if path.extension().is_none_or(|e| e != "rs") {
             continue;
         }
@@ -779,7 +793,7 @@ fn no_panicking_stdout_macro_remains_in_the_cli() {
                     if !is_stderr {
                         offenders.push(format!(
                             "{}:{}: {line}",
-                            path.file_name().unwrap().to_string_lossy(),
+                            path.strip_prefix(&src).unwrap_or(&path).display(),
                             n + 1
                         ));
                     }

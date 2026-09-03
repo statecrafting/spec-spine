@@ -42,17 +42,7 @@ pub(crate) fn classify(res: &io::Result<()>) -> Outcome {
 pub(crate) fn line(args: Arguments<'_>) {
     let stdout = io::stdout();
     let mut handle = stdout.lock();
-    let res = writeln!(handle, "{args}");
-    match classify(&res) {
-        Outcome::Wrote => {}
-        Outcome::ReaderGone => std::process::exit(0),
-        Outcome::Failed => {
-            if let Err(e) = res {
-                eprintln!("spec-spine: cannot write to stdout: {e}");
-            }
-            std::process::exit(3);
-        }
-    }
+    finish(writeln!(handle, "{args}"));
 }
 
 /// Write a pre-formatted block to stdout verbatim, adding no newline.
@@ -63,16 +53,24 @@ pub(crate) fn line(args: Arguments<'_>) {
 pub(crate) fn block(args: Arguments<'_>) {
     let stdout = io::stdout();
     let mut handle = stdout.lock();
-    let res = write!(handle, "{args}").and_then(|()| handle.flush());
-    match classify(&res) {
-        Outcome::Wrote => {}
-        Outcome::ReaderGone => std::process::exit(0),
-        Outcome::Failed => {
-            if let Err(e) = res {
-                eprintln!("spec-spine: cannot write to stdout: {e}");
-            }
+    finish(write!(handle, "{args}").and_then(|()| handle.flush()));
+}
+
+/// Apply [`classify`]'s verdict to the process. Shared by both entry points so
+/// the policy exists once; matching on the result directly keeps the error in
+/// hand without an `unwrap_err` that could only ever be reached by a bug.
+fn finish(res: io::Result<()>) {
+    match (classify(&res), res) {
+        (Outcome::Wrote, _) => {}
+        (Outcome::ReaderGone, _) => std::process::exit(0),
+        (Outcome::Failed, Err(e)) => {
+            eprintln!("spec-spine: cannot write to stdout: {e}");
             std::process::exit(3);
         }
+        // `classify` returns `Failed` only for `Err`, so this arm is a type
+        // formality. Treat it as a write failure rather than panicking: the
+        // exit-code contract this spec restores has no entry for 101.
+        (Outcome::Failed, Ok(())) => std::process::exit(3),
     }
 }
 
