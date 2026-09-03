@@ -32,3 +32,17 @@ updates:
     directory: "/py"
     schedule:
       interval: weekly
+
+  # The Docusaurus documentation site. It ships in no released artifact (the
+  # crate, the npm shim and the wheel carry none of it), so it was left
+  # unmonitored and its lockfile drifted: issue #81 found `image-size` 2.0.2
+  # there, carrying two advisories that have no patched release yet. Grouped
+  # weekly so a docs-only tree does not generate one PR per package, and so the
+  # patch is proposed automatically whenever upstream ships one.
+  - package-ecosystem: npm
+    directory: "/website"
+    schedule:
+      interval: weekly
+    groups:
+      website:
+        patterns: ["*"]
