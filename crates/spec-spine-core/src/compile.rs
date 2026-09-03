@@ -408,6 +408,13 @@ fn detect_dependency_cycle(records: &[SpecRecord], out: &mut Vec<Violation>) {
     let mut color: BTreeMap<&str, u8> = ids.iter().map(|id| (*id, WHITE)).collect();
 
     for r in records {
+        // Every record id was seeded into `color` above, so the fallback is
+        // unreachable. Assert it in debug rather than let a future change
+        // silently skip a start node and miss a cycle entirely.
+        debug_assert!(
+            color.contains_key(r.id.as_str()),
+            "V-014: record id absent from the color map"
+        );
         if color.get(r.id.as_str()).copied().unwrap_or(BLACK) != WHITE {
             continue;
         }
@@ -432,7 +439,17 @@ fn detect_dependency_cycle(records: &[SpecRecord], out: &mut Vec<Violation>) {
                     // `child` is still on the current path, so everything from
                     // its position up to the top of the stack is the cycle;
                     // naming it once more closes the path into a loop.
-                    let from = stack.iter().position(|&(n, _)| n == child).unwrap_or(0);
+                    // GREY holds exactly while a node is on the current
+                    // stack: set on push, cleared to BLACK on pop. The search
+                    // therefore always hits. Assert it in debug, because the
+                    // fallback would still report a real cycle but would name
+                    // the DFS root instead of the spec the cycle re-enters.
+                    let entry = stack.iter().position(|&(n, _)| n == child);
+                    debug_assert!(
+                        entry.is_some(),
+                        "V-014: GREY node absent from the current stack"
+                    );
+                    let from = entry.unwrap_or(0);
                     let mut cycle: Vec<&str> = stack[from..].iter().map(|&(n, _)| n).collect();
                     cycle.push(child);
                     let at_path = cycle
