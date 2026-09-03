@@ -344,6 +344,130 @@ fn amends_expands_owners_when_base_set_nonempty() {
     assert!(!cleared.has_blocking_drift(), "{:?}", cleared.violations);
 }
 
+// ── the configured corpus root (spec 036) ─────────────────────────────────
+
+/// A repo whose corpus lives somewhere other than `specs/`.
+fn contracts_config() -> Config {
+    let mut cfg = Config::default();
+    cfg.layout.specs_dir = "contracts".to_string();
+    cfg
+}
+
+fn owns_lib_rs() -> CodebaseIndex {
+    index_from(json!([{
+        "specId": "001-a",
+        "implementingPaths": [],
+        "resolvedUnits": [{
+            "unit": { "kind": "file", "path": "src/lib.rs" },
+            "sourceField": "establishes",
+            "ownership": true,
+            "locations": [{ "file": "src/lib.rs" }]
+        }]
+    }]))
+}
+
+#[test]
+fn custom_specs_dir_clears_drift_via_the_owning_spec() {
+    // Before spec 036 the primary-owner heuristic looked for a literal
+    // `specs/<id>/spec.md`, so under a non-default `layout.specs_dir` NO edit to
+    // the owning spec could ever clear `C-001`: the path it searched for did not
+    // exist in the repo. The gate was unusable for such an adopter.
+    let index = owns_lib_rs();
+    let reg = empty_registry();
+    let cfg = contracts_config();
+
+    let drift = couple_with(
+        &cfg,
+        &reg,
+        &index,
+        &diff(vec![file("src/lib.rs", &[LineSpan::new(5, 8)])]),
+        None,
+    )
+    .unwrap();
+    assert!(drift.has_blocking_drift());
+
+    let cleared = couple_with(
+        &cfg,
+        &reg,
+        &index,
+        &diff(vec![
+            file("src/lib.rs", &[LineSpan::new(5, 8)]),
+            file("contracts/001-a/spec.md", &[]),
+        ]),
+        None,
+    )
+    .unwrap();
+    assert!(!cleared.has_blocking_drift(), "{:?}", cleared.violations);
+}
+
+#[test]
+fn default_specs_dir_does_not_clear_under_a_custom_root() {
+    // The mirror image: `specs/` carries no authority once the corpus root is
+    // configured elsewhere, so a file sitting there must not clear the gate.
+    let cleared = couple_with(
+        &contracts_config(),
+        &empty_registry(),
+        &owns_lib_rs(),
+        &diff(vec![
+            file("src/lib.rs", &[LineSpan::new(5, 8)]),
+            file("specs/001-a/spec.md", &[]),
+        ]),
+        None,
+    )
+    .unwrap();
+    assert!(cleared.has_blocking_drift(), "{:?}", cleared.violations);
+}
+
+#[test]
+fn custom_specs_dir_keeps_amends_awareness() {
+    // The second reader of the path shape: amends expansion parses
+    // `<specs_dir>/<id>/spec.md` back into an id. Under a custom root it must
+    // still recognize the amended spec, or the amender could not clear it.
+    let index = index_from(json!([
+        {
+            "specId": "200-claims-spec-md",
+            "implementingPaths": [],
+            "resolvedUnits": [{
+                "unit": { "kind": "file", "path": "contracts/100-x/spec.md" },
+                "sourceField": "constrains", "ownership": true,
+                "locations": [{ "file": "contracts/100-x/spec.md" }]
+            }]
+        },
+        {
+            "specId": "101-amender",
+            "amends": ["100-x"],
+            "implementingPaths": [],
+            "resolvedUnits": []
+        }
+    ]));
+    let reg = empty_registry();
+    let cfg = contracts_config();
+
+    let drift = couple_with(
+        &cfg,
+        &reg,
+        &index,
+        &diff(vec![file("contracts/100-x/spec.md", &[])]),
+        None,
+    )
+    .unwrap();
+    assert!(drift.has_blocking_drift());
+    assert!(drift.violations[0].message.contains("101-amender"));
+
+    let cleared = couple_with(
+        &cfg,
+        &reg,
+        &index,
+        &diff(vec![
+            file("contracts/100-x/spec.md", &[]),
+            file("contracts/101-amender/spec.md", &[]),
+        ]),
+        None,
+    )
+    .unwrap();
+    assert!(!cleared.has_blocking_drift(), "{:?}", cleared.violations);
+}
+
 // ── supersedes authority transfer ─────────────────────────────────────────
 
 #[test]

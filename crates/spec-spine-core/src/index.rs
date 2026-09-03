@@ -970,8 +970,14 @@ const GLOBAL_INPUTS_KEY: &str = "\u{0}global-inputs";
 
 /// Repo-relative POSIX path of a spec's `spec.md` (the dir name equals the id,
 /// enforced by compile's V-001), e.g. `specs/024-index-sharding/spec.md`.
-fn spec_md_rel(specs_dir: &str, id: &str) -> String {
-    format!("{specs_dir}/{id}/spec.md")
+///
+/// `pub(crate)` since spec 036: the coupling gate parses this same shape back
+/// into an id, and a builder and a parser that disagree about it is exactly the
+/// defect 036 fixes. A trailing slash on the configured `specs_dir` is trimmed,
+/// so `specs` and `specs/` name one file instead of the second producing
+/// `specs//<id>/spec.md`.
+pub(crate) fn spec_md_rel(specs_dir: &str, id: &str) -> String {
+    format!("{}/{id}/spec.md", specs_dir.trim_end_matches('/'))
 }
 
 /// The source files backing this mapping's resolved `symbol`/`section`/`module`

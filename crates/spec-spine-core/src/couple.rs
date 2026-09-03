@@ -25,7 +25,7 @@ use serde::{Deserialize, Serialize};
 use spec_spine_types::{CodebaseIndex, Config, Error, LineSpan, Registry, Severity, Violation};
 
 use crate::coverage::{Ownership, classify, in_coverage_universe};
-use crate::index::{Freshness, check_index_freshness};
+use crate::index::{Freshness, check_index_freshness, spec_md_rel};
 
 /// The hardcoded generic bypass floor (spec 005 §3.5): the **single built-in
 /// source** of bypass entries. The adopter's `config.coupling.bypass_prefixes`
@@ -134,6 +134,9 @@ pub fn couple_with(
 ) -> Result<CoupleReport, Error> {
     let diff_paths: BTreeSet<String> = diff.files.iter().map(|f| f.path.clone()).collect();
     let superseders = build_superseders(registry);
+    // Spec 036: every "is this a spec.md, and whose?" question below is asked
+    // against the configured corpus root, never a literal `specs/`.
+    let specs_dir = cfg.layout.specs_dir.as_str();
 
     let mut violations: Vec<Violation> = Vec::new();
     let mut checked_paths = 0usize;
@@ -181,11 +184,11 @@ pub fn couple_with(
             }
         }
 
-        let owners = owners_for_path(path, &file.hunks, index, &superseders);
+        let owners = owners_for_path(specs_dir, path, &file.hunks, index, &superseders);
         if owners.is_empty() {
             continue; // unclaimed path: not a drift concern (see the ratchet above)
         }
-        if any_owner_in_diff(&owners, &diff_paths) {
+        if any_owner_in_diff(specs_dir, &owners, &diff_paths) {
             continue; // primary-owner heuristic: any one owner's spec.md cleared it
         }
 
@@ -264,6 +267,7 @@ pub fn parse_waiver(cfg: &Config, body: &str) -> Option<Waiver> {
 /// resolved-unit ownership with whole-file `implementingPaths`, applies
 /// supersedes transfer, then amends-awareness under the FR-005 strict guard.
 fn owners_for_path(
+    specs_dir: &str,
     path: &str,
     hunks: &[LineSpan],
     index: &CodebaseIndex,
@@ -310,9 +314,9 @@ fn owners_for_path(
     }
 
     // 4. Amends-awareness, only when the base owner set is non-empty (FR-005
-    //    strict-expansion guard) and the path is `specs/<id>/spec.md`.
+    //    strict-expansion guard) and the path is `<specs_dir>/<id>/spec.md`.
     if !owners.is_empty() {
-        if let Some(amended_id) = spec_id_for_spec_md_path(path) {
+        if let Some(amended_id) = spec_id_for_spec_md_path(specs_dir, path) {
             for m in &index.traceability.mappings {
                 if m.amends.iter().any(|a| a == amended_id) {
                     owners.insert(m.spec_id.clone());
@@ -329,12 +333,16 @@ fn owners_for_path(
     owners
 }
 
-/// True when at least one owner's `specs/<id>/spec.md` is in the diff (the
+/// True when at least one owner's `<specs_dir>/<id>/spec.md` is in the diff (the
 /// primary-owner heuristic, ported from OAP `OwnerSet::any_owner_in_diff`).
-fn any_owner_in_diff(owners: &BTreeSet<String>, diff_paths: &BTreeSet<String>) -> bool {
+fn any_owner_in_diff(
+    specs_dir: &str,
+    owners: &BTreeSet<String>,
+    diff_paths: &BTreeSet<String>,
+) -> bool {
     owners
         .iter()
-        .any(|id| diff_paths.contains(&format!("specs/{id}/spec.md")))
+        .any(|id| diff_paths.contains(&spec_md_rel(specs_dir, id)))
 }
 
 /// Direct `predecessor → {superseders}` map from the registry's `supersedes`.
@@ -416,10 +424,17 @@ fn is_bypass<S: AsRef<str>>(path: &str, prefixes: &[S]) -> bool {
     })
 }
 
-/// Parse `specs/<id>/spec.md` into `<id>` (ported from OAP
+/// Parse `<specs_dir>/<id>/spec.md` into `<id>` (ported from OAP
 /// `spec_id_for_spec_md_path`). `None` for any other path.
-fn spec_id_for_spec_md_path(path: &str) -> Option<&str> {
-    let rest = path.strip_prefix("specs/")?;
+///
+/// The exact inverse of [`spec_md_rel`], against the configured
+/// `layout.specs_dir` rather than a literal `specs/` (spec 036). The prefix and
+/// the separator are stripped in two steps on purpose: a single
+/// `strip_prefix("specs")` would accept `specsX/005-x/spec.md`.
+fn spec_id_for_spec_md_path<'p>(specs_dir: &str, path: &'p str) -> Option<&'p str> {
+    let rest = path
+        .strip_prefix(specs_dir.trim_end_matches('/'))?
+        .strip_prefix('/')?;
     let (id, tail) = rest.split_once('/')?;
     if tail == "spec.md" { Some(id) } else { None }
 }
@@ -483,10 +498,59 @@ mod tests {
     #[test]
     fn spec_md_path_parse() {
         assert_eq!(
-            spec_id_for_spec_md_path("specs/005-x/spec.md"),
+            spec_id_for_spec_md_path("specs", "specs/005-x/spec.md"),
             Some("005-x")
         );
-        assert_eq!(spec_id_for_spec_md_path("specs/005-x/plan.md"), None);
-        assert_eq!(spec_id_for_spec_md_path("crates/core/src/lib.rs"), None);
+        assert_eq!(
+            spec_id_for_spec_md_path("specs", "specs/005-x/plan.md"),
+            None
+        );
+        assert_eq!(
+            spec_id_for_spec_md_path("specs", "crates/core/src/lib.rs"),
+            None
+        );
+    }
+
+    #[test]
+    fn spec_md_path_parse_honors_configured_dir() {
+        // Spec 036: the corpus root is configuration, not a literal.
+        assert_eq!(
+            spec_id_for_spec_md_path("contracts", "contracts/005-x/spec.md"),
+            Some("005-x")
+        );
+        // The default root is not privileged once another one is configured.
+        assert_eq!(
+            spec_id_for_spec_md_path("contracts", "specs/005-x/spec.md"),
+            None
+        );
+        // A nested root works, and a sibling that merely shares its prefix does
+        // not: the separator is stripped as its own step for exactly this.
+        assert_eq!(
+            spec_id_for_spec_md_path("docs/specs", "docs/specs/005-x/spec.md"),
+            Some("005-x")
+        );
+        assert_eq!(
+            spec_id_for_spec_md_path("specs", "specsX/005-x/spec.md"),
+            None
+        );
+        // A trailing slash names the same corpus root.
+        assert_eq!(
+            spec_id_for_spec_md_path("specs/", "specs/005-x/spec.md"),
+            Some("005-x")
+        );
+    }
+
+    #[test]
+    fn owner_in_diff_matches_the_configured_dir() {
+        let owners: BTreeSet<String> = ["005-x".to_string()].into_iter().collect();
+        let under_contracts: BTreeSet<String> = ["contracts/005-x/spec.md".to_string()]
+            .into_iter()
+            .collect();
+        let under_specs: BTreeSet<String> =
+            ["specs/005-x/spec.md".to_string()].into_iter().collect();
+
+        assert!(any_owner_in_diff("contracts", &owners, &under_contracts));
+        assert!(!any_owner_in_diff("contracts", &owners, &under_specs));
+        assert!(any_owner_in_diff("specs", &owners, &under_specs));
     }
 }
