@@ -52,10 +52,10 @@
       "4. Out of scope"
     ],
     "specPath": "specs/036-configured-corpus-root/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`layout.specs_dir` is configuration, and every other consumer reads it: `compile` scans it, `index` builds each spec's `spec.md` path from it, and `init` scaffolds into it. The coupling gate did not. Two functions in `couple.rs` hardcoded the literal `specs/`, and both are load-bearing. The primary-owner heuristic asked whether `specs/<id>/spec.md` was in the diff, so for an adopter whose corpus lives anywhere else the answer was permanently no: no edit to an owning spec could clear `C-001`, and every governed change was refused with the owner named and no reachable way to satisfy it, short of a waiver on every PR. The amends-awareness parser had the same literal, so amendment expansion silently never fired. Both now take the configured root, and the builder is shared with the indexer (`spec_md_rel`, promoted to `pub(crate)`) so a path constructor and its parser cannot drift apart again. A trailing slash on the configured value is trimmed, making `specs` and `specs/` name one corpus root instead of the second yielding `specs//<id>/spec.md`. No DTO, schema, or config shape changes; a default-layout repo is byte-identical.\n",
     "title": "The coupling gate honors `layout.specs_dir`"
   },
-  "shardHash": "1c13694709312e905acbf40bb3be79e0a556d25b0324869e84808423727d1a15",
+  "shardHash": "52a6e9b5643c01889caeae5a08946cdcae09e68fa52f69f8175ff57ea0e544a0",
   "specVersion": "1.1.0"
 }

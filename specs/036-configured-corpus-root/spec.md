@@ -1,7 +1,7 @@
 ---
 id: "036-configured-corpus-root"
 title: "The coupling gate honors `layout.specs_dir`"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-03"
 implementation: complete
