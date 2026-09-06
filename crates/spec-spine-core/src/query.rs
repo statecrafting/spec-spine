@@ -387,8 +387,9 @@ fn topological(ready: &[&str], by_id: &BTreeMap<&str, &SpecRecord>) -> Vec<Strin
 /// The first `depends_on` cycle reachable in the graph, as the path that closes
 /// it, or `None` when the graph is acyclic.
 ///
-/// Three-colour DFS over ids in ascending order, so the cycle reported for a
-/// given registry is always the same one.
+/// Colouring DFS over ids in ascending order, so the cycle reported for a given
+/// registry is always the same one. Unvisited is absence from `colour` rather
+/// than a third variant, so the map holds only what the walk has reached.
 ///
 /// The walk carries its own stack rather than recursing. This runs only on
 /// input `compile` refuses to emit, which is precisely the input that may be
