@@ -65,10 +65,10 @@
       "5. Verification"
     ],
     "specPath": "specs/046-kit-hooks-read-never-write/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Three of the four Claude Code hooks the kit ships write into the tree they are meant to observe. `SessionStart` runs a bare `compile`, which repairs a stale committed registry as a side effect of checking it; the `PreToolUse` PR gate runs `index` and then blocks on the uncommitted output of its own write, which a hook cannot commit; `Stop` regenerates a stale index and asks a session that has already ended to commit it. All four also bind to the session's project directory rather than the repository the action targets, so a multi-checkout session judges one repo by another's state. An adopter running these hooks under an orchestrator stalled for eleven hours on a tree the `Stop` hook had dirtied, because the orchestrator refuses to start a session on a dirty tree and only a session cleans one. That adopter fixed every one of these in its own copy; this spec ports the fixes into the kit, adds the push gate the kit's prose rule had no enforcement for, and pins the read-only property with a test that scans every hook body for a writing subcommand.\n",
     "title": "The kit's hooks observe the tree; they do not repair it"
   },
-  "shardHash": "b8a838d8d66298a0f704062c478e1b2bcd9182712e8c053e204cd059125c186b",
+  "shardHash": "1dae2b9ba8cf627777be59d7ef6492c1396fb47f1d7674343491530503b3a90c",
   "specVersion": "1.1.0"
 }

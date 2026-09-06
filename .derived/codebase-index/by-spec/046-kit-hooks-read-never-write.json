@@ -72,8 +72,8 @@
       }
     ],
     "specId": "046-kit-hooks-read-never-write",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "053a1397ee9eece4dd36478a6ca35cbf6b8e47721d17b97be446eb49e4a658ac"
+  "shardHash": "9d90e654b6546419797241162313375ed866df5f27eb17a2934928e8bc4260b8"
 }

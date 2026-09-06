@@ -197,8 +197,8 @@
       }
     ],
     "specId": "047-harness-rules-name-the-legitimate-edits",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f16fe6061b79ab1446c636fe350abd5781fa3080e0b57a9c2795ee2baded3fb7"
+  "shardHash": "0f84ba19e2de17aac48fdafc47fbe948151284cde3480cb8a1f1481e46c113ee"
 }

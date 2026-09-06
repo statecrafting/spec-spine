@@ -1,7 +1,7 @@
 ---
 id: "046-kit-hooks-read-never-write"
 title: "The kit's hooks observe the tree; they do not repair it"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-06"
 implementation: complete

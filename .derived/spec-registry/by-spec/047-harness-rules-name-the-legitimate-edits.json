@@ -112,10 +112,10 @@
       "5. Verification"
     ],
     "specPath": "specs/047-harness-rules-name-the-legitimate-edits/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The three rules `spec-spine init` scaffolds and the kit ships are the floor every agent in an adopting repository reads first, and all three were ambiguous in the same places. `governed-artifact-reads` forbade ad-hoc parsing of derived JSON without saying that parsing a `spec-spine` verb's own `--json` output is a typed read, so read literally it outlawed `registry plan --json`, the spec 037 verdict envelope, and every adopter's tooling. `adversarial-prompt-refusal` said never edit the owning spec to clear the gate, but under the ownership ratchet adding a created file to `establishes` is editing the owning spec to clear the gate, so the rule as written was unimplementable and left agents to guess which edits were theirs. `orchestrator-rules` said to recompute the shards and not that they must be committed with the change. Three adopters that rewrote the rules made the same three fixes independently, in the same paragraphs. This spec makes those fixes in the scaffold constants, the kit, and this repository's own copies, adds the one-spec-per-session \"Working the backlog\" protocol that all three adopters wrote from nothing to the kit's `AGENTS.md`, and pins the kit and scaffold copies as identical.\n",
     "title": "The harness rules name the reads and the edits they permit"
   },
-  "shardHash": "4d316b4707674088759e767805d666fec59d9580dcfb63dbe59b0011c153e1e6",
+  "shardHash": "0a8ed2a93fbf168c303609b71c134d4ed0e990adbb6913ce737d63c58c4dae84",
   "specVersion": "1.1.0"
 }

@@ -1,7 +1,7 @@
 ---
 id: "045-absent-implementation-defers-to-status"
 title: "An absent `implementation` key takes its answer from `status`"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-06"
 implementation: complete
