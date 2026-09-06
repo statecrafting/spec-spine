@@ -11,6 +11,11 @@ depends_on:
   - "023-ledger-seal"
   - "024-index-sharding"
   - "041-completion-held-to-claims"
+amends:
+  # 3.1 states a MUST NOT about `attest`'s exit code that covers the
+  # corpus-scoped verb too, which is 023's territory and a rule 023 never
+  # carried. 023's own text is untouched (spec 040).
+  - "023-ledger-seal"
 extends:
   - { spec: "023-ledger-seal", unit: "crates/spec-spine-core/src/attest.rs", nature: additive }
   - { spec: "023-ledger-seal", unit: "crates/spec-spine-core/tests/attest.rs", nature: additive }
@@ -145,6 +150,15 @@ that says so.
 The behavior is inherited, not invented here: `attest` has always written its
 payload and returned `0` irrespective of the verdicts inside it, and spec 023
 never wrote that down. This spec does, for both scopes.
+
+Stating it for the corpus-scoped verb is a change to spec 023's contract, since
+023 owns `attest` and carried no such rule, so this spec declares
+`amends: ["023-ledger-seal"]`. The alternative was to scope the MUST NOT to
+`--spec` alone and leave the corpus verb undocumented, which would put two
+different exit-code contracts on one binary for no reason other than which spec
+happened to notice first. Per spec 040 the amendment is declared here and
+`specs/023-ledger-seal/spec.md` is not edited; the inbound view is
+`spec-spine registry relationships 023-ledger-seal`.
 
 A `--fail-on-false` gating flag was considered and rejected. A record verb that
 can be configured to refuse invites being used as a gate, which puts a second,
