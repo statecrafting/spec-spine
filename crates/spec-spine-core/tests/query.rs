@@ -486,3 +486,143 @@ fn plan_survives_a_very_long_acyclic_chain() {
     );
     assert_eq!(plan.blocked.len(), N - 1);
 }
+
+/// `plan`'s cycle guard and `compile`'s `V-014` must agree on which specs the
+/// walk covers, and the agreement is asserted rather than assumed.
+///
+/// `plan`'s guard is documented as unreachable on a registry `compile` accepts.
+/// That is true only while both walk the same set: `compile` passes every
+/// record to its detector with no `status` filter, and `plan` walks every entry
+/// in the registry. Nothing enforces that pairing, so if `compile`'s check were
+/// ever scoped to active specs, `plan` would start refusing a corpus `compile`
+/// accepts and no test would notice.
+///
+/// A cycle confined to retired specs is the case where the two would diverge
+/// first, so it is the one pinned here.
+#[test]
+fn plan_and_compile_agree_on_a_cycle_among_retired_specs() {
+    let tmp = tempfile::tempdir().unwrap();
+    let retired = |id: &str, dep: &str| {
+        let dir = tmp.path().join("specs").join(id);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(
+            dir.join("spec.md"),
+            format!(
+                "---\nid: \"{id}\"\ntitle: \"T\"\nstatus: retired\ncreated: \"2026-09-06\"\n\
+                 summary: \"s\"\nretirement_rationale: \"superseded by nothing\"\n\
+                 depends_on: [\"{dep}\"]\n---\n# {id}\n## body\n"
+            ),
+        )
+        .unwrap();
+    };
+    retired("001-a", "002-b");
+    retired("002-b", "001-a");
+
+    // The pivot of the whole test: `compile` returns `Ok` for a cycle, carrying
+    // V-014 in the report. Named here so a future change to `Err` fails saying
+    // that, rather than as an unexplained panic in a test about scope.
+    let outcome = compile(&Config::default(), tmp.path())
+        .expect("compile returns Ok on a cyclic corpus; the violation rides in the report");
+
+    // The detector fires: it is not scoped to active specs. `compile` still
+    // returns `Ok`, carrying the violation in the report rather than as an
+    // error, which is why the call above unwraps.
+    let compile_v014: Vec<_> = outcome
+        .registry
+        .validation
+        .violations
+        .iter()
+        .filter(|v| v.code == "V-014")
+        .collect();
+    // Asserted before the count so a schema rejection of `depends_on` on a
+    // retired spec would fail here, naming its own cause, rather than surfacing
+    // as a confusing "no V-014 was raised".
+    let unexpected: Vec<_> = outcome
+        .registry
+        .validation
+        .violations
+        .iter()
+        .filter(|v| v.code != "V-014" && v.severity == spec_spine_types::Severity::Error)
+        .collect();
+    assert!(
+        unexpected.is_empty(),
+        "the fixture must reach the cycle detector cleanly: {unexpected:?}"
+    );
+    assert_eq!(
+        compile_v014.len(),
+        1,
+        "compile must refuse a cycle among retired specs: {:?}",
+        outcome.registry.validation.violations
+    );
+
+    // ...and so does `plan`, over the same registry. Were `compile` ever scoped
+    // to active specs, this corpus would compile clean and this assertion would
+    // fail, which is exactly the divergence the guard's comment assumes away.
+    let err = spec_spine_core::plan(&outcome.registry).unwrap_err();
+    let Error::Validation(violations) = &err else {
+        panic!("expected Error::Validation, got {err:?}");
+    };
+    assert_eq!(violations[0].code, "V-014", "the same classification");
+    for id in ["001-a", "002-b"] {
+        assert!(
+            violations[0].message.contains(id),
+            "the path names every spec on it: {}",
+            violations[0].message
+        );
+    }
+}
+
+/// `blocked` is ordered by ascending spec id, and that is a promise rather than
+/// a `BTreeMap` side effect a consumer would be relying on by accident.
+#[test]
+fn plan_blocked_entries_are_ordered_by_id() {
+    let reg = registry_of(&[
+        ("001-root", "approved", Some("pending"), &[]),
+        ("004-d", "approved", Some("pending"), &["001-root"]),
+        ("002-b", "approved", Some("pending"), &["001-root"]),
+        ("003-c", "approved", Some("pending"), &["001-root"]),
+    ]);
+    let plan = spec_spine_core::plan(&reg).unwrap();
+    let ids: Vec<&str> = plan.blocked.iter().map(|b| b.id.as_str()).collect();
+    assert_eq!(ids, vec!["002-b", "003-c", "004-d"]);
+    let mut sorted = ids.clone();
+    sorted.sort();
+    assert_eq!(ids, sorted, "ascending id, as the contract states");
+}
+
+/// The other half of 3.2's ordering contract: each entry's `blockedBy` follows
+/// that spec's own **authored** `depends_on` order, not ascending id.
+///
+/// The two orders are deliberately opposed in this fixture, so an implementation
+/// that collected blockers from the id-sorted map instead of from the spec's own
+/// list would fail rather than coincidentally agree.
+#[test]
+fn plan_blocked_by_follows_authored_depends_on_order() {
+    let reg = registry_of(&[
+        ("001-a", "approved", Some("pending"), &[]),
+        ("002-b", "approved", Some("pending"), &[]),
+        ("003-c", "approved", Some("pending"), &[]),
+        // Authored back to front: c, a, b.
+        (
+            "004-join",
+            "approved",
+            Some("pending"),
+            &["003-c", "001-a", "002-b"],
+        ),
+    ]);
+    let plan = spec_spine_core::plan(&reg).unwrap();
+    let blockers: Vec<&str> = plan
+        .blocked
+        .iter()
+        .find(|b| b.id == "004-join")
+        .expect("004-join is blocked")
+        .blocked_by
+        .iter()
+        .map(|b| b.id.as_str())
+        .collect();
+    assert_eq!(
+        blockers,
+        vec!["003-c", "001-a", "002-b"],
+        "authored order is preserved, not re-sorted by id"
+    );
+}
