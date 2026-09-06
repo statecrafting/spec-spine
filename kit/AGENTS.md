@@ -106,6 +106,50 @@ to ad-hoc parsing of `.derived/**/*.json`.
 
 If any file is missing: log "not found" and continue.
 
+## Working the backlog
+
+The governed loop is one spec per session, start to finish, then stop. It is
+what `spec-spine registry plan`, the in-flight leniency (specs 025, 041, 044)
+and the ownership ratchet (spec 032) exist to serve. Record specs (the
+bootstrap spec, a thesis, a harness spec at `n-a` or `complete`) are never
+work orders.
+
+1. **Pick the spec.** `spec-spine registry plan` prints the ready set in
+   dependency order; take the first entry unless a human named another. Never
+   guess and never pick a `draft`: approval is a human act. If the spec's
+   Territory names an operator prerequisite (a credential, a bucket, a
+   cluster) that is missing, stop and report exactly what is needed instead
+   of mocking around it.
+2. **Branch and flip.** Work on a feature branch named after the spec id.
+   Flip the spec to `implementation: in-progress`, run `spec-spine compile`
+   and `spec-spine index`, and commit the flip with the regenerated derived
+   shards before writing code. Never commit to `main`.
+3. **Re-read the spec in full before coding.** The design precedes the code.
+   If the design is imprecise, record the choice you make as a dated decision
+   entry in the spec. If the design is *wrong*, stop and report the
+   contradiction: never edit a spec afterwards to ratify what the code
+   happened to do (`.claude/rules/adversarial-prompt-refusal.md`).
+4. **Implement within the territory.** Every file you add must be claimed by
+   the spec you are implementing, in the same change (`C-002` refuses an
+   unclaimed source file). Touching a unit another spec owns requires an
+   `extends` edge on that spec's unit, declared in your spec's frontmatter;
+   that amends nobody. Never edit the derived directory by hand.
+5. **Run the gate before every commit.** `spec-spine compile`, `spec-spine
+   index`, `spec-spine lint --fail-on-warn`, `spec-spine index check`,
+   `spec-spine couple --base origin/main --head HEAD`, then your stack's own
+   build, tests and lints. All must exit 0. Commit the regenerated shards
+   with the code they describe.
+6. **Satisfy the spec's acceptance criteria verbatim.** If a criterion cannot
+   be satisfied (external state, a missing sibling), keep `implementation:
+   in-progress`, add a dated note to the spec saying exactly what remains,
+   and report it. Flip to `implementation: complete` only when acceptance
+   holds; recompile and commit. The gate then holds the spec to every unit it
+   claims (spec 041).
+7. **Ship.** `/ship`: gate, review, a conventional commit naming the spec id
+   (`feat(011): ...`), push the feature branch, open the PR. A
+   `Spec-Drift-Waiver:` line needs explicit human approval; a driven session
+   never self-approves one. Then stop: the next session takes the next spec.
+
 ## Available Agents
 
 Agents live in `.claude/agents/`. Four pipeline agents handle the

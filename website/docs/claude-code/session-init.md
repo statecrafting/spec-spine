@@ -57,11 +57,12 @@ status report.
 ## The SessionStart freshness hook
 
 The `settings.json` SessionStart hook fires on every new session and resume. It
-reports spec-registry and codebase-index freshness, so the agent knows
-immediately whether the index is stale before `/init` even runs:
+reports spec-registry and codebase-index freshness (via `compile --check` and
+`index check`, without writing), so the agent knows immediately whether either
+committed tree is stale before `/init` even runs:
 
 ```
-[session-freshness] spec registry: recompiled fresh; codebase index: fresh
+[session-freshness] spec registry: fresh; codebase index: fresh
 ```
 
 ## Read discipline

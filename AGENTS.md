@@ -64,6 +64,39 @@ Do **not** substitute a plain `spec-spine compile` here. Writing would repair th
 
 If any file is missing: log "not found" and continue.
 
+## Working the backlog
+
+This repository files a spec as `draft`, builds it, then ratifies it in a
+separate PR, so the loop here differs from an adopter's ratify-then-build
+corpus in step 1 and step 6. One spec per PR, then stop.
+
+1. **Pick or file the spec.** `spec-spine registry plan` prints the ready set;
+   in a finished corpus it prints `(nothing ready)` and the work is to file the
+   next `NNN-slug` from the design backlog (`docs/design/`). A new spec is born
+   `status: draft`, `implementation: pending`, and declares every edge it
+   needs, including `amends` on any approved spec whose stated behavior it
+   changes, without editing that spec (spec 040).
+2. **Branch.** A feature branch named after the spec id. Never commit to
+   `main`.
+3. **Re-read the design before coding.** If the design is imprecise, record
+   the choice in the spec. If it is wrong, stop and report; never rewrite an
+   approved spec to match code (`.claude/rules/adversarial-prompt-refusal.md`).
+4. **Implement within the territory.** Claim every new file in the new spec's
+   `establishes` (or a `// Spec:` header when the file already has an
+   owner). Touching a unit another spec owns is an `extends` edge on that
+   unit. Never edit `.derived/` by hand.
+5. **Run the gate before every commit.** `cargo run -p spec-spine-cli --
+   compile`, `... index`, `... lint --fail-on-warn`, `... index check`,
+   `... couple --base origin/main --head HEAD`, then `cargo test --workspace
+   --locked`, `cargo clippy --workspace --all-targets --locked -- -D
+   warnings`, `cargo fmt --all --check`. Commit the regenerated shards with
+   the code they describe.
+6. **Ship, then ratify.** `/ship` opens the PR with `implementation:
+   complete` set once the spec's Verification section holds. After merge, a
+   second PR flips `status: draft` to `approved` (the ratify PR), and the
+   corpus count moves. A `Spec-Drift-Waiver:` line needs explicit human
+   approval and is cited in the PR body.
+
 ## Available Agents
 
 Agents live in `.claude/agents/`. Four pipeline agents handle the plan/explore/implement/review cycle:

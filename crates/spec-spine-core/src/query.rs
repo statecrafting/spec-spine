@@ -241,8 +241,12 @@ pub struct Plan {
 /// A spec is **excluded** from both sets when the corpus has moved past it
 /// (`status` `superseded` or `retired`) or when someone has already answered
 /// "should this be scheduled" with no (`implementation` `complete`, `n-a` or
-/// `deferred`). An absent `implementation` reads as `pending`: an unstated
-/// intention is the same input to a scheduler as a stated intention to start.
+/// `deferred`). An absent `implementation` takes its answer from `status`
+/// (spec 045): on a `draft` it reads as `pending`, because an unstated
+/// intention is the same input to a scheduler as a stated intention to start;
+/// on anything ratified it reads as settled, which is what the gate already
+/// concludes about the same key (041 3.1, 044 3.1) and what keeps a bootstrap
+/// spec that owns no code from being offered as ready forever.
 ///
 /// Returns [`Error::Validation`] naming the path if `depends_on` contains a
 /// cycle. Spec 033 refuses one at compile time, so a registry that exists is
@@ -317,20 +321,31 @@ pub fn plan(registry: &Registry) -> Result<Plan, Error> {
 /// off the schedule. Offering it anyway would overrule that, and quietly
 /// returning it to `ready` when a dependency landed would make deferral expire
 /// on its own, which is not what deferring something means.
+///
+/// An absent key is not a fifth value with its own row. It defers to `status`
+/// (spec 045): `draft` + absent is schedulable, exactly as `draft` + `pending`
+/// is; anything else + absent is settled and is not offered. The alternative,
+/// reading absence as `pending` regardless of `status`, made `plan` disagree
+/// with `index` about the same spec and offered every `init`-scaffolded
+/// bootstrap spec as the one ready item in an otherwise finished corpus.
 fn schedulable(spec: &SpecRecord) -> bool {
     if matches!(spec.status, Status::Superseded | Status::Retired) {
         return false;
     }
-    !matches!(
-        spec.implementation,
-        Some(Implementation::Complete | Implementation::Na | Implementation::Deferred)
-    )
+    match spec.implementation {
+        Some(Implementation::Complete | Implementation::Na | Implementation::Deferred) => false,
+        Some(Implementation::Pending | Implementation::InProgress) => true,
+        None => spec.status == Status::Draft,
+    }
 }
 
 /// The state of `dep` if it blocks, or `None` if it is finished.
 ///
 /// A dependency is finished only when its `implementation` is `complete` or
-/// `n-a`. A target absent from the registry blocks as `unresolved`: a dangling
+/// `n-a`, or when the key is absent on a spec that is not a `draft` (spec 045:
+/// an absent key defers to `status`, and a ratified spec with nothing to say
+/// about its implementation is settled, the same reading `index` gives it). A
+/// target absent from the registry blocks as `unresolved`: a dangling
 /// dependency is a corpus defect, and reading "the blocker does not exist" as
 /// "the blocker is satisfied" would hand out work in an order the corpus does
 /// not sanction.
@@ -342,7 +357,9 @@ fn blocker_state(by_id: &BTreeMap<&str, &SpecRecord>, dep: &str) -> Option<Strin
         Some(Implementation::Complete | Implementation::Na) => None,
         Some(Implementation::InProgress) => Some("in-progress".to_string()),
         Some(Implementation::Deferred) => Some("deferred".to_string()),
-        Some(Implementation::Pending) | None => Some("pending".to_string()),
+        Some(Implementation::Pending) => Some("pending".to_string()),
+        None if spec.status == Status::Draft => Some("pending".to_string()),
+        None => None,
     }
 }
 

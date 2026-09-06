@@ -277,9 +277,11 @@ fn plan_excludes_specs_the_corpus_has_moved_past_or_taken_off_the_schedule() {
 }
 
 #[test]
-fn plan_reads_an_absent_implementation_key_as_pending() {
+fn plan_reads_an_absent_implementation_key_on_a_draft_as_pending() {
+    // Spec 045: an absent key defers to `status`. On a draft, unstated is the
+    // same input to a scheduler as a stated intention to start.
     let reg = registry_of(&[
-        ("001-silent", "approved", None, &[]),
+        ("001-silent", "draft", None, &[]),
         (
             "002-on-silent",
             "approved",
@@ -288,12 +290,49 @@ fn plan_reads_an_absent_implementation_key_as_pending() {
         ),
     ]);
     let plan = spec_spine_core::plan(&reg).unwrap();
-    assert_eq!(plan.ready, vec!["001-silent"], "unstated is schedulable");
+    assert_eq!(
+        plan.ready,
+        vec!["001-silent"],
+        "an unstated draft is schedulable"
+    );
     assert_eq!(
         blockers(&plan, "002-on-silent"),
         [("001-silent".into(), "pending".into())],
-        "and unstated blocks its dependents, reported as pending"
+        "and it blocks its dependents, reported as pending"
     );
+}
+
+#[test]
+fn plan_reads_an_absent_implementation_key_on_a_ratified_spec_as_settled() {
+    // Spec 045: `approved` + absent is what the gate already treats as settled
+    // (041 3.1), so `plan` neither offers it nor lets it block. This is the
+    // scaffold's bootstrap spec, which used to be offered as ready forever.
+    let reg = registry_of(&[
+        ("000-bootstrap", "approved", None, &[]),
+        (
+            "001-on-bootstrap",
+            "approved",
+            Some("pending"),
+            &["000-bootstrap"],
+        ),
+    ]);
+    let plan = spec_spine_core::plan(&reg).unwrap();
+    assert_eq!(
+        plan.ready,
+        vec!["001-on-bootstrap"],
+        "the ratified silent spec is not offered, and does not block"
+    );
+    assert!(plan.blocked.is_empty(), "{plan:?}");
+
+    // The whole corpus silent and ratified: nothing is ready, nothing is
+    // blocked, rather than everything being ready.
+    let reg = registry_of(&[
+        ("000-a", "approved", None, &[]),
+        ("001-b", "approved", None, &["000-a"]),
+    ]);
+    let plan = spec_spine_core::plan(&reg).unwrap();
+    assert!(plan.ready.is_empty(), "{plan:?}");
+    assert!(plan.blocked.is_empty(), "{plan:?}");
 }
 
 #[test]
