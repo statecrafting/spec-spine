@@ -1,7 +1,7 @@
 ---
 id: "041-completion-held-to-claims"
 title: "`implementation: complete` defeats draft leniency"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-06"
 implementation: complete

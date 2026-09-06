@@ -51,10 +51,10 @@
       "4. Out of scope"
     ],
     "specPath": "specs/040-amendment-authoring/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The corpus has always authored amendments one way: the `amends` edge is declared in the amending spec's frontmatter, and the amended spec's `spec.md` is left alone. Spec 025 amends 004 without editing it; spec 036 amends 005 without editing it. The rule is enforced by nothing, stated by nothing, and visible only as a pattern in the history, so a reader looking at a diff cannot tell a deliberate convention from an omission. That is not hypothetical: the review of PR #89 asked six separate times for spec 033 to be edited to record that 038 had amended it, withdrew the request once on its own analysis, then raised it again, because nothing in the corpus says which answer is right. This spec writes it down, in the one-page contract where a reader checking the edge vocabulary will find it. It adds no mechanism, because the two mechanisms already exist and work: the gate's amends-awareness (005 §3.3) widens the owner set so editing the amender clears a violation on the amended spec's territory, and `registry relationships` reports `amended_by (incoming)` so the amendment is discoverable from the amended spec's side without that spec being touched.\n",
     "title": "An amendment is declared once, in the amending spec"
   },
-  "shardHash": "ee8f7dfbb54f33ffc82fd6c458019e7047b08aba769a735c2f685be69f3446df",
+  "shardHash": "2d5d4ca1b5b056d7863375cbc5c1699d3462a24cfb4fcbcc7540b5499c9cf3ee",
   "specVersion": "1.1.0"
 }

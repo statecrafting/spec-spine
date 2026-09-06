@@ -1,7 +1,7 @@
 ---
 id: "043-governance-document-gaps"
 title: "Three governance statements the first adopter could not act on"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-05"
 implementation: complete

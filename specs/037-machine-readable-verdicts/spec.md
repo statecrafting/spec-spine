@@ -1,7 +1,7 @@
 ---
 id: "037-machine-readable-verdicts"
 title: "Machine-readable verdicts: `--json` on the adjudicating verbs"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-05"
 implementation: complete

@@ -1,7 +1,7 @@
 ---
 id: "044-in-progress-is-in-flight"
 title: "`implementation: in-progress` is in flight"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-06"
 implementation: complete

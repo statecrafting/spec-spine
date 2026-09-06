@@ -123,8 +123,8 @@
       }
     ],
     "specId": "038-registry-plan-ready-set",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "9e02825e95e46886efa10f54c5c265a434a823658e365ca96c1b8de3eb6f2237"
+  "shardHash": "fd19117bb017791f4528e27ccec25be8c6b5e1f21cc91c7666c7210b1a779ebd"
 }

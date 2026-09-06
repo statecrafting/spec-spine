@@ -260,8 +260,8 @@
       }
     ],
     "specId": "037-machine-readable-verdicts",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "bd91933857455123ef31ea9789e47deff53e19a342919335771f3db06308fb45"
+  "shardHash": "d91ea69a7f2f30eda7b36e016fe142c2eb3c0aef309527275d3bbf389910776f"
 }

@@ -91,10 +91,10 @@
       "4. Out of scope"
     ],
     "specPath": "specs/043-governance-document-gaps/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "hqgit is the first repository outside this one to adopt spec-spine, and what its author had to write by hand is a measurement of what the governance documents fail to supply. Three findings. First, the constitution's own Amendment clause names a mechanism that cannot be written: it says the constitution may be amended by \"an ordinary spec that `amends` it\", but `amends` resolves to spec ids and the constitution is not a spec, so the sentence has no implementation, and hqgit copied it verbatim into a corpus where it is equally unwritable. Spec 040 4 named this as an open question and deliberately did not answer it; this spec answers it. Second, spec 000 3 files `depends_on` and `implementation` under \"optional descriptive keys\", which was true when it was written and is now false: 033 refuses a cycle in one, and 038 and 041 make the other decide scheduling and diagnostic severity. hqgit had to write its own \"lifecycle as scheduling\" section because tier 1 reads as though the field were inert. Third, constitution V says pre-existing code is evidence but never says what to write about code adopted with defects; hqgit supplied the missing half. The scaffold learns all three, because the scaffolded constitution is four bullets with no tier statement, no normative hierarchy and no amendment clause, and the evidence is that the first adopter did not use it.\n",
     "title": "Three governance statements the first adopter could not act on"
   },
-  "shardHash": "a9d74e7f75fc07c3f6e8ccd210228fa225f3ee518c55d984daa095d6814ffdb1",
+  "shardHash": "08644e08a0280ce6a93b9c6bdbd7ee155b90a5b3fba5ab47f939d3b9a828fe42",
   "specVersion": "1.1.0"
 }
