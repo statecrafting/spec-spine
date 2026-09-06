@@ -51,7 +51,7 @@
       }
     ],
     "id": "038-registry-plan-ready-set",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -88,6 +88,6 @@
     "summary": "`depends_on` records the order specs must be built in, spec 033 guarantees that graph is acyclic, and `implementation` records how far each one has got, but nothing joins the three: there is no query that answers \"which specs can be worked on now, and in what order\". Every consumer that needs it (a contributor picking up the corpus, a release note, an autonomous driver taking one spec per session) recomputes it by reading frontmatter by hand, which is both tedious and exactly the ad-hoc traversal the typed read verbs exist to replace. This spec adds `registry plan`: a read-only projection that partitions the corpus into a `ready` set (nothing unfinished blocks it) emitted in deterministic topological order, and a `blocked` set, each entry naming the unfinished dependencies that block it, so the output explains itself rather than merely listing. It is a scheduling projection and nothing more: `implementation` is a self-declared field that no gate currently verifies, so `plan` treats it as a hint about intent and never as evidence about code, and this spec deliberately does not let a scheduling answer imply that anything is done.\n",
     "title": "`registry plan`: the ready set in dependency order"
   },
-  "shardHash": "93778868d32f845778211aab2e1adb19f70a0a737dd5a4e1bdc17efb23ce15ed",
+  "shardHash": "6205d2a87e71ec1d31f428db28a6611aa12f167336df4ce86b70f0190e90d79d",
   "specVersion": "1.1.0"
 }

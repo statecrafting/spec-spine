@@ -4,7 +4,7 @@ title: "`registry plan`: the ready set in dependency order"
 status: draft
 kind: "tooling"
 created: "2026-09-05"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:

@@ -68,8 +68,8 @@ pub use index::{
 };
 pub use lint::{LintReport, lint};
 pub use query::{
-    ListFilter, RelationshipView, StatusReport, StatusReportNonzero, list, list_ids, load_index,
-    load_registry, relationships, show, status_report,
+    BlockedSpec, Blocker, ListFilter, Plan, RelationshipView, StatusReport, StatusReportNonzero,
+    list, list_ids, load_index, load_registry, plan, relationships, show, status_report,
 };
 pub use render::{orphans, render_markdown};
 pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init};
@@ -115,6 +115,7 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         Show,
         StatusReport,
         Relationships,
+        Plan,
     }
 
     let request: Request = serde_json::from_str(request_json)
@@ -152,6 +153,11 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
                 .ok_or_else(|| Error::NotFound("missing 'id' for relationships".into()))?;
             to_json(&relationships(&registry, &id)?)?
         }
+        // Spec 038. Emitted bare, like every other `registry` projection: the
+        // spec 037 verdict envelope wraps the adjudicating verbs, and 037 4
+        // keeps it off the read verbs so a shipped read surface is not broken
+        // for symmetry alone.
+        Op::Plan => to_json(&plan(&registry)?)?,
     };
     Ok(json)
 }
