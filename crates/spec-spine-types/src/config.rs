@@ -91,6 +91,21 @@ pub struct LayoutConfig {
     pub standalone_rust_workspaces: Vec<String>,
     /// npm packages outside the declared workspaces.
     pub standalone_npm_packages: Vec<String>,
+    /// A declared, ungoverned tool-state root (spec 039). Empty means **no
+    /// state root is declared**, and every behavior keyed on it is inert.
+    ///
+    /// Declared: the gates recognize it, so `couple` bypasses it, `coverage`
+    /// excludes it from classification, the resolver does not scan it, and it
+    /// contributes to no content hash. Ungoverned: spec-spine never reads its
+    /// contents and never writes into it, so the purity invariant holds (a root
+    /// read from would be a second input to functions contracted to be pure in
+    /// the corpus, and one written to would make a read command mutate the tree).
+    ///
+    /// A default of `.spec-spine/` was rejected: silently bypassing a real path
+    /// in every adopter's repo on upgrade changes what the gate refuses, and a
+    /// gate that quietly stops refusing something is the regression this project
+    /// can least afford.
+    pub state_dir: String,
 }
 
 impl Default for LayoutConfig {
@@ -107,8 +122,36 @@ impl Default for LayoutConfig {
             ],
             standalone_rust_workspaces: Vec::new(),
             standalone_npm_packages: Vec::new(),
+            state_dir: String::new(),
         }
     }
+}
+
+impl LayoutConfig {
+    /// Whether `path` (repo-relative, POSIX) lies under the declared state root.
+    ///
+    /// Always false when no root is declared. Matching is separator-aware, so a
+    /// root of `state` covers `state` itself and `state/journal.db` but never
+    /// `stateful/x`: a prefix test on the raw string would silently ungovern a
+    /// sibling directory that merely shares a name.
+    pub fn is_state_path(&self, path: &str) -> bool {
+        let root = trim_root(&self.state_dir);
+        if root.is_empty() {
+            return false;
+        }
+        let path = trim_root(path);
+        path == root || path.strip_prefix(root).is_some_and(|r| r.starts_with('/'))
+    }
+}
+
+/// A layout root reduced to its comparable form: no trailing slash, and no
+/// leading `./`, so `state`, `state/` and `./state` name one root (the handling
+/// spec 036 established for `specs_dir`).
+fn trim_root(value: &str) -> &str {
+    value
+        .trim_end_matches('/')
+        .strip_prefix("./")
+        .unwrap_or_else(|| value.trim_end_matches('/'))
 }
 
 /// `[index]`: inputs and exclusions for the codebase indexer.
@@ -248,7 +291,50 @@ pub struct FrontmatterConfig {
 pub fn load_config(toml_src: &str) -> Result<Config> {
     let config: Config = toml::from_str(toml_src).map_err(|e| Error::Config(e.to_string()))?;
     validate_slices(&config)?;
+    validate_state_dir(&config)?;
     Ok(config)
+}
+
+/// `layout.state_dir` may not overlap `specs_dir` or `derived_dir` in either
+/// direction (spec 039 3.2).
+///
+/// The comparison is against the **resolved** values of those two keys, never
+/// against their defaults. Both are configurable, so a check written against the
+/// literal `specs` would clear a repo with `specs_dir = "corpus"` and
+/// `state_dir = "corpus/state"` and quietly make every `spec.md` under it
+/// ungoverned. This is the defect spec 036 fixed in `couple.rs`, and a
+/// validation rule is exactly where a default is easiest to hardcode.
+///
+/// The test is overlap, not equality, because the dangerous values are the ones
+/// that *contain* a root: a `state_dir` of `.` ungoverns the whole repository,
+/// and every gate then keeps exiting 0 while adjudicating nothing. The
+/// descendant direction is refused too, since a path inside a governed root and
+/// an ungoverned one at once would need a precedence rule for a situation with
+/// no legitimate use, and refusing the configuration is cheaper than specifying
+/// which root wins.
+fn validate_state_dir(config: &Config) -> Result<()> {
+    let state = trim_root(&config.layout.state_dir);
+    if state.is_empty() {
+        return Ok(());
+    }
+    for (key, value) in [
+        ("specs_dir", &config.layout.specs_dir),
+        ("derived_dir", &config.layout.derived_dir),
+    ] {
+        let other = trim_root(value);
+        if other.is_empty() {
+            continue;
+        }
+        let contains = |a: &str, b: &str| a == b || b.strip_prefix(a).is_some_and(|r| r.starts_with('/'));
+        if contains(state, other) || contains(other, state) {
+            return Err(Error::Config(format!(
+                "layout.state_dir '{}' overlaps layout.{key} '{}': a state root is ungoverned, \
+                 so it may not equal, contain, or sit inside a governed root",
+                config.layout.state_dir, value
+            )));
+        }
+    }
+    Ok(())
 }
 
 /// `[index.slices]` grammar (spec 012 §3.1): names match
