@@ -880,13 +880,16 @@ fn counts(idx: &spec_spine_types::CodebaseIndex) -> (usize, usize) {
 /// Spec 041 3.1: a spec asserting its own completion is never in flight,
 /// whatever its `status`, so its unresolved owning unit is a hard error.
 ///
-/// The table is exhaustive over both enums on purpose. Only the
-/// `draft` + `complete` row moves; every other cell states what the predicate
-/// already did, so a later reader cannot mistake a gap for a licence to guess.
+/// All twelve cells: two `status` values against the five `implementation`
+/// variants plus an absent key. Exhaustive on purpose, and literally so, since
+/// the point of the table is that a reader adding an `Implementation` variant
+/// can tell at a glance whether it is covered. Only the `draft` + `complete`
+/// row moves; every other cell states what the predicate already did, so a
+/// later reader cannot mistake a gap for a licence to guess.
 #[test]
 fn completion_defeats_draft_leniency_across_both_axes() {
     // (status, implementation, in flight)
-    let cases: [(&str, Option<&str>, bool); 10] = [
+    let cases: [(&str, Option<&str>, bool); 12] = [
         ("draft", Some("pending"), true),
         ("draft", Some("in-progress"), true),
         ("draft", Some("complete"), false), // the only row this spec moves
@@ -896,6 +899,8 @@ fn completion_defeats_draft_leniency_across_both_axes() {
         ("approved", Some("pending"), true),
         ("approved", Some("in-progress"), false),
         ("approved", Some("complete"), false),
+        ("approved", Some("n-a"), false),
+        ("approved", Some("deferred"), false),
         ("approved", None, false),
     ];
 
