@@ -1105,6 +1105,17 @@ fn json_error_path_is_an_envelope_on_stdout() {
         violations[0]["code"].as_str().unwrap().starts_with("V-"),
         "{v}"
     );
+    // ...and stdout is the only channel written, since the envelope already
+    // carries what the prose form puts on stderr.
+    assert!(
+        out.stderr.is_empty(),
+        "no second channel under --json: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(
+        !prose.stderr.is_empty(),
+        "the prose form still reports each violation on stderr"
+    );
 }
 
 /// Spec 037 3.5: the envelope goes through the closed-reader write, on every

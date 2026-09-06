@@ -57,16 +57,16 @@ pub fn run(repo: &Path, check: bool, json: bool) -> Result<u8, Error> {
 
     if check {
         if !outcome.validation_passed {
-            // Detail stays on stderr in both modes so a CI log shows the
-            // violations; under --json the *verdict* is the envelope `main`
-            // renders from this error, whose kind is `validation` and whose
-            // exit code is the 1 the prose form returns.
-            report_validation_failure(&outcome);
             if json {
+                // No stderr copy: the envelope `main` renders from this error
+                // carries the violations themselves (spec 037 D-4), so printing
+                // them again would make this the one failure path in the chain
+                // that writes prose to a second channel under `--json`.
                 return Err(Error::Validation(
                     outcome.registry.validation.violations.clone(),
                 ));
             }
+            report_validation_failure(&outcome);
             return Ok(1);
         }
         let freshness = compare_committed_registry(&cfg, repo, &outcome.shards)?;

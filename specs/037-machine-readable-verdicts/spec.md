@@ -322,6 +322,10 @@ resolved silently in code.
   a freshness object and a validation object and force every consumer to
   discriminate before reading either.
 
+  With the violations inside the envelope, the stderr copy this path used to
+  print became the one failure in the chain writing prose to a second channel
+  under `--json`, so it is suppressed there and unchanged without the flag.
+
   The remaining asymmetry with `lint` is deliberate. Lint's violations *are* its
   verdict, so they are its report; a validation failure is the thing that
   prevented `compile --check` from reaching a freshness verdict at all, so it is
