@@ -371,3 +371,34 @@ being checked.
   the ones the change reaches). The edges are declared and 2 now says so. Both
   cases argue the same thing, that the territory list is worth deriving from the
   behavior rather than written alongside it.
+
+- **D-4 (2026-09-06): each verdict mirrors its corpus-scoped counterpart, and
+  the two use different severity floors on purpose.** `lint.ok` is false on an
+  error **or a warning** attributed to the spec; `compile.ok` is false only on an
+  error. That asymmetry is inherited rather than invented here: spec 023 sets
+  `compile.ok` from `validation.passed`, which is defined as false iff an
+  error-tier violation is present, and sets `lint.ok` from the repo's own
+  `lint --fail-on-warn` gate because a lint report has no equivalent single flag
+  to read. Reproducing both floors exactly is what lets a consumer compare a
+  per-spec attestation against a corpus one without a table of exceptions.
+  Rejected: raising `compile.ok` to include warnings, which would make the same
+  field mean different things at the two scopes; and lowering `lint.ok` to
+  errors only, which would make it disagree with the gate this project actually
+  runs.
+
+- **D-5 (2026-09-06): the seal is derived from the attestation's own filename.**
+  Spec 023's CLI resolved a missing `--seal` to a fixed `attestation.sig` beside
+  the payload. A per-spec attestation lives at `by-spec/<id>.json`, so a fixed
+  name would give every spec in a corpus the same seal path and each signing
+  would overwrite the last. The derivation is now the payload's own name with a
+  `.sig` extension, which is identical for the corpus default
+  (`attestation.json` to `attestation.sig`) and correct per spec.
+
+  It changes one existing invocation: `verify-attestation --attestation
+  backup.json --signature` with no `--seal` now looks for `backup.sig` rather
+  than `attestation.sig`. That is the better answer, since a seal belongs to the
+  payload it signs rather than to the directory it sits in, but it is a change
+  to behavior spec 023 shipped, so it is recorded here rather than left for
+  someone to discover. This spec already `amends` 023 for the exit-code rule in
+  3.1; this is the second consequence of that edge, and 023's text is untouched
+  either way (spec 040).

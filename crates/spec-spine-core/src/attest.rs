@@ -242,6 +242,12 @@ pub fn attest_spec(
         .any(|v| matches!(v.severity, Severity::Error | Severity::Warning));
     let findings_hash = sha256_hex(canonical_json::to_string(&mine)?.as_bytes());
 
+    // Error-tier only, which is what `validation.passed` means and therefore
+    // what spec 023's corpus-scoped `compile.ok` reports. `lint_ok` above uses
+    // the wider error-or-warning floor for the same reason: it mirrors the
+    // `--fail-on-warn` gate 023 chose, a lint report having no single flag to
+    // read. Both floors are copied exactly so the two scopes stay comparable
+    // (spec 042 D-4).
     let compile_ok = !compiled
         .registry
         .validation

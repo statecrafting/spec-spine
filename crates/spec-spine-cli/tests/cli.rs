@@ -1639,3 +1639,48 @@ fn verify_attestation_refuses_a_traversing_spec_id() {
         0
     );
 }
+
+/// The seal is derived from the attestation's own filename, not a fixed name.
+///
+/// Spec 023 resolved a missing `--seal` to `attestation.sig` beside the payload.
+/// A per-spec attestation lives at `by-spec/<id>.json`, so a fixed name would
+/// give every spec in a corpus the same seal path and each signing would
+/// overwrite the last (spec 042 D-5).
+#[test]
+fn the_seal_path_follows_the_attestation_it_signs() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+    let seed = root.join("signing.key");
+    fs::write(&seed, [5u8; 32]).unwrap();
+    let key = seed.to_str().unwrap();
+
+    // The corpus default is unchanged: attestation.json -> attestation.sig.
+    assert_eq!(code(&run_in(root, &["attest", "--sign", "--key", key])), 0);
+    assert!(root.join(".derived/attestation/attestation.sig").is_file());
+
+    // Two specs seal to two distinct paths rather than overwriting each other.
+    fs::write(root.join("crate-a/src/other.rs"), "pub fn b() {}\n").unwrap();
+    fs::create_dir_all(root.join("specs/002-b")).unwrap();
+    fs::write(
+        root.join("specs/002-b/spec.md"),
+        "---\nid: \"002-b\"\ntitle: \"B\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\nestablishes:\n  - \"crate-a/src/other.rs\"\n---\n# 002-b\n## body\n",
+    )
+    .unwrap();
+    for id in ["001-a", "002-b"] {
+        assert_eq!(
+            code(&run_in(
+                root,
+                &["attest", "--spec", id, "--sign", "--key", key]
+            )),
+            0,
+            "sign {id}"
+        );
+        assert!(
+            root.join(format!(".derived/attestation/by-spec/{id}.sig"))
+                .is_file(),
+            "{id} seals beside its own payload"
+        );
+    }
+}
