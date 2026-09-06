@@ -143,15 +143,12 @@ pub fn couple_with(
 
     for file in &diff.files {
         let path = &file.path;
-        // Effective bypass = hardcoded floor ∪ adopter list (additive),
-        // UNLESS an explicit, resolved unit claim covers the path, which
-        // takes precedence over the entire bypass set (spec 009, amending
-        // 005 §3.5). The corpus saying "this surface is governed" beats the
-        // blanket scaffolding exemption.
-        if !explicitly_claimed(path, index)
-            && (is_bypass(path, DEFAULT_BYPASS_PREFIXES)
-                || is_bypass(path, &cfg.coupling.bypass_prefixes))
-        {
+        // Effective bypass = declared state root (spec 039), else the
+        // hardcoded floor ∪ adopter list (additive) UNLESS an explicit,
+        // resolved unit claim covers the path (spec 009). One predicate,
+        // shared with `index coverage`, so the report and the gate cannot
+        // disagree about which paths are even looked at.
+        if is_bypassed_path(cfg, index, path) {
             continue;
         }
         checked_paths += 1;
@@ -221,6 +218,16 @@ pub fn couple_with(
 /// what keeps a claim-overridden floor path from slipping past that
 /// pre-filter into a mechanical waiver.
 pub fn is_bypassed_path(cfg: &Config, index: &CodebaseIndex, path: &str) -> bool {
+    // Spec 039: a declared state root is bypassed unconditionally, and the
+    // check precedes the spec 009 claim override rather than joining it. A
+    // claim inside the root is not a precedence question to resolve in either
+    // direction: it is a contradiction, and `lint` reports it as `L-006`.
+    // Letting the claim win would reintroduce override into a directory whose
+    // whole purpose is to be ungoverned; letting the bypass win silently would
+    // discard a unit an author wrote deliberately.
+    if cfg.layout.is_state_path(path) {
+        return true;
+    }
     !explicitly_claimed(path, index)
         && (is_bypass(path, DEFAULT_BYPASS_PREFIXES)
             || is_bypass(path, &cfg.coupling.bypass_prefixes))

@@ -4,7 +4,7 @@ title: "`layout.state_dir`: a declared, ungoverned tool-state root"
 status: draft
 kind: "tooling"
 created: "2026-09-05"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -18,6 +18,9 @@ extends:
   - { spec: "005-coupling-gate", unit: "crates/spec-spine-core/src/couple.rs", nature: additive }
   - { spec: "005-coupling-gate", unit: "crates/spec-spine-core/tests/couple.rs", nature: additive }
   - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/index.rs", nature: additive }
+  # The two files 2's territory list omitted; see 5, D-1.
+  - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/symbols.rs", nature: additive }
+  - { spec: "024-index-sharding", unit: "crates/spec-spine-core/src/shard.rs", nature: additive }
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-core/src/coverage.rs", nature: additive }
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-core/tests/coverage.rs", nature: additive }
   - { spec: "003-conformance-lint", unit: "crates/spec-spine-core/src/lint.rs", nature: additive }
@@ -86,9 +89,13 @@ governed*, and the number of things needing that vocabulary is growing.
 
 `config.rs` gains the key. `couple.rs` consults it when deciding bypass;
 `coverage.rs` consults it when classifying a source file; `index.rs` consults it
-when scanning and when hashing. `lint.rs` gains one diagnostic. No emitted DTO
-changes shape, and no schema version moves: this is a config key and four reads
-of it.
+when scanning. `symbols.rs` consults it when walking for symbols and modules,
+and `shard.rs` when folding the globally hashed inputs. `lint.rs` gains one
+diagnostic. No emitted DTO changes shape, and no schema version moves: this is a
+config key and six reads of it.
+
+The last two are additions to this section, made when it was implemented; 5
+records why.
 
 ## 3. Behavior
 
@@ -241,3 +248,100 @@ the same either way, which is the point: a committed evidence bundle and a
 gitignored transcript are both ungoverned by the gates.
 
 **Multiple state roots.** One value, deliberately (§3.5).
+
+## 5. Resolved decisions
+
+- **D-1 (2026-09-06): the territory in 2 was two files short of what 3.2
+  requires.** 2 named `config.rs`, `couple.rs`, `coverage.rs`, `index.rs` and
+  `lint.rs`. Two of 3.2's four MUSTs reach past them. *The resolver MUST NOT
+  scan it*: `index.rs` owns one source walk, but the symbol and module indexes
+  walk their own trees in `symbols.rs`, so a symbol defined inside the root
+  would still have resolved. *It MUST NOT contribute to any content hash*: the
+  globally hashed inputs are folded in `shard.rs::global_inputs_hash`, and an
+  `extra_hashed_inputs` pattern wide enough to reach into the root is the
+  ordinary case rather than an exotic one, since the point of the key is that
+  the adopter states the root once. Both files are now claimed by an `extends`
+  edge and 2 says so. Rejected: implementing only the four MUSTs the original
+  territory covered and recording the other two as limitations, which would
+  leave a stated MUST unimplemented and the root scannable by exactly the
+  mechanism most likely to reach it.
+
+- **D-2 (2026-09-06): a `state_dir` of `.` is refused by name, not by the
+  overlap test.** 3.2 requires refusing a value that contains a governed root,
+  and names `.` as the case that ungoverns the entire repository. A string
+  comparison does not know the repository root is an ancestor of everything, so
+  the overlap test cleared `.` and the first draft of the validation accepted
+  it. It is now refused explicitly, with its own message. Rejected: normalizing
+  `.` to the empty string, which spells *unset* and would have turned the most
+  dangerous value into the silent default.
+
+- **D-3 (2026-09-06): the walkers take the layout, not an extra exclusion
+  entry.** The obvious implementation appends the root to
+  `index.resolver_exclusions` before walking. It does not work and would be
+  wrong if it did: that list matches directory *names* rather than path
+  prefixes, so a root of `tool/state` is inexpressible in it, and 3.5 requires
+  that neither list can cancel the key's effects. Both walkers take
+  `&LayoutConfig` instead, which keeps the two mechanisms visibly separate at
+  every call site.
+
+- **D-5 (2026-09-06): every value that would declare nothing is refused, and
+  the order of the checks is what makes that true.** Review of the implementing
+  PR found `/var/logs` accepted, on the same reasoning as D-2 and D-4: an
+  absolute path matches no repo-relative path the gates test. Widening the guard
+  then exposed a second case the first fix would have hidden, `/`, which
+  normalizes to the empty string and would have been read as *unset*, silently
+  turning a value the adopter wrote into no declaration at all.
+
+  So the validation now reads the **raw** value to decide whether a root was
+  declared, refuses anything that is not repo-relative before normalizing, and
+  only then tests the repository root and the overlaps. Normalizing first is
+  what made `/` invisible, and this ordering is the reason it cannot be. The
+  three arms share one rationale: a `state_dir` that matches nothing is worse
+  than a wrong one, because the gates keep exiting 0 while adjudicating nothing
+  and the config claims otherwise.
+
+- **D-7 (2026-09-06): the not-repo-relative check tests segments, not
+  prefixes.** Three review rounds found three spellings of one defect: `..`,
+  then `/var/logs` and `/`, then `state/..`. Each passed the guard written for
+  the previous one, and each was inert for the identical reason, since a
+  repo-relative path produced by `rel_posix` carries no `..` and never begins
+  with `/`. Patching the third spelling would have invited a fourth. The check
+  now refuses any value with a `..` **segment** anywhere, plus any absolute one,
+  which is the class rather than its instances.
+
+  The pattern is worth recording beyond this key: a validation rule written
+  against the example in front of you tends to encode the example. The general
+  question here was always "can this value ever match a path the gates test",
+  and asking it directly is what closes the case.
+
+- **D-6 (2026-09-06): `L-006` covers all six ownership-bearing edges, not five.**
+  The first implementation walked `establishes`, `extends`, `refines`,
+  `co_authority` and `constrains`, and omitted `supersedes`. A partial
+  `supersedes` item carries the unit whose authority transfers (spec 019), so it
+  claims a path exactly as the others do: a superseding spec could have held a
+  claim inside the ungoverned root that `couple` bypasses unconditionally and no
+  diagnostic ever named, which is precisely the contradiction this code exists
+  to surface. `amends` stays excluded, because its subject is the amended spec's
+  `spec.md` rather than an arbitrary unit, and a `spec.md` lives under
+  `specs_dir`, which `state_dir` may not overlap.
+
+- **D-4 (2026-09-06): a value escaping the repository is refused, and the
+  overlap check stays scoped to the two roots 3.2 names.** Review of the
+  implementing PR raised both.
+
+  `../logs` passed validation and would then have matched nothing, because every
+  path the gates test is repo-relative and carries no `..`. The gates would
+  behave as though no root were declared while the config said one was, which is
+  the same failure class as the `.` case in D-2 and is refused the same way:
+  silence that claims to be a decision.
+
+  The second was an unchecked overlap with `standalone_rust_workspaces` and
+  `standalone_npm_packages`. 3.2 names `specs_dir` and `derived_dir` and only
+  those, and the check is left scoped to them deliberately. The two governed
+  roots are **spec-spine's own**: a state root swallowing one breaks the tool
+  against a corpus the adopter did not intend to ungovern, and no adopter means
+  `state_dir = "specs"`. A declared package directory is the adopter's own code,
+  and naming it as the state root is a statement about their repository that
+  this key exists to let them make. Widening the refusal would be adding a rule
+  the spec does not have, to prevent a configuration that is legible on its
+  face; the coverage report already shows the denominator that results.

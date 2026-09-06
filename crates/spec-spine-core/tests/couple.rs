@@ -1184,3 +1184,103 @@ fn one_diff_can_carry_both_codes_but_one_path_carries_one() {
         "sorted by path; each path raises exactly one code"
     );
 }
+
+// ── spec 039: the declared state root is bypassed unconditionally ─────────
+
+/// A changed file under `layout.state_dir` trips neither `C-001` nor `C-002`,
+/// and the effect is not reachable through the spec 009 claim override: a claim
+/// inside the root is a contradiction `lint` reports as `L-006`, not a
+/// precedence question the gate resolves in either direction.
+#[test]
+fn a_declared_state_root_is_bypassed_and_a_claim_cannot_override_it() {
+    // The state file is claimed as explicitly as a unit can be, which is what
+    // would otherwise beat the entire bypass set under spec 009.
+    let index = index_with_packages(
+        json!([{ "name": "app", "path": "", "kind": "rust-lib", "specRef": "001-a" }]),
+        json!([{
+            "specId": "001-a",
+            "implementingPaths": [],
+            "resolvedUnits": [{
+                "unit": { "kind": "file", "path": "state/journal.rs" },
+                "sourceField": "establishes", "ownership": true,
+                "locations": [{ "file": "state/journal.rs" }]
+            }]
+        }]),
+    );
+    let reg = empty_registry();
+
+    // Undeclared: the claim is honoured and the change drifts.
+    let undeclared = run(&index, &reg, &diff(vec![file("state/journal.rs", &[])]));
+    assert!(undeclared.has_blocking_drift(), "control: the claim fires");
+    assert_eq!(undeclared.checked_paths, 1);
+
+    // Declared: bypassed before the claim is ever consulted.
+    let mut cfg = Config::default();
+    cfg.layout.state_dir = "state".to_string();
+    cfg.coupling.require_ownership = true;
+    let report = couple_with(
+        &cfg,
+        &reg,
+        &index,
+        &diff(vec![file("state/journal.rs", &[])]),
+        None,
+    )
+    .unwrap();
+    assert!(!report.has_blocking_drift(), "{:?}", report.violations);
+    assert_eq!(report.checked_paths, 0, "the path is not even examined");
+
+    // A sibling sharing the prefix is still governed: `state` is a root, not a
+    // string prefix, so `stateful/` must not slip through with it.
+    let sibling = couple_with(
+        &cfg,
+        &reg,
+        &index,
+        &diff(vec![file("stateful/journal.rs", &[])]),
+        None,
+    )
+    .unwrap();
+    assert_eq!(
+        sibling.checked_paths, 1,
+        "stateful/ is not under the `state` root"
+    );
+}
+
+/// Spec 039 3.2: with `require_ownership` on, an unclaimed file under the root
+/// is not `C-002` debt either. State is not source, so the ratchet has nothing
+/// to say about it.
+#[test]
+fn the_ownership_ratchet_does_not_reach_into_the_state_root() {
+    let index = index_with_packages(
+        json!([{ "name": "app", "path": "", "kind": "rust-lib", "specRef": "001-a" }]),
+        json!([{ "specId": "001-a", "implementingPaths": [], "resolvedUnits": [] }]),
+    );
+    let reg = empty_registry();
+    let mut cfg = Config::default();
+    cfg.coupling.require_ownership = true;
+
+    // Control: with no state root declared, an unclaimed source file is C-002.
+    let debt = couple_with(
+        &cfg,
+        &reg,
+        &index,
+        &diff(vec![file("state/journal.rs", &[])]),
+        None,
+    )
+    .unwrap();
+    assert!(
+        debt.violations.iter().any(|v| v.code == "C-002"),
+        "{debt:?}"
+    );
+
+    cfg.layout.state_dir = "state/".to_string();
+    let declared = couple_with(
+        &cfg,
+        &reg,
+        &index,
+        &diff(vec![file("state/journal.rs", &[])]),
+        None,
+    )
+    .unwrap();
+    assert!(declared.violations.is_empty(), "{:?}", declared.violations);
+    assert_eq!(declared.checked_paths, 0);
+}

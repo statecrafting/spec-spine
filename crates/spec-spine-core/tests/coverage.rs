@@ -339,3 +339,341 @@ fn facade_round_trips_the_report() {
     assert_eq!(report, coverage(&cfg, fx.path()).unwrap());
     assert!(json.contains("\"floorOnlyFiles\""), "camelCase wire form");
 }
+
+// ===== spec 039: layout.state_dir leaves the coverage universe =====
+
+/// A repo at 100% stays at 100% when state files appear under a declared root,
+/// and the denominator shrinks by exactly the number of files there.
+///
+/// Asserted as counts rather than as a percentage: declaring a state root moves
+/// a coverage figure, and the movement should be auditable rather than merely
+/// plausible.
+#[test]
+fn a_declared_state_root_leaves_both_sides_of_the_coverage_ratio() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(r, "Cargo.toml", "[workspace]\nmembers = [\"crates/a\"]\n");
+    write(
+        r,
+        "crates/a/Cargo.toml",
+        "[package]\nname = \"a\"\nversion = \"0.1.0\"\n\
+         [package.metadata.spec-spine]\nspec = \"001-a\"\n",
+    );
+    write(r, "crates/a/src/lib.rs", "pub fn a() {}\n");
+    write(
+        r,
+        "specs/001-a/spec.md",
+        &spec("001-a", "establishes:\n  - \"crates/a/src/lib.rs\"\n"),
+    );
+
+    let clean = load_config("").unwrap();
+    emit_index(&clean, r);
+    let before = coverage(&clean, r).unwrap();
+    assert_eq!((before.source_files, before.claimed_files), (1, 1));
+    assert!(before.is_fully_claimed());
+
+    // A tool writes two state files inside the package. Undeclared, they are
+    // unclaimed debt and the ratchet would refuse the next PR touching them.
+    write(r, "crates/a/state/journal.rs", "pub fn j() {}\n");
+    write(r, "crates/a/state/queue.rs", "pub fn q() {}\n");
+    emit_index(&clean, r);
+    let undeclared = coverage(&clean, r).unwrap();
+    assert_eq!(
+        (undeclared.source_files, undeclared.claimed_files),
+        (3, 1),
+        "control: state files count as source until the root is declared"
+    );
+    assert_eq!(
+        undeclared.floor_only_files.len(),
+        2,
+        "the package has a manifest floor, so they are floor-only debt"
+    );
+
+    // Declared, they leave the universe entirely: numerator and denominator.
+    let declared_cfg = load_config("[layout]\nstate_dir = \"crates/a/state\"\n").unwrap();
+    emit_index(&declared_cfg, r);
+    let after = coverage(&declared_cfg, r).unwrap();
+    assert_eq!(
+        (after.source_files, after.claimed_files),
+        (1, 1),
+        "the denominator shrinks by exactly the two state files"
+    );
+    assert!(
+        after.unclaimed_files.is_empty(),
+        "{:?}",
+        after.unclaimed_files
+    );
+    assert!(after.floor_only_files.is_empty());
+    assert!(after.is_fully_claimed(), "100% before, 100% after");
+
+    // The enumeration agrees with the classifier: the walk never yields them.
+    let index = spec_spine_core::load_committed_index(&declared_cfg, r).unwrap();
+    let files = enumerate_source_files(&declared_cfg, r, &index);
+    assert_eq!(files, vec!["crates/a/src/lib.rs".to_string()]);
+    for path in ["crates/a/state/journal.rs", "crates/a/state/queue.rs"] {
+        assert!(
+            !in_coverage_universe(&declared_cfg, &index, path),
+            "{path} is state, not source"
+        );
+    }
+}
+
+/// Spec 039 3.2: files under the root contribute to no content hash, so a tool
+/// writing its own state can never make the committed ledger stale.
+#[test]
+fn writing_state_does_not_stale_the_committed_index() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(r, "Cargo.toml", "[workspace]\nmembers = [\"crates/a\"]\n");
+    write(
+        r,
+        "crates/a/Cargo.toml",
+        "[package]\nname = \"a\"\nversion = \"0.1.0\"\n\
+         [package.metadata.spec-spine]\nspec = \"001-a\"\n",
+    );
+    write(r, "crates/a/src/lib.rs", "pub fn a() {}\n");
+    write(
+        r,
+        "specs/001-a/spec.md",
+        &spec("001-a", "establishes:\n  - \"crates/a/src/lib.rs\"\n"),
+    );
+    // An `extra_hashed_inputs` pattern wide enough to reach into the state root
+    // is the ordinary case: the adopter states the root once, not twice.
+    write(
+        r,
+        "spec-spine.toml",
+        "[layout]\nstate_dir = \"tool-state\"\n\
+         [index]\nextra_hashed_inputs = [\"**/*.jsonl\"]\n",
+    );
+    let cfg = load_config(&fs::read_to_string(r.join("spec-spine.toml")).unwrap()).unwrap();
+
+    write(r, "tool-state/journal.jsonl", "{\"runs\":1}\n");
+    emit_index(&cfg, r);
+    assert!(matches!(
+        spec_spine_core::check_index_freshness(&cfg, r).unwrap(),
+        spec_spine_core::Freshness::Fresh
+    ));
+
+    // The tool writes again. Nothing about the corpus changed, so the ledger
+    // must still be vouching for it.
+    write(r, "tool-state/journal.jsonl", "{\"runs\":2}\n");
+    write(r, "tool-state/nested/queue.jsonl", "{\"depth\":1}\n");
+    assert!(
+        matches!(
+            spec_spine_core::check_index_freshness(&cfg, r).unwrap(),
+            spec_spine_core::Freshness::Fresh
+        ),
+        "state writes must not stale the index"
+    );
+
+    // Control: a hashed input outside the root still stales it, so the filter
+    // is scoped to the state root rather than switching hashing off.
+    write(r, "other.jsonl", "{\"x\":1}\n");
+    assert!(
+        matches!(
+            spec_spine_core::check_index_freshness(&cfg, r).unwrap(),
+            spec_spine_core::Freshness::Stale { .. }
+        ),
+        "a hashed input outside the state root still stales the index"
+    );
+}
+
+/// Spec 039 3.4: a spec claiming a unit inside the ungoverned root is a
+/// contradiction, reported at error tier so `lint` exits 1 without
+/// `--fail-on-warn`. Neither the claim nor the bypass wins.
+#[test]
+fn a_claim_inside_the_state_root_is_an_l006_error() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(
+        r,
+        "specs/001-a/spec.md",
+        &spec(
+            "001-a",
+            "establishes:\n  - \"tool-state/journal.rs\"\n  - \"src/lib.rs\"\n\
+             references:\n  - { unit: { kind: file, path: \"tool-state/cited.rs\" }, role: context }\n",
+        ),
+    );
+    let cfg = load_config("[layout]\nstate_dir = \"tool-state\"\n").unwrap();
+    let report = spec_spine_core::lint(&cfg, r).unwrap();
+
+    let l006: Vec<_> = report
+        .violations
+        .iter()
+        .filter(|v| v.code == "L-006")
+        .collect();
+    assert_eq!(
+        l006.len(),
+        1,
+        "one claim is inside the root: {:?}",
+        report.violations
+    );
+    assert_eq!(l006[0].severity, spec_spine_types::Severity::Error);
+    assert!(
+        l006[0].message.contains("001-a"),
+        "names the spec: {}",
+        l006[0].message
+    );
+    assert!(
+        l006[0].message.contains("tool-state/journal.rs"),
+        "names the unit: {}",
+        l006[0].message
+    );
+    // `references` is non-owning (spec 034), so citing a file inside the root
+    // is not the contradiction this reports.
+    assert!(
+        !l006[0].message.contains("cited.rs"),
+        "a citation is not a claim: {}",
+        l006[0].message
+    );
+
+    // Undeclared, the same corpus lints clean of L-006.
+    let clean = spec_spine_core::lint(&Config::default(), r).unwrap();
+    assert!(!clean.violations.iter().any(|v| v.code == "L-006"));
+}
+
+/// Every ownership-bearing edge is checked, `supersedes` included.
+///
+/// A partial `supersedes` item carries the unit whose authority transfers (spec
+/// 019), so it claims a path exactly as `establishes` does. Missing it would let
+/// a superseding spec hold a claim inside the ungoverned root that the gate
+/// bypasses unconditionally and no diagnostic ever names, which is precisely the
+/// contradiction `L-006` exists to surface.
+#[test]
+fn l006_covers_every_ownership_bearing_edge() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(
+        r,
+        "specs/001-old/spec.md",
+        &spec("001-old", "establishes:\n  - \"src/old.rs\"\n"),
+    );
+    // One claim per path-bearing ownership edge other than `establishes`, which
+    // the neighbouring test already covers. Written as flow mappings on single
+    // lines: a wrapped one silently becomes a different YAML document.
+    let edges = concat!(
+        "supersedes:\n",
+        "  - { spec: \"001-old\", scope: partial, unit: { kind: file, path: \"tool-state/old.rs\" } }\n",
+        "co_authority:\n",
+        "  - { unit: { kind: section, file: \"tool-state/shared.md\", anchor: \"x\" } }\n",
+        "constrains:\n",
+        "  - { flavor: invariant-freeze, unit: { kind: file, path: \"tool-state/frozen.rs\" } }\n",
+    );
+    write(r, "specs/002-new/spec.md", &spec("002-new", edges));
+
+    let cfg = load_config("[layout]\nstate_dir = \"tool-state\"\n").unwrap();
+    let report = spec_spine_core::lint(&cfg, r).unwrap();
+    let claimed: Vec<&str> = report
+        .violations
+        .iter()
+        .filter(|v| v.code == "L-006")
+        .map(|v| v.message.as_str())
+        .collect();
+
+    assert_eq!(
+        claimed.len(),
+        3,
+        "one per claim inside the root: {claimed:?}"
+    );
+    for path in [
+        "tool-state/old.rs",
+        "tool-state/shared.md",
+        "tool-state/frozen.rs",
+    ] {
+        assert!(
+            claimed.iter().any(|m| m.contains(path)),
+            "{path} is claimed and must be reported: {claimed:?}"
+        );
+    }
+}
+
+/// No two lint diagnostics share a code. `L-006` was the next free code when
+/// spec 039 was written; the spec makes "the next free code in the band" the
+/// binding rule, so this asserts the namespace rather than trusting a comment.
+#[test]
+fn lint_diagnostic_codes_are_unique() {
+    let src =
+        fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("src/lint.rs")).unwrap();
+    let mut codes: Vec<String> = Vec::new();
+    for (i, _) in src.match_indices("\"L-") {
+        let code: String = src[i + 1..].chars().take(5).collect();
+        if code.len() == 5 && code[2..].chars().all(|c| c.is_ascii_digit()) {
+            codes.push(code);
+        }
+    }
+    codes.sort();
+    codes.dedup();
+    assert!(codes.contains(&"L-006".to_string()), "{codes:?}");
+    // Each code appears at exactly one emission site.
+    for code in &codes {
+        let sites = src.matches(&format!("\"{code}\"")).count();
+        assert_eq!(sites, 1, "{code} is emitted from {sites} places");
+    }
+}
+
+/// Spec 039 3.2: the resolver does not scan the root, so no unit ever resolves
+/// to a path inside it. Asserted through a symbol unit, which is the only kind
+/// that could reach in without naming the path.
+///
+/// Gated on `symbol-resolution` (spec 027) because the control half needs the
+/// symbol to resolve when nothing is declared, and feature-off it never does.
+/// The walk itself is covered feature-independently by the `enumerate_source_files`
+/// assertion in `a_declared_state_root_leaves_both_sides_of_the_coverage_ratio`.
+#[cfg(feature = "symbol-resolution")]
+#[test]
+fn the_resolver_does_not_reach_into_the_state_root() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(r, "Cargo.toml", "[workspace]\nmembers = [\"crates/a\"]\n");
+    write(
+        r,
+        "crates/a/Cargo.toml",
+        "[package]\nname = \"a\"\nversion = \"0.1.0\"\n\
+         [package.metadata.spec-spine]\nspec = \"001-a\"\n",
+    );
+    // The only definition of `hidden` lives inside what will become the root.
+    write(r, "crates/a/src/lib.rs", "pub mod state;\n");
+    write(r, "crates/a/src/state/mod.rs", "pub fn hidden() {}\n");
+    write(
+        r,
+        "specs/001-a/spec.md",
+        &spec(
+            "001-a",
+            "establishes:\n  - { kind: symbol, id: \"a::state::hidden\" }\n",
+        ),
+    );
+
+    // Control: undeclared, the symbol resolves to the file that defines it.
+    let clean = load_config("").unwrap();
+    let resolved = index(&clean, r).unwrap();
+    let located = resolved
+        .index
+        .traceability
+        .mappings
+        .iter()
+        .flat_map(|m| &m.resolved_units)
+        .any(|u| !u.locations.is_empty());
+    assert!(
+        located,
+        "control: the symbol resolves when nothing is declared"
+    );
+
+    // Declared: the definition is never scanned, so the unit does not resolve.
+    let cfg = load_config("[layout]\nstate_dir = \"crates/a/src/state\"\n").unwrap();
+    let out = index(&cfg, r).unwrap();
+    for unit in out
+        .index
+        .traceability
+        .mappings
+        .iter()
+        .flat_map(|m| &m.resolved_units)
+    {
+        for loc in &unit.locations {
+            assert!(
+                !cfg.layout.is_state_path(&loc.file),
+                "resolved into the state root: {}",
+                loc.file
+            );
+        }
+    }
+}

@@ -104,6 +104,11 @@ pub fn classify(index: &CodebaseIndex, path: &str) -> Ownership {
 /// discovered package, outside `index.resolver_exclusions`, and not bypassed
 /// by the gate (claim-aware, spec 009)? The report and `C-002` share this
 /// predicate, so a path one of them ignores the other ignores too.
+///
+/// A declared `layout.state_dir` (spec 039) is excluded here through
+/// [`is_bypassed_path`], which means excluded from the numerator **and** the
+/// denominator: state is not source, so counting it as unclaimed debt would be
+/// a coverage figure that can never reach 100%.
 pub fn in_coverage_universe(cfg: &Config, index: &CodebaseIndex, path: &str) -> bool {
     has_source_ext(path)
         && !has_excluded_component(path, &cfg.index.resolver_exclusions)
@@ -126,7 +131,13 @@ pub fn enumerate_source_files(
     let mut files: BTreeSet<String> = BTreeSet::new();
     for pkg in &index.packages {
         let dir = repo_root.join(&pkg.path);
-        for file in walk_source(&dir, SOURCE_EXTS, repo_root, &cfg.index.resolver_exclusions) {
+        for file in walk_source(
+            &dir,
+            SOURCE_EXTS,
+            repo_root,
+            &cfg.index.resolver_exclusions,
+            &cfg.layout,
+        ) {
             let rel = rel_posix(repo_root, &file);
             if in_coverage_universe(cfg, index, &rel) {
                 files.insert(rel);

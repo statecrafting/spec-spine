@@ -66,8 +66,18 @@ pub fn global_inputs_hash(cfg: &Config, repo_root: &Path) -> String {
     }
     for pattern in &cfg.index.extra_hashed_inputs {
         for file in glob_files(repo_root, pattern) {
+            let rel = rel_posix(repo_root, &file);
+            // Spec 039 3.2: nothing under a declared state root contributes to
+            // any content hash, so a tool writing its own state can never make
+            // the committed ledger stale. Filtered here rather than left to the
+            // adopter's glob, because a pattern wide enough to reach in (`**`,
+            // or a shared parent directory) is the ordinary case, and the point
+            // of the key is that the adopter states the root once.
+            if cfg.layout.is_state_path(&rel) {
+                continue;
+            }
             if let Ok(content) = fs::read_to_string(&file) {
-                pieces.push((rel_posix(repo_root, &file), content));
+                pieces.push((rel, content));
             }
         }
     }
