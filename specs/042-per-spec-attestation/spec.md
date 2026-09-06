@@ -111,8 +111,13 @@ passes `--spec` behaves exactly as it does today.
   excluded: spec 034 settled that a cited file is not a claimed one, and an
   attestation of territory must not assert authority the gate does not.
 - `lifecycle` records the spec's own `status` and `implementation` as declared at
-  attestation time, with `implementation` omitted when that key is absent from
-  the spec's frontmatter. It is what makes
+  attestation time. `implementation` is omitted **only** when the key is absent
+  from the spec's frontmatter. Every declared value is carried, `n-a` included:
+  an absent key means nobody stated an intention, `n-a` means someone stated that
+  none applies, and collapsing the second into the first would lose the more
+  informative of the two. `n-a` is emitted in its canonical kebab-case spelling,
+  since spec 015 accepts `n/a` on the way in and normalizes it on the way out, so
+  two specs written in different dialects attest identically. It is what makes
   `resolution.ok: false` interpretable: an external consumer must be able to tell
   a phantom unit in a spec that is openly being built from a phantom unit in a
   spec asserting it is finished, and those are the same `false` with very
@@ -264,6 +269,9 @@ boundary.
 - `lifecycle` mirrors the spec's declared `status` and `implementation`, and
   omits `implementation` when the key is absent (as `000-spec-spine-bootstrap`
   has it). Two specs differing only in lifecycle produce different payloads.
+- `implementation: n-a` is present in the payload, not omitted, and a spec
+  written `n/a` attests byte-identically to one written `n-a` (spec 015). The
+  absent case and the `n-a` case are distinguishable in the output.
 - A `references` unit appears in no `units` entry.
 - An unresolved owning unit yields `resolution.ok: false` and still produces a
   payload, rather than refusing: the attestation records the verdict, it does not
