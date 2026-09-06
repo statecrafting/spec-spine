@@ -47,6 +47,9 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     }
 
     let cfg = load_repo_config(repo)?;
+    if let Some(id) = &args.spec {
+        validate_spec_id(id)?;
+    }
     let attestation_path = args
         .attestation
         .clone()
@@ -186,6 +189,31 @@ fn default_attestation_path(repo: &Path, cfg: &Config, spec: Option<&str>) -> Pa
         Some(id) => dir.join("by-spec").join(format!("{id}.json")),
         None => dir.join("attestation.json"),
     }
+}
+
+/// A spec id is one path segment, so interpolating it into a filename cannot
+/// walk out of the attestation directory.
+///
+/// `attest --spec` is already protected by its registry lookup, which refuses an
+/// unknown id before anything is written. This side reads, and reads before any
+/// lookup, so it is guarded here instead. The impact is confusion rather than
+/// exposure, since `--attestation` already lets the caller name any path they
+/// can read, but a traversing id would fail with a puzzling parse error on some
+/// unrelated file rather than saying what was wrong.
+fn validate_spec_id(id: &str) -> Result<(), Error> {
+    let bad = id.is_empty()
+        || id.contains('/')
+        || id.contains('\\')
+        || id == "."
+        || id == ".."
+        || id.contains('\0');
+    if bad {
+        return Err(Error::Config(format!(
+            "verify-attestation --spec '{id}' is not a spec id: an id is one path segment, \
+             and pointing at another file is what --attestation is for"
+        )));
+    }
+    Ok(())
 }
 
 /// Read and deserialize a JSON artifact, naming it in both failure messages.

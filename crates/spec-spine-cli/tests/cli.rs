@@ -1568,6 +1568,15 @@ fn attest_spec_json_rides_in_the_verdict_envelope() {
     assert_eq!(v["report"]["attestation"]["specId"], "001-a");
     assert!(v["report"]["attestationHash"].is_string());
 
+    // The library call passes `"{}"` (so, `Config::default()`) while the CLI
+    // loads whatever config is on disk. They agree only because the fixture
+    // writes none; asserted rather than assumed, so extending `verdict_fixture`
+    // with a `spec-spine.toml` fails here saying why instead of as a puzzling
+    // payload mismatch.
+    assert!(
+        !root.join("spec-spine.toml").exists(),
+        "this comparison assumes the fixture is on the default config"
+    );
     let expected: serde_json::Value = serde_json::from_str(
         &spec_spine_core::attest_spec_json("{}", root.to_str().unwrap(), "001-a").unwrap(),
     )
@@ -1600,4 +1609,33 @@ fn attest_refuses_with_coupling_scoped_to_one_spec() {
     // Each flag alone still works.
     assert_eq!(code(&run_in(root, &["attest", "--spec", "001-a"])), 0);
     assert_eq!(code(&run_in(root, &["attest", "--with-coupling"])), 0);
+}
+
+/// A `--spec` id is one path segment, so it cannot walk out of the attestation
+/// directory into an unrelated file.
+#[test]
+fn verify_attestation_refuses_a_traversing_spec_id() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+
+    for id in ["../../etc/passwd", "..", "a/b", ""] {
+        let out = run_in(root, &["verify-attestation", "--spec", id, "--recompute"]);
+        assert_eq!(code(&out), 3, "id {id:?} must be refused");
+        assert!(
+            String::from_utf8_lossy(&out.stderr).contains("not a spec id"),
+            "id {id:?}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+
+    // A real id still works, so the guard is not simply refusing everything.
+    assert_eq!(code(&run_in(root, &["attest", "--spec", "001-a"])), 0);
+    assert_eq!(
+        code(&run_in(
+            root,
+            &["verify-attestation", "--spec", "001-a", "--recompute"]
+        )),
+        0
+    );
 }

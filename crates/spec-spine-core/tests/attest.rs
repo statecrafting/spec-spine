@@ -426,3 +426,61 @@ fn recompute_reports_unit_changes_by_identity_not_position() {
         "no unit's content changed, so no hash difference is reported: {differences:?}"
     );
 }
+
+/// `lint.ok` and `compile.ok` actually go false for a spec with findings.
+///
+/// Both are filtered by matching the violation's `path` against the record's
+/// `spec_path`, so a divergence in how either engine spells that path would
+/// leave both verdicts unconditionally true and hash an empty findings list: a
+/// clean-looking attestation over a spec that is not clean. The earlier tests
+/// only exercised `resolution.ok`, which is computed a different way, so
+/// neither filter was covered.
+#[test]
+fn lint_and_compile_verdicts_go_false_for_the_attested_spec() {
+    // A spec with no ownership edge trips L-001, a warning, and `lint_ok`
+    // mirrors this repo's own `--fail-on-warn` gate.
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    fs::write(r.join("Cargo.toml"), "[workspace]\nmembers = []\n").unwrap();
+    write_spec(r, "001-a", "001-a", "");
+    let attested = attest_spec(&Config::default(), r, "001-a")
+        .unwrap()
+        .attestation;
+    assert!(
+        !attested.verdicts.lint.ok,
+        "an L-001 finding on this spec makes its lint verdict false"
+    );
+    assert!(
+        attested.verdicts.compile.ok,
+        "compile is unaffected: the corpus is structurally valid"
+    );
+
+    // A findings hash over a non-empty set differs from one over nothing, so a
+    // silently-empty filter is detectable even when `ok` happens to agree.
+    let clean = spec_fixture(OWNED);
+    let clean_attested = attest_spec(&Config::default(), clean.path(), "001-a")
+        .unwrap()
+        .attestation;
+    assert!(clean_attested.verdicts.lint.ok);
+    assert_ne!(
+        attested.verdicts.lint.findings_hash, clean_attested.verdicts.lint.findings_hash,
+        "the findings hash distinguishes a spec with findings from one without"
+    );
+
+    // `compile.ok` goes false on an error-tier violation attributed to the spec:
+    // V-001, a directory name that does not equal the frontmatter id.
+    let bad = tempfile::tempdir().unwrap();
+    let b = bad.path();
+    fs::write(b.join("Cargo.toml"), "[workspace]\nmembers = []\n").unwrap();
+    fs::write(b.join("code.txt"), "one\n").unwrap();
+    write_spec(b, "001-a", "999-x", OWNED);
+    let broken = attest_spec(&Config::default(), b, "999-x")
+        .unwrap()
+        .attestation;
+    assert!(
+        !broken.verdicts.compile.ok,
+        "a V-001 on this spec makes its compile verdict false"
+    );
+    // ...and the record is still produced, because it is evidence, not a gate.
+    assert_eq!(broken.spec_id, "999-x");
+}
