@@ -106,7 +106,8 @@ passes `--spec` behaves exactly as it does today.
   excluded: spec 034 settled that a cited file is not a claimed one, and an
   attestation of territory must not assert authority the gate does not.
 - `lifecycle` records the spec's own `status` and `implementation` as declared at
-  attestation time, with `implementation` absent when the key is. It is what makes
+  attestation time, with `implementation` omitted when that key is absent from
+  the spec's frontmatter. It is what makes
   `resolution.ok: false` interpretable: an external consumer must be able to tell
   a phantom unit in a spec that is openly being built from a phantom unit in a
   spec asserting it is finished, and those are the same `false` with very
