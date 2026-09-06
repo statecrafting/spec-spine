@@ -157,8 +157,10 @@ trusting an author's word about something falsifiable that nobody falsified.
 
 ### 3.4 Blast radius: none in this corpus
 
-Every one of the 37 approved specs is `implementation: complete` and already
-settled, so their tier does not move. Specs 037, 038 and 039 are `draft` with
+Of the 37 approved specs, 36 are `implementation: complete` and the 37th
+(`000-spec-spine-bootstrap`) carries no `implementation` key at all; an absent
+key is not `Pending`, so an approved spec without one is already settled too.
+Neither group's tier moves. Specs 037, 038 and 039 are `draft` with
 `implementation: pending` and stay in flight, which is what keeps spec 037's
 claim on the not-yet-written `verdict.rs` a warning. Spec 040 is `draft` with
 `implementation: complete` and its one section unit resolves, so it passes the
@@ -191,6 +193,21 @@ completion was claimed is a signed artifact, not a severity tier. Spec 042.
 **Requiring `implementation` at all.** An absent key still behaves as `pending`
 for this purpose. Making the field mandatory is a frontmatter-grammar change with
 an adopter migration attached, and it is not needed here.
+
+**The `approved` + `pending` combination.** A ratified spec whose code is not
+yet written stays in flight, and its unresolved owning units stay `W-001`
+indefinitely. That is deliberate and is left alone: `pending` is an honest
+statement that the work has not been done, and this corpus files specs that are
+ratified before they are built. The asymmetry with §3.1 is the point rather than
+an oversight, because `complete` and `pending` are opposite claims and only one
+of them is falsifiable by looking at the filesystem.
+
+It does carry a consequence worth stating for anything reading the corpus
+programmatically: `status: approved` says nothing whatsoever about code. A
+consumer that wants to know whether work exists MUST read `implementation`, and
+after this spec that field is worth reading. One that reads `status` as a
+completeness signal will be wrong about every approved-and-unbuilt spec, and no
+gate will contradict it.
 
 **Any change to `status`.** Ratification stays a human act on its own axis.
 

@@ -104,8 +104,14 @@ passes `--spec` behaves exactly as it does today.
   with the content hash of what it resolved to. Non-owning `references` units are
   excluded: spec 034 settled that a cited file is not a claimed one, and an
   attestation of territory must not assert authority the gate does not.
-- `resolution.ok` is false when any owning unit failed to resolve. It is the
-  per-spec projection of what spec 041 turns into a blocking error.
+- `resolution.ok` is true when every owning unit this spec claims resolves to an
+  existing location, and false otherwise. It records the **fact**, never the
+  indexer's severity tier for it: an in-flight spec whose phantom unit is only a
+  `W-001` still attests `resolution.ok: false`. Tying the flag to the tier would
+  make an attestation report "resolution ok" for a unit that does not exist,
+  which is the one thing this payload exists to make impossible, and it would
+  also make the record depend on the subject's lifecycle rather than on the
+  corpus.
 - `lint.ok` and `findingsHash` cover the findings attributed to this spec, using
   023's existing findings-hash construction so a changed finding set is
   detectable even when `ok` is unchanged.
