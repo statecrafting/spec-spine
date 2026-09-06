@@ -4,7 +4,7 @@ title: "`implementation: complete` defeats draft leniency"
 status: draft
 kind: "tooling"
 created: "2026-09-06"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:

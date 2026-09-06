@@ -72,9 +72,42 @@ struct SpecInfo {
 
 impl SpecInfo {
     /// True when the spec is still in flight, so an unresolved *owning* unit is a
-    /// counted warning rather than a blocking error (spec 025 §3.1 arm 2):
-    /// `status: draft` or `implementation: pending`.
+    /// counted warning rather than a blocking error (spec 025 §3.1 arm 2).
+    ///
+    /// `status` and `implementation` are orthogonal axes: the first is a claim
+    /// about design review, the second a claim about code. Where they disagree
+    /// about whether claimed code exists, the more specific claim wins, which is
+    /// what spec 041 added to this predicate.
+    ///
+    /// | `status` | `implementation` | in flight |
+    /// |---|---|---|
+    /// | draft | pending / in-progress / n-a / deferred / absent | yes |
+    /// | draft | **complete** | **no** |
+    /// | approved | pending | yes |
+    /// | approved | anything else, or absent | no |
+    ///
+    /// `complete` is decisive because it is a **falsifiable assertion about the
+    /// filesystem**, volunteered by the author. `status: draft` says the design
+    /// is unratified, which is a statement about review and knows nothing about
+    /// whether the files exist; letting it silence a check on the other axis is
+    /// not leniency toward work in progress, it is declining to read what the
+    /// author wrote. `n-a` and `deferred` assert nothing about code existing, so
+    /// there is nothing to hold them to and they keep taking their answer from
+    /// `status`, as does an absent key.
+    ///
+    /// This window is the normal state rather than a corner: a spec here is
+    /// filed as `draft` + `complete` in the PR that lands its code and stays
+    /// that way until a separate ratification PR, so every spec passes through
+    /// an interval in which its strongest claim about code was the one claim
+    /// nothing checked.
+    ///
+    /// It verifies **existence, not behavior**. After this, `complete` means
+    /// every claimed unit resolves to something real; it does not mean the code
+    /// does what the prose says, and no mechanical gate here can mean that.
     fn in_flight(&self) -> bool {
+        if matches!(self.implementation, Some(Implementation::Complete)) {
+            return false;
+        }
         self.status == "draft" || matches!(self.implementation, Some(Implementation::Pending))
     }
 }
