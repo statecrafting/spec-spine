@@ -86,6 +86,94 @@ pub struct CorpusAttestation {
     pub verdicts: Verdicts,
 }
 
+/// One owning unit of a spec, with the content hash of what it resolved to
+/// (spec 042).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AttestedUnit {
+    pub unit: crate::unit::Unit,
+    /// SHA-256 over the normalized bytes of the resolved location, or `None`
+    /// when the unit resolves to nothing. Absent rather than an empty string:
+    /// a hash of nothing and a hash that happens to be zero must not read alike.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub content_hash: Option<String>,
+}
+
+/// A spec's own lifecycle, as declared at attestation time (spec 042).
+///
+/// `implementation` is omitted **only** when the key is absent from the spec's
+/// frontmatter. Every declared value is carried, `n-a` included: an absent key
+/// means nobody stated an intention, `n-a` means someone stated that none
+/// applies, and collapsing the second into the first would lose the more
+/// informative of the two.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AttestedLifecycle {
+    pub status: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub implementation: Option<String>,
+}
+
+/// The resolution verdict: does every owning unit this spec claims resolve to
+/// an existing location (spec 042).
+///
+/// Records the **fact**, never the indexer's severity tier for it: an in-flight
+/// spec whose phantom unit is only a `W-001` still attests `ok: false`. Tying
+/// the flag to the tier would make an attestation report "resolution ok" for a
+/// unit that does not exist, which is the one thing this payload exists to make
+/// impossible, and would make the record depend on the subject's lifecycle
+/// rather than on the corpus.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ResolutionVerdict {
+    pub ok: bool,
+}
+
+/// The verdicts a [`SpecAttestation`] freezes.
+///
+/// There is no `couple` verdict: coupling is a property of a diff between two
+/// revisions, not of a spec at one revision, and spec 023 already carries the
+/// corpus-scoped version for consumers that want it.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SpecVerdicts {
+    pub compile: CompileVerdict,
+    pub resolution: ResolutionVerdict,
+    pub lint: LintVerdict,
+}
+
+/// A reproducible attestation scoped to one spec (spec 042).
+///
+/// Spec 023's `CorpusAttestation` answers "was the corpus sound at this
+/// revision". The unit of work in a governed build is one spec, and this answers
+/// the same question about one spec's territory: its own source hash, every
+/// owning unit it claims with the content hash of what that resolved to, and the
+/// verdicts restricted to it.
+///
+/// Pure function of `(config, file contents)`, exactly as 023: no clock, no
+/// environment, no git. The wall-clock instant and the signer identity live in
+/// the detached [`LedgerSeal`], so the attested fact stays reproducible while
+/// the act of attesting is dated and attributed.
+///
+/// **No lint rule may consume one of these.** The payload records `lint.ok`, so
+/// a rule conditioned on an attestation would be grading its own output. See
+/// spec 042 3.4.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpecAttestation {
+    pub schema_version: String,
+    pub tool: ToolStamp,
+    pub spec_id: String,
+    /// SHA-256 over the spec's own normalized `spec.md` bytes.
+    pub spec_source_hash: String,
+    pub lifecycle: AttestedLifecycle,
+    /// The spec's **owning** units in the registry's canonical order.
+    ///
+    /// Non-owning `references` units are excluded: spec 034 settled that a cited
+    /// file is not a claimed one, and an attestation of territory must not
+    /// assert authority the gate does not.
+    pub units: Vec<AttestedUnit>,
+    pub verdicts: SpecVerdicts,
+}
+
 /// The detached Ed25519 seal over an attestation (spec 023 FR-003). Produced
 /// only by `attest --sign`. It carries its own non-reproducible identity and
 /// time, kept OUT of the pure payload so the attested fact stays reproducible

@@ -113,6 +113,11 @@ enum Command {
     },
     /// Emit a reproducible corpus attestation; optionally seal it (spec 023).
     Attest {
+        /// Scope the attestation to one spec (spec 042), writing
+        /// `<derived>/attestation/by-spec/<id>.json`. Records the verdicts; it
+        /// is not a gate, and exit 0 means only that an attestation was written.
+        #[arg(long, value_name = "ID")]
+        spec: Option<String>,
         /// Also record the coupling (specs-and-code-in-sync) verdict.
         #[arg(long)]
         with_coupling: bool,
@@ -131,6 +136,9 @@ enum Command {
     },
     /// Verify a corpus attestation by recompute and/or detached signature.
     VerifyAttestation {
+        /// Verify the per-spec attestation for this id (spec 042).
+        #[arg(long, value_name = "ID")]
+        spec: Option<String>,
         /// Re-read the corpus and check it reproduces the attestation (no key).
         #[arg(long)]
         recompute: bool,
@@ -187,6 +195,7 @@ fn main() -> ExitCode {
         ),
         Command::Init { force } => cmd_init::run(&repo, *force),
         Command::Attest {
+            spec,
             with_coupling,
             sign,
             key,
@@ -195,6 +204,7 @@ fn main() -> ExitCode {
         } => cmd_attest::run(
             &repo,
             &cmd_attest::AttestArgs {
+                spec: spec.clone(),
                 with_coupling: *with_coupling,
                 sign: *sign,
                 key: key.clone(),
@@ -203,6 +213,7 @@ fn main() -> ExitCode {
             },
         ),
         Command::VerifyAttestation {
+            spec,
             recompute,
             signature,
             attestation,
@@ -212,6 +223,7 @@ fn main() -> ExitCode {
         } => verify_attestation::run(
             &repo,
             &verify_attestation::VerifyArgs {
+                spec: spec.clone(),
                 recompute: *recompute,
                 signature: *signature,
                 attestation: attestation.clone(),

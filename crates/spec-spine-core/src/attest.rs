@@ -9,16 +9,19 @@
 //! party with no key and no trust in the signer. Signing is a separate, key-only
 //! post-pass that lives in the CLI (`seal.rs`); this module never touches a key.
 
+use std::fs;
 use std::path::Path;
 
 use sha2::{Digest, Sha256};
 use spec_spine_types::{
-    ATTESTATION_SCHEMA_VERSION, CompileVerdict, CorpusAttestation, CoupleVerdict, Error,
-    LintVerdict, Severity, ToolStamp, Verdicts,
+    ATTESTATION_SCHEMA_VERSION, AttestedLifecycle, AttestedUnit, CompileVerdict, CorpusAttestation,
+    CoupleVerdict, Error, LintVerdict, ResolutionVerdict, SPEC_ATTESTATION_SCHEMA_VERSION,
+    Severity, SpecAttestation, SpecVerdicts, ToolStamp, Verdicts,
 };
 
 use crate::canonical_json;
 use crate::compile::compile;
+use crate::hash;
 use crate::index::index;
 use crate::lint::lint;
 
@@ -138,6 +141,234 @@ pub fn attest(
         json,
         attestation_hash: hash,
     })
+}
+
+/// Build a [`SpecAttestation`] over one spec's territory (spec 042).
+///
+/// Pure function of `(config, file contents)`, exactly as [`attest`]: it runs
+/// `compile`, `lint` and `index`, all themselves pure, and reduces their output
+/// to this spec. No clock, no environment, no git.
+///
+/// **A failing verdict never suppresses the payload.** This returns a complete,
+/// hashable, signable attestation whether the verdicts are true or false, and
+/// the CLI exits `0` for having produced one. It is a record, not a gate: an
+/// attestation that refused to exist when the news was bad would be worth
+/// nothing as evidence, and a caller wanting a gate calls the verb that refuses.
+pub fn attest_spec(
+    cfg: &spec_spine_types::Config,
+    repo_root: &Path,
+    spec_id: &str,
+) -> Result<SpecAttestOutcome, Error> {
+    let compiled = compile(cfg, repo_root)?;
+    let record = compiled
+        .registry
+        .specs
+        .iter()
+        .find(|s| s.id == spec_id)
+        .ok_or_else(|| Error::NotFound(format!("spec '{spec_id}'")))?;
+
+    let spec_source_hash = {
+        let path = repo_root.join(&record.spec_path);
+        let text = fs::read_to_string(&path)
+            .map_err(|e| Error::Io(format!("read {}: {e}", path.display())))?;
+        // The project's standing normalization (BOM stripped, CRLF/CR to LF),
+        // so the payload is platform-independent like every other hash here.
+        sha256_hex(hash::normalize(&text).as_bytes())
+    };
+
+    // The resolved territory: owning units only, in the registry's canonical
+    // order, each with the content hash of what it resolved to.
+    let indexed = index(cfg, repo_root)?;
+    let mapping = indexed
+        .index
+        .traceability
+        .mappings
+        .iter()
+        .find(|m| m.spec_id == spec_id);
+    let mut units: Vec<AttestedUnit> = Vec::new();
+    let mut all_resolved = true;
+    for resolved in mapping.into_iter().flat_map(|m| &m.resolved_units) {
+        if !resolved.ownership {
+            continue;
+        }
+        if resolved.locations.is_empty() {
+            all_resolved = false;
+            units.push(AttestedUnit {
+                unit: resolved.unit.clone(),
+                content_hash: None,
+            });
+            continue;
+        }
+        // A unit may resolve to several locations (a subtree, a module split
+        // across files). One hash over the sorted set, which is exactly what
+        // `hash::content_hash` is: path-sorted, normalized, ` `-separated.
+        let pieces: Vec<(String, String)> = resolved
+            .locations
+            .iter()
+            .filter_map(|loc| {
+                fs::read_to_string(repo_root.join(&loc.file))
+                    .ok()
+                    .map(|content| (loc.file.clone(), content))
+            })
+            .collect();
+        units.push(AttestedUnit {
+            unit: resolved.unit.clone(),
+            content_hash: Some(hash::content_hash(pieces)),
+        });
+    }
+
+    // Verdicts restricted to this spec. `lint.ok` and `findingsHash` cover the
+    // findings attributed to it, using 023's findings-hash construction so a
+    // changed finding set is detectable even when `ok` is unchanged.
+    let lint_report = lint(cfg, repo_root)?;
+    let mine: Vec<_> = lint_report
+        .violations
+        .iter()
+        .filter(|v| v.path.as_deref() == Some(record.spec_path.as_str()))
+        .cloned()
+        .collect();
+    let lint_ok = !mine
+        .iter()
+        .any(|v| matches!(v.severity, Severity::Error | Severity::Warning));
+    let findings_hash = sha256_hex(canonical_json::to_string(&mine)?.as_bytes());
+
+    let compile_ok = !compiled
+        .registry
+        .validation
+        .violations
+        .iter()
+        .any(|v| v.severity == Severity::Error && v.path.as_deref() == Some(&record.spec_path));
+
+    let attestation = SpecAttestation {
+        schema_version: SPEC_ATTESTATION_SCHEMA_VERSION.to_string(),
+        tool: ToolStamp {
+            name: cfg.branding.compiler_id.clone(),
+            version: env!("CARGO_PKG_VERSION").to_string(),
+        },
+        spec_id: spec_id.to_string(),
+        spec_source_hash,
+        lifecycle: AttestedLifecycle {
+            status: status_label(record.status).to_string(),
+            // Emitted in its canonical kebab-case spelling: spec 015 accepts
+            // `n/a` on the way in and normalizes it, so two specs written in
+            // different dialects attest identically.
+            implementation: record
+                .implementation
+                .map(implementation_label)
+                .map(str::to_string),
+        },
+        units,
+        verdicts: SpecVerdicts {
+            compile: CompileVerdict { ok: compile_ok },
+            resolution: ResolutionVerdict { ok: all_resolved },
+            lint: LintVerdict {
+                ok: lint_ok,
+                findings_hash,
+            },
+        },
+    };
+
+    let json = canonical_json::to_string(&attestation)?;
+    let hash = sha256_hex(json.as_bytes());
+    Ok(SpecAttestOutcome {
+        attestation,
+        json,
+        attestation_hash: hash,
+    })
+}
+
+/// The result of an [`attest_spec`] run, mirroring [`AttestOutcome`].
+#[derive(Clone, Debug)]
+pub struct SpecAttestOutcome {
+    pub attestation: SpecAttestation,
+    /// Canonical `SpecAttestation` JSON (sorted keys, 2-space, trailing LF).
+    pub json: String,
+    /// SHA-256 (lowercase hex) over [`SpecAttestOutcome::json`].
+    pub attestation_hash: String,
+}
+
+/// Verify a [`SpecAttestation`] by recompute (spec 042 3.5), mirroring
+/// [`verify_recompute`]: a `tool.version` mismatch stays a distinct, named
+/// outcome rather than a false content mismatch.
+pub fn verify_spec_recompute(
+    cfg: &spec_spine_types::Config,
+    repo_root: &Path,
+    attestation: &SpecAttestation,
+) -> Result<VerifyOutcome, Error> {
+    let actual_version = env!("CARGO_PKG_VERSION");
+    if attestation.tool.version != actual_version {
+        return Ok(VerifyOutcome::VersionMismatch {
+            expected: attestation.tool.version.clone(),
+            actual: actual_version.to_string(),
+        });
+    }
+    let recomputed = attest_spec(cfg, repo_root, &attestation.spec_id)?.attestation;
+    if recomputed == *attestation {
+        return Ok(VerifyOutcome::Match);
+    }
+
+    // Field-level differences, so the report names what moved rather than
+    // saying only that something did.
+    let mut differences = Vec::new();
+    let (a, b) = (attestation, &recomputed);
+    if a.spec_source_hash != b.spec_source_hash {
+        differences.push("specSourceHash (the spec's own text changed)".to_string());
+    }
+    if a.lifecycle != b.lifecycle {
+        differences.push(format!(
+            "lifecycle ({:?} -> {:?})",
+            a.lifecycle, b.lifecycle
+        ));
+    }
+    for (before, after) in a.units.iter().zip(&b.units) {
+        if before.content_hash != after.content_hash {
+            differences.push(format!("units[{:?}].contentHash", before.unit));
+        }
+    }
+    if a.units.len() != b.units.len() {
+        differences.push(format!(
+            "units (count {} -> {})",
+            a.units.len(),
+            b.units.len()
+        ));
+    }
+    if a.verdicts != b.verdicts {
+        differences.push(format!("verdicts ({:?} -> {:?})", a.verdicts, b.verdicts));
+    }
+    if differences.is_empty() {
+        differences.push("tool.name or schemaVersion".to_string());
+    }
+    Ok(VerifyOutcome::ContentMismatch { differences })
+}
+
+/// The hash a seal signs and a consumer references, for a per-spec attestation.
+pub fn spec_attestation_hash(attestation: &SpecAttestation) -> Result<String, Error> {
+    Ok(sha256_hex(
+        canonical_json::to_string(attestation)?.as_bytes(),
+    ))
+}
+
+/// The canonical lowercase label for a status.
+fn status_label(status: spec_spine_types::Status) -> &'static str {
+    use spec_spine_types::Status;
+    match status {
+        Status::Draft => "draft",
+        Status::Approved => "approved",
+        Status::Superseded => "superseded",
+        Status::Retired => "retired",
+    }
+}
+
+/// The canonical kebab-case label for an implementation value.
+fn implementation_label(implementation: spec_spine_types::Implementation) -> &'static str {
+    use spec_spine_types::Implementation;
+    match implementation {
+        Implementation::Pending => "pending",
+        Implementation::InProgress => "in-progress",
+        Implementation::Complete => "complete",
+        Implementation::Na => "n-a",
+        Implementation::Deferred => "deferred",
+    }
 }
 
 /// The hash a seal signs and a consumer references: SHA-256 (lowercase hex) over

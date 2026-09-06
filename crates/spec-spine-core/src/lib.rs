@@ -42,7 +42,8 @@ pub use spec_spine_types::{
 };
 
 pub use attest::{
-    AttestOptions, AttestOutcome, VerifyOutcome, attest, attestation_hash, verify_recompute,
+    AttestOptions, AttestOutcome, SpecAttestOutcome, VerifyOutcome, attest, attest_spec,
+    attestation_hash, spec_attestation_hash, verify_recompute, verify_spec_recompute,
 };
 pub use compile::{
     CompileOutcome, MAX_UNDECLARED_EXTRA_FRONTMATTER, RegistryShardSet, check_registry_freshness,
@@ -305,6 +306,60 @@ pub fn attest_json(
         attestation: outcome.attestation,
         attestation_hash: outcome.attestation_hash,
     })
+}
+
+/// Build a per-spec attestation (spec 042). Returns
+/// `{ "attestation": <SpecAttestation>, "attestationHash": "<hex>" }`, the same
+/// envelope shape [`attest_json`] uses for the corpus scope. Pure: no key, no
+/// clock. A failing verdict still yields a payload; it is a record, not a gate.
+pub fn attest_spec_json(
+    config_json: &str,
+    repo_root: &str,
+    spec_id: &str,
+) -> Result<String, Error> {
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct Response {
+        attestation: spec_spine_types::SpecAttestation,
+        attestation_hash: String,
+    }
+    let config = config_from_json(config_json)?;
+    let outcome = attest_spec(&config, std::path::Path::new(repo_root), spec_id)?;
+    to_json(&Response {
+        attestation: outcome.attestation,
+        attestation_hash: outcome.attestation_hash,
+    })
+}
+
+/// Verify a per-spec attestation by recompute (spec 042 3.5). Request:
+/// `{ "config"?: Config, "repoRoot": string, "attestation": <SpecAttestation> }`.
+/// Same outcome vocabulary as [`verify_attestation_json`].
+pub fn verify_spec_attestation_json(request_json: &str) -> Result<String, Error> {
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct Request {
+        #[serde(default)]
+        config: Config,
+        repo_root: String,
+        attestation: spec_spine_types::SpecAttestation,
+    }
+    let request: Request = serde_json::from_str(request_json)
+        .map_err(|e| Error::Parse(format!("invalid verify-spec-attestation request: {e}")))?;
+    let outcome = verify_spec_recompute(
+        &request.config,
+        std::path::Path::new(&request.repo_root),
+        &request.attestation,
+    )?;
+    let value = match outcome {
+        VerifyOutcome::Match => serde_json::json!({ "outcome": "match" }),
+        VerifyOutcome::VersionMismatch { expected, actual } => {
+            serde_json::json!({ "outcome": "versionMismatch", "expected": expected, "actual": actual })
+        }
+        VerifyOutcome::ContentMismatch { differences } => {
+            serde_json::json!({ "outcome": "contentMismatch", "differences": differences })
+        }
+    };
+    Ok(value.to_string())
 }
 
 /// Verify an attestation by recompute (spec 023 FR-004 `--recompute`). Request:
