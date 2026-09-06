@@ -183,13 +183,20 @@ key is its own decision, not sugar for two floor entries.
   registry, index, coverage and coupling verdicts across the change).
 - Set: a changed file under the root does not trip `C-001` or `C-002`.
 - Set: coverage excludes the root from both numerator and denominator, so a repo
-  at 100% stays at 100% after state files appear.
+  at 100% stays at 100% after state files appear. The denominator shrinks by
+  exactly the number of files under the root, asserted as a count rather than as
+  a percentage: declaring a state root moves a coverage figure, and the movement
+  should be auditable rather than merely plausible.
 - Set: the resolver does not resolve a unit to a path inside the root, and files
   there do not contribute to the index content hash (writing one does not make
   `index check` stale).
 - `state` and `state/` behave identically; `stateful/` is not matched by `state`.
 - A spec claiming a unit under the root yields `L-006` at error tier, naming
   the spec and the unit, and `lint` exits 1 on it without `--fail-on-warn`.
+- No two lint diagnostics share a code. `L-006` is the next free code at the
+  time of writing (`L-001`..`L-005` are allocated in `lint.rs`), but a claim
+  about a namespace is worth an assertion rather than a comment, since the band
+  may have grown by the time this is implemented.
 - Config load rejects, with a clean `Error::Config`, a value overlapping
   `specs_dir` or `derived_dir` in either direction: equal (`specs`, `.derived`),
   an ancestor (`.`, `./`), or a descendant (`specs/state`, `.derived/state`).

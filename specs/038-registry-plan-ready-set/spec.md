@@ -121,9 +121,14 @@ corpus rather than of a hash-map iteration order, which the determinism contract
 requires of every output this project produces.
 
 The walk assumes acyclicity and is entitled to: spec 033 refuses a cycle at
-compile time, so a registry that exists is acyclic. If the invariant is
-nonetheless violated, `plan` MUST report the offending set as an error rather
-than loop or truncate.
+compile time with the error-tier `V-014`, so a registry that exists is acyclic.
+If the invariant is nonetheless violated (a hand-edited shard, a registry written
+by a different tool version), `plan` MUST report the offending set as an error
+rather than loop or truncate. That error is `Error::Validation` carrying the
+cycle path, which is exit `1` and, under spec 037's envelope, `kind: validation`.
+It reuses 033's existing classification rather than inventing a second vocabulary
+for the same defect, and it means the machine-readable error branch has a
+specified shape rather than being left to the implementer.
 
 ### 3.3 Output
 
@@ -196,6 +201,8 @@ different mechanisms, or the claim becomes its own proof.
 - A `depends_on` naming a spec absent from the registry blocks and is reported
   with `state: "unresolved"`.
 - Ordering is stable across repeated runs and independent of corpus file order.
+- A cycle reaching `plan` (constructed directly, since `compile` refuses one)
+  yields `Error::Validation` naming the cycle path, exit `1`, and terminates.
 - Against this repo's own corpus the command succeeds and the ready set is a
   subset of the non-complete specs.
 
