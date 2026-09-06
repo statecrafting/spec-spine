@@ -192,13 +192,39 @@ later reader discover it.
 | Wave | Items | Specs | Character |
 |---|---|---|---|
 | 1 | G3, G6, G4 | 037, 038, 039 | Additive, unblocks the builder, no schema MAJOR |
-| 2 | G2, G1, plus the freshness gate for the new class | to be filed | The seam both tracks meet at; settle before any consumer exists |
+| 2 | G1, G2 | 041, 042 | Filed, and narrower than sketched below |
 | 3 | G5, G8 | to be filed | Adoption and the compliance guarantee |
 | 4 | G7 | to be filed | Design first; assert no mechanism yet |
 
-Wave 1 is filed alongside this note. Wave 2 is the one to get right, and it
-should not begin until wave 1 has shipped, because the per-spec attestation's
-own verdict has to be expressible in the machine-readable form wave 1 defines.
+An unnumbered item landed alongside wave 1: spec 040 writes down how an
+amendment is authored (declared once, in the amending spec; the predecessor is
+never edited). It adds no mechanism, and exists because a review asked the same
+question six times without the corpus being able to answer it.
+
+Wave 1 is filed alongside this note.
+
+**Wave 2 as filed differs from the sketch above, and the difference is the
+point of having checked.** Two findings from the code, not from this analysis:
+
+- **G1 was over-stated here.** `index.rs::in_flight` is
+  `status == "draft" || implementation == Pending`, and spec 025 already makes an
+  unresolved owning unit a blocking error for any spec that is not in flight. So
+  an *approved* spec marked `complete` is already held to its claims. What was
+  missing is one arm of one predicate: `Implementation::Complete` never enters
+  the expression, so `status: draft` alone buys leniency, and this corpus files
+  every spec as `draft` + `complete` when its code lands. Spec 041 is that fix,
+  and needs no attestation.
+- **G2's committed bundle does not survive contact with the repo.**
+  `.derived/attestation/` is gitignored: 023's attestation is on-demand by
+  design. A committed per-spec bundle would restale on every edit to any claimed
+  unit and would need a fourth committed tree with a fifth gate verb, which is
+  this note's own constraint turned against the proposal. Spec 042 keeps the
+  artifact on-demand and signed.
+
+The two are therefore independent rather than one consuming the other, and
+§3.4 of 042 records why the pairing could not have worked in `lint` regardless:
+the payload carries the lint verdict, so a lint rule reading it would grade
+itself.
 
 ## 7. Open questions
 

@@ -1,0 +1,118 @@
+{
+  "record": {
+    "created": "2026-09-06",
+    "dependsOn": [
+      "023-ledger-seal",
+      "024-index-sharding",
+      "041-completion-held-to-claims"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/verify_attestation.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      }
+    ],
+    "id": "042-per-spec-attestation",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/02-agentic-builder-substrate.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/031-registry-freshness-check/spec.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "042: Per-spec attestation",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The payload",
+      "3.2 Purity, and where the clock lives",
+      "3.3 It is not committed, and that is a decision",
+      "3.4 No lint rule may consume a `SpecAttestation`",
+      "3.5 Verification",
+      "3.6 Versioning",
+      "3.7 Tests (minimum)",
+      "4. Out of scope",
+      "5. Relationship to the design note"
+    ],
+    "specPath": "specs/042-per-spec-attestation/spec.md",
+    "status": "draft",
+    "summary": "Spec 023 attests the corpus: one payload, one hash, one optional Ed25519 seal over the whole ledger. The unit of work in a governed build is one spec, and a corpus-scoped attestation cannot answer \"was this spec's territory sound when its work was declared done\" without being reduced by hand. This spec adds `attest --spec <id>`, emitting a `SpecAttestation` scoped to a single spec: its own source hash, the resolved location and content hash of every owning unit it claims, and the verdicts restricted to it. It reuses 023's split exactly, the payload pure and reproducible with the wall clock and the signer identity in the detached seal, so the attested fact stays a function of `(config, file contents)` while the act of attesting is dated and attributed. It stays on-demand and gitignored like 023's, deliberately: the design note wanted a committed per-spec bundle, and committing one would restale on every edit to any claimed unit and would need its own freshness gate, which buys churn rather than assurance. A consumer that wants durable evidence receives the bundle; it does not need the repository to store it. One constraint is load-bearing and stated normatively: no lint rule may consume a `SpecAttestation`, because the payload records the lint verdict and a lint that read it would grade itself.\n",
+    "title": "`attest --spec <id>`: a signed record scoped to one spec"
+  },
+  "shardHash": "6572fe8287f47955269560dec5420c59a1b508920c2b28f5cc5b886e255dc95f",
+  "specVersion": "1.1.0"
+}
