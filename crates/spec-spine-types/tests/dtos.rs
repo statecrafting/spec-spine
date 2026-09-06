@@ -2,8 +2,8 @@
 
 use spec_spine_types::{
     BUILD_META_SCHEMA_VERSION, CONFIG_VERSION, Error, INDEX_SCHEMA_VERSION,
-    REGISTRY_SCHEMA_VERSION, Registry, Severity, Status, VERDICT_SCHEMA_VERSION, ValidationReport,
-    Verdict, Violation, parse_semver, verdict::verb,
+    REGISTRY_SCHEMA_VERSION, Registry, SPEC_ATTESTATION_SCHEMA_VERSION, Severity, Status,
+    VERDICT_SCHEMA_VERSION, ValidationReport, Verdict, Violation, parse_semver, verdict::verb,
 };
 
 const REGISTRY_JSON: &str = r#"{
@@ -81,6 +81,10 @@ fn schema_versions_are_pinned() {
     // Spec 037: the verdict envelope, versioned from its first release rather
     // than acquiring a version after the first consumer breaks.
     assert_eq!(VERDICT_SCHEMA_VERSION, "0.1.0");
+    // Spec 042: the per-spec attestation, independent of the ledger versions so
+    // a consumer pins the evidence shape it verifies without pinning the ledger
+    // it was derived from.
+    assert_eq!(SPEC_ATTESTATION_SCHEMA_VERSION, "0.1.0");
 }
 
 /// Spec 037 3.1: the envelope a consumer parses is one shape across six verbs.

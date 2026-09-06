@@ -1395,3 +1395,182 @@ fn registry_plan_partitions_the_corpus() {
         "one summary line: the empty case does not also print `ready: 0`"
     );
 }
+// ===== spec 042: per-spec attestation =====
+
+/// `attest --spec` writes `by-spec/<id>.json`, `--sign` seals it beside itself,
+/// and `verify-attestation --spec` checks both modes back.
+#[test]
+fn attest_spec_writes_signs_and_verifies_one_spec() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+
+    let out = run_in(root, &["attest", "--spec", "001-a"]);
+    assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
+    let path = root.join(".derived/attestation/by-spec/001-a.json");
+    assert!(path.is_file(), "the payload lands under by-spec/");
+    // The corpus-scoped artifact is untouched: the two scopes do not collide.
+    assert!(!root.join(".derived/attestation/attestation.json").exists());
+
+    let payload: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(payload["specId"], "001-a");
+    assert_eq!(payload["schemaVersion"], "0.1.0");
+    assert_eq!(payload["lifecycle"]["status"], "approved");
+    assert_eq!(payload["verdicts"]["resolution"]["ok"], true);
+    assert_eq!(
+        payload["units"][0]["unit"]["path"], "crate-a/src/lib.rs",
+        "the owning unit, with the hash of what it resolved to"
+    );
+    assert!(payload["units"][0]["contentHash"].is_string());
+
+    // Sign, then verify both modes. The public key is the seal's own keyId.
+    let seed = root.join("signing.key");
+    fs::write(&seed, [3u8; 32]).unwrap();
+    let signed = run_in(
+        root,
+        &[
+            "attest",
+            "--spec",
+            "001-a",
+            "--sign",
+            "--key",
+            seed.to_str().unwrap(),
+        ],
+    );
+    assert_eq!(
+        code(&signed),
+        0,
+        "{}",
+        String::from_utf8_lossy(&signed.stderr)
+    );
+    let seal_path = root.join(".derived/attestation/by-spec/001-a.sig");
+    assert!(seal_path.is_file(), "the seal is the payload's sibling");
+
+    let seal: serde_json::Value = serde_json::from_slice(&fs::read(&seal_path).unwrap()).unwrap();
+    let public = root.join("public.hex");
+    fs::write(&public, seal["keyId"].as_str().unwrap()).unwrap();
+    let verified = run_in(
+        root,
+        &[
+            "verify-attestation",
+            "--spec",
+            "001-a",
+            "--recompute",
+            "--signature",
+            "--public-key",
+            public.to_str().unwrap(),
+        ],
+    );
+    assert_eq!(
+        code(&verified),
+        0,
+        "{}",
+        String::from_utf8_lossy(&verified.stderr)
+    );
+    let text = String::from_utf8_lossy(&verified.stdout);
+    assert!(text.contains("recompute: MATCH"), "{text}");
+    assert!(text.contains("signature: VALID"), "{text}");
+
+    // Editing an owned file breaks recompute with a named outcome, not silently.
+    fs::write(
+        root.join("crate-a/src/lib.rs"),
+        "pub fn a() {}\npub fn b() {}\n",
+    )
+    .unwrap();
+    let stale = run_in(
+        root,
+        &["verify-attestation", "--spec", "001-a", "--recompute"],
+    );
+    assert_eq!(code(&stale), 1);
+    assert!(
+        String::from_utf8_lossy(&stale.stderr).contains("MISMATCH"),
+        "{}",
+        String::from_utf8_lossy(&stale.stderr)
+    );
+}
+
+/// Spec 042 3.1: **`attest`'s exit code is not a verdict.** `0` means an
+/// attestation was written and nothing about what it says, for both scopes.
+///
+/// This is the one verb in the tool where that is true, so it is tested rather
+/// than assumed: `lint`, `couple`, `index check` and `compile --check` all put
+/// their verdict in the exit code. The rule reaches the corpus-scoped verb by
+/// this spec's amendment to 023, so both are exercised.
+#[test]
+fn attest_exits_zero_on_a_false_verdict_in_both_scopes() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+
+    // A spec claiming a file that was never written: resolution.ok is false.
+    fs::write(
+        root.join("specs/001-a/spec.md"),
+        "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\nestablishes:\n  - \"crate-a/src/lib.rs\"\n  - \"crate-a/src/never.rs\"\n\
+         ---\n# 001-a\n## body\n",
+    )
+    .unwrap();
+    assert_eq!(code(&run_in(root, &["compile"])), 0);
+    assert_eq!(code(&run_in(root, &["index"])), 0);
+
+    let scoped = run_in(root, &["attest", "--spec", "001-a"]);
+    assert_eq!(
+        code(&scoped),
+        0,
+        "a record is written whatever it says: {}",
+        String::from_utf8_lossy(&scoped.stderr)
+    );
+    let payload: serde_json::Value = serde_json::from_slice(
+        &fs::read(root.join(".derived/attestation/by-spec/001-a.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        payload["verdicts"]["resolution"]["ok"], false,
+        "the false verdict is recorded, not suppressed"
+    );
+
+    // The corpus scope too, which is 023's territory and reaches this rule by
+    // amendment: it exits 0 even with a failing verdict inside.
+    let corpus = run_in(root, &["attest"]);
+    assert_eq!(
+        code(&corpus),
+        0,
+        "{}",
+        String::from_utf8_lossy(&corpus.stderr)
+    );
+}
+
+/// An unknown spec id is `NotFound` (exit 1) and writes nothing, rather than a
+/// payload over a spec that does not exist.
+#[test]
+fn attest_spec_refuses_an_unknown_id() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+    let out = run_in(root, &["attest", "--spec", "999-nope"]);
+    assert_eq!(code(&out), 1);
+    assert!(!root.join(".derived/attestation/by-spec").exists());
+}
+
+/// `attest --spec --json` carries the same `{ attestation, attestationHash }`
+/// payload the facade returns, inside spec 037's envelope.
+#[test]
+fn attest_spec_json_rides_in_the_verdict_envelope() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+
+    let out = run_in(root, &["attest", "--spec", "001-a", "--json"]);
+    assert_eq!(code(&out), 0);
+    let v = envelope(&out);
+    assert_eq!(v["verb"], "attest");
+    assert_eq!(v["ok"], true);
+    assert_eq!(v["report"]["attestation"]["specId"], "001-a");
+    assert!(v["report"]["attestationHash"].is_string());
+
+    let expected: serde_json::Value = serde_json::from_str(
+        &spec_spine_core::attest_spec_json("{}", root.to_str().unwrap(), "001-a").unwrap(),
+    )
+    .unwrap();
+    assert_eq!(v["report"], expected, "one payload shape per verb");
+}

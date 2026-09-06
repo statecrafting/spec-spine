@@ -4,7 +4,7 @@ title: "`attest --spec <id>`: a signed record scoped to one spec"
 status: draft
 kind: "tooling"
 created: "2026-09-06"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -322,3 +322,28 @@ What remains is worth building on its own terms: a signed, reproducible,
 offline-verifiable record scoped to one unit of work, for a consumer outside this
 repository. That is a narrower claim than the note made, and one that survives
 being checked.
+
+## 6. Resolved decisions
+
+- **D-1 (2026-09-06): "attests byte-identically" is a claim about the emitted
+  lifecycle value, not the whole payload.** 3.7 asks that a spec written `n/a`
+  attest byte-identically to one written `n-a`. That cannot hold as stated and
+  should not: `specSourceHash` hashes the spec's own bytes, and the two specs
+  differ by exactly those bytes, so identical payloads would mean the source
+  hash had stopped tracking the source. What 3.1 actually argues is that the
+  dialect must not survive into the record, and that is what is implemented and
+  tested: `lifecycle.implementation` is the canonical `n-a` in both, every other
+  field matches, and `specSourceHash` differs because it must. The distinction
+  the test protects is the one the section is about, that an absent key and an
+  `n-a` key stay distinguishable.
+
+- **D-2 (2026-09-06): a unit resolving to several locations gets one hash over
+  the set.** 3.1 shows one `contentHash` per unit and does not say what a
+  subtree or a multi-file module hashes to. The obvious readings are a hash of
+  the first location, which silently ignores the rest, or a list, which changes
+  the documented shape. Neither is right. The implementation reuses
+  `hash::content_hash`, the same path-sorted, normalized, `\0`-separated
+  construction every other hash in this project uses, so a unit covering five
+  files has one hash that changes if any of them does. An unresolved unit
+  carries no `contentHash` at all rather than a hash of nothing: absent and
+  "happens to hash to zero" must not read alike.
