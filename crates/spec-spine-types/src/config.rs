@@ -325,7 +325,8 @@ fn validate_state_dir(config: &Config) -> Result<()> {
         if other.is_empty() {
             continue;
         }
-        let contains = |a: &str, b: &str| a == b || b.strip_prefix(a).is_some_and(|r| r.starts_with('/'));
+        let contains =
+            |a: &str, b: &str| a == b || b.strip_prefix(a).is_some_and(|r| r.starts_with('/'));
         if contains(state, other) || contains(other, state) {
             return Err(Error::Config(format!(
                 "layout.state_dir '{}' overlaps layout.{key} '{}': a state root is ungoverned, \

@@ -26,7 +26,7 @@ use std::path::{Path, PathBuf};
 #[cfg(feature = "symbol-resolution")]
 use crate::pathutil::{is_excluded, rel_posix};
 #[cfg(feature = "symbol-resolution")]
-use spec_spine_types::{LineSpan, PackageKind, PackageRecord};
+use spec_spine_types::{LayoutConfig, LineSpan, PackageKind, PackageRecord};
 #[cfg(feature = "symbol-resolution")]
 use tree_sitter::{Language, Node, Parser};
 
@@ -71,6 +71,7 @@ pub fn build_module_index(
     repo_root: &Path,
     packages: &[PackageRecord],
     exclusions: &[String],
+    layout: &LayoutConfig,
 ) -> ModuleIndex {
     let mut map: BTreeMap<String, Vec<ResolvedLocation>> = BTreeMap::new();
     for pkg in packages {
@@ -82,7 +83,7 @@ pub fn build_module_index(
         }
         let crate_name = pkg.name.replace('-', "_");
         let src_dir = repo_root.join(&pkg.path).join("src");
-        for file in walk_files(&src_dir, &["rs"], repo_root, exclusions) {
+        for file in walk_files(&src_dir, &["rs"], repo_root, exclusions, layout) {
             let Ok(content) = fs::read_to_string(&file) else {
                 continue;
             };
@@ -160,16 +161,17 @@ pub fn build_symbol_index(
     repo_root: &Path,
     packages: &[PackageRecord],
     exclusions: &[String],
+    layout: &LayoutConfig,
 ) -> SymbolIndex {
     let mut map: BTreeMap<String, Vec<ResolvedLocation>> = BTreeMap::new();
     for pkg in packages {
         let pkg_dir = repo_root.join(&pkg.path);
         match pkg.kind {
             PackageKind::RustLib | PackageKind::RustBin | PackageKind::RustLibBin => {
-                index_rust(repo_root, pkg, &pkg_dir, exclusions, &mut map);
+                index_rust(repo_root, pkg, &pkg_dir, exclusions, layout, &mut map);
             }
             PackageKind::NpmPackage | PackageKind::NpmWorkspace => {
-                index_ts(repo_root, pkg, &pkg_dir, exclusions, &mut map);
+                index_ts(repo_root, pkg, &pkg_dir, exclusions, layout, &mut map);
             }
         }
     }
@@ -204,11 +206,12 @@ fn index_rust(
     pkg: &PackageRecord,
     pkg_dir: &Path,
     exclusions: &[String],
+    layout: &LayoutConfig,
     map: &mut BTreeMap<String, Vec<ResolvedLocation>>,
 ) {
     let crate_name = pkg.name.replace('-', "_");
     let src_dir = pkg_dir.join("src");
-    for file in walk_files(&src_dir, &["rs"], repo_root, exclusions) {
+    for file in walk_files(&src_dir, &["rs"], repo_root, exclusions, layout) {
         let Ok(content) = fs::read_to_string(&file) else {
             continue;
         };
@@ -259,9 +262,10 @@ fn index_ts(
     pkg: &PackageRecord,
     pkg_dir: &Path,
     exclusions: &[String],
+    layout: &LayoutConfig,
     map: &mut BTreeMap<String, Vec<ResolvedLocation>>,
 ) {
-    for file in walk_files(pkg_dir, &["ts", "tsx"], repo_root, exclusions) {
+    for file in walk_files(pkg_dir, &["ts", "tsx"], repo_root, exclusions, layout) {
         // .vue and .d.ts are out of v1 scope.
         if file.to_string_lossy().ends_with(".d.ts") {
             continue;
@@ -360,9 +364,15 @@ fn symbol_of(node: Node, src: &str) -> Option<(String, LineSpan)> {
 /// Recursively collect files with one of `exts` under `root`, sorted, skipping
 /// excluded directories.
 #[cfg(feature = "symbol-resolution")]
-fn walk_files(root: &Path, exts: &[&str], repo_root: &Path, exclusions: &[String]) -> Vec<PathBuf> {
+fn walk_files(
+    root: &Path,
+    exts: &[&str],
+    repo_root: &Path,
+    exclusions: &[String],
+    layout: &LayoutConfig,
+) -> Vec<PathBuf> {
     let mut out = Vec::new();
-    walk(root, exts, repo_root, exclusions, &mut out);
+    walk(root, exts, repo_root, exclusions, layout, &mut out);
     out.sort();
     out
 }
@@ -373,6 +383,7 @@ fn walk(
     exts: &[&str],
     repo_root: &Path,
     exclusions: &[String],
+    layout: &LayoutConfig,
     out: &mut Vec<PathBuf>,
 ) {
     let Ok(entries) = fs::read_dir(dir) else {
@@ -381,11 +392,13 @@ fn walk(
     let mut paths: Vec<PathBuf> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
     paths.sort();
     for path in paths {
-        if is_excluded(repo_root, &path, exclusions) {
+        if is_excluded(repo_root, &path, exclusions)
+            || layout.is_state_path(&rel_posix(repo_root, &path))
+        {
             continue;
         }
         if path.is_dir() {
-            walk(&path, exts, repo_root, exclusions, out);
+            walk(&path, exts, repo_root, exclusions, layout, out);
         } else if path
             .extension()
             .and_then(|e| e.to_str())

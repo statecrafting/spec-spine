@@ -12,9 +12,9 @@ use std::path::{Path, PathBuf};
 
 use spec_spine_types::{
     CodebaseIndex, Diagnostic, Diagnostics, Error, INDEX_SCHEMA_VERSION, Implementation,
-    ImplementingPath, IndexBuild, IndexPackageShard, IndexSpecShard, PackageKind, PackageRecord,
-    ResolvedLocation, ResolvedUnit, SourceField, TraceMapping, TraceSource, Traceability, Unit,
-    parse_frontmatter_with,
+    ImplementingPath, IndexBuild, IndexPackageShard, IndexSpecShard, LayoutConfig, PackageKind,
+    PackageRecord, ResolvedLocation, ResolvedUnit, SourceField, TraceMapping, TraceSource,
+    Traceability, Unit, parse_frontmatter_with,
 };
 
 use crate::coverage::SOURCE_EXTS;
@@ -110,6 +110,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
                 repo_root,
                 &discovered.packages,
                 &cfg.index.resolver_exclusions,
+                &cfg.layout,
             )
         } else {
             SymbolIndex::default()
@@ -132,6 +133,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
                 repo_root,
                 &discovered.packages,
                 &cfg.index.resolver_exclusions,
+                &cfg.layout,
             )
         } else {
             ModuleIndex::default()
@@ -932,6 +934,7 @@ fn scan_comment_headers(
             SOURCE_EXTS,
             repo_root,
             &cfg.index.resolver_exclusions,
+            &cfg.layout,
         ) {
             let Ok(content) = fs::read_to_string(&file) else {
                 continue;
@@ -1082,15 +1085,22 @@ fn glob_files(repo_root: &Path, pattern: &str) -> Vec<PathBuf> {
 }
 
 /// Sorted source files under `dir` (by extension), pruning
-/// `index.resolver_exclusions`. Shared with the coverage universe (spec 032).
+/// `index.resolver_exclusions` and the declared `layout.state_dir`. Shared with
+/// the coverage universe (spec 032).
+///
+/// `layout` is passed whole rather than as an exclusion entry because spec 039
+/// 3.5 makes the state root its own decision: no `resolver_exclusions` entry
+/// can express it (that list matches directory *names*, not path prefixes) and
+/// none may cancel it.
 pub(crate) fn walk_source(
     dir: &Path,
     exts: &[&str],
     repo_root: &Path,
     exclusions: &[String],
+    layout: &LayoutConfig,
 ) -> Vec<PathBuf> {
     let mut out = Vec::new();
-    walk(dir, exts, repo_root, exclusions, &mut out);
+    walk(dir, exts, repo_root, exclusions, layout, &mut out);
     out.sort();
     out
 }
@@ -1100,6 +1110,7 @@ fn walk(
     exts: &[&str],
     repo_root: &Path,
     exclusions: &[String],
+    layout: &LayoutConfig,
     out: &mut Vec<PathBuf>,
 ) {
     let Ok(entries) = fs::read_dir(dir) else {
@@ -1108,11 +1119,13 @@ fn walk(
     let mut paths: Vec<PathBuf> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
     paths.sort();
     for path in paths {
-        if is_excluded(repo_root, &path, exclusions) {
+        if is_excluded(repo_root, &path, exclusions)
+            || layout.is_state_path(&rel_posix(repo_root, &path))
+        {
             continue;
         }
         if path.is_dir() {
-            walk(&path, exts, repo_root, exclusions, out);
+            walk(&path, exts, repo_root, exclusions, layout, out);
         } else if path
             .extension()
             .and_then(|e| e.to_str())

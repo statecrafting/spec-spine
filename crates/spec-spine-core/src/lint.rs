@@ -6,7 +6,7 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
-use spec_spine_types::{Config, Error, Severity, SpecRecord, Violation};
+use spec_spine_types::{Config, Error, Severity, SpecRecord, Unit, Violation};
 
 use crate::compile::compile;
 
@@ -73,6 +73,27 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
                 ));
             }
         }
+        // L-006: a unit claimed inside the declared, ungoverned state root
+        // (spec 039 3.4). Error tier: neither the claim nor the bypass wins,
+        // because letting the claim win would reintroduce spec 009's override
+        // into a directory whose whole purpose is to be ungoverned, and letting
+        // the bypass win would silently discard a unit an author wrote
+        // deliberately. Both are wrong, so the corpus is told instead.
+        for unit_path in claimed_paths(spec) {
+            if cfg.layout.is_state_path(&unit_path) {
+                violations.push(error(
+                    "L-006",
+                    format!(
+                        "spec '{}' claims '{unit_path}', which is inside the ungoverned \
+                         layout.state_dir '{}': move the file out of the state root, or \
+                         stop claiming it",
+                        spec.id, cfg.layout.state_dir
+                    ),
+                    at(),
+                ));
+            }
+        }
+
         // L-005: stub (no body sections).
         if spec.section_headings.is_empty() {
             violations.push(info(
@@ -106,6 +127,61 @@ fn edge_targets(spec: &SpecRecord) -> Vec<String> {
     targets.extend(spec.co_authority.iter().flat_map(|c| c.with_specs.clone()));
     targets.extend(spec.constrains.iter().flat_map(|c| c.target_specs.clone()));
     targets
+}
+
+/// Every repo-relative path a spec claims through an ownership-bearing edge.
+///
+/// `references` is excluded: spec 034 settled that a cited file is not a claimed
+/// one, so citing something inside the state root is not the contradiction
+/// `L-006` reports. Section and file units carry a path; symbol, crate and
+/// module units are resolved by id and have none to test here.
+fn claimed_paths(spec: &SpecRecord) -> Vec<String> {
+    let mut paths = Vec::new();
+    let mut push = |unit: &Unit| {
+        if let Some(p) = unit_path(unit) {
+            paths.push(p);
+        }
+    };
+    for unit in &spec.establishes {
+        push(unit);
+    }
+    for item in &spec.extends {
+        if let Some(u) = &item.unit {
+            push(u);
+        }
+    }
+    for item in &spec.refines {
+        if let Some(u) = &item.unit {
+            push(u);
+        }
+    }
+    for item in &spec.co_authority {
+        push(&item.unit);
+    }
+    for item in &spec.constrains {
+        if let Some(u) = &item.unit {
+            push(u);
+        }
+    }
+    paths
+}
+
+/// The repo-relative path a unit names, for the unit kinds that carry one.
+fn unit_path(unit: &Unit) -> Option<String> {
+    match unit {
+        Unit::File { path } | Unit::Directory { path } => Some(path.clone()),
+        Unit::Section { file, .. } => Some(file.clone()),
+        Unit::Symbol { .. } | Unit::Crate { .. } | Unit::Module { .. } => None,
+    }
+}
+
+fn error(code: &str, message: String, path: Option<String>) -> Violation {
+    Violation {
+        code: code.to_string(),
+        severity: Severity::Error,
+        message,
+        path,
+    }
 }
 
 fn warn(code: &str, message: String, path: Option<String>) -> Violation {
