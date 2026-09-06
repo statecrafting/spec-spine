@@ -83,9 +83,20 @@ For each spec in the registry, exactly one classification:
 
 - **Excluded**, and absent from the output entirely: `status` is `superseded` or
   `retired` (the corpus has moved past it), or `implementation` is `complete`,
-  `n-a` or `deferred` (nothing is being asked of it). A spec with no
-  `implementation` key at all is treated as `pending`, because an unstated
-  intention is the same input to a scheduler as a stated intention to start.
+  `n-a` or `deferred`. A spec with no `implementation` key at all is treated as
+  `pending`, because an unstated intention is the same input to a scheduler as a
+  stated intention to start.
+
+`deferred` sits in that list beside `complete` even though the two carry opposite
+information about whether work remains, so the reason is worth stating. `plan`
+does not ask "is this finished", it asks "should this be scheduled", and to both
+`complete` and `deferred` the answer is no. `deferred` is the one value in the
+enum that is a **decision** rather than a report: someone looked at the spec and
+took it off the schedule. A scheduler that offered it anyway would be overruling
+that decision, and one that quietly returned it to `ready` when a dependency
+landed would make deferral expire on its own, which is not what deferring
+something means. Un-deferring is therefore a human edit to the field, exactly as
+deferring was.
 - **Blocked**: at least one `depends_on` target is itself not finished, meaning
   its `implementation` is neither `complete` nor `n-a`. The entry names every
   such target.

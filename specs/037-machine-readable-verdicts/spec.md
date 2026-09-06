@@ -229,5 +229,13 @@ command a machine-readable verdict invites a driver to parse the output of the
 command that just changed the tree underneath it. If it is ever wanted, it is
 additive and separate.
 
+`attest` writes a file too and is nonetheless in scope, which is worth
+distinguishing. What it writes *is* the verdict, so its stdout and its artifact
+agree by construction, and it does not rewrite the ledger a consumer is about to
+read: `compile` and `index` regenerate the very shards the next gate compares
+against, which is the coupling that makes their verdicts awkward to consume mid-
+chain. The flag is opt-in besides, so no existing caller of any of these commands
+changes behavior until it passes `--json`.
+
 **Changing any exit code.** The `0/1/2/3` mapping is a stable contract and this
 spec does not touch it.
