@@ -1,0 +1,79 @@
+{
+  "mapping": {
+    "amends": [
+      "029-claude-code-skill-kit"
+    ],
+    "dependsOn": [
+      "029-claude-code-skill-kit",
+      "031-registry-freshness-check"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/tests/kit_hooks.rs",
+        "source": "multiple"
+      },
+      {
+        "path": "kit/settings.json",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/kit_hooks.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/settings.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/settings.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/03-adopter-audit-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/AGENTS.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "kit/AGENTS.md"
+        }
+      }
+    ],
+    "specId": "046-kit-hooks-read-never-write",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "053a1397ee9eece4dd36478a6ca35cbf6b8e47721d17b97be446eb49e4a658ac"
+}

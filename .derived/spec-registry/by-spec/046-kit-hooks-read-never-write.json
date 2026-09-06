@@ -1,0 +1,74 @@
+{
+  "record": {
+    "amends": [
+      "029-claude-code-skill-kit"
+    ],
+    "created": "2026-09-06",
+    "dependsOn": [
+      "029-claude-code-skill-kit",
+      "031-registry-freshness-check"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/kit_hooks.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "superseding",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/settings.json"
+        }
+      }
+    ],
+    "id": "046-kit-hooks-read-never-write",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "kit/AGENTS.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "046: The kit's hooks observe the tree; they do not repair it",
+      "1. Purpose",
+      "1.1 The kit contradicted itself",
+      "1.2 A hook cannot commit, so a hook must not write",
+      "1.3 The hooks judged the wrong repository",
+      "1.4 The rule with no enforcement",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Hooks read",
+      "3.2 The one sanctioned write",
+      "3.3 Action hooks act on the repository the action targets",
+      "3.4 The push gate",
+      "3.5 A hook that skips says so",
+      "3.6 The waiver is a human instrument",
+      "3.7 The test",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/046-kit-hooks-read-never-write/spec.md",
+    "status": "draft",
+    "summary": "Three of the four Claude Code hooks the kit ships write into the tree they are meant to observe. `SessionStart` runs a bare `compile`, which repairs a stale committed registry as a side effect of checking it; the `PreToolUse` PR gate runs `index` and then blocks on the uncommitted output of its own write, which a hook cannot commit; `Stop` regenerates a stale index and asks a session that has already ended to commit it. All four also bind to the session's project directory rather than the repository the action targets, so a multi-checkout session judges one repo by another's state. An adopter running these hooks under an orchestrator stalled for eleven hours on a tree the `Stop` hook had dirtied, because the orchestrator refuses to start a session on a dirty tree and only a session cleans one. That adopter fixed every one of these in its own copy; this spec ports the fixes into the kit, adds the push gate the kit's prose rule had no enforcement for, and pins the read-only property with a test that scans every hook body for a writing subcommand.\n",
+    "title": "The kit's hooks observe the tree; they do not repair it"
+  },
+  "shardHash": "b8a838d8d66298a0f704062c478e1b2bcd9182712e8c053e204cd059125c186b",
+  "specVersion": "1.1.0"
+}

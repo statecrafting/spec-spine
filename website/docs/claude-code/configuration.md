@@ -40,18 +40,27 @@ Rewrite both lists for your tool paths.
 ### Hooks
 
 The hooks are the deterministic safety net. They call the `spec-spine` CLI
-directly, so they work in any repo that has it on `PATH`.
+directly, so they work in any repo that has it on `PATH`. **They read; they do
+not repair** (spec 046). A hook cannot commit, so a hook that regenerated a
+committed artifact would leave the tree dirty for whoever comes next, and an
+orchestrator that refuses a dirty tree then never starts the session that
+would clean it.
 
 | Hook | Matcher | What it does |
 |---|---|---|
-| `SessionStart` | startup/resume/clear/compact | Recompiles the registry and reports registry + index freshness. |
-| `PostToolUse` | `Edit\|Write` | After a `spec.md` edit, recompiles; after any hashed-input edit, runs `index check`. |
-| `PreToolUse` | `Bash` | Intercepts `gh pr create`, runs the coupling gate, and blocks the PR if it fails with no `Spec-Drift-Waiver` in the body. |
-| `Stop` | `*` | If the index is stale (and no rebase/merge is in progress), regenerates it via `spec-spine index`. |
+| `SessionStart` | startup/resume/clear/compact | Runs `compile --check` and `index check`, decodes the exit codes, and reports registry + index freshness. Writes nothing. |
+| `PostToolUse` | `Edit\|Write` | After a `spec.md` edit, recompiles the registry (the one sanctioned write: the live session commits the shards with its edit); after any hashed-input edit, runs `index check`. Acts on the repository that contains the edited file. |
+| `PreToolUse` | `Bash` | Refuses `git push` to `main` (by refspec or current branch). Intercepts `gh pr create`: blocks on a stale committed index or uncommitted `.derived/`, then runs the coupling gate and blocks if it fails with no `Spec-Drift-Waiver` in the body. Acts on the repository the command targets. |
+| `Stop` | `*` | Runs `index check`; if stale, prints the command to run and why it was not run here. Writes nothing. |
+
+Every hook prints one line when it skips (no `spec-spine` on `PATH`, no `jq`,
+the target is not a spec-spine corpus) rather than exiting silently.
 
 To adapt: keep all four if you use spec-spine. Adjust the `PostToolUse` `case`
 globs to match your `spec-spine.toml [index] extra_hashed_inputs`, and the
-waiver keyword if you changed it.
+waiver keyword if you changed it. Do not reintroduce a writing subcommand into
+a hook: `crates/spec-spine-core/tests/kit_hooks.rs` refuses one in the kit for
+exactly the reason above.
 
 ## `.mcp.json`
 

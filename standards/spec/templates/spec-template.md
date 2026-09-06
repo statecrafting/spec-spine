@@ -9,7 +9,7 @@ summary: >
 # owner: "name"
 # authors: ["name"]
 # risk: medium                 # low | medium | high | critical
-# implementation: pending      # pending | in-progress | complete | n-a | deferred
+implementation: pending        # pending | in-progress | complete | n-a | deferred
 # depends_on: ["NNN-other"]
 # domain: "..."                # only if domains.allowed is configured non-empty
 # kind: "..."                  # only if kind.allowed is configured non-empty

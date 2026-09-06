@@ -116,6 +116,9 @@ fn bootstrap_spec(ns: &str) -> String {
          id: \"000-bootstrap\"\n\
          title: \"Bootstrap spec system\"\n\
          status: approved\n\
+         # This spec defines what a spec is; it owns no code, so there is nothing\n\
+         # to implement. `n-a` keeps `registry plan` from offering it (spec 045).\n\
+         implementation: n-a\n\
          created: \"REPLACE-WITH-DATE\"\n\
          summary: >\n\
          \u{20}\u{20}Foundational contract: authored truth lives only in markdown (+ YAML\n\
@@ -161,6 +164,7 @@ fn spec_template(ns: &str) -> String {
          id: \"NNN-slug\"                 # must equal the directory name\n\
          title: \"\"\n\
          status: draft                  # draft | approved | superseded | retired\n\
+         implementation: pending        # pending | in-progress | complete | n-a | deferred\n\
          created: \"YYYY-MM-DD\"\n\
          summary: >\n\
          \u{20}\u{20}One paragraph: what this spec governs and why.\n\
@@ -314,22 +318,43 @@ const ORCHESTRATOR_RULES: &str = "# Orchestrator rules\n\
 - Execute phased work in order; stop at human checkpoints.\n\
 - Write output files where the spec says; do not invent locations.\n\
 - Keep the working tree green; never leave the coupling gate red.\n\
-- Recompute derived artifacts (`compile`, `index`) before opening a PR.\n";
+- Recompute derived artifacts (`spec-spine compile`, `spec-spine index`)\n\
+\u{20}\u{20}before opening a PR, and commit the regenerated shards with the change that\n\
+\u{20}\u{20}made them stale. A shard left uncommitted dirties the tree for whoever comes\n\
+\u{20}\u{20}next.\n\
+- One session, one spec: follow `AGENTS.md` \"Working the backlog\", then stop.\n";
 
 const GOVERNED_READS: &str = "# Governed artifact reads\n\
 \n\
 The compiled artifacts under the derived directory are read **only** through\n\
-`spec-spine` subcommands (`registry`, `index`), never via ad-hoc `jq`/grep over\n\
-the JSON. Typed reads make schema drift fail at the deserializer with a clean\n\
-error instead of silently encoding stale assumptions.\n";
+`spec-spine` subcommands (`registry`, `index`), never via ad-hoc `jq`, `grep`,\n\
+`python`, `awk`, or `sed` over the JSON. Typed reads make schema drift fail at\n\
+the deserializer with a clean error instead of silently encoding stale\n\
+assumptions.\n\
+\n\
+Parsing the *output* of a `spec-spine` subcommand (for example\n\
+`spec-spine registry plan --json`, or the `--json` verdict envelope any gate\n\
+verb emits) is a typed read and is allowed: the tool has already deserialized\n\
+the shards and is answering in a contract it versions. The rule is about the\n\
+shard files, not about the CLI's answers.\n";
 
 const REFUSAL_RULE: &str = "# Adversarial prompt refusal (the coherence guard)\n\
 \n\
 If the coupling gate fails because code and its owning spec disagree, do **not**\n\
 resolve it by editing the spec to match the code you just wrote. Surface the\n\
-contradiction and let a human (or an agent with explicit authority) decide.\n\
-Never amend an owning spec purely to satisfy a mechanical refresh; waive\n\
-instead, with a cited `Spec-Drift-Waiver:` line.\n";
+contradiction and let a human (or an agent with explicit authority recorded in\n\
+the spec) decide. Never amend an owning spec purely to satisfy a mechanical\n\
+refresh; waive instead, with a cited `Spec-Drift-Waiver:` line. A waiver is a\n\
+human instrument: it needs explicit human approval, and an agent never writes\n\
+one on its own authority.\n\
+\n\
+Two edits are always legitimate for the spec you are implementing: adding a\n\
+file you created to its `establishes` list (the ownership ratchet refuses an\n\
+unclaimed file, and the claim belongs in the same change), and recording a\n\
+dated decision entry for a choice the spec was silent on. Changing what the\n\
+spec *requires* is never yours to do mid-build. If the code needs to touch a\n\
+unit another spec owns, declare an `extends` edge naming that spec and unit;\n\
+that amends nobody.\n";
 
 #[cfg(test)]
 mod tests {

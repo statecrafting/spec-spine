@@ -1,0 +1,140 @@
+{
+  "mapping": {
+    "amends": [
+      "038-registry-plan-ready-set"
+    ],
+    "dependsOn": [
+      "006-init-scaffold",
+      "038-registry-plan-ready-set",
+      "041-completion-held-to-claims"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/src/query.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/scaffold.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/query.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/scaffold.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/query.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/scaffold.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/query.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/query.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/scaffold.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scaffold.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/03-adopter-audit-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/038-registry-plan-ready-set/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/038-registry-plan-ready-set/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/041-completion-held-to-claims/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/041-completion-held-to-claims/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/044-in-progress-is-in-flight/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/044-in-progress-is-in-flight/spec.md"
+        }
+      }
+    ],
+    "specId": "045-absent-implementation-defers-to-status",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "0cf266327d2e896df57570103177ad72ddb825136f8aa657f1a31349dc475079"
+}

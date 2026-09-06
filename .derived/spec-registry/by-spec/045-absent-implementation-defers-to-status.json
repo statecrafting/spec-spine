@@ -1,0 +1,102 @@
+{
+  "record": {
+    "amends": [
+      "038-registry-plan-ready-set"
+    ],
+    "created": "2026-09-06",
+    "dependsOn": [
+      "006-init-scaffold",
+      "038-registry-plan-ready-set",
+      "041-completion-held-to-claims"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "038-registry-plan-ready-set",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "038-registry-plan-ready-set",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/query.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "006-init-scaffold",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "006-init-scaffold",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scaffold.rs"
+        }
+      }
+    ],
+    "id": "045-absent-implementation-defers-to-status",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/038-registry-plan-ready-set/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/041-completion-held-to-claims/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/044-in-progress-is-in-flight/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "045: An absent `implementation` key takes its answer from `status`",
+      "1. Purpose",
+      "1.1 Two verbs, one key, two answers",
+      "1.2 The instance that made it visible",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The rule",
+      "3.2 Why `status` is the right fallback",
+      "3.3 The scaffold",
+      "3.4 What this does not change",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/045-absent-implementation-defers-to-status/spec.md",
+    "status": "draft",
+    "summary": "`implementation` is optional, and two verbs read its absence in opposite directions. `registry plan` (spec 038) reads an absent key as `pending` and offers the spec as ready; the index's in-flight predicate (specs 041 and 044) reads `approved` + absent as settled and holds the spec to its claims. The one spec that routinely lacks the key is the bootstrap spec `spec-spine init` scaffolds, so every scaffolded corpus reports its bootstrap spec as the single ready item in an otherwise finished corpus, forever; one adopter does today, and this repository did until its own spec 000 was patched by hand. This spec fixes the rule rather than the instance: an absent key takes its answer from `status`. On a `draft` it reads as `pending`, as 038 intended; on anything ratified it reads as settled, as the gate already concludes. The scaffold's bootstrap spec declares `implementation: n-a` and the spec template states the key instead of commenting it out, so the absent case becomes rare as well as consistent.\n",
+    "title": "An absent `implementation` key takes its answer from `status`"
+  },
+  "shardHash": "40d94ad79b7dd45feb355faa18f7a0ad0e63a4376b0988fcfccd7679ed14a232",
+  "specVersion": "1.1.0"
+}

@@ -4,7 +4,7 @@
 
 use std::fs;
 
-use spec_spine_core::{compile, lint, scaffold_init};
+use spec_spine_core::{compile, lint, plan, scaffold_init};
 use spec_spine_types::Config;
 
 /// Write a [`Scaffold`] to a temp dir as the CLI would.
@@ -46,6 +46,77 @@ fn scaffolded_corpus_compiles_and_lints_clean() {
         "retroactive bootstrap should not trip L-001: {:?}",
         report.violations
     );
+}
+
+/// Spec 045 3.3: a freshly scaffolded corpus has nothing to schedule. The
+/// bootstrap spec used to carry no `implementation` key, which `plan` read as
+/// `pending`, so every `init` adopter's ready set was the bootstrap spec,
+/// forever. It now declares `n-a`, and the plan of a scaffold is empty.
+#[test]
+fn scaffolded_corpus_has_nothing_ready_to_schedule() {
+    let cfg = Config::default();
+    let repo = materialize(&cfg);
+    let outcome = compile(&cfg, repo.path()).unwrap();
+    let plan = plan(&outcome.registry).unwrap();
+    assert!(plan.ready.is_empty(), "{plan:?}");
+    assert!(plan.blocked.is_empty(), "{plan:?}");
+
+    let bootstrap = fs::read_to_string(repo.path().join("specs/000-bootstrap/spec.md")).unwrap();
+    assert!(bootstrap.contains("implementation: n-a"), "{bootstrap}");
+    let template = fs::read_to_string(
+        repo.path()
+            .join("standards/spec/templates/spec-template.md"),
+    )
+    .unwrap();
+    assert!(
+        template.contains("\nimplementation: pending"),
+        "the template states the key rather than commenting it out: {template}"
+    );
+}
+
+/// Spec 047: the three scaffolded rules carry the clarifications every adopter
+/// that rewrote them added by hand, and the kit ships the same text.
+#[test]
+fn scaffolded_rules_carry_the_047_clarifications() {
+    let cfg = Config::default();
+    let repo = materialize(&cfg);
+    let read = |rel: &str| fs::read_to_string(repo.path().join(rel)).unwrap();
+
+    let reads = read(".claude/rules/governed-artifact-reads.md");
+    assert!(reads.contains("is a typed read and is allowed"), "{reads}");
+
+    let refusal = read(".claude/rules/adversarial-prompt-refusal.md");
+    assert!(
+        refusal.contains("Two edits are always legitimate"),
+        "{refusal}"
+    );
+    assert!(refusal.contains("`establishes` list"), "{refusal}");
+    assert!(refusal.contains("human instrument"), "{refusal}");
+    assert!(refusal.contains("`extends` edge"), "{refusal}");
+
+    let orch = read(".claude/rules/orchestrator-rules.md");
+    assert!(orch.contains("commit the regenerated shards"), "{orch}");
+    assert!(orch.contains("One session, one spec"), "{orch}");
+
+    // The kit's copies are byte-identical to what the scaffold writes, so an
+    // adopter who ran `init` and one who copied `kit/` read the same rule.
+    for name in [
+        "governed-artifact-reads",
+        "adversarial-prompt-refusal",
+        "orchestrator-rules",
+    ] {
+        let kit = fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../kit/.claude/rules")
+                .join(format!("{name}.md")),
+        )
+        .unwrap();
+        assert_eq!(
+            kit,
+            read(&format!(".claude/rules/{name}.md")),
+            "kit/{name} drifted"
+        );
+    }
 }
 
 /// Spec 043 1.1: the scaffolded constitution shipped an amendment clause that
