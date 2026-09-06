@@ -322,14 +322,21 @@ fn validate_state_dir(config: &Config) -> Result<()> {
         return Ok(());
     }
 
-    // Not a repo-relative directory. Each of these matches no path the gates
-    // ever test, so the gates would behave as though no root were declared
-    // while the config says one is: silence that claims to be a decision.
-    if raw.starts_with('/') || raw == ".." || raw.starts_with("../") {
+    // Not a repo-relative directory. Each such value matches no path the gates
+    // ever test, so they would behave as though no root were declared while the
+    // config says one is: silence that claims to be a decision.
+    //
+    // The `..` test is over **segments**, not prefixes. `..`, `../x` and
+    // `x/../y` are all inert for the same reason (a repo-relative path produced
+    // by `rel_posix` carries no `..`), and three rounds of review found three
+    // separate spellings of it, so the check closes the class rather than
+    // another instance of it.
+    let traverses = raw.split('/').any(|segment| segment == "..");
+    if raw.starts_with('/') || traverses {
         return Err(Error::Config(format!(
-            "layout.state_dir '{raw}' is not a repo-relative directory: a value that escapes \
-             the repository, or an absolute one, would match no path the gates test and \
-             would silently declare nothing"
+            "layout.state_dir '{raw}' is not a repo-relative directory: an absolute path, or \
+             one carrying a '..' segment, would match no path the gates test and would \
+             silently declare nothing"
         )));
     }
 

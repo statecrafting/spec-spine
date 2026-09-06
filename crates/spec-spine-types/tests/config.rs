@@ -167,7 +167,19 @@ fn state_dir_may_not_overlap_a_governed_root_in_either_direction() {
     // A value escaping the repo, or an absolute one, matches no path the gates
     // ever test, so it would declare a root that silences nothing while the
     // config says one is declared. Refused rather than left inert.
-    for value in ["..", "../logs", "../../outside", "../", "/var/logs", "/"] {
+    // Every spelling of the same defect: a value that resolves outside the repo,
+    // or that carries a `..` segment anywhere, matches no path the gates test.
+    for value in [
+        "..",
+        "../logs",
+        "../../outside",
+        "../",
+        "/var/logs",
+        "/",
+        "state/..",
+        "./state/..",
+        "a/../b",
+    ] {
         let err = load_config(&format!("[layout]\nstate_dir = \"{value}\"\n")).unwrap_err();
         assert!(
             matches!(err, Error::Config(_)),

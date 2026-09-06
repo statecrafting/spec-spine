@@ -300,6 +300,20 @@ gitignored transcript are both ungoverned by the gates.
   than a wrong one, because the gates keep exiting 0 while adjudicating nothing
   and the config claims otherwise.
 
+- **D-7 (2026-09-06): the not-repo-relative check tests segments, not
+  prefixes.** Three review rounds found three spellings of one defect: `..`,
+  then `/var/logs` and `/`, then `state/..`. Each passed the guard written for
+  the previous one, and each was inert for the identical reason, since a
+  repo-relative path produced by `rel_posix` carries no `..` and never begins
+  with `/`. Patching the third spelling would have invited a fourth. The check
+  now refuses any value with a `..` **segment** anywhere, plus any absolute one,
+  which is the class rather than its instances.
+
+  The pattern is worth recording beyond this key: a validation rule written
+  against the example in front of you tends to encode the example. The general
+  question here was always "can this value ever match a path the gates test",
+  and asking it directly is what closes the case.
+
 - **D-6 (2026-09-06): `L-006` covers all six ownership-bearing edges, not five.**
   The first implementation walked `establishes`, `extends`, `refines`,
   `co_authority` and `constrains`, and omitted `supersedes`. A partial
