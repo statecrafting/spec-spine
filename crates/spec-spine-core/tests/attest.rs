@@ -391,3 +391,38 @@ fn a_location_that_resolves_but_cannot_be_read_is_an_error() {
     assert!(message.contains("code.txt"), "names the file: {message}");
     assert!(message.contains("001-a"), "and the spec: {message}");
 }
+
+/// A changed unit set is reported by unit, not by position.
+///
+/// Inserting a unit ahead of the others would, under a positional walk, compare
+/// every later entry against an unrelated one and report each as a changed
+/// hash: a report whose own noise buries the one line that explains it.
+#[test]
+fn recompute_reports_unit_changes_by_identity_not_position() {
+    let tmp = spec_fixture(OWNED);
+    let cfg = Config::default();
+    let attestation = attest_spec(&cfg, tmp.path(), "001-a").unwrap().attestation;
+
+    // Add a claim that sorts ahead of `code.txt`, leaving its content alone.
+    fs::write(tmp.path().join("aaa.txt"), "first\n").unwrap();
+    write_spec(
+        tmp.path(),
+        "001-a",
+        "001-a",
+        "establishes:\n  - \"aaa.txt\"\n  - \"code.txt\"\n",
+    );
+
+    let VerifyOutcome::ContentMismatch { differences } =
+        verify_spec_recompute(&cfg, tmp.path(), &attestation).unwrap()
+    else {
+        panic!("a new unit is a content mismatch");
+    };
+    assert!(
+        differences.iter().any(|d| d.contains("is new")),
+        "the added unit is named as added: {differences:?}"
+    );
+    assert!(
+        !differences.iter().any(|d| d.contains("contentHash")),
+        "no unit's content changed, so no hash difference is reported: {differences:?}"
+    );
+}

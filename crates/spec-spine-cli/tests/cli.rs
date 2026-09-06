@@ -1574,3 +1574,30 @@ fn attest_spec_json_rides_in_the_verdict_envelope() {
     .unwrap();
     assert_eq!(v["report"], expected, "one payload shape per verb");
 }
+
+/// Spec 042 3.1: there is no per-spec coupling verdict, so `--with-coupling`
+/// combined with `--spec` is refused rather than accepted and ignored.
+///
+/// Accepting it would return exit 0 and a payload silently missing the verdict
+/// the caller asked for, which is the skip-as-pass shape spec 023 FR-006 rules
+/// out for every mode in this verb.
+#[test]
+fn attest_refuses_with_coupling_scoped_to_one_spec() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+
+    let out = run_in(root, &["attest", "--spec", "001-a", "--with-coupling"]);
+    assert_eq!(code(&out), 3, "a mode that cannot run fails visibly");
+    let message = String::from_utf8_lossy(&out.stderr);
+    assert!(message.contains("--with-coupling"), "{message}");
+    assert!(message.contains("--spec"), "{message}");
+    assert!(
+        !root.join(".derived/attestation/by-spec").exists(),
+        "and writes nothing"
+    );
+
+    // Each flag alone still works.
+    assert_eq!(code(&run_in(root, &["attest", "--spec", "001-a"])), 0);
+    assert_eq!(code(&run_in(root, &["attest", "--with-coupling"])), 0);
+}

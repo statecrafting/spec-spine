@@ -33,6 +33,20 @@ pub struct AttestArgs {
 /// Exit `0` on success; a `--sign` with no `--key` is a visible config error
 /// (FR-006: a mode that cannot run fails, never skip-as-pass).
 pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
+    // Spec 042 3.1: coupling is a property of a diff between two revisions, not
+    // of a spec at one revision, so a per-spec attestation carries no couple
+    // verdict and `attest_spec` takes no such option. Accepting the flag and
+    // doing nothing would hand back an exit 0 and a payload missing the verdict
+    // the caller asked for, with nothing said. A mode that cannot run fails
+    // visibly (spec 023 FR-006).
+    if args.spec.is_some() && args.with_coupling {
+        return Err(Error::Config(
+            "attest --with-coupling is corpus-scoped and cannot combine with --spec: \
+             coupling is a property of a diff between two revisions, not of a spec at one \
+             (spec 042 3.1); run `spec-spine attest --with-coupling` for that verdict"
+                .to_string(),
+        ));
+    }
     let cfg = load_repo_config(repo)?;
 
     // FR-006 (fail-closed, no side effects on a usage error): when signing,

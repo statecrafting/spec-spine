@@ -330,17 +330,22 @@ pub fn verify_spec_recompute(
             a.lifecycle, b.lifecycle
         ));
     }
-    for (before, after) in a.units.iter().zip(&b.units) {
-        if before.content_hash != after.content_hash {
-            differences.push(format!("units[{:?}].contentHash", before.unit));
+    // Matched by unit, not by position. Zipping would compare unrelated units
+    // after an insertion and report every one of them as a changed hash, so the
+    // count line would arrive buried in noise it caused.
+    for before in &a.units {
+        match b.units.iter().find(|after| after.unit == before.unit) {
+            Some(after) if after.content_hash != before.content_hash => {
+                differences.push(format!("units[{:?}].contentHash", before.unit));
+            }
+            Some(_) => {}
+            None => differences.push(format!("units[{:?}] is gone", before.unit)),
         }
     }
-    if a.units.len() != b.units.len() {
-        differences.push(format!(
-            "units (count {} -> {})",
-            a.units.len(),
-            b.units.len()
-        ));
+    for after in &b.units {
+        if !a.units.iter().any(|before| before.unit == after.unit) {
+            differences.push(format!("units[{:?}] is new", after.unit));
+        }
     }
     if a.verdicts != b.verdicts {
         differences.push(format!("verdicts ({:?} -> {:?})", a.verdicts, b.verdicts));
