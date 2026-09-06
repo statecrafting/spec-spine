@@ -306,3 +306,24 @@ resolved silently in code.
   cannot drift unnoticed. Rejected: widening `spec-spine-core`'s public surface,
   which 2 excludes from this spec's territory and which would make an internal
   shaping helper part of the library contract for no consumer's benefit.
+
+- **D-4 (2026-09-06): the error envelope carries a validation failure's
+  violations.** 3.3's example shows `error` as `{ kind, message }`, which is
+  sufficient for six of the seven `Error` variants. `Error::Validation` is the
+  exception: it carries a violation list, and `Display` reduces it to a count, so
+  routing it through the generic error path discarded the only structured payload
+  any error class has. The asymmetry was visible in the chain itself, since
+  `lint --json` puts its violations in `report` on the same exit code while
+  `compile --check --json` would have offered a sentence, leaving a consumer that
+  handles both to fall back to parsing stderr for one of them. `VerdictError`
+  therefore carries an additive `violations` array, present only when `kind` is
+  `validation` and omitted rather than emitted empty. Rejected: putting them in
+  `report` on that path, which would make `compile --check`'s report a union of
+  a freshness object and a validation object and force every consumer to
+  discriminate before reading either.
+
+  The remaining asymmetry with `lint` is deliberate. Lint's violations *are* its
+  verdict, so they are its report; a validation failure is the thing that
+  prevented `compile --check` from reaching a freshness verdict at all, so it is
+  an error that happens to carry detail. Same data, and the shape says which
+  question was answered.

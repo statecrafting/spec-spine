@@ -17,6 +17,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::error::Error;
+use crate::registry::Violation;
 use crate::version::VERDICT_SCHEMA_VERSION;
 
 /// The stable dotted command paths carried in [`Verdict::verb`].
@@ -73,6 +74,16 @@ pub struct VerdictError {
     pub kind: String,
     /// Human text. Carries no stability promise; branch on `kind`.
     pub message: String,
+    /// The violations, present only when `kind` is `validation`.
+    ///
+    /// `Error::Validation` is the one variant carrying a structured payload,
+    /// and `Display` reduces it to a count. Without this member a consumer
+    /// handling `lint --json` exit 1 by reading its violation array would get
+    /// nothing structured from `compile --check --json` on the same exit code,
+    /// and would have to fall back to parsing stderr to learn which specs
+    /// failed. Omitted, not null, when empty.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub violations: Vec<Violation>,
 }
 
 impl Verdict {
@@ -102,6 +113,10 @@ impl Verdict {
             error: Some(VerdictError {
                 kind: error_kind(error).to_string(),
                 message: error.to_string(),
+                violations: match error {
+                    Error::Validation(v) => v.clone(),
+                    _ => Vec::new(),
+                },
             }),
         }
     }
@@ -197,6 +212,31 @@ mod tests {
         assert!(out.find("\"report\"").unwrap() < out.find("\"schemaVersion\"").unwrap());
         // ...and so do the report's own keys.
         assert!(out.find("\"a\"").unwrap() < out.find("\"z\"").unwrap());
+    }
+
+    #[test]
+    fn a_validation_failure_carries_its_violations() {
+        use crate::registry::Severity;
+        let v = Verdict::failure(
+            verb::COMPILE_CHECK,
+            &Error::Validation(vec![Violation {
+                code: "V-001".to_string(),
+                severity: Severity::Error,
+                message: "boom".to_string(),
+                path: Some("specs/001-a/spec.md".to_string()),
+            }]),
+        );
+        let e = v.error.as_ref().unwrap();
+        assert_eq!(e.kind, "validation");
+        assert_eq!(e.violations.len(), 1, "the payload is not discarded");
+        assert_eq!(e.violations[0].code, "V-001");
+        // Every other kind leaves it empty, so it is omitted from the JSON.
+        let other = Verdict::failure(verb::LINT, &Error::Io("x".into()));
+        assert!(other.error.as_ref().unwrap().violations.is_empty());
+        assert!(
+            !other.to_canonical_json().unwrap().contains("violations"),
+            "an empty violation list is omitted, not emitted as []"
+        );
     }
 
     #[test]

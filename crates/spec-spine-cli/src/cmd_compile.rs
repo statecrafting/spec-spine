@@ -39,11 +39,18 @@ use crate::out;
 /// non-writing `--check` exists to avoid.
 pub fn run(repo: &Path, check: bool, json: bool) -> Result<u8, Error> {
     if json && !check {
-        return Err(Error::Config(
+        // Written here rather than raised for `main` to render: `json_verb`
+        // deliberately maps only `compile --check`, so a caller that asked for
+        // JSON still gets JSON and the envelope's verb is a local, documented
+        // choice (`compile.check` is the only machine-readable form of this
+        // command, and the message names the flag that reaches it).
+        let err = Error::Config(
             "compile --json requires --check: the writing form has no machine-readable \
              verdict (spec 037 4); use `compile --check --json`"
                 .to_string(),
-        ));
+        );
+        crate::emit_error_envelope(verb::COMPILE_CHECK, &err);
+        return Ok(err.exit_code());
     }
     let cfg = load_repo_config(repo)?;
     let outcome = spec_spine_core::compile(&cfg, repo)?;

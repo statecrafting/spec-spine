@@ -1082,6 +1082,29 @@ fn json_error_path_is_an_envelope_on_stdout() {
     let out = run_in(root, &["compile", "--json"]);
     assert_eq!(code(&out), 3);
     assert_eq!(envelope(&out)["error"]["kind"], "config");
+
+    // A validation failure is the one error class with a structured payload,
+    // and it must survive the generic error path: a consumer that reads
+    // `lint --json`'s violation array on exit 1 gets the same data here rather
+    // than a bare sentence and a fallback to parsing stderr.
+    fs::write(
+        root.join("specs/001-a/spec.md"),
+        "---\nid: \"999-mismatched\"\ntitle: \"A\"\nstatus: approved\n\
+         created: \"2026-06-09\"\nsummary: \"s\"\n---\n# x\n",
+    )
+    .unwrap();
+    let prose = run_in(root, &["compile", "--check"]);
+    let out = run_in(root, &["compile", "--check", "--json"]);
+    assert_eq!(code(&prose), 1, "id must match the directory name");
+    assert_eq!(code(&out), code(&prose), "the flag does not move the code");
+    let v = envelope(&out);
+    assert_eq!(v["error"]["kind"], "validation");
+    let violations = v["error"]["violations"].as_array().unwrap();
+    assert!(!violations.is_empty(), "{v}");
+    assert!(
+        violations[0]["code"].as_str().unwrap().starts_with("V-"),
+        "{v}"
+    );
 }
 
 /// Spec 037 3.5: the envelope goes through the closed-reader write, on every
@@ -1173,4 +1196,106 @@ fn prose_output_is_unchanged_without_the_flag() {
         "{}",
         String::from_utf8_lossy(&verify.stdout)
     );
+}
+
+/// Spec 037 D-2: `--signature` is the mode the facade does not model, and the
+/// additive `signature` member is the only payload shape in this spec with no
+/// facade counterpart to pin it. Exercised end to end so a rename is caught.
+///
+/// The public key is recovered from the seal's own `keyId`, which spec 023
+/// defines as the hex public key, so the test needs no key derivation of its
+/// own and stays a pure round-trip through the two commands.
+#[test]
+fn json_verify_attestation_reports_the_signature_mode() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+
+    let seed = root.join("signing.key");
+    fs::write(&seed, [7u8; 32]).unwrap();
+    let signed = run_in(root, &["attest", "--sign", "--key", seed.to_str().unwrap()]);
+    assert_eq!(
+        code(&signed),
+        0,
+        "{}",
+        String::from_utf8_lossy(&signed.stderr)
+    );
+
+    let seal: serde_json::Value = serde_json::from_slice(
+        &fs::read(root.join(".derived/attestation/attestation.sig")).unwrap(),
+    )
+    .unwrap();
+    let key_id = seal["keyId"].as_str().unwrap().to_string();
+    let public = root.join("public.hex");
+    fs::write(&public, &key_id).unwrap();
+
+    // Both modes at once: the report carries the facade's `outcome` and the
+    // additive `signature` member side by side.
+    let out = run_in(
+        root,
+        &[
+            "verify-attestation",
+            "--recompute",
+            "--signature",
+            "--public-key",
+            public.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
+    let v = envelope(&out);
+    assert_eq!(v["ok"], true);
+    assert_eq!(v["report"]["outcome"], "match");
+    assert_eq!(v["report"]["signature"]["valid"], true);
+    assert_eq!(v["report"]["signature"]["keyId"], key_id.as_str());
+
+    // Signature-only: no `outcome`, because recompute did not run.
+    let out = run_in(
+        root,
+        &[
+            "verify-attestation",
+            "--signature",
+            "--public-key",
+            public.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert_eq!(code(&out), 0);
+    let v = envelope(&out);
+    assert!(v["report"].get("outcome").is_none(), "{v}");
+    assert_eq!(v["report"]["signature"]["valid"], true);
+
+    // A wrong key is a failed verification: exit 1, and the envelope says so
+    // rather than merely omitting the good news.
+    fs::write(&public, "00".repeat(32)).unwrap();
+    let out = run_in(
+        root,
+        &[
+            "verify-attestation",
+            "--signature",
+            "--public-key",
+            public.to_str().unwrap(),
+            "--json",
+        ],
+    );
+    assert_eq!(code(&out), 1);
+    let v = envelope(&out);
+    assert_eq!(v["ok"], false);
+    assert_eq!(v["exitCode"], 1);
+    assert_eq!(v["report"]["signature"]["valid"], false);
+}
+
+/// Spec 037 3.3: a `verify-attestation` with no mode selected is a config
+/// error, not an affirmative `ok: true` over an empty report.
+#[test]
+fn json_verify_attestation_with_no_mode_is_an_error_envelope() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+    let out = run_in(root, &["verify-attestation", "--json"]);
+    assert_eq!(code(&out), 3);
+    let v = envelope(&out);
+    assert_eq!(v["ok"], false);
+    assert_eq!(v["error"]["kind"], "config");
+    assert!(v.get("report").is_none());
 }

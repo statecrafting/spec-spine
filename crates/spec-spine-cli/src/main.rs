@@ -246,7 +246,7 @@ fn main() -> ExitCode {
 /// scalars), but silently emitting nothing on stdout would leave a consumer
 /// waiting on a document that never comes, which is worse than a prose line on
 /// a stream it was not reading.
-fn emit_error_envelope(verb: &str, error: &Error) {
+pub(crate) fn emit_error_envelope(verb: &str, error: &Error) {
     let verdict = Verdict::failure(verb, error);
     if let Err(e) = out::verdict(&verdict) {
         eprintln!("spec-spine: {error}");
@@ -260,7 +260,14 @@ impl Command {
     /// path is each command's own, because only it holds the report.
     fn json_verb(&self) -> Option<&'static str> {
         match self {
-            Command::Compile { json: true, .. } => Some(verb::COMPILE_CHECK),
+            // `check: true` as well as `json: true`: `compile --json` without
+            // `--check` is refused inside `cmd_compile`, which writes its own
+            // envelope, so no envelope from this generic path ever carries a
+            // verb the invocation did not qualify for.
+            Command::Compile {
+                json: true,
+                check: true,
+            } => Some(verb::COMPILE_CHECK),
             Command::Lint { json: true, .. } => Some(verb::LINT),
             Command::Couple { json: true, .. } => Some(verb::COUPLE),
             Command::Attest { json: true, .. } => Some(verb::ATTEST),
