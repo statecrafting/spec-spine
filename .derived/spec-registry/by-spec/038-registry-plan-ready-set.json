@@ -89,6 +89,6 @@
     "summary": "`depends_on` records the order specs must be built in, spec 033 guarantees that graph is acyclic, and `implementation` records how far each one has got, but nothing joins the three: there is no query that answers \"which specs can be worked on now, and in what order\". Every consumer that needs it (a contributor picking up the corpus, a release note, an autonomous driver taking one spec per session) recomputes it by reading frontmatter by hand, which is both tedious and exactly the ad-hoc traversal the typed read verbs exist to replace. This spec adds `registry plan`: a read-only projection that partitions the corpus into a `ready` set (nothing unfinished blocks it) emitted in deterministic topological order, and a `blocked` set, each entry naming the unfinished dependencies that block it, so the output explains itself rather than merely listing. It is a scheduling projection and nothing more: `implementation` is a self-declared field that no gate currently verifies, so `plan` treats it as a hint about intent and never as evidence about code, and this spec deliberately does not let a scheduling answer imply that anything is done.\n",
     "title": "`registry plan`: the ready set in dependency order"
   },
-  "shardHash": "214dac0e0fbea554c2142e6e94d3979cbe4160d2ba744c35439dbe4afb542a6b",
+  "shardHash": "a5b593314d7056a39c76ac4efb16b17b819c04dc81bf1dae4a3e64a2cbc98d3b",
   "specVersion": "1.1.0"
 }

@@ -518,7 +518,11 @@ fn plan_and_compile_agree_on_a_cycle_among_retired_specs() {
     retired("001-a", "002-b");
     retired("002-b", "001-a");
 
-    let outcome = compile(&Config::default(), tmp.path()).unwrap();
+    // The pivot of the whole test: `compile` returns `Ok` for a cycle, carrying
+    // V-014 in the report. Named here so a future change to `Err` fails saying
+    // that, rather than as an unexplained panic in a test about scope.
+    let outcome = compile(&Config::default(), tmp.path())
+        .expect("compile returns Ok on a cyclic corpus; the violation rides in the report");
 
     // The detector fires: it is not scoped to active specs. `compile` still
     // returns `Ok`, carrying the violation in the report rather than as an

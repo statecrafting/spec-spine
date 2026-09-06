@@ -120,7 +120,9 @@ ascending spec id. `blocked` is emitted in ascending spec id, and each entry's
 `blockedBy` follows that spec's own authored `depends_on` order. Both orderings
 are part of the contract: the determinism requirement below is a property of the
 whole report, so a consumer diffing either array across runs is relying on a
-stated guarantee rather than on an implementation's iteration order. The tiebreak is what makes the output a pure function of the
+stated guarantee rather than on an implementation's iteration order.
+
+The `ready` tiebreak is what makes the output a pure function of the
 corpus rather than of a hash-map iteration order, which the determinism contract
 requires of every output this project produces.
 
