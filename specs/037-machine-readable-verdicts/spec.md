@@ -4,7 +4,7 @@ title: "Machine-readable verdicts: `--json` on the adjudicating verbs"
 status: draft
 kind: "tooling"
 created: "2026-09-05"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -261,3 +261,48 @@ changes behavior until it passes `--json`.
 
 **Changing any exit code.** The `0/1/2/3` mapping is a stable contract and this
 spec does not touch it.
+
+## 5. Resolved decisions
+
+Three points where 3 was silent or where its wording admitted two readings.
+Recorded at implementation, with the alternative that was rejected, rather than
+resolved silently in code.
+
+- **D-1 (2026-09-05): "byte-identical" is a claim about the payload, not the
+  encoding.** 3.1 says `report` MUST be "byte-identical to what the
+  corresponding `*_json` function returns". Read literally that is
+  unsatisfiable alongside 3.5: the facade returns compact JSON, the envelope is
+  canonical (sorted keys, two-space pretty-print), so embedding one inside the
+  other re-encodes it by construction. 3.1's own example settles which reading
+  was meant, since `"report": { }` is an object member and not a string holding
+  an encoded document. The requirement is therefore implemented and tested as
+  payload equality: the CLI's `report` and the facade's output parse to the same
+  JSON value, so a divergence in members, spelling or values fails
+  `json_report_equals_the_facade_payload`. Rejected: embedding the facade's
+  string verbatim, which would make `report` a double-encoded string and defeat
+  the flag's purpose.
+
+- **D-2 (2026-09-05): `verify-attestation`'s report carries both modes.** The
+  verb runs `--recompute` and `--signature` independently, and the facade
+  (`verify_attestation_json`) models only recompute. A report that carried the
+  facade's payload alone would silently drop the signature verdict, which 3.2
+  forbids: the envelope must report the same verdict the prose reports, and the
+  prose reports both. The report is therefore the facade's payload with an
+  additive `signature: { valid, keyId }` member present exactly when
+  `--signature` ran. For a recompute-only invocation, the inputs the facade
+  accepts, the report is the facade's payload exactly, so D-1's equality holds
+  there without qualification. Rejected: a `{ recompute, signature }` wrapper,
+  which would have broken that equality for every invocation rather than
+  extending it for one.
+
+- **D-3 (2026-09-05): the freshness payload is rebuilt in the CLI, and pinned by
+  test.** `compile --check --json` and `index check --json` need the
+  `{ fresh, expected?, actual? }` shape that `check_registry_freshness_json` and
+  `check_freshness_json` return, but reaching for those facades would recompile
+  the corpus a second time on a command that runs in CI, and the shaping helper
+  behind them is private to the facade. `cmd_compile::freshness_report` builds it
+  from the typed `Freshness` the CLI already holds, and
+  `json_report_equals_the_facade_payload` compares the two so the duplication
+  cannot drift unnoticed. Rejected: widening `spec-spine-core`'s public surface,
+  which 2 excludes from this spec's territory and which would make an internal
+  shaping helper part of the library contract for no consumer's benefit.

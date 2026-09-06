@@ -1,8 +1,9 @@
 //! Registry DTO round-trips, version constants, severity/validation logic.
 
 use spec_spine_types::{
-    BUILD_META_SCHEMA_VERSION, CONFIG_VERSION, INDEX_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION,
-    Registry, Severity, Status, ValidationReport, Violation, parse_semver,
+    BUILD_META_SCHEMA_VERSION, CONFIG_VERSION, Error, INDEX_SCHEMA_VERSION,
+    REGISTRY_SCHEMA_VERSION, Registry, Severity, Status, VERDICT_SCHEMA_VERSION, ValidationReport,
+    Verdict, Violation, parse_semver, verdict::verb,
 };
 
 const REGISTRY_JSON: &str = r#"{
@@ -77,6 +78,45 @@ fn schema_versions_are_pinned() {
     assert_eq!(INDEX_SCHEMA_VERSION, "1.1.0");
     assert_eq!(BUILD_META_SCHEMA_VERSION, "0.1.0");
     assert_eq!(CONFIG_VERSION, "0.1.0");
+    // Spec 037: the verdict envelope, versioned from its first release rather
+    // than acquiring a version after the first consumer breaks.
+    assert_eq!(VERDICT_SCHEMA_VERSION, "0.1.0");
+}
+
+/// Spec 037 3.1: the envelope a consumer parses is one shape across six verbs.
+/// Pinned here rather than only in the CLI tests, because the members and their
+/// spelling are the external contract, not an implementation detail.
+#[test]
+fn verdict_envelope_round_trips_with_the_documented_members() {
+    let v = Verdict::report(verb::COUPLE, 1, serde_json::json!({ "violations": [] }));
+    let json = v.to_canonical_json().unwrap();
+    let back: Verdict = serde_json::from_str(&json).unwrap();
+    assert_eq!(back, v);
+
+    let value: serde_json::Value = serde_json::from_str(&json).unwrap();
+    assert_eq!(value["schemaVersion"], VERDICT_SCHEMA_VERSION);
+    assert_eq!(value["verb"], "couple");
+    assert_eq!(value["ok"], false);
+    assert_eq!(value["exitCode"], 1);
+    assert!(value.get("report").is_some());
+    assert!(value.get("error").is_none());
+}
+
+/// Spec 037 3.3: `kind` is a closed set of stable tokens, and the exit code in
+/// the envelope is the one the process returns.
+#[test]
+fn verdict_failure_kinds_are_the_documented_tokens() {
+    let v = Verdict::failure(
+        verb::INDEX_CHECK,
+        &Error::Stale {
+            expected: "a".to_string(),
+            actual: "b".to_string(),
+        },
+    );
+    let value: serde_json::Value = serde_json::from_str(&v.to_canonical_json().unwrap()).unwrap();
+    assert_eq!(value["error"]["kind"], "stale");
+    assert_eq!(value["exitCode"], 2);
+    assert!(value.get("report").is_none());
 }
 
 #[test]

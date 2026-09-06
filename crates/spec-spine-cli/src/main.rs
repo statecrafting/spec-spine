@@ -33,7 +33,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{Parser, Subcommand};
-use spec_spine_types::{Config, Error};
+use spec_spine_types::{Config, Error, Verdict, verdict::verb};
 
 #[derive(Parser)]
 #[command(
@@ -58,6 +58,11 @@ enum Command {
         /// `index check`.
         #[arg(long)]
         check: bool,
+        /// Emit the verdict as a JSON envelope on stdout (spec 037). Requires
+        /// `--check`: the writing form mutates `.derived`, and its verdict is
+        /// deliberately not machine-readable (spec 037 4).
+        #[arg(long)]
+        json: bool,
     },
     /// Read-only queries over the compiled registry.
     Registry {
@@ -77,6 +82,9 @@ enum Command {
         /// Fail (exit 1) if any info-tier diagnostic is present.
         #[arg(long)]
         fail_on_info: bool,
+        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        #[arg(long)]
+        json: bool,
     },
     /// The PR-time coupling gate: refuse code that drifts from its owning spec.
     Couple {
@@ -93,6 +101,9 @@ enum Command {
         /// (whole-file authority; no hunk data).
         #[arg(long)]
         paths_from: Option<PathBuf>,
+        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        #[arg(long)]
+        json: bool,
     },
     /// Scaffold a new adopter: config, standards, a bootstrap spec, agent rules.
     Init {
@@ -114,6 +125,9 @@ enum Command {
         /// Override the seal's key id (defaults to the hex public key).
         #[arg(long, value_name = "ID")]
         key_id: Option<String>,
+        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        #[arg(long)]
+        json: bool,
     },
     /// Verify a corpus attestation by recompute and/or detached signature.
     VerifyAttestation {
@@ -132,6 +146,9 @@ enum Command {
         /// The detached seal file (defaults to the attestation's sibling .sig).
         #[arg(long, value_name = "PATH")]
         seal: Option<PathBuf>,
+        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        #[arg(long)]
+        json: bool,
     },
 }
 
@@ -142,19 +159,22 @@ fn main() -> ExitCode {
         None => std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
     };
 
+    let json_verb = cli.command.json_verb();
     let result = match &cli.command {
-        Command::Compile { check } => cmd_compile::run(&repo, *check),
+        Command::Compile { check, json } => cmd_compile::run(&repo, *check, *json),
         Command::Registry { query } => cmd_registry::run(&repo, query),
         Command::Index { action } => cmd_index::run(&repo, action.as_ref()),
         Command::Lint {
             fail_on_warn,
             fail_on_info,
-        } => cmd_lint::run(&repo, *fail_on_warn, *fail_on_info),
+            json,
+        } => cmd_lint::run(&repo, *fail_on_warn, *fail_on_info, *json),
         Command::Couple {
             base,
             head,
             pr_body,
             paths_from,
+            json,
         } => cmd_couple::run(
             &repo,
             &cmd_couple::CoupleArgs {
@@ -162,6 +182,7 @@ fn main() -> ExitCode {
                 head: head.clone(),
                 pr_body: pr_body.clone(),
                 paths_from: paths_from.clone(),
+                json: *json,
             },
         ),
         Command::Init { force } => cmd_init::run(&repo, *force),
@@ -170,6 +191,7 @@ fn main() -> ExitCode {
             sign,
             key,
             key_id,
+            json,
         } => cmd_attest::run(
             &repo,
             &cmd_attest::AttestArgs {
@@ -177,6 +199,7 @@ fn main() -> ExitCode {
                 sign: *sign,
                 key: key.clone(),
                 key_id: key_id.clone(),
+                json: *json,
             },
         ),
         Command::VerifyAttestation {
@@ -185,6 +208,7 @@ fn main() -> ExitCode {
             attestation,
             public_key,
             seal,
+            json,
         } => verify_attestation::run(
             &repo,
             &verify_attestation::VerifyArgs {
@@ -193,6 +217,7 @@ fn main() -> ExitCode {
                 attestation: attestation.clone(),
                 public_key: public_key.clone(),
                 seal: seal.clone(),
+                json: *json,
             },
         ),
     };
@@ -200,8 +225,50 @@ fn main() -> ExitCode {
     match result {
         Ok(code) => ExitCode::from(code),
         Err(e) => {
-            eprintln!("spec-spine: {e}");
-            ExitCode::from(e.exit_code())
+            // Spec 037 3.3: under `--json` a failure is an envelope on stdout,
+            // not bare prose on stderr, so a consumer's happy path and error
+            // path have the same shape. Handled once here rather than in six
+            // commands: every `run` returning `Err` lands in this arm.
+            let code = e.exit_code();
+            match json_verb {
+                Some(v) => emit_error_envelope(v, &e),
+                None => eprintln!("spec-spine: {e}"),
+            }
+            ExitCode::from(code)
+        }
+    }
+}
+
+/// Render an error envelope, falling back to prose if the envelope itself
+/// cannot be serialized.
+///
+/// The fallback is unreachable in practice (the envelope is two strings and two
+/// scalars), but silently emitting nothing on stdout would leave a consumer
+/// waiting on a document that never comes, which is worse than a prose line on
+/// a stream it was not reading.
+fn emit_error_envelope(verb: &str, error: &Error) {
+    let verdict = Verdict::failure(verb, error);
+    if let Err(e) = out::verdict(&verdict) {
+        eprintln!("spec-spine: {error}");
+        eprintln!("spec-spine: (could not render the JSON verdict: {e})");
+    }
+}
+
+impl Command {
+    /// The verdict envelope's `verb` when this invocation passed `--json`, and
+    /// `None` otherwise. Drives only the failure path in `main`; the success
+    /// path is each command's own, because only it holds the report.
+    fn json_verb(&self) -> Option<&'static str> {
+        match self {
+            Command::Compile { json: true, .. } => Some(verb::COMPILE_CHECK),
+            Command::Lint { json: true, .. } => Some(verb::LINT),
+            Command::Couple { json: true, .. } => Some(verb::COUPLE),
+            Command::Attest { json: true, .. } => Some(verb::ATTEST),
+            Command::VerifyAttestation { json: true, .. } => Some(verb::VERIFY_ATTESTATION),
+            Command::Index {
+                action: Some(cmd_index::IndexAction::Check { json: true, .. }),
+            } => Some(verb::INDEX_CHECK),
+            _ => None,
         }
     }
 }

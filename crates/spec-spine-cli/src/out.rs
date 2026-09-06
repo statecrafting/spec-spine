@@ -12,6 +12,8 @@
 use std::fmt::Arguments;
 use std::io::{self, Write};
 
+use spec_spine_types::{Error, Verdict};
+
 /// What a stdout write means for the process.
 #[derive(Debug, PartialEq, Eq)]
 pub(crate) enum Outcome {
@@ -54,6 +56,16 @@ pub(crate) fn block(args: Arguments<'_>) {
     let stdout = io::stdout();
     let mut handle = stdout.lock();
     finish(write!(handle, "{args}").and_then(|()| handle.flush()));
+}
+
+/// Write a machine-readable verdict envelope (spec 037) to stdout.
+///
+/// Canonical JSON already ends in a newline, so this goes through [`block`]:
+/// the envelope survives a reader that closes early exactly as every other
+/// stdout write does, and `spec-spine couple --json | head` exits `0`.
+pub(crate) fn verdict(v: &Verdict) -> Result<(), Error> {
+    block(format_args!("{}", v.to_canonical_json()?));
+    Ok(())
 }
 
 /// Apply [`classify`]'s verdict to the process. Shared by both entry points so

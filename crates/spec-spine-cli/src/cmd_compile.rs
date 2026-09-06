@@ -15,11 +15,14 @@ use spec_spine_core::shard::{self, BY_SPEC_DIR};
 use spec_spine_core::{
     CompileOutcome, Freshness, compare_committed_registry, registry_dir, registry_shard_files,
 };
-use spec_spine_types::{BUILD_META_SCHEMA_VERSION, BuildMeta, Error, Severity};
+use spec_spine_types::{
+    BUILD_META_SCHEMA_VERSION, BuildMeta, Error, Severity, Verdict, verdict::verb,
+};
 use time::OffsetDateTime;
 use time::format_description::well_known::Rfc3339;
 
 use crate::load_repo_config;
+use crate::out;
 
 /// Returns the process exit code.
 ///
@@ -27,16 +30,53 @@ use crate::load_repo_config;
 /// `0` fresh, `1` validation failed, `2` stale (spec 031 §3.2). Validation
 /// outranks staleness, because a corpus that does not validate cannot vouch
 /// for its shards.
-pub fn run(repo: &Path, check: bool) -> Result<u8, Error> {
+///
+/// `json` (spec 037) replaces the stdout prose with one verdict envelope and
+/// changes no exit code. It is rejected without `--check`, per spec 037 §4: the
+/// writing form's purpose is to mutate `.derived`, and handing a driver a
+/// machine-readable verdict from the command that just regenerated the shards
+/// the next gate compares against invites exactly the mid-chain confusion the
+/// non-writing `--check` exists to avoid.
+pub fn run(repo: &Path, check: bool, json: bool) -> Result<u8, Error> {
+    if json && !check {
+        return Err(Error::Config(
+            "compile --json requires --check: the writing form has no machine-readable \
+             verdict (spec 037 4); use `compile --check --json`"
+                .to_string(),
+        ));
+    }
     let cfg = load_repo_config(repo)?;
     let outcome = spec_spine_core::compile(&cfg, repo)?;
 
     if check {
         if !outcome.validation_passed {
+            // Detail stays on stderr in both modes so a CI log shows the
+            // violations; under --json the *verdict* is the envelope `main`
+            // renders from this error, whose kind is `validation` and whose
+            // exit code is the 1 the prose form returns.
             report_validation_failure(&outcome);
+            if json {
+                return Err(Error::Validation(
+                    outcome.registry.validation.violations.clone(),
+                ));
+            }
             return Ok(1);
         }
-        return match compare_committed_registry(&cfg, repo, &outcome.shards)? {
+        let freshness = compare_committed_registry(&cfg, repo, &outcome.shards)?;
+        if json {
+            let code = if matches!(freshness, Freshness::Fresh) {
+                0
+            } else {
+                2
+            };
+            out::verdict(&Verdict::report(
+                verb::COMPILE_CHECK,
+                code,
+                freshness_report(&freshness),
+            ))?;
+            return Ok(code);
+        }
+        return match freshness {
             Freshness::Fresh => {
                 outln!(
                     "spec-registry is fresh: {} shard(s) match the corpus",
@@ -109,6 +149,24 @@ pub fn run(repo: &Path, check: bool) -> Result<u8, Error> {
     } else {
         report_validation_failure(&outcome);
         Ok(1)
+    }
+}
+
+/// The `{ fresh, expected?, actual? }` value, byte-for-byte the shape
+/// `spec_spine_core::check_registry_freshness_json` (and its index twin
+/// `check_freshness_json`) return, so a consumer handles one freshness type for
+/// both committed trees.
+///
+/// Rebuilt here rather than shared with the facade because the facade recompiles
+/// the corpus to answer, which is a second full compile pass on a gate that runs
+/// in CI; the CLI already holds the typed verdict. `cli.rs` pins the two against
+/// each other so the duplication cannot drift silently.
+pub(crate) fn freshness_report(freshness: &Freshness) -> serde_json::Value {
+    match freshness {
+        Freshness::Fresh => serde_json::json!({ "fresh": true }),
+        Freshness::Stale { expected, actual } => {
+            serde_json::json!({ "fresh": false, "expected": expected, "actual": actual })
+        }
     }
 }
 
