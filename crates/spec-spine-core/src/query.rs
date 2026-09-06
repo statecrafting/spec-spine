@@ -213,6 +213,15 @@ pub struct BlockedSpec {
 }
 
 /// The scheduling projection: what can be worked on now, and what cannot.
+///
+/// **Both sets are ordered, and both orderings are part of the contract.**
+/// `ready` is topological over `depends_on` with ties by ascending id;
+/// `blocked` is ascending id, and each entry's `blocked_by` follows that spec's
+/// own authored `depends_on` order. Spec 038 3.2 requires the report to be a
+/// pure function of the corpus rather than of a hash-map iteration order, and
+/// that covers the whole document: a `--json` consumer diffing `blocked` across
+/// runs is relying on a stated guarantee, not on the `BTreeMap` that happens to
+/// produce it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Plan {
@@ -239,6 +248,14 @@ pub struct Plan {
 /// cycle. Spec 033 refuses one at compile time, so a registry that exists is
 /// acyclic; this guards a hand-edited shard or one written by another tool
 /// version, and it terminates rather than looping or truncating.
+///
+/// That unreachability holds only while both walks cover the same specs.
+/// `compile` passes every record to its detector with no `status` filter, and
+/// this walks every entry in the registry, so the two agree today; nothing in
+/// either function enforces the pairing, which is why
+/// `plan_and_compile_agree_on_a_cycle_among_retired_specs` asserts it. If
+/// `compile`'s check were ever scoped to active specs, `plan` would begin
+/// refusing corpora `compile` accepts, and that test is what would catch it.
 pub fn plan(registry: &Registry) -> Result<Plan, Error> {
     let by_id: BTreeMap<&str, &SpecRecord> =
         registry.specs.iter().map(|s| (s.id.as_str(), s)).collect();

@@ -116,7 +116,11 @@ corpus does not sanction.
 ### 3.2 Ordering is total and deterministic
 
 `ready` is emitted in topological order over `depends_on`, with ties broken by
-ascending spec id. The tiebreak is what makes the output a pure function of the
+ascending spec id. `blocked` is emitted in ascending spec id, and each entry's
+`blockedBy` follows that spec's own authored `depends_on` order. Both orderings
+are part of the contract: the determinism requirement below is a property of the
+whole report, so a consumer diffing either array across runs is relying on a
+stated guarantee rather than on an implementation's iteration order. The tiebreak is what makes the output a pure function of the
 corpus rather than of a hash-map iteration order, which the determinism contract
 requires of every output this project produces.
 
@@ -261,3 +265,30 @@ field. In particular it never advances `implementation`.
 That is the completion gate, filed separately.
 
 **Cross-repo planning.** One registry, one repo, one plan.
+
+## 5. Resolved decisions
+
+- **D-1 (2026-09-06): `plan`'s cycle guard agrees with `compile`'s by
+  construction, and that agreement is now tested.** 3.2 says the walk is
+  entitled to assume acyclicity because spec 033 refuses a cycle at compile
+  time. Review of the implementing PR asked what scopes that refusal.
+  `compile::detect_dependency_cycle` receives every compiled record with no
+  `status` filter, and `plan` walks every registry entry, so both cover the same
+  set and the guard is genuinely unreachable on a registry `compile` accepts.
+
+  Nothing in either function enforces the pairing. Were `compile`'s check ever
+  scoped to active specs, `plan` would start refusing corpora `compile` accepts,
+  and the divergence would surface as a scheduling failure with no test pointing
+  at its cause. `plan_and_compile_agree_on_a_cycle_among_retired_specs` pins it
+  on the case where the two would diverge first, converting a comment into a
+  checked property. This is the same correction the previous round applied to
+  `topological`'s degeneracy: an assumption a doc comment states is worth an
+  assertion when a later change elsewhere could quietly invalidate it.
+
+- **D-2 (2026-09-06): `blocked`'s ordering was true but unstated.** `ready`
+  carried an explicit ordering promise; `blocked` was ascending id only because
+  the walk iterates a `BTreeMap`, so a `--json` consumer diffing it across runs
+  would have been relying on an accident. 3.2's determinism requirement is a
+  property of the report rather than of one of its two arrays, so the guarantee
+  existed and only the sentence stating it was missing. 3.2 now states it and
+  `plan_blocked_entries_are_ordered_by_id` asserts it.
