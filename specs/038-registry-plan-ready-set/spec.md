@@ -125,10 +125,11 @@ compile time with the error-tier `V-014`, so a registry that exists is acyclic.
 If the invariant is nonetheless violated (a hand-edited shard, a registry written
 by a different tool version), `plan` MUST report the offending set as an error
 rather than loop or truncate. That error is `Error::Validation` carrying the
-cycle path, which is exit `1` and, under spec 037's envelope, `kind: validation`.
-It reuses 033's existing classification rather than inventing a second vocabulary
-for the same defect, and it means the machine-readable error branch has a
-specified shape rather than being left to the implementer.
+cycle path, which is exit `1` under the standing exit-code contract and is
+reported the way every other `registry` subcommand reports an error (§3.3). It
+reuses 033's existing classification rather than inventing a second vocabulary
+for the same defect, and it means the error branch has a specified shape rather
+than being left to the implementer.
 
 ### 3.3 Output
 
@@ -162,9 +163,15 @@ would name a blocker the reader can find nowhere else in the document. `state`
 makes that entry self-explaining, and it is the one case where the answer to "why
 not that one" is not "wait" but "someone decided not to".
 
-Under spec 037 this rides inside the verdict envelope like every other verb;
-`plan` is a read verb, so it emits its report bare, consistent with the other
-`registry` subcommands.
+`plan` emits this report **bare**, exactly as `registry list`, `show`,
+`status_report` and `relationships` do. It does not ride inside spec 037's
+verdict envelope: that envelope wraps the adjudicating verbs, and 037 §4 keeps it
+off the read verbs deliberately, since wrapping a shipped read surface would
+break its consumers. `plan` is a read verb and joins them rather than splitting
+the `registry` group into two output shapes.
+
+Consequently 037 is not a dependency of this spec, and `depends_on` does not list
+it. The two specs are independent and can land in either order.
 
 ### 3.4 `implementation` is a hint, never evidence
 

@@ -121,7 +121,17 @@ separator-aware: `state` MUST NOT match `stateful/`.
 
 The value MUST NOT overlap `layout.specs_dir` or `layout.derived_dir` in either
 direction: it may not equal one, contain one, or sit inside one, and config load
-MUST reject such a value with a clean `Error::Config`. A `state_dir` of `specs` makes every `spec.md` ungoverned; a
+MUST reject such a value with a clean `Error::Config`.
+
+The comparison is against the **resolved** values of those two keys, never
+against their defaults. Both are configurable, so an adopter with
+`specs_dir = "corpus"` and `state_dir = "corpus/state"` must be refused on
+`corpus`, and a check written against the literal `specs` would clear that
+configuration and quietly make every `spec.md` under it ungoverned. This is the
+same defect spec 036 fixed in `couple.rs`, where two functions spelled the corpus
+root as a literal and the gate therefore searched a path the repo did not
+contain. It is worth naming here because a validation rule is exactly the kind of
+code where a default is easiest to hardcode and hardest to notice. A `state_dir` of `specs` makes every `spec.md` ungoverned; a
 `state_dir` of `.` does it to the entire repository. In both cases every gate
 keeps exiting 0 while adjudicating nothing, which is the worst failure mode this
 project has: not a refusal, but a silent stop. The exclusion is an overlap test
@@ -202,6 +212,10 @@ key is its own decision, not sugar for two floor entries.
   an ancestor (`.`, `./`), or a descendant (`specs/state`, `.derived/state`).
   A sibling sharing a prefix (`specs-state`) is accepted, per the
   separator-aware rule. The empty string (unset) is accepted and inert.
+- The overlap check reads the resolved layout: under `specs_dir = "corpus"`,
+  `state_dir = "corpus/state"` is refused and `state_dir = "specs/state"` is
+  accepted, which is the inverse of the default-layout result and fails against
+  any implementation that compares with a hardcoded root.
 
 ## 4. Out of scope
 
