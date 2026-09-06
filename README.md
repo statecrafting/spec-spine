@@ -63,13 +63,19 @@ install → init → annotate → wire-CI walkthrough.
 |---|---|
 | `spec-spine compile` / `compile --check` | validate frontmatter, emit the deterministic registry / verify the committed shards match without writing |
 | `spec-spine index` / `index check` / `index render` / `index orphans` / `index coverage` | emit the codebase index / check staleness / render it as markdown / list orphaned specs / report which source files no spec specifically claims (`--fail-on-untraced` asserts full coverage) |
-| `spec-spine registry list\|show\|status-report\|relationships` | typed read-only queries |
+| `spec-spine registry list\|show\|status-report\|relationships\|plan` | typed read-only queries; `plan` (spec 038) partitions the corpus into what can be worked on now and what is blocked, naming each blocker's state |
 | `spec-spine lint [--fail-on-warn] [--fail-on-info]` | corpus well-formedness |
 | `spec-spine couple` | the PR-time coupling gate (refuses drift; with `[coupling] require_ownership` also refuses a changed source file no spec claims) |
 | `spec-spine init [--force]` | scaffold a new adopter |
 
 Exit codes: `0` ok · `1` validation failure / not found / drift · `2` stale ·
 `3` I/O / parse / schema / config.
+
+The verbs that render a **verdict** (`compile --check`, `index check`, `lint`,
+`couple`, `attest`, `verify-attestation`) take `--json` (spec 037), writing one
+canonical envelope (`schemaVersion`, `verb`, `ok`, `exitCode`, and either
+`report` or `error`) instead of prose. The flag changes what is written, never
+what is decided: every exit code is identical with and without it.
 
 ## Crates
 

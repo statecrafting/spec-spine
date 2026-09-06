@@ -1310,3 +1310,88 @@ fn json_verify_attestation_with_no_mode_is_an_error_envelope() {
     assert_eq!(v["error"]["kind"], "config");
     assert!(v.get("report").is_none());
 }
+
+// ===== spec 038: `registry plan` =====
+
+/// The scheduling projection, end to end: prose lists the ready set and counts
+/// the rest, `--json` carries every blocker with the state that made it one.
+///
+/// Emitted **bare**, like every other `registry` projection: spec 037's verdict
+/// envelope wraps the adjudicating verbs, and 037 4 keeps it off the read verbs,
+/// so `plan` joins them rather than splitting the group into two output shapes.
+#[test]
+fn registry_plan_partitions_the_corpus() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    let spec = |id: &str, body: &str| {
+        let dir = root.join("specs").join(id);
+        fs::create_dir_all(&dir).unwrap();
+        fs::write(
+            dir.join("spec.md"),
+            format!(
+                "---\nid: \"{id}\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-06\"\n\
+                 summary: \"s\"\n{body}---\n# {id}\n"
+            ),
+        )
+        .unwrap();
+    };
+    spec("001-done", "implementation: complete\n");
+    spec(
+        "002-now",
+        "implementation: pending\ndepends_on: [\"001-done\"]\n",
+    );
+    spec(
+        "003-later",
+        "implementation: pending\ndepends_on: [\"002-now\"]\n",
+    );
+    assert_eq!(code(&run_in(root, &["compile"])), 0);
+
+    let prose = run_in(root, &["registry", "plan"]);
+    assert_eq!(
+        code(&prose),
+        0,
+        "{}",
+        String::from_utf8_lossy(&prose.stderr)
+    );
+    let text = String::from_utf8_lossy(&prose.stdout);
+    assert!(text.starts_with("002-now\n"), "{text}");
+    assert!(text.contains("ready: 1, blocked: 1"), "{text}");
+    assert!(
+        !text.contains("001-done"),
+        "a finished spec is not offered: {text}"
+    );
+
+    let out = run_in(root, &["registry", "plan", "--json"]);
+    assert_eq!(code(&out), 0);
+    let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    // Bare report, not a spec 037 envelope.
+    assert!(v.get("schemaVersion").is_none(), "{v}");
+    assert_eq!(v["ready"], serde_json::json!(["002-now"]));
+    assert_eq!(
+        v["blocked"],
+        serde_json::json!([
+            { "id": "003-later", "blockedBy": [{ "id": "002-now", "state": "pending" }] }
+        ])
+    );
+
+    // A corpus with nothing schedulable says so rather than printing an empty
+    // page: the prose form has a reader, and "(nothing ready)" is an answer.
+    let empty = tempfile::tempdir().unwrap();
+    let dir = empty.path().join("specs/001-done");
+    fs::create_dir_all(&dir).unwrap();
+    fs::write(
+        dir.join("spec.md"),
+        "---\nid: \"001-done\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-06\"\n\
+         summary: \"s\"\nimplementation: complete\n---\n# 001-done\n",
+    )
+    .unwrap();
+    assert_eq!(code(&run_in(empty.path(), &["compile"])), 0);
+    let out = run_in(empty.path(), &["registry", "plan"]);
+    assert_eq!(code(&out), 0);
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert_eq!(
+        text.trim(),
+        "(nothing ready), blocked: 0",
+        "one summary line: the empty case does not also print `ready: 0`"
+    );
+}

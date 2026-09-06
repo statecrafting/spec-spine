@@ -7,7 +7,8 @@ use std::path::Path;
 
 use clap::Subcommand;
 use spec_spine_core::{
-    ListFilter, list, list_ids, load_committed_registry, relationships, show, status_report,
+    ListFilter, Plan, list, list_ids, load_committed_registry, plan, relationships, show,
+    status_report,
 };
 use spec_spine_types::{Error, Status};
 
@@ -42,6 +43,11 @@ pub enum RegistryQuery {
     /// Show a spec's relationship neighborhood.
     Relationships {
         id: String,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Which specs can be worked on now, and what blocks the rest (spec 038).
+    Plan {
         #[arg(long)]
         json: bool,
     },
@@ -122,6 +128,14 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 outln!("retired:    {}", report.retired);
             }
         }
+        RegistryQuery::Plan { json } => {
+            let plan = plan(&registry)?;
+            if *json {
+                print_json(&plan)?;
+            } else {
+                print_plan(&plan);
+            }
+        }
         RegistryQuery::Relationships { id, json } => {
             let view = relationships(&registry, id)?;
             if *json {
@@ -138,6 +152,28 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
         }
     }
     Ok(0)
+}
+
+/// The human form: the ready set in order, then one line of what is blocked.
+///
+/// The prose form counts rather than enumerating the blocked set, because the
+/// question a person asks at a terminal is "what can I do now"; `--json` carries
+/// every blocker and its state for the consumer that asks "why not that one".
+fn print_plan(plan: &Plan) {
+    for id in &plan.ready {
+        outln!("{id}");
+    }
+    // One summary line either way: "(nothing ready)" already carries the count
+    // it would otherwise repeat as "ready: 0".
+    if plan.ready.is_empty() {
+        outln!("(nothing ready), blocked: {}", plan.blocked.len());
+    } else {
+        outln!(
+            "ready: {}, blocked: {}",
+            plan.ready.len(),
+            plan.blocked.len()
+        );
+    }
 }
 
 fn parse_status(s: &str) -> Result<Status, Error> {
