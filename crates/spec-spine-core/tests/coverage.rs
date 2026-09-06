@@ -559,6 +559,12 @@ fn lint_diagnostic_codes_are_unique() {
 /// Spec 039 3.2: the resolver does not scan the root, so no unit ever resolves
 /// to a path inside it. Asserted through a symbol unit, which is the only kind
 /// that could reach in without naming the path.
+///
+/// Gated on `symbol-resolution` (spec 027) because the control half needs the
+/// symbol to resolve when nothing is declared, and feature-off it never does.
+/// The walk itself is covered feature-independently by the `enumerate_source_files`
+/// assertion in `a_declared_state_root_leaves_both_sides_of_the_coverage_ratio`.
+#[cfg(feature = "symbol-resolution")]
 #[test]
 fn the_resolver_does_not_reach_into_the_state_root() {
     let tmp = tempfile::tempdir().unwrap();
