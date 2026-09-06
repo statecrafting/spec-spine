@@ -397,3 +397,92 @@ fn plan_over_a_compiled_corpus_only_offers_unfinished_specs() {
         .collect();
     assert!(!offered.contains(&"001-alpha"), "{offered:?}");
 }
+
+/// The degeneracy `topological`'s doc comment claims: no ready spec depends on
+/// another ready spec, so the walk and an id sort agree.
+///
+/// Asserted rather than reasoned about in a comment, because it is a property of
+/// `schedulable` and `blocker_state` rather than of the ordering code, and a
+/// later change to either could break it silently.
+#[test]
+fn plan_ready_set_has_no_internal_edges() {
+    let reg = registry_of(&[
+        ("001-done", "approved", Some("complete"), &[]),
+        ("002-a", "approved", Some("pending"), &["001-done"]),
+        ("003-b", "approved", Some("pending"), &["001-done"]),
+        ("004-c", "approved", Some("pending"), &["002-a"]),
+    ]);
+    let plan = spec_spine_core::plan(&reg).unwrap();
+    let ready: std::collections::BTreeSet<&str> = plan.ready.iter().map(String::as_str).collect();
+    for id in &ready {
+        let deps = &reg.specs.iter().find(|s| s.id == *id).unwrap().depends_on;
+        for dep in deps {
+            assert!(
+                !ready.contains(dep.as_str()),
+                "{id} depends on {dep}, which is also ready"
+            );
+        }
+    }
+    let mut sorted = plan.ready.clone();
+    sorted.sort();
+    assert_eq!(plan.ready, sorted, "so the walk agrees with an id sort");
+}
+
+/// A long chain must terminate with the verdict, not abort the process.
+///
+/// This guard runs only on input `compile` refuses to emit, which is exactly the
+/// input that may be arbitrarily malformed, so a recursive walk would overflow
+/// the stack here and exit outside the documented `0`/`1`/`2`/`3` contract.
+#[test]
+fn plan_survives_a_very_long_cycle() {
+    const N: usize = 20_000;
+    let ids: Vec<String> = (0..N).map(|i| format!("{i:06}-spec")).collect();
+    let rows: Vec<(&str, &str, Option<&str>, Vec<&str>)> = (0..N)
+        .map(|i| {
+            // Each spec depends on the next; the last closes the loop.
+            let dep = ids[(i + 1) % N].as_str();
+            (ids[i].as_str(), "approved", Some("pending"), vec![dep])
+        })
+        .collect();
+    let borrowed: Vec<(&str, &str, Option<&str>, &[&str])> = rows
+        .iter()
+        .map(|(id, status, im, deps)| (*id, *status, *im, deps.as_slice()))
+        .collect();
+
+    let err = spec_spine_core::plan(&registry_of(&borrowed)).unwrap_err();
+    assert_eq!(err.exit_code(), 1);
+    let Error::Validation(violations) = &err else {
+        panic!("expected Error::Validation, got {err:?}");
+    };
+    assert_eq!(violations[0].code, "V-014");
+}
+
+/// The same depth, acyclic: the walk must complete rather than overflow on the
+/// way to reporting no cycle at all.
+#[test]
+fn plan_survives_a_very_long_acyclic_chain() {
+    const N: usize = 20_000;
+    let ids: Vec<String> = (0..N).map(|i| format!("{i:06}-spec")).collect();
+    let rows: Vec<(&str, &str, Option<&str>, Vec<&str>)> = (0..N)
+        .map(|i| {
+            let deps = if i == 0 {
+                Vec::new()
+            } else {
+                vec![ids[i - 1].as_str()]
+            };
+            (ids[i].as_str(), "approved", Some("pending"), deps)
+        })
+        .collect();
+    let borrowed: Vec<(&str, &str, Option<&str>, &[&str])> = rows
+        .iter()
+        .map(|(id, status, im, deps)| (*id, *status, *im, deps.as_slice()))
+        .collect();
+
+    let plan = spec_spine_core::plan(&registry_of(&borrowed)).unwrap();
+    assert_eq!(
+        plan.ready,
+        vec!["000000-spec"],
+        "only the head is unblocked"
+    );
+    assert_eq!(plan.blocked.len(), N - 1);
+}

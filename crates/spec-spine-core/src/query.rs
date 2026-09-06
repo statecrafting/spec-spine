@@ -334,13 +334,17 @@ fn blocker_state(by_id: &BTreeMap<&str, &SpecRecord>, dep: &str) -> Option<Strin
 /// Kahn's algorithm with an id-ordered frontier, which is what makes the output
 /// a pure function of the corpus rather than of a hash-map iteration order.
 ///
-/// The ready set contains no edges among its own members, because a spec
-/// depending on an unfinished spec is blocked rather than ready, so in practice
-/// every member enters the frontier at once and the result is ascending id
-/// order. The walk is kept rather than replaced by a sort so the ordering
-/// property is enforced by the code rather than assumed by a comment, and so
-/// that a later change to the partition cannot silently emit a dependent before
-/// its dependency.
+/// Under the current partition this is **equivalent to sorting by id**, and the
+/// walk provides no ordering guarantee a `sort()` would not: the ready set
+/// contains no edges among its own members, because a spec depending on an
+/// unfinished spec is blocked rather than ready and a finished one is excluded,
+/// so every member's restricted dependency set is empty and all of them enter
+/// the frontier at once. `plan_ready_set_has_no_internal_edges` pins that.
+///
+/// It is kept rather than replaced by the sort because the degeneracy is a
+/// property of `schedulable` and `blocker_state`, not of this function: a later
+/// change to either could introduce an intra-set edge, and the walk is what
+/// keeps that from silently emitting a dependent before its dependency.
 fn topological(ready: &[&str], by_id: &BTreeMap<&str, &SpecRecord>) -> Vec<String> {
     let members: BTreeSet<&str> = ready.iter().copied().collect();
     let mut remaining: BTreeMap<&str, BTreeSet<&str>> = members
@@ -383,55 +387,71 @@ fn topological(ready: &[&str], by_id: &BTreeMap<&str, &SpecRecord>) -> Vec<Strin
 /// The first `depends_on` cycle reachable in the graph, as the path that closes
 /// it, or `None` when the graph is acyclic.
 ///
-/// Iterative-friendly three-colour DFS over ids in ascending order, so the cycle
-/// reported for a given registry is always the same one.
+/// Three-colour DFS over ids in ascending order, so the cycle reported for a
+/// given registry is always the same one.
+///
+/// The walk carries its own stack rather than recursing. This runs only on
+/// input `compile` refuses to emit, which is precisely the input that may be
+/// arbitrarily malformed: a recursive walk over a hand-edited shard with a long
+/// enough chain overflows the stack and aborts the process, which is a worse
+/// outcome than the looping this guard exists to prevent, and one outside the
+/// documented exit-code contract entirely.
 fn find_cycle(by_id: &BTreeMap<&str, &SpecRecord>) -> Option<Vec<String>> {
     #[derive(Clone, Copy, PartialEq)]
     enum Colour {
-        White,
         Grey,
         Black,
     }
-    fn visit<'a>(
+    // One frame per spec being explored: the spec, and how far through its
+    // `depends_on` list the walk has got.
+    struct Frame<'a> {
         id: &'a str,
-        by_id: &BTreeMap<&'a str, &'a SpecRecord>,
-        colour: &mut BTreeMap<&'a str, Colour>,
-        stack: &mut Vec<&'a str>,
-    ) -> Option<Vec<String>> {
-        colour.insert(id, Colour::Grey);
-        stack.push(id);
-        for dep in &by_id[id].depends_on {
+        next_dep: usize,
+    }
+
+    let mut colour: BTreeMap<&str, Colour> = BTreeMap::new();
+
+    for root in by_id.keys() {
+        if colour.contains_key(root) {
+            continue;
+        }
+        let mut stack: Vec<Frame<'_>> = vec![Frame {
+            id: root,
+            next_dep: 0,
+        }];
+        colour.insert(root, Colour::Grey);
+
+        while let Some(frame) = stack.last_mut() {
+            let deps = &by_id[frame.id].depends_on;
+            let Some(dep) = deps.get(frame.next_dep) else {
+                // Every dependency explored: this spec is off the current path.
+                colour.insert(frame.id, Colour::Black);
+                stack.pop();
+                continue;
+            };
+            frame.next_dep += 1;
+
             // A dangling dependency is not a cycle; `blocker_state` reports it.
             let Some((dep_id, _)) = by_id.get_key_value(dep.as_str()) else {
                 continue;
             };
-            match colour.get(dep_id).copied().unwrap_or(Colour::White) {
-                Colour::Grey => {
-                    let from = stack.iter().position(|n| n == dep_id).unwrap_or(0);
+            match colour.get(dep_id) {
+                // Re-entering a spec still on the path closes a cycle.
+                Some(Colour::Grey) => {
+                    let from = stack.iter().position(|f| f.id == *dep_id).unwrap_or(0);
                     let mut cycle: Vec<String> =
-                        stack[from..].iter().map(|n| (*n).to_string()).collect();
+                        stack[from..].iter().map(|f| f.id.to_string()).collect();
                     cycle.push((*dep_id).to_string());
                     return Some(cycle);
                 }
-                Colour::White => {
-                    if let Some(cycle) = visit(dep_id, by_id, colour, stack) {
-                        return Some(cycle);
-                    }
+                Some(Colour::Black) => {}
+                None => {
+                    colour.insert(dep_id, Colour::Grey);
+                    stack.push(Frame {
+                        id: dep_id,
+                        next_dep: 0,
+                    });
                 }
-                Colour::Black => {}
-            }
-        }
-        stack.pop();
-        colour.insert(id, Colour::Black);
-        None
-    }
-
-    let mut colour: BTreeMap<&str, Colour> = BTreeMap::new();
-    for id in by_id.keys() {
-        if colour.get(id).copied().unwrap_or(Colour::White) == Colour::White {
-            let mut stack = Vec::new();
-            if let Some(cycle) = visit(id, by_id, &mut colour, &mut stack) {
-                return Some(cycle);
             }
         }
     }

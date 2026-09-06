@@ -1388,9 +1388,10 @@ fn registry_plan_partitions_the_corpus() {
     assert_eq!(code(&run_in(empty.path(), &["compile"])), 0);
     let out = run_in(empty.path(), &["registry", "plan"]);
     assert_eq!(code(&out), 0);
-    assert!(
-        String::from_utf8_lossy(&out.stdout).contains("(nothing ready)"),
-        "{}",
-        String::from_utf8_lossy(&out.stdout)
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert_eq!(
+        text.trim(),
+        "(nothing ready), blocked: 0",
+        "one summary line: the empty case does not also print `ready: 0`"
     );
 }

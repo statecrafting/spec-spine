@@ -160,18 +160,20 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
 /// question a person asks at a terminal is "what can I do now"; `--json` carries
 /// every blocker and its state for the consumer that asks "why not that one".
 fn print_plan(plan: &Plan) {
-    if plan.ready.is_empty() {
-        outln!("(nothing ready)");
-    } else {
-        for id in &plan.ready {
-            outln!("{id}");
-        }
+    for id in &plan.ready {
+        outln!("{id}");
     }
-    outln!(
-        "ready: {}, blocked: {}",
-        plan.ready.len(),
-        plan.blocked.len()
-    );
+    // One summary line either way: "(nothing ready)" already carries the count
+    // it would otherwise repeat as "ready: 0".
+    if plan.ready.is_empty() {
+        outln!("(nothing ready), blocked: {}", plan.blocked.len());
+    } else {
+        outln!(
+            "ready: {}, blocked: {}",
+            plan.ready.len(),
+            plan.blocked.len()
+        );
+    }
 }
 
 fn parse_status(s: &str) -> Result<Status, Error> {
