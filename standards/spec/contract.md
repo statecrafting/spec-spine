@@ -34,6 +34,15 @@ aggregate view is recomputed from the shard set on read, never committed.
 `establishes`, `extends`, `refines`, `supersedes`, `amends`, `co_authority`,
 `constrains`, `references`. `origin` is a bootstrap marker, not an edge.
 
+## Amendment authoring
+
+An `amends` edge is declared **once, in the amending spec's frontmatter**. The
+amended spec's `spec.md` is not edited to record that it has been amended: its
+text is the contract as it stood, and rewriting it to mention a successor is how
+history stops being queryable (constitution V). The inbound view is a compiled
+read, `spec-spine registry relationships <amended-id>`, which reports
+`amended_by (incoming)`. See spec 040.
+
 ## Authority units
 
 `file` (bare string shorthand; trailing slash ⇒ subtree), `section`
