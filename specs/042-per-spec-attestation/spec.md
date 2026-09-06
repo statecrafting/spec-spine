@@ -274,6 +274,12 @@ boundary.
 - `--sign` then `--signature` round-trips; the seal's `signedAt` differs between
   two signings of a byte-identical payload, and the payload hash does not.
 - `attest` with no `--spec` is unchanged, byte for byte, from its current output.
+- Both scopes exit `0` on false verdicts. A corpus with a failing lint verdict
+  and a spec with `resolution.ok: false` each write their attestation and return
+  `0`. This is the test that holds §3.1's MUST NOT: the rule now covers the
+  corpus-scoped verb by amendment to 023, and a normative claim about an exit
+  path deserves a test that exercises it rather than an assumption that it still
+  behaves as it did when nobody had written the rule down.
 
 ## 4. Out of scope
 
