@@ -189,6 +189,14 @@ its exclusion still governs everything except the pure partition named here.
 nothing else. A corpus that wants priority has `extra_known_keys` and a consumer
 that understands them.
 
+**Enriching the entries.** `ready` carries ids, and `blocked` carries ids plus
+`blockedBy`. A consumer that wants each spec's title, status or `implementation`
+value issues `registry show`, which is the verb for that. Widening `plan` into a
+general projection would duplicate `show` and make the scheduling answer harder
+to read, and inlining `implementation` in particular would put a self-declared
+field next to a computed one where a reader would reasonably assume both were
+adjudicated (§3.4).
+
 **Writing anything.** `plan` is a projection; it emits no artifact and updates no
 field. In particular it never advances `implementation`.
 

@@ -119,6 +119,15 @@ A trailing slash is trimmed, so `state` and `state/` name one root, matching the
 handling spec 036 established for `specs_dir`. Prefix matching is
 separator-aware: `state` MUST NOT match `stateful/`.
 
+The value MUST NOT be, and MUST NOT be an ancestor of, `layout.specs_dir` or
+`layout.derived_dir`, and config load MUST reject such a value with a clean
+`Error::Config`. A `state_dir` of `specs` makes every `spec.md` ungoverned; a
+`state_dir` of `.` does it to the entire repository. In both cases every gate
+keeps exiting 0 while adjudicating nothing, which is the worst failure mode this
+project has: not a refusal, but a silent stop. The exclusion is stated as an
+ancestor test rather than an equality test precisely because the dangerous values
+are the ones that contain a root, not the ones that equal it.
+
 ### 3.3 Ungoverned: spec-spine never reads or writes it
 
 spec-spine MUST NOT read the contents of anything under `state_dir` and MUST NOT
@@ -157,8 +166,10 @@ outside the governed surface, and it is a single value rather than a list becaus
 a repo with two ungoverned state roots has an organizational problem the config
 should not smooth over.
 
-`state_dir` MUST NOT be removable by any list: it is not additive to the bypass
-floor, it is its own decision.
+The effects of `state_dir` MUST NOT be overridable or reachable through either
+list: no entry in `bypass_prefixes` or `resolver_exclusions` can cancel them, and
+setting both lists to cover the same path is not equivalent to declaring it. The
+key is its own decision, not sugar for two floor entries.
 
 ### 3.6 Tests (minimum)
 
@@ -173,8 +184,10 @@ floor, it is its own decision.
 - `state` and `state/` behave identically; `stateful/` is not matched by `state`.
 - A spec claiming a unit under the root yields `L-006` at error tier, naming
   the spec and the unit, and `lint` exits 1 on it without `--fail-on-warn`.
-- The key is rejected with a clean `Error::Config` if it names the corpus root or
-  the derived root, which would make two roots contradict.
+- Config load rejects, with a clean `Error::Config`, a value equal to or an
+  ancestor of `specs_dir` or `derived_dir`: `specs`, `.derived`, `.` and `./`
+  all refuse. A sibling sharing a prefix (`specs-state`) is accepted, per the
+  separator-aware rule. The empty string (unset) is accepted and inert.
 
 ## 4. Out of scope
 
