@@ -17,9 +17,10 @@ use spec_spine_core::{
     DiffFile, DiffInput, FileContents, couple, dependency_only_waiver, is_bypassed_path,
     load_committed_index, parse_waiver,
 };
-use spec_spine_types::{Config, Error, LineSpan};
+use spec_spine_types::{Config, Error, LineSpan, Verdict, verdict::verb};
 
 use crate::load_repo_config;
+use crate::out;
 
 /// Arguments for `spec-spine couple`.
 pub struct CoupleArgs {
@@ -27,6 +28,8 @@ pub struct CoupleArgs {
     pub head: String,
     pub pr_body: Option<PathBuf>,
     pub paths_from: Option<PathBuf>,
+    /// Emit the verdict as a JSON envelope instead of prose (spec 037).
+    pub json: bool,
 }
 
 pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
@@ -46,6 +49,20 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
     }
 
     let report = couple(&cfg, repo, &diff, waiver.as_ref())?;
+
+    if args.json {
+        // The `CoupleReport` verbatim, as `spec_spine_core::couple_json`
+        // returns it: `violations`, `waiver` and `checkedPaths` are the reasons
+        // a consumer needs, and the prose form's C-001/C-002 breakdown is a
+        // rendering of the same `code` field rather than a second fact. The
+        // auto-waiver distinction the prose draws is deliberately not in the
+        // envelope: the report carries the waiver's reason, and how it was
+        // obtained is a CLI concern, not part of the gate's verdict.
+        let value = serde_json::to_value(&report).map_err(|e| Error::Schema(e.to_string()))?;
+        let code = report.exit_code();
+        out::verdict(&Verdict::report(verb::COUPLE, code, value))?;
+        return Ok(code);
+    }
 
     if report.has_blocking_drift() {
         let unclaimed = report

@@ -9,11 +9,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use spec_spine_core::{AttestOptions, attest};
-use spec_spine_types::Error;
+use spec_spine_types::{Error, Verdict, verdict::verb};
 use time::OffsetDateTime;
 use time::format_description::well_known::Rfc3339;
 
 use crate::load_repo_config;
+use crate::out;
 use crate::seal;
 
 /// Parsed `attest` arguments.
@@ -22,6 +23,8 @@ pub struct AttestArgs {
     pub sign: bool,
     pub key: Option<PathBuf>,
     pub key_id: Option<String>,
+    /// Emit the verdict as a JSON envelope instead of prose (spec 037).
+    pub json: bool,
 }
 
 /// Writes `attestation.json` (always) and `attestation.sig` (under `--sign`).
@@ -70,8 +73,10 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
     } else {
         "spec-corpus"
     };
-    outln!("attested {scope} -> {}", attestation_path.display());
-    outln!("  attestationHash: {}", outcome.attestation_hash);
+    if !args.json {
+        outln!("attested {scope} -> {}", attestation_path.display());
+        outln!("  attestationHash: {}", outcome.attestation_hash);
+    }
 
     if let Some((signing_key, key_id)) = signer {
         let ledger_seal = seal::sign(
@@ -86,11 +91,28 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
         let seal_path = out_dir.join("attestation.sig");
         fs::write(&seal_path, seal_json)
             .map_err(|e| Error::Io(format!("write {}: {e}", seal_path.display())))?;
-        outln!(
-            "sealed -> {} (alg ed25519, keyId {})",
-            seal_path.display(),
-            ledger_seal.key_id
-        );
+        if !args.json {
+            outln!(
+                "sealed -> {} (alg ed25519, keyId {})",
+                seal_path.display(),
+                ledger_seal.key_id
+            );
+        }
+    }
+
+    if args.json {
+        // `{ attestation, attestationHash }`, the shape
+        // `spec_spine_core::attest_json` returns. The seal is deliberately
+        // absent: signing is a CLI post-pass over the attestation hash, the
+        // facade does not model it, and spec 037 3.1 requires one payload shape
+        // per verb rather than a CLI spelling that diverges from the library's.
+        // A consumer that needs the seal reads `attestation.sig`, whose path is
+        // a function of the attestation's.
+        let value = serde_json::json!({
+            "attestation": outcome.attestation,
+            "attestationHash": outcome.attestation_hash,
+        });
+        out::verdict(&Verdict::report(verb::ATTEST, 0, value))?;
     }
 
     Ok(0)

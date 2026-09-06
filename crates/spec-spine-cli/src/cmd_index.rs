@@ -16,9 +16,11 @@ use spec_spine_core::{
     Freshness, check_index_freshness, check_slice_freshness, coverage, index, index_dir,
     index_shard_files, load_committed_index, orphans, render_markdown, slices_path,
 };
-use spec_spine_types::{Config, CoverageReport, Error};
+use spec_spine_types::{Config, CoverageReport, Error, Verdict, verdict::verb};
 
+use crate::cmd_compile::freshness_report;
 use crate::load_repo_config;
+use crate::out;
 
 #[derive(Subcommand)]
 pub enum IndexAction {
@@ -27,6 +29,9 @@ pub enum IndexAction {
         /// Gate one named [index.slices] slice instead of the shard set.
         #[arg(long, value_name = "NAME")]
         slice: Option<String>,
+        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        #[arg(long)]
+        json: bool,
     },
     /// Render the committed index as markdown (a projection; never recomputes).
     Render,
@@ -89,7 +94,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 0
             })
         }
-        Some(IndexAction::Check { slice }) => {
+        Some(IndexAction::Check { slice, json }) => {
             let (freshness, subject) = match slice {
                 Some(name) => (
                     check_slice_freshness(&cfg, repo, name)?,
@@ -97,6 +102,22 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 ),
                 None => (check_index_freshness(&cfg, repo)?, "index".to_string()),
             };
+            if *json {
+                // A slice check answers the same `Freshness` question over a
+                // narrower input set, so it carries the same payload; the
+                // envelope's verb does not fork, because the verdict does not.
+                let code = if matches!(freshness, Freshness::Fresh) {
+                    0
+                } else {
+                    2
+                };
+                out::verdict(&Verdict::report(
+                    verb::INDEX_CHECK,
+                    code,
+                    freshness_report(&freshness),
+                ))?;
+                return Ok(code);
+            }
             match freshness {
                 Freshness::Fresh => {
                     outln!("{subject} is fresh");

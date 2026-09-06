@@ -11,9 +11,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use spec_spine_core::{VerifyOutcome, attestation_hash, verify_recompute};
-use spec_spine_types::{Config, CorpusAttestation, Error, LedgerSeal};
+use spec_spine_types::{Config, CorpusAttestation, Error, LedgerSeal, Verdict, verdict::verb};
 
 use crate::load_repo_config;
+use crate::out;
 use crate::seal;
 
 /// Parsed `verify-attestation` arguments.
@@ -23,6 +24,8 @@ pub struct VerifyArgs {
     pub attestation: Option<PathBuf>,
     pub public_key: Option<PathBuf>,
     pub seal: Option<PathBuf>,
+    /// Emit the verdict as a JSON envelope instead of prose (spec 037).
+    pub json: bool,
 }
 
 /// Exit `0` only if every selected mode passes; `1` on any mismatch or version
@@ -44,26 +47,49 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     let attestation = load_attestation(&attestation_path)?;
 
     let mut failed = false;
+    // Under --json the two modes accumulate into one report object rather than
+    // printing as they go. `outcome` is present exactly when --recompute ran and
+    // is byte-for-byte what `spec_spine_core::verify_attestation_json` returns
+    // for the same inputs (spec 037 3.1); `signature` is present exactly when
+    // --signature ran, an additive member for the mode the facade does not model.
+    // Both are needed because spec 037 3.2 requires the envelope to report the
+    // same verdict the prose reports, and the prose reports both.
+    let mut report = serde_json::Map::new();
 
     if args.recompute {
         match verify_recompute(&cfg, repo, &attestation)? {
             VerifyOutcome::Match => {
-                outln!("recompute: MATCH (the corpus reproduces this attestation)");
+                if args.json {
+                    report.insert("outcome".to_string(), serde_json::json!("match"));
+                } else {
+                    outln!("recompute: MATCH (the corpus reproduces this attestation)");
+                }
             }
             VerifyOutcome::VersionMismatch { expected, actual } => {
-                eprintln!(
-                    "recompute: VERSION MISMATCH (attested under {expected}, this tool is {actual}); \
-                     recompute under {expected} to verify"
-                );
+                if args.json {
+                    report.insert("outcome".to_string(), serde_json::json!("versionMismatch"));
+                    report.insert("expected".to_string(), serde_json::json!(expected));
+                    report.insert("actual".to_string(), serde_json::json!(actual));
+                } else {
+                    eprintln!(
+                        "recompute: VERSION MISMATCH (attested under {expected}, this tool is {actual}); \
+                         recompute under {expected} to verify"
+                    );
+                }
                 failed = true;
             }
             VerifyOutcome::ContentMismatch { differences } => {
-                eprintln!(
-                    "recompute: CONTENT MISMATCH ({} field(s) diverged):",
-                    differences.len()
-                );
-                for d in &differences {
-                    eprintln!("  - {d}");
+                if args.json {
+                    report.insert("outcome".to_string(), serde_json::json!("contentMismatch"));
+                    report.insert("differences".to_string(), serde_json::json!(differences));
+                } else {
+                    eprintln!(
+                        "recompute: CONTENT MISMATCH ({} field(s) diverged):",
+                        differences.len()
+                    );
+                    for d in &differences {
+                        eprintln!("  - {d}");
+                    }
                 }
                 failed = true;
             }
@@ -86,17 +112,33 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
         // Recompute the hash from the loaded payload: a tampered byte changes it
         // and the seal stops verifying.
         let hash = attestation_hash(&attestation)?;
-        if seal::verify(&hash, &ledger_seal, &verifying_key)? {
+        let valid = seal::verify(&hash, &ledger_seal, &verifying_key)?;
+        if args.json {
+            report.insert(
+                "signature".to_string(),
+                serde_json::json!({ "valid": valid, "keyId": ledger_seal.key_id }),
+            );
+        } else if valid {
             outln!("signature: VALID (sealed by keyId {})", ledger_seal.key_id);
         } else {
             eprintln!(
                 "signature: INVALID (the seal does not verify against the supplied public key)"
             );
+        }
+        if !valid {
             failed = true;
         }
     }
 
-    Ok(if failed { 1 } else { 0 })
+    let code = if failed { 1 } else { 0 };
+    if args.json {
+        out::verdict(&Verdict::report(
+            verb::VERIFY_ATTESTATION,
+            code,
+            serde_json::Value::Object(report),
+        ))?;
+    }
+    Ok(code)
 }
 
 fn default_attestation_path(repo: &Path, cfg: &Config) -> PathBuf {

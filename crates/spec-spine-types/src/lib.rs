@@ -30,6 +30,7 @@ pub mod frontmatter;
 pub mod registry;
 pub mod schema;
 pub mod unit;
+pub mod verdict;
 pub mod version;
 
 // --- curated public prelude (the names callers reach for most) ---
@@ -66,7 +67,8 @@ pub use schema::{
     REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA,
 };
 pub use unit::Unit;
+pub use verdict::{Verdict, VerdictError, error_kind};
 pub use version::{
     BUILD_META_SCHEMA_VERSION, CONFIG_VERSION, INDEX_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION,
-    parse_semver,
+    VERDICT_SCHEMA_VERSION, parse_semver,
 };

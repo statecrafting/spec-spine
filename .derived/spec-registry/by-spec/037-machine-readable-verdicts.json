@@ -114,7 +114,7 @@
       }
     ],
     "id": "037-machine-readable-verdicts",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -145,13 +145,14 @@
       "3.4 The envelope is versioned",
       "3.5 Canonical bytes and a closed reader",
       "3.6 Tests (minimum)",
-      "4. Out of scope"
+      "4. Out of scope",
+      "5. Resolved decisions"
     ],
     "specPath": "specs/037-machine-readable-verdicts/spec.md",
     "status": "draft",
     "summary": "The read verbs speak JSON; the verbs that render a verdict do not. `registry` (four subcommands), `index orphans` and `index coverage` have `--json`, while `couple`, `lint`, `compile --check`, `index check`, `attest` and `verify-attestation` emit prose to stdout and nothing else. A programmatic consumer of the gate chain is therefore forced to string-match sentences like `index is fresh` and to infer the reasons for a refusal from formatted text, which is precisely the ad-hoc parsing constitution §II forbids and the governed-artifact-reads rule was written against; the CLI currently leaves no alternative for exactly the commands whose output is a decision. The reports already exist: every one of these verbs is backed by a facade function returning a typed structure, and only the CLI surface is missing. This spec adds `--json` to each of them, behind one versioned envelope (`schemaVersion`, `verb`, `ok`, `exitCode`, and either `report` or `error`) whose `report` member is byte-identical to the corresponding facade output, so a consumer parses one header shape across the whole chain and one payload shape per verb, never two spellings of the same verdict. `--json` changes what is written, never what is decided: the exit code for every outcome is unchanged, and a failure is reported inside the envelope rather than as bare prose on stderr, so the machine consumer's happy path and error path have the same shape.\n",
     "title": "Machine-readable verdicts: `--json` on the adjudicating verbs"
   },
-  "shardHash": "3be0d2075e0f78b94c50e666e5d4dcc21fe14605e7723d697745e311951e9ff4",
+  "shardHash": "83ca8e98bffd1e09b19cfff7f91bd9b35f070192caf4c2ebdc70648a2b7a55d4",
   "specVersion": "1.1.0"
 }

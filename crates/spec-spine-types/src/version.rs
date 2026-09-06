@@ -40,6 +40,15 @@ pub const INDEX_SCHEMA_VERSION: &str = "1.1.0";
 /// `schemaVersion` emitted in `build-meta.json` (the non-deterministic artifact).
 pub const BUILD_META_SCHEMA_VERSION: &str = "0.1.0";
 
+/// `schemaVersion` carried by the `--json` verdict envelope (spec 037).
+///
+/// Independent of the registry and index versions on purpose: a consumer pins
+/// the shape of the verdict it parses without pinning the ledger it reads.
+/// MINOR is additive, which includes adding an `error.kind` token (a consumer's
+/// existing branches still match); MAJOR is breaking, which includes renaming
+/// or removing one (they stop matching).
+pub const VERDICT_SCHEMA_VERSION: &str = "0.1.0";
+
 /// The `spec-spine.toml` config schema version (optional `config_version` key).
 pub const CONFIG_VERSION: &str = "0.1.0";
 
