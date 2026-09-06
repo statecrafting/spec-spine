@@ -164,6 +164,26 @@ envelope on stdout, not as bare prose on stderr:
 consumer can branch on the class without matching the message. The message
 remains human text and carries no stability promise.
 
+The set is closed, and enumerating it is what makes the stability promise
+verifiable rather than decorative:
+
+| `kind` | `Error` variant | `exitCode` |
+|---|---|---|
+| `config` | `Config` | 3 |
+| `validation` | `Validation` | 1 |
+| `not-found` | `NotFound` | 1 |
+| `stale` | `Stale` | 2 |
+| `io` | `Io` | 3 |
+| `parse` | `Parse` | 3 |
+| `schema` | `Schema` | 3 |
+
+Evolution follows `VERDICT_SCHEMA_VERSION`, which exists for exactly this:
+adding a `kind` is a MINOR (a consumer's existing branches still match), while
+renaming or removing one is a MAJOR (they stop matching). The token is
+deliberately not the Rust variant name spelled automatically, because that would
+make an internal rename a silent breaking change to an external contract with no
+gate to catch it.
+
 Without `--json` nothing changes: prose to stdout, diagnostics to stderr, exactly
 as today. The rule is scoped to the flag so no existing consumer moves.
 
@@ -203,7 +223,9 @@ MUST exit `0`, not `101`.
 - `report` equals the corresponding facade function's output byte for byte.
 - An `Error` path under `--json` yields an `error` envelope on stdout with the
   mapped `exitCode`, and stdout contains nothing else.
-- `--json` piped into a reader that closes early exits `0`.
+- For each of the six verbs, `--json` piped into a reader that closes early
+  exits `0`. The requirement in §3.5 is universal, so one `couple` test does not
+  discharge it.
 - The prose output of every verb is unchanged when the flag is absent.
 
 ## 4. Out of scope

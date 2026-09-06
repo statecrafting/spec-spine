@@ -86,24 +86,29 @@ For each spec in the registry, exactly one classification:
   `n-a` or `deferred`. A spec with no `implementation` key at all is treated as
   `pending`, because an unstated intention is the same input to a scheduler as a
   stated intention to start.
-
-`deferred` sits in that list beside `complete` even though the two carry opposite
-information about whether work remains, so the reason is worth stating. `plan`
-does not ask "is this finished", it asks "should this be scheduled", and to both
-`complete` and `deferred` the answer is no. `deferred` is the one value in the
-enum that is a **decision** rather than a report: someone looked at the spec and
-took it off the schedule. A scheduler that offered it anyway would be overruling
-that decision, and one that quietly returned it to `ready` when a dependency
-landed would make deferral expire on its own, which is not what deferring
-something means. Un-deferring is therefore a human edit to the field, exactly as
-deferring was.
 - **Blocked**: at least one `depends_on` target is itself not finished, meaning
   its `implementation` is neither `complete` nor `n-a`. The entry names every
-  such target.
+  such target and the state each one is in.
 - **Ready**: everything else.
 
+`deferred` sits in the excluded set beside `complete` even though the two carry
+opposite information about whether work remains, so the reason is worth stating.
+`plan` does not ask "is this finished", it asks "should this be scheduled", and
+to both `complete` and `deferred` the answer is no. `deferred` is the one value
+in the enum that is a **decision** rather than a report: someone looked at the
+spec and took it off the schedule. A scheduler that offered it anyway would be
+overruling that decision, and one that quietly returned it to `ready` when a
+dependency landed would make deferral expire on its own, which is not what
+deferring something means. Un-deferring is a human edit to the field, exactly as
+deferring was.
+
+Note the asymmetry this creates, which §3.3 is built to survive: a `deferred`
+spec is excluded from both output sets while still blocking its dependents. It
+therefore appears in the document only as a blocker, and every blocker carries
+its `state` so that entry explains itself rather than pointing at nothing.
+
 A `depends_on` target that does not resolve to a spec in the registry MUST block,
-and MUST be named as an unresolved blocker rather than silently ignored. A
+and MUST be reported with `state: "unresolved"` rather than silently ignored. A
 dangling dependency is a corpus defect, and a scheduler that treats "the blocker
 does not exist" as "the blocker is satisfied" would hand out work in an order the
 corpus does not sanction.
@@ -129,14 +134,28 @@ blocked. `--json` emits both sets in full:
 {
   "ready": ["014-parser", "021-writer"],
   "blocked": [
-    { "id": "030-round-trip", "blockedBy": ["014-parser", "021-writer"] },
-    { "id": "031-migration", "blockedBy": ["030-round-trip"] }
+    { "id": "030-round-trip", "blockedBy": [
+        { "id": "014-parser", "state": "pending" },
+        { "id": "021-writer", "state": "in-progress" }
+    ] },
+    { "id": "031-migration", "blockedBy": [
+        { "id": "030-round-trip", "state": "deferred" }
+    ] }
   ]
 }
 ```
 
 `blockedBy` is what makes the output diagnostic instead of merely enumerative:
 the question after "what can I do now" is always "why not that one".
+
+Each blocker carries its `state`, which is its `implementation` value
+(`pending`, `in-progress`, `deferred`) or the literal `unresolved` for a
+`depends_on` target absent from the registry (§3.1). It is not decoration, and
+it closes a hole a bare id list would leave: a `deferred` spec is excluded from
+both output sets (§3.1) while still blocking its dependents (§3.5), so a bare id
+would name a blocker the reader can find nowhere else in the document. `state`
+makes that entry self-explaining, and it is the one case where the answer to "why
+not that one" is not "wait" but "someone decided not to".
 
 Under spec 037 this rides inside the verdict envelope like every other verb;
 `plan` is a read verb, so it emits its report bare, consistent with the other
@@ -168,9 +187,14 @@ different mechanisms, or the claim becomes its own proof.
   `in-progress` ones do.
 - `superseded`, `retired`, `complete`, `n-a` and `deferred` specs appear in
   neither set.
+- Every `blockedBy` entry carries the blocker's `state`, and it matches that
+  spec's `implementation` value.
+- A spec blocked solely by a `deferred` spec is reported with that blocker at
+  `state: "deferred"`, even though the blocker itself appears in neither set:
+  the entry must be readable without a second lookup.
 - A missing `implementation` key behaves as `pending`.
-- A `depends_on` naming a spec absent from the registry blocks and is reported as
-  unresolved.
+- A `depends_on` naming a spec absent from the registry blocks and is reported
+  with `state: "unresolved"`.
 - Ordering is stable across repeated runs and independent of corpus file order.
 - Against this repo's own corpus the command succeeds and the ready set is a
   subset of the non-complete specs.
@@ -195,6 +219,14 @@ like `registry relationships`.
 
 The `amends` edge records that narrowing in place. 033's text is unchanged, and
 its exclusion still governs everything except the pure partition named here.
+
+**Inferring order from any edge other than `depends_on`.** A spec commonly
+`extends` a unit owned by a spec it does not list in `depends_on`; twelve
+approved specs in this corpus do exactly that, because the two edges answer
+different questions (`extends` is an authority relation, `depends_on` a build
+order). `plan` walks `depends_on` and nothing else. Deriving order from `extends`
+would silently redefine what `depends_on` means for the whole corpus, which is a
+change to the frontmatter grammar and not a scheduling feature.
 
 **Any notion of effort, priority or assignment.** `plan` orders by dependency and
 nothing else. A corpus that wants priority has `extra_known_keys` and a consumer

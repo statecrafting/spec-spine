@@ -119,14 +119,20 @@ A trailing slash is trimmed, so `state` and `state/` name one root, matching the
 handling spec 036 established for `specs_dir`. Prefix matching is
 separator-aware: `state` MUST NOT match `stateful/`.
 
-The value MUST NOT be, and MUST NOT be an ancestor of, `layout.specs_dir` or
-`layout.derived_dir`, and config load MUST reject such a value with a clean
-`Error::Config`. A `state_dir` of `specs` makes every `spec.md` ungoverned; a
+The value MUST NOT overlap `layout.specs_dir` or `layout.derived_dir` in either
+direction: it may not equal one, contain one, or sit inside one, and config load
+MUST reject such a value with a clean `Error::Config`. A `state_dir` of `specs` makes every `spec.md` ungoverned; a
 `state_dir` of `.` does it to the entire repository. In both cases every gate
 keeps exiting 0 while adjudicating nothing, which is the worst failure mode this
-project has: not a refusal, but a silent stop. The exclusion is stated as an
-ancestor test rather than an equality test precisely because the dangerous values
-are the ones that contain a root, not the ones that equal it.
+project has: not a refusal, but a silent stop. The exclusion is an overlap test
+rather than an equality test precisely because the dangerous values are the ones
+that contain a root, not the ones that equal it.
+
+The descendant direction is refused for a different reason. A `state_dir` of
+`specs/state` under a `specs_dir` of `specs` would put a path inside a governed
+root and an ungoverned one at once, and every gate would then need a precedence
+rule for a situation with no legitimate use. Refusing the configuration is
+cheaper than specifying which root wins, and leaves nothing to get wrong later.
 
 ### 3.3 Ungoverned: spec-spine never reads or writes it
 
@@ -184,9 +190,10 @@ key is its own decision, not sugar for two floor entries.
 - `state` and `state/` behave identically; `stateful/` is not matched by `state`.
 - A spec claiming a unit under the root yields `L-006` at error tier, naming
   the spec and the unit, and `lint` exits 1 on it without `--fail-on-warn`.
-- Config load rejects, with a clean `Error::Config`, a value equal to or an
-  ancestor of `specs_dir` or `derived_dir`: `specs`, `.derived`, `.` and `./`
-  all refuse. A sibling sharing a prefix (`specs-state`) is accepted, per the
+- Config load rejects, with a clean `Error::Config`, a value overlapping
+  `specs_dir` or `derived_dir` in either direction: equal (`specs`, `.derived`),
+  an ancestor (`.`, `./`), or a descendant (`specs/state`, `.derived/state`).
+  A sibling sharing a prefix (`specs-state`) is accepted, per the
   separator-aware rule. The empty string (unset) is accepted and inert.
 
 ## 4. Out of scope
