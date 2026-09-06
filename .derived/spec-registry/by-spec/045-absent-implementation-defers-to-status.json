@@ -93,10 +93,10 @@
       "5. Verification"
     ],
     "specPath": "specs/045-absent-implementation-defers-to-status/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`implementation` is optional, and two verbs read its absence in opposite directions. `registry plan` (spec 038) reads an absent key as `pending` and offers the spec as ready; the index's in-flight predicate (specs 041 and 044) reads `approved` + absent as settled and holds the spec to its claims. The one spec that routinely lacks the key is the bootstrap spec `spec-spine init` scaffolds, so every scaffolded corpus reports its bootstrap spec as the single ready item in an otherwise finished corpus, forever; one adopter does today, and this repository did until its own spec 000 was patched by hand. This spec fixes the rule rather than the instance: an absent key takes its answer from `status`. On a `draft` it reads as `pending`, as 038 intended; on anything ratified it reads as settled, as the gate already concludes. The scaffold's bootstrap spec declares `implementation: n-a` and the spec template states the key instead of commenting it out, so the absent case becomes rare as well as consistent.\n",
     "title": "An absent `implementation` key takes its answer from `status`"
   },
-  "shardHash": "40d94ad79b7dd45feb355faa18f7a0ad0e63a4376b0988fcfccd7679ed14a232",
+  "shardHash": "df169dcc67b3b05d4438e063c3a5976e0023b44f92dbd2ae9978caa48f89905a",
   "specVersion": "1.1.0"
 }

@@ -1,7 +1,7 @@
 ---
 id: "047-harness-rules-name-the-legitimate-edits"
 title: "The harness rules name the reads and the edits they permit"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-06"
 implementation: complete
