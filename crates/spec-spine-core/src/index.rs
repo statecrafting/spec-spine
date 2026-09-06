@@ -83,17 +83,20 @@ impl SpecInfo {
     /// |---|---|---|
     /// | draft | pending / in-progress / n-a / deferred / absent | yes |
     /// | draft | **complete** | **no** |
-    /// | approved | pending | yes |
-    /// | approved | anything else, or absent | no |
+    /// | approved | pending / in-progress | yes |
+    /// | approved | complete / n-a / deferred / absent | no |
     ///
-    /// `complete` is decisive because it is a **falsifiable assertion about the
-    /// filesystem**, volunteered by the author. `status: draft` says the design
-    /// is unratified, which is a statement about review and knows nothing about
-    /// whether the files exist; letting it silence a check on the other axis is
-    /// not leniency toward work in progress, it is declining to read what the
-    /// author wrote. `n-a` and `deferred` assert nothing about code existing, so
-    /// there is nothing to hold them to and they keep taking their answer from
-    /// `status`, as does an absent key.
+    /// The rule under both arms is that **the field is read as what it says**.
+    /// `complete` is a falsifiable assertion that the files exist, so the
+    /// indexer checks it (spec 041); `pending` and `in-progress` both say the
+    /// claimed territory is not finished, which is the condition the leniency
+    /// exists for, so it does not (spec 044). `status: draft` says the design is
+    /// unratified, a statement about review that knows nothing about whether the
+    /// files exist; letting it silence a check on the other axis is not leniency
+    /// toward work in progress, it is declining to read what the author wrote.
+    /// `n-a` and `deferred` assert nothing about code existing, so there is
+    /// nothing to hold them to and they keep taking their answer from `status`,
+    /// as does an absent key.
     ///
     /// This window is the normal state rather than a corner: a spec here is
     /// filed as `draft` + `complete` in the PR that lands its code and stays
@@ -108,7 +111,11 @@ impl SpecInfo {
         if matches!(self.implementation, Some(Implementation::Complete)) {
             return false;
         }
-        self.status == "draft" || matches!(self.implementation, Some(Implementation::Pending))
+        self.status == "draft"
+            || matches!(
+                self.implementation,
+                Some(Implementation::Pending | Implementation::InProgress)
+            )
     }
 }
 

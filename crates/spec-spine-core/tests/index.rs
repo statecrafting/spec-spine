@@ -849,8 +849,22 @@ fn references_does_not_confer_c001_ownership() {
 /// Index a one-spec corpus whose frontmatter is exactly `status` +
 /// `implementation`, so the two axes are varied independently.
 fn lifecycle_index(status: &str, implementation: Option<&str>) -> spec_spine_types::CodebaseIndex {
+    lifecycle_index_with(status, implementation, false)
+}
+
+/// As [`lifecycle_index`], but `built` writes the claimed file so the unit
+/// resolves, which separates "leniency applied" from "nothing to be lenient
+/// about".
+fn lifecycle_index_with(
+    status: &str,
+    implementation: Option<&str>,
+    built: bool,
+) -> spec_spine_types::CodebaseIndex {
     let tmp = tempfile::tempdir().unwrap();
     write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = []\n");
+    if built {
+        write(tmp.path(), "src/not_built_yet.rs", "pub fn built() {}\n");
+    }
     let lifecycle = implementation
         .map(|i| format!("implementation: {i}\n"))
         .unwrap_or_default();
@@ -877,8 +891,10 @@ fn counts(idx: &spec_spine_types::CodebaseIndex) -> (usize, usize) {
     )
 }
 
-/// Spec 041 3.1: a spec asserting its own completion is never in flight,
-/// whatever its `status`, so its unresolved owning unit is a hard error.
+/// Specs 041 and 044: the lifecycle fields are read as what they say. A spec
+/// asserting completion is never in flight whatever its `status` (041); one
+/// declaring the work unfinished always is, whether `pending` or `in-progress`
+/// (044).
 ///
 /// All twelve cells: two `status` values against the five `implementation`
 /// variants plus an absent key. Exhaustive on purpose, and literally so, since
@@ -897,7 +913,10 @@ fn completion_defeats_draft_leniency_across_both_axes() {
         ("draft", Some("deferred"), true),
         ("draft", None, true),
         ("approved", Some("pending"), true),
-        ("approved", Some("in-progress"), false),
+        // Spec 044: the one cell that spec moves. `pending` and `in-progress`
+        // make the same claim about the filesystem, that the work is not
+        // finished, and only one of them used to buy the leniency built for it.
+        ("approved", Some("in-progress"), true),
         ("approved", Some("complete"), false),
         ("approved", Some("n-a"), false),
         ("approved", Some("deferred"), false),
@@ -967,8 +986,10 @@ fn a_non_owning_reference_stays_w002_in_every_combination() {
     for (status, implementation) in [
         ("draft", "complete"),
         ("draft", "pending"),
+        ("draft", "in-progress"),
         ("approved", "complete"),
         ("approved", "pending"),
+        ("approved", "in-progress"),
     ] {
         let tmp = tempfile::tempdir().unwrap();
         write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = []\n");
@@ -1002,4 +1023,24 @@ fn a_non_owning_reference_stays_w002_in_every_combination() {
             "{label}"
         );
     }
+}
+
+/// Spec 044 3.2: leniency is not a pass. A spec at `in-progress` whose units
+/// all resolve is silent, and one whose units do not resolve still reports each
+/// missing unit by name as a counted `W-001`.
+#[test]
+fn in_progress_leniency_reports_rather_than_ignores() {
+    let silent = lifecycle_index_with("approved", Some("in-progress"), true);
+    assert_eq!(counts(&silent), (0, 0), "{:?}", silent.diagnostics);
+
+    let reported = lifecycle_index("approved", Some("in-progress"));
+    let (errors, warnings) = counts(&reported);
+    assert_eq!((errors, warnings), (0, 1), "a warning, not an error");
+    assert!(
+        reported.diagnostics.warnings[0]
+            .message
+            .contains("not_built_yet.rs"),
+        "the unit is named, so the warning is a report: {:?}",
+        reported.diagnostics.warnings
+    );
 }
