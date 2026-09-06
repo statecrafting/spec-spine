@@ -4,7 +4,7 @@ title: "`attest --spec <id>`: a signed record scoped to one spec"
 status: draft
 kind: "tooling"
 created: "2026-09-06"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -22,6 +22,10 @@ extends:
   - { spec: "023-ledger-seal", unit: "crates/spec-spine-cli/src/cmd_attest.rs", nature: additive }
   - { spec: "023-ledger-seal", unit: "crates/spec-spine-cli/src/verify_attestation.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
+  # The flag plumbing and its end-to-end tests; 2's list omitted these (6, D-3).
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
+  - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/src/lib.rs", nature: additive }
   # The schema constant and its pin test; 000 floors the types crate.
   - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/src/attest.rs", nature: additive }
   - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/src/version.rs", nature: additive }
@@ -75,10 +79,15 @@ to a narrower subject.
 ## 2. Territory
 
 `attest.rs` in both crates (the DTO and the builder), `cmd_attest.rs` and
-`verify_attestation.rs` for the flag and its verification path, the core facade,
-and the schema constant with its pin test. No committed artifact changes and no
-existing payload changes: `CorpusAttestation` is untouched, and a repo that never
-passes `--spec` behaves exactly as it does today.
+`verify_attestation.rs` for the flag and its verification path, `main.rs` for
+the flag declarations, both crates' `lib.rs` for the re-exports and the facade,
+and the schema constant with its pin test, plus the two test files that cover
+them. No committed artifact changes and no existing payload changes:
+`CorpusAttestation` is untouched, and a repo that never passes `--spec` behaves
+exactly as it does today.
+
+The last three are additions to this section, made when it was implemented; 6
+records why.
 
 ## 3. Behavior
 
@@ -322,3 +331,74 @@ What remains is worth building on its own terms: a signed, reproducible,
 offline-verifiable record scoped to one unit of work, for a consumer outside this
 repository. That is a narrower claim than the note made, and one that survives
 being checked.
+
+## 6. Resolved decisions
+
+- **D-1 (2026-09-06): "attests byte-identically" is a claim about the emitted
+  lifecycle value, not the whole payload.** 3.7 asks that a spec written `n/a`
+  attest byte-identically to one written `n-a`. That cannot hold as stated and
+  should not: `specSourceHash` hashes the spec's own bytes, and the two specs
+  differ by exactly those bytes, so identical payloads would mean the source
+  hash had stopped tracking the source. What 3.1 actually argues is that the
+  dialect must not survive into the record, and that is what is implemented and
+  tested: `lifecycle.implementation` is the canonical `n-a` in both, every other
+  field matches, and `specSourceHash` differs because it must. The distinction
+  the test protects is the one the section is about, that an absent key and an
+  `n-a` key stay distinguishable.
+
+- **D-2 (2026-09-06): a unit resolving to several locations gets one hash over
+  the set.** 3.1 shows one `contentHash` per unit and does not say what a
+  subtree or a multi-file module hashes to. The obvious readings are a hash of
+  the first location, which silently ignores the rest, or a list, which changes
+  the documented shape. Neither is right. The implementation reuses
+  `hash::content_hash`, the same path-sorted, normalized, `\0`-separated
+  construction every other hash in this project uses, so a unit covering five
+  files has one hash that changes if any of them does. An unresolved unit
+  carries no `contentHash` at all rather than a hash of nothing: absent and
+  "happens to hash to zero" must not read alike.
+
+- **D-3 (2026-09-06): the territory in 2 was three files short, and the gate is
+  what said so.** 2 named the two `attest.rs` files, `cmd_attest.rs`,
+  `verify_attestation.rs`, the core facade and the schema constant with its pin
+  test. A CLI flag is declared in `main.rs`, its end-to-end coverage lives in
+  `cli.rs`, and a new DTO is only reachable if `types/src/lib.rs` re-exports it,
+  so all three changed and none was claimed. `couple` refused the PR naming
+  exactly those three paths, which is the gate doing its job on its own author.
+
+  This is the second time in this series that a spec's stated territory was
+  narrower than its behavior section required (spec 039 D-1 was the first, for
+  the same reason: the section lists the files the author pictured rather than
+  the ones the change reaches). The edges are declared and 2 now says so. Both
+  cases argue the same thing, that the territory list is worth deriving from the
+  behavior rather than written alongside it.
+
+- **D-4 (2026-09-06): each verdict mirrors its corpus-scoped counterpart, and
+  the two use different severity floors on purpose.** `lint.ok` is false on an
+  error **or a warning** attributed to the spec; `compile.ok` is false only on an
+  error. That asymmetry is inherited rather than invented here: spec 023 sets
+  `compile.ok` from `validation.passed`, which is defined as false iff an
+  error-tier violation is present, and sets `lint.ok` from the repo's own
+  `lint --fail-on-warn` gate because a lint report has no equivalent single flag
+  to read. Reproducing both floors exactly is what lets a consumer compare a
+  per-spec attestation against a corpus one without a table of exceptions.
+  Rejected: raising `compile.ok` to include warnings, which would make the same
+  field mean different things at the two scopes; and lowering `lint.ok` to
+  errors only, which would make it disagree with the gate this project actually
+  runs.
+
+- **D-5 (2026-09-06): the seal is derived from the attestation's own filename.**
+  Spec 023's CLI resolved a missing `--seal` to a fixed `attestation.sig` beside
+  the payload. A per-spec attestation lives at `by-spec/<id>.json`, so a fixed
+  name would give every spec in a corpus the same seal path and each signing
+  would overwrite the last. The derivation is now the payload's own name with a
+  `.sig` extension, which is identical for the corpus default
+  (`attestation.json` to `attestation.sig`) and correct per spec.
+
+  It changes one existing invocation: `verify-attestation --attestation
+  backup.json --signature` with no `--seal` now looks for `backup.sig` rather
+  than `attestation.sig`. That is the better answer, since a seal belongs to the
+  payload it signs rather than to the directory it sits in, but it is a change
+  to behavior spec 023 shipped, so it is recorded here rather than left for
+  someone to discover. This spec already `amends` 023 for the exit-code rule in
+  3.1; this is the second consequence of that edge, and 023's text is untouched
+  either way (spec 040).

@@ -40,6 +40,14 @@ pub const INDEX_SCHEMA_VERSION: &str = "1.1.0";
 /// `schemaVersion` emitted in `build-meta.json` (the non-deterministic artifact).
 pub const BUILD_META_SCHEMA_VERSION: &str = "0.1.0";
 
+/// `schemaVersion` carried by a per-spec attestation (spec 042).
+///
+/// Independent of the registry, index and corpus-attestation versions: an
+/// external consumer pins the shape of the evidence it verifies without pinning
+/// the ledger it was derived from, which is the point of a bundle format
+/// crossing a trust boundary.
+pub const SPEC_ATTESTATION_SCHEMA_VERSION: &str = "0.1.0";
+
 /// `schemaVersion` carried by the `--json` verdict envelope (spec 037).
 ///
 /// Independent of the registry and index versions on purpose: a consumer pins

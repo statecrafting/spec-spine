@@ -14,7 +14,15 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/src/main.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-cli/src/verify_attestation.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/cli.rs",
         "source": "spec-edge"
       },
       {
@@ -31,6 +39,10 @@
       },
       {
         "path": "crates/spec-spine-types/src/attest.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/lib.rs",
         "source": "spec-edge"
       },
       {
@@ -59,6 +71,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-cli/src/main.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-cli/src/verify_attestation.rs"
           }
         ],
@@ -67,6 +92,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/verify_attestation.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/cli.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
         }
       },
       {
@@ -119,6 +157,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/attest.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
         }
       },
       {
@@ -178,5 +229,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "9a296ac5546d8fe78e086681c1152600e07b7e172f1cd711dbb1cdd3a1d852d6"
+  "shardHash": "b4416dc720d30436f5bfe61dbdf3e1c13e2e0f01cec6566417fab2a918ea0255"
 }

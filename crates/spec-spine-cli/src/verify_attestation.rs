@@ -10,8 +10,12 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use spec_spine_core::{VerifyOutcome, attestation_hash, verify_recompute};
-use spec_spine_types::{Config, CorpusAttestation, Error, LedgerSeal, Verdict, verdict::verb};
+use spec_spine_core::{
+    VerifyOutcome, attestation_hash, spec_attestation_hash, verify_recompute, verify_spec_recompute,
+};
+use spec_spine_types::{
+    Config, CorpusAttestation, Error, LedgerSeal, SpecAttestation, Verdict, verdict::verb,
+};
 
 use crate::load_repo_config;
 use crate::out;
@@ -19,6 +23,9 @@ use crate::seal;
 
 /// Parsed `verify-attestation` arguments.
 pub struct VerifyArgs {
+    /// Verify the per-spec attestation for this id (spec 042); `None` verifies
+    /// the corpus-scoped one (spec 023).
+    pub spec: Option<String>,
     pub recompute: bool,
     pub signature: bool,
     pub attestation: Option<PathBuf>,
@@ -40,11 +47,28 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     }
 
     let cfg = load_repo_config(repo)?;
+    if let Some(id) = &args.spec {
+        validate_spec_id(id)?;
+    }
     let attestation_path = args
         .attestation
         .clone()
-        .unwrap_or_else(|| default_attestation_path(repo, &cfg));
-    let attestation = load_attestation(&attestation_path)?;
+        .unwrap_or_else(|| default_attestation_path(repo, &cfg, args.spec.as_deref()));
+
+    // The two scopes carry different payloads, so the loaded value and both
+    // verification paths fork here and nowhere else.
+    let subject = match &args.spec {
+        Some(id) => Subject::Spec(load_json(
+            &attestation_path,
+            "attestation",
+            &format!("spec-spine attest --spec {id}"),
+        )?),
+        None => Subject::Corpus(load_json(
+            &attestation_path,
+            "attestation",
+            "spec-spine attest",
+        )?),
+    };
 
     let mut failed = false;
     // Under --json the two modes accumulate into one report object rather than
@@ -57,7 +81,11 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     let mut report = serde_json::Map::new();
 
     if args.recompute {
-        match verify_recompute(&cfg, repo, &attestation)? {
+        let outcome = match &subject {
+            Subject::Corpus(a) => verify_recompute(&cfg, repo, a)?,
+            Subject::Spec(a) => verify_spec_recompute(&cfg, repo, a)?,
+        };
+        match outcome {
             VerifyOutcome::Match => {
                 if args.json {
                     report.insert("outcome".to_string(), serde_json::json!("match"));
@@ -107,11 +135,18 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
         let seal_path = args
             .seal
             .clone()
-            .unwrap_or_else(|| attestation_path.with_file_name("attestation.sig"));
-        let ledger_seal = load_seal(&seal_path)?;
+            .unwrap_or_else(|| attestation_path.with_extension("sig"));
+        let seal_hint = match &args.spec {
+            Some(id) => format!("spec-spine attest --spec {id} --sign"),
+            None => "spec-spine attest --sign".to_string(),
+        };
+        let ledger_seal: LedgerSeal = load_json(&seal_path, "seal", &seal_hint)?;
         // Recompute the hash from the loaded payload: a tampered byte changes it
         // and the seal stops verifying.
-        let hash = attestation_hash(&attestation)?;
+        let hash = match &subject {
+            Subject::Corpus(a) => attestation_hash(a)?,
+            Subject::Spec(a) => spec_attestation_hash(a)?,
+        };
         let valid = seal::verify(&hash, &ledger_seal, &verifying_key)?;
         if args.json {
             report.insert(
@@ -141,30 +176,63 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     Ok(code)
 }
 
-fn default_attestation_path(repo: &Path, cfg: &Config) -> PathBuf {
-    repo.join(&cfg.layout.derived_dir)
-        .join("attestation")
-        .join("attestation.json")
+/// Which payload is under verification. The two scopes share every mode and
+/// every exit code; only the deserialized type and the recompute call differ.
+enum Subject {
+    Corpus(CorpusAttestation),
+    Spec(SpecAttestation),
 }
 
-fn load_attestation(path: &Path) -> Result<CorpusAttestation, Error> {
+fn default_attestation_path(repo: &Path, cfg: &Config, spec: Option<&str>) -> PathBuf {
+    let dir = repo.join(&cfg.layout.derived_dir).join("attestation");
+    match spec {
+        Some(id) => dir.join("by-spec").join(format!("{id}.json")),
+        None => dir.join("attestation.json"),
+    }
+}
+
+/// A spec id is one path segment, so interpolating it into a filename cannot
+/// walk out of the attestation directory.
+///
+/// `attest --spec` is already protected by its registry lookup, which refuses an
+/// unknown id before anything is written. This side reads, and reads before any
+/// lookup, so it is guarded here instead. The impact is confusion rather than
+/// exposure, since `--attestation` already lets the caller name any path they
+/// can read, but a traversing id would fail with a puzzling parse error on some
+/// unrelated file rather than saying what was wrong.
+fn validate_spec_id(id: &str) -> Result<(), Error> {
+    let bad = id.is_empty()
+        || id.contains('/')
+        || id.contains('\\')
+        || id == "."
+        || id == ".."
+        || id.contains('\0');
+    if bad {
+        return Err(Error::Config(format!(
+            "verify-attestation --spec '{id}' is not a spec id: an id is one path segment, \
+             and pointing at another file is what --attestation is for"
+        )));
+    }
+    Ok(())
+}
+
+/// Read and deserialize a JSON artifact, naming it in both failure messages.
+///
+/// `hint` is the command that would have produced the file. It is a parameter
+/// rather than a constant because a missing seal and a missing attestation want
+/// different advice: telling someone who forgot `--sign` to run `attest` sends
+/// them to re-run the step that already succeeded.
+fn load_json<T: serde::de::DeserializeOwned>(
+    path: &Path,
+    what: &str,
+    hint: &str,
+) -> Result<T, Error> {
     let bytes = fs::read(path).map_err(|e| {
         Error::Io(format!(
-            "read attestation {} (run `spec-spine attest` first?): {e}",
+            "read {what} {} (run `{hint}` first?): {e}",
             path.display()
         ))
     })?;
     serde_json::from_slice(&bytes)
-        .map_err(|e| Error::Parse(format!("invalid attestation {}: {e}", path.display())))
-}
-
-fn load_seal(path: &Path) -> Result<LedgerSeal, Error> {
-    let bytes = fs::read(path).map_err(|e| {
-        Error::Io(format!(
-            "read seal {} (run `spec-spine attest --sign` first?): {e}",
-            path.display()
-        ))
-    })?;
-    serde_json::from_slice(&bytes)
-        .map_err(|e| Error::Parse(format!("invalid seal {}: {e}", path.display())))
+        .map_err(|e| Error::Parse(format!("invalid {what} {}: {e}", path.display())))
 }

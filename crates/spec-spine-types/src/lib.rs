@@ -36,8 +36,9 @@ pub mod version;
 // --- curated public prelude (the names callers reach for most) ---
 
 pub use attest::{
-    ATTESTATION_SCHEMA_VERSION, CompileVerdict, CorpusAttestation, CoupleVerdict, LedgerSeal,
-    LintVerdict, ToolStamp, Verdicts,
+    ATTESTATION_SCHEMA_VERSION, AttestedLifecycle, AttestedUnit, CompileVerdict, CorpusAttestation,
+    CoupleVerdict, LedgerSeal, LintVerdict, ResolutionVerdict, SpecAttestation, SpecVerdicts,
+    ToolStamp, Verdicts,
 };
 pub use codebase::{
     CodebaseIndex, Diagnostic, Diagnostics, ImplementingPath, IndexBuild, IndexPackageShard,
@@ -70,5 +71,5 @@ pub use unit::Unit;
 pub use verdict::{Verdict, VerdictError, error_kind};
 pub use version::{
     BUILD_META_SCHEMA_VERSION, CONFIG_VERSION, INDEX_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION,
-    VERDICT_SCHEMA_VERSION, parse_semver,
+    SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, parse_semver,
 };
