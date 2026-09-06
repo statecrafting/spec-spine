@@ -22,6 +22,10 @@ extends:
   - { spec: "023-ledger-seal", unit: "crates/spec-spine-cli/src/cmd_attest.rs", nature: additive }
   - { spec: "023-ledger-seal", unit: "crates/spec-spine-cli/src/verify_attestation.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
+  # The flag plumbing and its end-to-end tests; 2's list omitted these (6, D-3).
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
+  - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/src/lib.rs", nature: additive }
   # The schema constant and its pin test; 000 floors the types crate.
   - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/src/attest.rs", nature: additive }
   - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/src/version.rs", nature: additive }
@@ -75,10 +79,15 @@ to a narrower subject.
 ## 2. Territory
 
 `attest.rs` in both crates (the DTO and the builder), `cmd_attest.rs` and
-`verify_attestation.rs` for the flag and its verification path, the core facade,
-and the schema constant with its pin test. No committed artifact changes and no
-existing payload changes: `CorpusAttestation` is untouched, and a repo that never
-passes `--spec` behaves exactly as it does today.
+`verify_attestation.rs` for the flag and its verification path, `main.rs` for
+the flag declarations, both crates' `lib.rs` for the re-exports and the facade,
+and the schema constant with its pin test, plus the two test files that cover
+them. No committed artifact changes and no existing payload changes:
+`CorpusAttestation` is untouched, and a repo that never passes `--spec` behaves
+exactly as it does today.
+
+The last three are additions to this section, made when it was implemented; 6
+records why.
 
 ## 3. Behavior
 
@@ -347,3 +356,18 @@ being checked.
   files has one hash that changes if any of them does. An unresolved unit
   carries no `contentHash` at all rather than a hash of nothing: absent and
   "happens to hash to zero" must not read alike.
+
+- **D-3 (2026-09-06): the territory in 2 was three files short, and the gate is
+  what said so.** 2 named the two `attest.rs` files, `cmd_attest.rs`,
+  `verify_attestation.rs`, the core facade and the schema constant with its pin
+  test. A CLI flag is declared in `main.rs`, its end-to-end coverage lives in
+  `cli.rs`, and a new DTO is only reachable if `types/src/lib.rs` re-exports it,
+  so all three changed and none was claimed. `couple` refused the PR naming
+  exactly those three paths, which is the gate doing its job on its own author.
+
+  This is the second time in this series that a spec's stated territory was
+  narrower than its behavior section required (spec 039 D-1 was the first, for
+  the same reason: the section lists the files the author pictured rather than
+  the ones the change reaches). The edges are declared and 2 now says so. Both
+  cases argue the same thing, that the territory list is worth deriving from the
+  behavior rather than written alongside it.
