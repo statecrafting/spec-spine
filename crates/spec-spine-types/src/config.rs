@@ -313,34 +313,52 @@ pub fn load_config(toml_src: &str) -> Result<Config> {
 /// no legitimate use, and refusing the configuration is cheaper than specifying
 /// which root wins.
 fn validate_state_dir(config: &Config) -> Result<()> {
-    let state = trim_root(&config.layout.state_dir);
-    if state.is_empty() {
+    // The raw value decides whether a root was declared at all. Normalizing
+    // first would fold `/` into the empty string and read a value the adopter
+    // wrote as *unset*, which is the silent-nothing outcome every arm below
+    // exists to refuse.
+    let raw = &config.layout.state_dir;
+    if raw.is_empty() {
         return Ok(());
     }
-    // The repo root contains every governed root, so it fails the overlap test
-    // below only if that test knows `.` is an ancestor of everything, which a
-    // string comparison does not. Refused by name instead: this is the value
+
+    // Not a repo-relative directory. Each of these matches no path the gates
+    // ever test, so the gates would behave as though no root were declared
+    // while the config says one is: silence that claims to be a decision.
+    if raw.starts_with('/') || raw == ".." || raw.starts_with("../") {
+        return Err(Error::Config(format!(
+            "layout.state_dir '{raw}' is not a repo-relative directory: a value that escapes \
+             the repository, or an absolute one, would match no path the gates test and \
+             would silently declare nothing"
+        )));
+    }
+
+    // The repository root contains every governed root, so it fails the overlap
+    // test below only if that test knows `.` is an ancestor of everything, which
+    // a string comparison does not. Refused by name instead: this is the value
     // spec 039 3.2 calls the worst outcome, since every gate would keep exiting
     // 0 while adjudicating nothing at all.
-    if state == "." {
+    let state = trim_root(raw);
+    if state.is_empty() || state == "." {
         return Err(Error::Config(format!(
-            "layout.state_dir '{}' is the repository root: a state root is ungoverned, \
-             so declaring the whole repository one would silence every gate",
-            config.layout.state_dir
+            "layout.state_dir '{raw}' is the repository root: a state root is ungoverned, \
+             so declaring the whole repository one would silence every gate"
         )));
     }
-    // A value escaping the repository is worse than wrong, it is inert: every
-    // path the gates test is repo-relative and carries no `..`, so nothing would
-    // ever match and the gates would behave as though no root were declared
-    // while the config says one is. Silence that claims to be a decision is the
-    // failure mode this key exists to prevent.
-    if state == ".." || state.starts_with("../") {
-        return Err(Error::Config(format!(
-            "layout.state_dir '{}' escapes the repository: the value is a repo-relative \
-             directory, and one outside it would match no path and silently declare nothing",
-            config.layout.state_dir
-        )));
-    }
+
+    // The comparison is against the **resolved** values of the two governed
+    // roots, never against their defaults. Both are configurable, so a check
+    // written against the literal `specs` would clear a repo with
+    // `specs_dir = "corpus"` and `state_dir = "corpus/state"` and quietly make
+    // every `spec.md` under it ungoverned. This is the defect spec 036 fixed in
+    // `couple.rs`, and a validation rule is exactly where a default is easiest
+    // to hardcode.
+    //
+    // The test is overlap, not equality, because the dangerous values are the
+    // ones that *contain* a root. The descendant direction is refused too, since
+    // a path inside a governed root and an ungoverned one at once would need a
+    // precedence rule for a situation with no legitimate use, and refusing the
+    // configuration is cheaper than specifying which root wins.
     for (key, value) in [
         ("specs_dir", &config.layout.specs_dir),
         ("derived_dir", &config.layout.derived_dir),
@@ -353,9 +371,8 @@ fn validate_state_dir(config: &Config) -> Result<()> {
             |a: &str, b: &str| a == b || b.strip_prefix(a).is_some_and(|r| r.starts_with('/'));
         if contains(state, other) || contains(other, state) {
             return Err(Error::Config(format!(
-                "layout.state_dir '{}' overlaps layout.{key} '{}': a state root is ungoverned, \
-                 so it may not equal, contain, or sit inside a governed root",
-                config.layout.state_dir, value
+                "layout.state_dir '{raw}' overlaps layout.{key} '{value}': a state root is \
+                 ungoverned, so it may not equal, contain, or sit inside a governed root"
             )));
         }
     }

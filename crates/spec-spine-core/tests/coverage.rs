@@ -532,6 +532,61 @@ fn a_claim_inside_the_state_root_is_an_l006_error() {
     assert!(!clean.violations.iter().any(|v| v.code == "L-006"));
 }
 
+/// Every ownership-bearing edge is checked, `supersedes` included.
+///
+/// A partial `supersedes` item carries the unit whose authority transfers (spec
+/// 019), so it claims a path exactly as `establishes` does. Missing it would let
+/// a superseding spec hold a claim inside the ungoverned root that the gate
+/// bypasses unconditionally and no diagnostic ever names, which is precisely the
+/// contradiction `L-006` exists to surface.
+#[test]
+fn l006_covers_every_ownership_bearing_edge() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(
+        r,
+        "specs/001-old/spec.md",
+        &spec("001-old", "establishes:\n  - \"src/old.rs\"\n"),
+    );
+    // One claim per path-bearing ownership edge other than `establishes`, which
+    // the neighbouring test already covers. Written as flow mappings on single
+    // lines: a wrapped one silently becomes a different YAML document.
+    let edges = concat!(
+        "supersedes:\n",
+        "  - { spec: \"001-old\", scope: partial, unit: { kind: file, path: \"tool-state/old.rs\" } }\n",
+        "co_authority:\n",
+        "  - { unit: { kind: section, file: \"tool-state/shared.md\", anchor: \"x\" } }\n",
+        "constrains:\n",
+        "  - { flavor: invariant-freeze, unit: { kind: file, path: \"tool-state/frozen.rs\" } }\n",
+    );
+    write(r, "specs/002-new/spec.md", &spec("002-new", edges));
+
+    let cfg = load_config("[layout]\nstate_dir = \"tool-state\"\n").unwrap();
+    let report = spec_spine_core::lint(&cfg, r).unwrap();
+    let claimed: Vec<&str> = report
+        .violations
+        .iter()
+        .filter(|v| v.code == "L-006")
+        .map(|v| v.message.as_str())
+        .collect();
+
+    assert_eq!(
+        claimed.len(),
+        3,
+        "one per claim inside the root: {claimed:?}"
+    );
+    for path in [
+        "tool-state/old.rs",
+        "tool-state/shared.md",
+        "tool-state/frozen.rs",
+    ] {
+        assert!(
+            claimed.iter().any(|m| m.contains(path)),
+            "{path} is claimed and must be reported: {claimed:?}"
+        );
+    }
+}
+
 /// No two lint diagnostics share a code. `L-006` was the next free code when
 /// spec 039 was written; the spec makes "the next free code in the band" the
 /// binding rule, so this asserts the namespace rather than trusting a comment.

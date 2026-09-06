@@ -131,10 +131,21 @@ fn edge_targets(spec: &SpecRecord) -> Vec<String> {
 
 /// Every repo-relative path a spec claims through an ownership-bearing edge.
 ///
+/// All six of them: `establishes`, `extends`, `refines`, `supersedes`,
+/// `co_authority` and `constrains`. A partial `supersedes` item carries the unit
+/// whose authority transfers (spec 019), so it claims a path exactly as the
+/// others do; omitting it would let a superseding spec hold a claim inside the
+/// state root that no diagnostic ever named, which is the contradiction `L-006`
+/// exists to surface.
+///
 /// `references` is excluded: spec 034 settled that a cited file is not a claimed
-/// one, so citing something inside the state root is not the contradiction
-/// `L-006` reports. Section and file units carry a path; symbol, crate and
-/// module units are resolved by id and have none to test here.
+/// one, so citing something inside the state root is not that contradiction.
+/// `amends` is excluded too, because its subject is the amended spec's `spec.md`
+/// rather than an arbitrary unit, and a `spec.md` lives under `specs_dir`, which
+/// `state_dir` may not overlap.
+///
+/// Section and file units carry a path; symbol, crate and module units are
+/// resolved by id and have none to test here.
 fn claimed_paths(spec: &SpecRecord) -> Vec<String> {
     let mut paths = Vec::new();
     let mut push = |unit: &Unit| {
@@ -153,6 +164,13 @@ fn claimed_paths(spec: &SpecRecord) -> Vec<String> {
     for item in &spec.refines {
         if let Some(u) = &item.unit {
             push(u);
+        }
+    }
+    for item in &spec.supersedes {
+        if let spec_spine_types::SupersedeItem::Scoped(scoped) = item {
+            if let Some(u) = &scoped.unit {
+                push(u);
+            }
         }
     }
     for item in &spec.co_authority {

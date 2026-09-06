@@ -164,10 +164,10 @@ fn state_dir_may_not_overlap_a_governed_root_in_either_direction() {
         );
         assert_eq!(err.exit_code(), 3, "a bad config is exit 3");
     }
-    // A value escaping the repo matches no path the gates ever test, so it
-    // would declare a root that silences nothing while the config says one is
-    // declared. Refused rather than left inert.
-    for value in ["..", "../logs", "../../outside", "../"] {
+    // A value escaping the repo, or an absolute one, matches no path the gates
+    // ever test, so it would declare a root that silences nothing while the
+    // config says one is declared. Refused rather than left inert.
+    for value in ["..", "../logs", "../../outside", "../", "/var/logs", "/"] {
         let err = load_config(&format!("[layout]\nstate_dir = \"{value}\"\n")).unwrap_err();
         assert!(
             matches!(err, Error::Config(_)),

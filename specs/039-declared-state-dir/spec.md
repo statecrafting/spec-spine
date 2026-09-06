@@ -284,6 +284,33 @@ gitignored transcript are both ungoverned by the gates.
   `&LayoutConfig` instead, which keeps the two mechanisms visibly separate at
   every call site.
 
+- **D-5 (2026-09-06): every value that would declare nothing is refused, and
+  the order of the checks is what makes that true.** Review of the implementing
+  PR found `/var/logs` accepted, on the same reasoning as D-2 and D-4: an
+  absolute path matches no repo-relative path the gates test. Widening the guard
+  then exposed a second case the first fix would have hidden, `/`, which
+  normalizes to the empty string and would have been read as *unset*, silently
+  turning a value the adopter wrote into no declaration at all.
+
+  So the validation now reads the **raw** value to decide whether a root was
+  declared, refuses anything that is not repo-relative before normalizing, and
+  only then tests the repository root and the overlaps. Normalizing first is
+  what made `/` invisible, and this ordering is the reason it cannot be. The
+  three arms share one rationale: a `state_dir` that matches nothing is worse
+  than a wrong one, because the gates keep exiting 0 while adjudicating nothing
+  and the config claims otherwise.
+
+- **D-6 (2026-09-06): `L-006` covers all six ownership-bearing edges, not five.**
+  The first implementation walked `establishes`, `extends`, `refines`,
+  `co_authority` and `constrains`, and omitted `supersedes`. A partial
+  `supersedes` item carries the unit whose authority transfers (spec 019), so it
+  claims a path exactly as the others do: a superseding spec could have held a
+  claim inside the ungoverned root that `couple` bypasses unconditionally and no
+  diagnostic ever named, which is precisely the contradiction this code exists
+  to surface. `amends` stays excluded, because its subject is the amended spec's
+  `spec.md` rather than an arbitrary unit, and a `spec.md` lives under
+  `specs_dir`, which `state_dir` may not overlap.
+
 - **D-4 (2026-09-06): a value escaping the repository is refused, and the
   overlap check stays scoped to the two roots 3.2 names.** Review of the
   implementing PR raised both.
