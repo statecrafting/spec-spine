@@ -520,7 +520,9 @@ fn plan_and_compile_agree_on_a_cycle_among_retired_specs() {
 
     let outcome = compile(&Config::default(), tmp.path()).unwrap();
 
-    // `compile` refuses it: the detector is not scoped to active specs.
+    // The detector fires: it is not scoped to active specs. `compile` still
+    // returns `Ok`, carrying the violation in the report rather than as an
+    // error, which is why the call above unwraps.
     let compile_v014: Vec<_> = outcome
         .registry
         .validation
@@ -528,6 +530,20 @@ fn plan_and_compile_agree_on_a_cycle_among_retired_specs() {
         .iter()
         .filter(|v| v.code == "V-014")
         .collect();
+    // Asserted before the count so a schema rejection of `depends_on` on a
+    // retired spec would fail here, naming its own cause, rather than surfacing
+    // as a confusing "no V-014 was raised".
+    let unexpected: Vec<_> = outcome
+        .registry
+        .validation
+        .violations
+        .iter()
+        .filter(|v| v.code != "V-014" && v.severity == spec_spine_types::Severity::Error)
+        .collect();
+    assert!(
+        unexpected.is_empty(),
+        "the fixture must reach the cycle detector cleanly: {unexpected:?}"
+    );
     assert_eq!(
         compile_v014.len(),
         1,
@@ -568,4 +584,41 @@ fn plan_blocked_entries_are_ordered_by_id() {
     let mut sorted = ids.clone();
     sorted.sort();
     assert_eq!(ids, sorted, "ascending id, as the contract states");
+}
+
+/// The other half of 3.2's ordering contract: each entry's `blockedBy` follows
+/// that spec's own **authored** `depends_on` order, not ascending id.
+///
+/// The two orders are deliberately opposed in this fixture, so an implementation
+/// that collected blockers from the id-sorted map instead of from the spec's own
+/// list would fail rather than coincidentally agree.
+#[test]
+fn plan_blocked_by_follows_authored_depends_on_order() {
+    let reg = registry_of(&[
+        ("001-a", "approved", Some("pending"), &[]),
+        ("002-b", "approved", Some("pending"), &[]),
+        ("003-c", "approved", Some("pending"), &[]),
+        // Authored back to front: c, a, b.
+        (
+            "004-join",
+            "approved",
+            Some("pending"),
+            &["003-c", "001-a", "002-b"],
+        ),
+    ]);
+    let plan = spec_spine_core::plan(&reg).unwrap();
+    let blockers: Vec<&str> = plan
+        .blocked
+        .iter()
+        .find(|b| b.id == "004-join")
+        .expect("004-join is blocked")
+        .blocked_by
+        .iter()
+        .map(|b| b.id.as_str())
+        .collect();
+    assert_eq!(
+        blockers,
+        vec!["003-c", "001-a", "002-b"],
+        "authored order is preserved, not re-sorted by id"
+    );
 }
