@@ -12,7 +12,7 @@ Scans manifests and specs to emit the codebase index, and provides staleness che
 
 ```bash
 spec-spine index
-spec-spine index check [--slice NAME]
+spec-spine index check [--slice NAME] [--json]
 spec-spine index render
 spec-spine index orphans [--json]
 spec-spine index coverage [--json] [--fail-on-untraced]
@@ -29,6 +29,7 @@ Scans the repository for manifests (e.g., `Cargo.toml`, `package.json`) and spec
 The staleness gate. It recomputes the content hash of the current inputs and compares it against the committed index shards.
 
 - **`--slice NAME`**: Checks staleness for a specific named slice defined in `[index.slices]` in the config, rather than the global content hash.
+- **`--json`**: Emit the [verdict envelope](./overview.md#machine-readable-verdicts---json) (`verb: "index.check"`) instead of prose.
 
 ### `index render`
 

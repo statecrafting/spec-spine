@@ -11,7 +11,7 @@ Validates spec frontmatter and emits the deterministic registry.
 ## Usage
 
 ```bash
-spec-spine compile [--check]
+spec-spine compile [--check [--json]]
 ```
 
 ## Description
@@ -29,6 +29,8 @@ The output is written as per-unit registry shards to `.derived/spec-registry/by-
 - **orphaned**: a committed shard with no matching spec (a spec was removed without recompiling).
 
 Use it in CI if you commit `.derived/`. It never writes: no shard, no `build-meta.json`, no pruning.
+
+`--check --json` emits the [verdict envelope](./overview.md#machine-readable-verdicts---json) (`verb: "compile.check"`, `report: { "fresh": bool, ... }`) instead of prose. The writing form has no `--json`.
 
 :::warning
 Do not run `compile --check` after a plain `spec-spine compile` in the same job. The check would compare the committed shards against files that run just overwrote, and would pass unconditionally. `--check` compiles on its own, so it replaces the plain `compile` step rather than following it.

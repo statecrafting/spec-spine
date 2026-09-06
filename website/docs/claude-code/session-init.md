@@ -43,6 +43,7 @@ frontmatter), then dispatch simultaneously:
 - your contract and constitution documents under `standards/`
 - `spec-spine index check` (staleness gate, non-fatal)
 - `spec-spine registry status-report --json --nonzero-only` (lifecycle counts)
+- `spec-spine registry plan` (the ready set: what can be worked on now, and what blocks the rest)
 - `spec-spine registry list --ids-only` (spec id list)
 - directory listings for your source surfaces
 - `git log --oneline -10` and `git diff --stat HEAD~1`

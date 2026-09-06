@@ -151,17 +151,27 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                     .map_err(|e| Error::Io(format!("remove {}: {e}", legacy.display())))?;
             }
 
+            // Print both tiers. Spec 025 downgrades an unresolved unit on an
+            // in-flight spec (or a `references` edge) to a counted `W-001` /
+            // `W-002`; those land in the shard either way, but a warning the
+            // operator never sees is a unit that quietly went unresolved.
             let idx = &outcome.index;
-            for diag in &idx.diagnostics.errors {
+            for diag in idx
+                .diagnostics
+                .errors
+                .iter()
+                .chain(idx.diagnostics.warnings.iter())
+            {
                 let at = diag.path.as_deref().unwrap_or("-");
                 eprintln!("  {} [{}] {}", diag.code, at, diag.message);
             }
             outln!(
-                "indexed {} package(s), {} mapping(s) -> {} ({} error diagnostic(s))",
+                "indexed {} package(s), {} mapping(s) -> {} ({} error diagnostic(s), {} warning(s))",
                 idx.packages.len(),
                 idx.traceability.mappings.len(),
                 dir.display(),
-                idx.diagnostics.errors.len()
+                idx.diagnostics.errors.len(),
+                idx.diagnostics.warnings.len()
             );
             Ok(0)
         }

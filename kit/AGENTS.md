@@ -37,6 +37,7 @@ picked up on the next init.
    - `spec-spine compile --check`: freshness gate for the spec registry (non-fatal; see **Registry freshness** below)
    - `spec-spine index check`: staleness gate for the codebase index (non-fatal)
    - `spec-spine registry status-report --json --nonzero-only`: lifecycle counts
+   - `spec-spine registry plan`: the ready set (spec 038): which specs can be worked on now and what blocks the rest
    - `spec-spine registry list --ids-only`: spec inventory (for latest-spec detection)
    - `ls <your source dirs>`: application surface discovery
    - `ls docs/`: docs surface
