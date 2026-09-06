@@ -158,8 +158,16 @@ the corpus, and a root it wrote to would make a read command mutate the tree.
 ### 3.4 A claim inside `state_dir` is a contradiction, and `lint` says so
 
 If any spec declares a unit whose path falls under `state_dir`, `lint` MUST emit
-`L-006`, an error-tier diagnostic naming both the spec and the unit. It takes the
-next free code in the `L-` band (`L-001`..`L-005` are allocated).
+`L-006`, an error-tier diagnostic naming both the spec and the unit.
+
+`L-006` is the next free code in the `L-` band at the time of filing
+(`L-001`..`L-005` are allocated). It is a **provisional** reservation, not a
+claim on the namespace: this spec is `implementation: pending`, and another spec
+may allocate an `L-` code before it is built. The binding rule is therefore
+"the next free code in the band", and `L-006` is what that resolves to today. An
+implementer who finds the band has grown takes the next free code and updates
+this section rather than colliding, and the §3.6 invariant (no two diagnostics
+share a code) is what makes either outcome safe to discover.
 
 The alternative designs both fail. Letting the claim win reintroduces the
 claimed-path-overrides-bypass precedence (spec 009) into a directory whose entire
