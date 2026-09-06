@@ -32,6 +32,9 @@ allowed = []
 [layout]
 specs_dir = "specs"
 derived_dir = ".derived"
+# Optional: one repo-relative directory where tools around spec-spine keep
+# their state. Declared so the gates recognize it; never read or written.
+state_dir = ""
 standards_dir = "standards/spec"
 schemas_dir = "standards/schemas"
 cargo_workspace = "Cargo.toml"
@@ -82,6 +85,7 @@ extra_known_keys = []
 
 ### `[layout]`
 - Defines the directory structure conventions. 
+- **`state_dir`** (spec 039): one repo-relative directory that tools built around spec-spine (an autonomous builder, a driver) may use for their own state. Unset (the default, `""`) declares nothing and changes nothing. When set, every path beneath it is bypassed by `couple`, excluded from `index coverage` entirely (not counted in the denominator), never scanned by the resolver, and never folded into a content hash, so a tool writing its own state can never restale the committed ledger. spec-spine never reads or writes it. It must not overlap `specs_dir` or `derived_dir` in either direction (equal, containing, or contained); config load refuses such a value. A spec that claims a unit inside it is a lint finding. Matching is separator-aware (`state` does not match `stateful/`).
 - **`npm_workspaces`**: Manifests that declare npm/pnpm workspace members. The indexer reads member globs from whichever exists.
 - **`standalone_*`**: Use these arrays to specify crates or packages that live outside the root workspace.
 

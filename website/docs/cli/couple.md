@@ -11,7 +11,7 @@ The PR-time drift gate. It joins the registry and index against a Git diff and r
 ## Usage
 
 ```bash
-spec-spine couple --base <ref> --head <ref> [--pr-body FILE] [--paths-from FILE]
+spec-spine couple --base <ref> --head <ref> [--pr-body FILE] [--paths-from FILE] [--json]
 ```
 
 ## Description
@@ -30,6 +30,7 @@ It uses `git diff --no-color -U0 base...head` to determine the changed paths.
 | `--head` | Git ref | Yes | The head commit of the PR (e.g., `HEAD`). |
 | `--pr-body` | File path | No | A file containing the PR body text, used to scan for waivers. |
 | `--paths-from` | File path | No | Read a list of changed paths from a file instead of running `git diff`. |
+| `--json` | None | No | Emit the [verdict envelope](./overview.md#machine-readable-verdicts---json) (`verb: "couple"`, `report` = the coupling report) instead of prose. The exit code is unchanged. |
 
 ## Waivers
 

@@ -235,6 +235,7 @@ pub fn compile_json        (config_json: &str, repo_root: &str) -> Result<String
 pub fn index_json          (config_json: &str, repo_root: &str) -> Result<String, Error>;
 pub fn lint_json           (config_json: &str, repo_root: &str) -> Result<String, Error>;
 pub fn check_freshness_json(config_json: &str, repo_root: &str) -> Result<String, Error>;
+pub fn check_registry_freshness_json(config_json: &str, repo_root: &str) -> Result<String, Error>;
 pub fn coverage_json       (config_json: &str, repo_root: &str) -> Result<String, Error>;
 pub fn couple_json         (request_json: &str)                 -> Result<String, Error>;
 pub fn query_json          (request_json: &str)                 -> Result<String, Error>;
@@ -242,16 +243,35 @@ pub fn render_json         (config_json: &str, index_json: &str) -> Result<Strin
 pub fn orphans_json        (index_json: &str)                    -> Result<String, Error>;
 pub fn load_config_json    (toml_src: &str)                     -> Result<String, Error>;
 pub fn scaffold_init_json  (config_json: &str)                  -> Result<String, Error>;
+pub fn attest_json         (config_json: &str, repo_root: &str, with_coupling: bool) -> Result<String, Error>;
+pub fn attest_spec_json    (config_json: &str, repo_root: &str, spec_id: &str)       -> Result<String, Error>;
+pub fn verify_attestation_json     (request_json: &str)         -> Result<String, Error>;
+pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String, Error>;
 ```
 
 - `config_json` is a JSON object matching `Config`; `"{}"` ⇒ `Config::default()`.
 - `query_json` request: `{ "registry": "<registry.json text>", "op":
-  "list" | "show" | "status-report" | "relationships", "id"?: string,
+  "list" | "show" | "status-report" | "relationships" | "plan", "id"?: string,
   "status"?: string, "idsOnly"?: bool, "nonzeroOnly"?: bool }` (the projection
-  fields, spec 010, default to `false`).
+  fields, spec 010, default to `false`). `plan` (spec 038) returns
+  `{ "ready": [ids], "blocked": [{ "id", "blockedBy": [{ "id", "state" }] }] }`.
 - `couple_json` request: `{ "config"?: Config, "repoRoot": string, "diff":
   DiffInput, "waiver"?: { "reason": string } }`.
 - `check_freshness_json` returns `{ "fresh": bool, "expected"?, "actual"? }`.
+  `check_registry_freshness_json` (spec 031) returns the same shape for the
+  committed registry shards; staleness only, the validation verdict rides on
+  `compile_json`.
+- `attest_json` (spec 023) and `attest_spec_json` (spec 042) return
+  `{ "attestation": <CorpusAttestation | SpecAttestation>, "attestationHash":
+  "<hex>" }`. Both are pure: no key, no clock (signing is a CLI post-pass). A
+  failing verdict still yields a payload; attestation is a record, not a gate.
+- `verify_attestation_json` / `verify_spec_attestation_json` request:
+  `{ "config"?: Config, "repoRoot": string, "attestation": <...> }`; they return
+  `{ "outcome": "match" }`, `{ "outcome": "versionMismatch", "expected",
+  "actual" }`, or `{ "outcome": "contentMismatch", "differences": [...] }`.
+- The CLI's `--json` verdict envelope (spec 037) wraps these payloads verbatim
+  under `report`, versioned by `VERDICT_SCHEMA_VERSION`; see
+  `specs/037-machine-readable-verdicts/spec.md`.
 - `coverage_json` (spec 032) returns the `CoverageReport`: `sourceFiles`,
   `claimedFiles`, the sorted `floorOnlyFiles` / `unclaimedFiles` lists, and
   per-package counts. A stale committed index is `Error::Stale`, not a report.

@@ -11,7 +11,7 @@ Checks the corpus for conformance and well-formedness.
 ## Usage
 
 ```bash
-spec-spine lint [--fail-on-warn] [--fail-on-info]
+spec-spine lint [--fail-on-warn] [--fail-on-info] [--json]
 ```
 
 ## Description
@@ -26,6 +26,7 @@ By default, it exits with status `1` only if there are error-tier violations.
 |---|---|---|---|
 | `--fail-on-warn` | None | false | Exit 1 if there are any warn-tier violations. |
 | `--fail-on-info` | None | false | Exit 1 if there are any info-tier violations. |
+| `--json` | None | false | Emit the [verdict envelope](./overview.md#machine-readable-verdicts---json) (`verb: "lint"`, `report` = the findings list) instead of prose. The exit code is unchanged. |
 
 ## Exit Codes
 

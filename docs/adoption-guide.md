@@ -236,6 +236,7 @@ divergence observed across the reference repos. Every sub-table is
 | `domains.allowed` | closed enum for the optional `domain` field; **empty ⇒ disabled** (free-text) | `[]` |
 | `kind.allowed` | closed enum for the optional `kind` field; symmetric with `domains` | `[]` |
 | `layout.specs_dir` / `derived_dir` / `standards_dir` / `schemas_dir` | path conventions, never hardcoded | `specs` / `.derived` / `standards/spec` / `standards/schemas` |
+| `layout.state_dir` | one repo-relative directory for the state of tools built around spec-spine (spec 039); bypassed by `couple`, excluded from `coverage`, never resolved or hashed, never read or written by spec-spine; must not overlap `specs_dir` / `derived_dir` | `""` (nothing declared) |
 | `layout.cargo_workspace` | root Cargo workspace manifest | `Cargo.toml` |
 | `layout.npm_workspaces` | manifests that *declare* npm/pnpm workspace members | `["package.json", "pnpm-workspace.yaml"]` |
 | `layout.standalone_rust_workspaces` / `standalone_npm_packages` | crates/packages outside the root workspace | `[]` |

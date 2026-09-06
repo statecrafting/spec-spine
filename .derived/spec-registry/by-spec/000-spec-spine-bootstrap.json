@@ -5,6 +5,7 @@
     ],
     "created": "2026-06-08",
     "id": "000-spec-spine-bootstrap",
+    "implementation": "complete",
     "kind": "constitutional-bootstrap",
     "origin": {
       "retroactive": true
@@ -38,6 +39,6 @@
       "refusal-rule"
     ]
   },
-  "shardHash": "8a81c6d20b380f4f2c8beee60b6520a2044beaffd853f3b149f2059164e6357d",
+  "shardHash": "46f7dde94b700dd3376c3392cc0fd5ed66c5508b0e2ef9fb9bb6f5911c0429df",
   "specVersion": "1.1.0"
 }

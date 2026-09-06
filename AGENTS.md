@@ -28,6 +28,7 @@ The protocol drives the library through its own built binary, `target/release/sp
    - `spec-spine index render`: markdown projection of the committed index
    - `spec-spine index coverage`: which source files no spec specifically claims (spec 032; non-fatal, exit 2 if the index is stale)
    - `spec-spine registry status-report --json --nonzero-only`: lifecycle counts per status
+   - `spec-spine registry plan`: the ready set (spec 038): which specs can be worked on now and what blocks the rest; `(nothing ready)` in a finished corpus
    - `spec-spine registry list --ids-only`: spec id list (for latest-spec detection)
    - `ls crates/`: library crate layout
    - `ls specs/`: the spec corpus
@@ -36,7 +37,8 @@ The protocol drives the library through its own built binary, `target/release/sp
    - `git diff --stat HEAD~1`: last change summary
 2. **Emit** the `## initialized: spec-spine` summary block: a layer/crate
    overview, a `## lifecycle:` sub-section populated from the
-   `registry status-report --nonzero-only` output, recent activity, and a
+   `registry status-report --nonzero-only` output (with the `registry plan`
+   ready/blocked line beneath it), recent activity, and a
    "ready to help with" line.
 
 **Read discipline:** the init protocol MUST NOT parse `.derived/**/*.json` directly (no `python`, `jq`, `awk`, `sed` against compiled artifacts). All structural and lifecycle data comes from the `spec-spine` subcommands (`registry`, `index`) and the rendered markdown view. See `.claude/rules/governed-artifact-reads.md`.

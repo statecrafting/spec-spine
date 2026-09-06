@@ -2,6 +2,7 @@
 id: "000-spec-spine-bootstrap"
 title: "Bootstrap spec system (markdown → compiled JSON authority ledger)"
 status: approved
+implementation: complete
 kind: "constitutional-bootstrap"
 created: "2026-06-08"
 authors:

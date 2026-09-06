@@ -21,6 +21,7 @@ const sidebars: SidebarsConfig = {
         'concepts/determinism',
         'concepts/constitutional-hierarchy',
         'concepts/waivers',
+        'concepts/lifecycle',
       ],
     },
     {
@@ -34,6 +35,7 @@ const sidebars: SidebarsConfig = {
         'cli/registry',
         'cli/lint',
         'cli/couple',
+        'cli/attest',
       ],
     },
     {
