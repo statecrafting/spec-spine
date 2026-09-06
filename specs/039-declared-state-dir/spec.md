@@ -283,3 +283,24 @@ gitignored transcript are both ungoverned by the gates.
   that neither list can cancel the key's effects. Both walkers take
   `&LayoutConfig` instead, which keeps the two mechanisms visibly separate at
   every call site.
+
+- **D-4 (2026-09-06): a value escaping the repository is refused, and the
+  overlap check stays scoped to the two roots 3.2 names.** Review of the
+  implementing PR raised both.
+
+  `../logs` passed validation and would then have matched nothing, because every
+  path the gates test is repo-relative and carries no `..`. The gates would
+  behave as though no root were declared while the config said one was, which is
+  the same failure class as the `.` case in D-2 and is refused the same way:
+  silence that claims to be a decision.
+
+  The second was an unchecked overlap with `standalone_rust_workspaces` and
+  `standalone_npm_packages`. 3.2 names `specs_dir` and `derived_dir` and only
+  those, and the check is left scoped to them deliberately. The two governed
+  roots are **spec-spine's own**: a state root swallowing one breaks the tool
+  against a corpus the adopter did not intend to ungovern, and no adopter means
+  `state_dir = "specs"`. A declared package directory is the adopter's own code,
+  and naming it as the state root is a statement about their repository that
+  this key exists to let them make. Widening the refusal would be adding a rule
+  the spec does not have, to prevent a configuration that is legible on its
+  face; the coverage report already shows the denominator that results.

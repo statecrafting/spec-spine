@@ -329,6 +329,18 @@ fn validate_state_dir(config: &Config) -> Result<()> {
             config.layout.state_dir
         )));
     }
+    // A value escaping the repository is worse than wrong, it is inert: every
+    // path the gates test is repo-relative and carries no `..`, so nothing would
+    // ever match and the gates would behave as though no root were declared
+    // while the config says one is. Silence that claims to be a decision is the
+    // failure mode this key exists to prevent.
+    if state == ".." || state.starts_with("../") {
+        return Err(Error::Config(format!(
+            "layout.state_dir '{}' escapes the repository: the value is a repo-relative \
+             directory, and one outside it would match no path and silently declare nothing",
+            config.layout.state_dir
+        )));
+    }
     for (key, value) in [
         ("specs_dir", &config.layout.specs_dir),
         ("derived_dir", &config.layout.derived_dir),
