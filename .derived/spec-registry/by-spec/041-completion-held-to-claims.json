@@ -1,0 +1,64 @@
+{
+  "record": {
+    "amends": [
+      "025-unresolved-unit-severity"
+    ],
+    "created": "2026-09-06",
+    "dependsOn": [
+      "004-codebase-index",
+      "025-unresolved-unit-severity"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index.rs"
+        }
+      }
+    ],
+    "id": "041-completion-held-to-claims",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/02-agentic-builder-substrate.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "041: Completion is held to its claims",
+      "1. Purpose",
+      "1.1 This is the normal state, not a corner",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The predicate",
+      "3.2 Why the completion claim wins over the draft claim",
+      "3.3 What this does not do",
+      "3.4 Blast radius: none in this corpus",
+      "3.5 Tests (minimum)",
+      "4. Out of scope",
+      "5. Relationship to the design note"
+    ],
+    "specPath": "specs/041-completion-held-to-claims/spec.md",
+    "status": "draft",
+    "summary": "`index.rs::in_flight` is `status == \"draft\" || implementation == Pending`, and spec 025 uses it to downgrade an unresolved owning unit from a blocking `I-0xx` error to a counted `W-001` warning. The `Complete` arm of `implementation` is never consulted, so `status: draft` alone buys the leniency: a spec that states in its own frontmatter that its work is finished may claim units that do not exist, and the indexer counts a warning instead of refusing. That window is not an edge case in this corpus, it is the normal one. A spec is filed as `draft` with `implementation: complete` when its code lands (spec 036 did exactly that at 46474a3) and stays that way until a later ratification PR flips it to `approved`, so every spec passes through a period where its strongest claim about code is the one claim nothing checks. This spec makes `implementation: complete` decisive: a spec asserting completion is never in flight, whatever its `status`, and its unresolved owning units are hard errors. `status` and `implementation` are orthogonal axes (design ratification versus code existence), and where they disagree the more specific claim about code wins. It verifies existence, not behavior, and 3.3 is explicit that no gate can do more than that.\n",
+    "title": "`implementation: complete` defeats draft leniency"
+  },
+  "shardHash": "f4db13eb90f6716dbcbc427c2f7582abdcad62aca0eeef50f1a919e0a6e80660",
+  "specVersion": "1.1.0"
+}
