@@ -439,7 +439,14 @@ fn find_cycle(by_id: &BTreeMap<&str, &SpecRecord>) -> Option<Vec<String>> {
             match colour.get(dep_id) {
                 // Re-entering a spec still on the path closes a cycle.
                 Some(Colour::Grey) => {
-                    let from = stack.iter().position(|f| f.id == *dep_id).unwrap_or(0);
+                    // Grey means "on the current path", so the frame is always
+                    // found. Asserted rather than trusted: the fallback would
+                    // otherwise report a path starting at the wrong frame, and
+                    // any cycle test still passes under that misattribution
+                    // because the whole stack contains the cycle's ids.
+                    let from = stack.iter().position(|f| f.id == *dep_id);
+                    debug_assert!(from.is_some(), "grey node absent from the walk stack");
+                    let from = from.unwrap_or(0);
                     let mut cycle: Vec<String> =
                         stack[from..].iter().map(|f| f.id.to_string()).collect();
                     cycle.push((*dep_id).to_string());
