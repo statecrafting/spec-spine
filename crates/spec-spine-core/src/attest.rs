@@ -201,16 +201,26 @@ pub fn attest_spec(
         }
         // A unit may resolve to several locations (a subtree, a module split
         // across files). One hash over the sorted set, which is exactly what
-        // `hash::content_hash` is: path-sorted, normalized, ` `-separated.
-        let pieces: Vec<(String, String)> = resolved
-            .locations
-            .iter()
-            .filter_map(|loc| {
-                fs::read_to_string(repo_root.join(&loc.file))
-                    .ok()
-                    .map(|content| (loc.file.clone(), content))
-            })
-            .collect();
+        // `hash::content_hash` is: path-sorted, normalized, NUL-separated.
+        // A read failure propagates rather than being skipped. Dropping it
+        // would hash only the locations that could be read, or nothing at all
+        // if none could, and still emit `Some(hash)` with `resolution.ok` left
+        // true: an attestation reporting a resolved unit whose files are gone,
+        // which is the one thing 3.1 says this payload exists to make
+        // impossible. Same treatment `specSourceHash` gives an unreadable
+        // `spec.md` above.
+        let mut pieces: Vec<(String, String)> = Vec::with_capacity(resolved.locations.len());
+        for loc in &resolved.locations {
+            let path = repo_root.join(&loc.file);
+            let content = fs::read_to_string(&path).map_err(|e| {
+                Error::Io(format!(
+                    "read {} for spec '{spec_id}' unit {:?}: {e}",
+                    path.display(),
+                    resolved.unit
+                ))
+            })?;
+            pieces.push((loc.file.clone(), content));
+        }
         units.push(AttestedUnit {
             unit: resolved.unit.clone(),
             content_hash: Some(hash::content_hash(pieces)),

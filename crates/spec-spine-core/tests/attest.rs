@@ -349,3 +349,45 @@ fn an_unknown_spec_id_is_not_found() {
     let err = attest_spec(&Config::default(), tmp.path(), "999-nope").unwrap_err();
     assert_eq!(err.exit_code(), 1);
 }
+
+/// A location that resolves but cannot be read is an error, not a hash of
+/// nothing.
+///
+/// Reached by making the claimed path a **directory**: it exists, so the
+/// resolver still resolves the unit to it, and `read_to_string` then fails for
+/// every caller regardless of platform or user. Skipping that read would hash
+/// an empty set and still emit `Some(hash)` with `resolution.ok` left true, an
+/// attestation asserting a resolved unit it never read, which is the claim 3.1
+/// says this payload exists to make impossible.
+///
+/// Deleting the file does **not** reach this path: `attest_spec` re-indexes, so
+/// a removed file simply stops resolving and takes the honest
+/// `resolution.ok: false` route, which the case below asserts as the control.
+#[test]
+fn a_location_that_resolves_but_cannot_be_read_is_an_error() {
+    let tmp = spec_fixture(OWNED);
+    let cfg = Config::default();
+    assert!(
+        attest_spec(&cfg, tmp.path(), "001-a")
+            .unwrap()
+            .attestation
+            .verdicts
+            .resolution
+            .ok
+    );
+
+    // Control: a removed file stops resolving, which is recorded, not an error.
+    fs::remove_file(tmp.path().join("code.txt")).unwrap();
+    let gone = attest_spec(&cfg, tmp.path(), "001-a").unwrap().attestation;
+    assert!(!gone.verdicts.resolution.ok);
+    assert_eq!(gone.units[0].content_hash, None, "no hash of nothing");
+
+    // Resolvable but unreadable: the path exists, so the unit resolves, and the
+    // read is what fails.
+    fs::create_dir(tmp.path().join("code.txt")).unwrap();
+    let err = attest_spec(&cfg, tmp.path(), "001-a").unwrap_err();
+    assert_eq!(err.exit_code(), 3, "an unreadable input is an I/O error");
+    let message = err.to_string();
+    assert!(message.contains("code.txt"), "names the file: {message}");
+    assert!(message.contains("001-a"), "and the spec: {message}");
+}

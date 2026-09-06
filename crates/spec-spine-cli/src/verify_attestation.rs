@@ -55,8 +55,16 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     // The two scopes carry different payloads, so the loaded value and both
     // verification paths fork here and nowhere else.
     let subject = match &args.spec {
-        Some(_) => Subject::Spec(load_json(&attestation_path, "attestation")?),
-        None => Subject::Corpus(load_json(&attestation_path, "attestation")?),
+        Some(id) => Subject::Spec(load_json(
+            &attestation_path,
+            "attestation",
+            &format!("spec-spine attest --spec {id}"),
+        )?),
+        None => Subject::Corpus(load_json(
+            &attestation_path,
+            "attestation",
+            "spec-spine attest",
+        )?),
     };
 
     let mut failed = false;
@@ -125,7 +133,11 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
             .seal
             .clone()
             .unwrap_or_else(|| attestation_path.with_extension("sig"));
-        let ledger_seal: LedgerSeal = load_json(&seal_path, "seal")?;
+        let seal_hint = match &args.spec {
+            Some(id) => format!("spec-spine attest --spec {id} --sign"),
+            None => "spec-spine attest --sign".to_string(),
+        };
+        let ledger_seal: LedgerSeal = load_json(&seal_path, "seal", &seal_hint)?;
         // Recompute the hash from the loaded payload: a tampered byte changes it
         // and the seal stops verifying.
         let hash = match &subject {
@@ -177,10 +189,19 @@ fn default_attestation_path(repo: &Path, cfg: &Config, spec: Option<&str>) -> Pa
 }
 
 /// Read and deserialize a JSON artifact, naming it in both failure messages.
-fn load_json<T: serde::de::DeserializeOwned>(path: &Path, what: &str) -> Result<T, Error> {
+///
+/// `hint` is the command that would have produced the file. It is a parameter
+/// rather than a constant because a missing seal and a missing attestation want
+/// different advice: telling someone who forgot `--sign` to run `attest` sends
+/// them to re-run the step that already succeeded.
+fn load_json<T: serde::de::DeserializeOwned>(
+    path: &Path,
+    what: &str,
+    hint: &str,
+) -> Result<T, Error> {
     let bytes = fs::read(path).map_err(|e| {
         Error::Io(format!(
-            "read {what} {} (run `spec-spine attest` first?): {e}",
+            "read {what} {} (run `{hint}` first?): {e}",
             path.display()
         ))
     })?;
