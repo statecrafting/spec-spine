@@ -11,6 +11,11 @@ depends_on:
   - "023-ledger-seal"
   - "024-index-sharding"
   - "041-completion-held-to-claims"
+amends:
+  # 3.1 states a MUST NOT about `attest`'s exit code that covers the
+  # corpus-scoped verb too, which is 023's territory and a rule 023 never
+  # carried. 023's own text is untouched (spec 040).
+  - "023-ledger-seal"
 extends:
   - { spec: "023-ledger-seal", unit: "crates/spec-spine-core/src/attest.rs", nature: additive }
   - { spec: "023-ledger-seal", unit: "crates/spec-spine-core/tests/attest.rs", nature: additive }
@@ -85,6 +90,7 @@ passes `--spec` behaves exactly as it does today.
   "tool": { "name": "spec-spine", "version": "0.13.0" },
   "specId": "036-configured-corpus-root",
   "specSourceHash": "<sha256 of the normalized spec.md bytes>",
+  "lifecycle": { "status": "approved", "implementation": "complete" },
   "units": [
     { "unit": { "kind": "file", "path": "crates/spec-spine-core/src/couple.rs" },
       "contentHash": "<sha256 of the normalized file bytes>" }
@@ -104,6 +110,21 @@ passes `--spec` behaves exactly as it does today.
   with the content hash of what it resolved to. Non-owning `references` units are
   excluded: spec 034 settled that a cited file is not a claimed one, and an
   attestation of territory must not assert authority the gate does not.
+- `lifecycle` records the spec's own `status` and `implementation` as declared at
+  attestation time. `implementation` is omitted **only** when the key is absent
+  from the spec's frontmatter. Every declared value is carried, `n-a` included:
+  an absent key means nobody stated an intention, `n-a` means someone stated that
+  none applies, and collapsing the second into the first would lose the more
+  informative of the two. `n-a` is emitted in its canonical kebab-case spelling,
+  since spec 015 accepts `n/a` on the way in and normalizes it on the way out, so
+  two specs written in different dialects attest identically. It is what makes
+  `resolution.ok: false` interpretable: an external consumer must be able to tell
+  a phantom unit in a spec that is openly being built from a phantom unit in a
+  spec asserting it is finished, and those are the same `false` with very
+  different meanings. Without it the discriminator lives only in the indexer's
+  severity tier, which is not in this payload and should not be: tiers are a
+  local policy that spec 041 is already changing, while `status` and
+  `implementation` are the author's own words and are what a record should keep.
 - `resolution.ok` is true when every owning unit this spec claims resolves to an
   existing location, and false otherwise. It records the **fact**, never the
   indexer's severity tier for it: an in-flight spec whose phantom unit is only a
@@ -121,6 +142,33 @@ complete, hashable, signable attestation whether the verdicts are true or false,
 and exits `0` for having produced one: it is a record, not a gate. A consumer
 decides what a `false` means to it, and an attestation that refused to exist when
 the news was bad would be worth nothing as evidence.
+
+**The exit code of `attest` therefore MUST NOT be read as a verdict.** `0` means
+an attestation was written, and nothing about what it says. This is the one verb
+in the tool where that is true, so it is stated rather than left to be
+discovered: `lint`, `couple`, `index check` and `compile --check` all put their
+verdict in the exit code, and a caller who wants a gate uses one of them and
+reads this payload for the record. `attest --spec X && next_step` is a misuse,
+and a caller that means "stop if the spec is unsound" should run the gate verb
+that says so.
+
+The behavior is inherited, not invented here: `attest` has always written its
+payload and returned `0` irrespective of the verdicts inside it, and spec 023
+never wrote that down. This spec does, for both scopes.
+
+Stating it for the corpus-scoped verb is a change to spec 023's contract, since
+023 owns `attest` and carried no such rule, so this spec declares
+`amends: ["023-ledger-seal"]`. The alternative was to scope the MUST NOT to
+`--spec` alone and leave the corpus verb undocumented, which would put two
+different exit-code contracts on one binary for no reason other than which spec
+happened to notice first. Per spec 040 the amendment is declared here and
+`specs/023-ledger-seal/spec.md` is not edited; the inbound view is
+`spec-spine registry relationships 023-ledger-seal`.
+
+A `--fail-on-false` gating flag was considered and rejected. A record verb that
+can be configured to refuse invites being used as a gate, which puts a second,
+weaker copy of the gate chain behind a flag; the verbs that already refuse are
+the ones to call.
 
 There is no `couple` verdict. Coupling is a property of a diff between two
 revisions, not of a spec at one revision, and 023 already carries the
@@ -181,6 +229,14 @@ evidence in a bundle. Any future rule wanting attestation-backed acceptance must
 either live outside `lint` or use a payload with no lint verdict in it, and must
 say which.
 
+This prohibition is a convention backed by review, not a mechanism: nothing stops
+a contributor adding such a rule and passing CI, because "this lint rule reads an
+attestation" is not a property the build can test for. It is written here, in the
+spec that owns the payload, so that the argument is available at review time to
+whoever proposes one. That is the same honesty spec 040 §4 records about its own
+rule, and the same reason: a convention that pretends to be enforced is worse
+than one that admits what it is.
+
 ### 3.5 Verification
 
 `verify-attestation --spec <id>` extends the existing verbs to the narrower
@@ -210,6 +266,12 @@ boundary.
 - Editing an owning unit changes exactly that unit's `contentHash` and the
   attestation hash, and nothing else.
 - Editing the spec's own `spec.md` changes `specSourceHash`.
+- `lifecycle` mirrors the spec's declared `status` and `implementation`, and
+  omits `implementation` when the key is absent (as `000-spec-spine-bootstrap`
+  has it). Two specs differing only in lifecycle produce different payloads.
+- `implementation: n-a` is present in the payload, not omitted, and a spec
+  written `n/a` attests byte-identically to one written `n-a` (spec 015). The
+  absent case and the `n-a` case are distinguishable in the output.
 - A `references` unit appears in no `units` entry.
 - An unresolved owning unit yields `resolution.ok: false` and still produces a
   payload, rather than refusing: the attestation records the verdict, it does not
@@ -220,6 +282,12 @@ boundary.
 - `--sign` then `--signature` round-trips; the seal's `signedAt` differs between
   two signings of a byte-identical payload, and the payload hash does not.
 - `attest` with no `--spec` is unchanged, byte for byte, from its current output.
+- Both scopes exit `0` on false verdicts. A corpus with a failing lint verdict
+  and a spec with `resolution.ok: false` each write their attestation and return
+  `0`. This is the test that holds §3.1's MUST NOT: the rule now covers the
+  corpus-scoped verb by amendment to 023, and a normative claim about an exit
+  path deserves a test that exercises it rather than an assumption that it still
+  behaves as it did when nobody had written the rule down.
 
 ## 4. Out of scope
 

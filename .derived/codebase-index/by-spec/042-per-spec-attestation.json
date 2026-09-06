@@ -1,5 +1,8 @@
 {
   "mapping": {
+    "amends": [
+      "023-ledger-seal"
+    ],
     "dependsOn": [
       "023-ledger-seal",
       "024-index-sharding",
@@ -175,5 +178,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "17f3babbfa23f0258f2fbe18d4d5251f6b6e0356c998908ac4bfeb78e4286f7b"
+  "shardHash": "9a296ac5546d8fe78e086681c1152600e07b7e172f1cd711dbb1cdd3a1d852d6"
 }
