@@ -230,6 +230,13 @@ pub fn attest_spec(
     // Verdicts restricted to this spec. `lint.ok` and `findingsHash` cover the
     // findings attributed to it, using 023's findings-hash construction so a
     // changed finding set is detectable even when `ok` is unchanged.
+    //
+    // Attribution is by `path`, so a violation carrying none would belong to no
+    // spec and appear in no per-spec attestation. Every current `L-` rule sets
+    // the offending spec's path, so nothing is dropped today; a future
+    // cross-cutting rule that did not would need a scoping answer here rather
+    // than inheriting silence. The corpus-scoped attestation (spec 023) hashes
+    // the whole findings set and is unaffected either way.
     let lint_report = lint(cfg, repo_root)?;
     let mine: Vec<_> = lint_report
         .violations
