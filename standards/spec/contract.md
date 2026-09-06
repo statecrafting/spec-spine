@@ -43,6 +43,18 @@ history stops being queryable (constitution V). The inbound view is a compiled
 read, `spec-spine registry relationships <amended-id>`, which reports
 `amended_by (incoming)`. See spec 040.
 
+## Amending the constitution
+
+`standards/spec/constitution.md` is tier 2 and is **not** changed by an `amends`
+edge: `amends` resolves to spec ids and the constitution is not a spec. An
+approved ordinary spec changes it by claiming the affected text as a section
+unit of that file (`establishes` a new principle, `refines` one it tightens with
+a named `aspect`, `co_authority` on one genuinely shared) and by contradicting
+no `specs/000` `unamendable` anchor. The constitution is a standing statement,
+so unlike an amended `spec.md` it is edited in place. The file is on the gate's
+bypass floor, so the claim is a ledger fact rather than a `C-001` refusal. See
+spec 043.
+
 ## Authority units
 
 `file` (bare string shorthand; trailing slash ⇒ subtree), `section`
