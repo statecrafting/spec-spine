@@ -69,8 +69,8 @@
       }
     ],
     "specId": "040-amendment-authoring",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "e2c9a843915a9d92671dc1c7688938a0aa13090608b118547a2d6ce7b45789ec"
+  "shardHash": "62c8af12a8da7f2f448cf221099c8fcbd512ee1caf08b3efefc12abdc940efe8"
 }

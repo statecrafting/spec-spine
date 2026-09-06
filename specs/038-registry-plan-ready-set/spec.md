@@ -1,7 +1,7 @@
 ---
 id: "038-registry-plan-ready-set"
 title: "`registry plan`: the ready set in dependency order"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-05"
 implementation: complete

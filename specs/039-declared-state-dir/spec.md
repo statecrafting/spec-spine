@@ -1,7 +1,7 @@
 ---
 id: "039-declared-state-dir"
 title: "`layout.state_dir`: a declared, ungoverned tool-state root"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-05"
 implementation: complete

@@ -1,7 +1,7 @@
 ---
 id: "042-per-spec-attestation"
 title: "`attest --spec <id>`: a signed record scoped to one spec"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-06"
 implementation: complete

@@ -207,8 +207,8 @@
       }
     ],
     "specId": "039-declared-state-dir",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "0721ab74c16e9b181e896eaaf01289477dbf67b767b56b7ff2fd169f21ecbe1d"
+  "shardHash": "dbc362e8e3733c22bdc4949578aa5278ac922f1fd50eebd76232c2f1bdeef53e"
 }

@@ -226,8 +226,8 @@
       }
     ],
     "specId": "042-per-spec-attestation",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "b4416dc720d30436f5bfe61dbdf3e1c13e2e0f01cec6566417fab2a918ea0255"
+  "shardHash": "ec96a86939a9211c1cb37f2b8ac8a85a27c72b245814179e86b74f6cf8659263"
 }

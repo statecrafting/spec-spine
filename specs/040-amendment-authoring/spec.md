@@ -1,7 +1,7 @@
 ---
 id: "040-amendment-authoring"
 title: "An amendment is declared once, in the amending spec"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-06"
 implementation: complete
