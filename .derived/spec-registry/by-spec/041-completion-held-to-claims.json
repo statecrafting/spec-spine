@@ -59,6 +59,6 @@
     "summary": "`index.rs::in_flight` is `status == \"draft\" || implementation == Pending`, and spec 025 uses it to downgrade an unresolved owning unit from a blocking `I-0xx` error to a counted `W-001` warning. The `Complete` arm of `implementation` is never consulted, so `status: draft` alone buys the leniency: a spec that states in its own frontmatter that its work is finished may claim units that do not exist, and the indexer counts a warning instead of refusing. That window is not an edge case in this corpus, it is the normal one. A spec is filed as `draft` with `implementation: complete` when its code lands (spec 036 did exactly that at 46474a3) and stays that way until a later ratification PR flips it to `approved`, so every spec passes through a period where its strongest claim about code is the one claim nothing checks. This spec makes `implementation: complete` decisive: a spec asserting completion is never in flight, whatever its `status`, and its unresolved owning units are hard errors. `status` and `implementation` are orthogonal axes (design ratification versus code existence), and where they disagree the more specific claim about code wins. It verifies existence, not behavior, and 3.3 is explicit that no gate can do more than that.\n",
     "title": "`implementation: complete` defeats draft leniency"
   },
-  "shardHash": "56629b2810456a6c7d67cd502e69331000930064e9712cae074a9974f96c22a7",
+  "shardHash": "f4db13eb90f6716dbcbc427c2f7582abdcad62aca0eeef50f1a919e0a6e80660",
   "specVersion": "1.1.0"
 }

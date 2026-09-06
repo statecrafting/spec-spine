@@ -116,6 +116,12 @@ passes `--spec` behaves exactly as it does today.
   023's existing findings-hash construction so a changed finding set is
   detectable even when `ok` is unchanged.
 
+A failing verdict never suppresses the payload. `attest --spec <id>` emits a
+complete, hashable, signable attestation whether the verdicts are true or false,
+and exits `0` for having produced one: it is a record, not a gate. A consumer
+decides what a `false` means to it, and an attestation that refused to exist when
+the news was bad would be worth nothing as evidence.
+
 There is no `couple` verdict. Coupling is a property of a diff between two
 revisions, not of a spec at one revision, and 023 already carries the
 corpus-scoped version for consumers that want it.

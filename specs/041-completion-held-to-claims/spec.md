@@ -116,13 +116,19 @@ whatever its `status`. Otherwise the existing rule stands: `status: draft` or
 | draft | pending | yes | `W-001` warning |
 | draft | in-progress | yes | `W-001` warning |
 | draft | **complete** | **no** | **`I-0xx` error** |
-| draft | absent | yes | `W-001` warning |
+| draft | n-a / deferred / absent | yes | `W-001` warning |
 | approved | pending | yes | `W-001` warning |
+| approved | in-progress | no (unchanged, see §4) | `I-0xx` error |
 | approved | complete | no | `I-0xx` error |
-| any | n-a / deferred | per `status` | per `status` |
+| approved | n-a / deferred / absent | no | `I-0xx` error |
 
-`n-a` and `deferred` keep taking their answer from `status`. Neither asserts that
-code exists, so neither has anything to be held to.
+The table is exhaustive over both enums on purpose. Only the `draft` +
+`complete` row moves; every other cell states what the predicate already does, so
+an implementer cannot read a gap as a licence to guess.
+
+`n-a` and `deferred` assert nothing about code existing, so this spec adds
+nothing for them to be held to; they keep taking their answer from `status`, as
+does an absent key.
 
 ### 3.2 Why the completion claim wins over the draft claim
 
@@ -193,6 +199,27 @@ completion was claimed is a signed artifact, not a severity tier. Spec 042.
 **Requiring `implementation` at all.** An absent key still behaves as `pending`
 for this purpose. Making the field mandatory is a frontmatter-grammar change with
 an adopter migration attached, and it is not needed here.
+
+**Fixing `approved` + `in-progress`, which is very likely a defect.** That
+combination is *not* in flight today, so a ratified spec whose implementation is
+openly underway gets hard `I-0xx` errors for units it has not written yet. Spec
+025 arm 2 named `draft` and `pending` and did not name `in-progress`, and nothing
+in 025 argues that omission, which is what makes it look accidental rather than
+chosen: `pending` and `in-progress` are both statements that the work is not
+finished, and only one of them buys leniency.
+
+It bites an adopter, not this repo. Nothing here is `approved` + `in-progress`
+(the local flow files `draft` + `pending`, builds, then ratifies), but a corpus
+that ratifies a design before building it lives in that state for the whole
+build, which is the same class of adopter-flow problem the OAP dry run raised
+against 025 in the first place.
+
+It is nonetheless left alone here. This spec argues one thing, that a completion
+claim defeats leniency; widening leniency for `in-progress` runs the opposite
+direction, and bundling the two would make a single spec that both tightens and
+loosens the same predicate for unrelated reasons. It deserves its own spec and
+its own argument, and §3.1 now states the current behavior explicitly so that
+spec has something exact to amend.
 
 **The `approved` + `pending` combination.** A ratified spec whose code is not
 yet written stays in flight, and its unresolved owning units stay `W-001`
