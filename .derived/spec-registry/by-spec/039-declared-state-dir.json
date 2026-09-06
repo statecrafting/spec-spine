@@ -1,0 +1,117 @@
+{
+  "record": {
+    "created": "2026-09-05",
+    "dependsOn": [
+      "003-conformance-lint",
+      "004-codebase-index",
+      "005-coupling-gate",
+      "032-ownership-coverage"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/coverage.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/coverage.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      }
+    ],
+    "id": "039-declared-state-dir",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/009-coupling-floor-claim-precedence/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/02-agentic-builder-substrate.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "039: `layout.state_dir`",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Unset by default",
+      "3.2 Declared: the gates recognize it",
+      "3.3 Ungoverned: spec-spine never reads or writes it",
+      "3.4 A claim inside `state_dir` is a contradiction, and `lint` says so",
+      "3.5 Relationship to the existing lists",
+      "3.6 Tests (minimum)",
+      "4. Out of scope"
+    ],
+    "specPath": "specs/039-declared-state-dir/spec.md",
+    "status": "draft",
+    "summary": "A repo governed by spec-spine increasingly hosts tooling that keeps state inside it: a build daemon's journal, a local database, captured transcripts, attestation bundles. There is nowhere agreed to put any of it. Every such tool invents a directory, and every invented directory is then a surprise to the gates: `couple` sees changed files no spec claims and refuses the merge under `require_ownership`, `index coverage` counts them as untraced debt, and the resolver walks them. The adopter's only recourse is to keep appending private paths to `bypass_prefixes` and `resolver_exclusions`, one list per concern, none of which states what the directory *is*. This spec adds `layout.state_dir`: a single declared root, unset by default, that spec-spine agrees to know about and refuses to govern. Declared means the gates recognize it (bypassed by `couple`, excluded from coverage classification and from the resolver scan, and never hashed); ungoverned means spec-spine never reads its contents, never writes into it, and refuses a spec that tries to claim a unit inside it, which `lint` reports as `L-006`, a contradiction rather than a precedence question resolved silently in either direction. Unset by default, so no existing repo changes behavior.\n",
+    "title": "`layout.state_dir`: a declared, ungoverned tool-state root"
+  },
+  "shardHash": "7d28d601c77a246b20ce1e608b480755b9e9e407b2b23a00b4945a731d2bebf8",
+  "specVersion": "1.1.0"
+}
