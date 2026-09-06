@@ -317,6 +317,18 @@ fn validate_state_dir(config: &Config) -> Result<()> {
     if state.is_empty() {
         return Ok(());
     }
+    // The repo root contains every governed root, so it fails the overlap test
+    // below only if that test knows `.` is an ancestor of everything, which a
+    // string comparison does not. Refused by name instead: this is the value
+    // spec 039 3.2 calls the worst outcome, since every gate would keep exiting
+    // 0 while adjudicating nothing at all.
+    if state == "." {
+        return Err(Error::Config(format!(
+            "layout.state_dir '{}' is the repository root: a state root is ungoverned, \
+             so declaring the whole repository one would silence every gate",
+            config.layout.state_dir
+        )));
+    }
     for (key, value) in [
         ("specs_dir", &config.layout.specs_dir),
         ("derived_dir", &config.layout.derived_dir),

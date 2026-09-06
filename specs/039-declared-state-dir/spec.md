@@ -4,7 +4,7 @@ title: "`layout.state_dir`: a declared, ungoverned tool-state root"
 status: draft
 kind: "tooling"
 created: "2026-09-05"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -18,6 +18,9 @@ extends:
   - { spec: "005-coupling-gate", unit: "crates/spec-spine-core/src/couple.rs", nature: additive }
   - { spec: "005-coupling-gate", unit: "crates/spec-spine-core/tests/couple.rs", nature: additive }
   - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/index.rs", nature: additive }
+  # The two files 2's territory list omitted; see 5, D-1.
+  - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/symbols.rs", nature: additive }
+  - { spec: "024-index-sharding", unit: "crates/spec-spine-core/src/shard.rs", nature: additive }
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-core/src/coverage.rs", nature: additive }
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-core/tests/coverage.rs", nature: additive }
   - { spec: "003-conformance-lint", unit: "crates/spec-spine-core/src/lint.rs", nature: additive }
@@ -86,9 +89,13 @@ governed*, and the number of things needing that vocabulary is growing.
 
 `config.rs` gains the key. `couple.rs` consults it when deciding bypass;
 `coverage.rs` consults it when classifying a source file; `index.rs` consults it
-when scanning and when hashing. `lint.rs` gains one diagnostic. No emitted DTO
-changes shape, and no schema version moves: this is a config key and four reads
-of it.
+when scanning. `symbols.rs` consults it when walking for symbols and modules,
+and `shard.rs` when folding the globally hashed inputs. `lint.rs` gains one
+diagnostic. No emitted DTO changes shape, and no schema version moves: this is a
+config key and six reads of it.
+
+The last two are additions to this section, made when it was implemented; 5
+records why.
 
 ## 3. Behavior
 
@@ -241,3 +248,38 @@ the same either way, which is the point: a committed evidence bundle and a
 gitignored transcript are both ungoverned by the gates.
 
 **Multiple state roots.** One value, deliberately (§3.5).
+
+## 5. Resolved decisions
+
+- **D-1 (2026-09-06): the territory in 2 was two files short of what 3.2
+  requires.** 2 named `config.rs`, `couple.rs`, `coverage.rs`, `index.rs` and
+  `lint.rs`. Two of 3.2's four MUSTs reach past them. *The resolver MUST NOT
+  scan it*: `index.rs` owns one source walk, but the symbol and module indexes
+  walk their own trees in `symbols.rs`, so a symbol defined inside the root
+  would still have resolved. *It MUST NOT contribute to any content hash*: the
+  globally hashed inputs are folded in `shard.rs::global_inputs_hash`, and an
+  `extra_hashed_inputs` pattern wide enough to reach into the root is the
+  ordinary case rather than an exotic one, since the point of the key is that
+  the adopter states the root once. Both files are now claimed by an `extends`
+  edge and 2 says so. Rejected: implementing only the four MUSTs the original
+  territory covered and recording the other two as limitations, which would
+  leave a stated MUST unimplemented and the root scannable by exactly the
+  mechanism most likely to reach it.
+
+- **D-2 (2026-09-06): a `state_dir` of `.` is refused by name, not by the
+  overlap test.** 3.2 requires refusing a value that contains a governed root,
+  and names `.` as the case that ungoverns the entire repository. A string
+  comparison does not know the repository root is an ancestor of everything, so
+  the overlap test cleared `.` and the first draft of the validation accepted
+  it. It is now refused explicitly, with its own message. Rejected: normalizing
+  `.` to the empty string, which spells *unset* and would have turned the most
+  dangerous value into the silent default.
+
+- **D-3 (2026-09-06): the walkers take the layout, not an extra exclusion
+  entry.** The obvious implementation appends the root to
+  `index.resolver_exclusions` before walking. It does not work and would be
+  wrong if it did: that list matches directory *names* rather than path
+  prefixes, so a root of `tool/state` is inexpressible in it, and 3.5 requires
+  that neither list can cancel the key's effects. Both walkers take
+  `&LayoutConfig` instead, which keeps the two mechanisms visibly separate at
+  every call site.
