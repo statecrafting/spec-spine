@@ -1,0 +1,141 @@
+{
+  "mapping": {
+    "amends": [
+      "000-spec-spine-bootstrap"
+    ],
+    "dependsOn": [
+      "006-init-scaffold",
+      "040-amendment-authoring"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/src/scaffold.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/scaffold.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "standards/spec/constitution.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "standards/spec/contract.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "standards/spec/contract.md",
+            "span": {
+              "endLine": 57,
+              "startLine": 46
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "anchor": "amending-the-constitution",
+          "file": "standards/spec/contract.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/scaffold.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/scaffold.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scaffold.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "standards/spec/constitution.md",
+            "span": {
+              "endLine": 106,
+              "startLine": 74
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "refines",
+        "unit": {
+          "anchor": "amendment",
+          "file": "standards/spec/constitution.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "standards/spec/constitution.md",
+            "span": {
+              "endLine": 73,
+              "startLine": 53
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "refines",
+        "unit": {
+          "anchor": "v-legacy-as-evidence",
+          "file": "standards/spec/constitution.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/040-amendment-authoring/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/040-amendment-authoring/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/041-completion-held-to-claims/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/041-completion-held-to-claims/spec.md"
+        }
+      }
+    ],
+    "specId": "043-governance-document-gaps",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "cf6420fa0a88cd14ebc0c8f86caacd9f0af75addac49221ea6868efee90dad35"
+}

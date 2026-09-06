@@ -60,11 +60,47 @@ claim. History is queryable: "who established this unit" and "who currently owns
 it" are different questions, and an amendment patches its predecessor in place
 rather than blowing away its history.
 
+Code adopted from outside the corpus is specced **as found**. The adopting spec
+describes the behavior that exists, and records the behavior it would not have
+chosen under a `## Known defects` heading, with the defect named. A defect
+recorded under that heading is not thereby blessed: it is the reason a later spec
+can be written against it. Without that heading an adopting spec has only bad
+options, since describing the code accurately would ratify its defects as the
+specified behavior. `origin.retroactive: true` says *when* the authority began;
+`## Known defects` says what the adopting spec makes of what it found.
+
 ---
 
 ## Amendment
 
-This constitution may be amended by an ordinary spec that `amends` it and is
-approved, **provided** the amendment does not contradict a `specs/000`
-`unamendable` anchor. The bootstrap spec's freeze surface is the hard boundary;
-everything else in this document is revisable through the normal governed flow.
+This constitution is changed by an ordinary spec that is `approved`, **claims
+the affected text as an authority unit**, and does not contradict any anchor in
+the `unamendable` list of `specs/000`. The bootstrap spec's freeze surface is
+the hard boundary; everything else here is revisable through the normal governed
+flow.
+
+The claim uses the ordinary ownership vocabulary over a section unit of this
+file, not the `amends` edge:
+
+- `establishes` a `{ kind: section, file: "standards/spec/constitution.md",
+  anchor: <heading-slug> }` unit for a principle the spec adds,
+- `refines` that unit, with a named `aspect`, for a principle it tightens or
+  restates,
+- `co_authority` on that unit where a principle is genuinely shared.
+
+The anchor is the heading slug the indexer computes, so `## V. Legacy as
+evidence` is `v-legacy-as-evidence`. `amends` is not the instrument: its targets
+are spec ids, and this file is not a spec. Spec 043 states the rule and is its
+own worked example.
+
+Unlike an amended `spec.md`, which is a record of what the corpus held when it
+was ratified and is therefore never edited to mention its successors (spec 040),
+this document is a standing statement of what is true now. It is edited in
+place, and its history lives in the specs that claimed each section and in git.
+
+The gate does not defend this: `standards/spec/constitution.md` is on the
+coupling gate's built-in bypass floor, so a change here raises no `C-001` and
+the ownership claim is a ledger fact that `spec-spine registry relationships`
+answers, not a refusal. That is deliberate. A governance document is not code,
+and refusing a constitutional edit for want of a matching source change would be
+the wrong refusal.

@@ -48,6 +48,30 @@ fn scaffolded_corpus_compiles_and_lints_clean() {
     );
 }
 
+/// Spec 043 1.1: the scaffolded constitution shipped an amendment clause that
+/// named an edge an adopter could not write. It now states the mechanism, and
+/// this asserts the defect cannot return silently.
+#[test]
+fn scaffolded_constitution_states_an_executable_amendment_mechanism() {
+    let scaffold = scaffold_init(&Config::default()).unwrap();
+    let constitution = &scaffold
+        .files
+        .iter()
+        .find(|f| f.rel_path == "standards/spec/constitution.md")
+        .expect("the scaffold writes a constitution")
+        .contents;
+
+    assert!(constitution.contains("## Amendment"), "{constitution}");
+    // The instrument is a section unit of this file, explicitly not `amends`.
+    assert!(constitution.contains("kind: section"), "{constitution}");
+    assert!(
+        constitution.contains("`amends` is **not** the instrument"),
+        "{constitution}"
+    );
+    // The seam that tells an adopter where their own principles belong.
+    assert!(constitution.contains("## VI onward"), "{constitution}");
+}
+
 #[test]
 fn non_default_namespace_scaffolds_coherently() {
     let mut cfg = Config::default();
