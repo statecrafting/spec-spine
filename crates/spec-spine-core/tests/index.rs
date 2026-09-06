@@ -843,3 +843,158 @@ fn references_does_not_confer_c001_ownership() {
         report.violations
     );
 }
+
+// ===== spec 041: `implementation: complete` defeats draft leniency =====
+
+/// Index a one-spec corpus whose frontmatter is exactly `status` +
+/// `implementation`, so the two axes are varied independently.
+fn lifecycle_index(status: &str, implementation: Option<&str>) -> spec_spine_types::CodebaseIndex {
+    let tmp = tempfile::tempdir().unwrap();
+    write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = []\n");
+    let lifecycle = implementation
+        .map(|i| format!("implementation: {i}\n"))
+        .unwrap_or_default();
+    write(
+        tmp.path(),
+        "specs/001-x/spec.md",
+        &spec_with_status(
+            "001-x",
+            status,
+            &format!("{lifecycle}establishes:\n  - \"src/not_built_yet.rs\"\n"),
+        ),
+    );
+    index(&Config::default(), tmp.path()).unwrap().index
+}
+
+fn counts(idx: &spec_spine_types::CodebaseIndex) -> (usize, usize) {
+    (
+        idx.diagnostics.errors.len(),
+        idx.diagnostics
+            .warnings
+            .iter()
+            .filter(|d| d.code == "W-001")
+            .count(),
+    )
+}
+
+/// Spec 041 3.1: a spec asserting its own completion is never in flight,
+/// whatever its `status`, so its unresolved owning unit is a hard error.
+///
+/// The table is exhaustive over both enums on purpose. Only the
+/// `draft` + `complete` row moves; every other cell states what the predicate
+/// already did, so a later reader cannot mistake a gap for a licence to guess.
+#[test]
+fn completion_defeats_draft_leniency_across_both_axes() {
+    // (status, implementation, in flight)
+    let cases: [(&str, Option<&str>, bool); 10] = [
+        ("draft", Some("pending"), true),
+        ("draft", Some("in-progress"), true),
+        ("draft", Some("complete"), false), // the only row this spec moves
+        ("draft", Some("n-a"), true),
+        ("draft", Some("deferred"), true),
+        ("draft", None, true),
+        ("approved", Some("pending"), true),
+        ("approved", Some("in-progress"), false),
+        ("approved", Some("complete"), false),
+        ("approved", None, false),
+    ];
+
+    for (status, implementation, in_flight) in cases {
+        let idx = lifecycle_index(status, implementation);
+        let (errors, warnings) = counts(&idx);
+        let label = format!("{status} + {implementation:?}");
+        if in_flight {
+            assert_eq!(
+                errors, 0,
+                "{label} must not block: {:?}",
+                idx.diagnostics.errors
+            );
+            assert_eq!(warnings, 1, "{label} is a counted W-001");
+        } else {
+            assert_eq!(warnings, 0, "{label} must not be downgraded");
+            assert_eq!(errors, 1, "{label} is a blocking error");
+            assert!(
+                idx.diagnostics
+                    .errors
+                    .iter()
+                    .all(|d| d.code.starts_with("I-")),
+                "{label}: {:?}",
+                idx.diagnostics.errors
+            );
+        }
+    }
+}
+
+/// A `draft` + `complete` spec whose units all resolve produces no diagnostic:
+/// the stricter test is one it can pass, not one it cannot.
+#[test]
+fn a_complete_draft_that_told_the_truth_is_silent() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = []\n");
+    write(tmp.path(), "src/built.rs", "pub fn built() {}\n");
+    write(
+        tmp.path(),
+        "specs/001-x/spec.md",
+        &spec_with_status(
+            "001-x",
+            "draft",
+            "implementation: complete\nestablishes:\n  - \"src/built.rs\"\n",
+        ),
+    );
+    let idx = index(&Config::default(), tmp.path()).unwrap().index;
+    assert!(
+        idx.diagnostics.errors.is_empty(),
+        "{:?}",
+        idx.diagnostics.errors
+    );
+    assert!(
+        idx.diagnostics.warnings.iter().all(|d| d.code != "W-001"),
+        "{:?}",
+        idx.diagnostics.warnings
+    );
+}
+
+/// Spec 041 3.5: this touches the lifecycle arm only, never edge authority. An
+/// unresolved **non-owning** `references` unit stays `W-002` in every
+/// combination, including the one row that moved.
+#[test]
+fn a_non_owning_reference_stays_w002_in_every_combination() {
+    for (status, implementation) in [
+        ("draft", "complete"),
+        ("draft", "pending"),
+        ("approved", "complete"),
+        ("approved", "pending"),
+    ] {
+        let tmp = tempfile::tempdir().unwrap();
+        write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = []\n");
+        write(
+            tmp.path(),
+            "specs/001-x/spec.md",
+            &spec_with_status(
+                "001-x",
+                status,
+                &format!(
+                    "implementation: {implementation}\nestablishes:\n  - \"src/built.rs\"\n\
+                     references:\n  - {{ unit: {{ kind: file, path: \"docs/gone.md\" }}, role: context }}\n"
+                ),
+            ),
+        );
+        write(tmp.path(), "src/built.rs", "pub fn built() {}\n");
+        let idx = index(&Config::default(), tmp.path()).unwrap().index;
+        let label = format!("{status} + {implementation}");
+        assert!(
+            idx.diagnostics.errors.is_empty(),
+            "{label}: a citation is not a claim: {:?}",
+            idx.diagnostics.errors
+        );
+        assert_eq!(
+            idx.diagnostics
+                .warnings
+                .iter()
+                .filter(|d| d.code == "W-002")
+                .count(),
+            1,
+            "{label}"
+        );
+    }
+}
