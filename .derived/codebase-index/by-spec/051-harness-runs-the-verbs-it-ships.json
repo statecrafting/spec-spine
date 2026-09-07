@@ -1,0 +1,203 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '051-harness-runs-the-verbs-it-ships' file unit '.claude/settings.json' does not exist",
+        "path": ".claude/settings.json"
+      }
+    ]
+  },
+  "mapping": {
+    "amends": [
+      "048-kit-ships-the-governed-loop-skills",
+      "046-kit-hooks-read-never-write"
+    ],
+    "dependsOn": [
+      "046-kit-hooks-read-never-write",
+      "048-kit-ships-the-governed-loop-skills",
+      "049-verify-declared-acceptance",
+      "050-index-diagnostics-reach-a-gate"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".claude/skills/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "AGENTS.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/kit_hooks.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/kit_skills.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/.claude/skills/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/AGENTS.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/README.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/settings.json",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".claude/skills/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "AGENTS.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/kit_hooks.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/kit_skills.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_skills.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/.claude/skills/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/skills/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/AGENTS.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/AGENTS.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/README.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/README.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/settings.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/settings.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/03-adopter-audit-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/049-verify-declared-acceptance/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/049-verify-declared-acceptance/spec.md"
+        }
+      }
+    ],
+    "specId": "051-harness-runs-the-verbs-it-ships",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "bf5b27c10a9273d55d25ec407a230ff701e498e0b46348f38188a8b29ea9e4c6"
+}
