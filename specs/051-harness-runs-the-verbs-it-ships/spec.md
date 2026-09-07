@@ -294,6 +294,14 @@ stated.
 **Any engine change.** No file under `crates/*/src/` changes. The two test files
 this spec touches are acceptance, not behavior.
 
+**Tightening the PR-gate hook's waiver match.** The `PreToolUse` hook accepts a
+coupling failure when the command string contains `--body` followed by
+`Spec-Drift-Waiver`, so a branch name or commit message carrying that text and
+interpolated into `gh pr create` would satisfy it without a waiver in the body.
+The behavior predates this spec, and CI's coupling gate is the authoritative
+one: the hook is an early warning that cannot approve a merge. Tightening the
+match is a change to what spec 046 requires and belongs in a spec that says so.
+
 **A `/burndown` skill.** Unchanged from 048 4: it waits on a tool verb, and 050
 shipped `index diagnostics --json`, which is a candidate substrate for it. That
 is a separate spec.
@@ -343,6 +351,21 @@ Equality would force every skill to restate the full list including the stack's
 build and tests, which is not what a read-only review skill should run. Subset
 catches the drift that actually occurred (an authority omitting a step its
 skills run) without dictating each skill's scope.
+
+**2026-09-07: `.github/workflows/ci.yml` needs no ownership edge.** Review of
+this change read the CI edit as an uncovered path and asked for an `extends`
+edge. `.github/` is on the coupling gate's built-in bypass floor
+(`couple.rs::DEFAULT_BYPASS_PREFIXES`), so a workflow edit raises no `C-001`
+unless a spec specifically claims that path, which would then override the floor
+(spec 030). Claiming it would create the refusal, not prevent one. `couple`
+reports 14 paths checked and no drift on this change, locally and in CI.
+
+**2026-09-07: the gate-list parser asserts what it parsed.** The same review
+noted that `find` takes the first match, so a fenced example between the anchor
+and the gate list would be read as the gate list and every assertion below would
+go vacuous without failing. Correct: the test now requires every extracted line
+to be a governance verb, and a decoy fence makes it fail with the line it
+misread.
 
 **2026-09-07: `.claude/settings.json` is committed and matches the kit on hooks
 and deny, but not on allow.** The permission allow list is machine-local

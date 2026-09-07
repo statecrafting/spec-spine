@@ -384,6 +384,17 @@ fn agents_md_gate_list_names_every_step_ci_enforces() {
         !listed.is_empty(),
         "AGENTS.md must carry a fenced gate list"
     );
+    // Guard the parse itself: `find` takes the first match, so a fence added
+    // above the gate list would be read as the gate list, and every assertion
+    // below would go vacuous without failing. Every line of the real block is
+    // a governance verb, so anything else means we read the wrong fence.
+    for cmd in &listed {
+        let head = cmd.split_whitespace().next().unwrap_or("");
+        assert!(
+            matches!(head, "compile" | "index" | "lint" | "couple"),
+            "AGENTS.md gate-list parse read the wrong block: got `{cmd}`"
+        );
+    }
 
     for ci in ci_governance_commands(&root) {
         // CI runs `compile --check` where a local session runs `compile`: a
