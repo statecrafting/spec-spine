@@ -60,16 +60,18 @@ pub fn run(repo: &Path, id: &str, json: bool, plan_only: bool) -> Result<u8, Err
         .unwrap_or_default();
     if stack.contains(&plan.spec_id) {
         stack.push(plan.spec_id.clone());
-        return Err(Error::Validation(vec![Violation {
-            code: RE_ENTRY_CODE.to_string(),
-            severity: Severity::Error,
-            message: format!(
-                "verification re-entered itself: {}. A `## Verification` command \
-                 that runs `verify` on its own spec recurses without bound.",
-                stack.join(" -> ")
-            ),
-            path: Some(format!("{}/{}/spec.md", cfg.layout.specs_dir, plan.spec_id)),
-        }]));
+        return Err(Error::Validation(vec![
+            Violation::new(
+                RE_ENTRY_CODE,
+                Severity::Error,
+                format!(
+                    "verification re-entered itself: {}. A `## Verification` command \
+                     that runs `verify` on its own spec recurses without bound.",
+                    stack.join(" -> ")
+                ),
+            )
+            .at(format!("{}/{}/spec.md", cfg.layout.specs_dir, plan.spec_id)),
+        ]));
     }
     stack.push(plan.spec_id.clone());
     let child_stack = stack.join(",");

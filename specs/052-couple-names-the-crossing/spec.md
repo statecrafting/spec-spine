@@ -4,7 +4,7 @@ title: "The coupling gate names the crossing"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -24,6 +24,17 @@ extends:
   # alone. Registry emission is byte-identical (3.4), so no schema file and no
   # schema version moves.
   - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/src/registry.rs", nature: additive }
+  # Adding a field to a struct whose fields are public forces every struct
+  # literal in the workspace to name it (2.1). These six carry a `Violation`
+  # literal and nothing else; each is rewritten to the constructor and asserts
+  # nothing new. Named individually rather than waived, because a crossing the
+  # ledger records is the whole point of the door this spec is adding.
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/compile.rs", nature: additive }
+  - { spec: "002-registry-query", unit: "crates/spec-spine-core/src/query.rs", nature: additive }
+  - { spec: "003-conformance-lint", unit: "crates/spec-spine-core/src/lint.rs", nature: additive }
+  - { spec: "037-machine-readable-verdicts", unit: "crates/spec-spine-types/src/verdict.rs", nature: additive }
+  - { spec: "049-verify-declared-acceptance", unit: "crates/spec-spine-cli/src/cmd_verify.rs", nature: additive }
+  - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/tests/dtos.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: ".claude/rules/adversarial-prompt-refusal.md" }, role: context }
@@ -109,6 +120,24 @@ Spec 005 §3.5 states that an owned path with no owner edit is a `C-001`
 violation. It states nothing about the message text, the footer, or the fields a
 violation carries, so every change below adds surface rather than changing what
 005 requires. No `amends` edge is declared and 005's `spec.md` is not edited.
+
+### 2.1 Six more files the field's shape forces
+
+**Decision, 2026-09-07.** The table above was written as though `Violation`
+could gain a field without anything else moving. It cannot: the struct's fields
+are public and every construction site is a struct literal, so Rust requires
+each one to name the new field. Six further files carry such a literal
+(`core/src/compile.rs`, `core/src/query.rs`, `core/src/lint.rs`,
+`types/src/verdict.rs`, `cli/src/cmd_verify.rs`, `types/tests/dtos.rs`).
+
+They are declared as `extends` edges in this spec's own frontmatter rather than
+waived. That is the door §3.2 is about, and a spec that printed the
+instruction while taking the other exit would not be worth reading. The edits
+themselves assert nothing: each literal becomes `Violation::new(..).at(..)`, a
+constructor added alongside the field precisely so a future field costs one
+file instead of ten. `Violation::new` produces the owner-less shape, which is
+every code except `C-001`, so a site that is not thinking about owners cannot
+accidentally claim one.
 
 ## 3. Behavior
 
@@ -270,24 +299,52 @@ and does not pre-empt the design.
 refused, and putting them in an `owners` field would make the field mean two
 different things depending on the code.
 
-**Guidance for the `--paths-from` mode.** It carries no diff and no spec.md
-edits, so 3.3's specific form never triggers there and the generic footer
-applies. That is correct rather than a limitation: without a diff there is no
-"the spec you are authoring" to name.
+**Guidance for the `--paths-from` mode.** Nothing is special-cased for it.
+
+**Decision, 2026-09-07.** This paragraph originally asserted that
+`--paths-from` "carries no diff and no spec.md edits, so 3.3's specific form
+never triggers there". The first half is a description of how CI uses the flag,
+not a property of it: the mode builds a `DiffInput` like any other, and a list
+that happens to name a `spec.md` satisfies §3.3's condition exactly as a git
+diff would. §3.3 states its rule over "the diff", so the specific form triggers
+in both modes, and suppressing it in one would be a mode special-case no
+requirement asks for. It would also be backwards: the sentence's stated reason
+was that there is no "spec you are authoring" to name, which is precisely
+untrue when the list names one.
 
 **Per-payload schema versioning.** Spec 050 §3.6 declined to open that axis and
 this spec does not reopen it.
 
 ## 5. Verification
 
+Every assertion below fails against the code as it stood before this spec: the
+strings did not exist and `owners` was not a field. The `--paths-from` inputs
+name `crates/spec-spine-core/src/index.rs`, which this repository's own corpus
+owns (spec 004 among others) and which spec 052 does not claim, so the gate
+refuses it and renders the footer under test. Reading the refusal through
+`grep` is deliberate: the exit code of a refusal is 1, and it is the rendered
+text that is the subject here.
+
 ```verify:cli
-# Self-contained: the commands below invoke the release binary.
+# Self-contained: the assertions below run the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-core --test couple --locked
 cargo test -p spec-spine-cli --test couple --locked
-# The envelope version did not move for a payload addition (3.4, spec 050 3.6).
-test "$(target/release/spec-spine couple --base HEAD~1 --head HEAD --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["schemaVersion"])')" = "0.2.0"
-# Every committed registry shard still validates against the unchanged schema,
-# and is byte-identical to what the corpus compiles to (3.4).
+# 3.2: three doors, and door two names the mechanism and its two properties.
+printf 'crates/spec-spine-core/src/index.rs\n' | target/release/spec-spine couple --paths-from /dev/stdin 2>&1 | grep -q '2. Declare an `extends` edge'
+printf 'crates/spec-spine-core/src/index.rs\n' | target/release/spec-spine couple --paths-from /dev/stdin 2>&1 | grep -q 'amends nobody'
+printf 'crates/spec-spine-core/src/index.rs\n' | target/release/spec-spine couple --paths-from /dev/stdin 2>&1 | grep -q 'needs explicit human approval'
+# 3.3: exactly one spec.md in the change set makes the block concrete.
+printf 'crates/spec-spine-core/src/index.rs\nspecs/052-couple-names-the-crossing/spec.md\n' | target/release/spec-spine couple --paths-from /dev/stdin 2>&1 | grep -q 'spec 052-couple-names-the-crossing is the only spec.md edited'
+printf 'crates/spec-spine-core/src/index.rs\nspecs/052-couple-names-the-crossing/spec.md\n' | target/release/spec-spine couple --paths-from /dev/stdin 2>&1 | grep -q 'unit: "crates/spec-spine-core/src/index.rs", nature: additive'
+# 3.3: two edited spec.md paths fall back to the generic form.
+printf 'crates/spec-spine-core/src/index.rs\nspecs/052-couple-names-the-crossing/spec.md\nspecs/005-coupling-gate/spec.md\n' | target/release/spec-spine couple --paths-from /dev/stdin 2>&1 | grep -q '<owning-spec-id>'
+# 3.1 + 3.5: the envelope carries the owner set as data, and no guidance prose.
+printf 'crates/spec-spine-core/src/index.rs\n' | target/release/spec-spine couple --paths-from /dev/stdin --json | python3 -c 'import json,sys; v=json.load(sys.stdin)["report"]["violations"][0]; assert v["code"]=="C-001", v; assert "004-codebase-index" in v["owners"], v'
+! printf 'crates/spec-spine-core/src/index.rs\n' | target/release/spec-spine couple --paths-from /dev/stdin --json | grep -q 'Declare an'
+# 3.4: a payload addition does not move the envelope version (spec 050 3.6).
+test "$(printf 'crates/spec-spine-core/src/index.rs\n' | target/release/spec-spine couple --paths-from /dev/stdin --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["schemaVersion"])')" = "0.2.0"
+# 3.4: every committed registry shard still matches what the corpus compiles to,
+# so no schema file and no schema version had to move.
 target/release/spec-spine compile --check
 ```

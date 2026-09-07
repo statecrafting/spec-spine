@@ -194,28 +194,13 @@ fn unit_path(unit: &Unit) -> Option<String> {
 }
 
 fn error(code: &str, message: String, path: Option<String>) -> Violation {
-    Violation {
-        code: code.to_string(),
-        severity: Severity::Error,
-        message,
-        path,
-    }
+    Violation::new(code, Severity::Error, message).at_opt(path)
 }
 
 fn warn(code: &str, message: String, path: Option<String>) -> Violation {
-    Violation {
-        code: code.to_string(),
-        severity: Severity::Warning,
-        message,
-        path,
-    }
+    Violation::new(code, Severity::Warning, message).at_opt(path)
 }
 
 fn info(code: &str, message: String, path: Option<String>) -> Violation {
-    Violation {
-        code: code.to_string(),
-        severity: Severity::Info,
-        message,
-        path,
-    }
+    Violation::new(code, Severity::Info, message).at_opt(path)
 }

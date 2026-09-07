@@ -642,3 +642,165 @@ fn ratchet_refuses_new_unowned_source_and_allows_its_deletion() {
         .unwrap();
     assert_eq!(code(&full), 0, "{}", String::from_utf8_lossy(&full.stderr));
 }
+
+// ── spec 052: the refusal names the crossing ──────────────────────────────
+
+/// [`setup`] plus a second spec that owns a *different* file, so a diff can
+/// edit exactly one `spec.md` that owns none of the violating paths: the
+/// crossing case §3.3 is about.
+fn setup_two_specs(root: &Path) {
+    setup(root);
+    write(root, "crate-a/src/other.rs", "pub fn other() {}\n");
+    write(
+        root,
+        "specs/002-b/spec.md",
+        "---\nid: \"002-b\"\ntitle: \"B\"\nstatus: approved\ncreated: \"2026-09-07\"\n\
+         summary: \"s\"\nestablishes:\n  - \"crate-a/src/other.rs\"\n---\n# 002-b\n## body\n",
+    );
+}
+
+/// §3.2: a `C-001` report names three doors, and door two is the one that was
+/// missing. The corpus's answer to "I legitimately touched somebody else's
+/// unit" has always been an `extends` edge in the author's own spec; the gate
+/// never said so, and claude-observatory spent four sessions proving the wall.
+#[test]
+fn footer_names_three_doors_including_extends() {
+    let tmp = tempfile::tempdir().unwrap();
+    setup(tmp.path());
+    refresh(tmp.path());
+
+    let out = couple_paths(tmp.path(), &["crate-a/src/lib.rs"], &[]);
+    assert_eq!(code(&out), 1);
+    let e = String::from_utf8_lossy(&out.stderr);
+
+    assert!(e.contains("  1. Edit the owning spec's spec.md"), "{e}");
+    assert!(e.contains("  2. Declare an `extends` edge"), "{e}");
+    assert!(e.contains("  3. Add a 'Spec-Drift-Waiver:"), "{e}");
+    // Door two's two load-bearing facts, without which an author still reads
+    // the edge as a change to somebody else's spec.
+    assert!(e.contains("amends nobody and\n     needs no waiver"), "{e}");
+    // And the waiver is named as the human instrument it is, not as a flag.
+    assert!(e.contains("needs explicit human approval"), "{e}");
+    // Pasteable YAML, not prose: the syntax is the part adopters got wrong.
+    assert!(e.contains("extends:"), "{e}");
+    assert!(e.contains("nature: additive"), "{e}");
+}
+
+/// §3.3: exactly one edited `spec.md` ⇒ the footer names it and emits the
+/// concrete block, with the violating path and its owner filled in.
+#[test]
+fn one_edited_spec_gets_a_concrete_extends_block() {
+    let tmp = tempfile::tempdir().unwrap();
+    setup_two_specs(tmp.path());
+    refresh(tmp.path());
+
+    // 002-b is edited; it owns `other.rs`, not `lib.rs`, so `lib.rs` drifts.
+    let out = couple_paths(
+        tmp.path(),
+        &["crate-a/src/lib.rs", "specs/002-b/spec.md"],
+        &[],
+    );
+    assert_eq!(code(&out), 1, "{}", String::from_utf8_lossy(&out.stderr));
+    let e = String::from_utf8_lossy(&out.stderr);
+
+    assert!(
+        e.contains("spec 002-b is the only spec.md edited in this diff"),
+        "{e}"
+    );
+    assert!(e.contains("specs/002-b/spec.md"), "{e}");
+    assert!(
+        e.contains("- { spec: \"001-a\", unit: \"crate-a/src/lib.rs\", nature: additive }"),
+        "the block is filled in, not a template: {e}"
+    );
+    // §3.3: a suggestion, never an instruction, and never a claim that
+    // `additive` is a judgement the gate reached about the author's intent.
+    assert!(e.contains("A suggestion, not an instruction"), "{e}");
+    assert!(e.contains("revert the touch and declare nothing"), "{e}");
+}
+
+/// §3.3: zero or two-or-more edited `spec.md` paths fall back to the generic
+/// form. Two edited specs is a legitimate shape (an amendment pair) and the
+/// gate has no basis for guessing which one should declare the edge.
+#[test]
+fn two_edited_specs_fall_back_to_the_generic_form() {
+    let tmp = tempfile::tempdir().unwrap();
+    setup_two_specs(tmp.path());
+    refresh(tmp.path());
+
+    // A third spec that owns nothing here, so neither edited spec clears
+    // `lib.rs` and two spec.md paths are in the diff.
+    write(
+        tmp.path(),
+        "specs/003-c/spec.md",
+        "---\nid: \"003-c\"\ntitle: \"C\"\nstatus: approved\ncreated: \"2026-09-07\"\n\
+         summary: \"s\"\nreferences:\n  - { unit: { kind: file, path: \"README.md\" }, role: context }\n\
+         ---\n# 003-c\n## body\n",
+    );
+    write(tmp.path(), "README.md", "# r\n");
+    refresh(tmp.path());
+
+    let out = couple_paths(
+        tmp.path(),
+        &[
+            "crate-a/src/lib.rs",
+            "specs/002-b/spec.md",
+            "specs/003-c/spec.md",
+        ],
+        &[],
+    );
+    assert_eq!(code(&out), 1, "{}", String::from_utf8_lossy(&out.stderr));
+    let e = String::from_utf8_lossy(&out.stderr);
+
+    assert!(!e.contains("is the only spec.md edited"), "{e}");
+    assert!(e.contains("<owning-spec-id>"), "generic shape: {e}");
+}
+
+/// §3.2: a report carrying only `C-002` renders the footer it rendered before
+/// this spec. Claiming an unowned path is a different act from crossing into
+/// somebody else's territory, and the three doors do not describe it.
+#[test]
+fn c002_only_footer_is_unchanged() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_ratchet(root);
+    refresh(root);
+
+    write(root, "crate-a/src/extra.rs", "pub fn extra() {}\n");
+    refresh(root);
+    let out = couple_paths(root, &["crate-a/src/extra.rs"], &[]);
+    assert_eq!(code(&out), 1, "{}", String::from_utf8_lossy(&out.stderr));
+    let e = String::from_utf8_lossy(&out.stderr);
+
+    assert!(
+        e.contains(
+            "Resolve by editing an owning spec's spec.md (C-001), claiming the path \
+             in a spec's owning edge (C-002), or add a 'Spec-Drift-Waiver:' line to \
+             the PR body."
+        ),
+        "{e}"
+    );
+    assert!(!e.contains("  1. Edit the owning spec"), "{e}");
+}
+
+/// §3.5: the envelope carries `owners` as data and no guidance prose. Guidance
+/// in the envelope would be a third representation of the same list, stale
+/// against the prose and useless to the machine that already has the list.
+#[test]
+fn json_envelope_carries_owners_not_prose() {
+    let tmp = tempfile::tempdir().unwrap();
+    setup(tmp.path());
+    refresh(tmp.path());
+
+    let out = couple_paths(tmp.path(), &["crate-a/src/lib.rs"], &["--json"]);
+    assert_eq!(code(&out), 1);
+    let v: serde_json::Value =
+        serde_json::from_slice(&out.stdout).expect("verdict envelope is JSON");
+    let violation = &v["report"]["violations"][0];
+    assert_eq!(violation["code"], "C-001");
+    assert_eq!(violation["owners"][0], "001-a");
+
+    let text = String::from_utf8_lossy(&out.stdout);
+    assert!(!text.contains("Declare an `extends` edge"), "{text}");
+    // §3.4: a payload addition does not move the envelope's version (spec 050 §3.6).
+    assert_eq!(v["schemaVersion"], "0.2.0");
+}

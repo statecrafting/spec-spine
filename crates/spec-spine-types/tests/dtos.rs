@@ -51,20 +51,12 @@ fn registry_round_trips_camelcase() {
 
 #[test]
 fn validation_passed_follows_error_tier() {
-    let warn = ValidationReport::from_violations(vec![Violation {
-        code: "L-001".into(),
-        severity: Severity::Warning,
-        message: "w".into(),
-        path: None,
-    }]);
+    let warn =
+        ValidationReport::from_violations(vec![Violation::new("L-001", Severity::Warning, "w")]);
     assert!(warn.passed, "warnings alone do not fail validation");
 
-    let err = ValidationReport::from_violations(vec![Violation {
-        code: "V-001".into(),
-        severity: Severity::Error,
-        message: "e".into(),
-        path: None,
-    }]);
+    let err =
+        ValidationReport::from_violations(vec![Violation::new("V-001", Severity::Error, "e")]);
     assert!(!err.passed, "any error-tier violation fails validation");
 }
 

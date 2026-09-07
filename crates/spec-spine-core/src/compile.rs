@@ -754,21 +754,11 @@ fn resolve_spec_ref(short: &str, all_ids: &std::collections::BTreeSet<String>) -
 // --- small helpers ---
 
 fn error(code: &str, message: String, path: Option<String>) -> Violation {
-    Violation {
-        code: code.to_string(),
-        severity: Severity::Error,
-        message,
-        path,
-    }
+    Violation::new(code, Severity::Error, message).at_opt(path)
 }
 
 fn warning(code: &str, message: String, path: Option<String>) -> Violation {
-    Violation {
-        code: code.to_string(),
-        severity: Severity::Warning,
-        message,
-        path,
-    }
+    Violation::new(code, Severity::Warning, message).at_opt(path)
 }
 
 /// Repo-relative POSIX path of `file` under `repo_root` (forward slashes).

@@ -171,12 +171,11 @@ pub fn couple_with(
                 )),
             };
             if let Some(message) = message {
-                violations.push(Violation {
-                    code: "C-002".to_string(),
-                    severity: Severity::Error,
-                    message,
-                    path: Some(path.clone()),
-                });
+                // No `owners` (spec 052 §3.1): `C-002` fires precisely when no
+                // spec specifically claims the path, so there is no owner to
+                // name. The floor specs the message reports are why the path is
+                // debt, not who owns it.
+                violations.push(Violation::new("C-002", Severity::Error, message).at(path.clone()));
                 continue;
             }
         }
@@ -189,16 +188,23 @@ pub fn couple_with(
             continue; // primary-owner heuristic: any one owner's spec.md cleared it
         }
 
+        // Spec 052 §3.1: the owner set is carried as data as well as rendered
+        // into the message. `owners` is the sole non-prose copy, in the same
+        // sorted order the sentence names, so a consumer of the spec 037
+        // envelope reads it instead of regexing English. `owners` came from a
+        // `BTreeSet`, so the order is the message's by construction.
         let names: Vec<String> = owners.iter().cloned().collect();
-        violations.push(Violation {
-            code: "C-001".to_string(),
-            severity: Severity::Error,
-            message: format!(
+        let mut v = Violation::new(
+            "C-001",
+            Severity::Error,
+            format!(
                 "'{path}' changed without an authoring edit to any owning spec ({})",
                 names.join(", ")
             ),
-            path: Some(path.clone()),
-        });
+        )
+        .at(path.clone());
+        v.owners = names;
+        violations.push(v);
     }
 
     violations.sort_by(|a, b| a.path.cmp(&b.path));
@@ -438,7 +444,11 @@ fn is_bypass<S: AsRef<str>>(path: &str, prefixes: &[S]) -> bool {
 /// `layout.specs_dir` rather than a literal `specs/` (spec 036). The prefix and
 /// the separator are stripped in two steps on purpose: a single
 /// `strip_prefix("specs")` would accept `specsX/005-x/spec.md`.
-fn spec_id_for_spec_md_path<'p>(specs_dir: &str, path: &'p str) -> Option<&'p str> {
+///
+/// Public since spec 052: the CLI's resolution footer asks the same question of
+/// the diff (is exactly one spec.md edited, and whose?) and must ask it with the
+/// gate's own answer rather than a second, drifting copy of the path grammar.
+pub fn spec_id_for_spec_md_path<'p>(specs_dir: &str, path: &'p str) -> Option<&'p str> {
     let rest = path
         .strip_prefix(specs_dir.trim_end_matches('/'))?
         .strip_prefix('/')?;

@@ -185,6 +185,43 @@ pub struct Violation {
     pub message: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
+    /// The spec ids that own `path`, sorted, for the codes where "owner" is a
+    /// fact the producer computed (spec 052: `C-001` alone). Empty everywhere
+    /// else, and omitted from serialization when empty, so every other
+    /// producer's JSON is byte-identical to what it emitted before this field
+    /// existed. It carries as data the owner set `message` renders into
+    /// English, so a consumer of the spec 037 `--json` envelope reads the
+    /// owners instead of regexing a sentence.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub owners: Vec<String>,
+}
+
+impl Violation {
+    /// A violation carrying no owner set: every code except `C-001`.
+    ///
+    /// The owner-less shape is the overwhelming majority, so it gets the
+    /// constructor and `C-001` names `owners` explicitly at its one site.
+    pub fn new(code: impl Into<String>, severity: Severity, message: impl Into<String>) -> Self {
+        Violation {
+            code: code.into(),
+            severity,
+            message: message.into(),
+            path: None,
+            owners: Vec::new(),
+        }
+    }
+
+    /// Attach the path this violation is about.
+    pub fn at(mut self, path: impl Into<String>) -> Self {
+        self.path = Some(path.into());
+        self
+    }
+
+    /// Attach the path this violation is about, when there may not be one.
+    pub fn at_opt(mut self, path: Option<String>) -> Self {
+        self.path = path;
+        self
+    }
 }
 
 /// The registry's validation summary. `passed` is false iff any `error`-tier
