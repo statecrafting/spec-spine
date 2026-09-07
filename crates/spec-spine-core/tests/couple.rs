@@ -1284,3 +1284,110 @@ fn the_ownership_ratchet_does_not_reach_into_the_state_root() {
     assert!(declared.violations.is_empty(), "{:?}", declared.violations);
     assert_eq!(declared.checked_paths, 0);
 }
+
+// ── spec 052: the owner set is carried as data, not only as prose ─────────
+
+/// §3.1: every `C-001` carries `owners`, holding exactly the owner set its
+/// message names, in the same sorted order. Before this spec the gate computed
+/// that set and then destroyed it by formatting it into English, so an
+/// orchestrator reading the spec 037 envelope had to regex a sentence back into
+/// a list.
+#[test]
+fn c001_carries_its_owners_as_data() {
+    let index = index_from(json!([
+        {
+            "specId": "004-codebase-index",
+            "implementingPaths": [],
+            "resolvedUnits": [{
+                "unit": { "kind": "file", "path": "src/index.rs" },
+                "sourceField": "establishes",
+                "ownership": true,
+                "locations": [{ "file": "src/index.rs" }]
+            }]
+        },
+        {
+            "specId": "001-compile-registry",
+            "implementingPaths": [],
+            "resolvedUnits": [{
+                "unit": { "kind": "file", "path": "src/index.rs" },
+                "sourceField": "co_authority",
+                "ownership": true,
+                "locations": [{ "file": "src/index.rs" }]
+            }]
+        }
+    ]));
+
+    let report = run(
+        &index,
+        &empty_registry(),
+        &diff(vec![file("src/index.rs", &[LineSpan::new(5, 8)])]),
+    );
+    let v = &report.violations[0];
+    assert_eq!(v.code, "C-001");
+    assert_eq!(
+        v.owners,
+        vec![
+            "001-compile-registry".to_string(),
+            "004-codebase-index".to_string()
+        ],
+        "owners are the message's set, sorted"
+    );
+    // The prose and the data cannot disagree: the field is the same list the
+    // sentence renders, in the same order.
+    assert!(
+        v.message
+            .contains("001-compile-registry, 004-codebase-index"),
+        "{}",
+        v.message
+    );
+}
+
+/// §3.1: `C-002` deliberately keeps an empty `owners`. It fires precisely when
+/// no spec specifically claims the path, so there is no owner to name; the
+/// floor specs its message reports are why the path is debt, not who owns it.
+#[test]
+fn c002_carries_no_owners() {
+    let index = index_with_packages(
+        json!([{ "name": "a", "path": ".", "kind": "rust-lib", "specId": "001-a" }]),
+        json!([{
+            "specId": "001-a",
+            "implementingPaths": [],
+            "resolvedUnits": []
+        }]),
+    );
+    let report = run_with(
+        &ratchet_config(),
+        &index,
+        &diff(vec![file("src/orphan.rs", &[])]),
+        None,
+    );
+    let v = &report.violations[0];
+    assert_eq!(v.code, "C-002");
+    assert!(
+        v.owners.is_empty(),
+        "no owner exists to name: {:?}",
+        v.owners
+    );
+}
+
+/// §3.4: an empty `owners` is omitted from serialization, so every producer
+/// other than `C-001` emits exactly the JSON it emitted before the field
+/// existed. This is why no schema file and no schema version had to move.
+#[test]
+fn empty_owners_is_omitted_from_json() {
+    let index = index_with_packages(
+        json!([{ "name": "a", "path": ".", "kind": "rust-lib", "specId": "001-a" }]),
+        json!([{ "specId": "001-a", "implementingPaths": [], "resolvedUnits": [] }]),
+    );
+    let report = run_with(
+        &ratchet_config(),
+        &index,
+        &diff(vec![file("src/orphan.rs", &[])]),
+        None,
+    );
+    let json = serde_json::to_string(&report).unwrap();
+    assert!(
+        !json.contains("\"owners\""),
+        "an owner-less violation must serialize as it always did: {json}"
+    );
+}

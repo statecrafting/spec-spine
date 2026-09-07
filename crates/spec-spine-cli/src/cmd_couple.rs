@@ -13,11 +13,12 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use spec_spine_core::couple::spec_id_for_spec_md_path;
 use spec_spine_core::{
-    DiffFile, DiffInput, FileContents, couple, dependency_only_waiver, is_bypassed_path,
-    load_committed_index, parse_waiver,
+    CoupleReport, DiffFile, DiffInput, FileContents, couple, dependency_only_waiver,
+    is_bypassed_path, load_committed_index, parse_waiver,
 };
-use spec_spine_types::{Config, Error, LineSpan, Verdict, verdict::verb};
+use spec_spine_types::{Config, Error, LineSpan, Verdict, Violation, verdict::verb};
 
 use crate::load_repo_config;
 use crate::out;
@@ -84,17 +85,7 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
         for v in &report.violations {
             eprintln!("  {} {}", v.code, v.message);
         }
-        if unclaimed == 0 {
-            eprintln!(
-                "\nResolve by editing an owning spec's spec.md, or add a '{}' line to the PR body.",
-                cfg.coupling.waiver_keyword
-            );
-        } else {
-            eprintln!(
-                "\nResolve by editing an owning spec's spec.md (C-001), claiming the path in a spec's owning edge (C-002), or add a '{}' line to the PR body.",
-                cfg.coupling.waiver_keyword
-            );
-        }
+        eprint!("{}", resolution_footer(&cfg, &report, &diff));
     } else if let Some(reason) = &report.waiver {
         outln!(
             "spec-spine couple: {} violation(s) {}, reason: {reason}",
@@ -112,6 +103,135 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
     }
 
     Ok(report.exit_code())
+}
+
+/// The resolution footer a blocking report ends with (spec 052 §3.2, §3.3).
+///
+/// A pure function of `(config, report, diff)`: no input is read and nothing is
+/// written, so the same three arguments always produce the same bytes.
+///
+/// The gate has always named the specs that own a drifted path and never named
+/// the mechanism for crossing into their territory. Of the two doors it used to
+/// offer, both are shut for the case that produces most `C-001` refusals: an
+/// author building their own spec who reached into a file another spec owns.
+/// Editing the other spec is the illegitimate mid-build edit
+/// `.claude/rules/adversarial-prompt-refusal.md` forbids, and the waiver is a
+/// human instrument an unattended session may not grant itself. The third door,
+/// an `extends` edge in the author's own spec, is the corpus's actual answer,
+/// and this is where the gate finally says so.
+fn resolution_footer(cfg: &Config, report: &CoupleReport, diff: &DiffInput) -> String {
+    let drift: Vec<&Violation> = report
+        .violations
+        .iter()
+        .filter(|v| v.code == "C-001")
+        .collect();
+    let unclaimed = report.violations.len() - drift.len();
+    let keyword = &cfg.coupling.waiver_keyword;
+
+    // No `C-001`: the report is `C-002` only, and renders exactly the footer it
+    // rendered before this spec (§3.2). Claiming a path is a different act from
+    // crossing into somebody's territory, and the three doors do not apply.
+    if drift.is_empty() {
+        return format!(
+            "\nResolve by editing an owning spec's spec.md (C-001), claiming the path in a spec's owning edge (C-002), or add a '{keyword}' line to the PR body.\n"
+        );
+    }
+
+    let mut f = String::from("\nResolve, in the order an author should consider them");
+    if unclaimed > 0 {
+        f.push_str(" (1-3 answer C-001; 4 answers C-002)");
+    }
+    f.push_str(":\n\n");
+
+    f.push_str(
+        "  1. Edit the owning spec's spec.md. The right door when the spec that owns\n\
+         \x20    the path is the one you are authoring.\n\n",
+    );
+
+    f.push_str(
+        "  2. Declare an `extends` edge in your OWN spec, naming the owning spec\n\
+         \x20    and the unit you touched. That makes your spec a legitimate owner of\n\
+         \x20    the unit, so the gate clears on the next run. It amends nobody and\n\
+         \x20    needs no waiver.\n\n",
+    );
+    f.push_str(&extends_guidance(cfg, &drift, diff));
+
+    f.push_str(&format!(
+        "  3. Add a '{keyword} <reason>' line to the PR body. A waiver is a\n\
+         \x20    human instrument: it needs explicit human approval, and is not a\n\
+         \x20    flag an unattended session sets for itself.\n"
+    ));
+
+    if unclaimed > 0 {
+        f.push_str(
+            "\n  4. For the unclaimed path(s) above, claim the path in a spec's owning\n\
+             \x20    edge.\n",
+        );
+    }
+    f
+}
+
+/// Door two's body: the concrete `extends` block when the diff makes it
+/// concrete, else the shape to fill in (spec 052 §3.3).
+///
+/// The specific form triggers on **exactly one** edited `spec.md`, and needs no
+/// further test: clearance is "any one owner's spec.md is in the diff", so a
+/// single edited spec that owned a violating path would already have cleared it.
+/// Every `C-001` reaching this footer is therefore a path that spec does not
+/// own, which is exactly the crossing case. Zero or two-or-more edited specs
+/// fall back to the generic form: an amendment pair is a legitimate shape and
+/// the gate has no basis for guessing which of the two should declare the edge.
+fn extends_guidance(cfg: &Config, drift: &[&Violation], diff: &DiffInput) -> String {
+    let specs_dir = cfg.layout.specs_dir.as_str();
+    let edited: Vec<&str> = diff
+        .files
+        .iter()
+        .filter_map(|f| spec_id_for_spec_md_path(specs_dir, &f.path))
+        .collect();
+
+    let Some(id) = edited.first().filter(|_| edited.len() == 1) else {
+        return concat!(
+            "     In your spec's frontmatter:\n\n",
+            "       extends:\n",
+            "         - { spec: \"<owning-spec-id>\", unit: \"<path>\", nature: additive }\n\n",
+        )
+        .to_string();
+    };
+
+    let mut s = format!(
+        "     spec {id} is the only spec.md edited in this diff, and owns none of\n\
+         \x20    the paths above. Cross into the owning territory by declaring, in\n\
+         \x20    {}:\n\n\
+         \x20      extends:\n",
+        spec_md_rel(specs_dir, id)
+    );
+    // One item per violating path, in the report's existing sorted-by-path
+    // order. Three values are defaults rather than verdicts: the first owner in
+    // sorted order (clearing needs only one), the file-shorthand unit, and
+    // `nature: additive`. The note below says so, because a gate that presented
+    // a guess as the answer would be worse than one that stayed silent.
+    for v in drift {
+        let (Some(path), Some(owner)) = (v.path.as_deref(), v.owners.first()) else {
+            continue;
+        };
+        s.push_str(&format!(
+            "         - {{ spec: \"{owner}\", unit: \"{path}\", nature: additive }}\n"
+        ));
+    }
+    s.push_str(
+        "\n     A suggestion, not an instruction, and not the only correct form:\n\
+         \x20    where a path has several owners any one of them clears it, a narrower\n\
+         \x20    section or symbol unit is available if you want the claim tighter,\n\
+         \x20    and `nature` is a free-text hint (`superseding` describes a crossing\n\
+         \x20    that replaces behavior rather than adding to it). If you did not mean\n\
+         \x20    to touch the path, revert the touch and declare nothing.\n\n",
+    );
+    s
+}
+
+/// `<specs_dir>/<id>/spec.md`, matching the core gate's own `spec_md_rel`.
+fn spec_md_rel(specs_dir: &str, id: &str) -> String {
+    format!("{}/{id}/spec.md", specs_dir.trim_end_matches('/'))
 }
 
 /// Build the [`DiffInput`]: either from `--paths-from` (whole-file fallback, no

@@ -221,12 +221,9 @@ mod tests {
         use crate::registry::Severity;
         let v = Verdict::failure(
             verb::COMPILE_CHECK,
-            &Error::Validation(vec![Violation {
-                code: "V-001".to_string(),
-                severity: Severity::Error,
-                message: "boom".to_string(),
-                path: Some("specs/001-a/spec.md".to_string()),
-            }]),
+            &Error::Validation(vec![
+                Violation::new("V-001", Severity::Error, "boom").at("specs/001-a/spec.md"),
+            ]),
         );
         let e = v.error.as_ref().unwrap();
         assert_eq!(e.kind, "validation");

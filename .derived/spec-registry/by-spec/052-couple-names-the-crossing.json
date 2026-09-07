@@ -46,10 +46,58 @@
           "kind": "file",
           "path": "crates/spec-spine-types/src/registry.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "037-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "049-verify-declared-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_verify.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
       }
     ],
     "id": "052-couple-names-the-crossing",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -73,6 +121,7 @@
       "052: The coupling gate names the crossing",
       "1. Purpose",
       "2. Territory",
+      "2.1 Six more files the field's shape forces",
       "3. Behavior",
       "3.1 `C-001` carries its owners as data",
       "3.2 The footer names three doors",
@@ -87,6 +136,6 @@
     "summary": "The coupling gate has always named the specs that own a drifted path, and has never named the mechanism for crossing into their territory. Its resolution footer offers two doors: edit an owning spec, or waive. For an author who has legitimately touched a unit somebody else owns, both are shut. Editing another spec to clear a refusal is the illegitimate edit the corpus rules forbid, and the waiver is a human instrument that no adopter has ever used and that an unattended session is forbidden on every path. The third door, an `extends` edge declared in the author's own spec, is the corpus's actual answer and the gate never mentions it. This spec makes the refusal name it: three doors in author order, and when the diff edits exactly one spec.md, the concrete `extends` block to paste into that file. It also promotes the owner set from prose into an optional `owners` field on the violation, so an orchestrator reading `couple --json` learns the owner as data instead of by regexing English. No committed artifact and no schema version moves.\n",
     "title": "The coupling gate names the crossing"
   },
-  "shardHash": "488b1c328e5cabb0543d5c5ecd03294df29b6dafd3bc5232fa9d7b4e928d9aa8",
+  "shardHash": "6d41887e414d87079b35487ba1cfb6629d48ef9806529817cae2ca1686342f6b",
   "specVersion": "1.1.0"
 }

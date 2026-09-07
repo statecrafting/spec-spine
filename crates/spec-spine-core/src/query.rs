@@ -265,15 +265,14 @@ pub fn plan(registry: &Registry) -> Result<Plan, Error> {
         registry.specs.iter().map(|s| (s.id.as_str(), s)).collect();
 
     if let Some(cycle) = find_cycle(&by_id) {
-        return Err(Error::Validation(vec![Violation {
-            code: "V-014".to_string(),
-            severity: Severity::Error,
-            message: format!(
+        return Err(Error::Validation(vec![Violation::new(
+            "V-014",
+            Severity::Error,
+            format!(
                 "depends_on cycle refuses scheduling: {}",
                 cycle.join(" -> ")
             ),
-            path: None,
-        }]));
+        )]));
     }
 
     let mut ready: Vec<&str> = Vec::new();
