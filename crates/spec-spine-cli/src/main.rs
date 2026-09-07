@@ -139,6 +139,10 @@ enum Command {
         /// Overwrite existing files instead of skipping them.
         #[arg(long)]
         force: bool,
+        /// Also install the session harness: settings, agents, skills, the
+        /// Makefile and a CI workflow, at the adopter's own paths (spec 065).
+        #[arg(long)]
+        with_kit: bool,
     },
     /// Emit a reproducible corpus attestation; optionally seal it (spec 023).
     Attest {
@@ -243,7 +247,7 @@ fn main() -> ExitCode {
                 json: *json,
             },
         ),
-        Command::Init { force } => cmd_init::run(&repo, *force),
+        Command::Init { force, with_kit } => cmd_init::run(&repo, *force, *with_kit),
         Command::Attest {
             spec,
             with_coupling,

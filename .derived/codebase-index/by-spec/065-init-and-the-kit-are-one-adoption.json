@@ -12,7 +12,19 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/src/main.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-cli/tests/init.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/kit_embedded.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/lib.rs",
         "source": "spec-edge"
       },
       {
@@ -26,9 +38,43 @@
       {
         "path": "kit/README.md",
         "source": "spec-edge"
+      },
+      {
+        "path": "scripts/gen-kit-embedded.py",
+        "source": "spec-edge"
+      },
+      {
+        "path": "spec-spine.toml",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/kit_embedded.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/gen-kit-embedded.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/gen-kit-embedded.py"
+        }
+      },
       {
         "locations": [
           {
@@ -45,6 +91,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-cli/src/main.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-cli/tests/init.rs"
           }
         ],
@@ -53,6 +112,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/tests/init.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
         }
       },
       {
@@ -97,6 +169,19 @@
       {
         "locations": [
           {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/adoption-guide.md"
           }
         ],
@@ -125,5 +210,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "69e58781bf51ca7bca79033218e7155b1acf0ed216bdc6e03541ebaeef48c775"
+  "shardHash": "95bf41cf07d50d04108c6967b51fc3b0d1431131d0cd55723a0e999c9bae1f38"
 }

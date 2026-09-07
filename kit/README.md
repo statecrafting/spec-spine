@@ -1,5 +1,33 @@
 # spec-spine Claude Code Kit
 
+## Installing it
+
+```sh
+spec-spine init --with-kit
+```
+
+That writes everything below at the paths it has to live at:
+`.claude/settings.json`, `.claude/agents/`, `.claude/skills/`, `.mcp.json`,
+`Makefile` and `.github/workflows/govern.yml`. The `kit/` prefix is this
+repository's storage location for the templates, not a directory an adopter
+ends up with.
+
+Plain `spec-spine init` writes the corpus, the constitution, the contract, the
+templates, the three `.claude/rules/` files, a `.gitignore` and an `AGENTS.md`.
+`--with-kit` adds the session harness on top. The rules are not duplicated:
+they are the same three files, and `init` writes them either way.
+
+Nothing is overwritten. A file that already exists is reported as skipped, and
+`--force` overwrites, exactly as for every other scaffolded file. That matters
+most for `AGENTS.md`: if you have written your own, `--with-kit` leaves it
+alone.
+
+`kit/` is the editable source for these templates. The binary carries a
+generated copy (`crates/spec-spine-core/src/kit_embedded.rs`), and a test
+asserts the two agree, so editing `kit/` is how you change what adopters get.
+Regenerate with `python3 scripts/gen-kit-embedded.py`.
+
+
 A ready-to-copy Claude Code skill kit for any repository that adopts
 [spec-spine](https://github.com/statecrafting/spec-spine). It layers a complete
 governed-development loop on top of the spec-spine substrate: session

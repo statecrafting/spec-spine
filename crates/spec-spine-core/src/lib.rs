@@ -21,6 +21,7 @@ pub mod dep_only;
 pub mod diagnostics;
 mod hash;
 pub mod index;
+pub mod kit_embedded;
 pub mod lint;
 pub mod manifest;
 mod markdown;
@@ -81,7 +82,7 @@ pub use query::{
     shard_content_hash, show, status_report,
 };
 pub use render::{OrphanReport, orphans, partition_orphans, render_markdown};
-pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init};
+pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init, scaffold_init_with};
 pub use verify::{plan as verify_plan, plan_from_markdown};
 
 // ===== JSON-in / JSON-out facade (the FFI seam) =====
