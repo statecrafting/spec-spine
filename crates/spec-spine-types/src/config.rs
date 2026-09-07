@@ -30,6 +30,7 @@ pub struct Config {
     pub coupling: CouplingConfig,
     pub provenance: ProvenanceConfig,
     pub frontmatter: FrontmatterConfig,
+    pub lint: LintConfig,
 }
 
 /// `[manifest]`: how a manifest links a compilation unit back to its spec.
@@ -282,6 +283,27 @@ pub struct FrontmatterConfig {
     /// Keys an adopter recognizes (suppresses the lint's unknown-key warning);
     /// they still overflow into `extra_frontmatter`.
     pub extra_known_keys: Vec<String>,
+}
+
+/// `[lint]`: opt-in conformance conventions (spec 053).
+///
+/// A table of its own rather than a field on an existing one, because no
+/// existing home is honest: `[frontmatter]` configures the authored grammar and
+/// this is not a grammar rule, and `[coupling]` is the PR-time gate, where this
+/// never runs. The table names what the knob gates, and it is where the next
+/// opt-in convention belongs, so that one does not have to relitigate this.
+#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct LintConfig {
+    /// Emit `L-007` for a `depends_on` entry that does not name a lower
+    /// ordinal than the spec declaring it (spec 053 §3.2).
+    ///
+    /// Off by default. The convention is real but not universal: a corpus that
+    /// files by domain, or one that renumbered once and lives with the result,
+    /// holds a coherent position this lint would spam. Adopters who want it
+    /// asked for it by each writing the same script; the knob is how they stop
+    /// maintaining it, not a verdict on anybody who did not.
+    pub require_ordinal_monotonic_depends_on: bool,
 }
 
 /// Load and validate a `spec-spine.toml` from its source text.

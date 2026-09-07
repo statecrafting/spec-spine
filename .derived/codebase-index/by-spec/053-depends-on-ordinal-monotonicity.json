@@ -11,11 +11,32 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/lint.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/src/config.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/lib.rs",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/lint.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/lint.rs"
+        }
+      },
       {
         "locations": [
           {
@@ -45,6 +66,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-types/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/design/03-adopter-audit-2026-09.md"
           }
         ],
@@ -60,5 +94,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "18f3df521f179c472145edc9581b1c62eacdfc3d7c7ac2eb34b00d11801558bf"
+  "shardHash": "0c7c17f1f92737453aba45d95379fafaef82569a733193a459f5a21af2f54c24"
 }

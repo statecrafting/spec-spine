@@ -49,7 +49,7 @@ pub use codebase::{
 };
 pub use config::{
     AllowlistConfig, BrandingConfig, Config, CouplingConfig, FrontmatterConfig, IndexConfig,
-    LayoutConfig, ManifestConfig, ProvenanceConfig, load_config,
+    LayoutConfig, LintConfig, ManifestConfig, ProvenanceConfig, load_config,
 };
 pub use coverage::{CoverageReport, PackageCoverage};
 pub use edges::{
