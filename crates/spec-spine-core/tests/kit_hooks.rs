@@ -77,8 +77,12 @@ fn spec_spine_invocations(body: &str) -> Vec<Vec<String>> {
                     words.next();
                     words.next();
                 }
-                if is_call {
-                    out.push(words.collect());
+                let stripped: Vec<String> = words.collect();
+                // `"$sc" --repo "$root"` with no subcommand strips to nothing.
+                // An empty vec is not an invocation, and recording one would
+                // hand every downstream assertion a verb with no first word.
+                if is_call && !stripped.is_empty() {
+                    out.push(stripped);
                 }
             }
             rest = after;

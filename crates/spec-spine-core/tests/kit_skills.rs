@@ -341,6 +341,14 @@ fn fail_flags(cmd: &str) -> Vec<String> {
 /// before every commit".
 fn agents_md_gate_commands(root: &Path) -> Vec<String> {
     let text = fs::read_to_string(root.join("AGENTS.md")).unwrap();
+    // Anchoring on the first occurrence is only safe while there is exactly
+    // one. A usage example quoting the phrase would silently move the anchor,
+    // and a decoy fence of governance verbs would then pass the guard below.
+    assert_eq!(
+        text.matches("Run the gate before every commit").count(),
+        1,
+        "AGENTS.md must name the gate step exactly once, or this parse anchors on the wrong one"
+    );
     let start = text
         .find("Run the gate before every commit")
         .expect("AGENTS.md names the gate step");
