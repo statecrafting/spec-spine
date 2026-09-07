@@ -6,13 +6,16 @@ allowed-tools: Bash, Read, Edit, Glob, Grep, Agent
 
 # /validate-and-fix
 
-Run the local CI loop and fix what it surfaces. The composite `AGENTS.md`
-names (commonly `make ci`) is the single source of truth for what CI
-validates: if it passes locally, CI passes too. Do not rediscover
-validation commands by grepping manifests; read the composite's
-definition.
+Run the local CI loop and fix what it surfaces. When `AGENTS.md` names a
+composite (a `make ci`, a script), that composite is the single source of
+truth for what CI validates: if it passes locally, CI passes too. Many
+projects declare no composite; then the gate command list under "Working
+the backlog" is the source of truth and step 1 runs it directly. Either
+way, do not rediscover validation commands by grepping manifests: read what
+`AGENTS.md` declares, and if it declares neither, say so rather than
+inventing a gate.
 
-## 1. Run the composite
+## 1. Run the gate
 
 Run the gate exactly as `AGENTS.md` "Working the backlog" lists it under
 "Run the gate before every commit". The governance floor is
@@ -56,7 +59,7 @@ one-off script.
   sometimes the right answer. A never-touch artefact that would change
   means the encoding or the baseline changed: that is a schema or design
   decision, a spec amendment, and a human decision, in that order.
-- **Phase 4, verification**: re-run the composite end to end.
+- **Phase 4, verification**: re-run the gate end to end.
 
 ## 3. Error handling
 
@@ -76,7 +79,7 @@ reporting.
 
 ## 5. Final verification
 
-Re-run the composite, confirm no new findings, and summarize:
+Re-run the gate end to end, confirm no new findings, and summarize:
 `Fixed X/Y issues, Z require human decision. CI: {PASS|FAIL}`.
 
 ## Substrate notes
@@ -84,9 +87,10 @@ Re-run the composite, confirm no new findings, and summarize:
 - `spec-spine lint` runs with `--fail-on-warn`: a warning is a failure.
 - The coupling gate compares `HEAD` against `origin/main`; fetch first.
 - The codebase index hashes more than `spec.md`: `spec-spine.toml
-  [index] extra_hashed_inputs` lists the harness, design docs, workflows,
-  and standards. Editing any of them without regenerating the index fails
-  the staleness check. The hooks only report staleness; they never
+  [index] extra_hashed_inputs` names the extra globs. Which globs those are
+  is per project, so read the file rather than assuming the harness, the
+  design docs, or the workflows are among them. Editing a hashed input
+  without regenerating the index fails the staleness check. The hooks only report staleness; they never
   regenerate. The session runs `spec-spine index` and commits the result.
 - `.claude/settings.json` and `.mcp.json` are hashed byte for byte when
   listed as hashed inputs: editor reformatting trips the gate even when
@@ -97,6 +101,7 @@ Re-run the composite, confirm no new findings, and summarize:
 
 ## Project layer
 
-Read from `AGENTS.md`: the composite and the stack gate. Read from
+Read from `AGENTS.md`: the composite if one is declared, the gate command
+list otherwise, and the stack gate. Read from
 `.claude/rules/`: the never-touch artefacts and any post-feature checklist
 the project keeps. Nothing here is edited per project.

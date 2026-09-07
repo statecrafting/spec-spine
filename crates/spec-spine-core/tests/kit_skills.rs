@@ -226,7 +226,7 @@ fn the_loop_skills_wrap_the_tool_verbs_they_exist_for() {
         ("next", "registry plan --json"),
         ("build", "registry plan --json"),
         ("build", "implementation: in-progress"),
-        ("verify", "scripts/verify-spec.sh"),
+        ("verify", "spec-spine verify"),
         ("ship", "Spec-Drift-Waiver"),
         ("shepherd", "headRefOid"),
         ("spec", "registry list --ids-only"),
@@ -245,8 +245,12 @@ fn the_loop_skills_wrap_the_tool_verbs_they_exist_for() {
     }
 }
 
+/// The script still ships for adopters pinned below 0.15.0, but spec 051 3.2
+/// moved the harness onto `spec-spine verify`: no skill may call it, and the
+/// kit README must say it is deprecated. Deleting it is 051 4's follow-on,
+/// gated on the adopters upgrading, not on this spec merging.
 #[test]
-fn the_verify_script_ships_and_is_the_one_this_repository_runs() {
+fn the_verify_script_ships_deprecated_and_no_skill_calls_it() {
     let root = repo_root();
     let kit = fs::read_to_string(root.join("kit/scripts/verify-spec.sh")).unwrap();
     let own = fs::read_to_string(root.join("scripts/verify-spec.sh")).unwrap();
@@ -254,6 +258,24 @@ fn the_verify_script_ships_and_is_the_one_this_repository_runs() {
     assert!(kit.starts_with("#!/usr/bin/env bash"));
     assert!(kit.contains("verify:cli") && kit.contains("verify:browser"));
     assert!(kit.contains("not-declared"), "an honest zero, not a pass");
+
+    let readme = fs::read_to_string(root.join("kit/README.md")).unwrap();
+    assert!(
+        readme.contains("DEPRECATED"),
+        "kit/README.md must mark the script deprecated (spec 051 3.2)"
+    );
+
+    for (label, dir) in skill_dirs() {
+        for name in SKILLS {
+            let body = read_skill(&dir, name);
+            for line in body.lines() {
+                assert!(
+                    !line.contains("scripts/verify-spec.sh") || line.contains("Do NOT"),
+                    "{label}/{name}: calls the deprecated script (spec 051 3.1)"
+                );
+            }
+        }
+    }
 }
 
 #[test]
@@ -289,4 +311,117 @@ fn the_write_scanner_recognises_writes() {
     assert!(!is_write(&w("registry plan --json")));
     assert!(!is_write(&w("lint --fail-on-warn")));
     assert!(!is_write(&w("couple --base origin/main --head HEAD")));
+}
+
+// --- spec 051 3.3: one gate list ------------------------------------------
+
+/// The leading words of a command, up to the first flag: `index check
+/// --fail-on-unresolved` has the verb path `index check`.
+fn verb_path(cmd: &str) -> String {
+    cmd.split_whitespace()
+        .take_while(|w| !w.starts_with('-'))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn fail_flags(cmd: &str) -> Vec<String> {
+    cmd.split_whitespace()
+        .filter(|w| w.starts_with("--fail-on-"))
+        .map(str::to_string)
+        .collect()
+}
+
+/// The `spec-spine ...` lines inside the fenced block under "Run the gate
+/// before every commit".
+fn agents_md_gate_commands(root: &Path) -> Vec<String> {
+    let text = fs::read_to_string(root.join("AGENTS.md")).unwrap();
+    let start = text
+        .find("Run the gate before every commit")
+        .expect("AGENTS.md names the gate step");
+    let tail = &text[start..];
+    let open = tail
+        .find("```sh")
+        .expect("the gate list is a fenced sh block");
+    let body = &tail[open + "```sh".len()..];
+    let close = body.find("```").expect("the fence closes");
+    body[..close]
+        .lines()
+        .filter_map(|l| l.trim().strip_prefix("spec-spine "))
+        .map(|c| c.trim().to_string())
+        .collect()
+}
+
+/// The governance verbs CI actually runs, however the binary is spelled there.
+fn ci_governance_commands(root: &Path) -> Vec<String> {
+    let text = fs::read_to_string(root.join(".github/workflows/ci.yml")).unwrap();
+    let mut out = Vec::new();
+    for line in text.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with('#') {
+            continue;
+        }
+        if let Some(i) = trimmed.find("spec-spine ") {
+            let cmd = trimmed[i + "spec-spine ".len()..].trim();
+            let head = cmd.split_whitespace().next().unwrap_or("");
+            if matches!(head, "compile" | "index" | "lint" | "couple") {
+                out.push(cmd.to_string());
+            }
+        }
+    }
+    out
+}
+
+/// Spec 051 3.3. Every skill tells its reader to run "the gate as `AGENTS.md`
+/// lists it", so a step CI enforces and that list omits is a step every session
+/// skips. That is the drift this spec was filed for: `index coverage
+/// --fail-on-untraced` was enforced in CI and absent from the list four skills
+/// defer to, leaving the skills more correct than their own authority.
+#[test]
+fn agents_md_gate_list_names_every_step_ci_enforces() {
+    let root = repo_root();
+    let listed = agents_md_gate_commands(&root);
+    assert!(
+        !listed.is_empty(),
+        "AGENTS.md must carry a fenced gate list"
+    );
+
+    for ci in ci_governance_commands(&root) {
+        // CI runs `compile --check` where a local session runs `compile`: a
+        // gate must never repair the tree it is judging. Comparing verb paths
+        // makes the two the same step, which is what they are.
+        let path = verb_path(&ci);
+        let matching: Vec<&String> = listed.iter().filter(|l| verb_path(l) == path).collect();
+        assert!(
+            !matching.is_empty(),
+            "CI runs `spec-spine {ci}` but AGENTS.md's gate list names no `{path}` step"
+        );
+        for flag in fail_flags(&ci) {
+            assert!(
+                matching.iter().any(|l| l.contains(&flag)),
+                "CI runs `spec-spine {ci}` but AGENTS.md's `{path}` step omits {flag}"
+            );
+        }
+    }
+}
+
+/// The other direction of 3.3, as a subset relation: a skill may name fewer
+/// steps than the full gate, but never a gating flag its authority omits.
+#[test]
+fn no_skill_names_a_gate_flag_agents_md_omits() {
+    let root = repo_root();
+    let listed = agents_md_gate_commands(&root);
+    for (label, dir) in skill_dirs() {
+        for name in SKILLS {
+            let body = read_skill(&dir, name);
+            for verb in spec_spine_verbs(&body) {
+                let cmd = verb.join(" ");
+                for flag in fail_flags(&cmd) {
+                    assert!(
+                        listed.iter().any(|l| l.contains(&flag)),
+                        "{label}/{name}: names {flag}, which AGENTS.md's gate list omits"
+                    );
+                }
+            }
+        }
+    }
 }

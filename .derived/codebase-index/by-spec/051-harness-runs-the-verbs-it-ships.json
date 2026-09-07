@@ -1,14 +1,4 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '051-harness-runs-the-verbs-it-ships' file unit '.claude/settings.json' does not exist",
-        "path": ".claude/settings.json"
-      }
-    ]
-  },
   "mapping": {
     "amends": [
       "048-kit-ships-the-governed-loop-skills",
@@ -21,6 +11,10 @@
       "050-index-diagnostics-reach-a-gate"
     ],
     "implementingPaths": [
+      {
+        "path": ".claude/settings.json",
+        "source": "spec-edge"
+      },
       {
         "path": ".claude/skills/",
         "source": "spec-edge"
@@ -56,7 +50,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": ".claude/settings.json"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -199,5 +197,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "bf5b27c10a9273d55d25ec407a230ff701e498e0b46348f38188a8b29ea9e4c6"
+  "shardHash": "be96bad5c5daf3812e08e275a41605f90b87b227ac5fb5aa4e32bb0d2c42007f"
 }

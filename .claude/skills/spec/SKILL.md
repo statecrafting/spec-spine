@@ -66,7 +66,7 @@ Then edit `specs/<id>/spec.md`:
   behavior with MUST/SHOULD/MAY, functional requirements, acceptance
   criteria, out of scope, resolved decisions, `## Verification`). The
   Verification block holds the `verify:cli` commands that prove the
-  acceptance criteria; `scripts/verify-spec.sh` runs them after merge, so
+  acceptance criteria; `spec-spine verify <id>` runs them after merge, so
   each must exist once the spec is built.
 - No em dash anywhere in the text.
 

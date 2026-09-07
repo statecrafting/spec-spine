@@ -138,11 +138,28 @@ work orders.
    unclaimed source file). Touching a unit another spec owns requires an
    `extends` edge on that spec's unit, declared in your spec's frontmatter;
    that amends nobody. Never edit the derived directory by hand.
-5. **Run the gate before every commit.** `spec-spine compile`, `spec-spine
-   index`, `spec-spine lint --fail-on-warn`, `spec-spine index check`,
-   `spec-spine couple --base origin/main --head HEAD`, then your stack's own
-   build, tests and lints. All must exit 0. Commit the regenerated shards
-   with the code they describe.
+5. **Run the gate before every commit.** The governance floor, in this
+   order (`compile` and `index` write; the checks follow):
+
+   ```sh
+   spec-spine compile
+   spec-spine index
+   spec-spine lint --fail-on-warn
+   spec-spine index check
+   spec-spine couple --base origin/main --head HEAD
+   # spec-spine index coverage --fail-on-untraced  # if [coupling] require_ownership is on
+   # spec-spine index check --fail-on-unresolved   # opt in once the corpus builds what it claims
+   ```
+
+   then your stack's own build, tests and lints. All must exit 0. Commit the
+   regenerated shards with the code they describe.
+
+   Uncomment the two optional lines to match your CI, and keep this list and
+   your CI job identical: the skills tell their reader to run "the gate as
+   `AGENTS.md` lists it", so a step CI enforces and this list omits is a step
+   every session skips. The second is opt-in by design (spec 050): a corpus
+   that ratifies before it builds legitimately carries unresolved units while
+   work is under way.
 6. **Satisfy the spec's acceptance criteria verbatim.** `/verify <id>` runs
    the spec's `## Verification` block the way the post-merge verify stage
    will. If a criterion cannot
@@ -182,7 +199,7 @@ The governed loop, in the order "Working the backlog" runs it:
 - `/setup`: one-time contributor setup; installs the pinned spec-spine and verifies the governed loop.
 - `/next`: name the next work order from `registry plan`, minus drafts, with in-flight specs and blockers reported. Read-only.
 - `/build <id>`: implement one spec start to finish: preflight, branch, flip, implement, gate, verify, flip complete.
-- `/verify <id>`: run the spec's `## Verification` block locally through `scripts/verify-spec.sh`.
+- `/verify <id>`: run the spec's `## Verification` block locally through `spec-spine verify <id>` (needs spec-spine 0.15.0 or later).
 - `/ship`: run the gate, review, commit on the feature branch, open the PR.
 - `/shepherd`: watch the PR's checks by head sha, remediate through the gate, merge, confirm on disk.
 - `/spec`: author a new spec at the next free ordinal, born `draft`; approval stays a human flip.

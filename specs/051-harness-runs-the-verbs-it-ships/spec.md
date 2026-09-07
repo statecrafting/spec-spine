@@ -4,7 +4,7 @@ title: "The harness runs the verbs it ships"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -181,7 +181,10 @@ follow-on, and its trigger is adopters upgrading, not this spec merging.
 ### 3.3 One gate list, and a test that pins it
 
 `AGENTS.md` "Run the gate before every commit" MUST list every command CI
-enforces, in CI's order, including `index coverage --fail-on-untraced`.
+enforces, including `index coverage --fail-on-untraced`. The order is the local
+one, not CI's: `compile` and `index` write, and the local gate runs them before
+the checks, while CI runs `compile --check` because it must never repair the
+tree it is judging.
 `kit/AGENTS.md`'s template list MUST carry the same step, marked as conditional
 on `[coupling] require_ownership`, since an adopter may not have it on.
 
@@ -298,6 +301,7 @@ is a separate spec.
 ## 5. Verification
 
 ```verify:cli
+cargo build --release --locked
 cargo test -p spec-spine-core --test kit_skills --locked
 cargo test -p spec-spine-core --test kit_hooks --locked
 test "$(ls kit/.claude/skills | wc -l | tr -d ' ')" = 15
@@ -327,6 +331,12 @@ bare name and putting the right binary on `PATH`. That makes correctness depend
 on an untracked machine setting, and the machine that motivated this spec had
 `spec-spine` on `PATH` at a version one release behind the checkout, which is
 precisely the failure the order prevents.
+
+**2026-09-07: the gate list keeps the local order, not CI's.** The draft of 3.3
+required CI's order. That is wrong: `compile` and `index` write, and a local
+session runs them before the checks, while CI runs `compile --check` precisely
+because it must not repair the tree it judges. The requirement is the complete
+set, not the sequence. Recorded rather than silently narrowed.
 
 **2026-09-07: the skill/AGENTS.md gate assertion is a subset, not equality.**
 Equality would force every skill to restate the full list including the stack's

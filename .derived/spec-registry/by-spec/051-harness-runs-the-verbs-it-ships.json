@@ -84,7 +84,7 @@
       }
     ],
     "id": "051-harness-runs-the-verbs-it-ships",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -128,6 +128,6 @@
     "summary": "Release v0.15.0 shipped two capabilities the harness was written to want and then did not use. Spec 049's `spec-spine verify <id>` retired nothing: all nine harness sites still call `scripts/verify-spec.sh`, so one protocol now has two implementations whose answers are already worded differently, which is the drift 048 1.2 exists to end reappearing inside the repository that wrote it. Spec 050's `--fail-on-unresolved` and `index diagnostics` reached no caller: the spec written because a warning nobody sees is a unit that quietly went unresolved is, in its own dogfood repository, still a warning nobody sees. Underneath both sits a third gap that made them possible: every skill says to run the gate exactly as AGENTS.md lists it, and AGENTS.md's list omits the ownership ratchet CI enforces, so the six skills that inline the step are more correct than the file they defer to. This spec makes the harness run what the tool ships: `/verify` wraps the verb, AGENTS.md names one gate list that a test pins against the skills, this repository turns on 050's gate and reads its diagnostics at session start, the kit's hooks resolve the binary the project declares instead of whatever a bare name finds on PATH, and this repository runs the hooks it ships to adopters.\n",
     "title": "The harness runs the verbs it ships"
   },
-  "shardHash": "5452b5f26f360025892ba91dbc79b38ddcee02bfadca19f9963d2c2592cb641f",
+  "shardHash": "bd8f002c2928f298afca69f1f776f14398a2048976de9b373df136ee5fe61ca4",
   "specVersion": "1.1.0"
 }

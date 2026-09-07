@@ -8,6 +8,8 @@
 //! hook other than the one sanctioned write.
 
 use std::collections::BTreeMap;
+use std::fs;
+use std::path::Path;
 
 const KIT_SETTINGS: &str = include_str!("../../../kit/settings.json");
 
@@ -62,12 +64,20 @@ fn spec_spine_invocations(body: &str) -> Vec<Vec<String>> {
                     .split_whitespace()
                     .map(str::to_string)
                     .collect();
+                // `[ -n "$sc" ]` expands to `[ -n spec-spine ]`: a shell test
+                // on the resolved path, not a call. A real invocation's first
+                // word is a subcommand or a flag (spec 051 3.5).
+                let is_call = words.first().is_some_and(|w| {
+                    w.starts_with('-') || w.starts_with(|c: char| c.is_ascii_alphabetic())
+                });
                 let mut words = words.into_iter().peekable();
                 if words.peek().map(String::as_str) == Some("--repo") {
                     words.next();
                     words.next();
                 }
-                out.push(words.collect());
+                if is_call {
+                    out.push(words.collect());
+                }
             }
             rest = after;
         }
@@ -199,4 +209,55 @@ fn the_write_scanner_recognises_writes() {
     let v = spec_spine_invocations(orig);
     assert_eq!(v.len(), 1);
     assert!(is_read_only(&v[0]));
+}
+
+/// Spec 051 3.5: a hook resolves the binary the project declares before it
+/// falls back to whatever `PATH` happens to hold. A repository that builds its
+/// own binary must be governed by the one it builds. The machine that motivated
+/// this spec had `spec-spine` on `PATH` one release behind the checkout, which
+/// would have gated a 0.15.0 corpus with a 0.14.0 judgement.
+#[test]
+fn hooks_resolve_the_projects_binary_before_path() {
+    for (event, bodies) in hook_bodies() {
+        for body in bodies {
+            assert!(
+                body.contains("spec_spine_bin"),
+                "{event} hook must resolve the binary through spec_spine_bin"
+            );
+            let env = body
+                .find("SPEC_SPINE_BIN")
+                .unwrap_or_else(|| panic!("{event}: resolver must honour $SPEC_SPINE_BIN"));
+            let built = body
+                .find("target/release/spec-spine")
+                .unwrap_or_else(|| panic!("{event}: resolver must prefer the repo's own build"));
+            let from_path = body
+                .find("command -v spec-spine")
+                .unwrap_or_else(|| panic!("{event}: resolver must fall back to PATH"));
+            assert!(
+                env < built && built < from_path,
+                "{event}: order must be $SPEC_SPINE_BIN, then the repo's build, then PATH"
+            );
+        }
+    }
+}
+
+/// Spec 051 3.6: this repository runs the hooks it ships. `kit_hooks.rs` used to
+/// assert properties of a file nothing executed; the governance halves of the
+/// two configurations must now be identical.
+#[test]
+fn this_repository_runs_the_hooks_it_ships() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let own: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(root.join(".claude/settings.json")).unwrap())
+            .expect(".claude/settings.json parses");
+    let kit: serde_json::Value = serde_json::from_str(KIT_SETTINGS).unwrap();
+
+    assert_eq!(
+        own["hooks"], kit["hooks"],
+        "this repository's hooks must be the ones the kit ships"
+    );
+    assert_eq!(
+        own["permissions"]["deny"], kit["permissions"]["deny"],
+        "the destructive-command refusals are governance, not machine preference"
+    );
 }
