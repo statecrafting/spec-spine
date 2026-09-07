@@ -14,7 +14,6 @@ never edited by hand. Regenerate with:
     python3 scripts/gen-kit-embedded.py
 """
 
-import subprocess
 import sys
 from pathlib import Path
 
@@ -35,6 +34,9 @@ SKIP = {
     # gets the generated one, whose corpus and derived paths match their layout.
     "kit/AGENTS.md",
 }
+# Never part of the kit, whatever the filesystem accumulates.
+IGNORE = {".DS_Store", "__pycache__", ".git"}
+
 # Destination path for a kit file, when it differs from stripping `kit/`.
 REMAP = {
     "kit/govern.yml": ".github/workflows/govern.yml",
@@ -50,14 +52,17 @@ def dest_for(rel: str) -> str:
 
 
 def main() -> int:
-    tracked = subprocess.run(
-        ["git", "-C", str(ROOT), "ls-files", "kit/"],
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout.split()
+    # Walk the tree rather than asking git: a brand-new kit file is untracked
+    # until it is staged, and a generator that silently omitted it would ship a
+    # binary missing the file its own spec had just added. Junk is excluded by
+    # name instead.
+    files = [
+        p.relative_to(ROOT).as_posix()
+        for p in (ROOT / "kit").rglob("*")
+        if p.is_file() and not any(part in IGNORE for part in p.parts)
+    ]
     entries = []
-    for rel in sorted(tracked):
+    for rel in sorted(files):
         if rel in SKIP:
             continue
         text = (ROOT / rel).read_text(encoding="utf-8")

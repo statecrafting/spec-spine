@@ -7,15 +7,91 @@
     ],
     "implementingPaths": [
       {
+        "path": ".claude/rules/derived-artifacts-are-compiler-output.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/kit_embedded.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/kit_skills.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "kit/.claude/rules/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/.claude/rules/derived-artifacts-are-compiler-output.md",
         "source": "spec-edge"
       },
       {
         "path": "kit/README.md",
         "source": "spec-edge"
+      },
+      {
+        "path": "scripts/gen-kit-embedded.py",
+        "source": "spec-edge"
+      },
+      {
+        "path": "spec-spine.toml",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".claude/rules/derived-artifacts-are-compiler-output.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/rules/derived-artifacts-are-compiler-output.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/.claude/rules/derived-artifacts-are-compiler-output.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/rules/derived-artifacts-are-compiler-output.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/kit_embedded.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/kit_skills.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_skills.rs"
+        }
+      },
       {
         "locations": [
           {
@@ -40,6 +116,32 @@
         "unit": {
           "kind": "file",
           "path": "kit/README.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/gen-kit-embedded.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/gen-kit-embedded.py"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
         }
       },
       {
@@ -73,5 +175,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "8b94fd5ccbf1958e7ad0d9608fed9db15307e8675c64435644295645d88c3d4e"
+  "shardHash": "e8a4b9cc60833275d1d5c2ace6795c1e1667e9b5929e32e21a005188df820f12"
 }

@@ -133,11 +133,36 @@ Project-specific pieces are not shipped; recreate them for your own stack:
 - a domain-specialist agent (a framework expert, a ledger guardian): the
   generic "read-only specialist" pattern, named by the invariant rule it
   serves;
-- `build-commands.md` and invariant rules: the generic "paths-scoped context
-  rule" pattern (`paths:` frontmatter), which the harness spec lists
-  individually;
+- `build-commands.md` and further invariant rules: the kit ships one worked
+  example of the pattern (below); the rest are yours;
 - a `Makefile` composite and a CI workflow: every adopter's differ; the gate
   command list in `AGENTS.md` is the contract the skills read.
+
+## When to scope a rule to paths
+
+A rule file with `paths:` frontmatter loads only when the session touches a
+matching path. The kit ships exactly one, `derived-artifacts-are-compiler-output.md`,
+scoped to `.derived/**`, as the worked example.
+
+**Unconditional** when the rule is about how to work at all: the loop, the
+refusals, the standing constraints. The three rules `spec-spine init` writes are
+all of this kind.
+
+**Scoped** when the rule is only actionable while a particular kind of file is
+open, and loading it always would spend context on a case most sessions never
+reach. hqgit carries three, one of them scoped to a single file, which is the
+field evidence that the pattern earns its place on a real corpus.
+
+**The caveat is the important part.** A scoped rule cannot prevent a mistake
+whose whole shape is *not* touching the path. The shipped example says so in its
+own text: reaching for `jq` instead of a `spec-spine` subcommand is exactly that
+mistake, so `governed-artifact-reads.md` stays unconditional and keeps its full
+content, and the scoped rule reinforces it at the moment somebody has a shard
+open. A scoped rule is a reminder where the work is, never a replacement for a
+standing constraint.
+
+One, not three. The value is the worked example and the fit; a directory of
+conditional rules would make you read scoping decisions that are yours to make.
 
 ## License and origin
 
