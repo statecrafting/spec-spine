@@ -170,8 +170,13 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 // surface (that is the exit code and `--json`, spec 037), but a
                 // line that reads as a pass while the process exits 1 is worth
                 // one clause to avoid.
+                // One line for one fact. An earlier round printed this on
+                // stdout *and* repeated it on stderr, which said the same thing
+                // twice on two streams. `coverage --fail-on-untraced` reports
+                // on stdout and lets the exit code carry the refusal; this
+                // matches it.
                 Freshness::Fresh if code == 1 => outln!(
-                    "{subject} is fresh; refusing on unresolved units{}",
+                    "{subject} is fresh; --fail-on-unresolved refuses{}",
                     counts_suffix(&counts)
                 ),
                 Freshness::Fresh => outln!("{subject} is fresh{}", counts_suffix(&counts)),
@@ -186,12 +191,6 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                         );
                     }
                 }
-            }
-            if code == 1 {
-                eprintln!(
-                    "{subject}: --fail-on-unresolved is set and the committed ledger records {}",
-                    counts_summary(&counts)
-                );
             }
             Ok(code)
         }

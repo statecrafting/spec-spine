@@ -136,11 +136,18 @@ Under `--json` the report gains a `diagnostics` member: `{ "warnings": n,
 "errors": n, "byCode": { "W-001": n, ... } }`, with `byCode` omitting zero
 entries so the shape does not grow with codes a corpus does not have.
 
-**The shared `freshness_report` helper MUST NOT change.** `compile --check` and
-`index check` both render their payload through it, and index diagnostics have
-no meaning for the registry. `index check` composes its own object around the
-freshness one instead, so the registry verdict does not acquire a member that is
-permanently zero.
+**`compile --check`'s payload MUST NOT change.** Index diagnostics have no
+meaning for the registry, so its verdict must not acquire a member that is
+permanently zero. It keeps rendering the bare freshness object through the CLI's
+`freshness_report` helper.
+
+`index check` therefore does not share that helper: it composes an
+`IndexCheckReport` (the freshness members plus `diagnostics`) in **core**, and
+both the CLI's `--json` arm and the `check_freshness_json` facade serialize that
+one type. The composition has to live in core because spec 037 pins the two
+against each other, and a payload built twice is a payload that drifts. An
+earlier draft of this section had `index check` extending `freshness_report`'s
+output in the CLI; 037's parity test refused it, correctly.
 
 ### 3.2 `--fail-on-unresolved` is opt-in
 

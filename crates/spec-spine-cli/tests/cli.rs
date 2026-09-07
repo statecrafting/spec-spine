@@ -1953,7 +1953,25 @@ fn index_check_reports_diagnostics_and_fails_only_when_asked() {
     assert!(stdout.contains("1 W-001"), "{stdout}");
 
     // Opt in, and the same tree is refused with 1.
-    assert_eq!(code(&run(&["index", "check", "--fail-on-unresolved"])), 1);
+    let out = run(&["index", "check", "--fail-on-unresolved"]);
+    assert_eq!(code(&out), 1);
+
+    // The refusal is said once, on one stream. Asserted because it was not:
+    // an earlier round printed the reason on stdout and repeated it on stderr,
+    // and these tests checked only exit codes, so nothing caught it.
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(stdout.contains("--fail-on-unresolved refuses"), "{stdout}");
+    assert!(
+        stderr.trim().is_empty(),
+        "the refusal belongs on one stream, got stderr: {stderr}"
+    );
+    // And a line that reads as a pass must not be the whole of what is said
+    // when the process exits 1.
+    assert!(
+        stdout.lines().all(|l| l.trim() != "index is fresh"),
+        "a bare pass line while exiting 1: {stdout}"
+    );
 }
 
 #[test]
