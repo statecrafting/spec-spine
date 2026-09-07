@@ -4,7 +4,7 @@ title: "The scaffold ships what every adopter wrote by hand"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -206,22 +206,63 @@ presents both options and takes neither.
 **Adding knobs.** Every key emitted is one `Config` already has. Making the
 scaffold honest about the current surface is separable from growing it.
 
+**Fixing `IndexConfig::default().extra_hashed_inputs`.**
+
+**Decision, 2026-09-07.** Writing §3.2's exhaustive config surfaced that the
+**default value itself** carries the broken glob form spec 057 found in this
+repository's file: `["standards/**", ".github/workflows/**"]` matches
+directories and therefore no files, so every adopter relying on the default
+hashes nothing extra and does not know it. 057 fixed this corpus's
+`spec-spine.toml` and did not look at the default behind it.
+
+Not fixed here. Changing it would restale the committed index of every adopter
+who relies on the default, which is a behavior change to a shipped default and
+belongs in its own spec with its own release note, not inside a scaffold
+change. What this spec does instead is stop the silence: the key is emitted at
+its real (broken) value with a comment naming the trap and the working form, so
+the next adopter reads it rather than deriving it.
+
+**Decision, 2026-09-07: an emitted table header is a value.** The first cut of
+§3.2 emitted `[provenance.uri_schemes]` uncommented above its commented
+examples, which declares an **empty** table and overrides that key's non-empty
+default. The round-trip assertion §3.2 requires caught it immediately, which is
+the argument for that assertion. A table whose keys are all commented out has
+its header commented out too.
+
 ## 5. Verification
+
+Each line below is one command: spec 049 §3.2 makes a fence's body line a
+command, so a trailing `\` continuation becomes its own fragment and fails. The
+scaffold is materialized once at a fixed path, because each line is its own
+shell and a `$(mktemp -d)` would not survive to the next assertion.
+
+Every assertion fails against pre-061 code: there was no `.gitignore`, the
+config emitted five knobs, and the template was a two-bullet stub.
 
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-core --test scaffold --locked
-# `init` writes a .gitignore covering the one non-deterministic artifact.
-tmp=$(mktemp -d) && target/release/spec-spine --repo "$tmp" init >/dev/null \
-  && grep -q 'build-meta.json' "$tmp/.gitignore"
-# The scaffolded config names the knobs an adopter reaches for.
-grep -q 'require_ownership' "$tmp/spec-spine.toml"
-grep -q 'resolver_exclusions' "$tmp/spec-spine.toml"
-# The scaffolded constitution template is the real one, not the two-bullet stub.
-grep -q 'Amendment' "$tmp/standards/spec/templates/constitution-template.md"
-# The scaffolded corpus still compiles and lints clean, and running the tool in
-# it leaves a tree the adopter's git would call clean.
-target/release/spec-spine --repo "$tmp" compile >/dev/null
-target/release/spec-spine --repo "$tmp" lint --fail-on-warn
+# Materialize a fresh adopter once.
+rm -rf "${TMPDIR:-/tmp}/ss061" && mkdir -p "${TMPDIR:-/tmp}/ss061" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss061" init >/dev/null
+# 3.1: the one non-deterministic artifact is ignored...
+grep -q 'build-meta.json' "${TMPDIR:-/tmp}/ss061/.gitignore"
+# ...and the shard trees deliberately are not, with the choice explained.
+grep -q 'freshness gate' "${TMPDIR:-/tmp}/ss061/.gitignore"
+# 3.2: the knobs adopters reached for are named, with the codes they drive.
+grep -q 'require_ownership' "${TMPDIR:-/tmp}/ss061/spec-spine.toml"
+grep -q 'resolver_exclusions' "${TMPDIR:-/tmp}/ss061/spec-spine.toml"
+grep -q 'C-002' "${TMPDIR:-/tmp}/ss061/spec-spine.toml"
+# 4: and the glob trap is named where it bites, rather than left to be derived.
+grep -q 'matches DIRECTORIES' "${TMPDIR:-/tmp}/ss061/spec-spine.toml"
+# 3.2: the emitted config is the configuration it documents. `config show`
+# reads it back through the same loader every verb uses.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss061" config show >/dev/null
+# 3.3: the template is the real document, not the two-bullet stub.
+grep -q 'Amendment' "${TMPDIR:-/tmp}/ss061/standards/spec/templates/constitution-template.md"
+grep -q 'Normative hierarchy' "${TMPDIR:-/tmp}/ss061/standards/spec/templates/constitution-template.md"
+# 3.4: the scaffolded corpus still compiles and lints clean.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss061" compile >/dev/null
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss061" lint --fail-on-warn
+rm -rf "${TMPDIR:-/tmp}/ss061"
 ```

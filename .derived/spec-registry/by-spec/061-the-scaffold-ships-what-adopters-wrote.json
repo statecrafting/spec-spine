@@ -25,7 +25,7 @@
       }
     ],
     "id": "061-the-scaffold-ships-what-adopters-wrote",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -69,6 +69,6 @@
     "summary": "Four scaffold defects the audit measured, all in one generator. `init` writes no `.gitignore`, so every adopter independently learns that `.derived/**/build-meta.json` carries a wall clock and dirties the tree, and spec 039's `state_dir` has the same missing half: the live failure it fixed was a permanently dirty tree, not a classification. The scaffolded `spec-spine.toml` emits five knobs; adopters needed thirteen, and aicortex annotated each of its own with the diagnostic code that knob drives, which is the template to copy. And `CONSTITUTION_TEMPLATE` in `scaffold.rs` is still the two-bullet stub spec 043 complained about, while the real thirty-four-line document sits in `standards/spec/templates/constitution-template.md`: adopters get the stub, and two of them deleted it. This spec fixes all four in `scaffold_init`, which stays a pure function of `Config` performing no IO.\n",
     "title": "The scaffold ships what every adopter wrote by hand"
   },
-  "shardHash": "cadd616f1667e25d5019eb0c0788446b347e8ddf34cb847a44e624c8a80f119d",
+  "shardHash": "f6b27334ec9221d05cde708e4c9bc8a8cde23de9843861741de284a84b4a72fd",
   "specVersion": "1.1.0"
 }
