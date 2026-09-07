@@ -99,6 +99,11 @@ fn is_read_only(verb: &[String]) -> bool {
         Some("compile") => verb.iter().any(|w| w == "--check"),
         Some("index") => verb.get(1).map(String::as_str) == Some("check"),
         Some("couple") => true,
+        // Spec 063 §3.2: the hooks ask `--version` before believing an exit
+        // code. Named explicitly rather than folded into a "flags are safe"
+        // rule, because this predicate denies by default on purpose and the
+        // exemptions should be countable.
+        Some("--version" | "--help") => true,
         Some(_) => false,
         None => false,
     }

@@ -38,10 +38,34 @@
           "kind": "file",
           "path": "AGENTS.md"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "051-harness-runs-the-verbs-it-ships",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "046-kit-hooks-read-never-write",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
+        }
       }
     ],
     "id": "063-a-stale-binary-is-not-a-stale-ledger",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -71,6 +95,6 @@
     "summary": "`spec-spine compile --check` exits 2 when the committed registry is stale. A binary predating `--check` rejects the unknown flag and clap exits 2 as well. Two unrelated conditions, one code, distinguishable only by matching English on stderr, and two adopters plus the kit plus this repository's own AGENTS.md carry that matching ritual. This spec maps every command-line usage error to exit 3, so a new binary can never report a usage failure as staleness, and replaces the stderr ritual with the precondition that actually settles it: ask the binary its version first, which every binary ever released answers. The ritual's real defect was that it made the caller parse prose to recover a fact the process had already destroyed by choosing the wrong exit code.\n",
     "title": "A stale binary is not a stale ledger"
   },
-  "shardHash": "8df732e954b1024f3086a0c05bdeaf448de99c7a3bdc3a5ba039931dae4bde43",
+  "shardHash": "920adae51ef3452fc397ccc290c2455bab93d088412cc07c8391cdb73094c41f",
   "specVersion": "1.1.0"
 }

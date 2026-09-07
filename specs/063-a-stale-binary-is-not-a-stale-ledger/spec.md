@@ -4,7 +4,7 @@ title: "A stale binary is not a stale ledger"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -16,6 +16,11 @@ extends:
   - { spec: "029-claude-code-skill-kit", unit: "kit/settings.json", nature: additive }
   - { spec: "029-claude-code-skill-kit", unit: "kit/AGENTS.md", nature: additive }
   - { spec: "029-claude-code-skill-kit", unit: "AGENTS.md", nature: additive }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
+  # This repository runs the hooks it ships (spec 051), so the kit change is
+  # mirrored here, and the read-only predicate learns `--version` (3.3).
+  - { spec: "051-harness-runs-the-verbs-it-ships", unit: ".claude/settings.json", nature: additive }
+  - { spec: "046-kit-hooks-read-never-write", unit: "crates/spec-spine-core/tests/kit_hooks.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
 summary: >
@@ -75,6 +80,7 @@ this system are not quite trustworthy.
 | Unit | Owner | What changes |
 |---|---|---|
 | `crates/spec-spine-cli/src/main.rs` | 001 | usage errors map to 3 |
+| `crates/spec-spine-cli/tests/cli.rs` | 001 | the exit-code acceptance |
 | `AGENTS.md` | 029 | the ritual becomes a version precondition |
 | `kit/AGENTS.md` | 029 | the same, for adopters |
 | `kit/settings.json` | 029 | the hook stops reporting 2 as staleness |
@@ -90,10 +96,23 @@ table is holding 001 to its own contract, not changing it.
 `main` MUST use `Cli::try_parse()` and map a clap error to the exit code the
 contract gives it:
 
-- `DisplayHelp`, `DisplayVersion` and the help-on-no-subcommand kinds keep exit
-  `0` and keep writing to stdout. They are successful requests for information.
-- Every other clap error exits **3**, writing clap's message to stderr
-  unchanged.
+- `DisplayHelp` and `DisplayVersion` keep exit `0` and keep writing to stdout.
+  They are successful requests for information.
+- Every other clap error exits **3**, writing clap's message unchanged.
+
+**Decision, 2026-09-07: an incomplete invocation is a usage error, not a
+request for information.** The bullet above originally grouped
+`DisplayHelpOnMissingArgumentOrSubcommand` with help and version, and said the
+three "keep" exit 0. Measured against the shipped binary, none of them kept
+anything: a bare `spec-spine` exits **2** today, exactly like every other usage
+error, because clap's default is 2 and that is the whole complaint this spec is
+about.
+
+Following the letter would therefore have made a broken invocation newly
+**succeed**: a script that dropped its verb would exit 0 while doing nothing.
+That is a worse failure than the one being fixed, and it is the opposite of this
+spec's subject. `--help` and `--version` are asked for; a missing subcommand is
+not, so it exits 3 with its siblings. Nothing regresses to zero.
 
 `3` is the right cell rather than a new code. It already means "the tool could
 not proceed for a reason that is not the corpus": I/O, parse, schema, config. An
@@ -149,6 +168,16 @@ branches on the exit code, so this is one more branch in a function that exists.
 It remains read-only, which spec 046 requires of every kit hook and which
 nothing here relaxes.
 
+**Decision, 2026-09-07.** Spec 046's `hooks_read_and_never_write` denies by
+default, so it read the new `--version` probe as an unrecognised subcommand and
+refused it. `--version` and `--help` are named explicitly in that predicate
+rather than folded into a "flags are safe" rule: the deny-by-default is the
+point, and the exemptions should stay countable.
+
+Spec 051 requires this repository to run the hooks it ships, so the kit change
+is mirrored into `.claude/settings.json` in the same commit. Its test caught the
+omission, which is what it is for.
+
 This is the concrete harm being fixed. A session that starts by being told its
 committed shards are stale, when they are not, will regenerate and commit
 artifacts that were already correct, on the authority of a diagnosis the tool
@@ -178,20 +207,30 @@ makes the mismatch impossible to reach.
 
 ## 5. Verification
 
+Each line is one command (spec 049 §3.2). The exit-code assertions fail against
+pre-063 code, where clap exited 2 for all of them.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-cli --test cli --locked
-# An unknown flag is exit 3, not exit 2. Until this ships, clap exits 2 and the
-# second assertion fails.
+# 3.1: a usage error is exit 3, not exit 2.
 target/release/spec-spine compile --no-such-flag 2>/dev/null ; test $? -eq 3
 target/release/spec-spine no-such-verb 2>/dev/null ; test $? -eq 3
-# --help and --version stay exit 0.
+# 3.1: an incomplete invocation is a usage error too, so a script that dropped
+# its verb still fails.
+target/release/spec-spine 2>/dev/null >/dev/null ; test $? -eq 3
+# 3.1: help and version are asked for, so they succeed.
 target/release/spec-spine --help >/dev/null
 target/release/spec-spine --version >/dev/null
-# Exit 2 still means stale, and only that.
+# 3.4: exit 2 still means stale, and now means only that.
 target/release/spec-spine compile --check
-# The stderr-matching ritual is gone from both harness documents.
+# 3.2: the stderr-matching ritual is gone from both harness documents, replaced
+# by the precondition that works against every version.
 ! grep -q 'unexpected argument' AGENTS.md
 ! grep -q 'unexpected argument' kit/AGENTS.md
+grep -q 'Ask `spec-spine --version` before believing any exit code' AGENTS.md
+grep -q 'before believing any exit code' kit/AGENTS.md
+# 3.3: the kit hook establishes the flag exists before reading the exit code.
+grep -q 'predates' kit/settings.json
 ```

@@ -190,7 +190,15 @@ enum Command {
 }
 
 fn main() -> ExitCode {
-    let cli = Cli::parse();
+    // Spec 063 §3.1: a command line clap cannot parse is a usage error, and a
+    // usage error is exit 3. Clap's own default is 2, which this tool spends on
+    // staleness, so an unknown flag was indistinguishable from a stale ledger
+    // except by matching clap's English on stderr. After this, exit 2 from any
+    // verb means staleness and nothing else.
+    let cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(e) => return exit_for_clap_error(e),
+    };
     let repo = match cli.repo {
         Some(p) => p,
         None => std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
@@ -369,5 +377,35 @@ fn check_version_pin(repo: &Path, command: &Command) -> Result<(), Error> {
     match load_repo_config(repo) {
         Ok(cfg) => cfg.check_required_version(env!("CARGO_PKG_VERSION")),
         Err(_) => Ok(()),
+    }
+}
+
+/// Render a clap error and map it to this tool's exit-code contract
+/// (spec 063 §3.1).
+///
+/// Help and version are successful requests for information: stdout, exit 0.
+/// Everything else is the invocation failing to parse, which belongs in the
+/// same cell as I/O, parse, schema and config failures. `3` rather than a new
+/// code, because the contract is documented by four repositories and two
+/// package shims, and a fourth code would extend it to distinguish a case none
+/// of them needs distinguished.
+fn exit_for_clap_error(e: clap::Error) -> ExitCode {
+    use clap::error::ErrorKind;
+    match e.kind() {
+        ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => {
+            // Asked for explicitly, and clap writes them to stdout itself.
+            let _ = e.print();
+            ExitCode::from(0)
+        }
+        // `spec-spine` with no subcommand prints help, but nobody asked for
+        // help: the invocation was incomplete. It exits 3 with its siblings
+        // rather than 0, so a script that dropped the verb still fails. See
+        // spec 063 §3.1's decision entry.
+        _ => {
+            // Clap's message, unchanged: it names the offending argument better
+            // than a paraphrase would.
+            let _ = e.print();
+            ExitCode::from(3)
+        }
     }
 }
