@@ -1900,3 +1900,186 @@ fn verify_refuses_to_re_enter_itself() {
         .unwrap();
     assert_eq!(code(&out), 0, "only a cycle is refused, not any depth");
 }
+
+// --- `index check` diagnostics + `index diagnostics` (spec 050) -----------
+
+/// A corpus whose only spec is in flight and claims one file that exists and
+/// one that does not, so the committed index records exactly one `W-001`.
+fn write_unresolved_corpus(root: &Path) {
+    fs::create_dir_all(root.join("crates/a/src")).unwrap();
+    fs::write(
+        root.join("Cargo.toml"),
+        "[workspace]\nmembers = [\"crates/a\"]\n",
+    )
+    .unwrap();
+    fs::write(
+        root.join("crates/a/Cargo.toml"),
+        "[package]\nname = \"a\"\nversion = \"0.1.0\"\n\n[package.metadata.spec-spine]\nspec = \"001-flight\"\n",
+    )
+    .unwrap();
+    fs::write(
+        root.join("crates/a/src/lib.rs"),
+        "// Spec: specs/001-flight/spec.md\npub fn a() {}\n",
+    )
+    .unwrap();
+    let spec_dir = root.join("specs/001-flight");
+    fs::create_dir_all(&spec_dir).unwrap();
+    fs::write(
+        spec_dir.join("spec.md"),
+        "---\nid: \"001-flight\"\ntitle: \"T\"\nstatus: draft\ncreated: \"2026-09-06\"\nimplementation: pending\nsummary: \"s\"\nestablishes:\n  - \"crates/a/src/lib.rs\"\n  - \"crates/a/src/not_yet.rs\"\n---\n# 001\n",
+    )
+    .unwrap();
+}
+
+#[test]
+fn index_check_reports_diagnostics_and_fails_only_when_asked() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_unresolved_corpus(tmp.path());
+    let run = |args: &[&str]| {
+        bin()
+            .arg("--repo")
+            .arg(tmp.path())
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    assert_eq!(code(&run(&["index"])), 0);
+
+    // Fresh, but the ledger records an unresolved unit: reported, not refused.
+    let out = run(&["index", "check"]);
+    assert_eq!(code(&out), 0, "a warning must not fail the default gate");
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("is fresh"), "{stdout}");
+    assert!(stdout.contains("1 W-001"), "{stdout}");
+
+    // Opt in, and the same tree is refused with 1.
+    assert_eq!(code(&run(&["index", "check", "--fail-on-unresolved"])), 1);
+}
+
+#[test]
+fn a_clean_corpus_keeps_the_bare_verdict_line() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "001-a", "001-a", "approved");
+    let run = |args: &[&str]| {
+        bin()
+            .arg("--repo")
+            .arg(tmp.path())
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    assert_eq!(code(&run(&["index"])), 0);
+
+    let out = run(&["index", "check"]);
+    assert_eq!(code(&out), 0);
+    assert_eq!(
+        String::from_utf8_lossy(&out.stdout).trim(),
+        "index is fresh",
+        "no diagnostics -> the line reads exactly as it did before spec 050"
+    );
+    // And the strict flag passes, because there is nothing unresolved.
+    assert_eq!(code(&run(&["index", "check", "--fail-on-unresolved"])), 0);
+}
+
+#[test]
+fn staleness_outranks_unresolution() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_unresolved_corpus(tmp.path());
+    let run = |args: &[&str]| {
+        bin()
+            .arg("--repo")
+            .arg(tmp.path())
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    assert_eq!(code(&run(&["index"])), 0);
+    assert_eq!(code(&run(&["index", "check", "--fail-on-unresolved"])), 1);
+
+    // Make the ledger stale. The spec's own `spec.md` is a hashed shard input;
+    // editing the claimed *source* file would not restale it, because only
+    // section/symbol/module units put their backing file in the shard hash
+    // (`index.rs::span_files_for_mapping`). The title changes, the units do
+    // not, so the `W-001` survives and both conditions hold at once.
+    let spec = tmp.path().join("specs/001-flight/spec.md");
+    let body = fs::read_to_string(&spec)
+        .unwrap()
+        .replace("\"T\"", "\"T2\"");
+    fs::write(&spec, body).unwrap();
+
+    // Spec 050 3.3: 2, not 1. A stale ledger's warnings describe a tree that no
+    // longer exists, so refusing for them would name the wrong problem.
+    assert_eq!(
+        code(&run(&["index", "check", "--fail-on-unresolved"])),
+        2,
+        "staleness must outrank unresolution"
+    );
+}
+
+#[test]
+fn index_check_json_carries_counts_without_disturbing_the_freshness_shape() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_unresolved_corpus(tmp.path());
+    let run = |args: &[&str]| {
+        bin()
+            .arg("--repo")
+            .arg(tmp.path())
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    assert_eq!(code(&run(&["index"])), 0);
+
+    let out = run(&["index", "check", "--json"]);
+    let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(v["verb"], "index.check");
+    assert_eq!(
+        v["report"]["fresh"], true,
+        "the freshness member is untouched"
+    );
+    assert_eq!(v["report"]["diagnostics"]["warnings"], 1);
+    assert_eq!(v["report"]["diagnostics"]["errors"], 0);
+    assert_eq!(v["report"]["diagnostics"]["byCode"]["W-001"], 1);
+
+    // Spec 050 3.6: a payload addition does not move the envelope version.
+    assert_eq!(v["schemaVersion"], spec_spine_types::VERDICT_SCHEMA_VERSION);
+
+    // Spec 050 3.1: `compile --check` shares `freshness_report` and must not
+    // have acquired a permanently-zero diagnostics member.
+    let out = run(&["compile", "--check", "--json"]);
+    let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(v["verb"], "compile.check");
+    assert!(
+        v["report"].get("diagnostics").is_none(),
+        "the registry verdict must not carry index diagnostics: {}",
+        v["report"]
+    );
+}
+
+#[test]
+fn index_diagnostics_lists_them_and_never_refuses() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_unresolved_corpus(tmp.path());
+    let run = |args: &[&str]| {
+        bin()
+            .arg("--repo")
+            .arg(tmp.path())
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    assert_eq!(code(&run(&["index"])), 0);
+
+    let out = run(&["index", "diagnostics", "--json"]);
+    assert_eq!(code(&out), 0);
+    let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(v.as_array().unwrap().len(), 1);
+    assert_eq!(v[0]["code"], "W-001");
+    assert_eq!(v[0]["specId"], "001-flight", "attributed to its spec");
+    assert_eq!(v[0]["severity"], "warning");
+
+    // The read verb reports; it does not gate, even for the strict case.
+    let out = run(&["index", "diagnostics"]);
+    assert_eq!(code(&out), 0);
+    assert!(String::from_utf8_lossy(&out.stdout).contains("W-001"));
+}

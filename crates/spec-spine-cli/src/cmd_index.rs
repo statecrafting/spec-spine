@@ -13,12 +13,12 @@ use std::path::Path;
 use clap::Subcommand;
 use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
 use spec_spine_core::{
-    Freshness, check_index_freshness, check_slice_freshness, coverage, index, index_dir,
-    index_shard_files, load_committed_index, orphans, render_markdown, slices_path,
+    DiagnosticCounts, Freshness, IndexCheckReport, check_index_freshness, check_slice_freshness,
+    committed_counts, committed_diagnostics, coverage, index, index_dir, index_shard_files,
+    load_committed_index, orphans, render_markdown, slices_path,
 };
 use spec_spine_types::{Config, CoverageReport, Error, Verdict, verdict::verb};
 
-use crate::cmd_compile::freshness_report;
 use crate::load_repo_config;
 use crate::out;
 
@@ -29,6 +29,11 @@ pub enum IndexAction {
         /// Gate one named [index.slices] slice instead of the shard set.
         #[arg(long, value_name = "NAME")]
         slice: Option<String>,
+        /// Fail (exit 1) if the committed index records any unresolved unit
+        /// (`W-001` / `W-002`). Opt-in: specs 025 and 044 exist to let a corpus
+        /// that ratifies before it builds carry these while work is under way.
+        #[arg(long)]
+        fail_on_unresolved: bool,
         /// Emit the verdict as a JSON envelope on stdout (spec 037).
         #[arg(long)]
         json: bool,
@@ -37,6 +42,15 @@ pub enum IndexAction {
     Render,
     /// List orphaned specs from the committed index.
     Orphans {
+        #[arg(long)]
+        json: bool,
+    },
+    /// List the diagnostics the committed index records (spec 050).
+    ///
+    /// A read verb beside `orphans` and `coverage`: it recomputes nothing and
+    /// never refuses, so a consumer reaches a structured fact without parsing
+    /// `index render`'s markdown. The refusal lives on `check`.
+    Diagnostics {
         #[arg(long)]
         json: bool,
     },
@@ -74,6 +88,20 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             }
             Ok(0)
         }
+        Some(IndexAction::Diagnostics { json }) => {
+            let diags = committed_diagnostics(&cfg, repo)?;
+            if *json {
+                let s = serde_json::to_string_pretty(&diags)
+                    .map_err(|e| Error::Schema(e.to_string()))?;
+                outln!("{s}");
+            } else {
+                for d in &diags {
+                    let at = d.path.as_deref().unwrap_or("-");
+                    outln!("  {} [{}] [{}] {}", d.code, d.spec_id, at, d.message);
+                }
+            }
+            Ok(0)
+        }
         Some(IndexAction::Coverage {
             json,
             fail_on_untraced,
@@ -94,7 +122,11 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 0
             })
         }
-        Some(IndexAction::Check { slice, json }) => {
+        Some(IndexAction::Check {
+            slice,
+            fail_on_unresolved,
+            json,
+        }) => {
             let (freshness, subject) = match slice {
                 Some(name) => (
                     check_slice_freshness(&cfg, repo, name)?,
@@ -102,34 +134,50 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 ),
                 None => (check_index_freshness(&cfg, repo)?, "index".to_string()),
             };
-            if *json {
-                // A slice check answers the same `Freshness` question over a
-                // narrower input set, so it carries the same payload; the
-                // envelope's verb does not fork, because the verdict does not.
-                let code = if matches!(freshness, Freshness::Fresh) {
-                    0
+            let counts = committed_counts(&cfg, repo)?;
+
+            // Spec 050 3.3: staleness outranks unresolution. A stale index's
+            // diagnostics describe a tree that no longer exists, so refusing
+            // for them would name the wrong problem. The counts are still
+            // reported either way; suppressing them would hide the number the
+            // operator ran the command for.
+            let code = if matches!(freshness, Freshness::Fresh) {
+                if *fail_on_unresolved && counts.has_unresolved() {
+                    1
                 } else {
-                    2
-                };
-                out::verdict(&Verdict::report(
-                    verb::INDEX_CHECK,
-                    code,
-                    freshness_report(&freshness),
-                ))?;
+                    0
+                }
+            } else {
+                2
+            };
+
+            if *json {
+                // One shape, built in core (`IndexCheckReport`), so the facade
+                // and this arm cannot drift; spec 037 pins them against each
+                // other. `compile --check` keeps the bare freshness object:
+                // index diagnostics are meaningless for the registry (3.1).
+                let report =
+                    serde_json::to_value(IndexCheckReport::new(&freshness, counts.clone()))
+                        .map_err(|e| Error::Schema(e.to_string()))?;
+                out::verdict(&Verdict::report(verb::INDEX_CHECK, code, report))?;
                 return Ok(code);
             }
+
             match freshness {
-                Freshness::Fresh => {
-                    outln!("{subject} is fresh");
-                    Ok(0)
-                }
+                Freshness::Fresh => outln!("{subject} is fresh{}", counts_suffix(&counts)),
                 Freshness::Stale { expected, actual } => {
                     eprintln!("{subject} is STALE (run `spec-spine index` to refresh)");
                     eprintln!("  expected: {expected}");
                     eprintln!("  actual:   {actual}");
-                    Ok(2)
+                    if !counts.is_empty() {
+                        eprintln!("  the stale ledger also records{}", counts_suffix(&counts));
+                    }
                 }
             }
+            if code == 1 {
+                eprintln!("{subject}: refusing on unresolved units (--fail-on-unresolved)");
+            }
+            Ok(code)
         }
         None => {
             let outcome = index(&cfg, repo)?;
@@ -176,6 +224,33 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             Ok(0)
         }
     }
+}
+
+/// The counts appended to `index check`'s verdict line, or `""` when the
+/// committed index records nothing.
+///
+/// A clean corpus keeps printing the bare `index is fresh`, so a tree with no
+/// diagnostics reads exactly as it did before spec 050 (3.1).
+fn counts_suffix(counts: &DiagnosticCounts) -> String {
+    if counts.is_empty() {
+        return String::new();
+    }
+    format!(" ({})", counts_summary(counts))
+}
+
+/// `"1 warning(s), 0 error(s): 1 W-001"`. Bare, so a caller can place it in a
+/// sentence as well as in parentheses.
+fn counts_summary(counts: &DiagnosticCounts) -> String {
+    let by_code = counts
+        .by_code
+        .iter()
+        .map(|(code, n)| format!("{n} {code}"))
+        .collect::<Vec<_>>()
+        .join(", ");
+    format!(
+        "{} warning(s), {} error(s): {by_code}",
+        counts.warnings, counts.errors
+    )
 }
 
 /// The human form of the coverage report: one headline, one line per package,

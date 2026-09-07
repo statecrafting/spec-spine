@@ -1,0 +1,145 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "025-unresolved-unit-severity",
+      "037-machine-readable-verdicts",
+      "044-in-progress-is-in-flight"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-cli/src/cmd_index.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/diagnostics.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/index.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/diagnostics.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/diagnostics.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/diagnostics.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/diagnostics.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/diagnostics.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_index.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/cli.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/index.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/03-adopter-audit-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/025-unresolved-unit-severity/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/025-unresolved-unit-severity/spec.md"
+        }
+      }
+    ],
+    "specId": "050-index-diagnostics-reach-a-gate",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "65bc464b70c37848c2a9f3ab09ff681864a35c0b96cf6548d83ff19782c29ad6"
+}

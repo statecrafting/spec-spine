@@ -570,7 +570,7 @@ pub fn slices_path(cfg: &spec_spine_types::Config, repo_root: &Path) -> PathBuf 
 
 /// Read and parse the committed index shards. Each shard's MAJOR is gated at the
 /// read boundary. An unbuilt index (no shard dirs) yields empty vectors.
-fn read_committed_index_shards(
+pub(crate) fn read_committed_index_shards(
     cfg: &spec_spine_types::Config,
     repo_root: &Path,
 ) -> Result<(Vec<IndexSpecShard>, Vec<IndexPackageShard>), Error> {
