@@ -1,7 +1,7 @@
 ---
 id: "050-index-diagnostics-reach-a-gate"
 title: "Index diagnostics reach a gate"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-06"
 implementation: complete
