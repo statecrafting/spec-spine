@@ -1,7 +1,7 @@
 ---
 id: "048-kit-ships-the-governed-loop-skills"
 title: "The kit ships one skill set for the governed loop, and this repository runs it"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-06"
 implementation: complete

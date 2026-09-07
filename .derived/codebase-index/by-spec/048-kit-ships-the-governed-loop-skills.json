@@ -214,8 +214,8 @@
       }
     ],
     "specId": "048-kit-ships-the-governed-loop-skills",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "e252fb3fd07d9ac2ecc707e94f2cfac52ce3cb6867ebf9ef1fc26f48c62abd5c"
+  "shardHash": "94917f840ee503e32a221f2ea217f515b4dcbfd6d114fddacfb8a95be8fd6a23"
 }
