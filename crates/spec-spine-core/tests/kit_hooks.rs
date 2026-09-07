@@ -64,9 +64,11 @@ fn spec_spine_invocations(body: &str) -> Vec<Vec<String>> {
                     .split_whitespace()
                     .map(str::to_string)
                     .collect();
-                // `[ -n "$sc" ]` expands to `[ -n spec-spine ]`: a shell test
-                // on the resolved path, not a call. A real invocation's first
-                // word is a subcommand or a flag (spec 051 3.5).
+                // This scanner rewrites the literal `"$sc"` to `spec-spine`
+                // above, so the guard `[ -n "$sc" ]` reads here as
+                // `[ -n spec-spine ]`. At runtime `$sc` holds a resolved path,
+                // and either way the line is a shell test, not a call. A real
+                // invocation's first word is a subcommand or a flag (051 3.5).
                 let is_call = words.first().is_some_and(|w| {
                     w.starts_with('-') || w.starts_with(|c: char| c.is_ascii_alphabetic())
                 });

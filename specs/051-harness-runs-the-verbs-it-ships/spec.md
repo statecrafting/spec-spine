@@ -352,6 +352,20 @@ build and tests, which is not what a read-only review skill should run. Subset
 catches the drift that actually occurred (an authority omitting a step its
 skills run) without dictating each skill's scope.
 
+**2026-09-07: the gate chain has one definition in the test.** Second-round
+review noted that the CI scanner and the parse guard each carried the same
+hardcoded verb list, so a verb added to the chain in one place and not the other
+would make the subset assertion vacuous for that verb without failing. Both now
+read one `GOVERNANCE_VERBS` const. The list stays closed on purpose: the
+invariant is about the gate chain `standards/spec/contract.md` defines, not
+about every verb CI happens to run.
+
+**2026-09-07: `[ -n "$sc" ]` stays after a successful resolve.** The same review
+observed that `spec_spine_bin` returns 0 only when it echoes a non-empty path,
+so the extra test in `SessionStart` is vacuously true. Kept deliberately: it
+costs nothing and holds if the resolver's contract ever changes, which is the
+same reason the other three hooks test it.
+
 **2026-09-07: `.github/workflows/ci.yml` needs no ownership edge.** Review of
 this change read the CI edit as an uncovered path and asked for an `extends`
 edge. `.github/` is on the coupling gate's built-in bypass floor

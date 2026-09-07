@@ -315,6 +315,12 @@ fn the_write_scanner_recognises_writes() {
 
 // --- spec 051 3.3: one gate list ------------------------------------------
 
+/// The gate chain, as `standards/spec/contract.md` defines it. Both the CI
+/// scanner and the parse guard read this one list: two copies could drift, and
+/// a verb missing from either makes the subset assertion vacuous for that verb
+/// without failing. Adding a verb to the chain means adding it here.
+const GOVERNANCE_VERBS: &[&str] = &["compile", "index", "lint", "couple"];
+
 /// The leading words of a command, up to the first flag: `index check
 /// --fail-on-unresolved` has the verb path `index check`.
 fn verb_path(cmd: &str) -> String {
@@ -363,7 +369,7 @@ fn ci_governance_commands(root: &Path) -> Vec<String> {
         if let Some(i) = trimmed.find("spec-spine ") {
             let cmd = trimmed[i + "spec-spine ".len()..].trim();
             let head = cmd.split_whitespace().next().unwrap_or("");
-            if matches!(head, "compile" | "index" | "lint" | "couple") {
+            if GOVERNANCE_VERBS.contains(&head) {
                 out.push(cmd.to_string());
             }
         }
@@ -391,7 +397,7 @@ fn agents_md_gate_list_names_every_step_ci_enforces() {
     for cmd in &listed {
         let head = cmd.split_whitespace().next().unwrap_or("");
         assert!(
-            matches!(head, "compile" | "index" | "lint" | "couple"),
+            GOVERNANCE_VERBS.contains(&head),
             "AGENTS.md gate-list parse read the wrong block: got `{cmd}`"
         );
     }
