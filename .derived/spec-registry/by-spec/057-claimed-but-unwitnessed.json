@@ -23,10 +23,58 @@
           "kind": "file",
           "path": "crates/spec-spine-core/src/index.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "050-index-diagnostics-reach-a-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/diagnostics.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "050-index-diagnostics-reach-a-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "053-depends-on-ordinal-monotonicity",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/lint.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "037-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
       }
     ],
     "id": "057-claimed-but-unwitnessed",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -55,6 +103,7 @@
       "3.2 `L-008`",
       "3.3 `index check` reports the count",
       "3.4 Nothing is folded into a hash",
+      "3.5 A corpus may declare a gap deliberate",
       "4. Out of scope",
       "5. Verification"
     ],
@@ -63,6 +112,6 @@
     "summary": "A `file` unit carries no span, and only span-backing source files are folded into a per-spec index shard hash. So a spec can claim a file, `index check` can report fresh, `index coverage` can report it claimed, and the file's contents can be rewritten from end to end with no gate noticing. This is not hypothetical in this repository: `AGENTS.md` is claimed by three specs, and appending a line to it leaves both `index check` and `compile --check` reporting fresh. Twenty-four claimed paths here are in that state, and spec 023 signs an attestation over a ledger that never hashed any of them. This spec adds `L-008`, a warning naming each claimed path that contributes to no content hash, and one line of `index check` output reporting the count. It does not fold claimed files into the hash: that would change what staleness means, and the honest first move is to say how large the gap is.\n",
     "title": "A claim no hash witnesses"
   },
-  "shardHash": "08c21103beb8d54e8352e3045fada0e04283d972a1847504466c38043d8099a5",
+  "shardHash": "c7a91dcf535017b75965273346286a29aecd744363d0fd162c1f7e095bfc9d5d",
   "specVersion": "1.1.0"
 }

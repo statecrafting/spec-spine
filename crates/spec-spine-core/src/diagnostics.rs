@@ -180,23 +180,55 @@ pub struct IndexCheckReport {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub actual: Option<String>,
     pub diagnostics: DiagnosticCounts,
+    /// Claimed paths that exist and that no content hash covers (spec 057).
+    ///
+    /// Additive on one verb's report payload, so `VERDICT_SCHEMA_VERSION` does
+    /// not move: spec 050 §3.6 settled that, and this follows it rather than
+    /// reopening it. Reporting only; `index check`'s exit code is unchanged
+    /// with and without `--fail-on-unresolved`, because the gate half is the
+    /// lint's and one flag must not mean two conditions.
+    #[serde(default)]
+    pub unwitnessed: UnwitnessedCounts,
+}
+
+/// The claimed-but-unwitnessed tally `index check` reports (spec 057 §3.3).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UnwitnessedCounts {
+    /// Every claimed path in no content hash, deliberate ones included. The
+    /// total is the honest number: an allowlist makes a gap explicit, not
+    /// smaller.
+    pub total: usize,
+    /// How many of `total` a `[lint] unwitnessed_allowed` pattern covers.
+    pub allowed: usize,
 }
 
 impl IndexCheckReport {
     /// Build the report from the two answers the CLI already holds.
     pub fn new(freshness: &crate::index::Freshness, counts: DiagnosticCounts) -> Self {
+        Self::with_unwitnessed(freshness, counts, UnwitnessedCounts::default())
+    }
+
+    /// As [`Self::new`], carrying the spec 057 tally.
+    pub fn with_unwitnessed(
+        freshness: &crate::index::Freshness,
+        counts: DiagnosticCounts,
+        unwitnessed: UnwitnessedCounts,
+    ) -> Self {
         match freshness {
             crate::index::Freshness::Fresh => Self {
                 fresh: true,
                 expected: None,
                 actual: None,
                 diagnostics: counts,
+                unwitnessed,
             },
             crate::index::Freshness::Stale { expected, actual } => Self {
                 fresh: false,
                 expected: Some(expected.clone()),
                 actual: Some(actual.clone()),
                 diagnostics: counts,
+                unwitnessed,
             },
         }
     }

@@ -1185,10 +1185,17 @@ fn prose_output_is_unchanged_without_the_flag() {
         String::from_utf8_lossy(&compile.stdout)
     );
     let index = run_in(root, &["index", "check"]);
+    // Spec 057 §3.3 adds one line under the verdict when the ledger has a gap,
+    // so the assertion is on the verdict line rather than on the whole stream.
+    // The fixture has one claimed-but-unwitnessed path, which is what that line
+    // reports; the verdict itself is untouched, which is what 037 §3.3 is about.
+    let index_out = String::from_utf8_lossy(&index.stdout);
     assert_eq!(
-        String::from_utf8_lossy(&index.stdout).trim(),
-        "index is fresh"
+        index_out.lines().next(),
+        Some("index is fresh"),
+        "{index_out}"
     );
+    assert!(index_out.contains("unwitnessed claims: 1"), "{index_out}");
     let lint = run_in(root, &["lint"]);
     assert!(
         String::from_utf8_lossy(&lint.stdout).contains("lint: 0 error(s)"),

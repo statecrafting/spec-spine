@@ -132,6 +132,39 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         }
     }
 
+    // L-008 (spec 057): a claimed path that exists and that no content hash
+    // covers. Its contents can be rewritten end to end with `index check` and
+    // `compile --check` both reporting fresh, which is the sentence this
+    // diagnostic qualifies.
+    //
+    // Read from the **committed** index rather than recomputed: `lint` is a
+    // read verb and indexing here would make it write-shaped and slow. A corpus
+    // with no committed index is silent, which is right: there is no ledger yet
+    // for a claim to be invisible to.
+    if let Ok(index) = crate::index::load_committed_index(cfg, repo_root) {
+        for claim in crate::index::unwitnessed_claims(cfg, repo_root, &index)
+            .into_iter()
+            .filter(|c| !c.allowed)
+        {
+            let spec_path = registry
+                .specs
+                .iter()
+                .find(|s| s.id == claim.spec_id)
+                .map(|s| s.spec_path.clone());
+            violations.push(warn(
+                "L-008",
+                format!(
+                    "spec '{}' claims '{}', which is in no content hash: its contents can \
+                     change without staling any shard. Add a covering glob to [index] \
+                     extra_hashed_inputs, or claim a section or symbol unit, whose span \
+                     is hashed",
+                    claim.spec_id, claim.path
+                ),
+                spec_path,
+            ));
+        }
+    }
+
     Ok(LintReport { violations })
 }
 

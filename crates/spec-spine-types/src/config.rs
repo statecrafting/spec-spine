@@ -304,6 +304,18 @@ pub struct LintConfig {
     /// asked for it by each writing the same script; the knob is how they stop
     /// maintaining it, not a verdict on anybody who did not.
     pub require_ordinal_monotonic_depends_on: bool,
+    /// Glob patterns naming claimed paths this corpus deliberately leaves out
+    /// of every content hash, suppressing `L-008` for them (spec 057).
+    ///
+    /// An unwitnessed claim is a real gap and a legitimate state, and a corpus
+    /// that has decided which of its gaps are deliberate should be able to
+    /// write that decision down rather than carry a permanent warning it has
+    /// agreed to ignore. Every entry is still counted by `index check`, which
+    /// reports the total and how many of it this list covers: the list makes an
+    /// exception explicit, never invisible.
+    ///
+    /// Patterns match the repo-relative POSIX path.
+    pub unwitnessed_allowed: Vec<String>,
 }
 
 /// Where a bypass entry came from (spec 054 §3.2).
