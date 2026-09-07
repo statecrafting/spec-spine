@@ -1,0 +1,133 @@
+{
+  "record": {
+    "amends": [
+      "048-kit-ships-the-governed-loop-skills",
+      "046-kit-hooks-read-never-write"
+    ],
+    "created": "2026-09-07",
+    "dependsOn": [
+      "046-kit-hooks-read-never-write",
+      "048-kit-ships-the-governed-loop-skills",
+      "049-verify-declared-acceptance",
+      "050-index-diagnostics-reach-a-gate"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": ".claude/settings.json"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/AGENTS.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/README.md"
+        }
+      },
+      {
+        "nature": "superseding",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/settings.json"
+        }
+      },
+      {
+        "nature": "superseding",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/skills/"
+        }
+      },
+      {
+        "nature": "superseding",
+        "spec": "048-kit-ships-the-governed-loop-skills",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "048-kit-ships-the-governed-loop-skills",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_skills.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "046-kit-hooks-read-never-write",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
+        }
+      }
+    ],
+    "id": "051-harness-runs-the-verbs-it-ships",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/049-verify-declared-acceptance/spec.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "051: The harness runs the verbs it ships",
+      "1. Purpose",
+      "1.1 The verb shipped and the harness kept the script",
+      "1.2 The gate list the skills defer to is not the gate CI runs",
+      "1.3 The hooks the kit ships resolve a binary this repository does not use",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 `/verify` wraps the verb",
+      "3.2 The scripts stay one release, deprecated",
+      "3.3 One gate list, and a test that pins it",
+      "3.4 This repository runs spec 050's gate",
+      "3.5 The hooks resolve the binary the project declares",
+      "3.6 This repository runs the hooks it ships",
+      "3.7 `/validate-and-fix` stops asserting facts this repository lacks",
+      "4. Out of scope",
+      "5. Verification",
+      "6. Resolved decisions"
+    ],
+    "specPath": "specs/051-harness-runs-the-verbs-it-ships/spec.md",
+    "status": "draft",
+    "summary": "Release v0.15.0 shipped two capabilities the harness was written to want and then did not use. Spec 049's `spec-spine verify <id>` retired nothing: all nine harness sites still call `scripts/verify-spec.sh`, so one protocol now has two implementations whose answers are already worded differently, which is the drift 048 1.2 exists to end reappearing inside the repository that wrote it. Spec 050's `--fail-on-unresolved` and `index diagnostics` reached no caller: the spec written because a warning nobody sees is a unit that quietly went unresolved is, in its own dogfood repository, still a warning nobody sees. Underneath both sits a third gap that made them possible: every skill says to run the gate exactly as AGENTS.md lists it, and AGENTS.md's list omits the ownership ratchet CI enforces, so the six skills that inline the step are more correct than the file they defer to. This spec makes the harness run what the tool ships: `/verify` wraps the verb, AGENTS.md names one gate list that a test pins against the skills, this repository turns on 050's gate and reads its diagnostics at session start, the kit's hooks resolve the binary the project declares instead of whatever a bare name finds on PATH, and this repository runs the hooks it ships to adopters.\n",
+    "title": "The harness runs the verbs it ships"
+  },
+  "shardHash": "95d5088c29b2843850caffa7a6b3938cf3e12a560309563558913ed85906d1ce",
+  "specVersion": "1.1.0"
+}

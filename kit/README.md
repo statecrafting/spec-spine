@@ -21,7 +21,7 @@ kit/
   settings.json        # Claude Code hooks (read-only) and permissions
   .mcp.json            # empty MCP server template
   scripts/
-    verify-spec.sh     # runs a spec's verify:cli blocks; what /verify and a verify stage call
+    verify-spec.sh     # DEPRECATED, superseded by `spec-spine verify` in 0.15.0 (spec 049)
   .claude/
     skills/   15 skills   the loop:  init, setup, next, build, verify, ship, shepherd, spec
                           support:   commit, code-review, validate-and-fix, cleanup,
@@ -45,12 +45,17 @@ adopter who ran `spec-spine init` can skip them.
 ## Install
 
 1. Install spec-spine (`cargo install spec-spine-cli`, `npm i -D spec-spine`, or
-   `pip install spec-spine`). Verify with `spec-spine --version`.
+   `pip install spec-spine`). Verify with `spec-spine --version`. **0.15.0 or
+   later** is required: `/verify` wraps the `spec-spine verify` verb that
+   release added.
 2. Copy `.claude/` into your repository root. Copy `AGENTS.md`, `settings.json`,
    and `.mcp.json` too if you do not already have them.
-3. Copy `scripts/verify-spec.sh` into your repository's `scripts/` (make it
-   executable). `/verify` runs it; an orchestrator's verify stage runs the same
-   protocol after merge.
+3. Skip `scripts/verify-spec.sh` on 0.15.0 or later. `/verify` calls
+   `spec-spine verify <id>`, and an orchestrator's verify stage runs the same
+   verb after merge. The script is kept in this kit only for adopters still
+   pinned below 0.15.0, where it remains the protocol; on 0.15.0 or later you
+   can delete your copy. It will be removed from the kit once the adopters have
+   upgraded.
 4. Customize `AGENTS.md`: replace every `<bracketed>` placeholder (project
    name, source directories, the parallel reads), pin the spec-spine version,
    and write the gate command list under "Working the backlog" (the governance
@@ -84,7 +89,6 @@ establishes:
   - ".claude/settings.json"
   - { kind: directory, path: ".claude/skills/" }
   - { kind: directory, path: ".claude/agents/" }
-  - "scripts/verify-spec.sh"
   # the three floor rules stay with the bootstrap spec that scaffolded them
 ```
 
