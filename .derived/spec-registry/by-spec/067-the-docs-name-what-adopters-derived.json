@@ -1,0 +1,60 @@
+{
+  "record": {
+    "created": "2026-09-07",
+    "dependsOn": [
+      "009-coupling-floor-claim-precedence",
+      "017-directory-crate-module-units",
+      "037-machine-readable-verdicts",
+      "044-in-progress-is-in-flight"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "docs/adoption-guide.md"
+      },
+      {
+        "kind": "file",
+        "path": "docs/schema-versioning.md"
+      }
+    ],
+    "id": "067-the-docs-name-what-adopters-derived",
+    "implementation": "pending",
+    "kind": "documentation",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "README.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "067: The docs name what adopters derived by experiment",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 `docs/specify-first.md`",
+      "3.2 The two interactions, in the adoption guide",
+      "3.3 The 037 migration note",
+      "3.4 Nothing mechanical changes",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/067-the-docs-name-what-adopters-derived/spec.md",
+    "status": "draft",
+    "summary": "Three documentation gaps the audit measured, each with a named victim. There is no page for specify-first adoption, which is how three of the four governed repositories work, so each of them independently derived the guarded Makefile, the CI manifest probe, `implementation: n-a` for record specs, and the fact that two hundred and forty-eight W-001 warnings is the defined state rather than a backlog. Two interactions are documented nowhere and were found by experiment: a path can be on the coupling bypass floor and simultaneously a hashed input, and a trailing-slash directory unit in `establishes` satisfies ownership recursively. And spec 037 changed `attest`'s stdout, which claude-observatory regexes in two places, with no migration note. This spec writes the page and the three paragraphs.\n",
+    "title": "The docs name what adopters derived by experiment"
+  },
+  "shardHash": "6bf220acf5cfc366794f24e7d33252507e82469fe8ae2f779977a7d1aee9a40d",
+  "specVersion": "1.1.0"
+}

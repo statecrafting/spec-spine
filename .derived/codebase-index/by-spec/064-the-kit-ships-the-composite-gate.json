@@ -1,0 +1,95 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "020-derived-artifact-merge-driver",
+      "029-claude-code-skill-kit",
+      "024-index-sharding",
+      "051-harness-runs-the-verbs-it-ships"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".githooks/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/README.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".githooks/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/README.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/README.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/ci.yml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/03-adopter-audit-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      }
+    ],
+    "specId": "064-the-kit-ships-the-composite-gate",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "32faeb2ac4af91359aea61eb7fb7627f537bb141220ee65db1eeec6793dca3bf"
+}

@@ -260,3 +260,55 @@ the audit. None of these is spec-spine's to fix.
   why: the best worked corpus of cross-territory edits in the family.
 - **Skill frontmatter with `allowed-tools`** scoped per command
   (`Bash(spec-spine:*)`, `Bash(git diff:*)`), which the kit's skills lack.
+
+## 7. Where each backlog item was filed
+
+Added 2026-09-07, when the remainder of both backlogs was filed as drafts.
+Grouping is by coherent claim, not one spec per item: several items were one
+mistake in one function and are argued together.
+
+| §3 (tool) | Filed as |
+|---|---|
+| 1. `spec-spine verify <id>` | 049-verify-declared-acceptance |
+| 2. Surface index diagnostics in a gate | 050-index-diagnostics-reach-a-gate |
+| 3. `couple` names the owning spec and points at `extends` | 052-couple-names-the-crossing |
+| 4. Ordinal-monotonic `depends_on` | 053-depends-on-ordinal-monotonicity |
+| 5. A governed read for effective coupling config | 054-effective-config-is-a-governed-read |
+| 6. Owner-of-path query | 055-the-ledger-answers-what-consumers-rebuild |
+| 7. Per-spec content hash on `registry show --json` | 055-the-ledger-answers-what-consumers-rebuild |
+| 8. `compile --spec <id>` | 056-compile-one-spec |
+| 9. Lint a claimed `file` unit outside every hashed input | 057-claimed-but-unwitnessed |
+| 10. Lint the retroactive-adoption shape | 058-retroactive-adoption-shape |
+| 11. `index orphans` under the in-flight predicate | 059-read-verbs-on-a-code-free-corpus |
+| 12. `--fail-on-untraced` on a package-less tree | 059-read-verbs-on-a-code-free-corpus |
+| 13. Richer `registry plan` output | 060-plan-answers-the-whole-question |
+| 14. `registry plan --next` | 060-plan-answers-the-whole-question |
+| 15. `build-meta.json` and the working tree | 061-the-scaffold-ships-what-adopters-wrote |
+| 16. A version pin the CLI can check | 062-a-version-pin-the-cli-can-check |
+| 17. The stale-binary exit-2 ambiguity | 063-a-stale-binary-is-not-a-stale-ledger |
+
+| §4 (kit and scaffold) | Filed as |
+|---|---|
+| 1. Ship the `.derived/` merge driver in `kit/` | 064-the-kit-ships-the-composite-gate |
+| 2. Ship a `Makefile` and a `govern.yml` | 064-the-kit-ships-the-composite-gate |
+| 3. `spec-spine init --with-kit` | 065-init-and-the-kit-are-one-adoption |
+| 4. A specify-first adoption page | 067-the-docs-name-what-adopters-derived |
+| 5. `CONSTITUTION_TEMPLATE` is still the stub | 061-the-scaffold-ships-what-adopters-wrote |
+| 6. The scaffolded `spec-spine.toml` hides every knob | 061-the-scaffold-ships-what-adopters-wrote |
+| 7. Contract additions | 066-the-contract-records-the-lifecycle-table |
+| 8. Document two interactions found by experiment | 067-the-docs-name-what-adopters-derived |
+| 9. Skills for the governed loop | 048-kit-ships-the-governed-loop-skills |
+| 10. A path-scoped rule example | 068-a-path-scoped-rule-example |
+| 11. State that the waiver is a human instrument | 047-harness-rules-name-the-legitimate-edits |
+| 12. Dogfood the hooks | 046-kit-hooks-read-never-write |
+| 13. Migration note for 037 | 067-the-docs-name-what-adopters-derived |
+| 14. `state_dir` needs its `.gitignore` half | 061-the-scaffold-ships-what-adopters-wrote |
+
+§5 (adopter-side follow-ups) is unchanged and remains each repository's own
+work. Nothing in it is spec-spine's to fix.
+
+One finding surfaced while filing, and is recorded here because it belongs to no
+backlog item. Spec 057's premise was verified rather than assumed: `AGENTS.md`
+is claimed by three specs, and appending a line to it leaves both
+`spec-spine index check` and `spec-spine compile --check` reporting fresh.
+Twenty-four claimed paths in this repository are in that state.

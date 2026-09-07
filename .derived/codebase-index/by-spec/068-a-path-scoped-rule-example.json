@@ -1,0 +1,77 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "029-claude-code-skill-kit",
+      "047-harness-rules-name-the-legitimate-edits",
+      "048-kit-ships-the-governed-loop-skills"
+    ],
+    "implementingPaths": [
+      {
+        "path": "kit/.claude/rules/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/README.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "kit/.claude/rules/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/rules/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/README.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/README.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".claude/rules/governed-artifact-reads.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/rules/governed-artifact-reads.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/03-adopter-audit-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      }
+    ],
+    "specId": "068-a-path-scoped-rule-example",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "8e37459dc44c7f96e9005f71553ba1a7ebd1d3e8544791e15e3af2d831f7b911"
+}

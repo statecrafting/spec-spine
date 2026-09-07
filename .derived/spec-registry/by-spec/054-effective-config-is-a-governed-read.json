@@ -1,0 +1,76 @@
+{
+  "record": {
+    "created": "2026-09-07",
+    "dependsOn": [
+      "005-coupling-gate",
+      "009-coupling-floor-claim-precedence",
+      "037-machine-readable-verdicts"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      }
+    ],
+    "id": "054-effective-config-is-a-governed-read",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/adoption-guide.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "054: The effective configuration is a governed read",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 `spec-spine config show`",
+      "3.2 The bypass floor is reported merged and attributed",
+      "3.3 The report is data first",
+      "3.4 What it reports is what the tool would use",
+      "3.5 Determinism",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/054-effective-config-is-a-governed-read/spec.md",
+    "status": "draft",
+    "summary": "`spec-spine.toml` is only half the configuration a coupling decision is made from. The other half is `DEFAULT_BYPASS_PREFIXES`, a thirteen-entry constant compiled into the binary, additive to the adopter's list and impossible to read from outside the process. claude-observatory, which judges other repositories, hand-parses each target's TOML and documents in its spec 016 D-3 that the built-in floor is simply unknowable to it. That is a consumer reimplementing half a contract and knowing it has the other half wrong. This spec adds `spec-spine config show [--json]`: the effective configuration, every default resolved, with the bypass floor rendered as the merged list the gate actually matches against and each entry attributed to the built-in floor or to the adopter's file. It reads and reports; it decides nothing.\n",
+    "title": "The effective configuration is a governed read"
+  },
+  "shardHash": "6fd5c6b96da465d4337cd7ae167c9ba65084da2bbf81aa65ce9b9ce389347d15",
+  "specVersion": "1.1.0"
+}

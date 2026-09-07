@@ -1,0 +1,84 @@
+{
+  "record": {
+    "created": "2026-09-07",
+    "dependsOn": [
+      "000-spec-spine-bootstrap",
+      "006-init-scaffold",
+      "054-effective-config-is-a-governed-read"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "006-init-scaffold",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/config.rs"
+        }
+      }
+    ],
+    "id": "062-a-version-pin-the-cli-can-check",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "062: A version pin the CLI can check",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 `[meta] required_version`",
+      "3.2 Every verb checks it",
+      "3.3 An old binary refuses too, for the wrong reason",
+      "3.4 The scaffold writes it, commented out",
+      "3.5 It does not check the schema versions",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/062-a-version-pin-the-cli-can-check/spec.md",
+    "status": "draft",
+    "summary": "A repository is governed by whichever spec-spine binary happens to be on the path, and nothing anywhere says which one it should be. rahi states 0.11.0 in three files that must agree by hand. All four governed repositories are two to four releases behind the fixes their own experience motivated, and rahi cannot see spec 044, which was written for rahi's exact state, because it is pinned below it. This spec adds `[meta] required_version`, a semver requirement the CLI checks on every run, refusing with a message that names both the requirement and the running version. The schema versions already tell a loader whether it can read an artifact; this tells an operator whether they are running the tool the corpus was governed by, which is a different question and currently has no answer at all.\n",
+    "title": "A version pin the CLI can check"
+  },
+  "shardHash": "4bcd1a42d21a8914fbebaefa44a437ffb32b31aed4d2eb944d896544181f476a",
+  "specVersion": "1.1.0"
+}

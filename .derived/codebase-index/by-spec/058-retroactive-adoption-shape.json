@@ -1,0 +1,69 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "003-conformance-lint",
+      "022-keypath-section-anchors",
+      "043-governance-document-gaps"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/src/lint.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "standards/spec/constitution.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/lint.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "standards/spec/constitution.md",
+            "span": {
+              "endLine": 73,
+              "startLine": 53
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "refines",
+        "unit": {
+          "anchor": "v-legacy-as-evidence",
+          "file": "standards/spec/constitution.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/03-adopter-audit-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      }
+    ],
+    "specId": "058-retroactive-adoption-shape",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "cb781b62b1c54abfa786a7912f84bad8fa6db42ba315d21160fbc2d4ddec6bc1"
+}

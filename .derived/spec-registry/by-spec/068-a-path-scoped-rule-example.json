@@ -1,0 +1,68 @@
+{
+  "record": {
+    "created": "2026-09-07",
+    "dependsOn": [
+      "029-claude-code-skill-kit",
+      "047-harness-rules-name-the-legitimate-edits",
+      "048-kit-ships-the-governed-loop-skills"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/rules/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/README.md"
+        }
+      }
+    ],
+    "id": "068-a-path-scoped-rule-example",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/rules/governed-artifact-reads.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "068: A path-scoped rule the kit actually ships",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One path-scoped rule",
+      "3.2 The unconditional rule stays",
+      "3.3 The README describes when to scope",
+      "3.4 It is exercised here",
+      "3.5 Nothing mechanical changes",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/068-a-path-scoped-rule-example/spec.md",
+    "status": "draft",
+    "summary": "The kit's three rules are unconditional: every one loads in every session regardless of what the session touches. Claude Code supports `paths:` frontmatter that loads a rule only when a matching file is touched, and the kit's README lists that pattern under \"intentionally excluded\" while hqgit carries three good ones, including per-file scoping. The exclusion was a judgement made before any adopter had tried it, and an adopter has now tried it and kept it. This spec ships one path-scoped rule, scoped to the derived artifact tree, whose content is the one instruction that is only ever relevant when someone has a compiled artifact open: do not hand-edit it. One rule, as a worked example of the mechanism, with the README's exclusion replaced by a description of when to reach for it.\n",
+    "title": "A path-scoped rule the kit actually ships"
+  },
+  "shardHash": "a7f600605c6e7ca06a8ac74f89cbf1012a934423dab03650920bfeb5274da247",
+  "specVersion": "1.1.0"
+}
