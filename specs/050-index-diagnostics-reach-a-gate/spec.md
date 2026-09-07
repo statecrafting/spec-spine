@@ -121,8 +121,13 @@ whether the index is fresh or stale.
 Prose form appends the counts to the existing verdict line:
 
 ```
-index is fresh (248 warning(s): 248 W-001, 0 W-002; 0 error(s))
+index is fresh (248 warning(s), 0 error(s): 248 W-001)
 ```
+
+The per-code breakdown omits zero entries here exactly as it does in the JSON,
+so a corpus with no `W-002` does not print `0 W-002`. An earlier draft of this
+example printed the zero and contradicted the rule stated two paragraphs below
+it; the example was the defect, not the rule.
 
 A corpus with none MUST keep printing the bare `index is fresh`, so that a
 clean tree reads exactly as it does today.
@@ -178,6 +183,14 @@ shards; the refusal lives on `check`, not here.
 
 None of 3.1 to 3.4 MAY re-run the indexer. All three read the committed shard
 set, which already carries every diagnostic verbatim.
+
+Reading them costs one pass over the shard set that `check_index_freshness`
+has already made and does not hand back. Folding the two into a single read
+means refactoring the staleness gate itself, which spec 004 owns and which every
+other gate depends on; that is not worth a constant factor on a set of small
+per-spec JSON files, in a verb that already hashes every input. **Decision,
+2026-09-06:** the second read stays, and the counting path folds directly over
+the shards rather than over a listing it would allocate and drop.
 
 This keeps `index check` the cheap gate it is, and it keeps the answer honest:
 the counts describe the ledger the corpus actually compiled to, not a fresh

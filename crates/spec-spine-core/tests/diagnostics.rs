@@ -14,7 +14,7 @@ use spec_spine_core::{
     AttributedDiagnostic, UNRESOLVED_CODES, committed_counts, committed_diagnostics,
     count_diagnostics as count, index, index_dir, index_shard_files,
 };
-use spec_spine_types::{Config, load_config};
+use spec_spine_types::{Config, Severity, load_config};
 
 fn write(root: &Path, rel: &str, content: &str) {
     let p = root.join(rel);
@@ -34,10 +34,10 @@ fn cfg() -> Config {
     load_config("").unwrap()
 }
 
-fn diag(spec: &str, code: &str, severity: &str) -> AttributedDiagnostic {
+fn diag(spec: &str, code: &str, severity: Severity) -> AttributedDiagnostic {
     AttributedDiagnostic {
         spec_id: spec.to_string(),
-        severity: severity.to_string(),
+        severity,
         code: code.to_string(),
         message: "m".to_string(),
         path: None,
@@ -49,10 +49,10 @@ fn diag(spec: &str, code: &str, severity: &str) -> AttributedDiagnostic {
 #[test]
 fn counts_split_by_tier_and_code() {
     let c = count(&[
-        diag("001-a", "W-001", "warning"),
-        diag("001-a", "W-001", "warning"),
-        diag("002-b", "W-002", "warning"),
-        diag("003-c", "I-004", "error"),
+        diag("001-a", "W-001", Severity::Warning),
+        diag("001-a", "W-001", Severity::Warning),
+        diag("002-b", "W-002", Severity::Warning),
+        diag("003-c", "I-004", Severity::Error),
     ]);
     assert_eq!(c.warnings, 3);
     assert_eq!(c.errors, 1);
@@ -63,7 +63,7 @@ fn counts_split_by_tier_and_code() {
 
 #[test]
 fn zero_entries_are_omitted_from_by_code() {
-    let c = count(&[diag("001-a", "W-001", "warning")]);
+    let c = count(&[diag("001-a", "W-001", Severity::Warning)]);
     assert_eq!(c.by_code.len(), 1, "{:?}", c.by_code);
     assert!(!c.by_code.contains_key("W-002"));
 }
@@ -79,7 +79,7 @@ fn empty_is_empty() {
 #[test]
 fn has_unresolved_covers_both_warning_codes() {
     for code in UNRESOLVED_CODES {
-        let c = count(&[diag("001-a", code, "warning")]);
+        let c = count(&[diag("001-a", code, Severity::Warning)]);
         assert!(c.has_unresolved(), "{code} must count as unresolved");
     }
 }
@@ -88,7 +88,7 @@ fn has_unresolved_covers_both_warning_codes() {
 fn an_error_tier_diagnostic_is_not_unresolved_for_the_flag() {
     // `--fail-on-unresolved` is defined over the warning codes. The error tier
     // is already gated: its shard reads as stale and `index check` exits 2.
-    let c = count(&[diag("001-a", "I-004", "error")]);
+    let c = count(&[diag("001-a", "I-004", Severity::Error)]);
     assert!(!c.is_empty());
     assert!(!c.has_unresolved());
 }
@@ -138,14 +138,14 @@ fn both_warning_tiers_are_read_back_with_their_spec() {
     let diags = committed_diagnostics(&cfg(), t.path()).unwrap();
     let found: Vec<_> = diags
         .iter()
-        .map(|d| (&*d.spec_id, &*d.code, &*d.severity))
+        .map(|d| (&*d.spec_id, &*d.code, d.severity))
         .collect();
     assert!(
-        found.contains(&("001-flight", "W-001", "warning")),
+        found.contains(&("001-flight", "W-001", Severity::Warning)),
         "{found:?}"
     );
     assert!(
-        found.contains(&("002-ref", "W-002", "warning")),
+        found.contains(&("002-ref", "W-002", Severity::Warning)),
         "{found:?}"
     );
 }

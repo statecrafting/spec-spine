@@ -18,7 +18,7 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use spec_spine_types::{Config, Diagnostic, Error};
+use spec_spine_types::{Config, Diagnostic, Error, Severity};
 
 use crate::index::read_committed_index_shards;
 
@@ -39,8 +39,11 @@ pub const UNRESOLVED_CODES: &[&str] = &["W-001", "W-002"];
 #[serde(rename_all = "camelCase")]
 pub struct AttributedDiagnostic {
     pub spec_id: String,
-    /// `"error"` or `"warning"`, the tier the shard recorded it in.
-    pub severity: String,
+    /// The tier the shard recorded it in. Typed rather than a string: the
+    /// counting fold below branches on it, and a stringly-typed tier makes
+    /// "anything that is not `error` counts as a warning" an invariant nothing
+    /// enforces. Serializes as `"error"` / `"warning"`, unchanged on the wire.
+    pub severity: Severity,
     pub code: String,
     pub message: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -84,20 +87,20 @@ pub fn committed_diagnostics(
     let mut out = Vec::new();
     for sh in &spec_shards {
         let spec_id = &sh.mapping.spec_id;
-        let mut push = |severity: &str, d: &Diagnostic| {
+        let mut push = |severity: Severity, d: &Diagnostic| {
             out.push(AttributedDiagnostic {
                 spec_id: spec_id.clone(),
-                severity: severity.to_string(),
+                severity,
                 code: d.code.clone(),
                 message: d.message.clone(),
                 path: d.path.clone(),
             });
         };
         for d in &sh.diagnostics.errors {
-            push("error", d);
+            push(Severity::Error, d);
         }
         for d in &sh.diagnostics.warnings {
-            push("warning", d);
+            push(Severity::Warning, d);
         }
     }
     out.sort_by(|a, b| {
@@ -111,8 +114,33 @@ pub fn committed_diagnostics(
 }
 
 /// Count the committed diagnostics without materializing the listing.
+///
+/// Folds straight over the shards rather than counting
+/// [`committed_diagnostics`]'s vector, because `index check` calls this on
+/// every CI run and has no use for the listing it would allocate and drop. The
+/// two paths are pinned against each other in the fixtures, so they cannot
+/// drift apart.
+///
+/// This still reads the shard set a second time: `check_index_freshness` has
+/// already read it, and does not hand it back. Folding the two into one read
+/// means refactoring the staleness gate itself, which is load-bearing and owned
+/// by spec 004, so it is left alone deliberately (spec 050 3.5). The cost is
+/// one extra pass over small per-spec JSON files, paid by a verb that already
+/// hashes every input.
 pub fn committed_counts(cfg: &Config, repo_root: &Path) -> Result<DiagnosticCounts, Error> {
-    Ok(count(&committed_diagnostics(cfg, repo_root)?))
+    let (spec_shards, _) = read_committed_index_shards(cfg, repo_root)?;
+    let mut counts = DiagnosticCounts::default();
+    for sh in &spec_shards {
+        for d in &sh.diagnostics.errors {
+            counts.errors += 1;
+            *counts.by_code.entry(d.code.clone()).or_insert(0) += 1;
+        }
+        for d in &sh.diagnostics.warnings {
+            counts.warnings += 1;
+            *counts.by_code.entry(d.code.clone()).or_insert(0) += 1;
+        }
+    }
+    Ok(counts)
 }
 
 /// Fold a listing into counts. Split out so the arithmetic is testable without
@@ -120,10 +148,13 @@ pub fn committed_counts(cfg: &Config, repo_root: &Path) -> Result<DiagnosticCoun
 pub fn count(diagnostics: &[AttributedDiagnostic]) -> DiagnosticCounts {
     let mut counts = DiagnosticCounts::default();
     for d in diagnostics {
-        if d.severity == "error" {
-            counts.errors += 1;
-        } else {
-            counts.warnings += 1;
+        match d.severity {
+            Severity::Error => counts.errors += 1,
+            // The indexer records two tiers. `Info` is in the shared `Severity`
+            // enum for lint's benefit and never reaches a shard; counting it
+            // with the warnings keeps the two totals exhaustive rather than
+            // letting a diagnostic fall out of both.
+            Severity::Warning | Severity::Info => counts.warnings += 1,
         }
         *counts.by_code.entry(d.code.clone()).or_insert(0) += 1;
     }

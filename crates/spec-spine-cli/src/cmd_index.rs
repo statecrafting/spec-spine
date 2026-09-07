@@ -170,7 +170,10 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                     eprintln!("  expected: {expected}");
                     eprintln!("  actual:   {actual}");
                     if !counts.is_empty() {
-                        eprintln!("  the stale ledger also records{}", counts_suffix(&counts));
+                        eprintln!(
+                            "  the stale ledger also records {}",
+                            counts_summary(&counts)
+                        );
                     }
                 }
             }
