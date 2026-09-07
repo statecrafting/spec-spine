@@ -1,0 +1,138 @@
+{
+  "record": {
+    "created": "2026-09-06",
+    "dependsOn": [
+      "016-short-id-resolution",
+      "037-machine-readable-verdicts",
+      "048-kit-ships-the-governed-loop-skills"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/verify.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/verify.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/verify.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_verify.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "037-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      }
+    ],
+    "id": "049-verify-declared-acceptance",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/043-governance-document-gaps/spec.md"
+        }
+      },
+      {
+        "role": "prior-art",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-spec.sh"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "049: `spec-spine verify <id>`",
+      "1. Purpose",
+      "1.1 The adopters closed the gap, four times",
+      "1.2 What a verb buys that a script does not",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The seam: core parses, the CLI executes",
+      "3.2 The grammar",
+      "3.3 Outcomes and exit codes",
+      "3.4 The report",
+      "3.5 Execution",
+      "3.6 `verify` executes what the corpus declares",
+      "3.7 A spec that verifies itself is refused, not run",
+      "3.8 `--plan` reads without running",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/049-verify-declared-acceptance/spec.md",
+    "status": "draft",
+    "summary": "A spec's `## Verification` section states what would make its claims true, and nothing runs it. Three adopters independently wrote the same 78-line `scripts/verify-spec.sh` to close that gap, and spec 048 added a fourth copy to this repository, so the kit now ships the workaround it exists to retire. Spec 043 4 named this \"the most substantial thing the adoption invented and the one most worth having\" and deferred filing it. This is that filing. `spec-spine verify <id>` reads the spec's `## Verification` section, runs each line of its `verify:cli` fences from the repository root in order, and stops at the first failure. Two things make it a spec-spine verb rather than a script: the parse becomes a typed, tested read of authored markdown that the library owns, and the outcome becomes a spec 037 verdict envelope instead of a sentence a caller must string-match. The engine never spawns a process. Core returns a `VerifyPlan`, the commands it found and the fence tags it declined, and the CLI executes it, which is the same seam `couple` already uses for `git`. Two behaviours diverge deliberately from the ported script, both to keep an older contract intact: a missing spec exits 1, not the script's 2, because 2 means stale; and a failing command exits 1 with its own code carried in the payload, rather than propagating a code the exit contract does not define. `not-declared` stays an honest zero and is distinguishable from a pass in the payload, never by parsing prose.\n",
+    "title": "`spec-spine verify <id>`: run a spec's declared acceptance"
+  },
+  "shardHash": "abee2869bb6e409e1da62da696d1f11b4fcad01d35603a171aa5b9c9ae029372",
+  "specVersion": "1.1.0"
+}

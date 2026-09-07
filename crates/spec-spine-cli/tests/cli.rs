@@ -921,7 +921,14 @@ fn json_envelope_on_every_adjudicating_verb() {
             String::from_utf8_lossy(&out.stderr)
         );
         let v = envelope(&out);
-        assert_eq!(v["schemaVersion"], "0.1.0", "{verb}");
+        // Spec 049 took the envelope to 0.2.0 by adding the `verify` verb. The
+        // assertion tracks the constant rather than a literal so that a future
+        // additive verb does not read as a change to these six verbs.
+        assert_eq!(
+            v["schemaVersion"],
+            spec_spine_types::VERDICT_SCHEMA_VERSION,
+            "{verb}"
+        );
         assert_eq!(v["verb"], verb);
         assert_eq!(v["ok"], true, "{verb}");
         assert_eq!(v["exitCode"], 0, "{verb}");
@@ -1683,4 +1690,213 @@ fn the_seal_path_follows_the_attestation_it_signs() {
             "{id} seals beside its own payload"
         );
     }
+}
+
+// --- `verify` (spec 049) --------------------------------------------------
+
+/// Write a spec whose `## Verification` section holds `section` verbatim.
+fn write_verify_spec(root: &Path, dir: &str, section: &str) {
+    let spec_dir = root.join("specs").join(dir);
+    fs::create_dir_all(&spec_dir).unwrap();
+    let body = format!(
+        "---\nid: \"{dir}\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-06\"\nsummary: \"s\"\n---\n# {dir}\n\n## Verification\n\n{section}\n"
+    );
+    fs::write(spec_dir.join("spec.md"), body).unwrap();
+}
+
+#[test]
+fn verify_runs_commands_and_reports_outcomes() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_verify_spec(tmp.path(), "001-pass", "```verify:cli\ntrue\ntrue\n```");
+    write_verify_spec(
+        tmp.path(),
+        "002-fail",
+        "```verify:cli\ntrue\nexit 7\ntrue\n```",
+    );
+    write_verify_spec(tmp.path(), "003-prose", "- a prose bullet only");
+    let run = |args: &[&str]| {
+        bin()
+            .arg("--repo")
+            .arg(tmp.path())
+            .args(args)
+            .output()
+            .unwrap()
+    };
+
+    // Every command exits 0 -> passed, exit 0.
+    let out = run(&["verify", "001-pass"]);
+    assert_eq!(code(&out), 0);
+    assert!(
+        String::from_utf8_lossy(&out.stdout).contains("passed (2 command(s))"),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+
+    // A failure is exit 1, NOT the command's own 7 (spec 049 3.3): the
+    // documented exit contract has no entry for 7.
+    let out = run(&["verify", "002-fail"]);
+    assert_eq!(code(&out), 1, "a failing command is a drift-tier 1");
+
+    // Nothing declared is an honest zero.
+    assert_eq!(code(&run(&["verify", "003-prose"])), 0);
+
+    // A missing spec is 1 (not found), never 2 (stale).
+    assert_eq!(code(&run(&["verify", "404-gone"])), 1);
+}
+
+#[test]
+fn verify_json_is_a_verdict_envelope_that_agrees_with_the_exit_code() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_verify_spec(tmp.path(), "001-pass", "```verify:cli\ntrue\n```");
+    write_verify_spec(
+        tmp.path(),
+        "002-fail",
+        "```verify:cli\ntrue\nexit 7\n```\n\n```verify:browser\nclick\n```",
+    );
+    write_verify_spec(tmp.path(), "003-prose", "- prose");
+    let json = |id: &str| -> (i32, serde_json::Value) {
+        let out = bin()
+            .arg("--repo")
+            .arg(tmp.path())
+            .args(["verify", id, "--json"])
+            .output()
+            .unwrap();
+        (
+            code(&out),
+            serde_json::from_slice(&out.stdout).expect("stdout is one JSON envelope"),
+        )
+    };
+
+    let (c, v) = json("001-pass");
+    assert_eq!(c, 0);
+    assert_eq!(v["verb"], "verify");
+    assert_eq!(v["schemaVersion"], "0.2.0");
+    assert_eq!(v["ok"], true);
+    assert_eq!(v["exitCode"], 0);
+    assert_eq!(v["report"]["outcome"], "passed");
+    assert_eq!(v["report"]["declared"], true);
+    assert_eq!(v["report"]["ran"], 1);
+    assert_eq!(v["report"]["total"], 1);
+
+    // The failing command's own code lives in the payload, and `ran` stops at it.
+    let (c, v) = json("002-fail");
+    assert_eq!(c, 1);
+    assert_eq!(v["exitCode"], 1, "the envelope never advertises 7");
+    assert_eq!(
+        v["report"]["failure"]["exitCode"], 7,
+        "but the payload keeps it"
+    );
+    assert_eq!(v["report"]["failure"]["index"], 2);
+    assert_eq!(v["report"]["failure"]["command"], "exit 7");
+    assert_eq!(v["report"]["ran"], 2);
+    assert_eq!(v["report"]["total"], 2);
+    assert_eq!(v["report"]["skipped"][0]["tag"], "verify:browser");
+
+    // not-declared is distinguishable from a pass without parsing prose.
+    let (c, v) = json("003-prose");
+    assert_eq!(c, 0);
+    assert_eq!(v["ok"], true);
+    assert_eq!(v["report"]["outcome"], "not-declared");
+    assert_eq!(v["report"]["declared"], false);
+}
+
+#[test]
+fn verify_runs_from_the_repo_root_and_stops_at_the_first_failure() {
+    let tmp = tempfile::tempdir().unwrap();
+    // Each command appends to a file, so the transcript is checkable on disk.
+    write_verify_spec(
+        tmp.path(),
+        "001-order",
+        "```verify:cli\nprintf a >> log.txt\nfalse\nprintf c >> log.txt\n```",
+    );
+    let out = bin()
+        .arg("--repo")
+        .arg(tmp.path())
+        .args(["verify", "001-order"])
+        .output()
+        .unwrap();
+    assert_eq!(code(&out), 1);
+    // `a` ran (relative path resolved against the repo root); `c` never did.
+    let log = fs::read_to_string(tmp.path().join("log.txt")).unwrap();
+    assert_eq!(log, "a", "later commands must not run after a failure");
+}
+
+#[test]
+fn verify_plan_reads_without_running() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_verify_spec(
+        tmp.path(),
+        "001-p",
+        "```verify:cli\nprintf ran >> side_effect.txt\n# a comment\nsecond\n```",
+    );
+    let out = bin()
+        .arg("--repo")
+        .arg(tmp.path())
+        .args(["verify", "001-p", "--plan"])
+        .output()
+        .unwrap();
+    assert_eq!(code(&out), 0);
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert_eq!(
+        stdout.lines().collect::<Vec<_>>(),
+        ["printf ran >> side_effect.txt", "second"],
+        "comments are stripped, both commands listed"
+    );
+    assert!(
+        !tmp.path().join("side_effect.txt").exists(),
+        "--plan must run nothing"
+    );
+}
+
+#[test]
+fn verify_refuses_to_re_enter_itself() {
+    let tmp = tempfile::tempdir().unwrap();
+    // The spec's own block runs `verify` on itself: without the spec 049 3.7
+    // guard this forks without bound.
+    write_verify_spec(
+        tmp.path(),
+        "001-loop",
+        "```verify:cli\nSELF --repo REPO verify 001-loop\n```",
+    );
+    let spec = tmp.path().join("specs/001-loop/spec.md");
+    let body = fs::read_to_string(&spec)
+        .unwrap()
+        .replace("SELF", env!("CARGO_BIN_EXE_spec-spine"))
+        .replace("REPO", tmp.path().to_str().unwrap());
+    fs::write(&spec, body).unwrap();
+
+    let out = bin()
+        .arg("--repo")
+        .arg(tmp.path())
+        .args(["verify", "001-loop"])
+        .output()
+        .unwrap();
+    // The inner call is refused, so the outer command exits non-zero and the
+    // outer run reports a failure. The point is that it terminates at all.
+    assert_eq!(code(&out), 1);
+
+    // The refusal itself, observed directly: an id already on the stack.
+    let out = bin()
+        .arg("--repo")
+        .arg(tmp.path())
+        .args(["verify", "001-loop"])
+        .env("SPEC_SPINE_VERIFY_STACK", "001-loop")
+        .output()
+        .unwrap();
+    assert_eq!(code(&out), 1);
+    assert!(
+        String::from_utf8_lossy(&out.stderr).contains("validation"),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+
+    // A stack that does not contain this id runs normally.
+    let out = bin()
+        .arg("--repo")
+        .arg(tmp.path())
+        .args(["verify", "001-loop", "--plan"])
+        .env("SPEC_SPINE_VERIFY_STACK", "002-other")
+        .output()
+        .unwrap();
+    assert_eq!(code(&out), 0, "only a cycle is refused, not any depth");
 }

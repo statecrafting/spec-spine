@@ -66,16 +66,31 @@ install → init → annotate → wire-CI walkthrough.
 | `spec-spine registry list\|show\|status-report\|relationships\|plan` | typed read-only queries; `plan` (spec 038) partitions the corpus into what can be worked on now and what is blocked, naming each blocker's state |
 | `spec-spine lint [--fail-on-warn] [--fail-on-info]` | corpus well-formedness |
 | `spec-spine couple` | the PR-time coupling gate (refuses drift; with `[coupling] require_ownership` also refuses a changed source file no spec claims) |
+| `spec-spine verify <id>` / `verify <id> --plan` | run a spec's declared acceptance: the `verify:cli` commands under its `## Verification` heading, in order, stopping at the first failure / print what would run without running it. **Executes code the corpus declares**, so it is deliberately not part of the gate chain (spec 049) |
 | `spec-spine init [--force]` | scaffold a new adopter |
 
 Exit codes: `0` ok · `1` validation failure / not found / drift · `2` stale ·
 `3` I/O / parse / schema / config.
 
 The verbs that render a **verdict** (`compile --check`, `index check`, `lint`,
-`couple`, `attest`, `verify-attestation`) take `--json` (spec 037), writing one
+`couple`, `attest`, `verify-attestation`, `verify`) take `--json` (spec 037), writing one
 canonical envelope (`schemaVersion`, `verb`, `ok`, `exitCode`, and either
 `report` or `error`) instead of prose. The flag changes what is written, never
 what is decided: every exit code is identical with and without it.
+
+### `verify` runs what the corpus declares
+
+`spec-spine verify <id>` is the one verb that **executes** rather than reads. It
+runs the commands written in a spec's `## Verification` section, through `sh -c`
+from the repository root. That is safe where the corpus and the operator share a
+trust domain, and it is why `verify` is **not** in the gate chain: `compile`,
+`index`, `lint` and `couple` run against PR branches whose contents are, in the
+general case, a stranger's. Running acceptance against a reviewed, merged sha is
+an orchestrator's decision; this verb serves that decision rather than making it.
+
+`spec-spine verify <id> --plan` prints the commands without running any of them,
+which is how you read a `## Verification` block someone else wrote. A spec whose
+block runs `verify` on itself is refused (`R-001`) rather than recursed.
 
 ## Crates
 

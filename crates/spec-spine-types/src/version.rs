@@ -52,10 +52,12 @@ pub const SPEC_ATTESTATION_SCHEMA_VERSION: &str = "0.1.0";
 ///
 /// Independent of the registry and index versions on purpose: a consumer pins
 /// the shape of the verdict it parses without pinning the ledger it reads.
-/// MINOR is additive, which includes adding an `error.kind` token (a consumer's
-/// existing branches still match); MAJOR is breaking, which includes renaming
-/// or removing one (they stop matching).
-pub const VERDICT_SCHEMA_VERSION: &str = "0.1.0";
+/// MINOR is additive, which includes adding an `error.kind` token or a `verb`
+/// token (a consumer's existing branches still match); MAJOR is breaking,
+/// which includes renaming or removing one (they stop matching).
+///
+/// 0.2.0 added the `verify` verb (spec 049).
+pub const VERDICT_SCHEMA_VERSION: &str = "0.2.0";
 
 /// The `spec-spine.toml` config schema version (optional `config_version` key).
 pub const CONFIG_VERSION: &str = "0.1.0";

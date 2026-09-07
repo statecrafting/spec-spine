@@ -237,6 +237,7 @@ pub fn lint_json           (config_json: &str, repo_root: &str) -> Result<String
 pub fn check_freshness_json(config_json: &str, repo_root: &str) -> Result<String, Error>;
 pub fn check_registry_freshness_json(config_json: &str, repo_root: &str) -> Result<String, Error>;
 pub fn coverage_json       (config_json: &str, repo_root: &str) -> Result<String, Error>;
+pub fn verify_plan_json    (config_json: &str, repo_root: &str, spec_id: &str) -> Result<String, Error>;
 pub fn couple_json         (request_json: &str)                 -> Result<String, Error>;
 pub fn query_json          (request_json: &str)                 -> Result<String, Error>;
 pub fn render_json         (config_json: &str, index_json: &str) -> Result<String, Error>;
@@ -275,6 +276,12 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
 - `coverage_json` (spec 032) returns the `CoverageReport`: `sourceFiles`,
   `claimedFiles`, the sorted `floorOnlyFiles` / `unclaimedFiles` lists, and
   per-package counts. A stale committed index is `Error::Stale`, not a report.
+- `verify_plan_json` (spec 049) returns a spec's `VerifyPlan`: the `verify:cli`
+  commands its `## Verification` section declares, in document order, plus the
+  fence tags it declined (`skipped`). `spec_id` accepts the short form (spec
+  016). **The plan is all the library produces**: running the commands is the
+  caller's act, never the engine's, which is the same seam that keeps `git` on
+  the CLI side of `couple`. A library with no shell can still read the plan.
 - `render_json` (spec 011) takes `config_json` and the aggregate index JSON
   text and returns the markdown projection (a JSON-encoded string).
   `orphans_json` (spec 011) takes only the index JSON text and returns the
