@@ -111,6 +111,7 @@ operation has a JSON-in/JSON-out facade (`compile_json`, `query_json`, …); see
 | [concept.md](docs/concept.md) | the origin story and the model: what spec-spine is and why it exists |
 | [design/00-architecture.md](docs/design/00-architecture.md) | the full design: crate layout, `Config`, public API, exit codes, schema plan |
 | [adoption-guide.md](docs/adoption-guide.md) | install → init → annotate → wire CI; the full `Config` knob table |
+| [specify-first.md](docs/specify-first.md) | governing a corpus before the code exists: what the counts, warnings and gates mean in that mode |
 | [api.md](docs/api.md) | the `spec-spine-core` public API + JSON facade |
 | [overlay-contract.md](docs/overlay-contract.md) | layer domain output on top without forking the core |
 | [bindings-plan.md](docs/bindings-plan.md) | the napi / pyo3 / cgo path (design only; no binding code yet) |

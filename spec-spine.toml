@@ -57,6 +57,7 @@ extra_hashed_inputs = [
   "docs/adoption-guide.md",
   "docs/releasing.md",
   "docs/schema-versioning.md",
+  "docs/specify-first.md",
   "kit/AGENTS.md",
   "kit/README.md",
   "kit/settings.json",

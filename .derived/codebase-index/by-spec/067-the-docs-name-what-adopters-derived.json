@@ -14,6 +14,14 @@
       {
         "path": "docs/schema-versioning.md",
         "source": "spec-edge"
+      },
+      {
+        "path": "docs/specify-first.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "spec-spine.toml",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
@@ -41,6 +49,32 @@
         "unit": {
           "kind": "file",
           "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/specify-first.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "docs/specify-first.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
         }
       },
       {
@@ -74,5 +108,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "4ba4449882bcd33d4b4db53344f83428d924ba59f21882128ab294585cf0b9c1"
+  "shardHash": "b523a1a6ff000d0c572e60c29deed3c34381be9af5b587c20a356a7741ae70a7"
 }
