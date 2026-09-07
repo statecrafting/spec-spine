@@ -7,6 +7,32 @@
       "024-index-sharding",
       "051-harness-runs-the-verbs-it-ships"
     ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "kit/Makefile"
+      },
+      {
+        "kind": "file",
+        "path": "kit/govern.yml"
+      },
+      {
+        "kind": "file",
+        "path": "kit/.gitattributes-stanza"
+      },
+      {
+        "kind": "file",
+        "path": "kit/.githooks/enable-merge-driver.sh"
+      },
+      {
+        "kind": "file",
+        "path": "kit/.githooks/merge-derived-index.sh"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/kit_gate.rs"
+      }
+    ],
     "extends": [
       {
         "nature": "additive",
@@ -31,10 +57,26 @@
           "kind": "file",
           "path": ".githooks/"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-release-supply-chain-artifacts",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-claimed-but-unwitnessed",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
       }
     ],
     "id": "064-the-kit-ships-the-composite-gate",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -71,6 +113,6 @@
     "summary": "The kit ships a session harness and no build. Every adopter therefore wrote the same two things by hand. First a composite gate: a Makefile whose language targets are guarded on a manifest probe so the whole thing is green on a code-free tree, and a CI workflow carrying the `has_cargo` job-output pattern that three adopters each rediscovered after GitHub rejected `hashFiles` in a job-level `if`. Second, nothing at all for the committed shard trees: rahi runs one spec per PR with committed shards and has no merge driver, and the kit's README never says the words. This spec ships `kit/Makefile`, `kit/govern.yml`, `kit/.githooks/` and the `.gitattributes` stanza, and holds them to the rule spec 046 and 051 established for everything else in the kit: what the kit ships, this repository runs.\n",
     "title": "The kit ships the composite gate and the merge driver"
   },
-  "shardHash": "90d5e4ae936a6398c7adb707365e218cc1f6c35128d7655ae2bccf8bf109667e",
+  "shardHash": "30038697c551f963ae5b211861d1a83bf141ea47081fdfca63ba7cc3a7bc204f",
   "specVersion": "1.1.0"
 }
