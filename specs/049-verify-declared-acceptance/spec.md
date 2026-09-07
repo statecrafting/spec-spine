@@ -307,6 +307,10 @@ the second follows from `verify` reading only `specs/<id>/spec.md`.
 ## 5. Verification
 
 ```verify:cli
+# The block is self-contained: the commands below invoke the release binary,
+# and `cargo test` builds only debug artifacts, so it is built first. An
+# orchestrator runs this in a clean checkout of the merged sha.
+cargo build --release --locked
 cargo test -p spec-spine-core --test verify --locked
 cargo test -p spec-spine-types --test dtos --locked
 cargo test -p spec-spine-cli --locked
