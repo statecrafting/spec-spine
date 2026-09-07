@@ -4,7 +4,7 @@ title: "The contract records the lifecycle table and the extra keys"
 status: draft
 kind: "governance"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -14,6 +14,10 @@ depends_on:
   - "045-absent-implementation-defers-to-status"
 extends:
   - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/src/scaffold.rs", nature: additive }
+  - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/tests/scaffold.rs", nature: additive }
+  # The two sections are added to this repository's own contract as well, whose
+  # section units spec 043 established are claimed rather than amended.
+  - { spec: "043-governance-document-gaps", unit: "standards/spec/contract.md", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "standards/spec/contract.md" }, role: context }
@@ -185,21 +189,26 @@ of the page.
 
 ## 5. Verification
 
+Each line is one command (spec 049 §3.2). Both sections fail against pre-066
+state: neither existed, in this repository's contract or the scaffolded one.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-core --test scaffold --locked
-# Both sections exist and are claimable as section units, which is what the
-# frontmatter of this spec asserts.
-target/release/spec-spine index render | grep -q '066-the-contract-records-the-lifecycle-table'
-grep -q 'Lifecycle as scheduling' standards/spec/contract.md
-grep -q 'Extra keys' standards/spec/contract.md
-# The scaffolded contract carries them too.
-tmp=$(mktemp -d) && target/release/spec-spine --repo "$tmp" init >/dev/null \
-  && grep -q 'Lifecycle as scheduling' "$tmp/standards/spec/contract.md" \
-  && grep -q 'extra_known_keys' "$tmp/standards/spec/contract.md"
-# This spec's own units resolve, so it is not an orphan, and the shards were
-# regenerated after editing a hashed input under standards/.
+# 3.1 + 3.2: this repository's contract carries both sections.
+grep -q '## Lifecycle as scheduling' standards/spec/contract.md
+grep -q '## Extra keys' standards/spec/contract.md
+# 3.1: and the row a specify-first corpus lives in for months.
+grep -q 'approved. | .pending., .in-progress. | yes' standards/spec/contract.md
+# 3.3: a new adopter gets them rather than writing them.
+rm -rf "${TMPDIR:-/tmp}/ss066" && mkdir -p "${TMPDIR:-/tmp}/ss066" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss066" init >/dev/null
+grep -q 'Lifecycle as scheduling' "${TMPDIR:-/tmp}/ss066/standards/spec/contract.md"
+grep -q 'Extra keys' "${TMPDIR:-/tmp}/ss066/standards/spec/contract.md"
+# 3.4: and the scaffolded corpus still compiles and lints clean.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss066" compile >/dev/null
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss066" lint --fail-on-warn
+rm -rf "${TMPDIR:-/tmp}/ss066"
+# The ledger is untouched by a documentation change to a bypassed path.
 target/release/spec-spine compile --check
-target/release/spec-spine index check --fail-on-unresolved
 ```

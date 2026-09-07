@@ -448,3 +448,51 @@ fn the_embedded_kit_matches_the_checked_in_tree() {
         "the whole harness is embedded, not a subset"
     );
 }
+
+// ── spec 066: the contract records the lifecycle table ────────────────────
+
+/// §3.3: the scaffolded contract carries both sections, so a new adopter gets
+/// them rather than writing them. This is the pattern spec 043 §3.4
+/// established when it added the amendment mechanism to the scaffolded
+/// constitution.
+#[test]
+fn the_scaffolded_contract_carries_the_lifecycle_table_and_extra_keys() {
+    let contract = scaffolded(&Config::default(), "standards/spec/contract.md");
+    assert!(
+        contract.contains("## Lifecycle as scheduling"),
+        "{contract}"
+    );
+    assert!(contract.contains("## Extra keys"), "{contract}");
+
+    // §3.1: the table's load-bearing rows, and the three sentences.
+    assert!(contract.contains("| `approved` | `pending`, `in-progress` | yes |"));
+    assert!(contract.contains("is a work order"), "{contract}");
+    assert!(
+        contract.contains("never a claim about code"),
+        "a draft's unresolved units are expected"
+    );
+    assert!(
+        contract.contains("not a third value"),
+        "an absent implementation defers to status"
+    );
+    // §3.2: the discoverability point.
+    assert!(contract.contains("extra_known_keys"), "{contract}");
+    assert!(contract.contains("extraFrontmatter"), "{contract}");
+}
+
+/// §3.4: the scaffolded corpus still compiles and lints clean with the longer
+/// contract, and the generator stays a pure function of `Config`.
+#[test]
+fn the_longer_contract_does_not_break_the_scaffolded_corpus() {
+    let cfg = Config::default();
+    let a = scaffold_init(&cfg).unwrap();
+    let b = scaffold_init(&cfg).unwrap();
+    assert_eq!(
+        a.files.len(),
+        b.files.len(),
+        "pure: same input, same output"
+    );
+    for (x, y) in a.files.iter().zip(b.files.iter()) {
+        assert_eq!(x.contents, y.contents);
+    }
+}

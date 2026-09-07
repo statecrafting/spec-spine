@@ -596,7 +596,44 @@ const CONTRACT: &str = "# Contract: normative summary\n\
   amended `spec.md` is not edited to record it.\n\
 - The constitution is not amended by `amends` (its targets are spec ids). An\n\
   approved spec changes it by claiming the affected heading as a section unit\n\
-  of that file; see the constitution's own Amendment section.\n";
+  of that file; see the constitution's own Amendment section.\n\
+\n\
+## Lifecycle as scheduling\n\
+\n\
+Two frontmatter keys decide whether a spec is offered as work and how strictly\n\
+its claims are held. `status` is `draft` / `approved` / `superseded` /\n\
+`retired`; `implementation` is `pending` / `in-progress` / `complete` / `n-a` /\n\
+`deferred`, or absent.\n\
+\n\
+| `status` | `implementation` | schedulable | unresolved unit is |\n\
+|---|---|---|---|\n\
+| `draft` | absent, `pending`, `in-progress` | yes | `W-001` warning |\n\
+| `approved` | `pending`, `in-progress` | yes | `W-001` warning |\n\
+| `approved` | absent | no (settled) | error |\n\
+| any | `complete` | no | error |\n\
+| any | `n-a`, `deferred` | no | takes its answer from `status` |\n\
+| `superseded`, `retired` | any | no | takes its answer from `status` |\n\
+\n\
+- **`approved` plus `pending` is a work order.** It is the state a\n\
+  specify-first corpus lives in for months, and the state `registry plan`\n\
+  offers as ready.\n\
+- **`draft` is never a claim about code.** A draft's unresolved units are\n\
+  expected, which is why they warn instead of refusing.\n\
+- **An absent `implementation` is not a third value.** It defers to `status`:\n\
+  on a `draft` it reads as `pending`, on anything ratified as settled. That is\n\
+  what keeps a bootstrap spec owning no code from being offered as ready\n\
+  forever, and why `n-a` exists for a ratified spec that owns nothing.\n\
+\n\
+## Extra keys\n\
+\n\
+`frontmatter.extra_known_keys` in `spec-spine.toml` declares frontmatter keys\n\
+this corpus recognizes beyond the grammar. A declared key stops the lint\n\
+warning about it, and its value is preserved verbatim into the registry as\n\
+`extraFrontmatter`, so a consumer can read it.\n\
+\n\
+The config lists the names and records nothing about what they mean. If you\n\
+declare keys, write down their semantics here or in your constitution, next to\n\
+the rest of what governs the corpus.\n";
 
 /// The adopter-facing constitution template (spec 061 §3.3).
 ///

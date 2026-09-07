@@ -15,10 +15,26 @@
           "kind": "file",
           "path": "crates/spec-spine-core/src/scaffold.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "006-init-scaffold",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scaffold.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "043-governance-document-gaps",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/contract.md"
+        }
       }
     ],
     "id": "066-the-contract-records-the-lifecycle-table",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "governance",
     "owner": "The spec-spine Authors",
     "references": [
@@ -56,6 +72,6 @@
     "summary": "`status` and `implementation` are the two keys every adopter reasons about daily, and the contract mentions `status` once, in a list of required frontmatter, and `implementation` not at all. The mechanical consequences are spread across four specs: 041 makes a `complete` claim checkable, 044 defines the in-flight window, 045 says an absent key takes its answer from `status`, and 038 reads both to build the ready set. Every specify-first adopter wrote the resulting table into its own contract by hand, and hqgit had to invent a section called \"Lifecycle as scheduling\" because ours has none. This spec adds that section and an \"Extra keys\" section telling adopters to document their `extra_known_keys`, and claims both as section units of the contract.\n",
     "title": "The contract records the lifecycle table and the extra keys"
   },
-  "shardHash": "06cc9520f7bf654da7bbd25aa4b731a1c4d18e4d841c4e053968cae53ff16f1d",
+  "shardHash": "aef7458271bd8e9124ce57f3b51767444092d882e0283609be7c53f9433a3907",
   "specVersion": "1.1.0"
 }

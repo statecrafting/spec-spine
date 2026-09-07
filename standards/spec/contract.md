@@ -62,6 +62,53 @@ spec 043.
 `crate`/`module` (added by spec 017 as an additive minor, no schema-file edit).
 Symbol resolution covers Rust + TS in v1; Python is deferred.
 
+## Lifecycle as scheduling
+
+Two frontmatter keys decide whether a spec is offered as work and how strictly
+its claims are held. `status` is `draft` / `approved` / `superseded` / `retired`;
+`implementation` is `pending` / `in-progress` / `complete` / `n-a` / `deferred`,
+or absent.
+
+| `status` | `implementation` | schedulable | unresolved unit is |
+|---|---|---|---|
+| `draft` | absent, `pending`, `in-progress` | yes | `W-001` warning |
+| `approved` | `pending`, `in-progress` | yes | `W-001` warning |
+| `approved` | absent | no (settled, spec 045) | error |
+| any | `complete` | no | error (spec 041) |
+| any | `n-a`, `deferred` | no | takes its answer from `status` |
+| `superseded`, `retired` | any | no | takes its answer from `status` |
+
+Three sentences make the table usable.
+
+**`approved` plus `pending` is a work order.** It is the state a specify-first
+corpus lives in for months, and it is the state `spec-spine registry plan`
+offers as ready.
+
+**`draft` is never a claim about code.** A draft's unresolved units are expected,
+which is why they warn (`W-001`) instead of refusing. Spec 044 defines that
+window.
+
+**An absent `implementation` is not a third value.** It defers to `status` (spec
+045): on a `draft` it reads as `pending`, and on anything ratified it reads as
+settled. That is what keeps a bootstrap spec owning no code from being offered
+as ready forever, and it is why `n-a` exists for a record spec that is ratified
+and owns nothing.
+
+The specs behind the rows are 041 (completion held to claims), 044 (in-progress
+is in flight) and 045 (absent implementation defers to status). This page is a
+summary; those are the argument.
+
+## Extra keys
+
+`frontmatter.extra_known_keys` in `spec-spine.toml` declares frontmatter keys
+this corpus recognizes beyond the grammar. A declared key stops the conformance
+lint warning about it, and its value is preserved verbatim into the registry as
+`extraFrontmatter` (spec 013), so a consumer can read it.
+
+The config lists the names and records nothing about what they mean. An adopter
+who declares keys should write down their semantics, in their own constitution
+or contract, next to the rest of what governs the corpus.
+
 ## The gate chain
 
 `compile` → `index` → `lint` → `couple`: the coupling gate refuses a merge where
