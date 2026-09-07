@@ -152,6 +152,12 @@ before it builds stay green while the work is openly under way. Making this the
 default would refuse the workflow those two specs were written to permit. A
 corpus past that stage sets the flag; one in the middle of it does not.
 
+When the flag refuses, the prose verdict line MUST say so. `is fresh` stays true
+on its own axis, and a line reading only that, while the process exits 1,
+invites a reader to take it for a pass. Prose is not the machine surface: spec
+037 exists so a consumer branches on the exit code or the `--json` envelope,
+both unambiguous here. This is one clause, not a second contract.
+
 The flag name says `unresolved` rather than `warn` because that is what the two
 codes mean: a declared unit resolved to nothing. It deliberately does not read
 `--fail-on-warn`, which is `lint`'s flag over a different code set, and the two
@@ -191,6 +197,13 @@ other gate depends on; that is not worth a constant factor on a set of small
 per-spec JSON files, in a verb that already hashes every input. **Decision,
 2026-09-06:** the second read stays, and the counting path folds directly over
 the shards rather than over a listing it would allocate and drop.
+
+It applies to `check_freshness_json` as well as to the CLI, so a binding calling
+the facade in a loop pays it too. That is the right place for the cost while it
+exists: a caller with a hot path has the typed API, where `check_index_freshness`
+and `committed_counts` are separate calls it can order as it likes, while the
+facade's contract is one verdict per call. `check_registry_freshness_json`
+already documents the same trade-off against `compile_json`.
 
 This keeps `index check` the cheap gate it is, and it keeps the answer honest:
 the counts describe the ledger the corpus actually compiled to, not a fresh

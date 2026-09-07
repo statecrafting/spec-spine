@@ -164,6 +164,16 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             }
 
             match freshness {
+                // Say the refusal on stdout too. `is fresh` is true on its own
+                // axis even when the run refuses, and a reader seeing only that
+                // line would take it for a pass. Prose is not the machine
+                // surface (that is the exit code and `--json`, spec 037), but a
+                // line that reads as a pass while the process exits 1 is worth
+                // one clause to avoid.
+                Freshness::Fresh if code == 1 => outln!(
+                    "{subject} is fresh; refusing on unresolved units{}",
+                    counts_suffix(&counts)
+                ),
                 Freshness::Fresh => outln!("{subject} is fresh{}", counts_suffix(&counts)),
                 Freshness::Stale { expected, actual } => {
                     eprintln!("{subject} is STALE (run `spec-spine index` to refresh)");
@@ -178,7 +188,10 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 }
             }
             if code == 1 {
-                eprintln!("{subject}: refusing on unresolved units (--fail-on-unresolved)");
+                eprintln!(
+                    "{subject}: --fail-on-unresolved is set and the committed ledger records {}",
+                    counts_summary(&counts)
+                );
             }
             Ok(code)
         }
