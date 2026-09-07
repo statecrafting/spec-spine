@@ -150,3 +150,119 @@ fn custom_domain_allowlist_is_enforced_at_compile() {
     let out = run(root, &["compile"]);
     assert_eq!(code(&out), 1, "invalid domain must fail compile");
 }
+
+// ── spec 065: init and the kit are one adoption ───────────────────────────
+
+/// §3.4: a repository scaffolded with the kit satisfies its own gate on the
+/// first run. The kit adds hooks and skills referencing verbs and paths, and a
+/// scaffold that produces a repository failing its own gate is worse than none.
+#[test]
+fn a_kit_scaffolded_repository_is_immediately_governed() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+
+    let init = bin()
+        .arg("--repo")
+        .arg(root)
+        .args(["init", "--with-kit"])
+        .output()
+        .unwrap();
+    assert_eq!(code(&init), 0, "{}", String::from_utf8_lossy(&init.stderr));
+
+    // The harness landed at the adopter's own paths.
+    for rel in [
+        "AGENTS.md",
+        ".claude/settings.json",
+        ".claude/skills/build/SKILL.md",
+        "Makefile",
+        ".github/workflows/govern.yml",
+        ".gitignore",
+    ] {
+        assert!(root.join(rel).is_file(), "missing {rel}");
+    }
+
+    // And the whole chain is clean on the first run.
+    for args in [
+        vec!["compile"],
+        vec!["index"],
+        vec!["lint", "--fail-on-warn"],
+        vec!["index", "check"],
+    ] {
+        let out = bin().arg("--repo").arg(root).args(&args).output().unwrap();
+        assert_eq!(
+            code(&out),
+            0,
+            "{args:?} on a freshly scaffolded repo: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+}
+
+/// §3.2: plain `init` writes the protocol and not the harness, so an adopter
+/// who wants the rules without the skills gets exactly that.
+#[test]
+fn plain_init_writes_the_protocol_but_not_the_harness() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    assert_eq!(
+        code(&bin().arg("--repo").arg(root).arg("init").output().unwrap()),
+        0
+    );
+
+    assert!(
+        root.join("AGENTS.md").is_file(),
+        "the protocol is not optional"
+    );
+    assert!(root.join(".claude/rules/orchestrator-rules.md").is_file());
+    assert!(
+        !root.join(".claude/skills").exists(),
+        "the harness is opt-in"
+    );
+    assert!(!root.join("Makefile").exists());
+}
+
+/// §3.3: it refuses to clobber. An adopter who has written their own
+/// `AGENTS.md` is the common case in a repository that has been worked in, and
+/// overwriting a cross-agent authority document would destroy project protocol
+/// no backup makes obvious.
+#[test]
+fn with_kit_does_not_clobber_an_existing_agents_md() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    fs::write(root.join("AGENTS.md"), "# mine\n").unwrap();
+
+    let out = bin()
+        .arg("--repo")
+        .arg(root)
+        .args(["init", "--with-kit"])
+        .output()
+        .unwrap();
+    assert_eq!(
+        code(&out),
+        0,
+        "skipping is not an error; init is idempotent"
+    );
+    assert_eq!(
+        fs::read_to_string(root.join("AGENTS.md")).unwrap(),
+        "# mine\n",
+        "the adopter's own protocol survived"
+    );
+    assert!(
+        String::from_utf8_lossy(&out.stdout).contains("skip"),
+        "and the skip is reported: {}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+
+    // `--force` behaves for these files exactly as it does for the other ten.
+    let forced = bin()
+        .arg("--repo")
+        .arg(root)
+        .args(["init", "--with-kit", "--force"])
+        .output()
+        .unwrap();
+    assert_eq!(code(&forced), 0);
+    assert_ne!(
+        fs::read_to_string(root.join("AGENTS.md")).unwrap(),
+        "# mine\n"
+    );
+}

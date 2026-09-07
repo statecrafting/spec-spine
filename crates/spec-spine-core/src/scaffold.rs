@@ -28,6 +28,34 @@ pub struct Scaffold {
 }
 
 /// Generate the adopter scaffold for `cfg`. Pure; performs no IO.
+///
+/// `with_kit` (spec 065) adds the session harness at the adopter's own paths.
+/// Every file keeps `overwrite: false`, so `init` in a repository that already
+/// has one is told rather than silently clobbering it. That matters most for
+/// `AGENTS.md`: an adopter who has written their own is the common case in a
+/// repository that has been worked in, and overwriting a cross-agent authority
+/// document would destroy project protocol no backup makes obvious.
+pub fn scaffold_init_with(cfg: &Config, with_kit: bool) -> Result<Scaffold, Error> {
+    let mut scaffold = scaffold_init(cfg)?;
+    if with_kit {
+        for (rel_path, contents) in crate::kit_embedded::KIT_FILES {
+            // The three `.claude/rules/` files plain `init` already writes are
+            // the same three the kit carries (spec 047 keeps them in sync), so
+            // they are not duplicated here.
+            if scaffold.files.iter().any(|f| f.rel_path == *rel_path) {
+                continue;
+            }
+            scaffold.files.push(ScaffoldFile {
+                rel_path: (*rel_path).to_string(),
+                contents: (*contents).to_string(),
+                overwrite: false,
+            });
+        }
+    }
+    Ok(scaffold)
+}
+
+/// Generate the adopter scaffold for `cfg`. Pure; performs no IO.
 pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
     let ns = &cfg.manifest.metadata_namespace;
     let specs = cfg.layout.specs_dir.trim_end_matches('/');
@@ -68,6 +96,11 @@ pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
             REFUSAL_RULE.to_string(),
         ),
         file(".gitignore".to_string(), gitignore(cfg)),
+        // Spec 065 §3.1: unconditional, not a kit extra. It is the cross-agent
+        // authority every governed repository needs, and a scaffold that wrote
+        // three `.claude/rules/` files and no protocol would have written the
+        // constraints without the procedure.
+        file("AGENTS.md".to_string(), agents_md(cfg)),
     ];
 
     Ok(Scaffold { files })
@@ -230,6 +263,99 @@ fn quoted(values: &[String]) -> String {
         .map(|v| format!("\"{v}\""))
         .collect::<Vec<_>>()
         .join(", ")
+}
+
+/// The scaffolded `AGENTS.md` (spec 065 §3.1).
+///
+/// Config-aware like everything else in the scaffold: the corpus root, the
+/// derived directory and the binary invocation come from `Config`, so a
+/// non-default layout scaffolds coherently.
+fn agents_md(cfg: &Config) -> String {
+    let specs = cfg.layout.specs_dir.trim_end_matches('/');
+    let derived = cfg.layout.derived_dir.trim_end_matches('/');
+    format!(
+        "# AGENTS.md\n\
+         \n\
+         The cross-agent authority for this repository, read by Claude Code,\n\
+         Codex CLI, Cursor, Copilot and any other agent via the AAIF/Linux\n\
+         Foundation `AGENTS.md` standard. Edit this file to evolve the protocol;\n\
+         the skills defer to it rather than restating it.\n\
+         \n\
+         ## New Sessions\n\
+         \n\
+         Run these reads before doing any work. Nothing here mutates the tree,\n\
+         so there is no required ordering.\n\
+         \n\
+         - `spec-spine compile --check`: is the committed spec registry what the\n\
+         \x20 corpus compiles to? `0` fresh, `2` stale (report it and continue;\n\
+         \x20 repairing the tree is later, committed work, not a side effect of\n\
+         \x20 reading it), `1` the corpus fails validation, which is the first\n\
+         \x20 task of the session rather than an aside.\n\
+         - `spec-spine index check`: the same question for the codebase index.\n\
+         - `spec-spine registry status-report --nonzero-only`: lifecycle counts.\n\
+         - `spec-spine registry plan`: what can be worked on now, and what blocks\n\
+         \x20 the rest.\n\
+         - `spec-spine index coverage`: which source files no spec claims.\n\
+         - `git log --oneline -10`: recent history.\n\
+         \n\
+         Do **not** substitute a writing `compile` or `index` for the checks. A\n\
+         read that repairs the tree hides the fact that the *committed* copy was\n\
+         stale, so the drift then reads as an uncommitted local edit rather than\n\
+         as a defect on the branch.\n\
+         \n\
+         **Ask `spec-spine --version` before believing any exit code.** Every\n\
+         binary ever released answers it, and it exits 0. If the version predates\n\
+         the flag you are about to pass, upgrade; do not interpret the exit code\n\
+         of a flag the binary does not have. Where `[meta] required_version` is\n\
+         set in `spec-spine.toml`, the CLI checks this on every run and the\n\
+         manual step is unnecessary.\n\
+         \n\
+         ## Working the backlog\n\
+         \n\
+         One spec per pull request, then stop.\n\
+         \n\
+         1. **Pick the spec.** `spec-spine registry plan --next` names it.\n\
+         2. **Branch.** A feature branch named after the spec id. Never commit to\n\
+         \x20  the default branch.\n\
+         3. **Re-read the design before coding.** If the design is imprecise,\n\
+         \x20  record the choice in the spec. If it is wrong, stop and report;\n\
+         \x20  never rewrite an approved spec to match code you just wrote.\n\
+         4. **Implement within the territory.** Claim every new file in the\n\
+         \x20  spec's ownership edges. Touching a unit another spec owns is an\n\
+         \x20  `extends` edge naming that spec and unit; that amends nobody.\n\
+         \x20  Never edit `{derived}/` by hand.\n\
+         5. **Run the gate before every commit** (below), and commit the\n\
+         \x20  regenerated shards with the code they describe.\n\
+         6. **Verify, then ship.** `spec-spine verify <id>` runs the spec's\n\
+         \x20  declared acceptance. A `Spec-Drift-Waiver:` line needs explicit\n\
+         \x20  human approval and is cited in the pull request body; an agent\n\
+         \x20  never writes one on its own authority.\n\
+         \n\
+         ## The gate\n\
+         \n\
+         This list is the definition. Every skill that says \"the gate as\n\
+         `AGENTS.md` lists it\" means exactly this, in this order:\n\
+         \n\
+         ```sh\n\
+         spec-spine compile\n\
+         spec-spine index\n\
+         spec-spine lint --fail-on-warn\n\
+         spec-spine index check --fail-on-unresolved\n\
+         spec-spine index coverage --fail-on-untraced\n\
+         spec-spine couple --base origin/main --head HEAD\n\
+         ```\n\
+         \n\
+         In CI, `compile --check` replaces `compile` and the writing `index` is\n\
+         dropped: a gate must never repair the tree it is judging. `make gate`\n\
+         runs exactly that read-only form if you installed the kit's `Makefile`.\n\
+         \n\
+         ## Project layer\n\
+         \n\
+         Everything above is repository-invariant. Put what is specific to this\n\
+         project here: the corpus lives in `{specs}/`, the derived artifacts in\n\
+         `{derived}/`, and anything else an agent needs to know (how to build,\n\
+         how to test, which paths are generated, who ratifies a spec).\n"
+    )
 }
 
 /// The scaffolded `.gitignore` (spec 061 §3.1).

@@ -67,6 +67,13 @@ extra_hashed_inputs = [
   "kit/govern.yml",
   "kit/.githooks/*.sh",
   "kit/.gitattributes-stanza",
+  # Spec 065: the kit's own skills, agents and settings are the source the
+  # embedded module is generated from, so a change to one must stale the ledger.
+  "kit/.claude/agents/*.md",
+  "kit/.claude/skills/*/*.md",
+  "kit/.mcp.json",
+  "kit/scripts/*.sh",
+  "scripts/*.py",
   "py/scripts/*.py",
   # The embedded JSON Schemas the conformance test validates against. Hashed
   # rather than allowlisted: a schema edit is exactly the kind of change the

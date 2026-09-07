@@ -4,7 +4,7 @@
 
 use std::fs;
 
-use spec_spine_core::{compile, lint, plan, scaffold_init};
+use spec_spine_core::{compile, lint, plan, scaffold_init, scaffold_init_with};
 use spec_spine_types::{Config, load_config};
 
 /// Write a [`Scaffold`] to a temp dir as the CLI would.
@@ -324,4 +324,127 @@ fn the_constitution_template_is_the_real_one_and_cannot_drift() {
     assert!(emitted.contains("Amendment"), "{emitted}");
     // It stays a template: placeholders, not this corpus's own principles.
     assert!(emitted.contains("<Principle name>"), "{emitted}");
+}
+
+// ── spec 065: init and the kit are one adoption ───────────────────────────
+
+/// §3.1: `AGENTS.md` is unconditional, not a kit extra. A scaffold that wrote
+/// three `.claude/rules/` files and no protocol has written the constraints
+/// without the procedure.
+#[test]
+fn plain_init_writes_an_agents_md_with_the_four_required_sections() {
+    let agents = scaffolded(&Config::default(), "AGENTS.md");
+    assert!(agents.contains("## New Sessions"), "{agents}");
+    assert!(agents.contains("## Working the backlog"), "{agents}");
+    assert!(agents.contains("## The gate"), "{agents}");
+    // §3.1: the reads are the non-writing forms. A read that repairs the tree
+    // hides that the committed copy was stale.
+    assert!(agents.contains("spec-spine compile --check"), "{agents}");
+    assert!(agents.contains("spec-spine index check"), "{agents}");
+    // §3.1: and the spec 063 precondition.
+    assert!(
+        agents.contains("Ask `spec-spine --version` before believing any exit code"),
+        "{agents}"
+    );
+}
+
+/// §3.1: config-aware, like everything else in the scaffold.
+#[test]
+fn the_scaffolded_agents_md_follows_the_configured_layout() {
+    let cfg =
+        load_config("[layout]\nspecs_dir = \"corpus\"\nderived_dir = \"build/derived\"\n").unwrap();
+    let agents = scaffolded(&cfg, "AGENTS.md");
+    assert!(agents.contains("corpus/"), "{agents}");
+    assert!(agents.contains("build/derived/"), "{agents}");
+}
+
+/// §3.2: `--with-kit` writes the harness at the adopter's own paths. `kit/` is
+/// this repository's storage location; `.claude/skills/build/SKILL.md` is where
+/// the file has to be to work.
+#[test]
+fn with_kit_writes_the_harness_at_the_adopters_paths() {
+    let files = scaffold_init_with(&Config::default(), true).unwrap().files;
+    let paths: Vec<&str> = files.iter().map(|f| f.rel_path.as_str()).collect();
+
+    for expected in [
+        ".claude/settings.json",
+        ".claude/skills/build/SKILL.md",
+        ".claude/agents/architect.md",
+        ".mcp.json",
+        "Makefile",
+        ".github/workflows/govern.yml",
+    ] {
+        assert!(paths.contains(&expected), "missing {expected}: {paths:?}");
+    }
+    // Nothing is written under a `kit/` prefix.
+    assert!(
+        !paths.iter().any(|p| p.starts_with("kit/")),
+        "the kit prefix is storage, not a destination: {paths:?}"
+    );
+}
+
+/// §3.2: the three `.claude/rules/` files plain `init` already writes are not
+/// duplicated. They are the same three the kit carries (spec 047).
+#[test]
+fn with_kit_does_not_duplicate_the_rules_plain_init_writes() {
+    let files = scaffold_init_with(&Config::default(), true).unwrap().files;
+    for rule in [
+        ".claude/rules/orchestrator-rules.md",
+        ".claude/rules/governed-artifact-reads.md",
+        ".claude/rules/adversarial-prompt-refusal.md",
+    ] {
+        assert_eq!(
+            files.iter().filter(|f| f.rel_path == rule).count(),
+            1,
+            "{rule} appears more than once"
+        );
+    }
+    // And every path is unique, since two entries for one path would make the
+    // writer's behavior depend on iteration order.
+    let mut seen = std::collections::BTreeSet::new();
+    for f in &files {
+        assert!(seen.insert(f.rel_path.clone()), "duplicate {}", f.rel_path);
+    }
+}
+
+/// §3.3: nothing is marked for overwrite. This matters most for `AGENTS.md`:
+/// an adopter who has written their own is the common case in a repository
+/// that has been worked in.
+#[test]
+fn no_kit_file_is_marked_overwrite() {
+    for f in scaffold_init_with(&Config::default(), true).unwrap().files {
+        assert!(!f.overwrite, "{} is marked overwrite", f.rel_path);
+    }
+}
+
+/// §3.2: the embedded constants and the checked-in `kit/` tree agree, so an
+/// edit to one cannot silently diverge from the other. `kit/` stays the
+/// editable source; `kit_embedded.rs` is generated from it.
+#[test]
+fn the_embedded_kit_matches_the_checked_in_tree() {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    // Destinations map back to `kit/` by the two rules the generator applies.
+    let source_for = |dest: &str| -> String {
+        match dest {
+            ".claude/settings.json" => "kit/settings.json".to_string(),
+            ".github/workflows/govern.yml" => "kit/govern.yml".to_string(),
+            other => format!("kit/{other}"),
+        }
+    };
+    for (dest, contents) in spec_spine_core::kit_embedded::KIT_FILES {
+        let src = root.join(source_for(dest));
+        let on_disk =
+            std::fs::read_to_string(&src).unwrap_or_else(|e| panic!("{}: {e}", src.display()));
+        assert_eq!(
+            *contents,
+            on_disk.as_str(),
+            "{} has drifted from {}; regenerate with `python3 scripts/gen-kit-embedded.py`",
+            dest,
+            src.display()
+        );
+    }
+    assert!(
+        spec_spine_core::kit_embedded::KIT_FILES.len() > 25,
+        "the whole harness is embedded, not a subset"
+    );
 }

@@ -4,7 +4,7 @@ title: "Init and the kit are one adoption"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -18,6 +18,16 @@ extends:
   - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/tests/scaffold.rs", nature: additive }
   - { spec: "006-init-scaffold", unit: "crates/spec-spine-cli/tests/init.rs", nature: additive }
   - { spec: "029-claude-code-skill-kit", unit: "kit/README.md", nature: additive }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
+  # The kit's skills, agents and settings are the source the embedded module is
+  # generated from, so they join the hashed-input set: a change to one must
+  # stale the ledger rather than leave the compiled-in copy silently ahead.
+  - { spec: "064-the-kit-ships-the-composite-gate", unit: "spec-spine.toml", nature: additive }
+establishes:
+  # Created by this spec (3.2): the generated module and its generator.
+  - "crates/spec-spine-core/src/kit_embedded.rs"
+  - "scripts/gen-kit-embedded.py"
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "docs/adoption-guide.md" }, role: context }
@@ -119,12 +129,37 @@ duplicated. They are the same three files the kit carries, which spec 047 kept
 in sync across the scaffold constants, the kit copy, and this repository's copy.
 
 **Purity holds.** `scaffold_init` stays a pure function of `Config` performing
-no IO, so the kit's contents are embedded as `const`s exactly as the JSON
-Schemas and the constitution template are. A test MUST assert that the embedded
-constants and the checked-in `kit/` tree agree, so a change to one cannot
-silently diverge from the other. That is the same shape as the conformance test
-pinning DTOs against embedded schemas, and it is what keeps `kit/` the editable
+no IO, so the kit's contents are embedded as `const`s. A test MUST assert that
+the embedded constants and the checked-in `kit/` tree agree, so a change to one
+cannot silently diverge from the other, and it is what keeps `kit/` the editable
 source rather than a copy nobody remembers to update.
+
+**Decision, 2026-09-07: the constants are generated, not hand-written, and the
+analogy to the JSON Schemas does not hold.** The schemas are `include_str!`'d
+because they live **inside** `spec-spine-types`. `kit/` is at the repository
+root, outside every crate, and `cargo package` ships only what is under a
+package root: a published `spec-spine-core` built with `include_str!("../../../kit/…")`
+would not contain the kit at all, so `--with-kit` would write nothing for every
+adopter who installed from crates.io.
+
+The two ways out were moving `kit/` inside the crate, or copying its bytes into
+a generated module. Moving it would churn five specs' territory (029, 046, 048,
+051, 064 all name `kit/` paths), change where adopters and documentation look,
+and rewrite every path in three test files, to save a generated artifact. So the
+bytes are copied: `scripts/gen-kit-embedded.py` writes
+`crates/spec-spine-core/src/kit_embedded.rs`, and the agreement test names the
+regeneration command in its failure message. Thirty files, 141 KB, marked
+`@generated` and never edited by hand.
+
+**Decision, 2026-09-07: two files the kit stores are not files an adopter
+receives.** `kit/README.md` documents the kit rather than being part of it, and
+`kit/.gitattributes-stanza` is a block to append to an existing file rather than
+a file to write. `kit/AGENTS.md` is a third: §3.1 requires the scaffold to emit a
+**config-aware** `AGENTS.md` unconditionally, and §3.2's list of kit files does
+not include one, so the adopter gets the generated one, whose corpus and derived
+paths match their layout. Two more are remapped rather than stripped:
+`kit/settings.json` is flat storage for `.claude/settings.json`, and
+`kit/govern.yml` for `.github/workflows/govern.yml`.
 
 ### 3.3 It refuses to clobber
 
@@ -177,25 +212,33 @@ listing, diffing or updating kit files is the update story above.
 
 ## 5. Verification
 
+Each line is one command (spec 049 §3.2). Every assertion fails against pre-065
+code: `--with-kit` was an unknown argument and plain `init` wrote no
+`AGENTS.md`.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-core --test scaffold --locked
 cargo test -p spec-spine-cli --test init --locked
-# Plain init writes an AGENTS.md with the protocol, and no kit.
-tmp=$(mktemp -d) && target/release/spec-spine --repo "$tmp" init >/dev/null \
-  && grep -q 'New Sessions' "$tmp/AGENTS.md" \
-  && grep -q 'Working the backlog' "$tmp/AGENTS.md" \
-  && test ! -d "$tmp/.claude/skills"
-# --with-kit installs the kit at the adopter's own paths.
-tmp2=$(mktemp -d) && target/release/spec-spine --repo "$tmp2" init --with-kit >/dev/null \
-  && test -f "$tmp2/.claude/skills/build/SKILL.md" \
-  && test -f "$tmp2/.claude/settings.json" \
-  && test ! -d "$tmp2/kit"
-# The scaffolded repository satisfies its own gate on the first run.
-target/release/spec-spine --repo "$tmp2" compile >/dev/null
-target/release/spec-spine --repo "$tmp2" index >/dev/null
-target/release/spec-spine --repo "$tmp2" lint --fail-on-warn
-# The README says how the kit is installed.
+# 3.2: scaffold a fresh adopter with the harness.
+rm -rf "${TMPDIR:-/tmp}/ss065" && mkdir -p "${TMPDIR:-/tmp}/ss065" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss065" init --with-kit >/dev/null
+# 3.1: the protocol is there, and names the non-writing reads.
+test -f "${TMPDIR:-/tmp}/ss065/AGENTS.md"
+grep -q 'spec-spine compile --check' "${TMPDIR:-/tmp}/ss065/AGENTS.md"
+# 3.2: the harness landed at the adopter's own paths, not under `kit/`.
+test -f "${TMPDIR:-/tmp}/ss065/.claude/skills/build/SKILL.md"
+test -f "${TMPDIR:-/tmp}/ss065/.claude/settings.json"
+test -f "${TMPDIR:-/tmp}/ss065/.github/workflows/govern.yml"
+test ! -d "${TMPDIR:-/tmp}/ss065/kit"
+# 3.4: and the scaffolded repository satisfies its own gate on the first run.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss065" compile >/dev/null
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss065" index >/dev/null
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss065" lint --fail-on-warn
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss065" index check
+# 3.2: plain `init` writes the protocol and not the harness.
+rm -rf "${TMPDIR:-/tmp}/ss065b" && mkdir -p "${TMPDIR:-/tmp}/ss065b" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss065b" init >/dev/null && test -f "${TMPDIR:-/tmp}/ss065b/AGENTS.md" && test ! -d "${TMPDIR:-/tmp}/ss065b/.claude/skills"
+# 3.5: the README says how it is installed.
 grep -q 'init --with-kit' kit/README.md
+rm -rf "${TMPDIR:-/tmp}/ss065" "${TMPDIR:-/tmp}/ss065b"
 ```

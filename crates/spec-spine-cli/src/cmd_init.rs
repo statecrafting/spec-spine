@@ -7,14 +7,14 @@
 use std::fs;
 use std::path::Path;
 
-use spec_spine_core::scaffold_init;
+use spec_spine_core::scaffold_init_with;
 use spec_spine_types::Error;
 
 use crate::load_repo_config;
 
-pub fn run(repo: &Path, force: bool) -> Result<u8, Error> {
+pub fn run(repo: &Path, force: bool, with_kit: bool) -> Result<u8, Error> {
     let cfg = load_repo_config(repo)?;
-    let scaffold = scaffold_init(&cfg)?;
+    let scaffold = scaffold_init_with(&cfg, with_kit)?;
 
     let mut written = 0usize;
     let mut skipped = 0usize;
