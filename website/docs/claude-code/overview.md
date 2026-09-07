@@ -19,15 +19,21 @@ adapt it; the files themselves are in `kit/.claude/`.
 
 On top of the spec-spine substrate, the kit adds:
 
-- **10 skills** that cover the development lifecycle: session init, planning,
-  implementation, validation, adversarial review, conventional commits, and
-  gated PR creation.
+- **15 skills** that cover the governed loop: session init, the next work
+  order, building one spec per session, verifying its acceptance block,
+  adversarial review, conventional commits, gated PR creation, shepherding
+  the PR to a merge confirmed on disk, and authoring the next spec, plus the
+  support set (validate, cleanup, plan execution, research, `CLAUDE.md`
+  refactoring). The skills are repository-invariant; the project layer lives
+  in `AGENTS.md`.
+- **A verify script** (`scripts/verify-spec.sh`) that runs a spec's
+  `verify:cli` fences the way an orchestrator's verify stage does after merge.
 - **4 agents** for the plan / explore / implement / review cycle.
 - **3 rules** that constrain how every workflow reads artifacts and resolves
   spec/code disagreement (the same floor `spec-spine init` scaffolds).
 - **Config templates**: `AGENTS.md`, `settings.json` (hooks), `.mcp.json`.
 
-The kit is not a monolith. Every piece carries a portability verdict so you know
+The kit is not a monolith. The skills copy as-is; every other piece carries a portability verdict so you know
 what to copy as-is, what to adapt, and what is an example of a pattern you
 recreate for your own stack.
 

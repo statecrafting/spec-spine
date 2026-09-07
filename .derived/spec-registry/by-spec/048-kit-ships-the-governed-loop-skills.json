@@ -1,0 +1,121 @@
+{
+  "record": {
+    "amends": [
+      "029-claude-code-skill-kit"
+    ],
+    "created": "2026-09-06",
+    "dependsOn": [
+      "029-claude-code-skill-kit",
+      "038-registry-plan-ready-set",
+      "046-kit-hooks-read-never-write",
+      "047-harness-rules-name-the-legitimate-edits"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "kit/scripts/"
+      },
+      {
+        "kind": "file",
+        "path": "scripts/verify-spec.sh"
+      },
+      {
+        "kind": "directory",
+        "path": ".claude/skills/"
+      },
+      {
+        "kind": "directory",
+        "path": ".claude/agents/"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/kit_skills.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "superseding",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/skills/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/agents/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/AGENTS.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/README.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/settings.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      }
+    ],
+    "id": "048-kit-ships-the-governed-loop-skills",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "048: The kit ships one skill set for the governed loop, and this repository runs it",
+      "1. Purpose",
+      "1.1 Five skills, written four times",
+      "1.2 Ten skills, ten drifts",
+      "1.3 Why the copies diverge",
+      "1.4 The loop the skills serve",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The fifteen",
+      "3.2 The frontmatter contract",
+      "3.3 Repository-invariant, with a project layer",
+      "3.4 Read skills read",
+      "3.5 The verify script"
+    ],
+    "specPath": "specs/048-kit-ships-the-governed-loop-skills/spec.md",
+    "status": "draft",
+    "summary": "Four adopters of the kit had each written the same five skills the kit did not ship (next, build, verify, spec, shepherd), three of them from one shared template, and every adopter's copy of the ten the kit did ship had drifted from the kit's, which had itself gone stale: a renamed tool, a rule frontmatter format Claude Code does not read, a \"read-only\" review that ran the writing compile, a commit skill missing the two house rules that land in public history, and a drift remedy that contradicted the refusal rule spec 047 had just fixed. This spec makes the kit ship one repository-invariant set of fifteen skills built around the orchestrated loop (spec-spine's registry plan and the coupling gate on one side, an orchestrator's build, ship, shepherd, and verify stages on the other), moves every project-specific fact into AGENTS.md and the path-scoped rules so the skills copy byte for byte, ships the verify script the loop needs, ports the substrate-level agent improvements the adopters made, and makes this repository run the same fifteen on itself, pinned by a test.\n",
+    "title": "The kit ships one skill set for the governed loop, and this repository runs it"
+  },
+  "shardHash": "98edc97a5ddade4c5e53b3e1314b366f1d8250c06961f3a0a87ab6b7fc0d1371",
+  "specVersion": "1.1.0"
+}

@@ -1,0 +1,221 @@
+{
+  "mapping": {
+    "amends": [
+      "029-claude-code-skill-kit"
+    ],
+    "dependsOn": [
+      "029-claude-code-skill-kit",
+      "038-registry-plan-ready-set",
+      "046-kit-hooks-read-never-write",
+      "047-harness-rules-name-the-legitimate-edits"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".claude/agents/",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".claude/skills/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "AGENTS.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/kit_skills.rs",
+        "source": "multiple"
+      },
+      {
+        "path": "kit/.claude/agents/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/.claude/skills/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/AGENTS.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/README.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/scripts/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/settings.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/verify-spec.sh",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".claude/agents/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "directory",
+          "path": ".claude/agents/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".claude/skills/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "directory",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/kit_skills.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_skills.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/scripts/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "kit/scripts/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-spec.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-spec.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "AGENTS.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/.claude/agents/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/agents/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/.claude/skills/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/skills/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/AGENTS.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/AGENTS.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/README.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/README.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/settings.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/settings.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/03-adopter-audit-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      }
+    ],
+    "specId": "048-kit-ships-the-governed-loop-skills",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "e252fb3fd07d9ac2ecc707e94f2cfac52ce3cb6867ebf9ef1fc26f48c62abd5c"
+}

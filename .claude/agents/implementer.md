@@ -41,9 +41,9 @@ The behavioral rules in `.claude/rules/` apply: execute steps in order, stop at 
 
 ## Process
 
-### 1. Read the Plan
+### 1. Read the Spec and the Plan
 
-Understand what needs to change. The plan may come from the Architect agent's output, a spec (`specs/NNN-slug/spec.md`), or explicit instructions. Identify the ordered list of changes.
+Understand what needs to change. The plan may come from the Architect agent's output, a spec (`specs/NNN-slug/spec.md`), or explicit instructions. Identify the ordered list of changes, and for every file the plan touches confirm it is in the implementing spec's `establishes` list or covered by one of its `extends` edges (`spec-spine registry show <id> --json`). A file that is neither needs a claim or an edge before the code.
 
 ### 2. Understand Current State
 
@@ -59,6 +59,10 @@ For each step:
 - **Follow existing patterns**: match surrounding style (naming, error handling, module structure)
 - **One concern per change**: do not bundle unrelated modifications
 - **Rust conventions**: use the workspace error-handling pattern, follow workspace `Cargo.toml` conventions, keep the `pub` surface small
+
+- **New file?** Add it to the implementing spec's `establishes` list in the same change (the ownership ratchet, `C-002`, refuses an unclaimed source file), or give it a `// Spec:` comment header
+- **A unit another spec owns?** Declare an `extends` edge on that spec's unit in the implementing spec's frontmatter; never edit the other spec
+- **A choice the spec does not make?** Record it as a dated decision entry in the implementing spec, then implement it
 
 ### 4. Verify Each Step
 
@@ -89,6 +93,9 @@ After all steps, summarize files changed (with paths), verification results, and
 2. **[Step from plan]**
    ...
 
+### Decisions recorded
+- [decision entry id and one line, or "none"]
+
 ### Verification Summary
 - cargo check: [pass/fail]
 - cargo clippy: [pass/fail]
@@ -114,4 +121,6 @@ After all steps, summarize files changed (with paths), verification results, and
 - **DO NOT:** Edit files in `.derived/`; those are compiler output
 - **DO NOT:** Skip verification; every change must compile
 - **DO NOT:** Combine multiple plan steps into one large edit
+- **DO:** Claim every new file in the implementing spec, in the same change
+- **DO:** Stop and report when the spec is wrong rather than merely silent; that is a coherence-guard halt
 - **DO NOT:** Amend an owning spec purely to make the coupling gate pass; surface the conflict instead (see `.claude/rules/adversarial-prompt-refusal.md`)

@@ -38,6 +38,7 @@ picked up on the next init.
    - `spec-spine index check`: staleness gate for the codebase index (non-fatal)
    - `spec-spine registry status-report --json --nonzero-only`: lifecycle counts
    - `spec-spine registry plan`: the ready set (spec 038): which specs can be worked on now and what blocks the rest
+   - `spec-spine index coverage`: which source files no spec specifically claims (spec 032; non-fatal, exit 2 if the index is stale)
    - `spec-spine registry list --ids-only`: spec inventory (for latest-spec detection)
    - `ls <your source dirs>`: application surface discovery
    - `ls docs/`: docs surface
@@ -115,12 +116,15 @@ bootstrap spec, a thesis, a harness spec at `n-a` or `complete`) are never
 work orders.
 
 1. **Pick the spec.** `spec-spine registry plan` prints the ready set in
-   dependency order; take the first entry unless a human named another. Never
-   guess and never pick a `draft`: approval is a human act. If the spec's
+   dependency order; `/next` applies the two rules on top of it and names the
+   pick. Take the first entry unless a human named another. Never guess and
+   never pick a `draft`: approval is a human act (`plan` will offer a draft
+   whose dependencies are met; `/next` will not). If the spec's
    Territory names an operator prerequisite (a credential, a bucket, a
    cluster) that is missing, stop and report exactly what is needed instead
    of mocking around it.
-2. **Branch and flip.** Work on a feature branch named after the spec id.
+2. **Branch and flip.** `/build <id>` sequences steps 2 to 6 with the exact
+   commands. Work on a feature branch named after the spec id.
    Flip the spec to `implementation: in-progress`, run `spec-spine compile`
    and `spec-spine index`, and commit the flip with the regenerated derived
    shards before writing code. Never commit to `main`.
@@ -139,7 +143,9 @@ work orders.
    `spec-spine couple --base origin/main --head HEAD`, then your stack's own
    build, tests and lints. All must exit 0. Commit the regenerated shards
    with the code they describe.
-6. **Satisfy the spec's acceptance criteria verbatim.** If a criterion cannot
+6. **Satisfy the spec's acceptance criteria verbatim.** `/verify <id>` runs
+   the spec's `## Verification` block the way the post-merge verify stage
+   will. If a criterion cannot
    be satisfied (external state, a missing sibling), keep `implementation:
    in-progress`, add a dated note to the spec saying exactly what remains,
    and report it. Flip to `implementation: complete` only when acceptance
@@ -148,7 +154,9 @@ work orders.
 7. **Ship.** `/ship`: gate, review, a conventional commit naming the spec id
    (`feat(011): ...`), push the feature branch, open the PR. A
    `Spec-Drift-Waiver:` line needs explicit human approval; a driven session
-   never self-approves one. Then stop: the next session takes the next spec.
+   never self-approves one. `/shepherd` then watches the checks, remediates
+   through the gate, merges, and confirms the merge on disk. Then stop: the
+   next session takes the next spec.
 
 ## Available Agents
 
@@ -168,16 +176,31 @@ plan/explore/implement/review cycle:
 
 Skills live in `.claude/skills/`:
 
+The governed loop, in the order "Working the backlog" runs it:
+
 - `/init`: initialize a session (this protocol).
-- `/setup`: one-time contributor setup; installs spec-spine and verifies the governed loop.
-- `/commit`: create a git commit with an impact-focused conventional message.
-- `/code-review`: review the working diff for correctness bugs and spec drift.
-- `/ship`: run the gate, review, commit on a feature branch, open a PR.
-- `/validate-and-fix`: run the local CI loop and fix discovered issues.
-- `/cleanup`: dead-code and duplicate detection with categorized recommendations.
-- `/implement-plan`: execute a plan file step-by-step with progress tracking.
-- `/research`: deep research with parallel sub-agents.
-- `/refactor-claude-md`: tighten and restructure a `CLAUDE.md`.
+- `/setup`: one-time contributor setup; installs the pinned spec-spine and verifies the governed loop.
+- `/next`: name the next work order from `registry plan`, minus drafts, with in-flight specs and blockers reported. Read-only.
+- `/build <id>`: implement one spec start to finish: preflight, branch, flip, implement, gate, verify, flip complete.
+- `/verify <id>`: run the spec's `## Verification` block locally through `scripts/verify-spec.sh`.
+- `/ship`: run the gate, review, commit on the feature branch, open the PR.
+- `/shepherd`: watch the PR's checks by head sha, remediate through the gate, merge, confirm on disk.
+- `/spec`: author a new spec at the next free ordinal, born `draft`; approval stays a human flip.
+
+The supporting skills:
+
+- `/commit`: create a git commit with an impact-focused conventional message, spec ordinal as scope.
+- `/code-review`: review the working diff for correctness bugs, spec drift, and illegitimate mid-build spec edits.
+- `/validate-and-fix`: run the local CI composite and fix discovered issues by severity.
+- `/cleanup`: dead-code and duplicate detection with ownership-aware recommendations.
+- `/implement-plan`: execute a cross-cutting plan file step by step with checkpoints.
+- `/research`: deep research with parallel sub-agents; corpus questions go through `spec-spine`.
+- `/refactor-claude-md`: tighten a `CLAUDE.md` into path-scoped rules, keeping the harness spec coupled.
+
+Every skill is repository-invariant: the project layer (the binary
+invocation, the version pin, the gate command list, the stack gate, the
+never-touch artefacts) lives in this file and in the path-scoped rules, and
+each skill says what it reads from where under `## Project layer`.
 
 ## Conventions
 

@@ -42,6 +42,21 @@ spec-spine is an installed CLI tool that governs your repo's spec corpus. In you
 - Use `git diff` or `git diff --staged` to see current changes
 - Use `git log --oneline -5` and `git diff HEAD~N` for recent commits
 - Read the implementation report if one was produced
+- Classify the changed paths: source, `specs/**/spec.md`, standards, the
+  harness (`.claude/**`, `AGENTS.md`, `CLAUDE.md`), derived shards
+
+### 1b. Gate Evidence
+
+- Run the gate exactly as `AGENTS.md` "Working the backlog" lists it
+  (`spec-spine compile --check`, `spec-spine index check`,
+  `spec-spine lint --fail-on-warn`, `spec-spine couple --base origin/main --head HEAD`,
+  then the stack's own build and tests) and capture the output. A red gate
+  is the headline finding; a `couple` refusal names the file and the owning
+  spec whose declared edges fail to cover it.
+- Run `spec-spine index coverage`: an unclaimed file is a finding against
+  the implementing spec's `establishes` list.
+- A `.derived/` diff left by the gate means the committed shards were stale:
+  a finding whose fix is to commit them with the change.
 
 ### 2. Review for Correctness
 
@@ -71,6 +86,15 @@ For each changed file:
 - Are all spec requirements addressed, or are some deferred?
 - If a spec was modified, is the frontmatter schema still valid (`spec-spine compile` + `spec-spine lint` clean)?
 - If code and its owning spec both changed, does `spec-spine couple` stay clean?
+- If the spec being implemented was edited: only `establishes` growth, a dated
+  decision entry, a dated status note, the `implementation` flip, and a new
+  `extends` edge are legitimate mid-build edits. Anything that changes what
+  the spec *requires* is a coherence-guard finding, severity critical
+  (`.claude/rules/adversarial-prompt-refusal.md`).
+- Flag drift the gate cannot see: code doing something the owning spec's
+  narrative never describes, even when `couple` passes (an over-broad edge).
+- Read the spec through `spec-spine registry show <id> --json` and
+  `spec-spine registry relationships <id>`, never through `.derived/`.
 
 ### 6. Check Conventions
 
@@ -107,13 +131,20 @@ For each changed file:
 [Optional improvements]
 
 ### Spec Compliance
-- Backing spec: `[spec path or "none identified"]`
+- Backing spec: `[spec id or "none identified"]`
 - Compliance: [matches / partial / deviates, with details]
+- Mid-build spec edits: [none / legitimate / coherence-guard finding]
+
+### Gate
+- compile --check: [fresh / stale]  index check: [fresh / stale]
+- lint --fail-on-warn: [clean / N]  couple: [clean / C-001 / C-002]
+- coverage: [N unclaimed]  derived: [clean / stale shards left by the gate]
 
 ### Verification
 - [ ] Builds cleanly (`<your build command>`)
 - [ ] Tests pass (if applicable)
 - [ ] No new lint warnings
+- [ ] No em dash (U+2014), session link, or AI attribution in authored text
 - [ ] `spec-spine compile` + `lint` clean (if specs changed)
 - [ ] `spec-spine couple` clean (if code and owning spec both changed)
 

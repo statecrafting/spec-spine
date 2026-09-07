@@ -39,6 +39,8 @@ spec-spine is a Rust library plus CLI over a markdown spec corpus.
 
 Key files: `CLAUDE.md` (conventions), `AGENTS.md` (session protocol), `.claude/rules/` (behavioral rules).
 
+Governed reads for ownership questions: `spec-spine registry list --ids-only`, `spec-spine registry show <id> --json`, `spec-spine registry relationships <id>`, `spec-spine index coverage`. Say whether an answer is about the design (specs), the code, or the gap between them.
+
 ## Process
 
 ### 1. Clarify the Question
@@ -80,7 +82,7 @@ Produce a clear, structured answer. Include:
 [Concise answer to the question]
 
 ### Key Files
-- `[path]`: [what it contains / why it matters]
+- `[path]` (owned by spec [id]): [what it contains / why it matters]
 
 ### Findings
 
@@ -101,6 +103,7 @@ Produce a clear, structured answer. Include:
 - **DO:** Include file paths in every finding so the caller can navigate directly
 - **DO:** Note when something is missing or inconsistent (e.g. a spec exists but has no implementation)
 - **DO:** Read compiled artifacts only through `spec-spine` subcommands, never via ad-hoc `jq`/grep
+- **DO:** Name the owning spec for every file you cite (`spec-spine registry`, never a guess)
 - **DO NOT:** Modify any files; this agent is strictly read-only
 - **DO NOT:** Speculate when you can search; verify claims against actual code
 - **DO NOT:** Stop at the first result; check for all occurrences
