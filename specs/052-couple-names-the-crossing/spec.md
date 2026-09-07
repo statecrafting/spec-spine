@@ -184,11 +184,30 @@ pair) and the gate has no basis for guessing which one should declare the edge;
 inventing an answer there would be worse than the generic text.
 
 One `extends` item is emitted per violating path, in the report's existing
-sorted-by-path order. Where a path has several owners the item names the first
-owner id in sorted order, since clearing requires only one; the emitted unit is
-the file-shorthand form. Both are a correct starting point rather than the only
-correct answer, and a narrower `section` or `symbol` unit remains available to
-an author who wants the claim tighter. The footer MUST NOT claim otherwise.
+sorted-by-path order. Three values in that item are defaults rather than
+verdicts: where a path has several owners the item names the first owner id in
+sorted order, since clearing requires only one; the emitted unit is the
+file-shorthand form; and the emitted `nature` is `additive`.
+
+All three are a correct starting point and none is the only correct answer. A
+narrower `section` or `symbol` unit is available to an author who wants the
+claim tighter, any other owner clears the path as well as the first, and
+`nature` is a free-text hint whose other values describe a crossing that
+replaces behavior rather than adding to it (`superseding`, as spec 051 uses on
+two of 029's units). The footer MUST NOT present the block as the only correct
+form, and MUST NOT imply that `additive` is a judgement the gate reached about
+the author's intent.
+
+**What the footer cannot know.** It names the single edited spec as the place to
+declare the edge, which is right whenever the touch was deliberate: a spec that
+reaches into another spec's territory declares the crossing in its own
+frontmatter, which is what specs 009, 030 and 050 each do. What the gate cannot
+distinguish is a deliberate crossing from an accidental touch, where the correct
+resolution is to revert the touch and declare nothing. It does not try, and it
+MUST NOT phrase the block as an instruction: it is a suggestion an author
+accepts or discards, and an author who did not mean to touch the path is better
+served by a suggestion they can recognize as wrong than by a refusal that
+explains nothing.
 
 The output is a pure function of the report and the diff. No new input is read,
 nothing is written, and the same inputs produce the same bytes.
