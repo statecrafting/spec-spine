@@ -48,9 +48,9 @@ pub use attest::{
     attestation_hash, spec_attestation_hash, verify_recompute, verify_spec_recompute,
 };
 pub use compile::{
-    CompileOutcome, MAX_UNDECLARED_EXTRA_FRONTMATTER, RegistryShardSet, check_registry_freshness,
-    compare_committed_registry, compile, load_committed_registry, registry_dir,
-    registry_shard_files,
+    CompileOutcome, MAX_UNDECLARED_EXTRA_FRONTMATTER, RegistryShardSet, SpecCheckReport,
+    check_registry_freshness, compare_committed_registry, compile, compile_spec,
+    load_committed_registry, registry_dir, registry_shard_files,
 };
 pub use couple::{
     CoupleReport, DEFAULT_BYPASS_PREFIXES, DiffFile, DiffInput, Waiver, build_superseders, couple,

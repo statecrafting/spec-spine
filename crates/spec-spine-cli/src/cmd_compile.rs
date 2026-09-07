@@ -37,7 +37,27 @@ use crate::out;
 /// machine-readable verdict from the command that just regenerated the shards
 /// the next gate compares against invites exactly the mid-chain confusion the
 /// non-writing `--check` exists to avoid.
-pub fn run(repo: &Path, check: bool, json: bool) -> Result<u8, Error> {
+pub fn run(repo: &Path, check: bool, json: bool, spec: Option<&str>) -> Result<u8, Error> {
+    // Spec 056 §3.1: `--spec` and `--check` are different questions (is this
+    // well-formed / do the committed shards match), and a combined form would
+    // have to invent an answer for a spec with no shard.
+    if let Some(id) = spec {
+        if check {
+            let err = Error::Config(
+                "compile --spec is incompatible with --check: --spec validates one spec \
+                 against the committed registry, --check compares the whole shard tree \
+                 (spec 056 3.1)"
+                    .to_string(),
+            );
+            if json {
+                crate::emit_error_envelope(verb::COMPILE_SPEC, &err);
+            } else {
+                eprintln!("spec-spine: {err}");
+            }
+            return Ok(err.exit_code());
+        }
+        return run_one_spec(repo, id, json);
+    }
     if json && !check {
         // Written here rather than raised for `main` to render: `json_verb`
         // deliberately maps only `compile --check`, so a caller that asked for
@@ -206,4 +226,49 @@ fn now_rfc3339() -> String {
     OffsetDateTime::now_utc()
         .format(&Rfc3339)
         .unwrap_or_else(|_| "unknown".to_string())
+}
+
+/// `compile --spec <id>`: validate one spec, write nothing (spec 056).
+///
+/// Exit `0` when the spec produces no error-tier violation, `1` when it does or
+/// when the id resolves to nothing, `3` for I/O, parse, schema or config
+/// failure. Never `2`: nothing here is a staleness question.
+fn run_one_spec(repo: &Path, id: &str, json: bool) -> Result<u8, Error> {
+    let cfg = load_repo_config(repo)?;
+    let report = spec_spine_core::compile_spec(&cfg, repo, id)?;
+    let code = if report.passed { 0 } else { 1 };
+
+    if json {
+        let value = serde_json::to_value(&report).map_err(|e| Error::Schema(e.to_string()))?;
+        out::verdict(&Verdict::report(verb::COMPILE_SPEC, code, value))?;
+        return Ok(code);
+    }
+
+    for v in &report.violations {
+        // Errors to stderr so they surface in a CI log; warnings and info too,
+        // since the whole output of this verb is its diagnostics.
+        eprintln!("  {} [{}] {}", v.code, report.spec_path, v.message);
+    }
+    if report.passed {
+        outln!(
+            "{}: valid ({} warning(s), nothing written)",
+            report.spec_id,
+            report
+                .violations
+                .iter()
+                .filter(|v| v.severity == Severity::Warning)
+                .count()
+        );
+    } else {
+        eprintln!(
+            "{}: INVALID: {} error(s)",
+            report.spec_id,
+            report
+                .violations
+                .iter()
+                .filter(|v| v.severity == Severity::Error)
+                .count()
+        );
+    }
+    Ok(code)
 }

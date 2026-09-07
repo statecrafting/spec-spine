@@ -4,7 +4,7 @@ title: "Validate one draft without a temporary repository"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -16,6 +16,13 @@ extends:
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/cmd_compile.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-core/tests/compile.rs", nature: additive }
   - { spec: "037-machine-readable-verdicts", unit: "crates/spec-spine-types/src/verdict.rs", nature: additive }
+  # The version constant this spec moves, and the three pins that read it (2.1).
+  - { spec: "037-machine-readable-verdicts", unit: "crates/spec-spine-types/src/version.rs", nature: additive }
+  - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/tests/dtos.rs", nature: additive }
+  - { spec: "037-machine-readable-verdicts", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
+  - { spec: "052-couple-names-the-crossing", unit: "crates/spec-spine-cli/tests/couple.rs", nature: additive }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
 summary: >
@@ -78,6 +85,31 @@ Spec 001 owns `compile` and defines the `V-` codes and the emission contract. It
 requires that compiling the corpus writes the registry; it says nothing about a
 mode that validates without writing, which spec 031 already established is a
 legitimate second mode of the same verb. This spec adds a third.
+
+### 2.1 The version bump reaches four more files
+
+**Decision, 2026-09-07.** `VERDICT_SCHEMA_VERSION` lives in
+`types/src/version.rs`, not in `verdict.rs`, and three tests plus one draft
+spec pinned its value as a literal. Moving it to `0.3.0` therefore touches
+`version.rs`, `types/tests/dtos.rs`, `cli/tests/cli.rs` and
+`cli/tests/couple.rs`, each declared as an `extends` edge above.
+
+Two of those pins are rewritten to read the constant rather than a literal,
+which is what `cli.rs` already did six lines from the one that did not. A test
+asserting one verb's envelope version should be asserting *that the envelope
+carries the shared version*, since an additive verb elsewhere is not a change to
+the verb under test. The literal made a legitimate bump look like a regression
+in an unrelated spec's acceptance, which is the failure mode this decision
+records so the next additive verb does not rediscover it.
+
+Spec 052's `## Verification` carried the same literal, and was rewritten the
+same way: it now asserts that `couple`'s envelope version equals `lint`'s,
+which is the claim spec 050 §3.6 actually settled (the constant is
+envelope-wide, so a consumer of a different verb cannot observe a payload
+addition). 052 is still `status: draft` and unratified, and the edit corrects
+how it asserts its own requirement rather than changing the requirement: §3.4
+still says a payload addition must not move the constant, and this spec did not
+move it for a payload addition.
 
 ## 3. Behavior
 
@@ -186,16 +218,23 @@ adds.
 
 ## 5. Verification
 
+Every assertion fails against pre-056 code: `--spec` is an unknown argument and
+clap refuses it with exit 2.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-core --test compile --locked
-# The flag exists, resolves the short id, and validates without writing.
-# Until this ships, `--spec` is an unknown argument and clap refuses it.
+# 3.1: the flag exists, resolves the short id, and validates without writing.
 target/release/spec-spine compile --spec 024
 target/release/spec-spine compile --spec 024-index-sharding --json
-# It wrote nothing: the committed shards are untouched.
+# 3.4: the envelope's verb distinguishes it from `compile --check`, and the
+# version moved for the additive token.
+target/release/spec-spine compile --spec 024 --json | python3 -c 'import json,sys; v=json.load(sys.stdin); assert v["verb"]=="compile.spec", v; assert v["schemaVersion"]=="0.3.0", v'
+# 3.5: it wrote nothing. The committed shards are exactly as they were.
 target/release/spec-spine compile --check
-# An unknown id is exit 1 (not found), never exit 2.
+# 3.1: an unknown id is exit 1 (not found), never exit 2.
 target/release/spec-spine compile --spec 999 ; test $? -eq 1
+# 3.1: `--spec` and `--check` are different questions, and the pair is refused.
+target/release/spec-spine compile --spec 024 --check ; test $? -eq 3
 ```

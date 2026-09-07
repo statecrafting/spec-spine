@@ -252,7 +252,8 @@ and continues to validate against the unchanged schema. `REGISTRY_SCHEMA_VERSION
 therefore stays at `1.1.0` and the schema files are not edited: they describe
 the artifact, and the artifact gained nothing.
 
-`VERDICT_SCHEMA_VERSION` stays at `0.2.0`. Spec 050 §3.6 settled this: adding a
+`VERDICT_SCHEMA_VERSION` does not move **for this change**. Spec 050 §3.6
+settled this: adding a
 member to one verb's `report` payload is additive and must not move a constant
 that versions the envelope, because a consumer of a different verb cannot
 observe the change. That decision was recorded so that the next spec to add a
@@ -343,7 +344,13 @@ printf 'crates/spec-spine-core/src/index.rs\nspecs/052-couple-names-the-crossing
 printf 'crates/spec-spine-core/src/index.rs\n' | target/release/spec-spine couple --paths-from /dev/stdin --json | python3 -c 'import json,sys; v=json.load(sys.stdin)["report"]["violations"][0]; assert v["code"]=="C-001", v; assert "004-codebase-index" in v["owners"], v'
 ! printf 'crates/spec-spine-core/src/index.rs\n' | target/release/spec-spine couple --paths-from /dev/stdin --json | grep -q 'Declare an'
 # 3.4: a payload addition does not move the envelope version (spec 050 3.6).
-test "$(printf 'crates/spec-spine-core/src/index.rs\n' | target/release/spec-spine couple --paths-from /dev/stdin --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["schemaVersion"])')" = "0.2.0"
+# Asserted as "couple's envelope version is the shared one", not as a literal:
+# the constant is envelope-wide, so a consumer of a different verb cannot
+# observe a payload addition here. A literal would instead pin the corpus's
+# whole verdict version to whatever it was the day this spec landed, and would
+# read a legitimate additive bump elsewhere (spec 056 took it to 0.3.0 by
+# adding `compile.spec`) as a change to this spec's behavior.
+test "$(printf 'crates/spec-spine-core/src/index.rs\n' | target/release/spec-spine couple --paths-from /dev/stdin --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["schemaVersion"])')" = "$(target/release/spec-spine lint --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["schemaVersion"])')"
 # 3.4: every committed registry shard still matches what the corpus compiles to,
 # so no schema file and no schema version had to move.
 target/release/spec-spine compile --check

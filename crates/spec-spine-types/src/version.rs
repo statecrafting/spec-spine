@@ -56,8 +56,10 @@ pub const SPEC_ATTESTATION_SCHEMA_VERSION: &str = "0.1.0";
 /// token (a consumer's existing branches still match); MAJOR is breaking,
 /// which includes renaming or removing one (they stop matching).
 ///
-/// 0.2.0 added the `verify` verb (spec 049).
-pub const VERDICT_SCHEMA_VERSION: &str = "0.2.0";
+/// 0.2.0 added the `verify` verb (spec 049); 0.3.0 added `compile.spec`
+/// (spec 056). Each is the additive case this doc-comment names, and each
+/// followed the same reasoning rather than reopening it.
+pub const VERDICT_SCHEMA_VERSION: &str = "0.3.0";
 
 /// The `spec-spine.toml` config schema version (optional `config_version` key).
 pub const CONFIG_VERSION: &str = "0.1.0";

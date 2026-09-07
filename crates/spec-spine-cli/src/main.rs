@@ -61,10 +61,14 @@ enum Command {
         #[arg(long)]
         check: bool,
         /// Emit the verdict as a JSON envelope on stdout (spec 037). Requires
-        /// `--check`: the writing form mutates `.derived`, and its verdict is
-        /// deliberately not machine-readable (spec 037 4).
+        /// `--check` or `--spec`: the writing form mutates `.derived`, and its
+        /// verdict is deliberately not machine-readable (spec 037 4).
         #[arg(long)]
         json: bool,
+        /// Validate exactly one spec and write nothing (spec 056). Accepts the
+        /// short id (`056`). Incompatible with `--check`.
+        #[arg(long, value_name = "ID")]
+        spec: Option<String>,
     },
     /// Read the effective configuration: every default resolved, and the
     /// built-in bypass floor merged with the adopter's list and attributed.
@@ -194,7 +198,9 @@ fn main() -> ExitCode {
 
     let json_verb = cli.command.json_verb();
     let result = match &cli.command {
-        Command::Compile { check, json } => cmd_compile::run(&repo, *check, *json),
+        Command::Compile { check, json, spec } => {
+            cmd_compile::run(&repo, *check, *json, spec.as_deref())
+        }
         Command::Config { action } => cmd_config::run(&repo, action),
         Command::Registry { query } => cmd_registry::run(&repo, query),
         Command::Index { action } => cmd_index::run(&repo, action.as_ref()),
@@ -306,7 +312,15 @@ impl Command {
             Command::Compile {
                 json: true,
                 check: true,
+                ..
             } => Some(verb::COMPILE_CHECK),
+            // Spec 056: `--spec` is its own verb. A consumer that branched on
+            // `compile.check` must not silently receive a single-spec verdict.
+            Command::Compile {
+                json: true,
+                spec: Some(_),
+                ..
+            } => Some(verb::COMPILE_SPEC),
             Command::Lint { json: true, .. } => Some(verb::LINT),
             Command::Couple { json: true, .. } => Some(verb::COUPLE),
             Command::Verify { json: true, .. } => Some(verb::VERIFY),

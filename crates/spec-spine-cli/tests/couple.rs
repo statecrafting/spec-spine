@@ -801,6 +801,9 @@ fn json_envelope_carries_owners_not_prose() {
 
     let text = String::from_utf8_lossy(&out.stdout);
     assert!(!text.contains("Declare an `extends` edge"), "{text}");
-    // §3.4: a payload addition does not move the envelope's version (spec 050 §3.6).
-    assert_eq!(v["schemaVersion"], "0.2.0");
+    // §3.4: a payload addition does not move the envelope's version (spec 050
+    // §3.6). Asserted against the constant rather than a literal, because an
+    // additive verb elsewhere legitimately moves it (spec 056 did) and that is
+    // not a payload addition.
+    assert_eq!(v["schemaVersion"], spec_spine_types::VERDICT_SCHEMA_VERSION);
 }
