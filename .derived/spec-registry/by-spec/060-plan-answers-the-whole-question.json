@@ -86,6 +86,6 @@
     "summary": "`registry plan` prints spec ids and a count. Every consumer needs more than that, so every consumer adds it back: adopters kept about forty lines of Python to join the ready ids against titles and to explain why each blocked spec is blocked, and the corpus's own `/next` skill has to make a second call to turn an id into something a human can read. The data is all there. `Plan` already carries each blocked spec's blockers with the state of each, and the registry it was computed from carries every title. This spec makes the prose form render what the structure already holds, and adds `--next`, the single pick that the one-spec-per-session loop actually asks for. The JSON shape gains title fields and is otherwise unchanged.\n",
     "title": "The plan answers the whole question, and names one pick"
   },
-  "shardHash": "5ab7aeecb9988937127629e7812f907f280b927ea5529cea402e9ac05cd22eac",
+  "shardHash": "ff916a920c8ec5a92bfbcefc2d9fb59e9f5aaba250bbcf9955d1fc56354a1457",
   "specVersion": "1.1.0"
 }
