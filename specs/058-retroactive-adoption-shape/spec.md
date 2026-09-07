@@ -4,7 +4,7 @@ title: "The defects heading has one spelling"
 status: draft
 kind: "governance"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -13,6 +13,9 @@ depends_on:
   - "043-governance-document-gaps"
 extends:
   - { spec: "003-conformance-lint", unit: "crates/spec-spine-core/src/lint.rs", nature: additive }
+  # The anchor rule itself, beside the slug it is asked of (3.1).
+  - { spec: "022-keypath-section-anchors", unit: "crates/spec-spine-core/src/sections.rs", nature: additive }
+  - { spec: "003-conformance-lint", unit: "crates/spec-spine-core/tests/lint.rs", nature: additive }
 refines:
   # 043 refined this principle with the aspect `adopted-code-as-evidence`,
   # adding the heading. This spec refines a different aspect of the same
@@ -136,6 +139,23 @@ prose, and info is the tier this corpus reserves for exactly that (`L-005`, the
 stub check). It surfaces under `--fail-on-info`, which no gate here runs, so a
 corpus is told without being refused.
 
+**Decision, 2026-09-07: "contains `defect`" was too loose, and this spec's own
+title proved it.** The first implementation followed the sentence above
+literally and immediately reported
+`# 058: The defects heading has one spelling`, whose anchor contains `defect`
+and which is prose about defects rather than an attempt at a defects section.
+
+The rule is narrowed to the two shapes that are attempts. An anchor **ending**
+`defect` or `defects` is a section named for defects that got the spelling
+wrong (`## Known defect`, `## Defects`). An anchor **containing**
+`known-defects-` got the name right and kept going
+(`## Known defects and open questions`), which §3.1 refuses for its own reason.
+Both of §3.2's motivating cases survive; the title does not match either shape.
+
+That a spec's title can trip its own lint is worth the two lines it costs to
+record: the near-miss check reads every heading in a `spec.md`, and a spec whose
+subject is a heading will always have that subject in its title.
+
 The check reads `section_headings`, which `SpecRecord` already carries and
 `compile` already populates. No new parsing, no new field, no new IO.
 
@@ -192,18 +212,24 @@ in the audit's §5. This spec gives it the rule to implement.
 
 ## 5. Verification
 
+`L-009` and the constitution's anchor sentence both fail against pre-058 state:
+the code did not exist and §V quoted a heading.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-core --test lint --locked
-# The constitution states the anchor rule rather than quoting a heading.
+# 3.1: the constitution states the anchor rule rather than quoting a heading.
 grep -q 'known-defects' standards/spec/constitution.md
-# A near-miss heading is reported at info tier, and only under --fail-on-info.
-tmp=$(mktemp -d) && mkdir -p "$tmp/specs/001-x" && : > "$tmp/spec-spine.toml" \
-  && printf -- '---\nid: "001-x"\ntitle: "x"\nstatus: draft\ncreated: "2026-09-07"\nsummary: "x"\nestablishes:\n  - "specs/001-x/spec.md"\n---\n\n# x\n\n## Known defect\n\nprose\n' > "$tmp/specs/001-x/spec.md" \
-  && target/release/spec-spine --repo "$tmp" lint | grep -q 'L-009'
-# The corpus stays green at the tier CI gates on, and the shards were committed.
-target/release/spec-spine lint --fail-on-warn
+grep -q 'identified by its \*\*anchor\*\*' standards/spec/constitution.md
+# 3.2: a near-miss heading is reported, at info tier.
+tmp=$(mktemp -d) && mkdir -p "$tmp/specs/001-x" && : > "$tmp/spec-spine.toml" && printf -- '---\nid: "001-x"\ntitle: "x"\nstatus: draft\ncreated: "2026-09-07"\nsummary: "x"\nestablishes:\n  - "specs/001-x/spec.md"\n---\n\n# x\n\n## Known defect\n\nprose\n' > "$tmp/specs/001-x/spec.md" && target/release/spec-spine --repo "$tmp" lint | grep -q 'L-009'
+# 3.2: and only under --fail-on-info. Without it the same corpus exits 0.
+tmp=$(mktemp -d) && mkdir -p "$tmp/specs/001-x" && : > "$tmp/spec-spine.toml" && printf -- '---\nid: "001-x"\ntitle: "x"\nstatus: draft\ncreated: "2026-09-07"\nsummary: "x"\nestablishes:\n  - "specs/001-x/spec.md"\n---\n\n# x\n\n## Known defect\n\nprose\n' > "$tmp/specs/001-x/spec.md" && target/release/spec-spine --repo "$tmp" lint --fail-on-warn
+# 3.2: this corpus is clean at info tier, which is the assertion the narrowed
+# rule earns: before it, this spec's own title was reported.
+target/release/spec-spine lint --fail-on-info
+# The shards were committed.
 target/release/spec-spine compile --check
 target/release/spec-spine index check
 ```

@@ -11,6 +11,14 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/sections.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/lint.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "standards/spec/constitution.md",
         "source": "spec-edge"
       }
@@ -32,9 +40,35 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/src/sections.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/sections.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/lint.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/lint.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "standards/spec/constitution.md",
             "span": {
-              "endLine": 73,
+              "endLine": 83,
               "startLine": 53
             }
           }
@@ -65,5 +99,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "7a8c868c2b5e3f3e9b768e8e0aff7db2c0fe02a9e92b72cec10ddc5bb10d709c"
+  "shardHash": "00061347eb0d60e40748f0e2b68dd03c9cb8c1b8ec1d8a4fcf07e2b4c6530cde"
 }

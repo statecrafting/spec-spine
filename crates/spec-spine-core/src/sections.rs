@@ -115,6 +115,53 @@ fn markdown_sections(content: &str) -> Vec<(String, LineSpan)> {
 
 /// Kebab-case slug of a heading: lowercase, alnum kept, runs of other chars
 /// collapse to a single `-`, trimmed.
+/// The anchor the indexer computes for a heading (spec 058 §3.1 names this as
+/// the rule the defects heading is judged by).
+///
+/// Public so the lint asks the indexer's own question rather than carrying a
+/// second copy of the slug rule. A governance document that names an anchor and
+/// a consumer that matches a string is exactly the mismatch spec 058 exists to
+/// close, and two slug implementations would reopen it from the other side.
+pub fn anchor_of(heading_text: &str) -> String {
+    slug(heading_text)
+}
+
+/// The defects-section anchor, and the suffix rule §3.1 states.
+pub const DEFECTS_ANCHOR: &str = "known-defects";
+
+/// True when a heading's anchor names a defects section: exactly the anchor, or
+/// ending `-known-defects` so section numbering and prefixing work.
+///
+/// Suffix, not prefix or substring. A prefix rule would accept
+/// `## Known defects and open questions`, whose section is about something
+/// wider and from which a consumer would extract the open questions too. A
+/// substring rule would additionally accept `## Why known defects matter`.
+pub fn is_defects_anchor(anchor: &str) -> bool {
+    anchor == DEFECTS_ANCHOR || anchor.ends_with(&format!("-{DEFECTS_ANCHOR}"))
+}
+
+/// True when an anchor reads as an *attempt* at the defects section that
+/// [`is_defects_anchor`] will not match: the `L-009` near-miss (spec 058 §3.2).
+///
+/// Two shapes, not "contains `defect`". A heading whose anchor **ends** with
+/// `defect`/`defects` is a section named for defects that got the spelling
+/// wrong (`## Known defect`, `## Defects`). A heading **containing**
+/// `known-defect` got the name right and then kept going
+/// (`## Known defects and open questions`), which §3.1 deliberately refuses.
+///
+/// The looser "contains `defect`" this narrows was the draft's wording, and it
+/// fires on this spec's own title (`# 058: The defects heading has one
+/// spelling`), which is prose about defects rather than an attempt at one.
+pub fn is_near_miss_defects_anchor(anchor: &str) -> bool {
+    if is_defects_anchor(anchor) {
+        return false;
+    }
+    anchor.ends_with("defect")
+        || anchor.ends_with("defects")
+        || anchor.contains(&format!("{DEFECTS_ANCHOR}-"))
+        || anchor.contains("known-defect-")
+}
+
 fn slug(text: &str) -> String {
     let mut s = String::new();
     let mut prev_dash = false;

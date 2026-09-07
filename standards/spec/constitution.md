@@ -62,12 +62,22 @@ rather than blowing away its history.
 
 Code adopted from outside the corpus is specced **as found**. The adopting spec
 describes the behavior that exists, and records the behavior it would not have
-chosen under a `## Known defects` heading, with the defect named. A defect
-recorded under that heading is not thereby blessed: it is the reason a later spec
-can be written against it. Without that heading an adopting spec has only bad
-options, since describing the code accurately would ratify its defects as the
-specified behavior. `origin.retroactive: true` says *when* the authority began;
-`## Known defects` says what the adopting spec makes of what it found.
+chosen under a defects heading, with the defect named. A defect recorded under
+that heading is not thereby blessed: it is the reason a later spec can be
+written against it. Without that heading an adopting spec has only bad options,
+since describing the code accurately would ratify its defects as the specified
+behavior. `origin.retroactive: true` says *when* the authority began; the
+defects heading says what the adopting spec makes of what it found.
+
+The heading is identified by its **anchor**, not by its text: any heading whose
+computed slug is `known-defects` or ends with `-known-defects`, at any level.
+That is the slug the indexer computes for a section unit, so `## Known defects`,
+`### Known Defects` and `## 5. Known defects` all name the section, while
+`## Known defects and open questions` does not: a section that continues past
+the anchor is about something wider, and a consumer extracting defects from it
+would extract the open questions too. Stated as a rule rather than quoted as a
+string because the first consumer to check mechanically matched the string and
+therefore rejected the numbered headings of the specs it cited as precedent.
 
 ---
 

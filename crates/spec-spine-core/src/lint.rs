@@ -122,6 +122,33 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
             }
         }
 
+        // L-009 (spec 058 §3.2): a heading that is a near miss for the defects
+        // anchor. Info tier, the tier this corpus reserves for a nudge on
+        // otherwise valid prose (`L-005` is the other): it surfaces under
+        // `--fail-on-info`, which no gate here runs, so a corpus is told
+        // without being refused.
+        //
+        // The anchor comes from `sections::anchor_of`, the indexer's own slug
+        // rule, so the lint cannot disagree with what a section unit would
+        // resolve to. Quoting a heading and meaning an anchor is the defect
+        // this spec closes; carrying a second slug rule would reopen it.
+        for heading in &spec.section_headings {
+            let anchor = crate::sections::anchor_of(heading);
+            if crate::sections::is_near_miss_defects_anchor(&anchor) {
+                violations.push(info(
+                    "L-009",
+                    format!(
+                        "spec '{}' has heading '{heading}' (anchor '{anchor}'), which is \
+                         not the defects anchor: a consumer looking for '{}' will not \
+                         find this section",
+                        spec.id,
+                        crate::sections::DEFECTS_ANCHOR
+                    ),
+                    at(),
+                ));
+            }
+        }
+
         // L-005: stub (no body sections).
         if spec.section_headings.is_empty() {
             violations.push(info(

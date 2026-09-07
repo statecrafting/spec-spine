@@ -14,10 +14,26 @@
           "kind": "file",
           "path": "crates/spec-spine-core/src/lint.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-keypath-section-anchors",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/sections.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/lint.rs"
+        }
       }
     ],
     "id": "058-retroactive-adoption-shape",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "governance",
     "owner": "The spec-spine Authors",
     "references": [
@@ -57,6 +73,6 @@
     "summary": "Constitution V requires code adopted from outside the corpus to be specced as found, with the behavior the adopting spec would not have chosen recorded under a `## Known defects` heading. It does not say what counts as that heading, and the first consumer to check mechanically got it wrong: claude-observatory's `defects.ts` matches the string `## Known defects` exactly and therefore rejects the numbered headings of the very specs it cites as precedent. This spec settles the spelling as an anchor rather than a string: any heading whose computed slug is or ends with `known-defects`, at any level, under the same slug rule the indexer already uses for section units. It adds `L-009`, an info-tier lint for a near-miss spelling, and it declines to lint `origin.retroactive` into implying the heading, because spec 043 established that the two are orthogonal.\n",
     "title": "The defects heading has one spelling"
   },
-  "shardHash": "f54b6024e52f358c72f50ca37e4b0c7af95fab14e92ffe74dd291ac0724ca17d",
+  "shardHash": "a3078d3df925986851c71c6017da101d6a50e59b30b10502535282d988e86c2b",
   "specVersion": "1.1.0"
 }
