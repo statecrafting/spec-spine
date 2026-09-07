@@ -178,6 +178,35 @@ without breaking readers:
   fields ride through without a schema bump (see
   [overlay-contract.md](overlay-contract.md) §5).
 
+## Migration note: spec 037, the verdict envelope
+
+**If you regex a field out of a verdict verb's stdout, stop, and parse the
+`--json` envelope instead.**
+
+The case that broke: `spec-spine attest` printed its `attestationHash` in a
+prose line, and claude-observatory matched that line with a regular expression
+at two call sites. Prose is a rendering. It is allowed to change wording, and it
+did. The envelope is the contract.
+
+```sh
+# Don't
+spec-spine attest | grep -o 'attestationHash: .*' | cut -d' ' -f2
+
+# Do
+spec-spine attest --json | jq -r '.report.attestationHash'
+```
+
+Every verb that renders a verdict takes `--json`: `compile --check`,
+`index check`, `lint`, `couple`, `attest`, `verify-attestation`, `verify`, and
+`compile --spec`. Each writes one envelope with `schemaVersion`, `verb`, `ok`,
+`exitCode`, and either `report` or `error`.
+
+**The guarantee that makes migrating safe:** `--json` changes what is written
+and never what is decided. Every exit code is identical with and without it. A
+consumer switching to the envelope is changing its parsing, not its control
+flow, so the migration can be done one call site at a time with no behavioral
+risk.
+
 ## Pinning the binary: `[meta] required_version`
 
 The schema versions above tell a **loader** what it can read. They say nothing

@@ -4,7 +4,7 @@ title: "The docs name what adopters derived by experiment"
 status: draft
 kind: "documentation"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -18,6 +18,12 @@ establishes:
   # implementing change that creates it.
   - "docs/adoption-guide.md"
   - "docs/schema-versioning.md"
+  # Created by the implementing change (3.1), so claimed here.
+  - "docs/specify-first.md"
+extends:
+  # The new page joins the hashed-input set beside its sibling docs, so a
+  # change to a claimed document stales the ledger (spec 057).
+  - { spec: "064-the-kit-ships-the-composite-gate", unit: "spec-spine.toml", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "README.md" }, role: context }
@@ -176,6 +182,20 @@ the ledger did not move.
 **Restructuring the documentation set.** One new page, two sections and one
 note, each in an existing document's register.
 
+**Claiming `README.md`.** §3.1 requires the new page to be linked from the
+README's documentation table, which is an edit and not a claim.
+
+**Decision, 2026-09-07.** The first cut declared an `extends` edge on
+`README.md` for that one row, which was defensive and wrong in a way worth
+recording: `README.md` is on the coupling gate's built-in bypass floor, so
+editing it needs no claim at all, and a resolved unit claim **overrides** the
+bypass (spec 009). The edge would have made every future README edit a `C-001`
+against this spec, for a documentation file the floor exists to exempt. It also
+raised `L-008`, since nothing hashes the README, which is how it was caught.
+
+The one edge kept is on `spec-spine.toml`, so `docs/specify-first.md` joins the
+hashed-input set beside the sibling docs this spec claims.
+
 **Fixing claude-observatory's two call sites.** An adopter-side follow-up, in
 the audit's §5. This spec gives it the note to act on.
 
@@ -185,19 +205,39 @@ and a separate one.
 
 ## 5. Verification
 
+Each line is one command (spec 049 §3.2).
+
+This spec's whole output is prose, so its acceptance is weaker than a code
+spec's, and §3.4 says so rather than dressing it up: the mechanical check is
+that the pages exist, say the things they were written to say, are linked from
+where a reader would look, and that the ledger did not move. A documentation
+spec is verified by a reader.
+
 ```verify:cli
-# Self-contained: the commands below invoke the release binary.
-cargo build --release --locked
-# The page exists and is linked from the places its readers were already in.
+# 3.1: the page exists and covers what three adopters each derived alone.
 test -f docs/specify-first.md
-grep -q 'specify-first' README.md
-grep -q 'specify-first' docs/adoption-guide.md
-# The two interactions are written down.
-grep -q 'bypass' docs/adoption-guide.md
-grep -q 'trailing slash' docs/adoption-guide.md
-# The 037 migration note names the field that broke a real consumer.
+grep -q 'implementation: n-a' docs/specify-first.md
+grep -q 'hashFiles' docs/specify-first.md
+grep -q '248' docs/specify-first.md
+# 3.1: and it defers to the contract's table rather than keeping a second one.
+grep -q 'Lifecycle as scheduling' docs/specify-first.md
+! grep -q '| .draft. | absent' docs/specify-first.md
+# 3.1: a page nobody links is a page nobody finds.
+grep -q 'docs/specify-first.md' README.md
+grep -q 'specify-first.md' docs/adoption-guide.md
+# 3.2: the two interactions, each in the adoption guide.
+grep -q 'Bypass and hashing are independent' docs/adoption-guide.md
+grep -q 'Directory units claim recursively' docs/adoption-guide.md
+# 3.2: with the worked examples, since the claim without them is a slogan.
+grep -q 'bypassed and not hashed' docs/adoption-guide.md
+grep -q 'bypassed and hashed' docs/adoption-guide.md
+# 3.3: the migration note names the case that broke, not just the rule.
 grep -q 'attestationHash' docs/schema-versioning.md
-# Prose only: the ledger did not move.
+grep -q 'never what is decided' docs/schema-versioning.md
+# 3.4: nothing mechanical moved. These are bypassed paths, and the ledger is
+# unchanged by them.
+cargo build --release --locked
 target/release/spec-spine compile --check
 target/release/spec-spine index check
+target/release/spec-spine lint --fail-on-warn
 ```

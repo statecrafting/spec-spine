@@ -299,3 +299,56 @@ the public loaders and emits its own sibling artifact. See
   equivalent), and `spec-spine index` maps them to specs.
 - `.derived/` is committed (except `build-meta.json`).
 - CI runs `compile` → `index check` → `lint` → `couple` on every PR.
+
+## If your corpus has no code yet
+
+Three of the four repositories governed by spec-spine ratify the whole corpus
+before writing a line of code, and stay that way for months.
+[docs/specify-first.md](specify-first.md) says what the counts, the warnings and
+the gates mean in that mode, and what to run first.
+
+## Bypass and hashing are independent
+
+Two mechanisms decide what happens to a path, and they are **separate axes**.
+
+**Bypassed** means the coupling gate will not refuse a change to it. The
+built-in floor plus your `[coupling] bypass_prefixes`; `spec-spine config show`
+prints the merged list.
+
+**Hashed** means a change to it stales shards. `spec-spine.toml`, every spec's
+`spec.md`, each discovered package's manifest, the span-backing files of
+resolved units, and everything matched by `[index] extra_hashed_inputs`.
+
+A path can be on both, neither, or either, and neither implies the other:
+
+- `docs/` here is **bypassed and not hashed**: a documentation edit raises no
+  `C-001`, and stales nothing.
+- `standards/**` here is **bypassed and hashed**: an edit to the constitution
+  raises no `C-001`, and does stale every shard.
+
+Bypassed answers "will the gate refuse this change"; hashed answers "does this
+change make the ledger stale". They are different questions, and reading one as
+the other is how a governance file ends up outside both.
+
+> **Watch the glob form** in `extra_hashed_inputs`. `dir/**` matches
+> **directories**, so it hashes no files; you want `dir/**/*`. This repository
+> carried `["standards/**", ".github/workflows/**"]` for a long time, matching
+> nothing, until spec 057's predicate found it.
+
+## Directory units claim recursively
+
+A `file` unit with a **trailing slash** is a subtree claim:
+
+```yaml
+establishes:
+  - "crates/spec-spine-core/src/"
+```
+
+Every file under it counts as **specifically claimed** — for `index coverage`,
+and for `C-002` when `[coupling] require_ownership` is on. That is the intended
+instrument for retiring coverage debt across a directory: claim the subtree,
+rather than enumerating its files and re-enumerating them every time one is
+added.
+
+The trailing slash is load-bearing. Without it the same string is an exact file
+claim and matches nothing, since no file is named `src`.
