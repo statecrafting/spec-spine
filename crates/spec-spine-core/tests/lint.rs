@@ -410,3 +410,129 @@ fn witnessed_paths_covers_every_hash_contributor() {
     assert!(witnessed.contains("spec-spine.toml"), "{witnessed:?}");
     assert!(witnessed.contains("extra.txt"), "{witnessed:?}");
 }
+
+// ── spec 058: the defects heading has one spelling ────────────────────────
+
+use spec_spine_core::sections::{anchor_of, is_defects_anchor, is_near_miss_defects_anchor};
+
+/// §3.1: the heading is an anchor, not a string. Case, level and section
+/// numbering all come free from the indexer's own slug rule, which is why the
+/// rule is that rule rather than a second copy of it.
+#[test]
+fn the_defects_heading_is_matched_by_anchor_at_any_level_or_numbering() {
+    for heading in [
+        "Known defects",
+        "Known Defects",
+        "KNOWN DEFECTS",
+        "Known defects:",
+        "5. Known defects",
+        "4. Known defects",
+    ] {
+        assert!(
+            is_defects_anchor(&anchor_of(heading)),
+            "'{heading}' -> '{}' should be the defects anchor",
+            anchor_of(heading)
+        );
+    }
+}
+
+/// §3.1: suffix, not prefix or substring. A heading that continues past the
+/// anchor is a section about something wider, and a consumer extracting defects
+/// from it would extract the open questions too.
+#[test]
+fn a_heading_that_continues_past_the_anchor_is_not_the_section() {
+    for heading in [
+        "Known defects and open questions",
+        "Known defect",
+        "Defects",
+        "Why known defects matter",
+    ] {
+        assert!(
+            !is_defects_anchor(&anchor_of(heading)),
+            "'{heading}' must not be the defects anchor"
+        );
+    }
+}
+
+/// §3.2: the near-miss rule catches an attempt at the section, and not prose
+/// that merely mentions defects. This spec's own title is the case that
+/// narrowed the rule: `# 058: The defects heading has one spelling` is about
+/// defects and is not an attempt at a defects section.
+#[test]
+fn the_near_miss_rule_catches_attempts_and_not_prose() {
+    for heading in [
+        "Known defect",
+        "Defects",
+        "Known defects and open questions",
+    ] {
+        assert!(
+            is_near_miss_defects_anchor(&anchor_of(heading)),
+            "'{heading}' is an attempt that a consumer will not find"
+        );
+    }
+    for heading in [
+        "058: The defects heading has one spelling",
+        "Known defects",
+        "5. Known defects",
+        "Purpose",
+    ] {
+        assert!(
+            !is_near_miss_defects_anchor(&anchor_of(heading)),
+            "'{heading}' must not be reported"
+        );
+    }
+}
+
+/// §3.2: `L-009` is info tier, so it surfaces under `--fail-on-info` and
+/// refuses nothing at the tier this repository gates on.
+#[test]
+fn l009_is_info_tier_and_names_the_anchor() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(
+        tmp.path(),
+        "specs/001-x/spec.md",
+        "---\nid: \"001-x\"\ntitle: \"x\"\nstatus: draft\ncreated: \"2026-09-07\"\n\
+         summary: \"x\"\nestablishes:\n  - \"src/x.rs\"\n---\n# x\n\n## Known defect\n\nprose\n",
+    );
+    let report = spec_spine_core::lint(&Config::default(), tmp.path()).unwrap();
+    let found: Vec<_> = report
+        .violations
+        .iter()
+        .filter(|v| v.code == "L-009")
+        .collect();
+    assert_eq!(found.len(), 1, "{:?}", report.violations);
+    assert_eq!(found[0].severity, Severity::Info);
+    assert!(
+        found[0].message.contains("known-defect"),
+        "{}",
+        found[0].message
+    );
+    assert!(
+        found[0].message.contains("known-defects"),
+        "{}",
+        found[0].message
+    );
+    assert_eq!(found[0].path.as_deref(), Some("specs/001-x/spec.md"));
+}
+
+/// §3.3: `origin.retroactive: true` does not imply the heading. The
+/// counterexample is in this corpus: spec 000 declares it and rightly has no
+/// defects section, so a lint implementing the audit's proposal would fire on
+/// the tier-1 bootstrap spec, which is both wrong and unfixable.
+#[test]
+fn retroactive_origin_alone_produces_no_diagnostic() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(
+        tmp.path(),
+        "specs/001-x/spec.md",
+        "---\nid: \"001-x\"\ntitle: \"x\"\nstatus: draft\ncreated: \"2026-09-07\"\n\
+         summary: \"x\"\nestablishes:\n  - \"src/x.rs\"\norigin:\n  retroactive: true\n\
+         ---\n# x\n\n## Purpose\n\nprose\n",
+    );
+    let report = spec_spine_core::lint(&Config::default(), tmp.path()).unwrap();
+    assert!(
+        !report.violations.iter().any(|v| v.code == "L-009"),
+        "{:?}",
+        report.violations
+    );
+}
