@@ -194,8 +194,8 @@
       }
     ],
     "specId": "051-harness-runs-the-verbs-it-ships",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "d256ef9492684b578fb6b93659e8b970cc9ba67e7477acbe7e9dd6fe83828b82"
+  "shardHash": "3da9fe6e4a60db34648017c8fbb381571918bb6f3a2e7501572d252a7759b6fd"
 }
