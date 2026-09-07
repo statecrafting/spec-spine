@@ -54,7 +54,7 @@ pub use compile::{
 };
 pub use couple::{
     CoupleReport, DEFAULT_BYPASS_PREFIXES, DiffFile, DiffInput, Waiver, couple, couple_with,
-    is_bypassed_path, parse_waiver,
+    effective_bypass_prefixes, is_bypassed_path, parse_waiver,
 };
 pub use coverage::{
     Ownership, SOURCE_EXTS, classify, coverage, coverage_with, enumerate_source_files,

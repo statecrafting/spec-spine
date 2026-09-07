@@ -20,6 +20,7 @@ macro_rules! out {
 
 mod cmd_attest;
 mod cmd_compile;
+mod cmd_config;
 mod cmd_couple;
 mod cmd_index;
 mod cmd_init;
@@ -64,6 +65,12 @@ enum Command {
         /// deliberately not machine-readable (spec 037 4).
         #[arg(long)]
         json: bool,
+    },
+    /// Read the effective configuration: every default resolved, and the
+    /// built-in bypass floor merged with the adopter's list and attributed.
+    Config {
+        #[command(subcommand)]
+        action: cmd_config::ConfigAction,
     },
     /// Read-only queries over the compiled registry.
     Registry {
@@ -188,6 +195,7 @@ fn main() -> ExitCode {
     let json_verb = cli.command.json_verb();
     let result = match &cli.command {
         Command::Compile { check, json } => cmd_compile::run(&repo, *check, *json),
+        Command::Config { action } => cmd_config::run(&repo, action),
         Command::Registry { query } => cmd_registry::run(&repo, query),
         Command::Index { action } => cmd_index::run(&repo, action.as_ref()),
         Command::Lint {

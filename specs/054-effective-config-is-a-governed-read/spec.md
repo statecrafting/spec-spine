@@ -4,7 +4,7 @@ title: "The effective configuration is a governed read"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -20,6 +20,14 @@ extends:
   # The bypass floor and the waiver keyword are computed here today, privately.
   - { spec: "005-coupling-gate", unit: "crates/spec-spine-core/src/couple.rs", nature: additive }
   - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/src/config.rs", nature: additive }
+  # Both crate roots list their public surface by name, and three new types and
+  # one new function join those lists (2.1).
+  - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/src/lib.rs", nature: additive }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
+establishes:
+  # Created by this spec (2), so claimed by it.
+  - "crates/spec-spine-cli/src/cmd_config.rs"
+  - "crates/spec-spine-cli/tests/config.rs"
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "docs/adoption-guide.md" }, role: context }
@@ -93,6 +101,15 @@ Nothing about the gate's decision is in this spec's territory. `couple.rs`
 changes only in that a value it already computes becomes reachable; the
 predicate that consumes it is untouched.
 
+### 2.1 Two crate roots
+
+**Decision, 2026-09-07.** Both crate roots re-export their public surface by
+name, so `BypassEntry`, `BypassSource`, `EffectiveConfig` and
+`EffectiveCouplingConfig` join `spec-spine-types`'s list and
+`effective_bypass_prefixes` joins `spec-spine-core`'s. Declared as `extends`
+edges. Neither line changes behavior; they are the difference between a type
+being nameable by a consumer and being reachable only through its module path.
+
 ## 3. Behavior
 
 ### 3.1 `spec-spine config show`
@@ -160,6 +177,17 @@ and `index coverage` take it: the object itself.
 The prose form is a rendering of the same object and carries no fact the JSON
 lacks.
 
+**Decision, 2026-09-07: the report's keys are snake_case.** Every other emitted
+JSON in this system is camelCase, and those are machine artifacts where that is
+the house style. This document is a mirror of an authored TOML file, and a
+consumer holding it beside `spec-spine.toml` should be reading the same token in
+both: `bypass_prefixes` in the report is `bypass_prefixes` in the file. The
+alternative shapes are both worse. All-camelCase renames every key the adopter
+wrote, which is a translation table the verb exists to avoid; a camelCase
+envelope over snake_case tables mixes the two in one document. §3.4 already
+names the field `config_version` in prose, and this decision is the rest of that
+choice made explicit rather than left to the serializer.
+
 ### 3.4 What it reports is what the tool would use
 
 The reported object MUST be the `Config` value the verbs in this process would
@@ -209,16 +237,27 @@ version-pinning problem, and spec 062 is where it belongs.
 
 ## 5. Verification
 
+Every assertion fails against pre-054 code: `config` is an unknown subcommand
+and clap refuses it with exit 2.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-cli --test config --locked
-# The verb exists and reports the merged, attributed floor. Until this ships,
-# `config` is an unknown subcommand and clap refuses it.
+# 3.1: the verb exists and reports.
 target/release/spec-spine config show
-# The built-in floor is present in the JSON form, which is the fact
-# claude-observatory could not reach (016 D-3).
-target/release/spec-spine config show --json | grep -q '.derived/'
-# It reports without any committed artifact, on a corpus that never compiled.
-tmp=$(mktemp -d) && mkdir -p "$tmp/specs" && target/release/spec-spine --repo "$tmp" config show
+# 3.2: the built-in floor is in the report, which is the fact
+# claude-observatory recorded as unknowable to it (its spec 016 D-3), and each
+# entry says where it came from.
+target/release/spec-spine config show --json | python3 -c 'import json,sys; e=json.load(sys.stdin)["coupling"]["bypass_prefixes"]; by={b["prefix"]:b["sources"] for b in e}; assert by[".derived/"]==["built-in"], by; assert by["**/README.md"]==["spec-spine.toml"], by'
+# 3.2: merged in the order the gate evaluates, floor first.
+target/release/spec-spine config show --json | python3 -c 'import json,sys; e=[b["prefix"] for b in json.load(sys.stdin)["coupling"]["bypass_prefixes"]]; assert e[0]==".github/", e; assert e[-1]=="**/README.md", e'
+# 3.3: a query, not a spec 037 verdict envelope.
+! target/release/spec-spine config show --json | grep -q '"exitCode"'
+# 3.4: exhaustive, defaults resolved, and the shape carries its own version.
+target/release/spec-spine config show --json | python3 -c 'import json,sys; c=json.load(sys.stdin); assert c["config_version"]=="0.1.0", c; assert c["index"]["resolver_exclusions"][0]=="target", c'
+# 3.1: it reports on a corpus that never compiled, and writes nothing.
+tmp=$(mktemp -d) && mkdir -p "$tmp/specs" && target/release/spec-spine --repo "$tmp" config show > /dev/null && test ! -e "$tmp/spec-spine.toml"
+# 3.5: a pure function of the config file and the binary.
+test "$(target/release/spec-spine config show --json | shasum)" = "$(target/release/spec-spine config show --json | shasum)"
 ```
