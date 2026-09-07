@@ -1044,3 +1044,178 @@ fn in_progress_leniency_reports_rather_than_ignores() {
         reported.diagnostics.warnings
     );
 }
+
+// ── spec 055: who owns this path ──────────────────────────────────────────
+
+/// A repo where 001 owns a file by unit, 002 owns the crate by manifest floor,
+/// and a third file carries a `// Spec:` header naming 003.
+fn owner_fixture(root: &Path) {
+    write(root, "Cargo.toml", "[workspace]\nmembers = [\"crate-a\"]\n");
+    write(
+        root,
+        "crate-a/Cargo.toml",
+        "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n\
+         [package.metadata.spec-spine]\nspec = \"002-floor\"\n",
+    );
+    write(root, "crate-a/src/claimed.rs", "pub fn a() {}\n");
+    write(root, "crate-a/src/plain.rs", "pub fn b() {}\n");
+    write(
+        root,
+        "crate-a/src/headed.rs",
+        "// Spec: specs/003-header/spec.md\npub fn c() {}\n",
+    );
+    write(
+        root,
+        "specs/001-unit/spec.md",
+        &spec("001-unit", "establishes:\n  - \"crate-a/src/claimed.rs\"\n"),
+    );
+    write(root, "specs/002-floor/spec.md", &spec("002-floor", ""));
+    write(root, "specs/003-header/spec.md", &spec("003-header", ""));
+}
+
+fn owners_of(root: &Path, path: &str) -> spec_spine_core::OwnerReport {
+    let cfg = Config::default();
+    let registry = spec_spine_core::compile(&cfg, root).unwrap().registry;
+    let index = spec_spine_core::index(&cfg, root).unwrap().index;
+    spec_spine_core::owner_with(&cfg, &registry, &index, path)
+}
+
+/// §3.1: the three linkage kinds are reported separately, because a consumer's
+/// next decision depends on which one it is. A unit claim is deliberate; a
+/// floor is a blanket that counts as debt for coverage (spec 032).
+#[test]
+fn owner_separates_unit_floor_and_header_linkage() {
+    let tmp = tempfile::tempdir().unwrap();
+    owner_fixture(tmp.path());
+
+    let claimed = owners_of(tmp.path(), "crate-a/src/claimed.rs");
+    let unit = claimed
+        .owners
+        .iter()
+        .find(|o| o.spec_id == "001-unit")
+        .expect("the unit owner: {claimed:?}");
+    assert_eq!(unit.kind, spec_spine_core::OwnerKind::Unit);
+    assert!(unit.claim.contains("establishes"), "{}", unit.claim);
+    // The floor owner is reported too, and as a floor.
+    let floor = claimed
+        .owners
+        .iter()
+        .find(|o| o.spec_id == "002-floor")
+        .expect("the floor owner");
+    assert_eq!(floor.kind, spec_spine_core::OwnerKind::Floor);
+
+    // A file only the floor covers reports exactly that, and nothing stronger.
+    let plain = owners_of(tmp.path(), "crate-a/src/plain.rs");
+    assert_eq!(plain.owners.len(), 1, "{plain:?}");
+    assert_eq!(plain.owners[0].spec_id, "002-floor");
+    assert_eq!(plain.owners[0].kind, spec_spine_core::OwnerKind::Floor);
+
+    // And a `// Spec:` header is its own kind: the file naming its own spec.
+    let headed = owners_of(tmp.path(), "crate-a/src/headed.rs");
+    assert!(
+        headed
+            .owners
+            .iter()
+            .any(|o| o.spec_id == "003-header" && o.kind == spec_spine_core::OwnerKind::Header),
+        "{headed:?}"
+    );
+}
+
+/// §3.1: a path nothing owns exits with an empty result, not an error. It is a
+/// true and common answer on a specify-first corpus, and the path need not
+/// exist: asking who *would* own a file before creating it is legitimate.
+#[test]
+fn owner_of_an_unowned_or_absent_path_is_empty() {
+    let tmp = tempfile::tempdir().unwrap();
+    owner_fixture(tmp.path());
+    assert!(
+        owners_of(tmp.path(), "outside/nothing.rs")
+            .owners
+            .is_empty(),
+        "unowned"
+    );
+    assert!(
+        owners_of(tmp.path(), "outside/does-not-exist-yet.rs")
+            .owners
+            .is_empty(),
+        "a path that does not exist on disk is answered, not refused"
+    );
+}
+
+/// §3.2: the answer is the gate's own, not a second implementation. Whatever
+/// `owners_for_path` returns for the whole-file reading is exactly the id set
+/// reported, so `index owner` and a `C-001` decision cannot disagree.
+#[test]
+fn owner_reports_exactly_the_gates_id_set() {
+    let tmp = tempfile::tempdir().unwrap();
+    owner_fixture(tmp.path());
+    let cfg = Config::default();
+    let registry = spec_spine_core::compile(&cfg, tmp.path()).unwrap().registry;
+    let index = spec_spine_core::index(&cfg, tmp.path()).unwrap().index;
+
+    for path in [
+        "crate-a/src/claimed.rs",
+        "crate-a/src/plain.rs",
+        "crate-a/src/headed.rs",
+        "outside/nothing.rs",
+    ] {
+        let gate = spec_spine_core::owners_for_path(
+            "specs",
+            path,
+            &[],
+            &index,
+            &spec_spine_core::build_superseders(&registry),
+        );
+        let mut reported: Vec<String> = spec_spine_core::owner_with(&cfg, &registry, &index, path)
+            .owners
+            .into_iter()
+            .map(|o| o.spec_id)
+            .collect();
+        reported.dedup();
+        let expected: Vec<String> = gate.into_iter().collect();
+        assert_eq!(reported, expected, "id sets must agree for {path}");
+    }
+}
+
+/// §3.2: supersession transfer applies unchanged, and the successor is reported
+/// with the relation that conferred the authority rather than as a claim it
+/// never made.
+#[test]
+fn a_superseding_spec_is_reported_as_inherited() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(r, "Cargo.toml", "[workspace]\nmembers = [\"crate-a\"]\n");
+    write(
+        r,
+        "crate-a/Cargo.toml",
+        "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n",
+    );
+    write(r, "crate-a/src/lib.rs", "pub fn a() {}\n");
+    write(
+        r,
+        "specs/001-old/spec.md",
+        &spec("001-old", "establishes:\n  - \"crate-a/src/lib.rs\"\n"),
+    );
+    write(
+        r,
+        "specs/002-new/spec.md",
+        &spec("002-new", "supersedes:\n  - \"001-old\"\n"),
+    );
+
+    let report = owners_of(r, "crate-a/src/lib.rs");
+    let new = report
+        .owners
+        .iter()
+        .find(|o| o.spec_id == "002-new")
+        .expect("the successor inherits: {report:?}");
+    assert_eq!(new.kind, spec_spine_core::OwnerKind::Inherited);
+    assert!(new.claim.contains("supersedes 001-old"), "{}", new.claim);
+    // Additive: the predecessor keeps its claim.
+    assert!(
+        report
+            .owners
+            .iter()
+            .any(|o| o.spec_id == "001-old" && o.kind == spec_spine_core::OwnerKind::Unit),
+        "{report:?}"
+    );
+}

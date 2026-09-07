@@ -54,6 +54,18 @@ pub enum IndexAction {
         #[arg(long)]
         json: bool,
     },
+    /// Report which specs own one path, and how (spec 055).
+    ///
+    /// Calls the coupling gate's own owner derivation, so this answer and a
+    /// `C-001` decision cannot disagree. The path need not exist on disk:
+    /// asking who *would* own a file before creating it is a legitimate
+    /// question, computed the same way.
+    Owner {
+        /// A repo-relative POSIX path.
+        path: String,
+        #[arg(long)]
+        json: bool,
+    },
     /// Report which source files no spec specifically claims (spec 032).
     Coverage {
         #[arg(long)]
@@ -98,6 +110,40 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 for d in &diags {
                     let at = d.path.as_deref().unwrap_or("-");
                     outln!("  {} [{}] [{}] {}", d.code, d.spec_id, at, d.message);
+                }
+            }
+            Ok(0)
+        }
+        Some(IndexAction::Owner { path, json }) => {
+            // Freshness-guarded inside `owner`: an owner answer read off a
+            // stale ledger is the one wrong answer this verb must never give,
+            // because its caller is deciding what to edit.
+            let report = spec_spine_core::owner(&cfg, repo, path)?;
+            if *json {
+                let s = serde_json::to_string_pretty(&report)
+                    .map_err(|e| Error::Schema(e.to_string()))?;
+                outln!("{s}");
+            } else {
+                outln!("{}", report.path);
+                if report.owners.is_empty() {
+                    // A true and common answer on a specify-first corpus, and
+                    // not a `NotFound`: nothing was asked for by name.
+                    outln!("  (no spec owns this path)");
+                }
+                let width = report
+                    .owners
+                    .iter()
+                    .map(|o| o.spec_id.chars().count())
+                    .max()
+                    .unwrap_or(0);
+                for o in &report.owners {
+                    outln!(
+                        "  {:<width$}  {:<9}  {}",
+                        o.spec_id,
+                        owner_kind_label(o.kind),
+                        o.claim,
+                        width = width
+                    );
                 }
             }
             Ok(0)
@@ -340,4 +386,14 @@ fn write_slices(
         + "\n";
     fs::write(&path, json).map_err(|e| Error::Io(format!("write {}: {e}", path.display())))?;
     Ok(())
+}
+
+/// The token the prose form prints for a linkage kind (spec 055 §3.1).
+fn owner_kind_label(kind: spec_spine_core::OwnerKind) -> &'static str {
+    match kind {
+        spec_spine_core::OwnerKind::Unit => "unit",
+        spec_spine_core::OwnerKind::Floor => "floor",
+        spec_spine_core::OwnerKind::Header => "header",
+        spec_spine_core::OwnerKind::Inherited => "inherited",
+    }
 }

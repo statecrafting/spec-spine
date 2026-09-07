@@ -5,11 +5,12 @@
 //! `load_registry`.
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::path::Path;
 
 use serde::Serialize;
 use spec_spine_types::{
-    CodebaseIndex, Error, INDEX_SCHEMA_VERSION, Implementation, REGISTRY_SCHEMA_VERSION, Registry,
-    Severity, SpecRecord, Status, Violation, parse_semver,
+    CodebaseIndex, Config, Error, INDEX_SCHEMA_VERSION, Implementation, REGISTRY_SCHEMA_VERSION,
+    Registry, RegistrySpecShard, Severity, SpecRecord, Status, Violation, parse_semver,
 };
 
 /// Parse `registry.json` bytes into a typed [`Registry`], rejecting an unknown
@@ -20,6 +21,41 @@ pub fn load_registry(bytes: &[u8]) -> Result<Registry, Error> {
         .map_err(|e| Error::Parse(format!("invalid registry.json: {e}")))?;
     reject_unknown_major("registry", &registry.spec_version, REGISTRY_SCHEMA_VERSION)?;
     Ok(registry)
+}
+
+/// The content hash the committed registry shard records for one spec (spec
+/// 055 §3.3): SHA-256 over that spec's `spec.md` under the corpus's
+/// normalization, which is the registry's only hashed input.
+///
+/// **Read, never recomputed.** `registry` is the read-side view of what was
+/// committed, and a `show` that hashed `spec.md` afresh would report a value
+/// the ledger does not hold, silently repairing a staleness that
+/// `compile --check` exists to reveal.
+///
+/// `None` when no shard exists for the id, so a caller that already resolved
+/// the record can report the rest of it rather than failing.
+///
+/// It is deliberately **not** the index's per-spec shard hash, which
+/// additionally folds span-backing source files and the global-inputs scalar. A
+/// consumer pinning "has this spec's text changed" wants this one; a consumer
+/// asking "has anything this spec depends on changed" wants the other and a
+/// different question.
+pub fn shard_content_hash(
+    cfg: &Config,
+    repo_root: &Path,
+    spec_id: &str,
+) -> Result<Option<String>, Error> {
+    let path = crate::compile::registry_dir(cfg, repo_root)
+        .join("by-spec")
+        .join(format!("{spec_id}.json"));
+    let bytes = match std::fs::read(&path) {
+        Ok(b) => b,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(e) => return Err(Error::Io(format!("read {}: {e}", path.display()))),
+    };
+    let shard: RegistrySpecShard = serde_json::from_slice(&bytes)
+        .map_err(|e| Error::Parse(format!("invalid registry shard {spec_id}: {e}")))?;
+    Ok(Some(shard.shard_hash))
 }
 
 /// Parse `index.json` bytes into a typed [`CodebaseIndex`], rejecting an unknown

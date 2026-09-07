@@ -53,8 +53,8 @@ pub use compile::{
     registry_shard_files,
 };
 pub use couple::{
-    CoupleReport, DEFAULT_BYPASS_PREFIXES, DiffFile, DiffInput, Waiver, couple, couple_with,
-    effective_bypass_prefixes, is_bypassed_path, parse_waiver,
+    CoupleReport, DEFAULT_BYPASS_PREFIXES, DiffFile, DiffInput, Waiver, build_superseders, couple,
+    couple_with, effective_bypass_prefixes, is_bypassed_path, owners_for_path, parse_waiver,
 };
 pub use coverage::{
     Ownership, SOURCE_EXTS, classify, coverage, coverage_with, enumerate_source_files,
@@ -70,13 +70,15 @@ pub use diagnostics::{
     committed_diagnostics, count as count_diagnostics,
 };
 pub use index::{
-    Freshness, IndexOutcome, IndexShardSet, authorities, check_index_freshness,
-    check_slice_freshness, index, index_dir, index_shard_files, load_committed_index, slices_path,
+    Freshness, IndexOutcome, IndexShardSet, OwnerKind, OwnerLink, OwnerReport, authorities,
+    check_index_freshness, check_slice_freshness, index, index_dir, index_shard_files,
+    load_committed_index, owner, owner_with, slices_path,
 };
 pub use lint::{LintReport, lint};
 pub use query::{
     BlockedSpec, Blocker, ListFilter, Plan, RelationshipView, StatusReport, StatusReportNonzero,
-    list, list_ids, load_index, load_registry, plan, relationships, show, status_report,
+    list, list_ids, load_index, load_registry, plan, relationships, shard_content_hash, show,
+    status_report,
 };
 pub use render::{orphans, render_markdown};
 pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init};

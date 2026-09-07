@@ -10,11 +10,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use serde::{Deserialize, Serialize};
 use spec_spine_types::{
-    CodebaseIndex, Diagnostic, Diagnostics, Error, INDEX_SCHEMA_VERSION, Implementation,
+    CodebaseIndex, Config, Diagnostic, Diagnostics, Error, INDEX_SCHEMA_VERSION, Implementation,
     ImplementingPath, IndexBuild, IndexPackageShard, IndexSpecShard, LayoutConfig, PackageKind,
-    PackageRecord, ResolvedLocation, ResolvedUnit, SourceField, TraceMapping, TraceSource,
-    Traceability, Unit, parse_frontmatter_with,
+    PackageRecord, Registry, ResolvedLocation, ResolvedUnit, SourceField, TraceMapping,
+    TraceSource, Traceability, Unit, parse_frontmatter_with,
 };
 
 use crate::coverage::SOURCE_EXTS;
@@ -1222,4 +1223,204 @@ fn status_str(status: spec_spine_types::Status) -> String {
         Retired => "retired",
     }
     .to_string()
+}
+
+// ===== spec 055: who owns this path =====
+
+/// How a spec comes to own a path.
+///
+/// The kinds are separate because a consumer's next decision depends on which
+/// one it is: a `Unit` owner claimed the path deliberately, a `Floor` owner has
+/// it only through a package manifest (which counts for `C-001` and counts as
+/// debt for coverage, spec 032), and a `Header` owner is named by the file
+/// itself. Collapsing them into a flat list of spec ids would reproduce exactly
+/// the ambiguity spec 032 was written to remove.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum OwnerKind {
+    /// An ownership-bearing resolved unit claim covers the path.
+    Unit,
+    /// Only a package's `[package.metadata.<ns>].spec` covers it.
+    Floor,
+    /// A `// Spec:` comment header in the file names this spec.
+    Header,
+    /// The gate counts this spec an owner without a direct claim: it supersedes
+    /// one that has a claim, or it amends the spec whose `spec.md` this is.
+    Inherited,
+}
+
+/// One spec's link to a path, with the claim that produced it.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OwnerLink {
+    pub spec_id: String,
+    pub kind: OwnerKind,
+    /// The claim itself: the unit's location, the package directory, the file,
+    /// or, for `Inherited`, the relation that conferred the authority.
+    pub claim: String,
+}
+
+/// Who owns one path (spec 055 §3.1).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OwnerReport {
+    pub path: String,
+    /// Sorted by spec id, then by kind. Empty when nothing owns the path, which
+    /// is a true and common answer rather than an error.
+    pub owners: Vec<OwnerLink>,
+}
+
+/// Freshness-guarded owner query: refuses a stale committed index (exit 2).
+///
+/// An owner answer read off a stale ledger is the one kind of wrong answer this
+/// verb must never give, because its caller is deciding what to edit.
+pub fn owner(cfg: &Config, repo_root: &Path, path: &str) -> Result<OwnerReport, Error> {
+    match check_index_freshness(cfg, repo_root)? {
+        Freshness::Stale { expected, actual } => return Err(Error::Stale { expected, actual }),
+        Freshness::Fresh => {}
+    }
+    let registry = crate::compile::load_committed_registry(cfg, repo_root)?;
+    let index = load_committed_index(cfg, repo_root)?;
+    Ok(owner_with(cfg, &registry, &index, path))
+}
+
+/// Pure owner query over already-loaded artifacts.
+///
+/// The id set is [`crate::couple::owners_for_path`]'s, verbatim, so this verb
+/// and a `C-001` decision cannot disagree. Only the attribution is computed
+/// here, and it is computed with the predicates [`crate::coverage::classify`]
+/// already uses, so the report and the ratchet cannot disagree either.
+pub fn owner_with(
+    cfg: &Config,
+    registry: &Registry,
+    index: &CodebaseIndex,
+    path: &str,
+) -> OwnerReport {
+    let specs_dir = cfg.layout.specs_dir.as_str();
+    let superseders = crate::couple::build_superseders(registry);
+    // Empty hunks: the whole-file interpretation the gate already defines. With
+    // no diff there are no hunks, and every owner whose span is in the file is
+    // the right answer to "who owns this file".
+    let ids = crate::couple::owners_for_path(specs_dir, path, &[], index, &superseders);
+
+    let mut owners: Vec<OwnerLink> = Vec::new();
+    for id in &ids {
+        let before = owners.len();
+        for m in index
+            .traceability
+            .mappings
+            .iter()
+            .filter(|m| &m.spec_id == id)
+        {
+            for ru in m.resolved_units.iter().filter(|ru| ru.ownership) {
+                for loc in ru.locations.iter().filter(|l| claim_covers(&l.file, path)) {
+                    owners.push(OwnerLink {
+                        spec_id: id.clone(),
+                        kind: OwnerKind::Unit,
+                        claim: format!("{} ({})", loc.file, source_field_name(ru.source_field)),
+                    });
+                }
+            }
+            // A header claims exactly the file it sits in, never a subtree.
+            // `Multiple` on a file path means a header agreed with another
+            // source, which is how `classify` reads it too.
+            for ip in m.implementing_paths.iter().filter(|ip| ip.path == path) {
+                if matches!(
+                    ip.source,
+                    TraceSource::CommentHeader | TraceSource::Multiple
+                ) {
+                    owners.push(OwnerLink {
+                        spec_id: id.clone(),
+                        kind: OwnerKind::Header,
+                        claim: format!("{path} (// Spec: header)"),
+                    });
+                }
+            }
+        }
+        for p in index
+            .packages
+            .iter()
+            .filter(|p| p.spec_ref.as_deref() == Some(id.as_str()))
+            .filter(|p| package_covers(&p.path, path))
+        {
+            owners.push(OwnerLink {
+                spec_id: id.clone(),
+                kind: OwnerKind::Floor,
+                claim: format!("{} (package manifest)", p.path),
+            });
+        }
+        if owners.len() == before {
+            // In the gate's set with no direct claim: supersession transfer, or
+            // the amends widening on a `spec.md` path. Both are rules the gate
+            // applies and this verb reports rather than hides.
+            owners.push(OwnerLink {
+                spec_id: id.clone(),
+                kind: OwnerKind::Inherited,
+                claim: inherited_reason(specs_dir, path, id, index, &superseders),
+            });
+        }
+    }
+    owners.sort_by(|a, b| (&a.spec_id, a.kind, &a.claim).cmp(&(&b.spec_id, b.kind, &b.claim)));
+    owners.dedup();
+    OwnerReport {
+        path: path.to_string(),
+        owners,
+    }
+}
+
+/// Why a spec holds authority it never claimed directly.
+fn inherited_reason(
+    specs_dir: &str,
+    path: &str,
+    id: &str,
+    index: &CodebaseIndex,
+    superseders: &std::collections::BTreeMap<String, std::collections::BTreeSet<String>>,
+) -> String {
+    let predecessors: Vec<&str> = superseders
+        .iter()
+        .filter(|(_, succs)| succs.contains(id))
+        .map(|(pred, _)| pred.as_str())
+        .collect();
+    if !predecessors.is_empty() {
+        return format!("supersedes {}", predecessors.join(", "));
+    }
+    if let Some(amended) = crate::couple::spec_id_for_spec_md_path(specs_dir, path) {
+        if index
+            .traceability
+            .mappings
+            .iter()
+            .any(|m| m.spec_id == id && m.amends.iter().any(|a| a == amended))
+        {
+            return format!("amends {amended}");
+        }
+        return format!("amendment record of {amended}");
+    }
+    "inherited".to_string()
+}
+
+/// Exact match, or a directory-prefix match for a subtree claim: the same
+/// reading [`crate::couple`] applies, spelled here so the report cannot drift
+/// from it in the trailing-slash case.
+fn claim_covers(claim: &str, path: &str) -> bool {
+    claim == path
+        || (claim.ends_with('/') && path.starts_with(claim))
+        || path.starts_with(&format!("{claim}/"))
+}
+
+/// A package directory contains the path (`.` is the whole repository).
+fn package_covers(pkg: &str, path: &str) -> bool {
+    pkg == "." || pkg.is_empty() || path.starts_with(&format!("{}/", pkg.trim_end_matches('/')))
+}
+
+fn source_field_name(f: SourceField) -> &'static str {
+    match f {
+        SourceField::Establishes => "establishes",
+        SourceField::Extends => "extends",
+        SourceField::Refines => "refines",
+        SourceField::Supersedes => "supersedes",
+        SourceField::Amends => "amends",
+        SourceField::CoAuthority => "co_authority",
+        SourceField::Constrains => "constrains",
+        SourceField::References => "references",
+    }
 }

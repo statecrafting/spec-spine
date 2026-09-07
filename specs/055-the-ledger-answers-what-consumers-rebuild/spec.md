@@ -4,7 +4,7 @@ title: "The ledger answers what consumers rebuild by hand"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -21,6 +21,11 @@ extends:
   # `registry show --json` gains the shard's content hash as an output field.
   - { spec: "002-registry-query", unit: "crates/spec-spine-cli/src/cmd_registry.rs", nature: additive }
   - { spec: "002-registry-query", unit: "crates/spec-spine-core/src/query.rs", nature: additive }
+  # Six new names join the crate root's re-export list, and two functions the
+  # gate kept private become public there.
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
+  # The shard-hash read's acceptance sits beside the other `query` tests.
+  - { spec: "002-registry-query", unit: "crates/spec-spine-core/tests/query.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
 summary: >
@@ -158,6 +163,16 @@ explicitly rather than faked:
 Supersession transfer applies unchanged: a successor inherits its predecessor's
 authority, additively, and both are reported.
 
+**Decision, 2026-09-07: a fourth linkage kind, `inherited`.** §3.1 names three,
+which are the three ways a spec makes a claim. Supersession transfer and the
+amends widening make a spec an owner *without* a claim, and this section
+requires both to be reported. Reporting them as `unit` would attribute a claim
+that was never written, and dropping them would make the reported id set
+disagree with the gate's, which is the one thing §3.2 forbids. So they carry
+`inherited`, and the claim column names the relation that conferred the
+authority (`supersedes 019-…`, `amends 026-…`) rather than a path. The three
+claim kinds keep their meanings exactly.
+
 ### 3.3 `contentHash` on `registry show --json`
 
 `registry show --json` MUST gain a `contentHash` field carrying the value the
@@ -217,17 +232,30 @@ one, tangled with what is and is not a hashed input, which spec 057 is about.
 
 ## 5. Verification
 
+`index owner` and `contentHash` both fail against pre-055 code: `owner` is an
+unknown action clap refuses, and `show`'s object has no such field.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-core --test index --locked
 cargo test -p spec-spine-core --test query --locked
-# The owner verb exists and agrees with the gate about a file the gate refuses.
-# Until this ships, `owner` is an unknown action and clap refuses it.
-target/release/spec-spine index owner crates/spec-spine-core/src/couple.rs | grep -q '005-coupling-gate'
-# A path nothing owns is an empty answer, not an error.
-target/release/spec-spine index owner no/such/path.rs
-# The registry reports the hash the committed shard holds, without recomputing.
-target/release/spec-spine registry show 024-index-sharding --json | grep -q contentHash
+# 3.1: the verb reports the owners, and separates how each one owns.
+target/release/spec-spine index owner crates/spec-spine-core/src/couple.rs --json | python3 -c 'import json,sys; o=json.load(sys.stdin)["owners"]; k={x["specId"]:x["kind"] for x in o}; assert k["005-coupling-gate"]=="unit", k; assert k["001-compile-registry"]=="floor", k'
+# 3.2: the id set is the gate's own. `couple` refuses this path naming exactly
+# the specs `owner` reports, so the two cannot disagree.
+test "$(target/release/spec-spine index owner crates/spec-spine-core/src/couple.rs --json | python3 -c 'import json,sys; print(",".join(sorted({o["specId"] for o in json.load(sys.stdin)["owners"]})))')" = "$(printf 'crates/spec-spine-core/src/couple.rs\n' | target/release/spec-spine couple --paths-from /dev/stdin --json | python3 -c 'import json,sys; print(",".join(sorted(json.load(sys.stdin)["report"]["violations"][0]["owners"])))')"
+# 3.1: a path nothing owns is an empty answer, not an error, and the path need
+# not exist on disk.
+target/release/spec-spine index owner no/such/path.rs --json | python3 -c 'import json,sys; assert json.load(sys.stdin)["owners"]==[]'
+# 3.3: `show` reports the hash the committed shard holds.
+target/release/spec-spine registry show 024-index-sharding --json | python3 -c 'import json,sys; h=json.load(sys.stdin)["contentHash"]; assert len(h)==64, h'
+# 3.3: that it is the shard's value and not a recomputation is asserted by
+# `shard_content_hash_is_read_from_the_committed_shard` in the query tests
+# above, which edits a spec.md without recompiling and watches the reported
+# hash stay put. It is asserted there rather than here because reading the
+# shard to compare against it is exactly the ad-hoc parse
+# `.claude/rules/governed-artifact-reads.md` forbids.
+# 3.3: nothing committed moves.
 target/release/spec-spine compile --check
 ```

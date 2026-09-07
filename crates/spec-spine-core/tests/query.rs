@@ -665,3 +665,52 @@ fn plan_blocked_by_follows_authored_depends_on_order() {
         "authored order is preserved, not re-sorted by id"
     );
 }
+
+// ── spec 055: the shard's content hash is readable ────────────────────────
+
+/// §3.3: the hash is read from the committed shard, never recomputed. A `show`
+/// that hashed `spec.md` afresh would report a value the ledger does not hold,
+/// silently repairing a staleness that `compile --check` exists to reveal.
+#[test]
+fn shard_content_hash_is_read_from_the_committed_shard() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    write_spec(root, "001-alpha", "");
+    let cfg = Config::default();
+
+    // Nothing committed yet: absent, not an error.
+    assert_eq!(
+        spec_spine_core::shard_content_hash(&cfg, root, "001-alpha").unwrap(),
+        None
+    );
+
+    // Commit the shard tree exactly as the CLI does.
+    let outcome = compile(&cfg, root).unwrap();
+    let dir = spec_spine_core::registry_dir(&cfg, root).join("by-spec");
+    let files = spec_spine_core::registry_shard_files(&outcome.shards).unwrap();
+    spec_spine_core::shard::sync_dir(&dir, &files).unwrap();
+
+    let committed = spec_spine_core::shard_content_hash(&cfg, root, "001-alpha")
+        .unwrap()
+        .expect("a committed shard has a hash");
+    assert_eq!(committed.len(), 64, "sha256 hex: {committed}");
+    assert_eq!(
+        committed, outcome.shards.spec_shards[0].shard_hash,
+        "the value the shard records, verbatim"
+    );
+
+    // Edit the spec without recompiling: the reported hash does NOT move. That
+    // is the property that makes it a pin rather than a recomputation.
+    write_spec(root, "001-alpha", "kind: \"tooling\"\n");
+    assert_eq!(
+        spec_spine_core::shard_content_hash(&cfg, root, "001-alpha").unwrap(),
+        Some(committed),
+        "a read verb reports the ledger, not the tree"
+    );
+
+    // A spec with no shard is absent rather than an error.
+    assert_eq!(
+        spec_spine_core::shard_content_hash(&cfg, root, "999-nope").unwrap(),
+        None
+    );
+}

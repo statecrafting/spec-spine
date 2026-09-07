@@ -321,7 +321,16 @@ pub fn parse_waiver(cfg: &Config, body: &str) -> Option<Waiver> {
 /// The legitimate owners of a changed `(path, hunks)`. Unions span-aware
 /// resolved-unit ownership with whole-file `implementingPaths`, applies
 /// supersedes transfer, then amends-awareness under the FR-005 strict guard.
-fn owners_for_path(
+///
+/// Public since spec 055: `index owner <path>` reports what the gate would
+/// decide, and it must call this rather than reimplement it. A second
+/// implementation that agreed today and drifted next quarter would be worse
+/// than no verb at all, because a consumer would have stopped rebuilding the
+/// map by hand and started trusting an answer nobody tests against the gate.
+/// Pass empty `hunks` for the whole-file interpretation the gate already
+/// defines (`--paths-from` mode uses it today), which is the right reading of
+/// "who owns this file" when there is no diff.
+pub fn owners_for_path(
     specs_dir: &str,
     path: &str,
     hunks: &[LineSpan],
@@ -402,13 +411,16 @@ fn any_owner_in_diff(
 
 /// Direct `predecessor → {superseders}` map from the registry's `supersedes`.
 ///
+/// Public since spec 055, so a caller can assemble the same input
+/// [`owners_for_path`] is given inside the gate.
+///
 /// Only **full** supersession contributes a whole-spec authority transfer (spec
 /// 019). A **partial** item transfers authority over a single unit only: that
 /// is threaded through the index instead, as a `SourceField::Supersedes`
 /// resolved unit owned by the superseder, so it is already an owner of that
 /// unit's paths via `owners_for_path` step 1 and must NOT also inherit the
 /// predecessor's entire surface here.
-fn build_superseders(registry: &Registry) -> BTreeMap<String, BTreeSet<String>> {
+pub fn build_superseders(registry: &Registry) -> BTreeMap<String, BTreeSet<String>> {
     let mut map: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     for spec in &registry.specs {
         for item in &spec.supersedes {
