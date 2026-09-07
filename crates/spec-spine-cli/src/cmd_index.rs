@@ -14,8 +14,9 @@ use clap::Subcommand;
 use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
 use spec_spine_core::{
     DiagnosticCounts, Freshness, IndexCheckReport, UnwitnessedCounts, check_index_freshness,
-    check_slice_freshness, committed_counts, committed_diagnostics, coverage, index, index_dir,
-    index_shard_files, load_committed_index, orphans, render_markdown, slices_path,
+    check_slice_freshness, committed_counts, committed_diagnostics, coverage, empty_universe,
+    index, index_dir, index_shard_files, load_committed_index, load_committed_registry,
+    partition_orphans, render_markdown, slices_path,
 };
 use spec_spine_types::{Config, CoverageReport, Error, Verdict, verdict::verb};
 
@@ -88,14 +89,44 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
         }
         Some(IndexAction::Orphans { json }) => {
             let idx = load_committed_index(&cfg, repo)?;
-            let ids = orphans(&idx);
+            // Spec 059 3.1: the lifecycle half comes from the registry, since
+            // the index shard records `spec_status` but not `implementation`
+            // and adding it would restamp every shard for a read verb.
+            //
+            // An absent registry is an empty one, not an error. This verb
+            // answered from the index alone before spec 059, and a read verb
+            // that started failing because a *different* artifact is missing
+            // would be a regression dressed as a feature. With no records
+            // every orphan reads as in flight, which is the same "cannot say
+            // otherwise" rule 3.1 applies per spec.
+            let records = load_committed_registry(&cfg, repo)
+                .map(|r| r.specs)
+                .unwrap_or_default();
+            let report = partition_orphans(&idx, &records);
             if *json {
-                let s =
-                    serde_json::to_string_pretty(&ids).map_err(|e| Error::Schema(e.to_string()))?;
+                let s = serde_json::to_string_pretty(&report)
+                    .map_err(|e| Error::Schema(e.to_string()))?;
                 outln!("{s}");
-            } else {
-                for id in ids {
-                    outln!("{id}");
+            } else if !report.orphaned.is_empty() || !report.in_flight.is_empty() {
+                // Both groups are printed whenever either has members, so a
+                // reader always sees which side of the partition an id fell on.
+                // A corpus with no orphans at all stays silent, as it did
+                // before spec 059: two headers and two "(none)" lines would be
+                // noise on the answer "nothing to report".
+                outln!("orphaned (claims nothing that resolves, and is not in flight):");
+                if report.orphaned.is_empty() {
+                    outln!("  (none)");
+                }
+                for id in &report.orphaned {
+                    outln!("  {id}");
+                }
+                outln!();
+                outln!("in flight (claims nothing that resolves yet; draft or pending):");
+                if report.in_flight.is_empty() {
+                    outln!("  (none)");
+                }
+                for id in &report.in_flight {
+                    outln!("  {id}");
                 }
             }
             Ok(0)
@@ -161,6 +192,19 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 outln!("{s}");
             } else {
                 out!("{}", render_coverage(&report));
+            }
+            // Spec 059 3.2: an assertion over an empty set is vacuously true,
+            // which is the wrong answer for a CI step whose whole purpose is to
+            // assert. Reporting is unaffected: without the flag an empty
+            // universe is still a true and useful thing to say.
+            if let (true, Some(reason)) = (*fail_on_untraced, empty_universe(&report)) {
+                eprintln!(
+                    "coverage: {}.\n--fail-on-untraced asserts that every source file has a \
+                     specific owning spec, and there are none to assert about. Nothing was \
+                     verified.",
+                    reason.explain()
+                );
+                return Ok(1);
             }
             Ok(if *fail_on_untraced && !report.is_fully_claimed() {
                 1

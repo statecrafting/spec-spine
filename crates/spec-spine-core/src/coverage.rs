@@ -222,6 +222,58 @@ pub fn coverage(cfg: &Config, repo_root: &Path) -> Result<CoverageReport, Error>
     Ok(coverage_with(cfg, &index, &files))
 }
 
+/// Why a coverage universe is empty, when it is (spec 059 §3.2, §3.3).
+///
+/// The two cases have different fixes: no discovered package is usually
+/// `layout.standalone_rust_workspaces` / `standalone_npm_packages` not naming a
+/// package that exists, and packages with no source files is usually
+/// `index.resolver_exclusions` pruning too much. A refusal that names the
+/// condition without naming the likely cause makes the reader search for both,
+/// and the audit found adopters deriving this class of thing by experiment.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum EmptyUniverse {
+    /// No package was discovered at all.
+    NoPackages,
+    /// Packages were discovered, but none contained a source file.
+    NoSourceFiles,
+}
+
+impl EmptyUniverse {
+    /// The reason line the refusal prints, cause included.
+    pub fn explain(self) -> &'static str {
+        match self {
+            EmptyUniverse::NoPackages => {
+                "no package was discovered, so there is no tree to assert about. \
+                 Check [layout] standalone_rust_workspaces / standalone_npm_packages, \
+                 and that the workspace manifest is where layout.cargo_workspace says"
+            }
+            EmptyUniverse::NoSourceFiles => {
+                "packages were discovered but none contains a source file. \
+                 Check [index] resolver_exclusions, which may be pruning the tree"
+            }
+        }
+    }
+}
+
+/// `Some(reason)` when the universe is empty (spec 059 §3.2).
+///
+/// `--fail-on-untraced` is an assertion, and an assertion over an empty set is
+/// vacuously true: mathematically correct and operationally wrong. A person
+/// wiring it into CI is asserting the tree is fully owned, so if the tool cannot
+/// see the tree the honest report is that the assertion did not run, and a CI
+/// step that did not run its check should not be green. What matters is that
+/// the denominator is zero, not why; the reason is for the message.
+pub fn empty_universe(report: &CoverageReport) -> Option<EmptyUniverse> {
+    if report.source_files > 0 {
+        return None;
+    }
+    Some(if report.packages.is_empty() {
+        EmptyUniverse::NoPackages
+    } else {
+        EmptyUniverse::NoSourceFiles
+    })
+}
+
 /// Source-extension test on a repo-relative POSIX path, with the same
 /// `Path::extension` semantics the walk uses (a dotfile has no extension).
 fn has_source_ext(path: &str) -> bool {

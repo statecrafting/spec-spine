@@ -57,8 +57,8 @@ pub use couple::{
     couple_with, effective_bypass_prefixes, is_bypassed_path, owners_for_path, parse_waiver,
 };
 pub use coverage::{
-    Ownership, SOURCE_EXTS, classify, coverage, coverage_with, enumerate_source_files,
-    in_coverage_universe,
+    EmptyUniverse, Ownership, SOURCE_EXTS, classify, coverage, coverage_with, empty_universe,
+    enumerate_source_files, in_coverage_universe,
 };
 pub use dep_only::{
     CARGO_DEPENDENCY_TABLES, DEPENDENCY_TABLES, FileContents, cargo_dependency_only_change,
@@ -80,7 +80,7 @@ pub use query::{
     list, list_ids, load_index, load_registry, plan, relationships, shard_content_hash, show,
     status_report,
 };
-pub use render::{orphans, render_markdown};
+pub use render::{OrphanReport, orphans, partition_orphans, render_markdown};
 pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init};
 pub use verify::{plan as verify_plan, plan_from_markdown};
 
