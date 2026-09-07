@@ -22,7 +22,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
-use spec_spine_types::{CodebaseIndex, Config, Error, LineSpan, Registry, Severity, Violation};
+use spec_spine_types::{
+    BypassEntry, BypassSource, CodebaseIndex, Config, Error, LineSpan, Registry, Severity,
+    Violation,
+};
 
 use crate::coverage::{Ownership, classify, in_coverage_universe};
 use crate::index::{Freshness, check_index_freshness, spec_md_rel};
@@ -214,6 +217,45 @@ pub fn couple_with(
         waiver: waiver.map(|w| w.reason.clone()),
         checked_paths,
     })
+}
+
+/// The merged bypass list the gate matches against, attributed (spec 054 §3.2).
+///
+/// The built-in floor first, then the adopter's entries in their declared
+/// order, which is the order [`is_bypassed_path`] evaluates them. A prefix
+/// present in both lists appears once, carrying both sources: the match is an
+/// `or`, so a duplicate is harmless, and reporting it twice would suggest
+/// something to clean up that is not there.
+///
+/// This exists because half the list is a constant compiled into the binary and
+/// therefore unreadable from outside the process. claude-observatory, which
+/// judges repositories other than itself, hand-parses each target's TOML and
+/// records in its spec 016 D-3 that the built-in floor is simply unknowable to
+/// it. That is a consumer reimplementing half a contract and knowing the other
+/// half is wrong. Nothing about the gate's decision changes here: a value it
+/// already computes becomes reachable.
+pub fn effective_bypass_prefixes(cfg: &Config) -> Vec<BypassEntry> {
+    let mut entries: Vec<BypassEntry> = DEFAULT_BYPASS_PREFIXES
+        .iter()
+        .map(|p| BypassEntry {
+            prefix: (*p).to_string(),
+            sources: vec![BypassSource::BuiltIn],
+        })
+        .collect();
+    for declared in &cfg.coupling.bypass_prefixes {
+        match entries.iter_mut().find(|e| &e.prefix == declared) {
+            Some(existing) => {
+                if !existing.sources.contains(&BypassSource::Config) {
+                    existing.sources.push(BypassSource::Config);
+                }
+            }
+            None => entries.push(BypassEntry {
+                prefix: declared.clone(),
+                sources: vec![BypassSource::Config],
+            }),
+        }
+    }
+    entries
 }
 
 /// The effective bypass verdict for one path: hardcoded floor ∪ adopter list

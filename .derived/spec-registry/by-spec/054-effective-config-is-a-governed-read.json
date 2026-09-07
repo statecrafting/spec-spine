@@ -6,6 +6,16 @@
       "009-coupling-floor-claim-precedence",
       "037-machine-readable-verdicts"
     ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_config.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/config.rs"
+      }
+    ],
     "extends": [
       {
         "nature": "additive",
@@ -30,10 +40,26 @@
           "kind": "file",
           "path": "crates/spec-spine-types/src/config.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
       }
     ],
     "id": "054-effective-config-is-a-governed-read",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -57,6 +83,7 @@
       "054: The effective configuration is a governed read",
       "1. Purpose",
       "2. Territory",
+      "2.1 Two crate roots",
       "3. Behavior",
       "3.1 `spec-spine config show`",
       "3.2 The bypass floor is reported merged and attributed",
@@ -71,6 +98,6 @@
     "summary": "`spec-spine.toml` is only half the configuration a coupling decision is made from. The other half is `DEFAULT_BYPASS_PREFIXES`, a thirteen-entry constant compiled into the binary, additive to the adopter's list and impossible to read from outside the process. claude-observatory, which judges other repositories, hand-parses each target's TOML and documents in its spec 016 D-3 that the built-in floor is simply unknowable to it. That is a consumer reimplementing half a contract and knowing it has the other half wrong. This spec adds `spec-spine config show [--json]`: the effective configuration, every default resolved, with the bypass floor rendered as the merged list the gate actually matches against and each entry attributed to the built-in floor or to the adopter's file. It reads and reports; it decides nothing.\n",
     "title": "The effective configuration is a governed read"
   },
-  "shardHash": "6fd5c6b96da465d4337cd7ae167c9ba65084da2bbf81aa65ce9b9ce389347d15",
+  "shardHash": "f41fb08286152e147adbac03f332ba0c06114f7934d09dd3375ebc879ae071f7",
   "specVersion": "1.1.0"
 }

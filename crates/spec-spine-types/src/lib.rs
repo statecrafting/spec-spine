@@ -48,8 +48,9 @@ pub use codebase::{
     SourceField, TraceMapping, TraceSource, Traceability,
 };
 pub use config::{
-    AllowlistConfig, BrandingConfig, Config, CouplingConfig, FrontmatterConfig, IndexConfig,
-    LayoutConfig, LintConfig, ManifestConfig, ProvenanceConfig, load_config,
+    AllowlistConfig, BrandingConfig, BypassEntry, BypassSource, Config, CouplingConfig,
+    EffectiveConfig, EffectiveCouplingConfig, FrontmatterConfig, IndexConfig, LayoutConfig,
+    LintConfig, ManifestConfig, ProvenanceConfig, load_config,
 };
 pub use coverage::{CoverageReport, PackageCoverage};
 pub use edges::{

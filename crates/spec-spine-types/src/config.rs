@@ -306,6 +306,125 @@ pub struct LintConfig {
     pub require_ordinal_monotonic_depends_on: bool,
 }
 
+/// Where a bypass entry came from (spec 054 §3.2).
+///
+/// Attribution is the load-bearing part of `config show`, and the reason it is
+/// not a TOML echo. A consumer answers two different questions from the same
+/// list: "is this path bypassed" (the merged list) and "did the adopter ask for
+/// that" (the source). An unattributed merge answers only the first, and an
+/// orchestrator deciding whether a target's configuration is unusual needs the
+/// second.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum BypassSource {
+    /// `couple.rs::DEFAULT_BYPASS_PREFIXES`, compiled into the binary.
+    BuiltIn,
+    /// The adopter's `[coupling] bypass_prefixes`.
+    #[serde(rename = "spec-spine.toml")]
+    Config,
+}
+
+impl BypassSource {
+    /// The token the prose rendering prints in parentheses.
+    pub fn label(self) -> &'static str {
+        match self {
+            BypassSource::BuiltIn => "built-in",
+            BypassSource::Config => "spec-spine.toml",
+        }
+    }
+}
+
+/// One entry of the merged bypass list the gate matches against (spec 054 §3.2).
+///
+/// An entry declared in both lists appears **once**, attributed to both. That is
+/// legal and harmless, since the match is an `or`; reporting it twice would
+/// suggest a duplicate the adopter should remove when there is nothing to fix.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct BypassEntry {
+    pub prefix: String,
+    /// Every list this prefix appears in, built-in first.
+    pub sources: Vec<BypassSource>,
+}
+
+/// `[coupling]` as the gate resolves it: the adopter's keys, plus the bypass
+/// list merged with the built-in floor and attributed (spec 054 §3.2).
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct EffectiveCouplingConfig {
+    pub waiver_keyword: String,
+    pub require_ownership: bool,
+    pub auto_waive_dependency_only: bool,
+    /// The merged list, in the order the gate evaluates it: the built-in floor
+    /// first, then the adopter's entries in their declared order. A consumer
+    /// reimplementing the match gets the same answer in the same order, which
+    /// is the whole point of publishing it.
+    pub bypass_prefixes: Vec<BypassEntry>,
+}
+
+/// The configuration the verbs in this process would consume, every default
+/// resolved (spec 054 §3.4).
+///
+/// No field is omitted for being defaulted. Omitting them would rebuild the
+/// problem this exists to solve: a consumer would see a short document and have
+/// to know which absences mean which values, which is reading `spec-spine.toml`
+/// again with extra steps. The verb is worth having precisely because it is
+/// exhaustive.
+///
+/// Keys are snake_case, unlike every other emitted JSON in this system. Those
+/// are machine artifacts and camelCase is their house style; this document is a
+/// mirror of an authored TOML file, and a consumer holding the report beside
+/// `spec-spine.toml` should be reading the same token in both. Mixing the two
+/// (a camelCase envelope over snake_case tables) would be worse than either.
+///
+/// Mirrors [`Config`]'s tables one for one, with `coupling` widened. That
+/// duplication is guarded by a test asserting the two key sets agree, so a
+/// table added to `Config` and forgotten here fails the build rather than
+/// silently going unreported.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct EffectiveConfig {
+    /// [`crate::CONFIG_VERSION`], so a consumer pinning against this shape has
+    /// the shape's version in the document rather than inferring it from the
+    /// binary's `--version`.
+    pub config_version: String,
+    pub manifest: ManifestConfig,
+    pub domains: AllowlistConfig,
+    pub kind: AllowlistConfig,
+    pub layout: LayoutConfig,
+    pub index: IndexConfig,
+    pub branding: BrandingConfig,
+    pub coupling: EffectiveCouplingConfig,
+    pub provenance: ProvenanceConfig,
+    pub frontmatter: FrontmatterConfig,
+    pub lint: LintConfig,
+}
+
+impl EffectiveConfig {
+    /// Build the report from a loaded [`Config`] and the merged bypass list.
+    ///
+    /// The bypass list is passed in rather than computed here because the
+    /// built-in floor lives in `spec-spine-core` (the gate that matches against
+    /// it owns it), and this crate is below that one in the dependency order.
+    pub fn new(config: &Config, bypass_prefixes: Vec<BypassEntry>) -> Self {
+        EffectiveConfig {
+            config_version: crate::CONFIG_VERSION.to_string(),
+            manifest: config.manifest.clone(),
+            domains: config.domains.clone(),
+            kind: config.kind.clone(),
+            layout: config.layout.clone(),
+            index: config.index.clone(),
+            branding: config.branding.clone(),
+            coupling: EffectiveCouplingConfig {
+                waiver_keyword: config.coupling.waiver_keyword.clone(),
+                require_ownership: config.coupling.require_ownership,
+                auto_waive_dependency_only: config.coupling.auto_waive_dependency_only,
+                bypass_prefixes,
+            },
+            provenance: config.provenance.clone(),
+            frontmatter: config.frontmatter.clone(),
+            lint: config.lint.clone(),
+        }
+    }
+}
+
 /// Load and validate a `spec-spine.toml` from its source text.
 ///
 /// Returns [`Error::Config`] (mapped to exit code 3) on any malformed or
