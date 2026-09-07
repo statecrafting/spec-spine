@@ -1382,8 +1382,17 @@ fn registry_plan_partitions_the_corpus() {
         String::from_utf8_lossy(&prose.stderr)
     );
     let text = String::from_utf8_lossy(&prose.stdout);
-    assert!(text.starts_with("002-now\n"), "{text}");
-    assert!(text.contains("ready: 1, blocked: 1"), "{text}");
+    // Spec 060 §3.1: the prose renders what the structure holds. Titles on both
+    // sets, each blocked spec's reasons rather than a count, and the
+    // not-schedulable remainder so the figures add up to the corpus.
+    assert!(text.contains("ready (1):"), "{text}");
+    assert!(text.contains("002-now  T"), "{text}");
+    assert!(text.contains("blocked (1):"), "{text}");
+    assert!(text.contains("blocked by 002-now (pending)"), "{text}");
+    assert!(
+        text.contains("3 specs: 1 ready, 1 blocked, 1 not schedulable"),
+        "{text}"
+    );
     assert!(
         !text.contains("001-done"),
         "a finished spec is not offered: {text}"
@@ -1394,13 +1403,32 @@ fn registry_plan_partitions_the_corpus() {
     let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
     // Bare report, not a spec 037 envelope.
     assert!(v.get("schemaVersion").is_none(), "{v}");
-    assert_eq!(v["ready"], serde_json::json!(["002-now"]));
+    // Spec 060 §3.3: ready entries are objects carrying the title, and blocked
+    // entries gain one additively. The breaking half is deliberate: a parallel
+    // titles array to be zipped by position is the shape that generates the
+    // join code this spec exists to delete.
+    assert_eq!(
+        v["ready"],
+        serde_json::json!([{ "id": "002-now", "title": "T" }])
+    );
     assert_eq!(
         v["blocked"],
         serde_json::json!([
-            { "id": "003-later", "blockedBy": [{ "id": "002-now", "state": "pending" }] }
+            {
+                "id": "003-later",
+                "title": "T",
+                "blockedBy": [{ "id": "002-now", "state": "pending" }]
+            }
         ])
     );
+    assert_eq!(v["notSchedulable"], 1);
+
+    // §3.2: `--next` is the single pick, and the object rather than a
+    // one-element array.
+    let next = run_in(root, &["registry", "plan", "--next", "--json"]);
+    assert_eq!(code(&next), 0);
+    let n: serde_json::Value = serde_json::from_slice(&next.stdout).unwrap();
+    assert_eq!(n, serde_json::json!({ "id": "002-now", "title": "T" }));
 
     // A corpus with nothing schedulable says so rather than printing an empty
     // page: the prose form has a reader, and "(nothing ready)" is an answer.
@@ -1419,8 +1447,10 @@ fn registry_plan_partitions_the_corpus() {
     let text = String::from_utf8_lossy(&out.stdout);
     assert_eq!(
         text.trim(),
-        "(nothing ready), blocked: 0",
-        "one summary line: the empty case does not also print `ready: 0`"
+        "(nothing ready), blocked: 0\n\n1 specs: 0 ready, 0 blocked, 1 not schedulable",
+        "the `(nothing ready)` line is unchanged (spec 060 §3.1) and the \
+         remainder follows it: on a finished corpus that figure is the whole \
+         answer, and without it `blocked: 0` reads as though the specs vanished"
     );
 }
 // ===== spec 042: per-spec attestation =====

@@ -30,10 +30,26 @@
           "kind": "file",
           "path": "crates/spec-spine-core/tests/query.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "038-registry-plan-ready-set",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
       }
     ],
     "id": "060-plan-answers-the-whole-question",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -70,6 +86,6 @@
     "summary": "`registry plan` prints spec ids and a count. Every consumer needs more than that, so every consumer adds it back: adopters kept about forty lines of Python to join the ready ids against titles and to explain why each blocked spec is blocked, and the corpus's own `/next` skill has to make a second call to turn an id into something a human can read. The data is all there. `Plan` already carries each blocked spec's blockers with the state of each, and the registry it was computed from carries every title. This spec makes the prose form render what the structure already holds, and adds `--next`, the single pick that the one-spec-per-session loop actually asks for. The JSON shape gains title fields and is otherwise unchanged.\n",
     "title": "The plan answers the whole question, and names one pick"
   },
-  "shardHash": "1a4a4b5efbe945e20b11c573a24d41c7f163b7545cbe87a443cfb4f18af3ec77",
+  "shardHash": "5ab7aeecb9988937127629e7812f907f280b927ea5529cea402e9ac05cd22eac",
   "specVersion": "1.1.0"
 }
