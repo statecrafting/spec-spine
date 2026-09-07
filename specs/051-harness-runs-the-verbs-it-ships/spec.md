@@ -1,7 +1,7 @@
 ---
 id: "051-harness-runs-the-verbs-it-ships"
 title: "The harness runs the verbs it ships"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete
