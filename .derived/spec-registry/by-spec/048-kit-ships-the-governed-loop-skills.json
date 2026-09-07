@@ -112,10 +112,10 @@
       "3.5 The verify script"
     ],
     "specPath": "specs/048-kit-ships-the-governed-loop-skills/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Four adopters of the kit had each written the same five skills the kit did not ship (next, build, verify, spec, shepherd), three of them from one shared template, and every adopter's copy of the ten the kit did ship had drifted from the kit's, which had itself gone stale: a renamed tool, a rule frontmatter format Claude Code does not read, a \"read-only\" review that ran the writing compile, a commit skill missing the two house rules that land in public history, and a drift remedy that contradicted the refusal rule spec 047 had just fixed. This spec makes the kit ship one repository-invariant set of fifteen skills built around the orchestrated loop (spec-spine's registry plan and the coupling gate on one side, an orchestrator's build, ship, shepherd, and verify stages on the other), moves every project-specific fact into AGENTS.md and the path-scoped rules so the skills copy byte for byte, ships the verify script the loop needs, ports the substrate-level agent improvements the adopters made, and makes this repository run the same fifteen on itself, pinned by a test.\n",
     "title": "The kit ships one skill set for the governed loop, and this repository runs it"
   },
-  "shardHash": "98edc97a5ddade4c5e53b3e1314b366f1d8250c06961f3a0a87ab6b7fc0d1371",
+  "shardHash": "1acd724352ca7eb7cf03c20876b386448e9cd6c8ef88be07961a2a114cf5f4cc",
   "specVersion": "1.1.0"
 }
