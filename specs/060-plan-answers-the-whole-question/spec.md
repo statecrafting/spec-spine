@@ -207,16 +207,39 @@ the corpus.
 
 ## 5. Verification
 
+Each line is one command (spec 049 §3.2). The shape assertions run against a
+**scratch corpus** rather than against this repository's plan, because this
+repository's plan is corpus state and corpus state moves.
+
+**Decision, 2026-09-08.** The block originally asserted
+`registry plan --json | grep -q '"title"'` against this repository. That passed
+the day it was written, when specs were ready, and began failing the moment the
+backlog was finished: a corpus with nothing ready has no ready entries, so no
+entry carries a title, and the assertion reported the absence of work as the
+absence of the feature. An acceptance block must assert behavior, and behavior
+is what a fixture demonstrates; the live corpus is an input, not a contract.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-core --test query --locked
-# The prose form carries titles and the not-schedulable remainder.
-target/release/spec-spine registry plan | grep -q 'not schedulable'
-# --next prints one spec. Until this ships, it is an unknown argument.
+# A scratch corpus with one ready spec and one blocked by it, so the shape
+# assertions below hold whatever this repository's own backlog is doing.
+rm -rf "${TMPDIR:-/tmp}/ss060" && mkdir -p "${TMPDIR:-/tmp}/ss060/specs/001-alpha" "${TMPDIR:-/tmp}/ss060/specs/002-beta" && : > "${TMPDIR:-/tmp}/ss060/spec-spine.toml" && printf -- '---\nid: "001-alpha"\ntitle: "First thing"\nstatus: approved\ncreated: "2026-09-07"\nsummary: "s"\nimplementation: pending\nestablishes:\n  - "specs/001-alpha/spec.md"\n---\n\n# 001-alpha\n## body\n' > "${TMPDIR:-/tmp}/ss060/specs/001-alpha/spec.md" && printf -- '---\nid: "002-beta"\ntitle: "Second thing"\nstatus: approved\ncreated: "2026-09-07"\nsummary: "s"\nimplementation: pending\ndepends_on:\n  - "001-alpha"\nestablishes:\n  - "specs/002-beta/spec.md"\n---\n\n# 002-beta\n## body\n' > "${TMPDIR:-/tmp}/ss060/specs/002-beta/spec.md" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" compile >/dev/null
+# 3.3: the ready array carries titles, so no consumer needs a second call.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan --json | python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["ready"][0]=={"id":"001-alpha","title":"First thing"}, p'
+# 3.1: and each blocked entry carries its title and the state of every blocker,
+# rather than a count of them.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan --json | python3 -c 'import json,sys; b=json.load(sys.stdin)["blocked"][0]; assert b["title"]=="Second thing", b; assert b["blockedBy"][0]["id"]=="001-alpha", b; assert b["blockedBy"][0]["state"], b'
+# 3.1: the prose form renders what the structure holds, remainder included.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan | grep -q 'not schedulable'
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan | grep -q 'blocked by 001-alpha'
+# 3.2: `--next` is the single pick, as the object rather than a one-element list.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan --next --json | python3 -c 'import json,sys; assert json.load(sys.stdin)=={"id":"001-alpha","title":"First thing"}'
+# 3.2: and an empty ready set is a true answer at exit 0, not a failure. This
+# repository is that case now, which is why the assertions above use a fixture.
 target/release/spec-spine registry plan --next
-# The ready array carries titles, so no consumer needs a second call.
-target/release/spec-spine registry plan --json | grep -q '"title"'
-# The ledger is untouched by a read verb.
+rm -rf "${TMPDIR:-/tmp}/ss060"
+# 3.3: the ledger is untouched by a read verb.
 target/release/spec-spine compile --check
 ```
