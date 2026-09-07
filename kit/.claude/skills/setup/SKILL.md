@@ -1,84 +1,114 @@
 ---
 name: setup
-description: One-time contributor setup. Install spec-spine and verify the governed loop (compile, index check, lint, couple) so /init can report lifecycle and structural counts.
+description: "One-time contributor setup: install the pinned spec-spine, the stack toolchain AGENTS.md names, fetch the base ref, and verify the governed loop once, so /init can report lifecycle and structural counts."
 allowed-tools: Bash, Read
 ---
 
-# Setup
+# /setup
 
 Get a fresh clone operational. After this completes, `/init` can report
-lifecycle and structural counts through the `spec-spine` binary, never by
-ad-hoc parsing of `.derived/**/*.json` (see
-`.claude/rules/governed-artifact-reads.md`).
+lifecycle and structural counts through `spec-spine`, never by ad-hoc
+parsing of `.derived/**/*.json` (`.claude/rules/governed-artifact-reads.md`).
 
 ## Process
 
-### 1. Install spec-spine
+### 1. Install the pinned spec-spine
 
-Install the CLI by whichever method fits your environment:
+`AGENTS.md` pins the version and names the invocation (a binary on `PATH`,
+a package wrapper, or an in-tree build). CI runs the pinned one, so a local
+pass on another version proves nothing: a different version is a halt.
+Any one route:
 
-```bash
-cargo install spec-spine-cli            # from crates.io (needs a Rust toolchain)
-# or, no Rust toolchain:
-npm i -D spec-spine                      # in a TS/JS repo (prebuilt binary)
-pip install spec-spine                   # or: uvx spec-spine  (Python repo)
+```sh
+cargo install spec-spine-cli --version <pin> --locked   # with a Rust toolchain
+npm i -g spec-spine@<pin>                               # prebuilt binary, no toolchain
+uvx spec-spine@<pin> --version                          # Python, ephemeral
 ```
 
-Verify with `spec-spine --version`. Halt on a non-zero exit and surface the
-failing step verbatim.
+Verify: `spec-spine --version` prints the pin. When `AGENTS.md` says the
+binary is built from this checkout, build it as it says instead and use
+that path for every command below.
 
-### 2. Compile a fresh registry
+### 2. Stack toolchain
 
-```bash
+Install whatever `AGENTS.md` (or `CLAUDE.md`) names for the language
+gates: a pinned toolchain file, a package manager, optional linters. Report
+each as present or absent; a missing optional tool is a note, a missing
+required one is a halt. `jq` is a convenience the hooks in
+`.claude/settings.json` use; each hook says what it skipped when `jq` is
+absent.
+
+### 3. Fetch the base ref
+
+The coupling gate diffs against the default branch on the remote:
+
+```sh
+git fetch origin main
+```
+
+### 4. Verify the governed loop
+
+Run the gate exactly as `AGENTS.md` "Working the backlog" lists it under
+"Run the gate before every commit". The governance floor is:
+
+```sh
 spec-spine compile
+spec-spine index
+spec-spine lint --fail-on-warn
+spec-spine index check
+spec-spine couple --base origin/main --head HEAD
+spec-spine index coverage --fail-on-untraced   # when [coupling] require_ownership is on
 ```
 
-Whether `.derived/` is committed or gitignored is your policy. If it is
-committed, `compile` is deterministic and a no-op on a clean tree: run it
-before any read so the registry reflects the working tree, and commit the
-regenerated registry whenever `specs/*/spec.md` changes.
+then the stack's own build, tests, and lints. On a clean checkout
+`compile` and `index` are deterministic no-ops; if
+`git status --short -- .derived/` shows a diff afterwards, the committed
+shards were stale. Say so and leave the diff for the session to commit
+(`chore(derived): ...`); do not hide it. Halt on the first failing step
+and surface its output verbatim.
 
-### 3. Verify the governed loop
+Then the reads `/init` will use:
 
-Smoke-test the gates `/init` and CI depend on. Passing here means the loop works
-on this clone:
-
-```bash
-spec-spine index check       # codebase index staleness gate
-spec-spine lint              # corpus conformance
-spec-spine couple --base origin/main --head HEAD   # PR-time coupling gate
+```sh
+spec-spine registry status-report --json --nonzero-only
+spec-spine registry plan
+spec-spine index coverage
 ```
 
-If `index check` exits non-zero the committed index is stale against current
-inputs. Run `spec-spine index`, re-commit the regenerated index, then re-check.
-Do not parse `.derived/**/*.json` directly to "verify" success.
-
-### 4. Emit summary
-
-Report exactly:
+### 5. Emit summary
 
 ```
-## setup: <your-project>
+## setup: <project>
 
-**Install:** {ok / failed at <step>}
+**spec-spine:** {<pin> / wrong version <v> / failed at <step>}
+**Toolchain:** {<what AGENTS.md names>: present / absent}
+**Optional tools:** {name: present/absent, ...}
 **Governed loop:**
-  - compile: {fresh registry / failed}
+  - compile: {ok / failed}
+  - index: {ok / regenerated, shards left for the session to commit}
+  - lint --fail-on-warn: {clean / N diagnostics}
   - index check: {fresh / stale}
-  - lint: {clean / N diagnostics}
   - couple: {clean / drift surfaced}
+  - coverage: {N claimed, M unclaimed / not enforced}
+  - stack gate: {ok / failed at <command> / none declared}
 **Lifecycle:** {N specs across <statuses>}  (from registry status-report)
+**Ready:** {ids / (nothing ready)}  (from registry plan)
 
 Next: run `/init` to load full session context.
 ```
 
-Do not invent counts. Only report values that came back from a `spec-spine`
-subcommand.
+Do not invent counts. Only report values that came back from a
+`spec-spine` subcommand or a gate command.
 
 ## Rules
 
-- The loop runs through the installed `spec-spine` binary on your `PATH`.
-- Halt on first failure. Do not silently continue past a missing prerequisite
-  or a failing gate.
-- Never parse `.derived/**/*.json` directly in any verification step. Use the
-  `spec-spine` subcommands.
+- Halt on first failure. Do not silently continue past a missing
+  prerequisite or a failing gate.
+- Never parse `.derived/**/*.json` directly; use the `spec-spine`
+  subcommands.
 - Idempotent: safe to re-run.
+
+## Project layer
+
+Read from `AGENTS.md`: the version pin, the binary invocation, the
+toolchain, the gate command list. Nothing here is edited per project.

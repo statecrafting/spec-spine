@@ -14,10 +14,20 @@
       "Bash(git rev-parse*)",
       "Bash(git add *)",
       "Bash(git commit *)",
+      "Bash(git remote*)",
+      "Bash(git switch *)",
+      "Bash(git fetch*)",
       "Bash(ls *)",
       "Bash(ls)",
       "Bash(grep *)",
       "Bash(rg *)",
+      "Bash(scripts/*)",
+      "Bash(./scripts/*)",
+      "Bash(gh pr view*)",
+      "Bash(gh pr checks*)",
+      "Bash(gh pr list*)",
+      "Bash(gh run *)",
+      "Bash(gh auth status*)",
       "Read(**)",
       "Edit(**)",
       "Write(**)"
@@ -30,7 +40,13 @@
       "Bash(gh repo delete *)",
       "Bash(gh repo archive *)",
       "Bash(git push --force*)",
-      "Bash(git push -f *)"
+      "Bash(git push -f *)",
+      "Bash(git push -f*)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(rm -rf .git*)",
+      "Bash(rm -rf specs*)",
+      "Bash(rm -rf .derived*)"
     ]
   },
   "hooks": {

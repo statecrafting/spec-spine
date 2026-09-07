@@ -70,14 +70,17 @@ This repository files a spec as `draft`, builds it, then ratifies it in a
 separate PR, so the loop here differs from an adopter's ratify-then-build
 corpus in step 1 and step 6. One spec per PR, then stop.
 
-1. **Pick or file the spec.** `spec-spine registry plan` prints the ready set;
-   in a finished corpus it prints `(nothing ready)` and the work is to file the
-   next `NNN-slug` from the design backlog (`docs/design/`). A new spec is born
+1. **Pick or file the spec.** `spec-spine registry plan` prints the ready set
+   (`/next` applies the approval and in-flight rules on top of it); in a
+   finished corpus it prints `(nothing ready)` and the work is to file the
+   next `NNN-slug` from the design backlog (`docs/design/`) with `/spec`. A new spec is born
    `status: draft`, `implementation: pending`, and declares every edge it
    needs, including `amends` on any approved spec whose stated behavior it
    changes, without editing that spec (spec 040).
 2. **Branch.** A feature branch named after the spec id. Never commit to
-   `main`.
+   `main`. `/build <id>` sequences steps 2 to 5 for a spec that is already
+   filed; here a filed spec stays `draft` while it is built, so `/build`'s
+   preflight accepts `draft` in this repository when a human named the id.
 3. **Re-read the design before coding.** If the design is imprecise, record
    the choice in the spec. If it is wrong, stop and report; never rewrite an
    approved spec to match code (`.claude/rules/adversarial-prompt-refusal.md`).
@@ -90,9 +93,13 @@ corpus in step 1 and step 6. One spec per PR, then stop.
    `... couple --base origin/main --head HEAD`, then `cargo test --workspace
    --locked`, `cargo clippy --workspace --all-targets --locked -- -D
    warnings`, `cargo fmt --all --check`. Commit the regenerated shards with
-   the code they describe.
-6. **Ship, then ratify.** `/ship` opens the PR with `implementation:
-   complete` set once the spec's Verification section holds. After merge, a
+   the code they describe. The skills call this list "the gate as
+   `AGENTS.md` lists it"; the binary is `target/release/spec-spine` (or
+   `cargo run -p spec-spine-cli --`), never `npx spec-spine`.
+6. **Ship, then ratify.** `/verify <id>` runs the spec's `## Verification`
+   block through `scripts/verify-spec.sh`. `/ship` opens the PR with
+   `implementation: complete` set once that block holds, and `/shepherd`
+   drives the PR to a merge confirmed on disk. After merge, a
    second PR flips `status: draft` to `approved` (the ratify PR), and the
    corpus count moves. A `Spec-Drift-Waiver:` line needs explicit human
    approval and is cited in the PR body.
@@ -108,13 +115,30 @@ Agents live in `.claude/agents/`. Four pipeline agents handle the plan/explore/i
 
 ## Available Commands
 
-Commands live in `.claude/skills/` (one `SKILL.md` per folder):
+Commands live in `.claude/skills/` (one `SKILL.md` per folder). They are the
+kit's fifteen, byte-identical to `kit/.claude/skills/` (spec 048 pins this):
+the project layer lives in this file, not in the skills.
 
-- `/init`: initialize a session (load context, lifecycle, recent activity)
-- `/setup`: one-time contributor setup, build the `spec-spine` binary and verify the compile then index then lint then couple loop works
-- `/commit`: create a git commit with an impact-focused conventional message
-- `/code-review`: adversarial review of the current diff for bugs and spec drift
-- `/ship`: gate (coupling), review, commit, and PR creation in one governed sequence
+The governed loop, in the order "Working the backlog" runs it:
+
+- `/init`: initialize a session (this protocol)
+- `/setup`: one-time contributor setup: build the `spec-spine` binary and verify the governed loop
+- `/next`: name the next work order from `registry plan`, minus drafts, with in-flight specs and blockers. Read-only
+- `/build <id>`: implement one spec start to finish: preflight, branch, flip, implement, gate, verify, flip complete
+- `/verify <id>`: run the spec's `## Verification` block locally through `scripts/verify-spec.sh`
+- `/ship`: gate, review, commit on the feature branch, open the PR
+- `/shepherd`: watch the PR's checks by head sha, remediate through the gate, merge, confirm on disk
+- `/spec`: author a new spec at the next free ordinal, born `draft`
+
+The supporting skills:
+
+- `/commit`: create a git commit with an impact-focused conventional message, spec ordinal as scope
+- `/code-review`: review the working diff for correctness bugs, spec drift, and illegitimate mid-build spec edits
+- `/validate-and-fix`: run the local CI composite and fix discovered issues by severity
+- `/cleanup`: dead-code and duplicate detection with ownership-aware recommendations
+- `/implement-plan`: execute a cross-cutting plan file step by step with checkpoints
+- `/research`: deep research with parallel sub-agents; corpus questions go through `spec-spine`
+- `/refactor-claude-md`: tighten a `CLAUDE.md` into path-scoped rules, keeping the harness spec coupled
 
 ## Conventions
 

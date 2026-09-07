@@ -62,6 +62,10 @@ For each proposed change, check:
 - Are there relationship edges (`refines`, `establishes`, `amends`, `supersedes`, `depends-on`) the change must respect or extend?
 - Will the change require recompiling the registry or refreshing the codebase index?
 
+- Which files are in the spec's `establishes` list, which `extends` edges it declares, and what its `depends_on` closure requires (`spec-spine registry show <id> --json`, `spec-spine registry relationships <id>`)
+- Where is the spec **silent**? Name every decision it does not make, so the session records each as a dated decision entry instead of guessing
+- Where is the spec **wrong**? A contradiction between the design and what the code must do is a coherence-guard halt for the session, not a planning detail
+
 ### 4. Decompose into Steps
 
 Break the work into ordered, atomic steps. For each step specify:
@@ -106,6 +110,10 @@ Break the work into ordered, atomic steps. For each step specify:
 
 1. [Risk or question, with mitigation if known]
 
+### Decisions the spec leaves open
+
+1. [Choice the spec does not make; the session records it as a dated decision entry]
+
 ### Recommendations
 
 1. [Priority-ordered advice]
@@ -117,6 +125,7 @@ Break the work into ordered, atomic steps. For each step specify:
 - **DO:** Cite specific spec ids (e.g. `specs/005-coupling-gate/spec.md`) in your rationale
 - **DO:** Flag when a spec should be authored or amended before implementation begins
 - **DO:** Keep steps small enough that each can be verified independently
+- **DO:** Distinguish a spec that is silent (record a decision) from a spec that is wrong (halt and report)
 - **DO NOT:** Modify any files; this agent is strictly read-only
 - **DO NOT:** Skip loading specs; they are the authoritative record
 - **DO NOT:** Propose changes that bypass the compiler or the coupling gate
