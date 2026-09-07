@@ -1,0 +1,84 @@
+{
+  "record": {
+    "created": "2026-09-07",
+    "dependsOn": [
+      "011-index-render-orphans",
+      "032-ownership-coverage",
+      "044-in-progress-is-in-flight"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "011-index-render-orphans",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/render.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/coverage.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/coverage.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "011-index-render-orphans",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/render.rs"
+        }
+      }
+    ],
+    "id": "059-read-verbs-on-a-code-free-corpus",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "059: Two read verbs that mislead a specify-first corpus",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 `orphans` partitions by the in-flight predicate",
+      "3.2 An empty coverage universe is a refusal, not a pass",
+      "3.3 The message says which of two things happened",
+      "3.4 Nothing committed moves",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/059-read-verbs-on-a-code-free-corpus/spec.md",
+    "status": "draft",
+    "summary": "Three of the four governed repositories are specify-first: the whole corpus is ratified before a line of code exists, and specs live at approved plus pending for months. Two read verbs give that corpus an answer that is technically correct and practically a lie. `index orphans` reports sixty-four of hqgit's sixty-eight specs, because an orphan is a spec claiming nothing that resolves, and a spec whose code is not written yet claims nothing that resolves; the list is the corpus, so it says nothing. `index coverage --fail-on-untraced` on a tree with no discovered package enumerates zero source files, computes zero untraced, and exits 0 from inside a CI step named \"the whole-tree ownership assertion\". This spec makes the first partition by the in-flight predicate the index already computes, and makes the second refuse an empty universe instead of passing it.\n",
+    "title": "Two read verbs that mislead a specify-first corpus"
+  },
+  "shardHash": "ce36a159081cd934bca75a6873a7e9d24f4c5379edf167c01c0a001a05ef3ec4",
+  "specVersion": "1.1.0"
+}

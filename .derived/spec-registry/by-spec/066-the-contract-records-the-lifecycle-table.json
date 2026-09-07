@@ -1,0 +1,61 @@
+{
+  "record": {
+    "created": "2026-09-07",
+    "dependsOn": [
+      "041-completion-held-to-claims",
+      "043-governance-document-gaps",
+      "044-in-progress-is-in-flight",
+      "045-absent-implementation-defers-to-status"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "006-init-scaffold",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      }
+    ],
+    "id": "066-the-contract-records-the-lifecycle-table",
+    "implementation": "pending",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/contract.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "066: The contract records the lifecycle table and the extra keys",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Lifecycle as scheduling",
+      "3.2 Extra keys",
+      "3.3 The scaffold ships both",
+      "3.4 The lifecycle table is a summary, not a fifth authority",
+      "3.5 Nothing mechanical changes",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/066-the-contract-records-the-lifecycle-table/spec.md",
+    "status": "draft",
+    "summary": "`status` and `implementation` are the two keys every adopter reasons about daily, and the contract mentions `status` once, in a list of required frontmatter, and `implementation` not at all. The mechanical consequences are spread across four specs: 041 makes a `complete` claim checkable, 044 defines the in-flight window, 045 says an absent key takes its answer from `status`, and 038 reads both to build the ready set. Every specify-first adopter wrote the resulting table into its own contract by hand, and hqgit had to invent a section called \"Lifecycle as scheduling\" because ours has none. This spec adds that section and an \"Extra keys\" section telling adopters to document their `extra_known_keys`, and claims both as section units of the contract.\n",
+    "title": "The contract records the lifecycle table and the extra keys"
+  },
+  "shardHash": "06cc9520f7bf654da7bbd25aa4b731a1c4d18e4d841c4e053968cae53ff16f1d",
+  "specVersion": "1.1.0"
+}

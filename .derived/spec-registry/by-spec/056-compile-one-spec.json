@@ -1,0 +1,77 @@
+{
+  "record": {
+    "created": "2026-09-07",
+    "dependsOn": [
+      "001-compile-registry",
+      "031-registry-freshness-check",
+      "037-machine-readable-verdicts"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "037-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
+        }
+      }
+    ],
+    "id": "056-compile-one-spec",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "056: Validate one draft without a temporary repository",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 `spec-spine compile --spec <id>`",
+      "3.2 It reports one spec's violations, and says so",
+      "3.3 It resolves against the real repository",
+      "3.4 The verdict envelope",
+      "3.5 Writing is still `compile`",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/056-compile-one-spec/spec.md",
+    "status": "draft",
+    "summary": "Writing a spec means validating it before it lands, and the tool offers no way to do that. `compile` writes the whole shard tree, which an author with an unfinished draft must not do; `compile --check` refuses the whole corpus because the draft has no committed shard, reporting the author's work in progress as staleness. So two adopters wrote down a `mktemp -d` ritual: copy the corpus, copy the draft in, compile there, read the violations, delete the copy. It has a documented gotcha, because a `references` edge into `docs/` does not resolve in a corpus copy that has no `docs/`. This spec adds `compile --spec <id>`: validate one spec against the committed registry, report only that spec's violations, and write nothing.\n",
+    "title": "Validate one draft without a temporary repository"
+  },
+  "shardHash": "9ad10c9f5c761e516547d4b32b326181a285100094a86889455e0d46a320e606",
+  "specVersion": "1.1.0"
+}

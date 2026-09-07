@@ -1,0 +1,62 @@
+{
+  "record": {
+    "created": "2026-09-07",
+    "dependsOn": [
+      "003-conformance-lint",
+      "022-keypath-section-anchors",
+      "043-governance-document-gaps"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      }
+    ],
+    "id": "058-retroactive-adoption-shape",
+    "implementation": "pending",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      }
+    ],
+    "refines": [
+      {
+        "aspect": "defects-heading-anchor",
+        "unit": {
+          "anchor": "v-legacy-as-evidence",
+          "file": "standards/spec/constitution.md",
+          "kind": "section"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "058: The defects heading has one spelling",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The heading is an anchor",
+      "3.2 `L-009`",
+      "3.3 `origin.retroactive` does not imply the heading",
+      "3.4 Nothing else moves",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/058-retroactive-adoption-shape/spec.md",
+    "status": "draft",
+    "summary": "Constitution V requires code adopted from outside the corpus to be specced as found, with the behavior the adopting spec would not have chosen recorded under a `## Known defects` heading. It does not say what counts as that heading, and the first consumer to check mechanically got it wrong: claude-observatory's `defects.ts` matches the string `## Known defects` exactly and therefore rejects the numbered headings of the very specs it cites as precedent. This spec settles the spelling as an anchor rather than a string: any heading whose computed slug is or ends with `known-defects`, at any level, under the same slug rule the indexer already uses for section units. It adds `L-009`, an info-tier lint for a near-miss spelling, and it declines to lint `origin.retroactive` into implying the heading, because spec 043 established that the two are orthogonal.\n",
+    "title": "The defects heading has one spelling"
+  },
+  "shardHash": "f54b6024e52f358c72f50ca37e4b0c7af95fab14e92ffe74dd291ac0724ca17d",
+  "specVersion": "1.1.0"
+}

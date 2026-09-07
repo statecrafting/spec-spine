@@ -1,0 +1,76 @@
+{
+  "record": {
+    "created": "2026-09-07",
+    "dependsOn": [
+      "020-derived-artifact-merge-driver",
+      "029-claude-code-skill-kit",
+      "024-index-sharding",
+      "051-harness-runs-the-verbs-it-ships"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/README.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-derived-artifact-merge-driver",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/"
+        }
+      }
+    ],
+    "id": "064-the-kit-ships-the-composite-gate",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "role": "exemplar",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "064: The kit ships the composite gate and the merge driver",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 `kit/Makefile`",
+      "3.2 `kit/govern.yml`",
+      "3.3 The merge driver moves into the kit",
+      "3.4 This repository runs what the kit ships",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/064-the-kit-ships-the-composite-gate/spec.md",
+    "status": "draft",
+    "summary": "The kit ships a session harness and no build. Every adopter therefore wrote the same two things by hand. First a composite gate: a Makefile whose language targets are guarded on a manifest probe so the whole thing is green on a code-free tree, and a CI workflow carrying the `has_cargo` job-output pattern that three adopters each rediscovered after GitHub rejected `hashFiles` in a job-level `if`. Second, nothing at all for the committed shard trees: rahi runs one spec per PR with committed shards and has no merge driver, and the kit's README never says the words. This spec ships `kit/Makefile`, `kit/govern.yml`, `kit/.githooks/` and the `.gitattributes` stanza, and holds them to the rule spec 046 and 051 established for everything else in the kit: what the kit ships, this repository runs.\n",
+    "title": "The kit ships the composite gate and the merge driver"
+  },
+  "shardHash": "90d5e4ae936a6398c7adb707365e218cc1f6c35128d7655ae2bccf8bf109667e",
+  "specVersion": "1.1.0"
+}

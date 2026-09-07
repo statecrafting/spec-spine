@@ -1,0 +1,93 @@
+{
+  "record": {
+    "created": "2026-09-07",
+    "dependsOn": [
+      "002-registry-query",
+      "004-codebase-index",
+      "024-index-sharding",
+      "032-ownership-coverage"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      }
+    ],
+    "id": "055-the-ledger-answers-what-consumers-rebuild",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "055: The ledger answers what consumers rebuild by hand",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 `spec-spine index owner <path>`",
+      "3.2 The owner query is the gate's own function",
+      "3.3 `contentHash` on `registry show --json`",
+      "3.4 What the hash means, said once",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/055-the-ledger-answers-what-consumers-rebuild/spec.md",
+    "status": "draft",
+    "summary": "Two facts the ledger computes and then keeps to itself, each of which an adopter has reimplemented. Ownership of a path is resolved inside `couple.rs::owners_for_path`, a private function, so a consumer that wants to know which spec governs a file rebuilds a path-to-spec map from raw edges and gets the subtree, supersession and comment-header rules wrong. A spec's content hash is written into every registry shard as `shardHash` and is absent from every read verb, so claude-observatory reimplemented `hash.rs` normalization in TypeScript in order to pin against it. This spec adds `spec-spine index owner <path>` and puts `contentHash` on `registry show --json`'s output object. Neither touches a committed artifact, a DTO, or a schema version: both facts already exist and are merely unreachable.\n",
+    "title": "The ledger answers what consumers rebuild by hand"
+  },
+  "shardHash": "def73526768c35799310982d6277dc30a027156632612a63ce2e46ca665c7968",
+  "specVersion": "1.1.0"
+}

@@ -1,0 +1,93 @@
+{
+  "record": {
+    "created": "2026-09-07",
+    "dependsOn": [
+      "006-init-scaffold",
+      "029-claude-code-skill-kit",
+      "043-governance-document-gaps",
+      "061-the-scaffold-ships-what-adopters-wrote"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "006-init-scaffold",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "006-init-scaffold",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_init.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "006-init-scaffold",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scaffold.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "006-init-scaffold",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/init.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/README.md"
+        }
+      }
+    ],
+    "id": "065-init-and-the-kit-are-one-adoption",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/adoption-guide.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "065: Init and the kit are one adoption",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Plain `init` writes an `AGENTS.md`",
+      "3.2 `init --with-kit`",
+      "3.3 It refuses to clobber",
+      "3.4 The scaffolded repository is immediately governed",
+      "3.5 The README says how it is installed",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/065-init-and-the-kit-are-one-adoption/spec.md",
+    "status": "draft",
+    "summary": "Adoption is two halves that nothing joins. `spec-spine init` writes a corpus, a constitution, a contract, templates and three agent rules. `kit/` adds the session protocol, the hooks, the agents and fifteen skills. The scaffold does not mention the kit, the kit is not installable by any verb, and `AGENTS.md`, which every skill in the kit reads first and which the three rewriting adopters each wrote from nothing, is written by neither. Spec 043 named this gap G5 and did not close it. This spec adds `spec-spine init --with-kit`, emitting the kit's files through the same `Scaffold` data path as everything else, and makes plain `init` write an `AGENTS.md` naming the governed loop, because a repository with rules and no protocol is the configuration three adopters had to repair by hand.\n",
+    "title": "Init and the kit are one adoption"
+  },
+  "shardHash": "22be5fa11babd5218c8b9b4b6aa9a49d91a28f20c9934c8647be77440dd31a4a",
+  "specVersion": "1.1.0"
+}
