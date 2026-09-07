@@ -7,7 +7,10 @@
 
 use std::fmt::Write as _;
 
-use spec_spine_types::{CodebaseIndex, Config, Diagnostic, PackageKind};
+use serde::Serialize;
+use spec_spine_types::{
+    CodebaseIndex, Config, Diagnostic, Implementation, PackageKind, SpecRecord, Status,
+};
 
 /// The id-sorted `traceability.orphanedSpecs` list (spec 011 §3.3).
 pub fn orphans(index: &CodebaseIndex) -> Vec<&str> {
@@ -19,6 +22,73 @@ pub fn orphans(index: &CodebaseIndex) -> Vec<&str> {
         .collect();
     ids.sort_unstable();
     ids
+}
+
+/// `orphans`, partitioned by whether the spec is in flight (spec 059 §3.1).
+///
+/// An orphan is a spec claiming nothing that resolves, and on a specify-first
+/// corpus a spec whose code is not written yet claims nothing that resolves. So
+/// the flat list is the corpus, and it says nothing: `index orphans` reported
+/// sixty-four of hqgit's sixty-eight specs. Partitioning leaves four.
+///
+/// The first group is the finding: a spec that is not in flight, claiming
+/// nothing that resolves, is one whose author said the work is done or does not
+/// apply while the ledger says nothing of theirs exists. The second group is a
+/// specify-first corpus's normal state and is reported rather than filtered,
+/// because suppressing it would replace a useless answer with an incomplete one
+/// and lose the verb that answers "what has no code yet".
+///
+/// The predicate is spec 044's, read from the **registry** rather than the
+/// index: the index shard records `spec_status` but not `implementation`, and
+/// adding it would move `INDEX_SCHEMA_VERSION` and restamp every shard for a
+/// read verb's benefit (spec 059 §3.4 forbids that). A spec with no record is
+/// treated as in flight, since a corpus that cannot say otherwise should not be
+/// told its spec is abandoned. Taking the record slice rather than a `Registry`
+/// is what lets the caller pass an empty one when no registry is committed: a
+/// read verb that answered from the index alone must not start failing because
+/// a different artifact is missing.
+pub fn partition_orphans<'a>(index: &'a CodebaseIndex, records: &[SpecRecord]) -> OrphanReport<'a> {
+    let mut orphaned: Vec<&'a str> = Vec::new();
+    let mut in_flight: Vec<&'a str> = Vec::new();
+    for id in orphans(index) {
+        match records.iter().find(|s| s.id == id) {
+            Some(rec) if !record_in_flight(rec) => orphaned.push(id),
+            _ => in_flight.push(id),
+        }
+    }
+    OrphanReport {
+        orphaned,
+        in_flight,
+    }
+}
+
+/// Spec 044's in-flight predicate over a registry record: `complete` settles
+/// it, else `draft` status or a `pending` / `in-progress` implementation.
+///
+/// Kept beside the partition rather than shared with `index.rs`, which asks the
+/// same question of its own parsed frontmatter type. Both read the same two
+/// fields under the same rule, and the acceptance pins them to the same answer.
+fn record_in_flight(rec: &SpecRecord) -> bool {
+    if matches!(rec.implementation, Some(Implementation::Complete)) {
+        return false;
+    }
+    rec.status == Status::Draft
+        || matches!(
+            rec.implementation,
+            Some(Implementation::Pending | Implementation::InProgress)
+        )
+}
+
+/// The two groups `index orphans` reports (spec 059 §3.1). Both id-sorted, as
+/// spec 011 §3.3 requires.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OrphanReport<'a> {
+    /// Claims nothing that resolves, and is not in flight: the finding.
+    pub orphaned: Vec<&'a str>,
+    /// Claims nothing that resolves *yet*: a specify-first corpus's normal
+    /// state, reported rather than filtered.
+    pub in_flight: Vec<&'a str>,
 }
 
 /// The markdown projection of the committed index (spec 011 §3.2).

@@ -453,7 +453,14 @@ fn index_render_and_orphans_projections() {
         .output()
         .unwrap();
     assert_eq!(code(&orphans_text), 0, "orphans is a query, not a gate");
-    assert_eq!(String::from_utf8_lossy(&orphans_text.stdout), "002-b\n");
+    // Spec 059 §3.1: two named groups, not one flat list. This fixture indexes
+    // without compiling, so no registry is committed and every orphan reads as
+    // in flight, which is the "cannot say otherwise" rule rather than a
+    // failure: a read verb that answered from the index alone must not start
+    // failing because a different artifact is missing.
+    let orphans_out = String::from_utf8_lossy(&orphans_text.stdout);
+    assert!(orphans_out.contains("in flight"), "{orphans_out}");
+    assert!(orphans_out.contains("002-b"), "{orphans_out}");
 
     let orphans_json = bin()
         .arg("--repo")
@@ -462,8 +469,9 @@ fn index_render_and_orphans_projections() {
         .output()
         .unwrap();
     assert_eq!(code(&orphans_json), 0);
-    let ids: Vec<String> = serde_json::from_slice(&orphans_json.stdout).unwrap();
-    assert_eq!(ids, ["002-b"]);
+    let partitioned: serde_json::Value = serde_json::from_slice(&orphans_json.stdout).unwrap();
+    assert_eq!(partitioned["orphaned"], serde_json::json!([]));
+    assert_eq!(partitioned["inFlight"], serde_json::json!(["002-b"]));
 
     // Render: exit 0 even with diagnostics in the artifact; contractual
     // sections present in order.
@@ -504,7 +512,13 @@ fn index_render_and_orphans_projections() {
         .output()
         .unwrap();
     assert_eq!(code(&none), 0);
-    assert!(none.stdout.is_empty());
+    // Spec 059 §3.1: with both groups empty the verb stays silent, as it did
+    // before the partition.
+    assert!(
+        none.stdout.is_empty(),
+        "{}",
+        String::from_utf8_lossy(&none.stdout)
+    );
 }
 
 #[test]

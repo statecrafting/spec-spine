@@ -677,3 +677,84 @@ fn the_resolver_does_not_reach_into_the_state_root() {
         }
     }
 }
+
+// ── spec 059: an empty coverage universe is a refusal, not a pass ─────────
+
+/// §3.2 + §3.3: no discovered package is an empty universe, and the reason
+/// names the likely cause rather than only the condition.
+#[test]
+fn an_empty_universe_with_no_packages_is_reported_with_its_cause() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(r, "specs/001-x/spec.md", &spec("001-x", ""));
+    let cfg = Config::default();
+    emit_index(&cfg, r);
+
+    let report = coverage(&cfg, r).unwrap();
+    assert_eq!(report.source_files, 0, "the denominator is zero");
+    assert!(
+        report.is_fully_claimed(),
+        "vacuously true, which is the trap this spec closes"
+    );
+
+    let reason = spec_spine_core::empty_universe(&report).expect("empty");
+    assert_eq!(reason, spec_spine_core::EmptyUniverse::NoPackages);
+    assert!(
+        reason.explain().contains("standalone_rust_workspaces"),
+        "names the likely fix: {}",
+        reason.explain()
+    );
+}
+
+/// §3.2: a package with source files is not an empty universe, so the refusal
+/// is unreachable on an ordinary repository. This one has four packages and
+/// seventy-four source files.
+#[test]
+fn a_populated_universe_is_not_empty() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(r, "Cargo.toml", "[workspace]\nmembers = [\"crate-a\"]\n");
+    write(
+        r,
+        "crate-a/Cargo.toml",
+        "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n",
+    );
+    write(r, "crate-a/src/lib.rs", "pub fn a() {}\n");
+    write(r, "specs/001-x/spec.md", &spec("001-x", ""));
+    let cfg = Config::default();
+    emit_index(&cfg, r);
+
+    let report = coverage(&cfg, r).unwrap();
+    assert!(report.source_files > 0);
+    assert!(spec_spine_core::empty_universe(&report).is_none());
+}
+
+/// §3.3: packages discovered but no source file in them is the other empty
+/// case, and it points at a different knob.
+#[test]
+fn packages_without_source_files_point_at_resolver_exclusions() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(r, "Cargo.toml", "[workspace]\nmembers = [\"crate-a\"]\n");
+    write(
+        r,
+        "crate-a/Cargo.toml",
+        "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n",
+    );
+    write(r, "crate-a/src/lib.rs", "pub fn a() {}\n");
+    write(r, "specs/001-x/spec.md", &spec("001-x", ""));
+    // Prune the only source tree.
+    let cfg = load_config("[index]\nresolver_exclusions = [\"src\"]\n").unwrap();
+    emit_index(&cfg, r);
+
+    let report = coverage(&cfg, r).unwrap();
+    assert!(!report.packages.is_empty(), "a package was discovered");
+    assert_eq!(report.source_files, 0, "and none of its files were seen");
+    let reason = spec_spine_core::empty_universe(&report).expect("empty");
+    assert_eq!(reason, spec_spine_core::EmptyUniverse::NoSourceFiles);
+    assert!(
+        reason.explain().contains("resolver_exclusions"),
+        "names the other knob: {}",
+        reason.explain()
+    );
+}

@@ -4,7 +4,7 @@ title: "Two read verbs that mislead a specify-first corpus"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -17,6 +17,11 @@ extends:
   - { spec: "004-codebase-index", unit: "crates/spec-spine-cli/src/cmd_index.rs", nature: additive }
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-core/tests/coverage.rs", nature: additive }
   - { spec: "011-index-render-orphans", unit: "crates/spec-spine-core/tests/render.rs", nature: additive }
+  # The partition reads the registry's lifecycle fields (3.1).
+  - { spec: "002-registry-query", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
+  # Both renderings' acceptance, which pinned the old flat shape and the
+  # empty-case silence.
+  - { spec: "011-index-render-orphans", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
 summary: >
@@ -106,6 +111,15 @@ decides whether an unresolved unit is a blocking error or a `W-001` warning, and
 using it here means the two verbs cannot disagree about which specs are under
 way.
 
+**Decision, 2026-09-07: the lifecycle half is read from the registry.** The
+index shard records `spec_status` and not `implementation`, so the committed
+index alone cannot answer the predicate. Adding the field would move
+`INDEX_SCHEMA_VERSION` and restamp every shard for a read verb's benefit, which
+§3.4 forbids. `index orphans` therefore loads both committed artifacts, as
+`couple` already does. A spec the registry has no record of is treated as in
+flight: a corpus that cannot say otherwise should not have its spec called
+abandoned.
+
 The first group is the finding. A spec that is neither draft nor pending nor
 in-progress, that claims nothing resolving, is a spec whose author said the work
 is done or does not apply while the ledger says nothing of theirs exists. That
@@ -126,6 +140,14 @@ and no verdict envelope is involved (`orphans` emits none); the change is to one
 read verb's `--json` output and MUST be called out in the release notes as such.
 
 Ordering inside each group stays id-sorted, as spec 011 §3.3 requires.
+
+**Decision, 2026-09-07: a corpus with no orphans stays silent.** The prose form
+prints both groups whenever either has members, so a reader always sees which
+side an id fell on. With both empty it prints nothing, as it did before this
+spec: two headers and two `(none)` lines would be noise on the answer "nothing
+to report", and an existing acceptance test pinned the silence. The `--json`
+form is unaffected and always emits both arrays, since a consumer parsing an
+object should not have to distinguish "absent" from "empty".
 
 ### 3.2 An empty coverage universe is a refusal, not a pass
 
@@ -198,20 +220,36 @@ honest, not a second scheduler.
 
 ## 5. Verification
 
+Both changes fail against pre-059 code: `orphans` emitted one flat array, and
+`--fail-on-untraced` exited 0 on an empty universe.
+
+Each line below is one command. Spec 049 §3.2 is explicit that a fence's body
+line **is** a command, so a trailing `\` continuation is not joined: the
+continuation becomes its own fragment and fails. The setup lines here are
+therefore single lines, however long.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-core --test render --locked
 cargo test -p spec-spine-core --test coverage --locked
-# `orphans` partitions. Until this ships, the output is one flat list.
-target/release/spec-spine index orphans --json | grep -q 'inFlight'
-# An empty coverage universe refuses the assertion instead of passing it.
-tmp=$(mktemp -d) && mkdir -p "$tmp/specs/001-x" && : > "$tmp/spec-spine.toml" \
-  && printf -- '---\nid: "001-x"\ntitle: "x"\nstatus: draft\ncreated: "2026-09-07"\nsummary: "x"\nestablishes:\n  - "specs/001-x/spec.md"\n---\n\n# x\n' > "$tmp/specs/001-x/spec.md" \
-  && target/release/spec-spine --repo "$tmp" compile >/dev/null \
-  && target/release/spec-spine --repo "$tmp" index >/dev/null \
-  && target/release/spec-spine --repo "$tmp" index coverage \
-  && ! target/release/spec-spine --repo "$tmp" index coverage --fail-on-untraced
-# This repository's own coverage assertion is unaffected.
+# 3.1: `orphans` reports two named groups instead of one flat list.
+target/release/spec-spine index orphans --json | python3 -c 'import json,sys; o=json.load(sys.stdin); assert set(o) == {"orphaned", "inFlight"}, o'
+# 3.2 + 3.3: the empty-universe fixture. Built once at a fixed path, because
+# each line here is its own shell and a `$(mktemp -d)` would not survive to the
+# next assertion.
+rm -rf "${TMPDIR:-/tmp}/ss059" && mkdir -p "${TMPDIR:-/tmp}/ss059/specs/001-x" && : > "${TMPDIR:-/tmp}/ss059/spec-spine.toml" && printf -- '---\nid: "001-x"\ntitle: "x"\nstatus: draft\ncreated: "2026-09-07"\nsummary: "x"\nestablishes:\n  - "specs/001-x/spec.md"\n---\n\n# x\n' > "${TMPDIR:-/tmp}/ss059/specs/001-x/spec.md" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss059" compile >/dev/null && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss059" index >/dev/null
+# 3.2: without the flag it still exits 0 and reports the fact. The report is a
+# read verb, and "no source files" is a true and useful thing to say.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss059" index coverage
+# 3.2: with the flag it refuses. An assertion over an empty set is vacuously
+# true, and a CI step that did not run its check should not be green.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss059" index coverage --fail-on-untraced ; test $? -eq 1
+# 3.3: and the message names which of the two empty cases this is.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss059" index coverage --fail-on-untraced 2>&1 | grep -q 'no package was discovered'
+rm -rf "${TMPDIR:-/tmp}/ss059"
+# 3.4: this repository's own coverage assertion is unaffected: four packages,
+# seventy-four source files, so the refusal is unreachable here.
 target/release/spec-spine index coverage --fail-on-untraced
+target/release/spec-spine compile --check
 ```
