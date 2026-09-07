@@ -38,10 +38,34 @@
           "kind": "file",
           "path": "crates/spec-spine-types/tests/config.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "054-effective-config-is-a-governed-read",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "067-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
       }
     ],
     "id": "062-a-version-pin-the-cli-can-check",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -79,6 +103,6 @@
     "summary": "A repository is governed by whichever spec-spine binary happens to be on the path, and nothing anywhere says which one it should be. rahi states 0.11.0 in three files that must agree by hand. All four governed repositories are two to four releases behind the fixes their own experience motivated, and rahi cannot see spec 044, which was written for rahi's exact state, because it is pinned below it. This spec adds `[meta] required_version`, a semver requirement the CLI checks on every run, refusing with a message that names both the requirement and the running version. The schema versions already tell a loader whether it can read an artifact; this tells an operator whether they are running the tool the corpus was governed by, which is a different question and currently has no answer at all.\n",
     "title": "A version pin the CLI can check"
   },
-  "shardHash": "4bcd1a42d21a8914fbebaefa44a437ffb32b31aed4d2eb944d896544181f476a",
+  "shardHash": "fe2ca3f48246293bd20b298b638cbaa76eb82e0f65b5e80b9bef97f2d241e3bb",
   "specVersion": "1.1.0"
 }

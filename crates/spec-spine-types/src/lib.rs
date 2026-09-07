@@ -50,7 +50,7 @@ pub use codebase::{
 pub use config::{
     AllowlistConfig, BrandingConfig, BypassEntry, BypassSource, Config, CouplingConfig,
     EffectiveConfig, EffectiveCouplingConfig, FrontmatterConfig, IndexConfig, LayoutConfig,
-    LintConfig, ManifestConfig, ProvenanceConfig, load_config,
+    LintConfig, ManifestConfig, MetaConfig, ProvenanceConfig, VersionReq, load_config,
 };
 pub use coverage::{CoverageReport, PackageCoverage};
 pub use edges::{

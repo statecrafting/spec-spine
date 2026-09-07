@@ -101,6 +101,14 @@ fn config_toml(cfg: &Config) -> String {
          # `spec-spine config show` prints the effective configuration, including\n\
          # the built-in bypass floor this file cannot see.\n\
          \n\
+         # [meta]\n\
+         # Pin the spec-spine version this repository is governed by. Uncomment to\n\
+         # refuse a binary that does not satisfy it. A pin is not only about\n\
+         # features: the coupling gate\x27s built-in bypass floor is compiled into\n\
+         # the binary, so two versions can judge the same diff differently.\n\
+         # Cargo semantics: a bare version is a caret range, `=` is exact.\n\
+         # required_version = \"{running_version}\"\n\
+         \n\
          [manifest]\n\
          # Drives the Cargo `[package.metadata.{ns}].spec` and package.json `\"{ns}\".spec` reads.\n\
          metadata_namespace = \"{ns}\"\n\
@@ -195,6 +203,7 @@ fn config_toml(cfg: &Config) -> String {
          # Keys this corpus recognizes beyond the grammar, so the unknown-key\n\
          # lint stays quiet about them. They still land in `extraFrontmatter`.\n\
          # extra_known_keys = [\"owner\", \"risk\"]\n",
+        running_version = env!("CARGO_PKG_VERSION"),
         ns = cfg.manifest.metadata_namespace,
         specs = cfg.layout.specs_dir,
         derived = cfg.layout.derived_dir,

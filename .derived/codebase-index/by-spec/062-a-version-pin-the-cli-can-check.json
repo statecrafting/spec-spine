@@ -7,6 +7,10 @@
     ],
     "implementingPaths": [
       {
+        "path": "crates/spec-spine-cli/src/cmd_config.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-cli/src/main.rs",
         "source": "spec-edge"
       },
@@ -19,11 +23,32 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-types/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/tests/config.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/schema-versioning.md",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_config.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_config.rs"
+        }
+      },
       {
         "locations": [
           {
@@ -66,6 +91,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-types/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-types/tests/config.rs"
           }
         ],
@@ -74,6 +112,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/tests/config.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/schema-versioning.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
         }
       },
       {
@@ -107,5 +158,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "0705dd32d3b85bd3928df193bb6d325da90d2c516e42ee1eb05f802781b05cdc"
+  "shardHash": "19e7bd42bdf7b8b1b1404020d0d264f14b7f7fc5dac7fe7d5d423ae0a139556e"
 }

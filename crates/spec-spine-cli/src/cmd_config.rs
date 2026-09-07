@@ -133,6 +133,12 @@ fn render(e: &EffectiveConfig) {
     out::line(format_args!("\n[frontmatter]"));
     list("extra_known_keys", &e.frontmatter.extra_known_keys);
 
+    out::line(format_args!("\n[meta]"));
+    match &e.meta.required_version {
+        Some(v) => kv("required_version", v),
+        None => out::line(format_args!("  required_version = (unpinned)")),
+    }
+
     out::line(format_args!("\n[lint]"));
     flag(
         "require_ordinal_monotonic_depends_on",

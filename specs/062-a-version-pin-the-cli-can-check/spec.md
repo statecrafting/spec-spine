@@ -4,7 +4,7 @@ title: "A version pin the CLI can check"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -16,6 +16,12 @@ extends:
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
   - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/src/scaffold.rs", nature: additive }
   - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/tests/config.rs", nature: additive }
+  # `MetaConfig` and `VersionReq` join the crate root's export list, and the
+  # new table joins `config show`'s report (3.1).
+  - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/src/lib.rs", nature: additive }
+  - { spec: "054-effective-config-is-a-governed-read", unit: "crates/spec-spine-cli/src/cmd_config.rs", nature: additive }
+  # The docs note 3.3 requires.
+  - { spec: "067-the-docs-name-what-adopters-derived", unit: "docs/schema-versioning.md", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "docs/schema-versioning.md" }, role: context }
@@ -97,6 +103,13 @@ file already governs the repository, `spec-spine config show` (spec 054) reports
 it with everything else, and a sidecar would be a second configuration surface
 with its own discovery rules for one scalar.
 
+**Decision, 2026-09-07.** "Reports it with everything else" is not free: spec
+054 §3.4 mirrors `Config`'s tables one for one in `EffectiveConfig`, and its
+drift guard failed the moment `[meta]` existed and was not mirrored. That guard
+is the reason this was a build failure rather than a table silently missing from
+every `config show`, and adding the table to the report is part of adding it to
+`Config`.
+
 `CONFIG_VERSION` does not move. An added optional table with a default is the
 additive case that constant exists to make safe.
 
@@ -152,6 +165,19 @@ before the key existed.
 will otherwise read "unknown field `meta`" as a corrupt config rather than as an
 out-of-date binary.
 
+**Decision, 2026-09-07: the requirement parser is hand-written.** Neither
+`spec-spine-types` nor the workspace carries a semver crate, and this spec does
+not add one. The substrate every binding wraps has four serde dependencies and
+nothing else, and the grammar needed here is small and closed: comparators
+(`=`, `^`, `>`, `>=`, `<`, `<=`, bare, `*`), a possibly-partial version, and
+comma as conjunction. Cargo's semantics are followed exactly, including 0.x
+being its own major line, because that is what an adopter writing `^0.15`
+expects, and the acceptance pins each arm of it.
+
+A malformed requirement is a config error naming what is wrong, never a silent
+pass: a pin nobody can parse must not read as "unpinned", which would be the
+failure mode of treating a parse error as absence.
+
 ### 3.4 The scaffold writes it, commented out
 
 `config_toml` MUST emit the key commented out, with the running version as the
@@ -202,22 +228,36 @@ inputs. That property is worth more than the notification.
 
 ## 5. Verification
 
+Each line is one command (spec 049 §3.2), so the fixture lives at a fixed path
+rather than in a `$(mktemp -d)` that would not survive to the next line.
+
+Every assertion fails against pre-062 code: `[meta]` was an unknown table and
+every one of these exited 3 with a parse error.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-types --test config --locked
-# A satisfiable pin is silent. Until this ships, `[meta]` is an unknown table
-# and every one of these exits 3.
-tmp=$(mktemp -d) && mkdir -p "$tmp/specs" \
-  && printf '[meta]\nrequired_version = ">=0.1"\n' > "$tmp/spec-spine.toml" \
-  && target/release/spec-spine --repo "$tmp" lint
-# An unsatisfiable pin refuses, and the refusal names the requirement.
-printf '[meta]\nrequired_version = "=0.0.1"\n' > "$tmp/spec-spine.toml"
-target/release/spec-spine --repo "$tmp" lint 2>&1 | grep -q '0.0.1'
-! target/release/spec-spine --repo "$tmp" lint 2>/dev/null
-# --version stays available under an unsatisfiable pin: it is the diagnostic.
-target/release/spec-spine --repo "$tmp" --version
-# The scaffold writes the key, commented out.
-tmp2=$(mktemp -d) && target/release/spec-spine --repo "$tmp2" init >/dev/null \
-  && grep -q 'required_version' "$tmp2/spec-spine.toml"
+# 3.2: a satisfiable pin is silent.
+rm -rf "${TMPDIR:-/tmp}/ss062" && mkdir -p "${TMPDIR:-/tmp}/ss062/specs" && printf '[meta]\nrequired_version = ">=0.1"\n' > "${TMPDIR:-/tmp}/ss062/spec-spine.toml" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss062" lint
+# 3.2: an unsatisfiable pin refuses at exit 3...
+printf '[meta]\nrequired_version = "=0.0.1"\n' > "${TMPDIR:-/tmp}/ss062/spec-spine.toml" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss062" lint ; test $? -eq 3
+# ...naming the requirement, the running version, and where the pin lives.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss062" lint 2>&1 | grep -q '0.0.1'
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss062" lint 2>&1 | grep -q 'required_version'
+# 3.2: a read is refused too. An old binary answering `registry plan` about a
+# corpus it may misunderstand is the quiet failure this spec prevents.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss062" registry plan ; test $? -eq 3
+# 3.2: --version stays available under an unsatisfiable pin. It is how an
+# operator finds out what they are running.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss062" --version
+# 3.2: and so does `init`, the verb reached for when things are wrong.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss062" init --force >/dev/null
+# 3.4: the scaffold writes the key, commented out, so a new repository is not
+# pinned to whichever version happened to scaffold it.
+rm -rf "${TMPDIR:-/tmp}/ss062b" && mkdir -p "${TMPDIR:-/tmp}/ss062b" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss062b" init >/dev/null && grep -q '# required_version' "${TMPDIR:-/tmp}/ss062b/spec-spine.toml"
+# 3.3: the docs record the older-binary refusal, so "unknown field `meta`" is
+# not read as a corrupt config.
+grep -q 'unknown field' docs/schema-versioning.md
+rm -rf "${TMPDIR:-/tmp}/ss062" "${TMPDIR:-/tmp}/ss062b"
 ```

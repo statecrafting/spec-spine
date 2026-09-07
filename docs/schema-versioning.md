@@ -177,3 +177,38 @@ without breaking readers:
 - **`frontmatter.extra_known_keys` / `extra_frontmatter`**: overlay-specific
   fields ride through without a schema bump (see
   [overlay-contract.md](overlay-contract.md) §5).
+
+## Pinning the binary: `[meta] required_version`
+
+The schema versions above tell a **loader** what it can read. They say nothing
+about which **binary** should be reading it, and a repository is otherwise
+governed by whichever `spec-spine` happens to be on the path. Spec 062 adds
+`[meta] required_version` for that: a semver requirement the CLI checks before
+doing any work, refusing with exit `3` and naming the requirement, the running
+version, and where the pin lives.
+
+Cargo's conventions: a bare `"0.15.0"` is a caret range, `"=0.15.0"` is exact,
+`">=0.15, <0.16"` is a range, `"*"` constrains nothing. `--version`, `--help`
+and `init` are exempt, because they are how an operator finds out what they are
+running and what to do about it.
+
+**A binary older than the pin refuses too, for the wrong reason.** Every
+`Config` table carries `deny_unknown_fields`, so a binary released before spec
+062 rejects the whole `[meta]` table as an unknown field:
+
+```
+spec-spine: config error: TOML parse error at line 1, column 2
+unknown field `meta`, expected one of `manifest`, `domains`, ...
+```
+
+That is worth knowing rather than discovering. It is the property that makes the
+pin usable at all: an adopter adding the key today is protected from every older
+binary immediately, not only from future ones. The message is poor, naming a
+parse error rather than a version mismatch, and it cannot be improved, because
+the binary producing it was built before the key existed. **If you see "unknown
+field `meta`", your binary is out of date; it is not a corrupt config.**
+
+The two axes stay separate. `required_version` constrains the binary; a
+repository can pin a binary without pinning a schema (the ordinary case), or
+find its shards rejected by a binary that satisfies its pin, which is the pin
+being too loose and the loader being right to refuse.
