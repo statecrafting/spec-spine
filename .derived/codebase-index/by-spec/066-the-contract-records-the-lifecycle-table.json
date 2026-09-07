@@ -10,6 +10,14 @@
       {
         "path": "crates/spec-spine-core/src/scaffold.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/scaffold.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "standards/spec/contract.md",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
@@ -24,6 +32,32 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/scaffold.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scaffold.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "standards/spec/contract.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/contract.md"
         }
       },
       {
@@ -57,5 +91,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "3faf2c8baf0b868b8f674a68de8cdc6ff2990921928fa158960baef652b671ec"
+  "shardHash": "57722a3a2a13de4d62507b1dcb71217bcecea8a9615385717883603fac2861a7"
 }
