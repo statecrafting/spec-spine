@@ -212,3 +212,113 @@ fn the_overlap_check_reads_the_configured_roots() {
         "specs/ is not a governed root in this layout: {accepted:?}"
     );
 }
+
+// ── spec 062: a version pin the CLI can check ─────────────────────────────
+
+use spec_spine_types::VersionReq;
+
+fn v(s: &str) -> (u64, u64, u64) {
+    spec_spine_types::parse_semver(s).unwrap()
+}
+
+fn req(s: &str) -> VersionReq {
+    VersionReq::parse(s).unwrap_or_else(|e| panic!("'{s}' should parse: {e}"))
+}
+
+/// §3.1: Cargo's conventions, because that is what an adopter writing `^0.15`
+/// expects. A bare version is a caret requirement, and 0.x is its own major
+/// line.
+#[test]
+fn a_bare_version_is_a_caret_requirement() {
+    assert!(req("0.15.0").matches(v("0.15.0")));
+    assert!(req("0.15.0").matches(v("0.15.9")), "patch is allowed");
+    assert!(!req("0.15.0").matches(v("0.16.0")), "0.x minor is breaking");
+    assert!(!req("0.15.3").matches(v("0.15.1")), "below the floor");
+    assert!(req("^0.15").matches(v("0.15.7")));
+    assert!(!req("^0.15").matches(v("0.14.9")));
+
+    // For 1.x and above the minor is not breaking.
+    assert!(req("1.2.0").matches(v("1.9.9")));
+    assert!(!req("1.2.0").matches(v("2.0.0")));
+    assert!(!req("1.2.0").matches(v("1.1.9")));
+}
+
+/// §3.1: `=` is the exact pin, which is how an adopter reproducing a
+/// byte-identical ledger says so. Only the stated fields are compared.
+#[test]
+fn the_equals_operator_is_the_exact_pin() {
+    assert!(req("=0.15.0").matches(v("0.15.0")));
+    assert!(!req("=0.15.0").matches(v("0.15.1")));
+    assert!(!req("=0.15.0").matches(v("0.16.0")));
+    // Two components pin two components: any patch of 0.15.
+    assert!(req("=0.15").matches(v("0.15.4")));
+    assert!(!req("=0.15").matches(v("0.16.0")));
+}
+
+/// §3.1: a range, which is the adopter who wants fixes but not a MAJOR. Every
+/// comparator must hold.
+#[test]
+fn comma_separated_comparators_are_conjunctive() {
+    let r = req(">=0.15, <0.16");
+    assert!(r.matches(v("0.15.0")));
+    assert!(r.matches(v("0.15.12")));
+    assert!(!r.matches(v("0.14.9")), "below the lower bound");
+    assert!(!r.matches(v("0.16.0")), "at the exclusive upper bound");
+
+    assert!(req(">0.15.0").matches(v("0.15.1")));
+    assert!(!req(">0.15.0").matches(v("0.15.0")));
+    assert!(req("<=0.15.0").matches(v("0.15.0")));
+}
+
+/// §3.1: `*` and an empty requirement constrain nothing, which is the same as
+/// being unpinned.
+#[test]
+fn a_wildcard_constrains_nothing() {
+    assert!(req("*").matches(v("0.1.0")));
+    assert!(req("*").matches(v("99.0.0")));
+    assert!(req("").matches(v("0.15.0")));
+    assert!(req("0.15.*").matches(v("0.15.9")));
+    assert!(!req("0.15.*").matches(v("0.16.0")));
+}
+
+/// §3.1: a malformed requirement is a config error naming what is wrong, not a
+/// silent pass. A pin nobody can parse must not read as "unpinned".
+#[test]
+fn a_malformed_requirement_is_refused() {
+    for bad in ["not-a-version", ">=", "1.2.3.4", "0.x.y.z"] {
+        assert!(VersionReq::parse(bad).is_err(), "'{bad}' should be refused");
+    }
+}
+
+/// §3.2: an absent pin is silent, a satisfied pin is silent, and an
+/// unsatisfied one names all three facts an operator needs.
+#[test]
+fn check_required_version_names_requirement_running_and_location() {
+    let unpinned = Config::default();
+    assert!(unpinned.check_required_version("0.15.0").is_ok());
+
+    let pinned = load_config("[meta]\nrequired_version = \">=0.15, <0.16\"\n").unwrap();
+    assert!(pinned.check_required_version("0.15.3").is_ok());
+
+    let err = pinned.check_required_version("0.11.0").unwrap_err();
+    let msg = err.to_string();
+    assert!(msg.contains(">=0.15, <0.16"), "the requirement: {msg}");
+    assert!(msg.contains("0.11.0"), "the running version: {msg}");
+    assert!(
+        msg.contains("spec-spine.toml"),
+        "where the pin lives: {msg}"
+    );
+    // §3.2: exit 3. Not 1 (nothing was validated), not 2 (nothing is stale).
+    assert_eq!(err.exit_code(), 3);
+}
+
+/// §3.1: `CONFIG_VERSION` does not move, and a config written before this spec
+/// still parses. An added optional table with a default is the additive case
+/// the constant exists to make safe.
+#[test]
+fn the_meta_table_is_additive() {
+    assert_eq!(spec_spine_types::CONFIG_VERSION, "0.1.0");
+    let old = load_config("[layout]\nspecs_dir = \"specs\"\n").unwrap();
+    assert_eq!(old.meta.required_version, None);
+    assert!(old.check_required_version("0.15.0").is_ok());
+}

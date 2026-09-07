@@ -31,6 +31,7 @@ pub struct Config {
     pub provenance: ProvenanceConfig,
     pub frontmatter: FrontmatterConfig,
     pub lint: LintConfig,
+    pub meta: MetaConfig,
 }
 
 /// `[manifest]`: how a manifest links a compilation unit back to its spec.
@@ -318,6 +319,212 @@ pub struct LintConfig {
     pub unwitnessed_allowed: Vec<String>,
 }
 
+/// `[meta]`: facts about the governed repository itself (spec 062).
+#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct MetaConfig {
+    /// The spec-spine version this repository is governed by, as a semver
+    /// **requirement** (`"0.15.0"`, `">=0.15, <0.16"`, `"=0.15.0"`).
+    ///
+    /// Absent means unpinned, which is every existing repository.
+    ///
+    /// A requirement rather than an exact version, because both intentions are
+    /// legitimate: an adopter reproducing a byte-identical ledger pins exactly
+    /// with `=`, and one who wants fixes but not a MAJOR writes a range. A
+    /// single exact string would force the first on everybody and produce a pin
+    /// that is bumped without being thought about.
+    ///
+    /// A config key rather than a `.spec-spine-version` sidecar: one file
+    /// already governs the repository, `spec-spine config show` reports it with
+    /// everything else, and a sidecar would be a second configuration surface
+    /// with its own discovery rules for one scalar.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub required_version: Option<String>,
+}
+
+/// One comparator of a version requirement.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Op {
+    /// `=1.2.3`: every stated field must match.
+    Exact,
+    /// `^1.2` or a bare `1.2`: up to the next breaking change.
+    Caret,
+    Gt,
+    Ge,
+    Lt,
+    Le,
+}
+
+/// A parsed comparator: an operator and a possibly-partial version.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Comparator {
+    op: Op,
+    major: u64,
+    minor: Option<u64>,
+    patch: Option<u64>,
+}
+
+/// A semver requirement: comparators joined by `,`, all of which must hold.
+///
+/// Cargo's conventions, deliberately, because that is what an adopter writing
+/// `"^0.15"` or `">=0.15, <0.16"` will expect: a bare version is a caret
+/// requirement, `=` is the exact one, `*` matches anything, and a missing minor
+/// or patch is a wildcard rather than a zero.
+///
+/// Hand-written rather than pulled in as a dependency. The requirement grammar
+/// this needs is small and closed, and `spec-spine-types` is the substrate every
+/// binding wraps: it carries four serde crates and nothing else, and a version
+/// pin is not the reason to change that.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct VersionReq(Vec<Comparator>);
+
+impl VersionReq {
+    /// Parse a requirement, or say why it is not one.
+    pub fn parse(src: &str) -> std::result::Result<Self, String> {
+        let mut out = Vec::new();
+        for part in src.split(',') {
+            let part = part.trim();
+            if part.is_empty() {
+                continue;
+            }
+            if part == "*" {
+                continue; // matches anything, so it constrains nothing
+            }
+            let (op, rest) = if let Some(r) = part.strip_prefix(">=") {
+                (Op::Ge, r)
+            } else if let Some(r) = part.strip_prefix("<=") {
+                (Op::Le, r)
+            } else if let Some(r) = part.strip_prefix('>') {
+                (Op::Gt, r)
+            } else if let Some(r) = part.strip_prefix('<') {
+                (Op::Lt, r)
+            } else if let Some(r) = part.strip_prefix('=') {
+                (Op::Exact, r)
+            } else if let Some(r) = part.strip_prefix('^') {
+                (Op::Caret, r)
+            } else {
+                (Op::Caret, part)
+            };
+            out.push(parse_comparator(op, rest.trim())?);
+        }
+        Ok(VersionReq(out))
+    }
+
+    /// Does `version` satisfy every comparator?
+    ///
+    /// An empty requirement (`"*"`, or an empty string) matches everything,
+    /// which is the same as being unpinned.
+    pub fn matches(&self, version: (u64, u64, u64)) -> bool {
+        self.0.iter().all(|c| c.matches(version))
+    }
+}
+
+fn parse_comparator(op: Op, src: &str) -> std::result::Result<Comparator, String> {
+    // Strip any pre-release / build metadata: this tool's own versions carry
+    // none, and comparing them would be grammar nobody here needs.
+    let core = src.split(['-', '+']).next().unwrap_or(src);
+    let mut parts = core.split('.');
+    let major = next_number(&mut parts, src)?.ok_or_else(|| format!("'{src}' has no major"))?;
+    let minor = next_number(&mut parts, src)?;
+    let patch = next_number(&mut parts, src)?;
+    if parts.next().is_some() {
+        return Err(format!("'{src}' has more than three components"));
+    }
+    Ok(Comparator {
+        op,
+        major,
+        minor,
+        patch,
+    })
+}
+
+fn next_number<'a>(
+    parts: &mut impl Iterator<Item = &'a str>,
+    src: &str,
+) -> std::result::Result<Option<u64>, String> {
+    match parts.next() {
+        None => Ok(None),
+        Some("*") | Some("x") | Some("X") => Ok(None),
+        Some(n) => n
+            .parse::<u64>()
+            .map(Some)
+            .map_err(|_| format!("'{src}' is not a version: '{n}' is not a number")),
+    }
+}
+
+impl Comparator {
+    fn matches(&self, (vmaj, vmin, vpat): (u64, u64, u64)) -> bool {
+        let lower = (self.major, self.minor.unwrap_or(0), self.patch.unwrap_or(0));
+        let v = (vmaj, vmin, vpat);
+        match self.op {
+            // Only the stated fields are compared, so `=0.15` accepts any patch
+            // of 0.15, which is what writing two components asks for.
+            Op::Exact => {
+                vmaj == self.major
+                    && self.minor.is_none_or(|m| vmin == m)
+                    && self.patch.is_none_or(|p| vpat == p)
+            }
+            Op::Gt => v > lower,
+            Op::Ge => v >= lower,
+            Op::Lt => v < lower,
+            Op::Le => v <= lower,
+            // Up to the next breaking change, with 0.x treated as its own
+            // major line, exactly as Cargo reads it: `^0.15` is
+            // `>=0.15.0, <0.16.0`, and `^1.2` is `>=1.2.0, <2.0.0`.
+            Op::Caret => {
+                if v < lower {
+                    return false;
+                }
+                if self.major > 0 {
+                    return vmaj == self.major;
+                }
+                match self.minor {
+                    // `^0` allows any 0.x.
+                    None => vmaj == 0,
+                    Some(m) => vmaj == 0 && vmin == m,
+                }
+            }
+        }
+    }
+}
+
+impl Config {
+    /// Refuse when `[meta] required_version` is present and `running` does not
+    /// satisfy it (spec 062 §3.2).
+    ///
+    /// [`Error::Config`] (exit 3): a configuration the tool cannot honour, which
+    /// is what 3 means. Emphatically not 1 (nothing was validated), not 2
+    /// (nothing is stale), and not 0.
+    ///
+    /// The message names the requirement, the running version, and where the
+    /// pin lives, because an operator told only "version mismatch" has to go
+    /// find all three.
+    pub fn check_required_version(&self, running: &str) -> Result<()> {
+        let Some(req_src) = &self.meta.required_version else {
+            return Ok(());
+        };
+        let req = VersionReq::parse(req_src).map_err(|e| {
+            Error::Config(format!(
+                "[meta] required_version '{req_src}' is not a semver requirement: {e}"
+            ))
+        })?;
+        let Some(version) = crate::parse_semver(running) else {
+            return Err(Error::Config(format!(
+                "cannot compare the running version '{running}' against [meta] \
+                 required_version '{req_src}'"
+            )));
+        };
+        if req.matches(version) {
+            return Ok(());
+        }
+        Err(Error::Config(format!(
+            "this repository requires spec-spine {req_src} (spec-spine.toml [meta] \
+             required_version); running {running}. Install the required version, or \
+             change the pin deliberately"
+        )))
+    }
+}
+
 /// Where a bypass entry came from (spec 054 §3.2).
 ///
 /// Attribution is the load-bearing part of `config show`, and the reason it is
@@ -407,6 +614,7 @@ pub struct EffectiveConfig {
     pub provenance: ProvenanceConfig,
     pub frontmatter: FrontmatterConfig,
     pub lint: LintConfig,
+    pub meta: MetaConfig,
 }
 
 impl EffectiveConfig {
@@ -433,6 +641,7 @@ impl EffectiveConfig {
             provenance: config.provenance.clone(),
             frontmatter: config.frontmatter.clone(),
             lint: config.lint.clone(),
+            meta: config.meta.clone(),
         }
     }
 }

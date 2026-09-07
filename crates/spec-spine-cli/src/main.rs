@@ -197,6 +197,15 @@ fn main() -> ExitCode {
     };
 
     let json_verb = cli.command.json_verb();
+    // Spec 062 §3.2: the version pin is checked before any work. A read from a
+    // mismatched binary is the quiet failure this exists to prevent: `registry
+    // plan` from an old binary answers a question about a corpus it may
+    // misunderstand, and answers it confidently.
+    if let Err(e) = check_version_pin(&repo, &cli.command) {
+        eprintln!("spec-spine: {e}");
+        return ExitCode::from(e.exit_code());
+    }
+
     let result = match &cli.command {
         Command::Compile { check, json, spec } => {
             cmd_compile::run(&repo, *check, *json, spec.as_deref())
@@ -341,5 +350,24 @@ pub(crate) fn load_repo_config(repo: &Path) -> Result<Config, Error> {
         Ok(src) => spec_spine_types::load_config(&src),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(Config::default()),
         Err(e) => Err(Error::Io(format!("read {}: {e}", path.display()))),
+    }
+}
+
+/// Enforce `[meta] required_version` (spec 062 §3.2), except for the verbs that
+/// must stay available when the pin is unsatisfiable.
+///
+/// `--version` and `--help` are clap's, and never reach here. `init` is exempt
+/// because it scaffolds a repository that has no configuration yet, and in one
+/// that does it is the verb an operator reaches for when things are wrong.
+///
+/// A configuration that cannot be read at all is left to the verb: this returns
+/// `Ok` rather than pre-empting the real error with a worse one.
+fn check_version_pin(repo: &Path, command: &Command) -> Result<(), Error> {
+    if matches!(command, Command::Init { .. }) {
+        return Ok(());
+    }
+    match load_repo_config(repo) {
+        Ok(cfg) => cfg.check_required_version(env!("CARGO_PKG_VERSION")),
+        Err(_) => Ok(()),
     }
 }
