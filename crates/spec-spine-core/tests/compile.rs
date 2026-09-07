@@ -910,3 +910,165 @@ fn registry_freshness_facade_reports_both_verdicts() {
         serde_json::json!({ "fresh": true })
     );
 }
+
+// ── spec 056: validate one spec, write nothing ────────────────────────────
+
+/// Commit the shard tree exactly as `spec-spine compile` does, so `compile_spec`
+/// has a committed registry to assemble the named spec against.
+fn commit_shards(cfg: &Config, root: &Path) {
+    let outcome = compile(cfg, root).unwrap();
+    let dir = spec_spine_core::registry_dir(cfg, root).join("by-spec");
+    let files = spec_spine_core::registry_shard_files(&outcome.shards).unwrap();
+    spec_spine_core::shard::sync_dir(&dir, &files).unwrap();
+}
+
+/// §3.1 + §3.5: it validates a draft that has never compiled, and writes
+/// nothing. Both halves matter: `compile` writes, so asking whether a draft
+/// parses would commit it to the ledger as a side effect of the question.
+#[test]
+fn compile_spec_validates_an_uncommitted_draft_and_writes_nothing() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    let cfg = Config::default();
+    write_spec(root, "001-alpha", "001-alpha", "");
+    commit_shards(&cfg, root);
+
+    // A brand-new draft with no shard of its own.
+    write_spec(
+        root,
+        "002-draft",
+        "002-draft",
+        "depends_on: [\"001-alpha\"]\n",
+    );
+    let before: Vec<String> =
+        fs::read_dir(spec_spine_core::registry_dir(&cfg, root).join("by-spec"))
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+
+    let report = spec_spine_core::compile_spec(&cfg, root, "002-draft").unwrap();
+    assert!(report.passed, "{:?}", report.violations);
+    assert_eq!(report.spec_id, "002-draft");
+    assert_eq!(report.spec_path, "specs/002-draft/spec.md");
+
+    let after: Vec<String> =
+        fs::read_dir(spec_spine_core::registry_dir(&cfg, root).join("by-spec"))
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+    assert_eq!(before, after, "no shard was written for the draft");
+}
+
+/// §3.1: the short form resolves, and an id matching none or several is
+/// `NotFound` (exit 1) rather than stale (exit 2).
+#[test]
+fn compile_spec_resolves_the_short_id_and_refuses_an_unknown_one() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    let cfg = Config::default();
+    write_spec(root, "056-compile-one-spec", "056-compile-one-spec", "");
+
+    let report = spec_spine_core::compile_spec(&cfg, root, "056").unwrap();
+    assert_eq!(report.spec_id, "056-compile-one-spec", "short id resolves");
+
+    match spec_spine_core::compile_spec(&cfg, root, "999") {
+        Err(spec_spine_types::Error::NotFound(_)) => {}
+        other => panic!("expected NotFound, got {other:?}"),
+    }
+    // `05` is not a whole leading segment, so it resolves nothing (spec 016).
+    assert!(spec_spine_core::compile_spec(&cfg, root, "05").is_err());
+}
+
+/// §3.2: local violations are reported, and only the named spec's. A sibling's
+/// problems are the sibling's business.
+#[test]
+fn compile_spec_reports_only_the_named_specs_violations() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    let cfg = Config::default();
+    // A sibling whose directory does not equal its id (V-001).
+    write_spec(root, "001-wrong-dir", "001-alpha", "");
+    write_spec(root, "002-also-wrong", "002-beta", "");
+    commit_shards(&cfg, root);
+
+    let report = spec_spine_core::compile_spec(&cfg, root, "001-wrong-dir").unwrap();
+    assert!(
+        report.violations.iter().any(|v| v.code == "V-001"),
+        "the named spec's own violation is reported: {:?}",
+        report.violations
+    );
+    assert!(
+        report
+            .violations
+            .iter()
+            .all(|v| v.path.as_deref() == Some("specs/001-wrong-dir/spec.md")),
+        "no sibling's violation leaks in: {:?}",
+        report.violations
+    );
+    assert!(!report.passed, "an error-tier violation fails the spec");
+}
+
+/// §3.2: the cross-spec codes are not silently dropped. A duplicate ordinal is
+/// one of the two mistakes a new draft actually makes, and the message names
+/// the spec that already holds it.
+#[test]
+fn compile_spec_reports_a_duplicate_ordinal_and_names_the_holder() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    let cfg = Config::default();
+    write_spec(root, "007-first", "007-first", "");
+    commit_shards(&cfg, root);
+
+    // A draft that reuses the ordinal already committed.
+    write_spec(root, "007-second", "007-second", "");
+    let report = spec_spine_core::compile_spec(&cfg, root, "007-second").unwrap();
+    let dup: Vec<&spec_spine_types::Violation> = report
+        .violations
+        .iter()
+        .filter(|v| v.code == "V-004")
+        .collect();
+    assert_eq!(dup.len(), 1, "reported once: {:?}", report.violations);
+    assert!(
+        dup[0].message.contains("007-first"),
+        "names the holder, or the author has a puzzle: {}",
+        dup[0].message
+    );
+}
+
+/// §3.2: a dangling `depends_on` is reported exactly once. `validate_spec` and
+/// the cross-spec recompute both know how to find it, and reporting one mistake
+/// twice would be its own defect.
+#[test]
+fn a_dangling_dependency_is_reported_once() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    let cfg = Config::default();
+    write_spec(root, "001-alpha", "001-alpha", "");
+    commit_shards(&cfg, root);
+    write_spec(
+        root,
+        "002-draft",
+        "002-draft",
+        "depends_on: [\"888-nope\"]\n",
+    );
+
+    let report = spec_spine_core::compile_spec(&cfg, root, "002-draft").unwrap();
+    let dangling: Vec<_> = report
+        .violations
+        .iter()
+        .filter(|v| v.code == "V-010")
+        .collect();
+    assert_eq!(dangling.len(), 1, "{:?}", report.violations);
+}
+
+/// §3.1: a first spec in a repository that has never compiled is exactly the
+/// case this verb is for, so an absent committed registry is an empty corpus
+/// rather than an error.
+#[test]
+fn compile_spec_works_before_the_registry_exists() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    write_spec(root, "001-first", "001-first", "");
+    let report = spec_spine_core::compile_spec(&Config::default(), root, "001-first").unwrap();
+    assert!(report.passed, "{:?}", report.violations);
+}

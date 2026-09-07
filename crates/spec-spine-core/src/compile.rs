@@ -9,6 +9,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use serde::Serialize;
 use spec_spine_types::{
     Build, Config, Error, Frontmatter, FrontmatterIssue, REGISTRY_SCHEMA_VERSION, Registry,
     RegistrySpecShard, Severity, SpecRecord, Status, ValidationReport, Violation,
@@ -515,6 +516,192 @@ fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
         amendment_record: fm.amendment_record,
         origin: fm.origin,
         extra_frontmatter: fm.extra_frontmatter,
+    }
+}
+
+// ===== spec 056: validate one spec, write nothing =====
+
+/// One spec's validation verdict (spec 056 §3.2).
+#[derive(Clone, Debug, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SpecCheckReport {
+    /// The resolved full id, so a caller that passed `056` sees what it named.
+    pub spec_id: String,
+    pub spec_path: String,
+    /// This spec's violations: the corpus-independent ones, plus the cross-spec
+    /// ones this spec is party to. Never another spec's.
+    pub violations: Vec<Violation>,
+    /// False iff an error-tier violation is present.
+    pub passed: bool,
+}
+
+/// Validate exactly one spec against the committed registry, writing nothing
+/// (spec 056).
+///
+/// The verb exists because an author with an unfinished draft has had no way to
+/// ask whether it parses. `compile` writes, so asking commits the draft to the
+/// ledger as a side effect of the question; `compile --check` refuses, because a
+/// new draft has no committed shard and the whole run reads as stale. What was
+/// left was a `mktemp -d` ritual two adopters wrote down, whose documented
+/// gotcha (a `references` edge into `docs/` not resolving in a corpus copy that
+/// has no `docs/`) is the tell that a workaround teaching you to disbelieve its
+/// own output is a missing feature with extra steps.
+///
+/// The named spec is read from where it lives, so every path in it resolves the
+/// way it will resolve after it lands. Its siblings come from the **committed**
+/// registry: the author is asking whether the draft fits the corpus as it
+/// stands, and what stands is what was committed.
+pub fn compile_spec(cfg: &Config, repo_root: &Path, id: &str) -> Result<SpecCheckReport, Error> {
+    let specs_dir = repo_root.join(&cfg.layout.specs_dir);
+    let dirname = resolve_spec_dir(&specs_dir, id)?;
+    let spec_md = specs_dir.join(&dirname).join("spec.md");
+    let raw = fs::read_to_string(&spec_md)
+        .map_err(|e| Error::Io(format!("read {}: {e}", spec_md.display())))?;
+    let spec_path = rel_posix(repo_root, &spec_md);
+
+    let mut violations: Vec<Violation> = Vec::new();
+    let fm = match parse_frontmatter_with(&raw, &cfg.frontmatter.extra_known_keys) {
+        Ok(fm) => fm,
+        // The same two skip-and-report arms `compile` uses: a spec whose
+        // frontmatter did not parse has no record to build, and that is the
+        // whole finding.
+        Err(FrontmatterIssue::UnrepresentableDeclared { key, detail }) => {
+            violations.push(error(
+                "V-013",
+                format!(
+                    "declared extra-frontmatter key '{key}' carries an unrepresentable YAML value: {detail}"
+                ),
+                Some(spec_path.clone()),
+            ));
+            return Ok(finish_spec_report(dirname, spec_path, violations));
+        }
+        Err(FrontmatterIssue::Malformed(m)) => {
+            violations.push(error(
+                "V-002",
+                format!("malformed frontmatter: {m}"),
+                Some(spec_path.clone()),
+            ));
+            return Ok(finish_spec_report(dirname, spec_path, violations));
+        }
+    };
+
+    // Siblings as committed. A registry that has never been compiled is an
+    // empty corpus rather than an error: a first spec in a fresh repository is
+    // exactly the case this verb is for.
+    let committed: Vec<SpecRecord> = load_committed_registry(cfg, repo_root)
+        .map(|r| r.specs)
+        .unwrap_or_default();
+
+    let mut fm = fm;
+    let mut all_ids: std::collections::BTreeSet<String> =
+        committed.iter().map(|r| r.id.clone()).collect();
+    all_ids.insert(fm.id.clone());
+    // Short-id resolution (spec 016) before validation sees the references, so
+    // `V-008` / `V-010` judge the resolved value exactly as `compile` does.
+    for dep in &mut fm.depends_on {
+        *dep = resolve_spec_ref(dep, &all_ids);
+    }
+    if let Some(by) = fm.superseded_by.as_mut() {
+        *by = resolve_spec_ref(by, &all_ids);
+    }
+    for item in &mut fm.supersedes {
+        let resolved = resolve_spec_ref(item.spec(), &all_ids);
+        item.set_spec(resolved);
+    }
+
+    validate_spec(cfg, &dirname, &spec_path, &fm, &all_ids, &mut violations);
+
+    let body = split_frontmatter(&raw).map(|(_, b)| b).unwrap_or_default();
+    let record = build_record(fm, spec_path.clone(), &body);
+    let mut records: Vec<SpecRecord> = committed
+        .into_iter()
+        .filter(|r| r.id != record.id)
+        .collect();
+    records.push(record);
+    records.sort_by(|a, b| a.id.cmp(&b.id));
+
+    // The cross-spec codes are not dropped: `V-004` (a duplicate ordinal) and
+    // `V-014` (a cycle) are answerable only against the assembled record set,
+    // and a duplicate ordinal is one of the two mistakes a new draft actually
+    // makes. Only this spec's are kept, and each message already names the
+    // other spec involved, because an author told "duplicate numeric prefix
+    // '056'" without being told who holds it has been given a puzzle.
+    //
+    // `V-008` and `V-010`, the other two cross-spec codes, are NOT recomputed
+    // here: `validate_spec` above already judged them against the same
+    // `all_ids`, and adding them a second time would report one mistake twice.
+    let id = records
+        .iter()
+        .find(|r| r.spec_path == spec_path)
+        .map(|r| r.id.clone())
+        .unwrap_or_else(|| dirname.clone());
+    let mut cross: Vec<Violation> = Vec::new();
+    let id_paths: Vec<(String, String)> = records
+        .iter()
+        .map(|r| (r.id.clone(), r.spec_path.clone()))
+        .collect();
+    detect_duplicates(&id_paths, &mut cross);
+    detect_dependency_cycle(&records, &mut cross);
+    for v in cross {
+        if v.path.as_deref() == Some(spec_path.as_str()) || v.message.contains(&id) {
+            violations.push(v);
+        }
+    }
+
+    Ok(finish_spec_report(dirname, spec_path, violations))
+}
+
+fn finish_spec_report(
+    spec_id: String,
+    spec_path: String,
+    mut violations: Vec<Violation>,
+) -> SpecCheckReport {
+    violations.sort_by(|a, b| a.code.cmp(&b.code));
+    let passed = !violations.iter().any(|v| v.severity == Severity::Error);
+    SpecCheckReport {
+        spec_id,
+        spec_path,
+        violations,
+        passed,
+    }
+}
+
+/// Resolve a spec id, accepting the short form (spec 016): `056` names
+/// `056-compile-one-spec` when exactly one directory carries that ordinal.
+///
+/// [`Error::NotFound`] (exit 1) for none or several. Never exit 2: nothing here
+/// is a staleness question, and reporting a draft as stale is precisely the
+/// wrong answer `compile --check` gives today.
+fn resolve_spec_dir(specs_dir: &Path, id: &str) -> Result<String, Error> {
+    if specs_dir.join(id).join("spec.md").is_file() {
+        return Ok(id.to_string());
+    }
+    let mut matches: Vec<String> = Vec::new();
+    let entries = fs::read_dir(specs_dir).map_err(|e| {
+        Error::Io(format!(
+            "cannot read specs dir {}: {e}",
+            specs_dir.display()
+        ))
+    })?;
+    for entry in entries {
+        let entry = entry.map_err(|e| Error::Io(e.to_string()))?;
+        let name = entry.file_name().to_string_lossy().into_owned();
+        if !entry.path().join("spec.md").is_file() {
+            continue;
+        }
+        // The whole leading dash-segment, as spec 016 §3.1 defines it: `109`
+        // resolves `109-foo`, `10` resolves nothing, and a wrong full slug
+        // resolves nothing rather than snapping to a neighbour.
+        if name.split('-').next() == Some(id) {
+            matches.push(name);
+        }
+    }
+    match matches.len() {
+        1 => Ok(matches.remove(0)),
+        0 => Err(Error::NotFound(format!("spec '{id}'"))),
+        n => Err(Error::NotFound(format!(
+            "spec '{id}' is ambiguous ({n} directories carry that ordinal)"
+        ))),
     }
 }
 

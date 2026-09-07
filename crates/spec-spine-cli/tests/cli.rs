@@ -1770,7 +1770,9 @@ fn verify_json_is_a_verdict_envelope_that_agrees_with_the_exit_code() {
     let (c, v) = json("001-pass");
     assert_eq!(c, 0);
     assert_eq!(v["verb"], "verify");
-    assert_eq!(v["schemaVersion"], "0.2.0");
+    // The constant, not a literal: an additive verb elsewhere is not a change
+    // to this one's envelope (spec 056 bumped it to 0.3.0 for `compile.spec`).
+    assert_eq!(v["schemaVersion"], spec_spine_types::VERDICT_SCHEMA_VERSION);
     assert_eq!(v["ok"], true);
     assert_eq!(v["exitCode"], 0);
     assert_eq!(v["report"]["outcome"], "passed");

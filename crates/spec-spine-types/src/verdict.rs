@@ -40,6 +40,13 @@ pub mod verb {
     pub const VERIFY_ATTESTATION: &str = "verify-attestation";
     /// `spec-spine verify <id>` (spec 049).
     pub const VERIFY: &str = "verify";
+    /// `spec-spine compile --spec <id>` (spec 056).
+    ///
+    /// Distinct from [`COMPILE_CHECK`] because they answer different questions:
+    /// is this one spec well-formed, versus do the committed shards match the
+    /// corpus. A consumer that branched on `compile.check` must not silently
+    /// receive the other.
+    pub const COMPILE_SPEC: &str = "compile.spec";
 }
 
 /// One adjudicating verb's verdict, as written to stdout under `--json`.
