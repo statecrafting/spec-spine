@@ -4,7 +4,7 @@ title: "A dependency points backward, and the corpus can say so"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -19,6 +19,14 @@ extends:
   - { spec: "003-conformance-lint", unit: "crates/spec-spine-core/src/lint.rs", nature: additive }
   # One new opt-in table in the config model.
   - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/src/config.rs", nature: additive }
+  # `LintConfig` joins the crate root's re-export beside every sibling table
+  # (2.1). One line, and the only reason it is a crossing at all is that the
+  # re-export list lives in the crate root rather than in `config.rs`.
+  - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/src/lib.rs", nature: additive }
+establishes:
+  # Created by this spec (2), so claimed by it: the corpus had no dedicated
+  # lint test file, and `L-007`'s acceptance is the reason to open one.
+  - "crates/spec-spine-core/tests/lint.rs"
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
 summary: >
@@ -92,6 +100,15 @@ that existed when it was written and states no closed set, so adding a code is
 additive surface. Spec 033 owns the cycle refusal and is untouched: this spec
 adds a second, independent, opt-in check over the same edge and changes nothing
 about the first.
+
+### 2.1 One line in the crate root
+
+**Decision, 2026-09-07.** `crates/spec-spine-types/src/lib.rs` re-exports every
+`Config` table by name, and `LintConfig` joins that list. The table would be
+reachable without it (`config` is a `pub mod`), so this is not a correctness
+need; it is that a new public table absent from the list every sibling appears
+in is a wart a reader trips on. Declared as an `extends` edge rather than left
+undone or waived.
 
 ## 3. Behavior
 
@@ -185,10 +202,12 @@ schema version moves.
 
 ## 4. Out of scope
 
-**Turning it on in this repository.** The knob ships off, and whether this corpus
-holds the convention is a separate decision from whether the tool can check it.
-This corpus does appear to hold it today, but "appears to" is what a verification
-step is for, not what a spec asserts on its own authority.
+**Turning it on in this repository.** The knob ships off in `spec-spine.toml`,
+and whether this corpus holds the convention is a separate decision from whether
+the tool can check it. Whether it *does* hold it is not a matter of opinion, so
+§5 asks rather than asserting: it runs the corpus through the lint with the knob
+on, from a scratch root that symlinks `specs/`, leaving the repository's own
+configuration untouched. As of this spec the answer is zero diagnostics.
 
 **Fixing a violation.** The lint names the edge; a person decides whether the
 answer is a renumbering, a deleted entry, or an inverted edge. A tool that
@@ -215,16 +234,25 @@ inside a lint change.
 
 ## 5. Verification
 
+The first three commands fail against pre-053 code: the test target does not
+exist, and `[lint]` is an unknown table to a `Config` whose every table is
+`deny_unknown_fields`, which is a hard config error (exit 3) rather than a
+silently ignored key.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-core --test lint --locked
-# The knob exists and parses. `[lint]` is an unknown table to a pre-053 Config,
-# whose every table is `deny_unknown_fields`, so this is a hard config error
-# (exit 3) until this spec ships.
-tmp=$(mktemp -d) && mkdir -p "$tmp/specs" \
-  && printf '[lint]\nrequire_ordinal_monotonic_depends_on = true\n' > "$tmp/spec-spine.toml" \
-  && target/release/spec-spine --repo "$tmp" lint
-# The corpus this repository actually holds still lints clean.
+# 3.1: the knob exists and parses.
+tmp=$(mktemp -d) && mkdir -p "$tmp/specs" && printf '[lint]\nrequire_ordinal_monotonic_depends_on = true\n' > "$tmp/spec-spine.toml" && target/release/spec-spine --repo "$tmp" lint
+# 3.1: and a config written before this spec still parses, reading the default.
+tmp=$(mktemp -d) && mkdir -p "$tmp/specs" && printf '[layout]\nspecs_dir = "specs"\n' > "$tmp/spec-spine.toml" && target/release/spec-spine --repo "$tmp" lint
+# 4: this corpus is asked, not assumed. A scratch root symlinks `specs/` so the
+# repository's own `spec-spine.toml` is neither read nor written; the knob is on
+# only inside the scratch root. Zero diagnostics means the convention holds.
+tmp=$(mktemp -d) && ln -s "$PWD/specs" "$tmp/specs" && printf '[lint]\nrequire_ordinal_monotonic_depends_on = true\n' > "$tmp/spec-spine.toml" && target/release/spec-spine --repo "$tmp" lint | grep -q '^lint: 0 error'
+# 3.4: a lint is not a validation. The committed shards are byte-identical and
+# the corpus this repository ships still lints clean with the knob off.
+target/release/spec-spine compile --check
 target/release/spec-spine lint --fail-on-warn
 ```

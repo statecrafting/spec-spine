@@ -94,6 +94,34 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
             }
         }
 
+        // L-007: a `depends_on` entry that does not point backward in filing
+        // order (spec 053 §3.2). Opt-in: when the knob is off nothing is
+        // emitted at all, not emitted-and-filtered, so a corpus that has not
+        // opted in sees byte-identical output before and after spec 053.
+        //
+        // Error tier, matching `L-006`: the knob alone decides whether the
+        // corpus is held to this, and an adopter who turned it on turned it on
+        // to be refused. A warning would have meant two knobs (this one and
+        // `--fail-on-warn`) for one decision.
+        if cfg.lint.require_ordinal_monotonic_depends_on {
+            for target in &spec.depends_on {
+                if let Some((mine, theirs)) = ordinal_pair(&spec.id, target) {
+                    if theirs >= mine {
+                        violations.push(error(
+                            "L-007",
+                            format!(
+                                "spec '{}' depends_on '{target}', which is not a lower \
+                                 ordinal ({theirs:03} >= {mine:03}): a dependency points \
+                                 backward in filing order",
+                                spec.id
+                            ),
+                            at(),
+                        ));
+                    }
+                }
+            }
+        }
+
         // L-005: stub (no body sections).
         if spec.section_headings.is_empty() {
             violations.push(info(
@@ -105,6 +133,29 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
     }
 
     Ok(LintReport { violations })
+}
+
+/// Both ids' ordinals, or `None` when either lacks one (spec 053 §3.3).
+///
+/// Silence is the honest answer when the order is undefined. The corpus does
+/// not require numeric ids: `V-001` requires only that the directory equal the
+/// id, so `auth-login` is well-formed, and telling such a corpus that its ids
+/// have no ordinal would be telling it that it does not hold a convention it
+/// never claimed.
+fn ordinal_pair(declaring: &str, target: &str) -> Option<(u64, u64)> {
+    Some((ordinal(declaring)?, ordinal(target)?))
+}
+
+/// The leading decimal digit run of an id, as an integer.
+///
+/// Numeric rather than lexical, so a corpus that outgrows three digits and
+/// files `1001-foo` orders above `999-bar` instead of below it. Iterating
+/// `char`s rather than slicing bytes keeps this safe on a non-ASCII id, which
+/// is the defect `detect_duplicates` carries and which spec 053 §4 declines to
+/// fix from inside a lint change.
+fn ordinal(id: &str) -> Option<u64> {
+    let digits: String = id.chars().take_while(char::is_ascii_digit).collect();
+    digits.parse().ok()
 }
 
 fn has_ownership_edge(spec: &SpecRecord) -> bool {
