@@ -17,6 +17,7 @@
 //! - [`frontmatter`]: the authored grammar ([`Frontmatter`], [`parse_frontmatter`]).
 //! - [`unit`] / [`edges`]: the authority-unit and relationship vocabulary.
 //! - [`registry`]: the compiled spec-as-source DTOs ([`Registry`]).
+//! - [`verify`]: declared-acceptance plan and report shapes (spec 049).
 //! - [`version`]: schema-version constants.
 //! - [`error`]: the [`Error`] enum and its exit-code contract.
 
@@ -31,6 +32,7 @@ pub mod registry;
 pub mod schema;
 pub mod unit;
 pub mod verdict;
+pub mod verify;
 pub mod version;
 
 // --- curated public prelude (the names callers reach for most) ---
@@ -69,6 +71,7 @@ pub use schema::{
 };
 pub use unit::Unit;
 pub use verdict::{Verdict, VerdictError, error_kind};
+pub use verify::{SkippedBlocks, VerifyFailure, VerifyOutcome, VerifyPlan, VerifyReport};
 pub use version::{
     BUILD_META_SCHEMA_VERSION, CONFIG_VERSION, INDEX_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION,
     SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, parse_semver,

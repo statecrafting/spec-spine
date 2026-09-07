@@ -25,6 +25,7 @@ mod cmd_index;
 mod cmd_init;
 mod cmd_lint;
 mod cmd_registry;
+mod cmd_verify;
 mod out;
 mod seal;
 mod verify_attestation;
@@ -82,6 +83,23 @@ enum Command {
         /// Fail (exit 1) if any info-tier diagnostic is present.
         #[arg(long)]
         fail_on_info: bool,
+        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        #[arg(long)]
+        json: bool,
+    },
+    /// Run a spec's declared acceptance: the `verify:cli` commands under its
+    /// `## Verification` heading, in order, stopping at the first failure.
+    ///
+    /// Runs code the corpus declares (spec 049), so it is deliberately not part
+    /// of the gate chain. `<id>` accepts the short form (`049`).
+    Verify {
+        /// Spec id, full (`049-slug`) or short (`049`).
+        id: String,
+        /// Print the commands that would run, one per line, and run none of
+        /// them. Reading the plan before executing it is the safety affordance
+        /// for the one verb that runs what the corpus declares.
+        #[arg(long)]
+        plan: bool,
         /// Emit the verdict as a JSON envelope on stdout (spec 037).
         #[arg(long)]
         json: bool,
@@ -177,6 +195,7 @@ fn main() -> ExitCode {
             fail_on_info,
             json,
         } => cmd_lint::run(&repo, *fail_on_warn, *fail_on_info, *json),
+        Command::Verify { id, plan, json } => cmd_verify::run(&repo, id, *json, *plan),
         Command::Couple {
             base,
             head,
@@ -282,6 +301,7 @@ impl Command {
             } => Some(verb::COMPILE_CHECK),
             Command::Lint { json: true, .. } => Some(verb::LINT),
             Command::Couple { json: true, .. } => Some(verb::COUPLE),
+            Command::Verify { json: true, .. } => Some(verb::VERIFY),
             Command::Attest { json: true, .. } => Some(verb::ATTEST),
             Command::VerifyAttestation { json: true, .. } => Some(verb::VERIFY_ATTESTATION),
             Command::Index {

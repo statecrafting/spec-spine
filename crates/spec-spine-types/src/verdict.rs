@@ -2,8 +2,8 @@
 //!
 //! The read verbs have spoken JSON since spec 010; the verbs that render a
 //! *verdict* (`compile --check`, `index check`, `lint`, `couple`, `attest`,
-//! `verify-attestation`) spoke only prose, so a programmatic consumer of the
-//! gate chain had to string-match sentences like `index is fresh` and infer a
+//! `verify-attestation`, and `verify` since spec 049) spoke only prose, so a
+//! programmatic consumer of the gate chain had to string-match sentences like `index is fresh` and infer a
 //! refusal's reasons from formatted text. That is the ad-hoc parsing
 //! constitution II forbids, and until this module there was no supported
 //! alternative for exactly the commands whose output is a decision.
@@ -38,6 +38,8 @@ pub mod verb {
     pub const ATTEST: &str = "attest";
     /// `spec-spine verify-attestation`.
     pub const VERIFY_ATTESTATION: &str = "verify-attestation";
+    /// `spec-spine verify <id>` (spec 049).
+    pub const VERIFY: &str = "verify";
 }
 
 /// One adjudicating verb's verdict, as written to stdout under `--json`.

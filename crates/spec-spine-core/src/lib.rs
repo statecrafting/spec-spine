@@ -30,6 +30,7 @@ pub mod scaffold;
 pub mod sections;
 pub mod shard;
 pub mod symbols;
+pub mod verify;
 
 use serde::{Deserialize, Serialize};
 use spec_spine_types::{Config, CorpusAttestation, Error, Status, load_config};
@@ -74,6 +75,7 @@ pub use query::{
 };
 pub use render::{orphans, render_markdown};
 pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init};
+pub use verify::{plan as verify_plan, plan_from_markdown};
 
 // ===== JSON-in / JSON-out facade (the FFI seam) =====
 
@@ -222,6 +224,28 @@ fn freshness_to_json(freshness: Freshness) -> serde_json::Value {
 pub fn coverage_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
     to_json(&coverage(&config, std::path::Path::new(repo_root))?)
+}
+
+/// Read a spec's declared acceptance (spec 049), returning the [`VerifyPlan`]
+/// as JSON: the `verify:cli` commands its `## Verification` section holds, in
+/// document order, and the fence tags it declined.
+///
+/// The plan is all the engine produces. **Running the commands is the caller's
+/// act**, never this library's: spec 049 §3.1 keeps process execution on the
+/// CLI side of the same seam that keeps `git` there, so the engine stays a pure
+/// function of `(config, file contents)` and stays callable from a binding with
+/// no shell. A caller that wants them run decides that for itself.
+pub fn verify_plan_json(
+    config_json: &str,
+    repo_root: &str,
+    spec_id: &str,
+) -> Result<String, Error> {
+    let config = config_from_json(config_json)?;
+    to_json(&verify::plan(
+        &config,
+        std::path::Path::new(repo_root),
+        spec_id,
+    )?)
 }
 
 /// Render the committed index as markdown (spec 011). `index_json` is the

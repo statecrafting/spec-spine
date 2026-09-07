@@ -79,8 +79,10 @@ fn schema_versions_are_pinned() {
     assert_eq!(BUILD_META_SCHEMA_VERSION, "0.1.0");
     assert_eq!(CONFIG_VERSION, "0.1.0");
     // Spec 037: the verdict envelope, versioned from its first release rather
-    // than acquiring a version after the first consumer breaks.
-    assert_eq!(VERDICT_SCHEMA_VERSION, "0.1.0");
+    // than acquiring a version after the first consumer breaks. Spec 049 took
+    // it to 0.2.0: a new `verb` token is additive, so a consumer's existing
+    // match arms still hold, which is exactly the MINOR rule version.rs states.
+    assert_eq!(VERDICT_SCHEMA_VERSION, "0.2.0");
     // Spec 042: the per-spec attestation, independent of the ledger versions so
     // a consumer pins the evidence shape it verifies without pinning the ledger
     // it was derived from.
