@@ -1,0 +1,98 @@
+{
+  "record": {
+    "created": "2026-09-06",
+    "dependsOn": [
+      "025-unresolved-unit-severity",
+      "037-machine-readable-verdicts",
+      "044-in-progress-is-in-flight"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/diagnostics.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/diagnostics.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      }
+    ],
+    "id": "050-index-diagnostics-reach-a-gate",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/025-unresolved-unit-severity/spec.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "050: Index diagnostics reach a gate",
+      "1. Purpose",
+      "1.1 The exact shape of the gap",
+      "1.2 The asymmetry is with the error tier, not with severity",
+      "1.3 What 248 invisible warnings cost",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 `index check` reports the counts it already holds",
+      "3.2 `--fail-on-unresolved` is opt-in",
+      "3.3 Staleness outranks unresolution",
+      "3.4 `index diagnostics` lists them",
+      "3.5 Everything reads the committed shards",
+      "3.6 The envelope version does not move",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/050-index-diagnostics-reach-a-gate/spec.md",
+    "status": "draft",
+    "summary": "Spec 025 downgrades an unresolved unit to a counted `W-001` (owning unit on an in-flight spec) or `W-002` (non-owning `references` unit) instead of failing the index, because work under way legitimately claims territory that does not exist yet. That downgrade is right and this spec does not touch it. What 025 never gave the warning is a reader. The codes are deliberately absent from `BLOCKING_CODES`, `lint` counts a different set entirely (`L-001`..`L-006`), and `index check` prints one word, `fresh`. The only way to see them is to run the *writing* command, which mutates the tree, or to read `index render`'s markdown, which is the ad-hoc parsing constitution II forbids. So a corpus accumulates them without limit while every gate stays green: aicortex carries 248 that nothing reports. The asymmetry is exact, because error-tier diagnostics are gated: `I-003`..`I-009` mark their shard stale and `index check` exits 2. This spec gives the warning tier the same reachability without giving it the same force. `index check` reports the counts it already holds, `--fail-on-unresolved` turns them into exit 1 for a corpus past the specify-first stage, and `index diagnostics` lists them as typed output. All three read the committed shards and recompute nothing, so the answer always describes the ledger the corpus compiled to.\n",
+    "title": "Index diagnostics reach a gate"
+  },
+  "shardHash": "e4286848324966067889f59121c7a4a8f9161b72c9a5384ae4360cfae5156c57",
+  "specVersion": "1.1.0"
+}

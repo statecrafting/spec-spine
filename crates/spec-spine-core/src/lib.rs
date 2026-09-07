@@ -18,6 +18,7 @@ pub mod compile;
 pub mod couple;
 pub mod coverage;
 pub mod dep_only;
+pub mod diagnostics;
 mod hash;
 pub mod index;
 pub mod lint;
@@ -63,6 +64,10 @@ pub use dep_only::{
     CARGO_DEPENDENCY_TABLES, DEPENDENCY_TABLES, FileContents, cargo_dependency_only_change,
     dependency_only_change, dependency_only_waiver, is_cargo_toml, is_dependency_manifest,
     is_package_json, is_workflow_yaml, workflow_dependency_only_change,
+};
+pub use diagnostics::{
+    AttributedDiagnostic, DiagnosticCounts, IndexCheckReport, UNRESOLVED_CODES, committed_counts,
+    committed_diagnostics, count as count_diagnostics,
 };
 pub use index::{
     Freshness, IndexOutcome, IndexShardSet, authorities, check_index_freshness,
@@ -178,14 +183,19 @@ pub fn lint_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
     to_json(&report.violations)
 }
 
-/// Check index freshness, returning `{ "fresh": bool, "expected"?, "actual"? }`.
+/// Check index freshness, returning `{ "fresh": bool, "expected"?, "actual"?,
+/// "diagnostics": { "warnings", "errors", "byCode" } }`.
+///
+/// The `diagnostics` member (spec 050) counts what the **committed** shards
+/// record, so it is answered from the same ledger the freshness verdict is
+/// about. `check_registry_freshness_json` keeps the bare shape: index
+/// diagnostics say nothing about the registry.
 pub fn check_freshness_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
-    let value = freshness_to_json(check_index_freshness(
-        &config,
-        std::path::Path::new(repo_root),
-    )?);
-    Ok(value.to_string())
+    let root = std::path::Path::new(repo_root);
+    let freshness = check_index_freshness(&config, root)?;
+    let counts = diagnostics::committed_counts(&config, root)?;
+    to_json(&IndexCheckReport::new(&freshness, counts))
 }
 
 /// Check registry-shard freshness (spec 031), returning the same
