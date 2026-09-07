@@ -67,6 +67,7 @@ pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
             ".claude/rules/adversarial-prompt-refusal.md".to_string(),
             REFUSAL_RULE.to_string(),
         ),
+        file(".gitignore".to_string(), gitignore(cfg)),
     ];
 
     Ok(Scaffold { files })
@@ -76,38 +77,195 @@ pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
 
 /// A documented starter `spec-spine.toml`, config-aware so a non-default
 /// namespace / layout scaffolds coherently.
+///
+/// Spec 061 §3.2: every table and every key, each at its actual default and
+/// each with a line saying what it does and, where one exists, which diagnostic
+/// code it drives. The scaffold emitted five knobs and adopters needed
+/// thirteen, so each of them read the source or derived the name by experiment;
+/// aicortex annotated its own with the code the knob drives, which is the shape
+/// copied here.
+///
+/// A key whose default is the right starting value is emitted at that value. A
+/// key that only means something once the adopter has content for it is emitted
+/// **commented out** with an example, so they uncomment rather than invent
+/// syntax and are not handed empty tables that look meaningful.
+///
+/// `tests/scaffold.rs` asserts this parses back to `Config::default()` modulo
+/// the values substituted from `cfg`: a documented config that has drifted from
+/// the defaults it documents is worse than none.
 fn config_toml(cfg: &Config) -> String {
     format!(
-        "# spec-spine.toml governs this repository. All keys are optional; an\n\
+        "# spec-spine.toml governs this repository. Every key is optional; an\n\
          # absent file behaves as the defaults for a single-Cargo-workspace repo.\n\
-         # See the spec-spine docs for the full knob table.\n\
+         # Every key below is set to its default, so deleting one changes nothing.\n\
+         # `spec-spine config show` prints the effective configuration, including\n\
+         # the built-in bypass floor this file cannot see.\n\
          \n\
          [manifest]\n\
          # Drives the Cargo `[package.metadata.{ns}].spec` and package.json `\"{ns}\".spec` reads.\n\
          metadata_namespace = \"{ns}\"\n\
          \n\
          [domains]\n\
-         allowed = []   # empty ⇒ the `domain` field is free-text / disabled\n\
+         # L-002: warn on a spec with no `domain` once this list is non-empty.\n\
+         # Empty means the taxonomy is disabled, not that every spec is unclassified.\n\
+         allowed = []\n\
          \n\
          [kind]\n\
-         allowed = []   # empty ⇒ the `kind` field is free-text / disabled\n\
+         # L-003, symmetric with [domains].\n\
+         allowed = []\n\
          \n\
          [layout]\n\
+         # Where authored truth lives.\n\
          specs_dir     = \"{specs}\"\n\
+         # Where the compiler and indexer write. See .gitignore for whether the\n\
+         # shard trees belong in version control.\n\
          derived_dir   = \"{derived}\"\n\
          standards_dir = \"{standards}\"\n\
+         schemas_dir   = \"{schemas}\"\n\
+         # An ungoverned root for a tool's own working files (spec 039): excluded\n\
+         # from every content hash, and bypassed by the coupling gate. L-006 if a\n\
+         # spec claims a unit inside it. Empty means no such root is declared.\n\
+         state_dir     = \"{state}\"\n\
+         # The workspace manifest the Rust package discovery starts from.\n\
+         cargo_workspace = \"{cargo_workspace}\"\n\
+         # Files probed for npm workspace globs.\n\
+         npm_workspaces = [{npm_workspaces}]\n\
+         # Packages outside any workspace, named one by one.\n\
+         # standalone_rust_workspaces = [\"tools/thing\"]\n\
+         # standalone_npm_packages    = [\"npm\"]\n\
+         \n\
+         [index]\n\
+         # Extra files folded into the global-inputs hash, so a change to one\n\
+         # stales every shard.\n\
+         #\n\
+         # WATCH THE GLOB FORM. `dir/**` matches DIRECTORIES and therefore no\n\
+         # files; you want `dir/**/*`. The default below carries the broken form\n\
+         # and so hashes nothing (spec 057 found this in spec-spine\x27s own\n\
+         # config, where it had silently held since the key was added). It is\n\
+         # left as-is here because changing the default would restale every\n\
+         # existing adopter\x27s index; fix it in your own file:\n\
+         #\n\
+         #   extra_hashed_inputs = [\"{standards}/**/*\", \".github/workflows/**/*\"]\n\
+         extra_hashed_inputs = [{extra_hashed_inputs}]\n\
+         # Directories the symbol resolver and the coverage walk skip.\n\
+         resolver_exclusions = [{resolver_exclusions}]\n\
+         # Named path sets `index check --slice <name>` can gate on their own.\n\
+         # [index.slices]\n\
+         # api = [\"crates/*/src/lib.rs\"]\n\
+         \n\
+         [branding]\n\
+         # Recorded in every emitted artifact's `build` block.\n\
+         compiler_id = \"{compiler_id}\"\n\
+         indexer_id  = \"{indexer_id}\"\n\
          \n\
          [coupling]\n\
-         # The PR-body waiver keyword (the reason follows the colon).\n\
+         # The PR-body waiver keyword (the reason follows the colon). A waiver is\n\
+         # a human instrument: it needs explicit human approval, and an agent\n\
+         # never writes one on its own authority.\n\
          waiver_keyword = \"{waiver}\"\n\
-         # Adopter bypass entries are ADDITIVE to the built-in generic floor.\n\
-         bypass_prefixes = []\n",
+         # ADDITIVE to the built-in generic floor; it cannot remove an entry.\n\
+         # `spec-spine config show` prints the merged list the gate matches on.\n\
+         bypass_prefixes = []\n\
+         # C-002: refuse a changed source file that no spec specifically claims.\n\
+         # Off to start: a corpus turns this on once its coverage debt is retired.\n\
+         # `spec-spine index coverage` reports where you stand.\n\
+         require_ownership = {require_ownership}\n\
+         # Clear a diff whose every non-bypassed path is a dependency-only\n\
+         # manifest edit. Off to start; turn it on if a bot opens bump PRs, which\n\
+         # cannot add a waiver line to their own body.\n\
+         auto_waive_dependency_only = {auto_waive}\n\
+         \n\
+         [lint]\n\
+         # L-007: refuse a `depends_on` entry that does not name a lower ordinal.\n\
+         # Off to start: a corpus that files by domain rather than by date holds\n\
+         # a coherent position this would spam.\n\
+         require_ordinal_monotonic_depends_on = {ordinal_monotonic}\n\
+         # L-008 suppression: claimed paths deliberately in no content hash.\n\
+         # `index check` still reports the count, so an exception stays explicit.\n\
+         # unwitnessed_allowed = [\"crates/**/*.rs\"]\n\
+         \n\
+         # [provenance.uri_schemes]\n\
+         # Named URI prefixes a `references` provenance value may use. The\n\
+         # header is commented too: an empty table here would OVERRIDE the\n\
+         # built-in schemes rather than add to them.\n\
+         # knowledge        = \"knowledge://\"\n\
+         # code-fingerprint = \"fingerprint://\"\n\
+         \n\
+         [frontmatter]\n\
+         # Keys this corpus recognizes beyond the grammar, so the unknown-key\n\
+         # lint stays quiet about them. They still land in `extraFrontmatter`.\n\
+         # extra_known_keys = [\"owner\", \"risk\"]\n",
         ns = cfg.manifest.metadata_namespace,
         specs = cfg.layout.specs_dir,
         derived = cfg.layout.derived_dir,
         standards = cfg.layout.standards_dir,
+        schemas = cfg.layout.schemas_dir,
+        state = cfg.layout.state_dir,
+        cargo_workspace = cfg.layout.cargo_workspace,
+        npm_workspaces = quoted(&cfg.layout.npm_workspaces),
+        extra_hashed_inputs = quoted(&cfg.index.extra_hashed_inputs),
+        resolver_exclusions = quoted(&cfg.index.resolver_exclusions),
+        compiler_id = cfg.branding.compiler_id,
+        indexer_id = cfg.branding.indexer_id,
         waiver = cfg.coupling.waiver_keyword,
+        require_ownership = cfg.coupling.require_ownership,
+        auto_waive = cfg.coupling.auto_waive_dependency_only,
+        ordinal_monotonic = cfg.lint.require_ordinal_monotonic_depends_on,
     )
+}
+
+/// A TOML string array body: `"a", "b"`.
+fn quoted(values: &[String]) -> String {
+    values
+        .iter()
+        .map(|v| format!("\"{v}\""))
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+/// The scaffolded `.gitignore` (spec 061 §3.1).
+///
+/// Every adopter independently learned that `build-meta.json` carries a wall
+/// clock and dirties the tree, and spec 039's `state_dir` had the same missing
+/// half: the live failure it fixed was a permanently dirty tree, not a
+/// classification. Both paths come from `Config`, so a non-default
+/// `derived_dir` or `state_dir` scaffolds coherently.
+///
+/// It deliberately does **not** ignore the shard trees. Whether they are
+/// committed is the adopter's decision and both answers are legitimate;
+/// ignoring them by default would silently opt every new adopter out of the
+/// freshness gate, which is one of the system's two central mechanisms. The
+/// file says so and names both options.
+fn gitignore(cfg: &Config) -> String {
+    let derived = cfg.layout.derived_dir.trim_end_matches('/');
+    let mut out = format!(
+        "# spec-spine writes wall-clock metadata here. It is the one\n\
+         # non-deterministic artifact and is excluded from every determinism and\n\
+         # golden check, so it must never be committed.\n\
+         {derived}/**/build-meta.json\n"
+    );
+    let state = cfg.layout.state_dir.trim_end_matches('/');
+    if !state.is_empty() {
+        out.push_str(&format!(
+            "\n# The declared state root (spec 039): a tool's own working files,\n\
+             # ungoverned and outside every content hash.\n\
+             {state}/\n"
+        ));
+    }
+    out.push_str(&format!(
+        "\n# NOT ignored, deliberately: {derived}/spec-registry/ and\n\
+         # {derived}/codebase-index/ are the committed shard trees.\n\
+         #\n\
+         # Committing them is what makes `compile --check` and `index check` a\n\
+         # freshness gate on a pull request: CI compares the corpus against what\n\
+         # the branch committed. Not committing them means regenerating in CI\n\
+         # before every gate step instead. Both are legitimate; the scaffold\n\
+         # takes neither, because opting you out of the gate silently would be a\n\
+         # decision made on your behalf. To choose the second, add:\n\
+         #\n\
+         #   {derived}/\n"
+    ));
+    out
 }
 
 fn bootstrap_spec(ns: &str) -> String {
@@ -305,13 +463,53 @@ const CONTRACT: &str = "# Contract: normative summary\n\
   approved spec changes it by claiming the affected heading as a section unit\n\
   of that file; see the constitution's own Amendment section.\n";
 
-const CONSTITUTION_TEMPLATE: &str = "# Constitution (tier 2): template\n\
+/// The adopter-facing constitution template (spec 061 §3.3).
+///
+/// The two-bullet stub spec 043 complained about survived that spec, because
+/// 043 §3.4 updated `CONSTITUTION` (the scaffolded document) and left the
+/// **template** behind. Two adopters deleted what they were given. This is the
+/// real thirty-four-line document: the tier statement, the normative hierarchy,
+/// the amendment clause 043 made writable, and the seam saying which principles
+/// are the adopter's own.
+///
+/// A literal rather than `include_str!` of the checked-in file, because that
+/// file lives outside this crate and a published crate must be self-contained.
+/// `tests/scaffold.rs` asserts the two agree, the same shape as the conformance
+/// test that pins DTOs against the embedded schemas.
+const CONSTITUTION_TEMPLATE: &str = "# <project> constitution\n\
 \n\
-Replace these with your project's durable principles. Keep them subordinate to\n\
-the bootstrap spec and few in number.\n\
+Durable principles that govern this corpus. **Tier 2**: subordinate to the\n\
+bootstrap spec (`specs/000-*/spec.md`) and governing all ordinary specs.\n\
 \n\
-1. **<principle>**: <one sentence>.\n\
-2. **<principle>**: <one sentence>.\n";
+**Normative hierarchy (highest wins):**\n\
+\n\
+1. `specs/000-*/spec.md`: the bootstrap spec. Non-overridable.\n\
+2. `standards/spec/constitution.md`: this document.\n\
+3. `standards/spec/contract.md`: normative summary of the bootstrap spec.\n\
+4. Ordinary specs (`001`+).\n\
+\n\
+---\n\
+\n\
+## I. <Principle name>\n\
+\n\
+<One paragraph. State the principle as a durable rule, and cite the bootstrap\n\
+anchor it rests on, if any.>\n\
+\n\
+## II. <Principle name>\n\
+\n\
+<...>\n\
+\n\
+## III. <Principle name>\n\
+\n\
+<...>\n\
+\n\
+---\n\
+\n\
+## Amendment\n\
+\n\
+This constitution may be amended by an ordinary spec that `amends` it and is\n\
+approved, provided the amendment does not contradict a `specs/000` `unamendable`\n\
+anchor.\n";
 
 const ORCHESTRATOR_RULES: &str = "# Orchestrator rules\n\
 \n\
