@@ -76,7 +76,7 @@ Recreate these for your repository (the kit ships the patterns, not the content)
 | `spec-spine.toml` taxonomies | Replace example domain and kind enums with your own. |
 | Permission allow-list | Rewrite `settings.json` `permissions.allow` for your tools. |
 | MCP servers | Declare your own in `.mcp.json`, or leave it empty. |
-| Post-merge automation | Recreate a `shepherd-prs`-style flow for your PR/queue setup if you want it. |
+| Post-merge automation | `/shepherd` ships: it watches checks by head sha, remediates through the gate, merges with squash, and confirms on disk. Point it at your default branch through `AGENTS.md`. |
 
 The general test: if a file references a concrete framework, service, path, or a
 specific spec id, generalize it or replace it with your equivalent.
