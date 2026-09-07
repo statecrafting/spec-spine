@@ -60,7 +60,11 @@ The protocol drives the library through its own built binary, `target/release/sp
 
 The counts are formatted in step 2, after every parallel read has returned, so the verdict is always in hand before the numbers are written down.
 
-**Stale binary:** `target/release/spec-spine` is whatever was last built, which is not necessarily this checkout. A binary predating `compile --check` rejects the unknown flag with **exit 2**, the same code as "stale", so the two separate only by stderr: a rejection says `error: unexpected argument '--check'`, while a real report names shards. Rebuild (`cargo build --release -p spec-spine-cli`) and re-run rather than reporting phantom drift. Rebuilding is cheap and is the right reflex whenever the binary predates recent commits.
+**Stale binary:** `target/release/spec-spine` is whatever was last built, which is not necessarily this checkout.
+
+**Ask `spec-spine --version` before believing any exit code.** Every binary ever released answers it, and it exits 0. If the version predates the flag you are about to pass, rebuild (`cargo build --release -p spec-spine-cli`) or reinstall; do not interpret the exit code of a flag the binary does not have. Rebuilding is cheap and is the right reflex whenever the binary predates recent commits.
+
+That precondition replaces an older ritual of matching clap's English on stderr, which was pinned to a dependency's message format and could not survive a clap release. Since spec 063 a new binary maps every usage error to **exit 3**, so exit 2 from any verb means staleness and nothing else; but the binary that reports the wrong code is by definition the old one, so a procedure that may be talking to an old binary cannot rely on the new behavior. Where a repository sets `[meta] required_version` (spec 062), the check happens on every run and this manual step is unnecessary.
 
 Do **not** substitute a plain `spec-spine compile` here. Writing would repair the tree as a side effect of reading it, which hides the fact that the *committed* copy was stale: the drift then looks like an uncommitted local edit instead of a defect on the branch (this is exactly how the spec 017/021 drift reached `main` unnoticed). `/init` reports; it does not silently mutate.
 

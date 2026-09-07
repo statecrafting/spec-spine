@@ -82,13 +82,22 @@ The counts are formatted in step 2, after every parallel read has returned, so
 the freshness verdict is always in hand before the lifecycle numbers are
 written down. Do not emit counts earlier.
 
-> **CLI version.** `compile --check` needs a `spec-spine` new enough to ship it.
-> An older CLI rejects the unknown flag with **exit 2 as well**, the same code
-> as "stale", so the two are distinguishable only by stderr: a rejection says
-> `error: unexpected argument '--check'`, while a real staleness report names
-> shards. Reporting a version problem as spec drift would send someone chasing a
-> phantom, so check the message before believing the code. To resolve it, either
-> upgrade, or use the gitignored-derived variant below until you do.
+> **CLI version. Ask `spec-spine --version` before believing any exit code.**
+> Every binary ever released answers it, and it exits 0. If the version predates
+> the flag you are about to pass, upgrade; do not interpret the exit code of a
+> flag the binary does not have. Reporting a version problem as spec drift would
+> send someone chasing a phantom, and a session told its shards are stale when
+> they are not will regenerate and commit artifacts that were already correct.
+>
+> One call, and it works against every version including ones predating every
+> flag. It replaces an older ritual of matching clap's English on stderr, which
+> was pinned to a dependency's message format. Since spec 063 a new CLI maps
+> every usage error to **exit 3**, so exit 2 means staleness and nothing else;
+> but the binary that reports the wrong code is by definition the old one, so a
+> procedure that may be talking to one cannot rely on that. Where the repository
+> sets `[meta] required_version` (spec 062), the CLI checks on every run and
+> this manual step is unnecessary. To resolve a mismatch, either upgrade, or use
+> the gitignored-derived variant below until you do.
 
 Do **not** substitute a plain `spec-spine compile` here. Writing repairs the
 tree as a side effect of reading it, which hides that the *committed* copy was

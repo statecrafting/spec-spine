@@ -7,11 +7,23 @@
     ],
     "implementingPaths": [
       {
+        "path": ".claude/settings.json",
+        "source": "spec-edge"
+      },
+      {
         "path": "AGENTS.md",
         "source": "spec-edge"
       },
       {
         "path": "crates/spec-spine-cli/src/main.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/kit_hooks.rs",
         "source": "spec-edge"
       },
       {
@@ -24,6 +36,19 @@
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".claude/settings.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      },
       {
         "locations": [
           {
@@ -48,6 +73,32 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/cli.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/kit_hooks.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
         }
       },
       {
@@ -94,5 +145,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "b96c91ccb06816890abc17de095027867a66613cd3d74010feb78d6e9432fdd6"
+  "shardHash": "b33ddadbee06913cf7fa271f05b8368bfc380565d56ebb0508701ea19d285557"
 }

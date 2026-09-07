@@ -2154,3 +2154,76 @@ fn index_diagnostics_lists_them_and_never_refuses() {
     assert_eq!(code(&out), 0);
     assert!(String::from_utf8_lossy(&out.stdout).contains("W-001"));
 }
+
+// ── spec 063: a stale binary is not a stale ledger ────────────────────────
+
+/// §3.1: a command line clap cannot parse is exit 3, never 2. Clap's default
+/// is 2, which this tool spends on staleness, so an unknown flag used to be
+/// indistinguishable from a stale ledger except by matching clap's English.
+#[test]
+fn a_usage_error_is_exit_three_not_stale() {
+    let tmp = tempfile::tempdir().unwrap();
+    for args in [
+        vec!["compile", "--no-such-flag"],
+        vec!["no-such-verb"],
+        vec!["registry", "show"],          // a required argument is missing
+        vec!["index", "check", "--slice"], // a flag with no value
+    ] {
+        let out = run_in(tmp.path(), &args);
+        assert_eq!(
+            code(&out),
+            3,
+            "{args:?} must be a usage error, not staleness: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+}
+
+/// §3.1: an incomplete invocation is a usage error too. It prints help, but
+/// nobody asked for help, and a script that dropped its verb must still fail.
+#[test]
+fn a_missing_subcommand_is_a_usage_error() {
+    let tmp = tempfile::tempdir().unwrap();
+    let out = run_in(tmp.path(), &[]);
+    assert_eq!(code(&out), 3, "nothing was asked for, so nothing succeeded");
+}
+
+/// §3.1: help and version are asked for, so they succeed, on stdout.
+#[test]
+fn help_and_version_stay_exit_zero_on_stdout() {
+    let tmp = tempfile::tempdir().unwrap();
+    for args in [vec!["--help"], vec!["--version"], vec!["compile", "--help"]] {
+        let out = run_in(tmp.path(), &args);
+        assert_eq!(code(&out), 0, "{args:?}");
+        assert!(!out.stdout.is_empty(), "{args:?} writes to stdout");
+    }
+}
+
+/// §3.1: and exit 2 still means staleness, from the verb that means it. The
+/// property this spec buys is that 2 now means only that.
+#[test]
+fn exit_two_still_means_a_stale_ledger() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    let dir = root.join("specs/001-a");
+    fs::create_dir_all(&dir).unwrap();
+    fs::write(
+        dir.join("spec.md"),
+        "---\nid: \"001-a\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-07\"\n\
+         summary: \"s\"\nestablishes:\n  - \"specs/001-a/spec.md\"\n---\n# 001-a\n## body\n",
+    )
+    .unwrap();
+    assert_eq!(code(&run_in(root, &["compile"])), 0);
+    // Mutate the hashed input without recompiling.
+    fs::write(
+        dir.join("spec.md"),
+        "---\nid: \"001-a\"\ntitle: \"T2\"\nstatus: approved\ncreated: \"2026-09-07\"\n\
+         summary: \"s\"\nestablishes:\n  - \"specs/001-a/spec.md\"\n---\n# 001-a\n## body\n",
+    )
+    .unwrap();
+    assert_eq!(
+        code(&run_in(root, &["compile", "--check"])),
+        2,
+        "the one condition exit 2 is for"
+    );
+}
