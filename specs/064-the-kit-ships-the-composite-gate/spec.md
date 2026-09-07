@@ -4,7 +4,7 @@ title: "The kit ships the composite gate and the merge driver"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -16,6 +16,19 @@ extends:
   - { spec: "029-claude-code-skill-kit", unit: "kit/", nature: additive }
   - { spec: "029-claude-code-skill-kit", unit: "kit/README.md", nature: additive }
   - { spec: "020-derived-artifact-merge-driver", unit: ".githooks/", nature: additive }
+  # This repository adopts the kit's Makefile as its own CI entry point (3.4),
+  # and the new artifacts join the hashed-input set so a change to the gate
+  # adopters copy stales the ledger (spec 057).
+  - { spec: "021-release-supply-chain-artifacts", unit: ".github/workflows/ci.yml", nature: additive }
+  - { spec: "057-claimed-but-unwitnessed", unit: "spec-spine.toml", nature: additive }
+establishes:
+  # Created by this spec (2), so claimed by it.
+  - "kit/Makefile"
+  - "kit/govern.yml"
+  - "kit/.gitattributes-stanza"
+  - "kit/.githooks/enable-merge-driver.sh"
+  - "kit/.githooks/merge-derived-index.sh"
+  - "crates/spec-spine-core/tests/kit_gate.rs"
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: ".github/workflows/ci.yml" }, role: exemplar }
@@ -163,6 +176,16 @@ that:
 - the gate chain in `kit/Makefile` is the chain `AGENTS.md` lists, in order,
   which is the assertion spec 051 established for the skills.
 
+**Decision, 2026-09-07: the chain's order is AGENTS.md's, not the summary's.**
+§3.1 lists the gate as "`compile --check`, `index check`, `lint --fail-on-warn`,
+`couple`", and the first implementation followed that. The test in §3.4 refused
+it: `AGENTS.md` runs `lint --fail-on-warn` **before** `index check
+--fail-on-unresolved`, and it also carries `index coverage --fail-on-untraced`,
+which §3.1's four-item summary omits. The Makefile follows `AGENTS.md`, which is
+the authority §3.4 names, and §3.1's list is read as naming the verbs rather
+than fixing their order. That the assertion caught a summary written two
+paragraphs above it is the argument for having it.
+
 And this repository MUST adopt `kit/Makefile` itself, as the entry point its own
 CI and its own skills call. That is the point of the test and the lesson of
 specs 046 and 051: the kit's artifacts are exercised here or they ship broken.
@@ -192,20 +215,32 @@ tool does not model.
 
 ## 5. Verification
 
+Each line is one command (spec 049 §3.2). Every assertion fails against
+pre-064 state: none of the four artifacts existed.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-core --test kit_gate --locked
-# The kit ships all four artifacts.
+# 3.1-3.3: the kit ships all four artifacts.
 test -f kit/Makefile
 test -f kit/govern.yml
 test -d kit/.githooks
-# The workflow carries the finding, not just the pattern.
+test -f kit/.gitattributes-stanza
+# 3.2: the workflow carries the finding, not just the pattern, so the next
+# reader does not simplify it back into the form GitHub rejects.
 grep -q 'hashFiles' kit/govern.yml
-# The README names the merge driver, which it never did before.
+grep -q 'has_cargo' kit/govern.yml
+# 3.1: the language targets probe for a manifest, not for a tool.
+grep -q 'test -f Cargo.toml' kit/Makefile
+# 3.3: the README answers rahi's question about the driver.
 grep -q 'merge driver' kit/README.md
-# This repository runs the gate it ships, read-only, and the tree stays clean.
-make -f kit/Makefile gate BASE=HEAD~1
+grep -q 'opt-in per clone' kit/README.md
+# 3.4: this repository runs the gate it ships, read-only, and the tree it
+# judged is unchanged afterwards.
+make -f kit/Makefile gate SPEC_SPINE=target/release/spec-spine BASE=HEAD
 target/release/spec-spine compile --check
 target/release/spec-spine index check
+# 3.4: and its CI calls that same target rather than open-coding the chain.
+grep -q 'make -f kit/Makefile gate' .github/workflows/ci.yml
 ```

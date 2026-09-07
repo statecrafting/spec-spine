@@ -61,6 +61,12 @@ extra_hashed_inputs = [
   "kit/README.md",
   "kit/settings.json",
   "kit/.claude/rules/*.md",
+  # Spec 064: the kit's build half. Claimed, so they are hashed rather than
+  # allowlisted; a change to the gate adopters copy should stale the ledger.
+  "kit/Makefile",
+  "kit/govern.yml",
+  "kit/.githooks/*.sh",
+  "kit/.gitattributes-stanza",
   "py/scripts/*.py",
   # The embedded JSON Schemas the conformance test validates against. Hashed
   # rather than allowlisted: a schema edit is exactly the kind of change the

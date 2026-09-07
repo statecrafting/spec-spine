@@ -1,0 +1,82 @@
+# The governed-loop CI workflow every adopter wrote by hand (spec 064).
+#
+# Copy to .github/workflows/govern.yml. It runs the same `make gate` chain a
+# session runs locally, so the gate has one definition rather than two that
+# drift.
+name: govern
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # THE PROBE IS A JOB, AND THIS IS THE ARTIFACT.
+  #
+  # GitHub rejects `hashFiles` in a job-level `if`: the expression is evaluated
+  # before the workspace exists, so the function has no files to hash and the
+  # workflow fails to parse. The only way to condition a job on "does this repo
+  # contain a Cargo.toml" is to check it inside a job that has checked out the
+  # code, publish the answer as a job output, and have later jobs read it.
+  #
+  # Three adopters rediscovered this independently. Do not "simplify" this back
+  # into `if: hashFiles('Cargo.toml') != ''` — that is the broken form.
+  probe:
+    runs-on: ubuntu-latest
+    outputs:
+      has_cargo: ${{ steps.p.outputs.has_cargo }}
+      has_npm: ${{ steps.p.outputs.has_npm }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: |
+          test -f Cargo.toml && echo "has_cargo=true" >> "$GITHUB_OUTPUT" || echo "has_cargo=false" >> "$GITHUB_OUTPUT"
+          test -f package.json && echo "has_npm=true" >> "$GITHUB_OUTPUT" || echo "has_npm=false" >> "$GITHUB_OUTPUT"
+
+  govern:
+    runs-on: ubuntu-latest
+    steps:
+      # `fetch-depth: 0` because the coupling gate compares a base to a head,
+      # and a shallow clone has neither.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install spec-spine
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/statecrafting/spec-spine/main/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      # Read-only. `compile --check` and `index check` compare the committed
+      # shards to the corpus without writing, so a stale tree is reported rather
+      # than repaired: a gate that writes hides the defect it exists to find.
+      - name: Governed loop
+        run: make gate BASE=origin/${{ github.base_ref || 'main' }}
+        if: github.event_name != 'pull_request'
+
+      # The coupling gate needs a base and a head, so it runs on pull_request
+      # only. The PR body goes to a file and reaches the gate through
+      # `--pr-body`: a body containing a `Spec-Drift-Waiver:` line has no safe
+      # shell quoting, and a file has no quoting at all.
+      - name: Governed loop (pull request)
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          printf '%s' "$PR_BODY" > "$RUNNER_TEMP/pr-body.txt"
+          spec-spine compile --check
+          spec-spine lint --fail-on-warn
+          spec-spine index check --fail-on-unresolved
+          spec-spine index coverage --fail-on-untraced
+          spec-spine couple --base "origin/${{ github.base_ref }}" --head HEAD --pr-body "$RUNNER_TEMP/pr-body.txt"
+
+  build:
+    needs: probe
+    if: needs.probe.outputs.has_cargo == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: make build test fmt clippy

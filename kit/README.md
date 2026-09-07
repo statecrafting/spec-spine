@@ -117,3 +117,53 @@ Apache-2.0, the same license as spec-spine (see the repository `LICENSE`). The
 skills, agents, and rules were extracted from the Open Agentic Platform and
 generalized for any spec-spine adopter; they are distributed here under
 Apache-2.0.
+
+## The composite gate
+
+`Makefile` and `govern.yml` are the build half of the kit, and they exist
+because every adopter wrote them by hand and arrived at the same two shapes.
+
+Copy `Makefile` to your repository root and `govern.yml` to
+`.github/workflows/`. Then `make gate` is the whole governed loop, read-only,
+in the order the chain requires; `make refresh` is the writing half for a
+session that has edited a spec and can commit the regenerated shards.
+
+Two variables, both overridable. `SPEC_SPINE` is the binary to govern with: a
+repository that builds its own must point at the one it builds. `BASE` is the
+ref the coupling gate compares against.
+
+The language targets (`test`, `build`, `fmt`, `clippy`) are guarded on a
+**manifest probe**, not a command probe, so they are clean no-ops on a corpus
+with no code. A tree with `cargo` installed and no `Cargo.toml` is the
+specify-first case, which is three of the four governed repositories, and
+probing for the tool answers the wrong question.
+
+`govern.yml` carries one finding you should not optimize away. **GitHub rejects
+`hashFiles` in a job-level `if`**: the expression is evaluated before the
+workspace exists, so the function has no files to hash. The only way to
+condition a job on "does this repository contain a `Cargo.toml`" is a probe job
+that publishes the answer as a job output. Three adopters rediscovered that
+independently. The comment above the probe says so, and it is there so the next
+reader does not "simplify" it back into the broken form.
+
+## The merge driver
+
+`.githooks/` carries a **merge driver** for the committed shard trees, and
+`.gitattributes-stanza` is the block that registers it on the shard globs.
+
+It is **opt-in per clone**. Nothing happens until
+`./.githooks/enable-merge-driver.sh` registers the driver in that clone's git
+config, and a clone that never runs it behaves exactly as before.
+
+**Most repositories do not need it.** Sharding (spec 024) already removes the
+common conflict: two pull requests touching different specs or different
+packages write disjoint shard files and cannot conflict textually. The driver is
+for the case sharding does not cover, two pull requests editing the **same**
+authority unit, where both rewrite one shard's hash line.
+
+**It never replaces the staleness gate.** The driver resolves a textual conflict
+by regenerating the shards from the merged tree. What proves the result is
+correct is `spec-spine index check` (and `compile --check`) on the merge commit,
+which is the gate, and which runs whether or not the driver is registered. If
+you are running one spec per pull request against committed shard trees, you
+probably want the gate and not the driver.

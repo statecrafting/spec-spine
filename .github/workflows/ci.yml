@@ -78,6 +78,20 @@ jobs:
       # It must NOT be sequenced after a writing `compile`: that would compare
       # the committed shards against files the same job just overwrote, and the
       # gate would silently pass forever. Nothing here writes to .derived.
+      #
+      # Spec 064: the chain has ONE definition, `kit/Makefile`'s `gate` target,
+      # which is the file adopters copy. `SPEC_SPINE` points at the binary this
+      # job built, which is spec 051's resolution order: a repository that
+      # builds its own binary must be governed by the one it builds. Running the
+      # kit's own artifact here is what keeps it from shipping broken, the same
+      # reason this repository runs the kit's hooks and skills.
+      #
+      # `couple` is not reached by this target: it needs a base and a head and
+      # runs on pull_request only, in its own step below, with BASE unset here.
+      - name: Governed loop (kit/Makefile, the artifact adopters copy)
+        run: make -f kit/Makefile gate SPEC_SPINE=./target/debug/spec-spine BASE=HEAD
+      # The individual steps below stay as named steps so a failure names the
+      # verb that failed in the job log rather than only "make".
       - name: Compile registry (validation + shard freshness)
         run: ./target/debug/spec-spine compile --check
       # `--fail-on-unresolved` (spec 050) turns the W-001/W-002 warning tier into
