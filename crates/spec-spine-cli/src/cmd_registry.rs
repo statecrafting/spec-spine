@@ -50,6 +50,10 @@ pub enum RegistryQuery {
     Plan {
         #[arg(long)]
         json: bool,
+        /// Print only the single pick: the first ready spec (spec 060). An
+        /// empty ready set is `(nothing ready)` at exit 0, not a failure.
+        #[arg(long)]
+        next: bool,
     },
 }
 
@@ -146,9 +150,23 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 outln!("retired:    {}", report.retired);
             }
         }
-        RegistryQuery::Plan { json } => {
+        RegistryQuery::Plan { json, next } => {
             let plan = plan(&registry)?;
-            if *json {
+            if *next {
+                // Spec 060 §3.2: a projection of `plan`, never a second
+                // selection. An empty ready set exits 0: "nothing to do" is a
+                // true answer to "what should I work on", and a driven session
+                // that treats it as an error stops for the wrong reason.
+                match plan.next() {
+                    Some(pick) if *json => print_json(pick)?,
+                    // The object itself, not a one-element array: a consumer
+                    // should not index into a list to reach the thing it asked
+                    // for.
+                    Some(pick) => outln!("{}  {}", pick.id, pick.title),
+                    None if *json => print_json(&serde_json::Value::Null)?,
+                    None => outln!("(nothing ready)"),
+                }
+            } else if *json {
                 print_json(&plan)?;
             } else {
                 print_plan(&plan);
@@ -178,20 +196,51 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
 /// question a person asks at a terminal is "what can I do now"; `--json` carries
 /// every blocker and its state for the consumer that asks "why not that one".
 fn print_plan(plan: &Plan) {
-    for id in &plan.ready {
-        outln!("{id}");
-    }
-    // One summary line either way: "(nothing ready)" already carries the count
-    // it would otherwise repeat as "ready: 0".
+    // Spec 060 §3.1: render what the structure already holds. Titles come from
+    // the registry the plan was computed from, and each blocked spec's reasons
+    // are printed rather than counted: `blocked_by` carries the state of every
+    // blocker, and printing the count while discarding the states throws away
+    // the part a reader needs.
     if plan.ready.is_empty() {
+        // The line a finished corpus prints, unchanged: it already carries the
+        // count it would otherwise repeat as "ready: 0".
         outln!("(nothing ready), blocked: {}", plan.blocked.len());
     } else {
-        outln!(
-            "ready: {}, blocked: {}",
-            plan.ready.len(),
-            plan.blocked.len()
-        );
+        outln!("ready ({}):", plan.ready.len());
+        let w = id_width(plan.ready.iter().map(|r| r.id.as_str()));
+        for r in &plan.ready {
+            outln!("  {:<w$}  {}", r.id, r.title, w = w);
+        }
     }
+    if !plan.blocked.is_empty() {
+        outln!();
+        outln!("blocked ({}):", plan.blocked.len());
+        let w = id_width(plan.blocked.iter().map(|b| b.id.as_str()));
+        for b in &plan.blocked {
+            outln!("  {:<w$}  {}", b.id, b.title, w = w);
+            let reasons: Vec<String> = b
+                .blocked_by
+                .iter()
+                .map(|k| format!("{} ({})", k.id, k.state))
+                .collect();
+            outln!("       blocked by {}", reasons.join(", "));
+        }
+    }
+    outln!();
+    outln!(
+        "{} specs: {} ready, {} blocked, {} not schedulable",
+        plan.ready.len() + plan.blocked.len() + plan.not_schedulable,
+        plan.ready.len(),
+        plan.blocked.len(),
+        plan.not_schedulable
+    );
+}
+
+/// Column width for an id list, so titles line up. Per group, because the two
+/// groups are read separately and a shared width would pad one of them for the
+/// other's benefit.
+fn id_width<'a>(ids: impl Iterator<Item = &'a str>) -> usize {
+    ids.map(|id| id.chars().count()).max().unwrap_or(0)
 }
 
 fn parse_status(s: &str) -> Result<Status, Error> {

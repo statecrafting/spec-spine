@@ -245,7 +245,25 @@ pub struct Blocker {
 #[serde(rename_all = "camelCase")]
 pub struct BlockedSpec {
     pub id: String,
+    /// The spec's title, joined from the same registry the plan was computed
+    /// from (spec 060 §3.1). Additive on this object; a consumer that ignored
+    /// it before still parses.
+    pub title: String,
     pub blocked_by: Vec<Blocker>,
+}
+
+/// A schedulable spec on the ready set (spec 060 §3.3).
+///
+/// Ready entries were bare id strings, so this is a **breaking** shape change,
+/// and the right one: a parallel `readyTitles` array to be zipped by position
+/// is exactly the shape that generates the join code this spec exists to
+/// delete, and the asymmetry with `blocked` (objects on one side, strings on
+/// the other) is already something consumers work around.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReadySpec {
+    pub id: String,
+    pub title: String,
 }
 
 /// The scheduling projection: what can be worked on now, and what cannot.
@@ -261,8 +279,28 @@ pub struct BlockedSpec {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Plan {
-    pub ready: Vec<String>,
+    pub ready: Vec<ReadySpec>,
     pub blocked: Vec<BlockedSpec>,
+    /// Specs in neither set: the corpus has moved past them (`superseded`,
+    /// `retired`) or someone already answered "should this be scheduled" with
+    /// no (`complete`, `n-a`, `deferred`).
+    ///
+    /// Reported because otherwise the two counts do not add up to the corpus
+    /// and a reader cannot tell whether the missing specs were excluded or
+    /// lost (spec 060 §3.1).
+    pub not_schedulable: usize,
+}
+
+impl Plan {
+    /// The single pick: the first element of `ready` (spec 060 §3.2).
+    ///
+    /// A projection, never a second selection. The first element of the
+    /// topological order is already the defined pick; this names it so callers
+    /// stop re-deriving what "first" means, and if the ordering contract ever
+    /// changes it changes in one place and this follows.
+    pub fn next(&self) -> Option<&ReadySpec> {
+        self.ready.first()
+    }
 }
 
 /// Partition the corpus into the ready set and the blocked set (spec 038).
@@ -313,11 +351,13 @@ pub fn plan(registry: &Registry) -> Result<Plan, Error> {
 
     let mut ready: Vec<&str> = Vec::new();
     let mut blocked: Vec<BlockedSpec> = Vec::new();
+    let mut not_schedulable = 0usize;
 
     // `by_id` is a BTreeMap, so this walks ids in ascending order and both
     // output vectors are built deterministically without a later sort.
     for (id, spec) in &by_id {
         if !schedulable(spec) {
+            not_schedulable += 1;
             continue;
         }
         let blocked_by: Vec<Blocker> = spec
@@ -335,14 +375,28 @@ pub fn plan(registry: &Registry) -> Result<Plan, Error> {
         } else {
             blocked.push(BlockedSpec {
                 id: (*id).to_string(),
+                title: spec.title.clone(),
                 blocked_by,
             });
         }
     }
 
     Ok(Plan {
-        ready: topological(&ready, &by_id),
+        // Titles joined from the same registry the plan was computed from: no
+        // second load and no second call, which is the forty lines of Python
+        // adopters kept writing.
+        ready: topological(&ready, &by_id)
+            .into_iter()
+            .map(|id| ReadySpec {
+                title: by_id
+                    .get(id.as_str())
+                    .map(|s| s.title.clone())
+                    .unwrap_or_default(),
+                id,
+            })
+            .collect(),
         blocked,
+        not_schedulable,
     })
 }
 

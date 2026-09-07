@@ -76,9 +76,9 @@ pub use index::{
 };
 pub use lint::{LintReport, lint};
 pub use query::{
-    BlockedSpec, Blocker, ListFilter, Plan, RelationshipView, StatusReport, StatusReportNonzero,
-    list, list_ids, load_index, load_registry, plan, relationships, shard_content_hash, show,
-    status_report,
+    BlockedSpec, Blocker, ListFilter, Plan, ReadySpec, RelationshipView, StatusReport,
+    StatusReportNonzero, list, list_ids, load_index, load_registry, plan, relationships,
+    shard_content_hash, show, status_report,
 };
 pub use render::{OrphanReport, orphans, partition_orphans, render_markdown};
 pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init};

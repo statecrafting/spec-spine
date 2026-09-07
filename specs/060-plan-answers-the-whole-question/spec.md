@@ -4,7 +4,7 @@ title: "The plan answers the whole question, and names one pick"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -15,6 +15,10 @@ extends:
   - { spec: "038-registry-plan-ready-set", unit: "crates/spec-spine-core/src/query.rs", nature: additive }
   - { spec: "002-registry-query", unit: "crates/spec-spine-cli/src/cmd_registry.rs", nature: additive }
   - { spec: "038-registry-plan-ready-set", unit: "crates/spec-spine-core/tests/query.rs", nature: additive }
+  # `ReadySpec` joins the crate root's export list, and the CLI acceptance
+  # pinned the old flat shape and the empty-case summary.
+  - { spec: "002-registry-query", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
+  - { spec: "038-registry-plan-ready-set", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: ".claude/skills/next/SKILL.md" }, role: context }
@@ -119,6 +123,14 @@ one.
 
 `(nothing ready)` stays exactly as it is when `ready` is empty. It is the line a
 finished corpus prints and it already carries its own count.
+
+**Decision, 2026-09-07: the remainder line follows it.** An existing acceptance
+test read "one summary line" as "and nothing after it". Keeping that would put
+the remainder everywhere except the one place it matters most: on a finished
+corpus, `(nothing ready), blocked: 0` beside sixty-nine specs reads as though
+the corpus vanished, which is exactly the "the two numbers do not add up"
+complaint this section opens with. The `(nothing ready)` line itself is
+unchanged, as required; the totals line is added after it.
 
 ### 3.2 `--next`
 

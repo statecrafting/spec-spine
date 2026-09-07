@@ -19,6 +19,13 @@ fn write_spec(root: &Path, id: &str, extra: &str) {
     fs::write(spec_dir.join("spec.md"), body).unwrap();
 }
 
+/// The ready set's ids. Spec 060 made `Plan::ready` carry titles as well, so
+/// assertions that are about scheduling order project back to ids here rather
+/// than each restating the shape.
+fn ready_ids(plan: &spec_spine_core::Plan) -> Vec<&str> {
+    plan.ready.iter().map(|r| r.id.as_str()).collect()
+}
+
 fn corpus() -> spec_spine_types::Registry {
     let tmp = tempfile::tempdir().unwrap();
     write_spec(tmp.path(), "001-alpha", "");
@@ -149,7 +156,7 @@ fn plan_walks_a_linear_chain_one_step_at_a_time() {
         ("003-c", "approved", Some("pending"), &["002-b"]),
     ]);
     let plan = spec_spine_core::plan(&reg).unwrap();
-    assert_eq!(plan.ready, vec!["001-a"]);
+    assert_eq!(ready_ids(&plan), vec!["001-a"]);
     assert_eq!(
         blockers(&plan, "002-b"),
         [("001-a".into(), "pending".into())]
@@ -174,7 +181,7 @@ fn plan_offers_both_arms_of_a_diamond_in_id_order() {
         ),
     ]);
     let plan = spec_spine_core::plan(&reg).unwrap();
-    assert_eq!(plan.ready, vec!["002-left", "003-right"]);
+    assert_eq!(ready_ids(&plan), vec!["002-left", "003-right"]);
     assert_eq!(
         blockers(&plan, "004-join"),
         [
@@ -223,7 +230,7 @@ fn plan_treats_complete_and_n_a_as_finished_and_everything_else_as_blocking() {
     let plan = spec_spine_core::plan(&reg).unwrap();
 
     assert_eq!(
-        plan.ready,
+        ready_ids(&plan),
         vec![
             "003-pending",
             "004-inprogress",
@@ -251,7 +258,7 @@ fn plan_treats_complete_and_n_a_as_finished_and_everything_else_as_blocking() {
     let named: Vec<&str> = plan
         .ready
         .iter()
-        .map(String::as_str)
+        .map(|r| r.id.as_str())
         .chain(plan.blocked.iter().map(|b| b.id.as_str()))
         .collect();
     assert!(!named.contains(&"005-deferred"), "{named:?}");
@@ -269,7 +276,7 @@ fn plan_excludes_specs_the_corpus_has_moved_past_or_taken_off_the_schedule() {
     ]);
     let plan = spec_spine_core::plan(&reg).unwrap();
     assert_eq!(
-        plan.ready,
+        ready_ids(&plan),
         vec!["006-draft"],
         "a draft is schedulable; the other five are not"
     );
@@ -291,7 +298,7 @@ fn plan_reads_an_absent_implementation_key_on_a_draft_as_pending() {
     ]);
     let plan = spec_spine_core::plan(&reg).unwrap();
     assert_eq!(
-        plan.ready,
+        ready_ids(&plan),
         vec!["001-silent"],
         "an unstated draft is schedulable"
     );
@@ -318,7 +325,7 @@ fn plan_reads_an_absent_implementation_key_on_a_ratified_spec_as_settled() {
     ]);
     let plan = spec_spine_core::plan(&reg).unwrap();
     assert_eq!(
-        plan.ready,
+        ready_ids(&plan),
         vec!["001-on-bootstrap"],
         "the ratified silent spec is not offered, and does not block"
     );
@@ -364,7 +371,7 @@ fn plan_is_stable_across_runs_and_independent_of_corpus_order() {
         spec_spine_core::plan(&registry_of(&rows)).unwrap(),
         "and of nothing else"
     );
-    assert_eq!(forward.ready, vec!["001-a", "002-b"]);
+    assert_eq!(ready_ids(&forward), vec!["001-a", "002-b"]);
     assert_eq!(
         blockers(&forward, "003-c"),
         [
@@ -421,7 +428,7 @@ fn plan_over_a_compiled_corpus_only_offers_unfinished_specs() {
     let reg = compile(&Config::default(), tmp.path()).unwrap().registry;
 
     let plan = spec_spine_core::plan(&reg).unwrap();
-    assert_eq!(plan.ready, vec!["002-beta"]);
+    assert_eq!(ready_ids(&plan), vec!["002-beta"]);
     assert_eq!(
         blockers(&plan, "003-gamma"),
         [("002-beta".into(), "pending".into())]
@@ -431,7 +438,7 @@ fn plan_over_a_compiled_corpus_only_offers_unfinished_specs() {
     let offered: Vec<&str> = plan
         .ready
         .iter()
-        .map(String::as_str)
+        .map(|r| r.id.as_str())
         .chain(plan.blocked.iter().map(|b| b.id.as_str()))
         .collect();
     assert!(!offered.contains(&"001-alpha"), "{offered:?}");
@@ -452,7 +459,7 @@ fn plan_ready_set_has_no_internal_edges() {
         ("004-c", "approved", Some("pending"), &["002-a"]),
     ]);
     let plan = spec_spine_core::plan(&reg).unwrap();
-    let ready: std::collections::BTreeSet<&str> = plan.ready.iter().map(String::as_str).collect();
+    let ready: std::collections::BTreeSet<&str> = ready_ids(&plan).into_iter().collect();
     for id in &ready {
         let deps = &reg.specs.iter().find(|s| s.id == *id).unwrap().depends_on;
         for dep in deps {
@@ -462,9 +469,13 @@ fn plan_ready_set_has_no_internal_edges() {
             );
         }
     }
-    let mut sorted = plan.ready.clone();
-    sorted.sort();
-    assert_eq!(plan.ready, sorted, "so the walk agrees with an id sort");
+    let mut sorted = ready_ids(&plan);
+    sorted.sort_unstable();
+    assert_eq!(
+        ready_ids(&plan),
+        sorted,
+        "so the walk agrees with an id sort"
+    );
 }
 
 /// A long chain must terminate with the verdict, not abort the process.
@@ -519,7 +530,7 @@ fn plan_survives_a_very_long_acyclic_chain() {
 
     let plan = spec_spine_core::plan(&registry_of(&borrowed)).unwrap();
     assert_eq!(
-        plan.ready,
+        ready_ids(&plan),
         vec!["000000-spec"],
         "only the head is unblocked"
     );
@@ -713,4 +724,99 @@ fn shard_content_hash_is_read_from_the_committed_shard() {
         spec_spine_core::shard_content_hash(&cfg, root, "999-nope").unwrap(),
         None
     );
+}
+
+// ── spec 060: the plan answers the whole question ─────────────────────────
+
+/// §3.1: titles come from the same registry the plan was computed from. No
+/// second load, no second call, which is the forty lines of Python adopters
+/// kept writing.
+#[test]
+fn plan_carries_titles_on_both_sets() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "001-alpha", "implementation: pending\n");
+    write_spec(
+        tmp.path(),
+        "002-beta",
+        "implementation: pending\ndepends_on: [\"001-alpha\"]\n",
+    );
+    let registry = compile(&Config::default(), tmp.path()).unwrap().registry;
+    let p = spec_spine_core::plan(&registry).unwrap();
+
+    assert_eq!(p.ready.len(), 1);
+    assert_eq!(p.ready[0].id, "001-alpha");
+    assert_eq!(p.ready[0].title, "Title 001-alpha");
+    assert_eq!(p.blocked.len(), 1);
+    assert_eq!(p.blocked[0].id, "002-beta");
+    assert_eq!(p.blocked[0].title, "Title 002-beta");
+    // §3.1: the reason survives, not just the count.
+    assert_eq!(p.blocked[0].blocked_by[0].id, "001-alpha");
+    assert!(!p.blocked[0].blocked_by[0].state.is_empty());
+}
+
+/// §3.1: the remainder is reported, so the two counts add up to the corpus and
+/// a reader can tell whether the missing specs were excluded or lost.
+#[test]
+fn the_not_schedulable_remainder_makes_the_counts_add_up() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "001-alpha", "implementation: pending\n");
+    write_spec(tmp.path(), "002-done", "implementation: complete\n");
+    write_spec(tmp.path(), "003-na", "implementation: n-a\n");
+    let registry = compile(&Config::default(), tmp.path()).unwrap().registry;
+    let p = spec_spine_core::plan(&registry).unwrap();
+
+    assert_eq!(p.ready.len(), 1);
+    assert_eq!(p.blocked.len(), 0);
+    assert_eq!(p.not_schedulable, 2, "complete and n-a were excluded");
+    assert_eq!(
+        p.ready.len() + p.blocked.len() + p.not_schedulable,
+        registry.specs.len(),
+        "the three figures are the corpus"
+    );
+}
+
+/// §3.2: `--next` is a projection, never a second selection. It is exactly the
+/// first element of the topological order the plan already defines.
+#[test]
+fn next_is_the_first_element_of_ready_and_nothing_else() {
+    let tmp = tempfile::tempdir().unwrap();
+    // 003 depends on 002 depends on 001, so the topological order is fixed and
+    // is not ascending-id by accident.
+    write_spec(tmp.path(), "001-alpha", "implementation: pending\n");
+    write_spec(tmp.path(), "002-beta", "implementation: pending\n");
+    let registry = compile(&Config::default(), tmp.path()).unwrap().registry;
+    let p = spec_spine_core::plan(&registry).unwrap();
+
+    assert_eq!(
+        p.next().map(|r| r.id.as_str()),
+        Some(p.ready[0].id.as_str())
+    );
+    assert_eq!(p.next().unwrap().title, p.ready[0].title);
+}
+
+/// §3.2: an empty ready set is a true answer, not a failure. A driven session
+/// that treats "nothing to do" as an error stops for the wrong reason.
+#[test]
+fn next_on_a_finished_corpus_is_none_not_an_error() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "001-alpha", "implementation: complete\n");
+    let registry = compile(&Config::default(), tmp.path()).unwrap().registry;
+    let p = spec_spine_core::plan(&registry).unwrap();
+    assert!(p.ready.is_empty());
+    assert!(p.next().is_none());
+    assert_eq!(p.not_schedulable, 1);
+}
+
+/// §3.1: spec 038's ordering contract is untouched. `ready` stays topological
+/// with ties by ascending id; adding titles is a join, not a re-sort.
+#[test]
+fn the_ordering_contract_survives_the_titles() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "003-gamma", "implementation: pending\n");
+    write_spec(tmp.path(), "001-alpha", "implementation: pending\n");
+    write_spec(tmp.path(), "002-beta", "implementation: pending\n");
+    let registry = compile(&Config::default(), tmp.path()).unwrap().registry;
+    let p = spec_spine_core::plan(&registry).unwrap();
+    let ids: Vec<&str> = p.ready.iter().map(|r| r.id.as_str()).collect();
+    assert_eq!(ids, ["001-alpha", "002-beta", "003-gamma"]);
 }
