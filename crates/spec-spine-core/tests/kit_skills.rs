@@ -450,3 +450,122 @@ fn no_skill_names_a_gate_flag_agents_md_omits() {
         }
     }
 }
+
+// ── spec 068: one path-scoped rule, exercised here ────────────────────────
+
+/// §3.4: the kit's rules and this repository's agree, the scoped one included.
+/// Spec 046 found three kit hooks that wrote when they should read, because
+/// this repository never ran them; a rule shipped to adopters and never loaded
+/// here would be the third instance of that mistake.
+#[test]
+fn the_kit_rules_and_this_repositorys_agree() {
+    let root = repo_root();
+    let kit = root.join("kit/.claude/rules");
+    let mine = root.join(".claude/rules");
+
+    let names = |dir: &Path| -> BTreeSet<String> {
+        fs::read_dir(dir)
+            .unwrap_or_else(|e| panic!("{}: {e}", dir.display()))
+            .filter_map(|e| e.ok())
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .filter(|n| n.ends_with(".md"))
+            .collect()
+    };
+    assert_eq!(names(&kit), names(&mine), "the rule sets must be the same");
+
+    for name in names(&kit) {
+        assert_eq!(
+            fs::read_to_string(kit.join(&name)).unwrap(),
+            fs::read_to_string(mine.join(&name)).unwrap(),
+            "{name} has diverged between kit/ and this repository"
+        );
+    }
+}
+
+/// §3.1: exactly one rule carries `paths:` frontmatter. The value is the worked
+/// example and the fit; a directory of conditional rules would make adopters
+/// read scoping decisions that are theirs to make.
+#[test]
+fn exactly_one_rule_is_path_scoped() {
+    let dir = repo_root().join("kit/.claude/rules");
+    let scoped: Vec<String> = fs::read_dir(&dir)
+        .unwrap()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().extension().is_some_and(|x| x == "md"))
+        .filter(|e| {
+            let body = fs::read_to_string(e.path()).unwrap();
+            body.starts_with("---\n") && body.contains("\npaths:\n")
+        })
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .collect();
+    assert_eq!(
+        scoped,
+        vec!["derived-artifacts-are-compiler-output.md".to_string()],
+        "one path-scoped rule, not three"
+    );
+}
+
+/// §3.1: it is scoped to the derived tree and carries the artifact-specific
+/// half of the governed-reads rule, including the clarification spec 047 added
+/// and that adopters most needed: parsing a subcommand's OUTPUT is a typed read.
+#[test]
+fn the_scoped_rule_covers_the_derived_tree_and_allows_reading_cli_output() {
+    let body = fs::read_to_string(
+        repo_root().join("kit/.claude/rules/derived-artifacts-are-compiler-output.md"),
+    )
+    .unwrap();
+    assert!(body.contains(".derived/**"), "{body}");
+    assert!(body.contains("Do not hand-edit"), "{body}");
+    assert!(body.contains("jq"), "{body}");
+    assert!(
+        body.contains("Parsing the output of a subcommand is fine"),
+        "the clarification spec 047 added: {body}"
+    );
+}
+
+/// §3.2: the rule says, in its own text, that it does not replace the
+/// unconditional one and cannot. A reader comparing the two files will
+/// otherwise conclude one is redundant, and the redundant-looking one is the
+/// one that does the work.
+#[test]
+fn the_scoped_rule_says_it_does_not_replace_the_unconditional_one() {
+    let root = repo_root();
+    let scoped =
+        fs::read_to_string(root.join("kit/.claude/rules/derived-artifacts-are-compiler-output.md"))
+            .unwrap();
+    assert!(
+        scoped.contains("does not replace `governed-artifact-reads.md`"),
+        "{scoped}"
+    );
+    assert!(
+        scoped.contains("may never open a file under this directory"),
+        "the reason a scoped rule cannot prevent this mistake: {scoped}"
+    );
+
+    // And the unconditional rule keeps its full content.
+    let unconditional =
+        fs::read_to_string(root.join("kit/.claude/rules/governed-artifact-reads.md")).unwrap();
+    assert!(unconditional.contains("jq"), "{unconditional}");
+    assert!(
+        !unconditional.contains("\npaths:\n"),
+        "it stays unconditional"
+    );
+}
+
+/// §3.3: the README says when to scope, names the shipped rule as the example,
+/// and carries the caveat rather than only the pattern.
+#[test]
+fn the_readme_describes_when_to_scope_a_rule() {
+    let readme = fs::read_to_string(repo_root().join("kit/README.md")).unwrap();
+    assert!(readme.contains("When to scope a rule to paths"), "{readme}");
+    assert!(
+        readme.contains("derived-artifacts-are-compiler-output.md"),
+        "names the shipped example"
+    );
+    assert!(readme.contains("hqgit"), "the field evidence");
+    assert!(
+        readme.contains("never a replacement for a\nstanding constraint")
+            || readme.contains("never a replacement for a standing constraint"),
+        "the caveat: {readme}"
+    );
+}

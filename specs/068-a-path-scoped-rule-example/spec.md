@@ -4,7 +4,7 @@ title: "A path-scoped rule the kit actually ships"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -14,6 +14,16 @@ depends_on:
 extends:
   - { spec: "029-claude-code-skill-kit", unit: "kit/.claude/rules/", nature: additive }
   - { spec: "029-claude-code-skill-kit", unit: "kit/README.md", nature: additive }
+  # The kit's rule set is embedded for `init --with-kit` (spec 065) and its
+  # agreement with this repository's copy is asserted beside the skills.
+  - { spec: "048-kit-ships-the-governed-loop-skills", unit: "crates/spec-spine-core/tests/kit_skills.rs", nature: additive }
+  - { spec: "065-init-and-the-kit-are-one-adoption", unit: "crates/spec-spine-core/src/kit_embedded.rs", nature: additive }
+  - { spec: "065-init-and-the-kit-are-one-adoption", unit: "scripts/gen-kit-embedded.py", nature: additive }
+  - { spec: "064-the-kit-ships-the-composite-gate", unit: "spec-spine.toml", nature: additive }
+establishes:
+  # Created by this spec (3.1), shipped to adopters and carried here (3.4).
+  - "kit/.claude/rules/derived-artifacts-are-compiler-output.md"
+  - ".claude/rules/derived-artifacts-are-compiler-output.md"
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: ".claude/rules/governed-artifact-reads.md" }, role: context }
@@ -163,6 +173,14 @@ regenerates and commits the shards.
 
 **Rewriting the three unconditional rules.** §2. Specs 047 and 048 settled them.
 
+**Decision, 2026-09-07: the kit generator no longer asks git what the kit
+contains.** Spec 065's `scripts/gen-kit-embedded.py` enumerated `kit/` with
+`git ls-files`, so this spec's brand-new rule file was invisible to it until
+staged, and the first regeneration produced a binary whose `--with-kit` would
+not have written the rule the spec exists to ship. §5's assertion that an
+adopter receives it is what caught that. The generator now walks the tree and
+excludes junk by name, so a file that exists is a file that ships.
+
 **Splitting `governed-artifact-reads.md`.** §3.2. It keeps its full content and
 the scoped rule reinforces rather than replaces it.
 
@@ -174,19 +192,35 @@ this spec uses it as one.
 
 ## 5. Verification
 
+Each line is one command (spec 049 §3.2). Every assertion fails against pre-068
+state: the rule did not exist and the README called the pattern excluded.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-core --test kit_skills --locked
-# The kit ships exactly one path-scoped rule, and it is scoped to .derived.
-test "$(grep -rl '^paths:' kit/.claude/rules/ | wc -l | tr -d ' ')" = "1"
-grep -rq '.derived' kit/.claude/rules/
-# The unconditional rule kept its full content, including the 047 clarification.
-grep -q 'typed read' kit/.claude/rules/governed-artifact-reads.md
-# The README describes when to scope instead of excluding the pattern.
-grep -q 'paths:' kit/README.md
-! grep -q 'intentionally excluded.*paths' kit/README.md
-# This repository loads what it ships, and the shards were regenerated.
-test "$(grep -rl '^paths:' .claude/rules/ | wc -l | tr -d ' ')" = "1"
+# 3.1: exactly one rule carries `paths:` frontmatter, scoped to the derived tree.
+grep -q 'paths:' kit/.claude/rules/derived-artifacts-are-compiler-output.md
+grep -q '.derived/\*\*' kit/.claude/rules/derived-artifacts-are-compiler-output.md
+# 3.1: and it carries the clarification adopters most needed.
+grep -q 'Parsing the output of a subcommand is fine' kit/.claude/rules/derived-artifacts-are-compiler-output.md
+# 3.2: it says it does not replace the unconditional rule, and cannot.
+grep -q 'does not replace' kit/.claude/rules/derived-artifacts-are-compiler-output.md
+# 3.2: which keeps its full content and stays unconditional.
+grep -q 'jq' kit/.claude/rules/governed-artifact-reads.md
+! grep -q 'paths:' kit/.claude/rules/governed-artifact-reads.md
+# 3.3: the README says when to scope rather than calling the pattern excluded.
+grep -q 'When to scope a rule to paths' kit/README.md
+! grep -q 'invariant rules: the generic' kit/README.md
+# 3.4: this repository carries the same rule, so it is exercised here rather
+# than only shipped. Spec 046 found three hooks that wrote because this
+# repository never ran them.
+test -f .claude/rules/derived-artifacts-are-compiler-output.md
+diff kit/.claude/rules/derived-artifacts-are-compiler-output.md .claude/rules/derived-artifacts-are-compiler-output.md
+# 3.4: and an adopter installing the kit receives it.
+rm -rf "${TMPDIR:-/tmp}/ss068" && mkdir -p "${TMPDIR:-/tmp}/ss068" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss068" init --with-kit >/dev/null && test -f "${TMPDIR:-/tmp}/ss068/.claude/rules/derived-artifacts-are-compiler-output.md"
+rm -rf "${TMPDIR:-/tmp}/ss068"
+# 3.5: the shards were regenerated and committed with the new claimed paths.
+target/release/spec-spine compile --check
 target/release/spec-spine index check
 ```
