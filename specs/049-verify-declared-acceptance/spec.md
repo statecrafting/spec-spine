@@ -1,7 +1,7 @@
 ---
 id: "049-verify-declared-acceptance"
 title: "`spec-spine verify <id>`: run a spec's declared acceptance"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-06"
 implementation: complete

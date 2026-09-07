@@ -129,10 +129,10 @@
       "5. Verification"
     ],
     "specPath": "specs/049-verify-declared-acceptance/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "A spec's `## Verification` section states what would make its claims true, and nothing runs it. Three adopters independently wrote the same 78-line `scripts/verify-spec.sh` to close that gap, and spec 048 added a fourth copy to this repository, so the kit now ships the workaround it exists to retire. Spec 043 4 named this \"the most substantial thing the adoption invented and the one most worth having\" and deferred filing it. This is that filing. `spec-spine verify <id>` reads the spec's `## Verification` section, runs each line of its `verify:cli` fences from the repository root in order, and stops at the first failure. Two things make it a spec-spine verb rather than a script: the parse becomes a typed, tested read of authored markdown that the library owns, and the outcome becomes a spec 037 verdict envelope instead of a sentence a caller must string-match. The engine never spawns a process. Core returns a `VerifyPlan`, the commands it found and the fence tags it declined, and the CLI executes it, which is the same seam `couple` already uses for `git`. Two behaviours diverge deliberately from the ported script, both to keep an older contract intact: a missing spec exits 1, not the script's 2, because 2 means stale; and a failing command exits 1 with its own code carried in the payload, rather than propagating a code the exit contract does not define. `not-declared` stays an honest zero and is distinguishable from a pass in the payload, never by parsing prose.\n",
     "title": "`spec-spine verify <id>`: run a spec's declared acceptance"
   },
-  "shardHash": "abee2869bb6e409e1da62da696d1f11b4fcad01d35603a171aa5b9c9ae029372",
+  "shardHash": "35599376172b5d20ffccfeeed539c29bcd32d8e863096fb3e3b74af0c310aa2c",
   "specVersion": "1.1.0"
 }
