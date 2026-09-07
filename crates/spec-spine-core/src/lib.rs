@@ -66,13 +66,13 @@ pub use dep_only::{
     is_package_json, is_workflow_yaml, workflow_dependency_only_change,
 };
 pub use diagnostics::{
-    AttributedDiagnostic, DiagnosticCounts, IndexCheckReport, UNRESOLVED_CODES, committed_counts,
-    committed_diagnostics, count as count_diagnostics,
+    AttributedDiagnostic, DiagnosticCounts, IndexCheckReport, UNRESOLVED_CODES, UnwitnessedCounts,
+    committed_counts, committed_diagnostics, count as count_diagnostics,
 };
 pub use index::{
-    Freshness, IndexOutcome, IndexShardSet, OwnerKind, OwnerLink, OwnerReport, authorities,
-    check_index_freshness, check_slice_freshness, index, index_dir, index_shard_files,
-    load_committed_index, owner, owner_with, slices_path,
+    Freshness, IndexOutcome, IndexShardSet, OwnerKind, OwnerLink, OwnerReport, UnwitnessedClaim,
+    authorities, check_index_freshness, check_slice_freshness, index, index_dir, index_shard_files,
+    load_committed_index, owner, owner_with, slices_path, unwitnessed_claims, witnessed_paths,
 };
 pub use lint::{LintReport, lint};
 pub use query::{
@@ -197,7 +197,41 @@ pub fn check_freshness_json(config_json: &str, repo_root: &str) -> Result<String
     let root = std::path::Path::new(repo_root);
     let freshness = check_index_freshness(&config, root)?;
     let counts = diagnostics::committed_counts(&config, root)?;
-    to_json(&IndexCheckReport::new(&freshness, counts))
+    // Spec 057 §3.3: the facade and the CLI emit one shape. `cli.rs` pins them
+    // against each other, and it caught this: a payload member added on one
+    // side only is exactly the drift that test exists to refuse.
+    to_json(&IndexCheckReport::with_unwitnessed(
+        &freshness,
+        counts,
+        unwitnessed_counts(&config, root),
+    ))
+}
+
+/// The distinct-path tally spec 057 §3.3 reports, shared by the facade and the
+/// CLI so the two payloads cannot diverge.
+///
+/// Distinct **paths**, not `(spec, path)` claims: several specs claiming one
+/// unhashed file is one hole in the ledger, and counting it per claimant would
+/// report the corpus's edge density rather than its gap. An unreadable index is
+/// an empty tally rather than an error, because the freshness verdict this
+/// accompanies has already been reached.
+pub fn unwitnessed_counts(config: &Config, repo_root: &std::path::Path) -> UnwitnessedCounts {
+    let Ok(index) = load_committed_index(config, repo_root) else {
+        return UnwitnessedCounts::default();
+    };
+    let claims = unwitnessed_claims(config, repo_root, &index);
+    let mut all: std::collections::BTreeSet<&str> = Default::default();
+    let mut allowed: std::collections::BTreeSet<&str> = Default::default();
+    for c in &claims {
+        all.insert(c.path.as_str());
+        if c.allowed {
+            allowed.insert(c.path.as_str());
+        }
+    }
+    UnwitnessedCounts {
+        total: all.len(),
+        allowed: allowed.len(),
+    }
 }
 
 /// Check registry-shard freshness (spec 031), returning the same

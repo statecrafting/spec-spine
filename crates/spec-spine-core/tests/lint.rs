@@ -209,3 +209,204 @@ fn a_forward_dependency_does_not_fail_compile() {
         "the lint's code never appears in compile's report"
     );
 }
+
+// ── spec 057: a claim no hash witnesses ───────────────────────────────────
+
+/// Commit the index shard tree, as `spec-spine index` does. `L-008` reads the
+/// committed index rather than recomputing one, so a corpus without this step
+/// is silent: there is no ledger yet for a claim to be invisible to.
+fn commit_index(cfg: &Config, root: &Path) {
+    use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
+    let outcome = spec_spine_core::index(cfg, root).unwrap();
+    let dir = spec_spine_core::index_dir(cfg, root);
+    let (by_spec, by_package) = spec_spine_core::index_shard_files(&outcome.shards).unwrap();
+    shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec).unwrap();
+    shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package).unwrap();
+}
+
+fn l008(cfg: &Config, root: &Path) -> Vec<spec_spine_types::Violation> {
+    spec_spine_core::lint(cfg, root)
+        .unwrap()
+        .violations
+        .into_iter()
+        .filter(|v| v.code == "L-008")
+        .collect()
+}
+
+/// A corpus claiming one existing file that nothing hashes.
+fn unwitnessed_fixture(root: &Path) {
+    write(root, "thing.sh", "echo claimed\n");
+    write(
+        root,
+        "specs/001-x/spec.md",
+        "---\nid: \"001-x\"\ntitle: \"x\"\nstatus: draft\ncreated: \"2026-09-07\"\n\
+         summary: \"x\"\nestablishes:\n  - \"thing.sh\"\n---\n# x\n## body\n",
+    );
+}
+
+/// §3.2: a claimed file that exists and that no content hash covers is one
+/// warning naming the spec, the path, and both remedies. They are genuinely
+/// different choices and the right one depends on the file.
+#[test]
+fn an_unwitnessed_claim_is_an_l008_warning_naming_both_remedies() {
+    let tmp = tempfile::tempdir().unwrap();
+    let cfg = Config::default();
+    unwitnessed_fixture(tmp.path());
+    commit_index(&cfg, tmp.path());
+
+    let found = l008(&cfg, tmp.path());
+    assert_eq!(found.len(), 1, "{found:?}");
+    let v = &found[0];
+    assert_eq!(
+        v.severity,
+        Severity::Warning,
+        "a legitimate state, not a defect"
+    );
+    assert!(v.message.contains("001-x"), "{}", v.message);
+    assert!(v.message.contains("thing.sh"), "{}", v.message);
+    assert!(v.message.contains("extra_hashed_inputs"), "{}", v.message);
+    assert!(
+        v.message.contains("section or symbol unit"),
+        "{}",
+        v.message
+    );
+    assert_eq!(v.path.as_deref(), Some("specs/001-x/spec.md"));
+}
+
+/// §3.2: a claimed path that does not exist produces no `L-008`. It is already
+/// diagnosed as an unresolved unit (`W-001` / `W-002`), and a second warning on
+/// every pending claim would make a specify-first corpus unreadable.
+#[test]
+fn a_claim_on_a_file_that_does_not_exist_is_silent() {
+    let tmp = tempfile::tempdir().unwrap();
+    let cfg = Config::default();
+    write(
+        tmp.path(),
+        "specs/001-x/spec.md",
+        "---\nid: \"001-x\"\ntitle: \"x\"\nstatus: draft\ncreated: \"2026-09-07\"\n\
+         summary: \"x\"\nestablishes:\n  - \"not/written/yet.rs\"\n---\n# x\n## body\n",
+    );
+    commit_index(&cfg, tmp.path());
+    assert!(l008(&cfg, tmp.path()).is_empty());
+}
+
+/// §3.1: a covering `extra_hashed_inputs` glob is one of the two remedies the
+/// message names, and it works. This also pins the glob form: `dir/**` matches
+/// directories only, which is how this repository's own two entries came to
+/// match nothing at all.
+#[test]
+fn a_covering_glob_witnesses_the_claim_and_the_directory_form_does_not() {
+    let tmp = tempfile::tempdir().unwrap();
+    unwitnessed_fixture(tmp.path());
+
+    let works = load_config("[index]\nextra_hashed_inputs = [\"*.sh\"]\n").unwrap();
+    commit_index(&works, tmp.path());
+    assert!(
+        l008(&works, tmp.path()).is_empty(),
+        "a matching glob covers it"
+    );
+
+    // The trap: `dir/**` matches directories, so it hashes no files.
+    write(tmp.path(), "sub/thing2.sh", "echo two\n");
+    write(
+        tmp.path(),
+        "specs/002-y/spec.md",
+        "---\nid: \"002-y\"\ntitle: \"y\"\nstatus: draft\ncreated: \"2026-09-07\"\n\
+         summary: \"y\"\nestablishes:\n  - \"sub/thing2.sh\"\n---\n# y\n## body\n",
+    );
+    let trap = load_config("[index]\nextra_hashed_inputs = [\"*.sh\", \"sub/**\"]\n").unwrap();
+    commit_index(&trap, tmp.path());
+    assert!(
+        l008(&trap, tmp.path())
+            .iter()
+            .any(|v| v.message.contains("sub/thing2.sh")),
+        "`sub/**` matches directories, not the files under them"
+    );
+
+    let fixed = load_config("[index]\nextra_hashed_inputs = [\"*.sh\", \"sub/**/*\"]\n").unwrap();
+    commit_index(&fixed, tmp.path());
+    assert!(
+        l008(&fixed, tmp.path()).is_empty(),
+        "`sub/**/*` matches them"
+    );
+}
+
+/// §3.2 + the config knob: an allowlisted path is suppressed from `L-008` and
+/// still counted, so an exception is explicit rather than invisible.
+#[test]
+fn the_allowlist_suppresses_the_warning_but_not_the_count() {
+    let tmp = tempfile::tempdir().unwrap();
+    unwitnessed_fixture(tmp.path());
+    let cfg = load_config("[lint]\nunwitnessed_allowed = [\"*.sh\"]\n").unwrap();
+    commit_index(&cfg, tmp.path());
+
+    assert!(l008(&cfg, tmp.path()).is_empty(), "suppressed");
+
+    let index = spec_spine_core::load_committed_index(&cfg, tmp.path()).unwrap();
+    let claims = spec_spine_core::unwitnessed_claims(&cfg, tmp.path(), &index);
+    assert_eq!(claims.len(), 1, "still counted: {claims:?}");
+    assert!(claims[0].allowed, "and marked as a declared exception");
+}
+
+/// §3.1: a claim inside the ungoverned state root is `L-006`'s business, at
+/// error tier. "You claimed the ungoverned directory" is the whole diagnosis,
+/// and "and it is not hashed" is noise on a path that has to move.
+#[test]
+fn a_claim_inside_the_state_root_defers_to_l006() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(tmp.path(), "tool-state/journal.rs", "// state\n");
+    write(
+        tmp.path(),
+        "specs/001-x/spec.md",
+        "---\nid: \"001-x\"\ntitle: \"x\"\nstatus: draft\ncreated: \"2026-09-07\"\n\
+         summary: \"x\"\nestablishes:\n  - \"tool-state/journal.rs\"\n---\n# x\n## body\n",
+    );
+    let cfg = load_config("[layout]\nstate_dir = \"tool-state\"\n").unwrap();
+    commit_index(&cfg, tmp.path());
+
+    let report = spec_spine_core::lint(&cfg, tmp.path()).unwrap();
+    assert!(
+        report.violations.iter().any(|v| v.code == "L-006"),
+        "{:?}",
+        report.violations
+    );
+    assert!(
+        !report.violations.iter().any(|v| v.code == "L-008"),
+        "L-008 defers: {:?}",
+        report.violations
+    );
+}
+
+/// §3.1: the predicate is derived from what the hashers actually consume, so
+/// each of the four contributors is witnessed.
+#[test]
+fn witnessed_paths_covers_every_hash_contributor() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    write(root, "Cargo.toml", "[workspace]\nmembers = [\"crate-a\"]\n");
+    write(
+        root,
+        "crate-a/Cargo.toml",
+        "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n",
+    );
+    write(
+        root,
+        "spec-spine.toml",
+        "[index]\nextra_hashed_inputs = [\"extra.txt\"]\n",
+    );
+    write(root, "extra.txt", "hashed\n");
+    write(
+        root,
+        "specs/001-x/spec.md",
+        "---\nid: \"001-x\"\ntitle: \"x\"\nstatus: draft\ncreated: \"2026-09-07\"\n\
+         summary: \"x\"\nestablishes:\n  - \"src/x.rs\"\n---\n# x\n## body\n",
+    );
+    let cfg = load_config(&std::fs::read_to_string(root.join("spec-spine.toml")).unwrap()).unwrap();
+    let index = spec_spine_core::index(&cfg, root).unwrap().index;
+    let witnessed = spec_spine_core::witnessed_paths(&cfg, root, &index);
+
+    assert!(witnessed.contains("specs/001-x/spec.md"), "{witnessed:?}");
+    assert!(witnessed.contains("crate-a/Cargo.toml"), "{witnessed:?}");
+    assert!(witnessed.contains("spec-spine.toml"), "{witnessed:?}");
+    assert!(witnessed.contains("extra.txt"), "{witnessed:?}");
+}

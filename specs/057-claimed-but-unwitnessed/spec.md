@@ -4,7 +4,7 @@ title: "A claim no hash witnesses"
 status: draft
 kind: "tooling"
 created: "2026-09-07"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -15,6 +15,16 @@ depends_on:
 extends:
   - { spec: "003-conformance-lint", unit: "crates/spec-spine-core/src/lint.rs", nature: additive }
   - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/index.rs", nature: additive }
+  # The `index check` count line (3.3) and the payload field carrying it.
+  - { spec: "050-index-diagnostics-reach-a-gate", unit: "crates/spec-spine-core/src/diagnostics.rs", nature: additive }
+  - { spec: "050-index-diagnostics-reach-a-gate", unit: "crates/spec-spine-cli/src/cmd_index.rs", nature: additive }
+  # The allowlist knob (3.5), beside spec 053's in the same table.
+  - { spec: "053-depends-on-ordinal-monotonicity", unit: "crates/spec-spine-types/src/config.rs", nature: additive }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
+  - { spec: "003-conformance-lint", unit: "crates/spec-spine-core/tests/lint.rs", nature: additive }
+  # The facade half of the payload, and the two acceptance tests that pin the
+  # CLI and the facade against each other (3.3).
+  - { spec: "037-machine-readable-verdicts", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "docs/schema-versioning.md" }, role: context }
@@ -177,7 +187,10 @@ and "fresh" is the word this spec is qualifying. A count there is the smallest
 honest correction to what the reader is being told.
 
 Under `--json`, the count joins the existing `IndexCheckReport` payload as an
-additive field. `VERDICT_SCHEMA_VERSION` does not move: spec 050 §3.6 settled
+additive field, on **both** sides: the CLI and the `check_freshness_json`
+facade emit one shape, and `cli.rs` pins them against each other. That test
+caught the first cut of this change, where the field existed on the CLI side
+only, which is exactly the drift it was written to refuse. `VERDICT_SCHEMA_VERSION` does not move: spec 050 §3.6 settled
 that adding a member to one verb's report payload is additive and must not move
 the constant that versions the envelope, and this spec follows that decision
 rather than reopening it.
@@ -205,14 +218,64 @@ change to the staleness contract that deserves its own spec, its own argument,
 and a corpus that already knows how big the gap is. This spec produces that
 number.
 
+### 3.5 A corpus may declare a gap deliberate
+
+`[lint] unwitnessed_allowed` MUST accept glob patterns naming claimed paths a
+corpus has decided to leave out of every content hash, suppressing `L-008` for
+them.
+
+It suppresses the **warning**, never the **count**: `index check` reports the
+total and how many of it the list covers, so a declared exception is explicit
+rather than invisible. That is the difference between writing a decision down
+and turning the check off, and it is why this is not simply an opt-in knob on
+the lint.
+
+**Decision, 2026-09-07.** The knob is added because §4's instruction ("resolve
+the corpus to green") turned out to require it. §1 estimated twenty-four
+unwitnessed paths; the predicate found **ninety-four**, of which seventy-four
+are Rust sources under `crates/` claimed as bare `file` units. That is not an
+oversight in those specs: a `file` unit carries no span by design, and folding
+claimed files into the hash is what §4 puts out of scope. Without a way to
+declare the remainder deliberate, the only routes to green were to weaken
+`--fail-on-warn` for every `L-` code or to make `L-008` itself opt-in, and both
+turn the check off rather than record a decision.
+
 ## 4. Out of scope
 
-**Deciding this repository's twenty-four.** The lint reports them; which get a
-glob, which get a narrower unit, and which are deliberately unwitnessed is a
-sequence of judgements about specific files, and none of them is a mechanical
-consequence of this spec. `lint --fail-on-warn` runs in CI here, so the
-implementing change must resolve the corpus to green, and the resolution it
-picks is a decision recorded in this spec at that time, not predetermined now.
+**Deciding this repository's ninety-four.** Decided, 2026-09-07, and recorded in
+`spec-spine.toml` rather than here, because the decision is a configuration:
+
+- **Twenty covered by a hashed-input glob.** The governance and harness files
+  specs claim (`AGENTS.md`, `CLAUDE.md`, `.claude/rules/`, `.githooks/`,
+  `scripts/`, `install.sh`, three `docs/` files, the `kit/` copies) plus the
+  five embedded JSON Schemas, which are hashed rather than allowlisted because a
+  schema edit is exactly what the ledger should notice.
+- **Sixty-nine declared deliberate**, as `crates/**/*.rs`. They are not
+  undefended: the coupling gate refuses a changed source file whose owning spec
+  did not change, which is the check that actually protects them. What the gap
+  costs is narrower and is now written down: `index check` will not call the
+  index stale for an edit to one, and spec 023's attestation covers a ledger
+  that never hashed their bytes.
+
+**Decision, 2026-09-07: two glob entries in this repository matched nothing.**
+`extra_hashed_inputs` was `["standards/**", ".github/workflows/**"]`, and in the
+`glob` crate `dir/**` matches directories only; files need `dir/**/*`. So the
+constitution, the contract, the spec templates and all five CI workflows had
+never contributed to any content hash, and spec 023 has been signing an
+attestation over a ledger that had not read them. Fixed here, and pinned by a
+test that asserts both the trap and the working form, because a silent
+zero-match is the same class of defect as a silent unwitnessed claim.
+
+**Decision, 2026-09-07: the patterns are narrow on purpose.** `extra_hashed_inputs`
+hashes whatever is on disk, tracked or not. A bare `.claude/**/*` folds in
+`.DS_Store`, `agent-memory/` and `settings.local.json`, which would make the
+shard hashes machine-dependent and surface as a platform difference in the
+four-triple determinism gate. Narrow patterns also keep the blast radius
+honest: an entry here restales all sixty-nine shards when it changes, so it
+earns its place by being a governance file some spec claims. A verb that
+reported what a configured glob currently matches would have caught the
+zero-match entries years earlier; spec 054 §4 already defers that idea, and this
+is a second reason to want it.
 
 **Folding claimed files into the hash.** §3.4.
 
@@ -227,21 +290,26 @@ path.
 
 ## 5. Verification
 
+`L-008` and the `index check` line both fail against pre-057 code: neither the
+code nor the line existed.
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
 cargo test -p spec-spine-core --test lint --locked
-# `index check` reports the count. Until this ships, the line is absent.
+# 3.3: `index check` reports the count, and says how much of it is declared.
 target/release/spec-spine index check | grep -q 'unwitnessed claims'
-# A synthetic corpus claiming an existing file that no hash covers produces
-# L-008. This is the condition 3.2 defines, isolated from this repository's
-# own remedies.
-tmp=$(mktemp -d) && mkdir -p "$tmp/specs/001-x" && : > "$tmp/spec-spine.toml" \
-  && printf 'claimed\n' > "$tmp/thing.sh" \
-  && printf -- '---\nid: "001-x"\ntitle: "x"\nstatus: draft\ncreated: "2026-09-07"\nsummary: "x"\nestablishes:\n  - "thing.sh"\n---\n\n# x\n' > "$tmp/specs/001-x/spec.md" \
-  && target/release/spec-spine --repo "$tmp" lint | grep -q 'L-008'
-# This corpus is green at the tier CI gates on, which means the twenty-four
-# unwitnessed claims named in 1 were each resolved or deliberately covered by
-# the implementing change.
+# 3.3: reporting only. The exit code is unchanged, with and without the flag.
+target/release/spec-spine index check --fail-on-unresolved
+# 3.2: a synthetic corpus claiming an existing file no hash covers produces
+# L-008, isolated from this repository's own remedies.
+tmp=$(mktemp -d) && mkdir -p "$tmp/specs/001-x" && : > "$tmp/spec-spine.toml" && printf 'claimed\n' > "$tmp/thing.sh" && printf -- '---\nid: "001-x"\ntitle: "x"\nstatus: draft\ncreated: "2026-09-07"\nsummary: "x"\nestablishes:\n  - "thing.sh"\n---\n\n# x\n## body\n' > "$tmp/specs/001-x/spec.md" && target/release/spec-spine --repo "$tmp" index >/dev/null && target/release/spec-spine --repo "$tmp" lint | grep -q 'L-008'
+# 4: the two entries that matched nothing now match. `standards/` and the
+# workflows contribute to the ledger, which is what this spec found they never
+# had. Asserted through `config show` (spec 054), a governed read.
+target/release/spec-spine config show --json | python3 -c 'import json,sys; g=json.load(sys.stdin)["index"]["extra_hashed_inputs"]; assert "standards/**/*.md" in g, g; assert "standards/**" not in g, g'
+# 4: this corpus is green at the tier CI gates on, which means every one of the
+# ninety-four was either covered or declared.
 target/release/spec-spine lint --fail-on-warn
+target/release/spec-spine compile --check
 ```

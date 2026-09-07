@@ -13,9 +13,9 @@ use std::path::Path;
 use clap::Subcommand;
 use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
 use spec_spine_core::{
-    DiagnosticCounts, Freshness, IndexCheckReport, check_index_freshness, check_slice_freshness,
-    committed_counts, committed_diagnostics, coverage, index, index_dir, index_shard_files,
-    load_committed_index, orphans, render_markdown, slices_path,
+    DiagnosticCounts, Freshness, IndexCheckReport, UnwitnessedCounts, check_index_freshness,
+    check_slice_freshness, committed_counts, committed_diagnostics, coverage, index, index_dir,
+    index_shard_files, load_committed_index, orphans, render_markdown, slices_path,
 };
 use spec_spine_types::{Config, CoverageReport, Error, Verdict, verdict::verb};
 
@@ -181,6 +181,12 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 None => (check_index_freshness(&cfg, repo)?, "index".to_string()),
             };
             let counts = committed_counts(&cfg, repo)?;
+            // Spec 057 3.3: the count of claimed paths no content hash covers.
+            // Reporting only, never an exit code: `index check` is where a
+            // person reads the word "fresh", and "fresh" is the word this
+            // qualifies. Computed by the same core function the JSON facade
+            // uses, so the two payloads cannot diverge.
+            let unwitnessed = spec_spine_core::unwitnessed_counts(&cfg, repo);
 
             // Spec 050 3.3: staleness outranks unresolution. A stale index's
             // diagnostics describe a tree that no longer exists, so refusing
@@ -202,9 +208,12 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 // and this arm cannot drift; spec 037 pins them against each
                 // other. `compile --check` keeps the bare freshness object:
                 // index diagnostics are meaningless for the registry (3.1).
-                let report =
-                    serde_json::to_value(IndexCheckReport::new(&freshness, counts.clone()))
-                        .map_err(|e| Error::Schema(e.to_string()))?;
+                let report = serde_json::to_value(IndexCheckReport::with_unwitnessed(
+                    &freshness,
+                    counts.clone(),
+                    unwitnessed,
+                ))
+                .map_err(|e| Error::Schema(e.to_string()))?;
                 out::verdict(&Verdict::report(verb::INDEX_CHECK, code, report))?;
                 return Ok(code);
             }
@@ -221,11 +230,17 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 // twice on two streams. `coverage --fail-on-untraced` reports
                 // on stdout and lets the exit code carry the refusal; this
                 // matches it.
-                Freshness::Fresh if code == 1 => outln!(
-                    "{subject} is fresh; --fail-on-unresolved refuses{}",
-                    counts_suffix(&counts)
-                ),
-                Freshness::Fresh => outln!("{subject} is fresh{}", counts_suffix(&counts)),
+                Freshness::Fresh if code == 1 => {
+                    outln!(
+                        "{subject} is fresh; --fail-on-unresolved refuses{}",
+                        counts_suffix(&counts)
+                    );
+                    report_unwitnessed(&unwitnessed);
+                }
+                Freshness::Fresh => {
+                    outln!("{subject} is fresh{}", counts_suffix(&counts));
+                    report_unwitnessed(&unwitnessed);
+                }
                 Freshness::Stale { expected, actual } => {
                     eprintln!("{subject} is STALE (run `spec-spine index` to refresh)");
                     eprintln!("  expected: {expected}");
@@ -395,5 +410,26 @@ fn owner_kind_label(kind: spec_spine_core::OwnerKind) -> &'static str {
         spec_spine_core::OwnerKind::Floor => "floor",
         spec_spine_core::OwnerKind::Header => "header",
         spec_spine_core::OwnerKind::Inherited => "inherited",
+    }
+}
+
+/// The spec 057 §3.3 line: how many claimed paths no content hash witnesses,
+/// and how many of those this corpus has declared deliberate.
+///
+/// Silent at zero. A corpus with no gap does not need to be told it has none,
+/// and the line exists to qualify the word "fresh" only where the
+/// qualification bites.
+fn report_unwitnessed(u: &UnwitnessedCounts) {
+    if u.total == 0 {
+        return;
+    }
+    if u.allowed == 0 {
+        outln!("  unwitnessed claims: {}", u.total);
+    } else {
+        outln!(
+            "  unwitnessed claims: {} ({} allowed by [lint] unwitnessed_allowed)",
+            u.total,
+            u.allowed
+        );
     }
 }

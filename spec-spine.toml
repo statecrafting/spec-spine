@@ -29,7 +29,45 @@ standalone_rust_workspaces = []
 standalone_npm_packages    = ["npm"]
 
 [index]
-extra_hashed_inputs = ["standards/**", ".github/workflows/**"]
+# Files folded into the global-inputs scalar, so a change to one stales every
+# shard. Spec 057 found the first two entries here matched ZERO files: in the
+# `glob` crate `dir/**` matches directories only, and files need `dir/**/*`.
+# The constitution, the contract, the templates and every workflow had
+# therefore never contributed to any content hash, and spec 023 was signing an
+# attestation over a ledger that had not read them.
+#
+# Every pattern below is deliberately narrow. This list hashes whatever is on
+# disk, tracked or not, so a bare `.claude/**/*` would fold in `.DS_Store`,
+# `agent-memory/` and `settings.local.json` and make the shard hashes
+# machine-dependent, which the four-triple determinism gate would catch as a
+# platform difference. Narrow patterns also keep the blast radius honest: an
+# entry here restales all 69 shards when it changes, so it earns its place by
+# being a governance file some spec claims.
+extra_hashed_inputs = [
+  "standards/**/*.md",
+  ".github/workflows/*.yml",
+  # Governance and harness files specs claim (spec 057).
+  "AGENTS.md",
+  "CLAUDE.md",
+  ".claude/rules/*.md",
+  ".claude/settings.json",
+  ".githooks/*.sh",
+  "scripts/*.sh",
+  "install.sh",
+  "docs/adoption-guide.md",
+  "docs/releasing.md",
+  "docs/schema-versioning.md",
+  "kit/AGENTS.md",
+  "kit/README.md",
+  "kit/settings.json",
+  "kit/.claude/rules/*.md",
+  "py/scripts/*.py",
+  # The embedded JSON Schemas the conformance test validates against. Hashed
+  # rather than allowlisted: a schema edit is exactly the kind of change the
+  # ledger should notice, and it is rare enough that restaling every shard is
+  # the right price.
+  "crates/spec-spine-types/schemas/*.json",
+]
 resolver_exclusions = ["target", "node_modules", ".derived", "dist", "build", ".next"]
 
 [branding]
@@ -76,3 +114,20 @@ code-fingerprint = "fingerprint://"
 
 [frontmatter]
 extra_known_keys = []
+
+[lint]
+# Spec 057: claimed paths this corpus deliberately leaves out of every content
+# hash. A `file` unit carries no span, and only span-backing files enter a
+# shard hash, so every source file claimed as a bare file unit is invisible to
+# the ledger. That is 74 files here, and folding them in is a different change
+# (it would alter what staleness means) that spec 057 4 puts out of scope.
+#
+# They are not undefended: the coupling gate refuses a changed source file
+# whose owning spec did not change, which is the check that actually protects
+# them. What the gap costs is narrower and worth writing down: `index check`
+# will not call the index stale for an edit to one of these, and spec 023's
+# attestation covers a ledger that never hashed their bytes.
+#
+# `index check` still reports the total on every run and says how many of it
+# this list covers, so the exception is explicit rather than invisible.
+unwitnessed_allowed = ["crates/**/*.rs"]

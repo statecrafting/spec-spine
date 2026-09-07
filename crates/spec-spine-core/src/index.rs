@@ -1225,6 +1225,119 @@ fn status_str(status: spec_spine_types::Status) -> String {
     .to_string()
 }
 
+// ===== spec 057: which paths any content hash witnesses =====
+
+/// Every repo-relative path that contributes to some content hash the index
+/// computes (spec 057 §3.1).
+///
+/// Derived from the same code that builds the hashes rather than restated
+/// beside it: a second list of what is hashed would be wrong the first time the
+/// first list changed, and this whole spec exists because a reader's model of
+/// the hash inputs was wrong. The four contributors, in the order the hashers
+/// consume them:
+///
+/// - each spec's `spec.md` ([`spec_shard_hash`]),
+/// - each mapping's span-backing files ([`span_files_for_mapping`]): a `file`,
+///   `directory` or `crate` unit carries no span and contributes nothing, which
+///   is precisely the gap this spec names,
+/// - each discovered package's manifest ([`package_shard_hash`]),
+/// - `spec-spine.toml` and every `[index] extra_hashed_inputs` match
+///   ([`crate::shard::global_inputs_hash`]).
+///
+/// A path under `layout.state_dir` never appears: spec 039 excludes state from
+/// every content hash, and `global_inputs_hash` filters it out by the same rule.
+pub fn witnessed_paths(cfg: &Config, repo_root: &Path, index: &CodebaseIndex) -> BTreeSet<String> {
+    let mut out: BTreeSet<String> = BTreeSet::new();
+    for m in &index.traceability.mappings {
+        out.insert(spec_md_rel(&cfg.layout.specs_dir, &m.spec_id));
+        out.extend(span_files_for_mapping(m));
+    }
+    for p in &index.packages {
+        out.insert(package_manifest_rel(p));
+    }
+    let cfg_path = repo_root.join("spec-spine.toml");
+    if cfg_path.is_file() {
+        out.insert(rel_posix(repo_root, &cfg_path));
+    }
+    for pattern in &cfg.index.extra_hashed_inputs {
+        for file in glob_files(repo_root, pattern) {
+            let rel = rel_posix(repo_root, &file);
+            if cfg.layout.is_state_path(&rel) {
+                continue;
+            }
+            out.insert(rel);
+        }
+    }
+    out
+}
+
+/// A claimed path that exists on disk and that no content hash covers
+/// (spec 057 §3.2).
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UnwitnessedClaim {
+    pub spec_id: String,
+    pub path: String,
+    /// Covered by a `[lint] unwitnessed_allowed` pattern: this corpus has
+    /// decided the gap is deliberate. Still counted and still reported by
+    /// `index check`; only `L-008` is suppressed (spec 057).
+    pub allowed: bool,
+}
+
+/// True when a `[lint] unwitnessed_allowed` pattern covers the path.
+fn is_allowed_unwitnessed(cfg: &Config, path: &str) -> bool {
+    cfg.lint
+        .unwitnessed_allowed
+        .iter()
+        .any(|pat| glob::Pattern::new(pat).is_ok_and(|p| p.matches(path)))
+}
+
+/// Every ownership-bearing claimed path that exists and is unwitnessed, sorted.
+///
+/// A path that does **not** exist is excluded: it is already diagnosed as an
+/// unresolved unit (`W-001` / `W-002`, spec 025), and telling a specify-first
+/// corpus that a file it has not written yet is also not hashed would put a
+/// second warning on every pending claim.
+pub fn unwitnessed_claims(
+    cfg: &Config,
+    repo_root: &Path,
+    index: &CodebaseIndex,
+) -> Vec<UnwitnessedClaim> {
+    let witnessed = witnessed_paths(cfg, repo_root, index);
+    let mut out: BTreeSet<UnwitnessedClaim> = BTreeSet::new();
+    for m in &index.traceability.mappings {
+        for ru in m.resolved_units.iter().filter(|ru| ru.ownership) {
+            for loc in &ru.locations {
+                // A directory-form claim is a prefix, not a file: it witnesses
+                // nothing itself, and the files under it are judged on their
+                // own. Reporting the prefix would name a path that cannot be
+                // hashed rather than one that is not.
+                if loc.file.ends_with('/') {
+                    continue;
+                }
+                if witnessed.contains(&loc.file) {
+                    continue;
+                }
+                // Spec 039 / `L-006`: a claim inside the ungoverned state root
+                // is already an error-tier diagnosis, and "and it is not
+                // hashed" is noise on a path that has to move regardless.
+                if cfg.layout.is_state_path(&loc.file) {
+                    continue;
+                }
+                if !repo_root.join(&loc.file).is_file() {
+                    continue;
+                }
+                out.insert(UnwitnessedClaim {
+                    spec_id: m.spec_id.clone(),
+                    path: loc.file.clone(),
+                    allowed: is_allowed_unwitnessed(cfg, &loc.file),
+                });
+            }
+        }
+    }
+    out.into_iter().collect()
+}
+
 // ===== spec 055: who owns this path =====
 
 /// How a spec comes to own a path.
