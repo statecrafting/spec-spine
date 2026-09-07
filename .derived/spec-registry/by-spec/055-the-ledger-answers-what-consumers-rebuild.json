@@ -55,10 +55,26 @@
           "kind": "file",
           "path": "crates/spec-spine-core/src/query.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/query.rs"
+        }
       }
     ],
     "id": "055-the-ledger-answers-what-consumers-rebuild",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -88,6 +104,6 @@
     "summary": "Two facts the ledger computes and then keeps to itself, each of which an adopter has reimplemented. Ownership of a path is resolved inside `couple.rs::owners_for_path`, a private function, so a consumer that wants to know which spec governs a file rebuilds a path-to-spec map from raw edges and gets the subtree, supersession and comment-header rules wrong. A spec's content hash is written into every registry shard as `shardHash` and is absent from every read verb, so claude-observatory reimplemented `hash.rs` normalization in TypeScript in order to pin against it. This spec adds `spec-spine index owner <path>` and puts `contentHash` on `registry show --json`'s output object. Neither touches a committed artifact, a DTO, or a schema version: both facts already exist and are merely unreachable.\n",
     "title": "The ledger answers what consumers rebuild by hand"
   },
-  "shardHash": "def73526768c35799310982d6277dc30a027156632612a63ce2e46ca665c7968",
+  "shardHash": "f7fc386bd2a03618429387dd3068303680eff123631d5f051743482d0f06c0a7",
   "specVersion": "1.1.0"
 }

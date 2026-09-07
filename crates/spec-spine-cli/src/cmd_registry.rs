@@ -7,8 +7,8 @@ use std::path::Path;
 
 use clap::Subcommand;
 use spec_spine_core::{
-    ListFilter, Plan, list, list_ids, load_committed_registry, plan, relationships, show,
-    status_report,
+    ListFilter, Plan, list, list_ids, load_committed_registry, plan, relationships,
+    shard_content_hash, show, status_report,
 };
 use spec_spine_types::{Error, Status};
 
@@ -94,8 +94,19 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
         }
         RegistryQuery::Show { id, json } => {
             let spec = show(&registry, id)?;
+            // Spec 055 §3.3: the hash the committed shard records, read and
+            // never recomputed. Added at the output boundary and nowhere else:
+            // putting it on `SpecRecord` would write it into every shard, whose
+            // schema is `additionalProperties: false`, for a value the shard
+            // already carries one line above the record.
+            let content_hash = shard_content_hash(&cfg, repo, &spec.id)?;
             if *json {
-                print_json(spec)?;
+                let mut value =
+                    serde_json::to_value(spec).map_err(|e| Error::Schema(e.to_string()))?;
+                if let (Some(obj), Some(h)) = (value.as_object_mut(), content_hash.as_ref()) {
+                    obj.insert("contentHash".to_string(), serde_json::json!(h));
+                }
+                print_json(&value)?;
             } else {
                 outln!("id:      {}", spec.id);
                 outln!("title:   {}", spec.title);
@@ -103,6 +114,13 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 outln!("created: {}", spec.created);
                 outln!("path:    {}", spec.spec_path);
                 outln!("summary: {}", spec.summary.trim());
+                if let Some(h) = &content_hash {
+                    // §3.4: say which hash this is in the same breath as
+                    // reporting it. The registry's and the index's per-spec
+                    // hashes are the same shape, and a consumer that confuses
+                    // them gets a pin that fires on unrelated edits.
+                    outln!("contentHash: {h}  (sha256 of this spec.md)");
+                }
             }
         }
         RegistryQuery::StatusReport { json, nonzero_only } => {
