@@ -130,6 +130,13 @@ with flags dropped:
 A tag push carries its own refspec and moves no branch, which is why it belongs
 in the last row and why the release runbook can call for it from that branch.
 
+A command chaining **more than one** push MUST be refused on the default
+branch, whatever its arguments say. Only the first push is walked argument by
+argument, and a walk cannot speak for a push it never examined; refusing is the
+conservative reading, and a chained push is not a form anyone needs. Off that
+branch the chain is allowed, because the refspec check still sees the whole
+command.
+
 The refusal message MUST say what was actually refused, rather than restating
 the rule, and MUST name the tag push as allowed, so a maintainer who hits it
 can tell a correct refusal from a misfire.
@@ -199,6 +206,28 @@ an editor rather than a heredoc. The general lesson is 3.3's: a gate matching
 shell text will always have edges, so its correctness has to be established by
 running it over a matrix of real commands, not by tuning the pattern until the
 cases someone thought of stop firing.
+
+**2026-09-08: no `amends` on 029 or 051, checked rather than assumed.** Review
+asked whether the specs owning the two edited files also state a contradicted
+requirement, which would oblige an `amends` edge to each under spec 040. They
+do not, and the check is worth recording so it is not re-litigated. Spec 029
+mentions a gate exactly once, and means the coupling gate in the documentation
+it ships; it states nothing about what a push gate refuses. Spec 051 3.6
+requires that `.claude/settings.json` carry the four hooks `kit/settings.json`
+ships and the same `deny` list, and permits divergence only in the permission
+`allow` list. This change keeps both files carrying the same four hooks and
+leaves `deny` untouched, so 051's requirement is satisfied, not contradicted.
+`nature: superseding` on the two `extends` edges records that the content of
+those units is replaced; the requirement each owner states is not.
+
+**2026-09-08: a chained second push is refused rather than parsed.** Also from
+review, which asked for a comment on the shortest-prefix strip and, in writing
+it, exposed that the walk only ever inspects the first push: `git push origin
+feat && git push origin HEAD` would have been cleared on the strength of the
+first clause. Refusing the chain on the default branch closes it in one line
+and costs nothing real, since nobody writes that form deliberately. The
+alternative, walking every push in the command, is the shell parser 4 rules
+out.
 
 **2026-09-08: the text assertions were kept.** An earlier draft deleted them in
 favour of the behavioral matrix. A text assertion that fails tells you which
