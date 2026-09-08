@@ -1,0 +1,79 @@
+{
+  "record": {
+    "amends": [
+      "046-kit-hooks-read-never-write"
+    ],
+    "created": "2026-09-08",
+    "dependsOn": [
+      "046-kit-hooks-read-never-write",
+      "051-harness-runs-the-verbs-it-ships",
+      "065-init-and-the-kit-are-one-adoption"
+    ],
+    "extends": [
+      {
+        "nature": "superseding",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/settings.json"
+        }
+      },
+      {
+        "nature": "superseding",
+        "spec": "051-harness-runs-the-verbs-it-ships",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "046-kit-hooks-read-never-write",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "065-init-and-the-kit-are-one-adoption",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
+        }
+      }
+    ],
+    "id": "071-a-tag-push-is-not-a-push-to-main",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/releasing.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "071: A tag push is not a push to main",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The match is anchored on the command that invokes the push verb",
+      "3.2 The branch refusal names only what would update the default branch",
+      "3.3 The gate is asserted by running it",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/071-a-tag-push-is-not-a-push-to-main/spec.md",
+    "status": "draft",
+    "summary": "The kit's push gate refuses a push two ways: by refspec, and by current branch. The branch half is unconditional, so it refuses a tag push made from main, which is exactly what docs/releasing.md tells a maintainer to run the moment the release PR merges. The shipped harness makes the shipped release procedure unexecutable, and it did that to v0.16.0. The outer match is a substring test over the whole command, so it also refuses a grep or a heredoc that merely mentions the gate. This spec narrows the branch refusal to a push that would actually update main, anchors the outer match on the push verb, and replaces the substring assertion that could not see either defect with a guard that runs the gate.\n",
+    "title": "A tag push is not a push to main"
+  },
+  "shardHash": "75d29b45145622af23ad877004e9647b9ea33617eefd77535e740ff239b35f43",
+  "specVersion": "1.1.0"
+}
