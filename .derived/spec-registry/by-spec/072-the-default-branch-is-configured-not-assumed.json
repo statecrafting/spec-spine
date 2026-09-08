@@ -1,0 +1,139 @@
+{
+  "record": {
+    "amends": [
+      "046-kit-hooks-read-never-write"
+    ],
+    "created": "2026-09-08",
+    "dependsOn": [
+      "046-kit-hooks-read-never-write",
+      "048-kit-ships-the-governed-loop-skills",
+      "064-the-kit-ships-the-composite-gate",
+      "065-init-and-the-kit-are-one-adoption",
+      "071-a-tag-push-is-not-a-push-to-main"
+    ],
+    "extends": [
+      {
+        "nature": "superseding",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/settings.json"
+        }
+      },
+      {
+        "nature": "superseding",
+        "spec": "051-harness-runs-the-verbs-it-ships",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "046-kit-hooks-read-never-write",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "065-init-and-the-kit-are-one-adoption",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "064-the-kit-ships-the-composite-gate",
+        "unit": {
+          "kind": "file",
+          "path": "kit/Makefile"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/AGENTS.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/skills/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/agents/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "048-kit-ships-the-governed-loop-skills",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "048-kit-ships-the-governed-loop-skills",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/agents/"
+        }
+      }
+    ],
+    "id": "072-the-default-branch-is-configured-not-assumed",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/releasing.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "072: The default branch is configured, not assumed",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The protected branch is resolved, never assumed",
+      "3.2 Every comparison in the push gate uses the resolved name",
+      "3.3 The coupling base follows the resolved branch",
+      "3.4 The documented commands stop naming a branch that may not exist",
+      "3.5 The matrix proves it on a repository whose default is not main",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/072-the-default-branch-is-configured-not-assumed/spec.md",
+    "status": "draft",
+    "summary": "The kit's push gate protects a branch named main and nothing else. An adopter whose default branch is master or trunk installs a gate that refuses nothing, learns this from no diagnostic, and is told by the same harness to run a coupling gate against an origin/main that does not exist. Spec 071 narrowed what the gate refuses but left the name hardcoded, naming the gap and deferring it for want of a mechanism. This spec supplies one: the branch is resolved per repository from an environment override, then from the remote's own HEAD, then from main as a compatibility floor, with no dependency on the spec-spine binary and no new configuration key. Every branch comparison in the push gate, the coupling base in the PR gate and the Makefile, and the commands the kit documents follow the resolved name.\n",
+    "title": "The default branch is configured, not assumed"
+  },
+  "shardHash": "5a8943099167c9cedf17125d3a0d9498114f9755962d72dec42be4789a3e9aa3",
+  "specVersion": "1.1.0"
+}
