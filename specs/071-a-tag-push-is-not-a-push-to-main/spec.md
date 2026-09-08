@@ -182,6 +182,14 @@ form a person or an agent actually writes, and a hook that shelled out to the
 network to be exhaustive would tax every Bash invocation. The heuristic's cases
 are enumerated in the 3.3 matrix, so its limits are visible rather than assumed.
 
+One such limit, named so it is not rediscovered as a defect: the argument walk
+treats `;`, `&` and `|` as terminators but not a redirection, so
+`git push origin v1.2.3 2>/dev/null` counts four positional words rather than
+two. The verdict stays correct, because a count above two is only ever consulted
+for whether the refspec names `HEAD` or the branch, and a redirection target
+names neither. Tightening it would mean tokenizing a shell command, which is the
+parser this section already declines.
+
 **Auditing the other hooks for the same shape.** The `PostToolUse` hook matches
 on `file_path` values rather than command text, and the PR gate is already
 anchored. Only the push gate carried the defect.

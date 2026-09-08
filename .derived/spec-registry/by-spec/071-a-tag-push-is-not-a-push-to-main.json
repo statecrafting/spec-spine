@@ -74,6 +74,6 @@
     "summary": "The kit's push gate refuses a push two ways: by refspec, and by current branch. The branch half is unconditional, so it refuses a tag push made from main, which is exactly what docs/releasing.md tells a maintainer to run the moment the release PR merges. The shipped harness makes the shipped release procedure unexecutable, and it did that to v0.16.0. The outer match is a substring test over the whole command, so it also refuses a grep or a heredoc that merely mentions the gate. This spec narrows the branch refusal to a push that would actually update main, anchors the outer match on the push verb, and replaces the substring assertion that could not see either defect with a guard that runs the gate.\n",
     "title": "A tag push is not a push to main"
   },
-  "shardHash": "ca65f6c6a51f1e0782576576f361d433da596a74b99a23fcd7dffa28c683fca6",
+  "shardHash": "75d29b45145622af23ad877004e9647b9ea33617eefd77535e740ff239b35f43",
   "specVersion": "1.1.0"
 }

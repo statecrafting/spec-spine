@@ -250,6 +250,14 @@ fn the_push_gate_refuses_only_what_would_update_main() {
         // second one is refused outright on the default branch rather than
         // waved through unexamined. The same chain off main stays allowed.
         ("git push origin feat && git push origin HEAD", "main", true),
+        // The same holds when the chained push is a tag: refused outright on
+        // the default branch, because the rule is about what went unexamined,
+        // not about what the second refspec happens to name.
+        (
+            "git push origin feat && git push origin v1.2.3",
+            "main",
+            true,
+        ),
         (
             "git push origin feat && git push origin v1.2.3",
             "feat",
