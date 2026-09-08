@@ -1,0 +1,59 @@
+{
+  "record": {
+    "created": "2026-09-08",
+    "dependsOn": [
+      "001-compile-registry",
+      "053-depends-on-ordinal-monotonicity"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/compile.rs"
+        }
+      }
+    ],
+    "id": "070-a-malformed-id-is-refused-not-a-panic",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-architecture.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "070: A malformed id is refused, not a panic",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The numeric prefix is read by character, and only when numeric",
+      "3.2 An id with no numeric prefix is not a V-004 candidate",
+      "3.3 What must keep working",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/070-a-malformed-id-is-refused-not-a-panic/spec.md",
+    "status": "draft",
+    "summary": "`detect_duplicates` reads a spec id's V-004 prefix as `&id[..id.len().min(3)]`, a byte slice. An id whose fourth byte falls inside a multi-byte character panics the process instead of diagnosing it, so `a日本-spec` exits 101 with a backtrace where the corpus should have been refused at exit 1 by V-012, the code that exists to name exactly that malformation. Spec 053 §4 found the defect, declined to fix it from inside a lint change, and asked for this spec. The fix reads the prefix the way spec 001 §3.2 already describes it, as a numeric prefix (`NNN`), using the character-safe leading-digit-run rule spec 053 established in `lint.rs`.\n",
+    "title": "A malformed id is refused, not a panic"
+  },
+  "shardHash": "0eb00521f60e41355ae50291eca3a56dbfea6a2f565f9901faaaeeee9e44191e",
+  "specVersion": "1.1.0"
+}

@@ -343,6 +343,20 @@ fn validate_spec(
     }
 }
 
+/// The leading run of ASCII decimal digits of `id`, as a sub-slice of it.
+///
+/// This is the `NNN` of spec 001 §3.2, read by character. Slicing `&id[..3]`
+/// outright panics when byte 3 falls inside a multi-byte character, which is
+/// the defect spec 070 fixes; counting ASCII digits can only ever stop on a
+/// character boundary, because every byte it accepts is a one-byte character.
+/// An id with no leading digit yields `""`, which spec 070 §3.2 defines as
+/// having no numeric prefix at all. `lint.rs::ordinal` reads the same run and
+/// parses it, because ordering is a different question about these characters.
+fn numeric_prefix(id: &str) -> &str {
+    let end = id.bytes().take_while(u8::is_ascii_digit).count();
+    &id[..end]
+}
+
 /// V-003 (duplicate id) and V-004 (duplicate numeric prefix). `specs` is
 /// `(id, spec_path)` pairs in discovery order.
 fn detect_duplicates(specs: &[(String, String)], out: &mut Vec<Violation>) {
@@ -350,7 +364,12 @@ fn detect_duplicates(specs: &[(String, String)], out: &mut Vec<Violation>) {
     let mut prefix_owner: BTreeMap<&str, &str> = BTreeMap::new();
     for (id, spec_path) in specs {
         *id_counts.entry(id.as_str()).or_insert(0) += 1;
-        let prefix = &id[..id.len().min(3)];
+        // Spec 070 §3.2: an id with no numeric prefix shares one with nothing,
+        // so it is not a V-004 candidate. V-012 is what refuses it.
+        let prefix = numeric_prefix(id);
+        if prefix.is_empty() {
+            continue;
+        }
         match prefix_owner.get(prefix) {
             Some(other) if *other != id.as_str() => out.push(error(
                 "V-004",
