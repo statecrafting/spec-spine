@@ -527,14 +527,29 @@ fn workflow_uses_bump_auto_waives() {
     git_in(root, &["add", "-A"]);
     git_in(root, &["commit", "-q", "-m", "base"]);
 
-    // Dependabot github-actions bump: the action ref only. No re-index (a file
-    // unit carries no span, so it is not a hashed input), no spec edit.
+    // Dependabot github-actions bump: the action ref only, no spec edit.
     write(
         root,
         ".github/workflows/ci.yml",
         "name: CI\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    \
          steps:\n      - uses: actions/checkout@v5\n      - run: cargo test\n",
     );
+
+    // The bump stales the ledger, because `.github/workflows/**/*` is a hashed
+    // input (spec 069 fixed the default that had made it one in name only).
+    // 030 1 reasoned that workflow freshness "is already fine" because a `file`
+    // unit carries no span; that is true of the unit and was never true of the
+    // `extra_hashed_inputs` glob beside it, which is why this repository's own
+    // workflow edits have stale every shard since spec 057. The subject of this
+    // test is the coupling half, so re-index first and then assert it.
+    let stale = index_check(root);
+    assert_eq!(
+        code(&stale),
+        2,
+        "a hashed workflow bump stales the index: {}",
+        String::from_utf8_lossy(&stale.stderr)
+    );
+    refresh(root);
     git_in(root, &["add", "-A"]);
     git_in(root, &["commit", "-q", "-m", "bump-action"]);
 
@@ -542,7 +557,7 @@ fn workflow_uses_bump_auto_waives() {
     assert_eq!(
         code(&fresh),
         0,
-        "a file-unit workflow bump must not stale the index: {}",
+        "the re-indexed tree is fresh: {}",
         String::from_utf8_lossy(&fresh.stderr)
     );
 

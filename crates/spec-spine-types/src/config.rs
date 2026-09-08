@@ -176,9 +176,15 @@ pub struct IndexConfig {
 impl Default for IndexConfig {
     fn default() -> Self {
         IndexConfig {
+            // Spec 069: the trailing `/*` is load-bearing. In the `glob`
+            // crate `dir/**` enumerates directories, and `glob_files` keeps
+            // only entries that are files, so the bare form these two carried
+            // until 069 matched nothing at all: an adopter on the default
+            // folded no governance file into any content hash and was told
+            // nothing. `dir/**/*` is the same intent, spelled so it matches.
             extra_hashed_inputs: vec![
-                "standards/**".to_string(),
-                ".github/workflows/**".to_string(),
+                "standards/**/*".to_string(),
+                ".github/workflows/**/*".to_string(),
             ],
             slices: BTreeMap::new(),
             resolver_exclusions: vec![
