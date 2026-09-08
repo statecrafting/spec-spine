@@ -1,7 +1,7 @@
 ---
 id: "066-the-contract-records-the-lifecycle-table"
 title: "The contract records the lifecycle table and the extra keys"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-07"
 implementation: complete

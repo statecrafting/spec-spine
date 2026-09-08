@@ -142,8 +142,8 @@
       }
     ],
     "specId": "063-a-stale-binary-is-not-a-stale-ledger",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "d9ff0281653e353742394b41ffe6d8680ed63cfa88fbe956450d08c3c03dde8f"
+  "shardHash": "9dbb9aec229700c502149d11755d43faef56fd330cd1879c5a632f3491a0dd75"
 }

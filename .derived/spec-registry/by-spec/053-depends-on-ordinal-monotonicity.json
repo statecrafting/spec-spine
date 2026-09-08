@@ -66,10 +66,10 @@
       "5. Verification"
     ],
     "specPath": "specs/053-depends-on-ordinal-monotonicity/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Three adopters independently wrote the same ninety-line `scripts/spec-dag.sh` to assert one thing the tool does not: that a `depends_on` entry names a lower ordinal than the spec declaring it. Spec 033 already ships the harder half of that graph check, refusing a cycle at compile time, and ordinal monotonicity is the cheap total order that makes a cycle impossible by construction rather than detectable after the fact. This spec adds `L-007`, an opt-in conformance lint gated on a new `[lint] require_ordinal_monotonic_depends_on` knob, defaulting off so no existing corpus changes verdict. It is deliberately a lint and not a `V-` code: a forward dependency is a corpus convention an adopter may reasonably not hold, not a structural defect that makes the registry unreadable.\n",
     "title": "A dependency points backward, and the corpus can say so"
   },
-  "shardHash": "e3a14fac12e75cea1cbd364992f4307fe54007fe915404a84a653f88ee9671ec",
+  "shardHash": "a36bd7fb798b1adae5baaee2b1aa53b24d3fdf7caf10aa129cc0a66d151126c8",
   "specVersion": "1.1.0"
 }

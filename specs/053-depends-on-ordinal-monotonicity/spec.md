@@ -1,7 +1,7 @@
 ---
 id: "053-depends-on-ordinal-monotonicity"
 title: "A dependency points backward, and the corpus can say so"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

@@ -65,10 +65,10 @@
       "5. Verification"
     ],
     "specPath": "specs/067-the-docs-name-what-adopters-derived/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Three documentation gaps the audit measured, each with a named victim. There is no page for specify-first adoption, which is how three of the four governed repositories work, so each of them independently derived the guarded Makefile, the CI manifest probe, `implementation: n-a` for record specs, and the fact that two hundred and forty-eight W-001 warnings is the defined state rather than a backlog. Two interactions are documented nowhere and were found by experiment: a path can be on the coupling bypass floor and simultaneously a hashed input, and a trailing-slash directory unit in `establishes` satisfies ownership recursively. And spec 037 changed `attest`'s stdout, which claude-observatory regexes in two places, with no migration note. This spec writes the page and the three paragraphs.\n",
     "title": "The docs name what adopters derived by experiment"
   },
-  "shardHash": "df0cdb5263c776fa8fe1d0e4ed063dd31e48afd387c10602be59a967021f2b1f",
+  "shardHash": "05dcf3c453e5ee703f17dc8121baa00fdf1cd28f6b01040463909863c14bdccb",
   "specVersion": "1.1.0"
 }

@@ -193,8 +193,8 @@
       }
     ],
     "specId": "056-compile-one-spec",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "6bcadb6a324102a86b61807c6e3596625072d02418b925fdd1e9b4ce95ce4084"
+  "shardHash": "812a614288f91ec84fdce533c9ce098b54c555dc26d1200d11626f00c15ce283"
 }

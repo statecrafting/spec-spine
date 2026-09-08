@@ -1,7 +1,7 @@
 ---
 id: "056-compile-one-spec"
 title: "Validate one draft without a temporary repository"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

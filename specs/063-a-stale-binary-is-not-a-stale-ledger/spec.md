@@ -1,7 +1,7 @@
 ---
 id: "063-a-stale-binary-is-not-a-stale-ledger"
 title: "A stale binary is not a stale ledger"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

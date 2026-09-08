@@ -1,7 +1,7 @@
 ---
 id: "064-the-kit-ships-the-composite-gate"
 title: "The kit ships the composite gate and the merge driver"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

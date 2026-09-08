@@ -173,8 +173,8 @@
       }
     ],
     "specId": "057-claimed-but-unwitnessed",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f0a3ef7be72c71f03163bc2afab9d096ce878564f9b0c6be416831fd842f48ef"
+  "shardHash": "f9c3fa13041591c0f8be154e7932c9cbb4d35bcb66886fb9ccc7c82f9730cff1"
 }

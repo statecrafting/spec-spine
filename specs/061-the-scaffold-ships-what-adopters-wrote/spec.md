@@ -1,7 +1,7 @@
 ---
 id: "061-the-scaffold-ships-what-adopters-wrote"
 title: "The scaffold ships what every adopter wrote by hand"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

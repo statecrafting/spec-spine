@@ -207,8 +207,8 @@
       }
     ],
     "specId": "065-init-and-the-kit-are-one-adoption",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "5686e0b4b7440f41db31b74f752b48bf7e0b8ca8ff60781d4c2db68c14b94944"
+  "shardHash": "6c827c928ee2a3a1263268edf0093cce06e7fe02be5eefaba82050ffde33d12e"
 }

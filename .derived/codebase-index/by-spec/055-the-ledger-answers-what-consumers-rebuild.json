@@ -160,8 +160,8 @@
       }
     ],
     "specId": "055-the-ledger-answers-what-consumers-rebuild",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "b725770dd825044ec71d52a3fb54b10102c885cadcd5fe5b9c82c1ffeb06672e"
+  "shardHash": "25a33cf556b9154104079268a6a96466f83aaeff96a58a2f468ce5e0631b9900"
 }

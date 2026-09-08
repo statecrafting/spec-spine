@@ -1,7 +1,7 @@
 ---
 id: "065-init-and-the-kit-are-one-adoption"
 title: "Init and the kit are one adoption"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

@@ -1,7 +1,7 @@
 ---
 id: "055-the-ledger-answers-what-consumers-rebuild"
 title: "The ledger answers what consumers rebuild by hand"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

@@ -91,10 +91,10 @@
       "5. Verification"
     ],
     "specPath": "specs/059-read-verbs-on-a-code-free-corpus/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Three of the four governed repositories are specify-first: the whole corpus is ratified before a line of code exists, and specs live at approved plus pending for months. Two read verbs give that corpus an answer that is technically correct and practically a lie. `index orphans` reports sixty-four of hqgit's sixty-eight specs, because an orphan is a spec claiming nothing that resolves, and a spec whose code is not written yet claims nothing that resolves; the list is the corpus, so it says nothing. `index coverage --fail-on-untraced` on a tree with no discovered package enumerates zero source files, computes zero untraced, and exits 0 from inside a CI step named \"the whole-tree ownership assertion\". This spec makes the first partition by the in-flight predicate the index already computes, and makes the second refuse an empty universe instead of passing it.\n",
     "title": "Two read verbs that mislead a specify-first corpus"
   },
-  "shardHash": "bab68eecd9f5c7415fac7011203eff309ced25be49da3b11501be7f75762d967",
+  "shardHash": "c8c269b61db919647a806114a477e080a4412e7f4e97cb3a141b501238a7d1f2",
   "specVersion": "1.1.0"
 }
