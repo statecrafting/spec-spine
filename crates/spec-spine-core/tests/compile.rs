@@ -180,6 +180,12 @@ fn v004_ignores_a_multibyte_prefix_that_lands_on_a_boundary() {
         !c.contains(&"V-004".to_string()),
         "no numeric prefix: {c:?}"
     );
+    // Assert the finding that must remain, not only the one that must go:
+    // without this the test would still pass if V-012 were suppressed here.
+    assert!(
+        c.contains(&"V-012".to_string()),
+        "id pattern is the finding: {c:?}"
+    );
 }
 
 #[test]
