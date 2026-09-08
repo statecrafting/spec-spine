@@ -1,0 +1,99 @@
+{
+  "record": {
+    "amends": [
+      "061-the-scaffold-ships-what-adopters-wrote"
+    ],
+    "created": "2026-09-07",
+    "dependsOn": [
+      "004-codebase-index",
+      "057-claimed-but-unwitnessed",
+      "061-the-scaffold-ships-what-adopters-wrote",
+      "067-the-docs-name-what-adopters-derived"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "062-a-version-pin-the-cli-can-check",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "061-the-scaffold-ships-what-adopters-wrote",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "061-the-scaffold-ships-what-adopters-wrote",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scaffold.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "055-the-ledger-answers-what-consumers-rebuild",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "067-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/adoption-guide.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "030-cargo-workflow-dependency-waiver",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/couple.rs"
+        }
+      }
+    ],
+    "id": "069-the-shipped-default-hashes-what-it-names",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-architecture.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "069: The shipped default hashes what it names",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The default matches files",
+      "3.2 The scaffold stops describing the default as broken",
+      "3.3 A regression guard that fails on the old default",
+      "3.4 The documentation stops quoting the broken value",
+      "3.5 The migration note",
+      "3.6 A workflow bump stales the ledger, and the test says so",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/069-the-shipped-default-hashes-what-it-names/spec.md",
+    "status": "draft",
+    "summary": "`IndexConfig::default().extra_hashed_inputs` ships as `[\"standards/**\", \".github/workflows/**\"]`. In the glob crate `dir/**` enumerates directories, and the hasher keeps only entries that are files, so the shipped default matches nothing: every adopter who has not overridden it folds zero extra files into the content hash and is told nothing. Spec 057 found the form in this repository's own config and fixed it there; spec 061 found it in the default behind it, emitted the key at its real value with a comment naming the trap, and deferred the fix to its own spec on the grounds that changing it restales every adopter's committed index. This is that spec. The default becomes `[\"standards/**/*\", \".github/workflows/**/*\"]`, the working form 061's comment already tells adopters to write, so an adopter who followed that advice sees no change and one who did not gets a one-time restale and a governance surface that is finally in the ledger. A regression test pins the property that was never asserted: that the shipped default matches files.\n",
+    "title": "The shipped default hashes what it names"
+  },
+  "shardHash": "1a5fd67f78a71d95e1ebdf5482fa581be6606a19ee975b046010fe6f60687d23",
+  "specVersion": "1.1.0"
+}

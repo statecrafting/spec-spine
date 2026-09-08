@@ -190,6 +190,69 @@ fn missing_file_unit_is_blocking_diagnostic_i004() {
     assert!(idx.diagnostics.errors.iter().any(|d| d.code == "I-004"));
 }
 
+// ===== spec 069: the shipped default hashes what it names =====
+
+/// Spec 069 §3.3: the **shipped default** folds real files into the content
+/// hash. Until 069 it folded none: `extra_hashed_inputs` defaulted to
+/// `["standards/**", ".github/workflows/**"]`, `**` enumerates directories, and
+/// `glob_files` keeps only entries that are files, so the default matched
+/// nothing. Every adopter who had not overridden the key could rewrite their
+/// constitution with `index check` still reporting fresh.
+///
+/// The fixture deliberately uses `Config::default()` rather than a hand-written
+/// `[index]` table. A test that spells its own globs proves the glob engine
+/// works and cannot fail when the default rots, which is exactly how this
+/// survived: `tests/lint.rs` already pinned that `sub/**` matches nothing and
+/// `sub/**/*` matches, and the broken default sat beside it for months.
+#[test]
+fn the_shipped_default_hashes_the_files_it_names() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = []\n");
+    write(tmp.path(), "specs/001-x/spec.md", &spec("001-x", ""));
+    // The two trees the default names, each one directory deeper than the
+    // pattern's literal prefix: the pre-069 form matched the directories and
+    // discarded them, so a file directly under them is the case that failed.
+    write(
+        tmp.path(),
+        "standards/spec/constitution.md",
+        "# Constitution\n",
+    );
+    write(tmp.path(), ".github/workflows/ci.yml", "name: ci\n");
+
+    let cfg = Config::default();
+    let idx = index(&cfg, tmp.path()).unwrap().index;
+    let hashed = spec_spine_core::witnessed_paths(&cfg, tmp.path(), &idx);
+    for expected in ["standards/spec/constitution.md", ".github/workflows/ci.yml"] {
+        assert!(
+            hashed.contains(expected),
+            "the default did not fold {expected} into the content hash: {hashed:?}"
+        );
+    }
+
+    // ...and the consequence that matters: editing one of them moves the hash.
+    // Membership alone would still pass if the file were collected and then
+    // dropped before hashing, which is the shape of the bug this guards.
+    let before = spec_spine_core::shard::global_inputs_hash(&cfg, tmp.path());
+    write(
+        tmp.path(),
+        "standards/spec/constitution.md",
+        "# Constitution\n\nA governed edit.\n",
+    );
+    let after = spec_spine_core::shard::global_inputs_hash(&cfg, tmp.path());
+    assert_ne!(
+        before, after,
+        "an edit to a standards file must move the global inputs hash"
+    );
+
+    let before_wf = after;
+    write(tmp.path(), ".github/workflows/ci.yml", "name: ci2\n");
+    assert_ne!(
+        before_wf,
+        spec_spine_core::shard::global_inputs_hash(&cfg, tmp.path()),
+        "an edit to a workflow file must move the global inputs hash"
+    );
+}
+
 // ===== spec 026: resolution + discovery fixes =====
 
 /// AC-1 (spec 026 D1): a section unit on a foreign (non-workflow) YAML resolves

@@ -240,7 +240,7 @@ divergence observed across the reference repos. Every sub-table is
 | `layout.cargo_workspace` | root Cargo workspace manifest | `Cargo.toml` |
 | `layout.npm_workspaces` | manifests that *declare* npm/pnpm workspace members | `["package.json", "pnpm-workspace.yaml"]` |
 | `layout.standalone_rust_workspaces` / `standalone_npm_packages` | crates/packages outside the root workspace | `[]` |
-| `index.extra_hashed_inputs` | globs folded into the staleness content hash, beyond the always-hashed core | `["standards/**", ".github/workflows/**"]` |
+| `index.extra_hashed_inputs` | globs folded into the staleness content hash, beyond the always-hashed core. **Keep the trailing `/*`**: `dir/**` matches directories and therefore no files | `["standards/**/*", ".github/workflows/**/*"]` |
 | `index.resolver_exclusions` | dir names pruned from symbol/section walks | `["target","node_modules",".derived","dist","build",".next"]` |
 | `index.slices` | named glob groups, each emitted as a `build.sliceHashes` entry and gated by `index check --slice <name>`; names match `[a-z0-9][a-z0-9-]*`, each list non-empty. Independent of the global `contentHash` | `{}` |
 | `branding.compiler_id` / `indexer_id` | ids stamped in emitted `build` metadata | `"spec-spine"` |
@@ -265,7 +265,7 @@ allowed = ["app", "platform", "tooling"]
 standalone_rust_workspaces = ["apps/desktop/src-tauri"]
 
 [index]
-extra_hashed_inputs = ["standards/**", ".github/workflows/**", "schemas/**"]
+extra_hashed_inputs = ["standards/**/*", ".github/workflows/**/*", "schemas/**/*"]
 ```
 
 The bypass floor (always applied, cannot be removed) covers `.github/`, `docs/`,
@@ -323,7 +323,7 @@ A path can be on both, neither, or either, and neither implies the other:
 
 - `docs/` here is **bypassed and not hashed**: a documentation edit raises no
   `C-001`, and stales nothing.
-- `standards/**` here is **bypassed and hashed**: an edit to the constitution
+- `standards/**/*` here is **bypassed and hashed**: an edit to the constitution
   raises no `C-001`, and does stale every shard.
 
 Bypassed answers "will the gate refuse this change"; hashed answers "does this
@@ -333,7 +333,15 @@ the other is how a governance file ends up outside both.
 > **Watch the glob form** in `extra_hashed_inputs`. `dir/**` matches
 > **directories**, so it hashes no files; you want `dir/**/*`. This repository
 > carried `["standards/**", ".github/workflows/**"]` for a long time, matching
-> nothing, until spec 057's predicate found it.
+> nothing, until spec 057's predicate found it. So did the shipped default
+> behind it, until spec 069.
+
+> **Upgrading across spec 069.** `[index] extra_hashed_inputs` shipped a default
+> that matched no files. It is fixed. If you did not override the key, your next
+> `spec-spine index` will rewrite every shard once, because the standards tree
+> and the workflow directory are entering the content hash for the first time.
+> Commit the result. Nothing about what staleness *means* has changed; a surface
+> that was silently outside the ledger is now inside it.
 
 ## Directory units claim recursively
 

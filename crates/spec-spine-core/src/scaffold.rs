@@ -180,11 +180,12 @@ fn config_toml(cfg: &Config) -> String {
          # stales every shard.\n\
          #\n\
          # WATCH THE GLOB FORM. `dir/**` matches DIRECTORIES and therefore no\n\
-         # files; you want `dir/**/*`. The default below carries the broken form\n\
-         # and so hashes nothing (spec 057 found this in spec-spine\x27s own\n\
-         # config, where it had silently held since the key was added). It is\n\
-         # left as-is here because changing the default would restale every\n\
-         # existing adopter\x27s index; fix it in your own file:\n\
+         # files; you want `dir/**/*`, which is what the default below has.\n\
+         # The bare form is not an error and not empty: it parses, it prints\n\
+         # back through `config show`, and it matches nothing at all. It was\n\
+         # the shipped default until spec 069, and spec 057 found the same\n\
+         # form in spec-spine\x27s own config before that. If you narrow or\n\
+         # extend this list, keep the trailing `/*`:\n\
          #\n\
          #   extra_hashed_inputs = [\"{standards}/**/*\", \".github/workflows/**/*\"]\n\
          extra_hashed_inputs = [{extra_hashed_inputs}]\n\

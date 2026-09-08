@@ -249,7 +249,7 @@ standalone_npm_packages    = []     # e.g. ["services/api"]
 # Globs folded into the content-hash beyond the always-hashed core
 # (= all spec.md + all discovered manifests + spec-spine.toml). OAP hashed ~10
 # project-specific paths; adopters declare their own. Documented base set:
-extra_hashed_inputs = ["standards/**", ".github/workflows/**"]
+extra_hashed_inputs = ["standards/**/*", ".github/workflows/**/*"]
 # Directory names pruned from symbol/section resolution walks (OAP RESOLVER_EXCLUSIONS).
 resolver_exclusions = ["target", "node_modules", ".derived", "dist", "build", ".next"]
 
@@ -759,7 +759,7 @@ as recommended unless you redirect.
 | Q5 | Include `directory`/`crate`/`module` unit kinds in v1? | v1 shipped file/section/symbol; ✅ **all three later added (spec 017)** as the planned additive MINOR: `directory` as an explicit kind, `crate`/`module` resolved via the package/module index |
 | Q6 | Registry/index JSON: pretty (diffable) vs compact (OAP)? | **Pretty**, sorted keys, LF, trailing newline |
 | Q7 | Per-archive CycloneDX SBOM in the release workflow? | ✅ **Shipped (spec 021):** per-target CycloneDX SBOM + build provenance, gated to fail closed on a zero-component SBOM |
-| Q8 | `index.extra_hashed_inputs` default base set contents? | `["standards/**", ".github/workflows/**"]` + always-hashed core (specs, manifests, config) |
+| Q8 | `index.extra_hashed_inputs` default base set contents? | `["standards/**/*", ".github/workflows/**/*"]` + always-hashed core (specs, manifests, config). Shipped as `["standards/**", ".github/workflows/**"]`, which matched **directories** and therefore no files; ✅ **corrected (spec 069)** |
 | Q9 | `manifest.metadata_namespace` default `"spec-spine"` ⇒ `[package.metadata.spec-spine]` (hyphenated TOML key, legal but unusual). Prefer `"spec"`? | Keep **`"spec-spine"`** (self-describing; hyphenated bare keys are valid TOML) |
 | Q10 | How much provenance/`references` semantics in v1? | Ship the `references` edge + open `provenance.uri_schemes` config + basic URI well-formedness; defer rich knowledge-graph semantics |
 | Q11 | MSRV / edition: match references (2024/1.85) or lower MSRV for reach? | **Match references (edition 2024)** unless you want broader adopter MSRV |

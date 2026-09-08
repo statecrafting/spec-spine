@@ -271,6 +271,30 @@ fn the_scaffolded_config_round_trips_a_non_default_configuration() {
     assert_eq!(load_config(&toml).unwrap(), cfg);
 }
 
+/// Spec 069 §3.2: the emitted default is the working glob form. The round-trip
+/// assertion above cannot catch this: it compares the emitted file against
+/// `Config::default()`, so it holds just as well when both carry a pattern that
+/// matches nothing. This asserts the value itself, and the negative half is the
+/// one that bites, because `"standards/**/*"` contains `standards/**` as a
+/// substring and a careless `contains` check would pass on the broken form.
+#[test]
+fn the_scaffolded_default_hashes_files_not_directories() {
+    let toml = scaffolded(&Config::default(), "spec-spine.toml");
+    assert!(
+        toml.contains(r#"extra_hashed_inputs = ["standards/**/*", ".github/workflows/**/*"]"#),
+        "{toml}"
+    );
+    for broken in [r#""standards/**""#, r#"".github/workflows/**""#] {
+        assert!(
+            !toml.contains(broken),
+            "the pre-069 directory form is still emitted: {broken}"
+        );
+    }
+    // The trap outlives the default: an adopter narrowing this list can still
+    // write it, so the warning stays (and spec 061's own acceptance greps it).
+    assert!(toml.contains("matches DIRECTORIES"), "{toml}");
+}
+
 /// §3.2: the knobs adopters reached for are named, each with the code it drives
 /// where one exists. These are the thirteen the audit counted, not the five the
 /// scaffold used to emit.
