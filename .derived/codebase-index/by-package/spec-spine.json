@@ -4,8 +4,8 @@
     "name": "spec-spine",
     "path": "npm",
     "specRef": "007-distribution",
-    "version": "0.15.0"
+    "version": "0.16.0"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "2d6916493cc757c9e36e8983db03f631e03301b8a49ecc26a945dc8526189d52"
+  "shardHash": "63f0859c2d1d1a9dfe41b3c21836caf2e2bae244907e6d75aad76c48782a1476"
 }
