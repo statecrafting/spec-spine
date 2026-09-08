@@ -94,8 +94,8 @@
       }
     ],
     "specId": "071-a-tag-push-is-not-a-push-to-main",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "9c41a5d9fba5e6ce09a92a25476c587da085ebeb576704685a3eb7ea0576323e"
+  "shardHash": "5db38bb19a09c54c3e5b57f351b184df3e1e14e388f3607960a06fbb52e89389"
 }

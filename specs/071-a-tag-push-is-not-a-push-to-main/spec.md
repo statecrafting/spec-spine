@@ -1,7 +1,7 @@
 ---
 id: "071-a-tag-push-is-not-a-push-to-main"
 title: "A tag push is not a push to main"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-08"
 implementation: complete

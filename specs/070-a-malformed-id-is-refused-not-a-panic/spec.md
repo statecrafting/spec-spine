@@ -1,7 +1,7 @@
 ---
 id: "070-a-malformed-id-is-refused-not-a-panic"
 title: "A malformed id is refused, not a panic"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-08"
 implementation: complete
