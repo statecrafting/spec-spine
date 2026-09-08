@@ -101,10 +101,10 @@
       "5. Verification"
     ],
     "specPath": "specs/068-a-path-scoped-rule-example/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The kit's three rules are unconditional: every one loads in every session regardless of what the session touches. Claude Code supports `paths:` frontmatter that loads a rule only when a matching file is touched, and the kit's README lists that pattern under \"intentionally excluded\" while hqgit carries three good ones, including per-file scoping. The exclusion was a judgement made before any adopter had tried it, and an adopter has now tried it and kept it. This spec ships one path-scoped rule, scoped to the derived artifact tree, whose content is the one instruction that is only ever relevant when someone has a compiled artifact open: do not hand-edit it. One rule, as a worked example of the mechanism, with the README's exclusion replaced by a description of when to reach for it.\n",
     "title": "A path-scoped rule the kit actually ships"
   },
-  "shardHash": "c2b3fe382b1681601e596460bac14ea424b0dc264f7013489a3a1ac9360590c3",
+  "shardHash": "6f1ebd1ed8ce8de7be2dfe1816713625f4d76154b2303e71ec81f18fc9ad1d6e",
   "specVersion": "1.1.0"
 }

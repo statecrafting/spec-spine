@@ -1,7 +1,7 @@
 ---
 id: "069-the-shipped-default-hashes-what-it-names"
 title: "The shipped default hashes what it names"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

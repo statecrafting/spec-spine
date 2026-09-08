@@ -1,7 +1,7 @@
 ---
 id: "054-effective-config-is-a-governed-read"
 title: "The effective configuration is a governed read"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

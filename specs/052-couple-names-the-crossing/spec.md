@@ -1,7 +1,7 @@
 ---
 id: "052-couple-names-the-crossing"
 title: "The coupling gate names the crossing"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

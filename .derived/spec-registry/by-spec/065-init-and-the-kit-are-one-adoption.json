@@ -118,10 +118,10 @@
       "5. Verification"
     ],
     "specPath": "specs/065-init-and-the-kit-are-one-adoption/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Adoption is two halves that nothing joins. `spec-spine init` writes a corpus, a constitution, a contract, templates and three agent rules. `kit/` adds the session protocol, the hooks, the agents and fifteen skills. The scaffold does not mention the kit, the kit is not installable by any verb, and `AGENTS.md`, which every skill in the kit reads first and which the three rewriting adopters each wrote from nothing, is written by neither. Spec 043 named this gap G5 and did not close it. This spec adds `spec-spine init --with-kit`, emitting the kit's files through the same `Scaffold` data path as everything else, and makes plain `init` write an `AGENTS.md` naming the governed loop, because a repository with rules and no protocol is the configuration three adopters had to repair by hand.\n",
     "title": "Init and the kit are one adoption"
   },
-  "shardHash": "3c5517dae590c4f2cb9a5498a01b298406b6bf08c7615dbb6b19d052c3d00aaf",
+  "shardHash": "05e7b375daf2eb018b17cc9b81d5bb4554132dfa8e68570dab2fdebafa8a79d1",
   "specVersion": "1.1.0"
 }

@@ -1,7 +1,7 @@
 ---
 id: "068-a-path-scoped-rule-example"
 title: "A path-scoped rule the kit actually ships"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

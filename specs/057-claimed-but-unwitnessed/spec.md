@@ -1,7 +1,7 @@
 ---
 id: "057-claimed-but-unwitnessed"
 title: "A claim no hash witnesses"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

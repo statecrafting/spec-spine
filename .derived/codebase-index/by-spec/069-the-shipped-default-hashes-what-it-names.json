@@ -129,8 +129,8 @@
       }
     ],
     "specId": "069-the-shipped-default-hashes-what-it-names",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "1addbb9b1106506d036eee8971a088c2741e8b0302cf93bcac007bef64f50dd9"
+  "shardHash": "3c42e361c1c2f8a631ebf7d8de271ae7b864f0bb5b116822f10f4d36cfb9380c"
 }

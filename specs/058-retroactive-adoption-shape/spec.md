@@ -1,7 +1,7 @@
 ---
 id: "058-retroactive-adoption-shape"
 title: "The defects heading has one spelling"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-07"
 implementation: complete

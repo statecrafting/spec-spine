@@ -1,7 +1,7 @@
 ---
 id: "059-read-verbs-on-a-code-free-corpus"
 title: "Two read verbs that mislead a specify-first corpus"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

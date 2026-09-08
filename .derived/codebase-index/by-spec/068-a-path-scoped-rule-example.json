@@ -172,8 +172,8 @@
       }
     ],
     "specId": "068-a-path-scoped-rule-example",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "d260e4e4229888c79c01a3e6a10c12e31fef1578d1f77e8c5cbc69267495d7da"
+  "shardHash": "03315d5685bb5098dcb32c5a4fd5dd6368b61f826b860981591d34bb8218917b"
 }

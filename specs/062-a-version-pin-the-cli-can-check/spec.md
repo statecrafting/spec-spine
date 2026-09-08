@@ -1,7 +1,7 @@
 ---
 id: "062-a-version-pin-the-cli-can-check"
 title: "A version pin the CLI can check"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-07"
 implementation: complete

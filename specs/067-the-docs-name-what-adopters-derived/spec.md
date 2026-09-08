@@ -1,7 +1,7 @@
 ---
 id: "067-the-docs-name-what-adopters-derived"
 title: "The docs name what adopters derived by experiment"
-status: draft
+status: approved
 kind: "documentation"
 created: "2026-09-07"
 implementation: complete

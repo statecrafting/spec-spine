@@ -109,10 +109,10 @@
       "5. Verification"
     ],
     "specPath": "specs/064-the-kit-ships-the-composite-gate/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The kit ships a session harness and no build. Every adopter therefore wrote the same two things by hand. First a composite gate: a Makefile whose language targets are guarded on a manifest probe so the whole thing is green on a code-free tree, and a CI workflow carrying the `has_cargo` job-output pattern that three adopters each rediscovered after GitHub rejected `hashFiles` in a job-level `if`. Second, nothing at all for the committed shard trees: rahi runs one spec per PR with committed shards and has no merge driver, and the kit's README never says the words. This spec ships `kit/Makefile`, `kit/govern.yml`, `kit/.githooks/` and the `.gitattributes` stanza, and holds them to the rule spec 046 and 051 established for everything else in the kit: what the kit ships, this repository runs.\n",
     "title": "The kit ships the composite gate and the merge driver"
   },
-  "shardHash": "30038697c551f963ae5b211861d1a83bf141ea47081fdfca63ba7cc3a7bc204f",
+  "shardHash": "c518342791ade3df14f49542c376e59a8aca5818e3dac3b8b2f795577069c072",
   "specVersion": "1.1.0"
 }
