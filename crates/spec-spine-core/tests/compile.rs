@@ -131,6 +131,64 @@ fn v004_duplicate_prefix() {
 }
 
 #[test]
+fn v004_reads_a_non_ascii_id_without_panicking() {
+    // Spec 070 §3.1: `a日本-spec` puts a three-byte character across byte 3, the
+    // offset the old byte slice indexed at unconditionally. Reading the prefix
+    // must diagnose the id, not abort the process on its way to doing so.
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "a日本-spec", "a日本-spec", "");
+    let c = codes(&compile(&Config::default(), tmp.path()).unwrap());
+    assert!(
+        c.contains(&"V-012".to_string()),
+        "id pattern is the finding: {c:?}"
+    );
+    assert!(
+        !c.contains(&"V-004".to_string()),
+        "no numeric prefix: {c:?}"
+    );
+}
+
+#[test]
+fn v004_ignores_ids_with_no_numeric_prefix() {
+    // Spec 070 §3.2: these share three leading letters and no ordinal, so they
+    // collide on nothing. `aut` was never a numeric prefix. V-012 is the
+    // finding, and V-004 used to be noise printed beside it.
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "auth-login", "auth-login", "");
+    write_spec(tmp.path(), "auth-logout", "auth-logout", "");
+    let c = codes(&compile(&Config::default(), tmp.path()).unwrap());
+    assert!(
+        !c.contains(&"V-004".to_string()),
+        "no numeric prefix: {c:?}"
+    );
+    assert!(
+        c.contains(&"V-012".to_string()),
+        "id pattern is the finding: {c:?}"
+    );
+}
+
+#[test]
+fn v004_ignores_a_multibyte_prefix_that_lands_on_a_boundary() {
+    // Spec 070 §3.2: `日本-x` is the case the old slice did not panic on, and
+    // got wrong anyway: three bytes is one character, so it reported the
+    // "numeric prefix" `日` as shared. A non-ordinal is still not an ordinal.
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "日本-x", "日本-x", "");
+    write_spec(tmp.path(), "日本-y", "日本-y", "");
+    let c = codes(&compile(&Config::default(), tmp.path()).unwrap());
+    assert!(
+        !c.contains(&"V-004".to_string()),
+        "no numeric prefix: {c:?}"
+    );
+    // Assert the finding that must remain, not only the one that must go:
+    // without this the test would still pass if V-012 were suppressed here.
+    assert!(
+        c.contains(&"V-012".to_string()),
+        "id pattern is the finding: {c:?}"
+    );
+}
+
+#[test]
 fn supersedes_full_emits_bare_string_partial_emits_object() {
     // Spec 019: a full supersedes (bare id or `{ scope: full }`) serializes as a
     // bare predecessor id, byte-stable wire; a partial item serializes as an
