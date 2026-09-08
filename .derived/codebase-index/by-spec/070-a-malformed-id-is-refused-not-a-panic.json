@@ -56,8 +56,8 @@
       }
     ],
     "specId": "070-a-malformed-id-is-refused-not-a-panic",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "c5bf14aa42135ac8ac136174985b2f2cd4cdc56806d637c0409295b00cab1c6a"
+  "shardHash": "a4b99a059fd085e5a7632b13d34df4657ec4e76070a5930bb2de431a93b1abeb"
 }
