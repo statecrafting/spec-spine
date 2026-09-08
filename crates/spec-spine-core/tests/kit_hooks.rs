@@ -188,9 +188,127 @@ fn pre_tool_use_refuses_a_push_to_main() {
         );
     }
     assert!(
-        body.contains("[ \"$br\" = main ]"),
+        body.contains("if [ \"$br\" = main ]; then"),
         "push gate does not refuse by current branch"
     );
+    // Spec 071 3.1: anchored on the command that invokes the push verb. A
+    // substring match over the whole command refused any command merely
+    // containing the text, this test file among them.
+    assert!(
+        body.contains("case \"$cmd\" in 'git push'*|*'&& git push'*|*'; git push'*)"),
+        "push gate outer match is not anchored on the push verb"
+    );
+}
+
+/// Spec 071 3.3: the push gate is asserted by **running** it.
+///
+/// Spec 046 gave this gate a substring assertion, and a substring assertion
+/// passes identically on the over-broad body and the corrected one: it cannot
+/// see behavior, only text. That is why an over-broad match shipped to every
+/// adopter and survived four releases, and it is why these cases execute the
+/// shipped body against a synthesized hook payload and read its exit code.
+/// Exit 2 is a refusal; exit 0 is a pass.
+#[test]
+fn the_push_gate_refuses_only_what_would_update_main() {
+    if std::process::Command::new("jq")
+        .arg("--version")
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .is_err()
+    {
+        // Spec 046 3.5: a check that cannot run says so rather than passing
+        // quietly. CI runs this job on ubuntu-latest, where jq is present.
+        eprintln!("SKIPPED the_push_gate_refuses_only_what_would_update_main: jq absent");
+        return;
+    }
+
+    // (command, current branch, must be refused)
+    let cases: &[(&str, &str, bool)] = &[
+        // Would update main: the gate's whole purpose.
+        ("git push", "main", true),
+        ("git push origin", "main", true),
+        ("git push origin main", "main", true),
+        ("git push origin HEAD", "main", true),
+        ("git push --force origin main", "feat", true),
+        ("git push origin HEAD:main", "feat", true),
+        ("git push origin +main", "feat", true),
+        ("git push origin main:main", "feat", true),
+        // Updates no branch. The first is the tag push docs/releasing.md
+        // tells a maintainer to run from main once the release PR merges.
+        ("git push origin v1.2.3", "main", false),
+        ("cd . && git push origin v1.2.3", "main", false),
+        ("git push -u origin feat/x", "feat", false),
+        ("git push", "feat", false),
+        // Not a push at all: the second defect spec 071 fixes. Both of these
+        // merely mention the gate, and both were refused before.
+        ("grep -n 'origin main' settings.json", "main", false),
+        ("sed -n 's/git push origin main//p' f", "main", false),
+    ];
+
+    for (cmd, branch, want_refused) in cases {
+        let code = run_pre_tool_use(cmd, branch);
+        let refused = code == 2;
+        assert_eq!(
+            refused, *want_refused,
+            "`{cmd}` on branch {branch}: exit {code}, refused={refused}, want refused={want_refused}"
+        );
+    }
+}
+
+/// Run the shipped `PreToolUse` body against `cmd`, in a throwaway repository
+/// checked out on `branch`, and return its exit code.
+fn run_pre_tool_use(cmd: &str, branch: &str) -> i32 {
+    use std::io::Write;
+    use std::process::{Command, Stdio};
+
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    let git = |args: &[&str]| {
+        Command::new("git")
+            .args(args)
+            .current_dir(root)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .expect("git runs")
+    };
+    git(&["init", "-q", "-b", branch]);
+    fs::write(root.join("f"), "x").unwrap();
+    git(&["add", "."]);
+    git(&[
+        "-c",
+        "user.email=t@example.invalid",
+        "-c",
+        "user.name=t",
+        "commit",
+        "-qm",
+        "c",
+    ]);
+
+    let body = hook_bodies()["PreToolUse"].join("\n");
+    let payload = serde_json::json!({
+        "tool_input": { "command": cmd },
+        "cwd": root.to_str().unwrap(),
+    })
+    .to_string();
+
+    let mut child = Command::new("sh")
+        .arg("-c")
+        .arg(&body)
+        .current_dir(root)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("sh runs");
+    child
+        .stdin
+        .as_mut()
+        .expect("stdin")
+        .write_all(payload.as_bytes())
+        .expect("payload written");
+    child.wait().expect("hook exits").code().unwrap_or(-1)
 }
 
 /// Spec 046 3.5: a hook that cannot do its job says so instead of exiting

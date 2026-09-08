@@ -1,25 +1,28 @@
 {
   "mapping": {
+    "amends": [
+      "046-kit-hooks-read-never-write"
+    ],
     "dependsOn": [
-      "003-conformance-lint",
-      "033-dependency-cycle-refusal",
-      "038-registry-plan-ready-set"
+      "046-kit-hooks-read-never-write",
+      "051-harness-runs-the-verbs-it-ships",
+      "065-init-and-the-kit-are-one-adoption"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-core/src/lint.rs",
+        "path": ".claude/settings.json",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/lint.rs",
+        "path": "crates/spec-spine-core/src/kit_embedded.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/config.rs",
+        "path": "crates/spec-spine-core/tests/kit_hooks.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/lib.rs",
+        "path": "kit/settings.json",
         "source": "spec-edge"
       }
     ],
@@ -27,72 +30,72 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/lint.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/lint.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/src/lint.rs"
+            "file": ".claude/settings.json"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/lint.rs"
+          "path": ".claude/settings.json"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/config.rs"
+            "file": "crates/spec-spine-core/src/kit_embedded.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/config.rs"
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/lib.rs"
+            "file": "crates/spec-spine-core/tests/kit_hooks.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/lib.rs"
+          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/design/03-adopter-audit-2026-09.md"
+            "file": "kit/settings.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/settings.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/releasing.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/03-adopter-audit-2026-09.md"
+          "path": "docs/releasing.md"
         }
       }
     ],
-    "specId": "053-depends-on-ordinal-monotonicity",
-    "specStatus": "approved"
+    "specId": "071-a-tag-push-is-not-a-push-to-main",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "9b2078f839a92210d01254a049975a4bb79c92484e9710d57ac97b6098c836e7"
+  "shardHash": "b38235783abdf770577d633bc3252e62d4f631c25ec1f1de258215e766b7f8c0"
 }
