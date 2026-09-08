@@ -130,12 +130,19 @@ with flags dropped:
 A tag push carries its own refspec and moves no branch, which is why it belongs
 in the last row and why the release runbook can call for it from that branch.
 
+The arguments counted MUST be those following the **anchored** invocation from
+3.1, not those following the first appearance of the verb anywhere in the
+command. A command may name the verb in an argument before it ever runs one,
+and reading those words as a refspec produces a nonsense verdict: a command
+that echoes the verb and then pushes a tag would be judged on the echo's words
+and refused.
+
 A command chaining **more than one** push MUST be refused on the default
-branch, whatever its arguments say. Only the first push is walked argument by
-argument, and a walk cannot speak for a push it never examined; refusing is the
-conservative reading, and a chained push is not a form anyone needs. Off that
-branch the chain is allowed, because the refspec check still sees the whole
-command.
+branch, whatever its arguments say. Only the anchored push is walked argument
+by argument, and a walk cannot speak for a push it never examined; refusing is
+the conservative reading, and a chained push is not a form anyone needs. Off
+that branch the chain is allowed, because the refspec check still sees the
+whole command.
 
 The refusal message MUST say what was actually refused, rather than restating
 the rule, and MUST name the tag push as allowed, so a maintainer who hits it
@@ -228,6 +235,16 @@ first clause. Refusing the chain on the default branch closes it in one line
 and costs nothing real, since nobody writes that form deliberately. The
 alternative, walking every push in the command, is the shell parser 4 rules
 out.
+
+**2026-09-08: the argument walk strips to the anchored invocation.** A second
+review round found that stripping to the first appearance of the verb read the
+wrong words: given a command that echoes the verb and then pushes a tag, the
+walk counted the echo's words, found one token, concluded there was no refspec
+and refused the tag push. The same false positive the anchoring of 3.1 was
+meant to end, reintroduced one line below it. Stripping on the anchor pattern
+rather than the bare verb fixes it, and the matrix now exercises that shape.
+The general lesson is the one 3.3 already argues: each round of this was found
+by running the gate, never by reading it.
 
 **2026-09-08: the text assertions were kept.** An earlier draft deleted them in
 favour of the behavioral matrix. A text assertion that fails tells you which

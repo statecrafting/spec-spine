@@ -238,7 +238,15 @@ fn the_push_gate_refuses_only_what_would_update_main() {
         // tells a maintainer to run from main once the release PR merges.
         ("git push origin v1.2.3", "main", false),
         ("cd . && git push origin v1.2.3", "main", false),
-        // Only the first push is walked argument by argument, so a chained
+        // The arguments walked are the ones after the ANCHORED invocation, not
+        // after the first mention of the verb anywhere in the string. Reading
+        // the echo's words as a refspec used to refuse this tag push.
+        (
+            "echo \"mentions git push\" && git push origin v1.2.3",
+            "main",
+            false,
+        ),
+        // Only the anchored push is walked argument by argument, so a chained
         // second one is refused outright on the default branch rather than
         // waved through unexamined. The same chain off main stays allowed.
         ("git push origin feat && git push origin HEAD", "main", true),
