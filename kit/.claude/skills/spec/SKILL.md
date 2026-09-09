@@ -96,7 +96,7 @@ dependency cycle is refused by `compile` itself (`V-014`).
 Then the real gate, which regenerates and checks the committed shards:
 
 ```sh
-spec-spine compile && spec-spine index && spec-spine lint --fail-on-warn && spec-spine index check
+spec-spine compile && spec-spine index && spec-spine lint --fail-on-warn && spec-spine check
 spec-spine registry plan
 ```
 

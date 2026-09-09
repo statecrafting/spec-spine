@@ -20,7 +20,7 @@ inventing a gate.
 Run the gate exactly as `AGENTS.md` "Working the backlog" lists it under
 "Run the gate before every commit". The governance floor is
 `spec-spine compile`, `spec-spine index`, `spec-spine lint --fail-on-warn`,
-`spec-spine index check`, `spec-spine couple --base` against the resolved
+`spec-spine check`, `spec-spine couple --base` against the resolved
 base ref "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"
 `--head HEAD`, and `spec-spine index coverage --fail-on-untraced` where
 ownership is required; the stack's build, tests, and lints follow. Run

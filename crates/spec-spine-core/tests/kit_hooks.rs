@@ -98,7 +98,11 @@ fn is_read_only(verb: &[String]) -> bool {
     match verb.first().map(String::as_str) {
         Some("compile") => verb.iter().any(|w| w == "--check"),
         Some("index") => verb.get(1).map(String::as_str) == Some("check"),
-        Some("couple") => true,
+        // Spec 075 3.2: the composed freshness verb carries the never-writes
+        // contract of both primitives it calls, which is precisely why a hook
+        // may run it. A `check` that could repair the tree would make a stale
+        // committed ledger invisible on the branch that carries it.
+        Some("check") | Some("couple") => true,
         // Spec 063 §3.2: the hooks ask `--version` before believing an exit
         // code. Named explicitly rather than folded into a "flags are safe"
         // rule, because this predicate denies by default on purpose and the

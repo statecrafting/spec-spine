@@ -191,6 +191,41 @@ pub struct IndexCheckReport {
     pub unwitnessed: UnwitnessedCounts,
 }
 
+/// The registry half of a composed `check` verdict (spec 075 §3.4).
+///
+/// Freshness **and** validation, because the two answer different questions
+/// about one tree and the composed exit code needs both: a corpus that fails
+/// validation makes staleness meaningless, which is why `1` outranks `2` in the
+/// fold. `compile --check` reports them as an exit code and a stale report;
+/// this carries them as data so the composed verb can attribute each.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RegistryCheckReport {
+    pub fresh: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub actual: Option<String>,
+    /// False when the corpus itself does not validate, in which case `fresh`
+    /// was never computed and is reported `false`.
+    pub validation_passed: bool,
+}
+
+/// Both trees' verdicts, from the one verb the session protocol calls
+/// (spec 075 §3.2).
+///
+/// Each half keeps the shape its own primitive emits, unsummarized and
+/// unmerged: spec 031 §3.3 makes the registry stale report's structure
+/// contractual because a protocol reads the drifted shard names back to an
+/// operator, and exit 2 alone cannot say which shard moved. A composed verb
+/// that flattened the two would break a contract that already exists.
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckReport {
+    pub registry: RegistryCheckReport,
+    pub index: IndexCheckReport,
+}
+
 /// The claimed-but-unwitnessed tally `index check` reports (spec 057 §3.3).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]

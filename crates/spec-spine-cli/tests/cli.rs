@@ -2227,3 +2227,192 @@ fn exit_two_still_means_a_stale_ledger() {
         "the one condition exit 2 is for"
     );
 }
+
+// ── spec 075: `spec-spine check`, both freshness reads in one verb ──────────
+
+/// A repository with one approved spec whose committed shards are current.
+fn fresh_repo() -> tempfile::TempDir {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "001-a", "001-a", "approved");
+    for verb in [&["compile"][..], &["index"][..]] {
+        let out = bin()
+            .arg("--repo")
+            .arg(tmp.path())
+            .args(verb)
+            .output()
+            .unwrap();
+        assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
+    }
+    tmp
+}
+
+fn check(root: &Path, args: &[&str]) -> std::process::Output {
+    bin()
+        .arg("--repo")
+        .arg(root)
+        .arg("check")
+        .args(args)
+        .output()
+        .unwrap()
+}
+
+/// Spec 075 3.2: the verb answers for both committed trees in one call, which
+/// is the whole point. Before it, the protocol had to know two spellings to ask
+/// one question: `compile --check` is a flag where `index check` is a
+/// subcommand.
+#[test]
+fn check_reports_both_trees_and_exits_zero_when_both_are_fresh() {
+    let tmp = fresh_repo();
+    let out = check(tmp.path(), &[]);
+    assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("spec-registry: fresh"), "{stdout}");
+    assert!(stdout.contains("codebase-index: fresh"), "{stdout}");
+}
+
+/// Spec 075 3.2: it MUST never write. A verb the protocol calls to read the
+/// committed state cannot repair that state as a side effect of reading it,
+/// which is how the spec 017/021 drift reached the default branch looking like
+/// a local edit rather than a defect already on the branch.
+#[test]
+fn check_never_writes_even_when_the_tree_is_stale() {
+    let tmp = fresh_repo();
+    // Stale both trees by adding a spec and NOT recompiling.
+    write_spec(tmp.path(), "002-b", "002-b", "approved");
+
+    let derived = tmp.path().join(".derived");
+    let snapshot = |dir: &Path| -> Vec<(String, String)> {
+        let mut out = Vec::new();
+        let mut stack = vec![dir.to_path_buf()];
+        while let Some(d) = stack.pop() {
+            for e in fs::read_dir(&d).unwrap().filter_map(Result::ok) {
+                let p = e.path();
+                if p.is_dir() {
+                    stack.push(p);
+                } else if p.file_name().unwrap() != "build-meta.json" {
+                    out.push((
+                        p.strip_prefix(dir).unwrap().display().to_string(),
+                        fs::read_to_string(&p).unwrap_or_default(),
+                    ));
+                }
+            }
+        }
+        out.sort();
+        out
+    };
+    let before = snapshot(&derived);
+    assert!(!before.is_empty(), "the fixture must have committed shards");
+
+    let out = check(tmp.path(), &[]);
+    assert_eq!(code(&out), 2, "a stale tree is exit 2");
+    assert_eq!(
+        before,
+        snapshot(&derived),
+        "`check` repaired the tree it was asked to judge"
+    );
+}
+
+/// Spec 075 3.4: each tree's report reaches stderr attributed to its tree. Spec
+/// 031 3.3 makes the registry stale report's structure contractual precisely
+/// because the session protocol reads the drifted shard names back, and exit 2
+/// alone cannot say which shard moved.
+#[test]
+fn check_attributes_staleness_to_the_tree_it_belongs_to() {
+    let tmp = fresh_repo();
+    write_spec(tmp.path(), "002-b", "002-b", "approved");
+    let out = check(tmp.path(), &[]);
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(stderr.contains("spec-registry: STALE"), "{stderr}");
+    assert!(
+        stderr.contains("002-b"),
+        "the drifted shard must still be named: {stderr}"
+    );
+    assert!(stderr.contains("codebase-index: STALE"), "{stderr}");
+}
+
+/// Spec 075 3.3: `1` outranks `2`, because staleness is not meaningful against
+/// a corpus that does not validate. Observed here end to end rather than only
+/// in the fold's unit test, which cannot see that a real invalid corpus takes
+/// the intended branch.
+#[test]
+fn check_reports_validation_failure_ahead_of_staleness() {
+    let tmp = fresh_repo();
+    // A duplicate ordinal: `V-004`, an error-tier violation. It also stales the
+    // committed shards, so both conditions hold at once and the fold decides.
+    write_spec(tmp.path(), "001-dup", "001-dup", "approved");
+    let out = check(tmp.path(), &[]);
+    assert_eq!(
+        code(&out),
+        1,
+        "validation failure must outrank staleness: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert!(stderr.contains("spec-registry: INVALID"), "{stderr}");
+}
+
+/// Spec 075 3.3: `--json` changes what is written, never what is decided, and
+/// the envelope carries both trees under its own verb.
+#[test]
+fn check_json_carries_both_halves_and_decides_nothing_differently() {
+    let tmp = fresh_repo();
+    write_spec(tmp.path(), "002-b", "002-b", "approved");
+
+    let plain = check(tmp.path(), &[]);
+    let json = check(tmp.path(), &["--json"]);
+    assert_eq!(
+        code(&plain),
+        code(&json),
+        "the flag must not change the exit code"
+    );
+
+    let v: serde_json::Value = serde_json::from_slice(&json.stdout).expect("an envelope");
+    assert_eq!(v["verb"], "check");
+    assert_eq!(v["exitCode"], 2);
+    assert_eq!(v["ok"], false);
+    // Both halves, each keeping its own shape rather than being flattened.
+    assert_eq!(v["report"]["registry"]["fresh"], false);
+    assert_eq!(v["report"]["registry"]["validationPassed"], true);
+    assert!(
+        v["report"]["registry"]["actual"]
+            .as_str()
+            .is_some_and(|s| s.contains("002-b")),
+        "the registry half keeps its stale report: {v}"
+    );
+    assert!(
+        v["report"]["index"]["diagnostics"].is_object(),
+        "the index half keeps the shape `index check` emits: {v}"
+    );
+}
+
+/// Spec 075 3.2: `--fail-on-unresolved` is forwarded to the index half.
+/// Without it the composite gate could not adopt the verb, and the protocol
+/// would still be spelling the primitive.
+#[test]
+fn check_forwards_fail_on_unresolved_to_the_index_half() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_unresolved_corpus(tmp.path());
+    for verb in [&["compile"][..], &["index"][..]] {
+        assert_eq!(
+            code(
+                &bin()
+                    .arg("--repo")
+                    .arg(tmp.path())
+                    .args(verb)
+                    .output()
+                    .unwrap()
+            ),
+            0
+        );
+    }
+    assert_eq!(
+        code(&check(tmp.path(), &[])),
+        0,
+        "fresh, and silent by default"
+    );
+    assert_eq!(
+        code(&check(tmp.path(), &["--fail-on-unresolved"])),
+        1,
+        "an unresolved unit must refuse under the flag"
+    );
+}

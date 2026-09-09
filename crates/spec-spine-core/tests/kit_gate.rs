@@ -60,6 +60,8 @@ fn invocations(body: &str) -> Vec<String> {
 
 /// The verbs this binary has. A kit file naming anything else ships broken.
 const VERBS: &[&str] = &[
+    // Spec 075: the composed freshness read the protocol and the gate call.
+    "check",
     "compile",
     "index",
     "registry",
@@ -88,7 +90,9 @@ fn is_read_only(cmd: &str) -> bool {
                 | Some("render")
                 | Some("owner")
         ),
-        Some("couple") | Some("registry") | Some("lint") | Some("config") => true,
+        // Spec 075 3.2: `check` carries the never-writes contract of the two
+        // primitives it composes, which is what lets the gate call it.
+        Some("check") | Some("couple") | Some("registry") | Some("lint") | Some("config") => true,
         _ => false,
     }
 }

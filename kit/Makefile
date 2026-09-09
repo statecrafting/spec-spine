@@ -34,9 +34,8 @@ BASE       ?= origin/$(or $(SPEC_SPINE_DEFAULT_BRANCH),main)
 ## is meant to judge (spec 046), so this uses `compile --check` and never
 ## `compile`.
 gate:
-	$(SPEC_SPINE) compile --check
+	$(SPEC_SPINE) check --fail-on-unresolved
 	$(SPEC_SPINE) lint --fail-on-warn
-	$(SPEC_SPINE) index check --fail-on-unresolved
 	$(SPEC_SPINE) index coverage --fail-on-untraced
 	$(SPEC_SPINE) couple --base $(BASE) --head HEAD
 

@@ -67,8 +67,9 @@ pub use dep_only::{
     is_package_json, is_workflow_yaml, workflow_dependency_only_change,
 };
 pub use diagnostics::{
-    AttributedDiagnostic, DiagnosticCounts, IndexCheckReport, UNRESOLVED_CODES, UnwitnessedCounts,
-    committed_counts, committed_diagnostics, count as count_diagnostics,
+    AttributedDiagnostic, CheckReport, DiagnosticCounts, IndexCheckReport, RegistryCheckReport,
+    UNRESOLVED_CODES, UnwitnessedCounts, committed_counts, committed_diagnostics,
+    count as count_diagnostics,
 };
 pub use index::{
     Freshness, IndexOutcome, IndexShardSet, OwnerKind, OwnerLink, OwnerReport, UnwitnessedClaim,
@@ -184,6 +185,77 @@ pub fn lint_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
     let report = lint(&config, std::path::Path::new(repo_root))?;
     to_json(&report.violations)
+}
+
+/// Both freshness reads, composed (spec 075 §3.2): the registry's and the
+/// index's, each keeping the shape its own primitive emits.
+///
+/// The session protocol asks one question, "is the committed state current",
+/// and before this verb it had to know two spellings to ask it: `compile
+/// --check` is a flag and `index check` is a subcommand. This is the verb above
+/// them. It is **additive**; both primitives keep their flags, their output
+/// contracts and their tests, and a caller that regenerated only one tree can
+/// still ask about that tree alone.
+///
+/// It **never writes**. A verb the protocol calls to read the committed state
+/// cannot repair that state as a side effect of reading it: that is how the
+/// spec 017/021 drift reached the default branch, as an apparent local edit
+/// rather than a defect already on the branch.
+///
+/// The exit code the CLI folds from this is not decided here; the report
+/// carries the facts and [`spec_spine_cli`] composes them. A binding wanting
+/// the fold gets it from the verdict envelope's `exitCode`.
+pub fn check_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
+    let config = config_from_json(config_json)?;
+    let root = std::path::Path::new(repo_root);
+    to_json(&check_report(&config, root)?)
+}
+
+/// Both halves of the composed freshness read, as data.
+///
+/// Shared by [`check_json`] and the CLI so the two payloads cannot drift, which
+/// is the arrangement spec 037 pins for every other verdict verb.
+pub fn check_report(config: &Config, repo_root: &std::path::Path) -> Result<CheckReport, Error> {
+    // The typed path, not the facade: `compile` once, then compare. Calling
+    // `check_registry_freshness` would compile a second time, and this verb
+    // exists to make one question cost one ask.
+    let outcome = compile(config, repo_root)?;
+    let registry = if outcome.validation_passed {
+        let freshness = compare_committed_registry(config, repo_root, &outcome.shards)?;
+        match freshness {
+            Freshness::Fresh => RegistryCheckReport {
+                fresh: true,
+                expected: None,
+                actual: None,
+                validation_passed: true,
+            },
+            Freshness::Stale { expected, actual } => RegistryCheckReport {
+                fresh: false,
+                expected: Some(expected),
+                actual: Some(actual),
+                validation_passed: true,
+            },
+        }
+    } else {
+        // Staleness is not meaningful against a corpus that does not validate,
+        // so it is not computed and `fresh` is reported false rather than
+        // guessed. This is the same conclusion the exit-code fold draws when it
+        // lets `1` outrank `2`.
+        RegistryCheckReport {
+            fresh: false,
+            expected: None,
+            actual: None,
+            validation_passed: false,
+        }
+    };
+
+    let freshness = check_index_freshness(config, repo_root)?;
+    let index = IndexCheckReport::with_unwitnessed(
+        &freshness,
+        diagnostics::committed_counts(config, repo_root)?,
+        unwitnessed_counts(config, repo_root),
+    );
+    Ok(CheckReport { registry, index })
 }
 
 /// Check index freshness, returning `{ "fresh": bool, "expected"?, "actual"?,

@@ -9,6 +9,12 @@
       "065-init-and-the-kit-are-one-adoption",
       "074-shipped-is-not-the-same-as-working"
     ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_check.rs"
+      }
+    ],
     "extends": [
       {
         "nature": "additive",
@@ -113,10 +119,74 @@
           "kind": "file",
           "path": "crates/spec-spine-core/src/kit_embedded.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "050-index-diagnostics-reach-a-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/diagnostics.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "064-the-kit-ships-the-composite-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_gate.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "051-harness-runs-the-verbs-it-ships",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_skills.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "046-kit-hooks-read-never-write",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "064-the-kit-ships-the-composite-gate",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "048-kit-ships-the-governed-loop-skills",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/agents/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/agents/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "067-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/adoption-guide.md"
+        }
       }
     ],
     "id": "075-one-name-one-freshness-verb",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -148,6 +218,6 @@
     "summary": "The session protocol is ambiguous in two places and both are collisions with its own neighbours. Its entry point is named `/init`, which is also a Claude Code built-in meaning the opposite thing (one-time, repository-level, and it writes) and also `spec-spine init`, which means a third thing again. And it asks one question, whether the committed state is current, in two spellings: `compile --check` is a flag and `index check` is a subcommand, so the protocol, the hook, the skills and CI each have to spell both. This spec renames the skill to `/prime` with no alias, and adds `spec-spine check`, an additive top-level verb that runs both freshness reads, reports each tree separately, and composes one exit code. Nothing is removed: both primitives keep their flags, their tests and their contracts, and CI may still call one when it regenerated only one tree.\n",
     "title": "One name for the protocol, one verb for freshness"
   },
-  "shardHash": "4c2c86a376b69fedca860383b5b4976938907f179a964d1f6f7f581b64afe5bb",
+  "shardHash": "109ad720237ba2351d46d79b0180446c132b7dc82060077823b5dc79cb6436bc",
   "specVersion": "1.1.0"
 }

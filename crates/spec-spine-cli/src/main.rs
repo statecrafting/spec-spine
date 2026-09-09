@@ -19,6 +19,7 @@ macro_rules! out {
 }
 
 mod cmd_attest;
+mod cmd_check;
 mod cmd_compile;
 mod cmd_config;
 mod cmd_couple;
@@ -69,6 +70,23 @@ enum Command {
         /// short id (`056`). Incompatible with `--check`.
         #[arg(long, value_name = "ID")]
         spec: Option<String>,
+    },
+    /// Both freshness reads in one verb: are the committed registry shards and
+    /// the committed index shards current (spec 075)?
+    ///
+    /// Additive over `compile --check` and `index check`, which keep their
+    /// flags and their contracts. Reads only; it never repairs the tree it is
+    /// judging. The exit code is the most severe of the two: 3, then 1, then 2,
+    /// then 0.
+    Check {
+        /// Fail (exit 1) when the committed index records any unresolved-unit
+        /// diagnostic. Forwarded to the index half, so the composite gate can
+        /// call this verb where it called `index check --fail-on-unresolved`.
+        #[arg(long)]
+        fail_on_unresolved: bool,
+        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        #[arg(long)]
+        json: bool,
     },
     /// Read the effective configuration: every default resolved, and the
     /// built-in bypass floor merged with the adopter's list and attributed.
@@ -222,6 +240,10 @@ fn main() -> ExitCode {
         Command::Compile { check, json, spec } => {
             cmd_compile::run(&repo, *check, *json, spec.as_deref())
         }
+        Command::Check {
+            fail_on_unresolved,
+            json,
+        } => cmd_check::run(&repo, *fail_on_unresolved, *json),
         Command::Config { action } => cmd_config::run(&repo, action),
         Command::Registry { query } => cmd_registry::run(&repo, query),
         Command::Index { action } => cmd_index::run(&repo, action.as_ref()),
@@ -342,6 +364,7 @@ impl Command {
                 spec: Some(_),
                 ..
             } => Some(verb::COMPILE_SPEC),
+            Command::Check { json: true, .. } => Some(verb::CHECK),
             Command::Lint { json: true, .. } => Some(verb::LINT),
             Command::Couple { json: true, .. } => Some(verb::COUPLE),
             Command::Verify { json: true, .. } => Some(verb::VERIFY),

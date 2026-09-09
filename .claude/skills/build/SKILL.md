@@ -110,7 +110,7 @@ ownership claims current.
 
 Run the gate exactly as `AGENTS.md` lists it under "Run the gate before
 every commit": the governance floor (`compile`, `index`,
-`lint --fail-on-warn`, `index check`, `couple --base` against the resolved
+`lint --fail-on-warn`, `check`, `couple --base` against the resolved
 base ref `--head HEAD`, `index coverage --fail-on-untraced` where ownership
 is required)
 and the stack's own build, tests, and lints. All exit 0, or the commit

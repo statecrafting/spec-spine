@@ -30,6 +30,11 @@ pub mod verb {
     pub const COMPILE_CHECK: &str = "compile.check";
     /// `spec-spine index check` (including `--slice`).
     pub const INDEX_CHECK: &str = "index.check";
+    /// `spec-spine check` (spec 075): both freshness reads, one verdict. A verb
+    /// of its own rather than a variant of either primitive, because it answers
+    /// about both trees and a consumer branching on `compile.check` must not
+    /// silently receive it.
+    pub const CHECK: &str = "check";
     /// `spec-spine lint`.
     pub const LINT: &str = "lint";
     /// `spec-spine couple`.
