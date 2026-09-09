@@ -116,5 +116,5 @@
     "title": "A closed reader is not an error: stdout writes stop panicking the CLI"
   },
   "shardHash": "b006c12e017e714dfbedbb313d4e8e033030efdd0b64760460360fabb296bd1f",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

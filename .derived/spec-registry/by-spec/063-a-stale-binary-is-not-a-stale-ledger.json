@@ -96,5 +96,5 @@
     "title": "A stale binary is not a stale ledger"
   },
   "shardHash": "7cbe621fe3b3d1dc3c673848d71f690198e7dc17d5a9d866949caa2be3cab398",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

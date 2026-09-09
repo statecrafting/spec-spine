@@ -22,7 +22,17 @@
 /// an optional `derived_at` ISO-8601 timestamp; the registry format gains an
 /// emittable field, so the minor bumps. The permissive shard schema is unchanged
 /// and a corpus that declares no `derived_at` emits byte-identical record bodies.
-pub const REGISTRY_SCHEMA_VERSION: &str = "1.1.0";
+/// `1.2.0`: additive MINOR (spec 076). A unit payload may carry an optional
+/// `planned: true`, declaring territory a spec intends to own and has not
+/// written yet. Follows the precedent 028 set: additive, no MAJOR, loaders that
+/// know `1.x` keep working. `planned` is serialized only when true, and a
+/// written `planned: false` normalizes to absent, so a corpus that uses no
+/// planned units emits byte-identical shards across this change and needs no
+/// re-index. `Config` and the DTOs derive `deny_unknown_fields`, so a binary
+/// predating this spec meets the key with a parse error and exits 3 rather than
+/// silently ignoring a claim about territory: the fail-closed direction, and the
+/// reason the flag is a typed field rather than a convention in a comment.
+pub const REGISTRY_SCHEMA_VERSION: &str = "1.2.0";
 
 /// `schemaVersion` emitted in the codebase index, carried by each index shard.
 /// `0.2.0`: additive `build.sliceHashes` (spec 012).

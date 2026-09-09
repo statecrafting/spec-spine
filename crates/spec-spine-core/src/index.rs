@@ -218,7 +218,13 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
                 &spec.id,
                 &mut unit_diags,
             );
-            classify_unresolved(&mut spec_diags, unit_diags, *ownership, in_flight);
+            classify_unresolved(
+                &mut spec_diags,
+                unit_diags,
+                *ownership,
+                in_flight,
+                unit.is_planned(),
+            );
             // Only an owning edge contributes an implementing path (spec 034).
             // `references` is non-owning by definition, so a file a spec merely
             // cites is not a file it implements. Every consumer of
@@ -238,7 +244,13 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
                 }
             }
             resolved_units.push(ResolvedUnit {
-                unit: unit.clone(),
+                // Spec 076 §3.4: the **subject**, with the flag cleared.
+                // `planned` annotates a claim's resolution state, not which
+                // territory it names, so a planned claim that has resolved
+                // answers an `authorities` lookup exactly as an unplanned one
+                // does, and the index emits byte-identical shards for a corpus
+                // that uses no planned units.
+                unit: unit.subject(),
                 source_field: *field,
                 ownership: *ownership,
                 locations,
@@ -513,7 +525,7 @@ pub fn authorities(index: &CodebaseIndex, unit: &Unit) -> Vec<String> {
                 owners.insert(mapping.spec_id.clone());
             }
         }
-        if let Unit::File { path } = unit {
+        if let Unit::File { path, .. } = unit {
             if mapping.implementing_paths.iter().any(|p| &p.path == path) {
                 owners.insert(mapping.spec_id.clone());
             }
@@ -819,8 +831,19 @@ fn classify_unresolved(
     produced: Diagnostics,
     owning: bool,
     in_flight: bool,
+    planned: bool,
 ) {
     for d in produced.errors {
+        // Spec 076 §3.2: an unresolved unit marked `planned` is not an
+        // unresolved claim; it is a claim whose subject is openly not yet
+        // written, so it produces no diagnostic at all rather than a
+        // suppressed one. Everything else classifies exactly as spec 025
+        // requires, so a path that is simply wrong is still caught and still
+        // refused by `--fail-on-unresolved`. That asymmetry is the whole
+        // safety argument: nobody marks a typo planned.
+        if planned {
+            continue;
+        }
         if !owning {
             dst.warnings.push(Diagnostic {
                 code: "W-002".to_string(),
@@ -849,7 +872,7 @@ fn resolve_unit(
     diagnostics: &mut Diagnostics,
 ) -> Vec<ResolvedLocation> {
     match unit {
-        Unit::File { path } => {
+        Unit::File { path, .. } => {
             let abs = repo_root.join(path);
             if abs.exists() {
                 vec![ResolvedLocation {
@@ -868,7 +891,7 @@ fn resolve_unit(
         // A directory subtree: resolve to the directory path itself (the gate
         // prefix-matches it against changed paths), requiring the directory to
         // exist (spec 017; I-007 mirrors OAP's missing-directory hard error).
-        Unit::Directory { path } => {
+        Unit::Directory { path, .. } => {
             if repo_root.join(path).is_dir() {
                 vec![ResolvedLocation {
                     file: path.clone(),
@@ -886,7 +909,7 @@ fn resolve_unit(
         // A compilation unit by manifest name: resolve to the discovered
         // package's directory subtree (spec 017; I-003 = unknown crate). Hyphen
         // and underscore are interchangeable in the name (Rust crate convention).
-        Unit::Crate { id } => {
+        Unit::Crate { id, .. } => {
             let norm = id.replace('-', "_");
             match packages
                 .iter()
@@ -910,7 +933,7 @@ fn resolve_unit(
         }
         // A Rust module by `::`-qualified path (spec 017; I-008 = unresolved,
         // distinct from the symbol band's I-005).
-        Unit::Module { id } => {
+        Unit::Module { id, .. } => {
             let locations = modules.resolve(id);
             if locations.is_empty() {
                 diagnostics.errors.push(Diagnostic {
@@ -921,7 +944,7 @@ fn resolve_unit(
             }
             locations
         }
-        Unit::Section { file, anchor } => {
+        Unit::Section { file, anchor, .. } => {
             let abs = repo_root.join(file);
             let span = fs::read_to_string(&abs)
                 .ok()
@@ -943,7 +966,7 @@ fn resolve_unit(
                 }
             }
         }
-        Unit::Symbol { id } => {
+        Unit::Symbol { id, .. } => {
             let locations = symbols.resolve(id);
             if locations.is_empty() {
                 diagnostics.errors.push(Diagnostic {
@@ -1205,12 +1228,12 @@ fn resolve_id(short: &str, all_ids: &BTreeSet<String>) -> String {
 /// A stable canonical string for a unit, for deterministic sorting.
 fn canonical_unit(unit: &Unit) -> String {
     match unit {
-        Unit::File { path } => format!("file:{path}"),
-        Unit::Section { file, anchor } => format!("section:{file}#{anchor}"),
-        Unit::Symbol { id } => format!("symbol:{id}"),
-        Unit::Directory { path } => format!("directory:{path}"),
-        Unit::Crate { id } => format!("crate:{id}"),
-        Unit::Module { id } => format!("module:{id}"),
+        Unit::File { path, .. } => format!("file:{path}"),
+        Unit::Section { file, anchor, .. } => format!("section:{file}#{anchor}"),
+        Unit::Symbol { id, .. } => format!("symbol:{id}"),
+        Unit::Directory { path, .. } => format!("directory:{path}"),
+        Unit::Crate { id, .. } => format!("crate:{id}"),
+        Unit::Module { id, .. } => format!("module:{id}"),
     }
 }
 

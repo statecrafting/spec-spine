@@ -631,3 +631,230 @@ fn the_l010_message_names_the_working_form() {
         .message;
     assert!(msg.contains("standards/**/*"), "{msg}");
 }
+
+// ── spec 076 §3.3 and §3.4: the flag cannot outlive the work ────────────────
+
+/// A corpus whose one spec claims `unit_yaml` at the given lifecycle.
+fn planned_corpus(unit_yaml: &str, status: &str, implementation: &str) -> tempfile::TempDir {
+    let tmp = tempfile::tempdir().unwrap();
+    write(
+        tmp.path(),
+        "specs/001-a/spec.md",
+        &format!(
+            "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: {status}\ncreated: \"2026-09-08\"\n\
+             implementation: {implementation}\nsummary: \"s\"\nestablishes:\n{unit_yaml}\
+             ---\n# 001-a\n## body\n"
+        ),
+    );
+    tmp
+}
+
+fn lint_codes(tmp: &tempfile::TempDir) -> Vec<(String, Severity)> {
+    spec_spine_core::lint::lint(&Config::default(), tmp.path())
+        .unwrap()
+        .violations
+        .into_iter()
+        .map(|v| (v.code, v.severity))
+        .collect()
+}
+
+/// §3.3: completion asserts the work is done and a planned unit asserts it is
+/// not, so the two together are a contradiction inside one file's frontmatter.
+/// Error tier, not warning: it is not a state a corpus holds deliberately.
+#[test]
+fn l011_refuses_a_completed_spec_that_still_plans_territory() {
+    let tmp = planned_corpus(
+        "  - { kind: file, path: \"src/later.rs\", planned: true }\n",
+        "approved",
+        "complete",
+    );
+    let found = lint_codes(&tmp);
+    assert!(
+        found.contains(&("L-011".to_string(), Severity::Error)),
+        "L-011 must fire at error tier: {found:?}"
+    );
+}
+
+/// §3.3: `complete` is the only bound, deliberately. An `approved` spec at
+/// `pending` may carry planned units for as long as that state is honest, which
+/// on a specify-first corpus is months. An intermediate deadline would mean
+/// inventing a clock.
+#[test]
+fn l011_is_silent_while_the_work_is_genuinely_in_flight() {
+    for implementation in ["pending", "in-progress"] {
+        let tmp = planned_corpus(
+            "  - { kind: file, path: \"src/later.rs\", planned: true }\n",
+            "approved",
+            implementation,
+        );
+        assert!(
+            !lint_codes(&tmp).iter().any(|(c, _)| c == "L-011"),
+            "{implementation}: a spec still doing the work may plan territory"
+        );
+    }
+}
+
+/// §3.4: the other direction. Without it the flag rots: the file lands, the
+/// claim is satisfied, and nothing notices that the spec still calls it future
+/// work. Warning tier, so `--fail-on-warn` refuses it in a corpus running the
+/// gate without imposing it on one that does not.
+#[test]
+fn l012_reports_a_planned_unit_that_has_resolved() {
+    let tmp = planned_corpus(
+        "  - { kind: file, path: \"src/landed.rs\", planned: true }\n",
+        "draft",
+        "pending",
+    );
+    write(tmp.path(), "src/landed.rs", "pub fn a() {}\n");
+    write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = []\n");
+    // `L-012` reads the COMMITTED index, by the same rule `L-008` follows: lint
+    // is a read verb, and indexing inside it would make it write-shaped.
+    let out = spec_spine_core::index(&Config::default(), tmp.path()).unwrap();
+    let dir = spec_spine_core::index_dir(&Config::default(), tmp.path());
+    let (by_spec, by_package) = spec_spine_core::index_shard_files(&out.shards).unwrap();
+    spec_spine_core::shard::sync_dir(&dir.join(spec_spine_core::shard::BY_SPEC_DIR), &by_spec)
+        .unwrap();
+    spec_spine_core::shard::sync_dir(
+        &dir.join(spec_spine_core::shard::BY_PACKAGE_DIR),
+        &by_package,
+    )
+    .unwrap();
+
+    let found = lint_codes(&tmp);
+    assert!(
+        found.contains(&("L-012".to_string(), Severity::Warning)),
+        "L-012 must fire at warning tier once the claim lands: {found:?}"
+    );
+}
+
+/// §3.4: and it must not fire while the claim is honestly unwritten, or the
+/// diagnostic would just be a second name for "planned".
+#[test]
+fn l012_is_silent_while_the_planned_unit_is_still_unwritten() {
+    let tmp = planned_corpus(
+        "  - { kind: file, path: \"src/never.rs\", planned: true }\n",
+        "draft",
+        "pending",
+    );
+    assert!(!lint_codes(&tmp).iter().any(|(c, _)| c == "L-012"));
+}
+
+// ── spec 076 §3.5: collisions reuse the ownership rules ─────────────────────
+
+/// Write one spec with arbitrary extra frontmatter lines.
+fn spec_with(tmp: &tempfile::TempDir, id: &str, extra: &str) {
+    write(
+        tmp.path(),
+        &format!("specs/{id}/spec.md"),
+        &format!(
+            "---\nid: \"{id}\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-08\"\n\
+             implementation: pending\nsummary: \"s\"\n{extra}---\n# {id}\n## body\n"
+        ),
+    );
+}
+
+fn compile_codes(tmp: &tempfile::TempDir) -> Vec<String> {
+    spec_spine_core::compile(&Config::default(), tmp.path())
+        .unwrap()
+        .registry
+        .validation
+        .violations
+        .into_iter()
+        .map(|v| v.code)
+        .collect()
+}
+
+/// §3.5: two specs planning the same unit is the duplicate-ownership refusal.
+/// Decided over DECLARED units at compile time, because the existing machinery
+/// runs on `TraceMapping` and §3.2 keeps a planned unit from ever producing
+/// one: a rule that cannot fire is worse than no rule.
+#[test]
+fn v015_refuses_two_specs_planning_the_same_unit() {
+    let tmp = tempfile::tempdir().unwrap();
+    let unit = "establishes:\n  - { kind: file, path: \"src/x.rs\", planned: true }\n";
+    spec_with(&tmp, "001-a", unit);
+    spec_with(&tmp, "002-b", unit);
+    assert!(
+        compile_codes(&tmp).iter().any(|c| c == "V-015"),
+        "{:?}",
+        compile_codes(&tmp)
+    );
+}
+
+/// §3.5: with the same `co_authority` escape as any other shared claim, so the
+/// new rule introduces no second ownership vocabulary.
+#[test]
+fn v015_allows_a_shared_plan_declared_as_co_authority() {
+    let tmp = tempfile::tempdir().unwrap();
+    let unit = "establishes:\n  - { kind: file, path: \"src/x.rs\", planned: true }\n\
+                co_authority:\n  - { unit: { kind: file, path: \"src/x.rs\" }, with_specs: [\"002-b\"] }\n";
+    spec_with(&tmp, "001-a", unit);
+    spec_with(
+        &tmp,
+        "002-b",
+        "establishes:\n  - { kind: file, path: \"src/x.rs\", planned: true }\n",
+    );
+    assert!(
+        !compile_codes(&tmp).iter().any(|c| c == "V-015"),
+        "a genuinely shared claim has an escape: {:?}",
+        compile_codes(&tmp)
+    );
+}
+
+/// §3.5: planning a unit another spec already owns is refused. The correct
+/// declaration is an `extends` edge naming that spec and unit, which is what
+/// crossing into owned territory has always meant.
+#[test]
+fn v016_refuses_planning_territory_another_spec_already_owns() {
+    let tmp = tempfile::tempdir().unwrap();
+    spec_with(&tmp, "001-a", "establishes:\n  - \"src/x.rs\"\n");
+    spec_with(
+        &tmp,
+        "002-b",
+        "establishes:\n  - { kind: file, path: \"src/x.rs\", planned: true }\n",
+    );
+    assert!(
+        compile_codes(&tmp).iter().any(|c| c == "V-016"),
+        "{:?}",
+        compile_codes(&tmp)
+    );
+}
+
+/// §3.5: a planned unit must not be the target of an `extends` edge. There is
+/// nothing to extend: the unit does not exist and its planner does not own it.
+#[test]
+fn v017_refuses_extending_a_unit_that_is_only_planned() {
+    let tmp = tempfile::tempdir().unwrap();
+    spec_with(
+        &tmp,
+        "001-a",
+        "establishes:\n  - { kind: file, path: \"src/x.rs\", planned: true }\n",
+    );
+    spec_with(
+        &tmp,
+        "002-b",
+        "extends:\n  - { spec: \"001-a\", unit: { kind: file, path: \"src/x.rs\" }, nature: additive }\n",
+    );
+    assert!(
+        compile_codes(&tmp).iter().any(|c| c == "V-017"),
+        "{:?}",
+        compile_codes(&tmp)
+    );
+}
+
+/// The corpus this repository actually has must stay clean, or the three new
+/// refusals would be a change of behaviour dressed as a new rule.
+#[test]
+fn the_planned_refusals_are_silent_on_a_corpus_that_plans_nothing() {
+    let tmp = tempfile::tempdir().unwrap();
+    spec_with(&tmp, "001-a", "establishes:\n  - \"src/x.rs\"\n");
+    spec_with(
+        &tmp,
+        "002-b",
+        "extends:\n  - { spec: \"001-a\", unit: \"src/x.rs\", nature: additive }\n",
+    );
+    let codes = compile_codes(&tmp);
+    for code in ["V-015", "V-016", "V-017"] {
+        assert!(!codes.iter().any(|c| c == code), "{code} fired: {codes:?}");
+    }
+}

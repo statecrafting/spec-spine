@@ -73,5 +73,5 @@
     "title": "The contract records the lifecycle table and the extra keys"
   },
   "shardHash": "21a758523487e407f071c40d6880e3e21f28038421b784240a67a98ee2f20cb1",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

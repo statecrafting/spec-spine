@@ -76,7 +76,7 @@ pub(crate) fn expand_extend_paths(items: Vec<ExtendItem>) -> Result<Vec<ExtendIt
         for path in paths {
             out.push(ExtendItem {
                 spec: item.spec.clone(),
-                unit: Some(Unit::File { path }),
+                unit: Some(Unit::file(path)),
                 paths: None,
                 nature: item.nature.clone(),
             });
@@ -109,7 +109,7 @@ pub(crate) fn expand_refine_paths(items: Vec<RefineItem>) -> Result<Vec<RefineIt
         for path in paths {
             out.push(RefineItem {
                 aspect: item.aspect.clone(),
-                unit: Some(Unit::File { path }),
+                unit: Some(Unit::file(path)),
                 paths: None,
                 refines_specs: item.refines_specs.clone(),
             });

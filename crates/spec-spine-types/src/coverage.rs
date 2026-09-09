@@ -26,6 +26,20 @@ pub struct CoverageReport {
     pub unclaimed_files: Vec<String>,
     /// Per-package breakdown, sorted by package path.
     pub packages: Vec<PackageCoverage>,
+    /// Territory a spec has declared it will own and has not written yet
+    /// (spec 076 §3.6), as `<spec id>: <unit identity>` entries, sorted.
+    ///
+    /// **Not** part of the numerator or the denominator, and deliberately so.
+    /// These paths are not on disk, so they are not source files; counting a
+    /// planned claim as coverage would let a spec satisfy `--fail-on-untraced`
+    /// by declaring an intention. What this answers is the question the report
+    /// could not answer before: a file nothing claims and a file something has
+    /// planned now look different to a reader.
+    ///
+    /// Omitted when empty, so a corpus using no planned units emits exactly
+    /// what it did before.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub planned_territory: Vec<String>,
 }
 
 impl CoverageReport {

@@ -4,7 +4,7 @@ title: "Planned territory is declared, not inferred"
 status: draft
 kind: "tooling"
 created: "2026-09-08"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -48,6 +48,32 @@ extends:
     nature: additive
     paths:
       - "crates/spec-spine-core/src/query.rs"        # planned territory in the plan
+      - "crates/spec-spine-core/tests/query.rs"      # 3.6 the plan read
+  # 3.6 the report DTO gains the declared-state member, and both read verbs
+  # render it. Declared in the implementing change: 3.6 requires the fact to be
+  # in the artifact and names no file.
+  - spec: "032-ownership-coverage"
+    nature: additive
+    paths:
+      - "crates/spec-spine-types/src/coverage.rs"
+      - "crates/spec-spine-core/tests/coverage.rs"
+      - "crates/spec-spine-cli/src/cmd_index.rs"
+  - spec: "002-registry-query"
+    nature: additive
+    paths:
+      - "crates/spec-spine-cli/src/cmd_registry.rs"
+  # 3.5 the three collision refusals live with the rest of compile's V-band.
+  - spec: "001-compile-registry"
+    nature: additive
+    paths:
+      - "crates/spec-spine-core/src/compile.rs"
+  # 3.1 spec 014's `paths:` sugar expands to file units, and those units now
+  # carry the flag's default. Crossed here rather than amended: the expansion's
+  # meaning is unchanged, since 3.1 keeps the shorthand unable to be planned.
+  - spec: "014-edge-paths-grammar-sugar"
+    nature: additive
+    paths:
+      - "crates/spec-spine-types/src/edges.rs"
 references:
   - { unit: { kind: file, path: "docs/design/00-architecture.md" }, role: context }
 summary: >
@@ -361,6 +387,50 @@ means `--fail-on-warn` still refuses it in a corpus that runs the gate, which
 is the behavior this repository wants without imposing it on one that does not.
 `L-010` is allocated by spec 074, which is why this spec takes the next two and
 depends on it.
+
+**2026-09-08: the flag is a field on every unit variant, and the index stores
+the unit's SUBJECT.** `Unit` is an internally-tagged enum, so "one optional
+boolean on the unit DTO" means a field per variant. That alone would have made
+`planned` part of a unit's identity, and `authorities()` compares units by
+equality: a planned claim that had resolved would then have failed the lookup
+that 3.4 requires it to answer like any other. `Unit::subject()` clears the
+flag, the index stores subjects, and the 3.5 collision checks compare subjects.
+The flag is therefore a declaration-time annotation everywhere except the
+declaration itself, which is what 3.4's "resolved for every other purpose"
+means in practice.
+
+**2026-09-08: `V-017` asks whether a unit is owned by someone *other than* the
+extending spec.** The first implementation asked only whether the unit had any
+unplanned owner, and the rule went silent in exactly the case it exists for:
+`extends` is itself an ownership-bearing edge, so the edge under examination had
+already registered its own spec as an owner. Caught by the test rather than by
+reading, which is the argument for writing the test that fails first.
+
+**2026-09-08: planned territory is reported beside the counts, never inside
+them.** Section 3.6 requires `index coverage` to distinguish an unclaimed file
+from a planned one, and the tempting reading is to count a planned claim as
+coverage. That would let a spec satisfy `--fail-on-untraced` by declaring an
+intention rather than by writing the file, which is the one thing the ratchet
+exists to refuse. A planned unit whose path is not on disk is not a source file
+at all, so it is reported as a separate list; a planned unit whose path IS on
+disk resolves, is already counted as claimed, and draws `L-012` telling the
+author to drop the flag. The two cases together cover the space.
+
+**2026-09-08: `index coverage` reads the committed registry for this, and
+tolerates a registry it cannot load.** Planned territory is a declared state,
+so it cannot come from the index: 3.2 keeps a planned unit from producing a
+`ResolvedUnit`, which is precisely why the report was blind to it. A registry
+that will not load leaves the list empty rather than failing the report, because
+this member is additive information beside a coverage verdict already reached,
+and a broken registry is `compile --check`'s refusal to make, not this one's.
+
+**2026-09-08: the round-trip tests live in `tests/grammar.rs`, where the
+territory table puts them.** They were written into `tests/dtos.rs` first, where
+they passed. The `## Verification` block runs both files, so the mistake would
+not have shown as a failure: it would have made the `grammar.rs` line assert
+nothing, which is the exact defect spec 074 was filed about. Moved, and recorded
+because the block passing is not evidence that each of its lines is carrying its
+own weight.
 
 ## Verification
 

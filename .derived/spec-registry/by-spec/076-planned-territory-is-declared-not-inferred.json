@@ -94,10 +94,66 @@
           "kind": "file",
           "path": "crates/spec-spine-core/src/query.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "038-registry-plan-ready-set",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/query.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/coverage.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/coverage.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-edge-paths-grammar-sugar",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/edges.rs"
+        }
       }
     ],
     "id": "076-planned-territory-is-declared-not-inferred",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -131,6 +187,6 @@
     "summary": "A spec cannot say what it intends to own. Ownership is only ever inferred from a unit resolving on disk, so a corpus that opts into spec 050's `--fail-on-unresolved` gate forecloses declaring territory before writing it: every claim must arrive with its file. The cost is that `registry plan` and `index coverage` are blind to planned ownership, a draft's risk understates the work, and two specs can plan the same file with no edge to collide on until one of them ships. This spec adds an optional `planned` flag to the unit payload. A planned unit is a declared state rather than an unresolved one, so it produces no `W-001` and the gate keeps refusing every claim that is merely broken. The flag is bound to the lifecycle field that ends it: a spec at `implementation: complete` carrying one is refused, and a planned unit that has resolved is reported so the flag cannot be left on.\n",
     "title": "Planned territory is declared, not inferred"
   },
-  "shardHash": "408044e68f619e16a3309eadaabdeef913eb6f87d2bc5387a1781fa3ed87542d",
-  "specVersion": "1.1.0"
+  "shardHash": "d4ceadefbdd6637d6d11adf7eb51bce250d5d4bae09dc68ceb0adf7be2ab9891",
+  "specVersion": "1.2.0"
 }

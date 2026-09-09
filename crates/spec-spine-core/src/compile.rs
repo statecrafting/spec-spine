@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use serde::Serialize;
 use spec_spine_types::{
     Build, Config, Error, Frontmatter, FrontmatterIssue, REGISTRY_SCHEMA_VERSION, Registry,
-    RegistrySpecShard, Severity, SpecRecord, Status, ValidationReport, Violation,
+    RegistrySpecShard, Severity, SpecRecord, Status, Unit, ValidationReport, Violation,
     parse_frontmatter_with, split_frontmatter,
 };
 
@@ -24,7 +24,13 @@ use crate::{canonical_json, hash, markdown, shard};
 /// cycle. They are NOT stored per registry shard (storing them would let a
 /// sibling spec's PR stale this shard); they are recomputed from the assembled
 /// record set on read.
-const CROSS_SPEC_CODES: &[&str] = &["V-003", "V-004", "V-008", "V-010", "V-014"];
+const CROSS_SPEC_CODES: &[&str] = &[
+    "V-003", "V-004", "V-008", "V-010", "V-014",
+    // Spec 076 §3.5: the three planned-territory collisions. Each needs to know
+    // something about a spec other than the one being validated, so each is
+    // corpus-wide and none belongs on a single spec's shard.
+    "V-015", "V-016", "V-017",
+];
 
 /// The cap on **undeclared** `extra_frontmatter` keys before `V-007` fires.
 /// Keys listed in `frontmatter.extra_known_keys` are intentional and exempt;
@@ -174,6 +180,14 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
     // V-014 reads the records, not the parsed frontmatter, so it sees the
     // short-id-resolved `depends_on` (spec 016) rather than the authored text.
     detect_dependency_cycle(&records, &mut violations);
+    // Spec 076 §3.5, over DECLARED units at compile time rather than over the
+    // resolved graph. Naming the stage matters, because the obvious reading is
+    // wrong: the existing duplicate-ownership machinery operates on
+    // `TraceMapping`, and §3.2 excludes a planned unit from ever producing one,
+    // so a collision between two planned claims would have nothing to ride on.
+    // A rule that cannot fire is worse than no rule, because the spec would
+    // promise a refusal that never happens.
+    validate_planned_territory(&records, &mut violations);
 
     // --- shard projection + aggregate content hash (spec 024) ---
     // One shard per spec, each carrying its compiled record, its corpus-
@@ -389,6 +403,135 @@ fn detect_duplicates(specs: &[(String, String)], out: &mut Vec<Violation>) {
                 None,
             ));
         }
+    }
+}
+
+/// Spec 076 §3.5: planned territory is subject to the ownership rules that
+/// already exist, and this spec introduces no second set.
+///
+/// All three checks are **corpus-wide**, decided with every spec's frontmatter
+/// loaded, because each needs to know something about a spec other than the one
+/// being validated: whether another spec plans the same unit, already owns it,
+/// or is extending a unit this spec marked planned.
+///
+/// - **`V-015`** two specs plan the same unit, without `co_authority`: the
+///   duplicate-ownership refusal, with the same escape as any shared claim.
+/// - **`V-016`** a spec plans a unit another spec already owns. The correct
+///   declaration there is an `extends` edge naming that spec and unit, which is
+///   what crossing into owned territory has always meant.
+/// - **`V-017`** an `extends` edge names a planned unit. There is nothing to
+///   extend: the unit does not exist and its planner does not yet own it.
+fn validate_planned_territory(specs: &[SpecRecord], out: &mut Vec<Violation>) {
+    use std::collections::{BTreeMap, BTreeSet};
+
+    // Subjects, so the flag is never part of the identity being compared.
+    let key = |u: &Unit| unit_identity(&u.subject());
+
+    // Keyed by unit identity, valued by the specs making the claim. `owners`
+    // holds unplanned claims and carries the claimant, because `extends` is
+    // itself an ownership-bearing edge: without knowing WHO owns a unit, the
+    // V-017 check below would be defeated by the very edge it is examining.
+    let mut planners: BTreeMap<String, Vec<&SpecRecord>> = BTreeMap::new();
+    let mut owners: BTreeMap<String, Vec<&SpecRecord>> = BTreeMap::new();
+    let mut shared: BTreeSet<String> = BTreeSet::new();
+    for spec in specs {
+        for c in &spec.co_authority {
+            shared.insert(key(&c.unit));
+        }
+        for unit in owning_units(spec) {
+            let k = key(&unit);
+            if unit.is_planned() {
+                planners.entry(k).or_default().push(spec);
+            } else {
+                owners.entry(k).or_default().push(spec);
+            }
+        }
+    }
+
+    for (unit_key, plans) in &planners {
+        let at = |s: &SpecRecord| Some(s.spec_path.clone());
+        if plans.len() > 1 && !shared.contains(unit_key) {
+            let ids: Vec<&str> = plans.iter().map(|s| s.id.as_str()).collect();
+            out.push(error(
+                "V-015",
+                format!(
+                    "unit '{unit_key}' is planned by more than one spec ({}): declare \
+                     co_authority if the claim is genuinely shared",
+                    ids.join(", ")
+                ),
+                at(plans[0]),
+            ));
+        }
+        if let Some(existing) = owners.get(unit_key)
+            && !shared.contains(unit_key)
+        {
+            let owner_ids: Vec<&str> = existing.iter().map(|s| s.id.as_str()).collect();
+            out.push(error(
+                "V-016",
+                format!(
+                    "spec '{}' plans unit '{unit_key}', which spec(s) {} already own: \
+                     declare an extends edge naming the owning spec and unit instead",
+                    plans[0].id,
+                    owner_ids.join(", ")
+                ),
+                at(plans[0]),
+            ));
+        }
+    }
+
+    // V-017 reads `extends` alone: it is the edge whose meaning is "cross into
+    // territory another spec owns", and a planned unit is territory nobody owns
+    // yet.
+    for spec in specs {
+        for item in &spec.extends {
+            let Some(unit) = &item.unit else { continue };
+            let k = key(unit);
+            // "Owned by someone else": the extending spec's own edge is what
+            // put it in `owners`, so counting it would make this rule silent
+            // in exactly the case it exists for.
+            let owned_elsewhere = owners
+                .get(&k)
+                .is_some_and(|os| os.iter().any(|o| o.id != spec.id));
+            if planners.contains_key(&k) && !owned_elsewhere {
+                out.push(error(
+                    "V-017",
+                    format!(
+                        "spec '{}' extends unit '{k}', which spec '{}' has only planned: \
+                         there is nothing to extend until it is written",
+                        spec.id, planners[&k][0].id
+                    ),
+                    Some(spec.spec_path.clone()),
+                ));
+            }
+        }
+    }
+}
+
+/// Every unit a spec claims through an ownership-bearing edge, for the §3.5
+/// collision checks. `references` is excluded (spec 034: a cited file is not a
+/// claimed one), and so is `amends`, whose subject is a spec rather than a unit.
+fn owning_units(spec: &SpecRecord) -> Vec<Unit> {
+    let mut units: Vec<Unit> = spec.establishes.clone();
+    units.extend(spec.extends.iter().filter_map(|i| i.unit.clone()));
+    units.extend(spec.refines.iter().filter_map(|i| i.unit.clone()));
+    units.extend(spec.supersedes.iter().filter_map(|i| match i {
+        spec_spine_types::SupersedeItem::Scoped(s) => s.unit.clone(),
+        _ => None,
+    }));
+    units.extend(spec.co_authority.iter().map(|i| i.unit.clone()));
+    units.extend(spec.constrains.iter().filter_map(|i| i.unit.clone()));
+    units
+}
+
+/// A unit's identity as a comparable, human-readable key.
+fn unit_identity(unit: &Unit) -> String {
+    match unit {
+        Unit::File { path, .. } => format!("file:{path}"),
+        Unit::Section { file, anchor, .. } => format!("section:{file}#{anchor}"),
+        Unit::Symbol { id, .. } => format!("symbol:{id}"),
+        Unit::Directory { path, .. } => format!("directory:{path}"),
+        Unit::Crate { id, .. } => format!("crate:{id}"),
+        Unit::Module { id, .. } => format!("module:{id}"),
     }
 }
 

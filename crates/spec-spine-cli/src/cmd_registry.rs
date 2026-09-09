@@ -226,6 +226,25 @@ fn print_plan(plan: &Plan) {
             outln!("       blocked by {}", reasons.join(", "));
         }
     }
+    // Spec 076 §3.6: what the corpus has said it will own and has not written
+    // yet. Reported below both sets rather than folded into either, because a
+    // blocked spec's planned territory is exactly what a reader wants when
+    // weighing what unblocking it would cost.
+    if !plan.planned.is_empty() {
+        outln!();
+        let units: usize = plan.planned.iter().map(|p| p.units.len()).sum();
+        outln!(
+            "planned territory ({units} unit(s) across {} spec(s)):",
+            plan.planned.len()
+        );
+        let w = id_width(plan.planned.iter().map(|p| p.id.as_str()));
+        for entry in &plan.planned {
+            outln!("  {:<w$}  {}", entry.id, entry.title, w = w);
+            for unit in &entry.units {
+                outln!("       {unit}");
+            }
+        }
+    }
     outln!();
     outln!(
         "{} specs: {} ready, {} blocked, {} not schedulable",

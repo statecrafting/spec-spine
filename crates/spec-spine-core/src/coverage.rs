@@ -181,6 +181,7 @@ pub fn coverage_with(cfg: &Config, index: &CodebaseIndex, files: &[String]) -> C
         floor_only_files: Vec::new(),
         unclaimed_files: Vec::new(),
         packages: Vec::new(),
+        planned_territory: Vec::new(),
     };
     for file in universe {
         let Some(entry) =
@@ -219,7 +220,20 @@ pub fn coverage(cfg: &Config, repo_root: &Path) -> Result<CoverageReport, Error>
     }
     let index = load_committed_index(cfg, repo_root)?;
     let files = enumerate_source_files(cfg, repo_root, &index);
-    Ok(coverage_with(cfg, &index, &files))
+    let mut report = coverage_with(cfg, &index, &files);
+    // Spec 076 §3.6: planned territory is a DECLARED state, so it is read from
+    // the spec-as-source view. It cannot come from the index: a planned unit
+    // that has not resolved contributes no `ResolvedUnit` and no location, by
+    // §3.2, which is exactly why the report was blind to it.
+    //
+    // A registry that will not load leaves the list empty rather than failing
+    // the report: this member is additive information beside a coverage verdict
+    // that has already been reached, and `compile --check` is where a broken
+    // registry is the operator's problem.
+    if let Ok(registry) = crate::compile::load_committed_registry(cfg, repo_root) {
+        report.planned_territory = crate::query::planned_territory(&registry);
+    }
+    Ok(report)
 }
 
 /// Why a coverage universe is empty, when it is (spec 059 §3.2, §3.3).

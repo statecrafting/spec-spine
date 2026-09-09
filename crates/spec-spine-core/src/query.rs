@@ -289,6 +289,30 @@ pub struct Plan {
     /// and a reader cannot tell whether the missing specs were excluded or
     /// lost (spec 060 §3.1).
     pub not_schedulable: usize,
+    /// Territory specs have declared they intend to own and have not written
+    /// yet (spec 076 §3.6).
+    ///
+    /// Reported as a **declared state** rather than derived from a suppressed
+    /// diagnostic: §3.2 removes the `W-001` a planned unit used to produce, so
+    /// a consumer that read the diagnostics band would now see nothing at all.
+    /// This is the read the flag exists to unblind: before it, `plan` could
+    /// only see the past.
+    ///
+    /// Omitted when empty, so a corpus using no planned units emits exactly
+    /// what it did before.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub planned: Vec<PlannedTerritory>,
+}
+
+/// One spec's planned territory: what it has said it will own (spec 076).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlannedTerritory {
+    pub id: String,
+    pub title: String,
+    /// The planned units, as the identity strings a reader recognizes
+    /// (`file:src/a.rs`), in the spec's own declaration order.
+    pub units: Vec<String>,
 }
 
 impl Plan {
@@ -397,7 +421,94 @@ pub fn plan(registry: &Registry) -> Result<Plan, Error> {
             .collect(),
         blocked,
         not_schedulable,
+        // Spec 076 §3.6, over every spec rather than the ready set alone: a
+        // blocked spec's planned territory is exactly what a reader wants when
+        // deciding what unblocking it would cost.
+        planned: registry
+            .specs
+            .iter()
+            .filter_map(|spec| {
+                let units: Vec<String> = planned_units(spec);
+                (!units.is_empty()).then(|| PlannedTerritory {
+                    id: spec.id.clone(),
+                    title: spec.title.clone(),
+                    units,
+                })
+            })
+            .collect(),
     })
+}
+
+/// Every spec's planned territory as `<spec id>: <unit identity>` lines,
+/// sorted (spec 076 §3.6).
+///
+/// Shared by `registry plan` and `index coverage` so the two reads cannot
+/// disagree about what the corpus has declared.
+pub fn planned_territory(registry: &Registry) -> Vec<String> {
+    let mut out: Vec<String> = registry
+        .specs
+        .iter()
+        .flat_map(|spec| {
+            planned_units(spec)
+                .into_iter()
+                .map(move |u| format!("{}: {u}", spec.id))
+        })
+        .collect();
+    out.sort();
+    out
+}
+
+/// The identity strings of every unit a spec has marked planned, in its own
+/// declaration order across the ownership-bearing edges.
+fn planned_units(spec: &SpecRecord) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut push = |u: &spec_spine_types::Unit| {
+        if u.is_planned() {
+            out.push(unit_identity(u));
+        }
+    };
+    for u in &spec.establishes {
+        push(u);
+    }
+    for i in &spec.extends {
+        if let Some(u) = &i.unit {
+            push(u);
+        }
+    }
+    for i in &spec.refines {
+        if let Some(u) = &i.unit {
+            push(u);
+        }
+    }
+    for i in &spec.supersedes {
+        if let spec_spine_types::SupersedeItem::Scoped(sc) = i
+            && let Some(u) = &sc.unit
+        {
+            push(u);
+        }
+    }
+    for i in &spec.co_authority {
+        push(&i.unit);
+    }
+    for i in &spec.constrains {
+        if let Some(u) = &i.unit {
+            push(u);
+        }
+    }
+    out
+}
+
+/// A unit as the identity string a reader recognizes.
+fn unit_identity(unit: &spec_spine_types::Unit) -> String {
+    use spec_spine_types::Unit;
+    match unit {
+        Unit::File { path, .. } => format!("file:{path}"),
+        Unit::Section { file, anchor, .. } => format!("section:{file}#{anchor}"),
+        Unit::Symbol { id, .. } => format!("symbol:{id}"),
+        Unit::Directory { path, .. } => format!("directory:{path}"),
+        Unit::Crate { id, .. } => format!("crate:{id}"),
+        Unit::Module { id, .. } => format!("module:{id}"),
+    }
 }
 
 /// Whether this spec should be offered to a scheduler at all.

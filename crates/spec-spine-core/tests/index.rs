@@ -116,7 +116,7 @@ fn mapping<'a>(
 fn symbol_span(m: &spec_spine_types::TraceMapping, sym_id: &str) -> Option<LineSpan> {
     m.resolved_units
         .iter()
-        .find(|u| matches!(&u.unit, Unit::Symbol { id } if id == sym_id))
+        .find(|u| matches!(&u.unit, Unit::Symbol { id, .. } if id == sym_id))
         .and_then(|u| u.locations.first())
         .and_then(|loc| loc.span)
 }
@@ -658,7 +658,8 @@ fn crate_unit_resolves_to_package_subtree() {
         authorities(
             &idx,
             &Unit::Crate {
-                id: "rs-thing".into()
+                id: "rs-thing".into(),
+                planned: false
             }
         )
         .contains(&"001-c".into())
@@ -731,7 +732,7 @@ fn module_unit_resolves_inline_and_file_modules() {
     let tests_unit = m
         .resolved_units
         .iter()
-        .find(|u| matches!(&u.unit, Unit::Module { id } if id == "rs_thing::tests"))
+        .find(|u| matches!(&u.unit, Unit::Module { id, .. } if id == "rs_thing::tests"))
         .unwrap();
     assert_eq!(tests_unit.locations[0].file, "rs-thing/src/lib.rs");
     assert!(
@@ -741,7 +742,7 @@ fn module_unit_resolves_inline_and_file_modules() {
     let helper_unit = m
         .resolved_units
         .iter()
-        .find(|u| matches!(&u.unit, Unit::Module { id } if id == "rs_thing::helper"))
+        .find(|u| matches!(&u.unit, Unit::Module { id, .. } if id == "rs_thing::helper"))
         .unwrap();
     assert_eq!(helper_unit.locations[0].file, "rs-thing/src/helper.rs");
     assert_eq!(
@@ -846,7 +847,7 @@ fn references_unit_survives_in_resolved_units() {
     let cited = m
         .resolved_units
         .iter()
-        .find(|u| matches!(&u.unit, Unit::File { path } if path == "src/cited.rs"))
+        .find(|u| matches!(&u.unit, Unit::File { path, .. } if path == "src/cited.rs"))
         .expect("the reference is still recorded");
     assert!(!cited.ownership, "a `references` unit is non-owning");
     assert_eq!(cited.locations.len(), 1, "and it still resolves");
@@ -1473,5 +1474,108 @@ fn a_workflow_bump_leaves_every_shard_hash_alone_and_a_run_edit_does_not() {
         before,
         shard::global_inputs_hash(&cfg, root),
         "a `run:` edit is a governed change and must still stale the ledger"
+    );
+}
+
+// ── spec 076: planned territory is declared, not inferred ───────────────────
+
+/// A corpus with one spec claiming `unit_yaml` (a frontmatter fragment).
+fn planned_fixture(unit_yaml: &str, status: &str, implementation: &str) -> tempfile::TempDir {
+    let tmp = tempfile::tempdir().unwrap();
+    write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = []\n");
+    write(
+        tmp.path(),
+        "specs/001-a/spec.md",
+        &format!(
+            "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: {status}\ncreated: \"2026-09-08\"\n\
+             implementation: {implementation}\nsummary: \"s\"\nestablishes:\n{unit_yaml}\
+             ---\n# 001-a\n## body\n"
+        ),
+    );
+    tmp
+}
+
+fn diag_codes(tmp: &tempfile::TempDir) -> Vec<String> {
+    let idx = index(&Config::default(), tmp.path()).unwrap().index;
+    idx.diagnostics
+        .warnings
+        .iter()
+        .chain(idx.diagnostics.errors.iter())
+        .map(|d| d.code.clone())
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .collect()
+}
+
+/// Spec 076 §3.2, and the case the spec was filed for: a draft that declares
+/// territory it has not written passes, while a draft with a path that is
+/// simply wrong still does not. That asymmetry is the whole safety argument.
+#[test]
+fn a_planned_unit_produces_no_diagnostic_and_an_unmarked_one_still_does() {
+    let planned = planned_fixture(
+        "  - { kind: file, path: \"src/not-written-yet.rs\", planned: true }\n",
+        "draft",
+        "pending",
+    );
+    assert!(
+        !diag_codes(&planned).iter().any(|c| c.starts_with("W-00")),
+        "a planned unit is a declared state, not a suppressed diagnostic: {:?}",
+        diag_codes(&planned)
+    );
+
+    let unmarked = planned_fixture("  - \"src/typo.rs\"\n", "draft", "pending");
+    assert!(
+        diag_codes(&unmarked).iter().any(|c| c == "W-001"),
+        "a path that is simply wrong must still be caught: {:?}",
+        diag_codes(&unmarked)
+    );
+}
+
+/// Spec 076 §3.2: every other classification is unchanged. A settled spec's
+/// unresolved unit is still a hard error, and marking it planned is the only
+/// thing that changes that.
+#[test]
+fn planned_does_not_soften_any_other_classification() {
+    let settled = planned_fixture("  - \"src/gone.rs\"\n", "approved", "complete");
+    let codes = diag_codes(&settled);
+    assert!(
+        codes.iter().any(|c| c.starts_with("I-0")),
+        "a settled spec's unresolved unit is still a hard error: {codes:?}"
+    );
+}
+
+/// Spec 076 §3.2 and §3.4: a planned unit contributes nothing while it does not
+/// resolve, and everything once it does. `authorities` must answer for it
+/// exactly as for an unplanned claim, which is why the index stores subjects.
+#[test]
+fn a_planned_unit_that_resolves_is_owned_like_any_other() {
+    let tmp = planned_fixture(
+        "  - { kind: file, path: \"src/a.rs\", planned: true }\n",
+        "draft",
+        "pending",
+    );
+    // Not written yet: no location, no implementing path.
+    let before = index(&Config::default(), tmp.path()).unwrap().index;
+    assert!(
+        before.traceability.mappings[0]
+            .implementing_paths
+            .is_empty(),
+        "a declaration of intent is not a declaration of ownership"
+    );
+
+    // Now it lands, and the flag is still on the claim.
+    write(tmp.path(), "src/a.rs", "pub fn a() {}\n");
+    let after = index(&Config::default(), tmp.path()).unwrap().index;
+    assert!(
+        after.traceability.mappings[0]
+            .implementing_paths
+            .iter()
+            .any(|p| p.path == "src/a.rs"),
+        "a resolved planned unit participates in ownership"
+    );
+    assert_eq!(
+        authorities(&after, &Unit::file("src/a.rs")),
+        vec!["001-a".to_string()],
+        "the lookup must not have to know the claim was planned"
     );
 }
