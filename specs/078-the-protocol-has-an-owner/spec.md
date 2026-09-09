@@ -1,7 +1,7 @@
 ---
 id: "078-the-protocol-has-an-owner"
 title: "The protocol has an owner"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-08"
 implementation: complete
@@ -52,8 +52,8 @@ Seven approved specs (047, 048, 051, 063, 072, 074 and 075) declare an
 correct**. `extends` is defined in `edges.rs` as "adds surface to a
 predecessor": the unit is surface the extending spec adds, and it need not
 already sit in the target's territory. That is the corpus's ordinary
-convention, measured rather than assumed, and it is the sole claim about a
-fifth of this repository's source files have.
+convention, measured rather than assumed, and it is the sole claim that about
+a fifth of this repository's source files have.
 
 **What is missing is narrower, and it is a gap in the ledger rather than a
 defect in anyone's frontmatter.** Every one of those seven edges says "I add
