@@ -1,7 +1,9 @@
 {
   "mapping": {
     "amends": [
-      "065-init-and-the-kit-are-one-adoption"
+      "065-init-and-the-kit-are-one-adoption",
+      "051-harness-runs-the-verbs-it-ships",
+      "048-kit-ships-the-governed-loop-skills"
     ],
     "dependsOn": [
       "003-conformance-lint",
@@ -42,6 +44,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/kit_skills.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/tests/lint.rs",
         "source": "spec-edge"
       },
@@ -50,7 +56,15 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/verify.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "docs/adoption-guide.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/",
         "source": "spec-edge"
       },
       {
@@ -63,10 +77,6 @@
       },
       {
         "path": "kit/README.md",
-        "source": "spec-edge"
-      },
-      {
-        "path": "kit/scripts/",
         "source": "spec-edge"
       },
       {
@@ -173,6 +183,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/kit_skills.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_skills.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/tests/lint.rs"
           }
         ],
@@ -199,6 +222,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/verify.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/verify.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/adoption-guide.md"
           }
         ],
@@ -207,6 +243,19 @@
         "unit": {
           "kind": "file",
           "path": "docs/adoption-guide.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/"
         }
       },
       {
@@ -246,19 +295,6 @@
         "unit": {
           "kind": "file",
           "path": "kit/README.md"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "kit/scripts/"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "kit/scripts/"
         }
       },
       {
@@ -305,5 +341,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "da416b636ba5a413a8d29932de642aa1dc7072f2cd28c98c6a8dbe0b9b1885b6"
+  "shardHash": "45ecb064e718d4a0de7101490a1d50c78b8706f8ab2327f2f42c656745e39851"
 }

@@ -254,24 +254,36 @@ fn the_loop_skills_wrap_the_tool_verbs_they_exist_for() {
     }
 }
 
-/// The script still ships for adopters pinned below 0.15.0, but spec 051 3.2
-/// moved the harness onto `spec-spine verify`: no skill may call it, and the
-/// kit README must say it is deprecated. Deleting it is 051 4's follow-on,
-/// gated on the adopters upgrading, not on this spec merging.
+/// Spec 051 3.2 kept the script in the kit while adopters were pinned below
+/// 0.15.0 and moved the harness onto `spec-spine verify`. Spec 074 3.6 removed
+/// it once they had upgraded (2026-09-09): the kit no longer ships it, no kit
+/// file lists it as shipped, and no skill may call it. This repository's own
+/// `scripts/verify-spec.sh` stays, established by spec 048.
 #[test]
-fn the_verify_script_ships_deprecated_and_no_skill_calls_it() {
+fn the_kit_no_longer_ships_the_verify_script_and_no_skill_calls_it() {
     let root = repo_root();
-    let kit = fs::read_to_string(root.join("kit/scripts/verify-spec.sh")).unwrap();
+    assert!(
+        !root.join("kit/scripts/verify-spec.sh").exists(),
+        "spec 074 3.6: the kit stops shipping what the verb absorbed"
+    );
     let own = fs::read_to_string(root.join("scripts/verify-spec.sh")).unwrap();
-    assert_eq!(kit, own, "scripts/verify-spec.sh differs from the kit copy");
-    assert!(kit.starts_with("#!/usr/bin/env bash"));
-    assert!(kit.contains("verify:cli") && kit.contains("verify:browser"));
-    assert!(kit.contains("not-declared"), "an honest zero, not a pass");
+    assert!(own.starts_with("#!/usr/bin/env bash"));
+    assert!(own.contains("not-declared"), "an honest zero, not a pass");
 
+    // The README's "what the kit ships" tree lists one file per line, so a
+    // line that begins with the script's name is a listing of it, whatever
+    // the indentation. Prose that names the script (telling an adopter with an
+    // older copy to delete theirs) is allowed and expected.
     let readme = fs::read_to_string(root.join("kit/README.md")).unwrap();
     assert!(
-        readme.contains("DEPRECATED"),
-        "kit/README.md must mark the script deprecated (spec 051 3.2)"
+        !readme
+            .lines()
+            .any(|l| l.trim_start().starts_with("verify-spec.sh")),
+        "kit/README.md must not list the script among what the kit ships (spec 074 3.6)"
+    );
+    assert!(
+        !root.join("kit/scripts").exists(),
+        "the kit ships no scripts/ subtree once the script is gone"
     );
 
     for (label, dir) in skill_dirs() {

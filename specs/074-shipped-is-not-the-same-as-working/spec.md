@@ -4,7 +4,7 @@ title: "Shipped is not the same as working"
 status: draft
 kind: "tooling"
 created: "2026-09-08"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -22,6 +22,21 @@ amends:
   # exists to bind. 3.3 below requires the binding to be written, which
   # changes that decision.
   - "065-init-and-the-kit-are-one-adoption"
+  # 051 3.2 said `kit/scripts/verify-spec.sh` MUST NOT be deleted while
+  # adopters were pinned below v0.15.0, and named "adopters upgrading" as the
+  # trigger for its retirement. The maintainer confirmed that trigger on
+  # 2026-09-09 (the two active adopters are on 0.17.0) and removed the file.
+  # 3.6 below is what 051 3.2 deferred, so this records the change to 051
+  # without editing it (spec 040). See the decision of 2026-09-09.
+  - "051-harness-runs-the-verbs-it-ships"
+  # 048 3.5 specified the kit's copy of the script, 048 2 claimed `kit/scripts/`
+  # as territory, and 048 5 ran `sh -n` on the file. 3.6 removes what those
+  # three describe. The territory claim and the acceptance line could not be
+  # left standing: a directory claim on a directory git no longer carries is
+  # an `I-007` hard error with no withdrawal instrument in the grammar, so the
+  # maintainer edited both directly on 2026-09-09 (048 D-7). 3.5's prose is
+  # left as written; this edge records that it no longer describes the kit.
+  - "048-kit-ships-the-governed-loop-skills"
 extends:
   # 3.3 to 3.6: what `init` writes, and whether it can be run.
   - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/src/scaffold.rs", nature: additive }
@@ -29,8 +44,14 @@ extends:
   - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/tests/scaffold.rs", nature: additive }
   # 3.1 the new refusal, 3.2 the message 057 already specified.
   - { spec: "003-conformance-lint", unit: "crates/spec-spine-core/src/lint.rs", nature: additive }
-  # 3.6 the kit stops shipping what the tool absorbed.
-  - { spec: "048-kit-ships-the-governed-loop-skills", unit: "kit/scripts/", nature: superseding }
+  # 3.6 the removal itself. A file unit on a path that no longer exists is an
+  # `I-004`, and 048's `kit/scripts/` claim is withdrawn (D-7 there), so the
+  # deleted path is answered by 029's `kit/` subtree, the same door 064 took.
+  - { spec: "029-claude-code-skill-kit", unit: "kit/", nature: additive }
+  # 3.6 the pin that asserted the script shipped now asserts it does not, and
+  # the fixture that counted 048's acceptance commands counts one fewer.
+  - { spec: "048-kit-ships-the-governed-loop-skills", unit: "crates/spec-spine-core/tests/kit_skills.rs", nature: additive }
+  - { spec: "049-verify-declared-acceptance", unit: "crates/spec-spine-core/tests/verify.rs", nature: additive }
   # 3.8 this repository sets its own [meta] required_version. `spec-spine.toml`
   # is claimed territory and is NOT on the coupling bypass floor; 067 extends
   # 064 for it, and this follows that precedent.
@@ -414,6 +435,30 @@ spec is unbuilt. A human decides between two clean resolutions: declare
 upgraded past v0.15.0, which is the trigger 051 named and a fact this session
 cannot verify; or move 3.6 to its own spec whose trigger is that same fact,
 which is what 051 4 already planned.
+
+**2026-09-09: 3.6 is implemented, by the maintainer's decision, as an
+amendment.** The entry above left two clean resolutions to a human. The
+maintainer took the first: the trigger 051 3.2 named ("adopters upgrading") is
+met, hqgit and aicortex both moved their pin to 0.17.0 on 2026-09-09, and the
+maintainer deleted `kit/scripts/verify-spec.sh` by hand that day. This spec now
+declares `amends` on 051 and on 048, which records the change to each without
+editing 051 (spec 040).
+
+048 needed two direct edits that no edge can make, and the maintainer made
+them: `kit/scripts/` is dropped from 048's `establishes`, because a directory
+claim on a directory git no longer carries is an `I-007` hard error in every
+fresh checkout and the grammar has no instrument that withdraws a
+predecessor's claim (the `extends ... nature: superseding` edge this spec used
+to carry on `kit/scripts/` was confirmed not to be one, and is removed here
+because a unit that does not exist cannot be extended either); and the `sh -n
+kit/scripts/verify-spec.sh` line leaves 048's `## 5. Verification`, since an
+acceptance line that runs a removed file can only fail. 048 records both as
+its D-7. This repository's own `scripts/verify-spec.sh` is untouched: 3.6
+names the kit copy only, 048 still establishes the repository copy, and 048's
+acceptance still runs it.
+
+The `## Verification` line `test ! -e kit/scripts/verify-spec.sh`, kept failing
+since 2026-09-08 as the honest record of an unbuilt section, now passes.
 
 **2026-09-08: `[meta] required_version` is a floor, not an exact pin.** Section
 3.8 asks for "a requirement matching this repository's own package version" and

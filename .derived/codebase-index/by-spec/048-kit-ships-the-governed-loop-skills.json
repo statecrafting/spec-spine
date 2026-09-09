@@ -43,10 +43,6 @@
         "source": "spec-edge"
       },
       {
-        "path": "kit/scripts/",
-        "source": "spec-edge"
-      },
-      {
         "path": "kit/settings.json",
         "source": "spec-edge"
       },
@@ -93,19 +89,6 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/tests/kit_skills.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "kit/scripts/"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "kit/scripts/"
         }
       },
       {
@@ -217,5 +200,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "4148b80a2fe9f1a474aba51cf1cf3f1d2104b46e518d70a5f8a46d8550b8d122"
+  "shardHash": "812bf82f5ffa2c2c16701e2c0fb738c2466aa2a1aa8953fe3e6a9e98e3937c46"
 }
