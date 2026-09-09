@@ -56,6 +56,10 @@
       {
         "path": "kit/scripts/",
         "source": "spec-edge"
+      },
+      {
+        "path": "spec-spine.toml",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
@@ -205,6 +209,19 @@
       {
         "locations": [
           {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/design/03-adopter-audit-2026-09.md"
           }
         ],
@@ -220,5 +237,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "b214f8b1342b93eb3db0a481c4fb09fc7ae0e4123937ee4703cf1d5f884714b2"
+  "shardHash": "43d79ae3f125a93107ecb1514edbfbeaa5495e03e72ea786af1af0438ac2b53c"
 }

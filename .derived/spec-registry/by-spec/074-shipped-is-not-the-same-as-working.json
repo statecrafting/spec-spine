@@ -56,6 +56,14 @@
       },
       {
         "nature": "additive",
+        "spec": "064-the-kit-ships-the-composite-gate",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "029-claude-code-skill-kit",
         "unit": {
           "kind": "file",
@@ -141,6 +149,6 @@
     "summary": "Two adopters installed spec-spine on the same day and each found a shipped artifact that does not do what it says. A glob form that matches no files reached one by hand and the other through a pre-069 scaffold, where the fix to the default can never arrive and 069's migration note explicitly does not look. `init --with-kit` writes the merge-driver hooks without an executable bit and without the binding that makes them fire. It installs a script the tool absorbed two releases ago, and it will write a second spec at an ordinal the corpus already uses. The session protocol calls a version read a precondition and never schedules it, while the skill beside it still prescribes the stderr ritual that protocol retired. Every one of these shipped for the same reason: the acceptance asserted that a thing exists rather than that it works. This spec closes them together and adds the refusal that would have caught the first one in an adopter's own config.\n",
     "title": "Shipped is not the same as working"
   },
-  "shardHash": "07dae2053388198073c639918ea5f7c1d281946e4fcb8e162e497a55d1e804d4",
+  "shardHash": "d996c1e4245dac6759e9fd82ba170ea52a662db19dfb0c10b59a61969c5c0284",
   "specVersion": "1.1.0"
 }

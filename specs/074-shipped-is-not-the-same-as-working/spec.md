@@ -31,6 +31,10 @@ extends:
   - { spec: "003-conformance-lint", unit: "crates/spec-spine-core/src/lint.rs", nature: additive }
   # 3.6 the kit stops shipping what the tool absorbed.
   - { spec: "048-kit-ships-the-governed-loop-skills", unit: "kit/scripts/", nature: superseding }
+  # 3.8 this repository sets its own [meta] required_version. `spec-spine.toml`
+  # is claimed territory and is NOT on the coupling bypass floor; 067 extends
+  # 064 for it, and this follows that precedent.
+  - { spec: "064-the-kit-ships-the-composite-gate", unit: "spec-spine.toml", nature: additive }
   # 3.7 the protocol schedules the version read it already calls a precondition.
   - { spec: "029-claude-code-skill-kit", unit: "kit/AGENTS.md", nature: additive }
   - { spec: "029-claude-code-skill-kit", unit: "AGENTS.md", nature: additive }
@@ -116,6 +120,7 @@ in 3.3:
 | `AGENTS.md`, `kit/AGENTS.md` | 029 | the version read is scheduled |
 | `.claude/skills/`, `kit/.claude/skills/` | 048, 029 | the retired stderr ritual removed |
 | `docs/adoption-guide.md` | 067 | the migration note reaches the second cohort |
+| `spec-spine.toml` | 064 | `[meta] required_version` set on this repository |
 | `crates/spec-spine-core/src/kit_embedded.rs` | 065 | regenerated, never hand-edited |
 
 **This spec `amends` 065.** Its section 3.2 decided that
@@ -206,6 +211,13 @@ The flag MUST be set for every `.sh` the scaffold writes. On a platform with no
 executable bit the field is inert, and the scaffold stays a pure function of
 `(Config, with_kit)` because the bit is data in the returned `Scaffold`, not an
 IO decision taken by the writer.
+
+**The field MUST carry a default**, so that adding it breaks no existing
+construction site. `ScaffoldFile` is a public struct in
+`spec-spine-core`, so a bare added field would fail every struct literal that
+builds one, in this repository's own tests and in any consumer. Defaulting to
+non-executable also makes the safe value the one you get by saying nothing,
+which is the right direction for a permission bit.
 
 ### 3.5 `init` does not create a corpus its own compiler refuses
 
