@@ -4,7 +4,7 @@ title: "One name for the protocol, one verb for freshness"
 status: draft
 kind: "tooling"
 created: "2026-09-08"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
