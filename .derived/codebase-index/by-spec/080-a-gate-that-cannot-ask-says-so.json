@@ -1,23 +1,30 @@
 {
   "mapping": {
     "dependsOn": [
-      "001-compile-registry"
+      "046-kit-hooks-read-never-write",
+      "051-harness-runs-the-verbs-it-ships",
+      "063-a-stale-binary-is-not-a-stale-ledger",
+      "075-one-name-one-freshness-verb"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-types/src/edges.rs",
+        "path": ".claude/settings.json",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/version.rs",
+        "path": "crates/spec-spine-core/src/kit_embedded.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/tests/dtos.rs",
+        "path": "crates/spec-spine-core/tests/kit_hooks.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/tests/grammar.rs",
+        "path": "kit/README.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/settings.json",
         "source": "spec-edge"
       }
     ],
@@ -25,72 +32,72 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/edges.rs"
+            "file": ".claude/settings.json"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/edges.rs"
+          "path": ".claude/settings.json"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/version.rs"
+            "file": "crates/spec-spine-core/src/kit_embedded.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/version.rs"
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/tests/dtos.rs"
+            "file": "crates/spec-spine-core/tests/kit_hooks.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/tests/dtos.rs"
+          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/tests/grammar.rs"
+            "file": "kit/README.md"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/tests/grammar.rs"
+          "path": "kit/README.md"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/design/00-architecture.md"
+            "file": "kit/settings.json"
           }
         ],
-        "ownership": false,
-        "sourceField": "references",
+        "ownership": true,
+        "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "docs/design/00-architecture.md"
+          "path": "kit/settings.json"
         }
       }
     ],
-    "specId": "028-references-provenance-derived-at",
-    "specStatus": "approved"
+    "specId": "080-a-gate-that-cannot-ask-says-so",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f9b22e6dba4353c998e1f42169cc3d970b21731bcb5b96686efdb9de5722134b"
+  "shardHash": "78cab1db7b6b5e098c920823cb016e0ea5dccfe2342e03532dd3d6675baf2ac5"
 }

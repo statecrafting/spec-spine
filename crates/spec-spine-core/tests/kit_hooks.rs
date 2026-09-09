@@ -596,3 +596,149 @@ fn this_repository_runs_the_hooks_it_ships() {
         "the destructive-command refusals are governance, not machine preference"
     );
 }
+
+// ── spec 080: a gate that cannot ask says so ─────────────────────────────────
+
+/// Run the shipped `PreToolUse` body against `gh pr create` with
+/// `$SPEC_SPINE_BIN` pointing at a stand-in that exits `check_exit` for
+/// `check`, `0` for `couple`, and answers `--version` with `version`. Returns
+/// the hook's exit code and its stderr.
+fn run_pr_gate_with_stand_in(check_exit: i32, version: &str) -> (i32, String) {
+    use std::io::Write;
+    use std::os::unix::fs::PermissionsExt;
+    use std::process::{Command, Stdio};
+
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    let git = |args: &[&str]| {
+        Command::new("git")
+            .args(args)
+            .current_dir(root)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .expect("git runs")
+    };
+    git(&["init", "-q", "-b", "feat"]);
+    fs::create_dir_all(root.join("specs")).unwrap();
+    fs::write(root.join("specs/.keep"), "").unwrap();
+    git(&["add", "."]);
+    git(&[
+        "-c",
+        "user.email=t@example.invalid",
+        "-c",
+        "user.name=t",
+        "commit",
+        "-qm",
+        "c",
+    ]);
+
+    let stand_in = root.join("stand-in-spec-spine");
+    fs::write(
+        &stand_in,
+        format!(
+            "#!/bin/sh\nfor a in \"$@\"; do case \"$a\" in --version) echo '{version}'; exit 0;; \
+             check) exit {check_exit};; couple) exit 0;; esac; done\nexit 0\n"
+        ),
+    )
+    .unwrap();
+    fs::set_permissions(&stand_in, fs::Permissions::from_mode(0o755)).unwrap();
+
+    let body = hook_bodies()["PreToolUse"].join("\n");
+    let payload = serde_json::json!({
+        "tool_input": { "command": "gh pr create --title t --body b" },
+        "cwd": root.to_str().unwrap(),
+    })
+    .to_string();
+    let mut child = Command::new("sh")
+        .arg("-c")
+        .arg(&body)
+        .current_dir(root)
+        .env("SPEC_SPINE_BIN", &stand_in)
+        .env_remove("SPEC_SPINE_DEFAULT_BRANCH")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("sh runs");
+    child
+        .stdin
+        .as_mut()
+        .expect("stdin")
+        .write_all(payload.as_bytes())
+        .expect("payload written");
+    let out = child.wait_with_output().expect("hook exits");
+    (
+        out.status.code().unwrap_or(-1),
+        String::from_utf8_lossy(&out.stderr).into_owned(),
+    )
+}
+
+/// Spec 080 3.1 and 3.2: exit 3 is a read that was not performed. The gate
+/// still refuses, says so in those terms, names the binary and what it
+/// answers to `--version`, and never calls the tree stale.
+#[test]
+fn the_pr_gate_reports_a_read_it_could_not_perform_as_that_and_not_as_stale() {
+    let (code, err) = run_pr_gate_with_stand_in(3, "spec-spine 0.17.0-stand-in");
+    assert_eq!(
+        code, 2,
+        "a gate whose check did not run is not green: {err}"
+    );
+    assert!(err.contains("not performed"), "{err}");
+    assert!(
+        err.contains("stand-in-spec-spine"),
+        "names the binary: {err}"
+    );
+    assert!(
+        err.contains("spec-spine 0.17.0-stand-in"),
+        "relays what --version answered (3.2): {err}"
+    );
+    assert!(
+        err.contains("0.18.0"),
+        "names the floor the verb needs: {err}"
+    );
+    assert!(
+        !err.to_lowercase().contains("stale"),
+        "an old binary is not a stale tree: {err}"
+    );
+}
+
+/// The other half of the pair: exit 2 is still reported as stale, with the
+/// remedy unchanged, so the distinction is pinned rather than the refusal.
+#[test]
+fn the_pr_gate_still_reports_a_stale_tree_as_stale() {
+    let (code, err) = run_pr_gate_with_stand_in(2, "spec-spine 0.18.0-stand-in");
+    assert_eq!(code, 2, "{err}");
+    assert!(err.contains("stale"), "{err}");
+    assert!(err.contains("compile and index"), "{err}");
+    assert!(!err.contains("not performed"), "{err}");
+    assert!(
+        !err.contains("0.18.0-stand-in"),
+        "--version is not asked on an answered exit (3.2): {err}"
+    );
+}
+
+/// Spec 080 3.1: exit 1 is a corpus that does not validate, which is neither
+/// stale nor a missing read.
+#[test]
+fn the_pr_gate_reports_a_corpus_that_does_not_validate() {
+    let (code, err) = run_pr_gate_with_stand_in(1, "spec-spine 0.18.0-stand-in");
+    assert_eq!(code, 2, "{err}");
+    assert!(err.contains("does not validate"), "{err}");
+    assert!(!err.contains("is stale"), "{err}");
+}
+
+/// Spec 080 3.3: the kit states the floor its hooks need.
+#[test]
+fn the_kit_readme_states_the_floor_the_hooks_need() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let readme = fs::read_to_string(root.join("kit/README.md")).unwrap();
+    assert!(
+        readme.contains("0.18.0 or"),
+        "the hooks call `check`, which 0.18.0 is the first release to carry"
+    );
+    assert!(
+        !readme.contains("**0.15.0 or\n   later** is required"),
+        "the old floor must not survive alongside the new one"
+    );
+}

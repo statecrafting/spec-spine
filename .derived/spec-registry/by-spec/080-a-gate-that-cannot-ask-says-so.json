@@ -1,0 +1,77 @@
+{
+  "record": {
+    "created": "2026-09-09",
+    "dependsOn": [
+      "046-kit-hooks-read-never-write",
+      "051-harness-runs-the-verbs-it-ships",
+      "063-a-stale-binary-is-not-a-stale-ledger",
+      "075-one-name-one-freshness-verb"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/settings.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "051-harness-runs-the-verbs-it-ships",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/README.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "046-kit-hooks-read-never-write",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "065-init-and-the-kit-are-one-adoption",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
+        }
+      }
+    ],
+    "id": "080-a-gate-that-cannot-ask-says-so",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionHeadings": [
+      "080: A gate that cannot ask says so",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The gate reads `check`'s exit code",
+      "3.2 `--version` is asked once the code says it is needed",
+      "3.3 The kit states the floor the hooks need",
+      "3.4 The acceptance runs the gate against a stand-in binary",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/080-a-gate-that-cannot-ask-says-so/spec.md",
+    "status": "draft",
+    "summary": "The kit's PR gate runs `spec-spine check` and reports any non-zero exit as \"a committed shard tree is stale\". Exit 3 is not staleness: it is the read not having been performed, and the commonest way to get it is a binary that predates the verb, which every released spec-spine does. On 2026-09-09 the gate refused two adopter pull requests with a staleness message against trees the adopters' own pinned binaries called fresh, and the whole `gh pr create` command was refused before anything in it ran. This spec makes the gate read the exit code it already has: stale is reported as stale, a read that did not happen is reported as that, with the binary and the floor the verb needs named, and both still refuse. It also moves the kit's stated floor to the release that carries the verb.\n",
+    "title": "A gate that cannot ask says so"
+  },
+  "shardHash": "d98fc2ca9aa6fa4793891709c15bd7e884484bd5c78044cab7e670203fbeba41",
+  "specVersion": "1.2.0"
+}
