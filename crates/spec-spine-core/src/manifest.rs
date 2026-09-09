@@ -332,6 +332,134 @@ pub fn cargo_hash_projection(content: &str) -> Option<String> {
     serde_json::to_string(&toml_to_json(&doc)).ok()
 }
 
+/// The governance projection of a GitHub Actions workflow (spec 073, extending
+/// the npm and cargo projections to the third ecosystem whose bumps arrive by
+/// bot). The parsed document with the pinned ref of every `uses:` reference
+/// removed and the action path kept, rendered as canonical JSON so the hash is
+/// deterministic across the release matrix (the same sorted-key path the npm
+/// and cargo projections fold through).
+///
+/// A Dependabot `uses:` bump therefore leaves the projection, and so every
+/// shard hash, unchanged; a changed action path, an unpin, a `run:` / `with:` /
+/// `env:` / `if:` edit, an added step or job, and a changed trigger all still
+/// stale it. `None` (unparseable / non-mapping) tells the caller to fall back
+/// to raw bytes: over-hashing is the fail-closed direction, and a workflow the
+/// parser rejects stales on every edit rather than silently on none.
+pub fn workflow_hash_projection(content: &str) -> Option<String> {
+    let mut doc: serde_yaml::Value = serde_yaml::from_str(content).ok()?;
+    doc.as_mapping()?;
+    strip_uses_refs(&mut doc);
+    serde_json::to_string(&yaml_to_json(&doc)).ok()
+}
+
+/// Remove the pinned ref of every `uses:` scalar, at any nesting depth.
+///
+/// A `uses:` whose value is not a string is left alone entirely, and not
+/// descended into: `dep_only::uses_ref_only_differs` requires exact equality
+/// there, and the two rules have to agree case for case (spec 073 3.2).
+fn strip_uses_refs(value: &mut serde_yaml::Value) {
+    use serde_yaml::Value::{Mapping, Sequence};
+    match value {
+        Mapping(m) => {
+            let keys: Vec<serde_yaml::Value> = m.keys().cloned().collect();
+            for k in keys {
+                let is_uses = k.as_str() == Some("uses");
+                let Some(v) = m.get_mut(&k) else { continue };
+                match (is_uses, projected_uses(v)) {
+                    (true, Some(stripped)) => *v = serde_yaml::Value::String(stripped),
+                    (true, None) => {}
+                    (false, _) => strip_uses_refs(v),
+                }
+            }
+        }
+        Sequence(s) => s.iter_mut().for_each(strip_uses_refs),
+        _ => {}
+    }
+}
+
+/// `owner/action@<ref>` projected to `owner/action@`. Anything else yields
+/// `None`, meaning preserved verbatim: a non-string value, an unpinned or
+/// local reference (`./path`, `docker://image`), and an empty action path.
+///
+/// **The action path is kept**, subpath included, because swapping which
+/// action runs is a governed change: dropping the whole `uses:` value would
+/// make replacing `actions/checkout` with a fork invisible to the ledger, and
+/// spec 030's waiver already draws the line in the same place.
+///
+/// **The `@` is kept as a marker**, so a pinned reference never projects onto
+/// the unpinned spelling of the same action. `a/b@v4` folds to `a/b@` while
+/// `a/b` stays `a/b`, so an unpin moves the hash. Projecting to a bare
+/// `owner/action`, which is how 073 3.1 words the rule, would collide the two
+/// and make unpinning invisible, contradicting the same spec's 3.5 and its
+/// summary; the marker is the reading that satisfies all three.
+fn projected_uses(value: &serde_yaml::Value) -> Option<String> {
+    let s = value.as_str()?;
+    let (path, _) = s.split_once('@')?;
+    if path.is_empty() {
+        // `@v1` has no action to preserve. `uses_ref_only_differs` refuses the
+        // waiver on it (`!ba.is_empty()`), so preserving it verbatim is what
+        // keeps the two rules in agreement in both directions.
+        return None;
+    }
+    Some(format!("{path}@"))
+}
+
+/// Deterministic YAML to JSON, so a workflow projection hashes through the same
+/// canonical (sorted-key) serializer the npm and cargo projections use.
+///
+/// Mapping keys are tagged by kind, so a key that differs in the document
+/// cannot collide here. YAML 1.2 reads `on` as a string rather than a boolean,
+/// which is the case that would otherwise matter most in a workflow.
+fn yaml_to_json(value: &serde_yaml::Value) -> serde_json::Value {
+    use serde_yaml::Value as Y;
+    match value {
+        Y::Null => serde_json::Value::Null,
+        Y::Bool(b) => serde_json::Value::Bool(*b),
+        Y::Number(n) => n
+            .as_i64()
+            .map(serde_json::Value::from)
+            .or_else(|| n.as_u64().map(serde_json::Value::from))
+            .or_else(|| {
+                n.as_f64()
+                    .and_then(serde_json::Number::from_f64)
+                    .map(serde_json::Value::Number)
+            })
+            // A non-finite float has no JSON spelling; cargo manifests fold the
+            // same way (`toml_to_json`), and a workflow carries none.
+            .unwrap_or(serde_json::Value::Null),
+        Y::String(s) => serde_json::Value::String(s.clone()),
+        Y::Sequence(s) => serde_json::Value::Array(s.iter().map(yaml_to_json).collect()),
+        Y::Mapping(m) => serde_json::Value::Object(
+            m.iter()
+                .map(|(k, v)| (yaml_key(k), yaml_to_json(v)))
+                .collect(),
+        ),
+        Y::Tagged(t) => serde_json::Value::Object(
+            [
+                (
+                    "!tag".to_string(),
+                    serde_json::Value::String(t.tag.to_string()),
+                ),
+                ("!value".to_string(), yaml_to_json(&t.value)),
+            ]
+            .into_iter()
+            .collect(),
+        ),
+    }
+}
+
+/// A mapping key as a JSON object key, prefixed by kind so the rendering is
+/// injective: a string key `1` and a number key `1` must not fold together.
+fn yaml_key(k: &serde_yaml::Value) -> String {
+    match k {
+        serde_yaml::Value::String(s) => format!("s:{s}"),
+        other => format!(
+            "y:{}",
+            serde_json::to_string(&yaml_to_json(other)).unwrap_or_default()
+        ),
+    }
+}
+
 /// Remove the cargo dependency tables at every location cargo allows them.
 fn strip_cargo_dep_tables(table: &mut toml::Table) {
     for key in CARGO_DEP_TABLES {

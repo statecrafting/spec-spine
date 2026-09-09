@@ -4,7 +4,7 @@ title: "A workflow bump is not a governed change"
 status: draft
 kind: "tooling"
 created: "2026-09-08"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: high
 depends_on:
@@ -34,6 +34,10 @@ extends:
   - { spec: "030-cargo-workflow-dependency-waiver", unit: "crates/spec-spine-cli/tests/couple.rs", nature: additive }
   # 3.5 the freshness guard.
   - { spec: "004-codebase-index", unit: "crates/spec-spine-core/tests/index.rs", nature: additive }
+  # 3.3 the migration note, beside spec 069's in the same document. Declared in
+  # the implementing change: 3.3 mandates a note and names no file, and the 069
+  # precedent puts it here.
+  - { spec: "067-the-docs-name-what-adopters-derived", unit: "docs/adoption-guide.md", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/00-architecture.md" }, role: context }
   - { unit: { kind: file, path: "docs/schema-versioning.md" }, role: context }
@@ -316,6 +320,41 @@ changes it. The 069 edge is the less obvious of the two and is the reason the
 frontmatter carries a comment: 069 3.6 does not merely observe that a bump
 stales the index, it requires the test to assert it, so making the bump
 harmless contradicts a requirement rather than correcting an implementation.
+
+**2026-09-08: a pinned reference projects to `owner/action@`, keeping the `@`
+as a marker.** Section 3.1 words the rule as "`owner/action@<ref>` projects to
+`owner/action`", and taken literally that collides with the same section's next
+rule, which preserves an unpinned `uses:` verbatim: `a/b@v4` and `a/b` would
+both fold to `a/b`, so **unpinning an action would be invisible to the ledger**.
+Section 3.5 requires the opposite ("An action unpinned (`@v4` removed): hash
+changes"), and so do the summary and 3.1's own justification that "unpinning is
+a change to the security posture, not a version bump". Keeping the `@` is the
+reading that satisfies all three: the ref is removed, the path is preserved, and
+the two spellings stay distinct. Recorded rather than silently chosen, because
+3.1's literal wording is the one an implementer reads first.
+
+**2026-09-08: an empty action path is preserved verbatim, which is what makes
+3.2 hold in both directions.** `dep_only::uses_ref_only_differs` refuses the
+waiver when the text before `@` is empty, so a projection that stripped `@v1`
+to `@` would leave the hash unchanged on a change the waiver refuses. Mirroring
+the guard turns 3.2's required implication (waived implies unchanged) into a
+biconditional, which is the stronger assertion and the one that would actually
+catch the two rules drifting apart. The matrix asserts it in both directions.
+
+**2026-09-08: the migration note lands in `docs/adoption-guide.md`, and the
+edge for it was declared here.** Section 3.3 requires the note and names no
+file. Spec 069's note is in that document, the two address the same reader, and
+splitting them would leave an adopter reading one without the other. The
+`extends` edge on 067's unit is declared in this change rather than in the
+draft, which is the ownership claim arriving with the work that needs it.
+
+**2026-09-08: sequenced by building serially, which is 3.3's first safe
+order.** Section 3.3 requires the restale to be sequenced deliberately and
+offers two safe orders. The first was taken: this change landed with no other
+implementation branch outstanding, spec 072 having merged before this branch
+was cut. The second order (land first, rebase everything else) was not needed,
+and the silent failure 3.3 warns about, two branches writing disjoint shards
+under different rules with no textual conflict, cannot arise.
 
 ## Verification
 

@@ -31,6 +31,10 @@
       {
         "path": "crates/spec-spine-core/tests/index.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "docs/adoption-guide.md",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
@@ -102,6 +106,19 @@
       {
         "locations": [
           {
+            "file": "docs/adoption-guide.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/adoption-guide.md"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/design/00-architecture.md"
           }
         ],
@@ -130,5 +147,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "af2c2580b9e975a87bc7f57c5e92e70521a8532ebfd4c31c52a5c1e50cfa2a44"
+  "shardHash": "6c1792c8aa5e8b0687d8f524e17731692ca96cd06f4a5235786cb3d4e6343090"
 }

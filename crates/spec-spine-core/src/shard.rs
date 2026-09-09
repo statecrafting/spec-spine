@@ -77,7 +77,19 @@ pub fn global_inputs_hash(cfg: &Config, repo_root: &Path) -> String {
                 continue;
             }
             if let Ok(content) = fs::read_to_string(&file) {
-                pieces.push((rel, content));
+                // Spec 073 3.1: a workflow folds as its governance projection,
+                // not as raw bytes. `.github/workflows/**/*` is half the
+                // shipped default and this scalar is inside EVERY shard hash,
+                // so without the projection a one-character action-ref bump
+                // stales the whole ledger, and the bot that made it can neither
+                // re-index nor waive. Unparseable falls back to raw bytes, as
+                // the npm and cargo projections do.
+                let piece = if crate::dep_only::is_workflow_yaml(&rel) {
+                    crate::manifest::workflow_hash_projection(&content).unwrap_or(content)
+                } else {
+                    content
+                };
+                pieces.push((rel, piece));
             }
         }
     }
