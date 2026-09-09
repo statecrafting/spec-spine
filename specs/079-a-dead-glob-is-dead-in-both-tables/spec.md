@@ -48,6 +48,14 @@ documented in its own doc comment as carrying "`extra_hashed_inputs` pattern
 semantics", and the slice walk in `index.rs` keeps only files exactly as the
 global one does. So `dir/**` is equally inert there, and nothing says so.
 
+Spec 069 fixed the shipped default to the `**/*` form and, by its own §4,
+deferred the lint: a pattern matching nothing today can be a legitimate
+forward-looking entry, and 069 would not refuse a form on that evidence. 074
+§3.1 took the lint up once the form was shown to be inert under every tree
+rather than merely empty under this one. Neither pass looked at the second
+table, so the value 069 could not reach in an adopter's own file is still
+unreachable there.
+
 This is not hypothetical. An adopter audited on 2026-09-09 carried nine dead
 patterns across the two tables. The six in `extra_hashed_inputs` were found and
 fixed; the two in `[index.slices]` survived the same fix pass and reached a pull
@@ -128,7 +136,14 @@ teaches `workflows = [".github/workflows/**"]`, the dead form, and adopter
 slice tables were copied from it. 012 is approved, and a new spec does not get
 to rewrite an approved spec's text through its own decision entry. That
 correction is a human's direct one-token edit to line 62, taken outside this
-spec and before it.
+spec.
+
+As of filing that edit is **not** on `main`: line 62 still reads
+`.github/workflows/**`. Nothing in this spec's acceptance depends on it, and 079
+can be built and ratified with 012 unchanged. It is recorded here because the
+example is the documented source of at least one adopter's dead slice table, so
+shipping the lint without correcting it leaves the tool refusing a form its own
+specification still teaches.
 
 **An `L-008` analogue for slices.** `L-008` flags a claimed path that no content
 hash witnesses. A slice is an opt-in named group, not an ownership claim, so
@@ -179,8 +194,10 @@ target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint --fail-on-warn ; t
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -q 'L-010'
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -q 'index.slices'
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -q 'workflows'
-# 3.3: the slice message does not claim a content hash is affected.
-target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -q 'index.slices' && ! target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep 'index.slices' | grep -q 'content hash'
+# 3.3: no line about a slice claims a content hash is affected. The line above
+# already asserts a slice line exists, so this one only has to be negative, and
+# it runs the binary once.
+! target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep 'index.slices' | grep -q 'content hash'
 # 3.4: the corrected form passes, so the test pins the boundary.
 printf '[index.slices]\nworkflows = [".github/workflows/**/*"]\n' > "${TMPDIR:-/tmp}/ss079/spec-spine.toml" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint --fail-on-warn
 rm -rf "${TMPDIR:-/tmp}/ss079"
