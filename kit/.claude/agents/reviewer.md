@@ -49,7 +49,8 @@ spec-spine is an installed CLI tool that governs your repo's spec corpus. In you
 
 - Run the gate exactly as `AGENTS.md` "Working the backlog" lists it
   (`spec-spine compile --check`, `spec-spine index check`,
-  `spec-spine lint --fail-on-warn`, `spec-spine couple --base origin/main --head HEAD`,
+  `spec-spine lint --fail-on-warn`, `spec-spine couple` against the base ref
+  "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)",
   then the stack's own build and tests) and capture the output. A red gate
   is the headline finding; a `couple` refusal names the file and the owning
   spec whose declared edges fail to cover it.

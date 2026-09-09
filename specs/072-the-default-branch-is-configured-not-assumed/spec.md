@@ -4,7 +4,7 @@ title: "The default branch is configured, not assumed"
 status: draft
 kind: "tooling"
 created: "2026-09-08"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -274,6 +274,39 @@ skill's inlined floor against that line, and so a change to one without the
 other is a red test. Sequencing them within the change is fine; splitting them
 across changes is not.
 
+**2026-09-08: the resolved name is quoted inside every `case` pattern.**
+Section 3.2 requires the refspec forms to be "built from the variable rather
+than written as literal `case` patterns" and does not say how. The naive build
+is wrong: a `case` pattern is a glob, so an unquoted `$def` holding `ma*n`
+would match `main`, `man` and anything else that fits, silently widening the
+refusal. `$SPEC_SPINE_DEFAULT_BRANCH` is user-supplied and never passes through
+git's refname validation, so that value is reachable. Quoting the expansion
+(`*"origin $def"`) matches it literally while the leading `*` stays a wildcard,
+which is correct for every value, and the guard in `kit_hooks.rs` asserts the
+quoted form rather than merely the presence of the variable.
+
+**2026-09-08: the documented one-liner resolves from the remote, and the
+override is stated once beside the gate list.** Section 3.4 requires the
+documented commands to stay runnable, and an agent copies them one line at a
+time, so the expression has to be self-contained rather than depend on a
+variable a prelude set. `git symbolic-ref --short refs/remotes/origin/HEAD`
+already prints `origin/<branch>`, which is the base-ref shape exactly, and it
+fails rather than printing nothing when the ref is unset, so `|| echo
+origin/main` reaches the floor in one short expression. Folding
+`$SPEC_SPINE_DEFAULT_BRANCH` into the same line needs a further guard to keep
+the empty case from yielding a bare `origin/`, tripling the length of a line
+that appears in fourteen files. The override is therefore documented once
+beneath the gate list in both `AGENTS.md` copies, and it is honoured in the two
+places that enforce rather than illustrate: the push gate and `kit/Makefile`.
+
+**2026-09-08: the Makefile assertion below is a regex, not a seven-space
+literal.** As drafted it read `! grep -qF 'BASE       ?= origin/main'`, which a
+pure reformat of that line satisfies while leaving the default exactly as it
+was. That is this spec's own acceptance committing the error spec 074 is filed
+against: asserting that a string is absent rather than that the behavior
+changed. Strengthened to refuse any spacing. Tightening an acceptance
+assertion mid-build is legitimate in a way loosening one would not be.
+
 ## Verification
 
 Each line below is one command: spec 049 3.2 makes a fence's body line a
@@ -303,5 +336,5 @@ grep -qF 'refs/remotes/origin/HEAD' kit/settings.json
 ! grep -qF '"$last" = main' kit/settings.json
 # 3.3 the coupling base is no longer a literal in the hook or the Makefile.
 ! grep -qF 'couple --base origin/main' kit/settings.json
-! grep -qF 'BASE       ?= origin/main' kit/Makefile
+! grep -qE 'BASE[[:space:]]*\?=[[:space:]]*origin/main$' kit/Makefile
 ```

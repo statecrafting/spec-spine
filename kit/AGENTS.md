@@ -155,10 +155,14 @@ work orders.
    spec-spine index
    spec-spine lint --fail-on-warn
    spec-spine index check
-   spec-spine couple --base origin/main --head HEAD
+   spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
    # spec-spine index coverage --fail-on-untraced  # if [coupling] require_ownership is on
    # spec-spine index check --fail-on-unresolved   # opt in once the corpus builds what it claims
    ```
+
+   The base ref is resolved from the repository rather than assumed to be
+   `origin/main` (spec 072). Set `$SPEC_SPINE_DEFAULT_BRANCH` to override
+   the branch the push gate protects and `Makefile` compares against.
 
    then your stack's own build, tests and lints. All must exit 0. Commit the
    regenerated shards with the code they describe.

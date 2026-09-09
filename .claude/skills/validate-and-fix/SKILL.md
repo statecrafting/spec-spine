@@ -20,10 +20,11 @@ inventing a gate.
 Run the gate exactly as `AGENTS.md` "Working the backlog" lists it under
 "Run the gate before every commit". The governance floor is
 `spec-spine compile`, `spec-spine index`, `spec-spine lint --fail-on-warn`,
-`spec-spine index check`, `spec-spine couple --base origin/main --head HEAD`,
-and `spec-spine index coverage --fail-on-untraced` where ownership is
-required; the stack's build, tests, and lints follow. Run
-`git fetch origin main` first if the coupling gate cannot find its base.
+`spec-spine index check`, `spec-spine couple --base` against the resolved
+base ref "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"
+`--head HEAD`, and `spec-spine index coverage --fail-on-untraced` where
+ownership is required; the stack's build, tests, and lints follow. Run
+`git fetch origin` first if the coupling gate cannot find its base.
 
 Capture full output (file paths, line numbers, messages) and categorize:
 
@@ -85,7 +86,9 @@ Re-run the gate end to end, confirm no new findings, and summarize:
 ## Substrate notes
 
 - `spec-spine lint` runs with `--fail-on-warn`: a warning is a failure.
-- The coupling gate compares `HEAD` against `origin/main`; fetch first.
+- The coupling gate compares `HEAD` against the base ref, resolved from the
+  remote's own HEAD rather than assumed to be `origin/main` (spec 072);
+  fetch first.
 - The codebase index hashes more than `spec.md`: `spec-spine.toml
   [index] extra_hashed_inputs` names the extra globs. Which globs those are
   is per project, so read the file rather than assuming the harness, the

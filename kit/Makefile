@@ -6,7 +6,9 @@
 #               must point at the one it builds, which is the resolution order
 #               spec 051 established: $SPEC_SPINE, then ./target/release, then
 #               PATH. Set it once here rather than in every caller.
-#   BASE        the ref the coupling gate compares against.
+#   BASE        the ref the coupling gate compares against. Resolved from
+#               the repository rather than assumed to be origin/main
+#               (spec 072); override it here or on the command line.
 #
 #   make gate                 read-only: the whole governed loop, in order
 #   make refresh              writing: recompute the committed shard trees
@@ -18,7 +20,13 @@
 # wrong question. Every guarded target is a clean no-op on a code-free corpus.
 
 SPEC_SPINE ?= spec-spine
-BASE       ?= origin/main
+# Spec 072 3.3: the coupling base follows the branch this repository
+# actually has. The same three steps the push gate resolves with, in the
+# same order: $SPEC_SPINE_DEFAULT_BRANCH (make imports the environment, so
+# `?=` leaves an exported value alone), then the remote's own HEAD, then
+# `main`. An explicit `BASE=` on the command line still wins.
+SPEC_SPINE_DEFAULT_BRANCH ?= $(shell git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+BASE       ?= origin/$(or $(SPEC_SPINE_DEFAULT_BRANCH),main)
 
 .PHONY: gate refresh verify test build fmt clippy help
 
