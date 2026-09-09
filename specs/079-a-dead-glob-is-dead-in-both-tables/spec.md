@@ -204,24 +204,28 @@ D-1 (2026-09-09, the edge target). The lint unit is claimed through
 `003-conformance-lint`, not through `074-shipped-is-not-the-same-as-working`,
 even though 074 is where `L-010` was established, and the test file is claimed
 through `053-depends-on-ordinal-monotonicity`. Each unit is routed through the
-spec that **establishes** it: 003 establishes `crates/spec-spine-core/src/lint.rs`,
-and 053 establishes `crates/spec-spine-core/tests/lint.rs`, which it created
-because `L-007` was the first rule to need a dedicated lint test file. 074
+spec that **establishes** it: 003 establishes
+`crates/spec-spine-core/src/lint.rs`, and 053 establishes
+`crates/spec-spine-core/tests/lint.rs`, which it created because `L-007` was the
+first rule to need a dedicated lint test file. 074
 carries the same two units the same two ways, so this follows the path already
 taken for these exact files. The routing is worth stating because the corpus is
 not consistent about it: specs 057 and 058 carry `tests/lint.rs` through 003,
 which does not own it, and an `extends` unit is a first-class claim either way,
 so nothing refuses them.
 
+074 is left out of both edge lists for a second reason. It is still
+`status: draft`, held only by its §3.6, which is about deleting
+`kit/scripts/verify-spec.sh` and has nothing to do with this rule. Making 079
+depend on 074 would report 079 as blocked behind a decision it does not wait on.
+074 is named throughout the prose as the rule's origin, which is where that
+relationship belongs.
+
 053 also appears in `depends_on`, where the relationship is ownership routing
 rather than behavioral precedence: 079 needs nothing 053 decided about ordinal
 monotonicity, it needs the file 053 created. The field name implies more than is
 meant, so it is written down here rather than left for a reader auditing the
-dependency graph to find surprising. And 074 is still `status: draft`, held only by its §3.6, which is
-about deleting `kit/scripts/verify-spec.sh` and has nothing to do with this
-rule; making 079 depend on 074 would report 079 as blocked behind a decision it
-does not wait on. 074 is named throughout the prose as the rule's origin, which
-is where that relationship belongs.
+dependency graph to find surprising.
 
 D-2 (2026-09-09, one code rather than `L-011`). The defect, the reasoning and
 the remedy are identical in both tables; only the sentence about what is lost
@@ -246,9 +250,11 @@ rm -rf "${TMPDIR:-/tmp}/ss079" && mkdir -p "${TMPDIR:-/tmp}/ss079/specs/001-x" &
 # 3.1: the warning tier refuses it under --fail-on-warn.
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint --fail-on-warn ; test $? -eq 1
 # 3.2: the message names the table and the slice.
-target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -q 'L-010'
-target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -qF 'index.slices'
-target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -q 'workflows'
+# Chained, not three independent greps: separate greps prove only that each
+# string appears somewhere, which an implementation splitting the message across
+# lines would satisfy while leaving 3.2's one-line rule unverified and 3.3's
+# scoped negative toothless. The chain proves all three share one line.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -F 'L-010' | grep -F 'index.slices' | grep -q 'workflows'
 # 3.1: the tier. A bare `lint` reports the warning and still exits 0; an
 # implementation that promoted it to an error would pass every other line here.
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint
