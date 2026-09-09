@@ -121,6 +121,13 @@ The slice message MUST therefore speak about the slice's own hash, the one
 hash is affected. Reusing the existing sentence verbatim would ship a false
 statement under a true code.
 
+The prohibition is on the **claim**, in whichever spelling: neither
+`content hash` nor `contentHash` may appear in a slice's `L-010` message. Naming
+both forms is not pedantry. The acceptance in 3.4 asserts the absence of that
+phrase, and an assertion that matches only one spelling passes trivially against
+an implementation that emits the other, which would leave the rule this section
+exists to enforce untested.
+
 ### 3.4 The refusal is proven on a fixture, not on this corpus
 
 This repository declares no `[index.slices]` table, so its own `lint` output
@@ -140,10 +147,22 @@ spec.
 
 As of filing that edit is **not** on `main`: line 62 still reads
 `.github/workflows/**`. Nothing in this spec's acceptance depends on it, and 079
-can be built and ratified with 012 unchanged. It is recorded here because the
-example is the documented source of at least one adopter's dead slice table, so
-shipping the lint without correcting it leaves the tool refusing a form its own
-specification still teaches.
+can be built with 012 unchanged.
+
+What the gap is, precisely. `lint` reads `spec-spine.toml`, not spec markdown,
+so 012's fenced example changes no verdict for anyone and nothing regresses in
+the tool. The cost is entirely on the reading side: an adopter who copies the
+example writes a pattern the tool then refuses, which is how at least one
+adopter's dead slice table got there. That makes it a documentation defect with
+a measured victim, not a behavior defect.
+
+Who does it and when. The edit is a human's, because 012 is approved and a draft
+may not rewrite it. It **should land before 079 is ratified**, so that no window
+exists in which the corpus has ratified a rule its own specification
+contradicts. This spec does not block on it: building 079, and merging the
+build, are fine with 012 unchanged. Ratification is the gate, and it is the
+ratifier's check rather than an acceptance criterion, since 079 cannot assert
+anything about a file it does not claim.
 
 **An `L-008` analogue for slices.** `L-008` flags a claimed path that no content
 hash witnesses. A slice is an opt-in named group, not an ownership claim, so
@@ -160,9 +179,16 @@ the lint tier for the same rule and this spec does not reopen that.
 
 D-1 (2026-09-09, the edge target). The lint unit is claimed through
 `003-conformance-lint`, not through `074-shipped-is-not-the-same-as-working`,
-even though 074 is where `L-010` was established. Two reasons. 074 itself
-carries `lint.rs` through 003, so this follows the path already taken for this
-exact file. And 074 is still `status: draft`, held only by its §3.6, which is
+even though 074 is where `L-010` was established, and the test file is claimed
+through `053-depends-on-ordinal-monotonicity`. Each unit is routed through the
+spec that **establishes** it: 003 establishes `crates/spec-spine-core/src/lint.rs`,
+and 053 establishes `crates/spec-spine-core/tests/lint.rs`, which it created
+because `L-007` was the first rule to need a dedicated lint test file. 074
+carries the same two units the same two ways, so this follows the path already
+taken for these exact files. The routing is worth stating because the corpus is
+not consistent about it: specs 057 and 058 carry `tests/lint.rs` through 003,
+which does not own it, and an `extends` unit is a first-class claim either way,
+so nothing refuses them. And 074 is still `status: draft`, held only by its §3.6, which is
 about deleting `kit/scripts/verify-spec.sh` and has nothing to do with this
 rule; making 079 depend on 074 would report 079 as blocked behind a decision it
 does not wait on. 074 is named throughout the prose as the rule's origin, which
@@ -197,7 +223,7 @@ target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -q 'wo
 # 3.3: no line about a slice claims a content hash is affected. The line above
 # already asserts a slice line exists, so this one only has to be negative, and
 # it runs the binary once.
-! target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep 'index.slices' | grep -q 'content hash'
+! target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep 'index.slices' | grep -qiE 'content ?hash'
 # 3.4: the corrected form passes, so the test pins the boundary.
 printf '[index.slices]\nworkflows = [".github/workflows/**/*"]\n' > "${TMPDIR:-/tmp}/ss079/spec-spine.toml" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint --fail-on-warn
 rm -rf "${TMPDIR:-/tmp}/ss079"
