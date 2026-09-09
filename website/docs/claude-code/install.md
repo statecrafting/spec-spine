@@ -41,7 +41,7 @@ cp    path/to/spec-spine/kit/.mcp.json   .   # if you have none
 
 | Item | Verdict | What you do |
 |---|---|---|
-| `.claude/skills/` (10) | Portable / Adaptable | Copy. `init`, `setup`, `ship`, `validate-and-fix` are adaptable: point them at your install method and gate. |
+| `.claude/skills/` (10) | Portable | Copy as-is. Every skill is repository-invariant and reads the project layer (install method, gate command list, stack gate) from `AGENTS.md`. |
 | `.claude/agents/` (4) | Portable | Copy architect, explorer, implementer, reviewer as-is. |
 | `.claude/rules/` (3) | Portable | Copy, or skip if `spec-spine init` already scaffolded them. |
 | `AGENTS.md` | Adaptable | Rewrite the "New Sessions" section for your repo (see [Session init](./session-init.md)). |
@@ -57,15 +57,14 @@ Replace every `<bracketed>` placeholder the kit ships with:
 - In `settings.json`: the `permissions.allow` entries for your tools, and the
   hashed-input globs in the `PostToolUse` hook so they match your
   `spec-spine.toml [index] extra_hashed_inputs`.
-- In the adaptable skills: the install command (`/setup`) and any `<your build
-  command>` / `<your test command>` placeholders (`/validate-and-fix`,
-  `/implement-plan`).
+- Nothing in the skills: they read the install command and the gate list
+  from `AGENTS.md`.
 
 ## 4. First run
 
 ```bash
 /setup        # installs spec-spine if needed, verifies the governed loop
-/init         # loads context via the AGENTS.md New Sessions protocol
+/prime        # loads context via the AGENTS.md New Sessions protocol
 ```
 
 If both produce a clean summary, the kit is operational. Continue to

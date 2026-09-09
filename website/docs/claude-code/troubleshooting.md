@@ -66,7 +66,7 @@ spec's owning edge, or waive). `spec-spine index coverage` lists those files.
 **Fix:** stage and commit (or amend) the regenerated index. This is expected,
 not an error; the PreToolUse hook blocks PR creation while it is uncommitted.
 
-## `/init` reports "Codebase index: not built"
+## `/prime` reports "Codebase index: not built"
 
 **Symptom:** the init summary omits structural counts.
 

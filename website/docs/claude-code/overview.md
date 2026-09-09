@@ -19,13 +19,12 @@ adapt it; the files themselves are in `kit/.claude/`.
 
 On top of the spec-spine substrate, the kit adds:
 
-- **15 skills** that cover the governed loop: session init, the next work
-  order, building one spec per session, verifying its acceptance block,
-  adversarial review, conventional commits, gated PR creation, shepherding
-  the PR to a merge confirmed on disk, and authoring the next spec, plus the
-  support set (validate, cleanup, plan execution, research, `CLAUDE.md`
-  refactoring). The skills are repository-invariant; the project layer lives
-  in `AGENTS.md`.
+- **10 skills** that cover the governed loop: priming a session, the next
+  work order, building one spec per session, verifying its acceptance block,
+  gated PR creation, shepherding the PR to a merge confirmed on disk, and
+  authoring the next spec, plus the two the loop calls (adversarial review,
+  conventional commits). The skills are repository-invariant; the project
+  layer lives in `AGENTS.md`.
 - **4 agents** for the plan / explore / implement / review cycle.
 - **3 rules** that constrain how every workflow reads artifacts and resolves
   spec/code disagreement (the same floor `spec-spine init` scaffolds).
@@ -48,7 +47,7 @@ build on:
 3. **The [coupling gate](../concepts/coupling-gate.md)** refuses code that drifts
    from its owning spec at PR time.
 
-Several skills (`/init`, `/setup`, `/ship`) depend directly on the spec-spine
+Several skills (`/prime`, `/setup`, `/ship`) depend directly on the spec-spine
 CLI and its governed-read discipline. The three rules are scaffolded by
 `spec-spine init`, so installing spec-spine gives you the rule floor for free.
 

@@ -11,8 +11,10 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-/// The fifteen skills, the loop first, in the order "Working the backlog"
-/// runs them.
+/// The ten skills, the loop first, in the order "Working the backlog" runs
+/// them, then the two the loop calls. Spec 081 removed the five support
+/// skills nothing in the kit invoked (`validate-and-fix`, `cleanup`,
+/// `implement-plan`, `research`, `refactor-claude-md`).
 const SKILLS: &[&str] = &[
     // Spec 075 3.1: `prime`, not `init`. Claude Code ships its own `/init`,
     // which generates a CLAUDE.md: a one-time, repository-level operation that
@@ -31,11 +33,6 @@ const SKILLS: &[&str] = &[
     "spec",
     "commit",
     "code-review",
-    "validate-and-fix",
-    "cleanup",
-    "implement-plan",
-    "research",
-    "refactor-claude-md",
 ];
 
 /// Skills that read and must never run a writing `spec-spine` verb.
@@ -119,13 +116,13 @@ fn is_write(verb: &[String]) -> bool {
 }
 
 #[test]
-fn the_kit_and_this_repository_ship_the_same_fifteen_skills() {
+fn the_kit_and_this_repository_ship_the_same_ten_skills() {
     let want: BTreeSet<String> = SKILLS.iter().map(|s| s.to_string()).collect();
     for (label, dir) in skill_dirs() {
         assert_eq!(
             skill_names(&dir),
             want,
-            "{label}: skill set differs from spec 048 3.1"
+            "{label}: skill set differs from spec 081 3.1"
         );
     }
 }

@@ -36,7 +36,7 @@ into a `spec.md`.
    what unblocks it.
 4. If any step touches a shipped spec's territory in a way its behavior
    section does not describe, stop: that needs a spec amendment first
-   (`.claude/rules/adversarial-prompt-refusal.md`).
+   (`.Codex/rules/adversarial-prompt-refusal.md`).
 
 ## Phase 1: task list and checkpoint
 
@@ -115,5 +115,5 @@ the user, never by this skill.
 ## Project layer
 
 Read from `AGENTS.md`: the gate command list and the narrowest test
-targets. Read from `.claude/rules/`: the never-touch artefacts. Nothing
+targets. Read from `.Codex/rules/`: the never-touch artefacts. Nothing
 here is edited per project.

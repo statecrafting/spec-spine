@@ -50,9 +50,8 @@ kit/
   .mcp.json            # empty MCP server template
   .gitattributes-stanza  # binds the committed shard globs to the merge driver (spec 074)
   .claude/
-    skills/   15 skills   the loop:  init, setup, next, build, verify, ship, shepherd, spec
-                          support:   commit, code-review, validate-and-fix, cleanup,
-                                     implement-plan, research, refactor-claude-md
+    skills/   10 skills   the loop:  prime, setup, next, build, verify, ship, shepherd, spec
+                          called by the loop:  commit, code-review
     agents/    4 agents   architect, explorer, implementer, reviewer
     rules/     3 rules    orchestrator-rules, governed-artifact-reads,
                           adversarial-prompt-refusal
@@ -83,14 +82,17 @@ adopter who ran `spec-spine init` can skip them.
    repository, delete it. `/verify` calls `spec-spine verify <id>`, and an
    orchestrator's verify stage runs the same verb after merge; the script was
    the pre-0.15.0 protocol and the kit stopped shipping it once every adopter
-   had upgraded (spec 074).
+   had upgraded (spec 074). Likewise delete `implement-plan`,
+   `validate-and-fix`, `cleanup`, `research` and `refactor-claude-md` under
+   `.claude/skills/` if an earlier copy left them: the kit ships ten skills
+   since spec 081, and nothing in the loop referenced those five.
 4. Customize `AGENTS.md`: replace every `<bracketed>` placeholder (project
    name, source directories, the parallel reads), pin the spec-spine version,
    and write the gate command list under "Working the backlog" (the governance
    floor plus your stack's build, tests, and lints). Adjust the `settings.json`
    permission allow-list to your tools, and tune the hashed-input globs in the
    `PostToolUse` hook to match your `spec-spine.toml [index] extra_hashed_inputs`.
-5. Run `/setup` then `/init` in a Claude Code session.
+5. Run `/setup` then `/prime` in a Claude Code session.
 
 **The skills are not customized.** Every `SKILL.md` is repository-invariant
 and ends with a `## Project layer` section naming what it reads from

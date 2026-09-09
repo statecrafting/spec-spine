@@ -268,7 +268,7 @@ and 3.6 (the reviewer and implementer sentences).
 cargo test -p spec-spine-core --test kit_skills --locked
 cargo test -p spec-spine-core --test kit_hooks --locked
 scripts/verify-spec.sh 046-kit-hooks-read-never-write
-test "$(ls kit/.claude/skills | wc -l | tr -d ' ')" = 15
+test "$(ls kit/.claude/skills | wc -l | tr -d ' ')" = 10
 diff -r kit/.claude/skills .claude/skills
 ```
 
@@ -307,3 +307,9 @@ diff -r kit/.claude/skills .claude/skills
   fail. Section 3.5's description of the script stands as written and now
   describes only this repository's `scripts/verify-spec.sh`, which this spec
   still establishes and section 5 still runs.
+- **D-8 (2026-09-09, ten skills).** Spec 081 removed the five support
+  skills nothing in the loop invoked, and this spec's acceptance counted
+  fifteen directories. The count line in section 5 now reads ten, the
+  maintainer's edit, because an acceptance line asserting the old count can
+  only fail. Section 3.1's table stands as written and is superseded by 081
+  3.1, which 081's `amends` edge records; this entry is the pointer.

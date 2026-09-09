@@ -74,15 +74,16 @@ Add your own servers if you have any.
 
 ## `AGENTS.md`
 
-Two jobs: its `## New Sessions` section is the protocol `/init` executes, and its
+Two jobs: its `## New Sessions` section is the protocol `/prime` executes, and its
 "Available Agents" / "Available Commands" sections document what is on hand.
 Rewrite the New Sessions section for your repo (see
 [Session init](./session-init.md)).
 
 ## A local CI command
 
-`/validate-and-fix` and `/ship` expect one command that runs the same gate set as
-CI. A common convention is three Make targets:
+`/build`, `/ship` and `/shepherd` run the gate exactly as `AGENTS.md` lists it
+under "Working the backlog"; a composite that runs the same gate set as CI
+keeps that list to one line. A common convention is three Make targets:
 
 - **`make setup`**: install spec-spine, compile the registry, build the index.
 - **`make ci`**: your full local gate (the governance verbs plus build,

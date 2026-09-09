@@ -312,7 +312,7 @@ is a separate spec.
 cargo build --release --locked
 cargo test -p spec-spine-core --test kit_skills --locked
 cargo test -p spec-spine-core --test kit_hooks --locked
-test "$(ls kit/.claude/skills | wc -l | tr -d ' ')" = 15
+test "$(ls kit/.claude/skills | wc -l | tr -d ' ')" = 10
 diff -r kit/.claude/skills .claude/skills
 grep -q "spec-spine verify" .claude/skills/verify/SKILL.md
 grep -q "index coverage --fail-on-untraced" AGENTS.md
@@ -385,3 +385,9 @@ misread.
 and deny, but not on allow.** The permission allow list is machine-local
 convenience and varies by contributor; the hooks and the destructive-command
 refusals are governance and must not.
+
+**2026-09-09: the skill count in section 5 reads ten.** Spec 081 removed the
+five support skills nothing in the loop invoked. The `test ... = 15` line
+asserted the count 048 fixed at the time, so it could only fail after 081;
+the maintainer edited it to ten. Nothing this spec requires of the harness
+changes: the ten that remain are the ones that run the verbs it ships.

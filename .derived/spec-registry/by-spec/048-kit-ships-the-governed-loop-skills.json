@@ -112,6 +112,6 @@
     "summary": "Four adopters of the kit had each written the same five skills the kit did not ship (next, build, verify, spec, shepherd), three of them from one shared template, and every adopter's copy of the ten the kit did ship had drifted from the kit's, which had itself gone stale: a renamed tool, a rule frontmatter format Claude Code does not read, a \"read-only\" review that ran the writing compile, a commit skill missing the two house rules that land in public history, and a drift remedy that contradicted the refusal rule spec 047 had just fixed. This spec makes the kit ship one repository-invariant set of fifteen skills built around the orchestrated loop (spec-spine's registry plan and the coupling gate on one side, an orchestrator's build, ship, shepherd, and verify stages on the other), moves every project-specific fact into AGENTS.md and the path-scoped rules so the skills copy byte for byte, ships the verify script the loop needs, ports the substrate-level agent improvements the adopters made, and makes this repository run the same fifteen on itself, pinned by a test.\n",
     "title": "The kit ships one skill set for the governed loop, and this repository runs it"
   },
-  "shardHash": "d9520c1f50aba96214cfcc72d78762df476a1f6c2afdf829899cd3c8c8eda8a5",
+  "shardHash": "896e480ae268b9b50406bf2612ef4a53a7b45d9d0544f64c04ab36b41a8e51d0",
   "specVersion": "1.2.0"
 }
