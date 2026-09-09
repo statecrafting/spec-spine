@@ -1,7 +1,7 @@
 ---
 id: "073-a-workflow-bump-is-not-a-governed-change"
 title: "A workflow bump is not a governed change"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-08"
 implementation: complete

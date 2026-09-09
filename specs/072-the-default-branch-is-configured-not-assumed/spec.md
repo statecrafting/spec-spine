@@ -1,7 +1,7 @@
 ---
 id: "072-the-default-branch-is-configured-not-assumed"
 title: "The default branch is configured, not assumed"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-08"
 implementation: complete

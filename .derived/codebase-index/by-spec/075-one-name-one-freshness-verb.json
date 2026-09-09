@@ -400,8 +400,8 @@
       }
     ],
     "specId": "075-one-name-one-freshness-verb",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "b1ad7355653b83ab68ea978777740043824f3cb22d4e5df9106b82eacdc9a04e"
+  "shardHash": "0836fdcea734dc239441f6613c8a22783b5070d4ec046f2a1b826ddfd8d54aa0"
 }

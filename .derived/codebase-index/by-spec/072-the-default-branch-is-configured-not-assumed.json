@@ -215,8 +215,8 @@
       }
     ],
     "specId": "072-the-default-branch-is-configured-not-assumed",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "0a16e5625ddf200cfef011a6d371f9ef9620e007302ca4b08373b67a85bea285"
+  "shardHash": "df7b2b998fc019160fc0a673ec5301baab21774837d77bbc52815801e74aa1c6"
 }
