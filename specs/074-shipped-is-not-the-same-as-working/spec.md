@@ -1,7 +1,7 @@
 ---
 id: "074-shipped-is-not-the-same-as-working"
 title: "Shipped is not the same as working"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-08"
 implementation: complete

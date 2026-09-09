@@ -96,8 +96,8 @@
       }
     ],
     "specId": "080-a-gate-that-cannot-ask-says-so",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "78cab1db7b6b5e098c920823cb016e0ea5dccfe2342e03532dd3d6675baf2ac5"
+  "shardHash": "14df4c09651b64d4501fd8d5d325704534063b609f6dd0b0eeb045496b3a47e0"
 }

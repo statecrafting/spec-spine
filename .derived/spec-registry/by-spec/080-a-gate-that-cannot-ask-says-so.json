@@ -68,10 +68,10 @@
       "Verification"
     ],
     "specPath": "specs/080-a-gate-that-cannot-ask-says-so/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The kit's PR gate runs `spec-spine check` and reports any non-zero exit as \"a committed shard tree is stale\". Exit 3 is not staleness: it is the read not having been performed, and the commonest way to get it is a binary that predates the verb, which every released spec-spine does. On 2026-09-09 the gate refused two adopter pull requests with a staleness message against trees the adopters' own pinned binaries called fresh, and the whole `gh pr create` command was refused before anything in it ran. This spec makes the gate read the exit code it already has: stale is reported as stale, a read that did not happen is reported as that, with the binary and the floor the verb needs named, and both still refuse. It also moves the kit's stated floor to the release that carries the verb.\n",
     "title": "A gate that cannot ask says so"
   },
-  "shardHash": "d98fc2ca9aa6fa4793891709c15bd7e884484bd5c78044cab7e670203fbeba41",
+  "shardHash": "70dad28052f24907fb037b93fa770b4b82a2d18788cbbe7dd652135d314b82fe",
   "specVersion": "1.2.0"
 }
