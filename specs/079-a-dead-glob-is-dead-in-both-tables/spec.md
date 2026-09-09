@@ -136,6 +136,13 @@ Acceptance MUST construct a config that trips the rule and assert the refusal
 against it, and MUST also assert the corrected form passes, so the test pins
 the boundary rather than the mere presence of a warning.
 
+It MUST additionally assert that a bare `lint` exits 0 on the tripping fixture.
+Asserting only the `--fail-on-warn` refusal leaves the tier half-proven: an
+implementation that emitted `L-010` at error tier would satisfy every other
+assertion here while contradicting 3.1. The tier is the claim most easily lost
+in implementation, because promoting a warning is the natural reflex when a
+rule turns out to have no legitimate counter-example.
+
 ## 4. Out of scope
 
 **Correcting spec 012's own example.** `specs/012-index-hash-slices/spec.md`
@@ -218,12 +225,15 @@ rm -rf "${TMPDIR:-/tmp}/ss079" && mkdir -p "${TMPDIR:-/tmp}/ss079/specs/001-x" &
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint --fail-on-warn ; test $? -eq 1
 # 3.2: the message names the table and the slice.
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -q 'L-010'
-target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -q 'index.slices'
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -qF 'index.slices'
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -q 'workflows'
+# 3.1: the tier. A bare `lint` reports the warning and still exits 0; an
+# implementation that promoted it to an error would pass every other line here.
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint
 # 3.3: no line about a slice claims a content hash is affected. The line above
 # already asserts a slice line exists, so this one only has to be negative, and
 # it runs the binary once.
-! target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep 'index.slices' | grep -qiE 'content ?hash'
+! target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -F 'index.slices' | grep -qiE 'content ?hash'
 # 3.4: the corrected form passes, so the test pins the boundary.
 printf '[index.slices]\nworkflows = [".github/workflows/**/*"]\n' > "${TMPDIR:-/tmp}/ss079/spec-spine.toml" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint --fail-on-warn
 rm -rf "${TMPDIR:-/tmp}/ss079"
