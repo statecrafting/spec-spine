@@ -270,10 +270,20 @@ fn the_kit_no_longer_ships_the_verify_script_and_no_skill_calls_it() {
     assert!(own.starts_with("#!/usr/bin/env bash"));
     assert!(own.contains("not-declared"), "an honest zero, not a pass");
 
+    // The README's "what the kit ships" tree lists one file per line, so a
+    // line that begins with the script's name is a listing of it, whatever
+    // the indentation. Prose that names the script (telling an adopter with an
+    // older copy to delete theirs) is allowed and expected.
     let readme = fs::read_to_string(root.join("kit/README.md")).unwrap();
     assert!(
-        !readme.contains("verify-spec.sh     #"),
+        !readme
+            .lines()
+            .any(|l| l.trim_start().starts_with("verify-spec.sh")),
         "kit/README.md must not list the script among what the kit ships (spec 074 3.6)"
+    );
+    assert!(
+        !root.join("kit/scripts").exists(),
+        "the kit ships no scripts/ subtree once the script is gone"
     );
 
     for (label, dir) in skill_dirs() {
