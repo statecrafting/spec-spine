@@ -180,14 +180,61 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
                 .map(|s| s.spec_path.clone());
             violations.push(warn(
                 "L-008",
+                // Spec 074 3.2, conformance with 057 3.x: the two remedies are
+                // genuinely different choices and the message must say how, or
+                // it reads as a pick-either. It sent an adopter to the wrong
+                // one. A glob folds the file into the GLOBAL scalar, which
+                // restamps every shard when it changes: right for a handful of
+                // governance files, wrong for a tree of source. A section or
+                // symbol unit is hashed through its span and stales only the
+                // claiming spec's shard.
                 format!(
                     "spec '{}' claims '{}', which is in no content hash: its contents can \
-                     change without staling any shard. Add a covering glob to [index] \
-                     extra_hashed_inputs, or claim a section or symbol unit, whose span \
-                     is hashed",
+                     change without staling any shard. Either add a covering glob to \
+                     [index] extra_hashed_inputs, which folds the file into the global \
+                     scalar and so restamps EVERY shard whenever it changes (right for a \
+                     few governance files, wrong for a tree of source), or claim a section \
+                     or symbol unit, which is hashed through its span and stales only this \
+                     spec's shard",
                     claim.spec_id, claim.path
                 ),
                 spec_path,
+            ));
+        }
+    }
+
+    // L-010 (spec 074 3.1): an `[index] extra_hashed_inputs` pattern ending in
+    // `/**`. In the `glob` crate `dir/**` enumerates DIRECTORIES and the hasher
+    // keeps only entries that are files, so such a pattern can never contribute
+    // a byte to any content hash, whatever the tree contains.
+    //
+    // Two adopters hit this on one day: one wrote `crates/**`, measured no
+    // effect and concluded the key was inert; the other found `standards/**`
+    // and `.github/workflows/**` inherited from a scaffold and confirmed they
+    // "had never contributed to any content hash". Spec 069 fixed the default
+    // and could not fix a value already written into an adopter's own file.
+    //
+    // The check is on the PATTERN, not on whether it currently matches. A
+    // pattern matching nothing today may be a legitimate forward-looking entry
+    // in a specify-first corpus, which is the false positive spec 069 4 named
+    // when it deferred this lint. A pattern ending `/**` is inert under EVERY
+    // tree, so refusing the form is decidable from the config alone and has no
+    // legitimate counter-example: an adopter who wants to match nothing writes
+    // no entry.
+    //
+    // Warning tier, so `lint --fail-on-warn` refuses it. Unlike `L-008`, which
+    // flags a state a corpus may hold deliberately, this one never is.
+    for pattern in &cfg.index.extra_hashed_inputs {
+        if pattern.ends_with("/**") {
+            violations.push(warn(
+                "L-010",
+                format!(
+                    "[index] extra_hashed_inputs pattern '{pattern}' matches \
+                     directories only, so it can contribute no bytes to any \
+                     content hash. Write it as '{pattern}/*' to match the files \
+                     under it"
+                ),
+                Some("spec-spine.toml".to_string()),
             ));
         }
     }

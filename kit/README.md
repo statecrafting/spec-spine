@@ -48,6 +48,7 @@ kit/
   AGENTS.md            # the cross-agent New Sessions protocol and "Working the backlog"
   settings.json        # Claude Code hooks (read-only) and permissions
   .mcp.json            # empty MCP server template
+  .gitattributes-stanza  # binds the committed shard globs to the merge driver (spec 074)
   scripts/
     verify-spec.sh     # DEPRECATED, superseded by `spec-spine verify` in 0.15.0 (spec 049)
   .claude/

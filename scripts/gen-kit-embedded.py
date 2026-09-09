@@ -26,8 +26,6 @@ OUT = ROOT / "crates/spec-spine-core/src/kit_embedded.rs"
 SKIP = {
     # The kit's own documentation, about the kit rather than part of it.
     "kit/README.md",
-    # A stanza to append to an existing .gitattributes, not a file to write.
-    "kit/.gitattributes-stanza",
     # Spec 065 3.1 requires the scaffold to emit a CONFIG-AWARE `AGENTS.md`
     # unconditionally, and 3.2's list of kit files does not include one. The
     # kit's copy is this repository's template for that protocol; the adopter
@@ -42,6 +40,11 @@ REMAP = {
     "kit/govern.yml": ".github/workflows/govern.yml",
     # `kit/` is flat storage; Claude Code reads settings from `.claude/`.
     "kit/settings.json": ".claude/settings.json",
+    # Spec 074 3.3 (amending 065 3.2, which excluded it): the binding for the
+    # merge driver the two `.githooks/` scripts register. Shipping the hooks
+    # without it installed a driver that can never fire. `init` appends it to an
+    # existing `.gitattributes` rather than overwriting one.
+    "kit/.gitattributes-stanza": ".gitattributes",
 }
 
 

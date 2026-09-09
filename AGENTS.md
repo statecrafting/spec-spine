@@ -23,6 +23,10 @@ The protocol drives the library through its own built binary, `target/release/sp
    - `README.md`: full project description
    - `standards/spec/contract.md`: normative spec-system summary
    - `standards/spec/constitution.md`: durable principles (tier 2)
+   - `spec-spine --version`: the binary's version. **Read this before believing any
+     exit code below.** The document already called it a precondition and never
+     scheduled it, so the precondition held only for an agent that read the prose
+     under the step list (spec 074 3.7).
    - `spec-spine compile --check`: freshness gate for the spec registry (non-fatal; see **Registry freshness** below)
    - `spec-spine index check`: staleness gate for the codebase index (non-fatal)
    - `spec-spine index render`: markdown projection of the committed index
@@ -36,8 +40,11 @@ The protocol drives the library through its own built binary, `target/release/sp
    - `ls docs/`: docs surface (design notes, governance)
    - `git log --oneline -10`: recent history
    - `git diff --stat HEAD~1`: last change summary
-2. **Emit** the `## initialized: spec-spine` summary block: a layer/crate
-   overview, a `## lifecycle:` sub-section populated from the
+2. **Emit** the `## initialized: spec-spine` summary block. **Consult the
+   `--version` read before reporting any freshness verdict**: a version that
+   predates the flag a step passed makes that step's exit code meaningless,
+   and reporting it as drift sends someone chasing a phantom. Then: a
+   layer/crate overview, a `## lifecycle:` sub-section populated from the
    `registry status-report --nonzero-only` output (with the `registry plan`
    ready/blocked line beneath it), the freshness verdicts, the
    unresolved-unit count from `index diagnostics`, recent activity, and a
@@ -54,7 +61,7 @@ The protocol drives the library through its own built binary, `target/release/sp
 `/init` asks with `spec-spine compile --check` (spec 031), which compiles in memory and compares against the committed shards **without writing**. Read the exit code:
 
 - **`0` (fresh):** the committed shards are exactly what the corpus compiles to, so the lifecycle counts below reflect the current `specs/*/spec.md` frontmatter. Report nothing.
-- **`2` (stale):** *read stderr before believing it* (see **Stale binary** below). For a genuine staleness report, report "Spec registry: stale, run `spec-spine compile` and commit" **and name the drifted shards from its stderr**, then continue. The lifecycle counts come from the committed ledger and are therefore the stale ones; say so rather than presenting them as current.
+- **`2` (stale):** *check the `--version` read from step 1 before believing it* (see **Stale binary** below): a binary predating `--check` cannot be reporting drift. For a genuine staleness report, report "Spec registry: stale, run `spec-spine compile` and commit" **and name the drifted shards from its stderr**, then continue. The lifecycle counts come from the committed ledger and are therefore the stale ones; say so rather than presenting them as current.
 - **`1` (validation failed):** the corpus itself is broken. Surface the violations, and report the lifecycle counts as **unverified**: they still come from the committed ledger, but with the corpus failing validation there is no way to say whether that ledger corresponds to it. Fixing the violations is the first task of the session, not an aside.
 - **any other non-zero** (`3` is I/O / parse / schema / config): treat freshness as unknown, report stderr verbatim, and continue. Never report "fresh" for an exit code you did not recognize.
 

@@ -1380,9 +1380,11 @@ never this file, so every agent stays in sync.
   or `index`. A stale verdict is reported with the shards it names and the
   session continues; repairing the tree is the session's later, committed
   work, not a side effect of reading it.
-- A binary older than the checkout rejects `--check` with exit 2, the same
-  code as "stale". Read stderr: `unexpected argument` means rebuild or
-  reinstall the pinned version, not phantom drift.
+- Establish the binary's version before believing any exit code, which is the
+  read `AGENTS.md` step 1 schedules. A binary older than the checkout can
+  reject a flag the protocol passes, and reporting that as drift sends someone
+  chasing a phantom. Exit-code semantics live in `AGENTS.md`, which is where
+  the project layer lives.
 - A file the protocol names but cannot find is logged as "not found" and
   the protocol continues.
 
@@ -2430,6 +2432,23 @@ paraphrase an exit code.
 Nothing here is project-specific. The binary invocation comes from
 `AGENTS.md`; if the corpus lives somewhere other than `specs/`, the verb
 reads `[layout] specs_dir` from `spec-spine.toml` itself.
+"#),
+    (r#".gitattributes"#, r#"# Append to your repository's .gitattributes to register the merge driver
+# (spec 020) on the committed shard globs. The driver itself is opt-in per
+# clone: it does nothing until `./.githooks/enable-merge-driver.sh` registers
+# it in that clone's git config.
+#
+# Sharding (spec 024) already removes the common conflict, since two PRs
+# touching different specs or packages write disjoint files. This is for the
+# same-shard case: two PRs editing the same authority unit.
+#
+# It never replaces the `index check` staleness gate. The driver resolves a
+# textual conflict by regenerating from the merged tree; the gate is what
+# proves the result is what the corpus compiles to.
+.derived/spec-registry/by-spec/*.json merge=spec-spine-derived-regen
+.derived/codebase-index/by-spec/*.json merge=spec-spine-derived-regen
+.derived/codebase-index/by-package/*.json merge=spec-spine-derived-regen
+.derived/codebase-index/slices.json merge=spec-spine-derived-regen
 "#),
     (r#".githooks/enable-merge-driver.sh"#, r#"#!/usr/bin/env bash
 # Spec: 020-derived-artifact-merge-driver

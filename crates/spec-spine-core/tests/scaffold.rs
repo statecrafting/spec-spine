@@ -452,6 +452,9 @@ fn the_embedded_kit_matches_the_checked_in_tree() {
         match dest {
             ".claude/settings.json" => "kit/settings.json".to_string(),
             ".github/workflows/govern.yml" => "kit/govern.yml".to_string(),
+            // Spec 074 3.3: the stanza spec 065 3.2 excluded, now written as
+            // the adopter's `.gitattributes` (appended when they have one).
+            ".gitattributes" => "kit/.gitattributes-stanza".to_string(),
             other => format!("kit/{other}"),
         }
     };
@@ -519,4 +522,57 @@ fn the_longer_contract_does_not_break_the_scaffolded_corpus() {
     for (x, y) in a.files.iter().zip(b.files.iter()) {
         assert_eq!(x.contents, y.contents);
     }
+}
+
+// ── spec 074 3.3 and 3.4: the scaffold carries the facts the writer applies ──
+
+/// §3.4: executability is DATA in the returned `Scaffold`, not an IO decision
+/// the writer takes, so the scaffold stays a pure function of
+/// `(Config, with_kit)` and is identical on every platform.
+#[test]
+fn the_scaffold_marks_its_shell_scripts_executable() {
+    let files = scaffold_init_with(&Config::default(), true).unwrap().files;
+    let sh: Vec<_> = files
+        .iter()
+        .filter(|f| f.rel_path.ends_with(".sh"))
+        .collect();
+    assert!(!sh.is_empty(), "the kit ships shell scripts");
+    for f in &sh {
+        assert!(f.executable, "{} must be marked executable", f.rel_path);
+    }
+    // Nothing else is. The bit is a permission, so the safe value is the one
+    // you get by saying nothing.
+    for f in files.iter().filter(|f| !f.rel_path.ends_with(".sh")) {
+        assert!(!f.executable, "{} must not be executable", f.rel_path);
+    }
+}
+
+/// §3.3: the binding for the merge driver is part of what `--with-kit` writes,
+/// and it is marked to append rather than to clobber an adopter's own file.
+#[test]
+fn the_scaffold_carries_the_merge_driver_binding_as_an_append() {
+    let files = scaffold_init_with(&Config::default(), true).unwrap().files;
+    let ga = files
+        .iter()
+        .find(|f| f.rel_path == ".gitattributes")
+        .expect("spec 074 3.3: --with-kit writes the binding");
+    assert!(
+        ga.append,
+        "an adopter's own .gitattributes must be preserved"
+    );
+    assert_eq!(
+        ga.append_marker.as_deref(),
+        Some("spec-spine-derived-regen"),
+        "idempotency keys on the driver name, so a reformatted stanza is not duplicated"
+    );
+    assert!(ga.contents.contains("merge=spec-spine-derived-regen"));
+    // Plain `init` does not install the driver, so it does not write the binding.
+    assert!(
+        !scaffold_init_with(&Config::default(), false)
+            .unwrap()
+            .files
+            .iter()
+            .any(|f| f.rel_path == ".gitattributes"),
+        "the binding belongs with the hooks it binds, which are a kit extra"
+    );
 }
