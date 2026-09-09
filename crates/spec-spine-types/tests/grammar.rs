@@ -15,7 +15,8 @@ fn bare_string_is_file_unit() {
     assert_eq!(
         u,
         Unit::File {
-            path: "src/lib.rs".into()
+            path: "src/lib.rs".into(),
+            planned: false
         }
     );
 }
@@ -26,7 +27,8 @@ fn tagged_units_parse() {
     assert_eq!(
         file,
         Unit::File {
-            path: "a.rs".into()
+            path: "a.rs".into(),
+            planned: false
         }
     );
 
@@ -36,7 +38,8 @@ fn tagged_units_parse() {
         section,
         Unit::Section {
             file: "Makefile".into(),
-            anchor: "build".into()
+            anchor: "build".into(),
+            planned: false
         }
     );
 
@@ -44,7 +47,8 @@ fn tagged_units_parse() {
     assert_eq!(
         symbol,
         Unit::Symbol {
-            id: "crate::run".into()
+            id: "crate::run".into(),
+            planned: false
         }
     );
 }
@@ -56,21 +60,24 @@ fn directory_crate_module_units_parse() {
     assert_eq!(
         dir,
         Unit::Directory {
-            path: "src/api".into()
+            path: "src/api".into(),
+            planned: false
         }
     );
     let krate: Unit = serde_yaml::from_str("{ kind: crate, id: \"factory-engine\" }").unwrap();
     assert_eq!(
         krate,
         Unit::Crate {
-            id: "factory-engine".into()
+            id: "factory-engine".into(),
+            planned: false
         }
     );
     let module: Unit = serde_yaml::from_str("{ kind: module, id: \"my_crate::tests\" }").unwrap();
     assert_eq!(
         module,
         Unit::Module {
-            id: "my_crate::tests".into()
+            id: "my_crate::tests".into(),
+            planned: false
         }
     );
     // The wrapper form (spec 015) composes with the new kinds.
@@ -79,7 +86,8 @@ fn directory_crate_module_units_parse() {
     assert_eq!(
         wrapped,
         Unit::Directory {
-            path: "crates/x".into()
+            path: "crates/x".into(),
+            planned: false
         }
     );
 }
@@ -92,7 +100,8 @@ fn unit_wrapper_form_unwraps() {
     assert_eq!(
         bare,
         Unit::File {
-            path: "src/lib.rs".into()
+            path: "src/lib.rs".into(),
+            planned: false
         }
     );
     let tagged: Unit =
@@ -100,7 +109,8 @@ fn unit_wrapper_form_unwraps() {
     assert_eq!(
         tagged,
         Unit::Symbol {
-            id: "crate::f".into()
+            id: "crate::f".into(),
+            planned: false
         }
     );
     // The inner unit inherits its own validation (empty path still rejected).
@@ -112,7 +122,13 @@ fn directory_subtree_detection() {
     assert!(Unit::file("src/").is_directory_subtree());
     assert!(!Unit::file("src/lib.rs").is_directory_subtree());
     // An explicit directory unit is always a subtree (spec 017).
-    assert!(Unit::Directory { path: "src".into() }.is_directory_subtree());
+    assert!(
+        Unit::Directory {
+            path: "src".into(),
+            planned: false
+        }
+        .is_directory_subtree()
+    );
 }
 
 #[test]
@@ -134,13 +150,15 @@ fn establishes_accepts_mixed_forms() {
     assert_eq!(
         fm.establishes[0],
         Unit::File {
-            path: "src/whole.rs".into()
+            path: "src/whole.rs".into(),
+            planned: false
         }
     );
     assert_eq!(
         fm.establishes[1],
         Unit::Symbol {
-            id: "crate::f".into()
+            id: "crate::f".into(),
+            planned: false
         }
     );
 }
@@ -157,14 +175,17 @@ fn establishes_accepts_unit_wrapper() {
         fm.establishes,
         vec![
             Unit::File {
-                path: "src/whole.rs".into()
+                path: "src/whole.rs".into(),
+                planned: false
             },
             Unit::File {
-                path: "src/bare.rs".into()
+                path: "src/bare.rs".into(),
+                planned: false
             },
             Unit::Section {
                 file: "Makefile".into(),
-                anchor: "ci".into()
+                anchor: "ci".into(),
+                planned: false
             },
         ]
     );
@@ -205,7 +226,8 @@ fn extends_paths_sugar_expands_to_file_units() {
     assert_eq!(
         fm.extends[0].unit,
         Some(Unit::File {
-            path: "a.rs".into()
+            path: "a.rs".into(),
+            planned: false
         })
     );
     assert_eq!(fm.extends[0].nature.as_deref(), Some("additive"));
@@ -213,7 +235,8 @@ fn extends_paths_sugar_expands_to_file_units() {
     assert_eq!(
         fm.extends[1].unit,
         Some(Unit::File {
-            path: "src/api/".into()
+            path: "src/api/".into(),
+            planned: false
         })
     );
     assert!(
@@ -268,7 +291,8 @@ fn constrains_discriminator_and_optional_unit() {
     assert_eq!(
         fm.constrains[0].unit,
         Some(Unit::File {
-            path: "schema.json".into()
+            path: "schema.json".into(),
+            planned: false
         })
     );
     assert_eq!(fm.constrains[1].kind.as_deref(), Some("sequencing-plan"));
@@ -304,7 +328,8 @@ fn supersedes_full_and_partial_forms_parse() {
     assert_eq!(
         fm.supersedes[2].partial_unit(),
         Some(&Unit::File {
-            path: "src/clone.ts".into()
+            path: "src/clone.ts".into(),
+            planned: false
         })
     );
     // Partial without a unit is documentary: no transfer unit.
@@ -372,4 +397,127 @@ fn references_provenance_unknown_field_is_rejected() {
     let src = "---\nid: x\ntitle: t\nstatus: draft\ncreated: \"2026-06-08\"\nsummary: s\n\
 references:\n  - { provenance: { kind: k, ref: \"r\", bogus: \"x\" } }\n---\n";
     assert!(parse_frontmatter(src).is_err());
+}
+
+// ── spec 076: the `planned` flag on a unit payload ──────────────────────────
+
+/// §3.1: the flag is valid only in the **object form**, on any unit kind. The
+/// bare-string shorthand cannot carry it, and the grammar is deliberately not
+/// extended to let it: a second string grammar parsed in a second place is a
+/// second place for the flag to be misspelled into silence.
+#[test]
+fn planned_round_trips_on_every_unit_kind_in_object_form() {
+    for (src, want) in [
+        (
+            r#"{ "kind": "file", "path": "src/a.rs", "planned": true }"#,
+            Unit::File {
+                path: "src/a.rs".into(),
+                planned: true,
+            },
+        ),
+        (
+            r#"{ "kind": "section", "file": "d.md", "anchor": "a", "planned": true }"#,
+            Unit::Section {
+                file: "d.md".into(),
+                anchor: "a".into(),
+                planned: true,
+            },
+        ),
+        (
+            r#"{ "kind": "symbol", "id": "m::f", "planned": true }"#,
+            Unit::Symbol {
+                id: "m::f".into(),
+                planned: true,
+            },
+        ),
+        (
+            r#"{ "kind": "directory", "path": "src/", "planned": true }"#,
+            Unit::Directory {
+                path: "src/".into(),
+                planned: true,
+            },
+        ),
+        (
+            r#"{ "kind": "crate", "id": "c", "planned": true }"#,
+            Unit::Crate {
+                id: "c".into(),
+                planned: true,
+            },
+        ),
+        (
+            r#"{ "kind": "module", "id": "c::m", "planned": true }"#,
+            Unit::Module {
+                id: "c::m".into(),
+                planned: true,
+            },
+        ),
+    ] {
+        let got: Unit = serde_json::from_str(src).unwrap_or_else(|e| panic!("{src}: {e}"));
+        assert_eq!(got, want, "{src}");
+        assert!(got.is_planned(), "{src}");
+        // And back out, so a consumer that round-trips does not change meaning.
+        let json = serde_json::to_string(&got).unwrap();
+        assert_eq!(serde_json::from_str::<Unit>(&json).unwrap(), want);
+    }
+}
+
+/// §3.1: the bare-string shorthand is never planned, and neither is the spec
+/// 015 `{ unit: ... }` wrapper around one.
+#[test]
+fn the_bare_string_shorthand_cannot_be_planned() {
+    let bare: Unit = serde_json::from_str(r#""src/a.rs""#).unwrap();
+    assert!(!bare.is_planned());
+    let wrapped: Unit = serde_json::from_str(r#"{ "unit": "src/a.rs" }"#).unwrap();
+    assert!(!wrapped.is_planned());
+    assert_eq!(bare, wrapped);
+}
+
+/// §3.1: `planned: false` MUST be accepted and MUST mean exactly what omitting
+/// it means, so a consumer that round-trips a unit does not change its meaning.
+/// §3.7: and it MUST normalize to **absent** on write, or the same corpus would
+/// compile to two different byte sequences depending on how it was spelled,
+/// which the four-triple determinism gate would surface as inexplicable
+/// staleness rather than as a round-trip bug.
+#[test]
+fn planned_false_means_omitted_and_normalizes_to_absent() {
+    let written: Unit =
+        serde_json::from_str(r#"{ "kind": "file", "path": "a", "planned": false }"#)
+            .expect("`planned: false` is accepted");
+    let omitted: Unit = serde_json::from_str(r#"{ "kind": "file", "path": "a" }"#).unwrap();
+    assert_eq!(written, omitted);
+
+    let json = serde_json::to_string(&written).unwrap();
+    assert!(
+        !json.contains("planned"),
+        "false must normalize to absent, got {json}"
+    );
+    assert_eq!(json, serde_json::to_string(&omitted).unwrap());
+}
+
+/// §3.7: emitting a unit that is not planned MUST NOT change existing output,
+/// so no corpus needs a re-index for this change.
+#[test]
+fn an_unplanned_unit_emits_exactly_what_it_did_before() {
+    assert_eq!(
+        serde_json::to_string(&Unit::file("src/lib.rs")).unwrap(),
+        r#"{"kind":"file","path":"src/lib.rs"}"#
+    );
+}
+
+/// §3.4: the flag is not part of a unit's identity. `subject()` is what the
+/// index stores and what the collision checks compare, so a planned claim that
+/// has resolved answers a lookup exactly as an unplanned one does.
+#[test]
+fn subject_clears_the_flag_and_keeps_the_territory() {
+    let planned = Unit::File {
+        path: "src/a.rs".into(),
+        planned: true,
+    };
+    assert_ne!(planned, Unit::file("src/a.rs"), "the payloads differ");
+    assert_eq!(
+        planned.subject(),
+        Unit::file("src/a.rs"),
+        "the territory does not"
+    );
+    assert!(!planned.subject().is_planned());
 }

@@ -203,6 +203,71 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         }
     }
 
+    // L-011 / L-012 (spec 076 3.3, 3.4): the `planned` flag cannot outlive the
+    // work, in either direction.
+    //
+    // Read from the **committed** index for the resolved half, by the same
+    // rule `L-008` follows: `lint` is a read verb, and indexing here would make
+    // it write-shaped and slow. A corpus with no committed index is silent
+    // about `L-012`, which is right: there is no ledger yet to say a claim has
+    // landed. `L-011` needs no ledger at all, being a contradiction inside one
+    // file's frontmatter.
+    let resolved_paths: std::collections::BTreeSet<String> =
+        match crate::index::load_committed_index(cfg, repo_root) {
+            Ok(index) => index
+                .traceability
+                .mappings
+                .iter()
+                .flat_map(|t| t.resolved_units.iter())
+                .filter(|ru| !ru.locations.is_empty())
+                .map(|ru| unit_key(&ru.unit))
+                .collect(),
+            Err(_) => Default::default(),
+        };
+    for spec in &registry.specs {
+        let at = || Some(spec.spec_path.clone());
+        for unit in owned_units(spec).into_iter().filter(|u| u.is_planned()) {
+            // L-011: completion asserts the work is done and a planned unit
+            // asserts it is not. Error tier, not warning: the two together are
+            // a contradiction inside the spec's own frontmatter rather than a
+            // gap someone might hold deliberately. Spec 041 established that
+            // `complete` ends the in-flight window; this extends the same
+            // principle to the new field, which is what keeps `planned` from
+            // becoming a state nobody owns the exit from.
+            if spec.implementation == Some(spec_spine_types::Implementation::Complete) {
+                violations.push(error(
+                    "L-011",
+                    format!(
+                        "spec '{}' is implementation: complete while unit '{}' is still \
+                         marked planned: completion asserts the work is done and a planned \
+                         unit asserts it is not. Drop the flag, or the completion",
+                        spec.id,
+                        unit_label(&unit)
+                    ),
+                    at(),
+                ));
+            }
+            // L-012: the other direction. The file landed, the claim is
+            // satisfied, and without this nothing notices that the spec still
+            // describes it as future work. Warning tier, so `--fail-on-warn`
+            // refuses it in a corpus running the gate and a corpus that does
+            // not is merely told.
+            if resolved_paths.contains(&unit_key(&unit.subject())) {
+                violations.push(warn(
+                    "L-012",
+                    format!(
+                        "spec '{}' marks unit '{}' planned, and it now resolves: drop the \
+                         flag. The claim is unaffected either way, this is a signal about \
+                         the frontmatter",
+                        spec.id,
+                        unit_label(&unit)
+                    ),
+                    at(),
+                ));
+            }
+        }
+    }
+
     // L-010 (spec 074 3.1): an `[index] extra_hashed_inputs` pattern ending in
     // `/**`. In the `glob` crate `dir/**` enumerates DIRECTORIES and the hasher
     // keeps only entries that are files, so such a pattern can never contribute
@@ -345,7 +410,7 @@ fn claimed_paths(spec: &SpecRecord) -> Vec<String> {
 /// The repo-relative path a unit names, for the unit kinds that carry one.
 fn unit_path(unit: &Unit) -> Option<String> {
     match unit {
-        Unit::File { path } | Unit::Directory { path } => Some(path.clone()),
+        Unit::File { path, .. } | Unit::Directory { path, .. } => Some(path.clone()),
         Unit::Section { file, .. } => Some(file.clone()),
         Unit::Symbol { .. } | Unit::Crate { .. } | Unit::Module { .. } => None,
     }
@@ -361,4 +426,46 @@ fn warn(code: &str, message: String, path: Option<String>) -> Violation {
 
 fn info(code: &str, message: String, path: Option<String>) -> Violation {
     Violation::new(code, Severity::Info, message).at_opt(path)
+}
+
+/// A unit's identity as a comparable key, ignoring the `planned` flag (spec
+/// 076 §3.4: the flag is not part of a unit's identity).
+fn unit_key(unit: &Unit) -> String {
+    match unit.subject() {
+        Unit::File { path, .. } => format!("file:{path}"),
+        Unit::Section { file, anchor, .. } => format!("section:{file}#{anchor}"),
+        Unit::Symbol { id, .. } => format!("symbol:{id}"),
+        Unit::Directory { path, .. } => format!("directory:{path}"),
+        Unit::Crate { id, .. } => format!("crate:{id}"),
+        Unit::Module { id, .. } => format!("module:{id}"),
+    }
+}
+
+/// A unit as a reader sees it in a diagnostic: the path or id it names.
+fn unit_label(unit: &Unit) -> String {
+    match unit {
+        Unit::File { path, .. } | Unit::Directory { path, .. } => path.clone(),
+        Unit::Section { file, anchor, .. } => format!("{file}#{anchor}"),
+        Unit::Symbol { id, .. } | Unit::Crate { id, .. } | Unit::Module { id, .. } => id.clone(),
+    }
+}
+
+/// Every unit a spec claims through an ownership-bearing edge.
+///
+/// The same six edges `claimed_paths` walks, returning the units rather than
+/// their paths, because spec 076's checks are about the unit (a symbol or crate
+/// unit has no path and can be planned exactly as a file can). `references` is
+/// excluded for the reason spec 034 gave: a cited file is not a claimed one, so
+/// a spec cannot plan territory by citing it.
+fn owned_units(spec: &SpecRecord) -> Vec<Unit> {
+    let mut units: Vec<Unit> = spec.establishes.clone();
+    units.extend(spec.extends.iter().filter_map(|i| i.unit.clone()));
+    units.extend(spec.refines.iter().filter_map(|i| i.unit.clone()));
+    units.extend(spec.supersedes.iter().filter_map(|i| match i {
+        spec_spine_types::SupersedeItem::Scoped(s) => s.unit.clone(),
+        _ => None,
+    }));
+    units.extend(spec.co_authority.iter().map(|i| i.unit.clone()));
+    units.extend(spec.constrains.iter().filter_map(|i| i.unit.clone()));
+    units
 }

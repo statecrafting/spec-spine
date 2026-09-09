@@ -391,6 +391,21 @@ fn render_coverage(report: &CoverageReport) -> String {
         report.floor_only_files.len(),
         report.unclaimed_files.len()
     );
+    // Spec 076 §3.6: a file nothing claims and a file something has planned are
+    // different states, and the report could not tell them apart before. Listed
+    // beside the counts rather than inside them: these paths are not on disk,
+    // so counting a declared intention as coverage would let a spec satisfy
+    // `--fail-on-untraced` by promising.
+    if !report.planned_territory.is_empty() {
+        let _ = writeln!(
+            out,
+            "  planned (declared, not yet written): {}",
+            report.planned_territory.len()
+        );
+        for entry in &report.planned_territory {
+            let _ = writeln!(out, "    {entry}");
+        }
+    }
     for p in &report.packages {
         let path = if p.path.is_empty() {
             "."

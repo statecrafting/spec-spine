@@ -46,5 +46,5 @@
     "title": "Dependency cycle refusal: the `V-014` corpus-wide check on `depends_on`"
   },
   "shardHash": "edc8debf7e8ab3ca2314bdba9ee2271f52f069309dbfa8807b969749a3030a4d",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

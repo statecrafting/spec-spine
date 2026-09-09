@@ -79,5 +79,5 @@
     "title": "Severity tiers for unresolved units: lifecycle- and edge-aware (warn, count, never skip)"
   },
   "shardHash": "a153f204f3b57921b244fcdf256c934de8a03865e47af200fa4233245ba75f8f",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

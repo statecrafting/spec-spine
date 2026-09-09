@@ -98,5 +98,5 @@
     "title": "An absent `implementation` key takes its answer from `status`"
   },
   "shardHash": "df169dcc67b3b05d4438e063c3a5976e0023b44f92dbd2ae9978caa48f89905a",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

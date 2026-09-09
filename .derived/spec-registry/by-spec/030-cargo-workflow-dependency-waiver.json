@@ -74,5 +74,5 @@
     "title": "Cargo and workflow dependabot bumps self-clear: freshness projection + auto-waiver"
   },
   "shardHash": "8a7d53e4b894e9762ea1401b3c84443c5d2e49e1e55274168de7c487176f7a78",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

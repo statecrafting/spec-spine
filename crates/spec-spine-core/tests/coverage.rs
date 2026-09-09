@@ -758,3 +758,56 @@ fn packages_without_source_files_point_at_resolver_exclusions() {
         reason.explain()
     );
 }
+
+// ── spec 076 §3.6: coverage can see planned territory ───────────────────────
+
+/// §3.6: a file nothing claims and a file something has planned are different
+/// states, and the report could not tell them apart. It reads the DECLARED
+/// state from the registry, because a planned unit that has not resolved
+/// contributes no `ResolvedUnit` at all (§3.2), which is exactly why coverage
+/// was blind to it.
+#[test]
+fn coverage_reports_planned_territory_separately_from_the_counts() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = [\"a\"]\n");
+    write(
+        tmp.path(),
+        "a/Cargo.toml",
+        "[package]\nname = \"a\"\nversion = \"0.1.0\"\n",
+    );
+    write(tmp.path(), "a/src/lib.rs", "pub fn a() {}\n");
+    write(
+        tmp.path(),
+        "specs/001-a/spec.md",
+        "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-09-08\"\n\
+         implementation: pending\nsummary: \"s\"\nestablishes:\n  - \"a/src/lib.rs\"\n\
+         \x20 - { kind: file, path: \"a/src/future.rs\", planned: true }\n---\n# 001-a\n## body\n",
+    );
+
+    let cfg = Config::default();
+    let out = index(&cfg, tmp.path()).unwrap();
+    let dir = index_dir(&cfg, tmp.path());
+    let (by_spec, by_package) = index_shard_files(&out.shards).unwrap();
+    shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec).unwrap();
+    shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package).unwrap();
+    let compiled = spec_spine_core::compile(&cfg, tmp.path()).unwrap();
+    let reg_dir = spec_spine_core::registry_dir(&cfg, tmp.path());
+    shard::sync_dir(
+        &reg_dir.join(spec_spine_core::shard::BY_SPEC_DIR),
+        &spec_spine_core::registry_shard_files(&compiled.shards).unwrap(),
+    )
+    .unwrap();
+
+    let report = coverage(&cfg, tmp.path()).unwrap();
+    assert_eq!(
+        report.planned_territory,
+        vec!["001-a: file:a/src/future.rs".to_string()],
+        "the declared intention must be visible"
+    );
+    // And it is NOT counted: these paths are not on disk, so counting a
+    // declared intention as coverage would let a spec satisfy
+    // `--fail-on-untraced` by promising rather than by writing.
+    assert_eq!(report.source_files, 1, "only the file that exists");
+    assert_eq!(report.claimed_files, 1);
+    assert!(report.is_fully_claimed());
+}

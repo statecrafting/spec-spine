@@ -67,5 +67,5 @@
     "title": "Indexer resolution + discovery fixes: foreign-YAML regions, Makefile tags, nested-workspace globs"
   },
   "shardHash": "e2c011b1a493629bba2ae7656d3b8fd9cdc68fbb2cc9d87676f71cb8bbe87ebb",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

@@ -820,3 +820,56 @@ fn the_ordering_contract_survives_the_titles() {
     let ids: Vec<&str> = p.ready.iter().map(|r| r.id.as_str()).collect();
     assert_eq!(ids, ["001-alpha", "002-beta", "003-gamma"]);
 }
+
+// ── spec 076 §3.6: the ledger records planned territory as a state ──────────
+
+/// §3.6: `registry plan` can report planned territory. Before the flag, the
+/// read that exists to answer "what is being worked on and who will own it"
+/// could only see the past.
+#[test]
+fn the_plan_reports_planned_territory() {
+    let tmp = tempfile::tempdir().unwrap();
+    plan_spec(
+        &tmp,
+        "001-a",
+        "establishes:\n  - { kind: file, path: \"src/x.rs\", planned: true }\n\
+         \x20 - { kind: symbol, id: \"m::f\", planned: true }\n  - \"src/here.rs\"\n",
+    );
+    let registry = spec_spine_core::compile(&Config::default(), tmp.path())
+        .unwrap()
+        .registry;
+    let plan = spec_spine_core::query::plan(&registry).unwrap();
+    assert_eq!(plan.planned.len(), 1, "{:?}", plan.planned);
+    assert_eq!(plan.planned[0].id, "001-a");
+    assert_eq!(
+        plan.planned[0].units,
+        vec!["file:src/x.rs".to_string(), "symbol:m::f".to_string()],
+        "only the planned units, in declaration order"
+    );
+
+    // And a corpus that plans nothing reports nothing, so the member is absent
+    // from existing output rather than an empty array in it.
+    let bare = tempfile::tempdir().unwrap();
+    plan_spec(&bare, "001-a", "establishes:\n  - \"src/x.rs\"\n");
+    let registry = spec_spine_core::compile(&Config::default(), bare.path())
+        .unwrap()
+        .registry;
+    let plan = spec_spine_core::query::plan(&registry).unwrap();
+    assert!(plan.planned.is_empty());
+    let json = serde_json::to_string(&plan).unwrap();
+    assert!(!json.contains("planned"), "{json}");
+}
+
+/// One spec with arbitrary extra frontmatter, for the planned-territory read.
+fn plan_spec(tmp: &tempfile::TempDir, id: &str, extra: &str) {
+    let dir = tmp.path().join("specs").join(id);
+    std::fs::create_dir_all(&dir).unwrap();
+    std::fs::write(
+        dir.join("spec.md"),
+        format!(
+            "---\nid: \"{id}\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-08\"\n\
+             implementation: pending\nsummary: \"s\"\n{extra}---\n# {id}\n## body\n"
+        ),
+    )
+    .unwrap();
+}

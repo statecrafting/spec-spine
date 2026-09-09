@@ -94,5 +94,5 @@
     "title": "Registry freshness: `spec-spine compile --check`"
   },
   "shardHash": "39995f7666e6d0633aee9b4c039ce8c46023f80c02f031d98b6d58d3c481740f",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

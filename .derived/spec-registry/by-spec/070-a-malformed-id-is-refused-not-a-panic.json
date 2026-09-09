@@ -55,5 +55,5 @@
     "title": "A malformed id is refused, not a panic"
   },
   "shardHash": "9a606a88854954ef3098e3793088f5e016c259d34954caa7cb178c0ebcd5c69e",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

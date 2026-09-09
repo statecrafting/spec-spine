@@ -49,5 +49,5 @@
     "title": "`references` seeds no implementing path: closing the C-001 ownership leak"
   },
   "shardHash": "54c4e2be071d742b419ccdc8b70ecadd39892f1a48caeb37901f21565e5eb805",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }
