@@ -29,8 +29,8 @@
       }
     ],
     "specId": "078-the-protocol-has-an-owner",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "e5bec6bde99721ab367e5e13c2f1b0c72b1e1849ff9a0f78bd8f45b5a6d0bbba"
+  "shardHash": "ca5fa364a59c95abe1602edbe166d2991b6047bababe7c36aeb9733edcc640fd"
 }
