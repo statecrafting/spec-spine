@@ -36,6 +36,6 @@
     "summary": "Root `AGENTS.md` is the cross-agent authority: the protocol `/prime` executes, the gate list every skill inlines a subset of, and the document spec 051's parity test compares this repository's CI against. No spec in the corpus establishes it. Seven approved specs reach it with an `extends` edge naming spec 029, but 029 establishes exactly one unit, `kit/`, and root `AGENTS.md` is outside that subtree, so the ledger records an owner that never established the file. That is not a defect: `extends` means \"adds surface to a predecessor\", so those edges are the corpus's ordinary convention, and measurement confirms it. What is genuinely missing is narrower. The protocol file has no `establishes` claim at all, so the ledger has no direct answer to who owns it. This spec supplies one, and requires the file to name the spec that governs it, the same \"a file naming its own spec\" move the comment headers make for source. It clarifies the ledger only; it changes no behavior and amends nobody.\n",
     "title": "The protocol has an owner"
   },
-  "shardHash": "9cc6c05dcd84e60fd9a447c1aa3632932fe8c57c05ef5e4f7a17d5a82d8bb8d0",
+  "shardHash": "a1137a896fe3666a98c6b714c818b3627ca5a50ebadfa08e19d875606377904e",
   "specVersion": "1.2.0"
 }

@@ -1,11 +1,6 @@
 # AGENTS.md: spec-spine
 
-> **Governed by `specs/078-the-protocol-has-an-owner/spec.md`.** This file is the
-> cross-agent protocol and the canonical spelling of the gate chain, so the spec
-> that claims it is named here: a reader editing this document should not have to
-> compile the registry to learn which spec they are editing under. The claim is
-> prose rather than a `// Spec:` header, because that grammar is defined over the
-> source extensions in `coverage.rs::SOURCE_EXTS` and markdown is not among them.
+> Governed by `specs/078-the-protocol-has-an-owner/spec.md`.
 
 ## New Sessions
 

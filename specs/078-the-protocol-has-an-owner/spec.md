@@ -48,25 +48,26 @@ parity test compares CI's governance commands against.
 No spec establishes it.
 
 Seven approved specs (047, 048, 051, 063, 072, 074 and 075) declare an
-`extends` edge naming spec 029 with unit `AGENTS.md`. Spec 029's `establishes`
-list has exactly one entry, `kit/`. Root `AGENTS.md` is not inside that
-subtree; `kit/AGENTS.md` is, and that one is correctly attributed. So seven
-specs record a claim about a file that their named target never claimed.
+`extends` edge naming spec 029 with unit `AGENTS.md`, and **those edges are
+correct**. `extends` is defined in `edges.rs` as "adds surface to a
+predecessor": the unit is surface the extending spec adds, and it need not
+already sit in the target's territory. That is the corpus's ordinary
+convention, measured rather than assumed, and it is the sole claim about a
+fifth of this repository's source files have.
 
-**The misattribution is invisible by construction.** `V-004` refuses an edge
-naming a spec that does not exist, and `V-017` refuses an `extends` on a unit
-another spec has only *planned*. Neither asks the obvious question: does the
-target's territory contain the unit at all? Nothing does. The edge therefore
-compiles, lints clean at every severity, passes the coupling gate and survives
-ratification, seven times over.
+**What is missing is narrower, and it is a gap in the ledger rather than a
+defect in anyone's frontmatter.** Every one of those seven edges says "I add
+surface to this file". None says "this file is mine". So the registry can
+answer which specs extend the protocol document and cannot answer who owns it,
+which for a ledger whose product is exactly that answer is a hole in the middle
+of its own house.
 
-**What it costs today is accuracy, not safety.** The coupling gate reads root
-`AGENTS.md` as owned, because an `extends` edge carrying a unit puts the
-extending spec into that unit's owner set, so an edit to the protocol still has
-to arrive with a spec that changed. Coverage ignores it, since markdown is not
-in `SOURCE_EXTS`. Nothing is unguarded. What is wrong is the ledger's answer to
-"who owns this file", and a ledger whose whole product is that answer should
-not be wrong about its own protocol document.
+**Nothing is unguarded in the meantime.** An `extends` edge carrying a unit
+puts the extending spec into that unit's owner set, so the coupling gate reads
+root `AGENTS.md` as owned and an edit still has to arrive with a spec that
+changed. Coverage ignores it, since markdown is not in `SOURCE_EXTS`. This spec
+closes a gap in what the ledger can *say*, not a hole in what the gate can
+catch.
 
 ## 2. Territory
 
@@ -75,13 +76,14 @@ This spec establishes one unit, root `AGENTS.md`, and nothing else.
 **The claim owes no `amends`, and that is a fact about spec 029 rather than a
 convenience.** An amendment is owed to a spec whose stated behavior a later
 spec changes. 029 states nothing about root `AGENTS.md`: it does not claim it,
-require anything of it, or mention it in its territory. Claiming a file its
-alleged owner never claimed contradicts nothing that spec says. This is the
-rare case where the correct edge is no edge at all.
+require anything of it, or mention it in its territory. Establishing a file 029
+never established contradicts nothing that spec says, and takes nothing from
+the specs that extend it. This is the rare case where the correct edge is no
+edge at all.
 
-**`kit/AGENTS.md` is untouched.** It falls inside 029's `kit/` subtree and is
-correctly attributed there. The two files are near-copies and it would be easy
-to sweep both; only one is wrong.
+**`kit/AGENTS.md` is untouched.** It falls inside 029's `kit/` subtree, so it
+already has an establisher and needs nothing from this spec. The two files are
+near-copies and it would be easy to sweep both; only one has the gap.
 
 **The seven existing edges are correct and are left alone.** They were first
 read as a misattribution to be migrated. Measurement over the corpus refuted
