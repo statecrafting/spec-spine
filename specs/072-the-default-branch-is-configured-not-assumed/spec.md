@@ -4,7 +4,7 @@ title: "The default branch is configured, not assumed"
 status: draft
 kind: "tooling"
 created: "2026-09-08"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
