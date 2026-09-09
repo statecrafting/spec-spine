@@ -180,6 +180,25 @@ No schema version changes. The shape of the emitted JSON is untouched, and only
 a hash value moves, so `INDEX_SCHEMA_VERSION` MUST NOT be bumped. The migration
 is a re-index, not a loader change.
 
+**The implementing change MUST be sequenced against every other branch in
+flight.** Because the restale moves every shard, a branch that regenerated its
+shards before this one merged carries values computed under the previous rule.
+Merging it afterwards leaves `index check` on the default branch stale, and it
+does so **without a textual conflict**: the two branches touch different shard
+files, so nothing collides and the merge driver, which regenerates only on a
+same-shard conflict, never fires. The failure is silent at merge time and
+surfaces as a red gate on the next commit.
+
+Two orders are safe: land this change when no other implementation branch is
+outstanding, or land it first and require every outstanding branch to rebase
+and re-run `spec-spine index` before merging. The spec does not choose between
+them, because which is cheaper depends on what is in flight; it requires that
+one of them be chosen deliberately rather than discovered.
+
+This constraint belongs to the implementation, not to the draft. Filing this
+spec adds one shard and changes no existing one, so the draft merges in any
+order.
+
 The migration note MUST state the consequence for spec 023: an attestation
 sealed before this change verifies its signature but no longer verifies by
 recompute, because the ledger it attests to is hashed under the previous rule.
