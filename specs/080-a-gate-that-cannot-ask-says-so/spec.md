@@ -1,7 +1,7 @@
 ---
 id: "080-a-gate-that-cannot-ask-says-so"
 title: "A gate that cannot ask says so"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-09"
 summary: >
