@@ -116,9 +116,7 @@ fn scaffolded_spec_ordinal<'a>(specs_dir: &str, rel_path: &'a str) -> Option<(&'
 /// Taken by character rather than by byte: spec 070 fixed a panic where a
 /// non-ASCII id was sliced at `[..3]`, and this is the same shape of read.
 fn ordinal(id: &str) -> Option<&str> {
-    let end = id
-        .find(|c: char| !c.is_ascii_digit())
-        .unwrap_or(id.len());
+    let end = id.find(|c: char| !c.is_ascii_digit()).unwrap_or(id.len());
     (end > 0).then(|| &id[..end])
 }
 
