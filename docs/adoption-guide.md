@@ -178,6 +178,20 @@ forms and run plain `spec-spine compile` and `spec-spine index` to build the
 artifacts in-job: with nothing committed to compare against, the freshness gates
 would report every shard missing and fail permanently.
 
+**Refusing warnings (`--fail-on-warn`, spec 077).** `compile` emits one
+warning-tier code, `V-010`, for a `depends_on` naming a spec that does not
+exist. The tier is deliberate: a corpus that files specs forward must be able to
+name a dependency filed after the spec that names it, so escalation is the
+caller's decision. `compile --fail-on-warn` and `check --fail-on-warn` make it
+exit `1`; `check`'s form forwards into the compile half, mirroring
+`--fail-on-unresolved` into the index half, and is the one to use in CI, which
+runs `check` rather than the primitives. The flag changes the exit code only:
+the shards written are byte-identical with and without it.
+
+Leave it off while migrating a corpus that legitimately points forward, and turn
+it on once the graph is closed. Bare `compile` is unchanged either way, so
+upgrading the binary cannot break an existing job.
+
 This repo dogfoods exactly this pattern; see
 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
 

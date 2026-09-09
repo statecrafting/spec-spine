@@ -2416,3 +2416,83 @@ fn check_forwards_fail_on_unresolved_to_the_index_half() {
         "an unresolved unit must refuse under the flag"
     );
 }
+
+/// Spec 077 §3.2 and §3.3: the flag turns a warning into exit 1 on every form
+/// of `compile`, and reaches the composed verb, which is the only form CI runs.
+///
+/// The corpus carries one dangling `depends_on`, so it is valid (spec 001 §3.2)
+/// and warns (`V-010`). Every assertion below is a pair: the same command with
+/// and without the flag, so the flag's effect is isolated from the verb's.
+#[test]
+fn fail_on_warn_refuses_a_warning_on_compile_and_check() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(tmp.path(), "001-a", "001-a", "approved");
+    // 002 names a spec nobody filed: V-010, warning tier.
+    let dir = tmp.path().join("specs/002-b");
+    fs::create_dir_all(&dir).unwrap();
+    fs::write(
+        dir.join("spec.md"),
+        "---\nid: \"002-b\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-06-08\"\n\
+         depends_on: [\"099-absent\"]\nsummary: \"s\"\n---\n# 002-b\n",
+    )
+    .unwrap();
+    let run = |args: &[&str]| {
+        bin()
+            .arg("--repo")
+            .arg(tmp.path())
+            .args(args)
+            .output()
+            .unwrap()
+    };
+
+    // Writing form: unflagged 0, flagged 1. The shards are written either way.
+    assert_eq!(code(&run(&["compile"])), 0);
+    assert_eq!(code(&run(&["compile", "--fail-on-warn"])), 1);
+
+    // §3.2: byte-identical emission. The flag decides an exit code, not output.
+    let shard = tmp.path().join(".derived/spec-registry/by-spec/002-b.json");
+    let after_plain = fs::read(&shard).unwrap();
+    assert_eq!(code(&run(&["compile", "--fail-on-warn"])), 1);
+    assert_eq!(
+        after_plain,
+        fs::read(&shard).unwrap(),
+        "a refused compile must write the same bytes as an accepted one"
+    );
+
+    // --check form: fresh, so unflagged 0; flagged 1 even though nothing stales.
+    assert_eq!(code(&run(&["compile", "--check"])), 0);
+    assert_eq!(code(&run(&["compile", "--check", "--fail-on-warn"])), 1);
+
+    // §3.3: the forward into the compile half of the composed verb.
+    assert_eq!(code(&run(&["index"])), 0);
+    assert_eq!(code(&run(&["check"])), 0);
+    assert_eq!(code(&run(&["check", "--fail-on-warn"])), 1);
+    // Independent flags: --fail-on-unresolved alone must not refuse a warning.
+    assert_eq!(code(&run(&["check", "--fail-on-unresolved"])), 0);
+
+    // §3.3 + spec 037: --json changes what is written, never what is decided.
+    let plain = run(&["check", "--fail-on-warn"]);
+    let jsonic = run(&["check", "--fail-on-warn", "--json"]);
+    assert_eq!(code(&plain), code(&jsonic));
+    let v: serde_json::Value = serde_json::from_slice(&jsonic.stdout).unwrap();
+    assert_eq!(v["exitCode"], 1);
+    assert_eq!(v["ok"], false);
+    // §3.4: the tally is in the envelope, attributed to the registry half.
+    assert_eq!(v["report"]["registry"]["warnings"], 1);
+    assert_eq!(v["report"]["registry"]["validationPassed"], true);
+
+    // §3.1: a clean corpus is unaffected by the flag on either verb.
+    let clean = tempfile::tempdir().unwrap();
+    write_spec(clean.path(), "001-a", "001-a", "approved");
+    let run_clean = |args: &[&str]| {
+        bin()
+            .arg("--repo")
+            .arg(clean.path())
+            .args(args)
+            .output()
+            .unwrap()
+    };
+    assert_eq!(code(&run_clean(&["compile", "--fail-on-warn"])), 0);
+    assert_eq!(code(&run_clean(&["index"])), 0);
+    assert_eq!(code(&run_clean(&["check", "--fail-on-warn"])), 0);
+}

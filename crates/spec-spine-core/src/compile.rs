@@ -50,6 +50,24 @@ pub struct CompileOutcome {
     pub shards: RegistryShardSet,
 }
 
+impl CompileOutcome {
+    /// How many warning-tier violations this compile produced (spec 077 §3.2).
+    ///
+    /// Exposed here rather than left to each caller's own filter so the CLI,
+    /// the facade and `check_report` read one number. `validation_passed` is
+    /// deliberately untouched by this: spec 001 §3.2 fixes it as "false iff any
+    /// error-tier violation is present", and `--fail-on-warn` gates the exit
+    /// code, never the verdict field or an emitted byte.
+    pub fn warning_count(&self) -> usize {
+        self.registry
+            .validation
+            .violations
+            .iter()
+            .filter(|v| v.severity == Severity::Warning)
+            .count()
+    }
+}
+
 /// The committed-form projection of a registry: one shard per spec (spec 024),
 /// sorted by id for determinism.
 pub struct RegistryShardSet {

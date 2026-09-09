@@ -2638,7 +2638,7 @@ BASE       ?= origin/$(or $(SPEC_SPINE_DEFAULT_BRANCH),main)
 ## is meant to judge (spec 046), so this uses `compile --check` and never
 ## `compile`.
 gate:
-	$(SPEC_SPINE) check --fail-on-unresolved
+	$(SPEC_SPINE) check --fail-on-unresolved --fail-on-warn
 	$(SPEC_SPINE) lint --fail-on-warn
 	$(SPEC_SPINE) index coverage --fail-on-untraced
 	$(SPEC_SPINE) couple --base $(BASE) --head HEAD
@@ -2743,7 +2743,7 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           printf '%s' "$PR_BODY" > "$RUNNER_TEMP/pr-body.txt"
-          spec-spine check --fail-on-unresolved
+          spec-spine check --fail-on-unresolved --fail-on-warn
           spec-spine lint --fail-on-warn
           spec-spine index coverage --fail-on-untraced
           spec-spine couple --base "origin/${{ github.base_ref }}" --head HEAD --pr-body "$RUNNER_TEMP/pr-body.txt"

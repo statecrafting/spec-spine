@@ -49,18 +49,35 @@ distributions are for adopters.
 
 ```sh
 cargo build --release -p spec-spine-cli                # what the harness drives
+```
 
+**Run the gate from `AGENTS.md`'s fenced list, not from here.** That block is
+the one spelling, flags included, and `kit_skills.rs` asserts CI's flags are a
+subset of it, so the two cannot drift. Nothing tests a copy in this file, which
+is why there is no longer one: an earlier revision restated the chain and
+silently dropped `--fail-on-unresolved` and `--fail-on-warn` from `check` and
+`--fail-on-untraced` from `index coverage`, leaving three refusals off a list
+that still read like the gate.
+
+What the individual verbs are, as a reference rather than a sequence:
+
+```sh
 spec-spine compile          # -> .derived/spec-registry/by-spec/<id>.json shards
 spec-spine index            # -> .derived/codebase-index/{by-spec,by-package}/ shards
 spec-spine check            # BOTH freshness reads in one verb; never writes
-spec-spine lint --fail-on-warn
+spec-spine lint             # corpus conformance (L- codes)
 spec-spine index coverage   # which source files no spec specifically claims
-spec-spine couple --base origin/main --head HEAD       # the PR-time drift gate
-
-spec-spine registry plan            # the ready set: workable now vs blocked
-spec-spine index diagnostics        # unresolved-unit W-001 / W-002
-spec-spine verify <id>              # run a spec's `## Verification` block
+spec-spine couple           # the PR-time drift gate
+spec-spine registry plan    # the ready set: workable now vs blocked
+spec-spine index diagnostics  # unresolved-unit W-001 / W-002
+spec-spine verify <id>      # run a spec's `## Verification` block
 ```
+
+The `--fail-on-*` flags are what turn a read into a refusal: `lint
+--fail-on-warn`, `check --fail-on-unresolved --fail-on-warn`, `index coverage
+--fail-on-untraced`. Bare `check` still exits 2 on a stale tree and 1 on a
+validation failure; what the flags add are the unresolved-unit and warning-tier
+refusals. Bare `index coverage` refuses nothing at all.
 
 Exit codes are a stable contract: `0` ok · `1` validation failure / not found /
 drift · `2` stale · `3` I/O / parse / schema / config / usage. They are mapped
@@ -146,10 +163,10 @@ preserve the cited semantics when editing `couple.rs`.
 1. **`establishes`** in a spec's frontmatter: the direct claim.
 2. **An `extends` edge carrying a unit.** `extends` is defined in `edges.rs` as
    *"adds surface to a predecessor"*. The unit does **not** need to appear in
-   the target spec's territory, and usually does not: this is how most source
-   files here are owned. About 38% of unit-carrying `extends` edges name a
-   target that never established that unit, and the whole `spec-spine-types`
-   crate has no establisher at all, yet `index coverage --fail-on-untraced`
+   the target spec's territory, and often does not: a large minority of
+   unit-carrying `extends` edges name a target that never established the unit.
+   A quarter of tracked source files have no establisher anywhere, most of the
+   `spec-spine-types` crate among them, yet `index coverage --fail-on-untraced`
    passes. An extends-carried unit is a first-class claim.
    **Do not "fix" these.** A validation requiring an `extends` unit to appear in
    its target's territory would refuse the repository's ownership model.

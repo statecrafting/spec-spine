@@ -70,6 +70,13 @@ enum Command {
         /// short id (`056`). Incompatible with `--check`.
         #[arg(long, value_name = "ID")]
         spec: Option<String>,
+        /// Fail (exit 1) when the compile produces any warning-tier violation
+        /// (spec 077). Accepted on every form of the verb: it changes the exit
+        /// code only, never `validation.passed` and never an emitted byte, and
+        /// an exit code is not written output, so spec 037 §4's withholding of
+        /// `--json` from the writing form does not reach it.
+        #[arg(long)]
+        fail_on_warn: bool,
     },
     /// Both freshness reads in one verb: are the committed registry shards and
     /// the committed index shards current (spec 075)?
@@ -84,6 +91,17 @@ enum Command {
         /// call this verb where it called `index check --fail-on-unresolved`.
         #[arg(long)]
         fail_on_unresolved: bool,
+        /// Fail (exit 1) when the compile produces any warning-tier violation
+        /// (spec 077 §3.3). Forwarded to the **compile** half, the mirror of
+        /// `--fail-on-unresolved` above. This is the only form CI can call:
+        /// the self-governance job runs `check` in place of `compile` and
+        /// `index`, so a `--fail-on-warn` that existed only on the primitive
+        /// would be unreachable from the chain that runs on a pull request.
+        ///
+        /// Independent of `--fail-on-unresolved`: neither implies the other,
+        /// and either may be passed alone.
+        #[arg(long)]
+        fail_on_warn: bool,
         /// Emit the verdict as a JSON envelope on stdout (spec 037).
         #[arg(long)]
         json: bool,
@@ -237,13 +255,17 @@ fn main() -> ExitCode {
     }
 
     let result = match &cli.command {
-        Command::Compile { check, json, spec } => {
-            cmd_compile::run(&repo, *check, *json, spec.as_deref())
-        }
+        Command::Compile {
+            check,
+            json,
+            spec,
+            fail_on_warn,
+        } => cmd_compile::run(&repo, *check, *json, spec.as_deref(), *fail_on_warn),
         Command::Check {
             fail_on_unresolved,
+            fail_on_warn,
             json,
-        } => cmd_check::run(&repo, *fail_on_unresolved, *json),
+        } => cmd_check::run(&repo, *fail_on_unresolved, *fail_on_warn, *json),
         Command::Config { action } => cmd_config::run(&repo, action),
         Command::Registry { query } => cmd_registry::run(&repo, query),
         Command::Index { action } => cmd_index::run(&repo, action.as_ref()),
