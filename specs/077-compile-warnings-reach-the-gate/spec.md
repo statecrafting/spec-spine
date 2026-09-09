@@ -1,7 +1,7 @@
 ---
 id: "077-compile-warnings-reach-the-gate"
 title: "Compile warnings reach the gate"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-08"
 implementation: complete
@@ -130,14 +130,20 @@ the change.** Four specs looked like candidates and none is owed an amendment:
 - **031** makes the registry stale report's structure contractual. Section 3.4
   adds a tally beside that report without reshaping it.
 
-**The `extends` edge naming root `AGENTS.md` is inherited and is known to be
-wrong.** Spec 029 establishes exactly one unit, `kit/`. Root `AGENTS.md` is
-outside that subtree and no spec in the corpus establishes it. Seven approved
-specs already extend 029 for it. This spec matches them rather than
-unilaterally disagreeing, and records why in section 5 so the correction is a
-decision someone makes rather than a discrepancy someone finds. `kit/AGENTS.md`
-is a different matter and is correctly attributed: it falls inside 029's `kit/`
-subtree.
+**The `extends` edge naming root `AGENTS.md` follows the corpus's own
+convention.** `extends` is defined in `edges.rs` as "adds surface to a
+predecessor": the unit is surface the extending spec adds, and it need not
+already sit in the target's territory. An extends-carried unit is a
+first-class claim, which is how most of this repository's source files are
+claimed at all, and a measurement over the corpus confirms it rather than
+assuming it. A large minority of unit-carrying `extends` edges name a target
+that never established the unit, a quarter of tracked source files have no
+establisher anywhere, most of the `spec-spine-types` crate among them, and
+`index coverage --fail-on-untraced` passes regardless.
+
+The edge above is therefore ordinary usage, not an inherited defect. Spec 078
+separately gives root `AGENTS.md` an establisher, which is a clarification of
+the ledger rather than a repair of these edges.
 
 ## 3. Behavior
 
@@ -223,16 +229,31 @@ be identical with and without `--json`.
 
 ### 3.5 Every written form of the gate chain adopts the flag
 
-The gate chain is written down in seven places, and they MUST agree: `AGENTS.md`
-and `kit/AGENTS.md`, `kit/Makefile`, `kit/govern.yml`, this repository's
-`.github/workflows/ci.yml`, and the inlined floors in both skill trees.
+The gate chain is written down in five places, and they MUST agree:
+`AGENTS.md` and `kit/AGENTS.md`, `kit/Makefile`, `kit/govern.yml`, and this
+repository's `.github/workflows/ci.yml`.
 
-The chain's freshness step MUST become
+In this repository's own chain, in `kit/Makefile` and in `kit/govern.yml`, the
+freshness step MUST become
 `spec-spine check --fail-on-unresolved --fail-on-warn`.
 
-Spec 051's subset assertion MUST continue to hold: `kit_skills.rs` asserts each
-skill's inlined floor is a subset of `AGENTS.md`'s list, so the list and every
-skill that inlines it change together or that test goes red. Spec 064's
+In `kit/AGENTS.md`, the adopter template, the flag MUST appear on the
+**commented** freshness line rather than the enforced one. That file already
+carries `--fail-on-unresolved` and `--fail-on-untraced` as opt-in comments
+under spec 050, because an adopter's corpus may legitimately point forward
+where this one does not. Enforcing the flag there would change the adopter
+default, which section 4 puts out of scope; the flag inherits the opt-in its
+neighbours already have.
+
+The skills' inlined floors MUST NOT be required to restate the flag. Spec 051's
+assertion is a **subset** relation, `kit_skills.rs` refusing only a skill that
+names a gating flag `AGENTS.md` omits, and every skill tells its reader to run
+"the gate as `AGENTS.md` lists it" rather than to run its own copy. A skill
+naming the bare verb is therefore already correct, and restating flags across
+two byte-identical skill trees would add a place to drift for no enforcement
+gained. The authority moves; the pointers do not have to.
+
+Spec 051's subset assertion MUST continue to hold. Spec 064's
 `kit_gate.rs` walks `kit/Makefile`'s gate against `AGENTS.md`'s list in order,
 so the step MUST keep its position in the sequence; only its flags change.
 
@@ -273,12 +294,15 @@ it on because this corpus wants it on. `compile` without flags keeps today's
 behavior exactly, so an adopter mid-migration, with a corpus that is legitimately
 forward-filed and noisy, is not broken by upgrading.
 
-**A phantom-`extends` check.** Section 2 documents that no validation confirms an
-`extends` unit appears in the target spec's territory, which is how root
-`AGENTS.md` came to be attributed to a spec that never claimed it. That is the
-same class of leak spec 034 closed for `references`, now on `extends`, and it is
-a corpus-wide validation change with its own blast radius. It belongs in its own
-spec, filed against its own evidence, not smuggled in behind a CLI flag.
+**A phantom-`extends` check, refuted rather than deferred.** An earlier reading
+of this spec proposed validating that an `extends` unit appears in its target's
+territory, on the belief that edges failing that test were defects. Measurement
+refuted it: such a check would refuse a large minority of the corpus's edges
+across more than fifty specs, contradict the edge's documented meaning, and
+break the mechanism by which most source files here are owned. It is recorded
+here as refused, with its evidence, so it is not proposed again as an obvious
+missing gate. If visibility is ever wanted, it belongs as a tier on the
+`index coverage` read verb and never as a gate.
 
 ## 5. Resolved decisions
 
@@ -305,20 +329,21 @@ in one place, `1` already means validation failure, and both existing
 disambiguates, which is the same answer spec 075 reached when `1` became
 reachable from two conditions on `check`.
 
-**2026-09-08: the root `AGENTS.md` edge is inherited knowingly, not
-endorsed.** Spec 029 establishes only `kit/`, and root `AGENTS.md` sits outside
-that subtree with no establisher anywhere in the corpus, yet specs 047, 048,
-051, 063, 072, 074 and 075 all extend 029 for it. Nothing validates the claim:
-`V-017` checks an `extends` unit only against **planned** units, and no check
-confirms the unit appears in the target's territory, so the misattribution
-survived seven ratifications without ever failing a gate. Correcting it here
-would mean either amending approved spec 029 to establish a file it does not
-mention, or filing a harness spec that establishes it. Both are human decisions
-and neither is this spec's to take, and a single spec disagreeing with seven
-siblings would be worse than the consistent error. The edge is therefore
-written as the precedent has it, with this entry as the record. The cost today
-is accuracy only: coverage ignores markdown, and the coupling gate reads the
-file as claimed either way.
+**2026-09-08: the root `AGENTS.md` edge was called a misattribution, and
+measurement showed it is the convention.** This spec was drafted believing that
+an `extends` edge naming a unit outside its target's territory was a defect,
+and that the seven specs extending 029 for root `AGENTS.md` had inherited one.
+Counting the corpus refuted it: a large minority of unit-carrying `extends`
+edges are of that shape, across more than fifty specs, and a quarter of tracked
+source files have no establisher at all while `index coverage
+--fail-on-untraced` still passes. `edges.rs` defines the edge as "adds surface
+to a predecessor", which is exactly what those edges do.
+
+Recorded as a correction rather than quietly fixed, because the belief produced
+three artifacts before anyone measured it, and the lesson is the general one:
+check how common a pattern is through a typed read before filing a spec that
+would validate against it. Section 4 carries the refutation of the check that
+belief implied.
 
 **2026-09-08: zero occurrences is the right time to file this.** The corpus has
 no `V-010` today, so the flag will refuse nothing on the day it lands. That is
