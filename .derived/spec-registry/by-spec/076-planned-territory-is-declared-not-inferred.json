@@ -131,6 +131,6 @@
     "summary": "A spec cannot say what it intends to own. Ownership is only ever inferred from a unit resolving on disk, so a corpus that opts into spec 050's `--fail-on-unresolved` gate forecloses declaring territory before writing it: every claim must arrive with its file. The cost is that `registry plan` and `index coverage` are blind to planned ownership, a draft's risk understates the work, and two specs can plan the same file with no edge to collide on until one of them ships. This spec adds an optional `planned` flag to the unit payload. A planned unit is a declared state rather than an unresolved one, so it produces no `W-001` and the gate keeps refusing every claim that is merely broken. The flag is bound to the lifecycle field that ends it: a spec at `implementation: complete` carrying one is refused, and a planned unit that has resolved is reported so the flag cannot be left on.\n",
     "title": "Planned territory is declared, not inferred"
   },
-  "shardHash": "9eaa99033d32e5b52a8bdb394810c6d1e4558e53e7ff3797edf389297df5ba07",
+  "shardHash": "408044e68f619e16a3309eadaabdeef913eb6f87d2bc5387a1781fa3ed87542d",
   "specVersion": "1.1.0"
 }

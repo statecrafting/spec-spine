@@ -242,6 +242,13 @@ two planned claims would therefore have nothing to ride on, and a rule that
 cannot fire is worse than no rule, because the spec would promise a refusal
 that never happens.
 
+All three are **corpus-wide** checks, decided with every spec's frontmatter
+loaded, not per-spec ones. Stated explicitly because each rule needs to know
+something about a spec other than the one being validated: whether another spec
+plans the same unit, already owns it, or is extending a unit this spec marked
+planned. An implementer who validates each spec in isolation first MUST defer
+these until the whole corpus is in hand.
+
 `compile` sees every declared edge and unit before any resolution, which is
 exactly the view these three rules need: two specs declaring the same planned
 unit, a planned unit whose path another spec already owns, and an `extends`
