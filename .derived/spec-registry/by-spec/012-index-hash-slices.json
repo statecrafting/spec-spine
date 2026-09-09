@@ -99,6 +99,6 @@
     "summary": "Named sub-hashes of the index's input set: an adopter declares glob groups under `[index.slices]`, the indexer emits a per-slice content hash into `build.sliceHashes` (additive index-schema MINOR), and `spec-spine index check --slice <name>` gates on exactly that slice -- fresh (0), stale (2), config/IO error (3). Generalizes the narrow high-value staleness gate OAP runs over its agent-config files (settings/MCP JSON) without hardcoding any adopter's file list into the core.\n",
     "title": "Index: named hash slices and `index check --slice <name>`"
   },
-  "shardHash": "6f32352ebc96b9dc307fa10d466d416eb5885ea87e27e9b0e65944c1b8205f9c",
+  "shardHash": "fef5ca06e8a92bb6ff921a371daef35ac26e764fdd8665649c3f1e420c31fdbc",
   "specVersion": "1.2.0"
 }

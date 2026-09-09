@@ -1,7 +1,7 @@
 ---
 id: "079-a-dead-glob-is-dead-in-both-tables"
 title: "A dead glob is dead in both tables"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-09"
 summary: >
