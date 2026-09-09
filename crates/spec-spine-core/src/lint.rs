@@ -289,19 +289,50 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
     //
     // Warning tier, so `lint --fail-on-warn` refuses it. Unlike `L-008`, which
     // flags a state a corpus may hold deliberately, this one never is.
-    for pattern in &cfg.index.extra_hashed_inputs {
-        if pattern.ends_with("/**") {
-            violations.push(warn(
-                "L-010",
+    //
+    // Second table (spec 079 3.1): `[index.slices]` carries pattern lists with
+    // `extra_hashed_inputs` semantics and the slice walk keeps only files, so
+    // `dir/**` is equally inert there. One code, not `L-011` (079 D-2): the
+    // defect and the remedy are identical, only the sentence about what is
+    // lost differs. An adopter audited on 2026-09-09 carried eight of these in
+    // slices after a fix pass had cleaned the table this lint already read.
+    //
+    // Each message names its table, and for a slice the slice, on one line
+    // (079 3.2). The slice message speaks about the slice's own hash, the one
+    // `index check --slice <name>` gates, and never about a content hash:
+    // slices are independent of `contentHash` by spec 012's design, so the
+    // `extra_hashed_inputs` sentence would be a false statement under a true
+    // code (079 3.3). One emission site for both tables, so the code stays
+    // unique by construction.
+    let global_dead = cfg
+        .index
+        .extra_hashed_inputs
+        .iter()
+        .filter(|p| p.ends_with("/**"))
+        .map(|pattern| {
+            format!(
+                "[index] extra_hashed_inputs pattern '{pattern}' matches \
+                 directories only, so it can contribute no bytes to any \
+                 content hash. Write it as '{pattern}/*' to match the files \
+                 under it"
+            )
+        });
+    let slice_dead = cfg.index.slices.iter().flat_map(|(name, patterns)| {
+        patterns
+            .iter()
+            .filter(|p| p.ends_with("/**"))
+            .map(move |pattern| {
                 format!(
-                    "[index] extra_hashed_inputs pattern '{pattern}' matches \
-                     directories only, so it can contribute no bytes to any \
-                     content hash. Write it as '{pattern}/*' to match the files \
-                     under it"
-                ),
-                Some("spec-spine.toml".to_string()),
-            ));
-        }
+                    "[index.slices] '{name}' pattern '{pattern}' matches \
+                     directories only, so it can contribute no bytes to the \
+                     '{name}' slice hash that `index check --slice {name}` \
+                     gates. Write it as '{pattern}/*' to match the files under \
+                     it"
+                )
+            })
+    });
+    for message in global_dead.chain(slice_dead) {
+        violations.push(warn("L-010", message, Some("spec-spine.toml".to_string())));
     }
 
     Ok(LintReport { violations })

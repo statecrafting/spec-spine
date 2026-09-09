@@ -18,7 +18,7 @@ summary: >
   rule to the second table, and requires the slice message to speak about the
   slice's own hash rather than repeating a sentence about `contentHash` that is
   false for slices.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
