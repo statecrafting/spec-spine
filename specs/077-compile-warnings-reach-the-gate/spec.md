@@ -134,8 +134,8 @@ the change.** Four specs looked like candidates and none is owed an amendment:
 convention.** `extends` is defined in `edges.rs` as "adds surface to a
 predecessor": the unit is surface the extending spec adds, and it need not
 already sit in the target's territory. An extends-carried unit is a
-first-class claim, which is how most of this repository's source files are
-claimed at all, and a measurement over the corpus confirms it rather than
+first-class claim, and the only claim about a fifth of this repository's
+source files have. A measurement over the corpus establishes that rather than
 assuming it. A large minority of unit-carrying `extends` edges name a target
 that never established the unit, a quarter of tracked source files have no
 establisher anywhere, most of the `spec-spine-types` crate among them, and
@@ -299,7 +299,8 @@ of this spec proposed validating that an `extends` unit appears in its target's
 territory, on the belief that edges failing that test were defects. Measurement
 refuted it: such a check would refuse a large minority of the corpus's edges
 across more than fifty specs, contradict the edge's documented meaning, and
-break the mechanism by which most source files here are owned. It is recorded
+strip the only claim a fifth of the source files here carry, most of the
+`spec-spine-types` crate among them. It is recorded
 here as refused, with its evidence, so it is not proposed again as an obvious
 missing gate. If visibility is ever wanted, it belongs as a tier on the
 `index coverage` read verb and never as a gate.
