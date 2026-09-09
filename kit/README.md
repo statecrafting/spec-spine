@@ -72,9 +72,11 @@ adopter who ran `spec-spine init` can skip them.
 ## Install
 
 1. Install spec-spine (`cargo install spec-spine-cli`, `npm i -D spec-spine`, or
-   `pip install spec-spine`). Verify with `spec-spine --version`. **0.15.0 or
-   later** is required: `/verify` wraps the `spec-spine verify` verb that
-   release added.
+   `pip install spec-spine`). Verify with `spec-spine --version`. **0.18.0 or
+   later** is required: the hooks in `settings.json` run `spec-spine check`,
+   the one freshness verb that release added (spec 075), and `/verify` wraps
+   the `spec-spine verify` verb 0.15.0 added. On an older binary the PR gate
+   refuses every `gh pr create` and says which binary could not answer.
 2. Copy `.claude/` into your repository root. Copy `AGENTS.md`, `settings.json`,
    and `.mcp.json` too if you do not already have them.
 3. If an earlier copy of this kit left a `scripts/verify-spec.sh` in your
