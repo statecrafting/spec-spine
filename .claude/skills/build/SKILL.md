@@ -22,8 +22,8 @@ Halt on any of these; do not work around them.
 - An argument is required: the full id (`017-ledger-entry-dag`). Without
   one, run `/next` and ask; never guess.
 - `git status --porcelain` is empty. `git branch --show-current` is the
-  default branch. `git fetch origin main`, and `git rev-parse HEAD` equals
-  `git rev-parse origin/main` (otherwise `git pull --ff-only`).
+  default branch. `git fetch origin`, and `git rev-parse HEAD` equals
+  `git rev-parse "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"` (otherwise `git pull --ff-only`).
 - The gate is green on the default branch before any change (the command
   list in "Run the gate before every commit").
 - The spec is a work order: `spec-spine registry show <id> --json` says
@@ -110,8 +110,9 @@ ownership claims current.
 
 Run the gate exactly as `AGENTS.md` lists it under "Run the gate before
 every commit": the governance floor (`compile`, `index`,
-`lint --fail-on-warn`, `index check`, `couple --base origin/main --head
-HEAD`, `index coverage --fail-on-untraced` where ownership is required)
+`lint --fail-on-warn`, `index check`, `couple --base` against the resolved
+base ref `--head HEAD`, `index coverage --fail-on-untraced` where ownership
+is required)
 and the stack's own build, tests, and lints. All exit 0, or the commit
 waits. Then `/commit` with the spec ordinal as scope (`feat(<NNN>): ...`),
 staging the regenerated shards with the code they describe. Commit in

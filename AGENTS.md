@@ -105,8 +105,12 @@ corpus in step 1 and step 6. One spec per PR, then stop.
    spec-spine lint --fail-on-warn
    spec-spine index check --fail-on-unresolved
    spec-spine index coverage --fail-on-untraced
-   spec-spine couple --base origin/main --head HEAD
+   spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
    ```
+
+   The base ref is resolved from the repository rather than assumed to be
+   `origin/main` (spec 072). Set `$SPEC_SPINE_DEFAULT_BRANCH` to override
+   the branch the push gate protects and `kit/Makefile` compares against.
 
    then the stack's own gate: `cargo test --workspace --locked`,
    `cargo clippy --workspace --all-targets --locked -- -D warnings`,

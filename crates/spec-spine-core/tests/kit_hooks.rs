@@ -175,21 +175,52 @@ fn action_hooks_are_scoped_to_the_target_repo() {
     }
 }
 
-/// Spec 046 3.4: pushing to the default branch is refused, by branch and by
-/// refspec, before the PR gate runs.
+/// Spec 046 3.4, as spec 072 3.2 amends it: pushing to the default branch is
+/// refused, by branch and by refspec, before the PR gate runs. The name is now
+/// resolved rather than spelled, so this guard reads the resolved variable in
+/// each of the four sites instead of the literal `main` 046 named.
 #[test]
-fn pre_tool_use_refuses_a_push_to_main() {
+fn pre_tool_use_refuses_a_push_to_the_default_branch() {
     let body = hook_bodies()["PreToolUse"].join("\n");
     assert!(body.contains("git push"), "no push gate");
-    for form in ["origin main", "HEAD:main", "origin +main"] {
+    // Spec 072 3.1: the three resolution steps, in order.
+    let env = body
+        .find("SPEC_SPINE_DEFAULT_BRANCH")
+        .expect("resolver must honour $SPEC_SPINE_DEFAULT_BRANCH");
+    let remote = body
+        .find("refs/remotes/origin/HEAD")
+        .expect("resolver must consult the remote's own HEAD");
+    assert!(env < remote, "the override must be read before the remote");
+    // 3.2: every refspec form is BUILT from the resolved name, and quoted, so
+    // a `$SPEC_SPINE_DEFAULT_BRANCH` carrying a glob character cannot widen
+    // the pattern. An unquoted `$def` here would match literally today and
+    // silently become a wildcard for the one adopter who sets a bad value.
+    for form in [r#"*"origin $def""#, r#"*"HEAD:$def""#, r#"*"origin +$def""#] {
         assert!(
             body.contains(form),
-            "push gate does not match the `{form}` refspec form"
+            "push gate does not build the `{form}` refspec form from the resolved name"
         );
     }
     assert!(
-        body.contains("if [ \"$br\" = main ]; then"),
-        "push gate does not refuse by current branch"
+        body.contains("if [ \"$br\" = \"$def\" ]; then"),
+        "push gate does not refuse by current branch against the resolved name"
+    );
+    assert!(
+        body.contains(r#"[ "$last" = "$def" ]"#),
+        "push gate does not test the trailing argument against the resolved name"
+    );
+    // The literal comparisons 072 replaced must be gone, not merely joined:
+    // one left behind would keep `main` privileged on a repository that has
+    // no such branch, which is the defect rather than a leftover.
+    for stale in [r#""$br" = main"#, r#""$last" = main"#] {
+        assert!(
+            !body.contains(stale),
+            "push gate still compares against the literal name: {stale}"
+        );
+    }
+    assert!(
+        body.contains("update $def"),
+        "the refusal message must name the branch it resolved (072 3.2)"
     );
     // Spec 071 3.1: anchored on the command that invokes the push verb. A
     // substring match over the whole command refused any command merely
@@ -281,9 +312,136 @@ fn the_push_gate_refuses_only_what_would_update_main() {
     }
 }
 
+/// How the throwaway repository declares its default branch (spec 072 3.1).
+///
+/// `Floor` is a repository that answers neither way, which is the common CI
+/// checkout and the case that must keep behaving exactly as it did before 072.
+enum Declared {
+    /// No override and no `origin/HEAD`: resolution reaches the `main` floor.
+    Floor,
+    /// The remote's own HEAD, which a clone sets, named by branch.
+    OriginHead(&'static str),
+    /// `$SPEC_SPINE_DEFAULT_BRANCH`, which outranks both.
+    Env(&'static str),
+}
+
+/// Spec 072 3.5: the same gate, on a repository whose default branch is not
+/// `main`.
+///
+/// This is the row that would have caught the defect. A gate asserted only
+/// against a repository named the way the gate assumes cannot tell a resolved
+/// name from a hardcoded one: every case in the matrix above passes
+/// identically on the pre-072 body, because there the constant and the
+/// repository agree by construction. Here they do not.
+#[test]
+fn the_push_gate_protects_the_branch_the_repository_actually_has() {
+    if std::process::Command::new("jq")
+        .arg("--version")
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .is_err()
+    {
+        eprintln!(
+            "SKIPPED the_push_gate_protects_the_branch_the_repository_actually_has: jq absent"
+        );
+        return;
+    }
+
+    // (declaration, command, current branch, must be refused)
+    let cases: &[(Declared, &str, &str, bool)] = &[
+        // ── the remote's own HEAD says `trunk` ─────────────────────────────
+        // A push that would update the resolved branch: refused, which is the
+        // protection this spec exists to restore. Against the pre-072 body
+        // every one of these three passes unrefused.
+        (Declared::OriginHead("trunk"), "git push", "trunk", true),
+        (
+            Declared::OriginHead("trunk"),
+            "git push origin trunk",
+            "feat",
+            true,
+        ),
+        (
+            Declared::OriginHead("trunk"),
+            "git push origin HEAD:trunk",
+            "feat",
+            true,
+        ),
+        // A tag push made from it: allowed. Spec 071's release step, preserved
+        // on a repository 071 could not describe.
+        (
+            Declared::OriginHead("trunk"),
+            "git push origin v1.2.3",
+            "trunk",
+            false,
+        ),
+        // A push naming `main`, which on this repository updates an ordinary
+        // branch: allowed. `main` is not privileged here, and a gate that
+        // refused it would be protecting a name rather than a branch.
+        (
+            Declared::OriginHead("trunk"),
+            "git push origin main",
+            "feat",
+            false,
+        ),
+        (
+            Declared::OriginHead("trunk"),
+            "git push origin main",
+            "trunk",
+            false,
+        ),
+        // ── the environment override outranks both ────────────────────────
+        (
+            Declared::Env("release"),
+            "git push origin release",
+            "feat",
+            true,
+        ),
+        (Declared::Env("release"), "git push", "release", true),
+        // Checked out on `main`, with the override naming another branch: the
+        // push is allowed, because `main` is an ordinary branch here too. This
+        // is the case that separates "resolved" from "resolved, then main
+        // privileged anyway".
+        (
+            Declared::Env("release"),
+            "git push origin main",
+            "main",
+            false,
+        ),
+        // ── the floor, which is every adopter who was already on main ─────
+        // Kept beside the rows above rather than left to the matrix in the
+        // previous test: what these prove together is that no adopter on
+        // `main` regressed while the gate stopped assuming them.
+        (Declared::Floor, "git push", "main", true),
+        (Declared::Floor, "git push origin main", "feat", true),
+        (Declared::Floor, "git push origin v1.2.3", "main", false),
+        (Declared::Floor, "git push", "feat", false),
+    ];
+
+    for (declared, cmd, branch, want_refused) in cases {
+        let code = run_pre_tool_use_on(cmd, branch, declared);
+        let refused = code == 2;
+        let how = match declared {
+            Declared::Floor => "undeclared".to_string(),
+            Declared::OriginHead(b) => format!("origin/HEAD={b}"),
+            Declared::Env(b) => format!("$SPEC_SPINE_DEFAULT_BRANCH={b}"),
+        };
+        assert_eq!(
+            refused, *want_refused,
+            "[{how}] `{cmd}` on branch {branch}: exit {code}, refused={refused}, want refused={want_refused}"
+        );
+    }
+}
+
 /// Run the shipped `PreToolUse` body against `cmd`, in a throwaway repository
-/// checked out on `branch`, and return its exit code.
+/// checked out on `branch` whose default branch is undeclared, and return its
+/// exit code.
 fn run_pre_tool_use(cmd: &str, branch: &str) -> i32 {
+    run_pre_tool_use_on(cmd, branch, &Declared::Floor)
+}
+
+/// The same, against a repository that declares its default branch.
+fn run_pre_tool_use_on(cmd: &str, branch: &str, declared: &Declared) -> i32 {
     use std::io::Write;
     use std::process::{Command, Stdio};
 
@@ -311,6 +469,18 @@ fn run_pre_tool_use(cmd: &str, branch: &str) -> i32 {
         "c",
     ]);
 
+    // `git symbolic-ref` writes the symref without requiring the target to
+    // exist, so a repository can declare a default branch it has no remote
+    // for. That is the shape a fresh clone has and the shape the resolver
+    // reads, which is what makes this a test of resolution rather than of git.
+    if let Declared::OriginHead(b) = declared {
+        git(&[
+            "symbolic-ref",
+            "refs/remotes/origin/HEAD",
+            &format!("refs/remotes/origin/{b}"),
+        ]);
+    }
+
     let body = hook_bodies()["PreToolUse"].join("\n");
     let payload = serde_json::json!({
         "tool_input": { "command": cmd },
@@ -318,15 +488,22 @@ fn run_pre_tool_use(cmd: &str, branch: &str) -> i32 {
     })
     .to_string();
 
-    let mut child = Command::new("sh")
+    let mut spawn = Command::new("sh");
+    spawn
         .arg("-c")
         .arg(&body)
         .current_dir(root)
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
-        .expect("sh runs");
+        .stderr(Stdio::null());
+    // The variable must be absent, not empty, in every other case: the
+    // resolver tests it with `-n`, so an inherited value from the developer's
+    // own shell would silently decide these cases.
+    match declared {
+        Declared::Env(b) => spawn.env("SPEC_SPINE_DEFAULT_BRANCH", b),
+        _ => spawn.env_remove("SPEC_SPINE_DEFAULT_BRANCH"),
+    };
+    let mut child = spawn.spawn().expect("sh runs");
     child
         .stdin
         .as_mut()

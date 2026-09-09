@@ -448,7 +448,8 @@ spec-spine is an installed CLI tool that governs your repo's spec corpus. In you
 
 - Run the gate exactly as `AGENTS.md` "Working the backlog" lists it
   (`spec-spine compile --check`, `spec-spine index check`,
-  `spec-spine lint --fail-on-warn`, `spec-spine couple --base origin/main --head HEAD`,
+  `spec-spine lint --fail-on-warn`, `spec-spine couple` against the base ref
+  "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)",
   then the stack's own build and tests) and capture the output. A red gate
   is the headline finding; a `couple` refusal names the file and the owning
   spec whose declared edges fail to cover it.
@@ -685,8 +686,8 @@ Halt on any of these; do not work around them.
 - An argument is required: the full id (`017-ledger-entry-dag`). Without
   one, run `/next` and ask; never guess.
 - `git status --porcelain` is empty. `git branch --show-current` is the
-  default branch. `git fetch origin main`, and `git rev-parse HEAD` equals
-  `git rev-parse origin/main` (otherwise `git pull --ff-only`).
+  default branch. `git fetch origin`, and `git rev-parse HEAD` equals
+  `git rev-parse "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"` (otherwise `git pull --ff-only`).
 - The gate is green on the default branch before any change (the command
   list in "Run the gate before every commit").
 - The spec is a work order: `spec-spine registry show <id> --json` says
@@ -773,8 +774,9 @@ ownership claims current.
 
 Run the gate exactly as `AGENTS.md` lists it under "Run the gate before
 every commit": the governance floor (`compile`, `index`,
-`lint --fail-on-warn`, `index check`, `couple --base origin/main --head
-HEAD`, `index coverage --fail-on-untraced` where ownership is required)
+`lint --fail-on-warn`, `index check`, `couple --base` against the resolved
+base ref `--head HEAD`, `index coverage --fail-on-untraced` where ownership
+is required)
 and the stack's own build, tests, and lints. All exit 0, or the commit
 waits. Then `/commit` with the spec ordinal as scope (`feat(<NNN>): ...`),
 staging the regenerated shards with the code they describe. Commit in
@@ -976,11 +978,12 @@ the tree; a stale verdict is itself a finding.
 ## Step 0: scope the diff
 
 ```sh
-git fetch origin main
+git fetch origin
+BASE="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"   # spec 072: resolved, not assumed
 git status --short && git diff --stat && git log --oneline -10
-git diff origin/main...HEAD --stat    # committed delta
+git diff "$BASE"...HEAD --stat        # committed delta
 git diff HEAD --stat                  # uncommitted delta
-git diff origin/main...HEAD --name-only; git diff HEAD --name-only
+git diff "$BASE"...HEAD --name-only; git diff HEAD --name-only
 ```
 
 Note which classes changed: source, specs (`specs/**/spec.md`), standards
@@ -993,7 +996,7 @@ workflows), scripts, docs, derived shards.
 spec-spine compile --check                      # exit 2: committed registry shards are stale
 spec-spine index check                          # exit 2: committed index shards are stale
 spec-spine lint --fail-on-warn
-spec-spine couple --base origin/main --head HEAD
+spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
 spec-spine index coverage                       # ownership: unclaimed and floor-only files
 ```
 
@@ -1070,7 +1073,7 @@ the section silently.
 
 ```
 ## Review: <scope>
-Base: origin/main | Head: <branch> | Files: <n> | +<a>/-<d>
+Base: <resolved base ref> | Head: <branch> | Files: <n> | +<a>/-<d>
 Gate: compile --check <fresh|stale> | index check <fresh|stale> | lint <ok|N> | couple <ok|C-001|C-002> | coverage <n unclaimed> | stack <ok|FAIL>
 Owning spec: <id> | Mid-build spec edits: <none|legitimate|coherence-guard finding>
 
@@ -1729,7 +1732,7 @@ spec-spine compile
 spec-spine index
 spec-spine lint --fail-on-warn
 spec-spine index check
-spec-spine couple --base origin/main --head HEAD
+spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
 spec-spine index coverage --fail-on-untraced   # when [coupling] require_ownership is on
 ```
 
@@ -1978,7 +1981,7 @@ spec-spine compile
 spec-spine index
 spec-spine lint --fail-on-warn
 spec-spine index check
-spec-spine couple --base origin/main --head HEAD
+spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
 spec-spine index coverage --fail-on-untraced   # when [coupling] require_ownership is on
 ```
 
@@ -2218,10 +2221,11 @@ inventing a gate.
 Run the gate exactly as `AGENTS.md` "Working the backlog" lists it under
 "Run the gate before every commit". The governance floor is
 `spec-spine compile`, `spec-spine index`, `spec-spine lint --fail-on-warn`,
-`spec-spine index check`, `spec-spine couple --base origin/main --head HEAD`,
-and `spec-spine index coverage --fail-on-untraced` where ownership is
-required; the stack's build, tests, and lints follow. Run
-`git fetch origin main` first if the coupling gate cannot find its base.
+`spec-spine index check`, `spec-spine couple --base` against the resolved
+base ref "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"
+`--head HEAD`, and `spec-spine index coverage --fail-on-untraced` where
+ownership is required; the stack's build, tests, and lints follow. Run
+`git fetch origin` first if the coupling gate cannot find its base.
 
 Capture full output (file paths, line numbers, messages) and categorize:
 
@@ -2283,7 +2287,9 @@ Re-run the gate end to end, confirm no new findings, and summarize:
 ## Substrate notes
 
 - `spec-spine lint` runs with `--fail-on-warn`: a warning is a failure.
-- The coupling gate compares `HEAD` against `origin/main`; fetch first.
+- The coupling gate compares `HEAD` against the base ref, resolved from the
+  remote's own HEAD rather than assumed to be `origin/main` (spec 072);
+  fetch first.
 - The codebase index hashes more than `spec.md`: `spec-spine.toml
   [index] extra_hashed_inputs` names the extra globs. Which globs those are
   is per project, so read the file rather than assuming the harness, the
@@ -2585,7 +2591,9 @@ exit 0
 #               must point at the one it builds, which is the resolution order
 #               spec 051 established: $SPEC_SPINE, then ./target/release, then
 #               PATH. Set it once here rather than in every caller.
-#   BASE        the ref the coupling gate compares against.
+#   BASE        the ref the coupling gate compares against. Resolved from
+#               the repository rather than assumed to be origin/main
+#               (spec 072); override it here or on the command line.
 #
 #   make gate                 read-only: the whole governed loop, in order
 #   make refresh              writing: recompute the committed shard trees
@@ -2597,7 +2605,13 @@ exit 0
 # wrong question. Every guarded target is a clean no-op on a code-free corpus.
 
 SPEC_SPINE ?= spec-spine
-BASE       ?= origin/main
+# Spec 072 3.3: the coupling base follows the branch this repository
+# actually has. The same three steps the push gate resolves with, in the
+# same order: $SPEC_SPINE_DEFAULT_BRANCH (make imports the environment, so
+# `?=` leaves an exported value alone), then the remote's own HEAD, then
+# `main`. An explicit `BASE=` on the command line still wins.
+SPEC_SPINE_DEFAULT_BRANCH ?= $(shell git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+BASE       ?= origin/$(or $(SPEC_SPINE_DEFAULT_BRANCH),main)
 
 .PHONY: gate refresh verify test build fmt clippy help
 
@@ -2889,7 +2903,7 @@ echo "verify: $id: passed ($ran command(s))"
         "hooks": [
           {
             "type": "command",
-            "command": "command -v jq >/dev/null 2>&1 || { echo '[hook] jq missing, push gate and PR gate skipped'; exit 0; }\npayload=$(cat)\ncmd=$(printf '%s' \"$payload\" | jq -r '.tool_input.command // empty' 2>/dev/null)\nhookcwd=$(printf '%s' \"$payload\" | jq -r '.cwd // empty' 2>/dev/null)\n# The repo the command acts on, NOT the session's project: a multi-repo session\n# pushes and opens PRs in whichever tree the command names. Honour an explicit\n# `cd <dir>` prefix, else the hook's own cwd, then ask git for the toplevel.\ntarget=$(printf '%s' \"$cmd\" | sed -n 's/^[[:space:]]*cd[[:space:]]\\{1,\\}\\([^&;|]*\\).*/\\1/p' | head -1 | sed 's/[[:space:]]*$//')\ntarget=$(printf '%s' \"$target\" | sed \"s|^~|$HOME|\")\n[ -n \"$target\" ] || target=\"$hookcwd\"\n[ -n \"$target\" ] || target=.\nroot=$(git -C \"$target\" rev-parse --show-toplevel 2>/dev/null) || root=\"$target\"\n\n# Anchored on the command that actually invokes the push verb (spec 071\n# 3.1). The old match was a substring test over the whole command, so it\n# refused anything merely CONTAINING the text: the greps, heredocs and test\n# fixtures that describe this gate could not run in a session it governs.\ncase \"$cmd\" in 'git push'*|*'&& git push'*|*'; git push'*)\n    br=$(git -C \"$root\" branch --show-current 2>/dev/null); blk=0\n    case \"$cmd\" in *'origin main'|*'origin main '*|*'HEAD:main'|*'HEAD:main '*|*':main'|*':main '*|*'origin +main'*) blk=1 ;; esac\n    # Spec 071 3.2: on main, refuse only a push that would actually UPDATE\n    # main. Fewer than two positional arguments after the verb means there is\n    # no explicit refspec, so the push follows the current branch; HEAD and\n    # main name it outright. A tag push carries its own refspec and updates no\n    # branch, and docs/releasing.md tells a maintainer to run one from main\n    # right after the release PR merges.\n    if [ \"$br\" = main ]; then\n      # Strip to the ANCHORED occurrence of the verb, not merely the first one\n      # in the string. A command can name the verb in an argument before it\n      # ever runs one, and reading THOSE words as a refspec is nonsense: the\n      # arguments that matter are the ones after the invocation the outer\n      # case matched. ${var#pattern} strips the shortest matching prefix.\n      case \"$cmd\" in\n        'git push'*)     after=${cmd#git push} ;;\n        *'&& git push'*) after=${cmd#*'&& git push'} ;;\n        *'; git push'*)  after=${cmd#*'; git push'} ;;\n        *)               after='' ;;\n      esac\n      # Keep only that push's own arguments, dropping anything chained after.\n      rest=${after%%[;&|]*}\n      npos=0; last=''\n      for w in $rest; do case \"$w\" in -*) ;; *) npos=$((npos+1)); last=$w ;; esac; done\n      { [ \"$npos\" -lt 2 ] || [ \"$last\" = HEAD ] || [ \"$last\" = main ]; } && blk=1\n      # Only that push was analysed, so a command chaining another is refused\n      # outright: the walk cannot speak for a push it never looked at.\n      case \"$after\" in *'&& git push'*|*'; git push'*) blk=1 ;; esac\n    fi\n    if [ \"$blk\" = 1 ]; then\n      { echo \"[push-gate] BLOCKED: this would update main (repo: $root, branch: ${br:-unknown}). Work on a feature branch and open a PR through /ship. A tag push such as 'git push origin v1.2.3' is allowed.\"; } >&2\n      exit 2\n    fi ;;\nesac\n\ncase \"$cmd\" in 'gh pr create'*|*'&& gh pr create'*|*'; gh pr create'*) ;; *) exit 0 ;; esac\n# Resolve the spec-spine binary for the repository this hook acts on:\n# $SPEC_SPINE_BIN, then that repository's own release build, then PATH. A repo\n# that builds its own binary must be governed by the one it builds; the PATH\n# fallback keeps an adopter on the published CLI working (spec 051).\nspec_spine_bin() {\n  if [ -n \"${SPEC_SPINE_BIN:-}\" ] && [ -x \"${SPEC_SPINE_BIN}\" ]; then echo \"${SPEC_SPINE_BIN}\"; return 0; fi\n  if [ -x \"$1/target/release/spec-spine\" ]; then echo \"$1/target/release/spec-spine\"; return 0; fi\n  command -v spec-spine 2>/dev/null\n}\nsc=$(spec_spine_bin \"$root\") || sc=''\n[ -n \"$sc\" ] || { echo '[pr-gate] spec-spine absent, coupling gate skipped (run /setup)'; exit 0; }\n[ -d \"$root/specs\" ] || { echo \"[pr-gate] $root is not a spec-spine corpus, coupling gate skipped\"; exit 0; }\n\n# Read-only. The gate must never write into the repo it is judging: `index`\n# rewrites committed shards, a hook cannot commit them, and doing it from here\n# mutates a tree another session may be mid-build in.\nif ! \"$sc\" --repo \"$root\" index check >/dev/null 2>&1; then\n  { echo \"[pr-gate] BLOCKED: the committed index is stale in $root.\"\n    echo '[pr-gate] Run: spec-spine index, then commit the shards, push, and retry.'; } >&2\n  exit 2\nfi\nif ! git -C \"$root\" diff --quiet -- .derived/ 2>/dev/null; then\n  { echo \"[pr-gate] BLOCKED: derived shards are uncommitted in $root.\"\n    echo '[pr-gate] Run: git add .derived/ then commit, push, and retry.'; } >&2\n  exit 2\nfi\n\nout=$(\"$sc\" --repo \"$root\" couple --base origin/main --head HEAD 2>&1); ec=$?\nif [ $ec -ne 0 ]; then\n  case \"$cmd\" in\n    *--body*Spec-Drift-Waiver*) echo '[pr-gate] coupling gate failed; Spec-Drift-Waiver present after --body, allowing (CI honours the body-at-creation waiver).' ;;\n    *) { echo \"[pr-gate] BLOCKED: coupling gate failed in $root and no Spec-Drift-Waiver in the PR body:\"\n         echo \"$out\" | tail -25\n         echo '[pr-gate] Either fix the coupling (claim every changed path in the spec being implemented, or add an extends edge naming the owning spec) or, with explicit human approval, include the Spec-Drift-Waiver line inline in --body (not --body-file) and retry. A waiver is a human instrument: never write one on your own authority.'; } >&2\n       exit 2 ;;\n  esac\nfi\ntrue"
+            "command": "command -v jq >/dev/null 2>&1 || { echo '[hook] jq missing, push gate and PR gate skipped'; exit 0; }\npayload=$(cat)\ncmd=$(printf '%s' \"$payload\" | jq -r '.tool_input.command // empty' 2>/dev/null)\nhookcwd=$(printf '%s' \"$payload\" | jq -r '.cwd // empty' 2>/dev/null)\n# The repo the command acts on, NOT the session's project: a multi-repo session\n# pushes and opens PRs in whichever tree the command names. Honour an explicit\n# `cd <dir>` prefix, else the hook's own cwd, then ask git for the toplevel.\ntarget=$(printf '%s' \"$cmd\" | sed -n 's/^[[:space:]]*cd[[:space:]]\\{1,\\}\\([^&;|]*\\).*/\\1/p' | head -1 | sed 's/[[:space:]]*$//')\ntarget=$(printf '%s' \"$target\" | sed \"s|^~|$HOME|\")\n[ -n \"$target\" ] || target=\"$hookcwd\"\n[ -n \"$target\" ] || target=.\nroot=$(git -C \"$target\" rev-parse --show-toplevel 2>/dev/null) || root=\"$target\"\n\n# Spec 072 3.1: the protected branch is RESOLVED for the repository the command\n# acts on, never assumed to be `main`. Highest wins: $SPEC_SPINE_DEFAULT_BRANCH,\n# then the remote's own HEAD (a clone sets it, so most adopters need no\n# configuration at all), then `main` as a compatibility floor. Each step falls\n# back rather than refusing, and step 3 always answers, so the gate reaches a\n# verdict for every repository. Resolution asks git and never the spec-spine\n# binary: the push half of this hook runs on git alone, which is why it still\n# protects a repository where the binary is absent or /setup has not been run.\ndefault_branch() {\n  if [ -n \"${SPEC_SPINE_DEFAULT_BRANCH:-}\" ]; then echo \"${SPEC_SPINE_DEFAULT_BRANCH}\"; return 0; fi\n  h=$(git -C \"$1\" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null) && [ -n \"$h\" ] && { echo \"${h#origin/}\"; return 0; }\n  echo main\n}\n\n# Anchored on the command that actually invokes the push verb (spec 071\n# 3.1). The old match was a substring test over the whole command, so it\n# refused anything merely CONTAINING the text: the greps, heredocs and test\n# fixtures that describe this gate could not run in a session it governs.\ncase \"$cmd\" in 'git push'*|*'&& git push'*|*'; git push'*)\n    br=$(git -C \"$root\" branch --show-current 2>/dev/null); blk=0\n    def=$(default_branch \"$root\")\n    # Spec 072 3.2: the refspec forms are BUILT from the resolved name rather\n    # than written as literal patterns. Every expansion is quoted inside the\n    # pattern, which matches it literally: $SPEC_SPINE_DEFAULT_BRANCH is\n    # user-supplied and git's own refname rules never see it, so an unquoted\n    # `ma*n` would silently turn each refspec test into a wildcard.\n    case \"$cmd\" in *\"origin $def\"|*\"origin $def \"*|*\"HEAD:$def\"|*\"HEAD:$def \"*|*\":$def\"|*\":$def \"*|*\"origin +$def\"*) blk=1 ;; esac\n    # Spec 071 3.2, over the name 072 3.1 resolves: on the default branch,\n    # refuse only a push that would actually UPDATE it. Fewer than two\n    # positional arguments after the verb means there is no explicit refspec,\n    # so the push follows the current branch; HEAD and the resolved name name\n    # it outright. A tag push carries its own refspec and updates no branch,\n    # and docs/releasing.md tells a maintainer to run one from the default\n    # branch right after the release PR merges.\n    if [ \"$br\" = \"$def\" ]; then\n      # Strip to the ANCHORED occurrence of the verb, not merely the first one\n      # in the string. A command can name the verb in an argument before it\n      # ever runs one, and reading THOSE words as a refspec is nonsense: the\n      # arguments that matter are the ones after the invocation the outer\n      # case matched. ${var#pattern} strips the shortest matching prefix.\n      case \"$cmd\" in\n        'git push'*)     after=${cmd#git push} ;;\n        *'&& git push'*) after=${cmd#*'&& git push'} ;;\n        *'; git push'*)  after=${cmd#*'; git push'} ;;\n        *)               after='' ;;\n      esac\n      # Keep only that push's own arguments, dropping anything chained after.\n      rest=${after%%[;&|]*}\n      npos=0; last=''\n      for w in $rest; do case \"$w\" in -*) ;; *) npos=$((npos+1)); last=$w ;; esac; done\n      { [ \"$npos\" -lt 2 ] || [ \"$last\" = HEAD ] || [ \"$last\" = \"$def\" ]; } && blk=1\n      # Only that push was analysed, so a command chaining another is refused\n      # outright: the walk cannot speak for a push it never looked at.\n      case \"$after\" in *'&& git push'*|*'; git push'*) blk=1 ;; esac\n    fi\n    if [ \"$blk\" = 1 ]; then\n      { echo \"[push-gate] BLOCKED: this would update $def (repo: $root, branch: ${br:-unknown}). Work on a feature branch and open a PR through /ship. A tag push such as 'git push origin v1.2.3' is allowed.\"; } >&2\n      exit 2\n    fi ;;\nesac\n\ncase \"$cmd\" in 'gh pr create'*|*'&& gh pr create'*|*'; gh pr create'*) ;; *) exit 0 ;; esac\n# Resolve the spec-spine binary for the repository this hook acts on:\n# $SPEC_SPINE_BIN, then that repository's own release build, then PATH. A repo\n# that builds its own binary must be governed by the one it builds; the PATH\n# fallback keeps an adopter on the published CLI working (spec 051).\nspec_spine_bin() {\n  if [ -n \"${SPEC_SPINE_BIN:-}\" ] && [ -x \"${SPEC_SPINE_BIN}\" ]; then echo \"${SPEC_SPINE_BIN}\"; return 0; fi\n  if [ -x \"$1/target/release/spec-spine\" ]; then echo \"$1/target/release/spec-spine\"; return 0; fi\n  command -v spec-spine 2>/dev/null\n}\nsc=$(spec_spine_bin \"$root\") || sc=''\n[ -n \"$sc\" ] || { echo '[pr-gate] spec-spine absent, coupling gate skipped (run /setup)'; exit 0; }\n[ -d \"$root/specs\" ] || { echo \"[pr-gate] $root is not a spec-spine corpus, coupling gate skipped\"; exit 0; }\n\n# Read-only. The gate must never write into the repo it is judging: `index`\n# rewrites committed shards, a hook cannot commit them, and doing it from here\n# mutates a tree another session may be mid-build in.\nif ! \"$sc\" --repo \"$root\" index check >/dev/null 2>&1; then\n  { echo \"[pr-gate] BLOCKED: the committed index is stale in $root.\"\n    echo '[pr-gate] Run: spec-spine index, then commit the shards, push, and retry.'; } >&2\n  exit 2\nfi\nif ! git -C \"$root\" diff --quiet -- .derived/ 2>/dev/null; then\n  { echo \"[pr-gate] BLOCKED: derived shards are uncommitted in $root.\"\n    echo '[pr-gate] Run: git add .derived/ then commit, push, and retry.'; } >&2\n  exit 2\nfi\n\nout=$(\"$sc\" --repo \"$root\" couple --base \"origin/$(default_branch \"$root\")\" --head HEAD 2>&1); ec=$?\nif [ $ec -ne 0 ]; then\n  case \"$cmd\" in\n    *--body*Spec-Drift-Waiver*) echo '[pr-gate] coupling gate failed; Spec-Drift-Waiver present after --body, allowing (CI honours the body-at-creation waiver).' ;;\n    *) { echo \"[pr-gate] BLOCKED: coupling gate failed in $root and no Spec-Drift-Waiver in the PR body:\"\n         echo \"$out\" | tail -25\n         echo '[pr-gate] Either fix the coupling (claim every changed path in the spec being implemented, or add an extends edge naming the owning spec) or, with explicit human approval, include the Spec-Drift-Waiver line inline in --body (not --body-file) and retry. A waiver is a human instrument: never write one on your own authority.'; } >&2\n       exit 2 ;;\n  esac\nfi\ntrue"
           }
         ]
       }
