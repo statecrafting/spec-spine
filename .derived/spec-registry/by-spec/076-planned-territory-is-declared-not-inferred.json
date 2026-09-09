@@ -1,0 +1,136 @@
+{
+  "record": {
+    "amends": [
+      "025-unresolved-unit-severity"
+    ],
+    "created": "2026-09-08",
+    "dependsOn": [
+      "003-conformance-lint",
+      "004-codebase-index",
+      "025-unresolved-unit-severity",
+      "032-ownership-coverage",
+      "038-registry-plan-ready-set",
+      "041-completion-held-to-claims",
+      "050-index-diagnostics-reach-a-gate",
+      "074-shipped-is-not-the-same-as-working"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/unit.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/grammar.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/lint.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/coverage.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "038-registry-plan-ready-set",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      }
+    ],
+    "id": "076-planned-territory-is-declared-not-inferred",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-architecture.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "076: Planned territory is declared, not inferred",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The flag",
+      "3.2 A planned unit is a declared state, not a diagnostic (amends 025)",
+      "3.3 The flag cannot outlive the work",
+      "3.4 A planned unit that has resolved is reported",
+      "3.5 Collisions reuse the ownership rules",
+      "3.6 The ledger records planned territory as a state",
+      "3.7 Schema and version",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/076-planned-territory-is-declared-not-inferred/spec.md",
+    "status": "draft",
+    "summary": "A spec cannot say what it intends to own. Ownership is only ever inferred from a unit resolving on disk, so a corpus that opts into spec 050's `--fail-on-unresolved` gate forecloses declaring territory before writing it: every claim must arrive with its file. The cost is that `registry plan` and `index coverage` are blind to planned ownership, a draft's risk understates the work, and two specs can plan the same file with no edge to collide on until one of them ships. This spec adds an optional `planned` flag to the unit payload. A planned unit is a declared state rather than an unresolved one, so it produces no `W-001` and the gate keeps refusing every claim that is merely broken. The flag is bound to the lifecycle field that ends it: a spec at `implementation: complete` carrying one is refused, and a planned unit that has resolved is reported so the flag cannot be left on.\n",
+    "title": "Planned territory is declared, not inferred"
+  },
+  "shardHash": "408044e68f619e16a3309eadaabdeef913eb6f87d2bc5387a1781fa3ed87542d",
+  "specVersion": "1.1.0"
+}
