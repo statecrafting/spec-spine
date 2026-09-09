@@ -101,7 +101,7 @@ jobs:
       # builds what it claims within one PR, so an unresolved unit reaching the
       # default branch is a claim nobody wrote, not work legitimately under way.
       - name: Freshness (committed registry and index shards must be current)
-        run: ./target/debug/spec-spine check --fail-on-unresolved
+        run: ./target/debug/spec-spine check --fail-on-unresolved --fail-on-warn
       # Enforced (spec 032): every source file must be specifically claimed by
       # a spec, not merely covered by its package's manifest floor. This repo
       # drove the floor-only list to empty by annotating the last five files

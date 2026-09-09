@@ -220,6 +220,10 @@ pub fn check_report(config: &Config, repo_root: &std::path::Path) -> Result<Chec
     // `check_registry_freshness` would compile a second time, and this verb
     // exists to make one question cost one ask.
     let outcome = compile(config, repo_root)?;
+    // Spec 077 §3.4: the registry half carries its own warning tally, so the
+    // composed verb can refuse under `--fail-on-warn` and name the tree that
+    // refused without a second compile.
+    let warnings = outcome.warning_count();
     let registry = if outcome.validation_passed {
         let freshness = compare_committed_registry(config, repo_root, &outcome.shards)?;
         match freshness {
@@ -228,12 +232,14 @@ pub fn check_report(config: &Config, repo_root: &std::path::Path) -> Result<Chec
                 expected: None,
                 actual: None,
                 validation_passed: true,
+                warnings,
             },
             Freshness::Stale { expected, actual } => RegistryCheckReport {
                 fresh: false,
                 expected: Some(expected),
                 actual: Some(actual),
                 validation_passed: true,
+                warnings,
             },
         }
     } else {
@@ -246,6 +252,7 @@ pub fn check_report(config: &Config, repo_root: &std::path::Path) -> Result<Chec
             expected: None,
             actual: None,
             validation_passed: false,
+            warnings,
         }
     };
 

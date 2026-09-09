@@ -39,6 +39,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/compile.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/diagnostics.rs",
         "source": "spec-edge"
       },
@@ -173,6 +177,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/compile.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
         }
       },
       {
@@ -323,5 +340,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "ef9b383eeb647fa74beb78793f6751f8b0527911432407e7fd5baa723fd58a35"
+  "shardHash": "bd2c7835f4ad2b2824c88cecb3e45a570936586d68095bc0a79b9cfebc39b900"
 }

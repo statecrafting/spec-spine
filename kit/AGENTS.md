@@ -166,7 +166,7 @@ work orders.
    spec-spine check
    spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
    # spec-spine index coverage --fail-on-untraced  # if [coupling] require_ownership is on
-   # spec-spine check --fail-on-unresolved         # opt in once the corpus builds what it claims
+   # spec-spine check --fail-on-unresolved --fail-on-warn  # opt in once the corpus builds what it claims
    ```
 
    The base ref is resolved from the repository rather than assumed to be

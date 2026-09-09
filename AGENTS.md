@@ -109,7 +109,7 @@ corpus in step 1 and step 6. One spec per PR, then stop.
    ```sh
    spec-spine compile
    spec-spine index
-   spec-spine check --fail-on-unresolved
+   spec-spine check --fail-on-unresolved --fail-on-warn
    spec-spine lint --fail-on-warn
    spec-spine index coverage --fail-on-untraced
    spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD

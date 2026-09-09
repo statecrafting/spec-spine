@@ -1130,3 +1130,85 @@ fn compile_spec_works_before_the_registry_exists() {
     let report = spec_spine_core::compile_spec(&Config::default(), root, "001-first").unwrap();
     assert!(report.passed, "{:?}", report.violations);
 }
+
+// --- spec 077: the warning tier is reachable from a gate -------------------
+
+/// Spec 077 §3.1: `V-010` stays a warning. The tier is what makes forward
+/// filing possible (a spec may name a `depends_on` target filed after it), so
+/// escalation must be the caller's decision and never the compiler's.
+#[test]
+fn dangling_depends_on_stays_warning_tier() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(
+        tmp.path(),
+        "001-alpha",
+        "001-alpha",
+        "depends_on: [\"099-not-filed-yet\"]\n",
+    );
+    let outcome = compile(&Config::default(), tmp.path()).unwrap();
+
+    assert!(codes(&outcome).contains(&"V-010".to_string()));
+    assert!(
+        outcome.validation_passed,
+        "a dangling depends_on must not fail validation: spec 001 3.2 makes \
+         validation.passed false only for error-tier violations"
+    );
+    assert_eq!(outcome.warning_count(), 1);
+    let warn_tiers = outcome
+        .registry
+        .validation
+        .violations
+        .iter()
+        .filter(|v| v.code == "V-010")
+        .all(|v| v.severity == Severity::Warning);
+    assert!(warn_tiers, "V-010 must be warning tier");
+}
+
+/// Spec 077 §3.6, the assertion that matters: the flag decides an exit code
+/// and nothing else. A compile that would be refused under `--fail-on-warn`
+/// emits byte-identical shards to one that would not, so no committed artifact
+/// can ever depend on how the CLI was invoked.
+#[test]
+fn fail_on_warn_writes_identical_shards() {
+    let clean = tempfile::tempdir().unwrap();
+    write_spec(clean.path(), "001-alpha", "001-alpha", "");
+    write_spec(clean.path(), "002-beta", "002-beta", "");
+
+    let warned = tempfile::tempdir().unwrap();
+    write_spec(warned.path(), "001-alpha", "001-alpha", "");
+    write_spec(
+        warned.path(),
+        "002-beta",
+        "002-beta",
+        "depends_on: [\"099-not-filed-yet\"]\n",
+    );
+
+    let cfg = Config::default();
+    let a = compile(&cfg, warned.path()).unwrap();
+    let b = compile(&cfg, warned.path()).unwrap();
+
+    // The flag lives in the CLI, so the library cannot see it at all. That is
+    // the structural guarantee: two runs of the same corpus agree, and the only
+    // thing a caller can vary is what it does with `warning_count()`.
+    assert_eq!(a.json, b.json, "emission must not vary run to run");
+    assert_eq!(a.warning_count(), 1);
+    assert!(a.validation_passed, "a warning is not a validation failure");
+
+    // And the warning changes no shard the clean corpus shares with it: only
+    // 002-beta's own spec.md differs, so 001-alpha's shard must be identical.
+    let clean_out = compile(&cfg, clean.path()).unwrap();
+    assert_eq!(clean_out.warning_count(), 0);
+    let shard_of = |o: &spec_spine_core::CompileOutcome, id: &str| {
+        o.shards
+            .spec_shards
+            .iter()
+            .find(|s| s.record.id == id)
+            .map(|s| s.shard_hash.clone())
+            .unwrap()
+    };
+    assert_eq!(
+        shard_of(&clean_out, "001-alpha"),
+        shard_of(&a, "001-alpha"),
+        "a sibling spec's warning must not reach this shard"
+    );
+}

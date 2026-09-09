@@ -24,14 +24,19 @@ use crate::out;
 /// *committed* copy was stale, so the drift reads as an uncommitted local edit
 /// instead of a defect already on the branch, which is exactly how the spec
 /// 017/021 drift reached the default branch.
-pub fn run(repo: &Path, fail_on_unresolved: bool, json: bool) -> Result<u8, Error> {
+pub fn run(
+    repo: &Path,
+    fail_on_unresolved: bool,
+    fail_on_warn: bool,
+    json: bool,
+) -> Result<u8, Error> {
     let cfg = load_repo_config(repo)?;
     // An `Err` from either half propagates, and `Error::exit_code()` spends 3
     // on it. That is the top of the precedence in 3.3, and it is the right
     // shape: a read that could not be performed has not answered, so no verdict
     // from the other tree makes the overall answer trustworthy.
     let report = spec_spine_core::check_report(&cfg, repo)?;
-    let code = exit_code(&report, fail_on_unresolved);
+    let code = exit_code(&report, fail_on_unresolved, fail_on_warn);
 
     if json {
         let value = serde_json::to_value(&report).map_err(|e| Error::Schema(e.to_string()))?;
@@ -39,7 +44,7 @@ pub fn run(repo: &Path, fail_on_unresolved: bool, json: bool) -> Result<u8, Erro
         return Ok(code);
     }
 
-    report_registry(&report);
+    report_registry(&report, fail_on_warn);
     report_index(&report, fail_on_unresolved);
     Ok(code)
 }
@@ -58,8 +63,14 @@ pub fn run(repo: &Path, fail_on_unresolved: bool, json: bool) -> Result<u8, Erro
 ///
 /// Pinned by test rather than only documented, because it is the one part of
 /// this verb a caller cannot observe from a single run.
-fn exit_code(report: &CheckReport, fail_on_unresolved: bool) -> u8 {
+fn exit_code(report: &CheckReport, fail_on_unresolved: bool, fail_on_warn: bool) -> u8 {
     let registry = if !report.registry.validation_passed {
+        1
+    } else if fail_on_warn && report.registry.warnings > 0 {
+        // Spec 077 §3.3: the forwarded refusal is a `1`, which lands inside the
+        // fold below rather than altering it. It sits above freshness for the
+        // same reason validation does: a refused corpus makes its own staleness
+        // the less useful answer.
         1
     } else if report.registry.fresh {
         0
@@ -95,12 +106,23 @@ fn severity_max(a: u8, b: u8) -> u8 {
 /// The stale report passes through with its structure intact: spec 031 §3.3
 /// makes it contractual because the session protocol reads the drifted shard
 /// names back to the operator, and exit 2 alone cannot say which shard moved.
-fn report_registry(report: &CheckReport) {
+fn report_registry(report: &CheckReport, fail_on_warn: bool) {
     let r = &report.registry;
     if !r.validation_passed {
         eprintln!(
             "spec-registry: INVALID: the corpus fails validation, so staleness was not \
              computed (run `spec-spine compile --check` for the violations)"
+        );
+        return;
+    }
+    // Spec 077 §3.4: name the count and the tree, so an exit 1 from this verb
+    // is attributable. The pointer to `compile --check` for the individual
+    // violations stays correct: that primitive still prints them.
+    if fail_on_warn && r.warnings > 0 {
+        outln!(
+            "spec-registry: REFUSED: {} warning(s) (--fail-on-warn) \
+             (run `spec-spine compile --check --fail-on-warn` for the violations)",
+            r.warnings
         );
         return;
     }

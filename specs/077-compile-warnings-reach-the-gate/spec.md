@@ -4,7 +4,7 @@ title: "Compile warnings reach the gate"
 status: draft
 kind: "tooling"
 created: "2026-09-08"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -17,6 +17,11 @@ depends_on:
   - "075-one-name-one-freshness-verb"
 extends:
   # 3.2 the flag, the severity gate that reads it, and the facade.
+  # `warning_count()` lands on `CompileOutcome` so the CLI, the facade and
+  # `check_report` read one number instead of three severity filters. Declared
+  # during the build, with the code: the draft's edge list did not name this
+  # file because the tally was expected to live CLI-side.
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/compile.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/cmd_compile.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
@@ -320,6 +325,27 @@ no `V-010` today, so the flag will refuse nothing on the day it lands. That is
 the argument for it rather than against it: the gate is being closed while the
 change is a flag and a test, instead of during the pull request where the first
 dangling edge is discovered by a consumer that cannot order its work.
+
+**2026-09-08: the kit's chain carries the flag as an opt-in line, not an
+enforced one.** Section 3.5 says the freshness step MUST become the composed
+form in every written place, and named `kit/AGENTS.md` among them. It did not
+account for that file's existing shape: the adopter template already carries
+`--fail-on-unresolved` and `--fail-on-untraced` as **commented** lines, opt-in
+by design under spec 050, because an adopter's corpus may legitimately be
+noisier than this one. Uncommenting them to satisfy a MUST would change the
+adopter default, which section 4 puts out of scope, so the commented line now
+reads `# spec-spine check --fail-on-unresolved --fail-on-warn` and the flag
+inherits the opt-in the neighbouring flags already have. `kit/Makefile` and
+`kit/govern.yml`, which run the strict form uncommented today, take the flag
+uncommented too, so the kit stays internally consistent with itself.
+
+**2026-09-08: the skills were left naming the bare verb.** `kit_skills.rs`
+asserts a skill may name **fewer** flags than `AGENTS.md`'s list but never more,
+so the inlined floors are already legal unchanged, and every skill tells its
+reader to run "the gate as `AGENTS.md` lists it" rather than to run its own
+copy. Editing five skills in two byte-identical trees to restate flags their
+own authority already carries would add a second place to drift for no
+enforcement gained. The authority moved; the pointers did not need to.
 
 ## Verification
 

@@ -209,6 +209,15 @@ pub struct RegistryCheckReport {
     /// False when the corpus itself does not validate, in which case `fresh`
     /// was never computed and is reported `false`.
     pub validation_passed: bool,
+    /// Warning-tier violations the compile produced (spec 077 §3.4).
+    ///
+    /// Carried so the composed verb can refuse under `--fail-on-warn` without
+    /// recompiling, and can say **which tree** refused. Without it an exit `1`
+    /// from `check` would be unattributable, and the reader would be sent to
+    /// the wrong verb. Additive with a `default`, so a report deserialized from
+    /// a pre-077 producer reads zero rather than failing.
+    #[serde(default)]
+    pub warnings: usize,
 }
 
 /// Both trees' verdicts, from the one verb the session protocol calls

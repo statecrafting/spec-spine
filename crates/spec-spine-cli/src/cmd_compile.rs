@@ -37,7 +37,21 @@ use crate::out;
 /// machine-readable verdict from the command that just regenerated the shards
 /// the next gate compares against invites exactly the mid-chain confusion the
 /// non-writing `--check` exists to avoid.
-pub fn run(repo: &Path, check: bool, json: bool, spec: Option<&str>) -> Result<u8, Error> {
+///
+/// `fail_on_warn` (spec 077 §3.2) turns any warning-tier violation into exit
+/// `1`, on every form of the verb. It gates the **exit code only**: it never
+/// touches `validation.passed`, which spec 001 §3.2 fixes as "false iff any
+/// error-tier violation is present", and never changes an emitted byte, which
+/// `compile.rs::fail_on_warn_writes_identical_shards` pins. That is the same
+/// arrangement spec 003 uses for the lint's `L-` codes, where severity gating
+/// is applied by the CLI over diagnostics the layer below just produces.
+pub fn run(
+    repo: &Path,
+    check: bool,
+    json: bool,
+    spec: Option<&str>,
+    fail_on_warn: bool,
+) -> Result<u8, Error> {
     // Spec 056 §3.1: `--spec` and `--check` are different questions (is this
     // well-formed / do the committed shards match), and a combined form would
     // have to invent an answer for a spec with no shard.
@@ -56,7 +70,7 @@ pub fn run(repo: &Path, check: bool, json: bool, spec: Option<&str>) -> Result<u
             }
             return Ok(err.exit_code());
         }
-        return run_one_spec(repo, id, json);
+        return run_one_spec(repo, id, json, fail_on_warn);
     }
     if json && !check {
         // Written here rather than raised for `main` to render: `json_verb`
@@ -90,8 +104,14 @@ pub fn run(repo: &Path, check: bool, json: bool, spec: Option<&str>) -> Result<u
             return Ok(1);
         }
         let freshness = compare_committed_registry(&cfg, repo, &outcome.shards)?;
+        // A refused warning is exit 1, the validation-failure rung, and it
+        // outranks staleness for the reason spec 075 §3.3 gives: staleness is
+        // not the more severe answer when the corpus itself was refused.
+        let warn_refused = fail_on_warn && outcome.warning_count() > 0;
         if json {
-            let code = if matches!(freshness, Freshness::Fresh) {
+            let code = if warn_refused {
+                1
+            } else if matches!(freshness, Freshness::Fresh) {
                 0
             } else {
                 2
@@ -102,6 +122,10 @@ pub fn run(repo: &Path, check: bool, json: bool, spec: Option<&str>) -> Result<u
                 freshness_report(&freshness),
             ))?;
             return Ok(code);
+        }
+        if warn_refused {
+            report_warn_refusal(&outcome);
+            return Ok(1);
         }
         return match freshness {
             Freshness::Fresh => {
@@ -157,13 +181,7 @@ pub fn run(repo: &Path, check: bool, json: bool, spec: Option<&str>) -> Result<u
     fs::write(&meta_path, meta_json)
         .map_err(|e| Error::Io(format!("write {}: {e}", meta_path.display())))?;
 
-    let warnings = outcome
-        .registry
-        .validation
-        .violations
-        .iter()
-        .filter(|v| v.severity == Severity::Warning)
-        .count();
+    let warnings = outcome.warning_count();
 
     if outcome.validation_passed {
         outln!(
@@ -172,6 +190,12 @@ pub fn run(repo: &Path, check: bool, json: bool, spec: Option<&str>) -> Result<u
             by_spec.display(),
             warnings
         );
+        // The shards above are already written, and identically so: the flag
+        // decides the exit code after emission, never what was emitted.
+        if fail_on_warn && warnings > 0 {
+            report_warn_refusal(&outcome);
+            return Ok(1);
+        }
         Ok(0)
     } else {
         report_validation_failure(&outcome);
@@ -195,6 +219,27 @@ pub(crate) fn freshness_report(freshness: &Freshness) -> serde_json::Value {
             serde_json::json!({ "fresh": false, "expected": expected, "actual": actual })
         }
     }
+}
+
+/// Print every warning-tier violation, then say the flag that refused them
+/// (spec 077 §3.2).
+///
+/// Always stderr, so the refusal surfaces in a CI log next to the errors that
+/// use the same channel. The codes are named because a bare exit `1` from a
+/// verb that also spends `1` on validation failure would leave a reader unable
+/// to tell which happened.
+fn report_warn_refusal(outcome: &CompileOutcome) {
+    for v in &outcome.registry.validation.violations {
+        if v.severity == Severity::Warning {
+            let at = v.path.as_deref().unwrap_or("-");
+            eprintln!("  {} [{}] {}", v.code, at, v.message);
+        }
+    }
+    eprintln!(
+        "REFUSED: {} warning(s) across {} spec(s) (--fail-on-warn)",
+        outcome.warning_count(),
+        outcome.registry.specs.len()
+    );
 }
 
 /// Print every error-tier violation, then the summary. Always stderr, so the
@@ -233,10 +278,19 @@ fn now_rfc3339() -> String {
 /// Exit `0` when the spec produces no error-tier violation, `1` when it does or
 /// when the id resolves to nothing, `3` for I/O, parse, schema or config
 /// failure. Never `2`: nothing here is a staleness question.
-fn run_one_spec(repo: &Path, id: &str, json: bool) -> Result<u8, Error> {
+fn run_one_spec(repo: &Path, id: &str, json: bool, fail_on_warn: bool) -> Result<u8, Error> {
     let cfg = load_repo_config(repo)?;
     let report = spec_spine_core::compile_spec(&cfg, repo, id)?;
-    let code = if report.passed { 0 } else { 1 };
+    let warnings = report
+        .violations
+        .iter()
+        .filter(|v| v.severity == Severity::Warning)
+        .count();
+    let code = if !report.passed || (fail_on_warn && warnings > 0) {
+        1
+    } else {
+        0
+    };
 
     if json {
         let value = serde_json::to_value(&report).map_err(|e| Error::Schema(e.to_string()))?;
@@ -249,15 +303,17 @@ fn run_one_spec(repo: &Path, id: &str, json: bool) -> Result<u8, Error> {
         // since the whole output of this verb is its diagnostics.
         eprintln!("  {} [{}] {}", v.code, report.spec_path, v.message);
     }
-    if report.passed {
+    if report.passed && code == 1 {
+        // Valid on its own axis, refused on the flag's. Saying only "valid"
+        // beside an exit 1 would read as a bug in the tool.
+        eprintln!(
+            "{}: REFUSED: {warnings} warning(s) (--fail-on-warn), nothing written",
+            report.spec_id
+        );
+    } else if report.passed {
         outln!(
-            "{}: valid ({} warning(s), nothing written)",
-            report.spec_id,
-            report
-                .violations
-                .iter()
-                .filter(|v| v.severity == Severity::Warning)
-                .count()
+            "{}: valid ({warnings} warning(s), nothing written)",
+            report.spec_id
         );
     } else {
         eprintln!(
