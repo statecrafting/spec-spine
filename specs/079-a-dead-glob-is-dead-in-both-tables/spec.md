@@ -9,8 +9,10 @@ summary: >
   where it enumerates directories and can contribute no bytes. `[index.slices]`
   carries pattern lists with the same documented semantics and the same
   file-only walk, and the lint is silent about it. An adopter audited on
-  2026-09-09 had nine dead patterns across the two tables; the slice half
-  survived a fix pass and a review because nothing named it, and the survivors
+  2026-09-09 carried seventeen dead patterns, nine in the table the lint reads
+  and eight in the table it does not. A fix pass corrected all nine and six of
+  the eight; the two survivors reached an already-reviewed pull request and were
+  caught by a second human reading, since no tool could report them. Both
   pointed at directories that do not exist yet, so they would have stayed
   silently empty on the day those directories arrived. This spec extends the
   rule to the second table, and requires the slice message to speak about the
@@ -56,14 +58,20 @@ rather than merely empty under this one. Neither pass looked at the second
 table, so the value 069 could not reach in an adopter's own file is still
 unreachable there.
 
-This is not hypothetical. An adopter audited on 2026-09-09 carried nine dead
-patterns across the two tables. The six in `extra_hashed_inputs` were found and
-fixed; the two in `[index.slices]` survived the same fix pass and reached a pull
-request that had already been reviewed once, precisely because no lint named
-them and the fix was driven off the lint's output. The remaining dead slice
-patterns pointed at directories that do not exist yet, which is the worse half
-of the defect: they cost nothing on the day they are written and stay silently
-empty on the day the directory arrives.
+This is not hypothetical. An adopter audited on 2026-09-09 carried **seventeen**
+dead patterns: nine in `[index] extra_hashed_inputs` and eight in
+`[index.slices]`. A fix pass corrected all nine in the table the lint reads, and
+six of the eight in the table it does not. The two survivors, `deploy/**` and
+`eval/**`, reached a pull request that had already been reviewed once, and were
+caught by a second human reading rather than by any tool, because no tool can
+report them. A second adopter in the same audit carried six more in
+`extra_hashed_inputs` and declares no slices table at all.
+
+That split is the argument. The table `L-010` reads came out of the pass clean,
+and the table it does not read came out of the same pass still broken, with
+nothing able to say so. Both survivors pointed at directories that do not exist
+yet, which is the worse half of the defect: they cost nothing on the day they
+are written and stay silently empty on the day the directory arrives.
 
 An adopter who upgrades is currently told about one table and not the other.
 That is a worse position than being told about neither, because the silence
