@@ -243,12 +243,25 @@ dead form one table over.
 
 ## Verification
 
-Every assertion below fails against pre-079 code: `lint` does not read
-`[index.slices]` at all today, so the fixture that trips the rule exits 0.
+The two assertions that carry the rule fail against pre-079 code, because
+`lint` does not read `[index.slices]` at all today: the co-occurrence chain and
+the `--fail-on-warn` refusal both exit non-zero. The bare-`lint` tier line and
+the corrected-form line are boundary controls and pass both before and after,
+which is what makes them controls.
 
 Each line is one command. Spec 049 §3.2 makes a fence's body line a command, so
 no line may depend on a variable another line set, and the fixture setup is one
 long line rather than a continuation.
+
+Each line is run as its own `sh -c`, a full POSIX shell, with no `set -e`
+(`crates/spec-spine-cli/src/cmd_verify.rs`, the `Command::new("sh").arg("-c")`
+call that executes each planned command and compares its status). That is what
+makes `;`, `!` and `&&` mean what they read as, and in particular what makes
+`<cmd> ; test $? -eq 1` a real assertion rather than a no-op: `$?` is the
+preceding command's status in the same shell. Spec 059's block, approved and
+`implementation: complete`, relies on the same guarantee. Stated here because a
+reader who assumes a restricted line executor would read the tier assertion as
+vacuous, and the tier is the claim this spec most needs to hold.
 
 ```verify:cli
 cargo build --release --locked
@@ -262,7 +275,7 @@ target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint --fail-on-warn ; t
 # string appears somewhere, which an implementation splitting the message across
 # lines would satisfy while leaving 3.2's one-line rule unverified and 3.3's
 # scoped negative toothless. The chain proves all three share one line.
-target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -F 'L-010' | grep -F 'index.slices' | grep -q 'workflows'
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -F 'L-010' | grep -F 'index.slices' | grep -qF 'workflows'
 # 3.1: the tier. A bare `lint` reports the warning and still exits 0; an
 # implementation that promoted it to an error would pass every other line here.
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint
