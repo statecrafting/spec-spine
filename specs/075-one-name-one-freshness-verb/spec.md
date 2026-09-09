@@ -109,6 +109,15 @@ candidates:
 - **004** owns `index check`, which this spec does not touch.
 - **029** owns `AGENTS.md` and mandates no particular verb in it.
 
+**The exit-code precedence in 3.3 is new behavior, stated by no existing
+spec.** Recorded here so a later amends audit does not reopen it. The exit
+codes themselves are a stable contract, mapped in one place, and 031 and 004
+each fix what their own verb returns; neither says anything about how two
+verdicts combine, because until this spec nothing combined them. New behavior
+on a new verb owes no amendment to the specs whose verbs it calls. The verb's
+own file is claimed in the implementing change, for the reason given above, so
+the ownership record for 3.3 arrives with the code that implements it.
+
 **This spec lands after 074**, which is why 074 is a dependency rather than a
 sibling. Both edit `AGENTS.md`'s step 1 list and both edit the session skill:
 074 schedules the `--version` read and removes the retired stderr rule, and
