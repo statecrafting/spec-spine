@@ -49,8 +49,6 @@ kit/
   settings.json        # Claude Code hooks (read-only) and permissions
   .mcp.json            # empty MCP server template
   .gitattributes-stanza  # binds the committed shard globs to the merge driver (spec 074)
-  scripts/
-    verify-spec.sh     # DEPRECATED, superseded by `spec-spine verify` in 0.15.0 (spec 049)
   .claude/
     skills/   15 skills   the loop:  init, setup, next, build, verify, ship, shepherd, spec
                           support:   commit, code-review, validate-and-fix, cleanup,
@@ -79,12 +77,11 @@ adopter who ran `spec-spine init` can skip them.
    release added.
 2. Copy `.claude/` into your repository root. Copy `AGENTS.md`, `settings.json`,
    and `.mcp.json` too if you do not already have them.
-3. Skip `scripts/verify-spec.sh` on 0.15.0 or later. `/verify` calls
-   `spec-spine verify <id>`, and an orchestrator's verify stage runs the same
-   verb after merge. The script is kept in this kit only for adopters still
-   pinned below 0.15.0, where it remains the protocol; on 0.15.0 or later you
-   can delete your copy. It will be removed from the kit once the adopters have
-   upgraded.
+3. If an earlier copy of this kit left a `scripts/verify-spec.sh` in your
+   repository, delete it. `/verify` calls `spec-spine verify <id>`, and an
+   orchestrator's verify stage runs the same verb after merge; the script was
+   the pre-0.15.0 protocol and the kit stopped shipping it once every adopter
+   had upgraded (spec 074).
 4. Customize `AGENTS.md`: replace every `<bracketed>` placeholder (project
    name, source directories, the parallel reads), pin the spec-spine version,
    and write the gate command list under "Working the backlog" (the governance

@@ -19,7 +19,6 @@ amends:
   # 040).
   - "029-claude-code-skill-kit"
 establishes:
-  - "kit/scripts/"
   - "scripts/verify-spec.sh"
   - { kind: directory, path: ".claude/skills/" }
   - { kind: directory, path: ".claude/agents/" }
@@ -122,7 +121,8 @@ the wiring between them.
 - **`kit/AGENTS.md`**, **`kit/README.md`**, **`kit/settings.json`**
   (additive): the commands list, the install and "govern the harness"
   guidance, and the permission allow-list the new skills need.
-- **`kit/scripts/`** (this spec's): `verify-spec.sh`.
+- **`kit/scripts/`** (this spec's, until 2026-09-09): `verify-spec.sh`.
+  Removed by spec 074 3.6 once the adopters had upgraded; see D-7.
 - **`.claude/skills/`**, **`.claude/agents/`**, **`scripts/verify-spec.sh`**
   (this spec's): this repository's own copies, the dogfood.
 - **`AGENTS.md`** (additive on 029's edge, as spec 047 did): this
@@ -267,7 +267,6 @@ and 3.6 (the reviewer and implementer sentences).
 ```verify:cli
 cargo test -p spec-spine-core --test kit_skills --locked
 cargo test -p spec-spine-core --test kit_hooks --locked
-sh -n kit/scripts/verify-spec.sh
 scripts/verify-spec.sh 046-kit-hooks-read-never-write
 test "$(ls kit/.claude/skills | wc -l | tr -d ' ')" = 15
 diff -r kit/.claude/skills .claude/skills
@@ -296,3 +295,15 @@ diff -r kit/.claude/skills .claude/skills
 - **D-5 (2026-09-06).** `spec-new` (one adopter's variant) retires in
   favour of `spec`, taking its ordinal-from-registry rule, its
   enum-from-`spec-spine.toml` rule, and its frontmatter checkpoint.
+- **D-6 (2026-09-09, the kit copy of the script is gone).** The
+  maintainer deleted `kit/scripts/verify-spec.sh` on 2026-09-09, the
+  retirement spec 051 3.2 deferred until the adopters had upgraded, and spec
+  074 3.6 records it as an amendment to this spec and to 051. Two edits here
+  are the maintainer's own, because no edge can make them: `kit/scripts/`
+  leaves `establishes`, since a directory claim on a directory git no longer
+  carries is an `I-007` hard error in every fresh checkout and the grammar
+  withdraws nothing; and the `sh -n kit/scripts/verify-spec.sh` line leaves
+  section 5, since an acceptance line that runs a removed file can only
+  fail. Section 3.5's description of the script stands as written and now
+  describes only this repository's `scripts/verify-spec.sh`, which this spec
+  still establishes and section 5 still runs.

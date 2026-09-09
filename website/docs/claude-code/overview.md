@@ -26,8 +26,6 @@ On top of the spec-spine substrate, the kit adds:
   support set (validate, cleanup, plan execution, research, `CLAUDE.md`
   refactoring). The skills are repository-invariant; the project layer lives
   in `AGENTS.md`.
-- **A verify script** (`scripts/verify-spec.sh`) that runs a spec's
-  `verify:cli` fences the way an orchestrator's verify stage does after merge.
 - **4 agents** for the plan / explore / implement / review cycle.
 - **3 rules** that constrain how every workflow reads artifacts and resolves
   spec/code disagreement (the same floor `spec-spine init` scaffolds).

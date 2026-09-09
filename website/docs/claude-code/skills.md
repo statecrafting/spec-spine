@@ -30,7 +30,7 @@ same protocol.
 | `setup` | One-time setup: install the pinned spec-spine, the stack toolchain, verify the loop once. | the gate as `AGENTS.md` lists it |
 | `next` | Name the next work order from the ready set, minus drafts, with in-flight specs and blockers reported. Read-only. | `registry plan --json`, `registry show --json` |
 | `build <id>` | One spec, start to finish: preflight, branch, flip `in-progress`, implement inside the territory, gate before every commit, verify, flip `complete`. | steps 2 to 6 of the protocol |
-| `verify <id>` | Run the spec's `verify:cli` fences locally, the way a verify stage runs them after merge. `not-declared` is an honest zero, not a pass. | `scripts/verify-spec.sh` |
+| `verify <id>` | Run the spec's `verify:cli` fences locally, the way a verify stage runs them after merge. `not-declared` is an honest zero, not a pass. | `spec-spine verify <id>` |
 | `ship` | Gate, review, commit on the feature branch, open the PR. The waiver is a human checkpoint standing authorization never covers. | the gate, `/code-review`, `/commit`, `gh pr create` |
 | `shepherd` | Watch the PR's checks by head sha, answer review threads, remediate through the gate (two rounds), merge with squash, confirm the merge on disk. | `gh pr checks`, `gh pr merge`, `git pull --ff-only` |
 | `spec` | Author a new spec at the next free ordinal, born `draft`, validated in a temporary copy. Approval stays a human flip. | `registry list --ids-only`, `compile --repo`, `lint --fail-on-warn` |
@@ -60,14 +60,15 @@ effect of reading it, hiding the defect. They use `compile --check` and
 `index check`, report a stale verdict, and leave the repair to the session
 as later, committed work.
 
-## The verify script
+## The verify verb
 
-`kit/scripts/verify-spec.sh` runs every non-comment line inside a
+`spec-spine verify <id>` runs every non-comment line inside a
 ```` ```verify:cli ```` fence under a spec's `## Verification` heading, from
 the repository root, in order, stopping at the first non-zero exit. It
 prints `passed`, `FAILED at command N`, or `not-declared`, counts and skips
 `verify:browser` blocks, and reads the spec markdown, never `.derived/`.
-Copy it to your repository's `scripts/`; `/verify` calls it there.
+`/verify` calls it; the kit no longer ships the shell script that preceded
+it (spec-spine 0.15.0 absorbed it as the verb).
 
 ## Not shipped
 

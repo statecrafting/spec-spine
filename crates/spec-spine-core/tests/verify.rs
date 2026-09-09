@@ -253,11 +253,13 @@ fn the_json_facade_returns_the_same_plan() {
 
 // --- this repository's own corpus ----------------------------------------
 
-/// The parse must agree with the corpus it governs. 048 is the only approved
-/// spec carrying `verify:cli` fences, so it is the one real-world fixture
-/// available, and its six commands are the shape the ported script produced.
+/// The parse must agree with the corpus it governs. 048 was the first approved
+/// spec carrying `verify:cli` fences, so it is the real-world fixture, and its
+/// commands are the shape the ported script produced. Six until 2026-09-09;
+/// five since spec 074 3.6 removed the kit's copy of the script and the `sh -n`
+/// line that checked it (048 D-7).
 #[test]
-fn spec_048_parses_to_its_six_commands() {
+fn spec_048_parses_to_its_five_commands() {
     let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
@@ -265,7 +267,7 @@ fn spec_048_parses_to_its_six_commands() {
         .unwrap();
     let plan = verify_plan(&cfg(), repo, "048").unwrap();
     assert_eq!(plan.spec_id, "048-kit-ships-the-governed-loop-skills");
-    assert_eq!(plan.commands.len(), 6, "{:?}", plan.commands);
+    assert_eq!(plan.commands.len(), 5, "{:?}", plan.commands);
     assert!(plan.commands[0].starts_with("cargo test"));
     assert!(plan.skipped.is_empty());
 }
