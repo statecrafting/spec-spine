@@ -94,6 +94,6 @@
     "summary": "A GitHub Actions workflow enters the index content hash as raw bytes, so a Dependabot `uses:` bump moves the global-inputs scalar and stales every shard in the repository. The bot can neither re-index nor add a waiver to its own PR body, so the PR walls on exit 2 and needs a maintainer to push a re-index commit. Spec 030 built the coupling half of this for workflows and read the freshness half as already fine; it was not, and spec 069 made that visible by fixing the default glob, then deferred the real fix as a hashing change with a migration of its own. This is that spec. A workflow folds as its governance projection, the parsed document with the pinned ref of each `uses:` reference removed and the action path kept, so a version or SHA bump is invisible to the ledger while a changed action, a `run:` or `with:` edit, an added step or an unpin all still stale it. The projection and 030's waiver classifier are required to state one rule, and the upgrade restales every workflow-bearing repository once.\n",
     "title": "A workflow bump is not a governed change"
   },
-  "shardHash": "69166e963e1d387ccc69572046ddb5bd07929be5d6c67fe81e8fbaf553ea1284",
+  "shardHash": "76757ac89023d15eda9556cfcd789396c9be162b28415e2b6c5af0465d4c6626",
   "specVersion": "1.1.0"
 }

@@ -200,12 +200,25 @@ spec adds one shard and changes no existing one, so the draft merges in any
 order.
 
 The migration note MUST state the consequence for spec 023: an attestation
-sealed before this change verifies its signature but no longer verifies by
-recompute, because the ledger it attests to is hashed under the previous rule.
-That is inherent to any change in hashing semantics, it applied equally to the
-npm and cargo projections, and the fix is to re-attest after re-indexing. It is
-stated because an attestation that fails recompute looks like tampering, and a
-maintainer meeting that for the first time deserves to find it written down.
+sealed before this change attests to a ledger hashed under the previous rule,
+so the fix is to re-attest after re-indexing. That is inherent to any change in
+hashing semantics and applied equally to the npm and cargo projections.
+
+**It MUST NOT be described as a failure that resembles tampering.** Spec 023
+already handles it. `CorpusAttestation` records `tool: { name, version }`, and
+`verify-attestation --recompute` compares that version **before** it compares
+content: a differing version yields `VersionMismatch { expected, actual }` with
+the remediation in the message, never `ContentMismatch`. FR-005 states the rule
+("a different version is a distinct, named outcome, never a false content
+mismatch") and the verb implements it. Since this change ships in a release,
+the tool version differs and a pre-073 attestation therefore reports the named
+outcome, not a content failure.
+
+This is recorded rather than left implicit because the drafting of this section
+originally claimed the opposite, and reading the envelope refuted it. The
+general point is the one 3.2 already makes about the projection and the waiver:
+a claim that two mechanisms interact badly is worth checking against the
+mechanism rather than reasoned about from its consequences.
 
 ### 3.4 The workflow auto-waive test asserts freshness again (amends 069 3.6)
 
