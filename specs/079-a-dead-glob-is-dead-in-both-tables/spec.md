@@ -108,6 +108,17 @@ reporting, and for a slice it MUST name the slice. A reader who sees `L-010`
 against `workflows` must be able to find the offending line without guessing
 which table it came from.
 
+Each violation MUST occupy **one line**, as every existing `L-` code's message
+already does. This is not a style preference, it is what makes 3.3's prohibition
+checkable. A reader, and the acceptance in 3.4, isolates a slice's violation by
+selecting the line naming the table; if a message were split across a summary
+line and a continuation, a filter that selects the naming line would not see the
+rest of the claim, and a negative assertion over it would pass while the
+forbidden text sat one line below. The alternative, searching the whole output
+for the forbidden phrase, cannot work here either, because the
+`extra_hashed_inputs` form of `L-010` says `content hash` legitimately and would
+trip it. One line per violation is what keeps the two forms separable.
+
 ### 3.3 The slice message MUST NOT claim a content hash
 
 The existing `L-010` text ends "so it can contribute no bytes to any content
@@ -135,6 +146,11 @@ cannot demonstrate the rule and could not regress if the rule were deleted.
 Acceptance MUST construct a config that trips the rule and assert the refusal
 against it, and MUST also assert the corrected form passes, so the test pins
 the boundary rather than the mere presence of a warning.
+
+The negative assertion of 3.3 MUST be scoped to the slice's own line, which
+3.2's one-line rule makes sound, rather than run over the whole output: the
+`extra_hashed_inputs` form of the same code says `content hash` correctly, so an
+unscoped search would refuse a true message.
 
 It MUST additionally assert that a bare `lint` exits 0 on the tripping fixture.
 Asserting only the `--fail-on-warn` refusal leaves the tier half-proven: an
@@ -195,7 +211,13 @@ carries the same two units the same two ways, so this follows the path already
 taken for these exact files. The routing is worth stating because the corpus is
 not consistent about it: specs 057 and 058 carry `tests/lint.rs` through 003,
 which does not own it, and an `extends` unit is a first-class claim either way,
-so nothing refuses them. And 074 is still `status: draft`, held only by its §3.6, which is
+so nothing refuses them.
+
+053 also appears in `depends_on`, where the relationship is ownership routing
+rather than behavioral precedence: 079 needs nothing 053 decided about ordinal
+monotonicity, it needs the file 053 created. The field name implies more than is
+meant, so it is written down here rather than left for a reader auditing the
+dependency graph to find surprising. And 074 is still `status: draft`, held only by its §3.6, which is
 about deleting `kit/scripts/verify-spec.sh` and has nothing to do with this
 rule; making 079 depend on 074 would report 079 as blocked behind a decision it
 does not wait on. 074 is named throughout the prose as the rule's origin, which
