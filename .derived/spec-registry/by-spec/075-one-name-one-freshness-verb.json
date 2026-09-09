@@ -148,6 +148,6 @@
     "summary": "The session protocol is ambiguous in two places and both are collisions with its own neighbours. Its entry point is named `/init`, which is also a Claude Code built-in meaning the opposite thing (one-time, repository-level, and it writes) and also `spec-spine init`, which means a third thing again. And it asks one question, whether the committed state is current, in two spellings: `compile --check` is a flag and `index check` is a subcommand, so the protocol, the hook, the skills and CI each have to spell both. This spec renames the skill to `/prime` with no alias, and adds `spec-spine check`, an additive top-level verb that runs both freshness reads, reports each tree separately, and composes one exit code. Nothing is removed: both primitives keep their flags, their tests and their contracts, and CI may still call one when it regenerated only one tree.\n",
     "title": "One name for the protocol, one verb for freshness"
   },
-  "shardHash": "e79ab73836976eb9ed874e72baeaf4b7a30ef852ecd359096f0f3b809a4318b1",
+  "shardHash": "4c2c86a376b69fedca860383b5b4976938907f179a964d1f6f7f581b64afe5bb",
   "specVersion": "1.1.0"
 }

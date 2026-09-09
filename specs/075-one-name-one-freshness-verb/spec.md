@@ -318,6 +318,7 @@ test ! -e kit/.claude/skills/init/SKILL.md
 # 3.1 the protocol invokes the new name and reports the new header.
 grep -qF '/prime' AGENTS.md
 grep -qF '## primed:' AGENTS.md
-# 3.5 the protocol no longer spells either primitive.
+# 3.5 the protocol no longer spells EITHER primitive, both halves asserted.
 ! grep -qF 'compile --check' AGENTS.md
+! grep -qF 'index check' AGENTS.md
 ```
