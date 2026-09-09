@@ -1,0 +1,53 @@
+{
+  "record": {
+    "created": "2026-09-09",
+    "dependsOn": [
+      "003-conformance-lint",
+      "012-index-hash-slices",
+      "053-depends-on-ordinal-monotonicity",
+      "069-the-shipped-default-hashes-what-it-names"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "053-depends-on-ordinal-monotonicity",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/lint.rs"
+        }
+      }
+    ],
+    "id": "079-a-dead-glob-is-dead-in-both-tables",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionHeadings": [
+      "079: A dead glob is dead in both tables",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 `L-010` reads both pattern tables",
+      "3.2 The message names which table, and which slice",
+      "3.3 The slice message MUST NOT claim a content hash",
+      "3.4 The refusal is proven on a fixture, not on this corpus",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/079-a-dead-glob-is-dead-in-both-tables/spec.md",
+    "status": "draft",
+    "summary": "`L-010` refuses a pattern ending in `/**` in `[index] extra_hashed_inputs`, where it enumerates directories and can contribute no bytes. `[index.slices]` carries pattern lists with the same documented semantics and the same file-only walk, and the lint is silent about it. An adopter audited on 2026-09-09 had nine dead patterns across the two tables; the slice half survived a fix pass and a review because nothing named it, and the survivors pointed at directories that do not exist yet, so they would have stayed silently empty on the day those directories arrived. This spec extends the rule to the second table, and requires the slice message to speak about the slice's own hash rather than repeating a sentence about `contentHash` that is false for slices.\n",
+    "title": "A dead glob is dead in both tables"
+  },
+  "shardHash": "5ed53d69ddfdb4d4da9f62b955313ab5d95d29271df552e65624531f3be9d31d",
+  "specVersion": "1.2.0"
+}
