@@ -1,7 +1,7 @@
 ---
 id: "076-planned-territory-is-declared-not-inferred"
 title: "Planned territory is declared, not inferred"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-08"
 implementation: complete

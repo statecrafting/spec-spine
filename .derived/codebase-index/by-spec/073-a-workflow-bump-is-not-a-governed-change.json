@@ -144,8 +144,8 @@
       }
     ],
     "specId": "073-a-workflow-bump-is-not-a-governed-change",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "fa2b2e44aabdd2aac5d92f9e3d9315b0239fb99bcb5cdecaaede2cba1c9b6f46"
+  "shardHash": "22b4b23efa2277c14a5297d6d7edc35958cf2c4fec2e4dfebf248feb4648b4bf"
 }

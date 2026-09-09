@@ -1,7 +1,7 @@
 ---
 id: "075-one-name-one-freshness-verb"
 title: "One name for the protocol, one verb for freshness"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-08"
 implementation: complete

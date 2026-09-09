@@ -130,10 +130,10 @@
       "Verification"
     ],
     "specPath": "specs/072-the-default-branch-is-configured-not-assumed/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The kit's push gate protects a branch named main and nothing else. An adopter whose default branch is master or trunk installs a gate that refuses nothing, learns this from no diagnostic, and is told by the same harness to run a coupling gate against an origin/main that does not exist. Spec 071 narrowed what the gate refuses but left the name hardcoded, naming the gap and deferring it for want of a mechanism. This spec supplies one: the branch is resolved per repository from an environment override, then from the remote's own HEAD, then from main as a compatibility floor, with no dependency on the spec-spine binary and no new configuration key. Every branch comparison in the push gate, the coupling base in the PR gate and the Makefile, and the commands the kit documents follow the resolved name.\n",
     "title": "The default branch is configured, not assumed"
   },
-  "shardHash": "c0172fba27b254e875695e137847808c299610c4ec09c86007f48ad3fe652023",
+  "shardHash": "ad560665a35b128dd70d3a8df0cf099d7deca8c8b63e0537dec8f764d05d0099",
   "specVersion": "1.2.0"
 }
