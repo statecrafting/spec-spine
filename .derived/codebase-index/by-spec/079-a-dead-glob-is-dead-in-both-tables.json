@@ -1,0 +1,52 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "003-conformance-lint",
+      "012-index-hash-slices",
+      "053-depends-on-ordinal-monotonicity",
+      "069-the-shipped-default-hashes-what-it-names"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/src/lint.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/lint.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/lint.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/lint.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/lint.rs"
+        }
+      }
+    ],
+    "specId": "079-a-dead-glob-is-dead-in-both-tables",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "8576a124905c57b8fa8b07b91dfa2d9d9e903fb73d357b00a5b9a2c16a074ca7"
+}
