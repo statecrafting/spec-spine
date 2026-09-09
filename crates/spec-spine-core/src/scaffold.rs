@@ -10,14 +10,51 @@
 use serde::{Deserialize, Serialize};
 use spec_spine_types::{Config, Error};
 
-/// A scaffolded file: repo-relative path, contents, and whether `init` should
-/// overwrite an existing file (the default generator sets this `false`).
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+/// One file `init` writes: repo-relative path, contents, and how the writer
+/// reconciles it with a file already on disk.
+///
+/// `#[derive(Default)]` is load-bearing for the two fields spec 074 3.4 and 3.3
+/// added: a bare added field breaks every struct literal that builds one, and
+/// deriving `Default` does not by itself rescue those literals. What rescues
+/// them is constructing with `..Default::default()`, which every site in this
+/// crate now does, so the NEXT field added here breaks nothing. `serde(default)`
+/// on each field does the same for a `Scaffold` deserialized from older JSON.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ScaffoldFile {
     pub rel_path: String,
     pub contents: String,
     pub overwrite: bool,
+    /// Spec 074 3.4: the file must arrive executable. Every file landed at 644,
+    /// including two shell scripts whose own documentation invokes them by path
+    /// (`./.githooks/enable-merge-driver.sh`), so `--with-kit` shipped a merge
+    /// driver an adopter could not run.
+    ///
+    /// The bit is **data in the returned `Scaffold`**, not an IO decision taken
+    /// by the writer, so the scaffold stays a pure function of
+    /// `(Config, with_kit)`. On a platform with no executable bit it is inert.
+    #[serde(default)]
+    pub executable: bool,
+    /// Spec 074 3.3: append the contents to an existing file rather than
+    /// skipping it, when they are not already present. Written for the
+    /// `.gitattributes` stanza that binds the committed shard globs to the
+    /// merge driver: spec 065 3.2 excluded it as "a block to append to an
+    /// existing file rather than a file to write", which shipped the two
+    /// merge-driver hooks with nothing binding them.
+    ///
+    /// Appending is idempotent (see `append_marker`), and an existing file is
+    /// preserved. The writer decides only whether the file exists; what to do
+    /// about it is declared here.
+    #[serde(default)]
+    pub append: bool,
+    /// The substring whose presence means an `append` file already carries this
+    /// block. `None` compares the whole contents.
+    ///
+    /// A marker rather than a whole-block comparison, because an adopter who
+    /// reformats or comments the stanza must not get a second copy on the next
+    /// `init`, and the driver name is the fact that matters.
+    #[serde(default)]
+    pub append_marker: Option<String>,
 }
 
 /// The full set of files `spec-spine init` writes.
@@ -26,6 +63,10 @@ pub struct ScaffoldFile {
 pub struct Scaffold {
     pub files: Vec<ScaffoldFile>,
 }
+
+/// The merge-driver name the `.gitattributes` stanza binds (spec 020). Its
+/// presence in an existing `.gitattributes` is what makes appending idempotent.
+const MERGE_DRIVER_NAME: &str = "spec-spine-derived-regen";
 
 /// Generate the adopter scaffold for `cfg`. Pure; performs no IO.
 ///
@@ -48,7 +89,15 @@ pub fn scaffold_init_with(cfg: &Config, with_kit: bool) -> Result<Scaffold, Erro
             scaffold.files.push(ScaffoldFile {
                 rel_path: (*rel_path).to_string(),
                 contents: (*contents).to_string(),
-                overwrite: false,
+                // Spec 074 3.4: every `.sh` the scaffold writes is executable.
+                // Set from the destination path rather than listed, so a script
+                // added to the kit later cannot be forgotten here.
+                executable: rel_path.ends_with(".sh"),
+                // Spec 074 3.3: the binding for the driver the hooks register.
+                append: *rel_path == ".gitattributes",
+                append_marker: (*rel_path == ".gitattributes")
+                    .then(|| MERGE_DRIVER_NAME.to_string()),
+                ..Default::default()
             });
         }
     }
@@ -64,7 +113,7 @@ pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
     let file = |rel_path: String, contents: String| ScaffoldFile {
         rel_path,
         contents,
-        overwrite: false,
+        ..Default::default()
     };
 
     let files = vec![

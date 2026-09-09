@@ -343,6 +343,20 @@ the other is how a governance file ends up outside both.
 > Commit the result. Nothing about what staleness *means* has changed; a surface
 > that was silently outside the ledger is now inside it.
 
+> **If your own `spec-spine.toml` carries `standards/**` or
+> `.github/workflows/**`** (spec 074 3.9), those entries match **no files**, and
+> upgrading does not change them: the value is yours, not the default, and spec
+> 069 only fixed the default. **The absence of a restale on upgrade is therefore
+> not evidence that you were unaffected.** It is the opposite: your patterns
+> never contributed a byte to any content hash, so there was nothing to move.
+> Rewrite them as `standards/**/*` and `.github/workflows/**/*`, run
+> `spec-spine index` once, and commit the result.
+>
+> Every repository scaffolded before v0.16.0 is in this cohort, because
+> `scaffold.rs` emitted the default's value into the file. Since spec 074,
+> `spec-spine lint` names the pattern for you: `L-010` refuses any
+> `extra_hashed_inputs` entry ending in `/**`.
+
 > **Upgrading across spec 073.** A GitHub Actions workflow now folds into the
 > content hash as its **governance projection**: the parsed document with the
 > pinned ref of every `uses:` reference removed and the action path kept. A

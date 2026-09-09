@@ -39,9 +39,11 @@ never this file, so every agent stays in sync.
   or `index`. A stale verdict is reported with the shards it names and the
   session continues; repairing the tree is the session's later, committed
   work, not a side effect of reading it.
-- A binary older than the checkout rejects `--check` with exit 2, the same
-  code as "stale". Read stderr: `unexpected argument` means rebuild or
-  reinstall the pinned version, not phantom drift.
+- Establish the binary's version before believing any exit code, which is the
+  read `AGENTS.md` step 1 schedules. A binary older than the checkout can
+  reject a flag the protocol passes, and reporting that as drift sends someone
+  chasing a phantom. Exit-code semantics live in `AGENTS.md`, which is where
+  the project layer lives.
 - A file the protocol names but cannot find is logged as "not found" and
   the protocol continues.
 

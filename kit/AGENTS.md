@@ -34,6 +34,9 @@ picked up on the next init.
    - `README.md`: full project description
    - `standards/spec/contract.md`: the short normative spec-spine contract
    - `standards/spec/constitution.md`: durable constitutional baseline
+   - `spec-spine --version`: the binary's version. **Read this before believing
+     any exit code below** (spec 074 3.7); the CLI-version note further down is
+     the reasoning, and this is the step that performs it.
    - `spec-spine compile --check`: freshness gate for the spec registry (non-fatal; see **Registry freshness** below)
    - `spec-spine index check`: staleness gate for the codebase index (non-fatal)
    - `spec-spine registry status-report --json --nonzero-only`: lifecycle counts
@@ -47,7 +50,9 @@ picked up on the next init.
 
 2. **Emit** an `## initialized: <your-project>` summary block (layer overview,
    recent activity, ready-to-help line), with a `## lifecycle:` sub-section
-   populated from the `status-report` output.
+   populated from the `status-report` output. **Consult the `--version` read
+   before reporting any freshness verdict**: a binary predating a flag a step
+   passed makes that step's exit code meaningless.
 
 **Read discipline:** the init protocol MUST NOT parse `.derived/**/*.json`
 directly (no `python`, `jq`, `awk`, `sed` against compiled artifacts). All
@@ -66,7 +71,8 @@ compiles in memory and compares **without writing**. Read the exit code:
 - **`0` (fresh):** the committed shards are exactly what the corpus compiles to,
   so the lifecycle counts reflect the current `specs/*/spec.md` frontmatter.
   Report nothing.
-- **`2` (stale):** *first check stderr, see the CLI-version note below.* If it
+- **`2` (stale):** *first check the `--version` read from step 1, see the
+  CLI-version note below.* If it
   is a genuine staleness report, name the drifted shards from stderr, report
   "Spec registry: stale, run `spec-spine compile` and commit", and continue. The
   lifecycle counts come from the committed ledger and are therefore the stale

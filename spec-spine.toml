@@ -5,6 +5,23 @@
 # explicitly to exercise the config parser and document the dogfood setup.
 # Every key here is optional; an absent file would behave identically.
 
+# Spec 074 3.8: this repository pins the version that governs it. Spec 062 built
+# the key for exactly the failure a dogfooding repository is most exposed to, an
+# in-tree `target/release/spec-spine` that predates the checkout, and this
+# repository was not using it.
+#
+# A FLOOR, not an exact pin. The failure guarded is one-directional (a binary
+# older than the corpus it judges), and `scripts/bump_version.py` does not touch
+# this key, so `= "0.17.0"` would turn the next release bump into a self-
+# inflicted exit 3 on every command. `>=` catches what 3.8 names and nothing
+# else.
+#
+# `Config` derives `deny_unknown_fields`, so a binary predating spec 062 fails
+# to deserialize this key and exits 3 with a config error, never 2. The signal
+# is unambiguous in both directions.
+[meta]
+required_version = ">=0.17.0"
+
 [manifest]
 # Our own crates carry `[package.metadata.spec-spine].spec = "NNN-slug"`.
 metadata_namespace = "spec-spine"

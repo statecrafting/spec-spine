@@ -266,3 +266,136 @@ fn with_kit_does_not_clobber_an_existing_agents_md() {
         "# mine\n"
     );
 }
+
+// ── spec 074 3.10: the guards run what was written ──────────────────────────
+//
+// Every defect this spec fixes was already covered by a test that asserted the
+// artifact EXISTED. A test that a file is written passes on a file nobody can
+// execute; a test that a key is emitted passes on a key that matches nothing.
+// These assertions exercise the artifact instead.
+
+/// Spec 074 3.4: a scaffolded executable arrives executable.
+///
+/// `init --with-kit` wrote `.githooks/enable-merge-driver.sh` at mode 644 while
+/// its own documentation invoked it as `./.githooks/enable-merge-driver.sh`.
+#[cfg(unix)]
+#[test]
+fn scaffolded_shell_scripts_are_executable_on_disk() {
+    use std::os::unix::fs::PermissionsExt;
+    let tmp = tempfile::tempdir().unwrap();
+    let out = run(tmp.path(), &["init", "--with-kit"]);
+    assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
+
+    let mut checked = 0;
+    for rel in [
+        ".githooks/enable-merge-driver.sh",
+        ".githooks/merge-derived-index.sh",
+    ] {
+        let p = tmp.path().join(rel);
+        assert!(p.is_file(), "{rel} was not written");
+        let mode = fs::metadata(&p).unwrap().permissions().mode();
+        assert!(mode & 0o111 != 0, "{rel} is not executable: mode {mode:o}");
+        checked += 1;
+    }
+    assert_eq!(checked, 2, "the guard must actually have found the scripts");
+
+    // And nothing else silently gained the bit.
+    let toml = fs::metadata(tmp.path().join("spec-spine.toml"))
+        .unwrap()
+        .permissions()
+        .mode();
+    assert_eq!(toml & 0o111, 0, "a non-script must stay non-executable");
+}
+
+/// Spec 074 3.3: `--with-kit` writes the binding for the driver it installs.
+///
+/// Spec 065 3.2 decided the stanza was "a block to append rather than a file to
+/// write" and excluded it, which shipped two merge-driver hooks with nothing
+/// binding them.
+#[test]
+fn with_kit_writes_the_merge_driver_binding_and_does_not_duplicate_it() {
+    let tmp = tempfile::tempdir().unwrap();
+    assert_eq!(code(&run(tmp.path(), &["init", "--with-kit"])), 0);
+
+    let ga = tmp.path().join(".gitattributes");
+    let first = fs::read_to_string(&ga).expect(".gitattributes was written");
+    assert!(
+        first.contains("merge=spec-spine-derived-regen"),
+        "the binding is missing: {first}"
+    );
+    let bindings = |s: &str| s.matches("merge=spec-spine-derived-regen").count();
+    let n = bindings(&first);
+    assert!(n > 0);
+
+    // A second run must add nothing.
+    assert_eq!(code(&run(tmp.path(), &["init", "--with-kit"])), 0);
+    let second = fs::read_to_string(&ga).unwrap();
+    assert_eq!(
+        bindings(&second),
+        n,
+        "appending must be idempotent, got:\n{second}"
+    );
+}
+
+/// The same, into a repository that already has a `.gitattributes`, which is
+/// most of them. The existing content must survive.
+#[test]
+fn the_binding_appends_to_an_existing_gitattributes() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(tmp.path(), ".gitattributes", "* text=auto eol=lf\n");
+    assert_eq!(code(&run(tmp.path(), &["init", "--with-kit"])), 0);
+
+    let after = fs::read_to_string(tmp.path().join(".gitattributes")).unwrap();
+    assert!(
+        after.contains("* text=auto eol=lf"),
+        "the adopter's own rules must be preserved: {after}"
+    );
+    assert!(
+        after.contains("merge=spec-spine-derived-regen"),
+        "the binding must be appended: {after}"
+    );
+}
+
+/// Spec 074 3.5: `init` does not create a corpus its own compiler refuses.
+///
+/// Run beside an existing `000` spec it wrote a second one, reported "0
+/// skipped", and left a tree the next `compile` rejects with `V-004`. The check
+/// is on the ORDINAL, not the directory name, because that is what V-004
+/// collides on.
+#[test]
+fn init_skips_a_bootstrap_spec_whose_ordinal_is_taken_and_the_result_compiles() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(
+        tmp.path(),
+        "specs/000-my-own-bootstrap/spec.md",
+        "---\nid: \"000-my-own-bootstrap\"\ntitle: \"B\"\nstatus: approved\n\
+         created: \"2026-01-01\"\nsummary: \"s\"\nestablishes:\n  - \"README.md\"\n\
+         ---\n# 000\n## body\n",
+    );
+
+    let out = run(tmp.path(), &["init"]);
+    assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        stdout.contains("skip (ordinal 000 already used by specs/000-my-own-bootstrap)"),
+        "the skip must say why, in the same voice as every other skip: {stdout}"
+    );
+    assert!(
+        !tmp.path().join("specs/000-bootstrap/spec.md").exists(),
+        "the colliding spec must not be written"
+    );
+    // Do not point the adopter at a file this run declined to write.
+    assert!(
+        !stdout.contains("customize specs/000-bootstrap/spec.md"),
+        "the closing hint names a skipped file: {stdout}"
+    );
+
+    // The whole point: the corpus `init` produced is one its own compiler accepts.
+    let compiled = run(tmp.path(), &["compile"]);
+    assert_eq!(
+        code(&compiled),
+        0,
+        "init must not produce a corpus compile refuses: {}",
+        String::from_utf8_lossy(&compiled.stderr)
+    );
+}

@@ -26,6 +26,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/tests/init.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/kit_embedded.rs",
         "source": "spec-edge"
       },
@@ -35,6 +39,10 @@
       },
       {
         "path": "crates/spec-spine-core/src/scaffold.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/lint.rs",
         "source": "spec-edge"
       },
       {
@@ -54,7 +62,15 @@
         "source": "spec-edge"
       },
       {
+        "path": "kit/README.md",
+        "source": "spec-edge"
+      },
+      {
         "path": "kit/scripts/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/gen-kit-embedded.py",
         "source": "spec-edge"
       },
       {
@@ -105,6 +121,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-cli/tests/init.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/init.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/src/kit_embedded.rs"
           }
         ],
@@ -139,6 +168,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/lint.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/lint.rs"
         }
       },
       {
@@ -196,6 +238,19 @@
       {
         "locations": [
           {
+            "file": "kit/README.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/README.md"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "kit/scripts/"
           }
         ],
@@ -204,6 +259,19 @@
         "unit": {
           "kind": "file",
           "path": "kit/scripts/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/gen-kit-embedded.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/gen-kit-embedded.py"
         }
       },
       {
@@ -237,5 +305,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "1543ea51abf6cc2ebbdccce0d12fb7dbe43304666c99e1e4aee2cb221b232967"
+  "shardHash": "2ee0529e759c4d37b692678979e1e30aebb4ec1be173bc75a04f19cc189bf2f6"
 }

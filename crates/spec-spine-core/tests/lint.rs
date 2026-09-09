@@ -270,6 +270,20 @@ fn an_unwitnessed_claim_is_an_l008_warning_naming_both_remedies() {
         "{}",
         v.message
     );
+    // Spec 074 3.2, conformance with 057: naming both remedies is not enough.
+    // 057 requires the message to say how they DIFFER, and the shipped string
+    // dropped that, so it read as a pick-either and sent an adopter to the
+    // wrong one. A glob restamps every shard; a span-backed unit stales one.
+    assert!(
+        v.message.contains("EVERY shard"),
+        "the glob's cost must be stated: {}",
+        v.message
+    );
+    assert!(
+        v.message.contains("span"),
+        "the unit's narrower blast radius must be stated: {}",
+        v.message
+    );
     assert_eq!(v.path.as_deref(), Some("specs/001-x/spec.md"));
 }
 
@@ -535,4 +549,85 @@ fn retroactive_origin_alone_produces_no_diagnostic() {
         "{:?}",
         report.violations
     );
+}
+
+// ── spec 074 3.1 and 3.10: L-010, a pattern that can match no file ──────────
+
+/// A corpus with one well-formed spec and the given `extra_hashed_inputs`.
+fn corpus_with_hashed_inputs(patterns: &[&str]) -> (tempfile::TempDir, Config) {
+    let tmp = tempfile::tempdir().unwrap();
+    write(tmp.path(), "specs/001-a/spec.md", &spec("001-a", &[]));
+    write(tmp.path(), "src/001-a.rs", "pub fn a() {}\n");
+    let list: String = patterns
+        .iter()
+        .map(|p| format!("\"{p}\", "))
+        .collect::<String>();
+    let cfg = load_config(&format!("[index]\nextra_hashed_inputs = [{list}]\n")).unwrap();
+    (tmp, cfg)
+}
+
+fn codes(tmp: &tempfile::TempDir, cfg: &Config) -> Vec<(String, Severity)> {
+    spec_spine_core::lint::lint(cfg, tmp.path())
+        .unwrap()
+        .violations
+        .into_iter()
+        .map(|v| (v.code, v.severity))
+        .collect()
+}
+
+/// Spec 074 3.1: `dir/**` enumerates directories and the hasher keeps only
+/// files, so the pattern can contribute no bytes to any content hash whatever
+/// the tree contains. Two adopters hit this on the same day.
+#[test]
+fn l010_refuses_a_hashed_input_pattern_that_can_match_no_file() {
+    let (tmp, cfg) = corpus_with_hashed_inputs(&["standards/**", "crates/**"]);
+    let found = codes(&tmp, &cfg);
+    let l010: Vec<_> = found.iter().filter(|(c, _)| c == "L-010").collect();
+    assert_eq!(l010.len(), 2, "one per broken pattern: {found:?}");
+    // Warning tier, so `lint --fail-on-warn` refuses it. Unlike `L-008` this is
+    // never a state a corpus holds deliberately: an adopter who wants to match
+    // nothing writes no entry.
+    assert!(
+        l010.iter().all(|(_, sev)| *sev == Severity::Warning),
+        "L-010 must be warning tier: {found:?}"
+    );
+}
+
+/// The other half of 3.10's requirement: it must NOT fire on the working form.
+/// A rule that flagged both would just be noise on the fix it recommends.
+#[test]
+fn l010_is_silent_on_the_working_glob_form() {
+    let (tmp, cfg) = corpus_with_hashed_inputs(&["standards/**/*", ".github/workflows/**/*"]);
+    assert!(
+        !codes(&tmp, &cfg).iter().any(|(c, _)| c == "L-010"),
+        "the working form must not be flagged"
+    );
+}
+
+/// Spec 074 3.1: the check is on the PATTERN, not on whether it currently
+/// matches. A forward-looking entry in a specify-first corpus matches nothing
+/// today and is legitimate; that false positive is why spec 069 4 deferred this
+/// lint, and narrowing to the one unconditionally inert form is the answer.
+#[test]
+fn l010_does_not_fire_on_a_pattern_that_merely_matches_nothing_yet() {
+    let (tmp, cfg) = corpus_with_hashed_inputs(&["not/written/yet/**/*", "future.md"]);
+    assert!(
+        !codes(&tmp, &cfg).iter().any(|(c, _)| c == "L-010"),
+        "a pattern that matches nothing YET is not the same as one that never can"
+    );
+}
+
+/// Spec 074 3.2: the message must name the working form, because the entire
+/// cost of this defect is that the broken form looks correct.
+#[test]
+fn the_l010_message_names_the_working_form() {
+    let (tmp, cfg) = corpus_with_hashed_inputs(&["standards/**"]);
+    let msg = spec_spine_core::lint::lint(&cfg, tmp.path())
+        .unwrap()
+        .violations
+        .into_iter()
+        .find(|v| v.code == "L-010")
+        .expect("L-010 fired")
+        .message;
+    assert!(msg.contains("standards/**/*"), "{msg}");
 }
