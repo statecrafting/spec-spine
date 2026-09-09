@@ -195,6 +195,15 @@ keeps it from becoming a state nobody owns the exit from. Spec 041 established
 that `complete` ends the in-flight window; this extends the same principle to
 the new field.
 
+**`complete` is the only bound, deliberately.** A spec that is `approved` and
+`implementation: pending` may carry planned units for as long as that state is
+honest, which on a specify-first corpus is months. Adding an intermediate
+deadline would mean inventing a clock, and every clock this corpus has
+considered has been refused for the same reason: it makes an artifact depend on
+when it was built rather than on what it contains. The exit is owned by the
+lifecycle field, and `L-012` covers the other direction by catching a flag that
+has become false in fact.
+
 ### 3.4 A planned unit that has resolved is reported
 
 When a unit marked `planned` **does** resolve on disk, the lint MUST emit
@@ -225,6 +234,21 @@ spec introduces no second set.
   nothing to extend: the unit does not exist, and its planner does not yet own
   it.
 
+**These checks run over declared units at compile time, not over the resolved
+graph.** Naming the pipeline stage matters here, because the obvious reading is
+wrong: the existing duplicate-ownership machinery operates on `TraceMapping`,
+and 3.2 excludes a planned unit from ever producing one. A collision between
+two planned claims would therefore have nothing to ride on, and a rule that
+cannot fire is worse than no rule, because the spec would promise a refusal
+that never happens.
+
+`compile` sees every declared edge and unit before any resolution, which is
+exactly the view these three rules need: two specs declaring the same planned
+unit, a planned unit whose path another spec already owns, and an `extends`
+naming a planned unit are all decidable from the corpus frontmatter alone. The
+refusals are therefore compile-time validation errors in the `V-` band, not
+index diagnostics, and they fire whether or not the path exists on disk.
+
 ### 3.6 The ledger records planned territory as a state
 
 A planned unit MUST be recorded in the emitted artifacts as a **declared
@@ -254,6 +278,15 @@ comment.
 Emitting the field where it is absent MUST NOT change existing output:
 `planned` is serialized only when true, so every shard of a corpus that uses no
 planned units is byte-identical across this change and no re-index is needed.
+
+**A written `planned: false` MUST normalize to absent.** Section 3.1 accepts it
+on input and gives it the meaning of omission, so a tool that read it and wrote
+it back verbatim would emit a shard that differs from the one the same corpus
+compiles to from scratch. That is a determinism break of exactly the kind the
+four-triple gate exists to catch, and it would surface as an inexplicable
+staleness rather than as a bug in the round-trip. Normalizing on write keeps
+one canonical form for one meaning, which is the rule the rest of the emitter
+already follows.
 
 ## 4. Out of scope
 
