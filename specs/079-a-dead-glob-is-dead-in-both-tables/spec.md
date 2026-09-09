@@ -140,9 +140,9 @@ The slice message MUST therefore speak about the slice's own hash, the one
 hash is affected. Reusing the existing sentence verbatim would ship a false
 statement under a true code.
 
-The prohibition is on the **claim**, in whichever spelling: neither
-`content hash` nor `contentHash` may appear in a slice's `L-010` message. Naming
-both forms is not pedantry. The acceptance in 3.4 asserts the absence of that
+The prohibition is on the **claim**, in whichever spelling: none of
+`content hash`, `content-hash` or `contentHash` may appear in a slice's `L-010`
+message, in any capitalisation. Naming every form is not pedantry. The acceptance in 3.4 asserts the absence of that
 phrase, and an assertion that matches only one spelling passes trivially against
 an implementation that emits the other, which would leave the rule this section
 exists to enforce untested.
@@ -154,6 +154,13 @@ cannot demonstrate the rule and could not regress if the rule were deleted.
 Acceptance MUST construct a config that trips the rule and assert the refusal
 against it, and MUST also assert the corrected form passes, so the test pins
 the boundary rather than the mere presence of a warning.
+
+The refusal assertion MUST be attributable to this rule. A bare `test $? -eq 1`
+on `lint --fail-on-warn` is satisfied by **any** warning, so it would pass on a
+fixture that tripped something unrelated, and would go on passing if this rule
+were later deleted while another warning took its place. The assertion MUST
+therefore check the same invocation's output for the slice violation as well as
+its exit code.
 
 The negative assertion of 3.3 MUST be scoped to the slice's own line, which
 3.2's one-line rule makes sound, rather than run over the whole output: the
@@ -268,8 +275,10 @@ cargo build --release --locked
 cargo test -p spec-spine-core --test lint --locked
 # 3.1: a fixture whose only defect is a dead pattern in a slice.
 rm -rf "${TMPDIR:-/tmp}/ss079" && mkdir -p "${TMPDIR:-/tmp}/ss079/specs/001-x" && printf '[index.slices]\nworkflows = [".github/workflows/**"]\n' > "${TMPDIR:-/tmp}/ss079/spec-spine.toml" && printf -- '---\nid: "001-x"\ntitle: "x"\nstatus: draft\ncreated: "2026-09-09"\nsummary: "x"\nestablishes:\n  - "specs/001-x/spec.md"\n---\n\n# x\n' > "${TMPDIR:-/tmp}/ss079/specs/001-x/spec.md"
-# 3.1: the warning tier refuses it under --fail-on-warn.
-target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint --fail-on-warn ; test $? -eq 1
+# 3.1: the refusal is attributable to this rule. Exit 1 alone would be
+# satisfied by any warning at all, so the same invocation's output must also
+# carry the slice violation. One line, so no state crosses a line boundary.
+o=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint --fail-on-warn 2>&1) ; test $? -eq 1 && printf '%s\n' "$o" | grep -F 'L-010' | grep -qF 'index.slices'
 # 3.2: the message names the table and the slice.
 # Chained, not three independent greps: separate greps prove only that each
 # string appears somewhere, which an implementation splitting the message across
@@ -282,7 +291,7 @@ target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint
 # 3.3: no line about a slice claims a content hash is affected. The line above
 # already asserts a slice line exists, so this one only has to be negative, and
 # it runs the binary once.
-! target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -F 'index.slices' | grep -qiE 'content ?hash'
+! target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint 2>&1 | grep -F 'index.slices' | grep -qiE 'content[ -]?hash'
 # 3.4: the corrected form passes, so the test pins the boundary.
 printf '[index.slices]\nworkflows = [".github/workflows/**/*"]\n' > "${TMPDIR:-/tmp}/ss079/spec-spine.toml" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss079" lint --fail-on-warn
 rm -rf "${TMPDIR:-/tmp}/ss079"

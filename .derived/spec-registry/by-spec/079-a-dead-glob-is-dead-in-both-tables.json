@@ -48,6 +48,6 @@
     "summary": "`L-010` refuses a pattern ending in `/**` in `[index] extra_hashed_inputs`, where it enumerates directories and can contribute no bytes. `[index.slices]` carries pattern lists with the same documented semantics and the same file-only walk, and the lint is silent about it. An adopter audited on 2026-09-09 carried seventeen dead patterns, nine in the table the lint reads and eight in the table it does not. A fix pass corrected all nine and six of the eight; the two survivors reached an already-reviewed pull request and were caught by a second human reading, since no tool could report them. Both pointed at directories that do not exist yet, so they would have stayed silently empty on the day those directories arrived. This spec extends the rule to the second table, and requires the slice message to speak about the slice's own hash rather than repeating a sentence about `contentHash` that is false for slices.\n",
     "title": "A dead glob is dead in both tables"
   },
-  "shardHash": "5bcfe8d5bfaebf445c02d5226e40438fd1f4279ffac88dbb5e9b74ed970c772b",
+  "shardHash": "73393c1dfb78ee4b9f46b070c2090220cab3c8ed3be61242fa70635d9d0fdaa9",
   "specVersion": "1.2.0"
 }
