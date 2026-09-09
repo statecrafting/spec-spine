@@ -45,8 +45,8 @@
       }
     ],
     "specId": "079-a-dead-glob-is-dead-in-both-tables",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "b4d48533e8fadb5e546c68a7e843a5a66d7ede71104fa98600c6e85cc2a83dea"
+  "shardHash": "5de7f0486158f1f077e997b833052712b298201a02642ff024c36c3ded8ead0f"
 }

@@ -59,7 +59,7 @@ and the embedded index JSON schema; the new check surfaces through 001's
 ```toml
 [index.slices]
 agent-config = [".claude/settings.json", ".mcp.json"]
-workflows    = [".github/workflows/**"]
+workflows = [".github/workflows/**/*"]
 ```
 
 - Each key is a slice name (`[a-z0-9][a-z0-9-]*`); each value is a non-empty
