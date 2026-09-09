@@ -1,5 +1,12 @@
 # AGENTS.md: spec-spine
 
+> **Governed by `specs/078-the-protocol-has-an-owner/spec.md`.** This file is the
+> cross-agent protocol and the canonical spelling of the gate chain, so the spec
+> that claims it is named here: a reader editing this document should not have to
+> compile the registry to learn which spec they are editing under. The claim is
+> prose rather than a `// Spec:` header, because that grammar is defined over the
+> source extensions in `coverage.rs::SOURCE_EXTS` and markdown is not among them.
+
 ## New Sessions
 
 Run `/prime` as the mandatory first action of every new session. The command reads this section to derive its execution plan dynamically: any item added here is automatically picked up on the next init. This file is the cross-agent authority (read by Claude Code, Codex CLI, Cursor, Copilot, and any future agent via the AAIF/Linux Foundation AGENTS.md standard).

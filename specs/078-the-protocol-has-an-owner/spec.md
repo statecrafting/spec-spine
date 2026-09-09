@@ -4,7 +4,7 @@ title: "The protocol has an owner"
 status: draft
 kind: "governance"
 created: "2026-09-08"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -25,14 +25,14 @@ summary: >
   corpus establishes it. Seven approved specs reach it with an `extends` edge
   naming spec 029, but 029 establishes exactly one unit, `kit/`, and root
   `AGENTS.md` is outside that subtree, so the ledger records an owner that
-  never claimed the file. Nothing catches this: no validation confirms an
-  `extends` unit appears in its target's territory. This spec claims the file
-  where it should have been claimed, and requires the file to name the spec
-  that governs it, which is the same "a file naming its own spec" move the
-  comment headers make for source. It corrects the ledger only; it changes no
-  behavior, amends nobody, and deliberately leaves the seven inherited edges
-  alone, because repointing another spec's frontmatter is that spec's business
-  and spec 079 is where the migration is decided.
+  never established the file. That is not a defect: `extends` means "adds
+  surface to a predecessor", so those edges are the corpus's ordinary
+  convention, and measurement confirms it. What is genuinely missing is
+  narrower. The protocol file has no `establishes` claim at all, so the ledger
+  has no direct answer to who owns it. This spec supplies one, and requires the
+  file to name the spec that governs it, the same "a file naming its own spec"
+  move the comment headers make for source. It clarifies the ledger only; it
+  changes no behavior and amends nobody.
 ---
 
 # 078: The protocol has an owner
@@ -83,13 +83,13 @@ rare case where the correct edge is no edge at all.
 correctly attributed there. The two files are near-copies and it would be easy
 to sweep both; only one is wrong.
 
-**The seven inherited edges are deliberately not repointed.** Each lives in
-another spec's frontmatter, and six of those seven are approved. Editing them
-would mean editing seven approved specs to correct a record, which is a
-different act from filing a claim, and one an agent does not perform on its own
-authority. Section 3.3 states what the corpus should do about them; spec 079,
-which adds the validation that would refuse them, is where the migration is
-sequenced, because a check and the debt it creates belong in one decision.
+**The seven existing edges are correct and are left alone.** They were first
+read as a misattribution to be migrated. Measurement over the corpus refuted
+that: a large minority of unit-carrying `extends` edges name a target that
+never established the unit, across more than fifty specs, and `extends` is the
+sole claim for about a fifth of this repository's source files. `edges.rs`
+defines the edge as "adds surface to a predecessor", which is what those seven
+do. There is nothing to repoint and no debt to retire.
 
 ## 3. Behavior
 
@@ -125,32 +125,30 @@ the extensions in `SOURCE_EXTS`, markdown is not among them, and inventing a
 markdown dialect of it would create a second claim mechanism the indexer does
 not read.
 
-### 3.3 The inherited edges are recorded, not rewritten
+### 3.3 Existing edges are not touched
 
-This spec MUST NOT edit the frontmatter of specs 047, 048, 051, 063, 072, 074
-or 075.
+This spec MUST NOT edit the frontmatter of any other spec.
 
-New specs SHOULD name `078-the-protocol-has-an-owner` when declaring an
-`extends` edge on root `AGENTS.md`. This is a SHOULD rather than a MUST because
-nothing validates it yet; spec 079 is what makes it enforceable, and a
-requirement no verb can check is a wish.
+An `extends` edge naming root `AGENTS.md` MAY name any spec whose surface it
+adds to, as it always could. Adding an `establishes` claim does not make the
+existing edges wrong, and this spec creates no obligation to repoint them: the
+edge type means "adds surface to a predecessor", and a claim on the file is a
+separate statement from the edges that extend it.
 
-The seven existing edges remain as they are and are hereby **named debt**,
-in the sense spec 032 §3.8 used the term: an explicit, written-down gap with a
-retirement path, rather than an invisible one. Spec 079 decides how it is
-retired, because the check that refuses these edges and the correction of the
-edges it refuses are one decision, and splitting them across two specs would
-put the corpus in a state its own gate rejects.
+There is deliberately no migration, no debt entry and no follow-on. An earlier
+draft of this section prescribed all three, on the belief that the existing
+edges were misattributed; section 5 records why that was withdrawn.
 
 ## 4. Out of scope
 
-**Validating that an `extends` unit appears in its target's territory.** That
-is the mechanism whose absence let this survive seven ratifications, and it is
-spec 079. It is corpus-wide validation with its own blast radius, and it must
-ship together with a decision about the seven edges it would immediately
-refuse.
-
-**Repointing the seven inherited edges.** Section 3.3, and spec 079.
+**Validating that an `extends` unit appears in its target's territory.**
+Proposed while this spec was drafted and since **refuted** rather than
+deferred. Such a check would refuse a large minority of the corpus's edges
+across more than fifty specs, contradict the edge's documented meaning, and
+strip the only claim about a fifth of this repository's source files carry. It
+is named here so it is not proposed again as an obvious missing gate. If
+visibility into the shape is ever wanted, it belongs as a tier on the
+`index coverage` read verb and never as a gate.
 
 **Claiming the other unowned governance files.** This spec fixes the file it
 names and does not go looking. A sweep of every unclaimed root-level document
@@ -181,16 +179,32 @@ ownership would report that as two units without adding a fact anyone needs.
 The one heading that genuinely is a contract, `## New Sessions`, is already
 protected by spec 075 §3.1, which requires it not to change.
 
-**2026-09-08: the seven inherited edges stay, and are called debt rather than
-left unmentioned.** The tempting move is to correct all seven while the subject
-is fresh. It was refused for two reasons. Six of the seven are approved specs,
-and correcting an approved spec's frontmatter is a human's decision, not an
-agent's, even when the correction is factual. And a correction landing before
-spec 079's check exists would be unverifiable: nothing would prove the corpus
-was clean afterwards, so the work would have to be redone as an audit anyway
-once the check landed. Spec 032 shipped its ratchet off with the debt named and
-retired it later with the check in hand; this follows that precedent
-deliberately.
+**2026-09-08: the seven edges were called a misattribution, and the count says
+they are the convention.** This spec was drafted believing that an `extends`
+edge naming a unit outside its target's territory was a defect, that the seven
+specs extending 029 for root `AGENTS.md` had inherited one, and that a
+follow-on spec should add a check and migrate them. Measurement through typed
+reads refuted all three at once:
+
+```
+unit-carrying extends edges                        435
+  target never establishes the unit    a large minority, 50+ specs
+tracked source files                                95
+  established directly                              71
+  claimed only through an extends edge              17
+```
+
+`edges.rs` defines the edge as "adds surface to a predecessor", and that is
+exactly what those edges do. The follow-on spec was dropped, section 3.3's
+migration was withdrawn, and section 4 records the check as refused rather
+than deferred.
+
+Kept as a correction rather than deleted, because the belief reached three
+artifacts before anyone counted, and the transferable lesson is procedural:
+measure how common a pattern is, through a typed read, before filing a spec
+that would validate against it. What survives of this spec is the part the
+measurement never touched, which is that the protocol file had no
+`establishes` claim and now has one.
 
 **2026-09-08: the ownership line is prose, not a `// Spec:` header.** The
 header grammar is defined over `SOURCE_EXTS`, which is rs, ts, tsx, js, jsx, go,
