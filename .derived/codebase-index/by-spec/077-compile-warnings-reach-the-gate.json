@@ -337,8 +337,8 @@
       }
     ],
     "specId": "077-compile-warnings-reach-the-gate",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "bd2c7835f4ad2b2824c88cecb3e45a570936586d68095bc0a79b9cfebc39b900"
+  "shardHash": "30c7eea75e7d0a04c58d1d24c61e101e30cd9a0de43670af16c8dd4145e0cdd4"
 }

@@ -185,10 +185,10 @@
       "Verification"
     ],
     "specPath": "specs/077-compile-warnings-reach-the-gate/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`V-010`, a `depends_on` naming a spec that does not exist, is the only warning-tier code the compiler emits, and no verb in the gate chain can be told to refuse it. `lint --fail-on-warn` cannot reach it: lint's codes are disjoint from compile's by design, and `lint()` keeps only the registry from the compile it runs. So a dangling dependency compiles clean, lints clean at every severity, and reaches the default branch unread. This spec adds `--fail-on-warn` to `compile` and forwards it through `check` into the compile half, the shape spec 050's `--fail-on-unresolved` already uses for the index half. The flag gates the CLI's exit code only; `validation.passed` keeps the meaning spec 001 fixed for it, and `V-010` keeps its warning tier, because a corpus that files specs forward must be able to name a dependency it has not written yet. Zero `V-010`s exist today: the gap is structural, and this spec closes it before it costs something.\n",
     "title": "Compile warnings reach the gate"
   },
-  "shardHash": "4e0a3b8f2a031c219fd960f54172564e382e53ecfecd91448e9b937530c574e8",
+  "shardHash": "cd69b2a7342bae22ed884670e8e2574cadaf3b156dd34bf8aa83cb481bf435a5",
   "specVersion": "1.2.0"
 }
