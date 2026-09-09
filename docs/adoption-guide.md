@@ -343,6 +343,23 @@ the other is how a governance file ends up outside both.
 > Commit the result. Nothing about what staleness *means* has changed; a surface
 > that was silently outside the ledger is now inside it.
 
+> **Upgrading across spec 073.** A GitHub Actions workflow now folds into the
+> content hash as its **governance projection**: the parsed document with the
+> pinned ref of every `uses:` reference removed and the action path kept. A
+> Dependabot action bump therefore stales nothing, while a changed action, an
+> unpin, a `run:` / `with:` / `env:` / `if:` edit, an added step and a changed
+> trigger all still do. If you hash your workflows, your next `spec-spine
+> index` rewrites every shard once, exactly as the npm and cargo projections
+> did before it. Commit the result. No schema version changes: only a hash
+> value moves.
+>
+> If you seal your ledger (spec 023), a **corpus attestation created before
+> this change** was computed over hashes from the previous rule. Re-attest
+> after re-indexing. `verify-attestation --recompute` compares the tool version
+> before it compares content, so a pre-073 attestation reports
+> `VersionMismatch` with the remedy in the message, never a content mismatch:
+> this reads as an upgrade, not as tampering.
+
 ## Directory units claim recursively
 
 A `file` unit with a **trailing slash** is a subtree claim:

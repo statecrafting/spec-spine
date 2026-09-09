@@ -535,37 +535,89 @@ fn workflow_uses_bump_auto_waives() {
          steps:\n      - uses: actions/checkout@v5\n      - run: cargo test\n",
     );
 
-    // The bump stales the ledger, because `.github/workflows/**/*` is a hashed
-    // input (spec 069 fixed the default that had made it one in name only).
-    // 030 1 reasoned that workflow freshness "is already fine" because a `file`
-    // unit carries no span; that is true of the unit and was never true of the
-    // `extra_hashed_inputs` glob beside it, which is why this repository's own
-    // workflow edits have stale every shard since spec 057. The subject of this
-    // test is the coupling half, so re-index first and then assert it.
-    let stale = index_check(root);
-    assert_eq!(
-        code(&stale),
-        2,
-        "a hashed workflow bump stales the index: {}",
-        String::from_utf8_lossy(&stale.stderr)
-    );
-    refresh(root);
-    git_in(root, &["add", "-A"]);
-    git_in(root, &["commit", "-q", "-m", "bump-action"]);
-
+    // Spec 073 3.4: the bump leaves the index FRESH, with no re-index in
+    // between. `.github/workflows/**/*` is a hashed input (spec 069 fixed the
+    // default that had made it one in name only), so before 073 this same bump
+    // moved the global-inputs scalar and staled every shard in the repository.
+    // That is the wall a Dependabot PR met: the bot has no toolchain to
+    // re-index, no write path to commit shards, and no way to put a waiver in
+    // a body it does not author. Spec 069 3.6 required this test to assert the
+    // stale-then-reindex sequence; 073 amends that, and the projection is what
+    // makes the assertion below true.
     let fresh = index_check(root);
     assert_eq!(
         code(&fresh),
         0,
-        "the re-indexed tree is fresh: {}",
+        "a `uses:` bump must leave the index fresh: {}",
         String::from_utf8_lossy(&fresh.stderr)
     );
+
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "bump-action"]);
 
     let out = couple_git(root);
     assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
     assert!(
         String::from_utf8_lossy(&out.stdout).contains("auto-waived"),
         "stdout: {}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+}
+
+/// Spec 073 3.4's companion: the other direction, on the same fixture.
+///
+/// Without it the suite proves only that the projection is permissive, not
+/// that it is correct, which is the shape of assertion spec 069 3.6 was
+/// written to end. A `run:` edit is a governed change to a claimed file: it
+/// stales the ledger and it refuses the waiver.
+#[test]
+fn workflow_run_edit_stales_the_index_and_refuses_the_waiver() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_cargo(root, true);
+    write(
+        root,
+        ".github/workflows/ci.yml",
+        "name: CI\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    \
+         steps:\n      - uses: actions/checkout@v4\n      - run: cargo test\n",
+    );
+    write(
+        root,
+        "specs/002-ci/spec.md",
+        "---\nid: \"002-ci\"\ntitle: \"CI\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\nestablishes:\n  - \".github/workflows/ci.yml\"\n---\n# 002-ci\n## body\n",
+    );
+    git_in(root, &["init", "-q"]);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base"]);
+
+    // Not a version bump: the step now runs something else.
+    write(
+        root,
+        ".github/workflows/ci.yml",
+        "name: CI\non: [push]\njobs:\n  build:\n    runs-on: ubuntu-latest\n    \
+         steps:\n      - uses: actions/checkout@v4\n      - run: cargo bench\n",
+    );
+
+    let stale = index_check(root);
+    assert_eq!(
+        code(&stale),
+        2,
+        "a `run:` edit must stale the index: {}",
+        String::from_utf8_lossy(&stale.stderr)
+    );
+
+    // Re-index so the refusal below is the coupling gate's, not staleness.
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "run-edit"]);
+
+    let out = couple_git(root);
+    assert_eq!(
+        code(&out),
+        1,
+        "a `run:` edit must refuse the auto-waiver: {}",
         String::from_utf8_lossy(&out.stdout)
     );
 }

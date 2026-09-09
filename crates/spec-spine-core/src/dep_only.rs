@@ -342,6 +342,112 @@ fn uses_ref_only_differs(base: &serde_yaml::Value, head: &serde_yaml::Value) -> 
 mod tests {
     use super::*;
 
+    // ===== spec 073 3.2: the projection and this waiver state one rule =====
+
+    /// The shared matrix. Each row is a base/head workflow pair and whether
+    /// spec 030's waiver clears it.
+    ///
+    /// Spec 073 3.2 requires the two mechanisms to agree, and requires it to
+    /// be asserted over a shared matrix rather than assumed from the two
+    /// implementations looking similar. The failure it prevents is the one the
+    /// gate is worst at surfacing: a bump that self-clears the coupling gate
+    /// while still staling the ledger is precisely the wall spec 073 removes,
+    /// and it would return the moment the two rules drifted apart.
+    const WF_BASE: &str = "name: CI\njobs:\n  b:\n    runs-on: ubuntu-latest\n    \
+                           steps:\n      - uses: actions/checkout@v4\n      \
+                           - uses: local/act\n      - run: cargo test\n";
+
+    fn wf_cases() -> Vec<(&'static str, String, bool)> {
+        vec![
+            (
+                "a tag bump",
+                WF_BASE.replace("checkout@v4", "checkout@v5"),
+                true,
+            ),
+            (
+                "a SHA-pin bump",
+                WF_BASE.replace("checkout@v4", "checkout@8f152de4"),
+                true,
+            ),
+            ("no change at all", WF_BASE.to_string(), true),
+            (
+                "a changed action path",
+                WF_BASE.replace("actions/checkout@v4", "attacker/checkout@v4"),
+                false,
+            ),
+            (
+                "an unpinned action",
+                WF_BASE.replace("actions/checkout@v4", "actions/checkout"),
+                false,
+            ),
+            (
+                "a newly pinned action",
+                WF_BASE.replace("local/act", "local/act@v1"),
+                false,
+            ),
+            (
+                "a run edit",
+                WF_BASE.replace("cargo test", "cargo bench"),
+                false,
+            ),
+            (
+                "an added step",
+                WF_BASE.replace(
+                    "      - run: cargo test",
+                    "      - run: echo x\n      - run: cargo test",
+                ),
+                false,
+            ),
+            (
+                "an added key",
+                WF_BASE.replace("name: CI", "name: CI\non: [push]"),
+                false,
+            ),
+        ]
+    }
+
+    /// Both directions: a waived change leaves the projection alone, and a
+    /// change to the projection refuses the waiver. Spec 073 3.2 requires only
+    /// the first, but the two rules were written to agree case for case (the
+    /// empty-action-path form `@v1` is preserved verbatim by the projection
+    /// exactly because `uses_ref_only_differs` refuses it), so the stronger
+    /// assertion is the one that would actually catch a drift.
+    #[test]
+    fn the_projection_and_the_workflow_waiver_agree() {
+        use crate::manifest::workflow_hash_projection as proj;
+        let base_proj = proj(WF_BASE).expect("the base fixture parses");
+        for (label, head, waived) in wf_cases() {
+            assert_eq!(
+                workflow_dependency_only_change(WF_BASE, &head),
+                waived,
+                "{label}: the waiver disagrees with the matrix"
+            );
+            let head_proj = proj(&head).expect("the head fixture parses");
+            assert_eq!(
+                base_proj == head_proj,
+                waived,
+                "{label}: waived={waived} but projection-unchanged={}",
+                base_proj == head_proj
+            );
+        }
+    }
+
+    /// The one case where the two are permitted to differ, pinned so a later
+    /// reader does not mistake it for a defect: a `uses:` with an empty action
+    /// path has nothing to preserve, so the projection leaves it verbatim and
+    /// the waiver refuses it. Both are fail-closed, and the ledger stales.
+    #[test]
+    fn an_empty_action_path_is_refused_by_both() {
+        use crate::manifest::workflow_hash_projection as proj;
+        // Quoted: `@` opens a reserved indicator in YAML, so the bare form is
+        // not a parseable document at all (where both mechanisms also agree,
+        // by failing closed).
+        let base = WF_BASE.replace("actions/checkout@v4", "\"@v4\"");
+        let head = WF_BASE.replace("actions/checkout@v4", "\"@v5\"");
+        assert!(!workflow_dependency_only_change(&base, &head));
+        assert_ne!(proj(&base).unwrap(), proj(&head).unwrap());
+    }
+
     fn fc(path: &str, base: &str, head: &str) -> FileContents {
         FileContents {
             path: path.to_string(),
