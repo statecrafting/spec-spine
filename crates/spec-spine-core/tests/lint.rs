@@ -632,6 +632,130 @@ fn the_l010_message_names_the_working_form() {
     assert!(msg.contains("standards/**/*"), "{msg}");
 }
 
+// ── spec 079 3.1 to 3.4: L-010 reads `[index.slices]` too ───────────────────
+
+/// A corpus with one well-formed spec and the given `[index.slices]` table.
+/// No `extra_hashed_inputs`, so every `L-010` here is attributable to a slice.
+fn corpus_with_slices(slices: &[(&str, &[&str])]) -> (tempfile::TempDir, Config) {
+    let tmp = tempfile::tempdir().unwrap();
+    write(tmp.path(), "specs/001-a/spec.md", &spec("001-a", &[]));
+    write(tmp.path(), "src/001-a.rs", "pub fn a() {}\n");
+    let table: String = slices
+        .iter()
+        .map(|(name, patterns)| {
+            let list: String = patterns.iter().map(|p| format!("\"{p}\", ")).collect();
+            format!("{name} = [{list}]\n")
+        })
+        .collect();
+    let cfg = load_config(&format!("[index.slices]\n{table}")).unwrap();
+    (tmp, cfg)
+}
+
+fn l010_messages(tmp: &tempfile::TempDir, cfg: &Config) -> Vec<(String, Severity)> {
+    spec_spine_core::lint::lint(cfg, tmp.path())
+        .unwrap()
+        .violations
+        .into_iter()
+        .filter(|v| v.code == "L-010")
+        .map(|v| (v.message, v.severity))
+        .collect()
+}
+
+/// Spec 079 3.1: the same rule, the same code, the same tier, applied to every
+/// pattern in every slice. The check is on the pattern: `deploy/**` pointed at
+/// a directory that did not exist yet, which is exactly the entry that would
+/// have stayed silently empty on the day it arrived.
+#[test]
+fn l010_refuses_a_slice_pattern_that_can_match_no_file() {
+    let (tmp, cfg) = corpus_with_slices(&[
+        ("workflows", &[".github/workflows/**"]),
+        ("ops", &["deploy/**", "eval/**", "Makefile"]),
+    ]);
+    let found = l010_messages(&tmp, &cfg);
+    assert_eq!(found.len(), 3, "one per dead pattern: {found:?}");
+    assert!(
+        found.iter().all(|(_, sev)| *sev == Severity::Warning),
+        "L-010 stays warning tier for slices: {found:?}"
+    );
+}
+
+/// Spec 079 3.4: the corrected form passes, so the test pins the boundary and
+/// not the mere presence of a warning.
+#[test]
+fn l010_is_silent_on_the_working_slice_form() {
+    let (tmp, cfg) = corpus_with_slices(&[
+        ("workflows", &[".github/workflows/**/*"]),
+        ("ops", &["deploy/**/*", "not/written/yet/**/*", "Makefile"]),
+    ]);
+    assert!(
+        l010_messages(&tmp, &cfg).is_empty(),
+        "the working form must not be flagged"
+    );
+}
+
+/// Spec 079 3.2: one code now covers two tables, so the message names the
+/// table and the slice, on one line, so a reader can find the offending line
+/// without guessing which table it came from.
+#[test]
+fn the_slice_l010_message_names_the_table_the_slice_and_the_working_form() {
+    let (tmp, cfg) = corpus_with_slices(&[("workflows", &[".github/workflows/**"])]);
+    let found = l010_messages(&tmp, &cfg);
+    let (msg, _) = found.first().expect("L-010 fired");
+    assert!(!msg.contains('\n'), "one line per violation: {msg:?}");
+    assert!(msg.contains("[index.slices]"), "{msg}");
+    assert!(msg.contains("'workflows'"), "{msg}");
+    assert!(msg.contains(".github/workflows/**/*"), "{msg}");
+}
+
+/// Spec 079 3.3: slices are independent of `contentHash` by spec 012's design,
+/// so the slice message must not claim a content hash is affected, in any
+/// spelling. The `extra_hashed_inputs` form says it legitimately, which is
+/// why the assertion is scoped to a corpus with no such table.
+#[test]
+fn the_slice_l010_message_does_not_claim_a_content_hash() {
+    let (tmp, cfg) = corpus_with_slices(&[("workflows", &[".github/workflows/**"])]);
+    let found = l010_messages(&tmp, &cfg);
+    let (msg, _) = found.first().expect("L-010 fired");
+    let lower = msg.to_lowercase();
+    for spelling in ["content hash", "content-hash", "contenthash"] {
+        assert!(
+            !lower.contains(spelling),
+            "slice message claims {spelling:?}: {msg}"
+        );
+    }
+    assert!(
+        msg.contains("slice hash"),
+        "the message speaks about the slice's own hash: {msg}"
+    );
+}
+
+/// Both tables at once: the two forms of the one code stay separable by the
+/// table they name, which is what makes 3.3's scoped negative sound.
+#[test]
+fn l010_reports_both_tables_and_each_form_names_its_own_table() {
+    let (tmp, mut cfg) = corpus_with_slices(&[("workflows", &[".github/workflows/**"])]);
+    cfg.index
+        .extra_hashed_inputs
+        .push("standards/**".to_string());
+    let found = l010_messages(&tmp, &cfg);
+    assert_eq!(found.len(), 2, "{found:?}");
+    let global: Vec<_> = found
+        .iter()
+        .filter(|(m, _)| m.contains("[index] extra_hashed_inputs"))
+        .collect();
+    let slice: Vec<_> = found
+        .iter()
+        .filter(|(m, _)| m.contains("[index.slices]"))
+        .collect();
+    assert_eq!(global.len(), 1, "{found:?}");
+    assert_eq!(slice.len(), 1, "{found:?}");
+    assert!(global[0].0.contains("content hash"), "{found:?}");
+    assert!(
+        !slice[0].0.to_lowercase().contains("content hash"),
+        "{found:?}"
+    );
+}
+
 // ── spec 076 §3.3 and §3.4: the flag cannot outlive the work ────────────────
 
 /// A corpus whose one spec claims `unit_yaml` at the given lifecycle.
