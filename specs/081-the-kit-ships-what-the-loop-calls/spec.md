@@ -1,7 +1,7 @@
 ---
 id: "081-the-kit-ships-what-the-loop-calls"
 title: "The kit ships what the loop calls"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-09"
 summary: >

@@ -95,10 +95,10 @@
       "Verification"
     ],
     "specPath": "specs/081-the-kit-ships-what-the-loop-calls/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 048 made the kit ship fifteen skills: the eight-skill governed loop and a support set of seven. Audited on 2026-09-09, five of the seven are invoked by nothing in the kit and carry no spec-spine content their neighbours do not already carry: `implement-plan` restates `build`'s ownership and gate rules under a plan-file state machine and tells the reader to prefer `build`; `validate-and-fix` restates `ship`'s gate step verbatim and `shepherd`'s remediation role; `cleanup`, `research` and `refactor-claude-md` are generic recipes with one governed-reads sentence each. No commit in this repository's history names four of them. This spec removes the five, so the kit ships ten: the loop, and the two the loop calls. It also corrects two listings 048 left stale after specs 074 and 075.\n",
     "title": "The kit ships what the loop calls"
   },
-  "shardHash": "1eb291218d38b4e5ddfb1be02e0e859b04de47eaeea1147baeb9560359fb17fd",
+  "shardHash": "ea13c7923e06a0b8d015f6e0cabd974ef1080b35a4b9237e2a7db3c392c83b82",
   "specVersion": "1.2.0"
 }
