@@ -447,7 +447,7 @@ spec-spine is an installed CLI tool that governs your repo's spec corpus. In you
 ### 1b. Gate Evidence
 
 - Run the gate exactly as `AGENTS.md` "Working the backlog" lists it
-  (`spec-spine compile --check`, `spec-spine index check`,
+  (`spec-spine check`,
   `spec-spine lint --fail-on-warn`, `spec-spine couple` against the base ref
   "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)",
   then the stack's own build and tests) and capture the output. A red gate
@@ -536,7 +536,7 @@ For each changed file:
 - Mid-build spec edits: [none / legitimate / coherence-guard finding]
 
 ### Gate
-- compile --check: [fresh / stale]  index check: [fresh / stale]
+- check: registry [fresh / stale], index [fresh / stale]
 - lint --fail-on-warn: [clean / N]  couple: [clean / C-001 / C-002]
 - coverage: [N unclaimed]  derived: [clean / stale shards left by the gate]
 
@@ -774,7 +774,7 @@ ownership claims current.
 
 Run the gate exactly as `AGENTS.md` lists it under "Run the gate before
 every commit": the governance floor (`compile`, `index`,
-`lint --fail-on-warn`, `index check`, `couple --base` against the resolved
+`lint --fail-on-warn`, `check`, `couple --base` against the resolved
 base ref `--head HEAD`, `index coverage --fail-on-untraced` where ownership
 is required)
 and the stack's own build, tests, and lints. All exit 0, or the commit
@@ -972,8 +972,8 @@ correctness or edge-case bugs, does it still match its owning spec's
 contract, and does it hold the invariants the project's path-scoped rules
 name. Output is an evidence-oriented findings list, each line citing
 `file:line`. Nothing authored is modified. The gate's read-only forms
-(`compile --check`, `index check`) are used so the review never dirties
-the tree; a stale verdict is itself a finding.
+(`spec-spine check`, which reads both committed trees) are used so the
+review never dirties the tree; a stale verdict is itself a finding.
 
 ## Step 0: scope the diff
 
@@ -993,8 +993,7 @@ workflows), scripts, docs, derived shards.
 ## Step 1: the gate stays green
 
 ```sh
-spec-spine compile --check                      # exit 2: committed registry shards are stale
-spec-spine index check                          # exit 2: committed index shards are stale
+spec-spine check                                # exit 2: either committed shard tree is stale
 spec-spine lint --fail-on-warn
 spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
 spec-spine index coverage                       # ownership: unclaimed and floor-only files
@@ -1074,7 +1073,7 @@ the section silently.
 ```
 ## Review: <scope>
 Base: <resolved base ref> | Head: <branch> | Files: <n> | +<a>/-<d>
-Gate: compile --check <fresh|stale> | index check <fresh|stale> | lint <ok|N> | couple <ok|C-001|C-002> | coverage <n unclaimed> | stack <ok|FAIL>
+Gate: check <registry fresh|stale, index fresh|stale> | lint <ok|N> | couple <ok|C-001|C-002> | coverage <n unclaimed> | stack <ok|FAIL>
 Owning spec: <id> | Mid-build spec edits: <none|legitimate|coherence-guard finding>
 
 ### Findings (severity-ordered)
@@ -1339,61 +1338,6 @@ Read from `AGENTS.md`: the gate command list and the narrowest test
 targets. Read from `.claude/rules/`: the never-touch artefacts. Nothing
 here is edited per project.
 "#),
-    (r#".claude/skills/init/SKILL.md"#, r#"---
-name: init
-description: "Initialize a session by executing the cross-agent New Sessions protocol declared in AGENTS.md. Reads only; never repairs the tree."
-allowed-tools: Bash, Read, Glob, Grep
----
-
-# /init: session bootstrap
-
-Thin dispatcher. The canonical protocol lives in `AGENTS.md` under
-`## New Sessions`, the cross-agent AAIF/Linux Foundation standard read by
-Claude Code, Codex CLI, Cursor, Copilot, and an orchestrator's driven
-sessions alike.
-
-## What to do
-
-1. Read `AGENTS.md`: the section from `## New Sessions` inclusive to the
-   next `## ` heading exclusive. That section is the step list.
-2. Load the standing rules it names first (`.claude/rules/`), then execute
-   the protocol, using parallel tool calls wherever it says "dispatch
-   simultaneously".
-3. Emit the structured summary the protocol prescribes: the
-   `## initialized: <project>` block (the layer model, a `## lifecycle:`
-   sub-section from `registry status-report`, the `registry plan`
-   ready/blocked line, the freshness verdicts, recent activity, and a
-   ready-to-help line).
-
-This dispatcher deliberately does not duplicate the step list: `AGENTS.md`
-is the single source of truth. Evolve the protocol by editing `AGENTS.md`,
-never this file, so every agent stays in sync.
-
-## Rules
-
-- The protocol's governed reads go through the `spec-spine` invocation
-  `AGENTS.md` names. If `spec-spine --version` fails, run `/setup` first
-  (an in-tree build if `AGENTS.md` says the binary is built from source);
-  never fall back to parsing `.derived/` by hand.
-- `/init` reports, it does not mutate: `spec-spine compile --check` and
-  `spec-spine index check` are the freshness reads, never a bare `compile`
-  or `index`. A stale verdict is reported with the shards it names and the
-  session continues; repairing the tree is the session's later, committed
-  work, not a side effect of reading it.
-- Establish the binary's version before believing any exit code, which is the
-  read `AGENTS.md` step 1 schedules. A binary older than the checkout can
-  reject a flag the protocol passes, and reporting that as drift sends someone
-  chasing a phantom. Exit-code semantics live in `AGENTS.md`, which is where
-  the project layer lives.
-- A file the protocol names but cannot find is logged as "not found" and
-  the protocol continues.
-
-## Project layer
-
-Nothing in this file is project-specific. The project name, the binary
-invocation, the read list, and the summary shape all come from
-`AGENTS.md`.
-"#),
     (r#".claude/skills/next/SKILL.md"#, r#"---
 name: next
 description: "Name the next spec to build: the ready set from spec-spine registry plan, minus anything a human has not approved, with in-flight specs and honest blockers reported separately. Read-only."
@@ -1484,6 +1428,61 @@ an unapproved spec and never offer one.
 Nothing here is project-specific. Which specs are records is visible from
 their `implementation` value, not from a list in this file.
 "#),
+    (r#".claude/skills/prime/SKILL.md"#, r#"---
+name: prime
+description: "Initialize a session by executing the cross-agent New Sessions protocol declared in AGENTS.md. Reads only; never repairs the tree."
+allowed-tools: Bash, Read, Glob, Grep
+---
+
+# /prime: session bootstrap
+
+Thin dispatcher. The canonical protocol lives in `AGENTS.md` under
+`## New Sessions`, the cross-agent AAIF/Linux Foundation standard read by
+Claude Code, Codex CLI, Cursor, Copilot, and an orchestrator's driven
+sessions alike.
+
+## What to do
+
+1. Read `AGENTS.md`: the section from `## New Sessions` inclusive to the
+   next `## ` heading exclusive. That section is the step list.
+2. Load the standing rules it names first (`.claude/rules/`), then execute
+   the protocol, using parallel tool calls wherever it says "dispatch
+   simultaneously".
+3. Emit the structured summary the protocol prescribes: the
+   `## primed: <project>` block (the layer model, a `## lifecycle:`
+   sub-section from `registry status-report`, the `registry plan`
+   ready/blocked line, the freshness verdicts, recent activity, and a
+   ready-to-help line).
+
+This dispatcher deliberately does not duplicate the step list: `AGENTS.md`
+is the single source of truth. Evolve the protocol by editing `AGENTS.md`,
+never this file, so every agent stays in sync.
+
+## Rules
+
+- The protocol's governed reads go through the `spec-spine` invocation
+  `AGENTS.md` names. If `spec-spine --version` fails, run `/setup` first
+  (an in-tree build if `AGENTS.md` says the binary is built from source);
+  never fall back to parsing `.derived/` by hand.
+- `/prime` reports, it does not mutate: `spec-spine check` is the freshness
+  read, never a bare `compile` or `index`. It answers for both committed
+  trees and writes nothing. A stale verdict is reported with the shards it
+  names, per tree, and the session continues; repairing the tree is the
+  session's later, committed work, not a side effect of reading it.
+- Establish the binary's version before believing any exit code, which is the
+  read `AGENTS.md` step 1 schedules. A binary older than the checkout can
+  reject a flag the protocol passes, and reporting that as drift sends someone
+  chasing a phantom. Exit-code semantics live in `AGENTS.md`, which is where
+  the project layer lives.
+- A file the protocol names but cannot find is logged as "not found" and
+  the protocol continues.
+
+## Project layer
+
+Nothing in this file is project-specific. The project name, the binary
+invocation, the read list, and the summary shape all come from
+`AGENTS.md`.
+"#),
     (r#".claude/skills/refactor-claude-md/SKILL.md"#, r#"---
 name: refactor-claude-md
 description: "Tighten CLAUDE.md by extracting context-specific guidance into docs and path-scoped rules under .claude/rules, keeping the harness spec coupled and the index fresh."
@@ -1568,7 +1567,7 @@ spec-spine index coverage        # which spec claims the harness files
 ## After extraction
 
 Report the size change (lines before and after), list the files created,
-confirm `spec-spine index check` is fresh, and offer `/commit`.
+confirm `spec-spine check` is fresh, and offer `/commit`.
 
 ## Project layer
 
@@ -1678,13 +1677,13 @@ the report location comes from the harness or `spec-spine.toml`.
 "#),
     (r#".claude/skills/setup/SKILL.md"#, r#"---
 name: setup
-description: "One-time contributor setup: install the pinned spec-spine, the stack toolchain AGENTS.md names, fetch the base ref, and verify the governed loop once, so /init can report lifecycle and structural counts."
+description: "One-time contributor setup: install the pinned spec-spine, the stack toolchain AGENTS.md names, fetch the base ref, and verify the governed loop once, so /prime can report lifecycle and structural counts."
 allowed-tools: Bash, Read
 ---
 
 # /setup
 
-Get a fresh clone operational. After this completes, `/init` can report
+Get a fresh clone operational. After this completes, `/prime` can report
 lifecycle and structural counts through `spec-spine`, never by ad-hoc
 parsing of `.derived/**/*.json` (`.claude/rules/governed-artifact-reads.md`).
 
@@ -1733,7 +1732,7 @@ Run the gate exactly as `AGENTS.md` "Working the backlog" lists it under
 spec-spine compile
 spec-spine index
 spec-spine lint --fail-on-warn
-spec-spine index check
+spec-spine check
 spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
 spec-spine index coverage --fail-on-untraced   # when [coupling] require_ownership is on
 ```
@@ -1745,7 +1744,7 @@ shards were stale. Say so and leave the diff for the session to commit
 (`chore(derived): ...`); do not hide it. Halt on the first failing step
 and surface its output verbatim.
 
-Then the reads `/init` will use:
+Then the reads `/prime` will use:
 
 ```sh
 spec-spine registry status-report --json --nonzero-only
@@ -1765,14 +1764,14 @@ spec-spine index coverage
   - compile: {ok / failed}
   - index: {ok / regenerated, shards left for the session to commit}
   - lint --fail-on-warn: {clean / N diagnostics}
-  - index check: {fresh / stale}
+  - check: {registry fresh / stale, index fresh / stale}
   - couple: {clean / drift surfaced}
   - coverage: {N claimed, M unclaimed / not enforced}
   - stack gate: {ok / failed at <command> / none declared}
 **Lifecycle:** {N specs across <statuses>}  (from registry status-report)
 **Ready:** {ids / (nothing ready)}  (from registry plan)
 
-Next: run `/init` to load full session context.
+Next: run `/prime` to load full session context.
 ```
 
 Do not invent counts. Only report values that came back from a
@@ -1982,7 +1981,7 @@ every commit". The governance floor:
 spec-spine compile
 spec-spine index
 spec-spine lint --fail-on-warn
-spec-spine index check
+spec-spine check
 spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
 spec-spine index coverage --fail-on-untraced   # when [coupling] require_ownership is on
 ```
@@ -1991,7 +1990,8 @@ then the stack's own build, tests, and lints. Stop on the first failure
 (orchestrator rule: halt, never continue silently). Outcomes:
 
 - All green: continue to Step 2.
-- `index check` stale (exit 2): `spec-spine index`, stage the derived
+- `check` stale (exit 2): `spec-spine index` (or `compile`, per the tree it
+  named), stage the derived
   directory, and re-run. The shards are committed with the change they
   describe.
 - `couple` drift (`C-001`): a changed path is claimed by a spec that did
@@ -2173,7 +2173,7 @@ dependency cycle is refused by `compile` itself (`V-014`).
 Then the real gate, which regenerates and checks the committed shards:
 
 ```sh
-spec-spine compile && spec-spine index && spec-spine lint --fail-on-warn && spec-spine index check
+spec-spine compile && spec-spine index && spec-spine lint --fail-on-warn && spec-spine check
 spec-spine registry plan
 ```
 
@@ -2223,7 +2223,7 @@ inventing a gate.
 Run the gate exactly as `AGENTS.md` "Working the backlog" lists it under
 "Run the gate before every commit". The governance floor is
 `spec-spine compile`, `spec-spine index`, `spec-spine lint --fail-on-warn`,
-`spec-spine index check`, `spec-spine couple --base` against the resolved
+`spec-spine check`, `spec-spine couple --base` against the resolved
 base ref "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"
 `--head HEAD`, and `spec-spine index coverage --fail-on-untraced` where
 ownership is required; the stack's build, tests, and lints follow. Run
@@ -2638,9 +2638,8 @@ BASE       ?= origin/$(or $(SPEC_SPINE_DEFAULT_BRANCH),main)
 ## is meant to judge (spec 046), so this uses `compile --check` and never
 ## `compile`.
 gate:
-	$(SPEC_SPINE) compile --check
+	$(SPEC_SPINE) check --fail-on-unresolved
 	$(SPEC_SPINE) lint --fail-on-warn
-	$(SPEC_SPINE) index check --fail-on-unresolved
 	$(SPEC_SPINE) index coverage --fail-on-untraced
 	$(SPEC_SPINE) couple --base $(BASE) --head HEAD
 
@@ -2744,9 +2743,8 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           printf '%s' "$PR_BODY" > "$RUNNER_TEMP/pr-body.txt"
-          spec-spine compile --check
+          spec-spine check --fail-on-unresolved
           spec-spine lint --fail-on-warn
-          spec-spine index check --fail-on-unresolved
           spec-spine index coverage --fail-on-untraced
           spec-spine couple --base "origin/${{ github.base_ref }}" --head HEAD --pr-body "$RUNNER_TEMP/pr-body.txt"
 
@@ -2900,7 +2898,7 @@ echo "verify: $id: passed ($ran command(s))"
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" 2>/dev/null || exit 0\n[ -d specs ] || exit 0\n# Resolve the spec-spine binary for the repository this hook acts on:\n# $SPEC_SPINE_BIN, then that repository's own release build, then PATH. A repo\n# that builds its own binary must be governed by the one it builds; the PATH\n# fallback keeps an adopter on the published CLI working (spec 051).\nspec_spine_bin() {\n  if [ -n \"${SPEC_SPINE_BIN:-}\" ] && [ -x \"${SPEC_SPINE_BIN}\" ]; then echo \"${SPEC_SPINE_BIN}\"; return 0; fi\n  if [ -x \"$1/target/release/spec-spine\" ]; then echo \"$1/target/release/spec-spine\"; return 0; fi\n  command -v spec-spine 2>/dev/null\n}\nif sc=$(spec_spine_bin \"${CLAUDE_PROJECT_DIR:-.}\") && [ -n \"$sc\" ]; then\n  # Spec 063: establish the binary understands the flag BEFORE reading its exit\n  # code. A binary predating `compile --check` rejects the unknown flag, and\n  # clap spent exit 2 on that, which is the code this tool spends on staleness.\n  # A session told its shards are stale when they are not will regenerate and\n  # commit artifacts that were already correct. `--version` is answered by every\n  # binary ever released, so asking is safe against any version.\n  ver=$(\"$sc\" --version 2>/dev/null | awk '{print $NF}')\n  if ! \"$sc\" compile --check --help >/dev/null 2>&1; then\n    reg=\"spec-spine ${ver:-?} predates \\`compile --check\\`, rebuild or reinstall (see /setup)\"\n    idx=\"$reg\"\n  else\n  # Read-only: `compile --check` compares the committed shards to the corpus\n  # without writing (spec 031). A bare `compile` would repair a stale\n  # committed tree as a side effect of reading it, hiding the defect.\n  \"$sc\" compile --check >/dev/null 2>&1; c=$?\n  case $c in\n    0) reg='fresh' ;;\n    2) reg='STALE, run spec-spine compile and commit the shards' ;;\n    1) reg='INVALID, the corpus fails validation (run spec-spine compile for the violations)' ;;\n    *) reg=\"unknown (compile --check exit $c)\" ;;\n  esac\n  \"$sc\" index check >/dev/null 2>&1 && idx='fresh' || idx='STALE, run spec-spine index'\n  fi\nelse\n  reg='spec-spine CLI absent, run /setup'; idx='spec-spine CLI absent, run /setup'\nfi\necho \"[session-freshness] spec registry: $reg; codebase index: $idx\"\ntrue"
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" 2>/dev/null || exit 0\n[ -d specs ] || exit 0\n# Resolve the spec-spine binary for the repository this hook acts on:\n# $SPEC_SPINE_BIN, then that repository's own release build, then PATH. A repo\n# that builds its own binary must be governed by the one it builds; the PATH\n# fallback keeps an adopter on the published CLI working (spec 051).\nspec_spine_bin() {\n  if [ -n \"${SPEC_SPINE_BIN:-}\" ] && [ -x \"${SPEC_SPINE_BIN}\" ]; then echo \"${SPEC_SPINE_BIN}\"; return 0; fi\n  if [ -x \"$1/target/release/spec-spine\" ]; then echo \"$1/target/release/spec-spine\"; return 0; fi\n  command -v spec-spine 2>/dev/null\n}\nif sc=$(spec_spine_bin \"${CLAUDE_PROJECT_DIR:-.}\") && [ -n \"$sc\" ]; then\n  # Spec 063: establish the binary understands the verb BEFORE reading its exit\n  # code. A binary predating `spec-spine check` rejects the unknown subcommand,\n  # and clap spent exit 2 on that, which is the code this tool spends on\n  # staleness.\n  # A session told its shards are stale when they are not will regenerate and\n  # commit artifacts that were already correct. `--version` is answered by every\n  # binary ever released, so asking is safe against any version.\n  ver=$(\"$sc\" --version 2>/dev/null | awk '{print $NF}')\n  if ! \"$sc\" check --help >/dev/null 2>&1; then\n    reg=\"spec-spine ${ver:-?} predates the \\`check\\` verb, rebuild or reinstall (see /setup)\"\n    idx=\"$reg\"\n  else\n  # Spec 075: one verb, both committed trees. Read-only, exactly as the two\n  # primitives it composes are: a bare `compile` or `index` would repair a\n  # stale committed tree as a side effect of reading it, hiding the defect.\n  #\n  # The composed exit code is the more severe of the two halves, so it cannot\n  # say WHICH tree moved. The report lines can, and this hook reads them back\n  # rather than guessing from the code.\n  out=$(\"$sc\" check 2>&1); c=$?\n  case \"$out\" in *'spec-registry: fresh'*) reg='fresh' ;;\n    *'spec-registry: STALE'*) reg='STALE, run spec-spine compile and commit the shards' ;;\n    *'spec-registry: INVALID'*) reg='INVALID, the corpus fails validation (run spec-spine compile for the violations)' ;;\n    *) reg=\"unknown (check exit $c)\" ;;\n  esac\n  case \"$out\" in *'codebase-index: fresh'*) idx='fresh' ;;\n    *'codebase-index: STALE'*) idx='STALE, run spec-spine index' ;;\n    *) idx=\"unknown (check exit $c)\" ;;\n  esac\n  fi\nelse\n  reg='spec-spine CLI absent, run /setup'; idx='spec-spine CLI absent, run /setup'\nfi\necho \"[session-freshness] spec registry: $reg; codebase index: $idx\"\ntrue"
           }
         ]
       }
@@ -2911,7 +2909,7 @@ echo "verify: $id: passed ($ran command(s))"
         "hooks": [
           {
             "type": "command",
-            "command": "command -v jq >/dev/null 2>&1 || { echo '[hook] jq missing, staleness check skipped'; exit 0; }\nfp=$(jq -r '.tool_input.file_path // empty' 2>/dev/null)\n[ -n \"$fp\" ] || exit 0\n# The repo containing the edited file, not the session's project: an edit in a\n# sibling checkout must not recompile this one.\nroot=$(git -C \"$(dirname \"$fp\")\" rev-parse --show-toplevel 2>/dev/null) || exit 0\n[ -d \"$root/specs\" ] || exit 0\n# Resolve the spec-spine binary for the repository this hook acts on:\n# $SPEC_SPINE_BIN, then that repository's own release build, then PATH. A repo\n# that builds its own binary must be governed by the one it builds; the PATH\n# fallback keeps an adopter on the published CLI working (spec 051).\nspec_spine_bin() {\n  if [ -n \"${SPEC_SPINE_BIN:-}\" ] && [ -x \"${SPEC_SPINE_BIN}\" ]; then echo \"${SPEC_SPINE_BIN}\"; return 0; fi\n  if [ -x \"$1/target/release/spec-spine\" ]; then echo \"$1/target/release/spec-spine\"; return 0; fi\n  command -v spec-spine 2>/dev/null\n}\nsc=$(spec_spine_bin \"$root\") || sc=''\n[ -n \"$sc\" ] || { echo '[hook] spec-spine absent, staleness check skipped (run /setup)'; exit 0; }\ncase \"$fp\" in\n  */specs/*/spec.md)\n    # The one sanctioned write in these hooks: the session is live and can\n    # commit the recompiled shards with the spec edit that made them stale.\n    \"$sc\" --repo \"$root\" compile >/dev/null 2>&1 \\\n      && echo '[spec-registry] recompiled after spec edit' \\\n      || echo '[spec-registry] compile FAILED after spec edit, run spec-spine compile' ;;\nesac\ncase \"$fp\" in\n  */specs/*/spec.md|*/spec-spine.toml|*/.claude/settings.json|*/.mcp.json|*/.claude/agents/*.md|*/.claude/rules/*.md|*/.claude/skills/*/*.md|*/.github/workflows/*.yml|*/standards/*|*/AGENTS.md|*/CLAUDE.md|*/Makefile|*/docs/design/*)\n    \"$sc\" --repo \"$root\" index check 2>&1 | tail -5 ;;\nesac\ntrue"
+            "command": "command -v jq >/dev/null 2>&1 || { echo '[hook] jq missing, staleness check skipped'; exit 0; }\nfp=$(jq -r '.tool_input.file_path // empty' 2>/dev/null)\n[ -n \"$fp\" ] || exit 0\n# The repo containing the edited file, not the session's project: an edit in a\n# sibling checkout must not recompile this one.\nroot=$(git -C \"$(dirname \"$fp\")\" rev-parse --show-toplevel 2>/dev/null) || exit 0\n[ -d \"$root/specs\" ] || exit 0\n# Resolve the spec-spine binary for the repository this hook acts on:\n# $SPEC_SPINE_BIN, then that repository's own release build, then PATH. A repo\n# that builds its own binary must be governed by the one it builds; the PATH\n# fallback keeps an adopter on the published CLI working (spec 051).\nspec_spine_bin() {\n  if [ -n \"${SPEC_SPINE_BIN:-}\" ] && [ -x \"${SPEC_SPINE_BIN}\" ]; then echo \"${SPEC_SPINE_BIN}\"; return 0; fi\n  if [ -x \"$1/target/release/spec-spine\" ]; then echo \"$1/target/release/spec-spine\"; return 0; fi\n  command -v spec-spine 2>/dev/null\n}\nsc=$(spec_spine_bin \"$root\") || sc=''\n[ -n \"$sc\" ] || { echo '[hook] spec-spine absent, staleness check skipped (run /setup)'; exit 0; }\ncase \"$fp\" in\n  */specs/*/spec.md)\n    # The one sanctioned write in these hooks: the session is live and can\n    # commit the recompiled shards with the spec edit that made them stale.\n    \"$sc\" --repo \"$root\" compile >/dev/null 2>&1 \\\n      && echo '[spec-registry] recompiled after spec edit' \\\n      || echo '[spec-registry] compile FAILED after spec edit, run spec-spine compile' ;;\nesac\ncase \"$fp\" in\n  */specs/*/spec.md|*/spec-spine.toml|*/.claude/settings.json|*/.mcp.json|*/.claude/agents/*.md|*/.claude/rules/*.md|*/.claude/skills/*/*.md|*/.github/workflows/*.yml|*/standards/*|*/AGENTS.md|*/CLAUDE.md|*/Makefile|*/docs/design/*)\n    \"$sc\" --repo \"$root\" check 2>&1 | tail -6 ;;\nesac\ntrue"
           }
         ]
       }
@@ -2922,7 +2920,7 @@ echo "verify: $id: passed ($ran command(s))"
         "hooks": [
           {
             "type": "command",
-            "command": "command -v jq >/dev/null 2>&1 || { echo '[hook] jq missing, push gate and PR gate skipped'; exit 0; }\npayload=$(cat)\ncmd=$(printf '%s' \"$payload\" | jq -r '.tool_input.command // empty' 2>/dev/null)\nhookcwd=$(printf '%s' \"$payload\" | jq -r '.cwd // empty' 2>/dev/null)\n# The repo the command acts on, NOT the session's project: a multi-repo session\n# pushes and opens PRs in whichever tree the command names. Honour an explicit\n# `cd <dir>` prefix, else the hook's own cwd, then ask git for the toplevel.\ntarget=$(printf '%s' \"$cmd\" | sed -n 's/^[[:space:]]*cd[[:space:]]\\{1,\\}\\([^&;|]*\\).*/\\1/p' | head -1 | sed 's/[[:space:]]*$//')\ntarget=$(printf '%s' \"$target\" | sed \"s|^~|$HOME|\")\n[ -n \"$target\" ] || target=\"$hookcwd\"\n[ -n \"$target\" ] || target=.\nroot=$(git -C \"$target\" rev-parse --show-toplevel 2>/dev/null) || root=\"$target\"\n\n# Spec 072 3.1: the protected branch is RESOLVED for the repository the command\n# acts on, never assumed to be `main`. Highest wins: $SPEC_SPINE_DEFAULT_BRANCH,\n# then the remote's own HEAD (a clone sets it, so most adopters need no\n# configuration at all), then `main` as a compatibility floor. Each step falls\n# back rather than refusing, and step 3 always answers, so the gate reaches a\n# verdict for every repository. Resolution asks git and never the spec-spine\n# binary: the push half of this hook runs on git alone, which is why it still\n# protects a repository where the binary is absent or /setup has not been run.\ndefault_branch() {\n  if [ -n \"${SPEC_SPINE_DEFAULT_BRANCH:-}\" ]; then echo \"${SPEC_SPINE_DEFAULT_BRANCH}\"; return 0; fi\n  h=$(git -C \"$1\" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null) && [ -n \"$h\" ] && { echo \"${h#origin/}\"; return 0; }\n  echo main\n}\n\n# Anchored on the command that actually invokes the push verb (spec 071\n# 3.1). The old match was a substring test over the whole command, so it\n# refused anything merely CONTAINING the text: the greps, heredocs and test\n# fixtures that describe this gate could not run in a session it governs.\ncase \"$cmd\" in 'git push'*|*'&& git push'*|*'; git push'*)\n    br=$(git -C \"$root\" branch --show-current 2>/dev/null); blk=0\n    def=$(default_branch \"$root\")\n    # Spec 072 3.2: the refspec forms are BUILT from the resolved name rather\n    # than written as literal patterns. Every expansion is quoted inside the\n    # pattern, which matches it literally: $SPEC_SPINE_DEFAULT_BRANCH is\n    # user-supplied and git's own refname rules never see it, so an unquoted\n    # `ma*n` would silently turn each refspec test into a wildcard.\n    case \"$cmd\" in *\"origin $def\"|*\"origin $def \"*|*\"HEAD:$def\"|*\"HEAD:$def \"*|*\":$def\"|*\":$def \"*|*\"origin +$def\"*) blk=1 ;; esac\n    # Spec 071 3.2, over the name 072 3.1 resolves: on the default branch,\n    # refuse only a push that would actually UPDATE it. Fewer than two\n    # positional arguments after the verb means there is no explicit refspec,\n    # so the push follows the current branch; HEAD and the resolved name name\n    # it outright. A tag push carries its own refspec and updates no branch,\n    # and docs/releasing.md tells a maintainer to run one from the default\n    # branch right after the release PR merges.\n    if [ \"$br\" = \"$def\" ]; then\n      # Strip to the ANCHORED occurrence of the verb, not merely the first one\n      # in the string. A command can name the verb in an argument before it\n      # ever runs one, and reading THOSE words as a refspec is nonsense: the\n      # arguments that matter are the ones after the invocation the outer\n      # case matched. ${var#pattern} strips the shortest matching prefix.\n      case \"$cmd\" in\n        'git push'*)     after=${cmd#git push} ;;\n        *'&& git push'*) after=${cmd#*'&& git push'} ;;\n        *'; git push'*)  after=${cmd#*'; git push'} ;;\n        *)               after='' ;;\n      esac\n      # Keep only that push's own arguments, dropping anything chained after.\n      rest=${after%%[;&|]*}\n      npos=0; last=''\n      for w in $rest; do case \"$w\" in -*) ;; *) npos=$((npos+1)); last=$w ;; esac; done\n      { [ \"$npos\" -lt 2 ] || [ \"$last\" = HEAD ] || [ \"$last\" = \"$def\" ]; } && blk=1\n      # Only that push was analysed, so a command chaining another is refused\n      # outright: the walk cannot speak for a push it never looked at.\n      case \"$after\" in *'&& git push'*|*'; git push'*) blk=1 ;; esac\n    fi\n    if [ \"$blk\" = 1 ]; then\n      { echo \"[push-gate] BLOCKED: this would update $def (repo: $root, branch: ${br:-unknown}). Work on a feature branch and open a PR through /ship. A tag push such as 'git push origin v1.2.3' is allowed.\"; } >&2\n      exit 2\n    fi ;;\nesac\n\ncase \"$cmd\" in 'gh pr create'*|*'&& gh pr create'*|*'; gh pr create'*) ;; *) exit 0 ;; esac\n# Resolve the spec-spine binary for the repository this hook acts on:\n# $SPEC_SPINE_BIN, then that repository's own release build, then PATH. A repo\n# that builds its own binary must be governed by the one it builds; the PATH\n# fallback keeps an adopter on the published CLI working (spec 051).\nspec_spine_bin() {\n  if [ -n \"${SPEC_SPINE_BIN:-}\" ] && [ -x \"${SPEC_SPINE_BIN}\" ]; then echo \"${SPEC_SPINE_BIN}\"; return 0; fi\n  if [ -x \"$1/target/release/spec-spine\" ]; then echo \"$1/target/release/spec-spine\"; return 0; fi\n  command -v spec-spine 2>/dev/null\n}\nsc=$(spec_spine_bin \"$root\") || sc=''\n[ -n \"$sc\" ] || { echo '[pr-gate] spec-spine absent, coupling gate skipped (run /setup)'; exit 0; }\n[ -d \"$root/specs\" ] || { echo \"[pr-gate] $root is not a spec-spine corpus, coupling gate skipped\"; exit 0; }\n\n# Read-only. The gate must never write into the repo it is judging: `index`\n# rewrites committed shards, a hook cannot commit them, and doing it from here\n# mutates a tree another session may be mid-build in.\nif ! \"$sc\" --repo \"$root\" index check >/dev/null 2>&1; then\n  { echo \"[pr-gate] BLOCKED: the committed index is stale in $root.\"\n    echo '[pr-gate] Run: spec-spine index, then commit the shards, push, and retry.'; } >&2\n  exit 2\nfi\nif ! git -C \"$root\" diff --quiet -- .derived/ 2>/dev/null; then\n  { echo \"[pr-gate] BLOCKED: derived shards are uncommitted in $root.\"\n    echo '[pr-gate] Run: git add .derived/ then commit, push, and retry.'; } >&2\n  exit 2\nfi\n\nout=$(\"$sc\" --repo \"$root\" couple --base \"origin/$(default_branch \"$root\")\" --head HEAD 2>&1); ec=$?\nif [ $ec -ne 0 ]; then\n  case \"$cmd\" in\n    *--body*Spec-Drift-Waiver*) echo '[pr-gate] coupling gate failed; Spec-Drift-Waiver present after --body, allowing (CI honours the body-at-creation waiver).' ;;\n    *) { echo \"[pr-gate] BLOCKED: coupling gate failed in $root and no Spec-Drift-Waiver in the PR body:\"\n         echo \"$out\" | tail -25\n         echo '[pr-gate] Either fix the coupling (claim every changed path in the spec being implemented, or add an extends edge naming the owning spec) or, with explicit human approval, include the Spec-Drift-Waiver line inline in --body (not --body-file) and retry. A waiver is a human instrument: never write one on your own authority.'; } >&2\n       exit 2 ;;\n  esac\nfi\ntrue"
+            "command": "command -v jq >/dev/null 2>&1 || { echo '[hook] jq missing, push gate and PR gate skipped'; exit 0; }\npayload=$(cat)\ncmd=$(printf '%s' \"$payload\" | jq -r '.tool_input.command // empty' 2>/dev/null)\nhookcwd=$(printf '%s' \"$payload\" | jq -r '.cwd // empty' 2>/dev/null)\n# The repo the command acts on, NOT the session's project: a multi-repo session\n# pushes and opens PRs in whichever tree the command names. Honour an explicit\n# `cd <dir>` prefix, else the hook's own cwd, then ask git for the toplevel.\ntarget=$(printf '%s' \"$cmd\" | sed -n 's/^[[:space:]]*cd[[:space:]]\\{1,\\}\\([^&;|]*\\).*/\\1/p' | head -1 | sed 's/[[:space:]]*$//')\ntarget=$(printf '%s' \"$target\" | sed \"s|^~|$HOME|\")\n[ -n \"$target\" ] || target=\"$hookcwd\"\n[ -n \"$target\" ] || target=.\nroot=$(git -C \"$target\" rev-parse --show-toplevel 2>/dev/null) || root=\"$target\"\n\n# Spec 072 3.1: the protected branch is RESOLVED for the repository the command\n# acts on, never assumed to be `main`. Highest wins: $SPEC_SPINE_DEFAULT_BRANCH,\n# then the remote's own HEAD (a clone sets it, so most adopters need no\n# configuration at all), then `main` as a compatibility floor. Each step falls\n# back rather than refusing, and step 3 always answers, so the gate reaches a\n# verdict for every repository. Resolution asks git and never the spec-spine\n# binary: the push half of this hook runs on git alone, which is why it still\n# protects a repository where the binary is absent or /setup has not been run.\ndefault_branch() {\n  if [ -n \"${SPEC_SPINE_DEFAULT_BRANCH:-}\" ]; then echo \"${SPEC_SPINE_DEFAULT_BRANCH}\"; return 0; fi\n  h=$(git -C \"$1\" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null) && [ -n \"$h\" ] && { echo \"${h#origin/}\"; return 0; }\n  echo main\n}\n\n# Anchored on the command that actually invokes the push verb (spec 071\n# 3.1). The old match was a substring test over the whole command, so it\n# refused anything merely CONTAINING the text: the greps, heredocs and test\n# fixtures that describe this gate could not run in a session it governs.\ncase \"$cmd\" in 'git push'*|*'&& git push'*|*'; git push'*)\n    br=$(git -C \"$root\" branch --show-current 2>/dev/null); blk=0\n    def=$(default_branch \"$root\")\n    # Spec 072 3.2: the refspec forms are BUILT from the resolved name rather\n    # than written as literal patterns. Every expansion is quoted inside the\n    # pattern, which matches it literally: $SPEC_SPINE_DEFAULT_BRANCH is\n    # user-supplied and git's own refname rules never see it, so an unquoted\n    # `ma*n` would silently turn each refspec test into a wildcard.\n    case \"$cmd\" in *\"origin $def\"|*\"origin $def \"*|*\"HEAD:$def\"|*\"HEAD:$def \"*|*\":$def\"|*\":$def \"*|*\"origin +$def\"*) blk=1 ;; esac\n    # Spec 071 3.2, over the name 072 3.1 resolves: on the default branch,\n    # refuse only a push that would actually UPDATE it. Fewer than two\n    # positional arguments after the verb means there is no explicit refspec,\n    # so the push follows the current branch; HEAD and the resolved name name\n    # it outright. A tag push carries its own refspec and updates no branch,\n    # and docs/releasing.md tells a maintainer to run one from the default\n    # branch right after the release PR merges.\n    if [ \"$br\" = \"$def\" ]; then\n      # Strip to the ANCHORED occurrence of the verb, not merely the first one\n      # in the string. A command can name the verb in an argument before it\n      # ever runs one, and reading THOSE words as a refspec is nonsense: the\n      # arguments that matter are the ones after the invocation the outer\n      # case matched. ${var#pattern} strips the shortest matching prefix.\n      case \"$cmd\" in\n        'git push'*)     after=${cmd#git push} ;;\n        *'&& git push'*) after=${cmd#*'&& git push'} ;;\n        *'; git push'*)  after=${cmd#*'; git push'} ;;\n        *)               after='' ;;\n      esac\n      # Keep only that push's own arguments, dropping anything chained after.\n      rest=${after%%[;&|]*}\n      npos=0; last=''\n      for w in $rest; do case \"$w\" in -*) ;; *) npos=$((npos+1)); last=$w ;; esac; done\n      { [ \"$npos\" -lt 2 ] || [ \"$last\" = HEAD ] || [ \"$last\" = \"$def\" ]; } && blk=1\n      # Only that push was analysed, so a command chaining another is refused\n      # outright: the walk cannot speak for a push it never looked at.\n      case \"$after\" in *'&& git push'*|*'; git push'*) blk=1 ;; esac\n    fi\n    if [ \"$blk\" = 1 ]; then\n      { echo \"[push-gate] BLOCKED: this would update $def (repo: $root, branch: ${br:-unknown}). Work on a feature branch and open a PR through /ship. A tag push such as 'git push origin v1.2.3' is allowed.\"; } >&2\n      exit 2\n    fi ;;\nesac\n\ncase \"$cmd\" in 'gh pr create'*|*'&& gh pr create'*|*'; gh pr create'*) ;; *) exit 0 ;; esac\n# Resolve the spec-spine binary for the repository this hook acts on:\n# $SPEC_SPINE_BIN, then that repository's own release build, then PATH. A repo\n# that builds its own binary must be governed by the one it builds; the PATH\n# fallback keeps an adopter on the published CLI working (spec 051).\nspec_spine_bin() {\n  if [ -n \"${SPEC_SPINE_BIN:-}\" ] && [ -x \"${SPEC_SPINE_BIN}\" ]; then echo \"${SPEC_SPINE_BIN}\"; return 0; fi\n  if [ -x \"$1/target/release/spec-spine\" ]; then echo \"$1/target/release/spec-spine\"; return 0; fi\n  command -v spec-spine 2>/dev/null\n}\nsc=$(spec_spine_bin \"$root\") || sc=''\n[ -n \"$sc\" ] || { echo '[pr-gate] spec-spine absent, coupling gate skipped (run /setup)'; exit 0; }\n[ -d \"$root/specs\" ] || { echo \"[pr-gate] $root is not a spec-spine corpus, coupling gate skipped\"; exit 0; }\n\n# Read-only. The gate must never write into the repo it is judging: `index`\n# rewrites committed shards, a hook cannot commit them, and doing it from here\n# mutates a tree another session may be mid-build in.\nif ! \"$sc\" --repo \"$root\" check >/dev/null 2>&1; then\n  { echo \"[pr-gate] BLOCKED: a committed shard tree is stale in $root.\"\n    echo '[pr-gate] Run: spec-spine compile and index, whichever tree it named, then commit the shards, push, and retry.'; } >&2\n  exit 2\nfi\nif ! git -C \"$root\" diff --quiet -- .derived/ 2>/dev/null; then\n  { echo \"[pr-gate] BLOCKED: derived shards are uncommitted in $root.\"\n    echo '[pr-gate] Run: git add .derived/ then commit, push, and retry.'; } >&2\n  exit 2\nfi\n\nout=$(\"$sc\" --repo \"$root\" couple --base \"origin/$(default_branch \"$root\")\" --head HEAD 2>&1); ec=$?\nif [ $ec -ne 0 ]; then\n  case \"$cmd\" in\n    *--body*Spec-Drift-Waiver*) echo '[pr-gate] coupling gate failed; Spec-Drift-Waiver present after --body, allowing (CI honours the body-at-creation waiver).' ;;\n    *) { echo \"[pr-gate] BLOCKED: coupling gate failed in $root and no Spec-Drift-Waiver in the PR body:\"\n         echo \"$out\" | tail -25\n         echo '[pr-gate] Either fix the coupling (claim every changed path in the spec being implemented, or add an extends edge naming the owning spec) or, with explicit human approval, include the Spec-Drift-Waiver line inline in --body (not --body-file) and retry. A waiver is a human instrument: never write one on your own authority.'; } >&2\n       exit 2 ;;\n  esac\nfi\ntrue"
           }
         ]
       }
@@ -2933,7 +2931,7 @@ echo "verify: $id: passed ($ran command(s))"
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" 2>/dev/null || exit 0\n[ -d specs ] || exit 0\n# Resolve the spec-spine binary for the repository this hook acts on:\n# $SPEC_SPINE_BIN, then that repository's own release build, then PATH. A repo\n# that builds its own binary must be governed by the one it builds; the PATH\n# fallback keeps an adopter on the published CLI working (spec 051).\nspec_spine_bin() {\n  if [ -n \"${SPEC_SPINE_BIN:-}\" ] && [ -x \"${SPEC_SPINE_BIN}\" ]; then echo \"${SPEC_SPINE_BIN}\"; return 0; fi\n  if [ -x \"$1/target/release/spec-spine\" ]; then echo \"$1/target/release/spec-spine\"; return 0; fi\n  command -v spec-spine 2>/dev/null\n}\nsc=$(spec_spine_bin \"${CLAUDE_PROJECT_DIR:-.}\") || sc=''\n[ -n \"$sc\" ] || { echo '[codebase-index] spec-spine absent, staleness check skipped (run /setup)'; exit 0; }\n# Read-only by design. A session that has ended cannot commit a regenerated\n# index, so writing one here leaves .derived/ dirty; an orchestrator that\n# refuses to start a session on a dirty tree then never starts one, and the\n# pipeline stalls on dirt it produced itself.\n\"$sc\" index check >/dev/null 2>&1 && exit 0\necho '[codebase-index] STALE: run `spec-spine index` and commit the regenerated shards with the change that made them stale.'\necho '[codebase-index] Not regenerated here: a write at session end leaves .derived/ uncommitted, and the next run refuses a dirty tree.'\ntrue"
+            "command": "cd \"${CLAUDE_PROJECT_DIR:-.}\" 2>/dev/null || exit 0\n[ -d specs ] || exit 0\n# Resolve the spec-spine binary for the repository this hook acts on:\n# $SPEC_SPINE_BIN, then that repository's own release build, then PATH. A repo\n# that builds its own binary must be governed by the one it builds; the PATH\n# fallback keeps an adopter on the published CLI working (spec 051).\nspec_spine_bin() {\n  if [ -n \"${SPEC_SPINE_BIN:-}\" ] && [ -x \"${SPEC_SPINE_BIN}\" ]; then echo \"${SPEC_SPINE_BIN}\"; return 0; fi\n  if [ -x \"$1/target/release/spec-spine\" ]; then echo \"$1/target/release/spec-spine\"; return 0; fi\n  command -v spec-spine 2>/dev/null\n}\nsc=$(spec_spine_bin \"${CLAUDE_PROJECT_DIR:-.}\") || sc=''\n[ -n \"$sc\" ] || { echo '[codebase-index] spec-spine absent, staleness check skipped (run /setup)'; exit 0; }\n# Read-only by design. A session that has ended cannot commit a regenerated\n# index, so writing one here leaves .derived/ dirty; an orchestrator that\n# refuses to start a session on a dirty tree then never starts one, and the\n# pipeline stalls on dirt it produced itself.\n\"$sc\" check >/dev/null 2>&1 && exit 0\necho '[freshness] STALE: run `spec-spine compile` and `index` and commit the regenerated shards with the change that made them stale.'\necho '[freshness] Not regenerated here: a write at session end leaves .derived/ uncommitted, and the next run refuses a dirty tree.'\ntrue"
           }
         ]
       }

@@ -1,12 +1,12 @@
 ---
 name: setup
-description: "One-time contributor setup: install the pinned spec-spine, the stack toolchain AGENTS.md names, fetch the base ref, and verify the governed loop once, so /init can report lifecycle and structural counts."
+description: "One-time contributor setup: install the pinned spec-spine, the stack toolchain AGENTS.md names, fetch the base ref, and verify the governed loop once, so /prime can report lifecycle and structural counts."
 allowed-tools: Bash, Read
 ---
 
 # /setup
 
-Get a fresh clone operational. After this completes, `/init` can report
+Get a fresh clone operational. After this completes, `/prime` can report
 lifecycle and structural counts through `spec-spine`, never by ad-hoc
 parsing of `.derived/**/*.json` (`.claude/rules/governed-artifact-reads.md`).
 
@@ -55,7 +55,7 @@ Run the gate exactly as `AGENTS.md` "Working the backlog" lists it under
 spec-spine compile
 spec-spine index
 spec-spine lint --fail-on-warn
-spec-spine index check
+spec-spine check
 spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
 spec-spine index coverage --fail-on-untraced   # when [coupling] require_ownership is on
 ```
@@ -67,7 +67,7 @@ shards were stale. Say so and leave the diff for the session to commit
 (`chore(derived): ...`); do not hide it. Halt on the first failing step
 and surface its output verbatim.
 
-Then the reads `/init` will use:
+Then the reads `/prime` will use:
 
 ```sh
 spec-spine registry status-report --json --nonzero-only
@@ -87,14 +87,14 @@ spec-spine index coverage
   - compile: {ok / failed}
   - index: {ok / regenerated, shards left for the session to commit}
   - lint --fail-on-warn: {clean / N diagnostics}
-  - index check: {fresh / stale}
+  - check: {registry fresh / stale, index fresh / stale}
   - couple: {clean / drift surfaced}
   - coverage: {N claimed, M unclaimed / not enforced}
   - stack gate: {ok / failed at <command> / none declared}
 **Lifecycle:** {N specs across <statuses>}  (from registry status-report)
 **Ready:** {ids / (nothing ready)}  (from registry plan)
 
-Next: run `/init` to load full session context.
+Next: run `/prime` to load full session context.
 ```
 
 Do not invent counts. Only report values that came back from a

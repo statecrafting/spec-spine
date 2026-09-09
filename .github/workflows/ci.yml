@@ -92,14 +92,16 @@ jobs:
         run: make -f kit/Makefile gate SPEC_SPINE=./target/debug/spec-spine BASE=HEAD
       # The individual steps below stay as named steps so a failure names the
       # verb that failed in the job log rather than only "make".
-      - name: Compile registry (validation + shard freshness)
-        run: ./target/debug/spec-spine compile --check
+      # Spec 075: one verb, both committed trees, and it never writes, which is
+      # what a gate judging a tree requires. The two primitives it composes
+      # remain available for a caller that regenerated only one tree.
+      #
       # `--fail-on-unresolved` (spec 050) turns the W-001/W-002 warning tier into
       # a refusal. Opt-in by design, and opted into here (spec 051): this corpus
-      # builds what it claims within one PR, so an unresolved unit reaching main
-      # is a claim nobody wrote, not work legitimately under way.
-      - name: Codebase index freshness (committed artifacts must be current)
-        run: ./target/debug/spec-spine index check --fail-on-unresolved
+      # builds what it claims within one PR, so an unresolved unit reaching the
+      # default branch is a claim nobody wrote, not work legitimately under way.
+      - name: Freshness (committed registry and index shards must be current)
+        run: ./target/debug/spec-spine check --fail-on-unresolved
       # Enforced (spec 032): every source file must be specifically claimed by
       # a spec, not merely covered by its package's manifest floor. This repo
       # drove the floor-only list to empty by annotating the last five files
@@ -108,7 +110,7 @@ jobs:
       # reporting it. The PR-time half is `[coupling] require_ownership` in
       # spec-spine.toml, which refuses a *changed* unclaimed file; this step is
       # the whole-tree half, which also catches a file added with no diff
-      # context. Exit 2 remains staleness, already refused by the step above.
+      # context. Exit 2 remains staleness, already refused by the freshness step above.
       - name: Ownership coverage (enforced)
         run: ./target/debug/spec-spine index coverage --fail-on-untraced
       - name: Conformance lint (fail on warn)

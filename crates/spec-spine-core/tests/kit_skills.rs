@@ -14,7 +14,14 @@ use std::path::{Path, PathBuf};
 /// The fifteen skills, the loop first, in the order "Working the backlog"
 /// runs them.
 const SKILLS: &[&str] = &[
-    "init",
+    // Spec 075 3.1: `prime`, not `init`. Claude Code ships its own `/init`,
+    // which generates a CLAUDE.md: a one-time, repository-level operation that
+    // WRITES, where this one is per-session and reports. The kit shadowed a
+    // built-in and inverted its meaning on both axes that matter. No alias was
+    // left behind: an alias keeps shadowing for the whole deprecation window,
+    // which is the defect, and skills are copied files, so an adopter who does
+    // not refresh keeps their old copy either way.
+    "prime",
     "setup",
     "next",
     "build",
@@ -32,7 +39,7 @@ const SKILLS: &[&str] = &[
 ];
 
 /// Skills that read and must never run a writing `spec-spine` verb.
-const READ_ONLY: &[&str] = &["init", "next", "verify", "code-review"];
+const READ_ONLY: &[&str] = &["prime", "next", "verify", "code-review"];
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -231,9 +238,11 @@ fn the_loop_skills_wrap_the_tool_verbs_they_exist_for() {
         ("shepherd", "headRefOid"),
         ("spec", "registry list --ids-only"),
         ("spec", "status: draft"),
-        ("init", "compile --check"),
+        // Spec 075 3.1 and 3.5: the session skill is `prime`, and the verb it
+        // wraps is the composed freshness read rather than either primitive.
+        ("prime", "spec-spine check"),
         ("setup", "registry plan"),
-        ("code-review", "compile --check"),
+        ("code-review", "spec-spine check"),
         ("commit", "session_"),
         ("commit", "U+2014"),
     ];
@@ -319,7 +328,10 @@ fn the_write_scanner_recognises_writes() {
 /// scanner and the parse guard read this one list: two copies could drift, and
 /// a verb missing from either makes the subset assertion vacuous for that verb
 /// without failing. Adding a verb to the chain means adding it here.
-const GOVERNANCE_VERBS: &[&str] = &["compile", "index", "lint", "couple"];
+/// `check` (spec 075) is the composed freshness verb the protocol now calls;
+/// `compile` and `index` stay listed because they remain the single-tree reads
+/// and a repository may still gate on one alone.
+const GOVERNANCE_VERBS: &[&str] = &["check", "compile", "index", "lint", "couple"];
 
 /// The leading words of a command, up to the first flag: `index check
 /// --fail-on-unresolved` has the verb path `index check`.

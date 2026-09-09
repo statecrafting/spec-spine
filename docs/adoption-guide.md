@@ -157,8 +157,7 @@ jobs:
       # 2 stale). Never run it after a plain `spec-spine compile` in the same
       # job: it would compare the shards against files that run just overwrote
       # and pass unconditionally.
-      - run: spec-spine compile --check     # validation + registry freshness
-      - run: spec-spine index check         # staleness gate (exit 2 if stale)
+      - run: spec-spine check               # both trees: validation + freshness
       - run: spec-spine lint --fail-on-warn
       - name: Coupling gate
         env:
@@ -172,7 +171,7 @@ jobs:
             --pr-body /tmp/pr-body.txt
 ```
 
-Both freshness steps (`compile --check` and `index check`) compare against
+The freshness read (`spec-spine check`, or either primitive alone) compares against
 **committed** artifacts, so this job assumes you commit `.derived/` as described
 in §3. If you gitignore the derived tree instead, drop both `--check`/`check`
 forms and run plain `spec-spine compile` and `spec-spine index` to build the
@@ -298,7 +297,7 @@ the public loaders and emits its own sibling artifact. See
 - Your crates/packages carry `[package.metadata.<ns>].spec` (or the package.json
   equivalent), and `spec-spine index` maps them to specs.
 - `.derived/` is committed (except `build-meta.json`).
-- CI runs `compile` → `index check` → `lint` → `couple` on every PR.
+- CI runs `check` → `lint` → `couple` on every PR.
 
 ## If your corpus has no code yet
 
@@ -356,6 +355,23 @@ the other is how a governance file ends up outside both.
 > `scaffold.rs` emitted the default's value into the file. Since spec 074,
 > `spec-spine lint` names the pattern for you: `L-010` refuses any
 > `extra_hashed_inputs` entry ending in `/**`.
+
+> **Upgrading across spec 075.** Two things are renamed, and one is added.
+>
+> The session skill is **`/prime`**, not `/init`. Claude Code ships its own
+> `/init`, which generates a CLAUDE.md: a one-time, repository-level operation
+> that *writes*, where the kit's is per-session and only reports. The kit was
+> shadowing a built-in and inverting its meaning. **There is no `/init` alias**,
+> deliberately: an alias keeps shadowing for the whole deprecation window, and
+> skills are copied files, so an adopter who does not refresh keeps their old
+> copy regardless. **The failure mode if you refresh the skills but keep a
+> customized `AGENTS.md`** that still says `/init` is "skill not found", which
+> is loud and instantly diagnosable rather than silent. Rename the reference.
+>
+> **`spec-spine check`** is new and additive: it runs both freshness reads and
+> reports each tree separately, so the protocol asks one question with one verb.
+> `compile --check` and `index check` are unchanged, keep their flags and their
+> contracts, and remain the right call when you regenerated only one tree.
 
 > **Upgrading across spec 073.** A GitHub Actions workflow now folds into the
 > content hash as its **governance projection**: the parsed document with the

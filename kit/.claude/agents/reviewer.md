@@ -48,7 +48,7 @@ spec-spine is an installed CLI tool that governs your repo's spec corpus. In you
 ### 1b. Gate Evidence
 
 - Run the gate exactly as `AGENTS.md` "Working the backlog" lists it
-  (`spec-spine compile --check`, `spec-spine index check`,
+  (`spec-spine check`,
   `spec-spine lint --fail-on-warn`, `spec-spine couple` against the base ref
   "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)",
   then the stack's own build and tests) and capture the output. A red gate
@@ -137,7 +137,7 @@ For each changed file:
 - Mid-build spec edits: [none / legitimate / coherence-guard finding]
 
 ### Gate
-- compile --check: [fresh / stale]  index check: [fresh / stale]
+- check: registry [fresh / stale], index [fresh / stale]
 - lint --fail-on-warn: [clean / N]  couple: [clean / C-001 / C-002]
 - coverage: [N unclaimed]  derived: [clean / stale shards left by the gate]
 

@@ -10,6 +10,10 @@
     ],
     "implementingPaths": [
       {
+        "path": ".claude/agents/",
+        "source": "spec-edge"
+      },
+      {
         "path": ".claude/settings.json",
         "source": "spec-edge"
       },
@@ -18,7 +22,15 @@
         "source": "spec-edge"
       },
       {
+        "path": ".github/workflows/ci.yml",
+        "source": "spec-edge"
+      },
+      {
         "path": "AGENTS.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/src/cmd_check.rs",
         "source": "spec-edge"
       },
       {
@@ -30,6 +42,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/diagnostics.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/kit_embedded.rs",
         "source": "spec-edge"
       },
@@ -38,7 +54,27 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/kit_gate.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/kit_hooks.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/kit_skills.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/src/verdict.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/adoption-guide.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/.claude/agents/",
         "source": "spec-edge"
       },
       {
@@ -66,6 +102,32 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-cli/src/cmd_check.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_check.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".claude/agents/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/agents/"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": ".claude/settings.json"
           }
         ],
@@ -87,6 +149,19 @@
         "unit": {
           "kind": "file",
           "path": ".claude/skills/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/ci.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
         }
       },
       {
@@ -131,6 +206,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/src/diagnostics.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/diagnostics.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/src/kit_embedded.rs"
           }
         ],
@@ -157,6 +245,45 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/kit_gate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_gate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/kit_hooks.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/kit_skills.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_skills.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-types/src/verdict.rs"
           }
         ],
@@ -165,6 +292,32 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/verdict.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/adoption-guide.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/adoption-guide.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/.claude/agents/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/agents/"
         }
       },
       {
@@ -250,5 +403,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "84b1cb147559d8ba737f5c3586a973c99ed6b2955ef3a078538f2d6f376d303e"
+  "shardHash": "18c4bd099d87167f99bbed3eda56f6b07e59f0b64669c27800e62afd1e89d7db"
 }

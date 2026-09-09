@@ -35,7 +35,7 @@ every commit". The governance floor:
 spec-spine compile
 spec-spine index
 spec-spine lint --fail-on-warn
-spec-spine index check
+spec-spine check
 spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
 spec-spine index coverage --fail-on-untraced   # when [coupling] require_ownership is on
 ```
@@ -44,7 +44,8 @@ then the stack's own build, tests, and lints. Stop on the first failure
 (orchestrator rule: halt, never continue silently). Outcomes:
 
 - All green: continue to Step 2.
-- `index check` stale (exit 2): `spec-spine index`, stage the derived
+- `check` stale (exit 2): `spec-spine index` (or `compile`, per the tree it
+  named), stage the derived
   directory, and re-run. The shards are committed with the change they
   describe.
 - `couple` drift (`C-001`): a changed path is claimed by a spec that did

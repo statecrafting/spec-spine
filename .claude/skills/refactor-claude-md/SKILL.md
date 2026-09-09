@@ -82,7 +82,7 @@ spec-spine index coverage        # which spec claims the harness files
 ## After extraction
 
 Report the size change (lines before and after), list the files created,
-confirm `spec-spine index check` is fresh, and offer `/commit`.
+confirm `spec-spine check` is fresh, and offer `/commit`.
 
 ## Project layer
 
