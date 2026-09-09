@@ -234,8 +234,9 @@ spec plans to own without reading the diagnostics band.
 `spec-spine registry plan` MUST be able to report planned territory alongside
 the ready set, and `spec-spine index coverage` MUST be able to distinguish a
 source file that no spec claims from one that a spec has planned. Both are the
-reads this spec exists to unblind, and both become possible only because 3.6
-puts the fact in the artifact rather than in a warning.
+reads this spec exists to unblind, and both become possible only because this
+section puts the fact in the artifact rather than leaving it in a warning that
+3.2 has already suppressed.
 
 ### 3.7 Schema and version
 
