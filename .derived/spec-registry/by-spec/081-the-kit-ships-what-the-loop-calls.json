@@ -1,0 +1,104 @@
+{
+  "record": {
+    "amends": [
+      "048-kit-ships-the-governed-loop-skills",
+      "051-harness-runs-the-verbs-it-ships"
+    ],
+    "created": "2026-09-09",
+    "dependsOn": [
+      "048-kit-ships-the-governed-loop-skills",
+      "074-shipped-is-not-the-same-as-working",
+      "075-one-name-one-freshness-verb"
+    ],
+    "extends": [
+      {
+        "nature": "superseding",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/skills/"
+        }
+      },
+      {
+        "nature": "superseding",
+        "spec": "048-kit-ships-the-governed-loop-skills",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "048-kit-ships-the-governed-loop-skills",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_skills.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/AGENTS.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "078-the-protocol-has-an-owner",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/README.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "006-init-scaffold",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scaffold.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "065-init-and-the-kit-are-one-adoption",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
+        }
+      }
+    ],
+    "id": "081-the-kit-ships-what-the-loop-calls",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionHeadings": [
+      "081: The kit ships what the loop calls",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Ten skills",
+      "3.2 The pin counts ten",
+      "3.3 Every listing names the ten, with their current names",
+      "3.4 What an adopter does",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/081-the-kit-ships-what-the-loop-calls/spec.md",
+    "status": "draft",
+    "summary": "Spec 048 made the kit ship fifteen skills: the eight-skill governed loop and a support set of seven. Audited on 2026-09-09, five of the seven are invoked by nothing in the kit and carry no spec-spine content their neighbours do not already carry: `implement-plan` restates `build`'s ownership and gate rules under a plan-file state machine and tells the reader to prefer `build`; `validate-and-fix` restates `ship`'s gate step verbatim and `shepherd`'s remediation role; `cleanup`, `research` and `refactor-claude-md` are generic recipes with one governed-reads sentence each. No commit in this repository's history names four of them. This spec removes the five, so the kit ships ten: the loop, and the two the loop calls. It also corrects two listings 048 left stale after specs 074 and 075.\n",
+    "title": "The kit ships what the loop calls"
+  },
+  "shardHash": "1eb291218d38b4e5ddfb1be02e0e859b04de47eaeea1147baeb9560359fb17fd",
+  "specVersion": "1.2.0"
+}

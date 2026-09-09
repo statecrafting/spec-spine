@@ -26,7 +26,7 @@ same protocol.
 
 | Skill | What it does | Wraps |
 |---|---|---|
-| `init` | Run the `AGENTS.md` New Sessions protocol; reads only, never repairs the tree. | `compile --check`, `index check`, `registry plan` |
+| `prime` | Run the `AGENTS.md` New Sessions protocol; reads only, never repairs the tree. | `spec-spine check`, `registry plan` |
 | `setup` | One-time setup: install the pinned spec-spine, the stack toolchain, verify the loop once. | the gate as `AGENTS.md` lists it |
 | `next` | Name the next work order from the ready set, minus drafts, with in-flight specs and blockers reported. Read-only. | `registry plan --json`, `registry show --json` |
 | `build <id>` | One spec, start to finish: preflight, branch, flip `in-progress`, implement inside the territory, gate before every commit, verify, flip `complete`. | steps 2 to 6 of the protocol |
@@ -40,21 +40,16 @@ dependencies are met is listed as awaiting approval, never offered
 (approval is a human act), and a spec at `implementation: in-progress` is
 listed as in flight, never offered as new work.
 
-## The support set
+## The two the loop calls
 
 | Skill | What it does |
 |---|---|
 | `commit` | Conventional, impact-focused commit with the spec ordinal as scope; the regenerated shards staged with the change; no AI attribution, no session links, no em dash. |
 | `code-review` | Correctness, spec drift, and the legitimacy of every mid-build spec edit, with the gate's read-only forms as evidence and the path-scoped invariant rules applied or delegated. |
-| `validate-and-fix` | Run the CI composite `AGENTS.md` names and fix by severity; a `C-002` whose remedy is claiming the file is HIGH, one that needs another spec edited is CRITICAL and goes to a human. |
-| `cleanup` | One read-only analyzer agent runs dead-code and duplicate detectors per language and reports with an owning-spec column. |
-| `implement-plan` | Execute a cross-cutting plan file with checkpoints; for one whole spec, prefer `/build`. |
-| `research` | Parallel sub-agents; corpus questions go through `spec-spine registry` and `index`, external questions through the web. |
-| `refactor-claude-md` | Extract context-specific guidance from `CLAUDE.md` into `paths:`-scoped rules, keeping the harness spec coupled and the index fresh. |
 
 ## Read skills read
 
-`init`, `next`, `verify`, and `code-review` never run a writing verb: a bare
+`prime`, `next`, `verify`, and `code-review` never run a writing verb: a bare
 `compile` inside a review would repair a stale committed registry as a side
 effect of reading it, hiding the defect. They use `compile --check` and
 `index check`, report a stale verdict, and leave the repair to the session

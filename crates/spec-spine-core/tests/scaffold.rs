@@ -470,10 +470,51 @@ fn the_embedded_kit_matches_the_checked_in_tree() {
             src.display()
         );
     }
-    assert!(
-        spec_spine_core::kit_embedded::KIT_FILES.len() > 25,
-        "the whole harness is embedded, not a subset"
+    // The whole harness is embedded, not a subset: every file under `kit/`
+    // that the generator does not deliberately skip (its README and the
+    // AGENTS.md template, spec 065 3.1) is an entry. Counted from the tree
+    // rather than pinned to a number, which a kit that shrinks (spec 081
+    // removed five skills) or grows would otherwise have to chase.
+    let skipped = ["kit/README.md", "kit/AGENTS.md"];
+    let on_disk = walkdir_files(&root.join("kit"))
+        .into_iter()
+        .filter(|p| {
+            let rel = p
+                .strip_prefix(&root)
+                .unwrap()
+                .to_string_lossy()
+                .replace('\\', "/");
+            !skipped.contains(&rel.as_str())
+                && !p.components().any(|c| {
+                    matches!(
+                        c.as_os_str().to_str(),
+                        Some(".DS_Store" | "__pycache__" | ".git")
+                    )
+                })
+        })
+        .count();
+    assert_eq!(
+        spec_spine_core::kit_embedded::KIT_FILES.len(),
+        on_disk,
+        "the whole harness is embedded, not a subset; regenerate with `python3 scripts/gen-kit-embedded.py`"
     );
+}
+
+/// Every regular file under `dir`, recursively.
+fn walkdir_files(dir: &std::path::Path) -> Vec<std::path::PathBuf> {
+    let mut out = Vec::new();
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(d) = stack.pop() {
+        for entry in std::fs::read_dir(&d).unwrap() {
+            let p = entry.unwrap().path();
+            if p.is_dir() {
+                stack.push(p);
+            } else if p.is_file() {
+                out.push(p);
+            }
+        }
+    }
+    out
 }
 
 // ── spec 066: the contract records the lifecycle table ────────────────────

@@ -226,15 +226,10 @@ The governed loop, in the order "Working the backlog" runs it:
 - `/shepherd`: watch the PR's checks by head sha, remediate through the gate, merge, confirm on disk.
 - `/spec`: author a new spec at the next free ordinal, born `draft`; approval stays a human flip.
 
-The supporting skills:
+The skills the loop calls:
 
 - `/commit`: create a git commit with an impact-focused conventional message, spec ordinal as scope.
 - `/code-review`: review the working diff for correctness bugs, spec drift, and illegitimate mid-build spec edits.
-- `/validate-and-fix`: run the local CI composite and fix discovered issues by severity.
-- `/cleanup`: dead-code and duplicate detection with ownership-aware recommendations.
-- `/implement-plan`: execute a cross-cutting plan file step by step with checkpoints.
-- `/research`: deep research with parallel sub-agents; corpus questions go through `spec-spine`.
-- `/refactor-claude-md`: tighten a `CLAUDE.md` into path-scoped rules, keeping the harness spec coupled.
 
 Every skill is repository-invariant: the project layer (the binary
 invocation, the version pin, the gate command list, the stack gate, the

@@ -153,7 +153,7 @@ Agents live in `.claude/agents/`. Four pipeline agents handle the plan/explore/i
 ## Available Commands
 
 Commands live in `.claude/skills/` (one `SKILL.md` per folder). They are the
-kit's fifteen, byte-identical to `kit/.claude/skills/` (spec 048 pins this):
+kit's ten, byte-identical to `kit/.claude/skills/` (specs 048 and 081 pin this):
 the project layer lives in this file, not in the skills.
 
 The governed loop, in the order "Working the backlog" runs it:
@@ -167,15 +167,10 @@ The governed loop, in the order "Working the backlog" runs it:
 - `/shepherd`: watch the PR's checks by head sha, remediate through the gate, merge, confirm on disk
 - `/spec`: author a new spec at the next free ordinal, born `draft`
 
-The supporting skills:
+The skills the loop calls:
 
 - `/commit`: create a git commit with an impact-focused conventional message, spec ordinal as scope
 - `/code-review`: review the working diff for correctness bugs, spec drift, and illegitimate mid-build spec edits
-- `/validate-and-fix`: run the local CI composite and fix discovered issues by severity
-- `/cleanup`: dead-code and duplicate detection with ownership-aware recommendations
-- `/implement-plan`: execute a cross-cutting plan file step by step with checkpoints
-- `/research`: deep research with parallel sub-agents; corpus questions go through `spec-spine`
-- `/refactor-claude-md`: tighten a `CLAUDE.md` into path-scoped rules, keeping the harness spec coupled
 
 ## Conventions
 

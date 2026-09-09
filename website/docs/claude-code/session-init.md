@@ -6,13 +6,13 @@ sidebar_position: 3
 
 # Session Init and Context Loading
 
-Every session begins with `/init`. This skill reads the `AGENTS.md` "New
+Every session begins with `/prime`. This skill reads the `AGENTS.md` "New
 Sessions" protocol and executes it, loading the context an agent needs to work
 effectively in the repository.
 
-## The `/init` skill
+## The `/prime` skill
 
-`/init` is a thin dispatcher. Its `SKILL.md` contains only three instructions:
+`/prime` is a thin dispatcher. Its `SKILL.md` contains only three instructions:
 
 1. Read `AGENTS.md`, specifically the section from `## New Sessions` to the next
    `## ` heading.
@@ -59,7 +59,7 @@ status report.
 The `settings.json` SessionStart hook fires on every new session and resume. It
 reports spec-registry and codebase-index freshness (via `compile --check` and
 `index check`, without writing), so the agent knows immediately whether either
-committed tree is stale before `/init` even runs:
+committed tree is stale before `/prime` even runs:
 
 ```
 [session-freshness] spec registry: fresh; codebase index: fresh
@@ -87,5 +87,5 @@ clone, surfacing what is missing without halting.
 
 Write an `AGENTS.md` `## New Sessions` section listing the reads your repo needs.
 Keep the structure (load rules, compile, parallel reads, emit summary), and
-replace the example reads with your equivalents. The `/init` skill needs no
+replace the example reads with your equivalents. The `/prime` skill needs no
 change: it reads whatever protocol you define.

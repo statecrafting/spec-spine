@@ -9,7 +9,7 @@ allowed-tools: Agent, Read, Bash, Glob, Grep, Edit
 ## Purpose
 
 Spawn one analyzer sub-agent that runs dead-code and duplicate-code
-detection across the source surface `AGENTS.md` or `CLAUDE.md` names,
+detection across the source surface `AGENTS.md` or `AGENTS.md` names,
 reads each finding in context, and returns a structured report. Optional
 detectors are used when available and skipped visibly when not.
 
@@ -131,6 +131,6 @@ shipped spec itself. Say so before removing anything.
 
 ## Project layer
 
-Read from `AGENTS.md` or `CLAUDE.md`: the source surface. Read from
-`.claude/rules/`: the dynamic-dispatch seams and never-touch artefacts.
+Read from `AGENTS.md` or `AGENTS.md`: the source surface. Read from
+`.Codex/rules/`: the dynamic-dispatch seams and never-touch artefacts.
 Nothing here is edited per project.

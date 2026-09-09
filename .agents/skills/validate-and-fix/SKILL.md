@@ -36,7 +36,7 @@ Capture full output (file paths, line numbers, messages) and categorize:
   unordered map) reaching a hashed path.
 - **HIGH**: test failures, build breaks, index or registry staleness, a
   `C-002` whose remedy is claiming the file in the spec being implemented
-  (the legitimate edit `.claude/rules/adversarial-prompt-refusal.md`
+  (the legitimate edit `.Codex/rules/adversarial-prompt-refusal.md`
   names).
 - **MEDIUM**: `spec-spine lint` warnings (the gate runs `--fail-on-warn`),
   linter findings, type errors, dependency advisories with a fix.
@@ -69,7 +69,7 @@ one-off script.
 - **Partial success**: continue past a fix that fails; separate successes
   from failures; give manual instructions for what you could not fix.
 - **Governed reads**: read the derived directory only through `spec-spine`
-  subcommands (`.claude/rules/governed-artifact-reads.md`).
+  subcommands (`.Codex/rules/governed-artifact-reads.md`).
 
 ## 4. Parallel execution
 
@@ -95,7 +95,7 @@ Re-run the gate end to end, confirm no new findings, and summarize:
   design docs, or the workflows are among them. Editing a hashed input
   without regenerating the index fails the staleness check. The hooks only report staleness; they never
   regenerate. The session runs `spec-spine index` and commits the result.
-- `.claude/settings.json` and `.mcp.json` are hashed byte for byte when
+- `.Codex/settings.json` and `.mcp.json` are hashed byte for byte when
   listed as hashed inputs: editor reformatting trips the gate even when
   the JSON is unchanged.
 - With `[coupling] require_ownership` on, every source file must be
@@ -106,5 +106,5 @@ Re-run the gate end to end, confirm no new findings, and summarize:
 
 Read from `AGENTS.md`: the composite if one is declared, the gate command
 list otherwise, and the stack gate. Read from
-`.claude/rules/`: the never-touch artefacts and any post-feature checklist
+`.Codex/rules/`: the never-touch artefacts and any post-feature checklist
 the project keeps. Nothing here is edited per project.

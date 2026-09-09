@@ -1,0 +1,157 @@
+{
+  "mapping": {
+    "amends": [
+      "048-kit-ships-the-governed-loop-skills",
+      "051-harness-runs-the-verbs-it-ships"
+    ],
+    "dependsOn": [
+      "048-kit-ships-the-governed-loop-skills",
+      "074-shipped-is-not-the-same-as-working",
+      "075-one-name-one-freshness-verb"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".claude/skills/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "AGENTS.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/kit_embedded.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/kit_skills.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/scaffold.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/.claude/skills/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/AGENTS.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/README.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".claude/skills/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "AGENTS.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/kit_embedded.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/kit_skills.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_skills.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/scaffold.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scaffold.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/.claude/skills/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/skills/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/AGENTS.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/AGENTS.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/README.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/README.md"
+        }
+      }
+    ],
+    "specId": "081-the-kit-ships-what-the-loop-calls",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "1429d39ee41502e70fe33d568eb0eb1f433edac9a5eb1aa4a1fdc057f4b6e219"
+}

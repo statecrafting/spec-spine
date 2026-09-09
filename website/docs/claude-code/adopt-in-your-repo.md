@@ -48,14 +48,14 @@ structure (load rules, compile, parallel reads, emit summary).
 ## Step 6: Provide the build targets
 
 Add `setup`, `ci`, and `pr-prep` (or your equivalents) so `/setup`,
-`/validate-and-fix`, and `/ship` have something to call. See
+`/build`, and `/ship` have something to call. See
 [Configuration](./configuration.md#a-local-ci-command).
 
 ## Step 7: Run the loop
 
 ```bash
 /setup        # verify the bootstrap
-/init         # load context
+/prime        # load context
 ```
 
 Then make a small change on a feature branch and run `/ship` end to end. If the
@@ -72,7 +72,7 @@ Recreate these for your repository (the kit ships the patterns, not the content)
 |---|---|
 | Domain-specialist agent | Add `.claude/agents/<framework>-expert.md` if a stack benefits from one (see [Agents](./agents.md)). |
 | Paths-scoped context rule | Add `.claude/rules/<area>.md` with `paths:` frontmatter documenting a directory's conventions (see [Rules](./rules.md)). |
-| Quality checklist | Layer a post-feature checklist (framework invariants, route/DTO alignment, auth scoping, env coverage) into `/validate-and-fix`; keep it in your repo. |
+| Quality checklist | Layer a post-feature checklist (framework invariants, route/DTO alignment, auth scoping, env coverage) into a path-scoped rule under `.claude/rules/`; `/code-review` applies the rules that load for the paths it reviews. |
 | `spec-spine.toml` taxonomies | Replace example domain and kind enums with your own. |
 | Permission allow-list | Rewrite `settings.json` `permissions.allow` for your tools. |
 | MCP servers | Declare your own in `.mcp.json`, or leave it empty. |
