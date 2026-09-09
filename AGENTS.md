@@ -1,5 +1,7 @@
 # AGENTS.md: spec-spine
 
+> Governed by `specs/078-the-protocol-has-an-owner/spec.md`.
+
 ## New Sessions
 
 Run `/prime` as the mandatory first action of every new session. The command reads this section to derive its execution plan dynamically: any item added here is automatically picked up on the next init. This file is the cross-agent authority (read by Claude Code, Codex CLI, Cursor, Copilot, and any future agent via the AAIF/Linux Foundation AGENTS.md standard).

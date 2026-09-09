@@ -15,7 +15,7 @@
       }
     ],
     "id": "078-the-protocol-has-an-owner",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "governance",
     "owner": "The spec-spine Authors",
     "risk": "medium",
@@ -26,16 +26,16 @@
       "3. Behavior",
       "3.1 The claim",
       "3.2 The file names the spec that governs it",
-      "3.3 The inherited edges are recorded, not rewritten",
+      "3.3 Existing edges are not touched",
       "4. Out of scope",
       "5. Resolved decisions",
       "Verification"
     ],
     "specPath": "specs/078-the-protocol-has-an-owner/spec.md",
     "status": "draft",
-    "summary": "Root `AGENTS.md` is the cross-agent authority: the protocol `/prime` executes, the gate list every skill inlines a subset of, and the document spec 051's parity test compares this repository's CI against. No spec in the corpus establishes it. Seven approved specs reach it with an `extends` edge naming spec 029, but 029 establishes exactly one unit, `kit/`, and root `AGENTS.md` is outside that subtree, so the ledger records an owner that never claimed the file. Nothing catches this: no validation confirms an `extends` unit appears in its target's territory. This spec claims the file where it should have been claimed, and requires the file to name the spec that governs it, which is the same \"a file naming its own spec\" move the comment headers make for source. It corrects the ledger only; it changes no behavior, amends nobody, and deliberately leaves the seven inherited edges alone, because repointing another spec's frontmatter is that spec's business and spec 079 is where the migration is decided.\n",
+    "summary": "Root `AGENTS.md` is the cross-agent authority: the protocol `/prime` executes, the gate list every skill inlines a subset of, and the document spec 051's parity test compares this repository's CI against. No spec in the corpus establishes it. Seven approved specs reach it with an `extends` edge naming spec 029, but 029 establishes exactly one unit, `kit/`, and root `AGENTS.md` is outside that subtree, so the ledger records an owner that never established the file. That is not a defect: `extends` means \"adds surface to a predecessor\", so those edges are the corpus's ordinary convention, and measurement confirms it. What is genuinely missing is narrower. The protocol file has no `establishes` claim at all, so the ledger has no direct answer to who owns it. This spec supplies one, and requires the file to name the spec that governs it, the same \"a file naming its own spec\" move the comment headers make for source. It clarifies the ledger only; it changes no behavior and amends nobody.\n",
     "title": "The protocol has an owner"
   },
-  "shardHash": "fe5c4a5f411eb395902442c14d42bfa679aa25c9def3fe184f15a6978089aabe",
+  "shardHash": "a1137a896fe3666a98c6b714c818b3627ca5a50ebadfa08e19d875606377904e",
   "specVersion": "1.2.0"
 }
