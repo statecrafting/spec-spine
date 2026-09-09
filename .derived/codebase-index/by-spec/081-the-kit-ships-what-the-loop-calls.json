@@ -150,8 +150,8 @@
       }
     ],
     "specId": "081-the-kit-ships-what-the-loop-calls",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "1429d39ee41502e70fe33d568eb0eb1f433edac9a5eb1aa4a1fdc057f4b6e219"
+  "shardHash": "6f18fae9fe235cf275d49e2026cadd500c42eda6127251a710bd3de55e68d619"
 }
