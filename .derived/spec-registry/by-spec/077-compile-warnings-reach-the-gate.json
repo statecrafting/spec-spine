@@ -1,0 +1,186 @@
+{
+  "record": {
+    "created": "2026-09-08",
+    "dependsOn": [
+      "001-compile-registry",
+      "003-conformance-lint",
+      "031-registry-freshness-check",
+      "037-machine-readable-verdicts",
+      "050-index-diagnostics-reach-a-gate",
+      "064-the-kit-ships-the-composite-gate",
+      "075-one-name-one-freshness-verb"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "075-one-name-one-freshness-verb",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_check.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "050-index-diagnostics-reach-a-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/diagnostics.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "064-the-kit-ships-the-composite-gate",
+        "unit": {
+          "kind": "file",
+          "path": "kit/Makefile"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "064-the-kit-ships-the-composite-gate",
+        "unit": {
+          "kind": "file",
+          "path": "kit/govern.yml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "064-the-kit-ships-the-composite-gate",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "064-the-kit-ships-the-composite-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_gate.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/AGENTS.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "048-kit-ships-the-governed-loop-skills",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-claude-code-skill-kit",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/skills/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "051-harness-runs-the-verbs-it-ships",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_skills.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "065-init-and-the-kit-are-one-adoption",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "067-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/adoption-guide.md"
+        }
+      }
+    ],
+    "id": "077-compile-warnings-reach-the-gate",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "medium",
+    "sectionHeadings": [
+      "077: Compile warnings reach the gate",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 `V-010` keeps its warning tier",
+      "3.2 `compile --fail-on-warn` gates the exit code, not the verdict",
+      "3.3 `check --fail-on-warn` forwards into the compile half",
+      "3.4 The composed report says which half refused",
+      "3.5 Every written form of the gate chain adopts the flag",
+      "3.6 The refusal is proven on a corpus that trips it",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/077-compile-warnings-reach-the-gate/spec.md",
+    "status": "draft",
+    "summary": "`V-010`, a `depends_on` naming a spec that does not exist, is the only warning-tier code the compiler emits, and no verb in the gate chain can be told to refuse it. `lint --fail-on-warn` cannot reach it: lint's codes are disjoint from compile's by design, and `lint()` keeps only the registry from the compile it runs. So a dangling dependency compiles clean, lints clean at every severity, and reaches the default branch unread. This spec adds `--fail-on-warn` to `compile` and forwards it through `check` into the compile half, the shape spec 050's `--fail-on-unresolved` already uses for the index half. The flag gates the CLI's exit code only; `validation.passed` keeps the meaning spec 001 fixed for it, and `V-010` keeps its warning tier, because a corpus that files specs forward must be able to name a dependency it has not written yet. Zero `V-010`s exist today: the gap is structural, and this spec closes it before it costs something.\n",
+    "title": "Compile warnings reach the gate"
+  },
+  "shardHash": "43005b5da4bbcbfb9bf581fbe29f7b59a88613bf3f16cf1f104e544fea5546f2",
+  "specVersion": "1.2.0"
+}
