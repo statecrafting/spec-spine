@@ -59,10 +59,10 @@
       "Verification"
     ],
     "specPath": "specs/082-a-refusal-is-not-a-remediation-round/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`/shepherd` bounds remediation to two rounds and treats every red required check as remediable until it is inside the fix. Its one escalation, the coupling gate, is stated at step 2 of the remediation procedure, so it is read after the session has already committed to fixing. Three further classes are not an agent's to fix either and the skill names none of them: a never-touch artefact the path-scoped rule covers, a dependency cycle, and an ambient input reaching a hashed path. Each can burn both rounds before anyone learns the answer was always \"ask a human\". This spec folds the severity triage spec 081 4 deferred into `/shepherd`: classify before editing, spend a round only on what a session may legitimately fix, and never spend one on a class whose only remedy is a human decision.\n",
     "title": "A refusal is not a remediation round"
   },
-  "shardHash": "207d03fb0664680092dcdecf515c34607e8b0bb8a416aeb5835af0dbac564bbe",
+  "shardHash": "c2d6109e3cc4e0897c5872fc2bf36bc7a5feca540407b61a90fc0da145b35a06",
   "specVersion": "1.2.0"
 }
