@@ -402,6 +402,23 @@ assertions prove the rule independently of whether that unit test exists:
 - **a symlink cycle terminates at exit 0.** Proves the walk cannot diverge,
   which is the failure that costs a hang rather than a wrong answer.
 
+The first of those depends on `d2/` being empty for the lifetime of the symlink
+assertions, and it is: nothing between the corpus setup and the final cleanup
+writes into it. That is what makes the assertion discriminating, since
+descending into an empty directory would add nothing and leave the hash where it
+was. An edit that populated `d2/` would quietly turn the first assertion into
+one that passes under traversal too, so the emptiness is a precondition of the
+block rather than an incidental detail.
+
+The state-root assertion is separate from the `resolver_exclusions` one on
+purpose. 3.2 argues the two mechanisms cannot substitute for each other, so a
+single assertion covering only exclusions would leave the `layout.state_dir`
+half of that MUST unverified: an implementation that pruned one and ignored the
+other would pass. The scratch corpus therefore declares its state root **inside**
+a claimed subtree, at `d1/state`, which is the only placement where pruning it
+is observable in a unit's hash and where no `resolver_exclusions` entry could
+have produced the same effect.
+
 Spec 049 3.2 forbids a line depending on a variable another line set, and the
 lines here share a filesystem rather than a shell. That is the point of the
 fixed path, but it is only safe while **every assertion undoes its own
@@ -413,7 +430,12 @@ own text does not describe.
 
 The two corpus-setup lines are the stated exception. They exist to build the
 tree every assertion reads, so their mutations are undone by the final
-`rm -rf` rather than by themselves. That is the only state that crosses a line
+`rm -rf` rather than by themselves. A run that stops at a failing assertion
+therefore leaves the corpus on disk, since `verify` stops at the first failure
+and never reaches that line. That is deliberate rather than overlooked: the tree
+is what a reader needs to diagnose the failure, and the next run's leading
+`rm -rf` recreates it from scratch, so a stale corpus can never influence a
+later verdict. That is the only state that crosses a line
 boundary here, and naming it is what keeps the rule above checkable instead of
 approximately true.
 
@@ -431,7 +453,7 @@ sh -c 'for id in $(target/release/spec-spine registry list --ids-only); do targe
 # A scratch corpus whose one spec claims two empty directories.
 rm -rf "${TMPDIR:-/tmp}/ss083" && mkdir -p "${TMPDIR:-/tmp}/ss083/specs/001-dirs" "${TMPDIR:-/tmp}/ss083/d1" "${TMPDIR:-/tmp}/ss083/d2"
 # The corpus states its own exclusion policy rather than inheriting the binary's default.
-printf -- '[index]\nresolver_exclusions = ["target"]\n' > "${TMPDIR:-/tmp}/ss083/spec-spine.toml"
+printf -- '[index]\nresolver_exclusions = ["target"]\n\n[layout]\nstate_dir = "d1/state"\n' > "${TMPDIR:-/tmp}/ss083/spec-spine.toml"
 printf -- '---\nid: "001-dirs"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-10"\nsummary: "s"\nestablishes:\n  - "d1/"\n  - { kind: directory, path: "d2/" }\n---\n\n# t\n' > "${TMPDIR:-/tmp}/ss083/specs/001-dirs/spec.md"
 # 3.3 the two spellings both hash, distinctly, never both as SHA-256 of nothing.
 sh -c 'test $(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \"" | sort -u | wc -l) -eq 2'
@@ -439,6 +461,8 @@ sh -c 'test $(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --
 sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); test -n "$A" || exit 1; mkdir -p "${TMPDIR:-/tmp}/ss083/d1/target"; echo junk > "${TMPDIR:-/tmp}/ss083/d1/target/j.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); rm -rf "${TMPDIR:-/tmp}/ss083/d1/target"; test "$A" = "$B"'
 # 3.4 a real file beneath a claimed directory does enter the hash.
 sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); test -n "$A" || exit 1; echo hello > "${TMPDIR:-/tmp}/ss083/d1/f.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); rm -f "${TMPDIR:-/tmp}/ss083/d1/f.txt"; test "$A" != "$B"'
+# 3.2 the declared state root is pruned, which no resolver_exclusions entry can express.
+sh -c 'C="rm -rf ${TMPDIR:-/tmp}/ss083/d1/state"; A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); test -n "$A" || { $C; exit 1; }; mkdir -p "${TMPDIR:-/tmp}/ss083/d1/state"; printf "s\n" > "${TMPDIR:-/tmp}/ss083/d1/state/x.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); $C; test "$A" = "$B"'
 # 3.2 a symlink moves the hash, so it was recorded rather than skipped.
 sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); test -n "$A" || exit 1; ln -s ../d2 "${TMPDIR:-/tmp}/ss083/d1/link"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); rm -f "${TMPDIR:-/tmp}/ss083/d1/link"; test "$A" != "$B"'
 # 3.2 changing what a symlink points AT does not move the hash, so it was not dereferenced.
