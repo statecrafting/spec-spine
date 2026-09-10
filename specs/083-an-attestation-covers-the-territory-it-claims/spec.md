@@ -385,6 +385,14 @@ carries its own `spec-spine.toml` naming `resolver_exclusions`, so the 3.2
 assertion tests the stated rule rather than whatever the binary's compiled-in
 default happens to be, and it still asserts something if that default changes.
 
+The symlink rule of 3.2 is asserted twice on purpose. `cargo test --test attest`
+would pass if the implementing change simply never wrote the guard 3.5 asks
+for, because an absent test is not a failing one, so the two CLI assertions
+prove the rule independently of whether that unit test exists: one shows a
+symlink moves the hash, which fails if links are skipped, and one shows a
+symlink cycle still terminates at exit 0, which hangs or fails if the walk
+descends through it.
+
 Spec 049 3.2 forbids a line depending on a variable another line set, and the
 lines here share a filesystem rather than a shell. That is the point of the
 fixed path, but it is only safe while each mutation is undone by the line that
@@ -414,7 +422,11 @@ sh -c 'test $(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --
 # 3.2 a file under an excluded directory name does not enter the hash.
 sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); test -n "$A" || exit 1; mkdir -p "${TMPDIR:-/tmp}/ss083/d1/target"; echo junk > "${TMPDIR:-/tmp}/ss083/d1/target/j.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); rm -rf "${TMPDIR:-/tmp}/ss083/d1/target"; test "$A" = "$B"'
 # 3.4 a real file beneath a claimed directory does enter the hash.
-sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); test -n "$A" || exit 1; echo hello > "${TMPDIR:-/tmp}/ss083/d1/f.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); test "$A" != "$B"'
+sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); test -n "$A" || exit 1; echo hello > "${TMPDIR:-/tmp}/ss083/d1/f.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); rm -f "${TMPDIR:-/tmp}/ss083/d1/f.txt"; test "$A" != "$B"'
+# 3.2 a symlink moves the hash, so it was recorded rather than skipped.
+sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); test -n "$A" || exit 1; ln -s ../d2 "${TMPDIR:-/tmp}/ss083/d1/link"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); rm -f "${TMPDIR:-/tmp}/ss083/d1/link"; test "$A" != "$B"'
+# 3.2 a symlink cycle terminates, so the walk did not descend through it.
+sh -c 'ln -s .. "${TMPDIR:-/tmp}/ss083/d1/loop"; target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs >/dev/null 2>&1; R=$?; rm -f "${TMPDIR:-/tmp}/ss083/d1/loop"; test $R -eq 0'
 rm -rf "${TMPDIR:-/tmp}/ss083"
 # 3.5 a file-only spec still attests, and the schema constant is unmoved.
 target/release/spec-spine attest --spec 070-a-malformed-id-is-refused-not-a-panic >/dev/null
