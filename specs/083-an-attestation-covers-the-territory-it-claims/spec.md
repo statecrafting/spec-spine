@@ -340,7 +340,18 @@ fixed.
 
 The scratch corpus claims one subtree in each spelling, `"d1/"` as a
 trailing-slash `file` unit and `d2/` as an explicit `directory` unit, so the
-3.3 assertion also proves 3.1's rule that the two are treated identically.
+3.3 assertion also proves 3.1's rule that the two are treated identically. It
+carries its own `spec-spine.toml` naming `resolver_exclusions`, so the 3.2
+assertion tests the stated rule rather than whatever the binary's compiled-in
+default happens to be, and it still asserts something if that default changes.
+
+Spec 049 3.2 forbids a line depending on a variable another line set, and the
+lines here share a filesystem rather than a shell. That is the point of the
+fixed path, but it is only safe while each mutation is undone by the line that
+made it: the 3.2 assertion removes its own `target/` directory before comparing,
+so the 3.4 baseline reads the same tree 3.3 did. A line that left state behind
+would make its successor pass or fail for a reason its own text does not
+describe.
 
 ```verify:cli
 # Self-contained: the assertions below drive the release binary.
@@ -355,11 +366,13 @@ sh -c 'test $(target/release/spec-spine attest --spec 048-kit-ships-the-governed
 sh -c 'for id in $(target/release/spec-spine registry list --ids-only); do target/release/spec-spine attest --spec "$id" >/dev/null 2>&1 || exit 1; done'
 # A scratch corpus whose one spec claims two empty directories.
 rm -rf "${TMPDIR:-/tmp}/ss083" && mkdir -p "${TMPDIR:-/tmp}/ss083/specs/001-dirs" "${TMPDIR:-/tmp}/ss083/d1" "${TMPDIR:-/tmp}/ss083/d2"
+# The corpus states its own exclusion policy rather than inheriting the binary's default.
+printf -- '[index]\nresolver_exclusions = ["target"]\n' > "${TMPDIR:-/tmp}/ss083/spec-spine.toml"
 printf -- '---\nid: "001-dirs"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-10"\nsummary: "s"\nestablishes:\n  - "d1/"\n  - { kind: directory, path: "d2/" }\n---\n\n# t\n' > "${TMPDIR:-/tmp}/ss083/specs/001-dirs/spec.md"
 # 3.3 the two spellings both hash, distinctly, never both as SHA-256 of nothing.
 sh -c 'test $(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\"" | sort -u | wc -l) -eq 2'
 # 3.2 a file under an excluded directory name does not enter the hash.
-sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); test -n "$A" || exit 1; mkdir -p "${TMPDIR:-/tmp}/ss083/d1/target"; echo junk > "${TMPDIR:-/tmp}/ss083/d1/target/j.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); test "$A" = "$B"'
+sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); test -n "$A" || exit 1; mkdir -p "${TMPDIR:-/tmp}/ss083/d1/target"; echo junk > "${TMPDIR:-/tmp}/ss083/d1/target/j.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); rm -rf "${TMPDIR:-/tmp}/ss083/d1/target"; test "$A" = "$B"'
 # 3.4 a real file beneath a claimed directory does enter the hash.
 sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); test -n "$A" || exit 1; echo hello > "${TMPDIR:-/tmp}/ss083/d1/f.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); test "$A" != "$B"'
 rm -rf "${TMPDIR:-/tmp}/ss083"
