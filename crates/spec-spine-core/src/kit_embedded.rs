@@ -1437,6 +1437,13 @@ The gate is a chain, so a link that fails hides every finding behind it: if
 `fmt` failed, `clippy` never ran. Classify what the log shows and expect
 the set to grow once the first link is green.
 
+Then route, the way Step 1 routes:
+
+- nothing CRITICAL: go to Step 3;
+- anything CRITICAL: stop. Report as above and do not continue to Step 3,
+  even if a HIGH or MEDIUM finding alongside it looks safe to fix. The round
+  is not spent, so there is nothing to spend it on.
+
 ## Step 3: remediate (at most two rounds, worst first)
 
 Fix in descending severity within the round: HIGH, then MEDIUM, then
