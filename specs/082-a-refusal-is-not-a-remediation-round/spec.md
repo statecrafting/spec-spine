@@ -137,6 +137,11 @@ The report block MUST carry the classification for each failing check, so a
 reader can tell a round that was spent from a round that was refused. A run
 that stops at 3.2 MUST say which class stopped it and what it proposes.
 
+A stop at 3.2 also ends the run before the review threads are fetched, so the
+report MUST distinguish threads that do not exist from threads that were never
+read. Reporting `none` on that path asserts an absence the run never
+established, which is the same defect as calling an unperformed read fresh.
+
 ### 3.5 The pin
 
 `kit_skills.rs` MUST assert that the shipped `shepherd` names all four
@@ -217,8 +222,10 @@ grep -q 'consumes no round' kit/.claude/skills/shepherd/SKILL.md
 grep -q 'dependency cycle' kit/.claude/skills/shepherd/SKILL.md
 grep -q 'ambient input' kit/.claude/skills/shepherd/SKILL.md
 grep -q 'path-scoped rule' kit/.claude/skills/shepherd/SKILL.md
-# 3.4: the report carries the classification.
+# 3.4: the report carries the classification, and a CRITICAL stop reports
+# unfetched threads as unread rather than absent.
 grep -q 'Classification:' kit/.claude/skills/shepherd/SKILL.md
+grep -q 'not read' kit/.claude/skills/shepherd/SKILL.md
 # 081 3.1 still holds: ten skills, and none names a removed one.
 test "$(ls kit/.claude/skills | wc -l | tr -d ' ')" = 10
 ! grep -rE '/(implement-plan|validate-and-fix|cleanup|research|refactor-claude-md)\b' kit/.claude/skills

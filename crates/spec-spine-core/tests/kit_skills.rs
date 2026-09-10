@@ -273,8 +273,10 @@ fn shepherd_classifies_before_it_spends_a_round() {
         "path-scoped rule",
         "dependency cycle",
         "ambient input",
-        // 082 3.4: the report says which class it found.
+        // 082 3.4: the report says which class it found, and a CRITICAL stop
+        // reports unfetched threads as unread rather than absent.
         "Classification:",
+        "not read",
     ];
     for (label, dir) in skill_dirs() {
         let body = read_skill(&dir, "shepherd");

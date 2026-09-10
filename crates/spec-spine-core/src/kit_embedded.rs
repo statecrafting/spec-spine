@@ -1405,7 +1405,9 @@ gh run view <run-id> --log-failed | tail -80
 **CRITICAL: stop here. A CRITICAL finding consumes no round.** It is not
 remediated, it does not spend one of the two rounds below, and it is
 reported with its evidence and a proposed remedy for a human to accept or
-refuse. Exactly four things are CRITICAL:
+refuse. The report's thread line reads `not read` on this path, never
+`none`: the threads were never fetched, and reporting that as an absence of
+threads is a claim this run did not make. Exactly four things are CRITICAL:
 
 1. a coupling refusal whose only remedy is editing a spec this session is
    not implementing, or a `Spec-Drift-Waiver:`;
@@ -1529,7 +1531,7 @@ next session takes the next spec (`/next`).
 Head sha watched: <sha> (rounds: <k>)
 Checks: <name>: <state> ...
 Classification: <name>: <CRITICAL|HIGH|MEDIUM|LOW> ... | all green
-Review threads: <none | n addressed | n need a human>
+Review threads: <none | n addressed | n need a human | not read: stopped at CRITICAL>
 Remediation: <none | round 1: <run-id> <cause> -> <fix> | round 2: ...>
 Merge: <sha> squash, branch deleted | NOT merged: <reason, needs human>
 On disk: main contains <sha> | <divergence>
