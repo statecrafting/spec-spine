@@ -70,6 +70,7 @@ spec-spine index coverage   # which source files no spec specifically claims
 spec-spine couple           # the PR-time drift gate
 spec-spine registry plan    # the ready set: workable now vs blocked
 spec-spine index diagnostics  # unresolved-unit W-001 / W-002
+spec-spine index owner <path> # which specs own one path, and how (spec 055)
 spec-spine verify <id>      # run a spec's `## Verification` block
 ```
 
@@ -170,11 +171,14 @@ preserve the cited semantics when editing `couple.rs`.
    passes. An extends-carried unit is a first-class claim.
    **Do not "fix" these.** A validation requiring an `extends` unit to appear in
    its target's territory would refuse the repository's ownership model.
-3. **A `// Spec: specs/<id>/spec.md` comment header** in the first lines of the
-   file (`//`, not `//!`), for the extensions in `coverage.rs::SOURCE_EXTS` (rs,
-   ts, tsx, js, jsx, go, py, sh). It claims exactly the file it sits in, never a
-   subtree, and needs no frontmatter edit anywhere. This is how spec 032's
-   coverage debt was retired without touching the tier-1 bootstrap spec.
+3. **A `// Spec: specs/<id>/spec.md` comment header** in the **first 16 lines**
+   of the file, for the extensions in `coverage.rs::SOURCE_EXTS` (rs, ts, tsx,
+   js, jsx, go, py, sh). The scanner (`index.rs::scan_comment_headers`) strips
+   one `//` or `#` marker and then requires `Spec:`, so `.py` and `.sh` claim
+   with `#`, and `//!` does not claim at all (the `!` is left in the way). It
+   claims exactly the file it sits in, never a subtree, and needs no
+   frontmatter edit anywhere. This is how spec 032's coverage debt was retired
+   without touching the tier-1 bootstrap spec.
 
 ## Determinism is the central claim
 
@@ -234,14 +238,15 @@ dated decision the spec was silent on.
 
 ## The kit (`kit/`)
 
-`kit/` is the copy-ready Claude Code kit adopters install (specs 029/048/064/065):
-the fifteen skills, the agents, the rules, the hooks, `Makefile` and `govern.yml`.
-`crates/spec-spine-core/src/kit_embedded.rs` is **generated** from that tree by
-`scripts/gen-kit-embedded.py` so `init --with-kit` can write files the binary
-carries; `tests/scaffold.rs` asserts the two agree. Edit `kit/`, then regenerate.
-Never hand-edit `kit_embedded.rs`. This repo's own `.claude/skills/` is
-byte-identical to `kit/.claude/skills/` (spec 048 pins this); the project layer
-lives in `AGENTS.md`, not in the skills.
+`kit/` is the copy-ready Claude Code kit adopters install (specs
+029/048/064/065/081): the ten skills, the agents, the rules, the hooks
+(`settings.json`), the kit's own `AGENTS.md` and `README.md`, `Makefile` and
+`govern.yml`. `crates/spec-spine-core/src/kit_embedded.rs` is **generated** from
+that tree by `scripts/gen-kit-embedded.py` so `init --with-kit` can write files
+the binary carries; `tests/scaffold.rs` asserts the two agree. Edit `kit/`, then
+regenerate. Never hand-edit `kit_embedded.rs`. This repo's own `.claude/skills/`
+is byte-identical to `kit/.claude/skills/` (specs 048 and 081 pin this); the
+project layer lives in `AGENTS.md`, not in the skills.
 
 ## Schema & release versioning (two decoupled axes)
 
