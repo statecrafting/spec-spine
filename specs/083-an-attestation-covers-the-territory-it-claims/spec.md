@@ -177,6 +177,20 @@ the state root its own decision, which no `resolver_exclusions` entry can
 express (that list matches directory names, not path prefixes) and none may
 cancel.
 
+A symlink encountered by the walk MUST NOT be traversed or dereferenced. It
+contributes exactly one piece, its own repo-relative path with the link target
+text as the content, and the walk does not descend into it even when it points
+at a directory.
+
+Three things follow, and the third is why this clause is normative rather than
+an implementation note. A symlink cycle inside a claimed subtree cannot make the
+walk diverge, which the shared walker's `path.is_dir()` recursion would
+otherwise permit, since `is_dir` follows links. A symlink pointing outside the
+repository cannot pull arbitrary filesystem content into a payload whose whole
+purpose is to attest what this repository contains. And a symlink that is added,
+removed or retargeted still moves the hash, as 3.4 requires of anything under a
+claimed directory, because its target text is what was hashed. See 5, D-4.
+
 The walk MUST NOT filter by file extension. The coverage universe's
 `SOURCE_EXTS` is the wrong instrument here: `.claude/agents/` holds only
 markdown, so an extension-filtered walk would find zero files and emit a
@@ -248,8 +262,10 @@ reached whenever a unit resolved to a directory.
 
 The regression guards in `tests/attest.rs` MUST cover a trailing-slash `file`
 unit, an explicit `directory` unit, a `crate` unit, an empty directory, a
-pruned-to-empty directory, and a spec whose units are all regular files, so that
-a future refactor cannot reintroduce either the crash or the hash over nothing.
+pruned-to-empty directory, a symlink (including one whose target is a directory,
+which must not be descended into), and a spec whose units are all regular files,
+so that a future refactor cannot reintroduce the crash, the hash over nothing,
+or a walk that diverges.
 The first of those is the shape the corpus actually exercises and is therefore
 the guard that must not be dropped as redundant.
 
@@ -280,6 +296,14 @@ re-walking, is a real question about the payload's shape and a different spec's.
 
 **The corpus-scoped `attest`.** Spec 023's whole-corpus verb never reads unit
 locations and is not affected.
+
+**The existing walker's own symlink behaviour.** `walk_source` recurses on
+`path.is_dir()`, which follows links, so the resolution and coverage walks it
+already serves can descend through a symlink today. 3.2 constrains only the walk
+this spec introduces for hashing, where following a link is a trust question
+rather than a resolution one. Whether the resolution walk should change is a
+question about spec 004's territory and its own defect, if it is one, and
+belongs to a spec that has measured it rather than to this one.
 
 ## 5. Resolved decisions
 
@@ -316,6 +340,22 @@ corpus has been burned by before. The coverage universe filters by extension
 because it is answering which **source files** a spec claims; an attestation is
 answering what a unit covers, and those are different questions about the same
 directory.
+
+**D-4 (2026-09-10): a symlink is hashed as its target text, not followed.**
+Three options were considered. Following links is what the shared walker does
+today via `path.is_dir()`, and it is the one option that can hang: a cycle
+inside a claimed subtree recurses without bound, and a link out of the tree
+hashes content this repository does not own into a record asserting what it
+does. Skipping links entirely is safe but contradicts 3.4, since adding or
+retargeting a link inside claimed territory would leave the hash unmoved and the
+change invisible. Hashing the link's own path and target text keeps both
+properties and matches how git stores a symlink, as a blob whose content is the
+target path, so the attestation records the same fact the repository does.
+
+This is stated here because the walk is new surface. The pre-existing
+`walk_source` behaviour is out of scope (4); this spec constrains the walk it
+introduces for hashing, where a divergent or out-of-tree read is a correctness
+and trust question rather than a resolution one.
 
 ## Verification
 
@@ -363,7 +403,7 @@ target/release/spec-spine attest --spec 048-kit-ships-the-governed-loop-skills >
 # 3.1 its payload carries at least one real hash, not an error envelope.
 sh -c 'test $(target/release/spec-spine attest --spec 048-kit-ships-the-governed-loop-skills --json | grep -c "\"contentHash\": \"") -ge 1'
 # 3.1 and every spec in the corpus attests, which was false for 14 of 83.
-sh -c 'for id in $(target/release/spec-spine registry list --ids-only); do target/release/spec-spine attest --spec "$id" >/dev/null 2>&1 || exit 1; done'
+sh -c 'for id in $(target/release/spec-spine registry list --ids-only); do target/release/spec-spine attest --spec "$id" >/dev/null || { echo "unattestable: $id" >&2; exit 1; }; done'
 # A scratch corpus whose one spec claims two empty directories.
 rm -rf "${TMPDIR:-/tmp}/ss083" && mkdir -p "${TMPDIR:-/tmp}/ss083/specs/001-dirs" "${TMPDIR:-/tmp}/ss083/d1" "${TMPDIR:-/tmp}/ss083/d2"
 # The corpus states its own exclusion policy rather than inheriting the binary's default.
