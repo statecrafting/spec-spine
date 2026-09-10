@@ -16,7 +16,7 @@ summary: >
   severity triage spec 081 4 deferred into `/shepherd`: classify before
   editing, spend a round only on what a session may legitimately fix, and
   never spend one on a class whose only remedy is a human decision.
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
