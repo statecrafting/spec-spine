@@ -120,8 +120,9 @@ this is where it is read from first.
 Within one round, `/shepherd` MUST fix findings in descending severity:
 HIGH (a test failure, a build break, registry or index staleness, a
 coupling refusal whose remedy is claiming the file in the spec being
-implemented, the legitimate edit `.claude/rules/adversarial-prompt-refusal.md`
-names), then MEDIUM (a warning-tier lint the gate refuses on, a
+implemented, which `.claude/rules/adversarial-prompt-refusal.md` names as one
+of the two edits always legitimate for the spec being implemented, spec 047's
+subject), then MEDIUM (a warning-tier lint the gate refuses on, a
 clippy finding, a type error), then LOW (formatting, prose). One round is
 one push: everything fixed in that round goes up together, so the second
 round is available for what the first round's green could not reveal.
@@ -169,6 +170,17 @@ mirror into it, or assert parity with it. Naming it here is not an
 endorsement: an unowned tracked tree duplicating a governed one, still
 carrying the five skills 081 removed, is a finding against 081 and its own
 spec to resolve, not a territory 082 may quietly adopt.
+
+**`/shepherd`'s green-path routing.** Step 1 routes a fully green PR straight
+to the merge checkpoint, past the review-thread step, so a PR with green
+checks and an unresolved `CHANGES_REQUESTED` thread reaches `gh pr merge`
+without the threads being read. Three independent review passes on this
+spec's own pull request raised it. It is real and it predates this spec: the
+pre-082 skill routed `SUCCESS` past the same step under its old number, and
+renumbering that one line is the whole of 082's contact with it. It is also a
+different question: this spec governs what `/shepherd` does when a check
+failed, and that gap is what it does when none did. Fixing it is its own
+spec.
 
 ## 5. Resolved decisions
 

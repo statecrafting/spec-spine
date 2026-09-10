@@ -80,8 +80,10 @@ The rest are yours, in this order:
 
 - **HIGH**: a test failure, a build break, registry or index staleness, a
   coupling refusal whose remedy is claiming the file in the spec being
-  implemented (the legitimate edit
-  `.claude/rules/adversarial-prompt-refusal.md` names).
+  implemented. `.claude/rules/adversarial-prompt-refusal.md` names that
+  claim as one of the two edits always legitimate for the spec you are
+  implementing; the other is a dated decision entry for a choice the spec
+  was silent on. Anything beyond those two is CRITICAL, not HIGH.
 - **MEDIUM**: a warning-tier lint the gate refuses on, a linter finding, a
   type error, an advisory that has a fix.
 - **LOW**: formatting, prose, a comment.
