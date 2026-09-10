@@ -16,7 +16,7 @@ summary: >
   severity triage spec 081 4 deferred into `/shepherd`: classify before
   editing, spend a round only on what a session may legitimately fix, and
   never spend one on a class whose only remedy is a human decision.
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -175,7 +175,7 @@ code: the shipped `shepherd` names no class and no CRITICAL row.
 
 ```verify:cli
 cargo test -p spec-spine-core --test kit_skills --locked
-diff -r kit/.claude/skills .claude/skills
+diff -r -x .DS_Store kit/.claude/skills .claude/skills
 # 3.1: the four classes are named in the shipped skill.
 grep -q 'CRITICAL' kit/.claude/skills/shepherd/SKILL.md && grep -q 'HIGH' kit/.claude/skills/shepherd/SKILL.md && grep -q 'MEDIUM' kit/.claude/skills/shepherd/SKILL.md && grep -q 'LOW' kit/.claude/skills/shepherd/SKILL.md
 # 3.2: a CRITICAL finding costs no round.
