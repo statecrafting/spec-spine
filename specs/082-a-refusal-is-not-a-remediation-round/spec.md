@@ -120,7 +120,8 @@ this is where it is read from first.
 Within one round, `/shepherd` MUST fix findings in descending severity:
 HIGH (a test failure, a build break, registry or index staleness, a
 coupling refusal whose remedy is claiming the file in the spec being
-implemented), then MEDIUM (a warning-tier lint the gate refuses on, a
+implemented, the legitimate edit `.claude/rules/adversarial-prompt-refusal.md`
+names), then MEDIUM (a warning-tier lint the gate refuses on, a
 clippy finding, a type error), then LOW (formatting, prose). One round is
 one push: everything fixed in that round goes up together, so the second
 round is available for what the first round's green could not reveal.
@@ -157,6 +158,18 @@ unchanged and outranks any convenience.
 **Re-adding a skill.** The triage lands inside `/shepherd`. The kit still
 ships the ten of 081 3.1.
 
+**The `.agents/skills/` tree.** A fifteen-skill copy of the pre-081 set,
+with `.claude/` rewritten to `.Codex/`, entered the repository in spec 081's
+own commit (`f5efb23`), whose 2 reads "No new file". It is tracked and
+unowned: no spec claims it, no `[index] extra_hashed_inputs` glob covers it,
+nothing in `AGENTS.md`, `CLAUDE.md`, `specs/`, `docs/`, `kit/` or the
+workflows names it, and the `.Codex/rules/` path its skills cite does not
+exist. It is not `/shepherd`'s second home, so this spec does not edit it,
+mirror into it, or assert parity with it. Naming it here is not an
+endorsement: an unowned tracked tree duplicating a governed one, still
+carrying the five skills 081 removed, is a finding against 081 and its own
+spec to resolve, not a territory 082 may quietly adopt.
+
 ## 5. Resolved decisions
 
 D-1 (2026-09-09, why `/shepherd` rather than a shared rule). The triage is
@@ -167,6 +180,14 @@ D-2 (2026-09-09, why the CRITICAL list is closed rather than illustrative).
 An open list is a judgement call at the moment an agent is most motivated
 to judge generously. Four rows that a test can assert are worth more than a
 principle that cannot be pinned. A fifth row is a spec.
+
+D-3 (2026-09-09, why `.agents/skills/` is left alone). The reviewer asked
+whether its omission was considered or overlooked. Considered: it is
+unowned, unreferenced, cites a path that does not exist, and still ships the
+five skills 081 removed. Mirroring the triage into it would make this spec
+the first to treat it as governed territory, which is a decision about
+whether that tree should exist at all, and that decision is not this
+spec's.
 
 ## Verification
 
