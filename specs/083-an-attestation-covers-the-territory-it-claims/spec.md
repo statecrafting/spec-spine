@@ -4,7 +4,7 @@ title: "An attestation covers the territory it claims"
 status: draft
 kind: "tooling"
 created: "2026-09-10"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
