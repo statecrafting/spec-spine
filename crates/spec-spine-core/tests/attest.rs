@@ -382,14 +382,44 @@ fn a_location_that_resolves_but_cannot_be_read_is_an_error() {
     assert!(!gone.verdicts.resolution.ok);
     assert_eq!(gone.units[0].content_hash, None, "no hash of nothing");
 
-    // Resolvable but unreadable: the path exists, so the unit resolves, and the
-    // read is what fails.
+    // A directory at the claimed path used to be this test's "unreadable" case
+    // and asserted exit 3. Spec 083 3.1 changes that deliberately: a resolved
+    // location that is a directory is walked, not opened, because most of this
+    // corpus claims subtrees exactly that way. The error path below is what
+    // survives of the original assertion.
     fs::create_dir(tmp.path().join("code.txt")).unwrap();
-    let err = attest_spec(&cfg, tmp.path(), "001-a").unwrap_err();
-    assert_eq!(err.exit_code(), 3, "an unreadable input is an I/O error");
-    let message = err.to_string();
-    assert!(message.contains("code.txt"), "names the file: {message}");
-    assert!(message.contains("001-a"), "and the spec: {message}");
+    let walked = attest_spec(&cfg, tmp.path(), "001-a")
+        .expect("spec 083 3.1: a directory location is walked, never opened")
+        .attestation;
+    assert!(walked.verdicts.resolution.ok);
+    assert!(
+        walked.units[0].content_hash.is_some(),
+        "an empty claimed directory still hashes (spec 083 3.3)"
+    );
+
+    // Resolvable but genuinely unreadable: the read is what fails, and it must
+    // still propagate rather than being skipped (spec 042 3.1, spec 083 3.1).
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::remove_dir(tmp.path().join("code.txt")).unwrap();
+        fs::write(tmp.path().join("code.txt"), "x").unwrap();
+        fs::set_permissions(
+            tmp.path().join("code.txt"),
+            fs::Permissions::from_mode(0o000),
+        )
+        .unwrap();
+        // Root ignores the mode bits, so the case is unconstructible there.
+        // Detected rather than assumed, since `unsafe` is forbidden here and a
+        // uid lookup would need it.
+        if fs::read(tmp.path().join("code.txt")).is_err() {
+            let err = attest_spec(&cfg, tmp.path(), "001-a").unwrap_err();
+            assert_eq!(err.exit_code(), 3, "an unreadable input is an I/O error");
+            let message = err.to_string();
+            assert!(message.contains("code.txt"), "names the file: {message}");
+            assert!(message.contains("001-a"), "and the spec: {message}");
+        }
+    }
 }
 
 /// A changed unit set is reported by unit, not by position.
@@ -483,4 +513,287 @@ fn lint_and_compile_verdicts_go_false_for_the_attested_spec() {
     );
     // ...and the record is still produced, because it is evidence, not a gate.
     assert_eq!(broken.spec_id, "999-x");
+}
+
+// ===== spec 083: an attestation covers the territory it claims =====
+//
+// Every guard 083 3.5 names. The first is the one the corpus actually
+// exercises: thirteen of the fourteen specs the defect reached claim a subtree
+// with a trailing-slash `file` unit rather than an explicit `directory` unit,
+// so a fix keyed to `Unit::Directory` would have left them broken. It must not
+// be dropped as redundant with the `directory` case.
+
+/// A corpus whose one spec claims `d1/` (the trailing-slash `file` shorthand)
+/// and `d2/` (an explicit `directory` unit), with both directories present.
+fn territory_fixture() -> tempfile::TempDir {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(
+        tmp.path(),
+        "001-t",
+        "001-t",
+        "establishes:\n  - \"d1/\"\n  - { kind: directory, path: \"d2/\" }\n",
+    );
+    fs::create_dir_all(tmp.path().join("d1")).unwrap();
+    fs::create_dir_all(tmp.path().join("d2")).unwrap();
+    tmp
+}
+
+/// The hash recorded for the unit whose debug form contains `needle`.
+fn unit_hash(att: &spec_spine_types::SpecAttestation, needle: &str) -> Option<String> {
+    att.units
+        .iter()
+        .find(|u| format!("{:?}", u.unit).contains(needle))
+        .and_then(|u| u.content_hash.clone())
+}
+
+#[test]
+fn spec083_a_trailing_slash_file_unit_attests_rather_than_erroring() {
+    let tmp = territory_fixture();
+    fs::write(tmp.path().join("d1/a.txt"), "a").unwrap();
+    let out = attest_spec(&Config::default(), tmp.path(), "001-t")
+        .expect("a subtree claimed as a file unit must not be opened as a file");
+    assert!(
+        unit_hash(&out.attestation, "d1/").is_some(),
+        "the trailing-slash file unit must carry a hash"
+    );
+    assert!(out.attestation.verdicts.resolution.ok);
+}
+
+#[test]
+fn spec083_an_explicit_directory_unit_attests() {
+    let tmp = territory_fixture();
+    fs::write(tmp.path().join("d2/b.txt"), "b").unwrap();
+    let out = attest_spec(&Config::default(), tmp.path(), "001-t").unwrap();
+    assert!(unit_hash(&out.attestation, "d2/").is_some());
+}
+
+#[test]
+fn spec083_a_crate_unit_attests_over_its_package_root() {
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(
+        tmp.path(),
+        "001-c",
+        "001-c",
+        "establishes:\n  - { kind: crate, id: \"demo\" }\n",
+    );
+    let pkg = tmp.path().join("demo");
+    fs::create_dir_all(pkg.join("src")).unwrap();
+    fs::write(
+        pkg.join("Cargo.toml"),
+        "[package]\nname = \"demo\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+    )
+    .unwrap();
+    fs::write(pkg.join("src/lib.rs"), "pub fn f() {}\n").unwrap();
+    // Discovery reads the root workspace manifest, so a lone crate has to be
+    // declared standalone to be found at all.
+    let mut cfg = Config::default();
+    cfg.layout.standalone_rust_workspaces = vec!["demo".to_string()];
+    let out = attest_spec(&cfg, tmp.path(), "001-c").unwrap();
+    assert!(
+        unit_hash(&out.attestation, "demo").is_some(),
+        "a crate unit resolves to a package directory and must be walked"
+    );
+}
+
+#[test]
+fn spec083_an_empty_directory_hashes_its_own_path_not_the_empty_input() {
+    // 3.3: SHA-256 of the empty input is one constant shared by every empty
+    // claim everywhere, so it would read as evidence while distinguishing
+    // nothing. Two empty claims must differ from it and from each other.
+    const SHA256_OF_NOTHING: &str =
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+    let tmp = territory_fixture();
+    let out = attest_spec(&Config::default(), tmp.path(), "001-t").unwrap();
+    let d1 = unit_hash(&out.attestation, "d1/").expect("an empty claim still hashes");
+    let d2 = unit_hash(&out.attestation, "d2/").expect("an empty claim still hashes");
+    assert_ne!(d1, SHA256_OF_NOTHING);
+    assert_ne!(d2, SHA256_OF_NOTHING);
+    assert_ne!(d1, d2, "two empty directories must not share one hash");
+    assert!(
+        out.attestation.verdicts.resolution.ok,
+        "an empty directory exists, so the unit resolved"
+    );
+}
+
+#[test]
+fn spec083_a_pruned_to_empty_directory_hashes_like_an_empty_one() {
+    let tmp = territory_fixture();
+    let mut cfg = Config::default();
+    cfg.index.resolver_exclusions = vec!["skipme".to_string()];
+    let empty = attest_spec(&cfg, tmp.path(), "001-t").unwrap();
+    let before = unit_hash(&empty.attestation, "d1/").unwrap();
+
+    fs::create_dir_all(tmp.path().join("d1/skipme")).unwrap();
+    fs::write(tmp.path().join("d1/skipme/x.txt"), "x").unwrap();
+    let after = attest_spec(&cfg, tmp.path(), "001-t").unwrap();
+
+    assert_eq!(
+        before,
+        unit_hash(&after.attestation, "d1/").unwrap(),
+        "a fully pruned directory hashes as an empty one"
+    );
+}
+
+#[test]
+fn spec083_the_declared_state_root_is_pruned() {
+    // 3.2: `layout.state_dir` is not expressible as a `resolver_exclusions`
+    // entry (that list matches directory names, not path prefixes), so an
+    // implementation could prune one and ignore the other.
+    let tmp = territory_fixture();
+    let mut cfg = Config::default();
+    cfg.layout.state_dir = "d1/state".to_string();
+    let before = unit_hash(
+        &attest_spec(&cfg, tmp.path(), "001-t").unwrap().attestation,
+        "d1/",
+    )
+    .unwrap();
+
+    fs::create_dir_all(tmp.path().join("d1/state")).unwrap();
+    fs::write(tmp.path().join("d1/state/s.txt"), "s").unwrap();
+    let after = unit_hash(
+        &attest_spec(&cfg, tmp.path(), "001-t").unwrap().attestation,
+        "d1/",
+    )
+    .unwrap();
+
+    assert_eq!(before, after, "the declared state root must be pruned");
+}
+
+#[cfg(unix)]
+#[test]
+fn spec083_a_symlink_is_recorded_by_target_text_and_never_followed() {
+    let tmp = territory_fixture();
+    let before = unit_hash(
+        &attest_spec(&Config::default(), tmp.path(), "001-t")
+            .unwrap()
+            .attestation,
+        "d1/",
+    )
+    .unwrap();
+
+    // Points outside both claimed subtrees, so its content can reach the
+    // payload only by dereference.
+    fs::create_dir_all(tmp.path().join("outside")).unwrap();
+    fs::write(tmp.path().join("outside/p.txt"), "one").unwrap();
+    std::os::unix::fs::symlink("../outside/p.txt", tmp.path().join("d1/ptr")).unwrap();
+
+    let with_link = unit_hash(
+        &attest_spec(&Config::default(), tmp.path(), "001-t")
+            .unwrap()
+            .attestation,
+        "d1/",
+    )
+    .unwrap();
+    assert_ne!(before, with_link, "a symlink is recorded, not skipped");
+
+    // Retargeting the file the link points at must be invisible: the link's
+    // target text is what was hashed.
+    fs::write(tmp.path().join("outside/p.txt"), "two").unwrap();
+    let after_edit = unit_hash(
+        &attest_spec(&Config::default(), tmp.path(), "001-t")
+            .unwrap()
+            .attestation,
+        "d1/",
+    )
+    .unwrap();
+    assert_eq!(
+        with_link, after_edit,
+        "the link's target content must not be dereferenced into the hash"
+    );
+}
+
+#[cfg(unix)]
+#[test]
+fn spec083_a_symlink_to_a_directory_is_not_descended_into() {
+    // The cycle case: `is_dir` follows links, so a walk that recursed on it
+    // would never terminate. This test hangs rather than fails on a regression,
+    // which is itself the signal.
+    let tmp = territory_fixture();
+    std::os::unix::fs::symlink("..", tmp.path().join("d1/loop")).unwrap();
+    let out = attest_spec(&Config::default(), tmp.path(), "001-t")
+        .expect("a symlink cycle must not make the walk diverge");
+    assert!(unit_hash(&out.attestation, "d1/").is_some());
+}
+
+#[test]
+fn spec083_a_non_utf8_file_is_hashed_rather_than_refused() {
+    // D-5: a claimed subtree holds whatever it holds. Refusing put 3.1 out of
+    // reach for twelve of the fourteen specs; skipping would hide claimed
+    // content from the hash, which 3.4 forbids.
+    let tmp = territory_fixture();
+    let before = unit_hash(
+        &attest_spec(&Config::default(), tmp.path(), "001-t")
+            .unwrap()
+            .attestation,
+        "d1/",
+    )
+    .unwrap();
+
+    fs::write(tmp.path().join("d1/blob.bin"), [0xffu8, 0xfe, 0x00, 0x01]).unwrap();
+    let out = attest_spec(&Config::default(), tmp.path(), "001-t")
+        .expect("a binary file must not refuse the attestation");
+    let after = unit_hash(&out.attestation, "d1/").unwrap();
+    assert_ne!(before, after, "a binary file still enters the hash");
+
+    fs::write(tmp.path().join("d1/blob.bin"), [0x00u8, 0x01, 0x02, 0x03]).unwrap();
+    let changed = unit_hash(
+        &attest_spec(&Config::default(), tmp.path(), "001-t")
+            .unwrap()
+            .attestation,
+        "d1/",
+    )
+    .unwrap();
+    assert_ne!(after, changed, "editing binary bytes moves the hash");
+}
+
+#[test]
+fn spec083_a_regular_file_unit_does_not_take_the_directory_path() {
+    // 3.5: a unit whose locations are all regular files must attest exactly as
+    // it did before. The discriminating check is a sibling file: if the file
+    // unit had started walking its parent directory, an unrelated neighbour
+    // would move its hash. It must not.
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(
+        tmp.path(),
+        "001-f",
+        "001-f",
+        "establishes:\n  - \"code.txt\"\n",
+    );
+    fs::write(tmp.path().join("code.txt"), "fn main() {}\n").unwrap();
+
+    let a = attest_spec(&Config::default(), tmp.path(), "001-f").unwrap();
+    let before = unit_hash(&a.attestation, "code.txt").expect("a file unit hashes");
+    assert_eq!(
+        a.json,
+        attest_spec(&Config::default(), tmp.path(), "001-f")
+            .unwrap()
+            .json,
+        "the payload stays reproducible"
+    );
+
+    fs::write(tmp.path().join("neighbour.txt"), "unrelated\n").unwrap();
+    let after = unit_hash(
+        &attest_spec(&Config::default(), tmp.path(), "001-f")
+            .unwrap()
+            .attestation,
+        "code.txt",
+    )
+    .unwrap();
+    assert_eq!(
+        before, after,
+        "a file unit hashes its own bytes, never its parent directory"
+    );
+
+    fs::write(tmp.path().join("code.txt"), "fn main() { () }\n").unwrap();
+    assert_ne!(
+        before,
+        unit_hash(
+            &attest_spec(&Config::default(), tmp.path(), "001-f")
+                .unwrap()
+                .attestation,
+            "code.txt",
+        )
+        .unwrap(),
+        "editing the file itself still moves its hash"
+    );
 }

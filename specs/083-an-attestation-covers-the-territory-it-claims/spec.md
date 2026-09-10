@@ -4,7 +4,7 @@ title: "An attestation covers the territory it claims"
 status: draft
 kind: "tooling"
 created: "2026-09-10"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -191,6 +191,13 @@ purpose is to attest what this repository contains. And a symlink that is added,
 removed or retargeted still moves the hash, as 3.4 requires of anything under a
 claimed directory, because its target text is what was hashed. See 5, D-4.
 
+A file whose bytes are not valid UTF-8 MUST still contribute a piece. Text
+keeps the standing normalization of 3.2; anything else contributes
+`sha256:<hex>` over its exact bytes. Neither dropping such a file nor refusing
+the attestation is acceptable: dropping hides claimed content from the hash,
+which 3.4 forbids, and refusing puts 3.1 back out of reach for most of the specs
+in 1, since a claimed subtree holds whatever it holds. See 5, D-5.
+
 The walk MUST NOT filter by file extension. The coverage universe's
 `SOURCE_EXTS` is the wrong instrument here: `.claude/agents/` holds only
 markdown, so an extension-filtered walk would find zero files and emit a
@@ -362,6 +369,25 @@ This is stated here because the walk is new surface. The pre-existing
 `walk_source` behaviour is out of scope (4); this spec constrains the walk it
 introduces for hashing, where a divergent or out-of-tree read is a correctness
 and trust question rather than a resolution one.
+
+**D-5 (2026-09-10): a non-UTF-8 file is hashed as a digest of its bytes, not
+skipped and not refused.** Found while building this spec, which is why it is
+recorded here rather than assumed: the first working walk reached
+`.claude/skills/.DS_Store` and `read_to_string` refused it with "stream did not
+contain valid UTF-8", leaving twelve of the fourteen specs still unattestable
+for a new reason. Three options. Skipping the file contradicts 3.4, since its
+content would be claimed territory that no hash covers. Refusing reproduces the
+defect this spec exists to remove, one exit code further along. Widening
+`hash::content_hash` to take bytes was rejected outright: it is the construction
+behind every committed shard hash, and 3.5 requires those to be untouched.
+
+What remains fits the existing construction exactly. A piece is a
+`(path, String)` pair, so a binary file contributes `sha256:<hex>` over its
+exact bytes: deterministic, never lossy in any way that matters, and it moves
+whenever the file moves, which is what 3.4 asks. Normalization is a no-op on hex
+digits, so the text path is unchanged and 3.5's byte-identical requirement holds
+(verified: spec 070's two file units hash to the same values before and after
+this change).
 
 ## Verification
 
