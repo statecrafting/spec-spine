@@ -77,8 +77,8 @@
       }
     ],
     "specId": "082-a-refusal-is-not-a-remediation-round",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "cedbc1a5805bd4871670e486a8b59b890ca4292b7754504fcf607a7f3235a3b1"
+  "shardHash": "9294c33318ee6741972aad96e0924274ccacba1f789b3e3714131930ee1e402c"
 }

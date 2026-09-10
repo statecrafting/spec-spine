@@ -1,7 +1,7 @@
 ---
 id: "082-a-refusal-is-not-a-remediation-round"
 title: "A refusal is not a remediation round"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-09"
 summary: >
