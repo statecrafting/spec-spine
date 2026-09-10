@@ -251,6 +251,44 @@ fn the_loop_skills_wrap_the_tool_verbs_they_exist_for() {
     }
 }
 
+/// Spec 082 3.5: `/shepherd` classifies a red required check before it edits
+/// anything, and a CRITICAL finding consumes none of the two remediation
+/// rounds spec 048 3.1 bounds. Spec 081 4 recorded this triage as the one idea
+/// the five removed skills carried that no neighbour had, and deferred it
+/// rather than smuggle it in under a removal. The four CRITICAL rows are a
+/// closed list on purpose (082 D-2), so each is pinned by the phrase the
+/// shipped skill uses for it: an open list is a judgement call at the moment
+/// an agent is most motivated to judge generously.
+#[test]
+fn shepherd_classifies_before_it_spends_a_round() {
+    let must = [
+        // 082 3.1: the four classes are named.
+        "CRITICAL",
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        // 082 3.2: a CRITICAL costs no round, and the four rows that are one.
+        "consumes no round",
+        "Spec-Drift-Waiver:",
+        "path-scoped rule",
+        "dependency cycle",
+        "ambient input",
+        // 082 3.4: the report says which class it found, and a CRITICAL stop
+        // reports unfetched threads as unread rather than absent.
+        "Classification:",
+        "not read",
+    ];
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        for needle in must {
+            assert!(
+                body.contains(needle),
+                "{label}/shepherd: must mention {needle:?} (spec 082 3.5)"
+            );
+        }
+    }
+}
+
 /// Spec 051 3.2 kept the script in the kit while adopters were pinned below
 /// 0.15.0 and moved the harness onto `spec-spine verify`. Spec 074 3.6 removed
 /// it once they had upgraded (2026-09-09): the kit no longer ships it, no kit

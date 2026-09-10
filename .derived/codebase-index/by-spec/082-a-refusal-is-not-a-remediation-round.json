@@ -1,26 +1,24 @@
 {
   "mapping": {
-    "amends": [
-      "005-coupling-gate"
-    ],
     "dependsOn": [
-      "005-coupling-gate"
+      "048-kit-ships-the-governed-loop-skills",
+      "081-the-kit-ships-what-the-loop-calls"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/cmd_couple.rs",
+        "path": ".claude/skills/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/couple.rs",
+        "path": "crates/spec-spine-core/src/kit_embedded.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/couple.rs",
+        "path": "crates/spec-spine-core/tests/kit_skills.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/couple.rs",
+        "path": "kit/.claude/skills/",
         "source": "spec-edge"
       }
     ],
@@ -28,59 +26,59 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_couple.rs"
+            "file": ".claude/skills/"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+          "path": ".claude/skills/"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/couple.rs"
+            "file": "crates/spec-spine-core/src/kit_embedded.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/couple.rs"
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/couple.rs"
+            "file": "crates/spec-spine-core/tests/kit_skills.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/couple.rs"
+          "path": "crates/spec-spine-core/tests/kit_skills.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/couple.rs"
+            "file": "kit/.claude/skills/"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/couple.rs"
+          "path": "kit/.claude/skills/"
         }
       }
     ],
-    "specId": "009-coupling-floor-claim-precedence",
-    "specStatus": "approved"
+    "specId": "082-a-refusal-is-not-a-remediation-round",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "14844dda09504013b053405f13b355ac138a46b99c7365e68bdab6f7f672772c"
+  "shardHash": "cedbc1a5805bd4871670e486a8b59b890ca4292b7754504fcf607a7f3235a3b1"
 }
