@@ -1,0 +1,78 @@
+{
+  "record": {
+    "created": "2026-09-10",
+    "dependsOn": [
+      "017-directory-crate-module-units",
+      "023-ledger-seal",
+      "042-per-spec-attestation"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      }
+    ],
+    "id": "083-an-attestation-covers-the-territory-it-claims",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/042-per-spec-attestation/spec.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "083: An attestation covers the territory it claims",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Every owning unit that resolves MUST attest a content hash",
+      "3.2 A directory-resolved location is walked, under one exclusion policy",
+      "3.3 A directory that walks to no files hashes its own path",
+      "3.4 Determinism, and what a recompute mismatch means",
+      "3.5 What must keep working",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/083-an-attestation-covers-the-territory-it-claims/spec.md",
+    "status": "draft",
+    "summary": "`attest_spec` hashes a unit by opening each resolved location with `read_to_string`. Several unit spellings resolve to a directory rather than to a file, so the read fails with `Is a directory` and the verb exits 3: fourteen of this corpus's eighty-three specs cannot be attested at all, and the failure arrives as an I/O error rather than as a verdict. The dominant spelling is not the obvious one: thirteen of the fourteen are plain `file` units whose path is a subtree (`npm/`, `.claude/skills/`), which spec 000 4.2 defines as resolving identically to an explicit `directory` unit. Spec 042 3.1 already states what should happen, that `units` carries \"the content hash of what it resolved to\" for every owning unit, without qualifying by kind, so this spec changes nothing 042 requires and supplies the implementation that sentence never had. A directory-resolved location is walked instead of opened: every file beneath it, pruned by `index.resolver_exclusions` and `layout.state_dir` through the indexer's existing walker, folded into the same path-sorted `hash::content_hash` construction the file units already use. The walk is deliberately not extension-filtered, because the coverage universe's source extensions would hash zero files for a markdown-only directory such as `.claude/agents/` and emit a confident hash over nothing. A directory that walks to no files at all hashes its own path as a single piece, so an empty claim cannot attest as SHA-256 of the empty input, a constant every empty claim would otherwise share. No previously emitted payload changes value, because every spec this reaches could not produce one.\n",
+    "title": "An attestation covers the territory it claims"
+  },
+  "shardHash": "947a28c85cf350809e9cb5cdcf142c7de073a363f17b86901df01ccd9d28c3f1",
+  "specVersion": "1.2.0"
+}
