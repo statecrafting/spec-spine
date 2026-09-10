@@ -213,7 +213,13 @@ covers, and nothing would fail.
 
 When the walk yields no files, whether the directory is empty or everything in
 it was pruned, the unit's content hash MUST be computed over a single piece
-whose path is the unit's resolved directory path and whose content is empty.
+whose path is the unit's **repo-relative POSIX** resolved directory path and
+whose content is empty. The qualifier is load-bearing rather than pedantic: this
+is the one piece whose path is not carried in from a walked file, so an
+implementation that reached for the absolute path the resolver holds would make
+an empty directory hash differently under `/home/alice/proj` than under
+`/home/bob/proj`, and an attestation that cannot be reproduced on another
+machine is the one thing 3.4 and spec 042 3.5 exist to prevent.
 
 The alternative is `hash::content_hash(vec![])`, which is SHA-256 of the empty
 input, `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`. That
