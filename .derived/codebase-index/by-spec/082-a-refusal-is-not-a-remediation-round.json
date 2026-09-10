@@ -1,0 +1,84 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "048-kit-ships-the-governed-loop-skills",
+      "081-the-kit-ships-what-the-loop-calls"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".claude/skills/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/kit_embedded.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/kit_skills.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/.claude/skills/",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".claude/skills/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/kit_embedded.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/kit_skills.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_skills.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/.claude/skills/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.claude/skills/"
+        }
+      }
+    ],
+    "specId": "082-a-refusal-is-not-a-remediation-round",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "54c9118c3bb259b01393d2027ead7c7424fd02731c96c88944aadc1254ac1524"
+}
