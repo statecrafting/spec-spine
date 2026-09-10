@@ -385,21 +385,37 @@ carries its own `spec-spine.toml` naming `resolver_exclusions`, so the 3.2
 assertion tests the stated rule rather than whatever the binary's compiled-in
 default happens to be, and it still asserts something if that default changes.
 
-The symlink rule of 3.2 is asserted twice on purpose. `cargo test --test attest`
-would pass if the implementing change simply never wrote the guard 3.5 asks
-for, because an absent test is not a failing one, so the two CLI assertions
-prove the rule independently of whether that unit test exists: one shows a
-symlink moves the hash, which fails if links are skipped, and one shows a
-symlink cycle still terminates at exit 0, which hangs or fails if the walk
-descends through it.
+The symlink rule of 3.2 is asserted three times on purpose, because no one of
+the three separates the required behavior from the forbidden one. `cargo test
+--test attest` would pass if the implementing change simply never wrote the
+guard 3.5 asks for, since an absent test is not a failing one, so the CLI
+assertions prove the rule independently of whether that unit test exists:
+
+- **a symlink moves the hash.** Proves it was recorded rather than skipped. It
+  does not prove non-traversal: descending into the link's target would move
+  the hash too.
+- **changing what the link points at does not move the hash.** This is the
+  discriminating one. The target lives outside both claimed subtrees, so its
+  content reaches the payload only by dereference; if the walk records the
+  target text, editing that file is invisible, and if the walk follows the
+  link, the hash moves.
+- **a symlink cycle terminates at exit 0.** Proves the walk cannot diverge,
+  which is the failure that costs a hang rather than a wrong answer.
 
 Spec 049 3.2 forbids a line depending on a variable another line set, and the
 lines here share a filesystem rather than a shell. That is the point of the
-fixed path, but it is only safe while each mutation is undone by the line that
-made it: the 3.2 assertion removes its own `target/` directory before comparing,
-so the 3.4 baseline reads the same tree 3.3 did. A line that left state behind
-would make its successor pass or fail for a reason its own text does not
-describe.
+fixed path, but it is only safe while **every assertion undoes its own
+mutation**, on the failing path as well as the passing one: each one removes the
+directory, file or link it created before it compares, so every assertion reads
+the tree the corpus setup built and not the residue of its predecessor. A line
+that left state behind would make its successor pass or fail for a reason its
+own text does not describe.
+
+The two corpus-setup lines are the stated exception. They exist to build the
+tree every assertion reads, so their mutations are undone by the final
+`rm -rf` rather than by themselves. That is the only state that crosses a line
+boundary here, and naming it is what keeps the rule above checkable instead of
+approximately true.
 
 ```verify:cli
 # Self-contained: the assertions below drive the release binary.
@@ -418,13 +434,15 @@ rm -rf "${TMPDIR:-/tmp}/ss083" && mkdir -p "${TMPDIR:-/tmp}/ss083/specs/001-dirs
 printf -- '[index]\nresolver_exclusions = ["target"]\n' > "${TMPDIR:-/tmp}/ss083/spec-spine.toml"
 printf -- '---\nid: "001-dirs"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-10"\nsummary: "s"\nestablishes:\n  - "d1/"\n  - { kind: directory, path: "d2/" }\n---\n\n# t\n' > "${TMPDIR:-/tmp}/ss083/specs/001-dirs/spec.md"
 # 3.3 the two spellings both hash, distinctly, never both as SHA-256 of nothing.
-sh -c 'test $(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\"" | sort -u | wc -l) -eq 2'
+sh -c 'test $(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \"" | sort -u | wc -l) -eq 2'
 # 3.2 a file under an excluded directory name does not enter the hash.
-sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); test -n "$A" || exit 1; mkdir -p "${TMPDIR:-/tmp}/ss083/d1/target"; echo junk > "${TMPDIR:-/tmp}/ss083/d1/target/j.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); rm -rf "${TMPDIR:-/tmp}/ss083/d1/target"; test "$A" = "$B"'
+sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); test -n "$A" || exit 1; mkdir -p "${TMPDIR:-/tmp}/ss083/d1/target"; echo junk > "${TMPDIR:-/tmp}/ss083/d1/target/j.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); rm -rf "${TMPDIR:-/tmp}/ss083/d1/target"; test "$A" = "$B"'
 # 3.4 a real file beneath a claimed directory does enter the hash.
-sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); test -n "$A" || exit 1; echo hello > "${TMPDIR:-/tmp}/ss083/d1/f.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); rm -f "${TMPDIR:-/tmp}/ss083/d1/f.txt"; test "$A" != "$B"'
+sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); test -n "$A" || exit 1; echo hello > "${TMPDIR:-/tmp}/ss083/d1/f.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); rm -f "${TMPDIR:-/tmp}/ss083/d1/f.txt"; test "$A" != "$B"'
 # 3.2 a symlink moves the hash, so it was recorded rather than skipped.
-sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); test -n "$A" || exit 1; ln -s ../d2 "${TMPDIR:-/tmp}/ss083/d1/link"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\""); rm -f "${TMPDIR:-/tmp}/ss083/d1/link"; test "$A" != "$B"'
+sh -c 'A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); test -n "$A" || exit 1; ln -s ../d2 "${TMPDIR:-/tmp}/ss083/d1/link"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); rm -f "${TMPDIR:-/tmp}/ss083/d1/link"; test "$A" != "$B"'
+# 3.2 changing what a symlink points AT does not move the hash, so it was not dereferenced.
+sh -c 'C="rm -rf ${TMPDIR:-/tmp}/ss083/outside ${TMPDIR:-/tmp}/ss083/d1/ptr"; mkdir -p "${TMPDIR:-/tmp}/ss083/outside"; printf "one\n" > "${TMPDIR:-/tmp}/ss083/outside/p.txt"; ln -s ../outside/p.txt "${TMPDIR:-/tmp}/ss083/d1/ptr"; A=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); test -n "$A" || { $C; exit 1; }; printf "two\n" > "${TMPDIR:-/tmp}/ss083/outside/p.txt"; B=$(target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs --json | grep "\"contentHash\": \""); $C; test "$A" = "$B"'
 # 3.2 a symlink cycle terminates, so the walk did not descend through it.
 sh -c 'ln -s .. "${TMPDIR:-/tmp}/ss083/d1/loop"; target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs >/dev/null 2>&1; R=$?; rm -f "${TMPDIR:-/tmp}/ss083/d1/loop"; test $R -eq 0'
 rm -rf "${TMPDIR:-/tmp}/ss083"
