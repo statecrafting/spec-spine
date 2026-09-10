@@ -1201,6 +1201,94 @@ fn walk(
     }
 }
 
+/// One entry beneath a claimed directory (spec 083 3.2).
+///
+/// A symlink is carried as its own target text rather than as the thing it
+/// points at, which is what keeps the walk from following it.
+pub(crate) enum TerritoryEntry {
+    /// A regular file. The caller reads its bytes.
+    File(PathBuf),
+    /// A symlink, never followed: `target` is the link text as stored.
+    Symlink { path: PathBuf, target: String },
+}
+
+/// Everything beneath `dir`, at any depth, for hashing a claimed subtree
+/// (spec 083 3.2). Sorted by path.
+///
+/// Three differences from [`walk_source`], each required rather than incidental:
+///
+/// - **No extension filter.** A unit that claims a directory claims what is in
+///   it, not the subset that happens to compile; `SOURCE_EXTS` would find zero
+///   files under a markdown-only subtree and hash nothing at all (spec 083 D-3).
+/// - **Symlinks are not followed.** Recursion is decided by `symlink_metadata`
+///   (an `lstat`), never `is_dir`, which follows links: a cycle inside a claimed
+///   subtree would otherwise make this walk diverge, and a link out of the tree
+///   would pull in content the repository does not own (spec 083 D-4).
+/// - **It returns entries, not paths**, so the caller can tell a file it must
+///   read from a link it must not.
+///
+/// The pruning is deliberately identical to `walk_source`'s and lives here for
+/// that reason: `index.resolver_exclusions` plus the declared `layout.state_dir`
+/// (spec 039 3.5), which no exclusions entry can express or cancel. Spec 083 3.2
+/// makes the single-sourcing normative, because two walkers that drifted would
+/// silently change what an attestation covers and nothing would fail.
+pub(crate) fn walk_territory(
+    dir: &Path,
+    repo_root: &Path,
+    exclusions: &[String],
+    layout: &LayoutConfig,
+) -> Vec<TerritoryEntry> {
+    let mut out = Vec::new();
+    walk_territory_inner(dir, repo_root, exclusions, layout, &mut out);
+    out.sort_by(|a, b| territory_path(a).cmp(territory_path(b)));
+    out
+}
+
+fn territory_path(entry: &TerritoryEntry) -> &Path {
+    match entry {
+        TerritoryEntry::File(path) => path,
+        TerritoryEntry::Symlink { path, .. } => path,
+    }
+}
+
+fn walk_territory_inner(
+    dir: &Path,
+    repo_root: &Path,
+    exclusions: &[String],
+    layout: &LayoutConfig,
+    out: &mut Vec<TerritoryEntry>,
+) {
+    let Ok(entries) = fs::read_dir(dir) else {
+        return;
+    };
+    let mut paths: Vec<PathBuf> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
+    paths.sort();
+    for path in paths {
+        if is_excluded(repo_root, &path, exclusions)
+            || layout.is_state_path(&rel_posix(repo_root, &path))
+        {
+            continue;
+        }
+        // `symlink_metadata` does not follow the link, which is the whole point:
+        // `is_dir` would, and a cycle would then recurse without bound.
+        let Ok(meta) = fs::symlink_metadata(&path) else {
+            continue;
+        };
+        if meta.file_type().is_symlink() {
+            // An unreadable link still contributes its path, with empty target
+            // text: dropping it would hide a claimed entry from the hash.
+            let target = fs::read_link(&path)
+                .map(|t| t.to_string_lossy().into_owned())
+                .unwrap_or_default();
+            out.push(TerritoryEntry::Symlink { path, target });
+        } else if meta.is_dir() {
+            walk_territory_inner(&path, repo_root, exclusions, layout, out);
+        } else {
+            out.push(TerritoryEntry::File(path));
+        }
+    }
+}
+
 fn collapse_sources(sources: &BTreeSet<TraceSource>) -> TraceSource {
     if sources.len() > 1 {
         TraceSource::Multiple

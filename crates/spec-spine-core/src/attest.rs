@@ -24,6 +24,7 @@ use crate::compile::compile;
 use crate::hash;
 use crate::index::index;
 use crate::lint::lint;
+use crate::pathutil;
 
 /// Resolver diagnostics that mark code as out of sync with its claiming spec.
 /// A **local mirror** of `index.rs::BLOCKING_CODES` (kept equal by value and
@@ -212,6 +213,65 @@ pub fn attest_spec(
         let mut pieces: Vec<(String, String)> = Vec::with_capacity(resolved.locations.len());
         for loc in &resolved.locations {
             let path = repo_root.join(&loc.file);
+            // Spec 083 3.1: the branch is on what the location IS, never on the
+            // unit's declared kind. A `directory` unit and a trailing-slash
+            // `file` unit both resolve to a directory (spec 000 4.2 calls them
+            // one concept), and a `crate` unit resolves to a package root, so a
+            // match on `Unit::Directory` would leave most of the corpus opening
+            // a directory as a file and failing at exit 3.
+            if path.is_dir() {
+                let entries = crate::index::walk_territory(
+                    &path,
+                    repo_root,
+                    &cfg.index.resolver_exclusions,
+                    &cfg.layout,
+                );
+                if entries.is_empty() {
+                    // Spec 083 3.3: an empty or fully pruned directory hashes
+                    // its own repo-relative POSIX path. Hashing nothing would
+                    // emit SHA-256 of the empty input, one constant shared by
+                    // every empty claim in every repository, which reads as
+                    // evidence and distinguishes nothing.
+                    pieces.push((pathutil::rel_posix(repo_root, &path), String::new()));
+                    continue;
+                }
+                for entry in entries {
+                    match entry {
+                        crate::index::TerritoryEntry::File(file) => {
+                            let bytes = fs::read(&file).map_err(|e| {
+                                Error::Io(format!(
+                                    "read {} for spec '{spec_id}' unit {:?}: {e}",
+                                    file.display(),
+                                    resolved.unit
+                                ))
+                            })?;
+                            // Spec 083 3.2 + D-5: a claimed subtree contains
+                            // whatever it contains, so the walk meets bytes that
+                            // are not UTF-8 (an image, a `.DS_Store`). Text
+                            // keeps the standing normalization; anything else
+                            // contributes a digest of its exact bytes, which is
+                            // deterministic, never lossy, and cannot be dropped.
+                            // Refusing here would put 3.1's guarantee back out
+                            // of reach for twelve of the fourteen specs.
+                            let content = match String::from_utf8(bytes) {
+                                Ok(text) => text,
+                                Err(e) => {
+                                    format!("sha256:{}", sha256_hex(e.as_bytes()))
+                                }
+                            };
+                            pieces.push((pathutil::rel_posix(repo_root, &file), content));
+                        }
+                        // Spec 083 3.2: the link's target text, never its
+                        // target's content. That records a retarget (3.4) while
+                        // keeping content outside the repository out of the
+                        // payload, and makes a cycle unreachable.
+                        crate::index::TerritoryEntry::Symlink { path, target } => {
+                            pieces.push((pathutil::rel_posix(repo_root, &path), target));
+                        }
+                    }
+                }
+                continue;
+            }
             let content = fs::read_to_string(&path).map_err(|e| {
                 Error::Io(format!(
                     "read {} for spec '{spec_id}' unit {:?}: {e}",

@@ -2496,3 +2496,42 @@ fn fail_on_warn_refuses_a_warning_on_compile_and_check() {
     assert_eq!(code(&run_clean(&["index"])), 0);
     assert_eq!(code(&run_clean(&["check", "--fail-on-warn"])), 0);
 }
+
+/// Spec 083: `attest --spec` used to exit 3 for any spec whose unit resolved to
+/// a directory, which was fourteen of this corpus's eighty-three specs. The
+/// end-to-end guard is the exit code, since that is what an operator and a CI
+/// job actually see.
+#[test]
+fn attest_spec_walks_a_claimed_subtree_instead_of_exiting_three() {
+    let tmp = tempfile::tempdir().unwrap();
+    let spec_dir = tmp.path().join("specs/001-t");
+    fs::create_dir_all(&spec_dir).unwrap();
+    // The trailing-slash `file` shorthand: the shape thirteen of the fourteen
+    // affected specs use, and the one a fix keyed to `Unit::Directory` misses.
+    fs::write(
+        spec_dir.join("spec.md"),
+        "---\nid: \"001-t\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-10\"\nsummary: \"s\"\nestablishes:\n  - \"sub/\"\n---\n# 001-t\n",
+    )
+    .unwrap();
+    fs::create_dir_all(tmp.path().join("sub/nested")).unwrap();
+    fs::write(tmp.path().join("sub/a.txt"), "a\n").unwrap();
+    fs::write(tmp.path().join("sub/nested/b.txt"), "b\n").unwrap();
+
+    let out = bin()
+        .arg("--repo")
+        .arg(tmp.path())
+        .args(["attest", "--spec", "001-t", "--json"])
+        .output()
+        .unwrap();
+
+    assert_eq!(code(&out), 0, "a claimed subtree must attest, not exit 3");
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        !stdout.contains("\"contentHash\": null"),
+        "the resolved subtree must carry a hash: {stdout}"
+    );
+    assert!(
+        stdout.contains("\"ok\": true"),
+        "the envelope reports success: {stdout}"
+    );
+}
