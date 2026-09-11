@@ -1,7 +1,7 @@
 ---
 id: "083-an-attestation-covers-the-territory-it-claims"
 title: "An attestation covers the territory it claims"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-10"
 implementation: complete
