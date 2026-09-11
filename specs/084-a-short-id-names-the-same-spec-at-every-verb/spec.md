@@ -554,7 +554,7 @@ sh -c 'target/release/spec-spine verify-attestation --spec ../x --recompute >/de
 rm -rf "${TMPDIR:-/tmp}/ss084" && mkdir -p "${TMPDIR:-/tmp}/ss084/specs/001-a" "${TMPDIR:-/tmp}/ss084/specs/001-b"
 sh -c 'for n in a b; do printf -- "---\nid: \"001-%s\"\ntitle: \"t\"\nstatus: draft\ncreated: \"2026-09-11\"\nsummary: \"s\"\n---\n\n# t\n" "$n" > "${TMPDIR:-/tmp}/ss084/specs/001-$n/spec.md"; done'
 # compile refuses that corpus (V-004, exit 1) and still writes the shards registry show reads.
-sh -c 'target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss084" compile >/dev/null 2>&1; test $? -eq 1 && test -f "${TMPDIR:-/tmp}/ss084/.derived/spec-registry/by-spec/001-a.json"'
+sh -c 'target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss084" compile >/dev/null 2>&1; test $? -eq 1 && test -f "${TMPDIR:-/tmp}/ss084/.derived/spec-registry/by-spec/001-a.json" && test -f "${TMPDIR:-/tmp}/ss084/.derived/spec-registry/by-spec/001-b.json"'
 # 3.1 all six arguments refuse the shared ordinal at exit 1, with one message naming both candidates.
 sh -c 'R="${TMPDIR:-/tmp}/ss084"; E="${TMPDIR:-/tmp}/ss084.err"; D="$R/.derived/attestation/by-spec"; mkdir -p "$D"; : > "$D/001-a.json"; : > "$D/001-b.json"; : > "$E"; X=0; for c in "registry show 001" "registry relationships 001" "compile --spec 001" "verify 001 --plan" "attest --spec 001" "verify-attestation --spec 001 --recompute"; do target/release/spec-spine --repo "$R" $c >/dev/null 2>>"$E"; test $? -eq 1 || { echo "not exit 1: $c" >&2; X=1; }; done; U=$(sort -u "$E" | grep -c .); L=$(grep -c . "$E"); grep -q ambiguous "$E" && grep -q 001-a "$E" && grep -q 001-b "$E" || X=1; rm -rf "$R/.derived/attestation" "$E"; test $X -eq 0 && test $L -eq 6 && test $U -eq 1'
 rm -rf "${TMPDIR:-/tmp}/ss084"
