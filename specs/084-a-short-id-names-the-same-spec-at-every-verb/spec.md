@@ -401,7 +401,9 @@ The maintainer chose on 2026-09-11 to fold the reference family in here rather
 than leave it for a follow-up, accepting this edge as the cost. 016's reason for
 the mirror survives by a different mechanism, since the shared module belongs to
 neither 001 nor 004. 016 3.1, the policy, is unchanged, and 016's text is not
-edited.
+edited: an `amends` edge is declared once, in the amending spec, and the inbound
+view is the compiled read `registry relationships 016`, which reports it as
+`amended_by (incoming)` (spec 040).
 
 **D-2 (2026-09-11): no `amends` on 002, 042, 049 or 056.** 002 says `show`
 returns one spec or `NotFound`: a short id naming exactly one spec now returns
@@ -499,6 +501,15 @@ build the tree every later line reads, and the final `rm -rf` undoes them, so a
 run that stops at a failing assertion leaves the corpus on disk for diagnosis,
 and the next run's leading `rm -rf` rebuilds it from nothing.
 
+The third setup line relies on `compile` writing the registry for a corpus that
+fails validation, which is its contract rather than an accident: 001 3.5 has it
+write the registry and then exit by the verdict, and the registry records that
+verdict as `validation.passed: false` (001 3.2). The line asserts both halves,
+exit 1 and the shard on disk, so a `compile` that stopped writing on failure
+would fail there, loudly. It could not hollow out the ambiguity line either,
+because `registry show` over a missing registry exits 3, not 1. Writing the
+shards by hand instead would be the hand-edit constitution II forbids.
+
 The lines that write into this repository's own `.derived/attestation/` write
 only on-demand, gitignored attestations, and each one that depends on a file's
 absence removes that file itself first.
@@ -530,7 +541,7 @@ sh -c 'for a in ../specs/070-a-malformed-id-is-refused-not-a-panic 070-a-malform
 # 3.4 no source file outside spec_id.rs carries the ordinal-segment match.
 sh -c 'test $(grep -rl "split(.-.).next()" crates/spec-spine-core/src crates/spec-spine-cli/src | grep -v "/spec_id.rs$" | wc -l) -eq 0'
 # 3.1 the five arguments that refuse no match do it at exit 1 with one message.
-sh -c 'E="${TMPDIR:-/tmp}/ss084.nm"; : > "$E"; X=0; for c in "registry show 999" "registry relationships 999" "compile --spec 999" "verify 999 --plan" "attest --spec 999"; do target/release/spec-spine $c >/dev/null 2>>"$E"; test $? -eq 1 || { echo "not exit 1: $c" >&2; X=1; }; done; U=$(sort -u "$E" | wc -l); L=$(wc -l < "$E"); rm -f "$E"; test $X -eq 0 && test $L -eq 5 && test $U -eq 1'
+sh -c 'E="${TMPDIR:-/tmp}/ss084.nm"; : > "$E"; X=0; for c in "registry show 999" "registry relationships 999" "compile --spec 999" "verify 999 --plan" "attest --spec 999"; do target/release/spec-spine $c >/dev/null 2>>"$E"; test $? -eq 1 || { echo "not exit 1: $c" >&2; X=1; }; done; U=$(sort -u "$E" | grep -c .); L=$(grep -c . "$E"); rm -f "$E"; test $X -eq 0 && test $L -eq 5 && test $U -eq 1'
 # 3.6 a full id is still accepted at all six arguments (a guard: passes before and after).
 sh -c 'for c in "registry show 016-short-id-resolution" "registry relationships 016-short-id-resolution" "compile --spec 016-short-id-resolution" "verify 016-short-id-resolution --plan" "attest --spec 016-short-id-resolution" "verify-attestation --spec 016-short-id-resolution --recompute"; do target/release/spec-spine $c >/dev/null || { echo "full id refused: $c" >&2; exit 1; }; done'
 # 3.6 an unknown id keeps its exit code, and a partial ordinal is not an ordinal (guards).
@@ -545,7 +556,7 @@ sh -c 'for n in a b; do printf -- "---\nid: \"001-%s\"\ntitle: \"t\"\nstatus: dr
 # compile refuses that corpus (V-004, exit 1) and still writes the shards registry show reads.
 sh -c 'target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss084" compile >/dev/null 2>&1; test $? -eq 1 && test -f "${TMPDIR:-/tmp}/ss084/.derived/spec-registry/by-spec/001-a.json"'
 # 3.1 all six arguments refuse the shared ordinal at exit 1, with one message naming both candidates.
-sh -c 'R="${TMPDIR:-/tmp}/ss084"; E="${TMPDIR:-/tmp}/ss084.err"; D="$R/.derived/attestation/by-spec"; mkdir -p "$D"; : > "$D/001-a.json"; : > "$D/001-b.json"; : > "$E"; X=0; for c in "registry show 001" "registry relationships 001" "compile --spec 001" "verify 001 --plan" "attest --spec 001" "verify-attestation --spec 001 --recompute"; do target/release/spec-spine --repo "$R" $c >/dev/null 2>>"$E"; test $? -eq 1 || { echo "not exit 1: $c" >&2; X=1; }; done; U=$(sort -u "$E" | wc -l); L=$(wc -l < "$E"); grep -q ambiguous "$E" && grep -q 001-a "$E" && grep -q 001-b "$E" || X=1; rm -rf "$R/.derived/attestation" "$E"; test $X -eq 0 && test $L -eq 6 && test $U -eq 1'
+sh -c 'R="${TMPDIR:-/tmp}/ss084"; E="${TMPDIR:-/tmp}/ss084.err"; D="$R/.derived/attestation/by-spec"; mkdir -p "$D"; : > "$D/001-a.json"; : > "$D/001-b.json"; : > "$E"; X=0; for c in "registry show 001" "registry relationships 001" "compile --spec 001" "verify 001 --plan" "attest --spec 001" "verify-attestation --spec 001 --recompute"; do target/release/spec-spine --repo "$R" $c >/dev/null 2>>"$E"; test $? -eq 1 || { echo "not exit 1: $c" >&2; X=1; }; done; U=$(sort -u "$E" | grep -c .); L=$(grep -c . "$E"); grep -q ambiguous "$E" && grep -q 001-a "$E" && grep -q 001-b "$E" || X=1; rm -rf "$R/.derived/attestation" "$E"; test $X -eq 0 && test $L -eq 6 && test $U -eq 1'
 rm -rf "${TMPDIR:-/tmp}/ss084"
 # 3.6 no committed shard moved: the lenient adapters return what the mirrors returned (a guard).
 target/release/spec-spine check
