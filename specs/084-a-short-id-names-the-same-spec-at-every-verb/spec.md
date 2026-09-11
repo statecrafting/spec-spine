@@ -290,7 +290,10 @@ edges, a file name, and an emitted field. In particular:
   The short and full forms of one spec MUST produce byte-identical payloads.
 - `attest --spec` writes `<derived_dir>/attestation/by-spec/<resolved id>.json`
   and no file named after the argument.
-- `verify-attestation --spec` reads the file named by the resolved id.
+- `verify-attestation --spec` reads the file named by the resolved id when the
+  argument resolves. When it matches no file, nothing was resolved and there is
+  no resolved id to use: the name comes from the argument as given, which is
+  step 4's fall-through (3.2, D-4), after `validate_spec_id` has passed it.
 
 Resolution happens in the library entry point wherever one exists
 (`query::show`, `query::relationships`, `attest::attest_spec`,
@@ -547,6 +550,7 @@ sh -c 'for c in "registry show 016-short-id-resolution" "registry relationships 
 # 3.6 an unknown id keeps its exit code, and a partial ordinal is not an ordinal (guards).
 sh -c 'target/release/spec-spine registry show 999 >/dev/null 2>&1; test $? -eq 1'
 sh -c 'target/release/spec-spine registry show 16 >/dev/null 2>&1; test $? -eq 1'
+# 3.2 and D-4 step 4 at verify-attestation, whose set is the attestation files: with 016's removed, 016 matches none and falls through to exit 3.
 sh -c 'rm -f .derived/attestation/by-spec/016-short-id-resolution.json; target/release/spec-spine verify-attestation --spec 016 --recompute >/dev/null 2>&1; test $? -eq 3'
 # 3.2 validate_spec_id still refuses a path-shaped argument at verify-attestation, at exit 3 (a guard).
 sh -c 'target/release/spec-spine verify-attestation --spec ../x --recompute >/dev/null 2>&1; test $? -eq 3'
