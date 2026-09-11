@@ -1,0 +1,160 @@
+{
+  "record": {
+    "amends": [
+      "016-short-id-resolution"
+    ],
+    "created": "2026-09-11",
+    "dependsOn": [
+      "002-registry-query",
+      "004-codebase-index",
+      "016-short-id-resolution",
+      "042-per-spec-attestation",
+      "049-verify-declared-acceptance",
+      "056-compile-one-spec"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/spec_id.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/spec_id.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/spec_id.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "049-verify-declared-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/verify.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/verify_attestation.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      }
+    ],
+    "id": "084-a-short-id-names-the-same-spec-at-every-verb",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-structured-partial-supersedes/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/083-an-attestation-covers-the-territory-it-claims/spec.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionHeadings": [
+      "084: A short id names the same spec at every verb",
+      "1. Purpose",
+      "1.1 Four copies of one policy",
+      "1.2 The exact case joins the argument onto a path",
+      "1.3 The obvious fix is wrong twice",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The six arguments accept the short form, under one policy",
+      "3.2 Each verb resolves against the ids it already reads",
+      "3.3 Resolve once, then use only the resolved id",
+      "3.4 One implementation",
+      "3.5 The rule is enforced, not asserted",
+      "3.6 What must keep working",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/084-a-short-id-names-the-same-spec-at-every-verb/spec.md",
+    "status": "draft",
+    "summary": "Six arguments take a spec id, and they disagree about what one is. `verify` and `compile --spec` accept the short form spec 016 defines; `registry show`, `registry relationships` and `attest --spec` refuse it at exit 1; and `verify-attestation --spec` fails at exit 3 reading a file named after the raw argument. Specs 049 3.2 and 056 3.1 each state the cross-verb rule as already true elsewhere, and nothing enforces it. The policy itself exists in four private copies, two strict ones for arguments and two lenient ones for frontmatter references, and the two strict ones test the exact case by joining the argument onto a path, so `verify ../specs/<id>` resolves and `compile --spec ./<id>` reports a false `V-001` on a valid spec. This spec puts the policy in one module that every argument and both reference resolvers call. Each verb resolves against the ids it already reads, and every value derived from the id after resolution uses the resolved id, which is what keeps `relationships` from computing incoming edges against the raw argument and `attest` from naming its output file after it. A census over the CLI's argument tree fails when a seventh id argument appears outside the matrix. It amends 016 2, whose mirror becomes a shared call. The implementation changes no committed shard: the lenient adapters return what the mirrors returned.\n",
+    "title": "A short id names the same spec at every verb"
+  },
+  "shardHash": "cbb28fd1adc6839ef12556b0e710d1a2ca990b1efecedea89124839de5a25a70",
+  "specVersion": "1.2.0"
+}
