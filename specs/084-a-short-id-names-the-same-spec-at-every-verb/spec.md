@@ -261,9 +261,11 @@ everywhere else. With `--attestation <path>` the id locates nothing, so it is no
 resolved, and nothing about that form changes.
 
 `verify_attestation.rs::validate_spec_id` stays, and MUST still run on the raw
-argument before any resolution. It refuses an empty argument, `/`, `\`, `.`,
-`..` and a NUL at exit 3 today, because this verb reads a file whose name is
-built from the argument. The fall-through of step 4 builds that name from the raw
+argument before any resolution. Today it refuses, at exit 3, an argument that is
+empty, that contains `/`, `\` or a NUL anywhere, or that is exactly `.` or `..`.
+Without a separator, `..` can only name a parent as the whole argument, so the
+last two are equality tests and the first three are not. It exists because this
+verb reads a file whose name is built from the argument. The fall-through of step 4 builds that name from the raw
 argument, so the guard is what keeps the fall-through from reading outside
 `by-spec/`. A rewrite that validated only the resolved id would reopen it on
 exactly the path D-4 keeps.
@@ -462,13 +464,15 @@ than left to be inferred:
   for 3.2 and 3.6 and are not evidence of anything 084 adds.
 - **Setup and cleanup.** The three scratch-corpus lines, and the final `rm -rf`.
 
-Three vacuous passes are closed on purpose. `cargo test <filter>` exits 0 when
+Four vacuous passes are closed on purpose. `cargo test <filter>` exits 0 when
 the filter matches no test, so the census line requires a non-zero passed
 count. `test "$A" = "$B"` passes between two empty strings, so each comparison
 first requires a non-empty reading; before 084 the short-form reading is empty.
-And two comparisons guard their full-form reading against a regression that
-breaks both forms alike, which equality alone cannot see: the `relationships`
-line requires
+The two one-message lines also count their stderr lines, one per argument,
+before counting distinct ones: a verb that wrote no refusal at all would
+otherwise add nothing to the file and leave the distinct count at one. And two
+comparisons guard their full-form reading against a regression that breaks both
+forms alike, which equality alone cannot see: the `relationships` line requires
 `049-verify-declared-acceptance`, the incoming edge a raw-argument comparison
 drops, and the attest line requires at least one unit `contentHash`, which the
 zero-unit payload of 1.3 does not have.
@@ -526,7 +530,7 @@ sh -c 'for a in ../specs/070-a-malformed-id-is-refused-not-a-panic 070-a-malform
 # 3.4 no source file outside spec_id.rs carries the ordinal-segment match.
 sh -c 'test $(grep -rl "split(.-.).next()" crates/spec-spine-core/src crates/spec-spine-cli/src | grep -v "/spec_id.rs$" | wc -l) -eq 0'
 # 3.1 the five arguments that refuse no match do it at exit 1 with one message.
-sh -c 'E="${TMPDIR:-/tmp}/ss084.nm"; : > "$E"; X=0; for c in "registry show 999" "registry relationships 999" "compile --spec 999" "verify 999 --plan" "attest --spec 999"; do target/release/spec-spine $c >/dev/null 2>>"$E"; test $? -eq 1 || { echo "not exit 1: $c" >&2; X=1; }; done; U=$(sort -u "$E" | wc -l); rm -f "$E"; test $X -eq 0 && test $U -eq 1'
+sh -c 'E="${TMPDIR:-/tmp}/ss084.nm"; : > "$E"; X=0; for c in "registry show 999" "registry relationships 999" "compile --spec 999" "verify 999 --plan" "attest --spec 999"; do target/release/spec-spine $c >/dev/null 2>>"$E"; test $? -eq 1 || { echo "not exit 1: $c" >&2; X=1; }; done; U=$(sort -u "$E" | wc -l); L=$(wc -l < "$E"); rm -f "$E"; test $X -eq 0 && test $L -eq 5 && test $U -eq 1'
 # 3.6 a full id is still accepted at all six arguments (a guard: passes before and after).
 sh -c 'for c in "registry show 016-short-id-resolution" "registry relationships 016-short-id-resolution" "compile --spec 016-short-id-resolution" "verify 016-short-id-resolution --plan" "attest --spec 016-short-id-resolution" "verify-attestation --spec 016-short-id-resolution --recompute"; do target/release/spec-spine $c >/dev/null || { echo "full id refused: $c" >&2; exit 1; }; done'
 # 3.6 an unknown id keeps its exit code, and a partial ordinal is not an ordinal (guards).
@@ -541,7 +545,7 @@ sh -c 'for n in a b; do printf -- "---\nid: \"001-%s\"\ntitle: \"t\"\nstatus: dr
 # compile refuses that corpus (V-004, exit 1) and still writes the shards registry show reads.
 sh -c 'target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss084" compile >/dev/null 2>&1; test $? -eq 1 && test -f "${TMPDIR:-/tmp}/ss084/.derived/spec-registry/by-spec/001-a.json"'
 # 3.1 all six arguments refuse the shared ordinal at exit 1, with one message naming both candidates.
-sh -c 'R="${TMPDIR:-/tmp}/ss084"; E="${TMPDIR:-/tmp}/ss084.err"; D="$R/.derived/attestation/by-spec"; mkdir -p "$D"; : > "$D/001-a.json"; : > "$D/001-b.json"; : > "$E"; X=0; for c in "registry show 001" "registry relationships 001" "compile --spec 001" "verify 001 --plan" "attest --spec 001" "verify-attestation --spec 001 --recompute"; do target/release/spec-spine --repo "$R" $c >/dev/null 2>>"$E"; test $? -eq 1 || { echo "not exit 1: $c" >&2; X=1; }; done; U=$(sort -u "$E" | wc -l); grep -q ambiguous "$E" && grep -q 001-a "$E" && grep -q 001-b "$E" || X=1; rm -rf "$R/.derived/attestation" "$E"; test $X -eq 0 && test $U -eq 1'
+sh -c 'R="${TMPDIR:-/tmp}/ss084"; E="${TMPDIR:-/tmp}/ss084.err"; D="$R/.derived/attestation/by-spec"; mkdir -p "$D"; : > "$D/001-a.json"; : > "$D/001-b.json"; : > "$E"; X=0; for c in "registry show 001" "registry relationships 001" "compile --spec 001" "verify 001 --plan" "attest --spec 001" "verify-attestation --spec 001 --recompute"; do target/release/spec-spine --repo "$R" $c >/dev/null 2>>"$E"; test $? -eq 1 || { echo "not exit 1: $c" >&2; X=1; }; done; U=$(sort -u "$E" | wc -l); L=$(wc -l < "$E"); grep -q ambiguous "$E" && grep -q 001-a "$E" && grep -q 001-b "$E" || X=1; rm -rf "$R/.derived/attestation" "$E"; test $X -eq 0 && test $L -eq 6 && test $U -eq 1'
 rm -rf "${TMPDIR:-/tmp}/ss084"
 # 3.6 no committed shard moved: the lenient adapters return what the mirrors returned (a guard).
 target/release/spec-spine check
