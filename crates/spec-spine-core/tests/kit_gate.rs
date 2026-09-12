@@ -283,3 +283,105 @@ fn the_gitattributes_stanza_matches_the_committed_shard_globs() {
         );
     }
 }
+
+/// The guarded recipe lines of one Makefile target, `@` stripped, in order.
+/// These are shell commands: make runs each recipe line in its own shell, so
+/// the line's exit status is the target's verdict for that step.
+fn guarded_lines(makefile: &str, target: &str) -> Vec<String> {
+    target_body(makefile, target)
+        .lines()
+        .map(|l| l.trim_start().trim_start_matches('@').to_string())
+        .filter(|l| l.contains("test -f "))
+        .collect()
+}
+
+/// Rewrite a guarded line so its command is `false`, leaving the probe and the
+/// else-branch exactly as shipped. Returns `None` for a line that is not an
+/// if/else, which the test above already refuses.
+fn with_failing_command(line: &str) -> Option<String> {
+    let (probe, rest) = line.split_once("; then ")?;
+    let (_command, tail) = rest.split_once("; else ")?;
+    Some(format!("{probe}; then false; else {tail}"))
+}
+
+/// §3.1 (spec 089): a guarded target distinguishes "the manifest is absent"
+/// from "the command failed". `test -f M && cmd || echo skipping` does not:
+/// `||` fires for either, so a failing command exits 0 printing a false skip.
+/// Static half, so the shape is refused at review time and not only at run
+/// time.
+#[test]
+fn a_guarded_target_does_not_conflate_a_skip_with_a_failure() {
+    let makefile = read("kit/Makefile");
+    for target in ["test", "build", "fmt", "clippy"] {
+        let lines = guarded_lines(&makefile, target);
+        assert!(!lines.is_empty(), "`{target}` has no guarded line");
+        for line in lines {
+            assert!(
+                !(line.contains("&&") && line.contains("|| echo")),
+                "`{target}` guards with `&& ... || echo`, so a failing command \
+                 is reported as a skip: {line}"
+            );
+            assert!(
+                line.starts_with("if test -f ")
+                    && line.contains("; then ")
+                    && line.contains("; else ")
+                    && line.ends_with("fi"),
+                "`{target}` must guard with an explicit if/else: {line}"
+            );
+        }
+    }
+}
+
+/// §3.2 (spec 089): the shipped recipe lines are RUN, in both states, so the
+/// two answers are proved rather than asserted about the text.
+///
+/// This is the acceptance the defect got past. Spec 064's
+/// `language_targets_probe_for_a_manifest_not_a_tool` passes for the broken
+/// shape and the fixed one alike, because both contain `test -f Cargo.toml`;
+/// an acceptance that never forces a command to fail cannot tell them apart.
+#[test]
+fn a_guarded_recipe_skips_when_absent_and_fails_when_the_command_fails() {
+    let makefile = read("kit/Makefile");
+    let run = |script: &str, dir: &Path| {
+        std::process::Command::new("sh")
+            .arg("-c")
+            .arg(script)
+            .current_dir(dir)
+            .output()
+            .expect("sh is available")
+    };
+
+    for target in ["test", "build", "fmt", "clippy"] {
+        for line in guarded_lines(&makefile, target) {
+            // The manifest is absent: the command never runs, the line exits 0
+            // and says so. This is spec 064 3.1's no-op, still true.
+            let empty = tempfile::tempdir().unwrap();
+            let out = run(&line, empty.path());
+            assert!(
+                out.status.success(),
+                "`{target}` must be a clean no-op with no manifest: {line}"
+            );
+            assert!(
+                String::from_utf8_lossy(&out.stdout).contains("skipping"),
+                "`{target}` must say it skipped: {line}"
+            );
+
+            // The manifest is present and the command fails: the line must
+            // fail. Under the old shape this printed "skipping" and exited 0.
+            let present = tempfile::tempdir().unwrap();
+            fs::write(present.path().join("Cargo.toml"), "").unwrap();
+            fs::write(present.path().join("package.json"), "{}").unwrap();
+            let forced = with_failing_command(&line)
+                .unwrap_or_else(|| panic!("`{target}` line is not an if/else: {line}"));
+            let out = run(&forced, present.path());
+            assert!(
+                !out.status.success(),
+                "`{target}` reported a failing command as success: {forced}"
+            );
+            assert!(
+                !String::from_utf8_lossy(&out.stdout).contains("skipping"),
+                "`{target}` called a failure a skip: {forced}"
+            );
+        }
+    }
+}
