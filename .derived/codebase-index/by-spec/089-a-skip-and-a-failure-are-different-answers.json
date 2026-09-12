@@ -60,8 +60,8 @@
       }
     ],
     "specId": "089-a-skip-and-a-failure-are-different-answers",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "1a8f107be3e241300aeafc76899889029c9fbb4542490a501508e5fd09a34f65"
+  "shardHash": "c249230bfb7712e2b2f5f61d8c2b04bf4dfe92f617ee8a04202080bcd92b3f0e"
 }
