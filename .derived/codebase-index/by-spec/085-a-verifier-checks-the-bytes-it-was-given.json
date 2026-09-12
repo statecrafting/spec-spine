@@ -12,6 +12,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/tests/verify_attestation_bytes.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/attest.rs",
         "source": "spec-edge"
       },
@@ -34,7 +38,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/verify_attestation_bytes.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -164,5 +172,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "d11ade8dd92e6f36b35a9243e7fadd5b22bb3d52fb408cadd0329a588a10e674"
+  "shardHash": "11e8a7a7b98e96fe3c08052fbbea813c35cbec505e5d258ebdfbb0695fba1ca5"
 }

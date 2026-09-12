@@ -6,12 +6,21 @@
 //! bearing property the run certificate structurally cannot have. `--signature`
 //! checks the detached seal against a supplied public key. A mode that cannot
 //! run fails visibly (FR-006); skip-as-pass is forbidden.
+//!
+//! Both modes decide on the **bytes of the file that was handed in** (spec 085
+//! 3.1). The file is read once; the seal is checked over SHA-256 of those bytes
+//! and `--recompute` compares them against the canonical serialization of what
+//! they parsed to. For every file `attest` wrote the two are the same bytes, so
+//! every existing seal verifies as before; for a file someone else produced they
+//! are not, which is precisely the case a verifier exists to catch.
 
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use spec_spine_core::{
-    VerifyOutcome, attestation_hash, spec_attestation_hash, verify_recompute, verify_spec_recompute,
+    VerifyOutcome, check_attestation_major, check_spec_attestation_major, payload_schema_version,
+    stored_bytes_hash, verify_recompute, verify_spec_recompute, with_stored_bytes,
+    with_stored_bytes_spec,
 };
 use spec_spine_types::{
     Config, CorpusAttestation, Error, LedgerSeal, SpecAttestation, Verdict, verdict::verb,
@@ -55,19 +64,28 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
         .clone()
         .unwrap_or_else(|| default_attestation_path(repo, &cfg, args.spec.as_deref()));
 
-    // The two scopes carry different payloads, so the loaded value and both
-    // verification paths fork here and nowhere else.
+    // Read once, and hold the bytes: they are what both modes decide on (3.1).
+    let hint = match &args.spec {
+        Some(id) => format!("spec-spine attest --spec {id}"),
+        None => "spec-spine attest".to_string(),
+    };
+    let bytes = read_artifact(&attestation_path, "attestation", &hint)?;
+
+    // The MAJOR gate runs before the strict parse, so a payload from a schema
+    // line this build does not understand is refused in the loaders' own words
+    // rather than as whichever unknown member the parse happened to reach first
+    // (3.3). The two scopes carry different payloads, so the loaded value and
+    // both verification paths fork here and nowhere else.
+    let version = payload_schema_version(&bytes, "attestation")?;
     let subject = match &args.spec {
-        Some(id) => Subject::Spec(load_json(
-            &attestation_path,
-            "attestation",
-            &format!("spec-spine attest --spec {id}"),
-        )?),
-        None => Subject::Corpus(load_json(
-            &attestation_path,
-            "attestation",
-            "spec-spine attest",
-        )?),
+        Some(_) => {
+            check_spec_attestation_major(&version)?;
+            Subject::Spec(parse_artifact(&bytes, &attestation_path, "attestation")?)
+        }
+        None => {
+            check_attestation_major(&version)?;
+            Subject::Corpus(parse_artifact(&bytes, &attestation_path, "attestation")?)
+        }
     };
 
     let mut failed = false;
@@ -82,8 +100,10 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
 
     if args.recompute {
         let outcome = match &subject {
-            Subject::Corpus(a) => verify_recompute(&cfg, repo, a)?,
-            Subject::Spec(a) => verify_spec_recompute(&cfg, repo, a)?,
+            Subject::Corpus(a) => with_stored_bytes(verify_recompute(&cfg, repo, a)?, a, &bytes)?,
+            Subject::Spec(a) => {
+                with_stored_bytes_spec(verify_spec_recompute(&cfg, repo, a)?, a, &bytes)?
+            }
         };
         match outcome {
             VerifyOutcome::Match => {
@@ -141,12 +161,12 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
             None => "spec-spine attest --sign".to_string(),
         };
         let ledger_seal: LedgerSeal = load_json(&seal_path, "seal", &seal_hint)?;
-        // Recompute the hash from the loaded payload: a tampered byte changes it
-        // and the seal stops verifying.
-        let hash = match &subject {
-            Subject::Corpus(a) => attestation_hash(a)?,
-            Subject::Spec(a) => spec_attestation_hash(a)?,
-        };
+        // The hash is over the bytes that were read, never over a
+        // re-serialization of their parse (3.1). Hashing the parse made the
+        // seal a statement about whatever this build's DTOs happened to carry
+        // across, so anything the parse dropped or reshaped was signed for
+        // without ever being seen.
+        let hash = stored_bytes_hash(&bytes);
         let valid = seal::verify(&hash, &ledger_seal, &verifying_key)?;
         if args.json {
             report.insert(
@@ -227,12 +247,30 @@ fn load_json<T: serde::de::DeserializeOwned>(
     what: &str,
     hint: &str,
 ) -> Result<T, Error> {
-    let bytes = fs::read(path).map_err(|e| {
+    let bytes = read_artifact(path, what, hint)?;
+    parse_artifact(&bytes, path, what)
+}
+
+/// Read an artifact's bytes, naming it and the command that would have produced
+/// it. Separate from the parse because the attestation's bytes outlive the
+/// parse: they are what both verification modes decide on (spec 085 3.1).
+fn read_artifact(path: &Path, what: &str, hint: &str) -> Result<Vec<u8>, Error> {
+    fs::read(path).map_err(|e| {
         Error::Io(format!(
             "read {what} {} (run `{hint}` first?): {e}",
             path.display()
         ))
-    })?;
-    serde_json::from_slice(&bytes)
+    })
+}
+
+/// Deserialize bytes already read, naming the file in the failure. The DTOs
+/// refuse unknown members (spec 085 3.2), so this is also where a payload
+/// carrying a claim this build cannot evaluate is turned away.
+fn parse_artifact<T: serde::de::DeserializeOwned>(
+    bytes: &[u8],
+    path: &Path,
+    what: &str,
+) -> Result<T, Error> {
+    serde_json::from_slice(bytes)
         .map_err(|e| Error::Parse(format!("invalid {what} {}: {e}", path.display())))
 }

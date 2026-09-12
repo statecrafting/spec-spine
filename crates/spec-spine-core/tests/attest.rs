@@ -797,3 +797,174 @@ fn spec083_a_regular_file_unit_does_not_take_the_directory_path() {
         "editing the file itself still moves its hash"
     );
 }
+
+// ===== spec 085: a verifier checks the bytes it was given =====
+
+use spec_spine_core::{
+    NON_CANONICAL_BYTES, check_attestation_major, payload_schema_version, verify_attestation_json,
+    verify_spec_attestation_json, with_stored_bytes,
+};
+
+/// 3.4: the facade receives the attestation inside a larger request, so the
+/// file's bytes never reach it. `attestationText` is how a caller hands them
+/// over, and it is checked under 3.1 exactly as the CLI checks a file.
+#[test]
+fn the_facade_accepts_the_text_form_and_decides_on_those_bytes() {
+    let tmp = spec_fixture(OWNED);
+    let root = tmp.path().to_str().unwrap();
+    let outcome = attest(&Config::default(), tmp.path(), AttestOptions::default()).unwrap();
+
+    let request = |body: String| format!("{{\"repoRoot\": {root:?}, {body}}}");
+
+    // The canonical bytes verify.
+    let reply =
+        verify_attestation_json(&request(format!("\"attestationText\": {:?}", outcome.json)))
+            .unwrap();
+    assert!(reply.contains("\"match\""), "{reply}");
+
+    // The same values, reformatted, do not: the digest a record is referenced
+    // by is over the stored bytes.
+    let flattened = outcome.json.replace('\n', "");
+    let reply =
+        verify_attestation_json(&request(format!("\"attestationText\": {flattened:?}"))).unwrap();
+    assert!(reply.contains("contentMismatch"), "{reply}");
+    assert!(reply.contains(NON_CANONICAL_BYTES), "{reply}");
+
+    // The value form still works and, having no bytes, says nothing about them.
+    let value = serde_json::to_string(&outcome.attestation).unwrap();
+    let reply = verify_attestation_json(&request(format!("\"attestation\": {value}"))).unwrap();
+    assert!(reply.contains("\"match\""), "{reply}");
+}
+
+/// 3.4: `attestation` and `attestationText` are alternatives. Both or neither is
+/// a parse error rather than a silently preferred one, because the two can
+/// disagree and only the text form can be checked against its bytes.
+#[test]
+fn the_facade_refuses_both_forms_and_neither() {
+    let tmp = spec_fixture(OWNED);
+    let root = tmp.path().to_str().unwrap();
+    let outcome = attest(&Config::default(), tmp.path(), AttestOptions::default()).unwrap();
+    let value = serde_json::to_string(&outcome.attestation).unwrap();
+
+    let both = format!(
+        "{{\"repoRoot\": {root:?}, \"attestation\": {value}, \"attestationText\": {:?}}}",
+        outcome.json
+    );
+    let err = verify_attestation_json(&both).unwrap_err();
+    assert!(format!("{err}").contains("exactly one"), "{err}");
+
+    let neither = format!("{{\"repoRoot\": {root:?}}}");
+    let err = verify_attestation_json(&neither).unwrap_err();
+    assert!(format!("{err}").contains("is required"), "{err}");
+
+    // The per-spec facade holds the same rule.
+    let err = verify_spec_attestation_json(&neither).unwrap_err();
+    assert!(format!("{err}").contains("is required"), "{err}");
+}
+
+/// 3.2 and 3.3 reach the facade too: a member it does not know and a MAJOR it
+/// does not understand are both refused, in either request form.
+#[test]
+fn the_facade_refuses_an_unknown_member_and_an_unknown_major() {
+    let tmp = spec_fixture(OWNED);
+    let root = tmp.path().to_str().unwrap();
+    let outcome = attest(&Config::default(), tmp.path(), AttestOptions::default()).unwrap();
+
+    let injected = outcome
+        .json
+        .replacen('{', "{\n  \"prCouple\": {\"ok\": true},", 1);
+    let err = verify_attestation_json(&format!(
+        "{{\"repoRoot\": {root:?}, \"attestationText\": {injected:?}}}"
+    ))
+    .unwrap_err();
+    assert!(format!("{err}").contains("prCouple"), "{err}");
+
+    // The value form is parsed by the same DTOs, so it refuses it as well,
+    // there at the request's own deserialization.
+    let value = serde_json::to_string(&outcome.attestation)
+        .unwrap()
+        .replacen('{', "{\"prCouple\":{\"ok\":true},", 1);
+    let err = verify_attestation_json(&format!(
+        "{{\"repoRoot\": {root:?}, \"attestation\": {value}}}"
+    ))
+    .unwrap_err();
+    assert!(format!("{err}").contains("prCouple"), "{err}");
+
+    let bumped = outcome.json.replace(
+        "\"schemaVersion\": \"0.1.0\"",
+        "\"schemaVersion\": \"9.0.0\"",
+    );
+    let err = verify_attestation_json(&format!(
+        "{{\"repoRoot\": {root:?}, \"attestationText\": {bumped:?}}}"
+    ))
+    .unwrap_err();
+    assert!(format!("{err}").contains("MAJOR 9 is unsupported"), "{err}");
+}
+
+/// 3.3: the MAJOR gate speaks in the registry and index loaders' words, and a
+/// `schemaVersion` that is not semver is refused rather than guessed at.
+#[test]
+fn the_major_gate_reuses_the_loaders_wording() {
+    let err = check_attestation_major("9.0.0").unwrap_err();
+    assert_eq!(
+        format!("{err}"),
+        "schema error: attestation schema MAJOR 9 is unsupported (this build understands 0.x)"
+    );
+    assert!(check_attestation_major("0.1.0").is_ok());
+    // MINOR moves inside the MAJOR line stay readable; the recompute is what
+    // then reports the difference.
+    assert!(check_attestation_major("0.2.0").is_ok());
+
+    let err = check_attestation_major("zero").unwrap_err();
+    assert!(format!("{err}").contains("not semver"), "{err}");
+
+    // The version is read out of the raw bytes, before any strict parse, so an
+    // unknown MAJOR is reported as such even when the payload also carries a
+    // member this build could not have loaded.
+    let raw = br#"{"schemaVersion": "9.0.0", "obligations": []}"#;
+    assert_eq!(payload_schema_version(raw, "attestation").unwrap(), "9.0.0");
+    let err = payload_schema_version(br#"{"tool": {}}"#, "attestation").unwrap_err();
+    assert!(
+        format!("{err}").contains("no string schemaVersion"),
+        "{err}"
+    );
+}
+
+/// 3.1: the byte check only ever downgrades a match. A payload that already
+/// differs in its values keeps the more specific answer rather than being
+/// relabelled as a byte problem.
+#[test]
+fn the_byte_check_leaves_a_more_specific_outcome_alone() {
+    let tmp = spec_fixture(OWNED);
+    let outcome = attest(&Config::default(), tmp.path(), AttestOptions::default()).unwrap();
+
+    let mismatch = VerifyOutcome::ContentMismatch {
+        differences: vec!["registryHash (compiled registry changed)".to_string()],
+    };
+    assert_eq!(
+        with_stored_bytes(mismatch.clone(), &outcome.attestation, b"not the bytes").unwrap(),
+        mismatch,
+        "a value difference is not restated as a byte difference"
+    );
+
+    let version = VerifyOutcome::VersionMismatch {
+        expected: "0.1.0".to_string(),
+        actual: "0.2.0".to_string(),
+    };
+    assert_eq!(
+        with_stored_bytes(version.clone(), &outcome.attestation, b"not the bytes").unwrap(),
+        version,
+        "a version mismatch outranks the byte comparison"
+    );
+
+    assert_eq!(
+        with_stored_bytes(
+            VerifyOutcome::Match,
+            &outcome.attestation,
+            outcome.json.as_bytes()
+        )
+        .unwrap(),
+        VerifyOutcome::Match,
+        "and the canonical bytes are still a match"
+    );
+}
