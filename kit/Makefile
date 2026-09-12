@@ -18,6 +18,13 @@
 # with cargo installed and no Cargo.toml is the specify-first case, which is
 # three of the four governed repositories, and probing for the tool answers the
 # wrong question. Every guarded target is a clean no-op on a code-free corpus.
+#
+# The guard is an explicit `if`, never `test -f M && cmd || echo skipping`
+# (spec 089). `&&`/`||` is not if/else: the `||` branch fires when EITHER the
+# probe is false OR the command fails, so on a repository that HAS the manifest
+# a failing command exits 0 having printed "no manifest, skipping". That makes
+# `govern.yml`'s `make build test fmt clippy` job unfailable, which is the worst
+# shape a gate can have: the repository looks defended and is not.
 
 SPEC_SPINE ?= spec-spine
 # Spec 072 3.3: the coupling base follows the branch this repository
@@ -52,17 +59,17 @@ verify:
 	$(SPEC_SPINE) verify $(SPEC)
 
 test:
-	@test -f Cargo.toml && cargo test --workspace --locked || echo "no Cargo.toml, skipping"
-	@test -f package.json && npm test --if-present || echo "no package.json, skipping"
+	@if test -f Cargo.toml; then cargo test --workspace --locked; else echo "no Cargo.toml, skipping"; fi
+	@if test -f package.json; then npm test --if-present; else echo "no package.json, skipping"; fi
 
 build:
-	@test -f Cargo.toml && cargo build --workspace --locked || echo "no Cargo.toml, skipping"
+	@if test -f Cargo.toml; then cargo build --workspace --locked; else echo "no Cargo.toml, skipping"; fi
 
 fmt:
-	@test -f Cargo.toml && cargo fmt --all --check || echo "no Cargo.toml, skipping"
+	@if test -f Cargo.toml; then cargo fmt --all --check; else echo "no Cargo.toml, skipping"; fi
 
 clippy:
-	@test -f Cargo.toml && cargo clippy --workspace --all-targets --locked -- -D warnings || echo "no Cargo.toml, skipping"
+	@if test -f Cargo.toml; then cargo clippy --workspace --all-targets --locked -- -D warnings; else echo "no Cargo.toml, skipping"; fi
 
 help:
 	@echo "gate     the governed loop, read-only"

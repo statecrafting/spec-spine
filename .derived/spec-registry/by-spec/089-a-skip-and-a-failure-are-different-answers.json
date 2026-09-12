@@ -1,0 +1,58 @@
+{
+  "record": {
+    "created": "2026-09-11",
+    "dependsOn": [
+      "064-the-kit-ships-the-composite-gate",
+      "065-init-and-the-kit-are-one-adoption"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "064-the-kit-ships-the-composite-gate",
+        "unit": {
+          "kind": "file",
+          "path": "kit/Makefile"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "064-the-kit-ships-the-composite-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_gate.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "065-init-and-the-kit-are-one-adoption",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
+        }
+      }
+    ],
+    "id": "089-a-skip-and-a-failure-are-different-answers",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "medium",
+    "sectionHeadings": [
+      "089: A skip and a failure are different answers",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The guard is an explicit conditional",
+      "3.2 The acceptance runs the shipped lines, in both states",
+      "3.3 The embedded copy is regenerated",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/089-a-skip-and-a-failure-are-different-answers/spec.md",
+    "status": "draft",
+    "summary": "The kit's Makefile guards its language targets on a manifest probe, written as `test -f M && cmd || echo skipping`. That is not an if/else: the `||` branch fires when the probe is false OR when the command fails, so on a repository that HAS the manifest a failing command exits 0 having printed \"no manifest, skipping\". Any adopter who copies `kit/govern.yml` unmodified into a repository with a `Cargo.toml` gets a build job that cannot fail: a broken `cargo test`, a `cargo fmt --check` diff and a `clippy -D warnings` hit are all reported as a skip and the check goes green. Spec 064's acceptance could not catch it, because it asserts the probe is a manifest probe and that is true of the broken shape and the fixed one alike. This spec makes the guard an explicit `if`, and adds the acceptance that tells the two apart: the shipped recipe lines are run in both states.\n",
+    "title": "A skip and a failure are different answers"
+  },
+  "shardHash": "b3708ac32cd646a2d52c7e71affda5a6e8eda559ecb6c408d31efaa27338ef8e",
+  "specVersion": "1.2.0"
+}
