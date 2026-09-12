@@ -133,7 +133,8 @@ spec's own attestation hashes to.
   "exclusions": {
     "resolverExclusions": ["target", "node_modules", ".derived", "dist", "build", ".next"],
     "stateDir": null,
-    "unwitnessedAllowed": ["..."]
+    "unwitnessedAllowed": ["..."],
+    "bypassPrefixes": [".github/", "docs/", "..."]
   }
 }
 ```
