@@ -49,10 +49,10 @@
       "Verification"
     ],
     "specPath": "specs/089-a-skip-and-a-failure-are-different-answers/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The kit's Makefile guards its language targets on a manifest probe, written as `test -f M && cmd || echo skipping`. That is not an if/else: the `||` branch fires when the probe is false OR when the command fails, so on a repository that HAS the manifest a failing command exits 0 having printed \"no manifest, skipping\". Any adopter who copies `kit/govern.yml` unmodified into a repository with a `Cargo.toml` gets a build job that cannot fail: a broken `cargo test`, a `cargo fmt --check` diff and a `clippy -D warnings` hit are all reported as a skip and the check goes green. Spec 064's acceptance could not catch it, because it asserts the probe is a manifest probe and that is true of the broken shape and the fixed one alike. This spec makes the guard an explicit `if`, and adds the acceptance that tells the two apart: the shipped recipe lines are run in both states.\n",
     "title": "A skip and a failure are different answers"
   },
-  "shardHash": "b3708ac32cd646a2d52c7e71affda5a6e8eda559ecb6c408d31efaa27338ef8e",
+  "shardHash": "e2a8de53745e48d8928974a5b08e213786bc2cd0450e94f708de1341576d9f1b",
   "specVersion": "1.2.0"
 }

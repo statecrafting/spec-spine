@@ -1,7 +1,7 @@
 ---
 id: "089-a-skip-and-a-failure-are-different-answers"
 title: "A skip and a failure are different answers"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-11"
 summary: >
