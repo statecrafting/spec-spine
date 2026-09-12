@@ -130,6 +130,6 @@
     "summary": "A consumer that binds spec-spine's authority results to a revision needs five separate outputs today and still cannot answer four questions from them: whether the committed ledger matched the corpus (attestations recompute and never read the committed shards, and `check --json` reports booleans without the digests it compared), which configuration and governance files were read, what every spec's territory hashed to, and how much source no spec claims. This spec adds a third attestation scope, `attest --snapshot`, emitting an `AuthoritySnapshot`: the tool and schema versions, a digest of `spec-spine.toml`, the existing corpus hashes, the committed registry and index trees with a digest each and whether each matches the recompute, the governance inputs by path and digest, the gate verdicts, the ownership counts, the exclusions in force, and each spec's lifecycle with the hash of the `SpecAttestation` spec 042 would emit for it. New members use a framed digest, because the existing fold does not frame content and two trees can share one hash; existing members and payloads keep their constructions. The payload is pure, on demand, gitignored, sealable and verified under spec 085's rules. It commits to no git revision: the consumer binds the tree.\n",
     "title": "An authority snapshot says what it read"
   },
-  "shardHash": "fce116f811e67027db5a9bd704543f77a40a1a2f5ada21b8f6df2364c247df12",
+  "shardHash": "5221c1bb02e6418c66dc9d92687b81cedbd6327823b87c7ee94dc6b4cc97cc51",
   "specVersion": "1.2.0"
 }

@@ -195,6 +195,11 @@ registry and index DTOs do not, and their per-shard MAJOR gate is their guard.
 It MUST tell a consumer to store the bytes `attest` wrote, since a
 re-serialized copy no longer verifies under 3.1.
 
+The parenthetical is the set as it stands today; the requirement is each
+artifact's current constant, not these literals. Draft 088 moves the verdict
+envelope to its next MINOR when it adds the `delta` verb token, so whichever of
+the two builds second writes the value the constant holds by then.
+
 ### 3.6 What must keep working
 
 - `attest` emits byte-identical output in both scopes, and
