@@ -590,16 +590,23 @@ pub fn check_index_freshness(
         .map(|file| format!("blocking-diagnostics {file}"))
         .collect();
     for line in committed_index_drift(cfg, repo_root, &outcome.shards)? {
-        // One line per shard. A shard that both blocks and differs would
+        // One line per shard. A shard that blocks and also drifts would
         // otherwise be named twice, and the count line ("N stale shard(s)")
         // would then overstate how many shards moved. The blocking line is the
         // one kept because it is the one whose remedy differs: regenerating
-        // fixes differing bytes, and does not fix an unresolved unit. This is
+        // fixes a drifted shard, and does not fix an unresolved unit. This is
         // also what the pre-086 check reported, which skipped the hash
         // comparison for a shard it had already called blocking.
-        if let Some(file) = line.strip_prefix("modified ")
-            && blocking.contains(file)
-        {
+        //
+        // Matched on the file rather than on one class name. Both `modified`
+        // and `missing` can pair with a blocking diagnostic (the second when a
+        // new spec claims a unit that does not resolve and has never been
+        // indexed), so a guard naming a single class covers half the cases and
+        // reads as though it covered all of them.
+        let blocked = line
+            .split_once(' ')
+            .is_some_and(|(_, file)| blocking.contains(file));
+        if blocked {
             continue;
         }
         drift.push(line);

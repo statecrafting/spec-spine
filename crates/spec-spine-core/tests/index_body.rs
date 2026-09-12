@@ -300,6 +300,40 @@ fn a_blocking_shard_that_also_differs_is_named_once() {
 }
 
 #[test]
+fn a_blocking_shard_that_is_also_missing_is_named_once() {
+    // The other pairing, and the reason the guard matches on the file rather
+    // than on one class name: a new spec whose unit does not resolve, never
+    // indexed, is blocking (from the fresh index) and missing (from the
+    // committed tree) at the same time. A guard naming only `modified` would
+    // let this one through while reading as though it covered every case.
+    let fx = fixture();
+    let cfg = Config::default();
+    emit(&cfg, fx.path());
+
+    // Filed after the tree was written, so no shard for it was ever committed.
+    write(
+        fx.path(),
+        "specs/002-gone/spec.md",
+        "---\nid: \"002-gone\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-12\"\nimplementation: complete\nsummary: \"s\"\nestablishes:\n  - \"a/src/absent.rs\"\n---\n\n# 002-gone\n",
+    );
+
+    let report = stale_report(&cfg, fx.path());
+    assert!(
+        report.contains("blocking-diagnostics by-spec/002-gone.json"),
+        "the blocking refusal must survive (spec 050): {report}"
+    );
+    assert_eq!(
+        report.matches("by-spec/002-gone.json").count(),
+        1,
+        "one line per shard, `missing` included: {report}"
+    );
+    assert!(
+        report.starts_with("1 stale shard(s):"),
+        "the count line must agree with the lines under it: {report}"
+    );
+}
+
+#[test]
 fn a_foreign_schema_major_is_refused_not_reported_as_drift() {
     // A must-keep-working line, not a defect probe: it passes before and after
     // spec 086. The read boundary refused a shard from an unknown MAJOR with a
