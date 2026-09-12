@@ -1,7 +1,7 @@
 ---
 id: "085-a-verifier-checks-the-bytes-it-was-given"
 title: "A verifier checks the bytes it was given"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-11"
 implementation: complete
