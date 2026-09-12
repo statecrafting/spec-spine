@@ -61,8 +61,8 @@ Spec 023 made the corpus attestation "the most verifiable link in any audit
 chain that contains it", and spec 042 extended the same record to one spec for
 consumers outside this repository. Both are checked by `verify-attestation`,
 which a consumer runs precisely so that it does not have to reimplement the
-check. Measured on 2026-09-11 against a sealed pair written by `attest --sign`
-with a scratch key:
+check. Measured on 2026-09-11, and the seal row on 2026-09-12, against a
+sealed pair written by `attest --sign` with a scratch key:
 
 | What was done to the stored file | `--recompute` | `--signature` | Exit |
 |---|---|---|---|
@@ -71,6 +71,7 @@ with a scratch key:
 | a nested member added under `verdicts.compile` | match | valid | **0** |
 | a member added to a per-spec attestation's first unit | match | valid | **0** |
 | reformatted: newlines removed, values unchanged | match | valid | **0** |
+| an unknown member added to the seal: `"revokedAt"` | | valid | **0** |
 | corpus `schemaVersion` changed to `9.0.0`, recompute only | **match** | not run | **0** |
 | corpus `schemaVersion` changed to `0.2.0`, recompute only | **match** | not run | **0** |
 | per-spec `schemaVersion` changed to `9.0.0` | mismatch, "tool.name or schemaVersion" | not run | 1 |
@@ -260,9 +261,10 @@ key.
 Against pre-085 code the lines split three ways:
 
 - **Fail first.** The two injected-member lines, the nested-member line, the
-  per-spec member line, both unknown-MAJOR lines, the same-MAJOR version line
-  and the reformatted-bytes line. They exit 0 or 1 today where 3 or 1 is
-  required, and they are the evidence that the defect is fixed.
+  per-spec member line, the seal member line, both unknown-MAJOR lines, the
+  same-MAJOR version line and the reformatted-bytes line. They exit 0 or 1
+  today where 3 or 1 is required, and they are the evidence that the defect
+  is fixed.
 - **Pass before and after.** The baseline, the `tool.version` line, the verdict
   flip, the duplicate key, the per-spec recompute of a directory-unit spec and a
   file-unit spec, the line that the written bytes hash to `attestationHash`, and
@@ -288,6 +290,7 @@ D="${TMPDIR:-/tmp}/ss085"; awk 'NR==1{print; print "  \"prCouple\": {\"ok\": tru
 D="${TMPDIR:-/tmp}/ss085"; awk 'NR==1{print; print "  \"prCouple\": {\"ok\": true},"; next} {print}' .derived/attestation/attestation.json > "$D/t1r.json"; target/release/spec-spine verify-attestation --attestation "$D/t1r.json" --recompute 2> "$D/t1r.err"; test $? -eq 3 && grep -q prCouple "$D/t1r.err"
 D="${TMPDIR:-/tmp}/ss085"; awk '/"compile": \{/{print; print "      \"ignoredWarnings\": 12,"; next} {print}' .derived/attestation/attestation.json > "$D/t2.json"; target/release/spec-spine verify-attestation --attestation "$D/t2.json" --seal .derived/attestation/attestation.sig --recompute --signature --public-key "$D/pub" 2> "$D/t2.err"; test $? -eq 3 && grep -q ignoredWarnings "$D/t2.err"
 D="${TMPDIR:-/tmp}/ss085"; A=.derived/attestation/by-spec/083-an-attestation-covers-the-territory-it-claims; awk '/"contentHash":/ && !done {print "        \"coveredBy\": \"review\","; done=1} {print}' "$A.json" > "$D/s1.json"; target/release/spec-spine verify-attestation --spec 083-an-attestation-covers-the-territory-it-claims --attestation "$D/s1.json" --seal "$A.sig" --recompute --signature --public-key "$D/pub" 2> "$D/s1.err"; test $? -eq 3 && grep -q coveredBy "$D/s1.err"
+D="${TMPDIR:-/tmp}/ss085"; awk 'NR==1{print; print "  \"revokedAt\": \"2026-01-01\","; next} {print}' .derived/attestation/attestation.sig > "$D/sl.sig"; target/release/spec-spine verify-attestation --seal "$D/sl.sig" --signature --public-key "$D/pub" 2> "$D/sl.err"; test $? -eq 3 && grep -q revokedAt "$D/sl.err"
 D="${TMPDIR:-/tmp}/ss085"; sed 's/"schemaVersion": "0.1.0"/"schemaVersion": "9.0.0"/' .derived/attestation/attestation.json > "$D/t3.json"; target/release/spec-spine verify-attestation --attestation "$D/t3.json" --recompute 2> "$D/t3.err"; test $? -eq 3 && grep -q "MAJOR 9" "$D/t3.err"
 D="${TMPDIR:-/tmp}/ss085"; A=.derived/attestation/by-spec/083-an-attestation-covers-the-territory-it-claims.json; sed 's/"schemaVersion": "0.1.0"/"schemaVersion": "9.0.0"/' "$A" > "$D/s3.json"; target/release/spec-spine verify-attestation --spec 083-an-attestation-covers-the-territory-it-claims --attestation "$D/s3.json" --recompute 2> "$D/s3.err"; test $? -eq 3 && grep -q "MAJOR 9" "$D/s3.err"
 D="${TMPDIR:-/tmp}/ss085"; sed 's/"schemaVersion": "0.1.0"/"schemaVersion": "0.2.0"/' .derived/attestation/attestation.json > "$D/t4.json"; target/release/spec-spine verify-attestation --attestation "$D/t4.json" --recompute --json > "$D/t4.out"; test $? -eq 1 && grep -q '"schemaVersion (0.2.0' "$D/t4.out"
