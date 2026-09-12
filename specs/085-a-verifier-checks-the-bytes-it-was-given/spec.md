@@ -4,7 +4,7 @@ title: "A verifier checks the bytes it was given"
 status: draft
 kind: "tooling"
 created: "2026-09-11"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: high
 depends_on:
