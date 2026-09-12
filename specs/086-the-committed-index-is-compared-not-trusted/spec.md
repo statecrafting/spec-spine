@@ -4,7 +4,7 @@ title: "The committed index is compared, not trusted"
 status: draft
 kind: "tooling"
 created: "2026-09-11"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: high
 depends_on:
@@ -19,9 +19,8 @@ amends:
   # bytes catches it. 024's text is not edited (spec 040). See 5, D-1.
   - "024-index-sharding"
 establishes:
-  # Planned (spec 076) until the build writes it; the build drops the flag.
   # 3.5: the tamper matrix against the committed index, library side.
-  - { kind: file, path: "crates/spec-spine-core/tests/index_body.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/tests/index_body.rs" }
 extends:
   # 3.1 and 3.2: `check_index_freshness` compares the committed shard bytes
   # with the shards a fresh index emits, and reports the drift classes.
@@ -210,6 +209,29 @@ what makes it one.
 **D-3 (2026-09-11): no opt-in flag.** A flag would leave the weak comparison as
 the default, and every gate chain already written against `check` would keep
 it.
+
+**D-4 (2026-09-12): an unbuilt index stays an I/O error, not staleness.** 3.1
+mirrors `compile --check`, and 031 3.2 makes an unbuilt *registry* stale rather
+than an error, on the reasoning that a tree never built is by definition not
+vouching for the corpus. Read straight across, that would make an unbuilt index
+stale here too. It is not adopted. `check_index_freshness` is the freshness
+guard in front of `couple`, `index coverage` and `index owner`, so the change
+would move all three from exit 3 to exit 2 and replace "run `spec-spine index`
+first" with "stale", none of which this spec is for. 3.1 describes the
+comparison, not the read boundary in front of it, and the registry's answer
+belongs to the verb that reads a registry.
+
+**D-5 (2026-09-12): a shard from an unknown schema MAJOR is refused, not called
+`modified`.** The comparison classifies without parsing, which is what lets a
+stray file be `orphaned` rather than a parse error. Applied without exception it
+would also demote the read boundary's MAJOR gate, which
+`read_committed_index_shards` has always applied: a committed tree at a MAJOR
+this build does not understand would read as `modified`, and the remedy a stale
+verdict advises, running `spec-spine index`, would overwrite it with a
+downgrade. So a file that already differs is probed for its `schemaVersion`
+alone, and only to re-raise `Error::Schema`; a body that will not parse stays
+`modified`. No classification changes, and the registry side is left as it
+stands: this keeps a refusal that already existed rather than adding one.
 
 ## Verification
 
