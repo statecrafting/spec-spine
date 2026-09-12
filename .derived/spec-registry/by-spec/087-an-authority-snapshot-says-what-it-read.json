@@ -1,0 +1,135 @@
+{
+  "record": {
+    "created": "2026-09-11",
+    "dependsOn": [
+      "023-ledger-seal",
+      "024-index-sharding",
+      "031-registry-freshness-check",
+      "032-ownership-coverage",
+      "042-per-spec-attestation",
+      "057-claimed-but-unwitnessed",
+      "075-one-name-one-freshness-verb",
+      "083-an-attestation-covers-the-territory-it-claims",
+      "085-a-verifier-checks-the-bytes-it-was-given",
+      "086-the-committed-index-is-compared-not-trusted"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/snapshot.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/snapshot.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/snapshot.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/verify_attestation.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      }
+    ],
+    "id": "087-an-authority-snapshot-says-what-it-read",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/authority-evidence.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionHeadings": [
+      "087: An authority snapshot says what it read",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The payload",
+      "3.2 What each member covers",
+      "3.3 The framed digest",
+      "3.4 Purity",
+      "3.5 Surface",
+      "3.6 What it proves, and what it does not",
+      "3.7 What must keep working",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/087-an-authority-snapshot-says-what-it-read/spec.md",
+    "status": "draft",
+    "summary": "A consumer that binds spec-spine's authority results to a revision needs five separate outputs today and still cannot answer four questions from them: whether the committed ledger matched the corpus (attestations recompute and never read the committed shards, and `check --json` reports booleans without the digests it compared), which configuration and governance files were read, what every spec's territory hashed to, and how much source no spec claims. This spec adds a third attestation scope, `attest --snapshot`, emitting an `AuthoritySnapshot`: the tool and schema versions, a digest of `spec-spine.toml`, the existing corpus hashes, the committed registry and index trees with a digest each and whether each matches the recompute, the governance inputs by path and digest, the gate verdicts, the ownership counts, the exclusions in force, and each spec's lifecycle with the hash of the `SpecAttestation` spec 042 would emit for it. New members use a framed digest, because the existing fold does not frame content and two trees can share one hash; existing members and payloads keep their constructions. The payload is pure, on demand, gitignored, sealable and verified under spec 085's rules. It commits to no git revision: the consumer binds the tree.\n",
+    "title": "An authority snapshot says what it read"
+  },
+  "shardHash": "fce116f811e67027db5a9bd704543f77a40a1a2f5ada21b8f6df2364c247df12",
+  "specVersion": "1.2.0"
+}

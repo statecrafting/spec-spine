@@ -1,0 +1,97 @@
+{
+  "record": {
+    "amends": [
+      "024-index-sharding"
+    ],
+    "created": "2026-09-11",
+    "dependsOn": [
+      "004-codebase-index",
+      "005-coupling-gate",
+      "024-index-sharding",
+      "031-registry-freshness-check",
+      "075-one-name-one-freshness-verb"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/index_body.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "075-one-name-one-freshness-verb",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_check.rs"
+        }
+      }
+    ],
+    "id": "086-the-committed-index-is-compared-not-trusted",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/authority-evidence.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/031-registry-freshness-check/spec.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionHeadings": [
+      "086: The committed index is compared, not trusted",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 `index check` compares bytes and sets",
+      "3.2 Every reader inherits it",
+      "3.3 What the gate's ownership now means",
+      "3.4 Cost",
+      "3.5 What must keep working",
+      "3.6 The trade in 024 5 changes",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/086-the-committed-index-is-compared-not-trusted/spec.md",
+    "status": "draft",
+    "summary": "`index check` does not compare the committed index with what the corpus indexes to. It reads each committed shard's own mapping, derives from that mapping which span files to hash, and compares the resulting hash with the shard's `shardHash` field. The mapping body itself (which units resolved where, which paths implement which spec, the ownership flags) is never compared with a fresh resolution, and for a `file`, `directory` or `crate` unit, which carries no span, nothing in the hash constrains it. Measured on a scratch repository: rewriting a committed shard so its spec owns nothing, with `shardHash` left alone, leaves `index check` and `check` reporting fresh, and `couple` then derives ownership from the edited body and passes a change to code the spec owned, without its `spec.md`. `.derived/` is in the bypass floor, so the edit itself trips nothing. AGENTS.md tells every session that a fresh `check` means the committed shards are exactly what the corpus compiles to; for the index that is not what is checked. Spec 031 3.1 recorded the weaker comparison as a cost trade; a full re-index of this repository takes 0.04 s against 0.03 s for the check. This spec makes `index check` compare bytes and set membership exactly as `compile --check` does, so every reader of the committed index (the coupling gate, `index owner`, coverage, the projections) reads a body equal to the recompute. It amends 024 5, whose bounded trade let a sibling-caused resolution flip go unreported.\n",
+    "title": "The committed index is compared, not trusted"
+  },
+  "shardHash": "538079d687013d40f5e0eeb643d998d255560f6ce0a12cadbfdfe0e750450f69",
+  "specVersion": "1.2.0"
+}
