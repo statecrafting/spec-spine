@@ -14,8 +14,7 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/index_body.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/index_body.rs"
       }
     ],
     "extends": [
@@ -45,7 +44,7 @@
       }
     ],
     "id": "086-the-committed-index-is-compared-not-trusted",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -92,6 +91,6 @@
     "summary": "`index check` does not compare the committed index with what the corpus indexes to. It reads each committed shard's own mapping, derives from that mapping which span files to hash, and compares the resulting hash with the shard's `shardHash` field. The mapping body itself (which units resolved where, which paths implement which spec, the ownership flags) is never compared with a fresh resolution, and for a `file`, `directory` or `crate` unit, which carries no span, nothing in the hash constrains it. Measured on a scratch repository: rewriting a committed shard so its spec owns nothing, with `shardHash` left alone, leaves `index check` and `check` reporting fresh, and `couple` then derives ownership from the edited body and passes a change to code the spec owned, without its `spec.md`. `.derived/` is in the bypass floor, so the edit itself trips nothing. AGENTS.md tells every session that a fresh `check` means the committed shards are exactly what the corpus compiles to; for the index that is not what is checked. Spec 031 3.1 recorded the weaker comparison as a cost trade; a full re-index of this repository takes 0.04 s against 0.03 s for the check. This spec makes `index check` compare bytes and set membership exactly as `compile --check` does, so every reader of the committed index (the coupling gate, `index owner`, coverage, the projections) reads a body equal to the recompute. It amends 024 5, whose bounded trade let a sibling-caused resolution flip go unreported.\n",
     "title": "The committed index is compared, not trusted"
   },
-  "shardHash": "538079d687013d40f5e0eeb643d998d255560f6ce0a12cadbfdfe0e750450f69",
+  "shardHash": "b05166f092e210342b55dd4ca85f51c183b1e6923c32297273acffeb4afb6cd3",
   "specVersion": "1.2.0"
 }

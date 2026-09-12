@@ -287,8 +287,23 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 }
                 Freshness::Stale { expected, actual } => {
                     eprintln!("{subject} is STALE (run `spec-spine index` to refresh)");
-                    eprintln!("  expected: {expected}");
-                    eprintln!("  actual:   {actual}");
+                    // Spec 086 3.2: for the index, `actual` is already the count
+                    // line plus one line per drifted shard with its class, so it
+                    // is printed as it stands, the way `compile --check` prints
+                    // the registry's. The paired `expected` stays on the typed
+                    // verdict for JSON consumers; an operator's next action does
+                    // not depend on it.
+                    //
+                    // A `--slice` check is the other shape on this arm: its two
+                    // values are the sidecar hashes (spec 012 3.3), where the
+                    // expected/actual pair is the whole report and dropping half
+                    // of it would say nothing.
+                    if slice.is_some() {
+                        eprintln!("  expected: {expected}");
+                        eprintln!("  actual:   {actual}");
+                    } else {
+                        eprintln!("{actual}");
+                    }
                     if !counts.is_empty() {
                         eprintln!(
                             "  the stale ledger also records {}",
