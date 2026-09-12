@@ -22,11 +22,19 @@
       {
         "path": "crates/spec-spine-core/src/index.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/index_body.rs",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/index_body.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -117,5 +125,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "30a9f609faf16fc7321d778f76c76c9bb4c43666a5a94aa75dfa28c648bb2d4d"
+  "shardHash": "98030f17c13dbb8709c3147b5cc293380b871123f563fd34383d331dcf7a3be2"
 }

@@ -395,94 +395,204 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
     })
 }
 
-/// Per-shard staleness (spec 024 FR-003): each committed shard is verified
-/// against its current inputs and the shard *set* is compared to the current
-/// authority set. A shard is stale when its recomputed hash differs, when it
-/// carries a blocking resolver diagnostic, or when a spec/package was added or
-/// removed (a set-membership change). Reports the stale shard ids; replaces the
-/// pre-shard single global-hash comparison. The recompute reads each committed
-/// shard's own span-backing files (from its `resolvedUnits`), so it stays cheap
-/// (no re-resolution) while still catching a span-shifting edit (spec 004 §3.5).
+/// The cap on how many drifted shards a freshness report names (spec 031 §3.3),
+/// so a corpus-wide restamp reports `and N more` instead of flooding a CI log.
+///
+/// The registry keeps its own copy of this cap beside its own comparison, and
+/// the two are deliberately separate constants: each artifact's comparison is
+/// owned by a different spec, and neither module reaches into the other to
+/// share one value.
+const STALE_REPORT_CAP: usize = 20;
+
+/// The one field a differing shard is probed for before it is called `modified`.
+#[derive(Deserialize)]
+struct SchemaProbe {
+    #[serde(rename = "schemaVersion")]
+    schema_version: String,
+}
+
+/// A committed shard whose schema MAJOR this build does not understand is an
+/// [`Error::Schema`] (exit 3), not drift.
+///
+/// Byte comparison alone would call it `modified`, and the remedy a stale
+/// verdict advises, "run `spec-spine index`", would overwrite a tree a newer
+/// build wrote. That refusal is what the read boundary gave before spec 086
+/// (`read_committed_index_shards` gates every shard's MAJOR), and it still
+/// guards every *reader* of this tree; keeping it here means the freshness
+/// verb in front of them does not answer first with worse advice.
+///
+/// Reading a committed body is otherwise not this comparison's business, so the
+/// probe is deliberately narrow: one field, only on a file that already
+/// differs, and a body that will not parse stays `modified` rather than
+/// becoming an error. See 086 D-5.
+fn reject_foreign_major(bytes: &[u8]) -> Result<(), Error> {
+    if let Ok(probe) = serde_json::from_slice::<SchemaProbe>(bytes) {
+        shard::check_major("index", &probe.schema_version, INDEX_SCHEMA_VERSION)?;
+    }
+    Ok(())
+}
+
+/// The drifted-file lines for one shard directory, by filename, over raw bytes.
+///
+/// `modified` (the committed bytes differ from the emitted ones), `missing` (an
+/// emitted shard with no committed file) and `orphaned` (a committed file no
+/// emitted shard accounts for, a stray `.json` included). Classification never
+/// parses a committed file: the comparison is what decides, so a body that will
+/// not deserialize is drift to report rather than an error to raise. The one
+/// read of a committed body is [`reject_foreign_major`], and it changes no
+/// classification.
+fn compare_shard_dir(
+    dir: &Path,
+    label: &str,
+    emitted: &shard::ShardFiles,
+) -> Result<Vec<String>, Error> {
+    let expected: BTreeMap<&str, &str> = emitted
+        .iter()
+        .map(|(name, content)| (name.as_str(), content.as_str()))
+        .collect();
+    let committed: BTreeMap<String, Vec<u8>> = shard::read_shard_files(dir)?.into_iter().collect();
+
+    let mut drift: Vec<String> = Vec::new();
+    for (name, content) in &expected {
+        match committed.get(*name) {
+            None => drift.push(format!("missing {label}/{name}")),
+            Some(bytes) if bytes.as_slice() != content.as_bytes() => {
+                reject_foreign_major(bytes)?;
+                drift.push(format!("modified {label}/{name}"));
+            }
+            Some(_) => {}
+        }
+    }
+    for name in committed.keys() {
+        if !expected.contains_key(name.as_str()) {
+            drift.push(format!("orphaned {label}/{name}"));
+        }
+    }
+    Ok(drift)
+}
+
+/// Compare a freshly built shard set against the committed index tree, byte for
+/// byte (spec 086 §3.1), exactly as the registry's comparison does (spec 031
+/// §3.1).
+///
+/// Before spec 086 this side compared only each committed shard's recomputed
+/// `shardHash`, and it derived the files to hash *from the committed body
+/// itself* (`span_files_for_mapping`). The body was therefore trusted to name
+/// its own inputs and was never compared with anything, so for a `file`,
+/// `directory` or `crate` unit, none of which carries a span, a rewritten body
+/// kept its hash and read fresh; the coupling gate then resolved ownership from
+/// it, and `.derived/` is on the bypass floor, so the edit tripped nothing
+/// (spec 086 §1 measures the case end to end). Comparing the serialized bytes
+/// is what makes the committed tree a ledger rather than a cache: canonical
+/// emission (sorted keys, 2-space, LF, trailing newline) makes a fresh index
+/// reproducible, so an exact comparison catches a stale hash, a hand-edited
+/// body and a schema restamp alike.
+///
+/// Both shard directories are compared, and `missing`/`orphaned` are set
+/// membership rather than content, which is why this compares sets and not only
+/// the files present in both.
+fn committed_index_drift(
+    cfg: &spec_spine_types::Config,
+    repo_root: &Path,
+    shards: &IndexShardSet,
+) -> Result<Vec<String>, Error> {
+    let dir = index_dir(cfg, repo_root);
+    // An index that was never built stays an `Error::Io`, the answer this
+    // function's caller gave before spec 086 and the one every reader of this
+    // tree still gives. The registry's comparison calls that state stale
+    // instead (spec 031 §3.2), but that choice belongs to the verb that reads a
+    // registry: adopting it here would move an exit code from 3 to 2 on
+    // `couple`, `coverage` and `index owner`, none of which spec 086 touches.
+    // See 086 D-4.
+    if !dir.exists() {
+        return Err(Error::Io(format!(
+            "read {} (run `spec-spine index` first?): not found",
+            dir.display()
+        )));
+    }
+    let (by_spec, by_package) = index_shard_files(shards)?;
+    let mut drift = compare_shard_dir(&dir.join(shard::BY_SPEC_DIR), shard::BY_SPEC_DIR, &by_spec)?;
+    drift.extend(compare_shard_dir(
+        &dir.join(shard::BY_PACKAGE_DIR),
+        shard::BY_PACKAGE_DIR,
+        &by_package,
+    )?);
+    Ok(drift)
+}
+
+/// Render drift lines as a [`Freshness`], in the registry's report shape.
+///
+/// That shape is contractual (spec 031 §3.3): the session protocol reads the
+/// drifted shard names back to an operator, and exit 2 alone cannot say which
+/// shard moved. One line per shard, each carrying its class, capped so a
+/// corpus-wide restamp does not flood a CI log.
+fn drift_verdict(mut drift: Vec<String>, emitted: usize) -> Freshness {
+    if drift.is_empty() {
+        return Freshness::Fresh;
+    }
+    drift.sort();
+    drift.dedup();
+    let total = drift.len();
+    let mut lines: Vec<String> = drift
+        .iter()
+        .take(STALE_REPORT_CAP)
+        .map(|s| format!("  {s}"))
+        .collect();
+    if total > STALE_REPORT_CAP {
+        lines.push(format!("  and {} more", total - STALE_REPORT_CAP));
+    }
+    Freshness::Stale {
+        expected: format!("{emitted} shard(s) matching the corpus"),
+        actual: format!("{total} stale shard(s):\n{}", lines.join("\n")),
+    }
+}
+
+/// Index freshness (spec 086 §3.1): does the committed shard tree equal what the
+/// current corpus indexes to? Indexes in memory and compares the serialized
+/// shard bytes and the shard set. **Never writes.**
+///
+/// Every reader of the committed index inherits this (spec 086 §3.2). `check`,
+/// and the freshness guard in front of `couple`, `index coverage` and
+/// `index owner`, all call this one function, so a committed index that reads
+/// fresh is byte-identical to the recompute, and the owner set a `C-001`
+/// decision uses is the one the corpus resolves to at that tree rather than
+/// whatever the committed body says.
+///
+/// The blocking-diagnostic refusal (spec 050) is unchanged. It is read from the
+/// fresh index rather than from the committed body, which is the same move this
+/// function makes everywhere else: a committed body with its diagnostics
+/// deleted would otherwise answer for itself.
+///
+/// This replaces the per-shard hash recompute of spec 024 FR-003, whose
+/// bounded trade (024 §5) let a resolution flip caused purely by a sibling
+/// change go unreported until the next full `index` run. A byte comparison
+/// catches it; spec 086 amends that section.
 pub fn check_index_freshness(
     cfg: &spec_spine_types::Config,
     repo_root: &Path,
 ) -> Result<Freshness, Error> {
-    let (spec_shards, package_shards) = read_committed_index_shards(cfg, repo_root)?;
-    let global_inputs = shard::global_inputs_hash(cfg, repo_root);
-
-    let mut stale: Vec<String> = Vec::new();
-
-    // Set membership: a spec added or removed (its dir gained/lost spec.md), or a
-    // package added/removed (manifest discovery), restamps the shard set. Caught
-    // here because a per-shard hash alone cannot see a sibling that appeared.
-    let committed_spec_ids: BTreeSet<String> = spec_shards
+    let outcome = index(cfg, repo_root)?;
+    let mut drift: Vec<String> = outcome
+        .shards
+        .spec_shards
         .iter()
-        .map(|s| s.mapping.spec_id.clone())
-        .collect();
-    let current_spec_ids: BTreeSet<String> = discover_specs(cfg, repo_root)?
-        .into_iter()
-        .map(|s| s.id)
-        .collect();
-    for added in current_spec_ids.difference(&committed_spec_ids) {
-        stale.push(format!("by-spec/{added} (new spec)"));
-    }
-    for removed in committed_spec_ids.difference(&current_spec_ids) {
-        stale.push(format!("by-spec/{removed} (removed spec)"));
-    }
-
-    let discovered = manifest::discover(cfg, repo_root);
-    let committed_pkgs: BTreeSet<String> = package_shards
-        .iter()
-        .map(|s| s.package.path.clone())
-        .collect();
-    let current_pkgs: BTreeSet<String> =
-        discovered.packages.iter().map(|p| p.path.clone()).collect();
-    for added in current_pkgs.difference(&committed_pkgs) {
-        stale.push(format!("by-package (new package at {added})"));
-    }
-    for removed in committed_pkgs.difference(&current_pkgs) {
-        stale.push(format!("by-package (removed package at {removed})"));
-    }
-
-    // Per-shard hash + blocking-diagnostic checks.
-    for sh in &spec_shards {
-        let id = &sh.mapping.spec_id;
-        if sh
-            .diagnostics
-            .errors
-            .iter()
-            .any(|d| BLOCKING_CODES.contains(&d.code.as_str()))
-        {
-            stale.push(format!("by-spec/{id} (blocking diagnostics)"));
-            continue;
-        }
-        let spec_md = spec_md_rel(&cfg.layout.specs_dir, id);
-        let span_files = span_files_for_mapping(&sh.mapping);
-        let actual = spec_shard_hash(repo_root, &spec_md, &span_files, &global_inputs);
-        if actual != sh.shard_hash {
-            stale.push(format!("by-spec/{id}"));
-        }
-    }
-    for sh in &package_shards {
-        let actual = package_shard_hash(repo_root, &sh.package, cfg, &global_inputs);
-        if actual != sh.shard_hash {
-            stale.push(format!(
-                "by-package/{}",
-                shard::package_slug(&sh.package.name)
-            ));
-        }
-    }
-
-    if stale.is_empty() {
-        Ok(Freshness::Fresh)
-    } else {
-        stale.sort();
-        stale.dedup();
-        Ok(Freshness::Stale {
-            expected: "all shards fresh".to_string(),
-            actual: format!("stale shard(s): {}", stale.join(", ")),
+        .filter(|sh| {
+            sh.diagnostics
+                .errors
+                .iter()
+                .any(|d| BLOCKING_CODES.contains(&d.code.as_str()))
         })
-    }
+        .map(|sh| {
+            format!(
+                "blocking-diagnostics {}/{}.json",
+                shard::BY_SPEC_DIR,
+                sh.mapping.spec_id
+            )
+        })
+        .collect();
+    drift.extend(committed_index_drift(cfg, repo_root, &outcome.shards)?);
+    let emitted = outcome.shards.spec_shards.len() + outcome.shards.package_shards.len();
+    Ok(drift_verdict(drift, emitted))
 }
 
 /// Recompute one named slice and compare it to the committed
