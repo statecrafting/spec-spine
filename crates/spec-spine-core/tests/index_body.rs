@@ -240,6 +240,45 @@ fn a_package_shard_body_edit_reads_modified() {
 }
 
 #[test]
+fn a_blocking_shard_that_also_differs_is_named_once() {
+    // One line per shard, so the count line cannot overstate how many shards
+    // moved. A spec claiming a file that does not exist emits `I-004`, which is
+    // blocking, and tampering its committed body also makes the bytes differ;
+    // both conditions hold at once. The blocking line is the one kept, because
+    // it is the one whose remedy differs: regenerating fixes bytes and does not
+    // fix an unresolved unit.
+    let fx = fixture();
+    let cfg = Config::default();
+    write(
+        fx.path(),
+        "specs/002-gone/spec.md",
+        "---\nid: \"002-gone\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-12\"\nimplementation: complete\nsummary: \"s\"\nestablishes:\n  - \"a/src/absent.rs\"\n---\n\n# 002-gone\n",
+    );
+    emit(&cfg, fx.path());
+
+    let path = spec_shard(&cfg, fx.path(), "002-gone");
+    let body = fs::read_to_string(&path).unwrap();
+    let tampered = body.replace("does not exist", "does not exist ");
+    assert_ne!(body, tampered, "the tamper must change the committed bytes");
+    fs::write(&path, tampered).unwrap();
+
+    let report = stale_report(&cfg, fx.path());
+    assert!(
+        report.contains("blocking-diagnostics by-spec/002-gone.json"),
+        "the blocking refusal must survive (spec 050): {report}"
+    );
+    assert!(
+        !report.contains("modified by-spec/002-gone.json"),
+        "the same shard must not also be named `modified`: {report}"
+    );
+    assert_eq!(
+        report.matches("by-spec/002-gone.json").count(),
+        1,
+        "one line per shard, so the count line stays honest: {report}"
+    );
+}
+
+#[test]
 fn a_foreign_schema_major_is_refused_not_reported_as_drift() {
     // A must-keep-working line, not a defect probe: it passes before and after
     // spec 086. The read boundary refused a shard from an unknown MAJOR with a

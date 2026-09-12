@@ -572,7 +572,7 @@ pub fn check_index_freshness(
     repo_root: &Path,
 ) -> Result<Freshness, Error> {
     let outcome = index(cfg, repo_root)?;
-    let mut drift: Vec<String> = outcome
+    let blocking: BTreeSet<String> = outcome
         .shards
         .spec_shards
         .iter()
@@ -582,15 +582,28 @@ pub fn check_index_freshness(
                 .iter()
                 .any(|d| BLOCKING_CODES.contains(&d.code.as_str()))
         })
-        .map(|sh| {
-            format!(
-                "blocking-diagnostics {}/{}.json",
-                shard::BY_SPEC_DIR,
-                sh.mapping.spec_id
-            )
-        })
+        .map(|sh| format!("{}/{}.json", shard::BY_SPEC_DIR, sh.mapping.spec_id))
         .collect();
-    drift.extend(committed_index_drift(cfg, repo_root, &outcome.shards)?);
+
+    let mut drift: Vec<String> = blocking
+        .iter()
+        .map(|file| format!("blocking-diagnostics {file}"))
+        .collect();
+    for line in committed_index_drift(cfg, repo_root, &outcome.shards)? {
+        // One line per shard. A shard that both blocks and differs would
+        // otherwise be named twice, and the count line ("N stale shard(s)")
+        // would then overstate how many shards moved. The blocking line is the
+        // one kept because it is the one whose remedy differs: regenerating
+        // fixes differing bytes, and does not fix an unresolved unit. This is
+        // also what the pre-086 check reported, which skipped the hash
+        // comparison for a shard it had already called blocking.
+        if let Some(file) = line.strip_prefix("modified ")
+            && blocking.contains(file)
+        {
+            continue;
+        }
+        drift.push(line);
+    }
     let emitted = outcome.shards.spec_shards.len() + outcome.shards.package_shards.len();
     Ok(drift_verdict(drift, emitted))
 }
