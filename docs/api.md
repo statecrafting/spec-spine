@@ -4,7 +4,9 @@
 > data substrate). **The library API, not the CLI, is the contract bindings
 > wrap.** This document describes the public Rust API and the JSON-in/JSON-out
 > facade. For the CLI surface see [adoption-guide.md](adoption-guide.md); for the
-> design rationale see [design/00-architecture.md](design/00-architecture.md).
+> design rationale see [design/00-architecture.md](design/00-architecture.md);
+> for what each result proves, and how to bind it to a revision, see
+> [authority-evidence.md](authority-evidence.md).
 
 spec-spine turns a markdown spec corpus into a typed, hash-verifiable authority
 ledger. Two views are emitted deterministically and joined at PR time:

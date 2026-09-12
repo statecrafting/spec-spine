@@ -1,0 +1,146 @@
+{
+  "record": {
+    "created": "2026-09-11",
+    "dependsOn": [
+      "000-spec-spine-bootstrap",
+      "005-coupling-gate",
+      "030-cargo-workflow-dependency-waiver",
+      "037-machine-readable-verdicts",
+      "040-amendment-authoring",
+      "049-verify-declared-acceptance",
+      "055-the-ledger-answers-what-consumers-rebuild",
+      "086-the-committed-index-is-compared-not-trusted"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/delta.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/delta.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/delta.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_delta.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "037-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      }
+    ],
+    "id": "088-a-change-is-classified-under-the-bases-rules",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/authority-evidence.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/02-agentic-builder-substrate.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionHeadings": [
+      "088: A change is classified under the base's rules",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The verb and the seam",
+      "3.2 The base's rules classify",
+      "3.3 Classes",
+      "3.4 Detail carried per class",
+      "3.5 Prior policy",
+      "3.6 Report and versioning",
+      "3.7 What it does not claim",
+      "3.8 Tests (minimum)",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/088-a-change-is-classified-under-the-bases-rules/spec.md",
+    "status": "draft",
+    "summary": "The coupling gate clears C-001 when any owning spec's `spec.md` is in the diff, and reads the owners from the candidate's own index. Measured on a scratch repository, a candidate that deletes a command from its own `## Verification` block while changing the code that command checked passes `couple` at exit 0, and so does a candidate that files a new draft spec with an `extends` edge on another spec's unit and rewrites that unit. Both are changes a reviewer must weigh under the rules that held before the change, and nothing reports them as such. Design note 02 G7 says no refusal should be asserted before it is designed, because the naive rule refuses legitimate refactors. This spec therefore adds a report, not a gate: `spec-spine delta --base B --head H` classifies every changed path into implementation, requirement, verification, authority, lifecycle, constitutional, policy, derived, bypassed, unowned or unknown, computed under the merge base's own configuration and index so a candidate cannot reclassify its change by editing `spec-spine.toml`. It records the base and head plan digests for every spec whose declared acceptance changed, the owner sets on both sides of every path whose ownership moved, and a `priorPolicy` block naming the classes a consumer must judge under the base's policy. It interprets no prose, infers no moves, and decides nothing.\n",
+    "title": "A change is classified under the base's rules"
+  },
+  "shardHash": "0aef54d5113ae531a15b2904e6ff93713c770158d56bb650c6c00e4915772edf",
+  "specVersion": "1.2.0"
+}

@@ -1,0 +1,117 @@
+{
+  "record": {
+    "created": "2026-09-11",
+    "dependsOn": [
+      "023-ledger-seal",
+      "042-per-spec-attestation",
+      "067-the-docs-name-what-adopters-derived",
+      "083-an-attestation-covers-the-territory-it-claims"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/verify_attestation_bytes.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/verify_attestation.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "023-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "067-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "id": "085-a-verifier-checks-the-bytes-it-was-given",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/authority-evidence.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/084-a-short-id-names-the-same-spec-at-every-verb/spec.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionHeadings": [
+      "085: A verifier checks the bytes it was given",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The bytes are read once, and both modes decide on them",
+      "3.2 An unknown member is refused",
+      "3.3 An unknown schema MAJOR is refused, and the corpus recompute compares the version",
+      "3.4 The facade holds the same rules",
+      "3.5 The documentation says what is true",
+      "3.6 What must keep working",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/085-a-verifier-checks-the-bytes-it-was-given/spec.md",
+    "status": "draft",
+    "summary": "`verify-attestation` decides on a different object from the one it was handed. It deserializes the attestation without refusing members it does not know, and it checks the seal against a hash of its own re-serialization of what it parsed, never against the file's bytes. Measured at 75181a5: a sealed attestation with an injected `\"prCouple\": {\"ok\": true}` verifies as `match` and `valid` at exit 0, in both the corpus and the per-spec scope, and so does a reformatted copy. Separately, the corpus recompute never compares `schemaVersion`, so an attestation claiming `9.0.0` recomputes as `match` at exit 0, while the per-spec path reports an unnamed content mismatch. Spec 023 AC-4 already requires a single tampered payload byte to fail the signature, and the attestation module documents that loaders reject an unknown MAJOR, so this spec extends rather than amends: the verifier reads the file once, both modes decide on those bytes, every attestation and seal DTO refuses unknown members at exit 3, an unknown schema MAJOR is refused at exit 3 in the loaders' own words, and the corpus recompute compares the version. Nothing `attest` emits changes, and every attestation and seal it has ever written still verifies, provided the bytes were kept.\n",
+    "title": "A verifier checks the bytes it was given"
+  },
+  "shardHash": "7db2f572b8791732988f27bbc21c62e5bf4664a5b75af7bc797f91fcc5046941",
+  "specVersion": "1.2.0"
+}
