@@ -411,6 +411,12 @@ pub fn verify_spec_recompute(
     if a.tool.name != b.tool.name {
         differences.push(format!("tool.name ({} -> {})", a.tool.name, b.tool.name));
     }
+    // The recompute is keyed on the attestation's own `spec_id`, so this
+    // differs only when that id resolved to a spec recorded under another
+    // spelling of it, which is exactly the case worth naming.
+    if a.spec_id != b.spec_id {
+        differences.push(format!("specId ({} -> {})", a.spec_id, b.spec_id));
+    }
     if a.spec_source_hash != b.spec_source_hash {
         differences.push("specSourceHash (the spec's own text changed)".to_string());
     }
@@ -440,10 +446,9 @@ pub fn verify_spec_recompute(
     if a.verdicts != b.verdicts {
         differences.push(format!("verdicts ({:?} -> {:?})", a.verdicts, b.verdicts));
     }
-    // Unreachable: `spec_id` is what the recompute was keyed on and
-    // `tool.version` was gated above, so every remaining member is compared.
-    // Kept so a member added later without a comparison here reports something
-    // rather than an empty difference list.
+    // Unreachable: `tool.version` was gated above and every other member is
+    // compared here. Kept so a member added later without a comparison reports
+    // something rather than an empty difference list.
     if differences.is_empty() {
         differences.push("an unnamed member".to_string());
     }

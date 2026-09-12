@@ -444,6 +444,50 @@ fn reformatted_bytes_fail_both_modes_in_both_scopes() {
     }
 }
 
+/// 3.4 closing the loop with spec 037 3.1: handed the same bytes, the facade
+/// and the CLI report the same thing.
+///
+/// The existing parity test (`cli.rs::json_report_equals_the_facade_payload`)
+/// sends the facade a parsed value read from a canonical file, so it cannot see
+/// this: the two agree there whether or not the byte rule exists. The case that
+/// can diverge is a file whose bytes are not canonical, and `attestationText` is
+/// the form that lets the facade be asked about it at all.
+#[test]
+fn the_facade_and_the_cli_agree_on_bytes_that_are_not_canonical() {
+    let f = Fixture::new();
+    let bytes = fs::read_to_string(f.corpus_attestation())
+        .unwrap()
+        .replace('\n', "");
+    let file = f.scratch("flat-parity.json", &bytes);
+
+    let out = run(
+        &f.root,
+        &[
+            "verify-attestation",
+            "--attestation",
+            file.to_str().unwrap(),
+            "--recompute",
+            "--json",
+        ],
+    );
+    assert_eq!(code(&out), 1);
+    let cli: serde_json::Value = serde_json::from_str(&stdout(&out)).unwrap();
+
+    let request = serde_json::json!({
+        "repoRoot": f.root.to_str().unwrap(),
+        "attestationText": bytes,
+    });
+    let facade: serde_json::Value = serde_json::from_str(
+        &spec_spine_core::verify_attestation_json(&request.to_string()).unwrap(),
+    )
+    .unwrap();
+
+    assert_eq!(
+        cli["report"], facade,
+        "the envelope's report is the facade's payload for the same bytes"
+    );
+}
+
 // --- 3.6: what must keep working ------------------------------------------
 
 /// An untouched pair verifies in both scopes and in both modes, and the bytes
