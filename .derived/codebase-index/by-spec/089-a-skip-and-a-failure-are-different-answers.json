@@ -1,41 +1,24 @@
 {
   "mapping": {
     "dependsOn": [
-      "048-kit-ships-the-governed-loop-skills",
-      "081-the-kit-ships-what-the-loop-calls"
+      "064-the-kit-ships-the-composite-gate",
+      "065-init-and-the-kit-are-one-adoption"
     ],
     "implementingPaths": [
-      {
-        "path": ".claude/skills/",
-        "source": "spec-edge"
-      },
       {
         "path": "crates/spec-spine-core/src/kit_embedded.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/kit_skills.rs",
+        "path": "crates/spec-spine-core/tests/kit_gate.rs",
         "source": "spec-edge"
       },
       {
-        "path": "kit/.claude/skills/",
+        "path": "kit/Makefile",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
-      {
-        "locations": [
-          {
-            "file": ".claude/skills/"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": ".claude/skills/"
-        }
-      },
       {
         "locations": [
           {
@@ -52,33 +35,33 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/kit_skills.rs"
+            "file": "crates/spec-spine-core/tests/kit_gate.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/kit_skills.rs"
+          "path": "crates/spec-spine-core/tests/kit_gate.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "kit/.claude/skills/"
+            "file": "kit/Makefile"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "kit/.claude/skills/"
+          "path": "kit/Makefile"
         }
       }
     ],
-    "specId": "082-a-refusal-is-not-a-remediation-round",
-    "specStatus": "approved"
+    "specId": "089-a-skip-and-a-failure-are-different-answers",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "73da2850ffca0840defac6d3ef2383ccc2c1940a079f10d8f3eac92f56a9db99"
+  "shardHash": "1a8f107be3e241300aeafc76899889029c9fbb4542490a501508e5fd09a34f65"
 }
