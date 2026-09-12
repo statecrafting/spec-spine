@@ -267,7 +267,7 @@ Against pre-085 code the lines split three ways:
 
 - **Fail first.** The two injected-member lines, the nested-member line, the
   per-spec member line, the seal member line, both unknown-MAJOR lines, the
-  same-MAJOR version line and the reformatted-bytes line. They exit 0 or 1
+  same-MAJOR version line and both reformatted-bytes lines. They exit 0 or 1
   today where 3 or 1 is required, and they are the evidence that the defect
   is fixed.
 - **Pass before and after.** The baseline, the `tool.version` line, the verdict
@@ -280,8 +280,10 @@ Against pre-085 code the lines split three ways:
 
 Two vacuous passes are closed. Each refusal line checks the exit code **and**
 that stderr names the member or the MAJOR, so a line cannot pass because a file
-was missing (also exit 3). The reformatted-bytes line asserts exit 1 exactly,
-so it cannot pass on a usage error.
+was missing (also exit 3). Both reformatted-bytes lines assert exit 1
+exactly, so neither can pass on a usage error, and the recompute one also
+asserts the outcome and the difference 3.1 spells out, so it cannot pass on a
+mismatch found for some other reason.
 
 ```verify:cli
 cargo build --release --locked
@@ -300,6 +302,7 @@ D="${TMPDIR:-/tmp}/ss085"; sed 's/"schemaVersion": "0.1.0"/"schemaVersion": "9.0
 D="${TMPDIR:-/tmp}/ss085"; A=.derived/attestation/by-spec/083-an-attestation-covers-the-territory-it-claims.json; sed 's/"schemaVersion": "0.1.0"/"schemaVersion": "9.0.0"/' "$A" > "$D/s3.json"; target/release/spec-spine verify-attestation --spec 083-an-attestation-covers-the-territory-it-claims --attestation "$D/s3.json" --recompute 2> "$D/s3.err"; test $? -eq 3 && grep -q "MAJOR 9" "$D/s3.err"
 D="${TMPDIR:-/tmp}/ss085"; sed 's/"schemaVersion": "0.1.0"/"schemaVersion": "0.2.0"/' .derived/attestation/attestation.json > "$D/t4.json"; target/release/spec-spine verify-attestation --attestation "$D/t4.json" --recompute --json > "$D/t4.out"; test $? -eq 1 && grep -q '"schemaVersion (0.2.0' "$D/t4.out"
 D="${TMPDIR:-/tmp}/ss085"; tr -d '\n' < .derived/attestation/attestation.json > "$D/t6.json"; target/release/spec-spine verify-attestation --attestation "$D/t6.json" --seal .derived/attestation/attestation.sig --signature --public-key "$D/pub"; test $? -eq 1
+D="${TMPDIR:-/tmp}/ss085"; tr -d '\n' < .derived/attestation/attestation.json > "$D/t6r.json"; target/release/spec-spine verify-attestation --attestation "$D/t6r.json" --recompute --json > "$D/t6r.out"; test $? -eq 1 && grep -q contentMismatch "$D/t6r.out" && grep -q "bytes are not the canonical serialization" "$D/t6r.out"
 D="${TMPDIR:-/tmp}/ss085"; sed 's/"version": "[^"]*"/"version": "0.0.1"/' .derived/attestation/attestation.json > "$D/r1.json"; target/release/spec-spine verify-attestation --attestation "$D/r1.json" --recompute --json > "$D/r1.out"; test $? -eq 1 && grep -q versionMismatch "$D/r1.out"
 D="${TMPDIR:-/tmp}/ss085"; sed 's/"ok": true/"ok": false/' .derived/attestation/attestation.json > "$D/r2.json"; target/release/spec-spine verify-attestation --attestation "$D/r2.json" --recompute --json > "$D/r2.out"; test $? -eq 1 && grep -q contentMismatch "$D/r2.out"
 D="${TMPDIR:-/tmp}/ss085"; awk '/"registryHash":/ && !done {print "  \"registryHash\": \"00\","; done=1} {print}' .derived/attestation/attestation.json > "$D/r3.json"; target/release/spec-spine verify-attestation --attestation "$D/r3.json" --recompute 2> "$D/r3.err"; test $? -eq 3 && grep -q registryHash "$D/r3.err"
