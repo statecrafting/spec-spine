@@ -88,6 +88,25 @@ fn spec_shard(cfg: &Config, repo: &Path, id: &str) -> PathBuf {
         .join(format!("{id}.json"))
 }
 
+/// Restamp a shard's schema version to another MINOR of the same MAJOR.
+///
+/// The stable way to make a committed body differ. Rewriting some phrase out of
+/// the body would couple the test to wording it is not about (a reworded
+/// diagnostic would fire the "the tamper changed nothing" guard and send the
+/// reader after the wrong thing), whereas `schemaVersion` is a constant this
+/// crate exports and every shard carries. Staying inside the MAJOR keeps it
+/// drift rather than the refusal `reject_foreign_major` raises.
+fn restamp_minor(body: &str) -> String {
+    let current = spec_spine_types::INDEX_SCHEMA_VERSION;
+    let major = current.split('.').next().expect("a semver MAJOR");
+    let out = body.replace(&format!("\"{current}\""), &format!("\"{major}.99.0\""));
+    assert_ne!(
+        body, out,
+        "every shard stamps {current}; the fixture must carry one to restamp"
+    );
+    out
+}
+
 /// The `shardHash` line, so a test can prove a tamper left it alone.
 fn hash_line(text: &str) -> String {
     text.lines()
@@ -258,9 +277,11 @@ fn a_blocking_shard_that_also_differs_is_named_once() {
 
     let path = spec_shard(&cfg, fx.path(), "002-gone");
     let body = fs::read_to_string(&path).unwrap();
-    let tampered = body.replace("does not exist", "does not exist ");
-    assert_ne!(body, tampered, "the tamper must change the committed bytes");
-    fs::write(&path, tampered).unwrap();
+    assert!(
+        body.contains("I-004"),
+        "the fixture must make this shard block, or the test asserts nothing: {body}"
+    );
+    fs::write(&path, restamp_minor(&body)).unwrap();
 
     let report = stale_report(&cfg, fx.path());
     assert!(
@@ -327,17 +348,7 @@ fn a_schema_restamp_inside_our_major_reads_modified() {
 
     let path = spec_shard(&cfg, fx.path(), "001-a");
     let body = fs::read_to_string(&path).unwrap();
-    let major = spec_spine_types::INDEX_SCHEMA_VERSION
-        .split('.')
-        .next()
-        .unwrap()
-        .to_string();
-    let restamped = body.replace(
-        &format!("\"{}\"", spec_spine_types::INDEX_SCHEMA_VERSION),
-        &format!("\"{major}.99.0\""),
-    );
-    assert_ne!(body, restamped, "the fixture must stamp a schema version");
-    fs::write(&path, restamped).unwrap();
+    fs::write(&path, restamp_minor(&body)).unwrap();
 
     let report = stale_report(&cfg, fx.path());
     assert!(
