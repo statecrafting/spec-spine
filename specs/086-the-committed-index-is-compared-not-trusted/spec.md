@@ -4,7 +4,7 @@ title: "The committed index is compared, not trusted"
 status: draft
 kind: "tooling"
 created: "2026-09-11"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: high
 depends_on:
