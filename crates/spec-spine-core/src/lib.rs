@@ -45,8 +45,10 @@ pub use spec_spine_types::{
 };
 
 pub use attest::{
-    AttestOptions, AttestOutcome, SpecAttestOutcome, VerifyOutcome, attest, attest_spec,
-    attestation_hash, spec_attestation_hash, verify_recompute, verify_spec_recompute,
+    AttestOptions, AttestOutcome, NON_CANONICAL_BYTES, SpecAttestOutcome, VerifyOutcome, attest,
+    attest_spec, attestation_hash, check_attestation_major, check_spec_attestation_major,
+    payload_schema_version, spec_attestation_hash, stored_bytes_hash, verify_recompute,
+    verify_spec_recompute, with_stored_bytes, with_stored_bytes_spec,
 };
 pub use compile::{
     CompileOutcome, MAX_UNDECLARED_EXTRA_FRONTMATTER, RegistryShardSet, SpecCheckReport,
@@ -482,7 +484,8 @@ pub fn attest_spec_json(
 }
 
 /// Verify a per-spec attestation by recompute (spec 042 3.5). Request:
-/// `{ "config"?: Config, "repoRoot": string, "attestation": <SpecAttestation> }`.
+/// `{ "config"?: Config, "repoRoot": string, "attestation": <SpecAttestation> }`,
+/// or `"attestationText": string` in place of `attestation` (spec 085 3.4).
 /// Same outcome vocabulary as [`verify_attestation_json`].
 pub fn verify_spec_attestation_json(request_json: &str) -> Result<String, Error> {
     #[derive(Deserialize)]
@@ -491,15 +494,40 @@ pub fn verify_spec_attestation_json(request_json: &str) -> Result<String, Error>
         #[serde(default)]
         config: Config,
         repo_root: String,
-        attestation: spec_spine_types::SpecAttestation,
+        #[serde(default)]
+        attestation: Option<spec_spine_types::SpecAttestation>,
+        #[serde(default)]
+        attestation_text: Option<String>,
     }
+    const VERB: &str = "verify-spec-attestation";
     let request: Request = serde_json::from_str(request_json)
-        .map_err(|e| Error::Parse(format!("invalid verify-spec-attestation request: {e}")))?;
+        .map_err(|e| Error::Parse(format!("invalid {VERB} request: {e}")))?;
+    let (attestation, stored) = match (request.attestation, request.attestation_text) {
+        (Some(_), Some(_)) => return Err(both_supplied(VERB)),
+        (None, None) => return Err(neither_supplied(VERB)),
+        (Some(a), None) => {
+            attest::check_spec_attestation_major(&a.schema_version)?;
+            (a, None)
+        }
+        (None, Some(text)) => {
+            attest::check_spec_attestation_major(&attest::payload_schema_version(
+                text.as_bytes(),
+                "attestation",
+            )?)?;
+            let a = serde_json::from_str(&text)
+                .map_err(|e| Error::Parse(format!("invalid {VERB} attestationText: {e}")))?;
+            (a, Some(text))
+        }
+    };
     let outcome = verify_spec_recompute(
         &request.config,
         std::path::Path::new(&request.repo_root),
-        &request.attestation,
+        &attestation,
     )?;
+    let outcome = match &stored {
+        Some(text) => attest::with_stored_bytes_spec(outcome, &attestation, text.as_bytes())?,
+        None => outcome,
+    };
     let value = match outcome {
         VerifyOutcome::Match => serde_json::json!({ "outcome": "match" }),
         VerifyOutcome::VersionMismatch { expected, actual } => {
@@ -517,6 +545,14 @@ pub fn verify_spec_attestation_json(request_json: &str) -> Result<String, Error>
 /// Returns `{ "outcome": "match" }`, `{ "outcome": "versionMismatch", "expected",
 /// "actual" }`, or `{ "outcome": "contentMismatch", "differences": [...] }`. This
 /// mode needs no key and no signature: any third party can run it.
+///
+/// `"attestationText": string`, the attestation's exact bytes, may be sent in
+/// place of `attestation` (spec 085 3.4). A facade receives a value inside a
+/// larger request, so the stored bytes never reach it and 3.1's rule that a
+/// verifier decides on the bytes it was given would have no subject here
+/// otherwise. Sent that way, a payload whose values recompute but whose bytes
+/// are not the canonical serialization is a `contentMismatch` naming exactly
+/// that. Either form applies 3.2 and 3.3 to what it receives.
 pub fn verify_attestation_json(request_json: &str) -> Result<String, Error> {
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -524,15 +560,40 @@ pub fn verify_attestation_json(request_json: &str) -> Result<String, Error> {
         #[serde(default)]
         config: Config,
         repo_root: String,
-        attestation: CorpusAttestation,
+        #[serde(default)]
+        attestation: Option<CorpusAttestation>,
+        #[serde(default)]
+        attestation_text: Option<String>,
     }
+    const VERB: &str = "verify-attestation";
     let request: Request = serde_json::from_str(request_json)
-        .map_err(|e| Error::Parse(format!("invalid verify-attestation request: {e}")))?;
+        .map_err(|e| Error::Parse(format!("invalid {VERB} request: {e}")))?;
+    let (attestation, stored) = match (request.attestation, request.attestation_text) {
+        (Some(_), Some(_)) => return Err(both_supplied(VERB)),
+        (None, None) => return Err(neither_supplied(VERB)),
+        (Some(a), None) => {
+            attest::check_attestation_major(&a.schema_version)?;
+            (a, None)
+        }
+        (None, Some(text)) => {
+            attest::check_attestation_major(&attest::payload_schema_version(
+                text.as_bytes(),
+                "attestation",
+            )?)?;
+            let a = serde_json::from_str(&text)
+                .map_err(|e| Error::Parse(format!("invalid {VERB} attestationText: {e}")))?;
+            (a, Some(text))
+        }
+    };
     let outcome = verify_recompute(
         &request.config,
         std::path::Path::new(&request.repo_root),
-        &request.attestation,
+        &attestation,
     )?;
+    let outcome = match &stored {
+        Some(text) => attest::with_stored_bytes(outcome, &attestation, text.as_bytes())?,
+        None => outcome,
+    };
     let value = match outcome {
         VerifyOutcome::Match => serde_json::json!({ "outcome": "match" }),
         VerifyOutcome::VersionMismatch { expected, actual } => {
@@ -546,6 +607,28 @@ pub fn verify_attestation_json(request_json: &str) -> Result<String, Error> {
 }
 
 // --- facade helpers ---
+
+/// Spec 085 3.4: `attestation` and `attestationText` are alternatives, and a
+/// request carrying both is refused rather than silently resolved.
+///
+/// Picking one would make the answer depend on which the facade happened to
+/// prefer, and the two can disagree: `attestationText` is the only form the byte
+/// rule of 3.1 can be applied to, so a caller that sent both and got the value
+/// form checked would be told its bytes were verified when they were not.
+fn both_supplied(verb: &str) -> Error {
+    Error::Parse(format!(
+        "invalid {verb} request: `attestation` and `attestationText` are alternatives; \
+         supply exactly one (`attestationText` carries the stored bytes, so only it can be \
+         checked against them)"
+    ))
+}
+
+fn neither_supplied(verb: &str) -> Error {
+    Error::Parse(format!(
+        "invalid {verb} request: one of `attestation` (the parsed value) or `attestationText` \
+         (its exact bytes) is required"
+    ))
+}
 
 fn config_from_json(config_json: &str) -> Result<Config, Error> {
     serde_json::from_str(config_json)

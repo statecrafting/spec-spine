@@ -69,6 +69,11 @@ pub enum VerifyOutcome {
     ContentMismatch { differences: Vec<String> },
 }
 
+/// The difference reported when a payload's values are exactly what the corpus
+/// recomputes and its stored bytes are not the ones that were attested (spec
+/// 085 3.1).
+pub const NON_CANONICAL_BYTES: &str = "bytes are not the canonical serialization";
+
 /// Build a [`CorpusAttestation`] over the corpus under `repo_root`.
 ///
 /// Pure function of `(config, file contents)`: it runs `compile` and `lint`
@@ -394,6 +399,18 @@ pub fn verify_spec_recompute(
     // saying only that something did.
     let mut differences = Vec::new();
     let (a, b) = (attestation, &recomputed);
+    // Named rather than folded into the catch-all below (spec 085 3.3): a
+    // report reading "tool.name or schemaVersion" tells a consumer which two
+    // fields to go and diff by hand, which is the work it was meant to save.
+    if a.schema_version != b.schema_version {
+        differences.push(format!(
+            "schemaVersion ({} -> {})",
+            a.schema_version, b.schema_version
+        ));
+    }
+    if a.tool.name != b.tool.name {
+        differences.push(format!("tool.name ({} -> {})", a.tool.name, b.tool.name));
+    }
     if a.spec_source_hash != b.spec_source_hash {
         differences.push("specSourceHash (the spec's own text changed)".to_string());
     }
@@ -423,8 +440,12 @@ pub fn verify_spec_recompute(
     if a.verdicts != b.verdicts {
         differences.push(format!("verdicts ({:?} -> {:?})", a.verdicts, b.verdicts));
     }
+    // Unreachable: `spec_id` is what the recompute was keyed on and
+    // `tool.version` was gated above, so every remaining member is compared.
+    // Kept so a member added later without a comparison here reports something
+    // rather than an empty difference list.
     if differences.is_empty() {
-        differences.push("tool.name or schemaVersion".to_string());
+        differences.push("an unnamed member".to_string());
     }
     Ok(VerifyOutcome::ContentMismatch { differences })
 }
@@ -469,6 +490,100 @@ pub fn attestation_hash(attestation: &CorpusAttestation) -> Result<String, Error
     ))
 }
 
+/// SHA-256 (lowercase hex) over the stored bytes of an attestation file: the
+/// digest a seal is checked against (spec 085 3.1).
+///
+/// For every file `attest` has written the file *is* the canonical JSON, so this
+/// equals [`attestation_hash`] and every seal ever produced verifies exactly as
+/// before. For any other file the two differ, and that difference is the point:
+/// a verifier that approves a record approves the bytes it was handed, not a
+/// re-serialization of its own parse of them.
+pub fn stored_bytes_hash(bytes: &[u8]) -> String {
+    sha256_hex(bytes)
+}
+
+/// Read `schemaVersion` out of a JSON payload before it is strictly parsed
+/// (spec 085 3.3).
+///
+/// Reading it loosely first is what lets a payload from a MAJOR line this build
+/// does not understand be refused as unreadable rather than as an unknown
+/// member: a later producer's additive field would otherwise be the first thing
+/// the strict parse trips on, and "unknown field `obligations`" is a poor way of
+/// saying "this file was written by a later spec-spine".
+pub fn payload_schema_version(bytes: &[u8], what: &str) -> Result<String, Error> {
+    let value: serde_json::Value =
+        serde_json::from_slice(bytes).map_err(|e| Error::Parse(format!("invalid {what}: {e}")))?;
+    match value.get("schemaVersion").and_then(|v| v.as_str()) {
+        Some(version) => Ok(version.to_string()),
+        None => Err(Error::Schema(format!(
+            "{what} has no string schemaVersion, so its schema line cannot be checked"
+        ))),
+    }
+}
+
+/// Refuse a corpus attestation whose schema MAJOR this build does not
+/// understand (spec 085 3.3), in the registry and index loaders' own words.
+pub fn check_attestation_major(schema_version: &str) -> Result<(), Error> {
+    crate::shard::check_major("attestation", schema_version, ATTESTATION_SCHEMA_VERSION)
+}
+
+/// Refuse a per-spec attestation whose schema MAJOR this build does not
+/// understand (spec 085 3.3).
+pub fn check_spec_attestation_major(schema_version: &str) -> Result<(), Error> {
+    crate::shard::check_major(
+        "spec attestation",
+        schema_version,
+        SPEC_ATTESTATION_SCHEMA_VERSION,
+    )
+}
+
+/// Fold spec 085 3.1's byte comparison into a corpus recompute outcome.
+///
+/// A [`VerifyOutcome::Match`] says the parsed values are what the corpus
+/// recomputes. It becomes a content mismatch when the stored bytes are not that
+/// value's canonical serialization, because the digest a record is referenced by
+/// is over the stored bytes: approving a re-serialization approves an object
+/// nobody stored. Any other outcome passes through unchanged, since an
+/// unreadable or a differing payload already carries the more specific answer.
+pub fn with_stored_bytes(
+    outcome: VerifyOutcome,
+    attestation: &CorpusAttestation,
+    stored: &[u8],
+) -> Result<VerifyOutcome, Error> {
+    match outcome {
+        VerifyOutcome::Match => Ok(byte_outcome(
+            &canonical_json::to_string(attestation)?,
+            stored,
+        )),
+        other => Ok(other),
+    }
+}
+
+/// [`with_stored_bytes`] for a per-spec attestation (spec 085 3.1).
+pub fn with_stored_bytes_spec(
+    outcome: VerifyOutcome,
+    attestation: &SpecAttestation,
+    stored: &[u8],
+) -> Result<VerifyOutcome, Error> {
+    match outcome {
+        VerifyOutcome::Match => Ok(byte_outcome(
+            &canonical_json::to_string(attestation)?,
+            stored,
+        )),
+        other => Ok(other),
+    }
+}
+
+fn byte_outcome(canonical: &str, stored: &[u8]) -> VerifyOutcome {
+    if stored == canonical.as_bytes() {
+        VerifyOutcome::Match
+    } else {
+        VerifyOutcome::ContentMismatch {
+            differences: vec![NON_CANONICAL_BYTES.to_string()],
+        }
+    }
+}
+
 /// Re-read the corpus and verify it still recomputes to `attestation`
 /// (FR-004 `--recompute`). Version-aware (FR-005): if the attestation's
 /// `tool.version` differs from this build's, the result is
@@ -500,6 +615,16 @@ pub fn verify_recompute(
     let mut differences = Vec::new();
     let a = attestation;
     let b = &recomputed;
+    // Compared like every other member (spec 085 3.3). Skipping it let an
+    // attestation claiming a schema this build never emitted recompute as a
+    // match: the values agreed, and the one field saying what shape they were
+    // written in went unread.
+    if a.schema_version != b.schema_version {
+        differences.push(format!(
+            "schemaVersion ({} -> {})",
+            a.schema_version, b.schema_version
+        ));
+    }
     if a.tool.name != b.tool.name {
         differences.push(format!("tool.name ({} -> {})", a.tool.name, b.tool.name));
     }

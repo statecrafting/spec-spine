@@ -13,9 +13,8 @@ depends_on:
   - "067-the-docs-name-what-adopters-derived"
   - "083-an-attestation-covers-the-territory-it-claims"
 establishes:
-  # Planned (spec 076) until the build writes it; the build drops the flag.
   # 3.6: the tamper and version matrix, end to end through the binary.
-  - { kind: file, path: "crates/spec-spine-cli/tests/verify_attestation_bytes.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-cli/tests/verify_attestation_bytes.rs" }
 extends:
   # 3.2: every attestation and seal DTO refuses a member it does not know.
   - { spec: "023-ledger-seal", unit: "crates/spec-spine-types/src/attest.rs", nature: additive }
@@ -250,6 +249,17 @@ trouble" (spec 042 3.5). A file whose values are right and whose bytes are not
 the ones attested has been read and has failed verification, which is 1. The
 alternative, one `unsupported` outcome at exit 1 for all three, is recorded as
 design/04 D2 for the reviewer.
+
+**D-4 (2026-09-12): the MAJOR gate runs before the strict parse.** 3.2 and 3.3
+both refuse at exit 3 and both are ordered "before either mode runs", but not
+against each other, and a payload from a later MAJOR line typically trips both.
+The gate reads `schemaVersion` out of the raw bytes first, so such a payload is
+refused as `attestation schema MAJOR 1 is unsupported` rather than as whichever
+additive member the strict parse happened to reach first. The alternative,
+parsing strictly and gating afterwards, is a few lines shorter and answers
+"unknown field `obligations`" to the question "why will this not verify". No
+line of the matrix distinguishes the two, so nothing here is a requirement
+change: it is the choice the spec left open, made where it shows.
 
 **D-3 (2026-09-11): no schema version moves.** Nothing emitted changes, so no
 payload gains or loses a member. A version bump would tell consumers the shape

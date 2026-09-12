@@ -8,6 +8,16 @@
 //! never in the payload, is what lets the attested fact stay reproducible while
 //! the act of attesting carries its own identity. Field names serialize
 //! `camelCase`, matching the registry and index wire.
+//!
+//! Every type here refuses a member it does not know (spec 085 3.2). An unknown
+//! member is a claim this build cannot evaluate, and a verifier that drops it
+//! has verified a smaller object than the one it was handed: the consumer then
+//! reads, with its own parser, fields spec-spine never checked. The refusal is
+//! also the honest answer across versions, since a newer producer's additive
+//! member met by an older verifier becomes "cannot read" rather than a false
+//! `valid`. The registry and index DTOs deliberately do not follow: their
+//! loaders gate the MAJOR per shard and a committed shard is regenerated rather
+//! than handed between parties.
 
 use serde::{Deserialize, Serialize};
 
@@ -22,6 +32,7 @@ pub const ATTESTATION_SCHEMA_VERSION: &str = "0.1.0";
 /// `version`; a different version is a distinct, named outcome, never a false
 /// content mismatch.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ToolStamp {
     pub name: String,
     pub version: String,
@@ -29,6 +40,7 @@ pub struct ToolStamp {
 
 /// The compile verdict: did structural validation pass.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CompileVerdict {
     pub ok: bool,
 }
@@ -37,7 +49,7 @@ pub struct CompileVerdict {
 /// change in the findings set is detectable on recompute even when `ok` is
 /// unchanged.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct LintVerdict {
     pub ok: bool,
     pub findings_hash: String,
@@ -49,7 +61,7 @@ pub struct LintVerdict {
 /// `join_hash` binds the registry and index hashes into one handle over the
 /// joined claim.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct CoupleVerdict {
     pub ok: bool,
     pub index_hash: String,
@@ -60,6 +72,7 @@ pub struct CoupleVerdict {
 /// was built with coupling scope; its absence (not a silent default) marks the
 /// narrower spec-corpus-only claim (FR-002).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Verdicts {
     pub compile: CompileVerdict,
     pub lint: LintVerdict,
@@ -73,7 +86,7 @@ pub struct Verdicts {
 /// archival form of a verdict spec-spine already computes (`compile`, `lint`,
 /// optionally `couple`) and otherwise discards into a CI log.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct CorpusAttestation {
     pub schema_version: String,
     pub tool: ToolStamp,
@@ -89,7 +102,7 @@ pub struct CorpusAttestation {
 /// One owning unit of a spec, with the content hash of what it resolved to
 /// (spec 042).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct AttestedUnit {
     pub unit: crate::unit::Unit,
     /// SHA-256 over the normalized bytes of the resolved location, or `None`
@@ -107,7 +120,7 @@ pub struct AttestedUnit {
 /// applies, and collapsing the second into the first would lose the more
 /// informative of the two.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct AttestedLifecycle {
     pub status: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -124,6 +137,7 @@ pub struct AttestedLifecycle {
 /// impossible, and would make the record depend on the subject's lifecycle
 /// rather than on the corpus.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct ResolutionVerdict {
     pub ok: bool,
 }
@@ -134,6 +148,7 @@ pub struct ResolutionVerdict {
 /// revisions, not of a spec at one revision, and spec 023 already carries the
 /// corpus-scoped version for consumers that want it.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct SpecVerdicts {
     pub compile: CompileVerdict,
     pub resolution: ResolutionVerdict,
@@ -157,7 +172,7 @@ pub struct SpecVerdicts {
 /// a rule conditioned on an attestation would be grading its own output. See
 /// spec 042 3.4.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SpecAttestation {
     pub schema_version: String,
     pub tool: ToolStamp,
@@ -179,7 +194,7 @@ pub struct SpecAttestation {
 /// time, kept OUT of the pure payload so the attested fact stays reproducible
 /// while the act of attesting is dated and attributed.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct LedgerSeal {
     /// The signature algorithm; `"ed25519"` in v1.
     pub alg: String,
