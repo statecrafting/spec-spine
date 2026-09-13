@@ -406,7 +406,7 @@ from `75181a5`. Both print `spec-spine 0.18.0`.
 
 Against a sealed attestation, using a scratch key:
 
-| Tamper | `--recompute` | `--signature` | Verdict at `75181a5` | Since `v0.19.0` (spec 085) |
+| Tamper | `--recompute` at `75181a5` | `--signature` at `75181a5` | Verdict at `75181a5` | Since `v0.19.0` (spec 085) |
 |---|---|---|---|---|
 | none | match | valid | exit 0 | exit 0 |
 | add an unknown member, top level or nested (`"prCouple": {"ok": true}`) | match | **valid** | **exit 0** | exit 3, parse error naming the member |
