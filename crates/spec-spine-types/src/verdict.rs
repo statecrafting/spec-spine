@@ -52,6 +52,10 @@ pub mod verb {
     /// corpus. A consumer that branched on `compile.check` must not silently
     /// receive the other.
     pub const COMPILE_SPEC: &str = "compile.spec";
+    /// `spec-spine delta` (spec 088): a change classified under the merge
+    /// base's rules. A record rather than a gate, so its `exitCode` is 0
+    /// whenever a report was produced, whatever the report says.
+    pub const DELTA: &str = "delta";
 }
 
 /// One adjudicating verb's verdict, as written to stdout under `--json`.

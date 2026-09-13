@@ -23,6 +23,7 @@ mod cmd_check;
 mod cmd_compile;
 mod cmd_config;
 mod cmd_couple;
+mod cmd_delta;
 mod cmd_index;
 mod cmd_init;
 mod cmd_lint;
@@ -170,6 +171,32 @@ enum Command {
         #[arg(long)]
         json: bool,
     },
+    /// Classify every path a change touches under the merge base's rules
+    /// (spec 088). A report, not a gate: exit 0 whenever a report was produced.
+    ///
+    /// Each changed path carries every class that applies: implementation,
+    /// requirement, verification, authority, lifecycle, constitutional, policy,
+    /// derived, bypassed, unowned or unknown. The configuration and the index
+    /// that classify are the merge base's, so a change cannot reclassify itself
+    /// by editing `spec-spine.toml`. `priorPolicy.required` is true when any
+    /// path carries requirement, verification, authority, lifecycle,
+    /// constitutional, policy or unknown, and those classes are to be judged
+    /// under the base revision's policy.
+    ///
+    /// `required: false` means only that no structural class above changed. It
+    /// does not mean the change is safe, correct or approved: spec-spine decides
+    /// nothing here and refuses nothing.
+    Delta {
+        /// Base ref; the change is `merge-base(base, head)...head`.
+        #[arg(long, default_value = "origin/main")]
+        base: String,
+        /// Head ref.
+        #[arg(long, default_value = "HEAD")]
+        head: String,
+        /// Emit the report as a JSON envelope on stdout (spec 037).
+        #[arg(long)]
+        json: bool,
+    },
     /// Scaffold a new adopter: config, standards, a bootstrap spec, agent rules.
     Init {
         /// Overwrite existing files instead of skipping them.
@@ -291,6 +318,14 @@ fn main() -> ExitCode {
                 json: *json,
             },
         ),
+        Command::Delta { base, head, json } => cmd_delta::run(
+            &repo,
+            &cmd_delta::DeltaArgs {
+                base: base.clone(),
+                head: head.clone(),
+                json: *json,
+            },
+        ),
         Command::Init { force, with_kit } => cmd_init::run(&repo, *force, *with_kit),
         Command::Attest {
             spec,
@@ -389,6 +424,7 @@ impl Command {
             Command::Check { json: true, .. } => Some(verb::CHECK),
             Command::Lint { json: true, .. } => Some(verb::LINT),
             Command::Couple { json: true, .. } => Some(verb::COUPLE),
+            Command::Delta { json: true, .. } => Some(verb::DELTA),
             Command::Verify { json: true, .. } => Some(verb::VERIFY),
             Command::Attest { json: true, .. } => Some(verb::ATTEST),
             Command::VerifyAttestation { json: true, .. } => Some(verb::VERIFY_ATTESTATION),

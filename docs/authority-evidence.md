@@ -6,8 +6,9 @@
 > already answers it, states what every digest covers, and says what each
 > result proves and what it does not. Nothing here is a new API. Proposed
 > additions are in [design/04](design/04-authority-evidence-extension.md).
-> Specs 085 and 086 shipped in `v0.19.0`; drafts 087 and 088 are still
-> proposals, and are marked as proposals wherever they appear.
+> Specs 085 and 086 shipped in `v0.19.0`. Spec 088 (`delta`) is built on `main`
+> and not yet in a release; draft 087 is still a proposal, and is marked as one
+> wherever it appears.
 
 **Measured state.** Every output below was produced on 2026-09-11 at commit
 `75181a5` (main) by a binary built from that commit. The binary reports
@@ -36,12 +37,17 @@ behavior measured here.
 | Who owns a path, and how? | `index owner <path> --json` | `owners_for_path`, `classify`, `authorities` | raw JSON, **no envelope, no version field** | 0 (also when nothing owns it), 3 |
 | Which source files does no spec claim? | `index coverage [--fail-on-untraced] --json` | `coverage_json` | raw JSON, **no envelope, no version field** | 0, 1, 2, 3 |
 | Does a change drift from its owning spec? | `couple --base B --head H [--pr-body F] --json` | `couple_json` (caller supplies the parsed diff) | envelope `0.3.0`, verb `couple` | 0, 1 drift, 2 stale index, 3 |
+| What kind of change is it, under the base's rules? (spec 088, unreleased) | `delta --base B --head H --json` | `delta_json` (caller supplies both exported trees, the changed paths and the commit ids) | `DeltaReport` `schemaVersion 0.1.0` inside envelope `0.4.0`, verb `delta` | 0 whenever a report was produced, 2 stale index at the merge base, 3 |
 | What does a spec declare as acceptance? | `verify --plan --json <id>` | `verify_plan_json` | envelope `0.3.0`, verb `verify` | 0, 1 unknown id, 3 |
 | Run that acceptance (**executes**) | `verify <id> --json` | none: the library never runs a command | envelope `0.3.0`, `VerifyReport` | 0, 1, 3 |
 | What is workable now? | `registry plan --json` | `query_json` op `plan` | raw JSON, **no envelope, no version field** | 0, 3 |
 | Freeze the corpus verdict | `attest [--with-coupling] [--sign --key K] --json` | `attest_json` | `CorpusAttestation` `schemaVersion 0.1.0` inside envelope `0.3.0` | 0 whenever a payload was written, 3 |
 | Freeze one spec's territory | `attest --spec <full-id> [--sign --key K] --json` | `attest_spec_json` | `SpecAttestation` `schemaVersion 0.1.0` | 0 whenever a payload was written, 1 unknown id (the short id is refused until 084), 3 |
 | Check a frozen record | `verify-attestation [--spec <full-id>] --recompute \| --signature --public-key P --json` | `verify_attestation_json`, `verify_spec_attestation_json` (recompute only) | envelope `0.3.0` | 0 match, 1 mismatch or invalid, 3 |
+
+The envelope versions above are `v0.19.0`'s. Spec 088 adds the `delta` verb
+token, an additive change that moves every verb's envelope to `0.4.0` from the
+first release carrying it; nothing else in an envelope changes.
 
 Three rules from the existing specs govern how these may be read:
 
@@ -66,7 +72,8 @@ or `attest.rs`, independent of the others and of the package version.
 | index shards | `schemaVersion` | `1.1.0` |
 | `CorpusAttestation` | `schemaVersion` | `0.1.0` |
 | `SpecAttestation` | `schemaVersion` | `0.1.0` |
-| verdict envelope | `schemaVersion` | `0.3.0` |
+| verdict envelope | `schemaVersion` | `0.3.0` in `v0.19.0`; `0.4.0` since spec 088 |
+| `DeltaReport` (spec 088) | `schemaVersion` | `0.1.0`, unreleased |
 | `build-meta.json` | `schemaVersion` | `0.1.0` (non-deterministic, gitignored) |
 | `spec-spine.toml` | `config_version` | `0.1.0` (optional key) |
 | the tool | `spec-spine --version`, `tool.version` in an attestation | `0.18.0` when measured; every release moves it |
@@ -289,8 +296,9 @@ needed for anything else.
 | `attest --with-coupling` and `couple --base B --head H` | The first asks whether every claimed unit resolves in one tree. The second asks whether a diff between two revisions touched owned code without its owning spec. Neither implies the other. |
 | a recomputed attestation and a fresh committed tree | `attest` never reads the committed shards. `check` does. |
 | `check` fresh and "the committed index is what the corpus indexes to", up to `v0.18.0` | Up to `v0.18.0`, `index check` did not re-resolve. It read each committed shard's own mapping, hashed the span files that mapping named, and compared the result with `shardHash`. For a unit with no span (`file`, `directory`, `crate`) nothing constrained the body. Measured on a scratch repository: a shard rewritten so its spec owns nothing, `shardHash` untouched, read fresh, and `couple` then derived ownership from it. Since `v0.19.0` (spec 086) the two are the same claim: `index check` indexes in memory and compares shard bytes and the shard set, as the registry side has since spec 031 3.1, and `couple`, `index coverage` and `index owner` read the committed index only after that comparison passes. |
-| `couple` exit 0 and "the owning spec approves this change" | C-001 clears when **any** owning spec's `spec.md` is in the diff. An edit that weakens that spec, including its `## Verification` block, clears it. The guard against that is a rule addressed to agents (`.claude/rules/adversarial-prompt-refusal.md`), not a mechanism; design note 02 G7 records it as unsolved. |
-| `couple` exit 0 and "the owners were the owners before this change" | Owners are read from the committed index **at the candidate**. A candidate that files a new spec with an `extends` edge on a unit becomes an owner of that unit in the same diff and clears C-001 with its own `spec.md`. That is the sanctioned route for legitimate work (spec 047), and it is also an authority transfer no one outside the diff approved. |
+| `couple` exit 0 and "the owning spec approves this change" | C-001 clears when **any** owning spec's `spec.md` is in the diff. An edit that weakens that spec, including its `## Verification` block, clears it. The guard against that is a rule addressed to agents (`.claude/rules/adversarial-prompt-refusal.md`), not a mechanism; design note 02 G7 records it as unsolved. Spec 088's `delta` reports such an edit as `verification`, with the base and head plan digests; it reports, and refuses nothing. |
+| `couple` exit 0 and "the owners were the owners before this change" | Owners are read from the committed index **at the candidate**. A candidate that files a new spec with an `extends` edge on a unit becomes an owner of that unit in the same diff and clears C-001 with its own `spec.md`. That is the sanctioned route for legitimate work (spec 047), and it is also an authority transfer no one outside the diff approved. Spec 088's `delta` reports it as `authority` on the unit, with `baseOwners` from the merge base's index and `headOwners` from the head tree resolved under the merge base's configuration. |
+| `delta`'s `priorPolicy.required: false` and "this change is safe" | `required: false` means only that no path carries `requirement`, `verification`, `authority`, `lifecycle`, `constitutional`, `policy` or `unknown`. It does not mean the change is safe, correct or approved. `delta` interprets no prose, sees a change to a file a verification command reads only as `implementation`, and decides nothing (spec 088 3.5, 3.7). A consumer judges each listed class under the base revision's policy and records who approved it. |
 | `couple`'s subject and the candidate commit | `couple` diffs `merge-base(B, H)...H` but checks freshness and resolves units in the working tree. It speaks for `H` only when the working tree is a clean checkout of `H`. Its report echoes neither commit. |
 | `verify` passing and the spec being satisfied | A declared command exited 0 on one machine at one time, under the candidate's own copy of the block. |
 | a valid seal and a trustworthy signer | The seal proves possession of a key. Which keys to trust is the consumer's policy (spec 023 6). |
@@ -378,8 +386,10 @@ approved the change.
    `couple` (§5). Take the plan from the base revision's copy of the spec, or
    treat any difference between the base and candidate plans as a change that
    needs approval under the base's policy. Record `specSourceHash` for the copy
-   the plan came from. Draft spec 088 proposes a report that makes this
-   difference mechanical.
+   the plan came from. `delta --base B --head H --json` (spec 088) makes this
+   difference mechanical: a spec whose plan differs carries `verification`,
+   with `basePlanHash`, `headPlanHash` and how many commands are only on each
+   side.
 3. **Execute only in a worker that was explicitly authorized to run it.** The
    commands are shell (`sh -c`), inherit the caller's environment (spec 049
    3.5), and are a stranger's in the general case. Never run them in a process

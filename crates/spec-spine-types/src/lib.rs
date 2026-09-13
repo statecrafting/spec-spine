@@ -14,6 +14,7 @@
 //! ## Layout
 //! - [`config`]: the `spec-spine.toml` model ([`Config`]).
 //! - [`coverage`]: the ownership-coverage report DTOs (spec 032).
+//! - [`delta`]: the change-classification report (spec 088).
 //! - [`frontmatter`]: the authored grammar ([`Frontmatter`], [`parse_frontmatter`]).
 //! - [`unit`] / [`edges`]: the authority-unit and relationship vocabulary.
 //! - [`registry`]: the compiled spec-as-source DTOs ([`Registry`]).
@@ -25,6 +26,7 @@ pub mod attest;
 pub mod codebase;
 pub mod config;
 pub mod coverage;
+pub mod delta;
 pub mod edges;
 pub mod error;
 pub mod frontmatter;
@@ -53,6 +55,10 @@ pub use config::{
     LintConfig, ManifestConfig, MetaConfig, ProvenanceConfig, VersionReq, load_config,
 };
 pub use coverage::{CoverageReport, PackageCoverage};
+pub use delta::{
+    AuthorityDelta, ChangeKind, DeltaChange, DeltaClass, DeltaCommits, DeltaReport, PriorPolicy,
+    ValueChange, VerificationDelta,
+};
 pub use edges::{
     CoAuthorityItem, ConstrainItem, ExtendItem, Origin, Provenance, ReferenceItem, RefineItem,
     SupersedeItem, SupersedeScope, SupersedeScoped,
@@ -74,6 +80,6 @@ pub use unit::Unit;
 pub use verdict::{Verdict, VerdictError, error_kind};
 pub use verify::{SkippedBlocks, VerifyFailure, VerifyOutcome, VerifyPlan, VerifyReport};
 pub use version::{
-    BUILD_META_SCHEMA_VERSION, CONFIG_VERSION, INDEX_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION,
-    SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, parse_semver,
+    BUILD_META_SCHEMA_VERSION, CONFIG_VERSION, DELTA_SCHEMA_VERSION, INDEX_SCHEMA_VERSION,
+    REGISTRY_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, parse_semver,
 };

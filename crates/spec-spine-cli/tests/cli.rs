@@ -2535,3 +2535,217 @@ fn attest_spec_walks_a_claimed_subtree_instead_of_exiting_three() {
         "the envelope reports success: {stdout}"
     );
 }
+
+// ===== spec 088: a change classified under the base's rules =====
+
+/// `git` in `root`, with an identity and signing off, so the fixture commits
+/// whatever the running user's global configuration says.
+fn git088(root: &Path, args: &[&str]) {
+    let out = Command::new("git")
+        .arg("-C")
+        .arg(root)
+        .args([
+            "-c",
+            "commit.gpgsign=false",
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+        ])
+        .args(args)
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "git {args:?}: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
+
+/// The §1 scratch repository: `001-a` owns `src/a.rs` and declares two
+/// acceptance commands; `main` holds it compiled and indexed.
+fn delta_repo(root: &Path) {
+    let w = |rel: &str, content: &[u8]| {
+        let p = root.join(rel);
+        fs::create_dir_all(p.parent().unwrap()).unwrap();
+        fs::write(p, content).unwrap();
+    };
+    w(
+        "specs/001-a/spec.md",
+        b"---\nid: \"001-a\"\ntitle: \"a\"\nstatus: approved\ncreated: \"2026-09-11\"\nimplementation: complete\nsummary: \"s\"\nestablishes:\n  - \"src/\"\n---\n\n# a\n\n## Verification\n\n```verify:cli\ntest -f src/a.rs\n```\n",
+    );
+    w("src/a.rs", b"pub fn a() {}\n");
+    // Claimed by nobody, so a bypass prefix decides it: `src/` is claimed, and
+    // a claim outranks a prefix (spec 009), so only this path can show whose
+    // configuration classified.
+    w("tools/x.sh", b"echo x\n");
+    w(".gitignore", b".derived/**/build-meta.json\n");
+    for verb in ["compile", "index"] {
+        assert_eq!(code(&run_in(root, &[verb])), 0, "fixture {verb}");
+    }
+    git088(root, &["init", "-q", "-b", "main"]);
+    git088(root, &["add", "-A"]);
+    git088(root, &["commit", "-q", "-m", "base"]);
+}
+
+fn delta_json_in(root: &Path, head: &str, tmpdir: &Path) -> std::process::Output {
+    bin()
+        .arg("--repo")
+        .arg(root)
+        .args(["delta", "--base", "main", "--head", head, "--json"])
+        .env("TMPDIR", tmpdir)
+        .output()
+        .unwrap()
+}
+
+fn change_classes(report: &serde_json::Value, path: &str) -> Vec<String> {
+    report["changes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|c| c["path"] == path)
+        .unwrap_or_else(|| panic!("no change for {path}: {report:#}"))["classes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|c| c.as_str().unwrap().to_string())
+        .collect()
+}
+
+/// §3.1 and D-1 end to end. The working tree is checked out at a head that
+/// widens the bypass floor over its own diff, so a verb reading the working
+/// tree's configuration would see the candidate's rules; `delta` reads the
+/// merge base's, from the exported base tree.
+#[test]
+fn delta_classifies_under_the_merge_base_not_the_checked_out_head() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path().join("repo");
+    fs::create_dir_all(&root).unwrap();
+    let exports = tmp.path().join("tmp");
+    fs::create_dir_all(&exports).unwrap();
+    delta_repo(&root);
+
+    git088(&root, &["switch", "-qc", "policy"]);
+    fs::write(
+        root.join("spec-spine.toml"),
+        "[coupling]\nbypass_prefixes = [\"src/\", \"tools/\"]\n",
+    )
+    .unwrap();
+    fs::write(root.join("src/a.rs"), "pub fn a() { unreviewed(); }\n").unwrap();
+    fs::write(root.join("tools/x.sh"), "echo unreviewed\n").unwrap();
+    // A binary file: `git diff -U0` prints no `+++` header for it, so a
+    // unified-diff parser would drop it from the change (D-9).
+    fs::write(root.join("src/blob.bin"), [0u8, 159, 146, 150, 0]).unwrap();
+    git088(&root, &["add", "-A"]);
+    git088(&root, &["commit", "-q", "-m", "policy"]);
+
+    let out = delta_json_in(&root, "HEAD", &exports);
+    assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
+    let v = envelope(&out);
+    assert_eq!(v["verb"], "delta");
+    assert_eq!(v["schemaVersion"], spec_spine_types::VERDICT_SCHEMA_VERSION);
+    assert_eq!(v["ok"], true);
+    let report = &v["report"];
+    assert_eq!(
+        report["schemaVersion"],
+        spec_spine_types::DELTA_SCHEMA_VERSION
+    );
+    assert_eq!(report["classifiedUnder"], "base");
+
+    assert_eq!(change_classes(report, "spec-spine.toml"), ["policy"]);
+    assert_eq!(
+        change_classes(report, "src/a.rs"),
+        ["implementation"],
+        "the candidate's own bypass prefix does not apply to its own diff"
+    );
+    assert_eq!(
+        change_classes(report, "tools/x.sh"),
+        ["unowned"],
+        "under the candidate's configuration this path would read bypassed"
+    );
+    assert_eq!(change_classes(report, "src/blob.bin"), ["implementation"]);
+    assert_eq!(report["priorPolicy"]["required"], true);
+
+    // The three commits are the repository's, not invented.
+    let rev = |r: &str| {
+        let o = Command::new("git")
+            .arg("-C")
+            .arg(&root)
+            .args(["rev-parse", r])
+            .output()
+            .unwrap();
+        String::from_utf8_lossy(&o.stdout).trim().to_string()
+    };
+    assert_eq!(report["base"], rev("main"));
+    assert_eq!(report["mergeBase"], rev("main"));
+    assert_eq!(report["head"], rev("HEAD"));
+
+    // Nothing the verb did is left behind: not in the repository's index or
+    // working tree, and not in the temporary directory it exported into.
+    let status = Command::new("git")
+        .arg("-C")
+        .arg(&root)
+        .args(["status", "--porcelain"])
+        .output()
+        .unwrap();
+    assert!(
+        status.stdout.is_empty(),
+        "{}",
+        String::from_utf8_lossy(&status.stdout)
+    );
+    assert_eq!(
+        fs::read_dir(&exports).unwrap().count(),
+        0,
+        "the exported trees are removed"
+    );
+}
+
+/// §3.1 and §3.5: an unchanged range is a report, exit 0, and the prose says
+/// what `required: false` does not mean.
+#[test]
+fn delta_prose_says_what_not_required_does_not_mean() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    delta_repo(root);
+    let out = run_in(root, &["delta", "--base", "main", "--head", "main"]);
+    assert_eq!(code(&out), 0);
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(stdout.contains("0 path(s) changed"), "{stdout}");
+    assert!(
+        stdout.contains("does not mean the change is safe, correct or approved"),
+        "{stdout}"
+    );
+}
+
+/// §3.1: git trouble is exit 3, as an envelope under `--json`; a stale merge
+/// base index is exit 2, the code this tool spends on staleness (D-6).
+#[test]
+fn delta_failures_keep_the_exit_code_contract() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path().join("repo");
+    fs::create_dir_all(&root).unwrap();
+    delta_repo(&root);
+
+    let out = delta_json_in(&root, "no-such-ref", tmp.path());
+    assert_eq!(code(&out), 3);
+    let v = envelope(&out);
+    assert_eq!(v["verb"], "delta");
+    assert_eq!(v["error"]["kind"], "io");
+
+    // A base whose committed index no longer matches its tree.
+    git088(&root, &["switch", "-qc", "stale-base"]);
+    let spec = fs::read_to_string(root.join("specs/001-a/spec.md")).unwrap();
+    fs::write(
+        root.join("specs/001-a/spec.md"),
+        spec.replace("# a\n", "# a, edited\n"),
+    )
+    .unwrap();
+    git088(&root, &["commit", "-qam", "stale"]);
+    let out = bin()
+        .arg("--repo")
+        .arg(&root)
+        .args(["delta", "--base", "stale-base", "--head", "stale-base"])
+        .output()
+        .unwrap();
+    assert_eq!(code(&out), 2, "{}", String::from_utf8_lossy(&out.stderr));
+}

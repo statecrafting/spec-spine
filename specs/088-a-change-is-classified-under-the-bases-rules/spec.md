@@ -4,7 +4,7 @@ title: "A change is classified under the base's rules"
 status: draft
 kind: "tooling"
 created: "2026-09-11"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: high
 depends_on:
@@ -17,16 +17,21 @@ depends_on:
   - "055-the-ledger-answers-what-consumers-rebuild"
   - "086-the-committed-index-is-compared-not-trusted"
 establishes:
-  # Planned (spec 076) until the build writes them; the build drops the flag.
   # 3.6: the report DTO and `DELTA_SCHEMA_VERSION`.
-  - { kind: file, path: "crates/spec-spine-types/src/delta.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/delta.rs" }
   # 3.2 to 3.5: the pure classifier over two trees.
-  - { kind: file, path: "crates/spec-spine-core/src/delta.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/delta.rs" }
   # 3.8: the classification matrix.
-  - { kind: file, path: "crates/spec-spine-core/tests/delta.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/tests/delta.rs" }
   # 3.1: the verb: git, the two exports, and the envelope.
-  - { kind: file, path: "crates/spec-spine-cli/src/cmd_delta.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-cli/src/cmd_delta.rs" }
 extends:
+  # 3.3: the body outside `## Verification`, split by 049's own heading grammar.
+  - { spec: "049-verify-declared-acceptance", unit: "crates/spec-spine-core/src/verify.rs", nature: additive }
+  # 3.6: `VERDICT_SCHEMA_VERSION` and `DELTA_SCHEMA_VERSION` pinned, the class tokens pinned.
+  - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/tests/dtos.rs", nature: additive }
+  # 3.3: `policy` found with the hash's own glob matcher (D-11).
+  - { spec: "024-index-sharding", unit: "crates/spec-spine-core/src/shard.rs", nature: additive }
   # 3.1: the verb's declaration, and the envelope's new verb token.
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
   - { spec: "037-machine-readable-verdicts", unit: "crates/spec-spine-types/src/verdict.rs", nature: additive }
@@ -244,6 +249,86 @@ from a refactor; this report is the evidence such a design would need.
 and parse failures are `unknown`, because a classifier that defaulted to the
 harmless class would report exactly the changes it did not understand as the
 ones that need no review.
+
+**D-5 (2026-09-13): the head's owners come from its tree, indexed under the
+base's configuration.** 3.2 derives owner sets "against the head index" and does
+not say how that index is obtained. The head's committed index is the
+candidate's to write, and spec 086 exists because a committed body can say
+anything: a head shard edited to drop an `extends` claim would hide exactly the
+authority transfer of 1's second row. Comparing it under 086 would need the
+head's configuration, which is the candidate's, and refusing the report because a
+candidate had not regenerated would withhold the record from the reviewer who
+needs it. The head tree is indexed in memory under the base's configuration
+instead, and its committed index is never read. Rejected: loading the head's
+committed index, and comparing it under the head's configuration.
+
+**D-6 (2026-09-13): a stale base index is exit 2, with no report.** 3.2 compares
+the base's committed index under 086 before use, and 3.1 names exit 0 for a
+report and 3 for I/O, git or parse trouble; neither says what a failed
+comparison is. Every verb in this tool spends exit 2 on staleness and nothing
+else (spec 063), and a report computed under an index that does not match its
+own tree would be classified under rules nobody wrote. Rejected: exit 3, which
+says a read failed when it succeeded, and classifying under a recomputed base
+index, which would make "compared before use" decorative.
+
+**D-7 (2026-09-13): the base's configuration must load.** 3.3 makes a
+configuration that fails to parse `unknown`. That classifies the path; it cannot
+supply the rules for the rest of the diff, and 3.2 names no fallback. The verb
+therefore exits 3 when the merge base's own `spec-spine.toml` does not load, and
+a head configuration that does not load is `policy` and `unknown`. The facade
+takes the base's configuration from its caller, or reads `<baseRoot>/spec-spine.toml`
+when none is given, and there either side of the file failing to load is
+`unknown`. Rejected: classifying under the built-in defaults, which are rules
+neither tree declares.
+
+**D-8 (2026-09-13): the "kinds" of 3.3 are what a path is.** `implementation`
+excludes "the kinds below" without naming them. They are read as the path kinds
+the rows describe: a `spec.md`, a path under `standards_dir`, a policy input, a
+path under `derived_dir`, and a bypassed path. `authority`'s second clause is
+about ownership moving, not about what the path is, so it combines with
+`implementation` on owned code rather than replacing it. `unowned` is read as the
+ownerless counterpart of `implementation` and excludes the same kinds. Read
+without that exclusion, every `spec.md` is `unowned` (no spec owns its own
+`spec.md`; `index owner` reports none), and then a change to one that no spec row
+places, such as a frontmatter comment or prose inside `## Verification` that
+moves no command, is classified `unowned` and needs no prior policy. D-4 is
+written against exactly that outcome, so such a change is `unknown` under 3.3's
+last row. Rejected: the unexcluded reading, and reading `authority` as a kind.
+
+**D-9 (2026-09-13): changed paths by name, trees through a private index.** 3.1
+lists the changed paths and exports two trees without naming the git plumbing.
+`couple`'s unified-diff parser registers a path only from its `+++`/`---`
+headers, and git prints none for a binary file or a mode-only change, so the verb
+lists names with `git diff --name-only -z --no-renames` from a helper beside
+`couple`'s in `cmd_couple.rs`. Each tree is exported by `read-tree` into a
+private index file and `checkout-index`. Rejected: reusing the parser, which
+drops binary changes from a report that claims every path; `git archive`, which
+honors `export-ignore`, so a candidate's `.gitattributes` could hide a path from
+its own classification; and `git worktree`, which writes into the repository's
+metadata.
+
+**D-10 (2026-09-13): the report's per-change shape.** 3.6 lists the report's
+top-level members and 3.4 the detail per class. Each change also carries
+`change` (`added`, `deleted` or `modified`), which reports presence on each side
+without inferring a move. Class lists and `priorPolicy.classes` are in token
+order and `counts` carries every class, zero included. `authority`'s edge maps
+are keyed by frontmatter key and include `depends_on`, since 3.3 makes it an
+authority change; the items are compared as parsed, so the `paths:` sugar (spec
+014) and the full-scope `supersedes` spelling (spec 019) compare as the edges
+they expand to, while the class itself is decided on the raw values. `tool` is
+the attestations' `{ name, version }`. `DELTA_SCHEMA_VERSION` sits in
+`version.rs` beside the other axes and is re-exported from the report's module.
+
+**D-11 (2026-09-13): `policy` is what the hash folds.** 3.3 makes a path
+`policy` when the base's `[index] extra_hashed_inputs` matches it, without
+saying how a pattern matches. The patterns are filesystem globs everywhere else
+in this tool: a pattern ending in a bare `**` walks to directories and folds no
+file (spec 069), and a dead glob is dead everywhere (spec 079). A path is
+therefore `policy` exactly when the glob walk `global_inputs_hash` uses, run over
+the merge-base tree and the head tree under the base's patterns, yields it; the
+walk is shared from `shard.rs`, not copied. Rejected: a pattern test over the
+path string, which was the first build and which an independent review showed
+labels a file under `kit/**` `policy` while editing it leaves `check` fresh.
 
 ## Verification
 
