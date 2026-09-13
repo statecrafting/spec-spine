@@ -1,7 +1,7 @@
 ---
 id: "086-the-committed-index-is-compared-not-trusted"
 title: "The committed index is compared, not trusted"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-11"
 implementation: complete
