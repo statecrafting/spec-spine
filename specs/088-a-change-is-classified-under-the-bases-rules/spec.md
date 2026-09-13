@@ -4,7 +4,7 @@ title: "A change is classified under the base's rules"
 status: draft
 kind: "tooling"
 created: "2026-09-11"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: high
 depends_on:
