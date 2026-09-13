@@ -22,7 +22,7 @@ graph LR
 ```
 
 1. **`spec-spine compile`**: The compiler reads the markdown corpus and emits a frozen JSON registry. If the frontmatter is invalid, this fails.
-2. **`spec-spine index check`**: The staleness gate. It verifies that the committed index matches the current inputs by content hash.
+2. **`spec-spine index check`**: The staleness gate. It indexes the corpus in memory and compares the result byte-for-byte with the committed index shards, so the ownership `couple` reads next is the ownership the corpus actually resolves to.
 3. **`spec-spine lint`**: The conformance lint. It checks corpus well-formedness and fails on warnings if configured.
 4. **`spec-spine couple`**: The spec/code coupling check, the absolute floor. It joins the registry and index against the PR diff.
 

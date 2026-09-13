@@ -61,7 +61,7 @@ tables.
 |---|---|---|---|
 | F1 | `verify-attestation` accepts unknown members and re-canonicalizes before checking the seal: an injected `"prCouple": {"ok": true}` verifies as `match` and `valid`, exit 0, in both scopes | AE §8; `verify_attestation.rs` `load_json`, `seal::verify` over `attestation_hash(loaded)` | 085 |
 | F2 | The corpus recompute never compares `schemaVersion`: `"9.0.0"` recomputes as `match`, exit 0. The per-spec path reports a generic content mismatch instead of refusing | AE §8; `attest.rs` `verify_recompute` | 085 |
-| F3 | `tool.version` is not a build identity. Released `v0.18.0` cannot attest 14 of 85 specs; a main build stamped `0.18.0` can; a per-spec attestation from the second is unverifiable by the first with exit 3, not the named `versionMismatch` | AE §8 | open decision D1 |
+| F3 | `tool.version` is not a build identity. Released `v0.18.0` cannot attest 14 of 85 specs; a main build stamped `0.18.0` can; a per-spec attestation from the second is unverifiable by the first with exit 3, not the named `versionMismatch` | AE §8 | D1, decided 2026-09-13: documented, not mechanized (§9) |
 | F4 | `hash::content_hash` frames the path but not the content, so two trees can fold to one digest; a binary file and a text file holding `sha256:<its digest>` attest identically | AE §4 | 087 (new records only) |
 | F5 | No attestation records committed-shard freshness, a config digest, or which governance files were read; `check --json` reports freshness as booleans without the digests compared | AE §4 | 087 |
 | F6 | `couple` diffs from a merge base it never reports, and a corpus attestation's `couple` block is a different question (resolution, not diff) | AE §5 | 088, request R2 |
@@ -443,6 +443,13 @@ repository.
   this repository's own `required_version = ">=0.17.0"` does not match
   pre-release versions under Cargo's semver rules); or document the limit.
   Recommendation: document now, decide with the next release.
+  **Decided 2026-09-13, for `v0.19.0`: document the limit.** The maintainer
+  chose the third option at that release. The limit is stated in
+  [authority-evidence.md](../authority-evidence.md) §2: a version string names
+  a release only for a binary built from its tag or installed from a
+  distribution channel, and a consumer accepting evidence from any other build
+  records the source commit itself. Neither the commit stamp nor a pre-release
+  version on `main` was adopted.
 - **D2. Refusal codes in 085.** The draft refuses unknown members and unknown
   MAJOR versions at exit 3 (parse and schema, the standing contract) and makes
   a non-canonical byte sequence a failed verification at exit 1. A reviewer may

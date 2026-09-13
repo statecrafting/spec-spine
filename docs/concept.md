@@ -160,7 +160,8 @@ Co-authority is section-scoped, not file-scoped.
   layer (`list`, `show`, `status-report`, relationship and authority queries).
 - **The code-as-source view**: for each path / section / symbol in the repo,
   which spec(s) currently claim authority over it? Built by the codebase indexer
-  (`spec-spine index`), with `index check` detecting staleness by content hash.
+  (`spec-spine index`), with `index check` detecting staleness by comparing the
+  committed shards byte-for-byte with a fresh in-memory index.
 
 They are inverses. The coupling gate joins them at PR time and refuses the merge
 if they disagree.
