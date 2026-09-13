@@ -17,6 +17,7 @@ mod canonical_json;
 pub mod compile;
 pub mod couple;
 pub mod coverage;
+pub mod delta;
 pub mod dep_only;
 pub mod diagnostics;
 mod hash;
@@ -63,6 +64,7 @@ pub use coverage::{
     EmptyUniverse, Ownership, SOURCE_EXTS, classify, coverage, coverage_with, empty_universe,
     enumerate_source_files, in_coverage_universe,
 };
+pub use delta::{delta, tree_config};
 pub use dep_only::{
     CARGO_DEPENDENCY_TABLES, DEPENDENCY_TABLES, FileContents, cargo_dependency_only_change,
     dependency_only_change, dependency_only_waiver, is_cargo_toml, is_dependency_manifest,
@@ -86,7 +88,7 @@ pub use query::{
 };
 pub use render::{OrphanReport, orphans, partition_orphans, render_markdown};
 pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init, scaffold_init_with};
-pub use verify::{plan as verify_plan, plan_from_markdown};
+pub use verify::{plan as verify_plan, plan_from_markdown, without_verification_section};
 
 // ===== JSON-in / JSON-out facade (the FFI seam) =====
 
@@ -424,6 +426,44 @@ pub fn couple_json(request_json: &str) -> Result<String, Error> {
         request.waiver.as_ref(),
     )?;
     to_json(&report)
+}
+
+/// Classify a change under the base's rules (spec 088). `request_json`:
+/// `{ "config"?: Config, "baseRoot": string, "headRoot": string, "changed":
+/// [string], "commits": { "base", "mergeBase", "head" } }`.
+///
+/// `config` is the **merge base's** configuration. Absent, it is read from
+/// `<baseRoot>/spec-spine.toml` (the working default when that file is absent),
+/// never defaulted silently: a caller that omitted it and got the default rules
+/// would get a report classified under rules neither tree declares. Returns the
+/// [`DeltaReport`](spec_spine_types::DeltaReport) as JSON; the report records
+/// and never refuses, so a caller reads `priorPolicy` rather than an error.
+pub fn delta_json(request_json: &str) -> Result<String, Error> {
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct Request {
+        #[serde(default)]
+        config: Option<Config>,
+        base_root: String,
+        head_root: String,
+        changed: Vec<String>,
+        commits: spec_spine_types::DeltaCommits,
+    }
+
+    let request: Request = serde_json::from_str(request_json)
+        .map_err(|e| Error::Parse(format!("invalid delta request: {e}")))?;
+    let base_root = std::path::Path::new(&request.base_root);
+    let config = match request.config {
+        Some(config) => config,
+        None => tree_config(base_root)?,
+    };
+    to_json(&delta(
+        &config,
+        base_root,
+        std::path::Path::new(&request.head_root),
+        &request.changed,
+        &request.commits,
+    )?)
 }
 
 /// Generate the adopter scaffold for `config_json` (`"{}"` ⇒ defaults), returning

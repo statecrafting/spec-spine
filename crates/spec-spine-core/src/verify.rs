@@ -118,6 +118,37 @@ fn verification_section(markdown: &str) -> String {
     out
 }
 
+/// The markdown with its `## Verification` section removed: the exact
+/// complement of what [`verification_section`] reads.
+///
+/// Spec 088 §3.3 classifies a change to a spec's body *outside* this section as
+/// a `requirement` and a change to its plan as `verification`. Asking where the
+/// section ends with a second copy of the heading grammar would let the two
+/// classes disagree with the plan the moment either copy moved, so the question
+/// is answered here, beside the one grammar.
+pub fn without_verification_section(markdown: &str) -> String {
+    let mut out = String::new();
+    let mut on = false;
+    let mut done = false;
+    for line in markdown.lines() {
+        if !done && is_verification_heading(line) {
+            on = true;
+            continue;
+        }
+        if on && line.starts_with("## ") {
+            // `verification_section` stops reading here, so everything from
+            // this heading on is outside it, a later `## Verification` included.
+            on = false;
+            done = true;
+        }
+        if !on {
+            out.push_str(line);
+            out.push('\n');
+        }
+    }
+    out
+}
+
 /// `## Verification` or `## <n>. Verification`, with optional trailing space.
 fn is_verification_heading(line: &str) -> bool {
     let Some(rest) = line.strip_prefix("## ") else {

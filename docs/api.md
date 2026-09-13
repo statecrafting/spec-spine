@@ -241,6 +241,7 @@ pub fn check_registry_freshness_json(config_json: &str, repo_root: &str) -> Resu
 pub fn coverage_json       (config_json: &str, repo_root: &str) -> Result<String, Error>;
 pub fn verify_plan_json    (config_json: &str, repo_root: &str, spec_id: &str) -> Result<String, Error>;
 pub fn couple_json         (request_json: &str)                 -> Result<String, Error>;
+pub fn delta_json          (request_json: &str)                 -> Result<String, Error>;
 pub fn query_json          (request_json: &str)                 -> Result<String, Error>;
 pub fn render_json         (config_json: &str, index_json: &str) -> Result<String, Error>;
 pub fn orphans_json        (index_json: &str)                    -> Result<String, Error>;
@@ -260,6 +261,15 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   `{ "ready": [ids], "blocked": [{ "id", "blockedBy": [{ "id", "state" }] }] }`.
 - `couple_json` request: `{ "config"?: Config, "repoRoot": string, "diff":
   DiffInput, "waiver"?: { "reason": string } }`.
+- `delta_json` (spec 088) request: `{ "config"?: Config, "baseRoot": string,
+  "headRoot": string, "changed": [string], "commits": { "base", "mergeBase",
+  "head" } }`. The two roots are exported trees; `config` is the merge base's
+  (absent, it is read from `<baseRoot>/spec-spine.toml`). Returns the
+  `DeltaReport`: every changed path with its classes under the base's rules,
+  per-class `counts`, and `priorPolicy`. A record, never a refusal; a stale
+  committed index at the base is `Error::Stale`. `priorPolicy.required: false`
+  means only that no structural class changed, not that the change is safe,
+  correct or approved.
 - `check_freshness_json` returns `{ "fresh": bool, "expected"?, "actual"? }`.
   `check_registry_freshness_json` (spec 031) returns the same shape for the
   committed registry shards; staleness only, the validation verdict rides on

@@ -314,6 +314,15 @@ fn try_dependency_only_waiver(
 }
 
 fn git_merge_base(repo: &Path, base: &str, head: &str) -> Option<String> {
+    merge_base(repo, base, head).ok()
+}
+
+/// `merge-base(base, head)`, the base side of a three-dot diff.
+///
+/// Shared with `delta` (spec 088 §3.1), which classifies under that commit's
+/// rules and so needs the failure reason rather than the auto-waiver's
+/// fail-closed `None`.
+pub(crate) fn merge_base(repo: &Path, base: &str, head: &str) -> Result<String, Error> {
     let out = Command::new("git")
         .arg("-C")
         .arg(repo)
@@ -321,12 +330,61 @@ fn git_merge_base(repo: &Path, base: &str, head: &str) -> Option<String> {
         // like a flag (`--foo`) can never be parsed as a git option.
         .args(["merge-base", "--end-of-options", base, head])
         .output()
-        .ok()?;
+        .map_err(|e| Error::Io(format!("spawn git merge-base: {e}")))?;
     if !out.status.success() {
-        return None;
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        return Err(Error::Io(format!(
+            "git merge-base {base} {head} exited {:?}: {}",
+            out.status.code(),
+            stderr.trim()
+        )));
     }
     let rev = String::from_utf8_lossy(&out.stdout).trim().to_string();
-    if rev.is_empty() { None } else { Some(rev) }
+    if rev.is_empty() {
+        return Err(Error::Io(format!(
+            "git merge-base {base} {head} printed no commit"
+        )));
+    }
+    Ok(rev)
+}
+
+/// Every path `from..to` changes, with renames disabled (spec 088 §3.1).
+///
+/// A name list rather than [`parse_unified_diff`]: that parser registers a path
+/// from its `+++`/`---` headers, and git prints none for a binary file or a
+/// mode-only change, so both would be absent from a report that claims to
+/// classify every changed path. `-z` keeps a path containing a newline intact,
+/// and the flags otherwise match [`run_git_diff`]'s for the same reasons.
+pub(crate) fn changed_path_names(repo: &Path, from: &str, to: &str) -> Result<Vec<String>, Error> {
+    let out = Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .args(["-c", "core.quotepath=false"])
+        .args([
+            "diff",
+            "--name-only",
+            "-z",
+            "--no-renames",
+            "--end-of-options",
+            from,
+            to,
+        ])
+        .output()
+        .map_err(|e| Error::Io(format!("spawn git diff: {e}")))?;
+    if !out.status.success() {
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        return Err(Error::Io(format!(
+            "git diff --name-only exited {:?}: {}",
+            out.status.code(),
+            stderr.trim()
+        )));
+    }
+    Ok(out
+        .stdout
+        .split(|b| *b == 0)
+        .filter(|p| !p.is_empty())
+        .map(|p| String::from_utf8_lossy(p).into_owned())
+        .collect())
 }
 
 fn git_show(repo: &Path, rev: &str, path: &str) -> Option<String> {

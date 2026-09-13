@@ -67,9 +67,17 @@ pub const SPEC_ATTESTATION_SCHEMA_VERSION: &str = "0.1.0";
 /// which includes renaming or removing one (they stop matching).
 ///
 /// 0.2.0 added the `verify` verb (spec 049); 0.3.0 added `compile.spec`
-/// (spec 056). Each is the additive case this doc-comment names, and each
-/// followed the same reasoning rather than reopening it.
-pub const VERDICT_SCHEMA_VERSION: &str = "0.3.0";
+/// (spec 056); 0.4.0 added `delta` (spec 088). Each is the additive case this
+/// doc-comment names, and each followed the same reasoning rather than
+/// reopening it.
+pub const VERDICT_SCHEMA_VERSION: &str = "0.4.0";
+
+/// `schemaVersion` carried by a change-classification report (spec 088).
+///
+/// On its own axis, like the per-spec attestation: a consumer that stores what a
+/// change was classified as pins the shape of that record without pinning the
+/// envelope it arrived in or the ledger it was classified against.
+pub const DELTA_SCHEMA_VERSION: &str = "0.1.0";
 
 /// The `spec-spine.toml` config schema version (optional `config_version` key).
 pub const CONFIG_VERSION: &str = "0.1.0";

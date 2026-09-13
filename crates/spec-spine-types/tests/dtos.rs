@@ -1,9 +1,10 @@
 //! Registry DTO round-trips, version constants, severity/validation logic.
 
 use spec_spine_types::{
-    BUILD_META_SCHEMA_VERSION, CONFIG_VERSION, Error, INDEX_SCHEMA_VERSION,
-    REGISTRY_SCHEMA_VERSION, Registry, SPEC_ATTESTATION_SCHEMA_VERSION, Severity, Status,
-    VERDICT_SCHEMA_VERSION, ValidationReport, Verdict, Violation, parse_semver, verdict::verb,
+    BUILD_META_SCHEMA_VERSION, CONFIG_VERSION, DELTA_SCHEMA_VERSION, DeltaClass, Error,
+    INDEX_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, Registry, SPEC_ATTESTATION_SCHEMA_VERSION,
+    Severity, Status, VERDICT_SCHEMA_VERSION, ValidationReport, Verdict, Violation, parse_semver,
+    verdict::verb,
 };
 
 const REGISTRY_JSON: &str = r#"{
@@ -74,14 +75,73 @@ fn schema_versions_are_pinned() {
     assert_eq!(CONFIG_VERSION, "0.1.0");
     // Spec 037: the verdict envelope, versioned from its first release rather
     // than acquiring a version after the first consumer breaks. Spec 049 took
-    // it to 0.2.0 and spec 056 to 0.3.0: a new `verb` token is additive, so a
-    // consumer's existing match arms still hold, which is exactly the MINOR
-    // rule version.rs states.
-    assert_eq!(VERDICT_SCHEMA_VERSION, "0.3.0");
+    // it to 0.2.0, spec 056 to 0.3.0 and spec 088 to 0.4.0: a new `verb` token
+    // is additive, so a consumer's existing match arms still hold, which is
+    // exactly the MINOR rule version.rs states.
+    assert_eq!(VERDICT_SCHEMA_VERSION, "0.4.0");
     // Spec 042: the per-spec attestation, independent of the ledger versions so
     // a consumer pins the evidence shape it verifies without pinning the ledger
     // it was derived from.
     assert_eq!(SPEC_ATTESTATION_SCHEMA_VERSION, "0.1.0");
+    // Spec 088: the change-classification report, on its own axis for the same
+    // reason.
+    assert_eq!(DELTA_SCHEMA_VERSION, "0.1.0");
+}
+
+/// Spec 088 §3.3 and §3.6: the class tokens and the verb token are the external
+/// contract a consumer's policy matches on, so their spelling is pinned here,
+/// and so is which classes call for a judgment under the base's policy.
+#[test]
+fn delta_class_tokens_and_prior_policy_set_are_pinned() {
+    assert_eq!(verb::DELTA, "delta");
+    let tokens: Vec<String> = DeltaClass::ALL
+        .iter()
+        .map(|c| {
+            serde_json::to_value(c)
+                .unwrap()
+                .as_str()
+                .unwrap()
+                .to_string()
+        })
+        .collect();
+    assert_eq!(
+        tokens,
+        [
+            "authority",
+            "bypassed",
+            "constitutional",
+            "derived",
+            "implementation",
+            "lifecycle",
+            "policy",
+            "requirement",
+            "unknown",
+            "unowned",
+            "verification",
+        ]
+    );
+    let mut sorted = tokens.clone();
+    sorted.sort();
+    assert_eq!(tokens, sorted, "ALL is in token order, and so is Ord");
+
+    let prior: Vec<&str> = DeltaClass::ALL
+        .iter()
+        .zip(&tokens)
+        .filter(|(c, _)| c.requires_prior_policy())
+        .map(|(_, t)| t.as_str())
+        .collect();
+    assert_eq!(
+        prior,
+        [
+            "authority",
+            "constitutional",
+            "lifecycle",
+            "policy",
+            "requirement",
+            "unknown",
+            "verification",
+        ]
+    );
 }
 
 /// Spec 037 3.1: the envelope a consumer parses is one shape across six verbs.
