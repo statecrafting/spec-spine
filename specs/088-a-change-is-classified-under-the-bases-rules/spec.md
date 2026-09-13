@@ -30,6 +30,8 @@ extends:
   - { spec: "049-verify-declared-acceptance", unit: "crates/spec-spine-core/src/verify.rs", nature: additive }
   # 3.6: `VERDICT_SCHEMA_VERSION` and `DELTA_SCHEMA_VERSION` pinned, the class tokens pinned.
   - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/tests/dtos.rs", nature: additive }
+  # 3.3: `policy` found with the hash's own glob matcher (D-11).
+  - { spec: "024-index-sharding", unit: "crates/spec-spine-core/src/shard.rs", nature: additive }
   # 3.1: the verb's declaration, and the envelope's new verb token.
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
   - { spec: "037-machine-readable-verdicts", unit: "crates/spec-spine-types/src/verdict.rs", nature: additive }
@@ -316,6 +318,17 @@ authority change; the items are compared as parsed, so the `paths:` sugar (spec
 they expand to, while the class itself is decided on the raw values. `tool` is
 the attestations' `{ name, version }`. `DELTA_SCHEMA_VERSION` sits in
 `version.rs` beside the other axes and is re-exported from the report's module.
+
+**D-11 (2026-09-13): `policy` is what the hash folds.** 3.3 makes a path
+`policy` when the base's `[index] extra_hashed_inputs` matches it, without
+saying how a pattern matches. The patterns are filesystem globs everywhere else
+in this tool: a pattern ending in a bare `**` walks to directories and folds no
+file (spec 069), and a dead glob is dead everywhere (spec 079). A path is
+therefore `policy` exactly when the glob walk `global_inputs_hash` uses, run over
+the merge-base tree and the head tree under the base's patterns, yields it; the
+walk is shared from `shard.rs`, not copied. Rejected: a pattern test over the
+path string, which was the first build and which an independent review showed
+labels a file under `kit/**` `policy` while editing it leaves `check` fresh.
 
 ## Verification
 

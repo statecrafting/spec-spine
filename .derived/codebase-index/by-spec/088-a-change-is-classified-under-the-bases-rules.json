@@ -36,6 +36,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/shard.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/verify.rs",
         "source": "spec-edge"
       },
@@ -172,6 +176,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/src/shard.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/shard.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/src/verify.rs"
           }
         ],
@@ -278,5 +295,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "0c570328bb28cf469269c67de934825e2fa8278af9c80358549dfb62d20eeb75"
+  "shardHash": "04e55618c929b60fa5f250cead705009801504619b9429c600daf656c9a0b3e1"
 }

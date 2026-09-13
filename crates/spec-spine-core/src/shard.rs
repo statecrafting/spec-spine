@@ -189,7 +189,12 @@ pub fn read_shard_files(dir: &Path) -> Result<Vec<(String, Vec<u8>)>, Error> {
 }
 
 /// Glob `pattern` under `repo_root`, returning matched files, sorted.
-fn glob_files(repo_root: &Path, pattern: &str) -> Vec<PathBuf> {
+///
+/// Crate-visible since spec 088: `delta` classifies a path as policy exactly
+/// when [`global_inputs_hash`] folds it, and asks with this matcher rather than
+/// a pattern test over the path, which would disagree on a pattern ending in a
+/// bare `**` (it walks to directories, so it folds no file; spec 069).
+pub(crate) fn glob_files(repo_root: &Path, pattern: &str) -> Vec<PathBuf> {
     let joined = repo_root.join(pattern);
     let mut out: Vec<PathBuf> = match glob::glob(&joined.to_string_lossy()) {
         Ok(paths) => paths

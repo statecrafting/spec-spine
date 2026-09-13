@@ -15,7 +15,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
-use spec_spine_core::{delta, delta_json, index, index_dir, index_shard_files};
+use spec_spine_core::{
+    Freshness, check_index_freshness, delta, delta_json, index, index_dir, index_shard_files,
+};
 use spec_spine_types::{
     ChangeKind, Config, DELTA_SCHEMA_VERSION, DeltaChange, DeltaClass, DeltaCommits, DeltaReport,
     Error,
@@ -61,6 +63,7 @@ fn emit_index(cfg: &Config, root: &Path) {
 /// and a head tree identical to it, ready to be changed.
 struct Fixture {
     _tmp: tempfile::TempDir,
+    cfg: Config,
     base: PathBuf,
     head: PathBuf,
 }
@@ -72,16 +75,22 @@ impl Fixture {
 
     /// `setup` runs on the base before its index is written.
     fn with(setup: impl FnOnce(&Path)) -> Self {
+        Self::with_config(Config::default(), setup)
+    }
+
+    /// `cfg` is the base's configuration, and the one the report is run under.
+    fn with_config(cfg: Config, setup: impl FnOnce(&Path)) -> Self {
         let tmp = tempfile::tempdir().unwrap();
         let base = tmp.path().join("base");
         let head = tmp.path().join("head");
         write(&base, "specs/001-a/spec.md", SPEC_A);
         write(&base, "src/a.rs", "pub fn a() {}\n");
         setup(&base);
-        emit_index(&Config::default(), &base);
+        emit_index(&cfg, &base);
         copy_tree(&base, &head);
         Fixture {
             _tmp: tmp,
+            cfg,
             base,
             head,
         }
@@ -93,13 +102,7 @@ impl Fixture {
 
     fn try_run(&self, changed: &[&str]) -> Result<DeltaReport, Error> {
         let changed: Vec<String> = changed.iter().map(|s| s.to_string()).collect();
-        delta(
-            &Config::default(),
-            &self.base,
-            &self.head,
-            &changed,
-            &commits(),
-        )
+        delta(&self.cfg, &self.base, &self.head, &changed, &commits())
     }
 }
 
@@ -419,6 +422,55 @@ fn prose_inside_the_verification_section_is_unknown() {
     let r = f.run(&["specs/001-a/spec.md"]);
     assert_eq!(change(&r, "specs/001-a/spec.md").classes, vec![Unknown]);
     assert!(r.prior_policy.required);
+}
+
+/// D-11: `policy` is what the hash folds, found with the hash's own matcher. A
+/// pattern ending in a bare `**` walks to directories and folds no file (spec
+/// 069), so a file under it is not policy, while `dir/**/*` folds every file,
+/// including one added or deleted at head. The last block holds the report to
+/// the ledger: an edit the report calls policy restales the index, and one it
+/// does not leaves it fresh.
+#[test]
+fn policy_is_what_the_hash_folds_not_what_a_pattern_resembles() {
+    let mut cfg = Config::default();
+    cfg.index.extra_hashed_inputs = vec!["kit/**".into(), "gov/**/*".into()];
+    let f = Fixture::with_config(cfg.clone(), |base| {
+        write(base, "kit/a.md", "a\n");
+        write(base, "gov/a.md", "a\n");
+        write(base, "gov/old.md", "old\n");
+    });
+    write(&f.head, "kit/a.md", "edited\n");
+    write(&f.head, "gov/a.md", "edited\n");
+    write(&f.head, "gov/new.md", "new\n");
+    fs::remove_file(f.head.join("gov/old.md")).unwrap();
+    let r = f.run(&["gov/a.md", "gov/new.md", "gov/old.md", "kit/a.md"]);
+
+    assert_eq!(change(&r, "gov/a.md").classes, vec![Policy]);
+    assert_eq!(
+        change(&r, "gov/new.md").classes,
+        vec![Policy],
+        "found at head"
+    );
+    assert_eq!(
+        change(&r, "gov/old.md").classes,
+        vec![Policy],
+        "found at base"
+    );
+    assert_eq!(
+        change(&r, "kit/a.md").classes,
+        vec![Unowned],
+        "a bare trailing `**` folds no file"
+    );
+
+    // The same verdicts, asked of the ledger itself.
+    let probe = |rel: &str| {
+        let tmp = tempfile::tempdir().unwrap();
+        copy_tree(&f.base, tmp.path());
+        write(tmp.path(), rel, "probe\n");
+        check_index_freshness(&cfg, tmp.path()).unwrap()
+    };
+    assert!(matches!(probe("gov/a.md"), Freshness::Stale { .. }));
+    assert_eq!(probe("kit/a.md"), Freshness::Fresh);
 }
 
 /// §3.6: the facade returns the same report, reads the base's configuration

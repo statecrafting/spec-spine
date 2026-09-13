@@ -36,6 +36,8 @@ use crate::couple::{
     build_superseders, is_bypassed_path, owners_for_path, spec_id_for_spec_md_path,
 };
 use crate::index::{Freshness, check_index_freshness, index, load_committed_index};
+use crate::pathutil::rel_posix;
+use crate::shard;
 use crate::verify::{plan_from_markdown, without_verification_section};
 
 /// The configuration file every tree declares its rules in.
@@ -127,9 +129,11 @@ pub fn delta(
         superseders: &head_superseders,
     };
 
+    let policy_inputs = hashed_input_paths(cfg, &[base_root, head_root]);
+
     let mut changes = Vec::with_capacity(paths.len());
     for path in &paths {
-        changes.push(classify_path(cfg, &base, &head, path)?);
+        changes.push(classify_path(cfg, &base, &head, &policy_inputs, path)?);
     }
 
     let mut counts: BTreeMap<DeltaClass, usize> = DeltaClass::ALL.iter().map(|c| (*c, 0)).collect();
@@ -189,6 +193,7 @@ fn classify_path(
     cfg: &Config,
     base: &Side<'_>,
     head: &Side<'_>,
+    policy_inputs: &BTreeSet<String>,
     path: &str,
 ) -> Result<DeltaChange, Error> {
     let base_bytes = read_side(base.root, path)?;
@@ -215,7 +220,7 @@ fn classify_path(
 
     let spec_id = spec_id_for_spec_md_path(specs_dir, path);
     let standards = under_root(&cfg.layout.standards_dir, path);
-    let policy = path == CONFIG_FILE || is_extra_hashed_input(cfg, path);
+    let policy = path == CONFIG_FILE || policy_inputs.contains(path);
     let derived = under_root(&cfg.layout.derived_dir, path);
     let bypass = is_bypassed_path(cfg, base.index, path);
 
@@ -322,23 +327,29 @@ fn under_root(root: &str, path: &str) -> bool {
     !root.is_empty() && path.strip_prefix(root).is_some_and(|r| r.starts_with('/'))
 }
 
-/// Whether the base's `[index] extra_hashed_inputs` folds `path` into every
-/// shard hash, which is what makes it policy.
+/// Every file the base's `[index] extra_hashed_inputs` folds into the shard
+/// hashes, found in either tree: a path is policy exactly when editing it moves
+/// the ledger (D-11).
 ///
-/// Matched as a pattern over the path rather than by globbing a tree, so a path
-/// deleted at head and one added at head are both recognized. A declared state
-/// root contributes to no hash (spec 039), so nothing under it matches.
-fn is_extra_hashed_input(cfg: &Config, path: &str) -> bool {
-    let options = glob::MatchOptions {
-        case_sensitive: true,
-        require_literal_separator: true,
-        require_literal_leading_dot: false,
-    };
-    !cfg.layout.is_state_path(path)
-        && cfg.index.extra_hashed_inputs.iter().any(|pattern| {
-            let pattern = pattern.strip_prefix("./").unwrap_or(pattern);
-            glob::Pattern::new(pattern).is_ok_and(|p| p.matches_with(path, options))
-        })
+/// Found with the hash's own matcher, [`shard::glob_files`], not a pattern test
+/// over the path. The two disagree on a pattern ending in a bare `**`, which the
+/// filesystem walk resolves to directories and therefore to no file (spec 069),
+/// and a dead glob is dead everywhere (spec 079). Both trees are walked, so a
+/// path deleted at head and one added at head are each found on the side where
+/// it exists. A declared state root contributes to no hash (spec 039).
+fn hashed_input_paths(cfg: &Config, roots: &[&Path]) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    for root in roots {
+        for pattern in &cfg.index.extra_hashed_inputs {
+            for file in shard::glob_files(root, pattern) {
+                let rel = rel_posix(root, &file);
+                if !cfg.layout.is_state_path(&rel) {
+                    out.insert(rel);
+                }
+            }
+        }
+    }
+    out
 }
 
 /// True when a configuration file is present on this side and does not load.
@@ -639,20 +650,5 @@ mod tests {
             assert!(checked_paths(&[bad.to_string()]).is_err(), "{bad}");
         }
         assert!(checked_paths(&["src/a.rs".to_string()]).is_ok());
-    }
-
-    #[test]
-    fn extra_hashed_inputs_match_as_patterns() {
-        let mut cfg = Config::default();
-        cfg.index.extra_hashed_inputs = vec![
-            ".github/workflows/*.yml".into(),
-            "./AGENTS.md".into(),
-            "standards/**/*".into(),
-        ];
-        assert!(is_extra_hashed_input(&cfg, ".github/workflows/ci.yml"));
-        assert!(!is_extra_hashed_input(&cfg, ".github/workflows/sub/ci.yml"));
-        assert!(is_extra_hashed_input(&cfg, "AGENTS.md"));
-        assert!(is_extra_hashed_input(&cfg, "standards/spec/contract.md"));
-        assert!(!is_extra_hashed_input(&cfg, "src/lib.rs"));
     }
 }
