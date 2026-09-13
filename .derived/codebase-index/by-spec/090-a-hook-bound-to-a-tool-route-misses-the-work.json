@@ -1,53 +1,43 @@
 {
   "mapping": {
-    "amends": [
-      "029-claude-code-skill-kit"
-    ],
     "dependsOn": [
-      "029-claude-code-skill-kit",
-      "038-registry-plan-ready-set",
+      "020-derived-artifact-merge-driver",
       "046-kit-hooks-read-never-write",
-      "047-harness-rules-name-the-legitimate-edits"
+      "064-the-kit-ships-the-composite-gate",
+      "065-init-and-the-kit-are-one-adoption",
+      "075-one-name-one-freshness-verb"
     ],
     "implementingPaths": [
       {
-        "path": ".claude/agents/",
+        "path": ".githooks/enable-hooks.sh",
         "source": "spec-edge"
       },
       {
-        "path": ".claude/skills/",
+        "path": ".githooks/pre-commit",
         "source": "spec-edge"
       },
       {
-        "path": "AGENTS.md",
+        "path": "crates/spec-spine-core/src/kit_embedded.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/kit_skills.rs",
-        "source": "multiple"
-      },
-      {
-        "path": "kit/.claude/agents/",
+        "path": "crates/spec-spine-core/tests/kit_gate.rs",
         "source": "spec-edge"
       },
       {
-        "path": "kit/.claude/skills/",
+        "path": "crates/spec-spine-core/tests/kit_hooks.rs",
         "source": "spec-edge"
       },
       {
-        "path": "kit/AGENTS.md",
+        "path": "kit/.githooks/enable-hooks.sh",
         "source": "spec-edge"
       },
       {
-        "path": "kit/README.md",
+        "path": "kit/.githooks/pre-commit",
         "source": "spec-edge"
       },
       {
-        "path": "kit/settings.json",
-        "source": "spec-edge"
-      },
-      {
-        "path": "scripts/verify-spec.sh",
+        "path": "spec-spine.toml",
         "source": "spec-edge"
       }
     ],
@@ -55,131 +45,105 @@
       {
         "locations": [
           {
-            "file": ".claude/agents/"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "directory",
-          "path": ".claude/agents/"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": ".claude/skills/"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "directory",
-          "path": ".claude/skills/"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/tests/kit_skills.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/kit_skills.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "scripts/verify-spec.sh"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "scripts/verify-spec.sh"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "AGENTS.md"
+            "file": ".githooks/enable-hooks.sh"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "AGENTS.md"
+          "path": ".githooks/enable-hooks.sh"
         }
       },
       {
         "locations": [
           {
-            "file": "kit/.claude/agents/"
+            "file": ".githooks/pre-commit"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "kit/.claude/agents/"
+          "path": ".githooks/pre-commit"
         }
       },
       {
         "locations": [
           {
-            "file": "kit/.claude/skills/"
+            "file": "crates/spec-spine-core/src/kit_embedded.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "kit/.claude/skills/"
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "kit/AGENTS.md"
+            "file": "crates/spec-spine-core/tests/kit_gate.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "kit/AGENTS.md"
+          "path": "crates/spec-spine-core/tests/kit_gate.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "kit/README.md"
+            "file": "crates/spec-spine-core/tests/kit_hooks.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "kit/README.md"
+          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "kit/settings.json"
+            "file": "kit/.githooks/enable-hooks.sh"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "kit/settings.json"
+          "path": "kit/.githooks/enable-hooks.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/.githooks/pre-commit"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.githooks/pre-commit"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
         }
       },
       {
@@ -196,9 +160,9 @@
         }
       }
     ],
-    "specId": "048-kit-ships-the-governed-loop-skills",
-    "specStatus": "approved"
+    "specId": "090-a-hook-bound-to-a-tool-route-misses-the-work",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "c200ed2cfa6245440d033d4037cc799015d0ca8240f116519dbd761458e01868"
+  "shardHash": "063b9c7c98a52b434738b013af19a6a29b521ea33454c443fc8ed625235896f9"
 }

@@ -69,6 +69,10 @@ extra_hashed_inputs = [
   ".claude/rules/*.md",
   ".claude/settings.json",
   ".githooks/*.sh",
+  # Spec 090: a git hook must be named exactly, so the `*.sh` pattern above
+  # cannot reach it. The commit-boundary guard is a governance file; an edit
+  # to it should stale the ledger like any other.
+  ".githooks/pre-commit",
   "scripts/*.sh",
   "install.sh",
   "docs/adoption-guide.md",
@@ -84,6 +88,7 @@ extra_hashed_inputs = [
   "kit/Makefile",
   "kit/govern.yml",
   "kit/.githooks/*.sh",
+  "kit/.githooks/pre-commit",
   "kit/.gitattributes-stanza",
   # Spec 065: the kit's own skills, agents and settings are the source the
   # embedded module is generated from, so a change to one must stale the ledger.

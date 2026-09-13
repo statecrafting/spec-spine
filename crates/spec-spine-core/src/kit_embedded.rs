@@ -1944,6 +1944,45 @@ reads `[layout] specs_dir` from `spec-spine.toml` itself.
 .derived/codebase-index/by-package/*.json merge=spec-spine-derived-regen
 .derived/codebase-index/slices.json merge=spec-spine-derived-regen
 "#),
+    (r#".githooks/enable-hooks.sh"#, r#"#!/usr/bin/env bash
+# Spec: specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md
+#
+# One-command, idempotent enablement of this repository's committed git hooks
+# in THIS clone. Run once per clone: `core.hooksPath` lives in per-clone
+# `.git/config`, which is not committed, so each clone (you may keep several)
+# enables it separately. Worktrees created off a clone inherit the clone's
+# config, so one run covers every worktree under it.
+#
+#   ./.githooks/enable-hooks.sh
+#
+# Disable:
+#   git config --unset core.hooksPath
+#
+# What it turns on is `.githooks/pre-commit` (spec 090): a refusal, never a
+# repair, at the one boundary no tool route can bypass. Until this script is
+# run the hook is inert bytes in the tree.
+#
+# NOTE: `core.hooksPath` replaces the hook search path wholesale. Any script
+# you keep in `.git/hooks/` stops running once this is set. Move it into
+# `.githooks/` first if you rely on it.
+
+set -eu
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+if [ ! -d .githooks ]; then
+  echo "no .githooks/ in $root" >&2
+  exit 3
+fi
+
+git config core.hooksPath .githooks
+chmod +x .githooks/pre-commit 2>/dev/null || true
+
+echo "core.hooksPath = $(git config core.hooksPath)"
+echo "enabled: $(ls .githooks | tr '\n' ' ')"
+echo "disable with: git config --unset core.hooksPath"
+"#),
     (r#".githooks/enable-merge-driver.sh"#, r#"#!/usr/bin/env bash
 # Spec: 020-derived-artifact-merge-driver
 #
@@ -2090,6 +2129,92 @@ if [ ! -f "$PATHNAME" ]; then
 fi
 cp "$PATHNAME" "$OURS"
 echo "[merge-derived-index] regenerated $PATHNAME from the merged tree." >&2
+exit 0
+"#),
+    (r#".githooks/pre-commit"#, r#"#!/usr/bin/env sh
+# Spec: specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md
+#
+# The commit boundary (spec 090). Every other hook the kit ships is bound to a
+# Claude Code tool name, so it fires only when the session took that route. A
+# commit is one command whatever wrote the bytes, which makes this the only
+# guard in the kit that is a property of the change rather than of the actor.
+#
+# It REFUSES and never repairs (spec 046 3.1, spec 090 3.1). Regenerating and
+# staging here would collapse "was never stale" and "was stale until the hook
+# fixed it" into the same commit, and telling those apart is the whole content
+# of `check`. The remedy is `make refresh`, run by the committer.
+#
+# Enable once per clone:  ./.githooks/enable-hooks.sh
+# Bypass one commit:      git commit --no-verify
+
+set -eu
+
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+[ -d "$root/specs" ] || exit 0
+
+# Spec 051's resolution order: the explicit override, then the binary this
+# repository builds, then PATH. A repository that builds its own must be
+# governed by the one it builds.
+spec_spine_bin() {
+  if [ -n "${SPEC_SPINE_BIN:-}" ] && [ -x "${SPEC_SPINE_BIN}" ]; then echo "${SPEC_SPINE_BIN}"; return 0; fi
+  if [ -x "$1/target/release/spec-spine" ]; then echo "$1/target/release/spec-spine"; return 0; fi
+  command -v spec-spine 2>/dev/null
+}
+
+sc=$(spec_spine_bin "$root") || sc=''
+if [ -z "$sc" ]; then
+  echo '[pre-commit] spec-spine absent, freshness check skipped (spec 046 3.5)'
+  exit 0
+fi
+
+refuse() {
+  echo "[pre-commit] REFUSED: $1"
+  echo "[pre-commit] fix: $2"
+  echo '[pre-commit] bypass this one commit: git commit --no-verify'
+  exit 1
+}
+
+# 1. Freshness. `check` reads both committed trees and never writes (spec 075),
+# which is the property that lets a hook call it at all.
+code=0
+out=$("$sc" --repo "$root" check 2>&1) || code=$?
+case "$code" in
+  0) ;;
+  2) echo "$out"
+     refuse 'a committed shard tree is stale' 'make refresh, then stage the regenerated shards' ;;
+  1) echo "$out"
+     refuse 'the corpus does not validate' 'resolve the violations printed above' ;;
+  3) echo "$out"
+     refuse 'the freshness read could not be performed' 'read the error above; a read that did not answer is not a pass' ;;
+  *) echo "$out"
+     refuse "unknown exit code $code from the freshness read" 'confirm the binary with spec-spine --version' ;;
+esac
+
+# 2. Staged completeness. A working tree that compiles clean still lands stale
+# when the regenerated shards sit outside the index.
+if ! command -v jq >/dev/null 2>&1; then
+  echo '[pre-commit] jq missing, staged-completeness check skipped'
+  exit 0
+fi
+
+# The derived directory is a typed read of the tool's own answer, never a
+# hardcoded path and never a hand-parse of spec-spine.toml.
+derived=$("$sc" --repo "$root" config show --json 2>/dev/null | jq -r '.layout.derived_dir // empty' 2>/dev/null) || derived=''
+if [ -z "$derived" ]; then
+  echo '[pre-commit] derived_dir not reported, staged-completeness check skipped'
+  exit 0
+fi
+
+loose=$(
+  { git -C "$root" diff --name-only -- "$derived" 2>/dev/null || true
+    git -C "$root" ls-files --others --exclude-standard -- "$derived" 2>/dev/null || true
+  } | sed '/^$/d'
+)
+if [ -n "$loose" ]; then
+  printf '%s\n' "$loose" | sed 's/^/  /'
+  refuse 'regenerated derived files are not in this commit' 'stage the files listed above, or revert the edit that regenerated them'
+fi
+
 exit 0
 "#),
     (r#".mcp.json"#, r#"{
