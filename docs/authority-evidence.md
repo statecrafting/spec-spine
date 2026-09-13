@@ -413,7 +413,7 @@ Against a sealed attestation, using a scratch key:
 | add an unknown member to a per-spec attestation | match | **valid** | **exit 0** | exit 3, parse error naming the member |
 | corpus `schemaVersion` set to `9.0.0` | **match** | invalid | exit 0 with recompute alone | exit 3, `attestation schema MAJOR 9 is unsupported` |
 | per-spec `schemaVersion` set to `9.0.0` | content mismatch, "tool.name or schemaVersion" | not run | exit 1 | exit 3, the same MAJOR refusal |
-| reformat without changing values (compact, reordered keys) | match | **valid** | exit 0 | exit 1 in both modes; `--recompute` reports `contentMismatch`, `bytes are not the canonical serialization` |
+| reformat without changing values (compact, reordered keys) | match | **valid** | exit 0 | exit 1 in either mode: `--recompute` reports `contentMismatch`, `bytes are not the canonical serialization`; `--signature` reports the seal invalid, because it is checked over the stored bytes |
 | `tool.version` changed | `versionMismatch` | | exit 1 | exit 1, `versionMismatch` |
 | a verdict flipped | content mismatch naming the field | invalid | exit 1 | exit 1, `contentMismatch` |
 | duplicate key | refused, parse error | | exit 3 | exit 3 |

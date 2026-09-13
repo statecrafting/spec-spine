@@ -31,8 +31,9 @@ The staleness gate. It indexes the corpus in memory, without writing, and compar
 - **`modified`**: a committed shard whose bytes differ from the shard a fresh index emits. A stale `shardHash`, a hand-edited body and a schema restamp all read this way.
 - **`missing`**: a spec or package with no committed shard.
 - **`orphaned`**: a committed shard with no spec or package behind it.
+- **`blocking-diagnostics`**: a spec whose fresh index carries a blocking unresolved-unit diagnostic (spec 050). It takes the place of any other line for that shard, because regenerating does not fix it.
 
-A shard carrying a blocking unresolved-unit diagnostic is reported as `blocking-diagnostics` instead, because regenerating does not fix it. `check`, and the freshness guard in front of `couple`, `index coverage` and `index owner`, run the same comparison, so a committed index that reads fresh is exactly what the corpus indexes to.
+`check`, and the freshness guard in front of `couple`, `index coverage` and `index owner`, run the same comparison, so a committed index that reads fresh is exactly what the corpus indexes to.
 
 - **`--slice NAME`**: Checks staleness for a specific named slice defined in `[index.slices]` in the config, against its `slices.json` sidecar hash, rather than the whole tree.
 - **`--json`**: Emit the [verdict envelope](./overview.md#machine-readable-verdicts---json) (`verb: "index.check"`) instead of prose.
