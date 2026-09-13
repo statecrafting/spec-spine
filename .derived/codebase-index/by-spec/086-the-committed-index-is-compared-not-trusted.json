@@ -122,8 +122,8 @@
       }
     ],
     "specId": "086-the-committed-index-is-compared-not-trusted",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "e0ee90085579113629768d375aa4269f7fe0314b22c37cab5094f48e8f483d9e"
+  "shardHash": "17d453b408f315d74665972515f98858a02133333843b7db7fde08414748ec98"
 }
