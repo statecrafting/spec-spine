@@ -103,6 +103,10 @@ fn is_read_only(verb: &[String]) -> bool {
         // may run it. A `check` that could repair the tree would make a stale
         // committed ledger invisible on the branch that carries it.
         Some("check") | Some("couple") => true,
+        // Spec 090 3.2: the commit-boundary hook asks the tool where the
+        // derived directory is rather than hardcoding `.derived`. `config`
+        // has one subcommand and it prints.
+        Some("config") => true,
         // Spec 063 §3.2: the hooks ask `--version` before believing an exit
         // code. Named explicitly rather than folded into a "flags are safe"
         // rule, because this predicate denies by default on purpose and the
@@ -741,4 +745,89 @@ fn the_kit_readme_states_the_floor_the_hooks_need() {
         !readme.contains("**0.15.0 or\n   later** is required"),
         "the old floor must not survive alongside the new one"
     );
+}
+
+// --- spec 090: the commit boundary ------------------------------------------
+
+/// The hook that fires whatever wrote the bytes. Read as a file rather than
+/// out of `kit/settings.json`, because this one is a git hook and not a
+/// Claude Code hook; the property asserted over it is the same.
+fn pre_commit_body() -> String {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    fs::read_to_string(root.join("kit/.githooks/pre-commit"))
+        .expect("kit/.githooks/pre-commit exists")
+}
+
+/// Spec 090 3.1: the one hook whose actor IS the committer still refuses
+/// rather than repairs. A pre-commit hook that regenerated the derived tree
+/// would collapse "was never stale" and "was stale until the hook fixed it"
+/// into the same commit, and telling those apart is the whole content of
+/// `check`.
+#[test]
+fn the_commit_boundary_hook_reads_and_never_repairs() {
+    let body = pre_commit_body();
+    let verbs = spec_spine_invocations(&body);
+    assert!(
+        !verbs.is_empty(),
+        "no recognised spec-spine call in kit/.githooks/pre-commit; a hook the \
+         scanner reads as call-free would pass this test vacuously"
+    );
+    for verb in &verbs {
+        assert!(
+            is_read_only(verb),
+            "kit/.githooks/pre-commit runs a writing verb: {verb:?}"
+        );
+    }
+}
+
+/// Spec 090 3.1: and it stages nothing. Refusing while quietly adding the
+/// regenerated shards to the index is the same repair wearing a refusal's
+/// exit code.
+#[test]
+fn the_commit_boundary_hook_stages_nothing() {
+    for line in pre_commit_body().lines() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with('#') {
+            continue;
+        }
+        assert!(
+            !trimmed.contains("git add"),
+            "kit/.githooks/pre-commit stages a file: {line}"
+        );
+    }
+}
+
+/// Spec 090 3.2: no coupling verdict at this boundary. `couple` builds its
+/// diff from `git diff base...head`, a range of commits, which cannot contain
+/// the change being committed. A verdict there would be about the previous
+/// commit wearing this one's name.
+#[test]
+fn the_commit_boundary_hook_runs_no_coupling_verdict() {
+    for verb in spec_spine_invocations(&pre_commit_body()) {
+        assert_ne!(
+            verb.first().map(String::as_str),
+            Some("couple"),
+            "kit/.githooks/pre-commit asks for a coupling verdict it cannot get"
+        );
+    }
+}
+
+/// Spec 090 3.3: a refusal that hides its own escape hatch produces a
+/// contributor who disables the hook entirely.
+#[test]
+fn the_commit_boundary_hook_names_its_own_escape() {
+    assert!(
+        pre_commit_body().contains("--no-verify"),
+        "the refusal must name the standard bypass"
+    );
+}
+
+/// Spec 090 3.4: registration is per clone, and the enabler is the only thing
+/// that turns the hook on. Until it runs, the hook is inert bytes in the tree.
+#[test]
+fn the_enabler_registers_the_hooks_path_and_says_how_to_undo_it() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let sh = fs::read_to_string(root.join("kit/.githooks/enable-hooks.sh")).unwrap();
+    assert!(sh.contains("git config core.hooksPath"), "{sh}");
+    assert!(sh.contains("--unset core.hooksPath"), "{sh}");
 }

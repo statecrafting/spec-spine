@@ -237,7 +237,13 @@ fn the_workflow_records_why_the_probe_is_a_job() {
 /// regenerates committed artifacts is how they diverge silently.
 #[test]
 fn the_kit_githooks_and_this_repositorys_agree() {
-    for name in ["enable-merge-driver.sh", "merge-derived-index.sh"] {
+    for name in [
+        "enable-merge-driver.sh",
+        "merge-derived-index.sh",
+        // Spec 090 3.6: the commit-boundary guard and its per-clone enabler.
+        "pre-commit",
+        "enable-hooks.sh",
+    ] {
         assert_eq!(
             read(&format!("kit/.githooks/{name}")),
             read(&format!(".githooks/{name}")),
