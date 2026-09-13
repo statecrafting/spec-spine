@@ -245,6 +245,23 @@ fn print_plan(plan: &Plan) {
             }
         }
     }
+    // Spec 091 §3.3: printed after both sets and after planned territory,
+    // because it is a fact *about* the ready set rather than a third set. The
+    // caveat rides on the heading line and not in a footnote: a reader who
+    // skims the count and stops must not come away with a clearance.
+    if !plan.overlaps.is_empty() {
+        outln!();
+        outln!(
+            "overlapping territory ({} pair(s), a lower bound: no pair is not a safety verdict):",
+            plan.overlaps.len()
+        );
+        for o in &plan.overlaps {
+            outln!("  {} + {}", o.specs[0], o.specs[1]);
+            for unit in &o.units {
+                outln!("       {unit}");
+            }
+        }
+    }
     outln!();
     outln!(
         "{} specs: {} ready, {} blocked, {} not schedulable",

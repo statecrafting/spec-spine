@@ -302,6 +302,36 @@ pub struct Plan {
     /// what it did before.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub planned: Vec<PlannedTerritory>,
+    /// Pairs on the ready set that claim the same territory (spec 091 §3.3).
+    ///
+    /// Readiness is computed from `depends_on` alone, so two specs with no edge
+    /// between them are both offered even when they land in the same files.
+    /// A consumer fanning `ready` out needs this field to know which of those
+    /// dispatches collide.
+    ///
+    /// Ordered by first id then second, each pair ascending, units sorted
+    /// (§3.5). Omitted when empty, so a corpus with no overlapping ready pair
+    /// emits what it did before (§3.6).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub overlaps: Vec<Overlap>,
+}
+
+/// Two ready specs that claim the same territory (spec 091).
+///
+/// A **report, never a clearance**. The pair is evidence that two specs land in
+/// the same place; an absent pair is not evidence that they do not. Disjoint
+/// frontmatter still shares a lockfile, a regenerated shard tree and any API
+/// one of them consumes, and none of those is declared anywhere (091 §1.3).
+/// There is deliberately no `safe` field, because there is nothing to put in
+/// it.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Overlap {
+    /// The two ids, ascending. A pair, not a direction: neither spec is the
+    /// subject and the report suggests no order between them.
+    pub specs: [String; 2],
+    /// The unit identity strings both specs claim, sorted (091 §3.5).
+    pub units: Vec<String>,
 }
 
 /// One spec's planned territory: what it has said it will own (spec 076).
@@ -436,7 +466,146 @@ pub fn plan(registry: &Registry) -> Result<Plan, Error> {
                 })
             })
             .collect(),
+        // Spec 091 §3.4: over the ready set only. A blocked spec is not a
+        // fan-out candidate, so a collision with one is not a fact about this
+        // dispatch.
+        overlaps: ready_overlaps(&ready, &by_id),
     })
+}
+
+/// Every pair on the ready set that claims the same territory (spec 091).
+///
+/// Quadratic in the ready set, which is the right complexity for a set whose
+/// whole purpose is to be small enough for a person to read.
+fn ready_overlaps(ready: &[&str], by_id: &BTreeMap<&str, &SpecRecord>) -> Vec<Overlap> {
+    // `ready` arrives in topological order; the report's order is its own
+    // (§3.5), so sort the ids before pairing rather than inheriting a schedule.
+    let mut ids: Vec<&str> = ready.to_vec();
+    ids.sort_unstable();
+
+    let mut out = Vec::new();
+    for (i, a) in ids.iter().enumerate() {
+        for b in ids.iter().skip(i + 1) {
+            let (Some(sa), Some(sb)) = (by_id.get(a), by_id.get(b)) else {
+                continue;
+            };
+            let ua = owned_units(sa);
+            let ub = owned_units(sb);
+            let mut shared: Vec<String> = Vec::new();
+            for x in &ua {
+                for y in &ub {
+                    if units_intersect(x, y) {
+                        // The identity of the *claim* on each side. Both are
+                        // recorded because a subtree claim and the file inside
+                        // it are different declarations, and a reader chasing
+                        // the collision needs to see which one each spec made.
+                        shared.push(unit_identity(x));
+                        shared.push(unit_identity(y));
+                    }
+                }
+            }
+            if shared.is_empty() {
+                continue;
+            }
+            shared.sort();
+            shared.dedup();
+            out.push(Overlap {
+                specs: [(*a).to_string(), (*b).to_string()],
+                units: shared,
+            });
+        }
+    }
+    out
+}
+
+/// Every unit a spec claims, over the ownership-bearing edges (spec 091 §3.1).
+///
+/// `references` is absent by construction: spec 034 made it non-owning, the
+/// coupling gate ignores it, and an overlap computed from it would report a
+/// collision between two specs that merely read the same document.
+///
+/// A `planned` unit (spec 076) counts. A spec that has declared territory it
+/// has not written yet is exactly the one most likely to collide with a spec
+/// that has.
+fn owned_units(spec: &SpecRecord) -> Vec<&spec_spine_types::Unit> {
+    let mut out: Vec<&spec_spine_types::Unit> = Vec::new();
+    out.extend(spec.establishes.iter());
+    out.extend(spec.extends.iter().filter_map(|i| i.unit.as_ref()));
+    out.extend(spec.refines.iter().filter_map(|i| i.unit.as_ref()));
+    out.extend(spec.supersedes.iter().filter_map(|i| match i {
+        spec_spine_types::SupersedeItem::Scoped(sc) => sc.unit.as_ref(),
+        _ => None,
+    }));
+    out.extend(spec.co_authority.iter().map(|i| &i.unit));
+    out.extend(spec.constrains.iter().filter_map(|i| i.unit.as_ref()));
+    out
+}
+
+/// The path a unit denotes, when it denotes one (spec 091 §3.2).
+///
+/// A `section` answers with its file: two anchors in one file are not the same
+/// bytes, but they are the same file, and this report is a lower bound on
+/// collision rather than a diff.
+fn unit_path(unit: &spec_spine_types::Unit) -> Option<&str> {
+    use spec_spine_types::Unit;
+    match unit {
+        Unit::File { path, .. } | Unit::Directory { path, .. } => Some(path),
+        Unit::Section { file, .. } => Some(file),
+        Unit::Symbol { .. } | Unit::Crate { .. } | Unit::Module { .. } => None,
+    }
+}
+
+/// The id a unit denotes, when it denotes one rather than a path.
+fn unit_ident(unit: &spec_spine_types::Unit) -> Option<&str> {
+    use spec_spine_types::Unit;
+    match unit {
+        Unit::Symbol { id, .. } | Unit::Crate { id, .. } | Unit::Module { id, .. } => Some(id),
+        _ => None,
+    }
+}
+
+/// Whether two paths name territory that intersects (spec 091 §3.2).
+///
+/// Equal, or one denotes a subtree containing the other. A trailing `/` is the
+/// subtree marker the `file` shorthand already uses, and a `directory` unit is
+/// always a subtree whether or not its path carries one.
+fn paths_intersect(a: &str, b: &str, a_subtree: bool, b_subtree: bool) -> bool {
+    if a == b {
+        return true;
+    }
+    let covers = |dir: &str, other: &str| {
+        let prefix = if dir.ends_with('/') {
+            dir.to_string()
+        } else {
+            format!("{dir}/")
+        };
+        other.starts_with(&prefix)
+    };
+    (a_subtree && covers(a, b)) || (b_subtree && covers(b, a))
+}
+
+/// Whether two units claim intersecting territory (spec 091 §3.2).
+///
+/// Path-bearing units compare by path; identity-bearing units compare by exact
+/// id. **Across the two groups there is no comparison**: deciding whether a
+/// symbol lies in a file needs the index's resolution, which `plan` does not
+/// read, and guessing would put a claim in the report that the corpus cannot
+/// support.
+fn units_intersect(a: &spec_spine_types::Unit, b: &spec_spine_types::Unit) -> bool {
+    use spec_spine_types::Unit;
+    let subtree = |u: &Unit| match u {
+        Unit::Directory { .. } => true,
+        Unit::File { path, .. } => path.ends_with('/'),
+        _ => false,
+    };
+    match (unit_path(a), unit_path(b)) {
+        (Some(pa), Some(pb)) => paths_intersect(pa, pb, subtree(a), subtree(b)),
+        (None, None) => match (unit_ident(a), unit_ident(b)) {
+            (Some(ia), Some(ib)) => ia == ib,
+            _ => false,
+        },
+        _ => false,
+    }
 }
 
 /// Every spec's planned territory as `<spec id>: <unit identity>` lines,

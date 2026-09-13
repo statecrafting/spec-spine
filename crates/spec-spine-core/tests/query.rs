@@ -873,3 +873,229 @@ fn plan_spec(tmp: &tempfile::TempDir, id: &str, extra: &str) {
     )
     .unwrap();
 }
+
+// --- spec 091: two ready specs can collide -----------------------------------
+
+/// A corpus of `(id, extra frontmatter)` pairs, compiled, planned.
+fn plan_of(specs: &[(&str, &str)]) -> spec_spine_core::Plan {
+    let tmp = tempfile::tempdir().unwrap();
+    for (id, extra) in specs {
+        write_spec(tmp.path(), id, extra);
+    }
+    let reg = compile(&Config::default(), tmp.path()).unwrap().registry;
+    spec_spine_core::plan(&reg).unwrap()
+}
+
+/// Every overlap as `a+b => unit,unit`, for compact assertions.
+fn overlap_lines(plan: &spec_spine_core::Plan) -> Vec<String> {
+    plan.overlaps
+        .iter()
+        .map(|o| format!("{}+{} => {}", o.specs[0], o.specs[1], o.units.join(",")))
+        .collect()
+}
+
+/// Spec 091 §1.1: readiness is computed from `depends_on`, so two specs with no
+/// edge between them are both ready. §3.3: the pair is reported.
+#[test]
+fn plan_reports_two_ready_specs_claiming_the_same_file() {
+    let plan = plan_of(&[
+        (
+            "001-alpha",
+            "implementation: pending\nestablishes: [\"src/a.rs\"]\n",
+        ),
+        (
+            "002-beta",
+            "implementation: pending\nestablishes: [\"src/a.rs\"]\n",
+        ),
+    ]);
+    assert_eq!(ready_ids(&plan), vec!["001-alpha", "002-beta"]);
+    assert_eq!(
+        overlap_lines(&plan),
+        vec!["001-alpha+002-beta => file:src/a.rs"]
+    );
+}
+
+/// §3.2: a subtree claim covers a file inside it. Both identities are recorded,
+/// because the two specs made different declarations and a reader chasing the
+/// collision needs to see which.
+#[test]
+fn plan_reports_a_subtree_claim_covering_another_specs_file() {
+    let plan = plan_of(&[
+        (
+            "001-alpha",
+            "implementation: pending\nestablishes: [\"src/\"]\n",
+        ),
+        (
+            "002-beta",
+            "implementation: pending\nestablishes: [\"src/deep/b.rs\"]\n",
+        ),
+    ]);
+    assert_eq!(
+        overlap_lines(&plan),
+        vec!["001-alpha+002-beta => file:src/,file:src/deep/b.rs"]
+    );
+}
+
+/// §3.2: a sibling path that merely shares a prefix is not a subtree of it.
+/// `src/a` does not contain `src/ab.rs`.
+#[test]
+fn plan_does_not_report_a_shared_path_prefix_that_is_not_a_subtree() {
+    let plan = plan_of(&[
+        (
+            "001-alpha",
+            "implementation: pending\nestablishes: [\"src/a\"]\n",
+        ),
+        (
+            "002-beta",
+            "implementation: pending\nestablishes: [\"src/ab.rs\"]\n",
+        ),
+    ]);
+    assert!(plan.overlaps.is_empty(), "{:?}", plan.overlaps);
+}
+
+/// §3.1: `references` is non-owning (spec 034). Two specs that read the same
+/// document have not collided, and reporting them would make the field a
+/// source of noise in every corpus that cites a design note.
+#[test]
+fn plan_does_not_report_an_overlap_reached_only_through_references() {
+    let plan = plan_of(&[
+        (
+            "001-alpha",
+            "implementation: pending\nreferences:\n  - { unit: { kind: file, path: \"docs/n.md\" }, role: context }\n",
+        ),
+        (
+            "002-beta",
+            "implementation: pending\nreferences:\n  - { unit: { kind: file, path: \"docs/n.md\" }, role: context }\n",
+        ),
+    ]);
+    assert!(plan.overlaps.is_empty(), "{:?}", plan.overlaps);
+}
+
+/// §3.2: identity-bearing units compare by exact id.
+#[test]
+fn plan_reports_two_specs_claiming_the_same_symbol() {
+    let plan = plan_of(&[
+        (
+            "001-alpha",
+            "implementation: pending\nestablishes:\n  - { kind: symbol, id: \"crate::run\" }\n",
+        ),
+        (
+            "002-beta",
+            "implementation: pending\nestablishes:\n  - { kind: symbol, id: \"crate::run\" }\n",
+        ),
+    ]);
+    assert_eq!(
+        overlap_lines(&plan),
+        vec!["001-alpha+002-beta => symbol:crate::run"]
+    );
+}
+
+/// §3.2: across the two groups there is no comparison. Deciding whether
+/// `crate::run` lives in `src/a.rs` needs the index's resolution, which `plan`
+/// does not read, and guessing would put a claim in the report the corpus
+/// cannot support.
+#[test]
+fn plan_does_not_compare_a_symbol_against_a_path() {
+    let plan = plan_of(&[
+        (
+            "001-alpha",
+            "implementation: pending\nestablishes: [\"src/a.rs\"]\n",
+        ),
+        (
+            "002-beta",
+            "implementation: pending\nestablishes:\n  - { kind: symbol, id: \"crate::run\" }\n",
+        ),
+    ]);
+    assert!(plan.overlaps.is_empty(), "{:?}", plan.overlaps);
+}
+
+/// §3.4: over the ready set only. A blocked spec is not a fan-out candidate, so
+/// a collision with one is not a fact about this dispatch.
+#[test]
+fn plan_does_not_report_a_collision_with_a_blocked_spec() {
+    let plan = plan_of(&[
+        (
+            "001-alpha",
+            "implementation: pending\nestablishes: [\"src/a.rs\"]\n",
+        ),
+        (
+            "002-beta",
+            "implementation: pending\ndepends_on: [\"003-gamma\"]\nestablishes: [\"src/a.rs\"]\n",
+        ),
+        ("003-gamma", "implementation: pending\n"),
+    ]);
+    assert_eq!(ready_ids(&plan), vec!["001-alpha", "003-gamma"]);
+    assert!(plan.overlaps.is_empty(), "{:?}", plan.overlaps);
+}
+
+/// §3.1: a `planned` unit counts. A spec that has declared territory it has not
+/// written yet is exactly the one most likely to collide with one that has.
+#[test]
+fn plan_reports_an_overlap_against_planned_territory() {
+    let plan = plan_of(&[
+        (
+            "001-alpha",
+            "implementation: pending\nestablishes: [\"src/a.rs\"]\n",
+        ),
+        (
+            "002-beta",
+            "implementation: pending\nestablishes:\n  - { kind: file, path: \"src/a.rs\", planned: true }\n",
+        ),
+    ]);
+    assert_eq!(
+        overlap_lines(&plan),
+        vec!["001-alpha+002-beta => file:src/a.rs"]
+    );
+}
+
+/// §3.5: the report's order is its own, not the schedule's, and it is a pure
+/// function of the corpus rather than of a map iteration order.
+#[test]
+fn plan_overlaps_are_ordered_by_id_and_stable() {
+    let specs: Vec<(&str, &str)> = vec![
+        (
+            "003-gamma",
+            "implementation: pending\nestablishes: [\"src/a.rs\"]\n",
+        ),
+        (
+            "001-alpha",
+            "implementation: pending\nestablishes: [\"src/a.rs\"]\n",
+        ),
+        (
+            "002-beta",
+            "implementation: pending\nestablishes: [\"src/a.rs\"]\n",
+        ),
+    ];
+    let a = overlap_lines(&plan_of(&specs));
+    let mut reversed = specs.clone();
+    reversed.reverse();
+    let b = overlap_lines(&plan_of(&reversed));
+    assert_eq!(a, b, "overlap order must not depend on corpus order");
+    assert_eq!(
+        a,
+        vec![
+            "001-alpha+002-beta => file:src/a.rs",
+            "001-alpha+003-gamma => file:src/a.rs",
+            "002-beta+003-gamma => file:src/a.rs",
+        ]
+    );
+}
+
+/// §3.6: additive. A corpus with no overlapping ready pair emits what it did
+/// before, and the field is skipped rather than serialized as an empty array.
+#[test]
+fn plan_omits_overlaps_entirely_when_there_are_none() {
+    let plan = plan_of(&[
+        (
+            "001-alpha",
+            "implementation: pending\nestablishes: [\"src/a.rs\"]\n",
+        ),
+        (
+            "002-beta",
+            "implementation: pending\nestablishes: [\"src/b.rs\"]\n",
+        ),
+    ]);
+    assert!(plan.overlaps.is_empty());
+    let json = serde_json::to_string(&plan).unwrap();
+    assert!(!json.contains("overlaps"), "{json}");
+}

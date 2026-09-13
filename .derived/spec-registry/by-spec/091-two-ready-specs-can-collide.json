@@ -1,0 +1,74 @@
+{
+  "record": {
+    "created": "2026-09-13",
+    "dependsOn": [
+      "038-registry-plan-ready-set",
+      "060-plan-answers-the-whole-question",
+      "076-planned-territory-is-declared-not-inferred"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "038-registry-plan-ready-set",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "060-plan-answers-the-whole-question",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "038-registry-plan-ready-set",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/query.rs"
+        }
+      }
+    ],
+    "id": "091-two-ready-specs-can-collide",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "091: Two ready specs can collide",
+      "1. Purpose",
+      "1.1 Readiness is computed from one edge",
+      "1.2 The case is live in this corpus",
+      "1.3 A report, not a gate",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 What is compared",
+      "3.2 How units intersect",
+      "3.3 What is reported",
+      "3.4 The report is a lower bound",
+      "3.5 Ordering",
+      "3.6 Additive",
+      "3.7 The acceptance",
+      "4. Out of scope",
+      "Verification"
+    ],
+    "specPath": "specs/091-two-ready-specs-can-collide/spec.md",
+    "status": "draft",
+    "summary": "`registry plan` answers \"what can be worked on now\", and a scheduler fans that answer out. Readiness is computed from `depends_on` alone, so two specs with no edge between them are both offered even when they claim the same files. The corpus has the case standing today: drafts 084 and 085 both extend `crates/spec-spine-cli/src/verify_attestation.rs`, `attest.rs` and `lib.rs`, neither depends on the other, and `plan` lists both as ready with no way to say so. This spec adds the overlap report: for every pair on the ready set, the units both claim. It is a report and never a refusal, and it is a lower bound rather than a safety verdict: disjoint territory does not prove independence, because a shared lockfile, a regenerated shard or a consumed API are collisions no frontmatter declares. `plan` keeps exiting 0.\n",
+    "title": "Two ready specs can collide"
+  },
+  "shardHash": "b2b875535fe9d483f3798bb4f9d5378feccc7ee5824924f2b51fc267e6d0ace4",
+  "specVersion": "1.2.0"
+}
