@@ -26,10 +26,19 @@ Scans the repository for manifests (e.g., `Cargo.toml`, `package.json`) and spec
 
 ### `index check`
 
-The staleness gate. It recomputes the content hash of the current inputs and compares it against the committed index shards.
+The staleness gate. It indexes the corpus in memory, without writing, and compares the result byte-for-byte with the committed shard tree (spec 086), the way [`compile --check`](./compile.md) does for the registry. Each drifted shard is named with its class:
 
-- **`--slice NAME`**: Checks staleness for a specific named slice defined in `[index.slices]` in the config, rather than the global content hash.
+- **`modified`**: a committed shard whose bytes differ from the shard a fresh index emits. A stale `shardHash`, a hand-edited body and a schema restamp all read this way.
+- **`missing`**: a spec or package with no committed shard.
+- **`orphaned`**: a committed shard with no spec or package behind it.
+- **`blocking-diagnostics`**: a spec whose fresh index carries a blocking unresolved-unit diagnostic (spec 050). It takes the place of any other line for that shard, because regenerating does not fix it.
+
+`check`, and the freshness guard in front of `couple`, `index coverage` and `index owner`, run the same comparison, so a committed index that reads fresh is exactly what the corpus indexes to.
+
+- **`--slice NAME`**: Checks staleness for a specific named slice defined in `[index.slices]` in the config, against its `slices.json` sidecar hash, rather than the whole tree.
 - **`--json`**: Emit the [verdict envelope](./overview.md#machine-readable-verdicts---json) (`verb: "index.check"`) instead of prose.
+
+Before 0.19.0 this verb compared only each shard's recomputed `shardHash`, and derived the files to hash from the committed body itself, so a hand-edited body that owned different `file`, `directory` or `crate` units could read fresh.
 
 ### `index render`
 
@@ -58,8 +67,8 @@ The same classifier drives the coupling gate's `C-002` when `[coupling] require_
   - `3`: I/O, parse, schema, or config error.
 - **`index check`:**
   - `0`: Fresh.
-  - `2`: Stale (committed index is out of date).
-  - `3`: I/O or parse error.
+  - `2`: Stale (at least one shard is `modified`, `missing`, `orphaned`, or carries a blocking diagnostic).
+  - `3`: I/O, parse or schema error: no committed index, a committed shard from a schema MAJOR this build does not understand, or a committed shard file that does not parse.
 - **`index coverage`:**
   - `0`: Reported (or, with `--fail-on-untraced`, fully claimed).
   - `1`: `--fail-on-untraced` and at least one source file is floor-only or unclaimed.
@@ -74,6 +83,17 @@ $ spec-spine index
 
 # Check if the committed index is fresh
 $ spec-spine index check
-Error: Index is stale. Expected hash abc123def456, actual hash fed654cba321.
+index is fresh
+
+# After deleting one shard, hand-editing another, and copying a third under a
+# name no spec has:
+$ spec-spine index check
+index is STALE (run `spec-spine index` to refresh)
+3 stale shard(s):
+  missing by-spec/004-codebase-index.json
+  modified by-spec/005-coupling-gate.json
+  orphaned by-spec/099-ghost.json
 # (Exits with 2)
 ```
+
+In a repository with unwitnessed claims (spec 057), the fresh report adds an `unwitnessed claims` count line beneath the verdict.

@@ -44,6 +44,6 @@ Three properties fall out of this design:
 spec-spine maintains two deterministic views of the world:
 
 - **The spec-as-source view**: what does each spec say? For each spec: its status, its relationships, the paths it claims. Read through the registry query layer (`list`, `show`, `status-report`, relationship and authority queries). This is the output of the compiler.
-- **The code-as-source view**: for each path / section / symbol in the repo, which spec(s) currently claim authority over it? Built by the codebase indexer (`spec-spine index`), with `index check` detecting staleness by content hash.
+- **The code-as-source view**: for each path / section / symbol in the repo, which spec(s) currently claim authority over it? Built by the codebase indexer (`spec-spine index`), with `index check` detecting staleness by comparing the committed shards byte-for-byte with a fresh in-memory index.
 
 They are inverses. The coupling gate joins them at PR time and refuses the merge if they disagree.

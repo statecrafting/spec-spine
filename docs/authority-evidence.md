@@ -5,9 +5,9 @@
 > review record. It maps each question to the verb and library function that
 > already answers it, states what every digest covers, and says what each
 > result proves and what it does not. Nothing here is a new API. Proposed
-> additions are in [design/04](design/04-authority-evidence-extension.md) and
-> in draft specs 085 to 088, and they are marked as proposals wherever they
-> appear.
+> additions are in [design/04](design/04-authority-evidence-extension.md).
+> Specs 085 and 086 shipped in `v0.19.0`; drafts 087 and 088 are still
+> proposals, and are marked as proposals wherever they appear.
 
 **Measured state.** Every output below was produced on 2026-09-11 at commit
 `75181a5` (main) by a binary built from that commit. The binary reports
@@ -18,6 +18,12 @@ older and does not contain spec 083 (see §8). The corpus held 85 specs: 84
 reproduce only on a clean export of `75181a5` (§6); any other tree, including a
 working tree with later specs in it, gives different values, which is the
 point of them.
+
+**Since then.** Spec 085 (a verifier checks the bytes it was given) and spec
+086 (the committed index is compared, not trusted) shipped in `v0.19.0`. The
+measurements are kept as taken, and §4, §5 and §8 say beside them what
+`v0.19.0` does. A consumer running a binary older than `0.19.0` still gets the
+behavior measured here.
 
 ## 1. The questions, and what already answers them
 
@@ -63,7 +69,7 @@ or `attest.rs`, independent of the others and of the package version.
 | verdict envelope | `schemaVersion` | `0.3.0` |
 | `build-meta.json` | `schemaVersion` | `0.1.0` (non-deterministic, gitignored) |
 | `spec-spine.toml` | `config_version` | `0.1.0` (optional key) |
-| the tool | `spec-spine --version`, `tool.version` in an attestation | `0.18.0` |
+| the tool | `spec-spine --version`, `tool.version` in an attestation | `0.18.0` when measured; every release moves it |
 
 `registry plan --json`, `index owner --json` and `index coverage --json` carry
 no version marker and do not emit sorted keys, although
@@ -71,15 +77,23 @@ no version marker and do not emit sorted keys, although
 stores or digests their bytes has nothing to pin; use the enveloped verbs, or
 the facade, for anything retained.
 
-`docs/schema-versioning.md` still lists the registry and index at `1.0.0` and
-omits the two attestation axes and the envelope. The constants above are
-authoritative; draft spec 085 carries the correction.
+When measured, `docs/schema-versioning.md` still listed the registry and index
+at `1.0.0` and omitted the two attestation axes and the envelope. Spec 085
+corrected it; the constants above remain the authority.
 
-**The tool version is not a build identity.** A binary built from `main`
-prints the version of the last release it was bumped to, so between releases
-two binaries with different behavior print the same string (§8 shows one such
-pair). `tool.version` is what `verify-attestation --recompute` compares, so
-the same limit applies to it.
+**The tool version is not a build identity, and spec-spine does not make it
+one.** A version string identifies a release only for a binary built from that
+release's tag, or installed from crates.io, npm, PyPI or the release archives.
+A binary built from `main` prints the version of the last release it was bumped
+to, so between releases two binaries with different behavior print the same
+string (§8 shows one such pair). `tool.version` is what
+`verify-attestation --recompute` compares, so the same limit applies to it: a
+record made by a development build and checked by the release that prints the
+same version cannot report the named `versionMismatch` outcome, because the
+stamps are equal. A consumer that accepts evidence from builds other than a
+release must record the source commit next to `tool.version` itself; nothing
+spec-spine emits carries it. This is the limit design/04 D1 chose to document
+for `v0.19.0`.
 
 ## 3. Real outputs
 
@@ -249,8 +263,10 @@ needed for anything else.
   separate answer, from `check`, and `check --json` reports booleans, not the
   digests it compared.
 - **An index shard's hash does not cover its own body.** `shardHash` covers
-  the shard's inputs (the `spec.md`, the span files, the global scalar), and
-  `index check` compares only that field (§5).
+  the shard's inputs (the `spec.md`, the span files, the global scalar). Up to
+  `v0.18.0`, `index check` compared only that field; since `v0.19.0` it compares
+  the whole shard's bytes with a fresh index, so the body is checked even
+  though the hash still does not cover it (§5).
 - **`spec-spine.toml` has no digest of its own** in a spec-corpus-only
   attestation. It reaches `registryHash` only through what it changes in the
   compile, and reaches `indexHash` through the global-inputs scalar.
@@ -272,7 +288,7 @@ needed for anything else.
 |---|---|
 | `attest --with-coupling` and `couple --base B --head H` | The first asks whether every claimed unit resolves in one tree. The second asks whether a diff between two revisions touched owned code without its owning spec. Neither implies the other. |
 | a recomputed attestation and a fresh committed tree | `attest` never reads the committed shards. `check` does. |
-| `check` fresh and "the committed index is what the corpus indexes to" | `index check` does not re-resolve. It reads each committed shard's own mapping, hashes the span files that mapping names, and compares the result with `shardHash`. For a unit with no span (`file`, `directory`, `crate`) nothing constrains the body. Measured on a scratch repository: a shard rewritten so its spec owns nothing, `shardHash` untouched, reads fresh, and `couple` then derives ownership from it. The registry side compares bytes (spec 031 3.1). Draft spec 086 proposes the same for the index. |
+| `check` fresh and "the committed index is what the corpus indexes to", up to `v0.18.0` | Up to `v0.18.0`, `index check` did not re-resolve. It read each committed shard's own mapping, hashed the span files that mapping named, and compared the result with `shardHash`. For a unit with no span (`file`, `directory`, `crate`) nothing constrained the body. Measured on a scratch repository: a shard rewritten so its spec owns nothing, `shardHash` untouched, read fresh, and `couple` then derived ownership from it. Since `v0.19.0` (spec 086) the two are the same claim: `index check` indexes in memory and compares shard bytes and the shard set, as the registry side has since spec 031 3.1, and `couple`, `index coverage` and `index owner` read the committed index only after that comparison passes. |
 | `couple` exit 0 and "the owning spec approves this change" | C-001 clears when **any** owning spec's `spec.md` is in the diff. An edit that weakens that spec, including its `## Verification` block, clears it. The guard against that is a rule addressed to agents (`.claude/rules/adversarial-prompt-refusal.md`), not a mechanism; design note 02 G7 records it as unsolved. |
 | `couple` exit 0 and "the owners were the owners before this change" | Owners are read from the committed index **at the candidate**. A candidate that files a new spec with an `extends` edge on a unit becomes an owner of that unit in the same diff and clears C-001 with its own `spec.md`. That is the sanctioned route for legitimate work (spec 047), and it is also an authority transfer no one outside the diff approved. |
 | `couple`'s subject and the candidate commit | `couple` diffs `merge-base(B, H)...H` but checks freshness and resolves units in the working tree. It speaks for `H` only when the working tree is a clean checkout of `H`. Its report echoes neither commit. |
@@ -390,26 +406,33 @@ from `75181a5`. Both print `spec-spine 0.18.0`.
 
 Against a sealed attestation, using a scratch key:
 
-| Tamper | `--recompute` | `--signature` | Verdict |
-|---|---|---|---|
-| none | match | valid | exit 0 |
-| add an unknown member, top level or nested (`"prCouple": {"ok": true}`) | match | **valid** | **exit 0** |
-| add an unknown member to a per-spec attestation | match | **valid** | **exit 0** |
-| corpus `schemaVersion` set to `9.0.0` | **match** | invalid | exit 0 with recompute alone |
-| per-spec `schemaVersion` set to `9.0.0` | content mismatch, "tool.name or schemaVersion" | not run | exit 1 |
-| reformat without changing values (compact, reordered keys) | match | **valid** | exit 0 |
-| `tool.version` changed | `versionMismatch` | | exit 1 |
-| a verdict flipped | content mismatch naming the field | invalid | exit 1 |
-| duplicate key | refused, parse error | | exit 3 |
+| Tamper | `--recompute` at `75181a5` | `--signature` at `75181a5` | Verdict at `75181a5` | Since `v0.19.0` (spec 085) |
+|---|---|---|---|---|
+| none | match | valid | exit 0 | exit 0 |
+| add an unknown member, top level or nested (`"prCouple": {"ok": true}`) | match | **valid** | **exit 0** | exit 3, parse error naming the member |
+| add an unknown member to a per-spec attestation | match | **valid** | **exit 0** | exit 3, parse error naming the member |
+| corpus `schemaVersion` set to `9.0.0` | **match** | invalid | exit 0 with recompute alone | exit 3, `attestation schema MAJOR 9 is unsupported` |
+| per-spec `schemaVersion` set to `9.0.0` | content mismatch, "tool.name or schemaVersion" | not run | exit 1 | exit 3, the same MAJOR refusal |
+| reformat without changing values (compact, reordered keys) | match | **valid** | exit 0 | exit 1 in either mode: `--recompute` reports `contentMismatch`, `bytes are not the canonical serialization`; `--signature` reports the seal invalid, because it is checked over the stored bytes |
+| `tool.version` changed | `versionMismatch` | | exit 1 | exit 1, `versionMismatch` |
+| a verdict flipped | content mismatch naming the field | invalid | exit 1 | exit 1, `contentMismatch` |
+| duplicate key | refused, parse error | | exit 3 | exit 3 |
 
-The four bold rows are contract gaps, not intended behavior. Spec 023 AC-4
+The four bold rows were contract gaps, not intended behavior. Spec 023 AC-4
 says a single tampered payload byte fails the signature, and the attestation
 module's own documentation says loaders reject an unknown MAJOR. The verifier
-deserializes without refusing unknown members and re-canonicalizes before
-checking the seal, so the bytes it verifies are not the bytes a consumer reads.
-Until draft spec 085 lands, **a consumer must hash the stored file bytes itself
-and compare against `attestationHash`**, and must refuse members it does not
-know, rather than rely on `verify-attestation` to do either.
+deserialized without refusing unknown members and re-canonicalized before
+checking the seal, so the bytes it verified were not the bytes a consumer
+reads. Spec 085 closes all four in `v0.19.0`: the verifier reads the file once
+and both modes decide on those bytes. The last column is spec 085's own
+`## Verification` block, which passed in full (25 commands) on a `0.19.0`
+build; the reformat row was measured with a compact copy.
+
+Two things follow for a consumer. **Store the bytes `attest` wrote**: a
+re-serialized copy no longer verifies. And **with a verifier older than
+`0.19.0`, hash the stored file bytes yourself and compare against
+`attestationHash`**, and refuse members you do not know, rather than rely on
+`verify-attestation` to do either.
 
 ## 9. The current consumer, mapped
 
