@@ -107,10 +107,10 @@
       "Verification"
     ],
     "specPath": "specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Every hook the kit ships is bound to a Claude Code tool name. The `PostToolUse` pair matches `Edit|Write` and reads `tool_input.file_path`; spec 046's one sanctioned write and the freshness read after a governance edit both hang off that matcher. A session steered to write through `Bash` produces the same bytes in the same file through a route that supplies `command` and no `file_path`, so neither fires, and nothing in the session says so. The steer is selected by the session's permission mode, which a repository cannot set and cannot observe, so no repository-side setting closes the gap. This spec adds the one boundary no tool route can bypass: a git `pre-commit` hook that refuses a commit which would land a stale or incompletely staged derived tree. It refuses and never repairs, because a pre-commit hook that regenerated and staged would make a stale committed tree indistinguishable from a fresh one, which is the defect spec 046 and the 017/021 drift both name. It is opt-in per clone through an enabler that follows spec 020's registration pattern, and inert until registered.\n",
     "title": "A hook bound to a tool route misses the work"
   },
-  "shardHash": "8e6da32c133c5e6155de4081e1529c0a90f17bba2916820e6068e9727e573abd",
+  "shardHash": "70e6dda0da32da3beb2e87d1e5d6759060e34ac128bf1ecb4abfa0b4cfef8ca8",
   "specVersion": "1.2.0"
 }
