@@ -433,7 +433,13 @@ changes a committed shard and nothing the recompute reads, then asserts the
 recomputed `registryHash` did not move while `matchesRecompute` did. The
 territory line asserts `territoryDigest` is present for every spec and that it
 moves when a claimed file's content moves, which `specAttestationHash` alone
-could not demonstrate is framed.
+could not demonstrate is framed. It compiles and indexes the scratch corpus
+first, because `registry list` reads the **committed** registry and the scratch
+corpus has none until something writes one: without that, `registry list` exits
+3, `T` is empty, and `test "$A" -eq "$T"` errors on a non-integer rather than
+asserting anything. The two framing lines above need no such call, because
+`attest --snapshot` compiles in memory. A line that depends on committed state
+builds it itself rather than relying on a neighbour that happens to run first.
 
 ```verify:cli
 cargo build --release --locked
@@ -447,7 +453,7 @@ printf -- '[index]\nextra_hashed_inputs = ["g/*"]\n' > "${TMPDIR:-/tmp}/ss087/sp
 printf -- '---\nid: "001-a"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-11"\nsummary: "s"\nestablishes:\n  - "g/"\n---\n\n# t\n' > "${TMPDIR:-/tmp}/ss087/specs/001-a/spec.md"
 D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; printf 'x' > "$D/g/a"; printf 'y' > "$D/g/b"; A=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); rm "$D/g/b"; printf 'xg/b\000y' > "$D/g/a"; B=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); rm -f "$D/g/a" "$D/g/b"; printf 'x' > "$D/g/a"; printf 'y' > "$D/g/b"; test -n "$A" && test -n "$B" && test "$A" != "$B"
 D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; printf '\377\376\000\001' > "$D/g/a"; if command -v sha256sum >/dev/null 2>&1; then H=$(sha256sum "$D/g/a" | cut -d' ' -f1); else H=$(shasum -a 256 "$D/g/a" | cut -d' ' -f1); fi; B=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); printf 'sha256:%s' "$H" > "$D/g/a"; A=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); printf 'x' > "$D/g/a"; test -n "$A" && test -n "$B" && test "$A" != "$B"
-D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; A=$($S --repo "$D" attest --snapshot --json | grep -c '"territoryDigest"'); T=$($S --repo "$D" registry list --ids-only | wc -l | tr -d ' '); printf 'changed' > "$D/g/a"; B=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); printf 'x' > "$D/g/a"; C=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); test "$A" -eq "$T" && test -n "$B" && test -n "$C" && test "$B" != "$C"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; $S --repo "$D" compile >/dev/null && $S --repo "$D" index >/dev/null || exit 1; A=$($S --repo "$D" attest --snapshot --json | grep -c '"territoryDigest"'); T=$($S --repo "$D" registry list --ids-only | wc -l | tr -d ' '); printf 'changed' > "$D/g/a"; B=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); printf 'x' > "$D/g/a"; C=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); test "$A" -eq "$T" && test -n "$B" && test -n "$C" && test "$B" != "$C"
 D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; $S --repo "$D" compile >/dev/null && $S --repo "$D" index >/dev/null && $S --repo "$D" attest --snapshot --json > "$D/before.json" && F="$D/.derived/spec-registry/by-spec/001-a.json" && cp "$F" "$D/shard.bak" && printf ' ' >> "$F" && $S --repo "$D" attest --snapshot --json > "$D/after.json"; R=$?; cp "$D/shard.bak" "$F"; test $R -eq 0 && grep -q '"matchesRecompute": false' "$D/after.json" && test "$(grep '"registryHash"' "$D/before.json")" = "$(grep '"registryHash"' "$D/after.json")"
 D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; A=$($S --repo "$D" attest --snapshot --json); printf '# a comment\n' >> "$D/spec-spine.toml"; B=$($S --repo "$D" attest --snapshot --json); printf -- '[index]\nextra_hashed_inputs = ["g/*"]\n' > "$D/spec-spine.toml"; test "$A" != "$B" && test "$(echo "$A" | grep '"inputsManifestHash"')" = "$(echo "$B" | grep '"inputsManifestHash"')"
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss087" attest --snapshot --spec 001-a >/dev/null 2> "${TMPDIR:-/tmp}/ss087/scope.err"; test $? -eq 3 && grep -q "cannot combine" "${TMPDIR:-/tmp}/ss087/scope.err"
