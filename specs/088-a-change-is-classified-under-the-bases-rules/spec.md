@@ -1,7 +1,7 @@
 ---
 id: "088-a-change-is-classified-under-the-bases-rules"
 title: "A change is classified under the base's rules"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-11"
 implementation: complete

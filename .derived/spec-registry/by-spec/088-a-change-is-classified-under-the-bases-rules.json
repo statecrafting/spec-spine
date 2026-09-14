@@ -157,10 +157,10 @@
       "Verification"
     ],
     "specPath": "specs/088-a-change-is-classified-under-the-bases-rules/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The coupling gate clears C-001 when any owning spec's `spec.md` is in the diff, and reads the owners from the candidate's own index. Measured on a scratch repository, a candidate that deletes a command from its own `## Verification` block while changing the code that command checked passes `couple` at exit 0, and so does a candidate that files a new draft spec with an `extends` edge on another spec's unit and rewrites that unit. Both are changes a reviewer must weigh under the rules that held before the change, and nothing reports them as such. Design note 02 G7 says no refusal should be asserted before it is designed, because the naive rule refuses legitimate refactors. This spec therefore adds a report, not a gate: `spec-spine delta --base B --head H` classifies every changed path into implementation, requirement, verification, authority, lifecycle, constitutional, policy, derived, bypassed, unowned or unknown, computed under the merge base's own configuration and index so a candidate cannot reclassify its change by editing `spec-spine.toml`. It records the base and head plan digests for every spec whose declared acceptance changed, the owner sets on both sides of every path whose ownership moved, and a `priorPolicy` block naming the classes a consumer must judge under the base's policy. It interprets no prose, infers no moves, and decides nothing.\n",
     "title": "A change is classified under the base's rules"
   },
-  "shardHash": "ee0b6d93bab6eea06588a4c696fbf9f3fd326b9108bd538bcfc0eaad67ae135b",
+  "shardHash": "2060552701367b8345df4bf6f366d1cd22d1b659547c2916716f1b7aeeda4ce0",
   "specVersion": "1.2.0"
 }
