@@ -69,6 +69,6 @@
     "summary": "`registry plan` answers \"what can be worked on now\", and a scheduler fans that answer out. Readiness is computed from `depends_on` alone, so two specs with no edge between them are both offered even when they claim the same files. The corpus has the case standing today: drafts 084 and 085 both extend `crates/spec-spine-cli/src/verify_attestation.rs`, `attest.rs` and `lib.rs`, neither depends on the other, and `plan` lists both as ready with no way to say so. This spec adds the overlap report: for every pair on the ready set, the units both claim. It is a report and never a refusal, and it is a lower bound rather than a safety verdict: disjoint territory does not prove independence, because a shared lockfile, a regenerated shard or a consumed API are collisions no frontmatter declares. `plan` keeps exiting 0.\n",
     "title": "Two ready specs can collide"
   },
-  "shardHash": "b2b875535fe9d483f3798bb4f9d5378feccc7ee5824924f2b51fc267e6d0ace4",
+  "shardHash": "b73602ee4ce03f9e83fb97c76b244962f3abbd58a96b5157a823eafa99939481",
   "specVersion": "1.2.0"
 }

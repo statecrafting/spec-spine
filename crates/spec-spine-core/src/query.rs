@@ -330,7 +330,9 @@ pub struct Overlap {
     /// The two ids, ascending. A pair, not a direction: neither spec is the
     /// subject and the report suggests no order between them.
     pub specs: [String; 2],
-    /// The unit identity strings both specs claim, sorted (091 §3.5).
+    /// Every unit identity string taking part in the collision, from either
+    /// side, sorted (091 §3.3, §3.5). A subtree claim and the file it covers
+    /// intersect without being the same string, so both appear.
     pub units: Vec<String>,
 }
 

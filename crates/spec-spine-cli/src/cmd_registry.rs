@@ -252,7 +252,7 @@ fn print_plan(plan: &Plan) {
     if !plan.overlaps.is_empty() {
         outln!();
         outln!(
-            "overlapping territory ({} pair(s), a lower bound: no pair is not a safety verdict):",
+            "overlapping territory ({} pair(s), a lower bound on what the corpus declares; an absent pair is not a safety verdict):",
             plan.overlaps.len()
         );
         for o in &plan.overlaps {

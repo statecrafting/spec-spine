@@ -108,7 +108,10 @@ has.
 ### 3.3 What is reported
 
 For each unordered pair of ready specs with a non-empty intersection: the two
-ids, and the identity strings of the units both claim. Nothing else. The pair
+ids, and the identity string of every unit on either side that takes part in
+the collision. A subtree claim and the file it covers intersect without being
+the same identity, so both strings appear: the report names what each spec
+declared, not the intersection of the two declarations. Nothing else. The pair
 carries no severity, no recommendation and no ordering between the two specs.
 
 ### 3.4 The report is a lower bound
