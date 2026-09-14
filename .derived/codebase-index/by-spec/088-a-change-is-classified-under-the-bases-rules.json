@@ -292,8 +292,8 @@
       }
     ],
     "specId": "088-a-change-is-classified-under-the-bases-rules",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "e5b3836108b8231546e0059153981ba13575dea1decef893c683f2da3c5befb2"
+  "shardHash": "19662ad8c854ba065390036a6364804484848e3513433790cd2a8d9250969af4"
 }
