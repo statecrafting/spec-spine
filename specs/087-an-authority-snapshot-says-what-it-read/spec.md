@@ -55,9 +55,12 @@ summary: >
   `spec-spine.toml`, the existing corpus hashes, the committed registry and
   index trees with a digest each and whether each matches the recompute, the
   governance inputs by path and digest, the gate verdicts, the ownership
-  counts, the exclusions in force, and each spec's lifecycle with the hash of
-  the `SpecAttestation` spec 042 would emit for it. New members use a framed
-  digest, because the existing fold does not frame content and two trees can
+  counts, the exclusions in force, and each spec's lifecycle with a framed
+  digest of its resolved territory (plus, for joining records issued earlier,
+  the hash of the `SpecAttestation` spec 042 would emit for it). New members
+  use a framed digest that binds normalized text rather than exact bytes, a
+  contract 3.3 states explicitly and distinguishes from spec 085's, because
+  the existing fold does not frame content and two trees can
   share one hash; existing members and payloads keep their constructions. The
   payload is pure, on demand, gitignored, sealable and verified under spec
   085's rules. It commits to no git revision: the consumer binds the tree.
@@ -139,7 +142,9 @@ No committed artifact changes and no existing payload changes.
     "unwitnessed": { "total": 72, "allowed": 72 }
   },
   "specs": [
-    { "id": "<id>", "status": "approved", "implementation": "complete", "specAttestationHash": "<hex>" }
+    { "id": "<id>", "status": "approved", "implementation": "complete",
+      "territoryDigest": "<frame/1 over the spec's resolved owning units>",
+      "specAttestationHash": "<hex, historical evidence only>" }
   ],
   "exclusions": {
     "resolverExclusions": ["target", "node_modules", ".derived", "dist", "build", ".next"],
@@ -158,7 +163,7 @@ payload, never inside it, exactly as for specs 023 and 042.
 
 - **`config`**: `present` is false and `hash` is absent when there is no
   `spec-spine.toml` (the defaults applied). Otherwise `hash` is `frame/1` over
-  that one file as text.
+  that one file, under 3.3's piece rule.
 - **`schemas`**: the build's constants, so a consumer knows which record lines
   the rest of the payload was computed under.
 - **`corpus`**: the spec count and spec 023's two hashes, under 023's
@@ -166,8 +171,8 @@ payload, never inside it, exactly as for specs 023 and 042.
 - **`committed.registry`, `committed.index`**: `files` counts the committed
   shard files the freshness reads compare (the registry's `by-spec/`, the
   index's `by-spec/` and `by-package/`, and the slices sidecar when it exists).
-  `hash` is `frame/1` over those files, read as text, keyed by repo-relative
-  path. `matchesRecompute` is true exactly when every committed shard file is
+  `hash` is `frame/1` over those files under 3.3's piece rule, keyed by
+  repo-relative path. `matchesRecompute` is true exactly when every committed shard file is
   byte-identical to the shard the recompute emits and the two sets match: the
   comparison `compile --check` makes for the registry (spec 031 3.1) and the
   one spec 086 makes `index check` perform for the index. It carries no
@@ -177,19 +182,33 @@ payload, never inside it, exactly as for specs 023 and 042.
 - **`governanceInputs`**: `paths` lists, sorted, every file that feeds the
   index's global-inputs scalar (`spec-spine.toml` and every
   `[index] extra_hashed_inputs` match outside `layout.state_dir`); `hash` is
-  `frame/1` over those files as raw text. Workflows are hashed as written, not
-  as spec 073's governance projection: see 5, D-4.
+  `frame/1` over those files, which is normalized text for a UTF-8 file and
+  exact bytes for any other (3.3). Workflows enter as their own content, not as
+  spec 073's governance projection: see 5, D-4.
 - **`verdicts`**: `compile` and `lint` mean what they mean in spec 023 (lint's
   floor is error or warning). `resolution.ok` is false when any owning unit is
   unresolved or any blocking resolver diagnostic exists, and the two counts say
   which. `ownership` is the `index coverage` report's four counts.
   `unwitnessed` is spec 057's pair.
 - **`specs`**: one entry per spec in registry order. `implementation` is
-  omitted only when the frontmatter omits it, as in spec 042 3.1.
-  `specAttestationHash` is the `attestationHash` that `attest --spec <id>`
-  would emit for the same tree and tool version, byte for byte. A consumer
-  holding a snapshot and one spec's attestation checks the one against the
-  other by equality, without recomputing the rest.
+  omitted only when the frontmatter omits it, as in spec 042 3.1. Each entry
+  carries two hashes, and they answer different questions:
+
+  - `territoryDigest` is **the content binding**: `frame/1` over the locations
+    the spec's owning units resolve to, each a piece under 3.3's rule, sorted
+    by repo-relative path. A unit that resolves to nothing contributes no
+    piece, and `verdicts.resolution` is where a consumer sees that it did not
+    resolve. This is the member that says what the spec's territory came to,
+    and it is framed, so the two collisions in 1 cannot occur in it.
+  - `specAttestationHash` is **historical evidence only, and explicitly not a
+    content binding**: the `attestationHash` that `attest --spec <id>` would
+    emit for the same tree and tool version, byte for byte. It exists so a
+    consumer holding a snapshot and a per-spec attestation issued before this
+    spec shipped can check the one against the other by equality. It is
+    computed under spec 042's unframed construction, which is exactly why it
+    cannot carry the binding: 1 measures two ways to collide it. A consumer
+    binding territory MUST read `territoryDigest`; a consumer joining an older
+    record MAY read `specAttestationHash`.
 - **`exclusions`**: what was deliberately not read or not held to account: the
   resolver exclusions, the state root, the unwitnessed allowances, and the
   effective bypass prefixes (the floor plus the configured ones).
@@ -211,6 +230,20 @@ stripped, CRLF and CR to LF) applied before its length is taken. Any other file
 is a `b` piece holding its exact bytes. Paths are repo-relative POSIX. The
 construction is injective over piece sets, so the two collisions in 1 cannot
 occur in a `frame/1` digest.
+
+**This is a binding over normalized text, not over exact bytes, and the two are
+different contracts.** Spec 085 answers "are these the bytes I was given": it
+verifies the attestation file as stored, and a single byte anywhere in it is a
+mismatch. This spec answers "which inputs were read, and what did their content
+come to": for a UTF-8 file that content is the normalized text, so a governance
+file rewritten from LF to CRLF, or given a BOM, produces the **same**
+`frame/1` digest. A consumer that needs exact-byte identity of a working tree
+does not get it from a snapshot and must hash the tree itself; what a snapshot
+gives is a platform-independent identity that a Windows checkout and a Linux
+checkout of one revision agree on, which is the property every other hash in
+this tool already has (spec 003's normalization, `.gitattributes`). Stating it
+plainly is the point: a record whose job is evidence must not be read as
+promising more than it holds. See 5, D-4.
 
 Members that exist in other payloads (`inputsManifestHash`, `registryHash`,
 `findingsHash`, `specAttestationHash`) keep their constructions. Changing them
@@ -279,6 +312,23 @@ record that changes on every edit to any claimed file.
 
 ## 5. Resolved decisions
 
+**Status note (2026-09-14): this spec was held at draft on 2026-09-12 and the
+held text is now corrected.** The maintainer refused approval because 3.3 and
+D-4 could not both hold: D-4 called the governance-input hash "the bytes as
+written" while 3.3 normalized every UTF-8 piece before framing it, so approving
+the spec would have made a self-contradiction governing. The ruling was to name
+two contracts rather than pick a winner, since 085 and 087 answer different
+questions and only one of them is a byte identity. What changed, and nothing
+else did: 3.3 now states the normalized-text contract and contrasts it with
+085's; D-4 withdraws the "bytes as written" claim and names what the trade
+costs; D-3 adds the framed `territoryDigest` and demotes `specAttestationHash`
+to historical evidence explicitly not a content binding; and the framing
+acceptance line, which moved several things at once, is now two lines that move
+one thing each. No behaviour this spec requires of a build was widened. It
+remains `status: draft`: approval is a human flip, and this revision is a
+request for one, not a substitute.
+
+
 **D-1 (2026-09-11): the payload is git-free.** The core has no git (a
 workspace invariant), and a tree is what the payload reads. The mapping from a
 revision to a tree is git's, recorded by the consumer next to the snapshot hash
@@ -290,17 +340,44 @@ corpus attestation.** Adding members to `CorpusAttestation` would change the
 records it), and would turn a stable record into a moving one. A new record on
 its own schema axis leaves every existing hash meaning what it meant.
 
-**D-3 (2026-09-11): each spec is represented by its existing attestation
-hash.** The alternative, a framed territory digest per spec, would hash the
-same files a second way. The cost is that unit bytes inside a
-`SpecAttestation` keep the unframed construction; design note 04 D3 records
-the trade for review.
+**D-3 (2026-09-11, revised 2026-09-14): each spec carries a framed territory
+digest, and its attestation hash is demoted to historical evidence.** The
+first version of this entry chose the existing per-spec `attestationHash` as
+the sole representation, to avoid hashing the same files a second way. That
+made the one member a consumer would use to bind a spec's territory the one
+member computed under the construction 1 measures as collidable, in a payload
+whose stated job is exact coverage. The cost it was avoiding is a second pass
+over bytes already read; the cost it accepted is a binding that does not bind.
 
-**D-4 (2026-09-11): governance inputs are hashed as written.** Spec 073 folds a
-workflow as its governance projection so that an action-version bump does not
+So `territoryDigest` is added under `frame/1` (3.2), and `specAttestationHash`
+stays with its meaning narrowed in the text to joining records issued before
+this spec shipped. Nothing about `SpecAttestation` changes: its unit bytes keep
+the unframed construction, every historical digest keeps its value, and 3.7
+still holds. Rejected: removing `specAttestationHash`, which would break the
+join it exists for; and reframing `SpecAttestation` itself, which would move
+every digest a consumer has pinned. Design note 04 D3 records the wider
+trade.
+
+**D-4 (2026-09-11, revised 2026-09-14): governance inputs enter as their own
+content, under 3.3's piece rule, not as spec 073's projection.** Spec 073 folds
+a workflow as its governance projection so that an action-version bump does not
 restale every committed shard. A snapshot is on demand and never committed, so
-that churn does not arise, and the true answer to "which bytes were read" is the
-bytes.
+that churn does not arise: a consumer asking which governance files were read
+wants the file, not a projection of it that deliberately ignores part of it.
+
+The first version of this entry justified that by saying "the true answer to
+'which bytes were read' is the bytes". That claim is withdrawn, because 3.3
+does not hash bytes: a UTF-8 governance file enters as **normalized text** (BOM
+stripped, CRLF and CR to LF), and only a non-UTF-8 file enters as its exact
+bytes. What this member records is therefore the content of each governance
+file up to line-ending and BOM spelling, and the payload cannot distinguish two
+trees that differ only there. That is the deliberate trade 3.3 names: it is
+what makes the digest identical across a Windows and a Linux checkout of one
+revision, and it is why this spec binds normalized text while spec 085 binds
+exact bytes. Rejected: hashing governance inputs as raw bytes, which would make
+a snapshot platform-dependent and disagree with every other hash in the tool;
+and using spec 073's projection, which answers a different question than "what
+did I read".
 
 **D-5 (2026-09-11): `matchesRecompute` is the plain freshness answer.** The
 `--fail-on-unresolved` and `--fail-on-warn` refusals are policy on top of
@@ -320,12 +397,35 @@ so each line asserts the refusal's own wording, which a usage error does not
 contain. The setup lines
 and the closing `check` pass before and after.
 
-The framing line is the only one that can tell `frame/1` from the unframed
-fold: the two scratch trees fold to one index scalar today, so their
-`governanceInputs.hash` values differ only if the framing does its job. The
-separation line proves `matchesRecompute` reads the committed tree: it changes
-a committed shard and nothing the recompute reads, then asserts the recomputed
-`registryHash` did not move while `matchesRecompute` did.
+`frame/1` makes two independent claims, and the first version of this block
+tested them in one line that changed several things at once, so a pass could
+not say which claim held. They are now one line each, and each moves exactly
+one thing:
+
+- **The length-framing line** takes a tree holding `g/a` = `x` and `g/b` = `y`
+  to one holding a single `g/a` = `xg/b\0y`. Under the unframed fold both
+  produce the same scalar, because nothing separates one piece's content from
+  the next piece's path. Under `frame/1` the `u64` lengths differ, so the two
+  `governanceInputs.hash` values must differ. It changes the piece set and
+  nothing else: both trees are UTF-8, so both are `t` pieces throughout, and
+  the piece-type rule is not exercised.
+- **The piece-type line** takes one file from the literal text
+  `sha256:<hex of some bytes>` to those same bytes. Spec 083 encodes a
+  non-UTF-8 file as exactly that text, so before `frame/1` the two hash alike;
+  under `frame/1` one is a `t` piece and the other a `b` piece, so the kind
+  byte differs and the digests must differ. It changes one file's content and
+  no path, so the length framing is not what is under test.
+
+Neither line can run before `frame/1` exists, which is the point: both fail
+against pre-087 code with the flag absent, and both would still fail against an
+implementation that shipped the flag over the unframed fold.
+
+The separation line proves `matchesRecompute` reads the committed tree: it
+changes a committed shard and nothing the recompute reads, then asserts the
+recomputed `registryHash` did not move while `matchesRecompute` did. The
+territory line asserts `territoryDigest` is present for every spec and that it
+moves when a claimed file's content moves, which `specAttestationHash` alone
+could not demonstrate is framed.
 
 ```verify:cli
 cargo build --release --locked
@@ -337,7 +437,9 @@ target/release/spec-spine verify-attestation --snapshot --recompute
 rm -rf "${TMPDIR:-/tmp}/ss087" && mkdir -p "${TMPDIR:-/tmp}/ss087/specs/001-a" "${TMPDIR:-/tmp}/ss087/g"
 printf -- '[index]\nextra_hashed_inputs = ["g/*"]\n' > "${TMPDIR:-/tmp}/ss087/spec-spine.toml"
 printf -- '---\nid: "001-a"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-11"\nsummary: "s"\nestablishes:\n  - "g/"\n---\n\n# t\n' > "${TMPDIR:-/tmp}/ss087/specs/001-a/spec.md"
-D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; printf 'x' > "$D/g/a"; printf 'y' > "$D/g/b"; A=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); rm "$D/g/b"; printf 'xg/b\000y' > "$D/g/a"; B=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); rm -f "$D/g/a"; printf 'x' > "$D/g/a"; test -n "$A" && test -n "$B" && test "$A" != "$B"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; H=$(printf 'z' | shasum -a 256 | cut -d" " -f1); printf 'x' > "$D/g/a"; printf 'y' > "$D/g/b"; A=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); rm "$D/g/b"; printf 'xg/b\000y' > "$D/g/a"; B=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); rm -f "$D/g/a" "$D/g/b"; printf 'x' > "$D/g/a"; printf 'y' > "$D/g/b"; test -n "$A" && test -n "$B" && test "$A" != "$B"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; B1=$(printf '\377\376\000\001'); H=$(printf '%s' "$B1" | shasum -a 256 | cut -d" " -f1); printf 'sha256:%s' "$H" > "$D/g/a"; A=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); printf '%s' "$B1" > "$D/g/a"; B=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); printf 'x' > "$D/g/a"; test -n "$A" && test -n "$B" && test "$A" != "$B"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; A=$($S --repo "$D" attest --snapshot --json | grep -c '"territoryDigest"'); T=$($S --repo "$D" registry list --ids-only | wc -l); printf 'changed' > "$D/g/a"; B=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); printf 'x' > "$D/g/a"; C=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); test "$A" -eq "$T" && test -n "$B" && test -n "$C" && test "$B" != "$C"
 D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; $S --repo "$D" compile >/dev/null && $S --repo "$D" index >/dev/null && $S --repo "$D" attest --snapshot --json > "$D/before.json" && F="$D/.derived/spec-registry/by-spec/001-a.json" && cp "$F" "$D/shard.bak" && printf ' ' >> "$F" && $S --repo "$D" attest --snapshot --json > "$D/after.json"; R=$?; cp "$D/shard.bak" "$F"; test $R -eq 0 && grep -q '"matchesRecompute": false' "$D/after.json" && test "$(grep '"registryHash"' "$D/before.json")" = "$(grep '"registryHash"' "$D/after.json")"
 D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; A=$($S --repo "$D" attest --snapshot --json); printf '# a comment\n' >> "$D/spec-spine.toml"; B=$($S --repo "$D" attest --snapshot --json); printf -- '[index]\nextra_hashed_inputs = ["g/*"]\n' > "$D/spec-spine.toml"; test "$A" != "$B" && test "$(echo "$A" | grep '"inputsManifestHash"')" = "$(echo "$B" | grep '"inputsManifestHash"')"
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss087" attest --snapshot --spec 001-a >/dev/null 2> "${TMPDIR:-/tmp}/ss087/scope.err"; test $? -eq 3 && grep -q "cannot combine" "${TMPDIR:-/tmp}/ss087/scope.err"
