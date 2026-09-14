@@ -22,13 +22,12 @@ amends:
   # See 5, D-1.
   - "016-short-id-resolution"
 establishes:
-  # Planned (spec 076) until the build writes them; the build drops the flag.
   # 3.4: the one policy, and the directory listing its two filesystem callers share.
-  - { kind: file, path: "crates/spec-spine-core/src/spec_id.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/spec_id.rs" }
   # 3.5: the policy, the library entry points, and the facade.
-  - { kind: file, path: "crates/spec-spine-core/tests/spec_id.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/tests/spec_id.rs" }
   # 3.5: the six-argument matrix.
-  - { kind: file, path: "crates/spec-spine-cli/tests/spec_id.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-cli/tests/spec_id.rs" }
 extends:
   # 3.4: the module is declared and re-exported.
   - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }

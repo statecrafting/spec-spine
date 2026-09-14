@@ -59,13 +59,27 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     if let Some(id) = &args.spec {
         validate_spec_id(id)?;
     }
+    // Spec 084 3.2: the short form resolves here too, against the set this verb
+    // already reads, which is the attestation files rather than the corpus. A
+    // `--signature` check is legitimate on an attestation whose spec has since
+    // left the corpus, and a corpus-wide set would refuse it (084 D-3).
+    //
+    // Resolution runs **before** any read, so an ambiguous argument is refused
+    // without the file being opened, and it happens with `--attestation` too:
+    // that form locates nothing by id, so the resolved value is unused there,
+    // but refusing an ambiguous id consistently costs nothing and keeps the one
+    // message of 3.1 true at all six arguments.
+    let spec = match &args.spec {
+        Some(id) => Some(resolve_attested_spec(repo, &cfg, id)?),
+        None => None,
+    };
     let attestation_path = args
         .attestation
         .clone()
-        .unwrap_or_else(|| default_attestation_path(repo, &cfg, args.spec.as_deref()));
+        .unwrap_or_else(|| default_attestation_path(repo, &cfg, spec.as_deref()));
 
     // Read once, and hold the bytes: they are what both modes decide on (3.1).
-    let hint = match &args.spec {
+    let hint = match &spec {
         Some(id) => format!("spec-spine attest --spec {id}"),
         None => "spec-spine attest".to_string(),
     };
@@ -77,7 +91,7 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     // (3.3). The two scopes carry different payloads, so the loaded value and
     // both verification paths fork here and nowhere else.
     let version = payload_schema_version(&bytes, "attestation")?;
-    let subject = match &args.spec {
+    let subject = match &spec {
         Some(_) => {
             check_spec_attestation_major(&version)?;
             Subject::Spec(parse_artifact(&bytes, &attestation_path, "attestation")?)
@@ -156,7 +170,7 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
             .seal
             .clone()
             .unwrap_or_else(|| attestation_path.with_extension("sig"));
-        let seal_hint = match &args.spec {
+        let seal_hint = match &spec {
             Some(id) => format!("spec-spine attest --spec {id} --sign"),
             None => "spec-spine attest --sign".to_string(),
         };
@@ -208,6 +222,40 @@ fn default_attestation_path(repo: &Path, cfg: &Config, spec: Option<&str>) -> Pa
     match spec {
         Some(id) => dir.join("by-spec").join(format!("{id}.json")),
         None => dir.join("attestation.json"),
+    }
+}
+
+/// Resolve `--spec` against the per-spec attestation files (spec 084 3.2).
+///
+/// Step 4 of 084 3.1 does **not** refuse here. The argument falls through as
+/// given and the read fails exactly as it does today: exit 3, with the hint to
+/// run `attest --spec` first. A missing attestation file is I/O, which spec 042
+/// 3.5 assigns to exit 3, and refusing at exit 1 to match the other five would
+/// change that verb's code for a missing file (084 D-4). Only an argument that
+/// resolves is newly accepted, and only an ambiguous one is newly refused.
+///
+/// A `by-spec/` that does not exist is an empty set, not an error: that is the
+/// state before the first `attest --spec`, and it must reach the same exit 3.
+fn resolve_attested_spec(repo: &Path, cfg: &Config, id: &str) -> Result<String, Error> {
+    let dir = repo
+        .join(&cfg.layout.derived_dir)
+        .join("attestation")
+        .join("by-spec");
+    let mut stems: Vec<String> = Vec::new();
+    if let Ok(entries) = fs::read_dir(&dir) {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if let Some(stem) = name.strip_suffix(".json") {
+                stems.push(stem.to_string());
+            }
+        }
+    }
+    match spec_spine_core::match_spec_id(id, &stems) {
+        spec_spine_core::SpecIdMatch::Resolved(r) => Ok(r),
+        spec_spine_core::SpecIdMatch::Ambiguous(c) => {
+            Err(spec_spine_core::spec_id::ambiguous(id, &c))
+        }
+        spec_spine_core::SpecIdMatch::NoMatch => Ok(id.to_string()),
     }
 }
 

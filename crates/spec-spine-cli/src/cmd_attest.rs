@@ -71,9 +71,15 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
 
     // One payload, one hash, whichever scope: the two verbs differ only in what
     // they cover, so the seal, the write and the reporting below are shared.
+    // Spec 084 3.3: the attestation file is named by the **resolved** id, which
+    // the library hands back on the payload. Naming it after the argument would
+    // write `by-spec/070.json` beside `by-spec/070-slug.json`: two files for one
+    // spec, and `verify-attestation --spec <full id>` reads only one of them.
+    let mut resolved_spec: Option<String> = None;
     let (json, attestation_hash, payload) = match &args.spec {
         Some(id) => {
             let outcome = attest_spec(&cfg, repo, id)?;
+            resolved_spec = Some(outcome.attestation.spec_id.clone());
             let payload = serde_json::json!({
                 "attestation": outcome.attestation,
                 "attestationHash": outcome.attestation_hash,
@@ -97,7 +103,7 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
     };
 
     let out_dir = repo.join(&cfg.layout.derived_dir).join("attestation");
-    let attestation_path = match &args.spec {
+    let attestation_path = match &resolved_spec {
         Some(id) => out_dir.join("by-spec").join(format!("{id}.json")),
         None => out_dir.join("attestation.json"),
     };
@@ -107,7 +113,10 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
     fs::write(&attestation_path, &json)
         .map_err(|e| Error::Io(format!("write {}: {e}", attestation_path.display())))?;
 
-    let scope = match (&args.spec, args.with_coupling) {
+    // Spec 084 3.3 again: the echoed scope is a value derived from the id, so
+    // it is the resolved one. `attested 016 -> .../016-short.json` names two
+    // different spellings of one spec on one line.
+    let scope = match (&resolved_spec, args.with_coupling) {
         (Some(id), _) => id.as_str(),
         (None, true) => "specs+code",
         (None, false) => "spec-corpus",

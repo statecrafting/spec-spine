@@ -166,12 +166,20 @@ pub fn attest_spec(
     spec_id: &str,
 ) -> Result<SpecAttestOutcome, Error> {
     let compiled = compile(cfg, repo_root)?;
+    // Spec 084 3.1 and 3.3: resolve once against the ids of the compile this
+    // verb already runs, then use the resolved id for **every** value derived
+    // from it. The argument selects the record, selects the index mapping whose
+    // units are hashed, and is written as the payload's `specId`; resolving
+    // only the first produces a confident attestation over zero units at exit
+    // 0, which 084 1.3 names as the shape a partial fix takes.
+    let spec_id =
+        &crate::spec_id::resolve_spec_id(spec_id, compiled.registry.specs.iter().map(|s| &s.id))?;
     let record = compiled
         .registry
         .specs
         .iter()
-        .find(|s| s.id == spec_id)
-        .ok_or_else(|| Error::NotFound(format!("spec '{spec_id}'")))?;
+        .find(|s| &s.id == spec_id)
+        .ok_or_else(|| crate::spec_id::no_match(spec_id))?;
 
     let spec_source_hash = {
         let path = repo_root.join(&record.spec_path);
@@ -190,7 +198,7 @@ pub fn attest_spec(
         .traceability
         .mappings
         .iter()
-        .find(|m| m.spec_id == spec_id);
+        .find(|m| &m.spec_id == spec_id);
     let mut units: Vec<AttestedUnit> = Vec::new();
     let mut all_resolved = true;
     for resolved in mapping.into_iter().flat_map(|m| &m.resolved_units) {

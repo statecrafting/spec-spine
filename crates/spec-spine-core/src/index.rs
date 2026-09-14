@@ -1429,18 +1429,7 @@ fn collapse_sources(sources: &BTreeSet<TraceSource>) -> TraceSource {
 
 /// A short id (`001`) resolves to the full id (`001-slug`) by unique prefix.
 fn resolve_id(short: &str, all_ids: &BTreeSet<String>) -> String {
-    if all_ids.contains(short) {
-        return short.to_string();
-    }
-    let matches: Vec<&String> = all_ids
-        .iter()
-        .filter(|id| id.split('-').next() == Some(short))
-        .collect();
-    if matches.len() == 1 {
-        matches[0].clone()
-    } else {
-        short.to_string()
-    }
+    crate::spec_id::resolve_spec_ref(short, all_ids)
 }
 
 /// A stable canonical string for a unit, for deterministic sorting.
