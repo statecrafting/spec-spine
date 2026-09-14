@@ -226,14 +226,19 @@ fn an_ambiguous_ordinal_is_one_refusal_at_all_six_arguments() {
 fn no_match_is_one_refusal_at_the_five_arguments_that_refuse_it() {
     let t = corpus();
     let mut messages: Vec<String> = Vec::new();
-    for (name, args) in six("999").into_iter().take(5) {
+    // Named, not positional: `take(5)` would silently test the wrong set if
+    // `six()` were reordered, and the failure would name the wrong verb.
+    for (name, args) in six("999")
+        .into_iter()
+        .filter(|(name, _)| *name != "verify-attestation --spec")
+    {
         let out = run(t.path(), &argv(&args));
         assert_eq!(code(&out), 1, "{name}: {}", stderr(&out));
         let msg = stderr(&out).trim().to_string();
         assert!(!msg.is_empty(), "{name} wrote no refusal");
         messages.push(msg);
     }
-    assert_eq!(messages.len(), 5);
+    assert_eq!(messages.len(), 5, "the five that refuse a no match");
     messages.dedup();
     assert_eq!(messages.len(), 1, "five different refusals: {messages:?}");
 }

@@ -174,6 +174,11 @@ pub fn attest_spec(
     // 0, which 084 1.3 names as the shape a partial fix takes.
     let spec_id =
         &crate::spec_id::resolve_spec_id(spec_id, compiled.registry.specs.iter().map(|s| &s.id))?;
+    // The `Err` arm is unreachable by construction: `resolve_spec_id` matched
+    // over this same set, so a resolved id is in it. It stays an `Err` rather
+    // than an `expect` because core is panic-free on user input (a workspace
+    // invariant), and an unreachable panic is still a panic if the invariant
+    // above is ever broken by an edit that changes only one of the two lines.
     let record = compiled
         .registry
         .specs
