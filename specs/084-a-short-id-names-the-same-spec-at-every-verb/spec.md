@@ -4,7 +4,7 @@ title: "A short id names the same spec at every verb"
 status: draft
 kind: "tooling"
 created: "2026-09-11"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: high
 depends_on:
@@ -446,6 +446,22 @@ false `V-001` to `NotFound`, still exit 1. No spec states the old behavior. 049
 and 056 each call the argument an id, and a path is not one; the old behavior
 is what `Path::join` happens to do. It is recorded because a caller relying on
 it will see exit 1 where they saw exit 0.
+
+**D-7 (2026-09-14): the surviving refusal wording is `compile --spec`'s, not
+`verify`'s.** 3.1 requires one message at the five arguments that refuse a no
+match and one at all six for an ambiguity, so some verb's wording had to change;
+the spec does not say which. The shared forms are `spec '<arg>'` and `spec
+'<arg>' is ambiguous: <n> specs share that ordinal (<sorted candidates>)`,
+rendered by `Error::NotFound` as `not found: ...`. `registry show`,
+`registry relationships` and `attest --spec` already said `not found: spec
+'<arg>'`, and `compile --spec` already said `spec '<arg>' is ambiguous`, so
+this moves three of the six arguments' wording rather than five; `verify`'s
+`no such spec: <arg>` and `ambiguous spec id <arg>: ...` are the two spellings
+retired. `verify`'s own ambiguity test asserts the word `ambiguous` rather than
+the sentence, so it holds unmodified as 3.6 requires. Rejected: keeping
+`verify`'s wording, which would have changed the three verbs a reader is most
+likely to have scripted against, and inventing a third spelling, which would
+have changed all six.
 
 ## Verification
 
