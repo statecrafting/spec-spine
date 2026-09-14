@@ -210,8 +210,10 @@ enum Command {
     /// Emit a reproducible corpus attestation; optionally seal it (spec 023).
     Attest {
         /// Scope the attestation to one spec (spec 042), writing
-        /// `<derived>/attestation/by-spec/<id>.json`. Records the verdicts; it
-        /// is not a gate, and exit 0 means only that an attestation was written.
+        /// `<derived>/attestation/by-spec/<id>.json`. Accepts the short id
+        /// (`042`); the file is named by the resolved id. Records the verdicts;
+        /// it is not a gate, and exit 0 means only that an attestation was
+        /// written.
         #[arg(long, value_name = "ID")]
         spec: Option<String>,
         /// Also record the coupling (specs-and-code-in-sync) verdict.
@@ -232,7 +234,8 @@ enum Command {
     },
     /// Verify a corpus attestation by recompute and/or detached signature.
     VerifyAttestation {
-        /// Verify the per-spec attestation for this id (spec 042).
+        /// Verify the per-spec attestation for this id (spec 042). Accepts
+        /// the short id (`042`), resolved against the attestation files.
         #[arg(long, value_name = "ID")]
         spec: Option<String>,
         /// Re-read the corpus and check it reproduces the attestation (no key).
@@ -492,5 +495,73 @@ fn exit_for_clap_error(e: clap::Error) -> ExitCode {
             let _ = e.print();
             ExitCode::from(3)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use clap::CommandFactory;
+
+    /// Spec 084 §3.5: the six arguments that take a spec id, and no seventh.
+    ///
+    /// 049 §3.2 and 056 §3.1 each asserted the cross-verb rule in prose and
+    /// nothing held it, which is how `registry show`, `registry relationships`,
+    /// `attest --spec` and `verify-attestation --spec` kept refusing the short
+    /// form through two ratifications. This census is the structural half of
+    /// the fix: a seventh verb that takes a spec id cannot land without the
+    /// resolver by accident, because this test fails when the set moves.
+    ///
+    /// It keys on the argument ids `id` and `spec`, the two spellings all six
+    /// use today. A future argument spelled differently (`--target <ID>`) would
+    /// evade it; keying on `value_name = "ID"` instead would catch
+    /// `attest --key-id`, which takes a key id, and renaming value names to
+    /// tell the two apart was rejected as help-text churn to close a gap a
+    /// reviewer can see (084 D-5).
+    ///
+    /// The census and the matrix in `tests/spec_id.rs` are two lists, kept
+    /// equal by the failure message below rather than by linkage: an
+    /// integration test cannot import from a binary crate.
+    #[test]
+    fn spec_id_census() {
+        fn walk(cmd: &clap::Command, path: &str, found: &mut Vec<String>) {
+            for arg in cmd.get_arguments() {
+                let name = arg.get_id().as_str();
+                if name == "id" || name == "spec" {
+                    found.push(format!("{path} <{name}>"));
+                }
+            }
+            for sub in cmd.get_subcommands() {
+                let child = if path.is_empty() {
+                    sub.get_name().to_string()
+                } else {
+                    format!("{path} {}", sub.get_name())
+                };
+                walk(sub, &child, found);
+            }
+        }
+
+        let cmd = super::Cli::command();
+        let mut found: Vec<String> = Vec::new();
+        walk(&cmd, "", &mut found);
+        found.sort();
+
+        let mut expected: Vec<String> = vec![
+            "attest <spec>".to_string(),
+            "compile <spec>".to_string(),
+            "registry relationships <id>".to_string(),
+            "registry show <id>".to_string(),
+            "verify <id>".to_string(),
+            "verify-attestation <spec>".to_string(),
+        ];
+        expected.sort();
+
+        assert_eq!(
+            found, expected,
+            "the set of spec-id arguments moved (spec 084 §3.5). Every one of \
+             them must resolve through `spec_spine_core::spec_id` (084 §3.4), \
+             and must be driven by the matrix in \
+             `crates/spec-spine-cli/tests/spec_id.rs`. Add it to both lists, or \
+             to neither."
+        );
     }
 }

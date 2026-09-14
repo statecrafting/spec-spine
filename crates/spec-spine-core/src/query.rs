@@ -105,11 +105,16 @@ pub fn list_ids<'a>(registry: &'a Registry, filter: &ListFilter) -> Vec<&'a str>
 
 /// One spec by id, or [`Error::NotFound`].
 pub fn show<'a>(registry: &'a Registry, id: &str) -> Result<&'a SpecRecord, Error> {
+    // Spec 084 3.1: the short form resolves here as it does at every other
+    // argument, against the set this verb already reads. The registry answers
+    // from the ledger and `query_json` is handed registry text and nothing
+    // else, so no other set is available to it (084 3.2, D-3).
+    let resolved = crate::spec_id::resolve_spec_id(id, registry.specs.iter().map(|s| &s.id))?;
     registry
         .specs
         .iter()
-        .find(|s| s.id == id)
-        .ok_or_else(|| Error::NotFound(format!("spec '{id}'")))
+        .find(|s| s.id == resolved)
+        .ok_or_else(|| crate::spec_id::no_match(id))
 }
 
 /// Counts of specs by status.
@@ -193,6 +198,12 @@ pub struct RelationshipView {
 /// Build the relationship view for `id`, or [`Error::NotFound`].
 pub fn relationships(registry: &Registry, id: &str) -> Result<RelationshipView, Error> {
     let spec = show(registry, id)?;
+    // Spec 084 3.3: every value derived from the id after resolution comes from
+    // the **resolved** id. `show` already resolved; comparing the raw argument
+    // here is the partial fix 084 1.3 describes, which prints a spec's outgoing
+    // edges and an empty `depended_on_by` at exit 0. A wrong answer at exit 0
+    // is worse than the refusal it replaced.
+    let id = spec.id.as_str();
     let incoming = |pick: fn(&SpecRecord) -> &Vec<String>| -> Vec<String> {
         registry
             .specs

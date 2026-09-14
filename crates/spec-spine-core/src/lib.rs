@@ -32,6 +32,7 @@ pub mod render;
 pub mod scaffold;
 pub mod sections;
 pub mod shard;
+pub mod spec_id;
 pub mod symbols;
 pub mod verify;
 
@@ -88,6 +89,10 @@ pub use query::{
 };
 pub use render::{OrphanReport, orphans, partition_orphans, render_markdown};
 pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init, scaffold_init_with};
+// Spec 084 3.4: the one spec-id policy, public because the CLI's two
+// non-library arguments (the attestation file name, and the attestation
+// directory `verify-attestation` resolves against) call it directly.
+pub use spec_id::{SpecIdMatch, match_spec_id, resolve_spec_id, resolve_spec_ref, spec_dir_ids};
 pub use verify::{plan as verify_plan, plan_from_markdown, without_verification_section};
 
 // ===== JSON-in / JSON-out facade (the FFI seam) =====

@@ -28,6 +28,7 @@ pub enum RegistryQuery {
     },
     /// Show one spec by id.
     Show {
+        /// Spec id, full (`016-short-id-resolution`) or short (`016`).
         id: String,
         #[arg(long)]
         json: bool,
@@ -42,6 +43,7 @@ pub enum RegistryQuery {
     },
     /// Show a spec's relationship neighborhood.
     Relationships {
+        /// Spec id, full (`016-short-id-resolution`) or short (`016`).
         id: String,
         #[arg(long)]
         json: bool,

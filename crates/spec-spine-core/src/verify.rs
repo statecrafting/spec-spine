@@ -34,7 +34,8 @@ const CLI_TAG: &str = "verify:cli";
 /// have made `verify` the one verb where the code meant something else.
 pub fn plan(cfg: &Config, repo_root: &Path, id: &str) -> Result<VerifyPlan, Error> {
     let specs_dir = repo_root.join(&cfg.layout.specs_dir);
-    let spec_id = resolve_spec_id(&specs_dir, id)?;
+    // Spec 084 3.4: the one policy, over the ids this verb already reads.
+    let spec_id = crate::spec_id::resolve_spec_id(id, crate::spec_id::spec_dir_ids(&specs_dir)?)?;
     let spec_md = specs_dir.join(&spec_id).join("spec.md");
     let raw = fs::read_to_string(&spec_md)
         .map_err(|e| Error::Io(format!("read {}: {e}", spec_md.display())))?;
@@ -163,37 +164,4 @@ fn is_verification_heading(line: &str) -> bool {
         _ => rest,
     };
     rest == "Verification"
-}
-
-/// Exact id, else the unique directory whose ordinal matches (spec 016).
-fn resolve_spec_id(specs_dir: &Path, id: &str) -> Result<String, Error> {
-    if specs_dir.join(id).join("spec.md").is_file() {
-        return Ok(id.to_string());
-    }
-    let entries = fs::read_dir(specs_dir).map_err(|e| {
-        Error::Io(format!(
-            "cannot read specs dir {}: {e}",
-            specs_dir.display()
-        ))
-    })?;
-    let mut matches: Vec<String> = Vec::new();
-    for entry in entries {
-        let entry = entry.map_err(|e| Error::Io(e.to_string()))?;
-        if !entry.path().join("spec.md").is_file() {
-            continue;
-        }
-        let name = entry.file_name().to_string_lossy().into_owned();
-        if name.split('-').next() == Some(id) {
-            matches.push(name);
-        }
-    }
-    matches.sort();
-    match matches.len() {
-        1 => Ok(matches.remove(0)),
-        0 => Err(Error::NotFound(format!("no such spec: {id}"))),
-        n => Err(Error::NotFound(format!(
-            "ambiguous spec id {id}: {n} specs share that ordinal ({})",
-            matches.join(", ")
-        ))),
-    }
 }

@@ -733,7 +733,10 @@ pub struct SpecCheckReport {
 /// stands, and what stands is what was committed.
 pub fn compile_spec(cfg: &Config, repo_root: &Path, id: &str) -> Result<SpecCheckReport, Error> {
     let specs_dir = repo_root.join(&cfg.layout.specs_dir);
-    let dirname = resolve_spec_dir(&specs_dir, id)?;
+    // Spec 084 3.4: the one policy, over the ids this verb already reads. A
+    // string comparison against the listing, never `specs_dir.join(id)`, so a
+    // path-shaped argument is refused rather than walked to (084 3.2, D-6).
+    let dirname = crate::spec_id::resolve_spec_id(id, crate::spec_id::spec_dir_ids(&specs_dir)?)?;
     let spec_md = specs_dir.join(&dirname).join("spec.md");
     let raw = fs::read_to_string(&spec_md)
         .map_err(|e| Error::Io(format!("read {}: {e}", spec_md.display())))?;
@@ -843,45 +846,6 @@ fn finish_spec_report(
         spec_path,
         violations,
         passed,
-    }
-}
-
-/// Resolve a spec id, accepting the short form (spec 016): `056` names
-/// `056-compile-one-spec` when exactly one directory carries that ordinal.
-///
-/// [`Error::NotFound`] (exit 1) for none or several. Never exit 2: nothing here
-/// is a staleness question, and reporting a draft as stale is precisely the
-/// wrong answer `compile --check` gives today.
-fn resolve_spec_dir(specs_dir: &Path, id: &str) -> Result<String, Error> {
-    if specs_dir.join(id).join("spec.md").is_file() {
-        return Ok(id.to_string());
-    }
-    let mut matches: Vec<String> = Vec::new();
-    let entries = fs::read_dir(specs_dir).map_err(|e| {
-        Error::Io(format!(
-            "cannot read specs dir {}: {e}",
-            specs_dir.display()
-        ))
-    })?;
-    for entry in entries {
-        let entry = entry.map_err(|e| Error::Io(e.to_string()))?;
-        let name = entry.file_name().to_string_lossy().into_owned();
-        if !entry.path().join("spec.md").is_file() {
-            continue;
-        }
-        // The whole leading dash-segment, as spec 016 §3.1 defines it: `109`
-        // resolves `109-foo`, `10` resolves nothing, and a wrong full slug
-        // resolves nothing rather than snapping to a neighbour.
-        if name.split('-').next() == Some(id) {
-            matches.push(name);
-        }
-    }
-    match matches.len() {
-        1 => Ok(matches.remove(0)),
-        0 => Err(Error::NotFound(format!("spec '{id}'"))),
-        n => Err(Error::NotFound(format!(
-            "spec '{id}' is ambiguous ({n} directories carry that ordinal)"
-        ))),
     }
 }
 
@@ -1105,17 +1069,7 @@ fn recompute_cross_spec_violations(records: &[SpecRecord]) -> Vec<Violation> {
 /// `resolve_id` (spec 004) so compile-time and index-time resolution agree;
 /// kept local to avoid coupling the compile gate (001) to the indexer's file.
 fn resolve_spec_ref(short: &str, all_ids: &std::collections::BTreeSet<String>) -> String {
-    if all_ids.contains(short) {
-        return short.to_string();
-    }
-    let matches: Vec<&String> = all_ids
-        .iter()
-        .filter(|id| id.split('-').next() == Some(short))
-        .collect();
-    match matches.as_slice() {
-        [only] => (*only).clone(),
-        _ => short.to_string(),
-    }
+    crate::spec_id::resolve_spec_ref(short, all_ids)
 }
 
 // --- small helpers ---
