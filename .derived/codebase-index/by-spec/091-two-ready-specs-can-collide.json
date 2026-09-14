@@ -74,8 +74,8 @@
       }
     ],
     "specId": "091-two-ready-specs-can-collide",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "541b5493268aff0b5870bfd07a1a75fe387f9c8cb871d3667e1eeedad489f48c"
+  "shardHash": "07650e8483d476796ea5226e61e24e8f09a9aba6b9a6401e3474a0a8bd536921"
 }

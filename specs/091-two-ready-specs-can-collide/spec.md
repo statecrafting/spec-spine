@@ -1,7 +1,7 @@
 ---
 id: "091-two-ready-specs-can-collide"
 title: "Two ready specs can collide"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-13"
 summary: >
