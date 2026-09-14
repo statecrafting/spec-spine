@@ -161,8 +161,8 @@
       }
     ],
     "specId": "090-a-hook-bound-to-a-tool-route-misses-the-work",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "063b9c7c98a52b434738b013af19a6a29b521ea33454c443fc8ed625235896f9"
+  "shardHash": "84c4612b4fe6620a6e5f6ddaa86288f59f75d75fc1bd88720b5547bf3be1506f"
 }

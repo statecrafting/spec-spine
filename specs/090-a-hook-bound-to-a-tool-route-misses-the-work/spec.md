@@ -1,7 +1,7 @@
 ---
 id: "090-a-hook-bound-to-a-tool-route-misses-the-work"
 title: "A hook bound to a tool route misses the work"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-13"
 summary: >
