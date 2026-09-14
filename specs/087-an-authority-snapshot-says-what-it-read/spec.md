@@ -409,12 +409,20 @@ one thing:
   `governanceInputs.hash` values must differ. It changes the piece set and
   nothing else: both trees are UTF-8, so both are `t` pieces throughout, and
   the piece-type rule is not exercised.
-- **The piece-type line** takes one file from the literal text
-  `sha256:<hex of some bytes>` to those same bytes. Spec 083 encodes a
-  non-UTF-8 file as exactly that text, so before `frame/1` the two hash alike;
-  under `frame/1` one is a `t` piece and the other a `b` piece, so the kind
-  byte differs and the digests must differ. It changes one file's content and
-  no path, so the length framing is not what is under test.
+- **The piece-type line** reads one file twice: first holding the four bytes
+  `FF FE 00 01`, which are not valid UTF-8, then holding the literal text
+  `sha256:<hex>` where the hex is the SHA-256 of exactly those four bytes.
+  Spec 083 encodes a non-UTF-8 file as exactly that text, so before `frame/1`
+  the two hash alike; under `frame/1` one is a `b` piece and the other a `t`
+  piece, so the kind byte differs and the digests must differ. It changes one
+  file's content and no path, so the length framing is not what is under test.
+
+  The byte file is **written first and hashed from disk**, never carried in a
+  shell variable: a command substitution drops NUL bytes, so `B1=$(printf
+  '\377\376\000\001')` would silently hold three bytes and hash three, and
+  the line would still pass while testing something other than what this
+  paragraph says. The digest tool is selected as spec 085's block selects it,
+  because `sha256sum` and `shasum` are not both present everywhere.
 
 Neither line can run before `frame/1` exists, which is the point: both fail
 against pre-087 code with the flag absent, and both would still fail against an
@@ -437,8 +445,8 @@ target/release/spec-spine verify-attestation --snapshot --recompute
 rm -rf "${TMPDIR:-/tmp}/ss087" && mkdir -p "${TMPDIR:-/tmp}/ss087/specs/001-a" "${TMPDIR:-/tmp}/ss087/g"
 printf -- '[index]\nextra_hashed_inputs = ["g/*"]\n' > "${TMPDIR:-/tmp}/ss087/spec-spine.toml"
 printf -- '---\nid: "001-a"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-11"\nsummary: "s"\nestablishes:\n  - "g/"\n---\n\n# t\n' > "${TMPDIR:-/tmp}/ss087/specs/001-a/spec.md"
-D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; H=$(printf 'z' | shasum -a 256 | cut -d" " -f1); printf 'x' > "$D/g/a"; printf 'y' > "$D/g/b"; A=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); rm "$D/g/b"; printf 'xg/b\000y' > "$D/g/a"; B=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); rm -f "$D/g/a" "$D/g/b"; printf 'x' > "$D/g/a"; printf 'y' > "$D/g/b"; test -n "$A" && test -n "$B" && test "$A" != "$B"
-D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; B1=$(printf '\377\376\000\001'); H=$(printf '%s' "$B1" | shasum -a 256 | cut -d" " -f1); printf 'sha256:%s' "$H" > "$D/g/a"; A=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); printf '%s' "$B1" > "$D/g/a"; B=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); printf 'x' > "$D/g/a"; test -n "$A" && test -n "$B" && test "$A" != "$B"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; printf 'x' > "$D/g/a"; printf 'y' > "$D/g/b"; A=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); rm "$D/g/b"; printf 'xg/b\000y' > "$D/g/a"; B=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); rm -f "$D/g/a" "$D/g/b"; printf 'x' > "$D/g/a"; printf 'y' > "$D/g/b"; test -n "$A" && test -n "$B" && test "$A" != "$B"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; printf '\377\376\000\001' > "$D/g/a"; if command -v sha256sum >/dev/null 2>&1; then H=$(sha256sum "$D/g/a" | cut -d' ' -f1); else H=$(shasum -a 256 "$D/g/a" | cut -d' ' -f1); fi; B=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); printf 'sha256:%s' "$H" > "$D/g/a"; A=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); printf 'x' > "$D/g/a"; test -n "$A" && test -n "$B" && test "$A" != "$B"
 D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; A=$($S --repo "$D" attest --snapshot --json | grep -c '"territoryDigest"'); T=$($S --repo "$D" registry list --ids-only | wc -l); printf 'changed' > "$D/g/a"; B=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); printf 'x' > "$D/g/a"; C=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); test "$A" -eq "$T" && test -n "$B" && test -n "$C" && test "$B" != "$C"
 D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; $S --repo "$D" compile >/dev/null && $S --repo "$D" index >/dev/null && $S --repo "$D" attest --snapshot --json > "$D/before.json" && F="$D/.derived/spec-registry/by-spec/001-a.json" && cp "$F" "$D/shard.bak" && printf ' ' >> "$F" && $S --repo "$D" attest --snapshot --json > "$D/after.json"; R=$?; cp "$D/shard.bak" "$F"; test $R -eq 0 && grep -q '"matchesRecompute": false' "$D/after.json" && test "$(grep '"registryHash"' "$D/before.json")" = "$(grep '"registryHash"' "$D/after.json")"
 D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; A=$($S --repo "$D" attest --snapshot --json); printf '# a comment\n' >> "$D/spec-spine.toml"; B=$($S --repo "$D" attest --snapshot --json); printf -- '[index]\nextra_hashed_inputs = ["g/*"]\n' > "$D/spec-spine.toml"; test "$A" != "$B" && test "$(echo "$A" | grep '"inputsManifestHash"')" = "$(echo "$B" | grep '"inputsManifestHash"')"
