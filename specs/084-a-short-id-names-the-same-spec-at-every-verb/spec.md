@@ -1,7 +1,7 @@
 ---
 id: "084-a-short-id-names-the-same-spec-at-every-verb"
 title: "A short id names the same spec at every verb"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-11"
 implementation: complete

@@ -263,8 +263,8 @@
       }
     ],
     "specId": "084-a-short-id-names-the-same-spec-at-every-verb",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "4ad2a725cbce8bb68a8839ac0eef435465d0573493d7ff32a06c30b2e099a570"
+  "shardHash": "80fa390ebcbe4704b886bbb8e7938bb294074f00a167152bd8d2fdcd9e8fad5f"
 }
