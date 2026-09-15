@@ -1,0 +1,119 @@
+{
+  "record": {
+    "created": "2026-09-14",
+    "dependsOn": [
+      "037-machine-readable-verdicts",
+      "054-effective-config-is-a-governed-read",
+      "055-the-ledger-answers-what-consumers-rebuild",
+      "060-plan-answers-the-whole-question"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/read.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/read.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "037-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "054-effective-config-is-a-governed-read",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "037-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      }
+    ],
+    "id": "093-a-governed-read-names-its-version",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "093: A governed read names its version",
+      "1. Purpose",
+      "1.1 Two guarantees that stop at the verdict verbs",
+      "1.2 What an unversioned read costs a consumer",
+      "1.3 A read is not a verdict",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 What a read document is",
+      "3.2 One emitter",
+      "3.3 The version axis",
+      "3.4 Sorted keys, stated once and true",
+      "3.5 The one breaking change, named",
+      "3.6 `config show` keeps its own version member",
+      "3.7 The tests",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/093-a-governed-read-names-its-version/spec.md",
+    "status": "draft",
+    "summary": "`docs/api.md` states that every JSON this tool emits is pretty-printed with sorted keys, and spec 037 gave every verdict verb a versioned envelope. The read verbs got neither. Measured at 0.19.0: `registry plan`, `index owner`, `index coverage`, `config show` and `index orphans` emit keys in struct declaration order, and `registry plan`, `registry show`, `registry list`, `index owner`, `index coverage`, `index diagnostics` and `index orphans` carry no version member at all, because they serialize with `serde_json::to_string_pretty` while every committed artifact goes through the canonical writer. A consumer therefore pins a document whose shape it cannot dispatch on and whose key order is an implementation detail of a Rust struct. This spec routes every read document through one emitter that sorts keys and stamps a new `READ_SCHEMA_VERSION`, and decides note 04's D7: the version is an additive member on an object document, and the two verbs that emit a bare array become objects so they can carry one.\n",
+    "title": "A governed read names its version"
+  },
+  "shardHash": "bf58372a5e1bb68c4842c6a97ecbc4429171ad8b4da3897ea571598df8181215",
+  "specVersion": "1.2.0"
+}
