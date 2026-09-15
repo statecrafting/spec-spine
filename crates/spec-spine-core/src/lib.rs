@@ -73,8 +73,8 @@ pub use dep_only::{
 };
 pub use diagnostics::{
     AttributedDiagnostic, CheckReport, DiagnosticCounts, IndexCheckReport, RegistryCheckReport,
-    UNRESOLVED_CODES, UnwitnessedCounts, committed_counts, committed_diagnostics,
-    count as count_diagnostics,
+    UNRESOLVED_CODES, UnwitnessedCounts, annotate_unreadable, committed_counts,
+    committed_diagnostics, count as count_diagnostics,
 };
 pub use index::{
     Freshness, IndexOutcome, IndexShardSet, OwnerKind, OwnerLink, OwnerReport, UnwitnessedClaim,
@@ -268,7 +268,7 @@ pub fn check_report(config: &Config, repo_root: &std::path::Path) -> Result<Chec
     let freshness = check_index_freshness(config, repo_root)?;
     let index = IndexCheckReport::with_unwitnessed(
         &freshness,
-        diagnostics::committed_counts(config, repo_root)?,
+        verdict_tally(config, repo_root),
         unwitnessed_counts(config, repo_root),
     );
     Ok(CheckReport { registry, index })
@@ -285,7 +285,7 @@ pub fn check_freshness_json(config_json: &str, repo_root: &str) -> Result<String
     let config = config_from_json(config_json)?;
     let root = std::path::Path::new(repo_root);
     let freshness = check_index_freshness(&config, root)?;
-    let counts = diagnostics::committed_counts(&config, root)?;
+    let counts = verdict_tally(&config, root);
     // Spec 057 §3.3: the facade and the CLI emit one shape. `cli.rs` pins them
     // against each other, and it caught this: a payload member added on one
     // side only is exactly the drift that test exists to refuse.
@@ -294,6 +294,20 @@ pub fn check_freshness_json(config_json: &str, repo_root: &str) -> Result<String
         counts,
         unwitnessed_counts(&config, root),
     ))
+}
+
+/// The diagnostics tally that accompanies an index freshness verdict (spec 095
+/// §3.1, §3.4).
+///
+/// The one path `check_report`, `check_freshness_json`, `index check` and
+/// `check` all take. Call it only **after** `check_index_freshness` has
+/// answered: the verdict outranks the tally, so nothing here may replace it.
+/// `committed_counts` skips a shard it cannot parse and reports the skip, and
+/// its one error (an index never built) is the state the freshness check has
+/// already refused, so the default below is unreachable in practice and is
+/// never a verdict.
+pub fn verdict_tally(config: &Config, repo_root: &std::path::Path) -> DiagnosticCounts {
+    diagnostics::committed_counts(config, repo_root).unwrap_or_default()
 }
 
 /// The distinct-path tally spec 057 §3.3 reports, shared by the facade and the

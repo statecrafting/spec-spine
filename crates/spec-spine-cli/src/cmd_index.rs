@@ -13,10 +13,10 @@ use std::path::Path;
 use clap::Subcommand;
 use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
 use spec_spine_core::{
-    DiagnosticCounts, Freshness, IndexCheckReport, UnwitnessedCounts, check_index_freshness,
-    check_slice_freshness, committed_counts, committed_diagnostics, coverage, empty_universe,
+    DiagnosticCounts, Freshness, IndexCheckReport, UnwitnessedCounts, annotate_unreadable,
+    check_index_freshness, check_slice_freshness, committed_diagnostics, coverage, empty_universe,
     index, index_dir, index_shard_files, load_committed_index, load_committed_registry,
-    partition_orphans, render_markdown, slices_path,
+    partition_orphans, render_markdown, slices_path, verdict_tally,
 };
 use spec_spine_types::{Config, CoverageReport, Error, Verdict, verdict::verb};
 
@@ -224,7 +224,9 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 ),
                 None => (check_index_freshness(&cfg, repo)?, "index".to_string()),
             };
-            let counts = committed_counts(&cfg, repo)?;
+            // Spec 095 §3.1: the verdict above is already decided, and the tally
+            // only adorns it. The same function the facades call (§3.4).
+            let counts = verdict_tally(&cfg, repo);
             // Spec 057 3.3: the count of claimed paths no content hash covers.
             // Reporting only, never an exit code: `index check` is where a
             // person reads the word "fresh", and "fresh" is the word this
@@ -302,7 +304,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                         eprintln!("  expected: {expected}");
                         eprintln!("  actual:   {actual}");
                     } else {
-                        eprintln!("{actual}");
+                        eprintln!("{}", annotate_unreadable(&actual, &counts.unreadable));
                     }
                     if !counts.is_empty() {
                         eprintln!(

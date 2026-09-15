@@ -144,7 +144,12 @@ fn report_index(report: &CheckReport, fail_on_unresolved: bool) {
     if !i.fresh {
         eprintln!("codebase-index: STALE (run `spec-spine index`)");
         if let Some(actual) = &i.actual {
-            eprintln!("{actual}");
+            // Spec 095 §3.3: a shard the diagnostics tally could not read is
+            // named on its drift line, not left to the payload count alone.
+            eprintln!(
+                "{}",
+                spec_spine_core::annotate_unreadable(actual, &i.diagnostics.unreadable)
+            );
         }
         return;
     }
