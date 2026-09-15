@@ -159,4 +159,9 @@ fn stamping_a_document_that_already_names_schema_version_is_refused() {
     .unwrap_err();
     assert!(matches!(err, Error::Schema(_)), "{err:?}");
     assert!(err.to_string().contains("schemaVersion"), "{err}");
+    assert!(
+        err.to_string()
+            .contains("already carries `schemaVersion`; stamping"),
+        "the message reads as one sentence: {err}"
+    );
 }

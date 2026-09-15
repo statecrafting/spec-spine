@@ -84,7 +84,7 @@ pub fn read_document<T: Serialize + ?Sized>(value: &T, mode: Versioning) -> Resu
             // document.
             if object.contains_key(READ_VERSION_MEMBER) {
                 return Err(Error::Schema(format!(
-                    "internal: a read document to be stamped already carries                      `{READ_VERSION_MEMBER}`; stamping would overwrite it (spec 093 §3.2)"
+                    "internal: a read document to be stamped already carries `{READ_VERSION_MEMBER}`; stamping would overwrite it (spec 093 §3.2)"
                 )));
             }
             object.insert(
