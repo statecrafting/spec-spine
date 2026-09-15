@@ -40,6 +40,56 @@ pub struct CoverageReport {
     /// what it did before.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub planned_territory: Vec<String>,
+    /// Comment headers that tried to claim their file and did not (spec 094
+    /// §3.3, §3.4), sorted by path then line.
+    ///
+    /// Explains a classification and never alters one: a file listed here is
+    /// counted exactly as it would be without the list, and
+    /// `--fail-on-untraced` does not read it. Omitted when empty, following
+    /// `planned_territory`, so a corpus with none emits what it did before.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub near_miss_headers: Vec<NearMissHeader>,
+}
+
+/// One comment header that did not claim its file (spec 094 §3.3).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NearMissHeader {
+    /// Repo-relative POSIX path of the file.
+    pub path: String,
+    /// 1-based line number of the header.
+    pub line: usize,
+    pub reason: NearMissReason,
+    /// The spec the reference resolves to, when it resolves. Absent for
+    /// `unknown-spec` by definition.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub spec_id: Option<String>,
+}
+
+/// Why a header claimed nothing (spec 094 §3.3).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum NearMissReason {
+    /// A resolving header below the claim window, inside the report window, in
+    /// a file that claimed nothing inside the claim window.
+    OutsideWindow,
+    /// The first header inside the claim window names no spec in the corpus.
+    /// The scan stops there, so it also shadows any header below it.
+    UnknownSpec,
+    /// `//! Spec:` inside the claim window: an inner doc comment is prose, and
+    /// the scanner deliberately does not read it as a claim.
+    DocCommentMarker,
+}
+
+impl NearMissReason {
+    /// The kebab-case spelling the payload uses, for the prose form.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            NearMissReason::OutsideWindow => "outside-window",
+            NearMissReason::UnknownSpec => "unknown-spec",
+            NearMissReason::DocCommentMarker => "doc-comment-marker",
+        }
+    }
 }
 
 impl CoverageReport {

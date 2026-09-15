@@ -54,7 +54,7 @@ pub use config::{
     EffectiveConfig, EffectiveCouplingConfig, FrontmatterConfig, IndexConfig, LayoutConfig,
     LintConfig, ManifestConfig, MetaConfig, ProvenanceConfig, VersionReq, load_config,
 };
-pub use coverage::{CoverageReport, PackageCoverage};
+pub use coverage::{CoverageReport, NearMissHeader, NearMissReason, PackageCoverage};
 pub use delta::{
     AuthorityDelta, ChangeKind, DeltaChange, DeltaClass, DeltaCommits, DeltaReport, PriorPolicy,
     ValueChange, VerificationDelta,

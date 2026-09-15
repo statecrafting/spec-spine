@@ -55,10 +55,18 @@ Lists specs that have no resolved code units (i.e., specs that claim authority o
 
 Reports, per source file inside a discovered package, whether a spec *specifically* claims it (a resolved unit or a `// Spec:` comment header), whether only a package's manifest floor covers it (**floor-only**), or whether nothing does (**unclaimed**). Freshness-guarded like `couple`: a stale committed index exits `2` rather than reporting against the wrong ledger. Prose, manifests, workflows, config, and paths under `resolver_exclusions` or the bypass set are never counted.
 
-- **`--json`**: Output the `CoverageReport` (totals, the two sorted file lists, per-package counts).
+- **`--json`**: Output the `CoverageReport` (totals, the two sorted file lists, per-package counts, and `nearMissHeaders` when there are any).
 - **`--fail-on-untraced`**: Exit `1` unless every source file is specifically claimed. The whole-tree "fully specified" assertion for CI.
 
 The same classifier drives the coupling gate's `C-002` when `[coupling] require_ownership` is on, so this report lists exactly the files that flag would refuse.
+
+#### How a comment header claims (spec 094)
+
+A comment header claims the file it sits in, and only when it is in the **first 16 lines** of that file. For each of those lines, in order: leading whitespace is trimmed; at most one leading `//` or `#` is stripped (the marker is optional); the rest must begin with `Spec:`; and after every trailing `/spec.md` is removed, the final `/`-separated segment of the reference must be the id of a spec in the corpus. So `// Spec: specs/042-x/spec.md`, `# Spec: specs/042-x/spec.md` (for `.py` and `.sh`) and `// Spec: 042-x` all claim for `042-x`.
+
+The **first** `Spec:` line in the window decides. If its reference names no spec in the corpus, the file claims nothing, even when a correct header follows it. `//! Spec:` never claims: an inner doc comment is prose.
+
+`index coverage` lists the headers that tried and failed, as `nearMissHeaders` in `--json` and a `near-miss comment headers` block in prose: `outside-window` (a resolving header on lines 17 to 64 of a file that claimed nothing above it), `unknown-spec` (the first header names no spec) and `doc-comment-marker` (`//! Spec:` in the window). The list explains a classification and changes none; `--fail-on-untraced` does not read it. A header lower than line 16 needs a unit in spec frontmatter instead, which has no positional rule.
 
 ## Exit Codes
 
@@ -68,7 +76,7 @@ The same classifier drives the coupling gate's `C-002` when `[coupling] require_
 - **`index check`:**
   - `0`: Fresh.
   - `2`: Stale (at least one shard is `modified`, `missing`, `orphaned`, or carries a blocking diagnostic).
-  - `3`: I/O, parse or schema error: no committed index, a committed shard from a schema MAJOR this build does not understand, or a committed shard file that does not parse.
+  - `3`: I/O, parse or schema error: no committed index, or a committed shard from a schema MAJOR this build does not understand. A committed shard file that does not parse is drift, not an error: `orphaned` when the recompute does not expect it, `modified` when it does, and `--json` counts it as `skippedShards` (spec 095).
 - **`index coverage`:**
   - `0`: Reported (or, with `--fail-on-untraced`, fully claimed).
   - `1`: `--fail-on-untraced` and at least one source file is floor-only or unclaimed.
