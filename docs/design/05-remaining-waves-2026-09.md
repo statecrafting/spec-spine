@@ -197,10 +197,30 @@ draft records.
 | 3 | Accept 093's one breaking output change | **Direction accepted, draft revised first.** The compatibility surface is wider than the draft stated: `--ids-only --json` is also an array and approved spec 010 §3.1 requires it, so 093 now carries an `amends` edge; `plan --next --json` emits `null` on an empty ready set, which the proposed emitter would have refused; and two read verbs were missing from the inventory |
 | 4 | Whether the ownership ratchet should reach tracked files outside `SOURCE_EXTS` | **Not by extending the list.** The extension is not the binding constraint: the coverage universe is a conjunction of four tests, and discovered-package membership is the one that excludes most governance files, so a longer extension list still would not reach `AGENTS.md`, `.github/workflows/` or `scripts/`. Measured 2026-09-15: 19 tracked files have a `SOURCE_EXTS` extension and are invisible on the package test alone, 11 of them are already `[index] extra_hashed_inputs` entries, and **7 already carry a valid `// Spec:` claim header that nothing reads**. Filed as 097: an explicit opt-in governed scope, empty by default so no adopter's verdict changes on upgrade |
 
-The three drafts the same pass revised (093, 094, 095, 096 and 087) carry their
+The five drafts the same pass revised (087, 093, 094, 095, 096) carry their
 corrections in place; none of the corrections changed a draft's claim, only what
-it promised about existing behavior. The build order the pass recommends is
-092, 095, 096, 094, 093, then 087.
+it promised about existing behavior. That pass recommended the build order 092,
+095, 096, 094, 093, then 087; §7.1 settles the remaining questions and appends
+097 to it.
+
+### 7.1 The second pass (2026-09-15)
+
+A second review pass read the revised drafts and ruled on what the first pass
+left open. The rulings are recorded here; each draft carries the corrections in
+its own text, and none of them reopened a design.
+
+| # | Question | Ruling (2026-09-15) |
+|---|---|---|
+| 5 | 093's compatibility surface grew from one breaking document to four across three verbs, and from one `amends` edge to two | **Accepted in full.** A consumer gets a predictable, versioned answer including when nothing is ready, which is worth the cost. All four transitions stand: `registry list`, `registry list --ids-only` and `index diagnostics` move under `items`; `plan --next` moves under a nullable `next`. The shared read axis, the `config_version` exception, the unchanged text forms and the amendments to 010 and 060 are unchanged |
+| 6 | Whether 097's opt-in direction is build-ready as drafted | **Direction right, text not ready; corrected before its build.** Four contradictions: it implied the seven inert headers would arrive owned while §3.4 leaves the scanner untouched; it offered an escape hatch (removing `.github/` from `[coupling] bypass_prefixes`) that does not exist, since the configured list only adds to the built-in floor; its enumeration left an absent inventory and an empty one indistinguishable and allowed a silent fallback after a git failure; and it promised "byte-for-byte" unchanged output while adding config keys and scaffold text |
+| 7 | 087's remaining details | **Two, both settled.** An empty directory needs its own piece kind (`d`), or it frames identically to an empty file at the same path; and a spec directly claiming a non-UTF-8 file, which makes `attest --spec` exit 3 (reproduced), must not take the snapshot down with it: the join hash is omitted with a stated reason while `territoryDigest` is still produced. Existing attestation behaviour is preserved, and a genuinely unreadable input remains an error |
+| 8 | Where 097 sits in the build order | **Last.** 092 → 095 → 096 → 094 → 093 → 087 → 097, one spec per build PR, `draft` through the build and ratified separately. 097 depends on 094, and enabling the scope in this repository is a separate adoption change after the mechanism ships |
+
+What the corrections changed, precisely, is what each draft promises about
+behavior that already exists: 097 now states that spec 009's explicit-claim
+precedence is the override that exists and that scope membership is not a second
+one, and 087 now states that the per-spec verb keeps refusing what it refuses
+today. No draft's claim moved.
 
 ## 8. Where each item is filed
 
