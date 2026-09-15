@@ -2749,3 +2749,183 @@ fn delta_failures_keep_the_exit_code_contract() {
         .unwrap();
     assert_eq!(code(&out), 2, "{}", String::from_utf8_lossy(&out.stderr));
 }
+
+// ── spec 095: a stray shard is orphaned at the verbs ─────────────────────
+
+/// `verdict_fixture`'s index shard directory, `by-spec` or `by-package`.
+fn index_shard_dir(root: &Path, which: &str) -> std::path::PathBuf {
+    root.join(".derived/codebase-index").join(which)
+}
+
+/// The three judging reads of §3.6, each asserted to exit 2 with `named` on a
+/// drift line of stderr, and the `check --json` index payload returned.
+fn assert_judged_stale(root: &Path, named: &str) -> serde_json::Value {
+    for args in [&["index", "check"][..], &["check"][..]] {
+        let out = run_in(root, args);
+        let stderr = String::from_utf8_lossy(&out.stderr);
+        assert_eq!(
+            code(&out),
+            2,
+            "{args:?} must judge, not fail to read: {stderr}"
+        );
+        assert!(stderr.contains(named), "{args:?} names {named}: {stderr}");
+    }
+    let out = run_in(root, &["check", "--json"]);
+    assert_eq!(code(&out), 2, "{}", String::from_utf8_lossy(&out.stdout));
+    let v = envelope(&out);
+    assert_eq!(v["exitCode"], 2, "{v}");
+    assert_eq!(v["report"]["index"]["fresh"], false, "{v}");
+    v["report"]["index"].clone()
+}
+
+/// §3.6 case 1: an unexpected stray that does not parse is `orphaned` at exit 2,
+/// named as unreadable, and counted as skipped. Before 095 both verbs exited 3
+/// with a parse error, having already computed the verdict.
+#[test]
+fn an_unparseable_stray_is_orphaned_at_the_verbs() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+    fs::write(
+        index_shard_dir(root, "by-spec").join("999-stray.json"),
+        "{\"nope\": 1}\n",
+    )
+    .unwrap();
+
+    let index = assert_judged_stale(root, "orphaned by-spec/999-stray.json");
+    assert_eq!(index["skippedShards"], 1, "{index}");
+    let stderr = String::from_utf8_lossy(&run_in(root, &["check"]).stderr).into_owned();
+    assert!(
+        stderr.contains("orphaned by-spec/999-stray.json (unreadable"),
+        "the prose names the skipped file on its drift line: {stderr}"
+    );
+    // The facade half answers the same payload (§3.4, spec 057 §3.3's pairing).
+    let facade: serde_json::Value = serde_json::from_str(
+        &spec_spine_core::check_freshness_json("{}", root.to_str().unwrap()).unwrap(),
+    )
+    .unwrap();
+    let cli = envelope(&run_in(root, &["index", "check", "--json"]));
+    assert_eq!(cli["report"], facade, "index check and its facade agree");
+    assert_eq!(facade["skippedShards"], 1, "{facade}");
+}
+
+/// §3.6 case 2: a stray that parses is `orphaned` at exit 2, unchanged, and
+/// nothing is skipped because the tally could read it.
+#[test]
+fn a_parseable_stray_is_orphaned_and_nothing_is_skipped() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+    let dir = index_shard_dir(root, "by-spec");
+    fs::copy(dir.join("001-a.json"), dir.join("999-copy.json")).unwrap();
+
+    let index = assert_judged_stale(root, "orphaned by-spec/999-copy.json");
+    assert!(index.get("skippedShards").is_none(), "{index}");
+}
+
+/// §3.6 case 3: the same in the other tree.
+#[test]
+fn an_unparseable_stray_in_by_package_is_orphaned_at_the_verbs() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+    let dir = index_shard_dir(root, "by-package");
+    assert!(
+        fs::read_dir(&dir).unwrap().count() > 0,
+        "the fixture has a package shard, so by-package is a real tree"
+    );
+    fs::write(dir.join("zzz-stray.json"), "[]\n").unwrap();
+
+    let index = assert_judged_stale(root, "orphaned by-package/zzz-stray.json");
+    assert_eq!(index["skippedShards"], 1, "{index}");
+}
+
+/// §3.6 case 4: an **expected** shard corrupted in place is stale by 086's byte
+/// comparison, named `modified` rather than `orphaned`. A fix that caught the
+/// parse error only where strays are enumerated would leave exit 3 here.
+#[test]
+fn an_expected_shard_corrupted_in_place_is_modified_at_the_verbs() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+    fs::write(
+        index_shard_dir(root, "by-spec").join("001-a.json"),
+        "{ truncated by a bad merge",
+    )
+    .unwrap();
+
+    let index = assert_judged_stale(root, "modified by-spec/001-a.json");
+    assert_eq!(index["skippedShards"], 1, "{index}");
+    let stderr = String::from_utf8_lossy(&run_in(root, &["index", "check"]).stderr).into_owned();
+    assert!(
+        !stderr.contains("orphaned"),
+        "an expected path is not an orphan: {stderr}"
+    );
+}
+
+/// §3.6 case 5: a fresh tree exits 0, skips nothing, and its payload carries no
+/// new member, so it is the pre-095 payload byte for byte (§3.3's omission).
+#[test]
+fn a_fresh_tree_payload_gains_no_member() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+
+    for args in [&["index", "check", "--json"][..], &["check", "--json"][..]] {
+        let out = run_in(root, args);
+        assert_eq!(
+            code(&out),
+            0,
+            "{args:?}: {}",
+            String::from_utf8_lossy(&out.stdout)
+        );
+    }
+    let index = envelope(&run_in(root, &["index", "check", "--json"]))["report"].clone();
+    let keys: Vec<&str> = index
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(String::as_str)
+        .collect();
+    assert_eq!(keys, vec!["diagnostics", "fresh", "unwitnessed"], "{index}");
+    let composed = envelope(&run_in(root, &["check", "--json"]))["report"]["index"].clone();
+    assert_eq!(composed, index, "both verbs carry the one index shape");
+    let stdout = String::from_utf8_lossy(&run_in(root, &["check", "--json"]).stdout).into_owned();
+    assert!(!stdout.contains("skippedShards"), "{stdout}");
+}
+
+/// §3.6 case 6: the consumer half is not loosened. On case 1's tree the reads
+/// that consume the ledger still refuse to proceed: `index owner` at its
+/// freshness guard (exit 2, as before this spec), and `index render`, which
+/// reads the shards with no guard in front, still at exit 3 (095 D-5).
+#[test]
+fn the_consumer_verbs_still_refuse_an_unparseable_stray() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+    fs::write(
+        index_shard_dir(root, "by-spec").join("999-stray.json"),
+        "{\"nope\": 1}\n",
+    )
+    .unwrap();
+
+    let owner = run_in(root, &["index", "owner", "crate-a/src/lib.rs"]);
+    assert_eq!(
+        code(&owner),
+        2,
+        "{}",
+        String::from_utf8_lossy(&owner.stderr)
+    );
+    let render = run_in(root, &["index", "render"]);
+    assert_eq!(
+        code(&render),
+        3,
+        "{}",
+        String::from_utf8_lossy(&render.stderr)
+    );
+    assert!(
+        String::from_utf8_lossy(&render.stderr).contains("999-stray.json"),
+        "{}",
+        String::from_utf8_lossy(&render.stderr)
+    );
+}

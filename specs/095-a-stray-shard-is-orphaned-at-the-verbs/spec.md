@@ -17,7 +17,7 @@ summary: >
   not a bypass. 086's acceptance asserted the classification on the library
   function only, which is exactly how it passed. This spec makes the tally
   best-effort and the verdict authoritative, and asserts it at the verbs.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -244,6 +244,35 @@ caught `Error::Parse` where strays are enumerated and nowhere else would have
 passed every case while leaving exit 3 reachable on the more likely tree: a
 shard truncated by a bad merge or a killed write, which is a file the recompute
 expects.
+
+**D-5 (2026-09-15). Case 6 asserts the consumer half as it is, not at exit 3
+for `index owner`.** §3.6 case 6 says `index owner` on case 1's tree "still
+refuses at exit 3". Measured while building, at 0.19.0 and before any change:
+`index owner` exits **2** on that tree, because it calls the freshness guard
+first and the guard names the orphan, which is exactly what §3.2's own list says
+of it ("those verbs already refuse a stale ledger before reading it"). The two
+sentences disagree, and the case's stated purpose, that §3.2's split "is not
+loosened by accident", is the part the build can honor. Case 6 therefore
+asserts both consumer shapes unchanged on that tree: `index owner` refuses at
+exit 2 through its guard, and `index render`, which reads the shards with no
+guard in front of it, still refuses at exit 3 naming the stray. An
+implementation that loosened the shared reader would fail the second assertion.
+The alternative rejected was to make `index owner` exit 3, which would move an
+exit code §3.2 says does not move.
+
+**D-6 (2026-09-15). The names ride beside the count, unserialized, and one
+function carries the tally.** §3.3, §3.4. The payload member is
+`skippedShards`, a number, as §3.3 requires; the prose must name the files, so
+`DiagnosticCounts` carries them as a `#[serde(skip)]` list that no payload
+emits, and `annotate_unreadable` appends `(unreadable: not counted in the
+diagnostics tally)` to the drift line naming each one, adding its own line only
+for a name the capped list does not show. `committed_counts` keeps its
+signature (spec 050's tests call it) and becomes best-effort, erroring only on
+an index never built; `verdict_tally` in `lib.rs` is the one function the two
+facades and the two CLI arms call after the verdict, which is §3.4's single
+path. A shard with a foreign schema MAJOR is skipped by the tally rather than
+refused there: spec 086 D-5's refusal still happens in the freshness
+comparison, which runs first, so the tally never gets the chance to discard it.
 
 ## Verification
 

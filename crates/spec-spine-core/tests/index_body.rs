@@ -390,3 +390,43 @@ fn a_schema_restamp_inside_our_major_reads_modified() {
         "a schema restamp is `modified`: {report}"
     );
 }
+
+#[test]
+fn the_facade_keeps_the_verdict_when_a_shard_will_not_parse() {
+    // Spec 095 §3.1, §3.6: `a_stray_file_reads_orphaned` above is still true and
+    // is not sufficient, because the verbs discarded that verdict *after* this
+    // function returned. The facade is one of the four entry points (§3.4), so
+    // it is asserted here, over both routes to drift: an unexpected stray and an
+    // expected shard corrupted in place.
+    let fx = fixture();
+    let cfg = Config::default();
+    emit(&cfg, fx.path());
+    let repo = fx.path().to_str().unwrap();
+    fs::write(
+        index_dir(&cfg, fx.path())
+            .join(BY_SPEC_DIR)
+            .join("099-ghost.json"),
+        "{ not even valid json\n",
+    )
+    .unwrap();
+    fs::write(spec_shard(&cfg, fx.path(), "001-a"), "{\"truncated\": ").unwrap();
+
+    let report: serde_json::Value =
+        serde_json::from_str(&spec_spine_core::check_freshness_json("{}", repo).unwrap())
+            .expect("the verdict survives the tally");
+    assert_eq!(report["fresh"], false, "{report}");
+    assert_eq!(report["skippedShards"], 2, "{report}");
+    let actual = report["actual"].as_str().unwrap();
+    assert!(
+        actual.contains("orphaned by-spec/099-ghost.json"),
+        "{actual}"
+    );
+    assert!(actual.contains("modified by-spec/001-a.json"), "{actual}");
+
+    let composed = spec_spine_core::check_report(&cfg, fx.path()).expect("no parse error");
+    assert_eq!(composed.index.skipped_shards, 2);
+    assert_eq!(
+        composed.index.diagnostics.unreadable,
+        vec!["by-spec/001-a.json", "by-spec/099-ghost.json"]
+    );
+}

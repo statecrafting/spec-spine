@@ -18,9 +18,12 @@
 use std::collections::BTreeMap;
 use std::path::Path;
 
-use spec_spine_types::{Config, Diagnostic, Error, Severity};
+use spec_spine_types::{
+    Config, Diagnostic, Error, INDEX_SCHEMA_VERSION, IndexPackageShard, IndexSpecShard, Severity,
+};
 
-use crate::index::read_committed_index_shards;
+use crate::index::{index_dir, read_committed_index_shards};
+use crate::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
 
 /// The two codes spec 025 uses for a unit that resolved to nothing.
 ///
@@ -59,6 +62,16 @@ pub struct DiagnosticCounts {
     /// Per-code totals, sorted by code. Zero entries are omitted, so the shape
     /// does not grow with codes a corpus does not have.
     pub by_code: BTreeMap<String, usize>,
+    /// Committed shard files the tally could not read, as `<dir>/<name>`,
+    /// sorted (spec 095 §3.3). Their diagnostics are not in the counts above.
+    ///
+    /// Not serialized: the payload carries the number, as
+    /// [`IndexCheckReport::skipped_shards`], and this list exists so the prose
+    /// form can name the files beside the stale-shard lines. Empty whenever the
+    /// counts came from [`count`] or from a tree that reads fresh, since a fresh
+    /// tree is byte-identical to what the indexer emits.
+    #[serde(skip)]
+    pub unreadable: Vec<String>,
 }
 
 impl DiagnosticCounts {
@@ -127,10 +140,34 @@ pub fn committed_diagnostics(
 /// by spec 004, so it is left alone deliberately (spec 050 3.5). The cost is
 /// one extra pass over small per-spec JSON files, paid by a verb that already
 /// hashes every input.
+///
+/// **Best-effort since spec 095.** A file in either shard directory that does
+/// not deserialize into its shard type, or that carries a foreign schema MAJOR,
+/// is skipped and named in [`DiagnosticCounts::unreadable`] instead of raising
+/// `Error::Parse`. The callers are the judging verbs (`index check`, `check` and
+/// their facades), which compute the freshness verdict first; spec 086 already
+/// reads such a file as `orphaned` or `modified`, and a tally that threw would
+/// discard that verdict for exit 3 (095 §1.1). The consumers that must refuse a
+/// corrupt ledger read it through `read_committed_index_shards`, which is
+/// unchanged. The one remaining error is an index that was never built, the
+/// state `check_index_freshness` refuses before any caller gets here.
 pub fn committed_counts(cfg: &Config, repo_root: &Path) -> Result<DiagnosticCounts, Error> {
-    let (spec_shards, _) = read_committed_index_shards(cfg, repo_root)?;
+    let dir = index_dir(cfg, repo_root);
+    if !dir.exists() {
+        return Err(Error::Io(format!(
+            "read {} (run `spec-spine index` first?): not found",
+            dir.display()
+        )));
+    }
     let mut counts = DiagnosticCounts::default();
-    for sh in &spec_shards {
+    for (name, bytes) in shard_files(&dir, BY_SPEC_DIR, &mut counts.unreadable) {
+        let Some(sh) = serde_json::from_slice::<IndexSpecShard>(&bytes)
+            .ok()
+            .filter(|sh| known_major(&sh.schema_version))
+        else {
+            counts.unreadable.push(format!("{BY_SPEC_DIR}/{name}"));
+            continue;
+        };
         for d in &sh.diagnostics.errors {
             counts.errors += 1;
             *counts.by_code.entry(d.code.clone()).or_insert(0) += 1;
@@ -140,7 +177,60 @@ pub fn committed_counts(cfg: &Config, repo_root: &Path) -> Result<DiagnosticCoun
             *counts.by_code.entry(d.code.clone()).or_insert(0) += 1;
         }
     }
+    // Package shards record no diagnostics, so they add nothing to the counts;
+    // they are read so an unreadable one is reported like a spec shard (095
+    // §3.6 case 3) rather than passing unmentioned.
+    for (name, bytes) in shard_files(&dir, BY_PACKAGE_DIR, &mut counts.unreadable) {
+        let readable = serde_json::from_slice::<IndexPackageShard>(&bytes)
+            .ok()
+            .is_some_and(|sh| known_major(&sh.schema_version));
+        if !readable {
+            counts.unreadable.push(format!("{BY_PACKAGE_DIR}/{name}"));
+        }
+    }
+    counts.unreadable.sort();
     Ok(counts)
+}
+
+/// The `.json` files of one shard directory. A directory whose files cannot be
+/// read is recorded as unreadable as a whole, so the tally never throws.
+fn shard_files(dir: &Path, label: &str, unreadable: &mut Vec<String>) -> Vec<(String, Vec<u8>)> {
+    shard::read_shard_files(&dir.join(label)).unwrap_or_else(|_| {
+        unreadable.push(format!("{label}/"));
+        Vec::new()
+    })
+}
+
+/// Whether a shard's `schemaVersion` is one this build reads (spec 086 D-5's
+/// MAJOR rule, applied as a skip rather than a refusal).
+fn known_major(found: &str) -> bool {
+    shard::check_major("index", found, INDEX_SCHEMA_VERSION).is_ok()
+}
+
+/// Annotate a stale report's drift lines with the files the tally could not
+/// read (spec 095 §3.3): the prose form names them on the lines that already
+/// list the stale shards. A name the capped list does not show gets its own
+/// line, so no skipped file goes unnamed. Shared by `index check` and `check`.
+pub fn annotate_unreadable(actual: &str, unreadable: &[String]) -> String {
+    const NOTE: &str = "(unreadable: not counted in the diagnostics tally)";
+    let mut named = vec![false; unreadable.len()];
+    let mut lines: Vec<String> = actual
+        .lines()
+        .map(|line| {
+            let file = line.trim_start().split_once(' ').map(|(_, f)| f);
+            match unreadable.iter().position(|u| Some(u.as_str()) == file) {
+                Some(i) => {
+                    named[i] = true;
+                    format!("{line} {NOTE}")
+                }
+                None => line.to_string(),
+            }
+        })
+        .collect();
+    for (file, _) in unreadable.iter().zip(&named).filter(|(_, n)| !**n) {
+        lines.push(format!("  unreadable {file} {NOTE}"));
+    }
+    lines.join("\n")
 }
 
 /// Fold a listing into counts. Split out so the arithmetic is testable without
@@ -189,6 +279,20 @@ pub struct IndexCheckReport {
     /// lint's and one flag must not mean two conditions.
     #[serde(default)]
     pub unwitnessed: UnwitnessedCounts,
+    /// How many committed shard files the diagnostics tally skipped because
+    /// they would not deserialize (spec 095 §3.3).
+    ///
+    /// Additive: `default` so a payload from a pre-095 producer reads zero, and
+    /// omitted when zero so a tree with nothing skipped emits exactly the bytes
+    /// it emitted before, which is the common case in every corpus. The verdict
+    /// schema does not move (spec 050 §3.6). A non-zero value accompanies a
+    /// stale verdict: the files it counts are drift by spec 086's comparison.
+    #[serde(default, skip_serializing_if = "is_zero")]
+    pub skipped_shards: usize,
+}
+
+fn is_zero(n: &usize) -> bool {
+    *n == 0
 }
 
 /// The registry half of a composed `check` verdict (spec 075 §3.4).
@@ -264,6 +368,7 @@ impl IndexCheckReport {
                 fresh: true,
                 expected: None,
                 actual: None,
+                skipped_shards: counts.unreadable.len(),
                 diagnostics: counts,
                 unwitnessed,
             },
@@ -271,6 +376,7 @@ impl IndexCheckReport {
                 fresh: false,
                 expected: Some(expected.clone()),
                 actual: Some(actual.clone()),
+                skipped_shards: counts.unreadable.len(),
                 diagnostics: counts,
                 unwitnessed,
             },
