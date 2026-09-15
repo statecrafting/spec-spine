@@ -33,6 +33,7 @@ pub mod render;
 pub mod scaffold;
 pub mod sections;
 pub mod shard;
+pub mod snapshot;
 pub mod spec_id;
 pub mod symbols;
 pub mod verify;
@@ -91,6 +92,10 @@ pub use query::{
 pub use read::{Versioning, read_document};
 pub use render::{OrphanReport, orphans, partition_orphans, render_markdown};
 pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init, scaffold_init_with};
+pub use snapshot::{
+    SnapshotOutcome, check_snapshot_major, snapshot, snapshot_hash, verify_snapshot_recompute,
+    with_stored_bytes_snapshot,
+};
 // Spec 084 3.4: the one spec-id policy, public because the CLI's two
 // non-library arguments (the attestation file name, and the attestation
 // directory `verify-attestation` resolves against) call it directly.
@@ -552,6 +557,83 @@ pub fn attest_spec_json(
         attestation: outcome.attestation,
         attestation_hash: outcome.attestation_hash,
     })
+}
+
+/// Build an authority snapshot (spec 087 §3.5), returning
+/// `{ "attestation": <AuthoritySnapshot>, "attestationHash": "<hex>" }`, the
+/// shape the other two scopes' facades return. Pure: no key, no clock; signing
+/// is a CLI post-pass.
+pub fn attest_snapshot_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
+    #[derive(Serialize)]
+    #[serde(rename_all = "camelCase")]
+    struct Response {
+        attestation: spec_spine_types::AuthoritySnapshot,
+        attestation_hash: String,
+    }
+    let config = config_from_json(config_json)?;
+    let outcome = snapshot(&config, std::path::Path::new(repo_root))?;
+    to_json(&Response {
+        attestation: outcome.snapshot,
+        attestation_hash: outcome.attestation_hash,
+    })
+}
+
+/// Verify an authority snapshot by recompute (spec 087 §3.5), under spec 085's
+/// rules. Request: `{ "config"?: Config, "repoRoot": string, "attestation":
+/// <AuthoritySnapshot> }`, or `"attestationText": string` in place of
+/// `attestation` (spec 085 3.4). Same outcome vocabulary as
+/// [`verify_attestation_json`].
+pub fn verify_snapshot_attestation_json(request_json: &str) -> Result<String, Error> {
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct Request {
+        #[serde(default)]
+        config: Config,
+        repo_root: String,
+        #[serde(default)]
+        attestation: Option<spec_spine_types::AuthoritySnapshot>,
+        #[serde(default)]
+        attestation_text: Option<String>,
+    }
+    const VERB: &str = "verify-snapshot-attestation";
+    let request: Request = serde_json::from_str(request_json)
+        .map_err(|e| Error::Parse(format!("invalid {VERB} request: {e}")))?;
+    let (attested, stored) = match (request.attestation, request.attestation_text) {
+        (Some(_), Some(_)) => return Err(both_supplied(VERB)),
+        (None, None) => return Err(neither_supplied(VERB)),
+        (Some(a), None) => {
+            check_snapshot_major(&a.schema_version)?;
+            (a, None)
+        }
+        (None, Some(text)) => {
+            check_snapshot_major(&attest::payload_schema_version(
+                text.as_bytes(),
+                "snapshot",
+            )?)?;
+            let a = serde_json::from_str(&text)
+                .map_err(|e| Error::Parse(format!("invalid {VERB} attestationText: {e}")))?;
+            (a, Some(text))
+        }
+    };
+    let outcome = verify_snapshot_recompute(
+        &request.config,
+        std::path::Path::new(&request.repo_root),
+        &attested,
+    )?;
+    let outcome = match &stored {
+        Some(text) => with_stored_bytes_snapshot(outcome, &attested, text.as_bytes())?,
+        None => outcome,
+    };
+    let value = match outcome {
+        VerifyOutcome::Match => serde_json::json!({ "outcome": "match" }),
+        VerifyOutcome::VersionMismatch { expected, actual } => {
+            serde_json::json!({ "outcome": "versionMismatch", "expected": expected, "actual": actual })
+        }
+        VerifyOutcome::ContentMismatch { differences } => {
+            serde_json::json!({ "outcome": "contentMismatch", "differences": differences })
+        }
+    };
+    Ok(value.to_string())
 }
 
 /// Verify a per-spec attestation by recompute (spec 042 3.5). Request:

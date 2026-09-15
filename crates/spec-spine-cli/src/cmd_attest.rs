@@ -8,7 +8,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use spec_spine_core::{AttestOptions, attest, attest_spec};
+use spec_spine_core::{AttestOptions, attest, attest_spec, snapshot};
 use spec_spine_types::{Error, Verdict, verdict::verb};
 use time::OffsetDateTime;
 use time::format_description::well_known::Rfc3339;
@@ -22,6 +22,8 @@ pub struct AttestArgs {
     /// Scope to one spec (spec 042); `None` attests the whole corpus (spec 023).
     pub spec: Option<String>,
     pub with_coupling: bool,
+    /// Emit an authority snapshot (spec 087) instead of an attestation.
+    pub snapshot: bool,
     pub sign: bool,
     pub key: Option<PathBuf>,
     pub key_id: Option<String>,
@@ -33,6 +35,22 @@ pub struct AttestArgs {
 /// Exit `0` on success; a `--sign` with no `--key` is a visible config error
 /// (FR-006: a mode that cannot run fails, never skip-as-pass).
 pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
+    // Spec 087 §3.5: each flag names a different scope, so a snapshot combined
+    // with either is refused rather than one silently winning.
+    if args.snapshot {
+        for (given, flag) in [
+            (args.spec.is_some(), "--spec"),
+            (args.with_coupling, "--with-coupling"),
+        ] {
+            if given {
+                return Err(Error::Config(format!(
+                    "attest --snapshot cannot combine with {flag}: each names a different \
+                     scope (spec 087 3.5); a snapshot already records every spec's territory \
+                     and the resolution verdict"
+                )));
+            }
+        }
+    }
     // Spec 042 3.1: coupling is a property of a diff between two revisions, not
     // of a spec at one revision, so a per-spec attestation carries no couple
     // verdict and `attest_spec` takes no such option. Accepting the flag and
@@ -77,6 +95,14 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
     // spec, and `verify-attestation --spec <full id>` reads only one of them.
     let mut resolved_spec: Option<String> = None;
     let (json, attestation_hash, payload) = match &args.spec {
+        None if args.snapshot => {
+            let outcome = snapshot(&cfg, repo)?;
+            let payload = serde_json::json!({
+                "attestation": outcome.snapshot,
+                "attestationHash": outcome.attestation_hash,
+            });
+            (outcome.json, outcome.attestation_hash, payload)
+        }
         Some(id) => {
             let outcome = attest_spec(&cfg, repo, id)?;
             resolved_spec = Some(outcome.attestation.spec_id.clone());
@@ -105,6 +131,7 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
     let out_dir = repo.join(&cfg.layout.derived_dir).join("attestation");
     let attestation_path = match &resolved_spec {
         Some(id) => out_dir.join("by-spec").join(format!("{id}.json")),
+        None if args.snapshot => out_dir.join("snapshot.json"),
         None => out_dir.join("attestation.json"),
     };
     let parent = attestation_path.parent().unwrap_or(&out_dir);
@@ -118,6 +145,7 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
     // different spellings of one spec on one line.
     let scope = match (&resolved_spec, args.with_coupling) {
         (Some(id), _) => id.as_str(),
+        (None, _) if args.snapshot => "snapshot",
         (None, true) => "specs+code",
         (None, false) => "spec-corpus",
     };

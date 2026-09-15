@@ -32,6 +32,7 @@ pub mod error;
 pub mod frontmatter;
 pub mod registry;
 pub mod schema;
+pub mod snapshot;
 pub mod unit;
 pub mod verdict;
 pub mod verify;
@@ -76,11 +77,17 @@ pub use schema::{
     BUILD_META_SCHEMA, INDEX_PACKAGE_SHARD_SCHEMA, INDEX_SCHEMA, INDEX_SPEC_SHARD_SCHEMA,
     REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA,
 };
+pub use snapshot::{
+    AuthoritySnapshot, CommittedTree, FRAME_DIGEST, NON_UTF8_DIRECT_CLAIM, SnapshotCommitted,
+    SnapshotCompileVerdict, SnapshotConfig, SnapshotCorpus, SnapshotExclusions,
+    SnapshotGovernanceInputs, SnapshotOwnership, SnapshotResolutionVerdict, SnapshotSchemas,
+    SnapshotSpec, SnapshotUnwitnessed, SnapshotVerdicts,
+};
 pub use unit::Unit;
 pub use verdict::{Verdict, VerdictError, error_kind};
 pub use verify::{SkippedBlocks, VerifyFailure, VerifyOutcome, VerifyPlan, VerifyReport};
 pub use version::{
     BUILD_META_SCHEMA_VERSION, CONFIG_VERSION, DELTA_SCHEMA_VERSION, INDEX_SCHEMA_VERSION,
-    READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION,
-    VERDICT_SCHEMA_VERSION, parse_semver,
+    READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, SNAPSHOT_SCHEMA_VERSION,
+    SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, parse_semver,
 };

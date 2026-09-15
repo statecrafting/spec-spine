@@ -31,7 +31,7 @@ use crate::pathutil;
 /// this comment, not by linkage, so the attest capability does not take a code
 /// dependency on the indexer's private constant): the same set that
 /// `check_index_freshness` treats as a hard failure.
-const BLOCKING_RESOLVER_CODES: &[&str] = &[
+pub(crate) const BLOCKING_RESOLVER_CODES: &[&str] = &[
     "I-003", "I-004", "I-005", "I-006", "I-007", "I-008", "I-009",
 ];
 
@@ -186,24 +186,71 @@ pub fn attest_spec(
         .find(|s| &s.id == spec_id)
         .ok_or_else(|| crate::spec_id::no_match(spec_id))?;
 
-    let spec_source_hash = {
-        let path = repo_root.join(&record.spec_path);
-        let text = fs::read_to_string(&path)
-            .map_err(|e| Error::Io(format!("read {}: {e}", path.display())))?;
-        // The project's standing normalization (BOM stripped, CRLF/CR to LF),
-        // so the payload is platform-independent like every other hash here.
-        sha256_hex(hash::normalize(&text).as_bytes())
-    };
+    let spec_source_hash = spec_source_hash(repo_root, record)?;
 
     // The resolved territory: owning units only, in the registry's canonical
     // order, each with the content hash of what it resolved to.
     let indexed = index(cfg, repo_root)?;
+    let (units, all_resolved) =
+        spec_units(cfg, repo_root, spec_id, &indexed).map_err(SpecUnitsError::into_error)?;
+    let lint_report = lint(cfg, repo_root)?;
+    build_spec_attestation(
+        cfg,
+        &compiled,
+        record,
+        spec_source_hash,
+        units,
+        all_resolved,
+        &lint_report,
+    )
+}
+
+/// SHA-256 over a spec's own normalized `spec.md` (spec 042 `specSourceHash`).
+pub(crate) fn spec_source_hash(
+    repo_root: &Path,
+    record: &spec_spine_types::SpecRecord,
+) -> Result<String, Error> {
+    let path = repo_root.join(&record.spec_path);
+    let text = fs::read_to_string(&path)
+        .map_err(|e| Error::Io(format!("read {}: {e}", path.display())))?;
+    // The project's standing normalization (BOM stripped, CRLF/CR to LF),
+    // so the payload is platform-independent like every other hash here.
+    Ok(sha256_hex(hash::normalize(&text).as_bytes()))
+}
+
+/// Why a spec's units could not be hashed under spec 042's construction.
+///
+/// The one distinction a caller acts on (spec 087 §3.2.1): a directly claimed
+/// file whose content is not UTF-8, which this construction reads as text and
+/// so cannot answer, against every other failure. [`attest_spec`] turns both
+/// into the same `Error` it always returned, word for word.
+pub(crate) enum SpecUnitsError {
+    NonUtf8DirectClaim(Error),
+    Other(Error),
+}
+
+impl SpecUnitsError {
+    pub(crate) fn into_error(self) -> Error {
+        match self {
+            SpecUnitsError::NonUtf8DirectClaim(e) | SpecUnitsError::Other(e) => e,
+        }
+    }
+}
+
+/// The owning units of `spec_id` with the content hash of what each resolved
+/// to, and whether every one resolved (spec 042, spec 083).
+pub(crate) fn spec_units(
+    cfg: &spec_spine_types::Config,
+    repo_root: &Path,
+    spec_id: &str,
+    indexed: &crate::index::IndexOutcome,
+) -> Result<(Vec<AttestedUnit>, bool), SpecUnitsError> {
     let mapping = indexed
         .index
         .traceability
         .mappings
         .iter()
-        .find(|m| &m.spec_id == spec_id);
+        .find(|m| m.spec_id == spec_id);
     let mut units: Vec<AttestedUnit> = Vec::new();
     let mut all_resolved = true;
     for resolved in mapping.into_iter().flat_map(|m| &m.resolved_units) {
@@ -257,11 +304,11 @@ pub fn attest_spec(
                     match entry {
                         crate::index::TerritoryEntry::File(file) => {
                             let bytes = fs::read(&file).map_err(|e| {
-                                Error::Io(format!(
+                                SpecUnitsError::Other(Error::Io(format!(
                                     "read {} for spec '{spec_id}' unit {:?}: {e}",
                                     file.display(),
                                     resolved.unit
-                                ))
+                                )))
                             })?;
                             // Spec 083 3.2 + D-5: a claimed subtree contains
                             // whatever it contains, so the walk meets bytes that
@@ -291,11 +338,20 @@ pub fn attest_spec(
                 continue;
             }
             let content = fs::read_to_string(&path).map_err(|e| {
-                Error::Io(format!(
+                // Spec 087 §3.2.1: `InvalidData` is exactly "the bytes were read
+                // and are not UTF-8", the one shape this construction cannot
+                // answer. The message is unchanged either way.
+                let non_utf8 = e.kind() == std::io::ErrorKind::InvalidData;
+                let err = Error::Io(format!(
                     "read {} for spec '{spec_id}' unit {:?}: {e}",
                     path.display(),
                     resolved.unit
-                ))
+                ));
+                if non_utf8 {
+                    SpecUnitsError::NonUtf8DirectClaim(err)
+                } else {
+                    SpecUnitsError::Other(err)
+                }
             })?;
             pieces.push((loc.file.clone(), content));
         }
@@ -305,6 +361,24 @@ pub fn attest_spec(
         });
     }
 
+    Ok((units, all_resolved))
+}
+
+/// Assemble a [`SpecAttestation`] from inputs already computed (spec 042).
+///
+/// Split from [`attest_spec`] so one compile, index and lint can serve every
+/// spec in a snapshot (spec 087 §3.2); the bytes produced are the ones
+/// `attest_spec` has always produced.
+pub(crate) fn build_spec_attestation(
+    cfg: &spec_spine_types::Config,
+    compiled: &crate::compile::CompileOutcome,
+    record: &spec_spine_types::SpecRecord,
+    spec_source_hash: String,
+    units: Vec<AttestedUnit>,
+    all_resolved: bool,
+    lint_report: &crate::lint::LintReport,
+) -> Result<SpecAttestOutcome, Error> {
+    let spec_id = &record.id;
     // Verdicts restricted to this spec. `lint.ok` and `findingsHash` cover the
     // findings attributed to it, using 023's findings-hash construction so a
     // changed finding set is detectable even when `ok` is unchanged.
@@ -315,7 +389,6 @@ pub fn attest_spec(
     // cross-cutting rule that did not would need a scoping answer here rather
     // than inheriting silence. The corpus-scoped attestation (spec 023) hashes
     // the whole findings set and is unaffected either way.
-    let lint_report = lint(cfg, repo_root)?;
     let mine: Vec<_> = lint_report
         .violations
         .iter()
@@ -476,7 +549,7 @@ pub fn spec_attestation_hash(attestation: &SpecAttestation) -> Result<String, Er
 }
 
 /// The canonical lowercase label for a status.
-fn status_label(status: spec_spine_types::Status) -> &'static str {
+pub(crate) fn status_label(status: spec_spine_types::Status) -> &'static str {
     use spec_spine_types::Status;
     match status {
         Status::Draft => "draft",
@@ -487,7 +560,9 @@ fn status_label(status: spec_spine_types::Status) -> &'static str {
 }
 
 /// The canonical kebab-case label for an implementation value.
-fn implementation_label(implementation: spec_spine_types::Implementation) -> &'static str {
+pub(crate) fn implementation_label(
+    implementation: spec_spine_types::Implementation,
+) -> &'static str {
     use spec_spine_types::Implementation;
     match implementation {
         Implementation::Pending => "pending",

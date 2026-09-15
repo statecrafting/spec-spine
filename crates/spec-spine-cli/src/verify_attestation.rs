@@ -18,12 +18,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use spec_spine_core::{
-    VerifyOutcome, check_attestation_major, check_spec_attestation_major, payload_schema_version,
-    stored_bytes_hash, verify_recompute, verify_spec_recompute, with_stored_bytes,
-    with_stored_bytes_spec,
+    VerifyOutcome, check_attestation_major, check_snapshot_major, check_spec_attestation_major,
+    payload_schema_version, stored_bytes_hash, verify_recompute, verify_snapshot_recompute,
+    verify_spec_recompute, with_stored_bytes, with_stored_bytes_snapshot, with_stored_bytes_spec,
 };
 use spec_spine_types::{
-    Config, CorpusAttestation, Error, LedgerSeal, SpecAttestation, Verdict, verdict::verb,
+    AuthoritySnapshot, Config, CorpusAttestation, Error, LedgerSeal, SpecAttestation, Verdict,
+    verdict::verb,
 };
 
 use crate::load_repo_config;
@@ -35,6 +36,8 @@ pub struct VerifyArgs {
     /// Verify the per-spec attestation for this id (spec 042); `None` verifies
     /// the corpus-scoped one (spec 023).
     pub spec: Option<String>,
+    /// Verify the authority snapshot (spec 087) rather than an attestation.
+    pub snapshot: bool,
     pub recompute: bool,
     pub signature: bool,
     pub attestation: Option<PathBuf>,
@@ -55,6 +58,13 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
         ));
     }
 
+    if args.snapshot && args.spec.is_some() {
+        return Err(Error::Config(
+            "verify-attestation --snapshot cannot combine with --spec: each names a different \
+             record (spec 087 3.5)"
+                .to_string(),
+        ));
+    }
     let cfg = load_repo_config(repo)?;
     if let Some(id) = &args.spec {
         validate_spec_id(id)?;
@@ -73,14 +83,20 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
         Some(id) => Some(resolve_attested_spec(repo, &cfg, id)?),
         None => None,
     };
-    let attestation_path = args
-        .attestation
-        .clone()
-        .unwrap_or_else(|| default_attestation_path(repo, &cfg, spec.as_deref()));
+    let attestation_path = args.attestation.clone().unwrap_or_else(|| {
+        if args.snapshot {
+            repo.join(&cfg.layout.derived_dir)
+                .join("attestation")
+                .join("snapshot.json")
+        } else {
+            default_attestation_path(repo, &cfg, spec.as_deref())
+        }
+    });
 
     // Read once, and hold the bytes: they are what both modes decide on (3.1).
     let hint = match &spec {
         Some(id) => format!("spec-spine attest --spec {id}"),
+        None if args.snapshot => "spec-spine attest --snapshot".to_string(),
         None => "spec-spine attest".to_string(),
     };
     let bytes = read_artifact(&attestation_path, "attestation", &hint)?;
@@ -92,6 +108,14 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     // both verification paths fork here and nowhere else.
     let version = payload_schema_version(&bytes, "attestation")?;
     let subject = match &spec {
+        None if args.snapshot => {
+            check_snapshot_major(&version)?;
+            Subject::Snapshot(Box::new(parse_artifact(
+                &bytes,
+                &attestation_path,
+                "snapshot",
+            )?))
+        }
         Some(_) => {
             check_spec_attestation_major(&version)?;
             Subject::Spec(parse_artifact(&bytes, &attestation_path, "attestation")?)
@@ -117,6 +141,9 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
             Subject::Corpus(a) => with_stored_bytes(verify_recompute(&cfg, repo, a)?, a, &bytes)?,
             Subject::Spec(a) => {
                 with_stored_bytes_spec(verify_spec_recompute(&cfg, repo, a)?, a, &bytes)?
+            }
+            Subject::Snapshot(a) => {
+                with_stored_bytes_snapshot(verify_snapshot_recompute(&cfg, repo, a)?, a, &bytes)?
             }
         };
         match outcome {
@@ -172,6 +199,7 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
             .unwrap_or_else(|| attestation_path.with_extension("sig"));
         let seal_hint = match &spec {
             Some(id) => format!("spec-spine attest --spec {id} --sign"),
+            None if args.snapshot => "spec-spine attest --snapshot --sign".to_string(),
             None => "spec-spine attest --sign".to_string(),
         };
         let ledger_seal: LedgerSeal = load_json(&seal_path, "seal", &seal_hint)?;
@@ -215,6 +243,8 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
 enum Subject {
     Corpus(CorpusAttestation),
     Spec(SpecAttestation),
+    /// Boxed: a snapshot is much larger than either attestation.
+    Snapshot(Box<AuthoritySnapshot>),
 }
 
 fn default_attestation_path(repo: &Path, cfg: &Config, spec: Option<&str>) -> PathBuf {
