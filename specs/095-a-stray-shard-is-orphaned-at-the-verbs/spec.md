@@ -17,7 +17,7 @@ summary: >
   not a bypass. 086's acceptance asserted the classification on the library
   function only, which is exactly how it passed. This spec makes the tally
   best-effort and the verdict authoritative, and asserts it at the verbs.
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
