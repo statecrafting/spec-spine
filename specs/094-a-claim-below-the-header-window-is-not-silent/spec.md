@@ -1,7 +1,7 @@
 ---
 id: "094-a-claim-below-the-header-window-is-not-silent"
 title: "A claim below the header window is not silent"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-14"
 summary: >

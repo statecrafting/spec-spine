@@ -143,8 +143,8 @@
       }
     ],
     "specId": "094-a-claim-below-the-header-window-is-not-silent",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "987c2150c5f22295a366cf61a63a74fabbb18039f20d0ff8795565ad06102795"
+  "shardHash": "3e44fd3548e153b4ae08abaf4e6baae3c4929a3822038fc938ef74dcd895505d"
 }
