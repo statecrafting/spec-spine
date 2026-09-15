@@ -1,7 +1,7 @@
 ---
 id: "093-a-governed-read-names-its-version"
 title: "A governed read names its version"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-14"
 summary: >
