@@ -17,7 +17,7 @@ summary: >
   the whole defect. This spec amends 055 §3.4 to state the construction the
   code has always used, makes the printed line say it, and adds the test that
   pins both digests so the two cannot drift again.
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
