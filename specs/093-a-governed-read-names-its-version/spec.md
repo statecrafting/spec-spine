@@ -20,7 +20,7 @@ summary: >
   across three verbs change shape breakingly, and two of the four are
   contracts approved specs state, so this spec carries `amends` edges to 010
   and 060 rather than editing them.
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
