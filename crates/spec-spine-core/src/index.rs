@@ -491,7 +491,7 @@ fn compare_shard_dir(
 /// Both shard directories are compared, and `missing`/`orphaned` are set
 /// membership rather than content, which is why this compares sets and not only
 /// the files present in both.
-fn committed_index_drift(
+pub(crate) fn committed_index_drift(
     cfg: &spec_spine_types::Config,
     repo_root: &Path,
     shards: &IndexShardSet,
@@ -1440,9 +1440,7 @@ fn walk(
     let mut paths: Vec<PathBuf> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
     paths.sort();
     for path in paths {
-        if is_excluded(repo_root, &path, exclusions)
-            || layout.is_state_path(&rel_posix(repo_root, &path))
-        {
+        if territory_pruned(repo_root, &path, exclusions, layout) {
             continue;
         }
         if path.is_dir() {
@@ -1544,6 +1542,67 @@ fn walk_territory_inner(
             out.push(TerritoryEntry::File(path));
         }
     }
+}
+
+/// Whether the territory walk skips `path` (spec 083 3.2): a resolver exclusion
+/// or the declared state root. One predicate, so [`walk_territory`] and
+/// [`empty_territory_dirs`] cannot disagree about what a subtree contains.
+fn territory_pruned(
+    repo_root: &Path,
+    path: &Path,
+    exclusions: &[String],
+    layout: &LayoutConfig,
+) -> bool {
+    is_excluded(repo_root, path, exclusions) || layout.is_state_path(&rel_posix(repo_root, path))
+}
+
+/// The directories at or beneath `dir` that the territory walk reaches and that
+/// hold nothing it does not prune: the empty and wholly pruned directories a
+/// snapshot records as `d` pieces (spec 087 §3.3.1). Sorted by path.
+///
+/// Leaves only. A directory whose sole children are empty directories is not
+/// itself empty, so the pieces sit at the directories that are. `dir` is
+/// included when it is such a leaf. Symlinks count as children and are never
+/// followed, exactly as in [`walk_territory`].
+pub(crate) fn empty_territory_dirs(
+    dir: &Path,
+    repo_root: &Path,
+    exclusions: &[String],
+    layout: &LayoutConfig,
+) -> Vec<PathBuf> {
+    fn visit(
+        dir: &Path,
+        repo_root: &Path,
+        exclusions: &[String],
+        layout: &LayoutConfig,
+        out: &mut Vec<PathBuf>,
+    ) {
+        let Ok(entries) = fs::read_dir(dir) else {
+            return;
+        };
+        let mut children = 0usize;
+        let mut paths: Vec<PathBuf> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
+        paths.sort();
+        for path in paths {
+            if territory_pruned(repo_root, &path, exclusions, layout) {
+                continue;
+            }
+            let Ok(meta) = fs::symlink_metadata(&path) else {
+                continue;
+            };
+            children += 1;
+            if meta.is_dir() && !meta.file_type().is_symlink() {
+                visit(&path, repo_root, exclusions, layout, out);
+            }
+        }
+        if children == 0 {
+            out.push(dir.to_path_buf());
+        }
+    }
+    let mut out = Vec::new();
+    visit(dir, repo_root, exclusions, layout, &mut out);
+    out.sort();
+    out
 }
 
 fn collapse_sources(sources: &BTreeSet<TraceSource>) -> TraceSource {

@@ -89,6 +89,10 @@ pub const DELTA_SCHEMA_VERSION: &str = "0.1.0";
 /// constant for every read document: per-verb axes would always move together.
 pub const READ_SCHEMA_VERSION: &str = "0.1.0";
 
+/// `schemaVersion` of an authority snapshot (spec 087): its own axis, defined
+/// beside the DTO it versions and re-exported here with the others.
+pub use crate::snapshot::SNAPSHOT_SCHEMA_VERSION;
+
 /// The `spec-spine.toml` config schema version (optional `config_version` key).
 pub const CONFIG_VERSION: &str = "0.1.0";
 

@@ -246,6 +246,42 @@ Normalization strips a leading BOM and folds CRLF and CR to LF.
 | seal `sig` | detached `.sig` | `attestationHash` | Ed25519 over its 32 raw bytes |
 | `registry show` `contentHash` | query output | one `spec.md` | the `shardHash` construction; it does **not** equal `specSourceHash` for the same file. Until spec 096 the prose line glossed it as "sha256 of this spec.md" and approved spec 055 §3.4 said the same; 096 amends that sentence and the line now names the path framing, with a CLI test pinning both constructions (closed) |
 
+### The authority snapshot (spec 087)
+
+`attest --snapshot` writes `<derived>/attestation/snapshot.json`, an
+`AuthoritySnapshot` on its own schema axis. Every digest it **introduces** is
+`frame/1`: SHA-256 over `"spec-spine/frame/1" NUL`, then for each piece sorted
+by path, one kind byte (`t` text, `b` bytes, `l` symlink target, `d` empty
+directory), the path's length as a big-endian u64, the path, the content's
+length as a big-endian u64, and the content. A UTF-8 file is a `t` piece with
+the standing normalization applied; any other file is a `b` piece with its
+exact bytes. Paths are deduplicated, so a path appears once. The length prefix
+and the kind byte are what the unframed `content_hash` above lacks: under
+`frame/1` a split piece set cannot collide with a joined one, and a binary file
+cannot collide with the text `sha256:<hex>` spec 083 substitutes for it. It
+binds **normalized text**, not exact bytes: a governance file rewritten from LF
+to CRLF has the same `frame/1` digest, which is what makes a Windows and a
+Linux checkout of one revision agree. Spec 085's verifier, by contrast, checks
+exact bytes.
+
+| Digest | Where | Covers | Construction |
+|---|---|---|---|
+| `config.hash` | `AuthoritySnapshot` | `spec-spine.toml`; absent when there is none | `frame/1` |
+| `committed.registry.hash`, `committed.index.hash` | same | the committed shard files (and the index's slices sidecar), as stored; absent when the tree is | `frame/1` |
+| `committed.*.matchesRecompute` | same | whether every committed shard is byte-identical to the recompute and the sets match | a flag, not a digest |
+| `governanceInputs.hash` | same | `spec-spine.toml` and every `extra_hashed_inputs` match outside the state root, by path, as their own content (not spec 073's projection) | `frame/1` |
+| `specs[].territoryDigest` | same | the files, symlinks and empty directories a spec's owning units resolve to, whole files never spans; absent when nothing resolves | `frame/1` |
+| `specs[].specAttestationHash` | same | historical evidence only: the `attestationHash` `attest --spec` emits for that spec, or absent with `specAttestationUnavailable: "non-utf8-direct-claim"` where that verb cannot produce a record | spec 042's |
+| `corpus.inputsManifestHash`, `corpus.registryHash`, `verdicts.lint.findingsHash` | same | as in `CorpusAttestation` | unchanged |
+
+What a snapshot establishes, for one tree and one tool version: exactly which
+inputs were read and what they hashed to, whether the committed ledger equals
+the recompute, the verdicts the gate would reach, and every spec's territory
+digest. What it does **not** establish: anything about a revision (the consumer
+binds `{repo, commit, tree}` and recomputes from that tree), anything about
+unclaimed files beyond their count, whether any specification is correct, or
+that anyone approved the state.
+
 Every value above is independently recomputable from a tree and the same tool
 version, except the seal, which needs the public key. No key and no network is
 needed for anything else.

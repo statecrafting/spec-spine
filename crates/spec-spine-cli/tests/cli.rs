@@ -3180,3 +3180,155 @@ fn plan_next_on_an_empty_ready_set_is_a_present_null() {
         })
     );
 }
+
+// ── spec 087: the authority snapshot ─────────────────────────────────────
+
+/// §3.5: `attest --snapshot` writes `snapshot.json`, reports it in the same
+/// `{ attestation, attestationHash }` envelope as the other scopes (equal to the
+/// facade's payload), seals it beside itself, and `verify-attestation
+/// --snapshot` checks both modes back, naming a moved member on recompute.
+#[test]
+fn attest_snapshot_writes_seals_and_verifies() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+
+    let out = run_in(root, &["attest", "--snapshot", "--json"]);
+    assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
+    let v = envelope(&out);
+    assert_eq!(v["verb"], "attest");
+    let path = root.join(".derived/attestation/snapshot.json");
+    assert!(path.is_file(), "the payload lands at snapshot.json");
+    assert!(!root.join(".derived/attestation/attestation.json").exists());
+    let stored: serde_json::Value = serde_json::from_slice(&fs::read(&path).unwrap()).unwrap();
+    assert_eq!(v["report"]["attestation"], stored);
+    assert_eq!(
+        stored["schemaVersion"],
+        spec_spine_types::SNAPSHOT_SCHEMA_VERSION
+    );
+    assert_eq!(stored["digest"], "frame/1");
+    assert_eq!(stored["committed"]["registry"]["matchesRecompute"], true);
+    assert_eq!(stored["committed"]["index"]["matchesRecompute"], true);
+    assert_eq!(stored["specs"][0]["id"], "001-a");
+    assert!(stored["specs"][0]["territoryDigest"].is_string());
+    assert!(stored["specs"][0]["specAttestationHash"].is_string());
+
+    let facade: serde_json::Value = serde_json::from_str(
+        &spec_spine_core::attest_snapshot_json("{}", root.to_str().unwrap()).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(v["report"], facade, "one payload shape per verb");
+
+    let seed = root.join("signing.key");
+    fs::write(&seed, [5u8; 32]).unwrap();
+    let signed = run_in(
+        root,
+        &[
+            "attest",
+            "--snapshot",
+            "--sign",
+            "--key",
+            seed.to_str().unwrap(),
+        ],
+    );
+    assert_eq!(
+        code(&signed),
+        0,
+        "{}",
+        String::from_utf8_lossy(&signed.stderr)
+    );
+    let seal_path = root.join(".derived/attestation/snapshot.sig");
+    assert!(seal_path.is_file(), "the seal is the payload's sibling");
+    let seal: serde_json::Value = serde_json::from_slice(&fs::read(&seal_path).unwrap()).unwrap();
+    let public = root.join("public.hex");
+    fs::write(&public, seal["keyId"].as_str().unwrap()).unwrap();
+
+    let verified = run_in(
+        root,
+        &[
+            "verify-attestation",
+            "--snapshot",
+            "--recompute",
+            "--signature",
+            "--public-key",
+            public.to_str().unwrap(),
+        ],
+    );
+    assert_eq!(
+        code(&verified),
+        0,
+        "{}",
+        String::from_utf8_lossy(&verified.stderr)
+    );
+    let text = String::from_utf8_lossy(&verified.stdout);
+    assert!(text.contains("recompute: MATCH"), "{text}");
+    assert!(text.contains("signature: VALID"), "{text}");
+
+    let request = serde_json::json!({
+        "repoRoot": root.to_str().unwrap(),
+        "attestationText": fs::read_to_string(&path).unwrap(),
+    });
+    assert_eq!(
+        spec_spine_core::verify_snapshot_attestation_json(&request.to_string()).unwrap(),
+        "{\"outcome\":\"match\"}"
+    );
+
+    fs::write(
+        root.join("crate-a/src/lib.rs"),
+        "pub fn a() {}\npub fn b() {}\n",
+    )
+    .unwrap();
+    let stale = run_in(root, &["verify-attestation", "--snapshot", "--recompute"]);
+    assert_eq!(code(&stale), 1);
+    let err = String::from_utf8_lossy(&stale.stderr);
+    assert!(err.contains("CONTENT MISMATCH"), "{err}");
+    assert!(
+        err.contains("specs[001-a]"),
+        "the moved member is named: {err}"
+    );
+}
+
+/// §3.5: each flag names a different scope, so combining them is refused at
+/// exit 3 in words a usage error does not contain.
+#[test]
+fn attest_snapshot_refuses_another_scope() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+    for other in [&["--spec", "001-a"][..], &["--with-coupling"][..]] {
+        let mut args = vec!["attest", "--snapshot"];
+        args.extend_from_slice(other);
+        let out = run_in(root, &args);
+        assert_eq!(code(&out), 3, "{args:?}");
+        let err = String::from_utf8_lossy(&out.stderr);
+        assert!(err.contains("cannot combine"), "{args:?}: {err}");
+        assert!(!root.join(".derived/attestation/snapshot.json").exists());
+    }
+    let out = run_in(
+        root,
+        &[
+            "verify-attestation",
+            "--snapshot",
+            "--spec",
+            "001-a",
+            "--recompute",
+        ],
+    );
+    assert_eq!(code(&out), 3);
+    assert!(String::from_utf8_lossy(&out.stderr).contains("cannot combine"));
+}
+
+/// §3.7: the other two scopes are untouched by the snapshot's existence, and
+/// the snapshot's join hash is exactly what `attest --spec` emits.
+#[test]
+fn the_snapshot_join_hash_is_what_attest_spec_emits() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+    let per_spec = envelope(&run_in(root, &["attest", "--spec", "001-a", "--json"]));
+    let snap = envelope(&run_in(root, &["attest", "--snapshot", "--json"]));
+    assert_eq!(
+        snap["report"]["attestation"]["specs"][0]["specAttestationHash"],
+        per_spec["report"]["attestationHash"]
+    );
+}

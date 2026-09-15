@@ -4,7 +4,7 @@ title: "An authority snapshot says what it read"
 status: draft
 kind: "tooling"
 created: "2026-09-11"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: high
 depends_on:
@@ -19,13 +19,12 @@ depends_on:
   - "085-a-verifier-checks-the-bytes-it-was-given"
   - "086-the-committed-index-is-compared-not-trusted"
 establishes:
-  # Planned (spec 076) until the build writes them; the build drops the flag.
   # 3.1: the payload DTO and its schema constant.
-  - { kind: file, path: "crates/spec-spine-types/src/snapshot.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/snapshot.rs" }
   # 3.1 to 3.4: the pure builder, the framed digest, and the recompute.
-  - { kind: file, path: "crates/spec-spine-core/src/snapshot.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/snapshot.rs" }
   # 3.6 and 3.7: determinism, separation and framing guards.
-  - { kind: file, path: "crates/spec-spine-core/tests/snapshot.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/tests/snapshot.rs" }
 extends:
   # 3.5: `attest --snapshot`, written and sealed like the other two scopes.
   - { spec: "023-ledger-seal", unit: "crates/spec-spine-cli/src/cmd_attest.rs", nature: additive }
@@ -40,6 +39,14 @@ extends:
   - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/src/version.rs", nature: additive }
   # 3.6: end-to-end coverage of the flag.
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
+  # 3.2, D-9: the per-spec attestation is split into shared helpers so one
+  # compile, index and lint serve every spec's join hash; its bytes do not move.
+  - { spec: "042-per-spec-attestation", unit: "crates/spec-spine-core/src/attest.rs", nature: additive }
+  # 3.3.1, D-9: the empty-directory companion to spec 083's walk, sharing its
+  # pruning predicate, and the index comparison made crate-visible.
+  - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/index.rs", nature: additive }
+  # 3.6: the digest table names the new record beside the other axes.
+  - { spec: "067-the-docs-name-what-adopters-derived", unit: "docs/schema-versioning.md", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/authority-evidence.md" }, role: context }
   - { unit: { kind: file, path: "docs/design/04-authority-evidence-extension.md" }, role: context }
@@ -550,6 +557,42 @@ such record exists; and omitting the member silently, which leaves a consumer
 unable to tell an unsupported shape from an implementation that forgot. The
 reason is a closed vocabulary of one so that a second reason is a spec change
 rather than a build's judgement call, and an unreadable input stays an error.
+
+
+**D-9 (2026-09-15): seven choices the text left open, settled at build.**
+
+- **Every empty directory the walk reaches is a `d` piece, not only a claimed
+  one.** §3.3.1's row says "an empty or wholly pruned directory", and the
+  Verification block's empty-piece line claims `g/` while `g/e` is empty: under
+  spec 083's walk, which yields files and symlinks only, a nested empty
+  directory contributed nothing, so that line passed without ever producing a
+  `d` piece. `index::empty_territory_dirs` yields the **leaf** directories the
+  walk reaches that hold nothing it does not prune, sharing the walk's pruning
+  predicate, and each is a `d` piece. A directory whose only children are empty
+  directories is not itself empty, so the pieces sit at the directories that
+  are. The file set is still exactly spec 083's, so `specAttestationHash` and
+  `territoryDigest` still agree about what a subtree contains.
+- **A directly claimed symlink is an `l` piece.** §3.3.1 states the rule for a
+  symlink "met by the walk"; a unit resolving to a symlink directly is framed
+  the same way, unfollowed, so one filesystem object has one piece kind however
+  it was claimed. `specAttestationHash` keeps spec 042's behavior.
+- **`governanceInputs.hash` is absent when there are no paths**, by the same
+  reasoning §3.2 applies to an absent committed tree.
+- **`committed.index.files` counts the slices sidecar; `matchesRecompute`
+  compares the shard directories.** §3.2 lists the sidecar among the files and
+  defines the flag over shard files, and those are the two sets spec 086's
+  comparison already reads.
+- **Verdicts come from the recompute.** `ownership` is `coverage_with` over the
+  in-memory index and `unwitnessed` is spec 057's pair over the same index,
+  rather than the freshness-guarded verbs, so a stale committed tree still
+  yields a complete record with `matchesRecompute: false` beside it.
+- **`attest_spec` is split, not duplicated.** Its territory hashing and payload
+  assembly became crate-visible helpers the snapshot calls with one compile,
+  index and lint; `attest_spec` calls the same helpers in the same order, and
+  its error text is unchanged. The existing per-spec suites pin the bytes, and a
+  CLI test asserts the snapshot's join hash equals `attest --spec`'s.
+- **`verify-attestation --snapshot --spec` is refused at exit 3**, the mirror of
+  §3.5's refusal on `attest`.
 
 ## Verification
 

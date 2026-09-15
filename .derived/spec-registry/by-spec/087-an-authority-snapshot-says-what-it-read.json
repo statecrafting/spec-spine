@@ -16,18 +16,15 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-types/src/snapshot.rs",
-        "planned": true
+        "path": "crates/spec-spine-types/src/snapshot.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/src/snapshot.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/src/snapshot.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/snapshot.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/snapshot.rs"
       }
     ],
     "extends": [
@@ -86,10 +83,34 @@
           "kind": "file",
           "path": "crates/spec-spine-cli/tests/cli.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "042-per-spec-attestation",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "067-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
       }
     ],
     "id": "087-an-authority-snapshot-says-what-it-read",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -132,6 +153,6 @@
     "summary": "A consumer that binds spec-spine's authority results to a revision needs five separate outputs today and still cannot answer four questions from them: whether the committed ledger matched the corpus (attestations recompute and never read the committed shards, and `check --json` reports booleans without the digests it compared), which configuration and governance files were read, what every spec's territory hashed to, and how much source no spec claims. This spec adds a third attestation scope, `attest --snapshot`, emitting an `AuthoritySnapshot`: the tool and schema versions, a digest of `spec-spine.toml`, the existing corpus hashes, the committed registry and index trees with a digest each and whether each matches the recompute, the governance inputs by path and digest, the gate verdicts, the ownership counts, the exclusions in force, and each spec's lifecycle with a framed digest of its resolved territory (plus, for joining records issued earlier, the hash of the `SpecAttestation` spec 042 would emit for it, or a stated reason where that construction has no answer). New members use a framed digest that binds normalized text rather than exact bytes, a contract 3.3 states explicitly and distinguishes from spec 085's, because the existing fold does not frame content and two trees can share one hash; existing members and payloads keep their constructions. The payload is pure, on demand, gitignored, sealable and verified under spec 085's rules. It commits to no git revision: the consumer binds the tree.\n",
     "title": "An authority snapshot says what it read"
   },
-  "shardHash": "b73e36594e587cdd73e05f209580b2523b37b5e099ab3601427b63b9b804fb11",
+  "shardHash": "2eb9d36cf449a90e8a3fca23ecef63bfd39bd5bc210f8041916762753f1d6788",
   "specVersion": "1.2.0"
 }

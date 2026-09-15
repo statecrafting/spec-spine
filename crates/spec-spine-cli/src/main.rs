@@ -219,6 +219,13 @@ enum Command {
         /// Also record the coupling (specs-and-code-in-sync) verdict.
         #[arg(long)]
         with_coupling: bool,
+        /// Emit an authority snapshot instead (spec 087), writing
+        /// `<derived>/attestation/snapshot.json`: which inputs were read, what
+        /// they hashed to, whether the committed ledger matches the recompute,
+        /// and every spec's territory digest. Cannot combine with `--spec` or
+        /// `--with-coupling`.
+        #[arg(long)]
+        snapshot: bool,
         /// Produce a detached Ed25519 seal over the attestation hash.
         #[arg(long)]
         sign: bool,
@@ -238,6 +245,9 @@ enum Command {
         /// the short id (`042`), resolved against the attestation files.
         #[arg(long, value_name = "ID")]
         spec: Option<String>,
+        /// Verify the authority snapshot (spec 087) instead of an attestation.
+        #[arg(long)]
+        snapshot: bool,
         /// Re-read the corpus and check it reproduces the attestation (no key).
         #[arg(long)]
         recompute: bool,
@@ -333,6 +343,7 @@ fn main() -> ExitCode {
         Command::Attest {
             spec,
             with_coupling,
+            snapshot,
             sign,
             key,
             key_id,
@@ -342,6 +353,7 @@ fn main() -> ExitCode {
             &cmd_attest::AttestArgs {
                 spec: spec.clone(),
                 with_coupling: *with_coupling,
+                snapshot: *snapshot,
                 sign: *sign,
                 key: key.clone(),
                 key_id: key_id.clone(),
@@ -350,6 +362,7 @@ fn main() -> ExitCode {
         ),
         Command::VerifyAttestation {
             spec,
+            snapshot,
             recompute,
             signature,
             attestation,
@@ -360,6 +373,7 @@ fn main() -> ExitCode {
             &repo,
             &verify_attestation::VerifyArgs {
                 spec: spec.clone(),
+                snapshot: *snapshot,
                 recompute: *recompute,
                 signature: *signature,
                 attestation: attestation.clone(),

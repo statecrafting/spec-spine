@@ -14,6 +14,7 @@
 | index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`) | `schemaVersion` | `1.1.0` | library |
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
+| authority snapshot (`attestation/snapshot.json`, spec 087) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.4.0` | library |
 | change-classification report (`delta --json`, spec 088) | `schemaVersion` | `0.1.0` | library |
 | read documents (`--json` on the read verbs, and the facades behind them; spec 093) | `schemaVersion` | `0.1.0` | library |
@@ -69,7 +70,7 @@ MAJOR history:
 Each is a **compile-time `const`** in `spec-spine-types`
 (`REGISTRY_SCHEMA_VERSION`, `INDEX_SCHEMA_VERSION`, `BUILD_META_SCHEMA_VERSION`,
 `CONFIG_VERSION`, and the record axes `VERDICT_SCHEMA_VERSION`,
-`DELTA_SCHEMA_VERSION` and `READ_SCHEMA_VERSION`). The conformance test asserts that emitted JSON validates
+`DELTA_SCHEMA_VERSION`, `READ_SCHEMA_VERSION` and `SNAPSHOT_SCHEMA_VERSION`). The conformance test asserts that emitted JSON validates
 against the *embedded* JSON Schema of that version, so a schema/version mismatch
 fails the **build**, not at runtime. The schemas live inside
 `spec-spine-types/schemas/` and are `include_str!`'d, which makes the published
