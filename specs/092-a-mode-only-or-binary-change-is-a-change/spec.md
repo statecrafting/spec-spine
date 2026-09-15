@@ -18,7 +18,7 @@ summary: >
   enters `DiffInput` as a whole-file change with no spans, deleted when the
   status letter says so, and is then judged by the same clearance rules as
   every other path.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -222,6 +222,29 @@ complete answer. The recognizer approach was rejected because it would grow a
 second grammar for every future diff shape git can print, and the name list has
 no such tail.
 
+**D-3 (2026-09-15). Case 5 is asserted at the adapter, because no verdict shows
+spans.** §3.7 asks for all five cases through the CLI, and case 5 ("a text
+change still reports its hunk spans") cannot be observed there. Measured while
+building: a Makefile whose `top` target one spec owns as a section unit, edited
+only inside `bot` with no mode change, is refused with `C-001`; the parser
+registers that path itself, so the union contributes nothing to the verdict. `index.rs` seeds an implementing path for the file
+of every owning unit's location, and `owners_for_path` reads an implementing
+path as whole-file ownership, so for an index-resolved unit the spans a hunk
+carries never change the owner set. A CLI case written as §3.7 words it would
+pass whether or not the union flattened the spans, which asserts nothing. Case 5
+is therefore split. Through the binary, `tests/couple.rs` asserts the half it
+can see: a text edit made together with a mode flip, which both sources report,
+is one entry judged once (`checkedPaths` 1, one `C-001`), where an appending
+union would count it twice. The span half is asserted against the diff adapter
+itself over a real repository (`cmd_couple.rs`,
+`real_git_text_change_keeps_spans_through_the_union`), which satisfies §3.7's
+reason for the CLI requirement, that the defect is in the adapter and a
+library-level assertion cannot see it. The alternative rejected was to write
+the case against a hand-built index where spans do matter, which is a
+library-level assertion. That section granularity has no effect at the gate for
+a resolved unit is a separate finding, outside this spec's territory
+(`index.rs` is spec 004's), and is not changed here.
+
 ## Verification
 
 Each line is one command. Two lines fail against pre-092 code and are the
@@ -240,6 +263,8 @@ grep -qF -- 'core.quotepath=false' crates/spec-spine-cli/src/cmd_couple.rs
 grep -qF -- '"D"' crates/spec-spine-cli/src/cmd_couple.rs
 # 3.7: the five cases, asserted through the CLI against real git repositories.
 cargo test -p spec-spine-cli --test couple --locked
+# 3.7 case 5, D-3: the span half, against the adapter over a real repository.
+cargo test -p spec-spine-cli --bin spec-spine --locked cmd_couple::tests
 # 4: renames stay undetected, so a move is still a delete plus an add.
 grep -qF -- '--no-renames' crates/spec-spine-cli/src/cmd_couple.rs
 ```
