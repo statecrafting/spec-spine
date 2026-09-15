@@ -1,7 +1,7 @@
 ---
 id: "097-governed-scope-is-declared-not-inferred"
 title: "Governed scope is declared, not inferred"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-15"
 summary: >
