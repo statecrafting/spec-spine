@@ -52,10 +52,14 @@ pub use codebase::{
 };
 pub use config::{
     AllowlistConfig, BrandingConfig, BypassEntry, BypassSource, Config, CouplingConfig,
-    EffectiveConfig, EffectiveCouplingConfig, FrontmatterConfig, IndexConfig, LayoutConfig,
-    LintConfig, ManifestConfig, MetaConfig, ProvenanceConfig, VersionReq, load_config,
+    CoverageConfig, EffectiveConfig, EffectiveCouplingConfig, FrontmatterConfig, IndexConfig,
+    LayoutConfig, LintConfig, ManifestConfig, MetaConfig, ProvenanceConfig, VersionReq,
+    load_config,
 };
-pub use coverage::{CoverageReport, NearMissHeader, NearMissReason, PackageCoverage};
+pub use coverage::{
+    CoverageReport, Enumeration, Inventory, InventoryProvenance, NearMissHeader, NearMissReason,
+    PackageCoverage,
+};
 pub use delta::{
     AuthorityDelta, ChangeKind, DeltaChange, DeltaClass, DeltaCommits, DeltaReport, PriorPolicy,
     ValueChange, VerificationDelta,

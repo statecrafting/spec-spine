@@ -62,6 +62,12 @@ Reports, per source file inside a discovered package, whether a spec *specifical
 
 The same classifier drives the coupling gate's `C-002` when `[coupling] require_ownership` is on, so this report lists exactly the files that flag would refuse.
 
+#### A declared governed scope (spec 097)
+
+By default the universe is inferred: a source extension, inside a discovered package. `[coverage] governed_scope` declares more: glob patterns (as in `extra_hashed_inputs`, so `dir/**/*`, not `dir/**`) naming files that join the universe whatever their extension and wherever they sit, and so join `C-002` under `require_ownership`. `governed_scope_exclusions` carves files back out of that addition only. A resolver exclusion or a bypass prefix still wins; a unit claim still overrides a bypass exactly as spec 009 says. Such a file is claimed by a frontmatter unit, never by a comment header.
+
+With the scope set, `index coverage` matches it against the tracked files (`git ls-files --cached --others --exclude-standard`, minus missing files), or against `--paths-from FILE` where git is not available; a git failure exits `3`. The report adds `declaredScopeFiles` and `enumeration` (`tracked`, `supplied`, or `walk` for a library caller that supplied no list). Both are absent while the scope is empty, and nothing else changes.
+
 #### How a comment header claims (spec 094)
 
 A comment header claims the file it sits in, and only when it is in the **first 16 lines** of that file. For each of those lines, in order: leading whitespace is trimmed; at most one leading `//` or `#` is stripped (the marker is optional); the rest must begin with `Spec:`; and after every trailing `/spec.md` is removed, the final `/`-separated segment of the reference must be the id of a spec in the corpus. So `// Spec: specs/042-x/spec.md`, `# Spec: specs/042-x/spec.md` (for `.py` and `.sh`) and `// Spec: 042-x` all claim for `042-x`.

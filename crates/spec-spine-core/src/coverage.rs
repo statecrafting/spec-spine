@@ -25,7 +25,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use spec_spine_types::{
-    CodebaseIndex, Config, CoverageReport, Error, PackageCoverage, PackageRecord, TraceSource,
+    CodebaseIndex, Config, CoverageReport, Enumeration, Error, Inventory, PackageCoverage,
+    PackageRecord, TraceSource,
 };
 
 use crate::couple::{claim_matches, is_bypassed_path};
@@ -110,13 +111,131 @@ pub fn classify(index: &CodebaseIndex, path: &str) -> Ownership {
 /// denominator: state is not source, so counting it as unclaimed debt would be
 /// a coverage figure that can never reach 100%.
 pub fn in_coverage_universe(cfg: &Config, index: &CodebaseIndex, path: &str) -> bool {
-    has_source_ext(path)
+    in_coverage_universe_with(cfg, index, &GovernedScope::empty(), path)
+}
+
+/// [`in_coverage_universe`] widened by a declared governed scope (spec 097
+/// §3.3): a path the scope names bypasses the extension and package conjuncts,
+/// and still answers to `resolver_exclusions` and the bypass verdict, spec
+/// 009's claim precedence included. With an empty scope this is exactly the
+/// four-conjunct universe spec 032 built.
+pub fn in_coverage_universe_with(
+    cfg: &Config,
+    index: &CodebaseIndex,
+    scope: &GovernedScope,
+    path: &str,
+) -> bool {
+    (inferred_universe(index, path) || scope.contains(path))
         && !has_excluded_component(path, &cfg.index.resolver_exclusions)
+        && !is_bypassed_path(cfg, index, path)
+}
+
+/// The two conjuncts a declared scope replaces: a source extension, inside a
+/// discovered package.
+fn inferred_universe(index: &CodebaseIndex, path: &str) -> bool {
+    has_source_ext(path)
         && index
             .packages
             .iter()
             .any(|p| package_contains(&p.path, path))
-        && !is_bypassed_path(cfg, index, path)
+}
+
+/// The files `[coverage] governed_scope` names, resolved once (spec 097).
+///
+/// Membership is decided by globbing the declared patterns against the tree,
+/// with exactly the matcher `[index] extra_hashed_inputs` uses, so the two lists
+/// cannot disagree about what a pattern means; `governed_scope_exclusions` is
+/// then subtracted. Only the scope's own additions are subtracted: a file in the
+/// universe for another reason is untouched, since this set is only ever
+/// unioned into the inferred universe.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct GovernedScope {
+    files: BTreeSet<String>,
+}
+
+impl GovernedScope {
+    /// The empty scope: the universe spec 032 built, unchanged.
+    pub fn empty() -> Self {
+        Self::default()
+    }
+
+    /// Every existing file the declared scope matches, minus its exclusions.
+    /// What the coupling gate needs: every path it judges is in the diff, so
+    /// no enumeration can remove one (spec 097 D-7).
+    pub fn from_globs(cfg: &Config, repo_root: &Path) -> Self {
+        let matched = |patterns: &[String]| -> BTreeSet<String> {
+            patterns
+                .iter()
+                .flat_map(|p| crate::shard::glob_files(repo_root, p))
+                .filter(|f| f.is_file())
+                .map(|f| rel_posix(repo_root, &f))
+                .collect()
+        };
+        let excluded = matched(&cfg.coverage.governed_scope_exclusions);
+        GovernedScope {
+            files: matched(&cfg.coverage.governed_scope)
+                .into_iter()
+                .filter(|f| !excluded.contains(f))
+                .collect(),
+        }
+    }
+
+    /// The declared scope restricted to an inventory: a file must be matched
+    /// **and** listed (spec 097 §3.6). An empty inventory therefore matches
+    /// nothing, which is the answer its caller gave.
+    pub fn within(cfg: &Config, repo_root: &Path, inventory: &BTreeSet<String>) -> Self {
+        let mut scope = Self::from_globs(cfg, repo_root);
+        scope.files.retain(|f| inventory.contains(f));
+        scope
+    }
+
+    pub fn contains(&self, path: &str) -> bool {
+        self.files.contains(path)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.files.is_empty()
+    }
+
+    /// The matched files, sorted.
+    pub fn files(&self) -> impl Iterator<Item = &String> {
+        self.files.iter()
+    }
+}
+
+/// Every file under `repo_root`, for a caller that supplied no inventory (spec
+/// 097 §3.6). Skips `.git/` (not corpus, and machine-specific), the declared
+/// state root (bypassed unconditionally by spec 039), and `resolver_exclusions`;
+/// never descends through a symlink, so it cannot leave the repository.
+/// Repo-relative POSIX, sorted.
+pub fn walk_repository(cfg: &Config, repo_root: &Path) -> BTreeSet<String> {
+    fn visit(cfg: &Config, repo_root: &Path, dir: &Path, out: &mut BTreeSet<String>) {
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let rel = rel_posix(repo_root, &path);
+            if rel == ".git"
+                || rel.starts_with(".git/")
+                || cfg.layout.is_state_path(&rel)
+                || crate::pathutil::is_excluded(repo_root, &path, &cfg.index.resolver_exclusions)
+            {
+                continue;
+            }
+            let Ok(meta) = std::fs::symlink_metadata(&path) else {
+                continue;
+            };
+            if meta.is_dir() {
+                visit(cfg, repo_root, &path, out);
+            } else {
+                out.insert(rel);
+            }
+        }
+    }
+    let mut out = BTreeSet::new();
+    visit(cfg, repo_root, repo_root, &mut out);
+    out
 }
 
 /// Enumerate the coverage universe under `repo_root`: the source files of
@@ -153,6 +272,22 @@ pub fn enumerate_source_files(
 /// *set* of paths. Each file is attributed to the deepest package containing
 /// it.
 pub fn coverage_with(cfg: &Config, index: &CodebaseIndex, files: &[String]) -> CoverageReport {
+    coverage_with_scope(cfg, index, files, &GovernedScope::empty())
+}
+
+/// [`coverage_with`] over a universe widened by `scope` (spec 097 §3.5). A file
+/// in the universe only because the scope names it counts toward the totals
+/// and toward no package, since its denominator is not a package; it is
+/// classified exactly as any other file, so outside every package it is
+/// `Specific` or `Unowned`, never `FloorOnly`. The report members naming those
+/// files are the caller's to set, because only the caller knows whether a scope
+/// is configured and which enumeration produced it.
+pub fn coverage_with_scope(
+    cfg: &Config,
+    index: &CodebaseIndex,
+    files: &[String],
+    scope: &GovernedScope,
+) -> CoverageReport {
     let mut per_package: BTreeMap<String, PackageCoverage> = index
         .packages
         .iter()
@@ -172,7 +307,8 @@ pub fn coverage_with(cfg: &Config, index: &CodebaseIndex, files: &[String]) -> C
         .collect();
     let universe: BTreeSet<&String> = files
         .iter()
-        .filter(|f| in_coverage_universe(cfg, index, f))
+        .chain(scope.files())
+        .filter(|f| in_coverage_universe_with(cfg, index, scope, f))
         .collect();
 
     let mut report = CoverageReport {
@@ -183,27 +319,39 @@ pub fn coverage_with(cfg: &Config, index: &CodebaseIndex, files: &[String]) -> C
         packages: Vec::new(),
         planned_territory: Vec::new(),
         near_miss_headers: Vec::new(),
+        declared_scope_files: None,
+        enumeration: None,
     };
     for file in universe {
-        let Some(entry) =
+        // A file the inferred universe holds belongs to its package; one only
+        // the declared scope holds belongs to none (spec 097 §3.5).
+        let mut entry = if inferred_universe(index, file) {
             owning_package(&index.packages, file).and_then(|p| per_package.get_mut(&p.path))
-        else {
-            continue; // unreachable: the universe requires a containing package
+        } else {
+            None
         };
-        entry.source_files += 1;
         report.source_files += 1;
+        if let Some(e) = entry.as_deref_mut() {
+            e.source_files += 1;
+        }
         match classify(index, file) {
             Ownership::Specific => {
-                entry.claimed_files += 1;
                 report.claimed_files += 1;
+                if let Some(e) = entry {
+                    e.claimed_files += 1;
+                }
             }
             Ownership::FloorOnly(_) => {
-                entry.floor_only += 1;
                 report.floor_only_files.push(file.clone());
+                if let Some(e) = entry {
+                    e.floor_only += 1;
+                }
             }
             Ownership::Unowned => {
-                entry.unclaimed += 1;
                 report.unclaimed_files.push(file.clone());
+                if let Some(e) = entry {
+                    e.unclaimed += 1;
+                }
             }
         }
     }
@@ -215,13 +363,57 @@ pub fn coverage_with(cfg: &Config, index: &CodebaseIndex, files: &[String]) -> C
 /// ([`Error::Stale`], exit 2) exactly as `couple` does, loads the committed
 /// shard set, enumerates the universe under `repo_root`, and classifies it.
 pub fn coverage(cfg: &Config, repo_root: &Path) -> Result<CoverageReport, Error> {
+    coverage_with_inventory(cfg, repo_root, None)
+}
+
+/// [`coverage`] with the inventory a declared governed scope is matched against
+/// (spec 097 §3.6). The three cases are three different answers:
+///
+/// - `Some` with paths: the scope matches exactly those, and the report names
+///   the provenance the caller declared;
+/// - `Some` with no paths: the scope matches nothing, because the caller said
+///   there is nothing to govern;
+/// - `None`: the repository root is walked ([`walk_repository`]) and the report
+///   says `walk`.
+///
+/// With `[coverage] governed_scope` empty the inventory is not consulted, the
+/// root is not walked, and the report is the one spec 032 emits.
+pub fn coverage_with_inventory(
+    cfg: &Config,
+    repo_root: &Path,
+    inventory: Option<&Inventory>,
+) -> Result<CoverageReport, Error> {
     match check_index_freshness(cfg, repo_root)? {
         Freshness::Stale { expected, actual } => return Err(Error::Stale { expected, actual }),
         Freshness::Fresh => {}
     }
     let index = load_committed_index(cfg, repo_root)?;
     let files = enumerate_source_files(cfg, repo_root, &index);
-    let mut report = coverage_with(cfg, &index, &files);
+    let mut report = if cfg.coverage.governed_scope.is_empty() {
+        coverage_with(cfg, &index, &files)
+    } else {
+        let (listed, enumeration) = match inventory {
+            Some(inv) => (
+                inv.paths.iter().map(|p| normalize_listed(p)).collect(),
+                inv.provenance.enumeration(),
+            ),
+            None => (walk_repository(cfg, repo_root), Enumeration::Walk),
+        };
+        let scope = GovernedScope::within(cfg, repo_root, &listed);
+        let mut report = coverage_with_scope(cfg, &index, &files, &scope);
+        report.declared_scope_files = Some(
+            scope
+                .files()
+                .filter(|f| {
+                    !inferred_universe(&index, f)
+                        && in_coverage_universe_with(cfg, &index, &scope, f)
+                })
+                .cloned()
+                .collect(),
+        );
+        report.enumeration = Some(enumeration);
+        report
+    };
     // Spec 076 §3.6: planned territory is a DECLARED state, so it is read from
     // the spec-as-source view. It cannot come from the index: a planned unit
     // that has not resolved contributes no `ResolvedUnit` and no location, by
@@ -239,6 +431,13 @@ pub fn coverage(cfg: &Config, repo_root: &Path) -> Result<CoverageReport, Error>
     // it: `coverage_with` above has already counted every file.
     report.near_miss_headers = crate::index::near_miss_headers(cfg, repo_root, &index.packages)?;
     Ok(report)
+}
+
+/// A listed path as the scope compares it: repo-relative POSIX with no leading
+/// `./`, the spelling every other path in the report uses.
+fn normalize_listed(path: &str) -> String {
+    let p = path.trim().replace('\\', "/");
+    p.strip_prefix("./").unwrap_or(&p).to_string()
 }
 
 /// Why a coverage universe is empty, when it is (spec 059 §3.2, §3.3).

@@ -31,6 +31,8 @@ pub struct Config {
     pub provenance: ProvenanceConfig,
     pub frontmatter: FrontmatterConfig,
     pub lint: LintConfig,
+    /// `[coverage]`: the declared governed scope (spec 097).
+    pub coverage: CoverageConfig,
     pub meta: MetaConfig,
 }
 
@@ -323,6 +325,29 @@ pub struct LintConfig {
     ///
     /// Patterns match the repo-relative POSIX path.
     pub unwitnessed_allowed: Vec<String>,
+}
+
+/// `[coverage]`: paths this corpus governs whatever their extension and
+/// wherever they sit (spec 097).
+///
+/// The ownership ratchet's universe is otherwise inferred: a source extension
+/// inside a discovered package. That leaves out governance files at the root,
+/// scripts and hooks in no package, and anything whose extension is not code.
+/// A declared scope adds them to the coverage universe, and so to `index
+/// coverage` and to `C-002`. Empty by default, so no verdict moves on upgrade.
+///
+/// Both lists are glob patterns over repo-relative POSIX paths, matched with the
+/// semantics `[index] extra_hashed_inputs` uses, trap included: `dir/**`
+/// matches directories and so no files, and `dir/**/*` is what matches files.
+#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct CoverageConfig {
+    /// Paths that join the coverage universe regardless of extension or package.
+    /// A resolver exclusion and a bypass still win (spec 097 §3.3).
+    pub governed_scope: Vec<String>,
+    /// Carved back out of `governed_scope`, applied after it. It removes only
+    /// what the scope added, never a file in the universe for another reason.
+    pub governed_scope_exclusions: Vec<String>,
 }
 
 /// `[meta]`: facts about the governed repository itself (spec 062).
@@ -620,6 +645,8 @@ pub struct EffectiveConfig {
     pub provenance: ProvenanceConfig,
     pub frontmatter: FrontmatterConfig,
     pub lint: LintConfig,
+    /// `[coverage]`: the declared governed scope (spec 097).
+    pub coverage: CoverageConfig,
     pub meta: MetaConfig,
 }
 
@@ -647,6 +674,7 @@ impl EffectiveConfig {
             provenance: config.provenance.clone(),
             frontmatter: config.frontmatter.clone(),
             lint: config.lint.clone(),
+            coverage: config.coverage.clone(),
             meta: config.meta.clone(),
         }
     }

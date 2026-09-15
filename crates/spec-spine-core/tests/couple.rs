@@ -1391,3 +1391,157 @@ fn empty_owners_is_omitted_from_json() {
         "an owner-less violation must serialize as it always did: {json}"
     );
 }
+
+// ── spec 097: the gate reads the declared governed scope ─────────────────
+
+mod governed_scope {
+    use std::fs;
+    use std::path::Path;
+
+    use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
+    use spec_spine_core::{
+        DiffFile, DiffInput, compile, couple, index, index_dir, index_shard_files, registry_dir,
+        registry_shard_files,
+    };
+    use spec_spine_types::{Config, load_config};
+
+    fn write(root: &Path, rel: &str, content: &str) {
+        let p = root.join(rel);
+        fs::create_dir_all(p.parent().unwrap()).unwrap();
+        fs::write(p, content).unwrap();
+    }
+
+    /// A crate claimed by `001-a`, root files outside every package, a claimed
+    /// and an unclaimed `.github/` workflow, and `require_ownership` on with a
+    /// scope naming them all.
+    fn fixture(extra_units: &str) -> (tempfile::TempDir, Config) {
+        let tmp = tempfile::tempdir().unwrap();
+        let r = tmp.path();
+        write(r, "Cargo.toml", "[workspace]\nmembers = [\"crate-a\"]\n");
+        write(
+            r,
+            "crate-a/Cargo.toml",
+            "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n",
+        );
+        write(r, "crate-a/src/lib.rs", "pub fn a() {}\n");
+        write(r, "scripts/run.sh", "echo hi\n");
+        write(r, "scripts/owned.sh", "echo owned\n");
+        write(r, ".github/workflows/ci.yml", "name: ci\n");
+        write(r, ".github/workflows/claimed.yml", "name: claimed\n");
+        write(
+            r,
+            "specs/001-a/spec.md",
+            &format!(
+                "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-09-15\"\n\
+                 summary: \"s\"\nestablishes:\n  - \"crate-a/src/lib.rs\"\n  - \"scripts/owned.sh\"\n\
+                 {extra_units}---\n# a\n"
+            ),
+        );
+        let toml = "[coupling]\nrequire_ownership = true\n\n[coverage]\n\
+                    governed_scope = [\"scripts/*\", \".github/workflows/*\"]\n";
+        write(r, "spec-spine.toml", toml);
+        let cfg = load_config(toml).unwrap();
+        let registry = compile(&cfg, r).unwrap();
+        shard::sync_dir(
+            &registry_dir(&cfg, r).join(BY_SPEC_DIR),
+            &registry_shard_files(&registry.shards).unwrap(),
+        )
+        .unwrap();
+        let outcome = index(&cfg, r).unwrap();
+        let dir = index_dir(&cfg, r);
+        let (by_spec, by_package) = index_shard_files(&outcome.shards).unwrap();
+        shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec).unwrap();
+        shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package).unwrap();
+        (tmp, cfg)
+    }
+
+    fn changed(paths: &[&str]) -> DiffInput {
+        DiffInput {
+            files: paths
+                .iter()
+                .map(|p| DiffFile {
+                    path: p.to_string(),
+                    hunks: Vec::new(),
+                    deleted: false,
+                })
+                .collect(),
+        }
+    }
+
+    fn codes(cfg: &Config, root: &Path, paths: &[&str]) -> Vec<(String, String)> {
+        couple(cfg, root, &changed(paths), None)
+            .unwrap()
+            .violations
+            .into_iter()
+            .map(|v| (v.code, v.message))
+            .collect()
+    }
+
+    /// A changed governed-scope file with no claim is `C-002`, naming no floor;
+    /// the same kind of file with a claim is not.
+    #[test]
+    fn an_unclaimed_governed_scope_file_is_c002_and_a_claimed_one_is_not() {
+        let (fx, cfg) = fixture("");
+        let refused = codes(&cfg, fx.path(), &["scripts/run.sh"]);
+        assert_eq!(refused.len(), 1, "{refused:?}");
+        assert_eq!(refused[0].0, "C-002");
+        assert!(
+            refused[0].1.contains("is not claimed by any spec"),
+            "{refused:?}"
+        );
+        assert!(
+            !refused[0].1.contains("floor"),
+            "no floor to name: {refused:?}"
+        );
+
+        // Claimed, and its spec edited in the same diff: nothing to refuse.
+        let clean = codes(
+            &cfg,
+            fx.path(),
+            &["scripts/owned.sh", "specs/001-a/spec.md"],
+        );
+        assert!(clean.is_empty(), "{clean:?}");
+    }
+
+    /// §3.3, D-2: an unclaimed file under a built-in bypass prefix stays
+    /// bypassed although the scope names it; the same prefix with an explicit
+    /// unit claim is governed exactly as spec 009 makes it (drift without its
+    /// spec, clean with it).
+    #[test]
+    fn a_bypassed_path_stays_bypassed_unless_a_unit_claims_it() {
+        let (fx, cfg) = fixture("  - \".github/workflows/claimed.yml\"\n");
+        assert!(codes(&cfg, fx.path(), &[".github/workflows/ci.yml"]).is_empty());
+
+        let drift = codes(&cfg, fx.path(), &[".github/workflows/claimed.yml"]);
+        assert_eq!(drift.len(), 1, "{drift:?}");
+        assert_eq!(drift[0].0, "C-001", "owned under 009, not C-002: {drift:?}");
+        assert!(
+            codes(
+                &cfg,
+                fx.path(),
+                &[".github/workflows/claimed.yml", "specs/001-a/spec.md"]
+            )
+            .is_empty()
+        );
+    }
+
+    /// §3.1: without the scope the same unclaimed script is outside the universe,
+    /// so the gate's answer is the one it gave before this spec.
+    #[test]
+    fn without_a_scope_the_script_is_not_asked_about() {
+        let (fx, _) = fixture("");
+        let cfg = load_config("[coupling]\nrequire_ownership = true\n").unwrap();
+        fs::write(
+            fx.path().join("spec-spine.toml"),
+            "[coupling]\nrequire_ownership = true\n",
+        )
+        .unwrap();
+        // The config edit restales the index; regenerate so the gate answers.
+        let outcome = index(&cfg, fx.path()).unwrap();
+        let dir = index_dir(&cfg, fx.path());
+        let (by_spec, by_package) = index_shard_files(&outcome.shards).unwrap();
+        shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec).unwrap();
+        shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package).unwrap();
+        assert!(codes(&cfg, fx.path(), &["scripts/run.sh"]).is_empty());
+    }
+}

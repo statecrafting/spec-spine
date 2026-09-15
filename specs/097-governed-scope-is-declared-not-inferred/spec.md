@@ -22,7 +22,7 @@ summary: >
   verdict changes on upgrade. The claim scanner is untouched: a scoped file is
   claimed from spec frontmatter, so those seven headers stay inert and this
   spec says so rather than implying otherwise.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -39,6 +39,8 @@ extends:
   # 3.3 to 3.5: the universe, the classifier's input, and the report.
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-core/src/coverage.rs", nature: additive }
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-types/src/coverage.rs", nature: additive }
+  # 3.2, 3.6: the config table and the inventory types are re-exported.
+  - { spec: "032-ownership-coverage", unit: "crates/spec-spine-types/src/lib.rs", nature: additive }
   # 3.3: the gate reads the same universe, so the inventory reaches the
   # `C-002` arm too; the bypass predicate itself is untouched (D-2).
   - { spec: "005-coupling-gate", unit: "crates/spec-spine-core/src/couple.rs", nature: additive }
@@ -557,6 +559,32 @@ when a supplied-empty inventory must be told apart from a walk that found
 nothing, so both members are omitted only when `governed_scope` is empty, and a
 set scope that matches nothing emits `declaredScopeFiles: []` with its
 `enumeration`. §3.8 gained CLI cases for the four git membership cases.
+
+
+**D-7 (2026-09-15). Five choices the text left open, settled at build.**
+
+- **Scope membership is a filesystem glob, intersected with the inventory.**
+  §3.2 requires `extra_hashed_inputs`' semantics, trap included, and those are
+  the semantics of `shard::glob_files` walking the tree, not of a pattern
+  matched against a string (a string matcher would let `dir/**` match files).
+  So the patterns are globbed exactly as the hashed inputs are, the exclusions
+  are subtracted, and the result is restricted to the inventory. A listed path
+  that does not exist matches nothing.
+- **The gate needs no enumeration.** `couple` resolves the scope from the same
+  globs and does not ask git: every path it judges is in the diff, which is
+  tracked by construction or is the caller's own `--paths-from` list, so no
+  inventory could remove one. `cmd_couple.rs` is therefore unchanged; its
+  `extends` edge stays for the territory it names.
+- **The CLI enumerates only while the scope is set.** With `governed_scope`
+  empty, `index coverage` runs no git and ignores `--paths-from`, so a corpus
+  that never sets the key needs neither, which is §3.1's promise.
+- **A file only the scope brings in counts toward the totals and toward no
+  package**, including one that happens to lie inside a package, so each
+  package's line reads as it did and the prose names those files on their own
+  `declared scope` line (§3.5).
+- **The facade is a new function, `coverage_inventory_json`**, taking
+  `{ config?, repoRoot, inventory? }`. `coverage_json` keeps its signature and
+  answers for an absent inventory, which is the library caller's walk (§3.6).
 
 ## Verification
 

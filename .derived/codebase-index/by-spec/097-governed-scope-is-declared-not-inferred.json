@@ -64,6 +64,10 @@
       {
         "path": "crates/spec-spine-types/src/coverage.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/lib.rs",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
@@ -252,6 +256,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-types/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/design/05-remaining-waves-2026-09.md"
           }
         ],
@@ -267,5 +284,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "eacd6d63768745a289b770d24e212e4b69c790e2d39df117e93a160ae15e4f7f"
+  "shardHash": "a784600f22153f8b63e878b3aaa7d6495fbcaa7bcb5f0c3094704f50b14b531f"
 }

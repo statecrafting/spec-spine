@@ -132,6 +132,13 @@ fn render(e: &EffectiveConfig) {
         ));
     }
 
+    out::line(format_args!("\n[coverage]"));
+    list("governed_scope", &e.coverage.governed_scope);
+    list(
+        "governed_scope_exclusions",
+        &e.coverage.governed_scope_exclusions,
+    );
+
     out::line(format_args!("\n[provenance.uri_schemes]"));
     for (k, v) in &e.provenance.uri_schemes {
         out::line(format_args!("  {k} = \"{v}\""));

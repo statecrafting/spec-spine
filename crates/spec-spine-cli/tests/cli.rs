@@ -3332,3 +3332,178 @@ fn the_snapshot_join_hash_is_what_attest_spec_emits() {
         per_spec["report"]["attestationHash"]
     );
 }
+
+// ── spec 097: governed scope, enumerated by the CLI ──────────────────────
+
+/// A corpus with a declared scope over `scripts/*`, compiled and indexed, with
+/// `scripts/run.sh` present and unclaimed.
+fn scope_repo(root: &Path) {
+    let w = |rel: &str, content: &str| {
+        let p = root.join(rel);
+        fs::create_dir_all(p.parent().unwrap()).unwrap();
+        fs::write(p, content).unwrap();
+    };
+    w("Cargo.toml", "[workspace]\nmembers = [\"crate-a\"]\n");
+    w(
+        "crate-a/Cargo.toml",
+        "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n",
+    );
+    w("crate-a/src/lib.rs", "pub fn a() {}\n");
+    w("scripts/run.sh", "echo hi\n");
+    w(
+        "specs/001-a/spec.md",
+        "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-09-15\"\n\
+         summary: \"s\"\nestablishes:\n  - \"crate-a/src/lib.rs\"\n---\n# a\n",
+    );
+    w(
+        "spec-spine.toml",
+        "[coverage]\ngoverned_scope = [\"scripts/*\"]\n",
+    );
+    for verb in ["compile", "index"] {
+        let out = run_in(root, &[verb]);
+        assert_eq!(
+            code(&out),
+            0,
+            "{verb}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
+}
+
+fn git097(root: &Path, args: &[&str]) {
+    let out = Command::new("git")
+        .arg("-C")
+        .arg(root)
+        .args(["-c", "commit.gpgsign=false"])
+        .args(args)
+        .env("GIT_AUTHOR_NAME", "t")
+        .env("GIT_AUTHOR_EMAIL", "t@t")
+        .env("GIT_COMMITTER_NAME", "t")
+        .env("GIT_COMMITTER_EMAIL", "t@t")
+        .output()
+        .unwrap();
+    assert!(out.status.success(), "git {args:?}: {out:?}");
+}
+
+fn coverage_doc(root: &Path, extra: &[&str]) -> serde_json::Value {
+    let mut args = vec!["index", "coverage", "--json"];
+    args.extend_from_slice(extra);
+    let out = run_in(root, &args);
+    assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
+    envelope(&out)
+}
+
+/// §3.6: `--paths-from` is the inventory, named `supplied`, and the facade
+/// given the same inventory answers the same report.
+#[test]
+fn coverage_paths_from_is_the_supplied_inventory_and_matches_the_facade() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    scope_repo(root);
+    let list = root.join("inventory.txt");
+    fs::write(&list, "scripts/run.sh\n").unwrap();
+
+    let doc = coverage_doc(root, &["--paths-from", list.to_str().unwrap()]);
+    assert_eq!(doc["enumeration"], "supplied", "{doc}");
+    assert_eq!(
+        doc["declaredScopeFiles"],
+        serde_json::json!(["scripts/run.sh"])
+    );
+    assert_eq!(doc["unclaimedFiles"], serde_json::json!(["scripts/run.sh"]));
+
+    let request = serde_json::json!({
+        "repoRoot": root.to_str().unwrap(),
+        "config": { "coverage": { "governed_scope": ["scripts/*"] } },
+        "inventory": { "provenance": "supplied", "paths": ["scripts/run.sh"] },
+    });
+    let facade: serde_json::Value = serde_json::from_str(
+        &spec_spine_core::coverage_inventory_json(&request.to_string())
+            .unwrap_or_else(|e| panic!("facade: {e}")),
+    )
+    .unwrap();
+    assert_eq!(facade, doc, "the facade and the CLI answer one report");
+
+    // An empty list is an answer, not a request to enumerate.
+    fs::write(&list, "").unwrap();
+    let empty = coverage_doc(root, &["--paths-from", list.to_str().unwrap()]);
+    assert_eq!(empty["declaredScopeFiles"], serde_json::json!([]));
+    assert_eq!(empty["enumeration"], "supplied");
+}
+
+/// §3.6: with a scope set and no `--paths-from`, a git failure is exit 3 naming
+/// the remedy, never a silent walk.
+#[test]
+fn coverage_git_failure_is_exit_3_not_a_walk() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    scope_repo(root);
+    let out = run_in(root, &["index", "coverage"]);
+    assert_eq!(code(&out), 3, "{}", String::from_utf8_lossy(&out.stdout));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("--paths-from"), "{err}");
+    assert!(!String::from_utf8_lossy(&out.stdout).contains("declared scope"));
+}
+
+/// §3.6: the git enumeration's four membership cases. A tracked file an ignore
+/// rule matches is retained; an untracked ignored file is excluded; an unstaged
+/// untracked addition is included; a tracked file missing from the tree is
+/// dropped.
+#[test]
+fn the_git_inventory_keeps_tracked_and_new_files_and_drops_ignored_and_missing() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    scope_repo(root);
+    let w = |rel: &str| fs::write(root.join(rel), "echo x\n").unwrap();
+    w("scripts/tracked_ignored.sh");
+    w("scripts/gone.sh");
+    git097(root, &["init", "-q"]);
+    git097(root, &["add", "-A"]);
+    git097(root, &["commit", "-q", "-m", "base"]);
+    // Ignore rules added after tracking: the tracked file stays tracked.
+    fs::write(root.join(".gitignore"), "scripts/*ignored*.sh\n").unwrap();
+    w("scripts/untracked_ignored.sh");
+    w("scripts/new.sh");
+    fs::remove_file(root.join("scripts/gone.sh")).unwrap();
+
+    let doc = coverage_doc(root, &[]);
+    assert_eq!(doc["enumeration"], "tracked", "{doc}");
+    assert_eq!(
+        doc["declaredScopeFiles"],
+        serde_json::json!([
+            "scripts/new.sh",
+            "scripts/run.sh",
+            "scripts/tracked_ignored.sh"
+        ]),
+        "{doc}"
+    );
+}
+
+/// §3.1, §3.7: `config show` prints both keys, and a scaffolded
+/// `spec-spine.toml` carries them as a commented default.
+#[test]
+fn config_show_and_init_carry_the_scope_keys() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    let show = run_in(root, &["config", "show"]);
+    assert_eq!(code(&show), 0, "{}", String::from_utf8_lossy(&show.stderr));
+    let text = String::from_utf8_lossy(&show.stdout);
+    assert!(text.contains("[coverage]"), "{text}");
+    assert!(text.contains("governed_scope = []"), "{text}");
+    assert!(text.contains("governed_scope_exclusions = []"), "{text}");
+    let json = envelope(&run_in(root, &["config", "show", "--json"]));
+    assert_eq!(
+        json["coverage"]["governed_scope"],
+        serde_json::json!([]),
+        "{json}"
+    );
+
+    let init = run_in(root, &["init"]);
+    assert_eq!(code(&init), 0, "{}", String::from_utf8_lossy(&init.stderr));
+    let toml = fs::read_to_string(root.join("spec-spine.toml")).unwrap();
+    assert!(toml.contains("[coverage]"), "{toml}");
+    assert!(toml.contains("# governed_scope = ["), "{toml}");
+    assert!(toml.contains("dir/**/*"), "the glob trap is named: {toml}");
+    // The scaffold still parses, with the scope empty.
+    let cfg = spec_spine_types::load_config(&toml).unwrap();
+    assert!(cfg.coverage.governed_scope.is_empty());
+}

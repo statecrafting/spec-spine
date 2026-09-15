@@ -27,7 +27,7 @@ use spec_spine_types::{
     Violation,
 };
 
-use crate::coverage::{Ownership, classify, in_coverage_universe};
+use crate::coverage::{Ownership, classify, in_coverage_universe_with};
 use crate::index::{Freshness, check_index_freshness, spec_md_rel};
 
 /// The hardcoded generic bypass floor (spec 005 §3.5): the **single built-in
@@ -124,7 +124,16 @@ pub fn couple(
     }
     let registry = load_committed_registry(cfg, repo_root)?;
     let index = load_committed_index(cfg, repo_root)?;
-    couple_with(cfg, &registry, &index, diff, waiver)
+    // Spec 097 §3.3: the gate reads the universe the coverage report reads. The
+    // scope is resolved against the tree without an enumeration: every path
+    // judged here is in the diff, which is tracked by construction or is the
+    // caller's own `--paths-from` list, so no inventory could remove one (D-7).
+    let scope = if cfg.coverage.governed_scope.is_empty() {
+        crate::coverage::GovernedScope::empty()
+    } else {
+        crate::coverage::GovernedScope::from_globs(cfg, repo_root)
+    };
+    couple_with_scope(cfg, &registry, &index, &scope, diff, waiver)
 }
 
 /// Pure coupling over already-loaded artifacts (overlays, tests). No IO.
@@ -132,6 +141,26 @@ pub fn couple_with(
     cfg: &Config,
     registry: &Registry,
     index: &CodebaseIndex,
+    diff: &DiffInput,
+    waiver: Option<&Waiver>,
+) -> Result<CoupleReport, Error> {
+    couple_with_scope(
+        cfg,
+        registry,
+        index,
+        &crate::coverage::GovernedScope::empty(),
+        diff,
+        waiver,
+    )
+}
+
+/// [`couple_with`] with a resolved governed scope (spec 097 §3.3), which widens
+/// the universe the `C-002` arm asks about. No IO.
+pub fn couple_with_scope(
+    cfg: &Config,
+    registry: &Registry,
+    index: &CodebaseIndex,
+    scope: &crate::coverage::GovernedScope,
     diff: &DiffInput,
     waiver: Option<&Waiver>,
 ) -> Result<CoupleReport, Error> {
@@ -161,7 +190,9 @@ pub fn couple_with(
         // predicts this arm. A deleted path is never refused for lacking an
         // owner. `C-002` takes precedence over `C-001` for one path (claiming
         // the file in a spec resolves both), so a path raises at most one code.
-        if cfg.coupling.require_ownership && !file.deleted && in_coverage_universe(cfg, index, path)
+        if cfg.coupling.require_ownership
+            && !file.deleted
+            && in_coverage_universe_with(cfg, index, scope, path)
         {
             let message = match classify(index, path) {
                 Ownership::Specific => None,

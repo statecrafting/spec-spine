@@ -15,11 +15,14 @@ use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
 use spec_spine_core::{
     DiagnosticCounts, Freshness, IndexCheckReport, UnwitnessedCounts, Versioning,
     annotate_unreadable, check_index_freshness, check_slice_freshness, committed_diagnostics,
-    coverage, empty_universe, index, index_dir, index_shard_files, load_committed_index,
-    load_committed_registry, partition_orphans, read_document, render_markdown, slices_path,
-    verdict_tally,
+    coverage_with_inventory, empty_universe, index, index_dir, index_shard_files,
+    load_committed_index, load_committed_registry, partition_orphans, read_document,
+    render_markdown, slices_path, verdict_tally,
 };
-use spec_spine_types::{Config, CoverageReport, Error, Verdict, verdict::verb};
+use spec_spine_types::{
+    Config, CoverageReport, Enumeration, Error, Inventory, InventoryProvenance, Verdict,
+    verdict::verb,
+};
 
 use crate::load_repo_config;
 use crate::out;
@@ -75,6 +78,10 @@ pub enum IndexAction {
         /// Fail (exit 1) unless every source file has a specific owning spec.
         #[arg(long)]
         fail_on_untraced: bool,
+        /// The files `[coverage] governed_scope` may match, one repo-relative
+        /// path per line, instead of asking git (spec 097). The git-free route.
+        #[arg(long, value_name = "FILE")]
+        paths_from: Option<std::path::PathBuf>,
     },
 }
 
@@ -179,10 +186,23 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
         Some(IndexAction::Coverage {
             json,
             fail_on_untraced,
+            paths_from,
         }) => {
+            // Spec 097 §3.6: a declared scope is matched against an inventory
+            // the CLI supplies, because the core has no git. Nothing is
+            // enumerated while the scope is empty, so a corpus that never sets
+            // the key never needs git here.
+            let inventory = if cfg.coverage.governed_scope.is_empty() {
+                None
+            } else {
+                Some(match paths_from {
+                    Some(file) => supplied_inventory(file)?,
+                    None => tracked_inventory(repo)?,
+                })
+            };
             // Freshness-guarded inside `coverage`: a stale index is `Error::Stale`
             // (exit 2), so the report never describes the wrong ledger.
-            let report = coverage(&cfg, repo)?;
+            let report = coverage_with_inventory(&cfg, repo, inventory.as_ref())?;
             if *json {
                 out!("{}", read_document(&report, Versioning::Stamp)?);
             } else {
@@ -372,6 +392,14 @@ fn counts_suffix(counts: &DiagnosticCounts) -> String {
 
 /// `"1 warning(s), 0 error(s): 1 W-001"`. Bare, so a caller can place it in a
 /// sentence as well as in parentheses.
+fn enumeration_label(e: Enumeration) -> &'static str {
+    match e {
+        Enumeration::Tracked => "tracked",
+        Enumeration::Supplied => "supplied",
+        Enumeration::Walk => "walk",
+    }
+}
+
 fn counts_summary(counts: &DiagnosticCounts) -> String {
     let by_code = counts
         .by_code
@@ -383,6 +411,72 @@ fn counts_summary(counts: &DiagnosticCounts) -> String {
         "{} warning(s), {} error(s): {by_code}",
         counts.warnings, counts.errors
     )
+}
+
+/// An explicit path list for `index coverage --paths-from` (spec 097 §3.6):
+/// one path per line, blank lines ignored. Supplied as given, so a list that
+/// is empty is an answer ("nothing to govern"), not a request to enumerate.
+fn supplied_inventory(file: &Path) -> Result<Inventory, Error> {
+    let text = fs::read_to_string(file)
+        .map_err(|e| Error::Io(format!("read --paths-from {}: {e}", file.display())))?;
+    Ok(Inventory {
+        provenance: InventoryProvenance::Supplied,
+        paths: text
+            .lines()
+            .map(str::trim)
+            .filter(|l| !l.is_empty())
+            .map(str::to_string)
+            .collect(),
+    })
+}
+
+/// The tracked-file inventory (spec 097 §3.6): `git ls-files -z --cached
+/// --others --exclude-standard`, minus paths the working tree no longer holds.
+///
+/// `--cached` lists every tracked file, whether or not an ignore rule matches
+/// it, and `--exclude-standard` filters only `--others`, so an untracked
+/// ignored file is left out while a new unstaged file is in. A git failure is
+/// an error naming the remedy, never a silent fall back to a walk: that would
+/// change the denominator without changing any message.
+fn tracked_inventory(repo: &Path) -> Result<Inventory, Error> {
+    let out = std::process::Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .args([
+            "ls-files",
+            "-z",
+            "--cached",
+            "--others",
+            "--exclude-standard",
+        ])
+        .output()
+        .map_err(|e| {
+            Error::Io(format!(
+                "[coverage] governed_scope needs the tracked-file list, and git could not be \
+                 run ({e}); run inside a git repository, or pass `--paths-from FILE`"
+            ))
+        })?;
+    if !out.status.success() {
+        return Err(Error::Io(format!(
+            "[coverage] governed_scope needs the tracked-file list, and `git ls-files` exited \
+             {:?}: {}; run inside a git repository, or pass `--paths-from FILE`",
+            out.status.code(),
+            String::from_utf8_lossy(&out.stderr).trim()
+        )));
+    }
+    let mut paths: Vec<String> = out
+        .stdout
+        .split(|b| *b == 0)
+        .filter(|p| !p.is_empty())
+        .map(|p| String::from_utf8_lossy(p).into_owned())
+        .filter(|p| fs::symlink_metadata(repo.join(p)).is_ok())
+        .collect();
+    paths.sort();
+    paths.dedup();
+    Ok(Inventory {
+        provenance: InventoryProvenance::Tracked,
+        paths,
+    })
 }
 
 /// The human form of the coverage report: one headline, one line per package,
@@ -408,6 +502,24 @@ fn render_coverage(report: &CoverageReport) -> String {
     // beside the counts rather than inside them: these paths are not on disk,
     // so counting a declared intention as coverage would let a spec satisfy
     // `--fail-on-untraced` by promising.
+    // Spec 097 §3.5: the files only the declared scope brought in, on their own
+    // line, because their denominator is not a package and a reader comparing
+    // two runs must be able to see where the new files came from.
+    if let (Some(declared), Some(enumeration)) = (&report.declared_scope_files, report.enumeration)
+    {
+        let unclaimed = declared
+            .iter()
+            .filter(|f| report.unclaimed_files.contains(f) || report.floor_only_files.contains(f))
+            .count();
+        let _ = writeln!(
+            out,
+            "  declared scope ({}): {} file(s) outside the package totals, {} claimed, {} unclaimed",
+            enumeration_label(enumeration),
+            declared.len(),
+            declared.len() - unclaimed,
+            unclaimed
+        );
+    }
     if !report.planned_territory.is_empty() {
         let _ = writeln!(
             out,
