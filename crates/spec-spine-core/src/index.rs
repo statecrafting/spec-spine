@@ -1577,6 +1577,10 @@ pub(crate) fn empty_territory_dirs(
         layout: &LayoutConfig,
         out: &mut Vec<PathBuf>,
     ) {
+        // A directory that cannot be read is not known to be empty, and
+        // `walk_territory` yields nothing for it either. Emitting a `d` piece
+        // here would make the snapshot's piece set disagree with the file set
+        // `attest --spec` hashes, which spec 087 §3.3.1 requires them not to do.
         let Ok(entries) = fs::read_dir(dir) else {
             return;
         };
