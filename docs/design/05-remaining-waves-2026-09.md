@@ -222,6 +222,14 @@ precedence is the override that exists and that scope membership is not a second
 one, and 087 now states that the per-spec verb keeps refusing what it refuses
 today. No draft's claim moved.
 
+A third read (2026-09-15) kept `index coverage --paths-from` and corrected two
+wording contradictions in 097 before its build, recorded there as D-6: ignore
+rules exclude only untracked files (a tracked file matching `.gitignore` stays
+in the inventory, which is what the prescribed `git ls-files` invocation already
+does), and the two new report members are omitted only when the configured
+scope is empty, never when a set scope matched nothing, so `enumeration`
+survives the case that needs it. The build order is unchanged.
+
 ## 8. Where each item is filed
 
 | Item | Filed as |
