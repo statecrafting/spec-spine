@@ -148,3 +148,15 @@ fn a_member_named_like_a_version_does_not_exempt_a_stamped_document() {
     assert_eq!(v["schemaVersion"], READ_SCHEMA_VERSION, "{doc}");
     assert_eq!(v["version"], "9");
 }
+
+#[test]
+fn stamping_a_document_that_already_names_schema_version_is_refused() {
+    // Overwriting would silently replace a version another contract put there.
+    let err = read_document(
+        &serde_json::json!({ "schemaVersion": "9.9.9" }),
+        Versioning::Stamp,
+    )
+    .unwrap_err();
+    assert!(matches!(err, Error::Schema(_)), "{err:?}");
+    assert!(err.to_string().contains("schemaVersion"), "{err}");
+}

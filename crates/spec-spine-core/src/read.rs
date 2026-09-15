@@ -77,6 +77,16 @@ pub fn read_document<T: Serialize + ?Sized>(value: &T, mode: Versioning) -> Resu
     };
     match mode {
         Versioning::Stamp => {
+            // A document that already names `schemaVersion` is not one to stamp:
+            // overwriting would silently replace a version some other contract
+            // put there. The caller must say `Preexisting` instead, and saying
+            // the wrong thing is an internal error rather than a corrupted
+            // document.
+            if object.contains_key(READ_VERSION_MEMBER) {
+                return Err(Error::Schema(format!(
+                    "internal: a read document to be stamped already carries                      `{READ_VERSION_MEMBER}`; stamping would overwrite it (spec 093 §3.2)"
+                )));
+            }
             object.insert(
                 READ_VERSION_MEMBER.to_string(),
                 Value::String(READ_SCHEMA_VERSION.to_string()),

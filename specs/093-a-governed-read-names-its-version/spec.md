@@ -468,6 +468,15 @@ to be wrong in two is fixed once. `docs/api.md`, `website/docs/cli/registry.md`
 and `website/docs/cli/index.md` state the new shapes; the last also described
 `index orphans --json` as a bare array, which it has not been since spec 059.
 
+**D-10 (2026-09-15). `Stamp` refuses a document that already names
+`schemaVersion`.** §3.2. A review of the build found that stamping inserted the
+member unconditionally, so a value that already carried one (a future DTO
+growing the field, or a caller passing the wrong mode) would have its version
+silently replaced. §3.2's refusals already treat a mis-declared mode as an
+internal error (`Preexisting` without its member); this is the mirror case, and
+refusing it keeps "the mode is an argument" true in both directions. No current
+caller is affected.
+
 ## Verification
 
 Each line is one command. Every line asserting a version member, an `items`
