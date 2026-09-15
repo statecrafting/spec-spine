@@ -36,6 +36,14 @@
       },
       {
         "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "005-coupling-gate",
         "unit": {
           "kind": "file",
@@ -124,7 +132,7 @@
       }
     ],
     "id": "097-governed-scope-is-declared-not-inferred",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -166,6 +174,6 @@
     "summary": "The ownership ratchet sees a file only if all four conjuncts of `coverage.rs::in_coverage_universe` hold: the extension is in `SOURCE_EXTS`, no path component is a resolver exclusion, the file lies inside a discovered package, and no bypass prefix matches. Measured on 2026-09-15: this repository tracks 572 files and the ratchet can see 89. Nineteen tracked files carry a `SOURCE_EXTS` extension and are invisible on the package conjunct alone, and eleven of those nineteen are files `[index] extra_hashed_inputs` already names, so a change to one restales all 101 shards while `C-002` cannot ask who owns it. Seven of the nineteen already carry a valid `// Spec:` claim header that nothing ever reads. The two lists disagree about what this repository governs. This spec adds an opt-in declared scope: named path patterns that join the coverage universe whatever their extension and wherever they sit, with the tracked-file enumeration done by the CLI and passed in, because the core has no git. Empty by default, so no adopter's verdict changes on upgrade. The claim scanner is untouched: a scoped file is claimed from spec frontmatter, so those seven headers stay inert and this spec says so rather than implying otherwise.\n",
     "title": "Governed scope is declared, not inferred"
   },
-  "shardHash": "859cb9fdeefd8d20f7c33de7a60b6c95d0e63deb0be88c629af2c60b09d09b2a",
+  "shardHash": "d64704e99f8ee7d6b241f63c7aef76bc61d259930895f680b312aa583b629e73",
   "specVersion": "1.2.0"
 }

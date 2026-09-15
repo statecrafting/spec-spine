@@ -8,10 +8,13 @@ use std::path::Path;
 
 use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
 use spec_spine_core::{
-    Ownership, classify, coverage, coverage_json, coverage_with, enumerate_source_files,
-    in_coverage_universe, index, index_dir, index_shard_files,
+    GovernedScope, Ownership, classify, coverage, coverage_json, coverage_with,
+    coverage_with_inventory, enumerate_source_files, in_coverage_universe,
+    in_coverage_universe_with, index, index_dir, index_shard_files, walk_repository,
 };
-use spec_spine_types::{Config, CoverageReport, Error, load_config};
+use spec_spine_types::{
+    Config, CoverageReport, Enumeration, Error, Inventory, InventoryProvenance, load_config,
+};
 
 fn write(root: &Path, rel: &str, content: &str) {
     let p = root.join(rel);
@@ -972,4 +975,205 @@ fn the_report_window_ends_at_line_64() {
         "// filler\n".repeat(20)
     );
     assert!(near_miss_headers_in("f.rs", &both, &ids).is_empty());
+}
+
+// ── spec 097: governed scope is declared, not inferred ───────────────────
+
+/// One crate (`crate-a`, no floor) claiming `src/lib.rs`, plus files the
+/// inferred universe cannot see: a root `AGENTS.md` (claimed by frontmatter),
+/// `scripts/run.sh` and `scripts/notes.txt` (no package, unclaimed), a
+/// `docs/guide.md` under the bypass floor, a `target/gen.sh` under a resolver
+/// exclusion, and `.git/hooks/pre-commit` for the walk to skip.
+fn scope_fixture(coverage_toml: &str) -> (tempfile::TempDir, Config) {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(r, "Cargo.toml", "[workspace]\nmembers = [\"crate-a\"]\n");
+    write(
+        r,
+        "crate-a/Cargo.toml",
+        "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n",
+    );
+    write(r, "crate-a/src/lib.rs", "pub fn a() {}\n");
+    write(r, "AGENTS.md", "# agents\n");
+    write(r, "scripts/run.sh", "echo hi\n");
+    write(r, "scripts/notes.txt", "notes\n");
+    write(r, "docs/guide.md", "# guide\n");
+    write(r, "target/gen.sh", "echo gen\n");
+    write(r, ".git/hooks/pre-commit", "echo hook\n");
+    write(
+        r,
+        "specs/001-a/spec.md",
+        &spec(
+            "001-a",
+            "establishes:\n  - \"crate-a/src/lib.rs\"\n  - \"AGENTS.md\"\n",
+        ),
+    );
+    write(r, "spec-spine.toml", coverage_toml);
+    let cfg = load_config(coverage_toml).unwrap();
+    emit_index(&cfg, r);
+    (tmp, cfg)
+}
+
+fn cov(cfg: &Config, root: &Path, inventory: Option<&Inventory>) -> CoverageReport {
+    coverage_with_inventory(cfg, root, inventory).unwrap()
+}
+
+fn supplied(paths: &[&str]) -> Inventory {
+    Inventory {
+        provenance: InventoryProvenance::Supplied,
+        paths: paths.iter().map(|p| p.to_string()).collect(),
+    }
+}
+
+/// §3.1: unset and `[]` are the same report, byte for byte, and neither carries
+/// the two new members.
+#[test]
+fn an_empty_scope_is_the_report_spec_032_emits() {
+    let (a, cfg_a) = scope_fixture("");
+    let (b, cfg_b) = scope_fixture("[coverage]\ngoverned_scope = []\n");
+    let ra = serde_json::to_string(&cov(&cfg_a, a.path(), None)).unwrap();
+    let rb = serde_json::to_string(&cov(&cfg_b, b.path(), None)).unwrap();
+    assert_eq!(ra, rb);
+    assert!(
+        !ra.contains("declaredScopeFiles") && !ra.contains("enumeration"),
+        "{ra}"
+    );
+    assert_eq!(cov(&cfg_a, a.path(), None).source_files, 1);
+}
+
+/// §3.3, §3.4: a file outside every package and a file with no source extension
+/// both enter; the unclaimed one is `Unowned`, never floor-only; the claimed one
+/// is claimed from frontmatter.
+#[test]
+fn a_scope_adds_files_outside_packages_and_outside_source_exts() {
+    let (fx, cfg) = scope_fixture("[coverage]\ngoverned_scope = [\"AGENTS.md\", \"scripts/*\"]\n");
+    let r = cov(&cfg, fx.path(), None);
+    assert_eq!(
+        r.declared_scope_files.as_deref(),
+        Some(
+            &[
+                "AGENTS.md".to_string(),
+                "scripts/notes.txt".into(),
+                "scripts/run.sh".into()
+            ][..]
+        )
+    );
+    assert_eq!(r.enumeration, Some(Enumeration::Walk));
+    assert_eq!(r.source_files, 4);
+    assert_eq!(r.claimed_files, 2, "lib.rs and AGENTS.md: {r:?}");
+    assert_eq!(r.unclaimed_files, ["scripts/notes.txt", "scripts/run.sh"]);
+    assert!(r.floor_only_files.is_empty());
+    // Their denominator is not a package.
+    assert_eq!(r.packages[0].source_files, 1);
+    assert_eq!(
+        classify_outside(&cfg, fx.path(), "scripts/run.sh"),
+        Ownership::Unowned
+    );
+}
+
+fn classify_outside(cfg: &Config, root: &Path, path: &str) -> Ownership {
+    let index = spec_spine_core::load_committed_index(cfg, root).unwrap();
+    classify(&index, path)
+}
+
+/// §3.2: exclusions carve out of the scope's own additions and cannot remove a
+/// file the inferred universe already holds.
+#[test]
+fn exclusions_remove_only_what_the_scope_added() {
+    let (fx, cfg) = scope_fixture(
+        "[coverage]\ngoverned_scope = [\"scripts/*\", \"crate-a/src/*\"]\n\
+         governed_scope_exclusions = [\"scripts/notes.txt\", \"crate-a/src/lib.rs\"]\n",
+    );
+    let r = cov(&cfg, fx.path(), None);
+    assert_eq!(
+        r.declared_scope_files.as_deref(),
+        Some(&["scripts/run.sh".to_string()][..])
+    );
+    assert_eq!(r.source_files, 2, "lib.rs stays, via its package: {r:?}");
+    assert_eq!(r.packages[0].source_files, 1);
+}
+
+/// §3.3: a resolver exclusion and a bypass still win over scope membership.
+#[test]
+fn a_resolver_exclusion_and_a_bypass_stay_out() {
+    let (fx, cfg) = scope_fixture("[coverage]\ngoverned_scope = [\"target/*\", \"docs/*\"]\n");
+    let r = cov(
+        &cfg,
+        fx.path(),
+        Some(&supplied(&["target/gen.sh", "docs/guide.md"])),
+    );
+    assert_eq!(r.declared_scope_files.as_deref(), Some(&[][..]));
+    assert_eq!(r.source_files, 1);
+    let index = spec_spine_core::load_committed_index(&cfg, fx.path()).unwrap();
+    let scope = GovernedScope::from_globs(&cfg, fx.path());
+    assert!(scope.contains("docs/guide.md"), "matched by the glob");
+    assert!(!in_coverage_universe_with(
+        &cfg,
+        &index,
+        &scope,
+        "docs/guide.md"
+    ));
+    assert!(!in_coverage_universe_with(
+        &cfg,
+        &index,
+        &scope,
+        "target/gen.sh"
+    ));
+}
+
+/// §3.5: a set scope that matches nothing still reports both members, with
+/// `declaredScopeFiles: []`, so the enumeration survives.
+#[test]
+fn a_set_scope_matching_nothing_keeps_both_members() {
+    let (fx, cfg) = scope_fixture("[coverage]\ngoverned_scope = [\"nothing/*\"]\n");
+    let r = cov(&cfg, fx.path(), None);
+    let json = serde_json::to_string(&r).unwrap();
+    assert!(json.contains("\"declaredScopeFiles\":[]"), "{json}");
+    assert!(json.contains("\"enumeration\":\"walk\""), "{json}");
+}
+
+/// §3.6: absent walks; supplied-empty matches nothing; they are two different
+/// reports. And a supplied list is matched exactly, carrying its provenance.
+#[test]
+fn absent_and_supplied_empty_inventories_are_different_answers() {
+    let (fx, cfg) = scope_fixture("[coverage]\ngoverned_scope = [\"scripts/*\"]\n");
+    let walked = cov(&cfg, fx.path(), None);
+    let empty = cov(&cfg, fx.path(), Some(&supplied(&[])));
+    assert_ne!(walked, empty);
+    assert_eq!(walked.declared_scope_files.as_ref().unwrap().len(), 2);
+    assert_eq!(empty.declared_scope_files.as_deref(), Some(&[][..]));
+    assert_eq!(empty.enumeration, Some(Enumeration::Supplied));
+
+    let one = cov(&cfg, fx.path(), Some(&supplied(&["./scripts/run.sh"])));
+    assert_eq!(
+        one.declared_scope_files.as_deref(),
+        Some(&["scripts/run.sh".to_string()][..])
+    );
+    let tracked = Inventory {
+        provenance: InventoryProvenance::Tracked,
+        paths: vec!["scripts/run.sh".into()],
+    };
+    assert_eq!(
+        cov(&cfg, fx.path(), Some(&tracked)).enumeration,
+        Some(Enumeration::Tracked)
+    );
+}
+
+/// §3.6: the walk skips `.git/` and the declared state root.
+#[test]
+fn the_walk_skips_git_and_the_state_root() {
+    let (fx, _) = scope_fixture("");
+    write(fx.path(), "tool-state/cache.sh", "echo state\n");
+    let cfg = load_config("[layout]\nstate_dir = \"tool-state\"\n").unwrap();
+    let walked = walk_repository(&cfg, fx.path());
+    assert!(walked.contains("scripts/run.sh"));
+    assert!(!walked.iter().any(|p| p.starts_with(".git")), "{walked:?}");
+    assert!(
+        !walked.iter().any(|p| p.starts_with("tool-state")),
+        "{walked:?}"
+    );
+    assert!(
+        !walked.iter().any(|p| p.starts_with("target/")),
+        "{walked:?}"
+    );
 }

@@ -61,11 +61,13 @@ pub use compile::{
 };
 pub use couple::{
     CoupleReport, DEFAULT_BYPASS_PREFIXES, DiffFile, DiffInput, Waiver, build_superseders, couple,
-    couple_with, effective_bypass_prefixes, is_bypassed_path, owners_for_path, parse_waiver,
+    couple_with, couple_with_scope, effective_bypass_prefixes, is_bypassed_path, owners_for_path,
+    parse_waiver,
 };
 pub use coverage::{
-    EmptyUniverse, Ownership, SOURCE_EXTS, classify, coverage, coverage_with, empty_universe,
-    enumerate_source_files, in_coverage_universe,
+    EmptyUniverse, GovernedScope, Ownership, SOURCE_EXTS, classify, coverage, coverage_with,
+    coverage_with_inventory, coverage_with_scope, empty_universe, enumerate_source_files,
+    in_coverage_universe, in_coverage_universe_with, walk_repository,
 };
 pub use delta::{delta, tree_config};
 pub use dep_only::{
@@ -386,6 +388,34 @@ pub fn coverage_json(config_json: &str, repo_root: &str) -> Result<String, Error
     let config = config_from_json(config_json)?;
     read_document(
         &coverage(&config, std::path::Path::new(repo_root))?,
+        Versioning::Stamp,
+    )
+}
+
+/// [`coverage_json`] with the inventory a declared governed scope is matched
+/// against (spec 097 §3.6), the facade half of `index coverage --paths-from`.
+/// Request: `{ "config"?: Config, "repoRoot": string, "inventory"?:
+/// { "provenance": "tracked" | "supplied", "paths": [string] } }`. An absent
+/// `inventory` walks the repository root; a present one with no paths matches
+/// nothing. Returns the same read document the CLI emits.
+pub fn coverage_inventory_json(request_json: &str) -> Result<String, Error> {
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct Request {
+        #[serde(default)]
+        config: Config,
+        repo_root: String,
+        #[serde(default)]
+        inventory: Option<spec_spine_types::Inventory>,
+    }
+    let request: Request = serde_json::from_str(request_json)
+        .map_err(|e| Error::Parse(format!("invalid coverage request: {e}")))?;
+    read_document(
+        &coverage_with_inventory(
+            &request.config,
+            std::path::Path::new(&request.repo_root),
+            request.inventory.as_ref(),
+        )?,
         Versioning::Stamp,
     )
 }

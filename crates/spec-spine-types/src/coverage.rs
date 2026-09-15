@@ -49,6 +49,61 @@ pub struct CoverageReport {
     /// `planned_territory`, so a corpus with none emits what it did before.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub near_miss_headers: Vec<NearMissHeader>,
+    /// The files in the universe only because `[coverage] governed_scope`
+    /// names them, sorted (spec 097 §3.5). Counted in the totals and in no
+    /// package's, because their denominator is not a package.
+    ///
+    /// Omission is keyed to the **configured** scope: absent exactly when the
+    /// scope is empty, and `[]` when a set scope matched nothing, so the
+    /// enumeration beside it survives the case that needs it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub declared_scope_files: Option<Vec<String>>,
+    /// Which enumeration produced the file list the scope was matched against
+    /// (spec 097 §3.6). Present exactly when `declared_scope_files` is.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enumeration: Option<Enumeration>,
+}
+
+/// Where the governed-scope inventory came from (spec 097 §3.6).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Enumeration {
+    /// The CLI enumerated tracked and untracked-unignored files through git.
+    Tracked,
+    /// An explicit path list was supplied (`--paths-from`, or a facade caller).
+    Supplied,
+    /// No inventory was supplied, so the library walked the repository root.
+    Walk,
+}
+
+/// A supplied inventory: the files the governed scope may match, and where the
+/// list came from. The core copies the provenance into the report and never
+/// infers it (spec 097 §3.6). An absent inventory is `None` at the call site,
+/// which is a different answer from a supplied empty one.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Inventory {
+    pub provenance: InventoryProvenance,
+    pub paths: Vec<String>,
+}
+
+/// The provenance a caller may declare for a supplied inventory. `walk` is not
+/// one: a walk is what the library does when nothing is supplied.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum InventoryProvenance {
+    Tracked,
+    Supplied,
+}
+
+impl InventoryProvenance {
+    /// The report's spelling of this provenance.
+    pub fn enumeration(self) -> Enumeration {
+        match self {
+            InventoryProvenance::Tracked => Enumeration::Tracked,
+            InventoryProvenance::Supplied => Enumeration::Supplied,
+        }
+    }
 }
 
 /// One comment header that did not claim its file (spec 094 §3.3).

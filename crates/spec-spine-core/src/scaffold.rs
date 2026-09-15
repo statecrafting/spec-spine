@@ -275,6 +275,16 @@ fn config_toml(cfg: &Config) -> String {
          # `index check` still reports the count, so an exception stays explicit.\n\
          # unwitnessed_allowed = [\"crates/**/*.rs\"]\n\
          \n\
+         [coverage]\n\
+         # Paths the ownership ratchet governs whatever their extension and\n\
+         # wherever they sit: they join `index coverage` and C-002. Empty to\n\
+         # start; set it once every file it names has an owning spec. Globs as in\n\
+         # extra_hashed_inputs, trap included: `dir/**` matches no files, use\n\
+         # `dir/**/*`. A bypassed or resolver-excluded path stays out.\n\
+         # governed_scope = [\"AGENTS.md\", \"scripts/*\"]\n\
+         # Carved back out of governed_scope only (generated or vendored files).\n\
+         # governed_scope_exclusions = []\n\
+         \n\
          # [provenance.uri_schemes]\n\
          # Named URI prefixes a `references` provenance value may use. The\n\
          # header is commented too: an empty table here would OVERRIDE the\n\
