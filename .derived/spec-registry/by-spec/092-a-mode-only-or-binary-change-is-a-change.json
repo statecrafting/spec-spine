@@ -41,7 +41,7 @@
       }
     ],
     "id": "092-a-mode-only-or-binary-change-is-a-change",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -79,6 +79,6 @@
     "summary": "`couple` builds its `DiffInput` by parsing `git diff --no-color -U0 --no-renames`, and registers a path only when it meets a `---` or `+++` header. Git prints neither for a mode-only change (`old mode` / `new mode`) nor for a binary change (`Binary files a/x and b/x differ`), so both arrive at the gate as no change at all: an owned binary can change without its spec and `C-001` stays silent, and a mode flip on an unclaimed source file is invisible to `C-002`. Spec 088 met the same blindness while building `delta`, worked around it with a `--name-only` helper, and recorded in D-9 that `couple` is spec 005's territory. This spec unions the name list into the parsed diff: a path git reports and the hunk parser did not register enters `DiffInput` as a whole-file change with no spans, deleted when the status letter says so, and is then judged by the same clearance rules as every other path.\n",
     "title": "A mode-only or binary change is a change"
   },
-  "shardHash": "01e2093e02eb450c7ab2b8ac595b5dc3812787db981b88aaa0ee639c85ec956a",
+  "shardHash": "4f321cfc752c98959570a423073af45b9bef2ad257994e63039a8e787c1718fd",
   "specVersion": "1.2.0"
 }

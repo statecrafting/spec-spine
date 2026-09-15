@@ -18,7 +18,7 @@ summary: >
   enters `DiffInput` as a whole-file change with no spans, deleted when the
   status letter says so, and is then judged by the same clearance rules as
   every other path.
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
