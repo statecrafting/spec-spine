@@ -3,6 +3,7 @@
     "created": "2026-09-15",
     "dependsOn": [
       "005-coupling-gate",
+      "009-coupling-floor-claim-precedence",
       "032-ownership-coverage",
       "054-effective-config-is-a-governed-read",
       "057-claimed-but-unwitnessed",
@@ -35,6 +36,22 @@
       },
       {
         "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "032-ownership-coverage",
         "unit": {
           "kind": "file",
@@ -51,10 +68,34 @@
       },
       {
         "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "054-effective-config-is-a-governed-read",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/cmd_config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "006-init-scaffold",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "006-init-scaffold",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scaffold.rs"
         }
       },
       {
@@ -71,6 +112,14 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/tests/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
         }
       }
     ],
@@ -101,7 +150,11 @@
       "3.3 What the declaration changes",
       "3.4 How a governed-scope file is claimed",
       "3.5 The report says which files entered this way",
-      "3.6 The enumeration is the CLI's, not the core's",
+      "3.6 The enumeration is the CLI's, not the core's, and it names itself",
+      "Three cases, not two",
+      "The walk",
+      "Tracked, added, deleted",
+      "A git failure is an error, not a fallback",
       "3.7 `config show` prints it",
       "3.8 The tests",
       "4. Out of scope",
@@ -110,9 +163,9 @@
     ],
     "specPath": "specs/097-governed-scope-is-declared-not-inferred/spec.md",
     "status": "draft",
-    "summary": "The ownership ratchet sees a file only if all four conjuncts of `coverage.rs::in_coverage_universe` hold: the extension is in `SOURCE_EXTS`, no path component is a resolver exclusion, the file lies inside a discovered package, and no bypass prefix matches. Measured on 2026-09-15: this repository tracks 572 files and the ratchet can see 89. Nineteen tracked files carry a `SOURCE_EXTS` extension and are invisible on the package conjunct alone, and eleven of those nineteen are files `[index] extra_hashed_inputs` already names, so a change to one restales all 101 shards while `C-002` cannot ask who owns it. Seven of the nineteen already carry a valid `// Spec:` claim header that nothing ever reads. The two lists disagree about what this repository governs. This spec adds an opt-in declared scope: named path patterns that join the coverage universe whatever their extension and wherever they sit, with the tracked-file enumeration done by the CLI and passed in, because the core has no git. Empty by default, so no adopter's verdict changes on upgrade.\n",
+    "summary": "The ownership ratchet sees a file only if all four conjuncts of `coverage.rs::in_coverage_universe` hold: the extension is in `SOURCE_EXTS`, no path component is a resolver exclusion, the file lies inside a discovered package, and no bypass prefix matches. Measured on 2026-09-15: this repository tracks 572 files and the ratchet can see 89. Nineteen tracked files carry a `SOURCE_EXTS` extension and are invisible on the package conjunct alone, and eleven of those nineteen are files `[index] extra_hashed_inputs` already names, so a change to one restales all 101 shards while `C-002` cannot ask who owns it. Seven of the nineteen already carry a valid `// Spec:` claim header that nothing ever reads. The two lists disagree about what this repository governs. This spec adds an opt-in declared scope: named path patterns that join the coverage universe whatever their extension and wherever they sit, with the tracked-file enumeration done by the CLI and passed in, because the core has no git. Empty by default, so no adopter's verdict changes on upgrade. The claim scanner is untouched: a scoped file is claimed from spec frontmatter, so those seven headers stay inert and this spec says so rather than implying otherwise.\n",
     "title": "Governed scope is declared, not inferred"
   },
-  "shardHash": "06188c2b05f13947ea6fa06eef626dea87fa7884b990f2ab3d23cfe1f2a02300",
+  "shardHash": "67df68899a17711b8b941e472dc2af8e21eb63e10ff03ac0a80e3fd0834afd22",
   "specVersion": "1.2.0"
 }

@@ -19,12 +19,15 @@ summary: >
   path patterns that join the coverage universe whatever their extension and
   wherever they sit, with the tracked-file enumeration done by the CLI and
   passed in, because the core has no git. Empty by default, so no adopter's
-  verdict changes on upgrade.
+  verdict changes on upgrade. The claim scanner is untouched: a scoped file is
+  claimed from spec frontmatter, so those seven headers stay inert and this
+  spec says so rather than implying otherwise.
 implementation: pending
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
   - "005-coupling-gate"
+  - "009-coupling-floor-claim-precedence"
   - "032-ownership-coverage"
   - "054-effective-config-is-a-governed-read"
   - "057-claimed-but-unwitnessed"
@@ -36,15 +39,29 @@ extends:
   # 3.3 to 3.5: the universe, the classifier's input, and the report.
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-core/src/coverage.rs", nature: additive }
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-types/src/coverage.rs", nature: additive }
+  # 3.3: the gate reads the same universe, so the inventory reaches the
+  # `C-002` arm too; the bypass predicate itself is untouched (D-2).
+  - { spec: "005-coupling-gate", unit: "crates/spec-spine-core/src/couple.rs", nature: additive }
+  # 3.6: the facade takes the inventory the CLI would have passed, and must
+  # answer what the CLI answers (`coverage_json`).
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
   # 3.6: the CLI enumerates tracked files and passes them in, the way 005
-  # passes `DiffInput`.
+  # passes `DiffInput`; `index coverage` gains `--paths-from` for the
+  # git-free route, which is a flag in the clap tree.
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-cli/src/cmd_index.rs", nature: additive }
   - { spec: "005-coupling-gate", unit: "crates/spec-spine-cli/src/cmd_couple.rs", nature: additive }
-  # 3.7: effective config prints the declared scope like every other key.
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
+  # 3.2, 3.7: effective config prints the declared scope like every other key,
+  # and `init` writes the commented default beside it.
   - { spec: "054-effective-config-is-a-governed-read", unit: "crates/spec-spine-cli/src/cmd_config.rs", nature: additive }
-  # 3.8: the tests.
+  - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/src/scaffold.rs", nature: additive }
+  - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/tests/scaffold.rs", nature: additive }
+  # 3.8: the tests, core and CLI. The CLI half is not optional: the
+  # enumeration, its failure mode and the facade/CLI agreement are all
+  # invisible to a core-only classification test.
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-core/tests/coverage.rs", nature: additive }
   - { spec: "005-coupling-gate", unit: "crates/spec-spine-core/tests/couple.rs", nature: additive }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---
@@ -121,8 +138,15 @@ the copies inside the generated Rust file are the ones the scanner reads (spec
 094 §3.6 measures them there).
 
 That is the finding this spec rests on. The question is not whether markdown
-should be code. It is that seven files state their owner, in the format the
-documentation gives, and the ratchet is looking somewhere else.
+should be code. It is that the ratchet is looking somewhere else entirely: at
+package membership, which nobody declared, while seven authors wrote a claim in
+the format the documentation gives and got silence.
+
+What this spec does with that finding is bounded, and §3.4 states the bound:
+it lets a corpus declare these files governed, so `C-002` can ask who owns
+them. It does **not** make the seven headers readable. Under this spec those
+files are claimed in spec frontmatter or they are unclaimed debt; reaching the
+headers where they sit is a separate spec (§4).
 
 ### 1.3 Why a longer extension list does not fix it
 
@@ -142,8 +166,15 @@ paths this repository governs", and that is a declaration, not an inference.
 ## 2. Territory
 
 This spec adds a `[coverage]` table to `Config`, widens the coverage universe by
-that table, adds one member to the coverage report naming what entered through
-it, and adds the CLI-side tracked-file enumeration the widened universe needs.
+that table, adds two members to the coverage report (what entered through the
+table, and which enumeration produced the file list), and adds the CLI-side
+tracked-file enumeration the widened universe needs. The universe is read by
+`coverage.rs` and by `couple.rs`'s `C-002` arm, and reached through both the
+CLI and the `coverage_json` facade, so all four are territory: a change that
+threads an inventory into the classifier and not into the gate would make the
+report stop predicting the gate, which is the property spec 032 built. `init`'s
+commented default and the CLI tests are here for the same reason (§3.2, §3.8).
+
 It changes no committed artifact's schema: the scope is a config input and the
 report is computed on read.
 
@@ -151,10 +182,21 @@ report is computed on read.
 
 ### 3.1 Opt-in, and silent when unset
 
-`[coverage] governed_scope` is empty by default. With it empty, every verb MUST
-behave byte-for-byte as it does today: the same universe, the same coverage
-counts, the same `C-002` set. An adopter upgrading past this spec and changing
-no configuration MUST see no verdict change anywhere.
+`[coverage] governed_scope` is empty by default. With it empty, the **answers**
+MUST NOT move: the same coverage universe, the same per-file classifications,
+the same coverage counts and prose, the same `C-002` set and the same exit code
+from every gate verb. An adopter upgrading past this spec and changing no
+configuration MUST see no verdict change anywhere.
+
+"The answers" is narrower than "every byte", deliberately, and the difference is
+declared here rather than discovered by a golden test. Two outputs do change
+with the key unset: `config show` gains the two keys (§3.7), because an
+effective config that omits a key nobody set is an effective config nobody can
+audit; and `init` writes the commented default (§3.2) into a new
+`spec-spine.toml`. A corpus pinning the bytes of either sees a diff, and both
+are additive. Nothing that renders a verdict, counts a file or classifies
+ownership changes at all, and `declaredScopeFiles` and the enumeration member
+(§3.5) are absent from the report entirely while the scope is empty.
 
 This is the same posture spec 032 took for `require_ownership` and spec 030 for
 `auto_waive_dependency_only`: a corpus turns a ratchet on when it has retired
@@ -190,24 +232,37 @@ package conjunct. The other two conjuncts still apply, and deliberately:
 - **`resolver_exclusions` still wins.** A declared scope reaching into `target/`
   or `node_modules/` is a mistake, and honoring it would make the report
   machine-dependent.
-- **The bypass floor still wins.** `docs/`, `.github/`, `README.md` and the rest
-  of `couple.rs::DEFAULT_BYPASS_PREFIXES` are bypassed for coupling, and a
-  file that is bypassed but counted as unclaimed debt is a coverage figure that
-  can never reach 100% (the reasoning in `coverage.rs`'s own comment on
-  `in_coverage_universe`). A corpus that wants `.github/workflows/` governed
-  therefore has one honest move and this spec does not shortcut it: the file
-  must stop being bypassed, which is a change to `[coupling] bypass_prefixes`
-  the corpus makes deliberately, in the same commit, and which `config show`
-  prints. §5 D-2 records why the alternative was rejected.
+- **Scope membership does not override a bypass, and does not disturb what
+  already does.** `docs/`, `.github/`, `README.md` and the rest of
+  `couple.rs::DEFAULT_BYPASS_PREFIXES` stay bypassed for a file that merely
+  matches `governed_scope`: a file that is bypassed but counted as unclaimed
+  debt is a coverage figure that can never reach 100% (the reasoning in
+  `coverage.rs`'s own comment on `in_coverage_universe`). What already
+  overrides a bypass is spec 009's explicit-claim precedence, which
+  `is_bypassed_path` applies before consulting either list, and this spec
+  leaves it exactly as it is: a resolved, ownership-bearing unit claim covering
+  the path beats the built-in floor and the adopter's list alike, so a workflow
+  file a spec explicitly claims is governed today and stays governed. An
+  **unclaimed** file under a bypass prefix stays bypassed, before and after
+  this spec. The one part of the bypass conjunct no claim reaches either is the
+  declared state root (`[layout] state_dir`, spec 039), which is bypassed
+  unconditionally; a scope entry certainly does not reach it.
 
 The consequence is worth stating plainly: of §1.2's nineteen files, the ones
-under `docs/` or `.github/` are not reachable by this spec alone, and the git
-hooks, `install.sh`, `scripts/` and `py/` are.
+under `docs/` or `.github/` are not reachable **by a scope entry** alone. The
+route that exists for them is the one that already exists for every bypassed
+path: an explicit unit claim in spec frontmatter, which overrides the bypass
+under spec 009. What no route reaches is an **unclaimed** file under a built-in
+prefix, and making those require ownership is a change to the exemption policy
+itself, which §5 D-2 records as a separate spec's work. The git hooks,
+`install.sh`, `scripts/` and `py/` are reachable by a scope entry, because
+nothing bypasses them.
 
 ### 3.4 How a governed-scope file is claimed
 
 The three ways a file is claimed (spec 032 §3.1, CLAUDE.md's "how a file gets
-claimed") are unchanged, but only two of them reach every governed-scope file:
+claimed") are unchanged, and only the first of them reaches every
+governed-scope file:
 
 1. an `establishes` unit, or a unit carried on an `extends` edge: available for
    any path;
@@ -216,21 +271,36 @@ claimed") are unchanged, but only two of them reach every governed-scope file:
    `Specific` or it is `Unowned`, and the `C-002` message for it MUST NOT name a
    floor it does not have;
 3. a `// Spec:` comment header: available only where the file's syntax has a
-   line comment **and** its extension is in `SOURCE_EXTS`, because the scanner
-   walks `SOURCE_EXTS` files inside packages (spec 094 §3.2). This spec does
-   **not** widen the scanner. A `.md` or `.yml` file in the governed scope is
-   claimed from frontmatter or it is not claimed.
+   line comment **and** its extension is in `SOURCE_EXTS` **and** the file lies
+   inside a discovered package, because that is where the scanner walks (spec
+   094 §3.2). This spec does **not** widen the scanner.
+
+The consequence MUST be stated exactly, because §1.2's most striking measurement
+is on the wrong side of it: **the seven inert headers stay inert after this
+spec.** A governed-scope file outside every package is claimed by an
+`establishes` unit or an `extends`-carried unit in spec frontmatter, or it is
+not claimed, whatever comment it carries. A corpus adopting the scope writes
+those frontmatter claims; it does not get them for free from headers already in
+the files. The same holds for extension: a `.md` or `.yml` file in the governed
+scope is claimed from frontmatter or not at all.
 
 That asymmetry MUST be documented rather than designed around. Widening the
 claim scanner is a change to what claims, which spec 094 §4 reserves for a spec
-that measures it first.
+that measures it first, and which this spec deliberately does not carry: a
+mechanism spec that also moved the claim boundary would ship two changes under
+one review.
 
 ### 3.5 The report says which files entered this way
 
-`CoverageReport` MUST gain one additive member, `declaredScopeFiles`, listing
-the paths that are in the universe because of `governed_scope` and would not
-otherwise be, sorted, omitted when empty. Omitted-when-empty is what keeps §3.1
-true for a corpus that never sets the key.
+`CoverageReport` MUST gain two additive members, both omitted when the scope is
+empty, which is what keeps §3.1 true for a corpus that never sets the key:
+
+- `declaredScopeFiles`: the paths that are in the universe because of
+  `governed_scope` and would not otherwise be, sorted.
+- `enumeration`: which of §3.6's three enumerations produced the file list, as
+  one of `tracked`, `supplied` or `walk`. A denominator that can come from
+  three places MUST say which one it came from, or two reports that disagree by
+  five files look like a corpus that changed.
 
 The prose form of `index coverage` MUST report them on their own line, counted
 and separable from the package totals, because their denominator is not a
@@ -242,7 +312,7 @@ The classifier MUST NOT change. A governed-scope file is `Specific` or
 unclaimed files as it already does. This spec adds files to the denominator; it
 adds no new refusal code and no new refusal condition.
 
-### 3.6 The enumeration is the CLI's, not the core's
+### 3.6 The enumeration is the CLI's, not the core's, and it names itself
 
 The universe is currently enumerated by walking package directories. A declared
 scope can name a path in no package, so the walk must start from the repository
@@ -251,17 +321,75 @@ whatever else a working tree holds. The filter that makes a root walk honest is
 "is this file tracked", and that is a git question.
 
 **The core MUST NOT run git.** This is the workspace invariant every
-artifact-producing function already keeps. The CLI MUST enumerate tracked files
-(`git ls-files -z`) and pass the list into the core as typed data, exactly as it
-parses `git diff` into `DiffInput` for spec 005 and `git diff --name-only -z`
-into `changed_path_names` for spec 088.
+artifact-producing function already keeps. The CLI MUST enumerate the inventory
+and pass it into the core as typed data, exactly as it parses `git diff` into
+`DiffInput` for spec 005 and `git diff --name-only -z` into `changed_path_names`
+for spec 088.
 
-The core function MUST accept the list as an argument and MUST remain a pure
-function of `(Config, file contents, file list)`. When no list is supplied (a
-library caller, or a corpus not under git), the governed scope MUST be resolved
-against a root walk filtered by `resolver_exclusions` alone, and the report MUST
-say which of the two enumerations it used, because the two can differ and a
-consumer comparing reports across them is comparing different denominators.
+#### Three cases, not two
+
+The core function MUST accept the inventory as an argument and MUST remain a
+pure function of `(Config, file contents, inventory)`. The argument MUST
+distinguish an **absent** inventory from a **supplied empty** one:
+
+| Inventory | Files the scope may match | Reported `enumeration` |
+|---|---|---|
+| supplied, non-empty | exactly those paths | the provenance the caller declared |
+| supplied, empty | none: the caller has said there is nothing to govern | the same |
+| absent | a filesystem walk from the repository root | `walk` |
+
+A supplied inventory carries its **provenance**, which the core copies into the
+report and never infers: `tracked` when the CLI enumerated it from git, and
+`supplied` when it came from an explicit path list. The core cannot tell the two
+apart by looking at a list of strings, and a report that guessed would name the
+wrong denominator in exactly the case a reader is trying to explain.
+
+Modelling the argument as a plain list collapses the middle row into the
+bottom one, and they are different answers: a caller that supplies an empty
+list has answered the question, and silently walking the tree instead
+substitutes a different denominator for the one it gave. An `Option`-shaped
+argument (or any type that carries the distinction, provenance included) is
+therefore required, and §3.8 pins the two apart.
+
+#### The walk
+
+The walk MUST exclude, in addition to `resolver_exclusions`: `.git/`, because it
+is not corpus and its contents are machine-specific; and the declared state root
+(`[layout] state_dir`), because spec 039 bypasses it unconditionally and a walk
+that enumerated it would put paths in the denominator that the gate refuses to
+look at. It follows no symlink out of the repository root.
+
+#### Tracked, added, deleted
+
+When the CLI enumerates from git it MUST use `git ls-files -z --cached --others
+--exclude-standard` and MUST drop paths that do not exist in the working tree
+(`--deleted` entries, and index entries whose file is gone):
+
+- **added**: a new file that `.gitignore` does not exclude is in the inventory
+  before it is staged. Otherwise `index coverage` reads clean locally and CI
+  refuses the same tree, which is the lag this repository's own harness exists
+  to remove.
+- **ignored**: an ignored file is never in the inventory. `--exclude-standard`
+  is what keeps build output and editor droppings out.
+- **deleted or missing**: a path git still lists but the tree no longer holds is
+  dropped. The scope governs files there are to read; a coverage row for a file
+  that does not exist is a row nobody can act on.
+
+#### A git failure is an error, not a fallback
+
+If the CLI runs git and git fails (absent binary, not a repository, non-zero
+exit), it MUST report that failure as an I/O error (exit 3) naming the remedy.
+It MUST NOT fall back to the walk, because a silent fallback changes the
+denominator without changing any message a reader could point at. The walk is
+the **library** caller's case (an absent inventory), never a repair for a
+command that failed.
+
+The git-free route through the CLI is the explicit path list: `couple
+--paths-from FILE` already is one, and this spec MUST NOT weaken it, so a list
+supplied that way is the inventory and no git enumeration overrides it.
+`index coverage` MUST gain the same `--paths-from FILE` flag, because with a
+scope set the enumeration now decides its denominator too, and a corpus not
+under git otherwise has no way to run the verb at all.
 
 ### 3.7 `config show` prints it
 
@@ -283,29 +411,51 @@ input nobody can audit.
   `governed_scope` (§3.3);
 - a governed-scope file outside every package classifying as `Unowned` rather
   than `FloorOnly`, with the `C-002` message naming no floor (§3.4);
-- `declaredScopeFiles` omitted when empty and populated otherwise (§3.5).
+- `declaredScopeFiles` omitted when empty and populated otherwise (§3.5), and
+  `enumeration` likewise;
+- an **absent** inventory resolving by walk, and a **supplied empty** inventory
+  matching nothing, asserted as two different reports (§3.6);
+- the walk excluding `.git/` and the declared state root (§3.6).
 
 `crates/spec-spine-core/tests/couple.rs` MUST assert that with
 `require_ownership` on, a changed governed-scope file with no claim is `C-002`,
-and that the same file with a claim is not.
+and that the same file with a claim is not; and that an unclaimed changed file
+under a built-in bypass prefix matching `governed_scope` is **not** refused,
+while the same file with an explicit unit claim is governed exactly as spec 009
+already makes it (§3.3, D-2).
+
+`crates/spec-spine-cli/tests/cli.rs` MUST cover what no core test can see:
+
+- `index coverage --paths-from` resolving against the supplied list, with the
+  reported `enumeration` naming it;
+- a git enumeration failure exiting 3 rather than reporting a walk (§3.6);
+- the `coverage_json` facade and the CLI answering the same report for the same
+  inventory, the pairing spec 057 §3.3 requires, since the facade is the half a
+  binding consumes;
+- `config show` and a scaffolded `spec-spine.toml` carrying the keys (§3.1,
+  §3.7).
 
 ## 4. Out of scope
 
 **Turning it on in this repository.** This spec ships the mechanism with an
 empty default. Populating `[coverage] governed_scope` here is a separate change
-that must first give the unclaimed files of §1.2 an owner, because the moment
-the key is set they become unclaimed debt and
-`index coverage --fail-on-untraced` refuses in CI. Seven of the nineteen are
-already claimed and would arrive owned; the remaining twelve need a claim, and
-most can take a `// Spec:` header in the same change, since they are shell and
-Python. That change also edits `spec-spine.toml`, which restales all 101
-shards. Doing both in one PR would mix a mechanism nobody can review against a
-ledger regeneration nobody can read.
+that must first give every file it names an owner, because the moment the key is
+set they become unclaimed debt and `index coverage --fail-on-untraced` refuses
+in CI. **All** of them need a frontmatter claim, the seven of §1.2 included:
+their `// Spec:` headers are still inert on the far side of this spec (§3.4),
+so nothing arrives owned by having a header already. That change also edits
+`spec-spine.toml`, which restales all 101 shards. Doing both in one PR would mix
+a mechanism nobody can review against a ledger regeneration nobody can read.
 
 **Widening `SOURCE_EXTS`** (§1.3), and **widening the comment-header scanner**
 (§3.4). Both are changes to what claims; this spec changes only what is asked.
+Reaching the seven inert headers is a follow-up spec of its own, and is not
+smuggled into this one.
 
-**Overriding the bypass floor** (§3.3, D-2).
+**Making an unclaimed file under a built-in bypass prefix require ownership**
+(§3.3, D-2). That is a change to the exemption policy: whether the floor in
+`DEFAULT_BYPASS_PREFIXES` can be subtracted from at all, and by what. Spec 009's
+explicit-claim precedence is untouched here and remains the route that exists.
 
 **A `governed_scope` for the registry or the index hashes.** `[index]
 extra_hashed_inputs` already names what stales the ledger. The two lists serve
@@ -328,21 +478,44 @@ this spec was phrased as "should the ratchet reach tracked files outside
 `SOURCE_EXTS`"; the measured answer is that the extension is not the binding
 constraint, the package conjunct is.
 
-**D-2 (2026-09-15). The bypass floor is not overridable by the scope.** §3.3. A
-`governed_scope` entry that beat the floor would let one key silently un-bypass
-`docs/` or `.github/` for the coupling gate, and the gate's bypass list is the
-thing an adopter reads to know what is exempt. A corpus that wants a bypassed
-path governed edits the bypass list, where the change is visible in
-`config show` and in review. The cost is that this spec alone does not reach
-`.github/workflows/`, which §3.3 states rather than hides.
+**D-2 (2026-09-15). Scope membership does not override a bypass, and the
+override that exists is spec 009's, untouched.** §3.3. A `governed_scope` entry
+that beat the bypass verdict would let one key silently un-bypass `docs/` or
+`.github/` for the coupling gate, and the bypass list is the thing an adopter
+reads to know what is exempt. The first draft of this decision then offered an
+escape hatch that does not exist: it said a corpus wanting `.github/workflows/`
+governed edits `[coupling] bypass_prefixes`. It cannot.
+`effective_bypass_prefixes` unions the adopter's list with
+`DEFAULT_BYPASS_PREFIXES` and nothing subtracts from the floor, so an explicitly
+empty adopter list still reports `.github/` as built-in. The route that does
+exist is the one spec 009 built and `is_bypassed_path` consults first: an
+explicit, resolved, ownership-bearing unit claim covering the path beats both
+lists, so a workflow file a spec claims is governed today, with or without this
+spec. What has no route is making an **unclaimed** file under a built-in prefix
+require ownership, and that is a change to the exemption policy rather than
+something a scope key may reach around. The cost is that this spec alone does
+not reach unclaimed `.github/workflows/`, which §3.3 states rather than hides.
 
-**D-3 (2026-09-15). Git stays in the CLI.** §3.6. The alternative was to let
-the core shell out for `git ls-files`, which is one line and breaks the
-invariant that every artifact-producing function is a pure function of config
-and file contents. The fallback for a non-git corpus is specified rather than
-left to fail, and the report names which enumeration ran, because a silent
-fallback would change a coverage denominator without changing a number anyone
-could point at.
+**D-3 (2026-09-15). Git stays in the CLI, and the enumeration is explicit in
+all three directions.** §3.6. The alternative was to let the core shell out for
+`git ls-files`, which is one line and breaks the invariant that every
+artifact-producing function is a pure function of config and file contents.
+Three consequences are decided rather than left to the build: an absent
+inventory and a supplied empty one are different arguments with different
+answers; a git failure is an error naming its remedy, never a quiet demotion to
+the walk; and the report names which enumeration ran, because a coverage
+denominator that can come from three places and says nothing is a number two
+readers will read differently. `--paths-from` is the git-free route and this
+spec keeps it, extending it to `index coverage`, which now has a denominator
+that depends on the enumeration too.
+
+**D-5 (2026-09-15). The unset-key promise is about answers, not bytes.** §3.1.
+The first draft promised every verb would be "byte-for-byte" unchanged while
+§3.7 added two keys to `config show` and §3.2 added a commented default to what
+`init` writes, which is a contradiction a build would have had to resolve by
+guessing. The promise that matters to an adopter is that nothing classified,
+counted or refused moves; the two additive output changes are named where they
+happen.
 
 **D-4 (2026-09-15). The claim scanner is not widened with the universe.** §3.4.
 A governed `.md` file cannot claim itself with a comment header, and this spec
@@ -354,11 +527,12 @@ question with its own spec.
 
 Each line is one command. The lines asserting the config keys, the report member
 and the CLI enumeration fail against pre-097 code, because none of the three
-exists; those are the fail-first evidence. The two `index coverage` lines assert
-§3.1, that an unset key changes nothing, and they pass before and after by
-design: they are the regression pin, not the evidence. The `cargo test` lines
-are **not** fail-first; the cases in §3.8 do not exist at the parent commit, so
-the suites pass vacuously.
+exists, and so does the `--paths-from` line, because `index coverage` has no
+such flag today; those are the fail-first evidence. The two `index coverage`
+lines assert §3.1, that an unset key changes nothing, and they pass before and
+after by design: they are the regression pin, not the evidence. The `cargo test`
+lines are **not** fail-first; the cases in §3.8 do not exist at the parent
+commit, so the suites pass vacuously.
 
 ```verify:cli
 # 3.2: both keys exist in the config model.
@@ -371,10 +545,15 @@ grep -qF 'ls-files' crates/spec-spine-cli/src/cmd_index.rs
 ! grep -rqF 'Command::new("git")' crates/spec-spine-core/src/
 # 3.7: the effective config prints it.
 target/release/spec-spine config show | grep -q 'governed_scope'
-# 3.1: unset here, so this corpus is unchanged and reports no declared scope.
+# 3.6: the git-free route exists at the verb whose denominator now depends on
+# the enumeration.
+target/release/spec-spine index coverage --help | grep -q 'paths-from'
+# 3.1: unset here, so this corpus is unchanged and reports neither new member.
 target/release/spec-spine index coverage --fail-on-untraced
-target/release/spec-spine index coverage --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("declaredScopeFiles", []) == [], d["declaredScopeFiles"]'
+target/release/spec-spine index coverage --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("declaredScopeFiles", []) == [], d["declaredScopeFiles"]; assert "enumeration" not in d, d["enumeration"]'
 # 3.3, 3.4, 3.5, 3.8: the cases.
 cargo test -p spec-spine-core --test coverage --locked
 cargo test -p spec-spine-core --test couple --locked
+# 3.6, 3.8: the enumeration, its failure mode, and the facade/CLI agreement.
+cargo test -p spec-spine-cli --test cli --locked
 ```

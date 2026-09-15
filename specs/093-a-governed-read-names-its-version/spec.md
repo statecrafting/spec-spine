@@ -8,7 +8,7 @@ summary: >
   `docs/api.md` states that every JSON this tool emits is pretty-printed with
   sorted keys, and spec 037 gave every verdict verb a versioned envelope. The
   read verbs got neither. Measured at 0.19.0: thirteen read documents across
-  eight verbs, of which twelve carry no version member at all and seven emit
+  ten verbs, of which twelve carry no version member at all and seven emit
   keys in struct declaration order, because they serialize with
   `serde_json::to_string_pretty` while every committed artifact goes through
   the canonical writer. A consumer therefore pins a document whose shape it
@@ -16,9 +16,10 @@ summary: >
   struct. This spec routes every read document through one emitter that sorts
   keys and stamps a new `READ_SCHEMA_VERSION`, and decides note 04's D7: the
   version is an additive member on an object document, and the documents that
-  are not objects today become objects so they can carry one. Three of those
-  are breaking, and two of the three are contracts approved specs state, so
-  this spec carries `amends` edges to 010 and 060 rather than editing them.
+  are not objects today become objects so they can carry one. Four documents
+  across three verbs change shape breakingly, and two of the four are
+  contracts approved specs state, so this spec carries `amends` edges to 010
+  and 060 rather than editing them.
 implementation: pending
 owner: "The spec-spine Authors"
 risk: medium
@@ -75,7 +76,7 @@ and of every committed artifact. Neither is true of the reads.
 
 Measured on 2026-09-14 at `0.19.0`:
 
-Thirteen documents across eight verbs. A projection flag produces its own
+Thirteen documents across ten verbs. A projection flag produces its own
 document and is listed separately, because a consumer pins the document it
 actually reads and `--ids-only` is not `--json`'s shape with fewer members:
 
@@ -153,7 +154,7 @@ shard does not need.
 
 A read document is the JSON a verb emits when its answer is a question's answer
 rather than a verdict. The set is closed, and it is the thirteen documents §1.1
-enumerates, produced by these eight verbs:
+enumerates, produced by these ten verbs:
 
 `registry list` (plain and `--ids-only`), `registry show`,
 `registry status-report` (plain and `--nonzero-only`), `registry relationships`,
@@ -195,21 +196,41 @@ names. A name-sniffing emitter would silently change behavior the first time a
 read document happened to contain a member called `version`, which is the class
 of accident this spec exists to close.
 
+The value the emitter receives is the document's own shape. Where a document
+names its answer with a member of its own (§3.3's `next`), the **caller**
+constructs that object, for the populated answer and the empty one alike,
+before calling the emitter. A `(value, mode)` signature cannot know that a
+populated `{ "id", "title" }` needs wrapping while an object that is already
+the document does not, so an emitter left to guess would stamp `schemaVersion`
+beside `id` and `title` on the populated case and emit a different shape from
+the empty one.
+
 The function MUST NOT read a clock, the environment or the filesystem: it is a
 pure function of `(value, mode)`, like every other emission path here.
 
 ### 3.3 Every read document is an object
 
-A version member needs somewhere to sit, so the emitter MUST convert the three
-non-object shapes before stamping:
+A version member needs somewhere to sit, so no read document may reach the
+canonical writer as anything but an object. Of today's three non-object shapes,
+two are the emitter's to convert and one is the caller's to prevent:
 
-| Shape today | Object form | Members |
-|---|---|---|
-| a bare array | wrapped | `items` carries the array, in the same order |
-| the literal `null` (`plan --next`, empty ready set) | wrapped | the answer's member is present and `null` |
-| a scalar | refused | internal error; no read emits one, and none should start |
+| Shape today | Object form | Whose work | Members |
+|---|---|---|---|
+| a bare array | wrapped | the emitter | `items` carries the array, in the same order |
+| the literal `null` (`plan --next`, empty ready set) | wrapped before the call | the caller | `next` is present and `null` |
+| a scalar | refused | the emitter | internal error; no read emits one, and none should start |
 
-The emitter MUST NOT represent an absent answer by omitting a member. A consumer
+An array can be wrapped generically, because `items` says nothing about the
+document beyond "these are the entries". A named answer cannot: only the caller
+knows the member is called `next`, and it MUST build `{ "next": ... }` for the
+**populated** answer as well as the empty one, since the emitter sees a
+populated `{ "id", "title" }` as an ordinary object and would otherwise stamp
+it in place, leaving the two answers different shapes. The emitter MUST
+therefore refuse a top-level `null` as an internal error, on the same footing
+as a scalar: an absent answer is a shape the caller names, not one the emitter
+invents a member name for.
+
+No read document may represent an absent answer by omitting a member. A consumer
 that must test whether `id` is present to learn whether anything is ready is
 sniffing for members, which is precisely what §1.2 records as the cost this spec
 removes; a member that is present and `null` is a value it can dispatch on.
@@ -233,8 +254,8 @@ artifacts the read is about, so it is independent of
 `REGISTRY_SCHEMA_VERSION` and `INDEX_SCHEMA_VERSION` and does not move when
 either of those does.
 
-One constant covers every read document. Per-verb axes were rejected: eight
-constants that always move together are eight chances to forget one, and a
+One constant covers every read document. Per-verb axes were rejected: ten
+constants that always move together are ten chances to forget one, and a
 consumer dispatching on `(verb, schemaVersion)` gets the same information from
 one.
 
@@ -253,8 +274,8 @@ position without anyone remembering to put it there.
 
 ### 3.6 The breaking changes, named
 
-Four documents change shape. Three of them are breaking for a consumer that
-parses them today:
+Four documents, across three verbs, change shape. All four are breaking for a
+consumer that parses them today:
 
 | Document | Today | After | Breaking |
 |---|---|---|---|
@@ -264,8 +285,14 @@ parses them today:
 | `registry plan --next --json` | `{ "id": ..., "title": ... }`, or `null` | `{ "next": { "id": ..., "title": ... } \| null, "schemaVersion": ... }` | yes |
 
 Every other document in §3.1 gains one member and keeps every member it had, in
-sorted position. That is additive for a consumer reading by key and breaking
-only for one reading by byte offset, which nothing does.
+sorted position. That is additive for a consumer reading by key, and not
+nothing for the rest: a strict decoder that rejects unknown members fails on
+the new one (`deny_unknown_fields` is the setting this repository's own config
+loader uses, so the shape is not hypothetical), and a consumer that hashes,
+diffs or golden-files the emitted bytes sees a change both from the new member
+and from every existing member whose sorted position moves. Those consumers are
+affected by any MINOR on this axis, which is what §3.4's version member exists
+to let them detect.
 
 Two of the four are shapes an **approved** spec states, so under spec 040 this
 spec carries an `amends` edge to each and the replacement text lives here. The
@@ -293,9 +320,15 @@ draft of §3.2 would have refused as an internal error, turning a true answer
 into a crash. Naming it here is the correction.
 
 All four MUST be announced in the release notes of the release that carries
-them, in the terms note 04 §7 R1 uses for a consumer reading prose. The text
-forms are unaffected throughout, which is what the ten skills and the `/spec`
-and `/next` flows consume.
+them, in the terms note 04 §7 R1 uses for a consumer reading prose, and the
+announcement MUST cover **both** surfaces the change reaches: the CLI documents
+a consumer migrates, and the JSON-in/JSON-out facade functions §3.3 routes
+through the same emitter (`query_json`, `coverage_json`, `orphans_json`), which
+a binding consumes without ever running the CLI. A facade caller reads the same
+wrapped shapes and has no `--json` flag to notice them by, so a note written
+only as CLI migration reaches the wrong half of the consumers. The text forms
+are unaffected throughout, which is what the ten skills and the `/spec` and
+`/next` flows consume.
 
 The alternative, leaving these unversioned, was rejected: the spec's claim is
 that a governed read names its version, and documents exempted from it would
@@ -316,7 +349,9 @@ which one wins.
 
 `crates/spec-spine-core/tests/read.rs` MUST assert the emitter's properties:
 sorted keys for a value whose struct order is not sorted, the array wrapping,
-the trailing newline, and the refusal for a scalar document.
+the trailing newline, and the refusals: a scalar document and a top-level
+`null` (§3.3) are both internal errors, and a `Preexisting` document with no
+version member is a third (§3.2).
 
 `crates/spec-spine-cli/tests/cli.rs` MUST assert, for **each of the thirteen
 documents** in §3.1, that the emitted document parses as an object, carries its
@@ -382,9 +417,18 @@ documents, not six.
 **D-5 (2026-09-15). An absent answer is a present `null`, never a missing
 member.** §3.3. `plan --next --json` emits the bare literal `null` on an empty
 ready set at exit 0, which the first draft of §3.2 would have refused as an
-internal error. The fix is not to special-case the verb but to make the emitter
-state what an absent answer looks like, so the next read verb that can answer
-"nothing" has a shape to use. The cost is the `amends` edge to spec 060.
+internal error. The fix is not to special-case the verb but to state what an
+absent answer looks like, so the next read verb that can answer "nothing" has a
+shape to use. The cost is the `amends` edge to spec 060.
+
+**D-7 (2026-09-15). Generic wrapping is the emitter's, named wrapping is the
+caller's.** §3.2 and §3.3. The emitter wraps an array under `items` and refuses
+a top-level `null` or scalar; the caller builds `{ "next": ... }` for both the
+populated and the empty answer. The split is forced by the signature: a
+`(value, mode)` emitter cannot tell a populated `plan --next` object from a
+document that is already in its final shape, so leaving the wrap to the emitter
+would have made the populated and empty answers differ in shape, which is the
+defect §3.3 exists to close.
 
 **D-6 (2026-09-15). The `config show` exemption is a mode, not a name check.**
 §3.2 and §3.7 read as a contradiction unless the emitter is told which document

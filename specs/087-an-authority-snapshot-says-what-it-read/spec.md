@@ -57,7 +57,8 @@ summary: >
   governance inputs by path and digest, the gate verdicts, the ownership
   counts, the exclusions in force, and each spec's lifecycle with a framed
   digest of its resolved territory (plus, for joining records issued earlier,
-  the hash of the `SpecAttestation` spec 042 would emit for it). New members
+  the hash of the `SpecAttestation` spec 042 would emit for it, or a stated
+  reason where that construction has no answer). New members
   use a framed digest that binds normalized text rather than exact bytes, a
   contract 3.3 states explicitly and distinguishes from spec 085's, because
   the existing fold does not frame content and two trees can
@@ -144,7 +145,10 @@ No committed artifact changes and no existing payload changes.
   "specs": [
     { "id": "<id>", "status": "approved", "implementation": "complete",
       "territoryDigest": "<frame/1 over the spec's resolved owning units>",
-      "specAttestationHash": "<hex, historical evidence only>" }
+      "specAttestationHash": "<hex, historical evidence only>" },
+    { "id": "<id>", "status": "approved", "implementation": "complete",
+      "territoryDigest": "<frame/1>",
+      "specAttestationUnavailable": "non-utf8-direct-claim" }
   ],
   "exclusions": {
     "resolverExclusions": ["target", "node_modules", ".derived", "dist", "build", ".next"],
@@ -210,10 +214,45 @@ payload, never inside it, exactly as for specs 023 and 042.
     computed under spec 042's unframed construction, which is exactly why it
     cannot carry the binding: 1 measures two ways to collide it. A consumer
     binding territory MUST read `territoryDigest`; a consumer joining an older
-    record MAY read `specAttestationHash`.
+    record MAY read `specAttestationHash`. It is **omitted, with a stated
+    reason, for the one tree shape where spec 042's construction has no
+    answer**; §3.2.1 states which shape and what stands in its place.
+
 - **`exclusions`**: what was deliberately not read or not held to account: the
   resolver exclusions, the state root, the unwitnessed allowances, and the
   effective bypass prefixes (the floor plus the configured ones).
+
+#### 3.2.1 When the historical join hash has no answer
+
+There is one known shape where `attest --spec <id>` cannot produce a record: a
+spec that claims a **file** unit directly whose content is not valid UTF-8.
+Spec 083 reads a directly claimed file as text, so the verb exits 3 (reproduced
+2026-09-15 at `0.19.0`). That behaviour MUST NOT change here. §3.7 holds, and a
+new scope of `attest` is not a licence to loosen the per-spec verb underneath
+it.
+
+The snapshot MUST NOT inherit the failure either. For such a spec the entry:
+
+- **keeps** its `territoryDigest`, which `frame/1` computes without difficulty,
+  because a non-UTF-8 file is a `b` piece (§3.3.1). The content binding is
+  unaffected by the join hash having no answer;
+- **omits** `specAttestationHash`;
+- carries `specAttestationUnavailable`, a short machine-readable reason whose
+  only value in this spec is `non-utf8-direct-claim`.
+
+A member absent with a stated reason is evidence a consumer can act on; a member
+silently absent is a guess. And a snapshot that aborted here would let one
+unhashable file cost every other spec in the corpus its record, which is the
+opposite of what the payload is for.
+
+The exemption is exactly this shape and MUST NOT widen. An input that cannot be
+**read** at all (a permission error, a file that vanished mid-run, any other I/O
+failure) remains an error that fails the payload, as everywhere else in this
+tool: the reason member reports a construction that has no answer over content
+that was read, never a read that did not happen. The Verification block tests
+this through `attest --snapshot` on a tree carrying such a claim, not through
+the framing helper alone, because what is being asserted is that the verb
+completes while the per-spec verb still refuses.
 
 ### 3.3 The framed digest
 
@@ -222,7 +261,8 @@ Every member this spec introduces with a `hash` uses `frame/1`:
 ```
 SHA-256( "spec-spine/frame/1" 0x00
          for each piece, sorted by path in byte order:
-           kind: one byte, 't' for text, 'b' for bytes, 'l' for a symlink's target text
+           kind: one byte, 't' for text, 'b' for bytes, 'l' for a symlink's
+                 target text, 'd' for an empty directory
            u64 big-endian length of path, path
            u64 big-endian length of content, content )
 ```
@@ -230,8 +270,17 @@ SHA-256( "spec-spine/frame/1" 0x00
 A file that is valid UTF-8 is a `t` piece, with the standing normalization (BOM
 stripped, CRLF and CR to LF) applied before its length is taken. Any other file
 is a `b` piece holding its exact bytes. A symlink is an `l` piece holding its
-target text as stored, never the content it points at. Paths are repo-relative
-POSIX. The construction is injective over piece sets, so the two collisions in
+target text as stored, never the content it points at. An empty directory
+(§3.3.1) is a `d` piece whose content is always empty. Paths are repo-relative
+POSIX.
+
+The `d` kind is not decoration. An empty claimed directory and an empty claimed
+**file** at the same path are different facts about a tree, and with only three
+kinds both would frame as the same piece: same path, same empty content, and
+the only thing left to tell them apart would be a kind byte neither has. A
+digest whose job is exact coverage must not answer the same for a directory
+somebody emptied and a file somebody truncated. The Verification block pins the
+pair, and `tests/snapshot.rs` carries the same case. The construction is injective over piece sets, so the two collisions in
 §1 cannot occur in a `frame/1` digest, **given** a piece set with no repeated
 path: §3.3.1 is what guarantees that, and without it the framing alone does not
 determine a digest.
@@ -282,7 +331,7 @@ payload.
 | A `directory`, `crate` or trailing-slash `file` unit | one piece per entry the walk yields, each keyed by its own path |
 | A file unit whose path also lies under a directory unit of the same spec | **one** piece, by the dedup rule. An overlapping claim is not a doubled claim |
 | A symlink met by the walk | one `l` piece holding the link's target text as stored. The link is never followed, so a cycle inside a claimed subtree terminates and content outside the repository never enters the payload (spec 083 §3.2) |
-| An empty or wholly pruned directory | one piece at the directory's own path with **empty content**, so an empty claim is distinguishable from no claim and two empty claims in different places are distinguishable from each other (spec 083 §3.3) |
+| An empty or wholly pruned directory | one **`d`** piece at the directory's own path with **empty content**, so an empty claim is distinguishable from no claim, two empty claims in different places are distinguishable from each other (spec 083 §3.3), and an empty directory is distinguishable from an empty file at the same path (§3.3) |
 | A unit that resolves to nothing | **no** piece. `verdicts.resolution` is where a consumer sees that it did not resolve |
 | A spec whose owning units all resolve to nothing, or which owns none | `territoryDigest` is **absent**, not the digest of an empty piece set. The digest of nothing is one constant shared by every such spec in every repository, which reads as evidence and distinguishes nothing (the reasoning spec 083 §3.3 applies to an empty directory, applied one level up) |
 
@@ -337,8 +386,9 @@ export of that revision.
 
 For one tree and one tool version it establishes exactly which inputs were
 read and what they hashed to, whether the committed ledger equals the
-recompute, the verdicts the gate would reach, and every spec's attestation
-hash. It does not establish anything about a revision (the consumer binds
+recompute, the verdicts the gate would reach, and every spec's territory digest
+(with its historical attestation hash wherever spec 042's construction has an
+answer, §3.2.1). It does not establish anything about a revision (the consumer binds
 `{repo, commit, tree}` and recomputes), anything about unclaimed files beyond
 their count, whether any specification is correct, or that anyone approved the
 state. `docs/authority-evidence.md` MUST say so in its digest table when this
@@ -347,7 +397,9 @@ ships.
 ### 3.7 What must keep working
 
 `CorpusAttestation` and `SpecAttestation` are byte-identical to their pre-087
-output. No committed shard moves. No gate verb changes its answer.
+output. No committed shard moves. No gate verb changes its answer. `attest
+--spec` keeps refusing a directly claimed non-UTF-8 file at exit 3: §3.2.1
+routes around that refusal inside the snapshot and does not repair it.
 
 ## 4. Out of scope
 
@@ -478,6 +530,27 @@ answer, and four of its rules were genuinely open rather than obvious:
   link text, unfollowed, which is spec 083 §3.2's rule and keeps a cycle
   terminating and out-of-repository content out of the payload.
 
+**D-7 (2026-09-15): an empty directory is its own piece kind.** §3.3. The held
+text gave an empty directory a piece with empty content and named only three
+kinds, so it would have framed identically to an empty file at the same path.
+Adding `d` costs one byte in the formula and keeps two different facts about a
+tree apart. Rejected: encoding the distinction in the path (a trailing slash),
+which makes the path of a piece depend on what the piece is and would let a
+future caller construct either spelling for one filesystem object.
+
+**D-8 (2026-09-15): a join hash with no answer is omitted with a reason, and
+only for that one shape.** §3.2.1. A spec directly claiming a non-UTF-8 file
+makes `attest --spec` exit 3, and the first version of this spec required a
+`specAttestationHash` for every spec, so one such claim anywhere in a corpus
+would have taken the whole snapshot down. Three alternatives were rejected:
+changing spec 042 so the per-spec verb succeeds, which moves historical digests
+and is the thing §3.7 exists to prevent; emitting some placeholder hash, which
+puts a value in a member whose meaning is "the record you would get", where no
+such record exists; and omitting the member silently, which leaves a consumer
+unable to tell an unsupported shape from an implementation that forgot. The
+reason is a closed vocabulary of one so that a second reason is a spec change
+rather than a build's judgement call, and an unreadable input stays an error.
+
 ## Verification
 
 Each line runs in its own `sh -c` from the repository root (spec 049 3.5). The
@@ -537,6 +610,28 @@ Two lines test §3.3.1 directly, and neither can pass by accident:
 Both restore the spec file from a backup before asserting, so a later line in
 this block reads the corpus it expects.
 
+Two further lines test the two rules this revision added, and both go through
+`attest --snapshot` rather than through the digest helper, because each is a
+claim about what the verb emits:
+
+- **The empty-piece line** claims `g/` while `g/e` is an empty **directory**,
+  then again while `g/e` is an empty **file**, and asserts the two
+  `territoryDigest` values differ. With only three piece kinds they would be the
+  same digest: same path, empty content, nothing left to separate them. It is
+  the only line that exercises the `d` kind, and it changes nothing else.
+- **The unavailable-join line** gives the spec a direct `file` claim on
+  non-UTF-8 content and asserts three things at once, deliberately: `attest
+  --spec` still exits 3 (§3.7 is not loosened), `attest --snapshot` still exits
+  0, and the entry carries `territoryDigest` and
+  `specAttestationUnavailable: "non-utf8-direct-claim"` with no
+  `specAttestationHash`. Asserting the refusal and the snapshot in one line is
+  what makes it evidence: a build that "fixed" the refusal would satisfy the
+  snapshot half and fail the line.
+
+The per-spec count line asserts that every spec carries **either** a
+`specAttestationHash` **or** a stated reason, which is the invariant §3.2.1
+leaves in place of "every spec carries a hash".
+
 The separation line proves `matchesRecompute` reads the committed tree: it
 changes a committed shard and nothing the recompute reads, then asserts the
 recomputed `registryHash` did not move while `matchesRecompute` did. The
@@ -555,7 +650,7 @@ cargo build --release --locked
 target/release/spec-spine attest --snapshot --json > "${TMPDIR:-/tmp}/ss087-self.json" && grep -q '"matchesRecompute": true' "${TMPDIR:-/tmp}/ss087-self.json"
 A=$(target/release/spec-spine attest --snapshot --json); B=$(target/release/spec-spine attest --snapshot --json); test -n "$A" && test "$A" = "$B"
 H=$(target/release/spec-spine attest --spec 083-an-attestation-covers-the-territory-it-claims --json | sed -n 's/.*"attestationHash": "\([0-9a-f]*\)".*/\1/p'); test -n "$H" && grep -q "\"specAttestationHash\": \"$H\"" .derived/attestation/snapshot.json
-test "$(grep -c '"specAttestationHash"' .derived/attestation/snapshot.json)" -eq "$(target/release/spec-spine registry list --ids-only | wc -l | tr -d ' ')"
+test "$(( $(grep -c '"specAttestationHash"' .derived/attestation/snapshot.json) + $(grep -c '"specAttestationUnavailable"' .derived/attestation/snapshot.json) ))" -eq "$(target/release/spec-spine registry list --ids-only | wc -l | tr -d ' ')"
 target/release/spec-spine verify-attestation --snapshot --recompute
 rm -rf "${TMPDIR:-/tmp}/ss087" && mkdir -p "${TMPDIR:-/tmp}/ss087/specs/001-a" "${TMPDIR:-/tmp}/ss087/g"
 printf -- '[index]\nextra_hashed_inputs = ["g/*"]\n' > "${TMPDIR:-/tmp}/ss087/spec-spine.toml"
@@ -569,6 +664,8 @@ target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss087" attest --snapshot --spe
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss087" attest --snapshot --with-coupling >/dev/null 2> "${TMPDIR:-/tmp}/ss087/scope2.err"; test $? -eq 3 && grep -q "cannot combine" "${TMPDIR:-/tmp}/ss087/scope2.err"
 D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; M="$D/specs/001-a/spec.md"; cp "$M" "$D/spec.bak"; A=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); printf -- '---\nid: "001-a"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-11"\nsummary: "s"\nestablishes:\n  - "g/"\n  - "g/a"\n---\n\n# t\n' > "$M"; B=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); cp "$D/spec.bak" "$M"; test -n "$A" && test "$A" = "$B"
 D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; M="$D/specs/001-a/spec.md"; cp "$M" "$D/spec.bak"; printf -- '---\nid: "001-a"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-11"\nsummary: "s"\nestablishes:\n  - "nowhere/at/all.txt"\n---\n\n# t\n' > "$M"; N=$($S --repo "$D" attest --snapshot --json | grep -c '"territoryDigest"'); cp "$D/spec.bak" "$M"; test "$N" -eq 0
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; mkdir -p "$D/g/e"; A=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); rmdir "$D/g/e"; : > "$D/g/e"; B=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); rm -f "$D/g/e"; test -n "$A" && test -n "$B" && test "$A" != "$B"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; M="$D/specs/001-a/spec.md"; cp "$M" "$D/spec.bak"; printf '\377\376\000\001' > "$D/bin.dat"; printf -- '---\nid: "001-a"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-11"\nsummary: "s"\nestablishes:\n  - "bin.dat"\n---\n\n# t\n' > "$M"; $S --repo "$D" attest --spec 001-a >/dev/null 2>&1; E=$?; J=$($S --repo "$D" attest --snapshot --json); R=$?; cp "$D/spec.bak" "$M"; rm -f "$D/bin.dat"; test $E -eq 3 && test $R -eq 0 && printf '%s' "$J" | grep -q '"specAttestationUnavailable": "non-utf8-direct-claim"' && printf '%s' "$J" | grep -q '"territoryDigest"' && ! printf '%s' "$J" | grep -q '"specAttestationHash"'
 rm -rf "${TMPDIR:-/tmp}/ss087" "${TMPDIR:-/tmp}/ss087-self.json"
 target/release/spec-spine check
 ```
