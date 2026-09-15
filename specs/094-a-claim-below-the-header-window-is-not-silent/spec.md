@@ -19,7 +19,7 @@ summary: >
   and failed is distinguishable from a file that never tried. The recognizer is
   looser than the documented form in three ways, and 3.2 records them rather
   than correcting them: declaring a rule is not the place to change it.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -33,6 +33,8 @@ extends:
   # 3.4: the report gains the list; the classifier is untouched.
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-core/src/coverage.rs", nature: additive }
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-types/src/coverage.rs", nature: additive }
+  # 3.4: the two new DTO names are re-exported beside `CoverageReport`.
+  - { spec: "032-ownership-coverage", unit: "crates/spec-spine-types/src/lib.rs", nature: additive }
   # 3.5: the prose form of `index coverage`.
   - { spec: "032-ownership-coverage", unit: "crates/spec-spine-cli/src/cmd_index.rs", nature: additive }
   # 3.7: the tests, in the two suites that already cover the scanner and the report.
@@ -341,6 +343,21 @@ and already answers ownership questions per file.
 code.** Spec 032 described the claim without bounding it, so the bound lived
 only in an expression. Stating steps 1 to 4 makes the next change to the
 scanner a change to a declared rule.
+
+**D-4 (2026-09-15). Three silences in §3.3, settled at build.** First, the
+window scan for `doc-comment-marker` and `unknown-spec` reads lines in order up
+to and including the first claim attempt and no further, because that is where
+the claim scan stops: a `//! Spec:` line below a successful header is a line the
+scanner never read, and reporting it would describe a scan that did not happen.
+A `//!` line above the first attempt is reported whether or not the file then
+claims, since §3.3 excludes a claiming file only from `outside-window`. Second,
+`outside-window` reports **every** resolving header on lines 17 to 64, not only
+the first, since §3.3 defines the miss per line and sorts by line. Third, the
+claim scan and the near-miss scan enumerate files through one function
+(`header_scan_files`), and the recognizer's steps 1 to 3 are one function
+(`header_attempt`) that both call, so the two scans cannot disagree about which
+files or which lines were asked. The claim scan's behavior is unchanged: the
+§3.8 regression rows pass against both the pre-094 and the refactored scanner.
 
 ## Verification
 

@@ -1110,6 +1110,18 @@ fn resolve_unit(
     }
 }
 
+/// How many opening lines of a file a `// Spec:` comment header may claim from
+/// (spec 094 §3.1). The value shipped with spec 032 and is declared, not chosen:
+/// changing it would move ownership in every adopter corpus at once.
+pub const COMMENT_HEADER_CLAIM_WINDOW: usize = 16;
+
+/// The last line the near-miss scan reads for a header below the claim window
+/// (spec 094 §3.6). Measured: over this repository's tree, the scanner's own
+/// recognizer finds no resolving header in lines 17 to 64, and past 64 finds
+/// only embedded file content (`kit_embedded.rs`), which is not a misplaced
+/// header.
+pub const COMMENT_HEADER_REPORT_WINDOW: usize = 64;
+
 /// Scan package source files for a `// Spec: <specs_dir>/NNN-slug/spec.md` header.
 fn scan_comment_headers(
     cfg: &spec_spine_types::Config,
@@ -1121,6 +1133,27 @@ fn scan_comment_headers(
     // The extension list is shared with the coverage universe (spec 032) so
     // the spec-binding scan and the coverage denominator agree on what a
     // source file is.
+    for (file, content) in header_scan_files(cfg, repo_root, packages) {
+        if let Some(id) = claim_in_window(&content, all_ids) {
+            links.push((file, id));
+        }
+    }
+    links.sort();
+    links.dedup();
+    links
+}
+
+/// Every file the header scans read, as `(repo-relative path, content)`:
+/// `SOURCE_EXTS` inside a discovered package, `resolver_exclusions` pruned. One
+/// enumeration for the claim scan and the near-miss scan (spec 094 §3.3), so
+/// the two cannot disagree about which files were asked. A file that is not
+/// UTF-8 is skipped by both, as the claim scan always has.
+fn header_scan_files(
+    cfg: &spec_spine_types::Config,
+    repo_root: &Path,
+    packages: &[spec_spine_types::PackageRecord],
+) -> Vec<(String, String)> {
+    let mut out = Vec::new();
     for pkg in packages {
         let pkg_dir = repo_root.join(&pkg.path);
         for file in walk_source(
@@ -1130,30 +1163,124 @@ fn scan_comment_headers(
             &cfg.index.resolver_exclusions,
             &cfg.layout,
         ) {
-            let Ok(content) = fs::read_to_string(&file) else {
-                continue;
-            };
-            for line in content.lines().take(16) {
-                let t = line.trim_start();
-                let body = t
-                    .strip_prefix("//")
-                    .or_else(|| t.strip_prefix('#'))
-                    .unwrap_or(t);
-                if let Some(rest) = body.trim_start().strip_prefix("Spec:") {
-                    if let Some(id) = spec_id_from_path(rest.trim(), all_ids) {
-                        links.push((rel_posix(repo_root, &file), id));
-                    }
-                    break;
-                }
+            if let Ok(content) = fs::read_to_string(&file) {
+                out.push((rel_posix(repo_root, &file), content));
             }
         }
     }
-    links.sort();
-    links.dedup();
-    links
+    out
 }
 
-/// Extract the spec id from a `<specs_dir>/NNN-slug/spec.md` reference.
+/// §3.2 steps 1 to 3 (spec 094): the reference a line offers, when the line is
+/// a claim attempt. Leading whitespace is trimmed, **at most one** `//` or `#`
+/// marker is stripped (the marker is optional), and the rest must begin with
+/// `Spec:`. Declared as it shipped, looser than the documented form on purpose:
+/// narrowing it would withdraw claims that resolve today.
+fn header_attempt(line: &str) -> Option<&str> {
+    let t = line.trim_start();
+    let body = t
+        .strip_prefix("//")
+        .or_else(|| t.strip_prefix('#'))
+        .unwrap_or(t);
+    body.trim_start().strip_prefix("Spec:").map(str::trim)
+}
+
+/// The spec a file claims through its header: the first claim attempt inside
+/// the window decides, resolving or not (spec 094 §3.2). An unresolvable
+/// attempt therefore shadows a valid header below it.
+fn claim_in_window(content: &str, all_ids: &BTreeSet<String>) -> Option<String> {
+    content
+        .lines()
+        .take(COMMENT_HEADER_CLAIM_WINDOW)
+        .find_map(header_attempt)
+        .and_then(|reference| spec_id_from_path(reference, all_ids))
+}
+
+/// The near misses in one file's content (spec 094 §3.3), in line order.
+///
+/// Inside the claim window, up to and including the first claim attempt: a
+/// `//! Spec:` line is a `doc-comment-marker` (it is not an attempt, so it does
+/// not stop the scan), and an attempt that does not resolve is `unknown-spec`.
+/// When nothing inside the window claimed, a resolving header on lines after
+/// the claim window through [`COMMENT_HEADER_REPORT_WINDOW`] is
+/// `outside-window`. A file that claims inside the window reports no
+/// `outside-window` miss, because nothing was missed.
+pub fn near_miss_headers_in(
+    path: &str,
+    content: &str,
+    all_ids: &BTreeSet<String>,
+) -> Vec<spec_spine_types::NearMissHeader> {
+    use spec_spine_types::{NearMissHeader, NearMissReason};
+    let miss = |line: usize, reason: NearMissReason, spec_id: Option<String>| NearMissHeader {
+        path: path.to_string(),
+        line,
+        reason,
+        spec_id,
+    };
+    let mut out = Vec::new();
+    let mut claimed = false;
+    for (i, line) in content
+        .lines()
+        .take(COMMENT_HEADER_CLAIM_WINDOW)
+        .enumerate()
+    {
+        if let Some(rest) = line.trim_start().strip_prefix("//!") {
+            if let Some(reference) = rest.trim_start().strip_prefix("Spec:") {
+                let id = spec_id_from_path(reference.trim(), all_ids);
+                out.push(miss(i + 1, NearMissReason::DocCommentMarker, id));
+                continue;
+            }
+        }
+        if let Some(reference) = header_attempt(line) {
+            match spec_id_from_path(reference, all_ids) {
+                Some(_) => claimed = true,
+                None => out.push(miss(i + 1, NearMissReason::UnknownSpec, None)),
+            }
+            break;
+        }
+    }
+    if !claimed {
+        let below = content
+            .lines()
+            .enumerate()
+            .take(COMMENT_HEADER_REPORT_WINDOW)
+            .skip(COMMENT_HEADER_CLAIM_WINDOW);
+        for (i, line) in below {
+            if let Some(id) = header_attempt(line).and_then(|r| spec_id_from_path(r, all_ids)) {
+                out.push(miss(i + 1, NearMissReason::OutsideWindow, Some(id)));
+            }
+        }
+    }
+    out
+}
+
+/// Every near miss across the header scan's file universe, sorted by path then
+/// line (spec 094 §3.3). Computed on read for the coverage report; no index
+/// shard records it (§2, D-2).
+///
+/// The spec ids are discovered from the corpus exactly as [`index`] discovers
+/// them, so "resolves" means what it means to the claim scan.
+pub(crate) fn near_miss_headers(
+    cfg: &spec_spine_types::Config,
+    repo_root: &Path,
+    packages: &[spec_spine_types::PackageRecord],
+) -> Result<Vec<spec_spine_types::NearMissHeader>, Error> {
+    let all_ids: BTreeSet<String> = discover_specs(cfg, repo_root)?
+        .into_iter()
+        .map(|s| s.id)
+        .collect();
+    let mut out: Vec<_> = header_scan_files(cfg, repo_root, packages)
+        .into_iter()
+        .flat_map(|(path, content)| near_miss_headers_in(&path, &content, &all_ids))
+        .collect();
+    out.sort_by(|a, b| a.path.cmp(&b.path).then(a.line.cmp(&b.line)));
+    out.dedup();
+    Ok(out)
+}
+
+/// Extract the spec id from a `<specs_dir>/NNN-slug/spec.md` reference: every
+/// trailing `/spec.md` is trimmed and the final segment must be a corpus id
+/// (spec 094 §3.2 step 4). Not a path check, as shipped.
 fn spec_id_from_path(reference: &str, all_ids: &BTreeSet<String>) -> Option<String> {
     let trimmed = reference.trim_end_matches("/spec.md");
     let candidate = trimmed.rsplit('/').next().unwrap_or(trimmed);

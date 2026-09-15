@@ -182,6 +182,7 @@ pub fn coverage_with(cfg: &Config, index: &CodebaseIndex, files: &[String]) -> C
         unclaimed_files: Vec::new(),
         packages: Vec::new(),
         planned_territory: Vec::new(),
+        near_miss_headers: Vec::new(),
     };
     for file in universe {
         let Some(entry) =
@@ -233,6 +234,10 @@ pub fn coverage(cfg: &Config, repo_root: &Path) -> Result<CoverageReport, Error>
     if let Ok(registry) = crate::compile::load_committed_registry(cfg, repo_root) {
         report.planned_territory = crate::query::planned_territory(&registry);
     }
+    // Spec 094 §3.4: the headers that tried to claim a file and did not, over
+    // the claim scan's own universe. Beside the classification, never inside
+    // it: `coverage_with` above has already counted every file.
+    report.near_miss_headers = crate::index::near_miss_headers(cfg, repo_root, &index.packages)?;
     Ok(report)
 }
 
