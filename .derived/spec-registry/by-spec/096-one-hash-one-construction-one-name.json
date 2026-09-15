@@ -69,6 +69,6 @@
     "summary": "`registry show` prints `contentHash: <h>  (sha256 of this spec.md)`, and approved spec 055 §3.4 says the same thing in prose: \"`contentHash` is SHA-256 over that spec's `spec.md` alone\". It is neither. The value is the shard hash, which is SHA-256 over the repo-relative POSIX path, a NUL, and the normalized bytes, so for `specs/086-.../spec.md` the printed value is `a4a0098235e9...` while the digest of the file's bytes is `ae0144ca7e4a...`, the value `attest --spec` reports as `specSourceHash`. 055 §3.3 exists for consumers who reimplement the normalization to pin against the ledger, and one adopter does exactly that, so a gloss naming the wrong construction is the whole defect. This spec amends 055 §3.4 to state the construction the code has always used, makes the printed line say it, and adds the test that pins both digests so the two cannot drift again.\n",
     "title": "One hash, one construction, one name"
   },
-  "shardHash": "ef87604251cedc2703f3d55332a06f8f10796b3432e683f15f3a02c3ce13e8a8",
+  "shardHash": "7d00566865bb3d4ee5485b55b585c76e405264b1a4fb9534926c0049117fbc6a",
   "specVersion": "1.2.0"
 }

@@ -14,9 +14,11 @@ summary: >
   reason nothing states. Two neighbouring failures are equally silent: a
   header whose reference names no spec in the corpus, and the `//!` doc-comment
   form, which the scanner deliberately does not accept. This spec declares the
-  window (16, unchanged) and the recognizer, and makes `index coverage` report
-  the near misses, so a file that tried to claim itself and failed is
-  distinguishable from a file that never tried.
+  window (16, unchanged) and the recognizer exactly as it ships, and makes
+  `index coverage` report the near misses, so a file that tried to claim itself
+  and failed is distinguishable from a file that never tried. The recognizer is
+  looser than the documented form in three ways, and 3.2 records them rather
+  than correcting them: declaring a rule is not the place to change it.
 implementation: pending
 owner: "The spec-spine Authors"
 risk: low
@@ -81,7 +83,10 @@ The same function has two other paths that end in nothing happening:
 - **An unresolvable reference.** `spec_id_from_path` requires the trailing
   segment to be a spec id in the corpus. A header naming a spec that was
   renamed, retired or mistyped matches the recognizer, stops the scan (the loop
-  breaks at the first `Spec:`-shaped line), and claims nothing.
+  breaks at the first `Spec:`-shaped line), and claims nothing. Because the
+  break is unconditional, that line also **shadows** a valid header below it:
+  reproduced on 2026-09-15, a file whose line 1 named a spec not in the corpus
+  and whose line 2 carried a correct header resolved to no owner at all.
 - **The `//!` form.** The scanner strips one `//` or one `#`; a Rust inner doc
   comment leaves `!` in the way, so `//! Spec: ...` does not match. This is
   deliberate (a module doc comment is prose, not a claim), and it is a trap
@@ -89,9 +94,19 @@ The same function has two other paths that end in nothing happening:
 
 ### 1.4 What the corpus can be told
 
-This spec does not change what claims. It records the rule and reports the near
-misses, which is the smallest change that converts three silent failures into
-three sentences.
+This spec does not change what claims: no file that claims today stops
+claiming, and no file that does not start. It records the rule and reports the
+near misses, which is the smallest change that converts three silent failures
+into three sentences.
+
+Holding that line took one correction. An earlier draft of §3.2 stated the
+recognizer as a reader would expect it (a required `//` or `#` marker, one
+trailing `/spec.md` trimmed) rather than as it is, which would have made this
+spec a silent narrowing: a file claiming through a bare `Spec:` line or a
+doubled suffix would have stopped claiming, and the `C-002` refusal that
+followed would have been caused by the spec written to explain `C-002`
+refusals. §3.2 now records the shipped behavior, §3.8 pins it, and §4 says where
+a deliberate narrowing goes.
 
 ## 2. Territory
 
@@ -117,24 +132,50 @@ today into claimed ones, which silently moves ownership, and lowering it turns
 claims into debt. Sixteen is what shipped, and a claim is a file's opening
 statement, so the bound that exists is the bound this spec declares.
 
-### 3.2 The recognizer is declared with it
+### 3.2 The recognizer is declared with it, as it is
+
+This section records the shipped recognizer exactly. It is a **declaration of
+existing behavior, not a change to it**: every line here was checked against
+`index.rs::scan_comment_headers` on 2026-09-15 and reproduced through
+`index owner` on a scratch corpus. Where the recognizer is looser than a reader
+would guess, this section says so rather than tightening it, because tightening
+it would withdraw claims that resolve today in every adopter corpus at once.
+§4 records that a deliberate narrowing is a separate spec.
 
 For each line in the window, in order:
 
 1. leading whitespace is trimmed;
-2. **one** leading marker is stripped, either `//` or `#`, and nothing else;
+2. **at most one** leading marker is stripped, either `//` or `#`. A line with
+   no marker is carried through unchanged, so the marker is **optional**: a
+   bare `Spec: specs/<id>/spec.md` on its own line claims, in any file whose
+   extension is in `SOURCE_EXTS`;
 3. the remainder is trimmed and MUST begin with `Spec:`;
-4. the reference after `Spec:` is trimmed, one trailing `/spec.md` is removed,
-   and the final path segment MUST be the id of a spec in the corpus.
+4. the reference after `Spec:` is trimmed, **every** trailing repetition of
+   `/spec.md` is removed, and the final `/`-separated segment of what remains
+   MUST be the id of a spec in the corpus.
 
 Steps 1 to 3 decide whether a line is a claim attempt; step 4 decides whether
 the attempt resolves. The scan MUST stop at the first line satisfying steps 1
 to 3, whether or not step 4 resolves, which is the shipped behavior: a file gets
-one header, and a second `Spec:` line further down is not a second claim.
+one header, and a second `Spec:` line further down is not a second claim. A
+consequence worth naming: an unresolvable `Spec:` line **shadows** a valid
+header below it in the same window, and the file then claims nothing.
 
-`//!` does not satisfy step 2, so an inner doc comment MUST NOT claim. `.py`
-and `.sh` files claim with `#`, which is why the marker list has two entries and
-not one.
+Because step 4 keeps only the final segment, the reference is not a path check.
+These all resolve to `000-bootstrap` today and MUST continue to:
+
+| Line | Why it resolves |
+|---|---|
+| `// Spec: specs/000-bootstrap/spec.md` | the documented form |
+| `# Spec: specs/000-bootstrap/spec.md` | `.py` and `.sh` claim with `#` |
+| `Spec: specs/000-bootstrap/spec.md` | step 2's marker is optional |
+| `// Spec: specs/000-bootstrap/spec.md/spec.md` | step 4 trims repetitions |
+| `// Spec: 000-bootstrap` | the final segment is the whole reference |
+| `// Spec: anything/at/all/000-bootstrap/spec.md` | only the final segment is read |
+
+`//!` does not satisfy step 2, because one `//` is stripped and the `!` is left
+in the way of step 3, so an inner doc comment MUST NOT claim. That is the one
+place the recognizer is narrower than it looks, and §3.3 reports it.
 
 ### 3.3 The near-miss scan
 
@@ -194,14 +235,27 @@ tracked source files:
 | §3.2's recognizer, resolving id, past line 16, whole file | 1 |
 | §3.2's recognizer, resolving id, lines 17 to 64 | 0 |
 
-The eleven are prose about the mechanism (doc comments describing
-`// Spec:`) and test fixture strings; the recognizer rejects all of them, which
-is the argument for using the scanner's own recognizer rather than a search.
-The one survivor is `crates/spec-spine-core/src/kit_embedded.rs` line 1948, an
-embedded copy of a hook that legitimately carries its own claim header. That
-file is generated, 2500 lines long, and would be reported forever. A misplaced
-header is near the top, after a license block or a banner; a claim-shaped line
-two thousand lines in is file content, and the bound is what separates the two.
+The column counts **files**, not lines. The eleven are prose about the
+mechanism (doc comments describing `// Spec:`) and test fixture strings; the
+recognizer rejects all of them, which is the argument for using the scanner's
+own recognizer rather than a search. The one surviving file is
+`crates/spec-spine-core/src/kit_embedded.rs`, which carries four such lines
+(1948, 1987, 2024 and 2135), each an embedded copy of a hook that legitimately
+claims itself. That file is generated, 2500 lines long, and would be reported
+forever. A misplaced header is near the top, after a license block or a banner;
+a claim-shaped line two thousand lines in is file content, and the bound is what
+separates the two.
+
+Two of those four lines read `# Spec: 020-derived-artifact-merge-driver`, with
+no `specs/` prefix and no `/spec.md` suffix. They resolve, which is §3.2's
+fifth table row met in this repository's own tree rather than in a fixture, and
+they are why §3.2 records the recognizer as it is: a narrowing would withdraw
+the claim those two hooks make in every adopter repository the kit is installed
+into.
+
+The measurement was re-taken on 2026-09-15 under §3.2's corrected recognizer
+(optional marker, repeated `/spec.md` trimmed), because a looser recognizer
+could only find more. It found the same three numbers.
 
 Because the measurement is zero, this spec adds no near miss to this
 repository's own coverage output, and a reviewer can read the report as empty
@@ -216,10 +270,18 @@ edit.
 
 ### 3.8 The tests
 
-`crates/spec-spine-core/tests/index.rs` MUST cover the recognizer: a claim on
-line 16 claims, the same line at 17 does not, `//! Spec:` does not claim, a `#`
-header claims in a `.sh` file, and an unresolvable reference stops the scan
-without claiming.
+`crates/spec-spine-core/tests/index.rs` MUST cover the recognizer at the
+boundaries: a claim on line 16 claims, the same line at 17 does not,
+`//! Spec:` does not claim, a `#` header claims in a `.sh` file, and an
+unresolvable reference stops the scan without claiming **even when a resolvable
+header follows it inside the window**.
+
+It MUST also carry one **regression case per row of §3.2's table**, asserting
+that each still claims. These cases assert no new behavior; they exist because
+§3.2 is the first document to state the recognizer, and a later reading of it
+as the stricter rule a reader expects would silently withdraw claims from files
+that hold them today. A test is the only thing that makes the looseness
+deliberate rather than accidental.
 
 `crates/spec-spine-core/tests/coverage.rs` MUST cover the report: each of the
 three reasons appears with its path, line and reason; a successful claim
@@ -238,6 +300,18 @@ the file, the answer is a unit in frontmatter, which has no positional rule.
 **Accepting `//!` as a claim.** The scanner's refusal is deliberate. Reporting
 it (§3.3) is the change; accepting it would make every module doc comment
 mentioning a spec a claim.
+
+**Narrowing the recognizer.** §3.2's steps 2 and 4 are looser than the
+documented `// Spec: specs/<id>/spec.md` form: the marker is optional, the
+reference is read as its final segment only, and trailing `/spec.md`
+repetitions are trimmed. An earlier draft of this spec stated the stricter rule
+by mistake, which would have made this spec a behavior change wearing a
+declaration's clothes: files claiming through any of §3.2's looser forms would
+have stopped claiming, and under `[coupling] require_ownership` the next change
+to one would be a `C-002` refusal caused by the document that promised to
+explain `C-002` refusals. Tightening may well be right, and it is a separate
+spec that says so, measures how many files in this corpus and in the audited
+adopters claim through a loose form, and moves them first.
 
 **A diagnostic code.** See §5 D-2.
 

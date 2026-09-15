@@ -1,6 +1,11 @@
 {
   "mapping": {
+    "amends": [
+      "010-registry-query-projection-flags",
+      "060-plan-answers-the-whole-question"
+    ],
     "dependsOn": [
+      "010-registry-query-projection-flags",
       "037-machine-readable-verdicts",
       "054-effective-config-is-a-governed-read",
       "055-the-ledger-answers-what-consumers-rebuild",
@@ -160,5 +165,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "35ea4bf4dd7085fb2c09b6122d6d091b442826a3c38370e6c04a1dadd9744b3a"
+  "shardHash": "db25c3d6680cf72cb6768189be9aa99508bcdf0f8bdbcd7eb75fbbb52754673b"
 }

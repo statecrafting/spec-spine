@@ -143,15 +143,29 @@ truth holds.
 ### 3.4 The pin
 
 `crates/spec-spine-cli/tests/cli.rs` MUST assert, for one spec in the corpus,
-all three of:
+all four of:
 
 1. `registry show --json`'s `contentHash` equals SHA-256 of the framed input;
 2. it does **not** equal SHA-256 of the normalized bytes alone;
 3. `attest --spec`'s `specSourceHash` equals SHA-256 of the normalized bytes
-   alone.
+   alone;
+4. the **prose** form of `registry show` does not describe its `contentHash`
+   as the digest of the file's bytes, and does name the framing, per §3.2.
 
-Asserting the inequality in (2) is the part that matters: a test that only
-checked (1) would pass under either gloss, and the defect was never in a value.
+Asserting the inequality in (2) is the part that separates the two
+constructions: a test that only checked (1) would pass under either gloss.
+
+Assertion (4) is the part that catches the actual defect, and it was missing
+from the first draft of this section. Every value in this spec is already
+correct and stays correct; what was wrong was a **sentence**, in two places.
+A suite that pins only digests would have passed unchanged on the day the
+wrong gloss was written and would pass unchanged on the day someone writes it
+again. The assertion must therefore read the emitted line, and it must be
+written so that it fails on the pre-096 wording specifically: the shipped line
+ends `(sha256 of this spec.md)`, which is the phrase that says the wrong thing,
+so the test asserts that phrase is absent and that the line names the path
+framing. A test asserting only that some explanation is present would pass on
+the wrong explanation.
 
 ### 3.5 Documentation
 
@@ -199,14 +213,23 @@ replacement text. The corpus has no spec that narrows an `amends` edge to an
 anchor, and inventing the convention here would put the amendment's scope in
 two places.
 
+**D-3 (2026-09-15). The acceptance reads the sentence, not only the digests.**
+§3.4's fourth assertion. This spec changes no value, so a suite of digest
+comparisons is a suite that cannot fail on the defect: it would have passed on
+the day the wrong gloss was written. The assertion names the pre-096 phrase it
+must not find, rather than checking that some explanation is present, because
+"an explanation is present" is true of the wrong explanation.
+
 ## Verification
 
 Each line is one command. The first `grep` fails against pre-096 code, because
 the wrong gloss is still in the source; it is the fail-first evidence. The
 digest comparison lines pass before and after, because no value changes: they
 are the pin, and the one asserting inequality is what makes the pair of
-constructions explicit. The `cargo test` line is **not** fail-first: the
-assertions in §3.4 do not exist at the parent commit.
+constructions explicit. The two lines reading the **prose** form also fail
+against pre-096 code, for the same reason as the first `grep` and at the
+surface a consumer actually reads. The `cargo test` line is **not** fail-first:
+the assertions in §3.4 do not exist at the parent commit.
 
 ```verify:cli
 # 3.2: the wrong gloss is gone.
@@ -216,6 +239,9 @@ target/release/spec-spine registry show 096 --json | python3 -c 'import json,sys
 # 3.5: the construction is documented where the field is, for both names.
 grep -qF 'specSourceHash' docs/api.md
 grep -qE 'NUL|0x00|path-framed' website/docs/cli/registry.md
-# 3.4: the three-way pin, through the CLI.
+# 3.2: the prose form names the framing rather than the file's bytes.
+target/release/spec-spine registry show 096 | grep -i contentHash | grep -qvF 'sha256 of this spec.md'
+target/release/spec-spine registry show 096 | grep -i contentHash | grep -qE 'path|framed|NUL'
+# 3.4: the four-way pin, through the CLI.
 cargo test -p spec-spine-cli --test cli --locked
 ```

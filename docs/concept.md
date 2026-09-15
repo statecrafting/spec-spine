@@ -33,8 +33,23 @@ refusal rule) is mechanical enforcement of that law. The human writes the
 contract once; the machinery enforces it on every diff, forever. This is what
 lets one person sit at the helm of a development effort and steer it without the
 structure becoming incoherent or drifting from the original intent. The human
-authors the law; the agents comply with it; the spine makes non-compliance
-impossible to merge.
+authors the law; the agents comply with it; the spine refuses a change that
+never declared itself.
+
+Be precise about what "refuses" covers, because the guarantee is structural and
+not semantic. The gate proves that a change to an owned path arrived with its
+owning spec edited, that the claim resolves, and that the derived ledger was
+recomputed. It does not read the prose and decide whether the code does what
+the spec says: any byte change to a spec body is a requirement change,
+conservatively, whatever the words say (design note 04 §4.3), so an edit that
+records a decision satisfies the same gate an edit that changes a requirement
+does. Two documented exits remain open by design: the `Spec-Drift-Waiver:`
+line, a human instrument no agent may write on its own authority, and the
+bypass floor, which exempts docs, lockfiles and the derived tree from coupling
+entirely. What the spine buys is that non-compliance must be **declared** to
+pass, by a named human or in a spec edit that is in the diff and reviewable.
+That is a much stronger position than reviewing output, and it is not the same
+claim as making non-compliance impossible.
 
 Treat all agentic output as hostile by default. Agents earn passage by surviving
 the gates, not by appealing to trust. When the work is large enough to need many
@@ -76,9 +91,13 @@ against the graph, not a guess.
 
 Three properties fall out of this design:
 
-1. **Disjoint territory is provably disjoint.** Two agents working on documents
-   that establish or refine non-overlapping paths cannot collide by
-   construction. The graph tells them so before either edits a line.
+1. **Declared territory is disjoint before anyone edits a line.** Two agents
+   working on documents that establish or refine non-overlapping paths know it
+   from the graph rather than from a merge conflict, and `registry plan`
+   reports the pairs on the ready set that claim the same units. This is a
+   lower bound on collision, not a proof of independence: a shared lockfile, a
+   regenerated shard or a consumed API are collisions no frontmatter declares
+   (spec 091). The graph tells them what it was told.
 2. **Shared territory is typed, not undefined.** When two documents touch the
    same path, say a project-wide build file where many features add targets, they
    declare co-authority section-by-section, with named anchors. The collision

@@ -183,14 +183,24 @@ lifecycle evaluated purely from caller-supplied time, ancestry and usage (B17).
 - **Changing the 16-line claim window's value** (094 §4). Raising or lowering it
   reclassifies files in every adopter corpus. 094 declares the bound it has.
 
-## 7. Decisions owed
+## 7. Decisions, and how they were taken
 
-| # | Decision | Blocks |
+A review pass on 2026-09-15 ruled on all four. The rulings are recorded here
+rather than in the drafts' `## 5. Resolved decisions`, because three of them are
+decisions *about* a draft (whether it may be built) rather than decisions the
+draft records.
+
+| # | Decision | Ruling (2026-09-15) |
 |---|---|---|
-| 1 | Approve 087 (`status: draft` to `approved`) and build it | wave C in full |
-| 2 | Accept 092's refusal widening: after it lands, an owned binary or a mode flip needs its spec edited like any other change | 092's approval |
-| 3 | Accept 093's one breaking output change: `registry list --json` and `index diagnostics --json` become objects so they can carry a version, or stay arrays and stay unversioned | 093's approval |
-| 4 | Whether the ownership ratchet should reach tracked files outside `SOURCE_EXTS` | the wave B rider |
+| 1 | Authorize 087 for build | **Proceed**, after §3.3's piece-selection rules are made explicit. It stays `draft` through the build PR and is ratified in a separate PR after merge, per `AGENTS.md` "Working the backlog" step 6; this row said "approve then build" in error, which inverts the cadence this repository runs |
+| 2 | Accept 092's refusal widening: after it lands, an owned binary or a mode flip needs its spec edited like any other change | **Accepted** as filed. Governance must not depend on whether git prints a textual hunk. The bypass floor and the clearance rules are unchanged, so the widening reaches only paths a spec already claims |
+| 3 | Accept 093's one breaking output change | **Direction accepted, draft revised first.** The compatibility surface is wider than the draft stated: `--ids-only --json` is also an array and approved spec 010 §3.1 requires it, so 093 now carries an `amends` edge; `plan --next --json` emits `null` on an empty ready set, which the proposed emitter would have refused; and two read verbs were missing from the inventory |
+| 4 | Whether the ownership ratchet should reach tracked files outside `SOURCE_EXTS` | **Not by extending the list.** The extension is not the binding constraint: the coverage universe is a conjunction of four tests, and discovered-package membership is the one that excludes most governance files, so a longer extension list still would not reach `AGENTS.md`, `.github/workflows/` or `scripts/`. Measured 2026-09-15: 19 tracked files have a `SOURCE_EXTS` extension and are invisible on the package test alone, 11 of them are already `[index] extra_hashed_inputs` entries, and **7 already carry a valid `// Spec:` claim header that nothing reads**. Filed as 097: an explicit opt-in governed scope, empty by default so no adopter's verdict changes on upgrade |
+
+The three drafts the same pass revised (093, 094, 095, 096 and 087) carry their
+corrections in place; none of the corrections changed a draft's claim, only what
+it promised about existing behavior. The build order the pass recommends is
+092, 095, 096, 094, 093, then 087.
 
 ## 8. Where each item is filed
 
@@ -201,6 +211,7 @@ lifecycle evaluated purely from caller-supplied time, ancestry and usage (B17).
 | 2.3 the claim window, declared and its silent cases reported | 094-a-claim-below-the-header-window-is-not-silent |
 | 2.4 the stray shard verdict survives the tally | 095-a-stray-shard-is-orphaned-at-the-verbs |
 | 2.5 F9: one name, one construction | 096-one-hash-one-construction-one-name |
-| §3 wave B (five items and one rider) | not filed |
+| §3 wave B rider: the ownership ratchet's reach | 097-governed-scope-is-declared-not-inferred |
+| §3 wave B (five items) | not filed |
 | §4 wave C (four items) | not filed; gated on 087 |
 | §5 wave D | not filed |
