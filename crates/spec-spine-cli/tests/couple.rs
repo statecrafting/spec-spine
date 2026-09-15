@@ -874,3 +874,175 @@ fn json_envelope_carries_owners_not_prose() {
     // not a payload addition.
     assert_eq!(v["schemaVersion"], spec_spine_types::VERDICT_SCHEMA_VERSION);
 }
+
+// ── spec 092: a mode-only or binary change is a change ───────────────────
+
+/// Bytes git's content sniffing classifies as binary (a NUL in the first
+/// block), so `git diff` prints `Binary files ... differ` and no `+++` header.
+const BINARY_A: &[u8] = b"\x89PNG\0\0\0\x0dIHDR\x01\x02";
+const BINARY_B: &[u8] = b"\x89PNG\0\0\0\x0dIHDR\x03\x04";
+
+/// Commit everything: `refresh` first so the committed index is fresh, then
+/// stage, then apply any staged-only mode flips, which `git add -A` would
+/// otherwise reset from the working tree (and which the filesystem cannot carry
+/// portably).
+fn commit_all(root: &Path, msg: &str, chmod_x: &[&str]) {
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    for path in chmod_x {
+        git_in(root, &["update-index", "--chmod=+x", path]);
+    }
+    git_in(root, &["commit", "-q", "-m", msg]);
+}
+
+fn couple_git_json(root: &Path) -> serde_json::Value {
+    let out = bin()
+        .arg("--repo")
+        .arg(root)
+        .args(["couple", "--base", "HEAD~1", "--head", "HEAD", "--json"])
+        .output()
+        .unwrap();
+    serde_json::from_slice(&out.stdout).unwrap_or_else(|e| {
+        panic!(
+            "couple --json is JSON ({e}): {}",
+            String::from_utf8_lossy(&out.stderr)
+        )
+    })
+}
+
+fn violation_codes(v: &serde_json::Value) -> Vec<String> {
+    v["report"]["violations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|x| x["code"].as_str().unwrap().to_string())
+        .collect()
+}
+
+/// §3.7 case 1: `chmod +x` on a claimed path, owning spec untouched, is C-001.
+#[test]
+fn mode_only_change_to_a_claimed_path_is_drift() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_ratchet(root);
+    git_in(root, &["init", "-q"]);
+    commit_all(root, "base", &[]);
+    commit_all(root, "chmod", &["crate-a/src/lib.rs"]);
+
+    let out = couple_git(root);
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    assert_eq!(code(&out), 1, "a mode flip must be judged: {stderr}");
+    assert!(stderr.contains("C-001"), "{stderr}");
+    assert!(stderr.contains("crate-a/src/lib.rs"), "{stderr}");
+    assert!(stderr.contains("001-a"), "{stderr}");
+}
+
+/// §3.7 case 2: a binary content change to a claimed path is C-001.
+#[test]
+fn binary_change_to_a_claimed_path_is_drift() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_ratchet(root);
+    write(
+        root,
+        "specs/001-a/spec.md",
+        "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\nestablishes:\n  - \"crate-a/src/lib.rs\"\n  - \"crate-a/assets/logo.png\"\n\
+         ---\n# 001-a\n## body\n",
+    );
+    fs::create_dir_all(root.join("crate-a/assets")).unwrap();
+    fs::write(root.join("crate-a/assets/logo.png"), BINARY_A).unwrap();
+    git_in(root, &["init", "-q"]);
+    commit_all(root, "base", &[]);
+
+    fs::write(root.join("crate-a/assets/logo.png"), BINARY_B).unwrap();
+    commit_all(root, "binary edit", &[]);
+
+    let v = couple_git_json(root);
+    assert_eq!(v["exitCode"], 1, "{v}");
+    assert_eq!(violation_codes(&v), vec!["C-001"], "{v}");
+    let violation = &v["report"]["violations"][0];
+    assert_eq!(violation["path"], "crate-a/assets/logo.png", "{v}");
+    assert_eq!(violation["owners"][0], "001-a", "{v}");
+}
+
+/// §3.7 case 3: a binary delete is judged as a deletion. The path is seen
+/// (`checkedPaths` counts it, which pre-092 it did not), and the ownership
+/// ratchet leaves a file that is gone alone: an unclaimed source file whose
+/// bytes are binary would otherwise be `C-002`.
+#[test]
+fn binary_delete_is_seen_and_is_not_an_ownership_refusal() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_ratchet(root);
+    fs::write(root.join("crate-a/src/blob.rs"), BINARY_A).unwrap();
+    git_in(root, &["init", "-q"]);
+    commit_all(root, "base", &[]);
+
+    fs::remove_file(root.join("crate-a/src/blob.rs")).unwrap();
+    commit_all(root, "binary delete", &[]);
+
+    let v = couple_git_json(root);
+    assert_eq!(v["exitCode"], 0, "{v}");
+    assert!(violation_codes(&v).is_empty(), "{v}");
+    assert_eq!(v["report"]["checkedPaths"], 1, "the delete was judged: {v}");
+
+    // The control: the same unclaimed binary *added* is a live source file and
+    // the ratchet refuses it, so the pass above is the deletion verdict and not
+    // a universe the file was never in.
+    fs::write(root.join("crate-a/src/blob.rs"), BINARY_B).unwrap();
+    commit_all(root, "binary add", &[]);
+    let v = couple_git_json(root);
+    assert_eq!(v["exitCode"], 1, "{v}");
+    assert_eq!(violation_codes(&v), vec!["C-002"], "{v}");
+}
+
+/// §3.7 case 4: a mode flip with its owning `spec.md` in the same diff clears.
+#[test]
+fn mode_only_change_with_its_owning_spec_clears() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_ratchet(root);
+    git_in(root, &["init", "-q"]);
+    commit_all(root, "base", &[]);
+
+    write(
+        root,
+        "specs/001-a/spec.md",
+        "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\nestablishes:\n  - \"crate-a/src/lib.rs\"\n---\n# 001-a\n## body\n\
+         lib.rs is executable now.\n",
+    );
+    commit_all(root, "chmod with spec", &["crate-a/src/lib.rs"]);
+
+    let v = couple_git_json(root);
+    assert_eq!(v["exitCode"], 0, "{v}");
+    assert!(violation_codes(&v).is_empty(), "{v}");
+    assert_eq!(v["report"]["checkedPaths"], 2, "lib.rs and spec.md: {v}");
+}
+
+/// §3.7 case 5, the half the binary can show: a path git reports through both
+/// sources (a text edit made together with a mode flip) is one entry, judged
+/// once. A union that appended instead of merging would count it twice and
+/// raise its `C-001` twice. That the entry keeps its parsed spans is asserted
+/// against the diff adapter itself, over a real repository, in
+/// `cmd_couple.rs`'s `real_git_text_change_keeps_spans_through_the_union`: no
+/// verdict the binary emits depends on spans for an index-resolved unit, because
+/// the indexer seeds a whole-file implementing path for every owning unit's
+/// file (092 D-3).
+#[test]
+fn text_and_mode_change_to_one_path_is_judged_once() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_ratchet(root);
+    git_in(root, &["init", "-q"]);
+    commit_all(root, "base", &[]);
+
+    write(root, "crate-a/src/lib.rs", "pub fn a() {}\npub fn b() {}\n");
+    commit_all(root, "edit and chmod", &["crate-a/src/lib.rs"]);
+
+    let v = couple_git_json(root);
+    assert_eq!(v["exitCode"], 1, "{v}");
+    assert_eq!(v["report"]["checkedPaths"], 1, "one path, once: {v}");
+    assert_eq!(violation_codes(&v), vec!["C-001"], "{v}");
+}

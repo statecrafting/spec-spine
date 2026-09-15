@@ -8,7 +8,10 @@
 //! `parse_hunk_header`). `--no-renames` makes a rename surface as a delete + add
 //! (so a `git mv` of a governed file cannot slip past the gate),
 //! `core.quotepath=false` keeps unicode paths matchable, and `--end-of-options`
-//! stops a crafted ref from being parsed as a git flag.
+//! stops a crafted ref from being parsed as a git flag. Git prints no `+++`
+//! header for a mode-only or binary change, so membership is completed from
+//! `git diff --name-status -z` over the same range (spec 092): the parser stays
+//! the authority for spans, the name list for which paths changed.
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -256,7 +259,43 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> 
     }
 
     let raw = run_git_diff(repo, &args.base, &args.head)?;
-    Ok(parse_unified_diff(&raw))
+    let mut diff = parse_unified_diff(&raw);
+    // Spec 092 §3.1: the parser is the authority for spans, the name list for
+    // membership. The range is the same three-dot `base...head` the text diff
+    // read, so both answers describe one set of changes.
+    let range = format!("{}...{}", args.base, args.head);
+    let statuses = changed_path_statuses(repo, &[range.as_str()])?;
+    union_name_statuses(&mut diff, statuses);
+    Ok(diff)
+}
+
+/// Add every path git reports changed that the hunk parser did not register
+/// (spec 092 §3.1, §3.2).
+///
+/// Git prints no `---`/`+++` header for a mode-only or a binary change, so
+/// [`parse_unified_diff`] never sees those paths. Each enters as a whole-file
+/// change (no hunks), deleted exactly when its status letter is `D`. A path the
+/// parser already registered keeps its spans and its deletion verdict: the name
+/// list contributes membership only. The result stays sorted by path, the order
+/// the parser's map produces.
+fn union_name_statuses(diff: &mut DiffInput, statuses: Vec<(String, String)>) {
+    let mut known: std::collections::BTreeSet<String> =
+        diff.files.iter().map(|f| f.path.clone()).collect();
+    let mut added = false;
+    for (status, path) in statuses {
+        if !known.insert(path.clone()) {
+            continue;
+        }
+        diff.files.push(DiffFile {
+            deleted: status == "D",
+            path,
+            hunks: Vec::new(),
+        });
+        added = true;
+    }
+    if added {
+        diff.files.sort_by(|a, b| a.path.cmp(&b.path));
+    }
 }
 
 /// Attempt the spec 005 §3.5 mechanical auto-waiver (extended to cargo and
@@ -353,38 +392,82 @@ pub(crate) fn merge_base(repo: &Path, base: &str, head: &str) -> Result<String, 
 /// A name list rather than [`parse_unified_diff`]: that parser registers a path
 /// from its `+++`/`---` headers, and git prints none for a binary file or a
 /// mode-only change, so both would be absent from a report that claims to
-/// classify every changed path. `-z` keeps a path containing a newline intact,
-/// and the flags otherwise match [`run_git_diff`]'s for the same reasons.
+/// classify every changed path. Expressed through [`changed_path_statuses`]
+/// (spec 092 §3.3), so `couple` and `delta` cannot disagree about which paths
+/// changed.
 pub(crate) fn changed_path_names(repo: &Path, from: &str, to: &str) -> Result<Vec<String>, Error> {
+    Ok(changed_path_statuses(repo, &[from, to])?
+        .into_iter()
+        .map(|(_, path)| path)
+        .collect())
+}
+
+/// Every changed path with its status letter, `(status, path)`, in git's order
+/// (spec 092 §3.3). `revs` is the revision operand list: `[from, to]` for
+/// `delta`, or the single `base...head` operand `couple`'s text diff reads.
+///
+/// `-z` keeps a path containing a newline intact and unquoted,
+/// `core.quotepath=false` keeps a non-ASCII path literal, `--no-renames` makes
+/// a move a delete plus an add, and `--end-of-options` stops a ref that looks
+/// like a flag from being parsed as one: the flags [`run_git_diff`] passes, for
+/// the same reasons.
+pub(crate) fn changed_path_statuses(
+    repo: &Path,
+    revs: &[&str],
+) -> Result<Vec<(String, String)>, Error> {
     let out = Command::new("git")
         .arg("-C")
         .arg(repo)
         .args(["-c", "core.quotepath=false"])
         .args([
             "diff",
-            "--name-only",
+            "--name-status",
             "-z",
             "--no-renames",
             "--end-of-options",
-            from,
-            to,
         ])
+        .args(revs)
         .output()
         .map_err(|e| Error::Io(format!("spawn git diff: {e}")))?;
     if !out.status.success() {
         let stderr = String::from_utf8_lossy(&out.stderr);
         return Err(Error::Io(format!(
-            "git diff --name-only exited {:?}: {}",
+            "git diff --name-status exited {:?}: {}",
             out.status.code(),
             stderr.trim()
         )));
     }
-    Ok(out
-        .stdout
+    parse_name_status_z(&out.stdout)
+}
+
+/// Parse `git diff --name-status -z` output: a status field, then its path,
+/// each NUL-terminated. A rename or copy status (`R<score>`, `C<score>`) carries
+/// two paths; `--no-renames` means neither is expected, but both are consumed so
+/// the fields cannot fall out of step, and the destination is the path reported.
+fn parse_name_status_z(stdout: &[u8]) -> Result<Vec<(String, String)>, Error> {
+    let mut fields = stdout
         .split(|b| *b == 0)
-        .filter(|p| !p.is_empty())
-        .map(|p| String::from_utf8_lossy(p).into_owned())
-        .collect())
+        .map(|f| String::from_utf8_lossy(f).into_owned());
+    let mut entries = Vec::new();
+    while let Some(status) = fields.next() {
+        if status.is_empty() {
+            continue;
+        }
+        let two_paths = status.starts_with('R') || status.starts_with('C');
+        let mut path = fields.next();
+        if two_paths {
+            path = fields.next();
+        }
+        match path {
+            Some(path) if !path.is_empty() => entries.push((status, path)),
+            _ => {
+                return Err(Error::Io(format!(
+                    "git diff --name-status: status {status:?} with no path"
+                )));
+            }
+        }
+    }
+    Ok(entries)
 }
 
 fn git_show(repo: &Path, rev: &str, path: &str) -> Option<String> {
@@ -604,5 +687,109 @@ mod tests {
             d.files.iter().any(|f| f.path == "new/mod.rs"),
             "new path must be seen"
         );
+    }
+
+    #[test]
+    fn name_status_z_pairs_each_status_with_its_path() {
+        let out = b"M\0src/a.rs\0D\0gone.bin\0A\0path with\nnewline\0R100\0old.rs\0new.rs\0";
+        let entries = parse_name_status_z(out).unwrap();
+        assert_eq!(
+            entries,
+            vec![
+                ("M".to_string(), "src/a.rs".to_string()),
+                ("D".to_string(), "gone.bin".to_string()),
+                ("A".to_string(), "path with\nnewline".to_string()),
+                ("R100".to_string(), "new.rs".to_string()),
+            ]
+        );
+        assert!(parse_name_status_z(b"").unwrap().is_empty());
+        assert!(
+            parse_name_status_z(b"M\0").is_err(),
+            "a status with no path"
+        );
+    }
+
+    #[test]
+    fn union_adds_headerless_paths_and_keeps_parsed_spans() {
+        // The parser saw only `lib.rs`; git also reports a mode flip and a binary
+        // delete it printed no header for.
+        let mut d = parse_unified_diff(
+            "diff --git a/lib.rs b/lib.rs\n\
+             --- a/lib.rs\n\
+             +++ b/lib.rs\n\
+             @@ -3 +3,2 @@\n",
+        );
+        union_name_statuses(
+            &mut d,
+            vec![
+                ("M".into(), "run.sh".into()),
+                ("M".into(), "lib.rs".into()),
+                ("D".into(), "logo.bin".into()),
+            ],
+        );
+        let paths: Vec<&str> = d.files.iter().map(|f| f.path.as_str()).collect();
+        assert_eq!(paths, vec!["lib.rs", "logo.bin", "run.sh"]);
+        let lib = &d.files[0];
+        assert_eq!(lib.hunks, vec![LineSpan::new(3, 4)], "spans survive");
+        assert!(!lib.deleted);
+        assert!(d.files[1].deleted && d.files[1].hunks.is_empty());
+        assert!(!d.files[2].deleted && d.files[2].hunks.is_empty());
+    }
+
+    /// Spec 092 §3.7 case 5, over a real repository: a text edit made together
+    /// with a mode flip is reported by both sources, and the adapter keeps the
+    /// hunk span the parser found rather than flattening it to whole-file. Here
+    /// and not in `tests/couple.rs`, because no verdict the binary emits depends
+    /// on spans for an index-resolved unit (092 D-3).
+    #[test]
+    fn real_git_text_change_keeps_spans_through_the_union() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        let git = |args: &[&str]| {
+            let out = Command::new("git")
+                .arg("-C")
+                .arg(root)
+                .args(["-c", "commit.gpgsign=false"])
+                .args(args)
+                .env("GIT_AUTHOR_NAME", "t")
+                .env("GIT_AUTHOR_EMAIL", "t@t")
+                .env("GIT_COMMITTER_NAME", "t")
+                .env("GIT_COMMITTER_EMAIL", "t@t")
+                .output()
+                .unwrap();
+            assert!(out.status.success(), "git {args:?}: {out:?}");
+        };
+        git(&["init", "-q"]);
+        std::fs::write(
+            root.join("Makefile"),
+            "top:\n\techo top\n\nbot:\n\techo bot\n",
+        )
+        .unwrap();
+        std::fs::write(root.join("logo.png"), b"\x89PNG\0\x01").unwrap();
+        git(&["add", "-A"]);
+        git(&["commit", "-q", "-m", "base"]);
+        std::fs::write(
+            root.join("Makefile"),
+            "top:\n\techo top\n\nbot:\n\techo bottom\n",
+        )
+        .unwrap();
+        std::fs::write(root.join("logo.png"), b"\x89PNG\0\x02").unwrap();
+        git(&["add", "-A"]);
+        git(&["update-index", "--chmod=+x", "Makefile"]);
+        git(&["commit", "-q", "-m", "head"]);
+
+        let args = CoupleArgs {
+            base: "HEAD~1".into(),
+            head: "HEAD".into(),
+            pr_body: None,
+            paths_from: None,
+            json: false,
+        };
+        let d = build_diff_input(root, &args).unwrap();
+        let paths: Vec<&str> = d.files.iter().map(|f| f.path.as_str()).collect();
+        assert_eq!(paths, vec!["Makefile", "logo.png"]);
+        assert_eq!(d.files[0].hunks, vec![LineSpan::new(5, 5)], "span kept");
+        assert!(d.files[1].hunks.is_empty(), "binary is whole-file");
+        assert!(!d.files[0].deleted && !d.files[1].deleted);
     }
 }
