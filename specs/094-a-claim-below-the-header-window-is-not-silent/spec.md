@@ -19,7 +19,7 @@ summary: >
   and failed is distinguishable from a file that never tried. The recognizer is
   looser than the documented form in three ways, and 3.2 records them rather
   than correcting them: declaring a rule is not the place to change it.
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
