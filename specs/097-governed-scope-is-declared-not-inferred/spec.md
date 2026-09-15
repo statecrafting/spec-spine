@@ -292,8 +292,18 @@ one review.
 
 ### 3.5 The report says which files entered this way
 
-`CoverageReport` MUST gain two additive members, both omitted when the scope is
-empty, which is what keeps §3.1 true for a corpus that never sets the key:
+`CoverageReport` MUST gain two additive members. Their omission is keyed to the
+**configured scope**, never to what the scope matched:
+
+- when `governed_scope` is empty (absent or `[]`), both members MUST be
+  omitted, which is what keeps §3.1 true for a corpus that never sets the key;
+- when `governed_scope` is non-empty, both members MUST be present, and a
+  scope that matched nothing emits `declaredScopeFiles: []` beside its
+  `enumeration`. Omitting them on an empty match would drop the provenance in
+  exactly the case §3.6 needs it: a supplied-empty inventory and a walk that
+  found nothing are different answers, and only `enumeration` tells them apart.
+
+The two members:
 
 - `declaredScopeFiles`: the paths that are in the universe because of
   `governed_scope` and would not otherwise be, sorted.
@@ -369,8 +379,12 @@ When the CLI enumerates from git it MUST use `git ls-files -z --cached --others
   before it is staged. Otherwise `index coverage` reads clean locally and CI
   refuses the same tree, which is the lag this repository's own harness exists
   to remove.
-- **ignored**: an ignored file is never in the inventory. `--exclude-standard`
-  is what keeps build output and editor droppings out.
+- **ignored**: an **untracked** file that the ignore rules match is never in
+  the inventory; `--exclude-standard` is what keeps build output and editor
+  droppings out. A **tracked** file stays in the inventory whether or not an
+  ignore rule matches it: `--cached` lists every index entry and
+  `--exclude-standard` applies only to `--others`, and that is the right
+  answer, because a file git tracks is corpus however `.gitignore` reads.
 - **deleted or missing**: a path git still lists but the tree no longer holds is
   dropped. The scope governs files there are to read; a coverage row for a file
   that does not exist is a row nobody can act on.
@@ -411,8 +425,10 @@ input nobody can audit.
   `governed_scope` (§3.3);
 - a governed-scope file outside every package classifying as `Unowned` rather
   than `FloorOnly`, with the `C-002` message naming no floor (§3.4);
-- `declaredScopeFiles` omitted when empty and populated otherwise (§3.5), and
-  `enumeration` likewise;
+- both `declaredScopeFiles` and `enumeration` omitted when `governed_scope` is
+  empty, and both present when it is set: populated for a scope that matches,
+  and `declaredScopeFiles: []` with `enumeration` retained for a scope that
+  matches nothing (§3.5);
 - an **absent** inventory resolving by walk, and a **supplied empty** inventory
   matching nothing, asserted as two different reports (§3.6);
 - the walk excluding `.git/` and the declared state root (§3.6).
@@ -429,6 +445,10 @@ already makes it (§3.3, D-2).
 - `index coverage --paths-from` resolving against the supplied list, with the
   reported `enumeration` naming it;
 - a git enumeration failure exiting 3 rather than reporting a walk (§3.6);
+- the git enumeration's four membership cases in a scratch repository (§3.6):
+  a tracked file an ignore rule matches is **retained**, an untracked ignored
+  file is **excluded**, an unstaged untracked addition is **included**, and a
+  tracked file missing from the working tree is **dropped**;
 - the `coverage_json` facade and the CLI answering the same report for the same
   inventory, the pairing spec 057 §3.3 requires, since the facade is the half a
   binding consumes;
@@ -523,6 +543,21 @@ accepts the asymmetry rather than resolving it, because resolving it means
 deciding what a claim looks like in markdown, YAML and TOML, which is a design
 question with its own spec.
 
+**D-6 (2026-09-15). Ignore rules bind only untracked files, and omission is
+keyed to the configured scope.** §3.5, §3.6. A pre-build review found two
+places where the text contradicted itself. First, §3.6 prescribed `git ls-files
+--cached --others --exclude-standard` and also said an ignored file is never in
+the inventory, but `--exclude-standard` filters only `--others`, so a tracked
+file an ignore rule matches is listed (reproduced in a scratch repository). The
+command is right and the sentence was wrong: a tracked file is corpus, so it is
+retained, and only untracked ignored files are excluded. Second, §3.8 said the
+new report members are omitted "when empty" while §3.5 tied omission to an
+empty scope. Keying omission to an empty match would drop `enumeration` exactly
+when a supplied-empty inventory must be told apart from a walk that found
+nothing, so both members are omitted only when `governed_scope` is empty, and a
+set scope that matches nothing emits `declaredScopeFiles: []` with its
+`enumeration`. §3.8 gained CLI cases for the four git membership cases.
+
 ## Verification
 
 Each line is one command. The lines asserting the config keys, the report member
@@ -550,7 +585,7 @@ target/release/spec-spine config show | grep -q 'governed_scope'
 target/release/spec-spine index coverage --help | grep -q 'paths-from'
 # 3.1: unset here, so this corpus is unchanged and reports neither new member.
 target/release/spec-spine index coverage --fail-on-untraced
-target/release/spec-spine index coverage --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("declaredScopeFiles", []) == [], d["declaredScopeFiles"]; assert "enumeration" not in d, d["enumeration"]'
+target/release/spec-spine index coverage --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert "declaredScopeFiles" not in d, d["declaredScopeFiles"]; assert "enumeration" not in d, d["enumeration"]'
 # 3.3, 3.4, 3.5, 3.8: the cases.
 cargo test -p spec-spine-core --test coverage --locked
 cargo test -p spec-spine-core --test couple --locked
