@@ -93,6 +93,6 @@
     "summary": "Spec 086 §3.1 says `orphaned` covers \"a stray file in either shard directory\", and `compare_shard_dir` classifies by name without parsing, so the library holds to it. The verbs do not. `check_report` and `check_freshness_json` compute the freshness verdict and then call `diagnostics::committed_counts(config, repo_root)?`, which parses every file in the shard directories; an unparseable stray makes that `?` throw the computed verdict away, and `index check` and `check` exit 3 with a parse error where `couple` and `index coverage` exit 2 and name the orphan. Measured at 0.19.0, and the same at 0.18.0, so it is not a regression and not a bypass. 086's acceptance asserted the classification on the library function only, which is exactly how it passed. This spec makes the tally best-effort and the verdict authoritative, and asserts it at the verbs.\n",
     "title": "A stray shard is orphaned at the verbs"
   },
-  "shardHash": "39006a8a48cc95276a0bf62431be1b0f923d2234920c1e3d084626db7c52c45b",
+  "shardHash": "e6316b8c7fa7a6a1d606b2781c6a9df2a2a669345e3f8398a69df7b34b88ab09",
   "specVersion": "1.2.0"
 }

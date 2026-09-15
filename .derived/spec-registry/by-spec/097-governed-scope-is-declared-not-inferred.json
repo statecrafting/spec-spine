@@ -1,0 +1,118 @@
+{
+  "record": {
+    "created": "2026-09-15",
+    "dependsOn": [
+      "005-coupling-gate",
+      "032-ownership-coverage",
+      "054-effective-config-is-a-governed-read",
+      "057-claimed-but-unwitnessed",
+      "094-a-claim-below-the-header-window-is-not-silent"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/coverage.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/coverage.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "054-effective-config-is-a-governed-read",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/coverage.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/couple.rs"
+        }
+      }
+    ],
+    "id": "097-governed-scope-is-declared-not-inferred",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "097: Governed scope is declared, not inferred",
+      "1. Purpose",
+      "1.1 Four conjuncts, and only one of them is about code",
+      "1.2 What the conjuncts exclude here",
+      "1.3 Why a longer extension list does not fix it",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Opt-in, and silent when unset",
+      "3.2 The declaration",
+      "3.3 What the declaration changes",
+      "3.4 How a governed-scope file is claimed",
+      "3.5 The report says which files entered this way",
+      "3.6 The enumeration is the CLI's, not the core's",
+      "3.7 `config show` prints it",
+      "3.8 The tests",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/097-governed-scope-is-declared-not-inferred/spec.md",
+    "status": "draft",
+    "summary": "The ownership ratchet sees a file only if all four conjuncts of `coverage.rs::in_coverage_universe` hold: the extension is in `SOURCE_EXTS`, no path component is a resolver exclusion, the file lies inside a discovered package, and no bypass prefix matches. Measured on 2026-09-15: this repository tracks 572 files and the ratchet can see 89. Nineteen tracked files carry a `SOURCE_EXTS` extension and are invisible on the package conjunct alone, and eleven of those nineteen are files `[index] extra_hashed_inputs` already names, so a change to one restales all 101 shards while `C-002` cannot ask who owns it. Seven of the nineteen already carry a valid `// Spec:` claim header that nothing ever reads. The two lists disagree about what this repository governs. This spec adds an opt-in declared scope: named path patterns that join the coverage universe whatever their extension and wherever they sit, with the tracked-file enumeration done by the CLI and passed in, because the core has no git. Empty by default, so no adopter's verdict changes on upgrade.\n",
+    "title": "Governed scope is declared, not inferred"
+  },
+  "shardHash": "06188c2b05f13947ea6fa06eef626dea87fa7884b990f2ab3d23cfe1f2a02300",
+  "specVersion": "1.2.0"
+}

@@ -1,13 +1,19 @@
 {
   "mapping": {
     "dependsOn": [
-      "050-index-diagnostics-reach-a-gate",
-      "075-one-name-one-freshness-verb",
-      "086-the-committed-index-is-compared-not-trusted"
+      "005-coupling-gate",
+      "032-ownership-coverage",
+      "054-effective-config-is-a-governed-read",
+      "057-claimed-but-unwitnessed",
+      "094-a-claim-below-the-header-window-is-not-silent"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/cmd_check.rs",
+        "path": "crates/spec-spine-cli/src/cmd_config.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/src/cmd_couple.rs",
         "source": "spec-edge"
       },
       {
@@ -15,19 +21,23 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "path": "crates/spec-spine-core/src/coverage.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/diagnostics.rs",
+        "path": "crates/spec-spine-core/tests/couple.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/lib.rs",
+        "path": "crates/spec-spine-core/tests/coverage.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/index_body.rs",
+        "path": "crates/spec-spine-types/src/config.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/coverage.rs",
         "source": "spec-edge"
       }
     ],
@@ -35,14 +45,27 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_check.rs"
+            "file": "crates/spec-spine-cli/src/cmd_config.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_check.rs"
+          "path": "crates/spec-spine-cli/src/cmd_config.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_couple.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
         }
       },
       {
@@ -61,53 +84,66 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/cli.rs"
+            "file": "crates/spec-spine-core/src/coverage.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/cli.rs"
+          "path": "crates/spec-spine-core/src/coverage.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/diagnostics.rs"
+            "file": "crates/spec-spine-core/tests/couple.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/diagnostics.rs"
+          "path": "crates/spec-spine-core/tests/couple.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/lib.rs"
+            "file": "crates/spec-spine-core/tests/coverage.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/lib.rs"
+          "path": "crates/spec-spine-core/tests/coverage.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/index_body.rs"
+            "file": "crates/spec-spine-types/src/config.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/index_body.rs"
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/coverage.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/coverage.rs"
         }
       },
       {
@@ -124,9 +160,9 @@
         }
       }
     ],
-    "specId": "095-a-stray-shard-is-orphaned-at-the-verbs",
+    "specId": "097-governed-scope-is-declared-not-inferred",
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "dd07bd2ac70f5e06cfd6cb75e92774ae76754814037030f97cd62a58da844ea4"
+  "shardHash": "020b22d6225ffc0fb493d0b23ece5c2c5fbf4acd6e3a9381423748a39e4ec6d6"
 }

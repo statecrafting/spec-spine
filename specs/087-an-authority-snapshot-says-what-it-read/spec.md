@@ -196,10 +196,12 @@ payload, never inside it, exactly as for specs 023 and 042.
 
   - `territoryDigest` is **the content binding**: `frame/1` over the locations
     the spec's owning units resolve to, each a piece under 3.3's rule, sorted
-    by repo-relative path. A unit that resolves to nothing contributes no
-    piece, and `verdicts.resolution` is where a consumer sees that it did not
-    resolve. This is the member that says what the spec's territory came to,
-    and it is framed, so the two collisions in 1 cannot occur in it.
+    by repo-relative path, under the piece rule §3.3.1 states in full. A unit
+    that resolves to nothing contributes no piece, and `verdicts.resolution` is
+    where a consumer sees that it did not resolve. This is the member that says
+    what the spec's territory came to, and it is framed, so the two collisions
+    in §1 cannot occur in it. It is **absent** for a spec whose owning units all
+    resolve to nothing (§3.3.1).
   - `specAttestationHash` is **historical evidence only, and explicitly not a
     content binding**: the `attestationHash` that `attest --spec <id>` would
     emit for the same tree and tool version, byte for byte. It exists so a
@@ -227,9 +229,12 @@ SHA-256( "spec-spine/frame/1" 0x00
 
 A file that is valid UTF-8 is a `t` piece, with the standing normalization (BOM
 stripped, CRLF and CR to LF) applied before its length is taken. Any other file
-is a `b` piece holding its exact bytes. Paths are repo-relative POSIX. The
-construction is injective over piece sets, so the two collisions in 1 cannot
-occur in a `frame/1` digest.
+is a `b` piece holding its exact bytes. A symlink is an `l` piece holding its
+target text as stored, never the content it points at. Paths are repo-relative
+POSIX. The construction is injective over piece sets, so the two collisions in
+§1 cannot occur in a `frame/1` digest, **given** a piece set with no repeated
+path: §3.3.1 is what guarantees that, and without it the framing alone does not
+determine a digest.
 
 **This is a binding over normalized text, not over exact bytes, and the two are
 different contracts.** Spec 085 answers "are these the bytes I was given": it
@@ -248,6 +253,57 @@ promising more than it holds. See 5, D-4.
 Members that exist in other payloads (`inputsManifestHash`, `registryHash`,
 `findingsHash`, `specAttestationHash`) keep their constructions. Changing them
 would change every historical digest a consumer holds.
+
+### 3.3.1 Which pieces a digest is taken over
+
+`frame/1` says how a set of pieces becomes a digest. It does not say what the
+set is, and two implementations agreeing on the framing can still disagree on
+the digest. The piece rule is therefore stated here, once, for every member
+this spec introduces with a `hash`.
+
+**A piece is a path.** The unit of a piece is a file, a symlink or an empty
+directory, addressed by its repo-relative POSIX path. Pieces MUST be
+deduplicated by path, and a path MUST appear at most once in a digest. Nothing
+below can therefore produce a duplicate, and `frame/1`'s injectivity over piece
+sets is a property of what is actually fed to it.
+
+**The walk is spec 083's walk.** The locations a unit resolves to are expanded
+with `index::walk_territory`, the same function `attest --spec` uses, under the
+same `resolver_exclusions` and the same `layout` pruning. A snapshot and a
+per-spec attestation that disagreed about which files a subtree contains would
+make `specAttestationHash` uncomparable with `territoryDigest` inside one
+payload.
+
+| Case | Piece rule |
+|---|---|
+| A `file` unit, or a location resolving to a file | one `t` or `b` piece: the **whole file**, never a slice of it |
+| A `section`, `symbol` or `module` unit | the whole file the span lies in, as above. The span is **not** part of the digest; see the paragraph below |
+| Two or more units of one spec resolving into the same file | **one** piece. The second and later occurrences are dropped by the dedup rule, not hashed again |
+| A `directory`, `crate` or trailing-slash `file` unit | one piece per entry the walk yields, each keyed by its own path |
+| A file unit whose path also lies under a directory unit of the same spec | **one** piece, by the dedup rule. An overlapping claim is not a doubled claim |
+| A symlink met by the walk | one `l` piece holding the link's target text as stored. The link is never followed, so a cycle inside a claimed subtree terminates and content outside the repository never enters the payload (spec 083 §3.2) |
+| An empty or wholly pruned directory | one piece at the directory's own path with **empty content**, so an empty claim is distinguishable from no claim and two empty claims in different places are distinguishable from each other (spec 083 §3.3) |
+| A unit that resolves to nothing | **no** piece. `verdicts.resolution` is where a consumer sees that it did not resolve |
+| A spec whose owning units all resolve to nothing, or which owns none | `territoryDigest` is **absent**, not the digest of an empty piece set. The digest of nothing is one constant shared by every such spec in every repository, which reads as evidence and distinguishes nothing (the reasoning spec 083 §3.3 applies to an empty directory, applied one level up) |
+
+**`territoryDigest` binds files, not spans.** A spec owning one section of a
+file has that whole file in its digest, so an edit elsewhere in the file moves
+the spec's `territoryDigest` even though the owned section is untouched. This is
+deliberate and it is the conservative direction: the alternative binds a byte
+range whose boundaries are themselves recomputed by the resolver, so a span that
+shifted would produce an unchanged digest over different content. A consumer
+that needs span-level attribution reads the index shard, which records the
+resolved spans; a snapshot answers "what did this spec's territory come to",
+and the answer is the files.
+
+**Non-UTF-8 content is a `b` piece, everywhere.** Spec 083's per-unit hash
+substitutes the string `sha256:<hex>` for a file inside a claimed subtree that
+is not valid UTF-8, and reads a directly claimed `file` unit as text, which
+fails outright if that file is binary. `frame/1` needs neither workaround: a
+`b` piece carries exact bytes and the kind byte keeps it distinct from a `t`
+piece that happened to hold the same bytes. This is why the snapshot's own
+members use `frame/1` and `specAttestationHash` keeps spec 042's construction
+unchanged (§3.3, last paragraph).
 
 ### 3.4 Purity
 
@@ -328,6 +384,18 @@ one thing each. No behaviour this spec requires of a build was widened. It
 remains `status: draft`: approval is a human flip, and this revision is a
 request for one, not a substitute.
 
+**Revised again 2026-09-15, and authorized for build.** The review that
+authorized it made the authorization conditional on one gap: §3.2 and §3.3
+defined the framing without defining the piece set, so two implementations
+could conform and still disagree. §3.3.1 is new and states the piece rule in
+full; §3.3 now names the `l` piece its own formula always had and says plainly
+that injectivity holds only over a set with no repeated path; §3.2's
+`territoryDigest` bullet points at the rule and names the absent case; D-6
+records the four choices that were open. No member changed, no construction
+changed, and no behaviour this spec requires of a build was widened. Per
+`AGENTS.md` "Working the backlog", it stays `draft` through the build PR and is
+ratified in a separate PR after merge.
+
 
 **D-1 (2026-09-11): the payload is git-free.** The core has no git (a
 workspace invariant), and a tree is what the payload reads. The mapping from a
@@ -384,6 +452,32 @@ did I read".
 freshness; the snapshot records their inputs as counts and leaves the policy to
 the reader.
 
+**D-6 (2026-09-15): the piece set is specified, not left to the framing.** A
+review pass held that §3.2 and §3.3 defined how pieces become a digest without
+defining which pieces there are, so two conforming implementations could agree
+on `frame/1` and still emit different `territoryDigest` values. §3.3.1 is the
+answer, and four of its rules were genuinely open rather than obvious:
+
+- **Dedup is by path, and overlapping claims collapse.** A spec owning both a
+  directory and a file inside it, or two `section` units in one file, has that
+  file once. The alternative, one piece per unit, puts a repeated path in the
+  set and forfeits the injectivity §3.3 claims, which is the property the whole
+  framing exists for.
+- **The digest binds whole files, never spans.** A span-level digest would hash
+  boundaries the resolver itself recomputes, so a span that shifted over
+  changed content could hash the same. Whole files are conservative in the safe
+  direction: the digest can move when the owned region did not, and it cannot
+  fail to move when the owned region did.
+- **An all-unresolved spec has no `territoryDigest`**, rather than the digest of
+  an empty piece set, which is one constant shared by every such spec in every
+  repository. Spec 083 §3.3 already reasoned this way one level down, for an
+  empty directory.
+- **The walk is `index::walk_territory`**, the one `attest --spec` uses, so
+  `territoryDigest` and `specAttestationHash` in the same payload cannot
+  disagree about what a subtree contains. Symlinks are `l` pieces carrying the
+  link text, unfollowed, which is spec 083 §3.2's rule and keeps a cycle
+  terminating and out-of-repository content out of the payload.
+
 ## Verification
 
 Each line runs in its own `sh -c` from the repository root (spec 049 3.5). The
@@ -428,6 +522,21 @@ Neither line can run before `frame/1` exists, which is the point: both fail
 against pre-087 code with the flag absent, and both would still fail against an
 implementation that shipped the flag over the unframed fold.
 
+Two lines test §3.3.1 directly, and neither can pass by accident:
+
+- **The dedup line** gives one spec the directory `g/` and the file `g/a`,
+  which lies inside it, and asserts `territoryDigest` is **unchanged** from the
+  same spec claiming `g/` alone. An implementation that emitted one piece per
+  unit would hash `g/a` twice and the digests would differ.
+- **The unresolved line** gives that spec a single unit resolving to nothing and
+  asserts the payload carries **no** `territoryDigest` at all, rather than the
+  digest of an empty piece set. It counts occurrences rather than comparing a
+  value, because the value it is asserting the absence of is precisely the one
+  constant a wrong implementation would emit here for every such spec.
+
+Both restore the spec file from a backup before asserting, so a later line in
+this block reads the corpus it expects.
+
 The separation line proves `matchesRecompute` reads the committed tree: it
 changes a committed shard and nothing the recompute reads, then asserts the
 recomputed `registryHash` did not move while `matchesRecompute` did. The
@@ -458,6 +567,8 @@ D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; $S --repo "$D" compile >
 D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; A=$($S --repo "$D" attest --snapshot --json); printf '# a comment\n' >> "$D/spec-spine.toml"; B=$($S --repo "$D" attest --snapshot --json); printf -- '[index]\nextra_hashed_inputs = ["g/*"]\n' > "$D/spec-spine.toml"; test "$A" != "$B" && test "$(echo "$A" | grep '"inputsManifestHash"')" = "$(echo "$B" | grep '"inputsManifestHash"')"
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss087" attest --snapshot --spec 001-a >/dev/null 2> "${TMPDIR:-/tmp}/ss087/scope.err"; test $? -eq 3 && grep -q "cannot combine" "${TMPDIR:-/tmp}/ss087/scope.err"
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss087" attest --snapshot --with-coupling >/dev/null 2> "${TMPDIR:-/tmp}/ss087/scope2.err"; test $? -eq 3 && grep -q "cannot combine" "${TMPDIR:-/tmp}/ss087/scope2.err"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; M="$D/specs/001-a/spec.md"; cp "$M" "$D/spec.bak"; A=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); printf -- '---\nid: "001-a"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-11"\nsummary: "s"\nestablishes:\n  - "g/"\n  - "g/a"\n---\n\n# t\n' > "$M"; B=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); cp "$D/spec.bak" "$M"; test -n "$A" && test "$A" = "$B"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; M="$D/specs/001-a/spec.md"; cp "$M" "$D/spec.bak"; printf -- '---\nid: "001-a"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-11"\nsummary: "s"\nestablishes:\n  - "nowhere/at/all.txt"\n---\n\n# t\n' > "$M"; N=$($S --repo "$D" attest --snapshot --json | grep -c '"territoryDigest"'); cp "$D/spec.bak" "$M"; test "$N" -eq 0
 rm -rf "${TMPDIR:-/tmp}/ss087" "${TMPDIR:-/tmp}/ss087-self.json"
 target/release/spec-spine check
 ```

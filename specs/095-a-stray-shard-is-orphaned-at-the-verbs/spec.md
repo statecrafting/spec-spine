@@ -126,11 +126,21 @@ schema failure.
 
 `committed_counts` MUST count the shards it can parse and skip the ones it
 cannot, returning the number skipped alongside the counts. `IndexCheckReport`
-MUST carry that number as an additive member with `#[serde(default)]`, so:
+MUST carry that number as an additive member with **both**
+`#[serde(default)]` and `skip_serializing_if = "is_zero"`, so:
 
 - a pre-095 consumer deserializing a 095 payload is unaffected;
 - a 095 consumer deserializing a pre-095 payload reads zero;
+- a payload with nothing skipped **omits the member entirely**, which is what
+  makes §3.6 case 4's byte-identity promise true. Emitting `0` would add a line
+  to every `check --json` payload in every corpus in exchange for a value that
+  says nothing happened, and it would make this spec a breaking output change
+  for the common case rather than an invisible one;
 - `VERDICT_SCHEMA_VERSION` does not move, following spec 050 §3.6.
+
+The omission is the same treatment spec 076 §3.6 gives `plannedTerritory` and
+for the same reason: an additive member that is absent when it has nothing to
+report costs a corpus with nothing to report exactly nothing.
 
 Skipping MUST NOT be silent: the count is in the payload, and the prose form
 MUST name the files it could not read, on the same lines that already list the
@@ -165,14 +175,26 @@ is: it is still true, and it is not sufficient.
 
 The cases:
 
-1. `{"nope": 1}` in `by-spec/`: `index check` and `check` exit 2 and name the
+1. **An unexpected stray that does not parse.** `{"nope": 1}` written to
+   `by-spec/999-stray.json`: `index check` and `check` exit 2 and name the
    orphan; `check --json` reports `fresh: false` and the skipped count;
-2. a valid shard copied to a name the recompute does not expect: exit 2,
-   unchanged from today;
-3. an unparseable file in `by-package/`: same as case 1;
-4. a fresh tree: exit 0, skipped count zero, byte-identical payload to pre-095;
-5. `index owner` on the same tree with the stray present still refuses, so
-   §3.2's consumer half is not loosened by accident.
+2. **An unexpected stray that does parse.** A valid shard copied to a name the
+   recompute does not expect: exit 2, unchanged from today;
+3. **An unexpected stray in the other tree.** An unparseable file in
+   `by-package/`: same as case 1;
+4. **An expected shard corrupted in place.** A shard the recompute *does*
+   expect, overwritten with bytes that do not deserialize: `index check` and
+   `check` exit 2, and the shard is named as **stale** rather than as an
+   orphan, because the recompute expects that path and §3.2's byte comparison
+   is what it fails. This case is separate from cases 1 and 3 on purpose: it is
+   the one §3.2's second sentence reasons about, and the expected and
+   unexpected paths reach the drift verdict through different comparisons, so a
+   fix that only handled the unexpected path would leave exit 3 reachable here;
+5. **A fresh tree.** Exit 0, nothing skipped, and the `--json` payload
+   **byte-identical** to the pre-095 payload, which §3.3's omission rule is what
+   secures;
+6. **The consumer half is unchanged.** `index owner` on the tree from case 1
+   still refuses at exit 3, so §3.2's split is not loosened by accident.
 
 ## 4. Out of scope
 
@@ -204,6 +226,24 @@ Reporting the tally as absent whenever the tree is stale was considered and
 rejected: the counts over the parseable shards are still what the committed
 ledger records, a consumer may use them, and dropping them would lose
 information to solve a problem one skipped file caused.
+
+**D-3 (2026-09-15). The skipped count is omitted when it is zero.** §3.3. As
+first drafted this spec required only `#[serde(default)]`, which makes the
+member *readable* by an old consumer but still writes `"skippedShards": 0` into
+every payload, contradicting §3.6's own promise of a byte-identical fresh
+payload. The two sections were checked against each other in review and §3.3 was
+the one that had to move: the promise is the point, since a corpus that never
+has a stray should not be able to tell this spec shipped.
+
+**D-4 (2026-09-15). A corrupted expected shard is its own acceptance case.**
+§3.6 case 4. The unexpected and the expected paths reach the drift verdict by
+different routes: an unexpected file is `orphaned` by name, while an expected
+file that will not deserialize is *stale* by spec 086's byte comparison. The
+first draft's cases covered only the unexpected route, so an implementation that
+caught `Error::Parse` where strays are enumerated and nowhere else would have
+passed every case while leaving exit 3 reachable on the more likely tree: a
+shard truncated by a bad merge or a killed write, which is a file the recompute
+expects.
 
 ## Verification
 

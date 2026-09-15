@@ -1,7 +1,12 @@
 {
   "record": {
+    "amends": [
+      "010-registry-query-projection-flags",
+      "060-plan-answers-the-whole-question"
+    ],
     "created": "2026-09-14",
     "dependsOn": [
+      "010-registry-query-projection-flags",
       "037-machine-readable-verdicts",
       "054-effective-config-is-a-governed-read",
       "055-the-ledger-answers-what-consumers-rebuild",
@@ -100,20 +105,21 @@
       "3. Behavior",
       "3.1 What a read document is",
       "3.2 One emitter",
-      "3.3 The version axis",
-      "3.4 Sorted keys, stated once and true",
-      "3.5 The one breaking change, named",
-      "3.6 `config show` keeps its own version member",
-      "3.7 The tests",
+      "3.3 Every read document is an object",
+      "3.4 The version axis",
+      "3.5 Sorted keys, stated once and true",
+      "3.6 The breaking changes, named",
+      "3.7 `config show` keeps its own version member",
+      "3.8 The tests",
       "4. Out of scope",
       "5. Resolved decisions",
       "Verification"
     ],
     "specPath": "specs/093-a-governed-read-names-its-version/spec.md",
     "status": "draft",
-    "summary": "`docs/api.md` states that every JSON this tool emits is pretty-printed with sorted keys, and spec 037 gave every verdict verb a versioned envelope. The read verbs got neither. Measured at 0.19.0: `registry plan`, `index owner`, `index coverage`, `config show` and `index orphans` emit keys in struct declaration order, and `registry plan`, `registry show`, `registry list`, `index owner`, `index coverage`, `index diagnostics` and `index orphans` carry no version member at all, because they serialize with `serde_json::to_string_pretty` while every committed artifact goes through the canonical writer. A consumer therefore pins a document whose shape it cannot dispatch on and whose key order is an implementation detail of a Rust struct. This spec routes every read document through one emitter that sorts keys and stamps a new `READ_SCHEMA_VERSION`, and decides note 04's D7: the version is an additive member on an object document, and the two verbs that emit a bare array become objects so they can carry one.\n",
+    "summary": "`docs/api.md` states that every JSON this tool emits is pretty-printed with sorted keys, and spec 037 gave every verdict verb a versioned envelope. The read verbs got neither. Measured at 0.19.0: thirteen read documents across eight verbs, of which twelve carry no version member at all and seven emit keys in struct declaration order, because they serialize with `serde_json::to_string_pretty` while every committed artifact goes through the canonical writer. A consumer therefore pins a document whose shape it cannot dispatch on and whose key order is an implementation detail of a Rust struct. This spec routes every read document through one emitter that sorts keys and stamps a new `READ_SCHEMA_VERSION`, and decides note 04's D7: the version is an additive member on an object document, and the documents that are not objects today become objects so they can carry one. Three of those are breaking, and two of the three are contracts approved specs state, so this spec carries `amends` edges to 010 and 060 rather than editing them.\n",
     "title": "A governed read names its version"
   },
-  "shardHash": "bf58372a5e1bb68c4842c6a97ecbc4429171ad8b4da3897ea571598df8181215",
+  "shardHash": "36b705b2c62c4634f224976bd598ec1121c88a635e816d73fd18e0b4dcc6a5ae",
   "specVersion": "1.2.0"
 }
