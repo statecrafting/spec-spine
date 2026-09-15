@@ -1,7 +1,7 @@
 ---
 id: "087-an-authority-snapshot-says-what-it-read"
 title: "An authority snapshot says what it read"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-11"
 implementation: complete
