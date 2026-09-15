@@ -89,8 +89,8 @@
       }
     ],
     "specId": "096-one-hash-one-construction-one-name",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "57f07ec92a8012c1d7962b8c5238edef1b2b8c4cbbfa02398edbd4b2dc3cadc7"
+  "shardHash": "0310a011aa00f5b12309425a55640a1651c60fa1bc3d500e9930849621f9ff7f"
 }

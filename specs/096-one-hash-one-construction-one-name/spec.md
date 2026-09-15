@@ -1,7 +1,7 @@
 ---
 id: "096-one-hash-one-construction-one-name"
 title: "One hash, one construction, one name"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-14"
 summary: >
