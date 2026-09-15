@@ -1,0 +1,84 @@
+{
+  "record": {
+    "created": "2026-09-14",
+    "dependsOn": [
+      "005-coupling-gate",
+      "032-ownership-coverage",
+      "088-a-change-is-classified-under-the-bases-rules"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "088-a-change-is-classified-under-the-bases-rules",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/couple.rs"
+        }
+      }
+    ],
+    "id": "092-a-mode-only-or-binary-change-is-a-change",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "092: A mode-only or binary change is a change",
+      "1. Purpose",
+      "1.1 The parser reads spans and infers membership from them",
+      "1.2 Git prints no header for two real change shapes",
+      "1.3 The workaround already in the tree",
+      "1.4 Why the name list is the authority for membership",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The union",
+      "3.2 Deletion is read from the status letter",
+      "3.3 One git invocation shape",
+      "3.4 What a whole-file entry means to the clearance rules",
+      "3.5 `--paths-from` is unaffected",
+      "3.6 The refusal this adds",
+      "3.7 The tests",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/092-a-mode-only-or-binary-change-is-a-change/spec.md",
+    "status": "draft",
+    "summary": "`couple` builds its `DiffInput` by parsing `git diff --no-color -U0 --no-renames`, and registers a path only when it meets a `---` or `+++` header. Git prints neither for a mode-only change (`old mode` / `new mode`) nor for a binary change (`Binary files a/x and b/x differ`), so both arrive at the gate as no change at all: an owned binary can change without its spec and `C-001` stays silent, and a mode flip on an unclaimed source file is invisible to `C-002`. Spec 088 met the same blindness while building `delta`, worked around it with a `--name-only` helper, and recorded in D-9 that `couple` is spec 005's territory. This spec unions the name list into the parsed diff: a path git reports and the hunk parser did not register enters `DiffInput` as a whole-file change with no spans, deleted when the status letter says so, and is then judged by the same clearance rules as every other path.\n",
+    "title": "A mode-only or binary change is a change"
+  },
+  "shardHash": "01e2093e02eb450c7ab2b8ac595b5dc3812787db981b88aaa0ee639c85ec956a",
+  "specVersion": "1.2.0"
+}
