@@ -17,7 +17,7 @@ summary: >
   the whole defect. This spec amends 055 §3.4 to state the construction the
   code has always used, makes the printed line say it, and adds the test that
   pins both digests so the two cannot drift again.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -30,6 +30,8 @@ extends:
   - { spec: "055-the-ledger-answers-what-consumers-rebuild", unit: "crates/spec-spine-cli/src/cmd_registry.rs", nature: corrective }
   # 3.4: the pin over both constructions, asserted through the CLI.
   - { spec: "055-the-ledger-answers-what-consumers-rebuild", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
+  # 3.4, D-4: the pin needs SHA-256 independent of the core's private hash module.
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/Cargo.toml", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "docs/authority-evidence.md" }, role: context }
@@ -219,6 +221,17 @@ comparisons is a suite that cannot fail on the defect: it would have passed on
 the day the wrong gloss was written. The assertion names the pre-096 phrase it
 must not find, rather than checking that some explanation is present, because
 "an explanation is present" is true of the wrong explanation.
+
+**D-4 (2026-09-15). The pin computes SHA-256 itself, through a `sha2`
+dev-dependency.** §3.4. The expected digests have to come from somewhere other
+than the code under test, and `spec-spine-core`'s `hash` module is private, so
+the test cannot borrow it and should not: a pin that called the same function
+the tool calls would agree with the tool by construction. Shelling out to
+`shasum` or `sha256sum` was rejected because which of the two exists differs by
+platform. `sha2` is already a workspace dependency (the core uses it), so the
+CLI crate gains a dev-dependency edge and no new crate enters `Cargo.lock`'s
+package set; the manifest edit is carried by an `extends` edge on
+`crates/spec-spine-cli/Cargo.toml`.
 
 ## Verification
 

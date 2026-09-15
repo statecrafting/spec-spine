@@ -278,6 +278,15 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   `{ "attestation": <CorpusAttestation | SpecAttestation>, "attestationHash":
   "<hex>" }`. Both are pure: no key, no clock (signing is a CLI post-pass). A
   failing verdict still yields a payload; attestation is a record, not a gate.
+- **Two digests of one `spec.md`, two names (spec 096).** A `SpecAttestation`'s
+  `specSourceHash` is SHA-256 over the file's normalized bytes (BOM stripped,
+  CRLF and CR folded to LF) with **no path prefix**: the value an ordinary
+  digest of the normalized file reproduces, reported only by `attest --spec`.
+  `registry show`'s `contentHash` is the committed registry shard's
+  `shardHash`: SHA-256 over the repo-relative POSIX path, a NUL byte, then the
+  same normalized bytes. The two are never equal for one file, and
+  `registry show` does not report the unframed one, because it reads the
+  committed ledger and never recomputes (spec 055 §3.2).
 - `verify_attestation_json` / `verify_spec_attestation_json` request:
   `{ "config"?: Config, "repoRoot": string, "attestation": <...> }`; they return
   `{ "outcome": "match" }`, `{ "outcome": "versionMismatch", "expected",

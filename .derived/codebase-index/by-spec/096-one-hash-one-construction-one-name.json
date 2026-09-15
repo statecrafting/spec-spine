@@ -9,6 +9,10 @@
     ],
     "implementingPaths": [
       {
+        "path": "crates/spec-spine-cli/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-cli/src/cmd_registry.rs",
         "source": "spec-edge"
       },
@@ -18,6 +22,19 @@
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/Cargo.toml"
+        }
+      },
       {
         "locations": [
           {
@@ -75,5 +92,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "bfcc25264329711909069f335d04e58ffdabbb9951716b6d29454fc2834505ea"
+  "shardHash": "57f07ec92a8012c1d7962b8c5238edef1b2b8c4cbbfa02398edbd4b2dc3cadc7"
 }

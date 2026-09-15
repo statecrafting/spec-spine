@@ -188,6 +188,74 @@ fn compile_ok_then_queries() {
     assert_eq!(code(&show_missing), 1, "not found exits 1");
 }
 
+/// Lowercase hex SHA-256, computed here and not by the tool (spec 096 D-4).
+fn sha256_hex(bytes: &[u8]) -> String {
+    use sha2::Digest;
+    sha2::Sha256::digest(bytes)
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect()
+}
+
+/// Spec 096 §3.4: one spec's `contentHash` is the path-framed construction, is
+/// not the digest of its bytes, and the prose line says so; `attest --spec`'s
+/// `specSourceHash` is the unframed one. The inequality separates the two
+/// constructions, and the prose assertion is the one that fails on the gloss
+/// the defect was (`(sha256 of this spec.md)`), since no value here changed.
+#[test]
+fn content_hash_is_path_framed_and_spec_source_hash_is_not() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+    // CRLF and a BOM, so the pin covers normalization and not only framing.
+    let rel = "specs/001-a/spec.md";
+    let text = fs::read_to_string(root.join(rel)).unwrap();
+    let raw = format!("\u{feff}{}", text.replace('\n', "\r\n"));
+    fs::write(root.join(rel), &raw).unwrap();
+    for verb in ["compile", "index"] {
+        assert_eq!(code(&run_in(root, &[verb])), 0, "{verb}");
+    }
+    let normalized = text.as_bytes();
+    let mut framed = rel.as_bytes().to_vec();
+    framed.push(0);
+    framed.extend_from_slice(normalized);
+
+    let show = envelope(&run_in(root, &["registry", "show", "001-a", "--json"]));
+    let content_hash = show["contentHash"]
+        .as_str()
+        .expect("contentHash")
+        .to_string();
+    assert_eq!(content_hash, sha256_hex(&framed), "(1) framed by the path");
+    assert_ne!(
+        content_hash,
+        sha256_hex(normalized),
+        "(2) not the bare digest"
+    );
+
+    let attest = envelope(&run_in(root, &["attest", "--spec", "001-a", "--json"]));
+    assert_eq!(
+        attest["report"]["attestation"]["specSourceHash"],
+        sha256_hex(normalized),
+        "(3) specSourceHash is the unframed digest"
+    );
+
+    let prose = run_in(root, &["registry", "show", "001-a"]);
+    let stdout = String::from_utf8_lossy(&prose.stdout);
+    let line = stdout
+        .lines()
+        .find(|l| l.starts_with("contentHash:"))
+        .unwrap_or_else(|| panic!("a contentHash line: {stdout}"));
+    assert!(line.contains(&content_hash), "{line}");
+    assert!(
+        !line.contains("sha256 of this spec.md"),
+        "(4) the pre-096 gloss named the wrong construction: {line}"
+    );
+    assert!(
+        line.contains("path") && line.contains("NUL"),
+        "(4) names the framing: {line}"
+    );
+}
+
 #[test]
 fn registry_list_ids_only_projection() {
     let tmp = tempfile::tempdir().unwrap();

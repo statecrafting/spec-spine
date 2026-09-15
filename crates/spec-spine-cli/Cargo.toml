@@ -34,6 +34,9 @@ ed25519-dalek = { workspace = true }
 
 [dev-dependencies]
 tempfile = "3"
+# Spec 096 §3.4: the contentHash pin recomputes both digest constructions
+# independently of the core's private `hash` module.
+sha2 = { workspace = true }
 
 [lints]
 workspace = true
