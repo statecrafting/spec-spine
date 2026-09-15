@@ -811,3 +811,155 @@ fn coverage_reports_planned_territory_separately_from_the_counts() {
     assert_eq!(report.claimed_files, 1);
     assert!(report.is_fully_claimed());
 }
+
+// ── spec 094: near-miss comment headers ──────────────────────────────────
+
+/// One floorless crate. `claimed.rs` claims through a header; `low.rs` puts a
+/// resolving header on line 17; `ghost.rs` names a spec not in the corpus;
+/// `doc.rs` uses `//!`; `deep.rs` has a resolving header on line 65, past the
+/// report window. `with_headers: false` writes the same files with no header
+/// lines at all, the tree a classification comparison needs.
+fn near_miss_fixture(with_headers: bool) -> tempfile::TempDir {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    let filler = |n: usize| "// filler\n".repeat(n);
+    let header = |h: &str| {
+        if with_headers {
+            format!("{h}\n")
+        } else {
+            "// no header\n".into()
+        }
+    };
+    write(r, "Cargo.toml", "[workspace]\nmembers = [\"crates/a\"]\n");
+    write(
+        r,
+        "crates/a/Cargo.toml",
+        "[package]\nname = \"a\"\nversion = \"0.1.0\"\n",
+    );
+    write(
+        r,
+        "crates/a/src/claimed.rs",
+        "// Spec: specs/001-a/spec.md\npub fn c() {}\n",
+    );
+    write(
+        r,
+        "crates/a/src/low.rs",
+        &format!(
+            "{}{}pub fn l() {{}}\n",
+            filler(16),
+            header("// Spec: specs/001-a/spec.md")
+        ),
+    );
+    write(
+        r,
+        "crates/a/src/ghost.rs",
+        &format!(
+            "{}pub fn g() {{}}\n",
+            header("// Spec: specs/404-gone/spec.md")
+        ),
+    );
+    write(
+        r,
+        "crates/a/src/doc.rs",
+        &format!(
+            "{}pub fn d() {{}}\n",
+            header("//! Spec: specs/001-a/spec.md")
+        ),
+    );
+    write(
+        r,
+        "crates/a/src/deep.rs",
+        &format!(
+            "{}{}pub fn e() {{}}\n",
+            filler(64),
+            header("// Spec: specs/001-a/spec.md")
+        ),
+    );
+    write(r, "specs/001-a/spec.md", &spec("001-a", ""));
+    emit_index(&Config::default(), r);
+    tmp
+}
+
+/// §3.3, §3.4: each reason appears with its path, line and reason; the claiming
+/// file and the header past the report window produce none.
+#[test]
+fn coverage_reports_each_near_miss_reason() {
+    use spec_spine_types::NearMissReason;
+    let fx = near_miss_fixture(true);
+    let report = coverage(&Config::default(), fx.path()).unwrap();
+    let got: Vec<(&str, usize, NearMissReason, Option<&str>)> = report
+        .near_miss_headers
+        .iter()
+        .map(|m| (m.path.as_str(), m.line, m.reason, m.spec_id.as_deref()))
+        .collect();
+    assert_eq!(
+        got,
+        vec![
+            (
+                "crates/a/src/doc.rs",
+                1,
+                NearMissReason::DocCommentMarker,
+                Some("001-a")
+            ),
+            (
+                "crates/a/src/ghost.rs",
+                1,
+                NearMissReason::UnknownSpec,
+                None
+            ),
+            (
+                "crates/a/src/low.rs",
+                17,
+                NearMissReason::OutsideWindow,
+                Some("001-a")
+            ),
+        ],
+        "claimed.rs claims and deep.rs is past line {}: {got:?}",
+        spec_spine_core::index::COMMENT_HEADER_REPORT_WINDOW
+    );
+    // The payload spelling, since a consumer reads the JSON.
+    let json = coverage_json("{}", fx.path().to_str().unwrap()).unwrap();
+    assert!(json.contains("\"nearMissHeaders\""), "{json}");
+    assert!(json.contains("\"reason\":\"outside-window\""), "{json}");
+    assert!(json.contains("\"reason\":\"unknown-spec\""), "{json}");
+    assert!(json.contains("\"reason\":\"doc-comment-marker\""), "{json}");
+}
+
+/// §3.4, §3.5: the list explains a classification and changes none. The same
+/// tree without the header lines classifies identically, so
+/// `--fail-on-untraced`'s verdict is the same with and without near misses.
+#[test]
+fn near_misses_change_no_classification() {
+    let with = coverage(&Config::default(), near_miss_fixture(true).path()).unwrap();
+    let without = coverage(&Config::default(), near_miss_fixture(false).path()).unwrap();
+    assert!(!with.near_miss_headers.is_empty());
+    assert!(without.near_miss_headers.is_empty());
+    assert_eq!(with.source_files, without.source_files);
+    assert_eq!(with.claimed_files, without.claimed_files);
+    assert_eq!(with.unclaimed_files, without.unclaimed_files);
+    assert_eq!(with.floor_only_files, without.floor_only_files);
+    assert_eq!(with.is_fully_claimed(), without.is_fully_claimed());
+    assert!(
+        !with.is_fully_claimed(),
+        "the near-miss files are unclaimed debt"
+    );
+    // An empty list is omitted, so a corpus with none emits what it did before.
+    let json = serde_json::to_string(&without).unwrap();
+    assert!(!json.contains("nearMissHeaders"), "{json}");
+}
+
+/// §3.3: the report window's edges, over the pure per-file scan.
+#[test]
+fn the_report_window_ends_at_line_64() {
+    use spec_spine_core::index::near_miss_headers_in;
+    let ids: std::collections::BTreeSet<String> = ["001-a".to_string()].into();
+    let at = |n: usize| format!("{}// Spec: 001-a\n", "// filler\n".repeat(n - 1));
+    assert_eq!(near_miss_headers_in("f.rs", &at(64), &ids).len(), 1);
+    assert!(near_miss_headers_in("f.rs", &at(65), &ids).is_empty());
+    // A claim inside the window reports nothing, even with a second header low.
+    let both = format!(
+        "// Spec: 001-a\n{}// Spec: 001-a\n",
+        "// filler\n".repeat(20)
+    );
+    assert!(near_miss_headers_in("f.rs", &both, &ids).is_empty());
+}

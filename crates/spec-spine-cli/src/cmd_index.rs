@@ -423,6 +423,23 @@ fn render_coverage(report: &CoverageReport) -> String {
             let _ = writeln!(out, "    {entry}");
         }
     }
+    // Spec 094 §3.4: a file that tried to claim itself and failed, told apart
+    // from one that never tried. Explanation only; the counts above stand.
+    if !report.near_miss_headers.is_empty() {
+        let _ = writeln!(
+            out,
+            "  near-miss comment headers (claimed nothing): {}",
+            report.near_miss_headers.len()
+        );
+        for m in &report.near_miss_headers {
+            let spec = m
+                .spec_id
+                .as_deref()
+                .map(|s| format!(" (names {s})"))
+                .unwrap_or_default();
+            let _ = writeln!(out, "    {}:{} {}{spec}", m.path, m.line, m.reason.as_str());
+        }
+    }
     for p in &report.packages {
         let path = if p.path.is_empty() {
             "."

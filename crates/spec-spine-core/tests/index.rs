@@ -1579,3 +1579,120 @@ fn a_planned_unit_that_resolves_is_owned_like_any_other() {
         "the lookup must not have to know the claim was planned"
     );
 }
+
+// ── spec 094: the claim window and the recognizer, declared ──────────────
+
+/// A floorless crate holding one file with `content`, and the spec
+/// `000-bootstrap` its header can name. Returns the specs that own the file
+/// **through a comment header**, which is the only claim the fixture makes.
+fn header_owners(file: &str, content: &str) -> Vec<String> {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    write(root, "Cargo.toml", "[workspace]\nmembers = [\"crate-a\"]\n");
+    write(
+        root,
+        "crate-a/Cargo.toml",
+        "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n",
+    );
+    write(root, &format!("crate-a/{file}"), content);
+    write(
+        root,
+        "specs/000-bootstrap/spec.md",
+        &spec("000-bootstrap", ""),
+    );
+    owners_of(root, &format!("crate-a/{file}"))
+        .owners
+        .into_iter()
+        .filter(|o| o.kind == spec_spine_core::OwnerKind::Header)
+        .map(|o| o.spec_id)
+        .collect()
+}
+
+/// `line` placed on 1-based line `n`, after `n - 1` filler lines.
+fn on_line(n: usize, line: &str) -> String {
+    format!("{}{line}\npub fn f() {{}}\n", "// filler\n".repeat(n - 1))
+}
+
+const DOCUMENTED: &str = "// Spec: specs/000-bootstrap/spec.md";
+
+/// §3.1: the window is sixteen lines, and line 17 is outside it.
+#[test]
+fn a_header_on_line_16_claims_and_on_line_17_does_not() {
+    assert_eq!(spec_spine_core::index::COMMENT_HEADER_CLAIM_WINDOW, 16);
+    assert_eq!(
+        header_owners("src/lib.rs", &on_line(16, DOCUMENTED)),
+        vec!["000-bootstrap"]
+    );
+    assert!(header_owners("src/lib.rs", &on_line(17, DOCUMENTED)).is_empty());
+}
+
+/// §3.2: `//!` leaves the `!` in the way of `Spec:`, so an inner doc comment is
+/// prose and claims nothing.
+#[test]
+fn an_inner_doc_comment_header_does_not_claim() {
+    assert!(
+        header_owners(
+            "src/lib.rs",
+            "//! Spec: specs/000-bootstrap/spec.md\npub fn f() {}\n"
+        )
+        .is_empty()
+    );
+}
+
+/// §3.2 step 2: `#` is the marker for `.sh` (and `.py`).
+#[test]
+fn a_hash_header_claims_in_a_shell_script() {
+    assert_eq!(
+        header_owners(
+            "scripts/run.sh",
+            "#!/bin/sh\n# Spec: specs/000-bootstrap/spec.md\necho hi\n"
+        ),
+        vec!["000-bootstrap"]
+    );
+}
+
+/// §3.2: the first attempt decides. An unresolvable reference stops the scan,
+/// so it shadows a valid header on the next line and the file claims nothing.
+#[test]
+fn an_unresolvable_header_stops_the_scan_and_shadows_a_valid_one() {
+    assert!(
+        header_owners(
+            "src/lib.rs",
+            "// Spec: specs/999-gone/spec.md\n// Spec: specs/000-bootstrap/spec.md\npub fn f() {}\n"
+        )
+        .is_empty()
+    );
+    // The control: the valid header alone claims.
+    assert_eq!(
+        header_owners(
+            "src/lib.rs",
+            "// Spec: specs/000-bootstrap/spec.md\npub fn f() {}\n"
+        ),
+        vec!["000-bootstrap"]
+    );
+}
+
+/// §3.2's table, one regression case per row. These assert no new behavior:
+/// the recognizer is looser than the documented form, and §3.2 is the first
+/// document to say so, so a later reading of it as the stricter rule would
+/// silently withdraw these claims. Each row must keep claiming.
+#[test]
+fn every_loose_form_in_the_recognizer_table_still_claims() {
+    for (file, line) in [
+        ("src/lib.rs", "// Spec: specs/000-bootstrap/spec.md"),
+        ("scripts/run.sh", "# Spec: specs/000-bootstrap/spec.md"),
+        ("src/lib.rs", "Spec: specs/000-bootstrap/spec.md"),
+        ("src/lib.rs", "// Spec: specs/000-bootstrap/spec.md/spec.md"),
+        ("src/lib.rs", "// Spec: 000-bootstrap"),
+        (
+            "src/lib.rs",
+            "// Spec: anything/at/all/000-bootstrap/spec.md",
+        ),
+    ] {
+        assert_eq!(
+            header_owners(file, &format!("{line}\n")),
+            vec!["000-bootstrap"],
+            "{line:?} in {file} must still claim"
+        );
+    }
+}
