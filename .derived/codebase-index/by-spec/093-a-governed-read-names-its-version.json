@@ -33,13 +33,37 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/read.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/coverage.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/read.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/src/version.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/schema-versioning.md",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/read.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -48,7 +72,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/read.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -124,6 +152,32 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/coverage.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/coverage.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-types/src/version.rs"
           }
         ],
@@ -132,6 +186,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/schema-versioning.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
         }
       },
       {
@@ -165,5 +232,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "7d0adc834026d276d3563c1c251158021d30c98b65a571fd76bbe62c6a0e1a29"
+  "shardHash": "a16dd3776d7e2aea526e732a8433e15358baba79c6829a6962ccbc28ef5db23f"
 }

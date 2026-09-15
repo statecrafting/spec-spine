@@ -81,5 +81,6 @@ pub use verdict::{Verdict, VerdictError, error_kind};
 pub use verify::{SkippedBlocks, VerifyFailure, VerifyOutcome, VerifyPlan, VerifyReport};
 pub use version::{
     BUILD_META_SCHEMA_VERSION, CONFIG_VERSION, DELTA_SCHEMA_VERSION, INDEX_SCHEMA_VERSION,
-    REGISTRY_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, parse_semver,
+    READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION,
+    VERDICT_SCHEMA_VERSION, parse_semver,
 };

@@ -15,13 +15,11 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/src/read.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/src/read.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/read.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/read.rs"
       }
     ],
     "extends": [
@@ -58,11 +56,35 @@
         }
       },
       {
+        "nature": "additive",
+        "spec": "037-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
         "nature": "corrective",
         "spec": "054-effective-config-is-a-governed-read",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/cmd_config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "067-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "032-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/coverage.rs"
         }
       },
       {
@@ -75,7 +97,7 @@
       }
     ],
     "id": "093-a-governed-read-names-its-version",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -120,6 +142,6 @@
     "summary": "`docs/api.md` states that every JSON this tool emits is pretty-printed with sorted keys, and spec 037 gave every verdict verb a versioned envelope. The read verbs got neither. Measured at 0.19.0: thirteen read documents across ten verbs, of which twelve carry no version member at all and seven emit keys in struct declaration order, because they serialize with `serde_json::to_string_pretty` while every committed artifact goes through the canonical writer. A consumer therefore pins a document whose shape it cannot dispatch on and whose key order is an implementation detail of a Rust struct. This spec routes every read document through one emitter that sorts keys and stamps a new `READ_SCHEMA_VERSION`, and decides note 04's D7: the version is an additive member on an object document, and the documents that are not objects today become objects so they can carry one. Four documents across three verbs change shape breakingly, and two of the four are contracts approved specs state, so this spec carries `amends` edges to 010 and 060 rather than editing them.\n",
     "title": "A governed read names its version"
   },
-  "shardHash": "828914fd990ad45d81f9d68ef6ff73fb52d60711d52275896ca4fab9ff8a7fcb",
+  "shardHash": "00ab5c7ea0a7dacb35fcbc7fa4d744acba825fa04a117308804808571ce86f55",
   "specVersion": "1.2.0"
 }

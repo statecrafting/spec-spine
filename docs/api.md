@@ -257,8 +257,11 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
 - `query_json` request: `{ "registry": "<registry.json text>", "op":
   "list" | "show" | "status-report" | "relationships" | "plan", "id"?: string,
   "status"?: string, "idsOnly"?: bool, "nonzeroOnly"?: bool }` (the projection
-  fields, spec 010, default to `false`). `plan` (spec 038) returns
-  `{ "ready": [ids], "blocked": [{ "id", "blockedBy": [{ "id", "state" }] }] }`.
+  fields, spec 010, default to `false`). Every answer is a **read document**
+  (spec 093): an object with sorted keys and `schemaVersion` =
+  `READ_SCHEMA_VERSION`; `list` (with or without `idsOnly`) carries its array
+  under `items`. `plan` (spec 038) returns `{ "ready": [...], "blocked":
+  [{ "id", "blockedBy": [{ "id", "state" }] }], ..., "schemaVersion" }`.
 - `couple_json` request: `{ "config"?: Config, "repoRoot": string, "diff":
   DiffInput, "waiver"?: { "reason": string } }`.
 - `delta_json` (spec 088) request: `{ "config"?: Config, "baseRoot": string,
@@ -294,7 +297,8 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
 - The CLI's `--json` verdict envelope (spec 037) wraps these payloads verbatim
   under `report`, versioned by `VERDICT_SCHEMA_VERSION`; see
   `specs/037-machine-readable-verdicts/spec.md`.
-- `coverage_json` (spec 032) returns the `CoverageReport`: `sourceFiles`,
+- `coverage_json` (spec 032) returns the `CoverageReport` as a read document
+  (spec 093, so it also carries `schemaVersion`): `sourceFiles`,
   `claimedFiles`, the sorted `floorOnlyFiles` / `unclaimedFiles` lists, and
   per-package counts. A stale committed index is `Error::Stale`, not a report.
 - `verify_plan_json` (spec 049) returns a spec's `VerifyPlan`: the `verify:cli`
@@ -306,11 +310,15 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
 - `render_json` (spec 011) takes `config_json` and the aggregate index JSON
   text and returns the markdown projection (a JSON-encoded string).
   `orphans_json` (spec 011) takes only the index JSON text and returns the
-  orphaned-spec ids (a JSON array).
+  orphaned-spec ids under `items` in a read document (spec 093).
 
 All emitted JSON is **pretty-printed with sorted keys, LF line endings, and a
 trailing newline** (diffability over compactness; see
-[design/00-architecture.md](design/00-architecture.md) §10.1).
+[design/00-architecture.md](design/00-architecture.md) §10.1). For the read
+documents this holds because they all go through one emitter,
+`spec_spine_core::read_document` (spec 093); the facades that return compact
+JSON (`lint_json`, `couple_json` and the other verdict payloads) are the
+exception, and the CLI's envelope around them is sorted and pretty.
 
 ---
 
