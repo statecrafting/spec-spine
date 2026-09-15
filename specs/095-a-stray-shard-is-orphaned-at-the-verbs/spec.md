@@ -1,7 +1,7 @@
 ---
 id: "095-a-stray-shard-is-orphaned-at-the-verbs"
 title: "A stray shard is orphaned at the verbs"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-14"
 summary: >
