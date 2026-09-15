@@ -34,6 +34,13 @@ Shows the details of a single spec.
 
 - **`--json`**: Output as JSON.
 
+`contentHash` is the spec's committed registry shard hash, read from the ledger
+and never recomputed (spec 055). It is **path-framed**: SHA-256 over the
+spec's repo-relative POSIX path, a NUL byte (`0x00`), then the file's
+normalized bytes (BOM stripped, CRLF and CR folded to LF). It therefore does not
+equal a plain SHA-256 of the file. The unframed digest is `specSourceHash`,
+which `spec-spine attest --spec <id>` reports (spec 096).
+
 ### `registry status-report`
 
 Shows counts of specs by their lifecycle status.

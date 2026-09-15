@@ -244,7 +244,7 @@ Normalization strips a leading BOM and folds CRLF and CR to LF.
 | unit `contentHash` | `SpecAttestation` | what an owning unit resolves to: files; directories walked under `resolver_exclusions` and `state_dir`; symlinks as their target text; non-UTF-8 files as the text `sha256:<hex of bytes>` | `content_hash` |
 | `attestationHash` | beside a payload, never inside it | the payload | SHA-256 of its canonical JSON, which is exactly the bytes written to disk |
 | seal `sig` | detached `.sig` | `attestationHash` | Ed25519 over its 32 raw bytes |
-| `registry show` `contentHash` | query output | one `spec.md` | the `shardHash` construction, although the prose line calls it "sha256 of this spec.md"; it does **not** equal `specSourceHash` for the same file |
+| `registry show` `contentHash` | query output | one `spec.md` | the `shardHash` construction; it does **not** equal `specSourceHash` for the same file. Until spec 096 the prose line glossed it as "sha256 of this spec.md" and approved spec 055 §3.4 said the same; 096 amends that sentence and the line now names the path framing, with a CLI test pinning both constructions (closed) |
 
 Every value above is independently recomputable from a tree and the same tool
 version, except the seal, which needs the public key. No key and no network is
