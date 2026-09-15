@@ -101,10 +101,10 @@
       "Verification"
     ],
     "specPath": "specs/094-a-claim-below-the-header-window-is-not-silent/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "A `// Spec: specs/<id>/spec.md` comment header claims the file it sits in, and `index.rs::scan_comment_headers` looks for it in `content.lines().take(16)`. That bound is claim eligibility, and no spec, standard or adopter-facing document records it: a header on line 17 claims nothing, the file then reads as unclaimed, and under `[coupling] require_ownership` a change to it is a `C-002` refusal for a reason nothing states. Two neighbouring failures are equally silent: a header whose reference names no spec in the corpus, and the `//!` doc-comment form, which the scanner deliberately does not accept. This spec declares the window (16, unchanged) and the recognizer exactly as it ships, and makes `index coverage` report the near misses, so a file that tried to claim itself and failed is distinguishable from a file that never tried. The recognizer is looser than the documented form in three ways, and 3.2 records them rather than correcting them: declaring a rule is not the place to change it.\n",
     "title": "A claim below the header window is not silent"
   },
-  "shardHash": "c9ddd0d59dcb8599d5907be200827096fbc4445263f7f5b96b7bb06e6509d705",
+  "shardHash": "580879817fae577c01d583d532f96c9b5f0831da32144582c4043b8b18150314",
   "specVersion": "1.2.0"
 }
