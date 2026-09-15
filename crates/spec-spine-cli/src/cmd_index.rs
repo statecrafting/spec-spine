@@ -13,10 +13,11 @@ use std::path::Path;
 use clap::Subcommand;
 use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
 use spec_spine_core::{
-    DiagnosticCounts, Freshness, IndexCheckReport, UnwitnessedCounts, annotate_unreadable,
-    check_index_freshness, check_slice_freshness, committed_diagnostics, coverage, empty_universe,
-    index, index_dir, index_shard_files, load_committed_index, load_committed_registry,
-    partition_orphans, render_markdown, slices_path, verdict_tally,
+    DiagnosticCounts, Freshness, IndexCheckReport, UnwitnessedCounts, Versioning,
+    annotate_unreadable, check_index_freshness, check_slice_freshness, committed_diagnostics,
+    coverage, empty_universe, index, index_dir, index_shard_files, load_committed_index,
+    load_committed_registry, partition_orphans, read_document, render_markdown, slices_path,
+    verdict_tally,
 };
 use spec_spine_types::{Config, CoverageReport, Error, Verdict, verdict::verb};
 
@@ -104,9 +105,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 .unwrap_or_default();
             let report = partition_orphans(&idx, &records);
             if *json {
-                let s = serde_json::to_string_pretty(&report)
-                    .map_err(|e| Error::Schema(e.to_string()))?;
-                outln!("{s}");
+                out!("{}", read_document(&report, Versioning::Stamp)?);
             } else if !report.orphaned.is_empty() || !report.in_flight.is_empty() {
                 // Both groups are printed whenever either has members, so a
                 // reader always sees which side of the partition an id fell on.
@@ -134,9 +133,9 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
         Some(IndexAction::Diagnostics { json }) => {
             let diags = committed_diagnostics(&cfg, repo)?;
             if *json {
-                let s = serde_json::to_string_pretty(&diags)
-                    .map_err(|e| Error::Schema(e.to_string()))?;
-                outln!("{s}");
+                // Spec 093 §3.6: the listing sits under `items` in a versioned
+                // object; the emitter wraps the array.
+                out!("{}", read_document(&diags, Versioning::Stamp)?);
             } else {
                 for d in &diags {
                     let at = d.path.as_deref().unwrap_or("-");
@@ -151,9 +150,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             // because its caller is deciding what to edit.
             let report = spec_spine_core::owner(&cfg, repo, path)?;
             if *json {
-                let s = serde_json::to_string_pretty(&report)
-                    .map_err(|e| Error::Schema(e.to_string()))?;
-                outln!("{s}");
+                out!("{}", read_document(&report, Versioning::Stamp)?);
             } else {
                 outln!("{}", report.path);
                 if report.owners.is_empty() {
@@ -187,9 +184,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             // (exit 2), so the report never describes the wrong ledger.
             let report = coverage(&cfg, repo)?;
             if *json {
-                let s = serde_json::to_string_pretty(&report)
-                    .map_err(|e| Error::Schema(e.to_string()))?;
-                outln!("{s}");
+                out!("{}", read_document(&report, Versioning::Stamp)?);
             } else {
                 out!("{}", render_coverage(&report));
             }

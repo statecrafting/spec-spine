@@ -28,6 +28,7 @@ pub mod manifest;
 mod markdown;
 pub mod pathutil;
 pub mod query;
+pub mod read;
 pub mod render;
 pub mod scaffold;
 pub mod sections;
@@ -87,6 +88,7 @@ pub use query::{
     StatusReportNonzero, list, list_ids, load_index, load_registry, plan, relationships,
     shard_content_hash, show, status_report,
 };
+pub use read::{Versioning, read_document};
 pub use render::{OrphanReport, orphans, partition_orphans, render_markdown};
 pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init, scaffold_init_with};
 // Spec 084 3.4: the one spec-id policy, public because the CLI's two
@@ -114,6 +116,9 @@ pub fn compile_json(config_json: &str, repo_root: &str) -> Result<String, Error>
 /// "show" | "status-report" | "relationships", "id"?: string, "status"?: string,
 /// "idsOnly"?: bool, "nonzeroOnly"?: bool }`. The projection fields (spec 010)
 /// default to `false`, so pre-010 requests behave identically.
+///
+/// Every answer is a read document (spec 093): sorted keys, `schemaVersion`,
+/// and `list`'s array under `items`.
 pub fn query_json(request_json: &str) -> Result<String, Error> {
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -143,42 +148,44 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         .map_err(|e| Error::Parse(format!("invalid query request: {e}")))?;
     let registry = load_registry(request.registry.as_bytes())?;
 
+    // Spec 093 §3.3: every answer here is a read document, so it goes through
+    // the one emitter the CLI's read verbs use. The CLI and the facade cannot
+    // then emit different shapes: `list` wraps under `items`, and every
+    // document carries `schemaVersion` with its keys sorted.
     let json = match request.op {
         Op::List => {
             let filter = ListFilter {
                 status: request.status,
             };
             if request.ids_only {
-                to_json(&query::list_ids(&registry, &filter))?
+                read_document(&query::list_ids(&registry, &filter), Versioning::Stamp)?
             } else {
-                to_json(&list(&registry, &filter))?
+                read_document(&list(&registry, &filter), Versioning::Stamp)?
             }
         }
         Op::Show => {
             let id = request
                 .id
                 .ok_or_else(|| Error::NotFound("missing 'id' for show".into()))?;
-            to_json(show(&registry, &id)?)?
+            read_document(show(&registry, &id)?, Versioning::Stamp)?
         }
         Op::StatusReport => {
             let report = status_report(&registry);
             if request.nonzero_only {
-                to_json(&report.nonzero_only())?
+                read_document(&report.nonzero_only(), Versioning::Stamp)?
             } else {
-                to_json(&report)?
+                read_document(&report, Versioning::Stamp)?
             }
         }
         Op::Relationships => {
             let id = request
                 .id
                 .ok_or_else(|| Error::NotFound("missing 'id' for relationships".into()))?;
-            to_json(&relationships(&registry, &id)?)?
+            read_document(&relationships(&registry, &id)?, Versioning::Stamp)?
         }
-        // Spec 038. Emitted bare, like every other `registry` projection: the
-        // spec 037 verdict envelope wraps the adjudicating verbs, and 037 4
-        // keeps it off the read verbs so a shipped read surface is not broken
-        // for symmetry alone.
-        Op::Plan => to_json(&plan(&registry)?)?,
+        // Spec 038. Not the spec 037 verdict envelope, which wraps the
+        // adjudicating verbs; a read document instead (spec 093).
+        Op::Plan => read_document(&plan(&registry)?, Versioning::Stamp)?,
     };
     Ok(json)
 }
@@ -372,7 +379,10 @@ fn freshness_to_json(freshness: Freshness) -> serde_json::Value {
 /// report over the wrong ledger.
 pub fn coverage_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
-    to_json(&coverage(&config, std::path::Path::new(repo_root))?)
+    read_document(
+        &coverage(&config, std::path::Path::new(repo_root))?,
+        Versioning::Stamp,
+    )
 }
 
 /// Read a spec's declared acceptance (spec 049), returning the [`VerifyPlan`]
@@ -406,11 +416,13 @@ pub fn render_json(config_json: &str, index_json: &str) -> Result<String, Error>
     to_json(&render::render_markdown(&config, &index))
 }
 
-/// List the committed index's orphaned specs as a JSON array of id strings
-/// (spec 011). `index_json` is the `index.json` text.
+/// List the committed index's orphaned specs (spec 011), as a read document
+/// carrying the id strings under `items` (spec 093). `index_json` is the
+/// `index.json` text.
 pub fn orphans_json(index_json: &str) -> Result<String, Error> {
     let index = load_index(index_json.as_bytes())?;
-    to_json(&render::orphans(&index))
+    // Spec 093 §3.3: a read document, so the id array is wrapped under `items`.
+    read_document(&render::orphans(&index), Versioning::Stamp)
 }
 
 /// Parse a `spec-spine.toml` and return the normalized [`Config`] as JSON.

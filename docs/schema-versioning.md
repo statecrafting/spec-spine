@@ -14,7 +14,9 @@
 | index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`) | `schemaVersion` | `1.1.0` | library |
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
-| verdict envelope (any `--json` verb) | `schemaVersion` | `0.3.0` | library |
+| verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.4.0` | library |
+| change-classification report (`delta --json`, spec 088) | `schemaVersion` | `0.1.0` | library |
+| read documents (`--json` on the read verbs, and the facades behind them; spec 093) | `schemaVersion` | `0.1.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
 
@@ -66,7 +68,8 @@ MAJOR history:
 
 Each is a **compile-time `const`** in `spec-spine-types`
 (`REGISTRY_SCHEMA_VERSION`, `INDEX_SCHEMA_VERSION`, `BUILD_META_SCHEMA_VERSION`,
-`CONFIG_VERSION`). The conformance test asserts that emitted JSON validates
+`CONFIG_VERSION`, and the record axes `VERDICT_SCHEMA_VERSION`,
+`DELTA_SCHEMA_VERSION` and `READ_SCHEMA_VERSION`). The conformance test asserts that emitted JSON validates
 against the *embedded* JSON Schema of that version, so a schema/version mismatch
 fails the **build**, not at runtime. The schemas live inside
 `spec-spine-types/schemas/` and are `include_str!`'d, which makes the published
@@ -212,6 +215,38 @@ without breaking readers:
 - **`frontmatter.extra_known_keys` / `extra_frontmatter`**: overlay-specific
   fields ride through without a schema bump (see
   [overlay-contract.md](overlay-contract.md) §5).
+
+## The read-document axis: spec 093
+
+`READ_SCHEMA_VERSION` versions **the shape of an answer**: the JSON a read verb
+emits with `--json` (`registry list`, `show`, `status-report`, `relationships`,
+`plan`, their projection flags, and `index owner`, `coverage`, `diagnostics`,
+`orphans`), and what the facades `query_json`, `coverage_json` and
+`orphans_json` return. It does not version the artifacts those answers are
+about, so it does not move when `REGISTRY_SCHEMA_VERSION` or
+`INDEX_SCHEMA_VERSION` does. MINOR adds a member; MAJOR removes, renames or
+changes the meaning of one.
+
+Every read document is an object with sorted keys and a top-level
+`schemaVersion`. `config show --json` is the one exception to the stamp: it
+already carries `config_version` (spec 054) and gains no second version member.
+A read is not a verdict, so it is not wrapped in the spec 037 envelope.
+
+**Breaking in the release that ships spec 093**, for the CLI and the facades
+alike:
+
+| Document | Before | After |
+|---|---|---|
+| `registry list --json` / `query_json` `list` | `[ {...} ]` | `{ "items": [ {...} ], "schemaVersion" }` |
+| `registry list --ids-only --json` / `query_json` `list` + `idsOnly` | `[ "id" ]` | `{ "items": [ "id" ], "schemaVersion" }` |
+| `index diagnostics --json` | `[ {...} ]` | `{ "items": [ {...} ], "schemaVersion" }` |
+| `registry plan --next --json` | `{ "id", "title" }` or `null` | `{ "next": { "id", "title" } \| null, "schemaVersion" }` |
+| `orphans_json` (facade) | `[ "id" ]` | `{ "items": [ "id" ], "schemaVersion" }` |
+
+Every other read document gains `schemaVersion` and keeps its members, now in
+sorted order. That is additive when reading by key; a strict decoder that
+rejects unknown members, or a consumer that hashes or golden-files the bytes,
+sees a change. The text forms are unchanged.
 
 ## Migration note: spec 037, the verdict envelope
 

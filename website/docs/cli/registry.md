@@ -26,7 +26,9 @@ Lists specs from the committed registry.
 
 - **`--status S`**: Filter by status (`draft`, `approved`, `superseded`, `retired`).
 - **`--ids-only`**: Print only the spec IDs, one per line.
-- **`--json`**: Output as JSON.
+- **`--json`**: Output a read document: `{ "items": [...], "schemaVersion" }`, where `items` holds the spec records, or the id strings with `--ids-only`.
+
+Every `registry` subcommand's `--json` output is a **read document** (spec 093): a JSON object with sorted keys and a top-level `schemaVersion` on the read-document axis. A read is not a verdict, so it is not wrapped in the `ok` / `exitCode` / `report` envelope the gate verbs use.
 
 ### `registry show <id>`
 
@@ -64,7 +66,8 @@ The ready set (spec 038): which specs a scheduler may hand out now, and what blo
 
 `implementation` is a hint to the scheduler, never evidence that a spec is done; the evidence is the indexer's verdict, recorded by [`attest --spec`](./attest.md). See [Lifecycle and Completion](../concepts/lifecycle.md).
 
-- **`--json`**: Output `{ "ready": [ids], "blocked": [{ "id", "blockedBy": [{ "id", "state" }] }] }`.
+- **`--json`**: Output `{ "ready": [{ "id", "title" }], "blocked": [{ "id", "title", "blockedBy": [{ "id", "state" }] }], ..., "schemaVersion" }`.
+- **`--next`**: Only the first ready spec. With `--json`, `{ "next": { "id", "title" }, "schemaVersion" }`, and `"next": null` when nothing is ready (exit 0 either way).
 
 ## Exit Codes
 

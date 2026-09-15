@@ -49,7 +49,9 @@ Renders the committed index as Markdown. This provides a human-readable view of 
 
 Lists specs that have no resolved code units (i.e., specs that claim authority over paths that do not exist or cannot be resolved).
 
-- **`--json`**: Output the list of orphaned spec IDs as a JSON array.
+- **`--json`**: Output `{ "orphaned": [ids], "inFlight": [ids], "schemaVersion" }`.
+
+The `--json` output of `index owner`, `index coverage`, `index diagnostics` and `index orphans` is a **read document** (spec 093): a JSON object with sorted keys and a top-level `schemaVersion`. `index diagnostics --json` carries its listing under `items`.
 
 ### `index coverage`
 

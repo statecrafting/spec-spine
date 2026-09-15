@@ -51,9 +51,16 @@ pub fn run(repo: &Path, action: &ConfigAction) -> Result<u8, Error> {
         // permanently-true `ok` on a verb with no notion of passing. It is a
         // query, and it takes `--json` the way `registry show` does: the
         // object itself.
-        let s =
-            serde_json::to_string_pretty(&effective).map_err(|e| Error::Schema(e.to_string()))?;
-        out::line(format_args!("{s}"));
+        //
+        // Spec 093 §3.7: sorted through the read-document emitter like every
+        // other read, but not stamped. It already names a version, 054's
+        // `config_version`, and a second version member would leave a consumer
+        // no rule for which one to dispatch on.
+        let s = spec_spine_core::read_document(
+            &effective,
+            spec_spine_core::Versioning::Preexisting("config_version"),
+        )?;
+        out::line(format_args!("{}", s.trim_end_matches('\n')));
         return Ok(0);
     }
 

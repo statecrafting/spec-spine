@@ -918,11 +918,21 @@ fn coverage_reports_each_near_miss_reason() {
         spec_spine_core::index::COMMENT_HEADER_REPORT_WINDOW
     );
     // The payload spelling, since a consumer reads the JSON.
-    let json = coverage_json("{}", fx.path().to_str().unwrap()).unwrap();
-    assert!(json.contains("\"nearMissHeaders\""), "{json}");
-    assert!(json.contains("\"reason\":\"outside-window\""), "{json}");
-    assert!(json.contains("\"reason\":\"unknown-spec\""), "{json}");
-    assert!(json.contains("\"reason\":\"doc-comment-marker\""), "{json}");
+    // Parsed rather than matched as text: the facade's layout is the read
+    // emitter's (spec 093), and the member spelling is what is asserted.
+    let json: serde_json::Value =
+        serde_json::from_str(&coverage_json("{}", fx.path().to_str().unwrap()).unwrap()).unwrap();
+    let reasons: Vec<&str> = json["nearMissHeaders"]
+        .as_array()
+        .expect("nearMissHeaders")
+        .iter()
+        .map(|m| m["reason"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        reasons,
+        ["doc-comment-marker", "unknown-spec", "outside-window"],
+        "{json}"
+    );
 }
 
 /// §3.4, §3.5: the list explains a classification and changes none. The same

@@ -20,7 +20,7 @@ summary: >
   across three verbs change shape breakingly, and two of the four are
   contracts approved specs state, so this spec carries `amends` edges to 010
   and 060 rather than editing them.
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -45,18 +45,25 @@ extends:
   - { spec: "002-registry-query", unit: "crates/spec-spine-cli/src/cmd_registry.rs", nature: corrective }
   # 3.5: the index reads (owner, coverage, diagnostics, orphans).
   - { spec: "004-codebase-index", unit: "crates/spec-spine-cli/src/cmd_index.rs", nature: corrective }
-  # 3.3: the version constant, beside the axes 037 and 088 added.
+  # 3.3: the version constant, beside the axes 037 and 088 added, and its
+  # re-export beside theirs.
   - { spec: "037-machine-readable-verdicts", unit: "crates/spec-spine-types/src/version.rs", nature: additive }
+  - { spec: "037-machine-readable-verdicts", unit: "crates/spec-spine-types/src/lib.rs", nature: additive }
   # 3.6: `config show` is sorted through the same emitter; its version member
   # is 054's and is not renamed.
   - { spec: "054-effective-config-is-a-governed-read", unit: "crates/spec-spine-cli/src/cmd_config.rs", nature: corrective }
+  # 3.4: the axis is documented beside the others (a hashed input, so this
+  # edit restales every shard, paid once here).
+  - { spec: "067-the-docs-name-what-adopters-derived", unit: "docs/schema-versioning.md", nature: additive }
+  # 3.3: `coverage_json` now emits the read layout, so spec 094's assertion on
+  # its member spelling parses the document instead of matching compact text.
+  - { spec: "032-ownership-coverage", unit: "crates/spec-spine-core/tests/coverage.rs", nature: corrective }
   # 3.7: the CLI-level assertions over the emitted documents.
   - { spec: "037-machine-readable-verdicts", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
 establishes:
-  # Planned (spec 076) until the build writes them; the build drops the flag.
   # 3.2: the emitter and its guards.
-  - { kind: file, path: "crates/spec-spine-core/src/read.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/read.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/read.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/read.rs" }
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "docs/design/04-authority-evidence-extension.md" }, role: context }
@@ -436,6 +443,30 @@ is already versioned. It is told, by an argument; it never infers it from the
 member names present. An emitter that looked for a member matching `version`
 would silently exempt the first read document that grew an unrelated field by
 that name.
+
+**D-8 (2026-09-15). `orphans_json` is wrapped too, and is announced with the
+four.** §3.3, §3.6. §3.3 routes `orphans_json` through the emitter, and that
+facade returns a bare array of ids (spec 011) where `index orphans --json`
+returns the `{ orphaned, inFlight }` object spec 059 gave the CLI. The emitter
+wraps any array under `items`, so the facade's answer becomes
+`{ "items": [...], "schemaVersion" }`: a fifth breaking document, on the facade
+surface only, which §3.6's table did not list because it enumerated CLI
+documents. It follows from §3.3 rather than departing from it, and §3.6's
+release-note duty already names `orphans_json`, so it is listed in
+`docs/schema-versioning.md`'s migration table beside the four. The alternative,
+exempting the facade, would leave one read the emitter does not version, which
+is the call-site gap this spec closes.
+
+**D-9 (2026-09-15). The documentation duties, and two stale rows.**
+§3.4 required `docs/schema-versioning.md` to gain the axis; it is an
+`[index] extra_hashed_inputs` match, so the edit restales every shard and is
+claimed by an `extends` edge on spec 067's unit. Its table also listed the
+verdict envelope at `0.3.0` against a `0.4.0` constant and omitted the delta
+record entirely, the understatement note 04's F10 recorded; both rows were
+corrected in the same edit, since a table that must gain one row and is known
+to be wrong in two is fixed once. `docs/api.md`, `website/docs/cli/registry.md`
+and `website/docs/cli/index.md` state the new shapes; the last also described
+`index orphans --json` as a bare array, which it has not been since spec 059.
 
 ## Verification
 

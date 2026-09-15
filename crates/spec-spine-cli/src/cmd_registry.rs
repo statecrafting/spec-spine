@@ -7,8 +7,8 @@ use std::path::Path;
 
 use clap::Subcommand;
 use spec_spine_core::{
-    ListFilter, Plan, list, list_ids, load_committed_registry, plan, relationships,
-    shard_content_hash, show, status_report,
+    ListFilter, Plan, Versioning, list, list_ids, load_committed_registry, plan, read_document,
+    relationships, shard_content_hash, show, status_report,
 };
 use spec_spine_types::{Error, Status};
 
@@ -164,13 +164,17 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 // selection. An empty ready set exits 0: "nothing to do" is a
                 // true answer to "what should I work on", and a driven session
                 // that treats it as an error stops for the wrong reason.
+                //
+                // Spec 093 §3.3 (amending 060 §3.2): with `--json` the pick sits
+                // under a named `next` member, built here for the populated
+                // answer and the empty one alike, so both are one shape and
+                // "nothing is ready" is a present `null` rather than a missing
+                // key. Still the object itself, not a one-element array.
                 match plan.next() {
-                    Some(pick) if *json => print_json(pick)?,
-                    // The object itself, not a one-element array: a consumer
-                    // should not index into a list to reach the thing it asked
-                    // for.
+                    pick if *json => {
+                        print_json(&serde_json::json!({ "next": pick }))?;
+                    }
                     Some(pick) => outln!("{}  {}", pick.id, pick.title),
-                    None if *json => print_json(&serde_json::Value::Null)?,
                     None => outln!("(nothing ready)"),
                 }
             } else if *json {
@@ -319,8 +323,10 @@ fn print_ids(label: &str, ids: &[String]) {
     }
 }
 
+/// Emit a read document (spec 093): sorted keys, object form, `schemaVersion`.
+/// Every `--json` arm of this verb comes through here, which is what makes a
+/// projection flag a versioned document rather than a call site that forgot.
 fn print_json<T: serde::Serialize>(value: &T) -> Result<(), Error> {
-    let s = serde_json::to_string_pretty(value).map_err(|e| Error::Schema(e.to_string()))?;
-    outln!("{s}");
+    out!("{}", read_document(value, Versioning::Stamp)?);
     Ok(())
 }

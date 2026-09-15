@@ -79,6 +79,16 @@ pub const VERDICT_SCHEMA_VERSION: &str = "0.4.0";
 /// envelope it arrived in or the ledger it was classified against.
 pub const DELTA_SCHEMA_VERSION: &str = "0.1.0";
 
+/// `schemaVersion` carried by every read document (spec 093): the JSON a read
+/// verb, or the facade function behind it, emits when it answers a question
+/// rather than rendering a verdict.
+///
+/// On its own axis, starting at `0.x` as `DELTA_SCHEMA_VERSION` did. It versions
+/// the shape of the answer, not the artifacts the answer is about, so it does
+/// not move when `REGISTRY_SCHEMA_VERSION` or `INDEX_SCHEMA_VERSION` does. One
+/// constant for every read document: per-verb axes would always move together.
+pub const READ_SCHEMA_VERSION: &str = "0.1.0";
+
 /// The `spec-spine.toml` config schema version (optional `config_version` key).
 pub const CONFIG_VERSION: &str = "0.1.0";
 

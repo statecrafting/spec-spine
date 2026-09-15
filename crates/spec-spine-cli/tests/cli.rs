@@ -283,7 +283,8 @@ fn registry_list_ids_only_projection() {
         "001-a\n002-b\n003-c\n"
     );
 
-    // JSON form: an array of id strings, same order.
+    // JSON form: the id strings, same order, under `items` in a versioned read
+    // document (spec 093 §3.6, amending 010 §3.1).
     let json = bin()
         .arg("--repo")
         .arg(tmp.path())
@@ -291,7 +292,8 @@ fn registry_list_ids_only_projection() {
         .output()
         .unwrap();
     assert_eq!(code(&json), 0);
-    let ids: Vec<String> = serde_json::from_slice(&json.stdout).unwrap();
+    let doc: serde_json::Value = serde_json::from_slice(&json.stdout).unwrap();
+    let ids: Vec<String> = serde_json::from_value(doc["items"].clone()).unwrap();
     assert_eq!(ids, ["001-a", "002-b", "003-c"]);
 
     // --status filters first, then the projection applies.
@@ -318,7 +320,8 @@ fn registry_list_ids_only_projection() {
         .output()
         .unwrap();
     assert_eq!(code(&filtered_json), 0);
-    let none: Vec<String> = serde_json::from_slice(&filtered_json.stdout).unwrap();
+    let doc: serde_json::Value = serde_json::from_slice(&filtered_json.stdout).unwrap();
+    let none: Vec<String> = serde_json::from_value(doc["items"].clone()).unwrap();
     assert!(none.is_empty());
 
     // Empty projection in text mode: empty output (no "(no specs)"), exit 0.
@@ -1469,8 +1472,14 @@ fn registry_plan_partitions_the_corpus() {
     let out = run_in(root, &["registry", "plan", "--json"]);
     assert_eq!(code(&out), 0);
     let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
-    // Bare report, not a spec 037 envelope.
-    assert!(v.get("schemaVersion").is_none(), "{v}");
+    // A read document, not a spec 037 envelope: the report's members at the top
+    // level, versioned on the read axis (spec 093), with no `ok` or `report`.
+    assert_eq!(
+        v["schemaVersion"],
+        spec_spine_types::READ_SCHEMA_VERSION,
+        "{v}"
+    );
+    assert!(v.get("report").is_none() && v.get("ok").is_none(), "{v}");
     // Spec 060 §3.3: ready entries are objects carrying the title, and blocked
     // entries gain one additively. The breaking half is deliberate: a parallel
     // titles array to be zipped by position is the shape that generates the
@@ -1491,12 +1500,18 @@ fn registry_plan_partitions_the_corpus() {
     );
     assert_eq!(v["notSchedulable"], 1);
 
-    // §3.2: `--next` is the single pick, and the object rather than a
-    // one-element array.
+    // §3.2, as spec 093 §3.6 amends it: `--next` is the single pick, the object
+    // rather than a one-element array, under a named `next` member.
     let next = run_in(root, &["registry", "plan", "--next", "--json"]);
     assert_eq!(code(&next), 0);
     let n: serde_json::Value = serde_json::from_slice(&next.stdout).unwrap();
-    assert_eq!(n, serde_json::json!({ "id": "002-now", "title": "T" }));
+    assert_eq!(
+        n,
+        serde_json::json!({
+            "next": { "id": "002-now", "title": "T" },
+            "schemaVersion": spec_spine_types::READ_SCHEMA_VERSION,
+        })
+    );
 
     // A corpus with nothing schedulable says so rather than printing an empty
     // page: the prose form has a reader, and "(nothing ready)" is an answer.
@@ -2211,7 +2226,9 @@ fn index_diagnostics_lists_them_and_never_refuses() {
 
     let out = run(&["index", "diagnostics", "--json"]);
     assert_eq!(code(&out), 0);
-    let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    let doc: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
+    // Spec 093 §3.6: the listing sits under `items` in a versioned object.
+    let v = &doc["items"];
     assert_eq!(v.as_array().unwrap().len(), 1);
     assert_eq!(v[0]["code"], "W-001");
     assert_eq!(v[0]["specId"], "001-flight", "attributed to its spec");
@@ -2995,5 +3012,171 @@ fn the_consumer_verbs_still_refuse_an_unparseable_stray() {
         String::from_utf8_lossy(&render.stderr).contains("999-stray.json"),
         "{}",
         String::from_utf8_lossy(&render.stderr)
+    );
+}
+
+// ── spec 093: a governed read names its version ──────────────────────────
+
+/// `document` parsed as an object whose top-level keys are sorted, returned for
+/// further assertions. Key order is read from the bytes, since a parsed map
+/// sorts regardless.
+fn sorted_object(label: &str, out: &std::process::Output) -> serde_json::Value {
+    assert_eq!(
+        code(out),
+        0,
+        "{label}: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let text = String::from_utf8_lossy(&out.stdout).into_owned();
+    let v: serde_json::Value =
+        serde_json::from_str(&text).unwrap_or_else(|e| panic!("{label} is JSON ({e}): {text}"));
+    let obj = v
+        .as_object()
+        .unwrap_or_else(|| panic!("{label} is an object: {text}"));
+    // Top-level members are the lines indented by exactly two spaces.
+    let order: Vec<String> = text
+        .lines()
+        .filter(|l| l.starts_with("  \"") && !l.starts_with("   "))
+        .map(|l| l[3..l[3..].find('"').unwrap() + 3].to_string())
+        .collect();
+    assert_eq!(order.len(), obj.len(), "{label}: {text}");
+    let mut sorted = order.clone();
+    sorted.sort();
+    assert_eq!(order, sorted, "{label}: top-level keys in sorted order");
+    v
+}
+
+/// §3.8: each of the thirteen read documents is an object, carries its version
+/// member, and emits its top-level keys sorted. Per document, because the
+/// defect was never in a shared function: it was call sites that did not use
+/// one, and a projection flag is a call site.
+#[test]
+fn every_read_document_is_a_sorted_versioned_object() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    verdict_fixture(root);
+    let version = spec_spine_types::READ_SCHEMA_VERSION;
+
+    let stamped: [(&str, &[&str]); 12] = [
+        ("registry list", &["registry", "list", "--json"]),
+        (
+            "registry list --ids-only",
+            &["registry", "list", "--ids-only", "--json"],
+        ),
+        ("registry show", &["registry", "show", "001-a", "--json"]),
+        (
+            "registry status-report",
+            &["registry", "status-report", "--json"],
+        ),
+        (
+            "registry status-report --nonzero-only",
+            &["registry", "status-report", "--nonzero-only", "--json"],
+        ),
+        (
+            "registry relationships",
+            &["registry", "relationships", "001-a", "--json"],
+        ),
+        ("registry plan", &["registry", "plan", "--json"]),
+        (
+            "registry plan --next",
+            &["registry", "plan", "--next", "--json"],
+        ),
+        (
+            "index owner",
+            &["index", "owner", "crate-a/src/lib.rs", "--json"],
+        ),
+        ("index coverage", &["index", "coverage", "--json"]),
+        ("index diagnostics", &["index", "diagnostics", "--json"]),
+        ("index orphans", &["index", "orphans", "--json"]),
+    ];
+    for (label, args) in stamped {
+        let v = sorted_object(label, &run_in(root, args));
+        assert_eq!(v["schemaVersion"], version, "{label}: {v}");
+        assert!(
+            v.get("config_version").is_none(),
+            "{label}: one version member"
+        );
+    }
+
+    // §3.7: `config show` is sorted, keeps 054's member, and gains no second one.
+    let v = sorted_object("config show", &run_in(root, &["config", "show", "--json"]));
+    assert!(v.get("config_version").is_some(), "{v}");
+    assert!(v.get("schemaVersion").is_none(), "{v}");
+
+    // §3.6: the three arrays sit under `items`, and `--ids-only` still projects
+    // ids rather than records.
+    for args in [
+        &["registry", "list", "--json"][..],
+        &["registry", "list", "--ids-only", "--json"][..],
+        &["index", "diagnostics", "--json"][..],
+    ] {
+        assert!(
+            envelope(&run_in(root, args))["items"].is_array(),
+            "{args:?}"
+        );
+    }
+    let ids = envelope(&run_in(root, &["registry", "list", "--ids-only", "--json"]));
+    assert_eq!(ids["items"], serde_json::json!(["001-a"]), "{ids}");
+    let records = envelope(&run_in(root, &["registry", "list", "--json"]));
+    assert_eq!(records["items"][0]["id"], "001-a", "{records}");
+
+    // §3.3: the facades emit the documents the CLI does.
+    let registry_text = {
+        let cfg = spec_spine_types::Config::default();
+        spec_spine_core::compile(&cfg, root).unwrap().json
+    };
+    let query = |op: &str, extra: serde_json::Value| {
+        let mut req = serde_json::json!({ "registry": registry_text, "op": op });
+        req.as_object_mut()
+            .unwrap()
+            .extend(extra.as_object().unwrap().clone());
+        serde_json::from_str::<serde_json::Value>(
+            &spec_spine_core::query_json(&req.to_string()).unwrap(),
+        )
+        .unwrap()
+    };
+    assert_eq!(
+        query("list", serde_json::json!({ "idsOnly": true })),
+        ids,
+        "query_json list --ids-only"
+    );
+    assert_eq!(
+        query("plan", serde_json::json!({})),
+        envelope(&run_in(root, &["registry", "plan", "--json"]))
+    );
+    let coverage: serde_json::Value = serde_json::from_str(
+        &spec_spine_core::coverage_json("{}", root.to_str().unwrap()).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(
+        coverage,
+        envelope(&run_in(root, &["index", "coverage", "--json"]))
+    );
+}
+
+/// §3.8: `plan --next --json` on an empty ready set is `next: null` at exit 0,
+/// the same shape as the populated answer, never a bare `null` and never a
+/// missing member.
+#[test]
+fn plan_next_on_an_empty_ready_set_is_a_present_null() {
+    let tmp = tempfile::tempdir().unwrap();
+    let dir = tmp.path().join("specs/001-done");
+    fs::create_dir_all(&dir).unwrap();
+    fs::write(
+        dir.join("spec.md"),
+        "---\nid: \"001-done\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-06\"\n\
+         summary: \"s\"\nimplementation: complete\n---\n# 001-done\n",
+    )
+    .unwrap();
+    assert_eq!(code(&run_in(tmp.path(), &["compile"])), 0);
+
+    let out = run_in(tmp.path(), &["registry", "plan", "--next", "--json"]);
+    let v = sorted_object("plan --next (empty)", &out);
+    assert_eq!(
+        v,
+        serde_json::json!({
+            "next": null,
+            "schemaVersion": spec_spine_types::READ_SCHEMA_VERSION,
+        })
     );
 }
