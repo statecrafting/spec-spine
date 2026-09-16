@@ -79,22 +79,29 @@ extended.
 
 ### 1.2 What each hook says today, reproduced
 
-Reproduced on 2026-09-16 with the `0.19.0` in-tree binary against a scratch
-corpus created by `spec-spine init`, running the shipped hook bodies out of
-`kit/settings.json` verbatim. One spec claims `src/nothing.rs` while declaring
-`implementation: complete`; the other rows add a second defect to it.
+Reproduced on 2026-09-16 with the `0.19.0` in-tree binary against scratch
+corpora created by `spec-spine init`, running the shipped hook bodies out of
+`kit/settings.json` verbatim. Row 1's corpus has one spec claiming
+`src/nothing.rs` while declaring `implementation: complete`; row 2 adds a
+second spec whose shard is not committed. Row 3 was run on a corpus of its
+own, so the validation failure is observed with nothing else masking it.
+Row 4 is an unknown key appended to `spec-spine.toml`, which the config parser
+refuses before any corpus is read, so its result does not depend on which
+corpus it ran against.
 
 | Corpus | `check` says | exit | `Stop` hook says | `SessionStart` says |
 |---|---|---|---|---|
 | A claim that does not resolve | `codebase-index: UNRESOLVED CLAIM: 1 unresolved claim(s) ... which is not staleness` | 2 | `[freshness] STALE: run spec-spine compile and index` | `codebase index: unknown (check exit 2)` |
 | That, plus a missing shard | both lines, with `regenerating addresses the stale shard(s) only` | 2 | `[freshness] STALE: run spec-spine compile and index` | `codebase index: STALE, run spec-spine index` |
-| A spec whose id disagrees with its directory | `spec-registry: INVALID: the corpus fails validation` | 1 | `[freshness] STALE: run spec-spine compile and index` | registry half correct; index half correct |
+| A spec whose id disagrees with its directory | `spec-registry: INVALID: the corpus fails validation` | 1 | `[freshness] STALE: run spec-spine compile and index` | `spec registry: INVALID ...; codebase index: fresh`, both correct |
 | An unknown key in `spec-spine.toml` | `spec-spine: config error: ... unknown field` | 3 | `[freshness] STALE: run spec-spine compile and index` | `unknown (check exit 3)` on both halves |
 
 Every `Stop` cell is the same sentence, and it is false in three of the four
-rows and half-true in the fourth. The `SessionStart` mixed row is the one worth
-naming separately: the verb printed both halves of its verdict and the hook
-relayed the half that regeneration fixes while dropping the half it does not.
+rows and half-true in the fourth. The `SessionStart` hook is wrong in two rows
+and right in two, which is why only its index half changes here. Its mixed row
+is the one worth naming separately: the verb printed both halves of its
+verdict and the hook relayed the half that regeneration fixes while dropping
+the half it does not.
 A reader who follows that banner regenerates, sees the refusal survive, and has
 been told nothing about why.
 
