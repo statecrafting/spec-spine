@@ -152,8 +152,8 @@
       }
     ],
     "specId": "100-one-source-generates-the-agent-trees",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "e5866114a8f8e2ee5be6ca68bf3fc42572991379153c892c19936a0356d5620c"
+  "shardHash": "f5e028c4b0ddbb21f32204ec4f3b27f2f62e051c1934a8a22828433844e68a13"
 }
