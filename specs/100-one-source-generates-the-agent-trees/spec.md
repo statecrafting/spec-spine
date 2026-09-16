@@ -1,7 +1,7 @@
 ---
 id: "100-one-source-generates-the-agent-trees"
 title: "One source generates the agent instruction trees"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-16"
 summary: >
