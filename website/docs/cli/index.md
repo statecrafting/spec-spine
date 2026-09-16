@@ -37,7 +37,9 @@ A spec claiming a unit that does not resolve is a different refusal, and since s
 
 Current output puts that section under an `UNRESOLVED CLAIM:` heading carrying the claim and spec counts. Treat the classed facts above as the contract and the exact phrasing as illustrative: 098's acceptance pins the code, the spec id, the unit and the regeneration statement, and deliberately does not pin the heading text. Match on the diagnostic code, never on the sentence.
 
-The exit code is unchanged either way: `2`. In the [verdict envelope](./overview.md#machine-readable-verdicts---json) and in the library verdict, an unresolved claim still appears in the drift vector as a **`blocking-diagnostics`** line (spec 050), one per shard rather than one per diagnostic, so a machine caller reads what it read before.
+A shard with an unresolved claim is reported **only** there. It is withheld from the class list above, so it appears as neither `modified` nor `missing` even when its bytes also moved, and the stale count does not include it. Regenerating fixes a drifted shard and does not fix an unresolved claim, so the line kept is the one whose remedy is not a command.
+
+The exit code is unchanged either way: `2`. In the [verdict envelope](./overview.md#machine-readable-verdicts---json) and in the library verdict, an unresolved claim still appears in the drift vector as a **`blocking-diagnostics`** line (spec 050), so a machine caller reads what it read before. The two surfaces count differently on purpose: a shard yields exactly one `blocking-diagnostics` entry however many diagnostics it carries, while the human-readable output prints one line per diagnostic, up to 20, then points at `spec-spine index diagnostics` for the rest.
 
 `check`, and the freshness guard in front of `couple`, `index coverage` and `index owner`, run the same comparison, so a committed index that reads fresh is exactly what the corpus indexes to.
 
