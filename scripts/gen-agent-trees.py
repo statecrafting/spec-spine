@@ -84,13 +84,12 @@ def project_agent(src: Path) -> str:
     # backslash before a line ending swallows the line break entirely.
     if "\\" in body:
         sys.exit(f"{src}: the body contains a backslash, which a TOML basic string would decode as an escape (spec 100 3.3)")
+    # The only quote sequence a multi-line basic string cannot carry. TOML 1.0
+    # allows one or two quotes immediately before the closing delimiter, so a
+    # body ending in `"` or `""` is valid and is NOT refused; three in a row
+    # ends the string early wherever they appear, which is what this catches.
     if '"""' in body:
         sys.exit(f'{src}: the body contains `"""`, which spec 100 3.3 refuses rather than escapes')
-    # Independent of the backslash check above, not a consequence of it: a body
-    # ending in `\"` is already refused there, but this must keep refusing a
-    # body ending in a bare `"` if that check is ever removed or narrowed.
-    if body.rstrip("\n").endswith('"'):
-        sys.exit(f'{src}: the body ends in `"`, which would run into the closing delimiter')
     out = [f"{key} = {toml_basic(fields[key], src, key)}" for key in TOML_KEYS]
     out.append(f'developer_instructions = """\n{body.rstrip(chr(10))}"""')
     return "\n".join(out) + "\n"

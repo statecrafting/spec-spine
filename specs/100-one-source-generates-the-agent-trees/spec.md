@@ -194,20 +194,25 @@ The keys Codex has no use for (`tools`, `model`, `safety_tier`, `mutation`,
 meaning for a Claude field.
 
 The body is carried **verbatim**, and a TOML multi-line basic string can only
-carry it verbatim when it holds none of the three sequences the format would
+carry it verbatim when it holds neither of the two sequences the format would
 reinterpret. The script MUST refuse, naming the source file, when the body:
 
 - contains a backslash, which a basic string decodes as an escape. This is the
-  subtlest of the three: `\n` written as text in an instruction file decodes to
-  a newline, and a backslash before a line ending swallows the line break.
-- contains a `"""` sequence, which closes the string early;
-- ends in a `"`, which runs into the closing delimiter.
+  subtler of the two: `\n` written as text in an instruction file decodes to a
+  newline, and a backslash before a line ending swallows the line break.
+- contains a `"""` sequence, which ends the string early wherever it appears,
+  the closing delimiter included.
 
-Refusing is correct because no body contains any of the three today (measured
+A body **ending** in `"` or `""` is **not** refused. TOML 1.0 allows one or two
+quotation marks immediately before the closing delimiter, so `abc"` emits as
+`"""abc""""` and decodes back to `abc"`. Three in a row are the only
+unencodable case and the clause above already covers them, wherever they sit.
+
+Refusing is correct because no body contains either sequence today (measured
 2026-09-16), so an escape path would be untested code on a route nothing
 exercises, and a wrong escape produces TOML that parses into something other
-than the source text. With all three refused, the decode is provably the
-identity, which is what lets section 3.6 assert round-trip fidelity.
+than the source text. With both refused, the decode is provably the identity,
+which is what lets section 3.6 assert round-trip fidelity.
 
 `.claude/agents/` is a **source** and is not written by the script. Spec 048
 keeps owning its prose. What this spec adds is an obligation running the other
@@ -313,14 +318,22 @@ only when a skill changes are the first case, and the sibling entries for
 `kit/.claude/skills/*/*.md` and `.codex/hooks.json` are already there.
 
 D-4 (2026-09-16, why the script refuses a body TOML would reinterpret rather
-than escaping it). Section 3.3. No body contains a backslash, a `"""` or a
-trailing `"` today, so an escape path would be untested code on a route nothing
-exercises, and a wrong escape produces TOML that parses into something other
-than the source text. A refusal is loud, correct, and cheap to replace with a
-specified escape the day a body needs one. The backslash clause was added
-during the build: the first draft refused only the two quote sequences, which
-left the escape that actually changes a body's meaning without changing its
-appearance.
+than escaping it). Section 3.3. No body contains a backslash or a `"""` today,
+so an escape path would be untested code on a route nothing exercises, and a
+wrong escape produces TOML that parses into something other than the source
+text. A refusal is loud, correct, and cheap to replace with a specified escape
+the day a body needs one.
+
+Both clauses moved during the build, in opposite directions. The backslash
+clause was **added**: the first draft refused only quote sequences, which left
+the escape that changes a body's meaning without changing its appearance. A
+separate refusal of a body **ending** in `"` was **removed**, because its
+stated reason was false. TOML 1.0 permits one or two quotes before the closing
+delimiter, so such a body is valid and unambiguous; verified against a TOML
+parser on 2026-09-16, where one and two trailing quotes decode exactly and only
+three fail. Keeping a refusal whose justification is wrong is worse than not
+having it: the next reader either trusts a false claim about the format or
+removes the clause without knowing which cases it was really holding.
 
 D-5 (2026-09-16, why a basic string rather than a TOML literal string). A
 literal (`'''`) string processes no escapes, which would make the three
