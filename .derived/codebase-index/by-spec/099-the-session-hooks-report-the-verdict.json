@@ -4,11 +4,16 @@
       "046-kit-hooks-read-never-write",
       "051-harness-runs-the-verbs-it-ships",
       "063-a-stale-binary-is-not-a-stale-ledger",
-      "075-one-name-one-freshness-verb"
+      "080-a-gate-that-cannot-ask-says-so",
+      "098-a-blocking-claim-is-not-a-stale-shard"
     ],
     "implementingPaths": [
       {
         "path": ".claude/settings.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".codex/hooks.json",
         "source": "spec-edge"
       },
       {
@@ -20,15 +25,28 @@
         "source": "spec-edge"
       },
       {
-        "path": "kit/README.md",
+        "path": "kit/settings.json",
         "source": "spec-edge"
       },
       {
-        "path": "kit/settings.json",
+        "path": "spec-spine.toml",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".codex/hooks.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".codex/hooks.json"
+        }
+      },
       {
         "locations": [
           {
@@ -71,19 +89,6 @@
       {
         "locations": [
           {
-            "file": "kit/README.md"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "kit/README.md"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "kit/settings.json"
           }
         ],
@@ -93,11 +98,50 @@
           "kind": "file",
           "path": "kit/settings.json"
         }
+      },
+      {
+        "locations": [
+          {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/06-harness-and-distribution-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/06-harness-and-distribution-2026-09.md"
+        }
       }
     ],
-    "specId": "080-a-gate-that-cannot-ask-says-so",
-    "specStatus": "approved"
+    "specId": "099-the-session-hooks-report-the-verdict",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f7dd2d5f20bd7c3b122f0edfd0affced2260325443af42a1acd3a7294a1ab21a"
+  "shardHash": "8cd6d22573370994d6eb0ba847ccaaf350499affb286b790033257baf2b7e0a0"
 }

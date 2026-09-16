@@ -95,6 +95,12 @@ extra_hashed_inputs = [
   "kit/.claude/agents/*.md",
   "kit/.claude/skills/*/*.md",
   "kit/.mcp.json",
+  # Spec 099: the third copy of the session hooks, shipped by spec 081 and
+  # claimed by 099 3.4. Its two siblings (`.claude/settings.json` and
+  # `kit/settings.json`) are hashed above; leaving this one out made it the
+  # one governance file whose bytes could change without staling a shard,
+  # which is what L-008 refuses.
+  ".codex/hooks.json",
   "kit/scripts/*.sh",
   "scripts/*.py",
   "py/scripts/*.py",
