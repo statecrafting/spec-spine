@@ -41,6 +41,14 @@ pub struct IndexOutcome {
     pub index: CodebaseIndex,
     pub json: String,
     pub shards: IndexShardSet,
+    /// The specs whose frontmatter declares `implementation: complete`.
+    ///
+    /// Spec 098 §3.4: a blocking resolution diagnostic against a spec that
+    /// records the work as done is a contradiction worth naming, and the
+    /// implementation axis is not on [`TraceMapping`] (only `spec_status` is),
+    /// so it is carried out of the one place that already read the frontmatter
+    /// rather than re-read from the corpus at the reporting layer.
+    pub complete_specs: BTreeSet<String>,
 }
 
 /// The committed-form projection of an index: one shard per spec and one per
@@ -55,6 +63,139 @@ pub struct IndexShardSet {
 pub enum Freshness {
     Fresh,
     Stale { expected: String, actual: String },
+}
+
+/// One error-tier resolution diagnostic, as data (spec 098 §3.2).
+///
+/// Every field a report needs is carried here rather than recovered from the
+/// rendered line: the code, the spec that declared the claim, and the unit that
+/// did not resolve. `unit` is `None` for the codes whose subject has no path
+/// (`I-003` crate, `I-005` symbol, `I-008` module); `message` names it in all
+/// seven cases, which is why it travels alongside instead of being reformatted.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BlockingClaim {
+    /// The spec that declared the claim.
+    pub spec_id: String,
+    /// The diagnostic code (`I-003`..`I-009`).
+    pub code: String,
+    /// The resolver's message, verbatim.
+    pub message: String,
+    /// The claimed path, where the code has one.
+    pub unit: Option<String>,
+    /// The owning spec declares `implementation: complete` (spec 098 §3.4):
+    /// the spec records the work as done while the unit it claims is absent.
+    pub claims_complete: bool,
+    /// The shard this diagnostic is recorded in, repo-relative to the index dir.
+    pub shard: String,
+}
+
+/// The two refusals `check` folds into one verdict, kept apart (spec 098 §3.2).
+///
+/// `blocking` is a spec claiming a unit that does not resolve; `stale` is a
+/// committed shard whose bytes moved. They need different work from different
+/// people, and only the second is addressed by regenerating. A shard that is
+/// both is reported once, under `blocking`, because that is the half whose
+/// remedy is not a command.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct IndexFreshnessReport {
+    /// Unresolved claims, sorted by (spec, code, message).
+    pub blocking: Vec<BlockingClaim>,
+    /// Drift lines, each `"<class> <file>"`, for shards that are not blocked.
+    pub stale: Vec<String>,
+    /// How many shards the recompute emitted, for the `expected` half.
+    pub emitted: usize,
+}
+
+impl IndexFreshnessReport {
+    /// The verdict every existing caller reads, unchanged.
+    ///
+    /// The blocking half re-enters as the `blocking-diagnostics <shard>` line it
+    /// has carried since spec 050, one line per shard rather than one per
+    /// diagnostic, so the count line means what it meant before. Spec 098 §3.1
+    /// and FR-009: the exit codes and the `--json` envelope do not move, and
+    /// this is the function that holds them still.
+    pub fn freshness(&self) -> Freshness {
+        let mut drift: Vec<String> = self
+            .blocking
+            .iter()
+            .map(|c| c.shard.clone())
+            .collect::<BTreeSet<String>>()
+            .into_iter()
+            .map(|file| format!("blocking-diagnostics {file}"))
+            .collect();
+        drift.extend(self.stale.iter().cloned());
+        drift_verdict(drift, self.emitted)
+    }
+
+    /// Neither refusal fired.
+    pub fn is_fresh(&self) -> bool {
+        self.blocking.is_empty() && self.stale.is_empty()
+    }
+
+    /// The unresolved-claim report, one classed line per diagnostic
+    /// (spec 098 §3.3).
+    ///
+    /// Rendered once, here, because `check` and `index check` must say the same
+    /// thing about the same fact and a second copy is a second wording. Each
+    /// line names the code, the owning spec and the unit (FR-004); the closing
+    /// line says regenerating does not clear it (FR-005) and, when shards did
+    /// move as well, attributes regeneration to that half alone (FR-006).
+    ///
+    /// It offers no way out. Narrowing a claim to pass a gate is what
+    /// `.claude/rules/adversarial-prompt-refusal.md` exists to refuse, and
+    /// `planned: true` beneath `implementation: complete` is spec 076 §3.3's
+    /// `L-011`: a message proposing either would be proposing a defect.
+    pub fn unresolved_claim_lines(&self) -> Vec<String> {
+        if self.blocking.is_empty() {
+            return Vec::new();
+        }
+        let mut lines: Vec<String> = Vec::new();
+        for c in self.blocking.iter().take(STALE_REPORT_CAP) {
+            lines.push(format!("  {} {}: {}", c.code, c.spec_id, c.message));
+            if c.claims_complete {
+                lines.push(format!(
+                    "    {} declares `implementation: complete` while the unit it claims is \
+                     absent: the spec and the tree disagree about what exists",
+                    c.spec_id
+                ));
+            }
+        }
+        if self.blocking.len() > STALE_REPORT_CAP {
+            lines.push(format!(
+                "  and {} more (`spec-spine index diagnostics` lists them all)",
+                self.blocking.len() - STALE_REPORT_CAP
+            ));
+        }
+        lines.push(if self.stale.is_empty() {
+            "  regenerating the index does not clear this: each diagnostic is recomputed from \
+             the corpus on every run"
+                .to_string()
+        } else {
+            "  regenerating addresses the stale shard(s) only, not the unresolved claim(s): \
+             each diagnostic is recomputed from the corpus on every run"
+                .to_string()
+        });
+        lines
+    }
+
+    /// The header a verb prints above [`Self::unresolved_claim_lines`]: how many
+    /// claims, over how many specs, and that this is not staleness.
+    pub fn unresolved_claim_summary(&self) -> String {
+        let specs: BTreeSet<&str> = self.blocking.iter().map(|c| c.spec_id.as_str()).collect();
+        format!(
+            "{} unresolved claim(s) over {} spec(s), which is not staleness",
+            self.blocking.len(),
+            specs.len()
+        )
+    }
+
+    /// The stale half alone, for a verb that reports the two separately.
+    ///
+    /// Byte-identical to [`Self::freshness`] whenever nothing blocks, which is
+    /// what keeps spec 098 AC-3's "unchanged, wording included" mechanical.
+    pub fn stale_verdict(&self) -> Freshness {
+        drift_verdict(self.stale.clone(), self.emitted)
+    }
 }
 
 /// A spec's ownership declarations, parsed from frontmatter.
@@ -385,6 +526,11 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
         diagnostics,
     };
     let json = canonical_json::to_string(&codebase_index)?;
+    let complete_specs: BTreeSet<String> = specs
+        .iter()
+        .filter(|s| matches!(s.implementation, Some(Implementation::Complete)))
+        .map(|s| s.id.clone())
+        .collect();
     Ok(IndexOutcome {
         index: codebase_index,
         json,
@@ -392,6 +538,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
             spec_shards,
             package_shards,
         },
+        complete_specs,
     })
 }
 
@@ -571,24 +718,54 @@ pub fn check_index_freshness(
     cfg: &spec_spine_types::Config,
     repo_root: &Path,
 ) -> Result<Freshness, Error> {
-    let outcome = index(cfg, repo_root)?;
-    let blocking: BTreeSet<String> = outcome
-        .shards
-        .spec_shards
-        .iter()
-        .filter(|sh| {
-            sh.diagnostics
-                .errors
-                .iter()
-                .any(|d| BLOCKING_CODES.contains(&d.code.as_str()))
-        })
-        .map(|sh| format!("{}/{}.json", shard::BY_SPEC_DIR, sh.mapping.spec_id))
-        .collect();
+    Ok(index_freshness_report(cfg, repo_root)?.freshness())
+}
 
-    let mut drift: Vec<String> = blocking
-        .iter()
-        .map(|file| format!("blocking-diagnostics {file}"))
-        .collect();
+/// The same read as [`check_index_freshness`], with the two refusals kept apart
+/// (spec 098 §3.2).
+///
+/// `check_index_freshness` answers one question ("may a reader trust the
+/// committed index?") and flattens two independent facts into it: a committed
+/// shard whose bytes moved, and a spec claiming a unit that does not resolve.
+/// Both arrive as [`Freshness::Stale`], and `Stale` carries exactly one remedy,
+/// so a corpus whose shards are byte-exact was told to regenerate them. It
+/// exits 0, writes the same bytes, and the next read refuses identically: the
+/// diagnostic is recomputed from the corpus, and re-indexing cannot create a
+/// file a spec claims.
+///
+/// The partition exists inside this function either way. Carrying it out as
+/// data is what lets a reporting layer say which refusal it is holding without
+/// parsing the rendered text, and [`Self::freshness`](IndexFreshnessReport::freshness)
+/// folds it back into the verdict every existing caller (the guard in front of
+/// `couple`, `index coverage` and `index owner`, and the `--json` payloads)
+/// still reads, unchanged.
+pub fn index_freshness_report(
+    cfg: &spec_spine_types::Config,
+    repo_root: &Path,
+) -> Result<IndexFreshnessReport, Error> {
+    let outcome = index(cfg, repo_root)?;
+    let mut claims: Vec<BlockingClaim> = Vec::new();
+    for sh in &outcome.shards.spec_shards {
+        let spec_id = &sh.mapping.spec_id;
+        for d in sh
+            .diagnostics
+            .errors
+            .iter()
+            .filter(|d| BLOCKING_CODES.contains(&d.code.as_str()))
+        {
+            claims.push(BlockingClaim {
+                spec_id: spec_id.clone(),
+                code: d.code.clone(),
+                message: d.message.clone(),
+                unit: d.path.clone(),
+                claims_complete: outcome.complete_specs.contains(spec_id),
+                shard: format!("{}/{}.json", shard::BY_SPEC_DIR, spec_id),
+            });
+        }
+    }
+    let blocking: BTreeSet<String> = claims.iter().map(|c| c.shard.clone()).collect();
+
+    let mut drift: Vec<String> = Vec::new();
     for line in committed_index_drift(cfg, repo_root, &outcome.shards)? {
         // One line per shard. A shard that blocks and also drifts would
         // otherwise be named twice, and the count line ("N stale shard(s)")
@@ -612,7 +789,13 @@ pub fn check_index_freshness(
         drift.push(line);
     }
     let emitted = outcome.shards.spec_shards.len() + outcome.shards.package_shards.len();
-    Ok(drift_verdict(drift, emitted))
+    claims
+        .sort_by(|a, b| (&a.spec_id, &a.code, &a.message).cmp(&(&b.spec_id, &b.code, &b.message)));
+    Ok(IndexFreshnessReport {
+        blocking: claims,
+        stale: drift,
+        emitted,
+    })
 }
 
 /// Recompute one named slice and compare it to the committed

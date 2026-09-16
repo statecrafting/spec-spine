@@ -14,8 +14,8 @@ use clap::Subcommand;
 use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
 use spec_spine_core::{
     DiagnosticCounts, Freshness, IndexCheckReport, UnwitnessedCounts, Versioning,
-    annotate_unreadable, check_index_freshness, check_slice_freshness, committed_diagnostics,
-    coverage_with_inventory, empty_universe, index, index_dir, index_shard_files,
+    annotate_unreadable, check_slice_freshness, committed_diagnostics, coverage_with_inventory,
+    empty_universe, index, index_dir, index_freshness_report, index_shard_files,
     load_committed_index, load_committed_registry, partition_orphans, read_document,
     render_markdown, slices_path, verdict_tally,
 };
@@ -232,12 +232,20 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             fail_on_unresolved,
             json,
         }) => {
-            let (freshness, subject) = match slice {
+            // Spec 098 §3.2: for the index subject the two refusals arrive
+            // apart, from one read. A `--slice` check has only one (the sidecar
+            // hashes it compares carry no diagnostics), so it carries `None` and
+            // keeps every word it printed before.
+            let (freshness, partition, subject) = match slice {
                 Some(name) => (
                     check_slice_freshness(&cfg, repo, name)?,
+                    None,
                     format!("slice '{name}'"),
                 ),
-                None => (check_index_freshness(&cfg, repo)?, "index".to_string()),
+                None => {
+                    let report = index_freshness_report(&cfg, repo)?;
+                    (report.freshness(), Some(report), "index".to_string())
+                }
             };
             // Spec 095 §3.1: the verdict above is already decided, and the tally
             // only adorns it. The same function the facades call (§3.4).
@@ -301,6 +309,29 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 Freshness::Fresh => {
                     outln!("{subject} is fresh{}", counts_suffix(&counts));
                     report_unwitnessed(&unwitnessed);
+                }
+                // Spec 098 §3.3: an unresolved claim is reported as itself. The
+                // remedy `STALE` carries is regeneration, and regeneration
+                // provably does not clear a claim on a unit that does not
+                // exist: `index` exits 0, writes the same bytes, and the next
+                // read refuses identically.
+                Freshness::Stale { .. }
+                    if partition.as_ref().is_some_and(|p| !p.blocking.is_empty()) =>
+                {
+                    let p = partition.as_ref().expect("guarded above");
+                    if !p.stale.is_empty() {
+                        eprintln!("{subject} is STALE (run `spec-spine index` to refresh)");
+                        if let Freshness::Stale { actual, .. } = p.stale_verdict() {
+                            eprintln!("{}", annotate_unreadable(&actual, &counts.unreadable));
+                        }
+                    }
+                    eprintln!(
+                        "{subject}: UNRESOLVED CLAIM: {}",
+                        p.unresolved_claim_summary()
+                    );
+                    for line in p.unresolved_claim_lines() {
+                        eprintln!("{line}");
+                    }
                 }
                 Freshness::Stale { expected, actual } => {
                     eprintln!("{subject} is STALE (run `spec-spine index` to refresh)");

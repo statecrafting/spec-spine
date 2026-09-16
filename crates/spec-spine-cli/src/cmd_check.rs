@@ -11,7 +11,7 @@
 
 use std::path::Path;
 
-use spec_spine_core::CheckReport;
+use spec_spine_core::{CheckReport, Freshness, IndexFreshnessReport};
 use spec_spine_types::{Error, verdict::Verdict, verdict::verb};
 
 use crate::load_repo_config;
@@ -35,7 +35,10 @@ pub fn run(
     // on it. That is the top of the precedence in 3.3, and it is the right
     // shape: a read that could not be performed has not answered, so no verdict
     // from the other tree makes the overall answer trustworthy.
-    let report = spec_spine_core::check_report(&cfg, repo)?;
+    // Spec 098 §3.2: one read, two facts. The index half's blocking set and its
+    // stale set arrive apart, so this verb can say which refusal it is holding
+    // without indexing again and without reading back its own prose.
+    let (report, freshness) = spec_spine_core::check_report_full(&cfg, repo)?;
     let code = exit_code(&report, fail_on_unresolved, fail_on_warn);
 
     if json {
@@ -45,7 +48,7 @@ pub fn run(
     }
 
     report_registry(&report, fail_on_warn);
-    report_index(&report, fail_on_unresolved);
+    report_index(&report, &freshness, fail_on_unresolved);
     Ok(code)
 }
 
@@ -139,17 +142,34 @@ fn report_registry(report: &CheckReport, fail_on_warn: bool) {
 }
 
 /// The index half, attributed to its tree (spec 075 §3.4).
-fn report_index(report: &CheckReport, fail_on_unresolved: bool) {
+///
+/// Spec 098 §3.3 splits the refusal this used to print one way. Staleness means
+/// "the committed artifact is behind the source, regenerate it"; an unresolved
+/// claim means "the spec and the tree disagree about what exists", which no
+/// command repairs. Both still exit 2 (§3.1), and the stale-only report is
+/// unchanged, wording included (FR-008).
+fn report_index(report: &CheckReport, freshness: &IndexFreshnessReport, fail_on_unresolved: bool) {
     let i = &report.index;
     if !i.fresh {
-        eprintln!("codebase-index: STALE (run `spec-spine index`)");
-        if let Some(actual) = &i.actual {
-            // Spec 095 §3.3: a shard the diagnostics tally could not read is
-            // named on its drift line, not left to the payload count alone.
+        if !freshness.stale.is_empty() {
+            eprintln!("codebase-index: STALE (run `spec-spine index`)");
+            if let Freshness::Stale { actual, .. } = freshness.stale_verdict() {
+                // Spec 095 §3.3: a shard the diagnostics tally could not read is
+                // named on its drift line, not left to the payload count alone.
+                eprintln!(
+                    "{}",
+                    spec_spine_core::annotate_unreadable(&actual, &i.diagnostics.unreadable)
+                );
+            }
+        }
+        if !freshness.blocking.is_empty() {
             eprintln!(
-                "{}",
-                spec_spine_core::annotate_unreadable(actual, &i.diagnostics.unreadable)
+                "codebase-index: UNRESOLVED CLAIM: {}",
+                freshness.unresolved_claim_summary()
             );
+            for line in freshness.unresolved_claim_lines() {
+                eprintln!("{line}");
+            }
         }
         return;
     }

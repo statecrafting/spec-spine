@@ -81,8 +81,9 @@ pub use diagnostics::{
     committed_diagnostics, count as count_diagnostics,
 };
 pub use index::{
-    Freshness, IndexOutcome, IndexShardSet, OwnerKind, OwnerLink, OwnerReport, UnwitnessedClaim,
-    authorities, check_index_freshness, check_slice_freshness, index, index_dir, index_shard_files,
+    BlockingClaim, Freshness, IndexFreshnessReport, IndexOutcome, IndexShardSet, OwnerKind,
+    OwnerLink, OwnerReport, UnwitnessedClaim, authorities, check_index_freshness,
+    check_slice_freshness, index, index_dir, index_freshness_report, index_shard_files,
     load_committed_index, owner, owner_with, slices_path, unwitnessed_claims, witnessed_paths,
 };
 pub use lint::{LintReport, lint};
@@ -239,6 +240,27 @@ pub fn check_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
 /// Shared by [`check_json`] and the CLI so the two payloads cannot drift, which
 /// is the arrangement spec 037 pins for every other verdict verb.
 pub fn check_report(config: &Config, repo_root: &std::path::Path) -> Result<CheckReport, Error> {
+    Ok(check_report_full(config, repo_root)?.0)
+}
+
+/// [`check_report`], plus the index half's two refusals kept apart (spec 098
+/// §3.2).
+///
+/// One index run answers both: the partition is a by-product of the read the
+/// report is already built from, so a reporting layer that needs to tell an
+/// unresolved claim from a stale shard does not index a second time and does
+/// not parse the text of the first answer.
+///
+/// [`CheckReport`] itself is deliberately not widened. It is the `--json`
+/// payload verbatim, spec 098 FR-009 freezes that envelope at `schemaVersion`
+/// `0.4.0` with its current members, and a JSON consumer can already separate
+/// the two refusals structurally through `report.index.diagnostics.byCode`. The
+/// surface that could not tell them apart was the rendered text, so that is the
+/// surface this returns the extra data for.
+pub fn check_report_full(
+    config: &Config,
+    repo_root: &std::path::Path,
+) -> Result<(CheckReport, IndexFreshnessReport), Error> {
     // The typed path, not the facade: `compile` once, then compare. Calling
     // `check_registry_freshness` would compile a second time, and this verb
     // exists to make one question cost one ask.
@@ -279,13 +301,13 @@ pub fn check_report(config: &Config, repo_root: &std::path::Path) -> Result<Chec
         }
     };
 
-    let freshness = check_index_freshness(config, repo_root)?;
+    let freshness_report = index_freshness_report(config, repo_root)?;
     let index = IndexCheckReport::with_unwitnessed(
-        &freshness,
+        &freshness_report.freshness(),
         verdict_tally(config, repo_root),
         unwitnessed_counts(config, repo_root),
     );
-    Ok(CheckReport { registry, index })
+    Ok((CheckReport { registry, index }, freshness_report))
 }
 
 /// Check index freshness, returning `{ "fresh": bool, "expected"?, "actual"?,
