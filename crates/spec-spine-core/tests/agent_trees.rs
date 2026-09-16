@@ -155,7 +155,11 @@ fn the_codex_projection_round_trips_the_claude_source() {
 #[test]
 fn no_generated_tree_carries_the_substitution() {
     let root = repo_root();
-    let mut files: Vec<PathBuf> = SKILLS
+    // Read the tree rather than `SKILLS`: a skill present in `.agents/skills`
+    // but absent from the constant would otherwise be skipped here. The set
+    // test above would catch the divergence, but only when it is also run, and
+    // each `#[test]` can be run alone.
+    let mut files: Vec<PathBuf> = entries(&root.join(".agents/skills"), "SKILL.md")
         .iter()
         .map(|s| root.join(".agents/skills").join(s).join("SKILL.md"))
         .collect();

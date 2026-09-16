@@ -86,6 +86,9 @@ def project_agent(src: Path) -> str:
         sys.exit(f"{src}: the body contains a backslash, which a TOML basic string would decode as an escape (spec 100 3.3)")
     if '"""' in body:
         sys.exit(f'{src}: the body contains `"""`, which spec 100 3.3 refuses rather than escapes')
+    # Independent of the backslash check above, not a consequence of it: a body
+    # ending in `\"` is already refused there, but this must keep refusing a
+    # body ending in a bare `"` if that check is ever removed or narrowed.
     if body.rstrip("\n").endswith('"'):
         sys.exit(f'{src}: the body ends in `"`, which would run into the closing delimiter')
     out = [f"{key} = {toml_basic(fields[key], src, key)}" for key in TOML_KEYS]
