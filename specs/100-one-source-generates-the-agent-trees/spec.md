@@ -222,12 +222,22 @@ removed by this change.
 
 ### 3.5 A claimed tree is a hashed tree
 
-`.agents/skills/*/SKILL.md` and `.codex/agents/*.toml` MUST be added to
+All three generated trees, `.claude/skills/*/SKILL.md`,
+`.agents/skills/*/SKILL.md` and `.codex/agents/*.toml`, MUST be added to
 `[index] extra_hashed_inputs` in `spec-spine.toml`. `L-008` (spec 057) refuses
 a claim on a file that is in no content hash, and these are governance files of
 exactly the kind the glob remedy is right for: a handful, rarely changed, and a
 change to one should stale the ledger. The cost is that every shard is
 restamped by this change, which is the documented price and not a surprise.
+
+`.claude/skills/` is included even though its source `kit/.claude/skills/*/*.md`
+is already hashed, because the two are reachable independently. An edit that
+goes through the kit stales the ledger at the source; a direct edit to
+`.claude/skills/<name>/SKILL.md` matches no glob at all, and `C-002` does not
+reach it either, since `.md` is outside `coverage.rs::SOURCE_EXTS`. Without its
+own entry, the one generated tree a Claude session actually reads would be the
+only one whose corruption stales nothing, with §3.6's test as the sole detector
+and only when it is run.
 
 ### 3.6 The acceptance compares the trees, not the script
 
@@ -245,7 +255,11 @@ repository's own files rather than re-running the generator:
   decoded value rather than the file text is what catches section 3.3's escape
   hazard, because a body that TOML reinterprets produces a file that still looks
   right and decodes wrong.
-- no generated file contains `.Codex/` or `Codex.ai`.
+- no generated file in any of the three trees contains `.Codex/` or
+  `Codex.ai`. Asserting it on `.claude/skills/` as well as the other two is
+  not redundant with the byte-identity assertion above: if a banned string
+  ever reached the kit source, identity would still hold and only this
+  assertion would name what went wrong.
 
 A test that re-runs the generator and compares its output to itself proves
 nothing about what is committed, which is the failure mode the committed
@@ -307,6 +321,15 @@ specified escape the day a body needs one. The backslash clause was added
 during the build: the first draft refused only the two quote sequences, which
 left the escape that actually changes a body's meaning without changing its
 appearance.
+
+D-6 (2026-09-16, why `.claude/skills/` is hashed although its source already
+is). Added during the build, from a review finding. The first draft of §3.5
+listed only the two trees this spec claims, on the reasoning that an edit to a
+generation source is caught at the source. That reasoning covers edits that
+travel through the kit and misses the ones that do not: `.claude/skills/` is a
+real directory a session can edit directly, and such an edit matched no glob
+and no `C-002` check. The three generated trees now have one enforcement story
+instead of two.
 
 D-5 (2026-09-16, why a basic string rather than a TOML literal string). A
 literal (`'''`) string processes no escapes, which would make the three

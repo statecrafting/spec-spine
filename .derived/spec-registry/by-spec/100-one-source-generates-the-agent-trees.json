@@ -95,6 +95,6 @@
     "summary": "Spec 081's own commit added two tracked instruction trees for the non-Claude agents, `.agents/skills/` and `.codex/agents/`, and its section 2 reads \"No new file\". Both were produced by a blind `claude` to `Codex` substitution over a copy of the Claude trees, which rewrote `.claude/rules/` into a `.Codex/rules/` that exists on no filesystem, rewrote the literal URL shape `claude.ai/code/session_` the commit skill forbids into `Codex.ai/code/session_`, and collapsed the pair \"CLAUDE.md and AGENTS.md\" into \"AGENTS.md and AGENTS.md\". Neither tree is claimed by any spec, neither is covered by an `[index] extra_hashed_inputs` glob, and `.agents/skills/` still carries the five skills spec 081 removed, unchanged since that commit. This spec makes both trees generated output of one script with a parity test, in the shape `scripts/gen-kit-embedded.py` already uses, and claims them. It delivers parity only: no global installation, upgrade, pinning, compatibility floor or recorded resolved identity.\n",
     "title": "One source generates the agent instruction trees"
   },
-  "shardHash": "3b51da63b2c34da510ee45f7b5588000cc9097795f65d0dfcb35b78bd339c942",
+  "shardHash": "410038bdbfcbfbfe40687029c83b77fa4583e3d8059d5b7628a26039536c8fcf",
   "specVersion": "1.2.0"
 }

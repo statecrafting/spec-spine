@@ -155,14 +155,22 @@ fn the_codex_projection_round_trips_the_claude_source() {
 #[test]
 fn no_generated_tree_carries_the_substitution() {
     let root = repo_root();
-    // Read the tree rather than `SKILLS`: a skill present in `.agents/skills`
+    // Read the tree rather than `SKILLS`: a skill present in a generated tree
     // but absent from the constant would otherwise be skipped here. The set
     // test above would catch the divergence, but only when it is also run, and
     // each `#[test]` can be run alone.
-    let mut files: Vec<PathBuf> = entries(&root.join(".agents/skills"), "SKILL.md")
-        .iter()
-        .map(|s| root.join(".agents/skills").join(s).join("SKILL.md"))
-        .collect();
+    //
+    // Both generated skill trees, not just `.agents/skills`: byte-identity with
+    // the kit would still hold if a banned string reached the kit source, and
+    // then only this assertion names what went wrong (spec 100 3.6).
+    let mut files: Vec<PathBuf> = Vec::new();
+    for tree in [".claude/skills", ".agents/skills"] {
+        files.extend(
+            entries(&root.join(tree), "SKILL.md")
+                .iter()
+                .map(|s| root.join(tree).join(s).join("SKILL.md")),
+        );
+    }
     files.extend(
         entries(&root.join(".codex/agents"), "")
             .iter()
