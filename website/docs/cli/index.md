@@ -26,14 +26,14 @@ Scans the repository for manifests (e.g., `Cargo.toml`, `package.json`) and spec
 
 ### `index check`
 
-The staleness gate. It indexes the corpus in memory, without writing, and compares the result byte-for-byte with the committed shard tree (spec 086), the way [`compile --check`](./compile.md) does for the registry. Each stale shard is named with its class:
+The staleness gate. It indexes the corpus in memory, without writing, and compares the result byte-for-byte with the committed shard tree (spec 086), the way [`compile --check`](./compile.md) does for the registry. Each drifted shard is named with its class:
 
 - **`modified`**: a committed shard whose bytes differ from the shard a fresh index emits. A stale `shardHash`, a hand-edited body and a schema restamp all read this way.
 - **`missing`**: a spec or package with no committed shard.
 - **`orphaned`**: a committed shard with no spec or package behind it.
 - **`blocking-diagnostics`**: **machine surface only.** Not printed in prose since spec 098; it still reaches `--json` and library callers, as the paragraph below describes.
 
-A spec claiming a unit that does not resolve is a different refusal, and since spec 098 the prose says so separately rather than calling it staleness. What spec 098 3.3 fixes is the content, not the wording: the report is classed as an unresolved claim distinct from staleness, it carries one line per diagnostic naming the diagnostic code, the owning spec and the unit, it states that regenerating the index does not clear it, and it points at `spec-spine index diagnostics` when the list is capped. When the owning spec declares `implementation: complete`, the report adds that the spec and the tree disagree about what exists. Where shards moved as well, both halves are reported and regeneration is attributed to the stale half alone.
+A spec claiming a unit that does not resolve is a different refusal, and since spec 098 the prose says so separately rather than calling it staleness. What spec 098 fixes is the content, not the wording: the report is classed as an unresolved claim distinct from staleness, it carries one line per diagnostic naming the diagnostic code, the owning spec and the unit, it states that regenerating the index does not clear it, and it points at `spec-spine index diagnostics` when the list is capped. When the owning spec declares `implementation: complete`, the report adds that the spec and the tree disagree about what exists. Where shards moved as well, both halves are reported and regeneration is attributed to the stale half alone.
 
 Current output puts that section under an `UNRESOLVED CLAIM:` heading carrying the claim and spec counts. Treat the classed facts above as the contract and the exact phrasing as illustrative: 098's acceptance pins the code, the spec id, the unit and the regeneration statement, and deliberately does not pin the heading text. Match on the diagnostic code, never on the sentence.
 
