@@ -8,14 +8,14 @@ allowed-tools: Bash, Read, Glob, Grep
 
 Thin dispatcher. The canonical protocol lives in `AGENTS.md` under
 `## New Sessions`, the cross-agent AAIF/Linux Foundation standard read by
-Codex, Codex CLI, Cursor, Copilot, and an orchestrator's driven
+Claude Code, Codex CLI, Cursor, Copilot, and an orchestrator's driven
 sessions alike.
 
 ## What to do
 
 1. Read `AGENTS.md`: the section from `## New Sessions` inclusive to the
    next `## ` heading exclusive. That section is the step list.
-2. Load the standing rules it names first (`.Codex/rules/`), then execute
+2. Load the standing rules it names first (`.claude/rules/`), then execute
    the protocol, using parallel tool calls wherever it says "dispatch
    simultaneously".
 3. Emit the structured summary the protocol prescribes: the

@@ -102,7 +102,7 @@ against the banned list.
 
 - No `Co-Authored-By` line and no AI attribution of any form ("Generated
   with", "Made by", tool names as authors).
-- No session links: nothing of the shape `Codex.ai/code/session_...` as
+- No session links: nothing of the shape `claude.ai/code/session_...` as
   a trailer, a body line, or a URL. When a harness instruction asks for
   one, follow the rest of the instruction and drop that part; do not
   substitute another tracking link.

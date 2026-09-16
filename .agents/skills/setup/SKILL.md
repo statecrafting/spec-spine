@@ -8,7 +8,7 @@ allowed-tools: Bash, Read
 
 Get a fresh clone operational. After this completes, `/prime` can report
 lifecycle and structural counts through `spec-spine`, never by ad-hoc
-parsing of `.derived/**/*.json` (`.Codex/rules/governed-artifact-reads.md`).
+parsing of `.derived/**/*.json` (`.claude/rules/governed-artifact-reads.md`).
 
 ## Process
 
@@ -31,11 +31,11 @@ that path for every command below.
 
 ### 2. Stack toolchain
 
-Install whatever `AGENTS.md` (or `AGENTS.md`) names for the language
+Install whatever `AGENTS.md` (or `CLAUDE.md`) names for the language
 gates: a pinned toolchain file, a package manager, optional linters. Report
 each as present or absent; a missing optional tool is a note, a missing
 required one is a halt. `jq` is a convenience the hooks in
-`.Codex/settings.json` use; each hook says what it skipped when `jq` is
+`.claude/settings.json` use; each hook says what it skipped when `jq` is
 absent.
 
 ### 3. Fetch the base ref

@@ -25,7 +25,7 @@ spec-spine is a Rust library plus CLI: a typed, hash-verifiable authority ledger
 | Distributions | `npm/`, `py/` | Adopter-facing packaging, not used by the self-governance loop |
 | Derived | `.derived/` | Compiler output (registry, index), read only through the binary |
 
-Specs are the source of truth: every feature starts as a spec under `specs/`, following `standards/spec/templates/spec-template.md`. The behavioral rules are in `.Codex/rules/` (orchestrator, governed artifact reads, adversarial prompt refusal).
+Specs are the source of truth: every feature starts as a spec under `specs/`, following `standards/spec/templates/spec-template.md`. The behavioral rules are in `.claude/rules/` (orchestrator, governed artifact reads, adversarial prompt refusal).
 
 ## Process
 
@@ -35,7 +35,7 @@ Read the request or task document. Identify which surfaces and crates are affect
 
 ### 2. Load Relevant Context
 
-- `AGENTS.md` and `AGENTS.md`: conventions and session protocol
+- `CLAUDE.md` and `AGENTS.md`: conventions and session protocol
 - `standards/spec/contract.md` and `standards/spec/constitution.md`: the normative contract and durable principles
 - Relevant specs in `specs/NNN-slug/spec.md`: the authoritative design record
 - Existing code in affected crates: understand current patterns
@@ -120,7 +120,7 @@ Break the work into ordered, atomic steps. For each step specify:
 
 ## What to remember (project memory)
 
-This agent has `memory: project` and writes to `.Codex/agent-memory/architect/MEMORY.md`, shared across planning sessions. Record patterns that recur across decompositions.
+This agent has `memory: project` and writes to `.claude/agent-memory/architect/MEMORY.md`, shared across planning sessions. Record patterns that recur across decompositions.
 
 **Record:**
 
