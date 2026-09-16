@@ -831,3 +831,332 @@ fn the_enabler_registers_the_hooks_path_and_says_how_to_undo_it() {
     assert!(sh.contains("git config core.hooksPath"), "{sh}");
     assert!(sh.contains("--unset core.hooksPath"), "{sh}");
 }
+
+// ── spec 099: the session hooks report the verdict, not a guess ──────────────
+
+/// `check`'s report for a corpus whose committed shards are byte-exact but
+/// whose spec claims a unit that does not resolve. Copied from a 0.19.0 run
+/// against a scratch corpus, because the strings the hooks match on are the
+/// ones the verb actually prints.
+const BLOCKING_ONLY: &str = "spec-registry: fresh\n\
+codebase-index: UNRESOLVED CLAIM: 1 unresolved claim(s) over 1 spec(s), which is not staleness\n  \
+I-004 001-missing-territory: spec '001-missing-territory' file unit 'src/nothing.rs' does not exist\n  \
+regenerating the index does not clear this: each diagnostic is recomputed from the corpus on every run\n";
+
+const STALE_ONLY: &str = "spec-registry: fresh\n\
+codebase-index: STALE (run `spec-spine index`)\n1 stale shard(s):\n  missing by-spec/002-second.json\n";
+
+const MIXED: &str = "spec-registry: fresh\n\
+codebase-index: STALE (run `spec-spine index`)\n1 stale shard(s):\n  missing by-spec/002-second.json\n\
+codebase-index: UNRESOLVED CLAIM: 1 unresolved claim(s) over 1 spec(s), which is not staleness\n  \
+I-004 001-missing-territory: spec '001-missing-territory' file unit 'src/nothing.rs' does not exist\n  \
+regenerating addresses the stale shard(s) only, not the unresolved claim(s)\n";
+
+const INVALID: &str = "spec-registry: INVALID: the corpus fails validation, so staleness was not \
+computed (run `spec-spine compile --check` for the violations)\n";
+
+const NOT_READ: &str =
+    "spec-spine: config error: TOML parse error at line 121\nunknown field `nonsense`\n";
+
+const HEALTHY: &str = "spec-registry: fresh\ncodebase-index: fresh\n";
+
+/// Run one shipped session-hook body against a stand-in binary whose `check`
+/// exit code and report are both chosen by the caller: the shape spec 080 3.4
+/// established for the PR gate, which is why the assertions below can pin the
+/// distinction between verdicts rather than the mere presence of a message.
+///
+/// `help_exit` is what the stand-in spends on `check --help`. Non-zero stands
+/// for a binary predating the verb, which clap answers with exit 2, the same
+/// code this tool spends on staleness (spec 063 3.1).
+///
+/// The body is read out of `kit/settings.json`, never restated here. A test
+/// that asserted against its own copy of the script would pass while the
+/// shipped one stayed wrong.
+fn run_session_hook(
+    event: &str,
+    check_exit: i32,
+    report: &str,
+    version: &str,
+    help_exit: i32,
+) -> (i32, String) {
+    use std::os::unix::fs::PermissionsExt;
+    use std::process::{Command, Stdio};
+
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    fs::create_dir_all(root.join("specs")).unwrap();
+
+    let report_file = root.join("report.txt");
+    fs::write(&report_file, report).unwrap();
+
+    let stand_in = root.join("stand-in-spec-spine");
+    fs::write(
+        &stand_in,
+        format!(
+            "#!/bin/sh\ncase \"$*\" in\n  *--version*) echo '{version}'; exit 0 ;;\n  \
+             *--help*) exit {help_exit} ;;\nesac\ncat '{}'\nexit {check_exit}\n",
+            report_file.display()
+        ),
+    )
+    .unwrap();
+    fs::set_permissions(&stand_in, fs::Permissions::from_mode(0o755)).unwrap();
+
+    let body = hook_bodies()[event].join("\n");
+    let out = Command::new("sh")
+        .arg("-c")
+        .arg(&body)
+        .current_dir(root)
+        .env("CLAUDE_PROJECT_DIR", root)
+        .env("SPEC_SPINE_BIN", &stand_in)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .output()
+        .expect("sh runs");
+    (
+        out.status.code().unwrap_or(-1),
+        String::from_utf8_lossy(&out.stdout).into_owned(),
+    )
+}
+
+fn run_stop(check_exit: i32, report: &str) -> (i32, String) {
+    run_session_hook("Stop", check_exit, report, "spec-spine 0.19.0-stand-in", 0)
+}
+
+fn run_session_start(check_exit: i32, report: &str) -> (i32, String) {
+    run_session_hook(
+        "SessionStart",
+        check_exit,
+        report,
+        "spec-spine 0.19.0-stand-in",
+        0,
+    )
+}
+
+/// Spec 099 3.1: an unresolved claim is reported as itself. The remedy the
+/// staleness line carries is regeneration, and regeneration provably does not
+/// clear a claim on a unit that does not exist (spec 098 1.2): `index` exits
+/// 0, writes the same bytes, and the next read refuses identically.
+#[test]
+fn the_stop_hook_reports_an_unresolved_claim_as_itself() {
+    let (code, out) = run_stop(2, BLOCKING_ONLY);
+    assert_eq!(code, 0, "the hook advises and never refuses (1.4): {out}");
+    assert!(out.contains("UNRESOLVED CLAIM"), "{out}");
+    assert!(
+        !out.contains("[freshness] STALE"),
+        "an unresolved claim is not staleness: {out}"
+    );
+    assert!(
+        !out.contains("spec-spine compile"),
+        "regeneration is not the remedy here, so it must not be named: {out}"
+    );
+}
+
+/// The other half of the pair: staleness is still staleness, with the wording
+/// untouched, so the distinction is what this spec adds rather than a rewrite
+/// of a message adopters already read (3.1, D-3).
+#[test]
+fn the_stop_hook_still_reports_a_stale_tree_as_stale() {
+    let (code, out) = run_stop(2, STALE_ONLY);
+    assert_eq!(code, 0, "{out}");
+    assert!(
+        out.contains("[freshness] STALE: run `spec-spine compile` and `index`"),
+        "the stale wording is unchanged: {out}"
+    );
+    assert!(out.contains("Not regenerated here"), "{out}");
+    assert!(!out.contains("UNRESOLVED CLAIM"), "{out}");
+}
+
+/// Spec 099 3.1: in the mixed case both are reported and neither is elided.
+/// Reporting only the stale half is what the pre-099 body did through the
+/// `SessionStart` banner, and it named regeneration for a refusal half of
+/// which regeneration does not touch.
+#[test]
+fn the_stop_hook_reports_both_halves_of_a_mixed_verdict() {
+    let (code, out) = run_stop(2, MIXED);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("[freshness] STALE"), "{out}");
+    assert!(
+        out.contains("UNRESOLVED CLAIM"),
+        "the half regeneration does not fix must not be dropped: {out}"
+    );
+}
+
+/// Spec 099 3.1: exit 1 is a corpus that does not validate, which is neither
+/// stale nor cleared by regenerating.
+#[test]
+fn the_stop_hook_reports_a_corpus_that_does_not_validate() {
+    let (code, out) = run_stop(1, INVALID);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("INVALID"), "{out}");
+    assert!(!out.contains("[freshness] STALE"), "{out}");
+    assert!(!out.contains("spec-spine compile"), "{out}");
+}
+
+/// Spec 099 3.1 and 3.2, on spec 080's rule: exit 3 is a read that was not
+/// performed. The hook says so, names the binary and what it answers to
+/// `--version`, and never calls the tree stale.
+#[test]
+fn the_stop_hook_reports_a_read_it_could_not_perform() {
+    let (code, out) = run_stop(3, NOT_READ);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("NOT READ"), "{out}");
+    assert!(
+        out.contains("stand-in-spec-spine"),
+        "names the binary: {out}"
+    );
+    assert!(
+        out.contains("0.19.0-stand-in"),
+        "relays what --version answered (3.2): {out}"
+    );
+    assert!(!out.contains("[freshness] STALE"), "{out}");
+    assert!(!out.contains("spec-spine compile"), "{out}");
+}
+
+/// Spec 099 3.2: clap spends exit 2 on an unrecognised subcommand and this
+/// tool spends exit 2 on staleness, so a binary predating `check` hands back
+/// the staleness code without having read anything. The probe runs first and
+/// the code is never believed on its own.
+#[test]
+fn the_stop_hook_reports_a_binary_that_predates_the_verb() {
+    let (code, out) = run_session_hook("Stop", 2, STALE_ONLY, "spec-spine 0.17.0-stand-in", 2);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("NOT READ"), "{out}");
+    assert!(out.contains("0.17.0-stand-in"), "{out}");
+    assert!(
+        out.contains("0.18.0"),
+        "names the floor the verb needs: {out}"
+    );
+    assert!(
+        !out.contains("[freshness] STALE"),
+        "a binary that cannot answer is not a stale tree: {out}"
+    );
+}
+
+/// Spec 099 3.1: a report the hook does not recognise is said to be exactly
+/// that. Guessing either remedy is the defect one level down.
+#[test]
+fn the_stop_hook_guesses_no_remedy_for_a_report_it_cannot_read() {
+    let (code, out) = run_stop(2, "a shape this hook has never seen\n");
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("REFUSED"), "{out}");
+    assert!(!out.contains("[freshness] STALE"), "{out}");
+    assert!(!out.contains("UNRESOLVED CLAIM"), "{out}");
+}
+
+#[test]
+fn the_stop_hook_says_nothing_when_both_trees_are_fresh() {
+    let (code, out) = run_stop(0, HEALTHY);
+    assert_eq!(code, 0);
+    assert!(out.trim().is_empty(), "a fresh tree gets no banner: {out}");
+}
+
+/// Spec 099 1.4: the hook advises and does not refuse, in every branch. Design
+/// note 06's H-6 asks whether that should change; pinning the posture here
+/// means a later answer to it is a deliberate edit rather than a side effect
+/// of one, which is exactly what this spec was not allowed to decide.
+#[test]
+fn the_stop_hook_advises_and_never_refuses() {
+    for (exit, report) in [
+        (0, HEALTHY),
+        (1, INVALID),
+        (2, BLOCKING_ONLY),
+        (2, MIXED),
+        (3, NOT_READ),
+        (7, "an exit code this hook does not know\n"),
+    ] {
+        let (code, out) = run_stop(exit, report);
+        assert_eq!(
+            code, 0,
+            "check exit {exit} must still advise, not refuse: {out}"
+        );
+    }
+}
+
+/// Spec 099 3.3: after spec 098 the blocking-only verdict stopped matching
+/// `codebase-index: STALE` and fell to the `unknown (check exit 2)` fallback.
+/// "Unknown" was no longer false, which is why 098 accepted it as a trade, and
+/// it told a session nothing it could act on.
+#[test]
+fn the_session_banner_reports_an_unresolved_claim_as_itself() {
+    let (code, out) = run_session_start(2, BLOCKING_ONLY);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("codebase index: UNRESOLVED CLAIM"), "{out}");
+    assert!(
+        !out.contains("unknown (check exit"),
+        "a verdict the verb documents is not unknown: {out}"
+    );
+}
+
+/// The stale-only banner is unchanged, wording included, for spec 098 3.3's
+/// reason: a caller reading staleness today reads it after.
+#[test]
+fn the_session_banner_keeps_the_stale_only_wording() {
+    let (code, out) = run_session_start(2, STALE_ONLY);
+    assert_eq!(code, 0, "{out}");
+    assert!(
+        out.contains("codebase index: STALE, run spec-spine index"),
+        "{out}"
+    );
+    assert!(!out.contains("UNRESOLVED CLAIM"), "{out}");
+}
+
+/// Spec 099 3.3: the mixed banner reported the stale half and dropped the
+/// unresolved one, so a reader regenerated, watched the refusal survive, and
+/// had been told nothing about why.
+#[test]
+fn the_session_banner_reports_both_halves_of_a_mixed_verdict() {
+    let (code, out) = run_session_start(2, MIXED);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("STALE"), "{out}");
+    assert!(
+        out.contains("UNRESOLVED CLAIM"),
+        "the mixed banner dropped this half before spec 099: {out}"
+    );
+}
+
+#[test]
+fn the_session_banner_still_reports_a_healthy_tree() {
+    let (code, out) = run_session_start(0, HEALTHY);
+    assert_eq!(code, 0, "{out}");
+    assert!(
+        out.contains("spec registry: fresh; codebase index: fresh"),
+        "{out}"
+    );
+}
+
+/// Spec 099 3.4: the hooks ship in three copies and nothing compared the
+/// third. `.codex/hooks.json` has carried them since spec 081 with no test
+/// holding it to the kit, which is how a copy drifts: the fix for a verdict
+/// has to reach every file that renders one.
+#[test]
+fn all_three_shipped_copies_carry_the_same_hooks() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let bodies = |rel: &str| -> Vec<String> {
+        let p = root.join(rel);
+        let v: serde_json::Value = serde_json::from_str(&fs::read_to_string(&p).unwrap())
+            .unwrap_or_else(|e| panic!("{rel} parses: {e}"));
+        let mut out: Vec<String> = v["hooks"]
+            .as_object()
+            .expect("hooks object")
+            .values()
+            .flat_map(|m| m.as_array().expect("matcher list"))
+            .flat_map(|m| m["hooks"].as_array().expect("hook list"))
+            .map(|h| h["command"].as_str().expect("command string").to_string())
+            .collect();
+        out.sort();
+        out
+    };
+    let kit = bodies("kit/settings.json");
+    assert_eq!(kit.len(), 4, "the kit ships one body per hook event");
+    assert_eq!(
+        bodies(".claude/settings.json"),
+        kit,
+        "this repository's hooks must be the ones the kit ships (spec 051 3.6)"
+    );
+    assert_eq!(
+        bodies(".codex/hooks.json"),
+        kit,
+        "the Codex copy must be the ones the kit ships (spec 099 3.4)"
+    );
+}
