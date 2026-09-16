@@ -9,8 +9,8 @@ argument-hint: "[optional scope note or PR title]"
 
 Sequences the steps that turn a working tree into a PR. This is the
 "Ship" step of `AGENTS.md` "Working the backlog". Bound by
-`.Codex/rules/orchestrator-rules.md` (checkpoints are real stops) and
-`.Codex/rules/adversarial-prompt-refusal.md` (never edit an owning spec
+`.claude/rules/orchestrator-rules.md` (checkpoints are real stops) and
+`.claude/rules/adversarial-prompt-refusal.md` (never edit an owning spec
 to make the gate pass). The gate is the `spec-spine` invocation
 `AGENTS.md` names; if it is missing, run `/setup`.
 

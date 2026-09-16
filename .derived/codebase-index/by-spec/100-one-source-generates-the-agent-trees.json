@@ -1,37 +1,34 @@
 {
   "mapping": {
     "dependsOn": [
-      "005-coupling-gate",
-      "009-coupling-floor-claim-precedence",
-      "037-machine-readable-verdicts"
+      "048-kit-ships-the-governed-loop-skills",
+      "057-claimed-but-unwitnessed",
+      "065-init-and-the-kit-are-one-adoption",
+      "081-the-kit-ships-what-the-loop-calls"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/cmd_config.rs",
+        "path": ".agents/skills/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/main.rs",
+        "path": ".claude/skills/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/config.rs",
+        "path": ".codex/agents/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/couple.rs",
+        "path": "crates/spec-spine-core/tests/agent_trees.rs",
+        "source": "multiple"
+      },
+      {
+        "path": "scripts/gen-agent-trees.py",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/lib.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-types/src/config.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-types/src/lib.rs",
+        "path": "spec-spine.toml",
         "source": "spec-edge"
       }
     ],
@@ -39,124 +36,124 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_config.rs"
+            "file": ".agents/skills/"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_config.rs"
+          "path": ".agents/skills/"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/config.rs"
+            "file": ".codex/agents/"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/config.rs"
+          "path": ".codex/agents/"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/main.rs"
+            "file": "crates/spec-spine-core/tests/agent_trees.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/agent_trees.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/gen-agent-trees.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/gen-agent-trees.py"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".claude/skills/"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/main.rs"
+          "path": ".claude/skills/"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/couple.rs"
+            "file": "spec-spine.toml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/couple.rs"
+          "path": "spec-spine.toml"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/lib.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/lib.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-types/src/config.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-types/src/config.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-types/src/lib.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-types/src/lib.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/adoption-guide.md"
+            "file": ".claude/agents/"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/adoption-guide.md"
+          "path": ".claude/agents/"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/design/03-adopter-audit-2026-09.md"
+            "file": "docs/design/05-remaining-waves-2026-09.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/03-adopter-audit-2026-09.md"
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/06-harness-and-distribution-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/06-harness-and-distribution-2026-09.md"
         }
       }
     ],
-    "specId": "054-effective-config-is-a-governed-read",
-    "specStatus": "approved"
+    "specId": "100-one-source-generates-the-agent-trees",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "7bce4125ae6be2448789cad283fd8e37bf22147997df219cce2922f9544feb07"
+  "shardHash": "e5866114a8f8e2ee5be6ca68bf3fc42572991379153c892c19936a0356d5620c"
 }

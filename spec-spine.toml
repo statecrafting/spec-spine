@@ -101,6 +101,19 @@ extra_hashed_inputs = [
   # one governance file whose bytes could change without staling a shard,
   # which is what L-008 refuses.
   ".codex/hooks.json",
+  # Spec 100 3.5: the three generated agent instruction trees. Two of them,
+  # `.agents/skills/` and `.codex/agents/`, were tracked and unowned
+  # since spec 081's own commit and claimed by 100. Governance files of exactly
+  # the kind spec 074 3.2 says the glob remedy is right for: a handful, rarely
+  # changed, and a change to one should stale the ledger. All three generated
+  # destinations are listed, including `.claude/skills/`: its bytes are also
+  # reachable by a direct edit that never goes through the kit, and such an edit
+  # matches no other glob here, so without this entry the one tree a Claude
+  # session actually reads would be the one whose corruption stales nothing.
+  # `C-002` does not cover it either, since `.md` is outside `SOURCE_EXTS`.
+  ".claude/skills/*/SKILL.md",
+  ".agents/skills/*/SKILL.md",
+  ".codex/agents/*.toml",
   "kit/scripts/*.sh",
   "scripts/*.py",
   "py/scripts/*.py",

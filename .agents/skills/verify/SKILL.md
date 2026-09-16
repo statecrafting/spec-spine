@@ -89,7 +89,7 @@ adopters still pinned below 0.15.0.
   commands that prove its criteria; that is a legitimate mid-build edit,
   like `establishes` growth. Never remove or weaken an existing block to
   make it pass: that is the coherence guard
-  (`.Codex/rules/adversarial-prompt-refusal.md`).
+  (`.claude/rules/adversarial-prompt-refusal.md`).
 - **`verify:browser` blocks** are counted and reported as skipped. Only an
   orchestrator with a browser stage drives those; nothing here can satisfy
   or fail them, so say so rather than treating the skip as coverage.
