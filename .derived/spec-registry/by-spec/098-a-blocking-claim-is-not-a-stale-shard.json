@@ -58,7 +58,7 @@
       }
     ],
     "id": "098-a-blocking-claim-is-not-a-stale-shard",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -96,6 +96,6 @@
     "summary": "`check_index_freshness` folds two different refusals into one verdict: a committed shard whose bytes moved, and a spec whose claimed unit does not resolve. Both arrive as `Freshness::Stale`, so `check` prints \"codebase-index: STALE (run `spec-spine index`)\" and `index check` prints \"index is STALE (run `spec-spine index` to refresh)\" for a corpus whose shards are byte-exact. The named remedy provably does not work: reproduced at 0.19.0, `index` exits 0, writes the shard, and `check` still exits 2, because re-indexing cannot create a file a spec claims. An adopter documenting exit 2 as staleness follows that advice indefinitely. This spec keeps the refusal and the exit code exactly as they are and changes what the two freshness verbs say: a blocking resolution diagnostic is reported as its own class, names the owning spec and unit, and says regeneration will not clear it. The mixed case reports both and says which half regeneration addresses.\n",
     "title": "A blocking claim is not a stale shard"
   },
-  "shardHash": "3cb1f048ddc02aa811e727d8971cc03c66c76ad9c6f618930da312cd7419acde",
+  "shardHash": "a86e04e9a82c0a5262a2ab75256c4fc23b7fc5c640e2856f38cffddeb16a7acb",
   "specVersion": "1.2.0"
 }

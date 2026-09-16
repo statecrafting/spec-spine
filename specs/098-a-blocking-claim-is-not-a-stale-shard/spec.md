@@ -18,7 +18,7 @@ summary: >
   verbs say: a blocking resolution diagnostic is reported as its own class,
   names the owning spec and unit, and says regeneration will not clear it. The
   mixed case reports both and says which half regeneration addresses.
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
