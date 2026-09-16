@@ -11,6 +11,17 @@ The factual base is [authority-evidence.md](../authority-evidence.md), which
 maps the existing verbs, digests and consumer fields with real outputs. This
 note does not repeat it; it cites its sections as AE §n.
 
+> **Lifecycle refresh, 2026-09-15 (`3bc004b`).** The four increments this note
+> calls drafts are all approved and complete: 085, 086, 087 and 088. Findings
+> F8 and F9, recorded below as "small fix, unfiled", shipped as 093 and 096,
+> and D7 is decided by 093. The sentence "no record shape in this note is
+> emitted by any build" now holds only for §4.4 to §4.6, which remain
+> unfiled. Every measurement below is preserved exactly as it was taken on
+> 2026-09-11 against `75181a5`: the `Carried by` column and the §8 table say
+> where each one was answered. The current backlog record is
+> [note 05 §9](05-remaining-waves-2026-09.md); the harness half neither note
+> covered is [note 06](06-harness-and-distribution-2026-09.md).
+
 ## 1. Where the requirement came from
 
 A planning packet dated 2026-09-11 (the "September 11 realignment" of the
@@ -66,8 +77,8 @@ tables.
 | F5 | No attestation records committed-shard freshness, a config digest, or which governance files were read; `check --json` reports freshness as booleans without the digests compared | AE §4 | 087 |
 | F6 | `couple` diffs from a merge base it never reports, and a corpus attestation's `couple` block is a different question (resolution, not diff) | AE §5 | 088, request R2 |
 | F7 | C-001 clears on **any** owner's `spec.md` in the diff, and owners are read from the candidate's own index, so a candidate can weaken its own `## Verification` block, or claim territory with a new `extends`, and pass | AE §5; `couple.rs` "primary-owner heuristic"; reproduced in 088's `## Verification` | 088 (report only; note 02 G7 stands) |
-| F8 | `registry plan --json`, `index owner --json`, `index coverage --json` carry no version and emit unsorted keys, contrary to `api.md` §7 | AE §2 | small fix, unfiled |
-| F9 | `registry show` prints `contentHash ... (sha256 of this spec.md)` but the value is the path-prefixed shard hash, which differs from `specSourceHash` for the same file | AE §4 | small fix, unfiled |
+| F8 | `registry plan --json`, `index owner --json`, `index coverage --json` carry no version and emit unsorted keys, contrary to `api.md` §7 | AE §2 | 093 (shipped 2026-09-15) |
+| F9 | `registry show` prints `contentHash ... (sha256 of this spec.md)` but the value is the path-prefixed shard hash, which differs from `specSourceHash` for the same file | AE §4 | 096 (shipped 2026-09-15) |
 | F10 | `docs/schema-versioning.md` lists registry and index at `1.0.0` and omits the attestation and envelope axes, and says the artifact DTOs deny unknown fields, which only `Config`, the edge items and `Unit` do | AE §2 | 085 |
 | F11 | `index check` never compares the committed index body with a fresh resolution: it trusts the body to name its own span files and compares only `shardHash`. A shard rewritten so its spec owns nothing, `shardHash` untouched, reads fresh under `index check` and `check`, and `couple` then derives ownership from it. `.derived/` is bypassed, and no CI job diffs a regenerated index against the committed one | AE §5; `index.rs` `check_index_freshness`; spec 031 3.1 records the weaker comparison as a cost trade (a full `index` here takes 0.04 s against 0.03 s) | 086 |
 
@@ -101,7 +112,7 @@ Nothing here is called a Merkle root. A membership proof would need a defined
 tree, leaf encoding and proof format; §5 leaves that to a later increment that
 has a consumer for selective verification.
 
-### 4.2 AuthoritySnapshot (filed as draft 087)
+### 4.2 AuthoritySnapshot (087: approved, complete)
 
 One on-demand, sealable record of the authority state of a tree: what was
 read, what it compiled to, whether the committed ledger matched, and what each
@@ -148,7 +159,7 @@ prove: anything about a revision (the consumer binds the tree, AE §6),
 anything about unclaimed files beyond their count, the correctness of any
 spec, or that anyone approved the state.
 
-### 4.3 AuthorityDelta (filed as draft 088)
+### 4.3 AuthorityDelta (088: approved, complete)
 
 A classification of every path a change touches, computed under the **base**
 revision's configuration so a candidate cannot reclassify its own change by
@@ -312,10 +323,10 @@ existing attestations; the rest are properties of the consumer's verifier.
 
 | Phase | Increment | Register ids | State | Exit evidence |
 |---|---|---|---|---|
-| P0 | **085** a verifier checks the bytes it was given | B33, B34 (prerequisite), A08 | draft, filed | every F1/F2 tamper row refuses; historical corpus and file-unit attestations still `match` |
-| P0 | **086** the committed index is compared, not trusted | B11, B33 | draft, filed (amends 024 5) | a rewritten shard body reads stale under `index check`, `check` and `couple`; a regenerated tree reads fresh |
-| P0 | **087** an authority snapshot says what it read | B11, A08, B33 | draft, filed | one record answers AE §4's "not covered" list for a tree; framed digests; recompute and seal via 085 |
-| P0 | **088** a change is classified under the base's rules | A03, A08, B35 | draft, filed | weakening one's own plan, a new `extends` claim, a config edit and an ambiguous move each classify; `couple` alone passes all four |
+| P0 | **085** a verifier checks the bytes it was given | B33, B34 (prerequisite), A08 | approved, complete | every F1/F2 tamper row refuses; historical corpus and file-unit attestations still `match` |
+| P0 | **086** the committed index is compared, not trusted | B11, B33 | approved, complete (amends 024 5) | a rewritten shard body reads stale under `index check`, `check` and `couple`; a regenerated tree reads fresh |
+| P0 | **087** an authority snapshot says what it read | B11, A08, B33 | approved, complete | one record answers AE §4's "not covered" list for a tree; framed digests; recompute and seal via 085 |
+| P0 | **088** a change is classified under the base's rules | A03, A08, B35 | approved, complete | weakening one's own plan, a new `extends` claim, a config edit and an ambiguous move each classify; `couple` alone passes all four |
 | P1 | obligation records (4.4) | A01, A02, A08 | proposed | duplicate or unknown ids refuse at compile; declared verifier inputs reach the delta |
 | P1 | context closure (4.5) | B04, B05 | proposed | missing and optional items explicit; a truncated delivery cannot claim completeness |
 | P1 | work scope (4.6) | B01 | proposed | overlap between two ready specs is reported; scope references snapshot and closure digests |
@@ -329,6 +340,17 @@ existing attestations; the rest are properties of the consumer's verifier.
 Nothing in P1 or P2 is filed. Each should be filed only after the P0 record
 vocabulary it builds on is approved, because obligations, closures and scopes
 all reference a snapshot digest.
+
+**Refreshed 2026-09-15.** That prerequisite is now met: all four P0 increments
+are approved and complete, so `frame/1` has an owning spec. Two things follow,
+and they point in opposite directions. Technically, P1 is buildable. As
+sequencing, grand-refactor revision 4 **SP-03 recommends deferring obligations,
+WorkScope, ContextClosure, A10 and B23 beyond the local slice**, to be reopened
+for a named consumer need. SP-03 is a recommendation and is **not adopted**
+(revision 4's adoption record holds only four statecrafting-profile rows). So
+P1 is neither scheduled nor withdrawn, and neither statement licenses a build.
+[Note 05 §9.2](05-remaining-waves-2026-09.md) carries the row; the decision is
+recorded in grand-refactor, not here.
 
 ## 6. The register, disposition by disposition
 
@@ -427,7 +449,7 @@ repository.
 | A single tampered payload byte fails the signature | spec 023 AC-4 | For existing members only. Added members and reformatting verify (F1) |
 | Loaders reject an unknown schema MAJOR | `docs/schema-versioning.md`; `types/src/attest.rs` | For registry and index loaders. Not for attestation verification (F2) |
 | Artifact DTOs deny unknown fields | `docs/schema-versioning.md` | `Config`, edge items and `Unit` only (F10) |
-| Every emitted JSON document has sorted keys | `api.md` §7 | Not `registry plan`, `index owner` or `index coverage` (F8) |
+| Every emitted JSON document has sorted keys | `api.md` §7 | Was not true of `registry plan`, `index owner` or `index coverage` (F8); made true by 093 |
 | `tool.version` is the reproducibility anchor | spec 023 FR-005 | Not a build identity (F3) |
 | The corpus attestation with coupling covers "specs and code in sync" | spec 023 FR-002 | Resolution only; no code bytes and no diff (AE §4, §5) |
 | `verify` never enters the gate chain | spec 049 3.6 | Yes: CI and the floor exclude it |
@@ -469,9 +491,13 @@ repository.
   block, and whether `constraint` is a fourth kind.
 - **D6. The neutral verifier's home.** A family decision; spec-spine's part is
   the fixtures and strict payload validation in its own crates.
-- **D7. Envelopes for the unversioned reads.** Wrap `registry plan`,
+- **D7. Envelopes for the unversioned reads.** ~~Wrap `registry plan`,
   `index owner` and `index coverage` in the spec 037 envelope, or add a version
-  field to each.
+  field to each.~~ **Decided and shipped by 093 (2026-09-15):** every read
+  document carries `schemaVersion` with sorted keys, and four bare arrays moved
+  under `items` or a nullable `next`, with `amends` edges on 010 and 060. The
+  compatibility surface was wider than this line assumed; note 05 §7.1 row 5
+  records the ruling.
 - **D8. Constitutional edits and bootstrap.** Whether any change to tier-1
   anchors or `standards/spec/` can be accepted under the candidate's policy
   (this note's answer is no), and what authorizes the first snapshot a consumer
