@@ -1,7 +1,7 @@
 ---
 id: "098-a-blocking-claim-is-not-a-stale-shard"
 title: "A blocking claim is not a stale shard"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-15"
 summary: >
