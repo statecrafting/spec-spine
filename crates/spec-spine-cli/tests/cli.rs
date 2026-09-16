@@ -3507,3 +3507,235 @@ fn config_show_and_init_carry_the_scope_keys() {
     let cfg = spec_spine_types::load_config(&toml).unwrap();
     assert!(cfg.coverage.governed_scope.is_empty());
 }
+
+// --- spec 098: a blocking claim is not a stale shard, at the verbs -----------
+
+/// A corpus whose committed shards are byte-exact and whose spec claims a unit
+/// that does not exist.
+///
+/// `status` and `implementation` decide the tier: spec 041's table makes
+/// `approved` + `complete` blocking, and anything in flight a `W-001` warning
+/// (spec 098 D-5).
+fn blocking_corpus(root: &Path, status: &str, implementation: &str) {
+    let dir = root.join("specs/001-missing");
+    fs::create_dir_all(&dir).unwrap();
+    fs::write(
+        dir.join("spec.md"),
+        format!(
+            "---\nid: \"001-missing\"\ntitle: \"T\"\nstatus: {status}\ncreated: \"2026-09-16\"\n\
+             implementation: {implementation}\nsummary: \"s\"\nestablishes:\n  - \"src/gone.rs\"\n\
+             ---\n\n# 001-missing\n"
+        ),
+    )
+    .unwrap();
+    assert_eq!(code(&run_in(root, &["compile"])), 0);
+    assert_eq!(code(&run_in(root, &["index"])), 0);
+}
+
+fn stderr(out: &std::process::Output) -> String {
+    String::from_utf8_lossy(&out.stderr).to_string()
+}
+
+#[test]
+fn check_reports_an_unresolved_claim_as_itself() {
+    // Spec 098 AC-1 / FR-003 / FR-004 / FR-005. The refusal and the exit code
+    // are unchanged (§3.1); what changes is that the verb no longer calls a
+    // byte-exact tree stale and no longer prescribes a command that provably
+    // does not work.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    blocking_corpus(root, "approved", "complete");
+
+    let out = run_in(root, &["check"]);
+    assert_eq!(code(&out), 2, "{}", stderr(&out));
+    let err = stderr(&out);
+    let index_line = err
+        .lines()
+        .find(|l| l.starts_with("codebase-index:"))
+        .expect("the index half is attributed to its tree (spec 075 §3.4)");
+    assert!(!index_line.contains("STALE"), "{index_line}");
+    assert!(!index_line.contains("spec-spine index"), "{index_line}");
+    assert!(err.contains("I-004"), "{err}");
+    assert!(err.contains("001-missing"), "{err}");
+    assert!(err.contains("src/gone.rs"), "{err}");
+    assert!(
+        err.contains("regenerating the index does not clear this"),
+        "{err}"
+    );
+    // FR-007 / AC-6: the contradiction is named.
+    assert!(err.contains("`implementation: complete`"), "{err}");
+    // AC-7: and no way out of it is offered.
+    assert!(!err.contains("planned: true"), "{err}");
+    // The registry half is untouched.
+    assert!(
+        String::from_utf8_lossy(&out.stdout).contains("spec-registry: fresh"),
+        "{}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+
+    // The same at the primitive verb, in its own words.
+    let idx = run_in(root, &["index", "check"]);
+    assert_eq!(code(&idx), 2);
+    let ierr = stderr(&idx);
+    assert!(ierr.contains("I-004"), "{ierr}");
+    assert!(!ierr.contains("to refresh"), "{ierr}");
+}
+
+#[test]
+fn regenerating_leaves_the_message_accurate() {
+    // Spec 098 AC-2, the regression. `index` exits 0 and repairs nothing, and
+    // the verb still refuses without claiming the tree is stale or that
+    // anything was fixed. This is the case the pre-098 output got wrong, so it
+    // is asserted directly rather than inferred from AC-1.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    blocking_corpus(root, "approved", "complete");
+
+    assert_eq!(
+        code(&run_in(root, &["index"])),
+        0,
+        "the named remedy exits 0"
+    );
+    let out = run_in(root, &["check"]);
+    assert_eq!(code(&out), 2, "and the refusal stands");
+    let err = stderr(&out);
+    assert!(err.contains("I-004"), "{err}");
+    assert!(
+        !err.lines()
+            .any(|l| l.starts_with("codebase-index:") && l.contains("STALE")),
+        "{err}"
+    );
+}
+
+#[test]
+fn check_json_is_unchanged_by_the_message_fix() {
+    // Spec 098 FR-009 / AC-8 / D-1: the `--json` envelope keeps its version,
+    // members and nesting. A JSON consumer could already separate the two
+    // refusals through `report.index.diagnostics.byCode`, so the surface that
+    // needed correcting was the text and this one is held still.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    blocking_corpus(root, "approved", "complete");
+
+    let out = run_in(root, &["check", "--json"]);
+    assert_eq!(code(&out), 2);
+    let json = envelope(&out);
+    assert_eq!(json["schemaVersion"], "0.4.0", "{json}");
+    assert_eq!(json["exitCode"], 2, "{json}");
+    assert_eq!(json["ok"], false, "{json}");
+    let members: Vec<&str> = json
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(|k| k.as_str())
+        .collect();
+    assert_eq!(
+        members,
+        ["exitCode", "ok", "report", "schemaVersion", "verb"],
+        "{json}"
+    );
+    let index = &json["report"]["index"];
+    let index_members: Vec<&str> = index
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(|k| k.as_str())
+        .collect();
+    assert_eq!(
+        index_members,
+        ["actual", "diagnostics", "expected", "fresh", "unwitnessed"],
+        "{json}"
+    );
+    assert_eq!(index["diagnostics"]["byCode"]["I-004"], 1, "{json}");
+    assert_eq!(
+        index["actual"], "1 stale shard(s):\n  blocking-diagnostics by-spec/001-missing.json",
+        "the payload text is the one this spec deliberately does not move: {json}"
+    );
+}
+
+#[test]
+fn a_stale_shard_still_reads_as_staleness() {
+    // Spec 098 FR-008 / AC-3: unchanged, wording included, for a corpus with no
+    // blocking diagnostic. A caller that reads staleness today reads it after.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    write_spec(root, "001-a", "001-a", "approved");
+    assert_eq!(code(&run_in(root, &["index"])), 0);
+    write_spec(root, "001-a", "001-a", "draft"); // a hashed input moves
+
+    let out = run_in(root, &["check"]);
+    assert_eq!(code(&out), 2);
+    let err = stderr(&out);
+    assert!(
+        err.contains("codebase-index: STALE (run `spec-spine index`)"),
+        "{err}"
+    );
+    assert!(err.contains("stale shard(s):"), "{err}");
+    assert!(!err.contains("I-004"), "{err}");
+    assert!(!err.contains("UNRESOLVED CLAIM"), "{err}");
+
+    let idx = run_in(root, &["index", "check"]);
+    assert_eq!(code(&idx), 2);
+    assert!(
+        stderr(&idx).contains("index is STALE (run `spec-spine index` to refresh)"),
+        "{}",
+        stderr(&idx)
+    );
+}
+
+#[test]
+fn a_mixed_tree_names_both_halves_at_the_verbs() {
+    // Spec 098 AC-4 / FR-006: neither half elided, and regeneration attributed
+    // to the stale half alone.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    write_spec(root, "002-b", "002-b", "approved");
+    blocking_corpus(root, "approved", "complete");
+    write_spec(root, "002-b", "002-b", "draft"); // 002-b's shard is now behind
+
+    let out = run_in(root, &["check"]);
+    assert_eq!(code(&out), 2);
+    let err = stderr(&out);
+    assert!(
+        err.contains("codebase-index: STALE (run `spec-spine index`)"),
+        "{err}"
+    );
+    assert!(err.contains("modified by-spec/002-b.json"), "{err}");
+    assert!(err.contains("I-004"), "{err}");
+    assert!(
+        err.contains("regenerating addresses the stale shard(s) only, not the unresolved claim(s)"),
+        "{err}"
+    );
+
+    // After regenerating, the stale half is gone and the blocking half stands.
+    assert_eq!(code(&run_in(root, &["index"])), 0);
+    let after = stderr(&run_in(root, &["check"]));
+    assert!(after.contains("I-004"), "{after}");
+    assert!(
+        !after
+            .lines()
+            .any(|l| l.starts_with("codebase-index:") && l.contains("STALE")),
+        "{after}"
+    );
+}
+
+#[test]
+fn a_spec_that_claims_no_completion_is_not_accused_of_one() {
+    // Spec 098 AC-6 / D-5. `approved` + `deferred` is not in flight (spec 041's
+    // table), so it blocks with the same code and declares no completion; the
+    // in-flight pairing blocks nothing at all, which is why it cannot be the
+    // negative.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    blocking_corpus(root, "approved", "deferred");
+    let err = stderr(&run_in(root, &["check"]));
+    assert!(err.contains("I-004"), "{err}");
+    assert!(!err.contains("complete"), "{err}");
+
+    let tmp2 = tempfile::tempdir().unwrap();
+    let root2 = tmp2.path();
+    blocking_corpus(root2, "draft", "in-progress");
+    let out = run_in(root2, &["check"]);
+    assert_eq!(code(&out), 0, "{}", stderr(&out));
+    assert!(!stderr(&out).contains("I-004"), "{}", stderr(&out));
+}

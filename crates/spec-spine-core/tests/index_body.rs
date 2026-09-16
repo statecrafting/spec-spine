@@ -430,3 +430,251 @@ fn the_facade_keeps_the_verdict_when_a_shard_will_not_parse() {
         vec!["by-spec/001-a.json", "by-spec/099-ghost.json"]
     );
 }
+
+// --- spec 098: a blocking claim is not a stale shard -------------------------
+//
+// Spec 086 made this file the place the committed index is interrogated, and
+// 098's subject is the verdict that interrogation produces: `check_index_
+// freshness` folded two independent refusals into one `Stale`, which carries
+// exactly one remedy. The cases below are the four states of that partition,
+// asserted as data. The regeneration case (AC-2) is the one the old output got
+// wrong and is asserted directly rather than inferred.
+
+/// Add a spec that claims a unit which does not exist, with the lifecycle axes
+/// that make the claim *block* rather than warn.
+///
+/// `status` and `implementation` are both passed because they decide the tier:
+/// spec 025 §3.1 arm 2 with spec 041's table makes `approved` + `complete` and
+/// `approved` + `deferred` blocking, and anything in flight a `W-001` warning.
+fn claim_a_missing_unit(root: &Path, id: &str, status: &str, implementation: &str) {
+    write(
+        root,
+        &format!("specs/{id}/spec.md"),
+        &format!(
+            "---\nid: \"{id}\"\ntitle: \"T\"\nstatus: {status}\ncreated: \"2026-09-16\"\n\
+             implementation: {implementation}\nsummary: \"s\"\nestablishes:\n  - \"src/gone.rs\"\n\
+             ---\n\n# {id}\n"
+        ),
+    );
+}
+
+fn report(cfg: &Config, repo: &Path) -> spec_spine_core::IndexFreshnessReport {
+    spec_spine_core::index_freshness_report(cfg, repo).unwrap()
+}
+
+#[test]
+fn a_blocking_claim_is_carried_as_data_not_as_a_stale_shard() {
+    // Spec 098 §3.2, FR-002/FR-004: the partition reaches the caller as data,
+    // with the code, the owning spec and the unit on it. Before 098 all of that
+    // survived only as the text `blocking-diagnostics by-spec/<id>.json`.
+    let fx = fixture();
+    let cfg = Config::default();
+    claim_a_missing_unit(fx.path(), "002-missing", "approved", "complete");
+    emit(&cfg, fx.path());
+
+    let r = report(&cfg, fx.path());
+    assert!(
+        r.stale.is_empty(),
+        "the committed tree was just written: nothing moved, yet {:?}",
+        r.stale
+    );
+    assert_eq!(r.blocking.len(), 1, "{:?}", r.blocking);
+    let c = &r.blocking[0];
+    assert_eq!(c.code, "I-004");
+    assert_eq!(c.spec_id, "002-missing");
+    assert_eq!(c.unit.as_deref(), Some("src/gone.rs"));
+    assert!(
+        c.claims_complete,
+        "the spec declares implementation: complete"
+    );
+    assert!(!r.is_fresh());
+
+    // FR-001: the verdict every existing caller reads is unchanged, down to the
+    // line it has carried since spec 050.
+    assert_eq!(
+        r.freshness(),
+        check_index_freshness(&cfg, fx.path()).unwrap(),
+        "the fold and the partition must answer alike"
+    );
+    match r.freshness() {
+        Freshness::Stale { actual, .. } => assert!(
+            actual.contains("blocking-diagnostics by-spec/002-missing.json"),
+            "{actual}"
+        ),
+        Freshness::Fresh => panic!("a blocking claim still refuses"),
+    }
+}
+
+#[test]
+fn regenerating_does_not_clear_a_blocking_claim() {
+    // Spec 098 AC-2, the regression the old message promised away: `index`
+    // exits 0, writes the same bytes, and the next read refuses identically,
+    // because the diagnostic is recomputed from the corpus and re-indexing
+    // cannot create a file a spec claims.
+    let fx = fixture();
+    let cfg = Config::default();
+    claim_a_missing_unit(fx.path(), "002-missing", "approved", "complete");
+    emit(&cfg, fx.path());
+    let before = report(&cfg, fx.path());
+
+    emit(&cfg, fx.path()); // the remedy the old verdict named
+    let after = report(&cfg, fx.path());
+
+    assert_eq!(
+        before.blocking, after.blocking,
+        "regeneration changed nothing"
+    );
+    assert!(
+        after.stale.is_empty(),
+        "and there was never a stale shard to repair: {:?}",
+        after.stale
+    );
+    let lines = after.unresolved_claim_lines().join("\n");
+    assert!(
+        lines.contains("regenerating the index does not clear this"),
+        "{lines}"
+    );
+}
+
+#[test]
+fn a_mixed_tree_reports_both_and_attributes_the_remedy_to_one() {
+    // Spec 098 §3.3 mixed, FR-006. A reader who regenerates must find the second
+    // half still refusing, and must have been told so in advance.
+    let fx = fixture();
+    let cfg = Config::default();
+    claim_a_missing_unit(fx.path(), "002-missing", "approved", "complete");
+    emit(&cfg, fx.path());
+    let shard = spec_shard(&cfg, fx.path(), "001-a");
+    let body = fs::read_to_string(&shard).unwrap();
+    fs::write(&shard, restamp_minor(&body)).unwrap();
+
+    let r = report(&cfg, fx.path());
+    assert_eq!(r.blocking.len(), 1, "{:?}", r.blocking);
+    assert_eq!(r.stale, vec!["modified by-spec/001-a.json".to_string()]);
+    let lines = r.unresolved_claim_lines().join("\n");
+    assert!(
+        lines.contains(
+            "regenerating addresses the stale shard(s) only, not the unresolved claim(s)"
+        ),
+        "{lines}"
+    );
+
+    // Neither half is elided, and the stale half names its shard with its class
+    // (spec 031 §3.3, spec 086 §3.2).
+    match r.stale_verdict() {
+        Freshness::Stale { actual, .. } => {
+            assert!(actual.contains("modified by-spec/001-a.json"), "{actual}");
+            assert!(
+                !actual.contains("blocking-diagnostics"),
+                "the stale half counts only what moved: {actual}"
+            );
+        }
+        Freshness::Fresh => panic!("a restamped shard is drift"),
+    }
+
+    // After regenerating, the stale half is gone and the blocking half stands.
+    emit(&cfg, fx.path());
+    let after = report(&cfg, fx.path());
+    assert!(after.stale.is_empty(), "{:?}", after.stale);
+    assert_eq!(after.blocking.len(), 1);
+}
+
+#[test]
+fn the_stale_only_verdict_is_unchanged() {
+    // Spec 098 FR-008 / AC-3: a caller that reads staleness today reads exactly
+    // the same staleness after this spec, wording included. With nothing
+    // blocking, the two renderings are the same value.
+    let fx = fixture();
+    let cfg = Config::default();
+    emit(&cfg, fx.path());
+    let shard = spec_shard(&cfg, fx.path(), "001-a");
+    let body = fs::read_to_string(&shard).unwrap();
+    fs::write(&shard, restamp_minor(&body)).unwrap();
+
+    let r = report(&cfg, fx.path());
+    assert!(r.blocking.is_empty());
+    assert_eq!(r.freshness(), r.stale_verdict());
+    assert_eq!(
+        r.freshness(),
+        check_index_freshness(&cfg, fx.path()).unwrap()
+    );
+    assert!(
+        r.unresolved_claim_lines().is_empty(),
+        "nothing unresolved, so nothing is said about it"
+    );
+    match r.freshness() {
+        Freshness::Stale { actual, .. } => {
+            assert!(actual.starts_with("1 stale shard(s):"), "{actual}");
+            assert!(actual.contains("  modified by-spec/001-a.json"), "{actual}");
+        }
+        Freshness::Fresh => panic!("a restamped shard is drift"),
+    }
+}
+
+#[test]
+fn a_healthy_tree_reports_neither() {
+    // Spec 098 AC-5.
+    let fx = fixture();
+    let cfg = Config::default();
+    emit(&cfg, fx.path());
+    let r = report(&cfg, fx.path());
+    assert!(r.is_fresh());
+    assert_eq!(r.freshness(), Freshness::Fresh);
+    assert!(r.unresolved_claim_lines().is_empty());
+}
+
+#[test]
+fn the_completion_claim_is_named_only_when_it_was_made() {
+    // Spec 098 §3.4 / AC-6. `implementation: complete` is a falsifiable claim
+    // that the files exist (spec 041), so a blocking diagnostic against it is a
+    // contradiction in the spec's own frontmatter and the report says so. A spec
+    // that blocks *without* declaring completion is refused for the same code
+    // and accused of nothing further.
+    let fx = fixture();
+    let cfg = Config::default();
+    claim_a_missing_unit(fx.path(), "002-missing", "approved", "complete");
+    emit(&cfg, fx.path());
+    let lines = report(&cfg, fx.path()).unresolved_claim_lines().join("\n");
+    assert!(
+        lines.contains("declares `implementation: complete`"),
+        "{lines}"
+    );
+    assert!(lines.contains("the spec and the tree disagree"), "{lines}");
+
+    // `approved` + `deferred` is not in flight (spec 041's table), so it still
+    // blocks, and it claims no completion.
+    claim_a_missing_unit(fx.path(), "002-missing", "approved", "deferred");
+    emit(&cfg, fx.path());
+    let r = report(&cfg, fx.path());
+    assert_eq!(r.blocking.len(), 1, "{:?}", r.blocking);
+    assert!(!r.blocking[0].claims_complete);
+    let lines = r.unresolved_claim_lines().join("\n");
+    assert!(!lines.contains("implementation: complete"), "{lines}");
+
+    // And the in-flight arm blocks nothing at all, which is why it cannot be
+    // the negative above (spec 098 D-5).
+    claim_a_missing_unit(fx.path(), "002-missing", "draft", "in-progress");
+    emit(&cfg, fx.path());
+    let r = report(&cfg, fx.path());
+    assert!(r.blocking.is_empty(), "{:?}", r.blocking);
+    assert!(r.is_fresh());
+}
+
+#[test]
+fn the_report_offers_no_way_out_of_the_refusal() {
+    // Spec 098 §3.4 / AC-7 / D-3. Narrowing a claim until the gate passes is
+    // what `.claude/rules/adversarial-prompt-refusal.md` exists to refuse, and
+    // `planned: true` beneath `implementation: complete` is spec 076 §3.3's
+    // `L-011`: a message proposing either would be proposing a defect.
+    let fx = fixture();
+    let cfg = Config::default();
+    claim_a_missing_unit(fx.path(), "002-missing", "approved", "complete");
+    emit(&cfg, fx.path());
+    let lines = report(&cfg, fx.path()).unresolved_claim_lines().join("\n");
+    for forbidden in ["planned: true", "remove the claim", "narrow"] {
+        assert!(
+            !lines.contains(forbidden),
+            "the report must not propose '{forbidden}': {lines}"
+        );
+    }
+}
