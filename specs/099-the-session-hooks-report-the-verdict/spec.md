@@ -1,7 +1,7 @@
 ---
 id: "099-the-session-hooks-report-the-verdict"
 title: "The session hooks report the verdict, not a guess"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-16"
 summary: >

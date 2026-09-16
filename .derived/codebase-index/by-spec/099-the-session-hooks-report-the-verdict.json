@@ -140,8 +140,8 @@
       }
     ],
     "specId": "099-the-session-hooks-report-the-verdict",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "b967183e9e4f6428746cf549247cc62620e51c5446812361c0b3d935e60c53db"
+  "shardHash": "0701cd0a455286128195064d0d8d1d27f5fe1ea96c8a07f043e39ba3e9c8e08a"
 }

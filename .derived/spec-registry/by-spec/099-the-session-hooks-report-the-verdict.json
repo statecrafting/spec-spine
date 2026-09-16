@@ -96,10 +96,10 @@
       "Verification"
     ],
     "specPath": "specs/099-the-session-hooks-report-the-verdict/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 080 taught the PR gate to read `spec-spine check`'s exit code; the two session hooks never got the same treatment. The `Stop` hook discards the verb's output and prints `[freshness] STALE: run spec-spine compile and index` on every non-zero exit, so a corpus that fails validation (1), a config error (3) and a spec claiming a unit that does not exist (2) all arrive as staleness with a remedy that provably does not clear any of them. The `SessionStart` hook matches only `codebase-index: STALE`, so after spec 098 an unresolved claim falls to `unknown (check exit 2)` and the mixed verdict reports the stale half while dropping the unresolved one. All four cases were reproduced at 0.19.0 against a scratch corpus. This spec makes both hooks read the verdict the verb reached, across all three shipped copies. It changes no hook's posture: both still advise and neither refuses, so design note 06's open question H-6 is untouched.\n",
     "title": "The session hooks report the verdict, not a guess"
   },
-  "shardHash": "8c6e39b5dc7298d8b078abf2298f90d8fa5c8cf6f9bd2082d9e6226432c324ac",
+  "shardHash": "46260a91f9a567ab2d8aeb7cb9373b781bdfe7689d104c3b5a1b5e7c10b1cf41",
   "specVersion": "1.2.0"
 }
