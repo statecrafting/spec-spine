@@ -26,12 +26,15 @@ Scans the repository for manifests (e.g., `Cargo.toml`, `package.json`) and spec
 
 ### `index check`
 
-The staleness gate. It indexes the corpus in memory, without writing, and compares the result byte-for-byte with the committed shard tree (spec 086), the way [`compile --check`](./compile.md) does for the registry. Each drifted shard is named with its class:
+The staleness gate. It indexes the corpus in memory, without writing, and compares the result byte-for-byte with the committed shard tree (spec 086), the way [`compile --check`](./compile.md) does for the registry. Each stale shard is named with its class:
 
 - **`modified`**: a committed shard whose bytes differ from the shard a fresh index emits. A stale `shardHash`, a hand-edited body and a schema restamp all read this way.
 - **`missing`**: a spec or package with no committed shard.
 - **`orphaned`**: a committed shard with no spec or package behind it.
-- **`blocking-diagnostics`**: a spec whose fresh index carries a blocking unresolved-unit diagnostic (spec 050). It takes the place of any other line for that shard, because regenerating does not fix it.
+
+A spec claiming a unit that does not resolve is a different refusal, and since spec 098 the prose says so separately rather than calling it staleness. It is reported under its own heading, `<subject>: UNRESOLVED CLAIM: N unresolved claim(s) over M spec(s), which is not staleness`, followed by one line per diagnostic naming the code, the owning spec and the unit, and it closes by saying that regenerating the index does not clear it. When the owning spec declares `implementation: complete`, the report adds that the spec and the tree disagree about what exists. Where shards moved as well, both halves are reported and regeneration is attributed to the stale half alone.
+
+The exit code is unchanged either way: `2`. In the [verdict envelope](./overview.md#machine-readable-verdicts---json) and in the library verdict, an unresolved claim still appears in the drift vector as a **`blocking-diagnostics`** line (spec 050), one per shard rather than one per diagnostic, so a machine caller reads what it read before.
 
 `check`, and the freshness guard in front of `couple`, `index coverage` and `index owner`, run the same comparison, so a committed index that reads fresh is exactly what the corpus indexes to.
 
