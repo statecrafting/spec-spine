@@ -18,7 +18,7 @@ summary: >
   verbs say: a blocking resolution diagnostic is reported as its own class,
   names the owning spec and unit, and says regeneration will not clear it. The
   mixed case reports both and says which half regeneration addresses.
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -37,6 +37,10 @@ extends:
   - { spec: "086-the-committed-index-is-compared-not-trusted", unit: "crates/spec-spine-core/tests/index_body.rs", nature: additive }
   # §5: the same assertions at the verbs, and the `--json` parity check.
   - { spec: "037-machine-readable-verdicts", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
+  # 3.2, D-5: `check_report_full`, the one seam that carries the partition to
+  # `check` without a second index run. Additive: `check_report` keeps its
+  # signature and its payload.
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
 references:
   # Note 06 is deliberately not a typed unit here: it is on the documentation
   # branch (PR #214) and not yet on the default branch, and a `references` edge
@@ -121,7 +125,7 @@ people, and one of them is not addressed by running a command.
 
 ## 2. Territory
 
-No new files. Five existing units, each already owned:
+No new files. Six existing units, each already owned:
 
 | Unit | Owner | This spec |
 |---|---|---|
@@ -130,6 +134,7 @@ No new files. Five existing units, each already owned:
 | `crates/spec-spine-cli/src/cmd_check.rs` | 075 establishes | `extends`, corrective: `check`'s index half |
 | `crates/spec-spine-core/tests/index_body.rs` | 086 establishes | `extends`, additive: the four cases, and the regeneration regression |
 | `crates/spec-spine-cli/tests/cli.rs` | 037 establishes | `extends`, additive: the same at the verbs, plus `--json` parity |
+| `crates/spec-spine-core/src/lib.rs` | 001 establishes | `extends`, additive: `check_report_full`, the seam that hands `check` the partition from the one index run it already makes (D-5) |
 
 ## 3. Behavior
 
@@ -224,6 +229,14 @@ spec-spine index" is false, and this spec does not edit either
 every shard in the corpus and belongs with the `Stop` hook work in 3.5.1
 rather than riding on a message fix.
 
+**The follow-up is named, not implied.** Both hooks are carried forward as
+`statecrafting/spec-spine#216`, filed 2026-09-16, which records what remains on
+each hook, why neither is done here, and that the misleading-remediation
+problem is therefore not closed by this spec. It is named as an issue rather
+than as a design-note row because the note that would hold the row (note 06, and
+note 05 §9) is on PR #214's branch and not on the default branch, and this spec
+is not to depend on that PR merging (1.2).
+
 #### 3.5.1 The `Stop` hook is not fixed by this spec
 
 `kit/settings.json`'s `Stop` hook runs `"$sc" check >/dev/null 2>&1` and, on
@@ -235,7 +248,8 @@ printing it for exit `1` (validation, or a refused unresolved unit) and exit
 
 **This spec does not fix that, and no one may report the misleading-remediation
 problem as closed on the strength of it.** The hook's verdict is design note 06
-§3.9's open question H-6 (does it refuse, or advise?) and its own future spec:
+§3.9's open question H-6 (does it refuse, or advise?), tracked as
+`statecrafting/spec-spine#216`, and its own future spec:
 it edits a hashed governance file in two pinned copies plus the generated
 `kit_embedded.rs`, it needs a policy decision this spec has no standing to
 take, and its blast radius reaches every adopter who re-copies the kit.
@@ -286,17 +300,26 @@ limitation buried in prose.
 - **AC-5 (healthy).** A corpus with neither is `fresh` on both halves, exit 0,
   output unchanged.
 - **AC-6 (completion claim).** With `implementation: complete`, the report
-  names the contradiction. With `implementation: in-progress`, it does not
-  claim a contradiction that does not exist.
+  names the contradiction. With an owning spec that does **not** declare
+  completion and still blocks (`status: approved`, `implementation: deferred`),
+  the same refusal is reported without a contradiction it never made. The
+  in-flight arm is asserted too: `status: draft` with `implementation:
+  in-progress` produces no blocking diagnostic at all under specs 025/041/044,
+  which is why it cannot be the negative (D-5).
 - **AC-7 (no weakening offered).** No output path in the blocking case contains
   a suggestion to remove the claim or to set `planned: true` beneath
   `implementation: complete`.
 - **AC-8 (`--json` parity).** `check --json` over a fixture is byte-identical
   before and after this spec, and its `schemaVersion` is `0.4.0`.
 - **AC-9 (`Stop` hook untouched).** `kit/settings.json` and
-  `.claude/settings.json` are unchanged by this spec, and the `Stop` hook still
-  contains its generic `[freshness] STALE` line. Asserted so that the carry
-  forward in 3.5.1 is mechanical rather than a promise.
+  `.claude/settings.json` are **byte-identical to a fixed base**, commit
+  `3bc004bf5f0fb30b9c2127c1d2269face10fb37b` (the default-branch commit this
+  branch was cut from), and the `Stop` hook still contains its generic
+  `[freshness] STALE` line. The fixed base is what makes this an assertion
+  rather than a restatement: a `grep` for the line passes over an edited file
+  that still contains it, so it could not tell an untouched hook from a
+  rewritten one (D-6). Asserted so that the carry forward in 3.5.1 is mechanical
+  rather than a promise.
 
 ## 6. Out of scope
 
@@ -304,9 +327,10 @@ limitation buried in prose.
 2 is R-4, needs an `amends` on 086 §3.1, and is a separate decision. 3.1 holds
 the current codes.
 
-**The `Stop` hook, and the `SessionStart` hook.** 3.5 and 3.5.1. Both are
-hashed governance files in two pinned copies plus the generated
-`kit_embedded.rs`; both need the policy decision design note 06 records as H-6.
+**The `Stop` hook, and the `SessionStart` hook.** 3.5 and 3.5.1, carried
+forward as `statecrafting/spec-spine#216`. Both are hashed governance files in
+two pinned copies plus the generated `kit_embedded.rs`; both need the policy
+decision design note 06 records as H-6.
 The misleading remediation is **not** fully retired by this spec, and 3.5.1
 says so in the spec's own text so that a later reader cannot mistake this for
 the whole fix.
@@ -373,6 +397,40 @@ owner` refuses through a shared `Error::Stale` whose Display is generic and
 whose file is tier-1 territory; its label is wrong but it issues no false
 instruction. Section 6 tracks it. Widening this spec to reach it would put a
 tier-1 claimed file and a shared error variant inside a message fix.
+
+**D-5 (2026-09-16). AC-6's negative is a spec that does not declare completion
+and still blocks, which `in-progress` cannot be.** The draft's negative used
+`status: draft` + `implementation: in-progress`. Measured against 0.19.0: that
+pairing is *in flight* under spec 025 §3.1 arm 2 (spec 041's table:
+`draft` + anything but `complete`, and `approved` + `pending`/`in-progress`),
+so the unresolved unit is a `W-001` warning, nothing blocks, and `check` exits
+0. A fixture in that state cannot exercise 3.4 at all, so it would have
+asserted the absence of a message from a run that produced no message. The
+negative therefore uses `status: approved` + `implementation: deferred`, which
+is not in flight, blocks with `I-004`, and declares no completion: exactly the
+second arm of 3.4. The in-flight pairing is kept as its own assertion, of what
+it actually shows (no blocking diagnostic).
+
+**D-6 (2026-09-16). AC-9 compares against a fixed base, not against a pattern.**
+The draft asserted the `Stop` hook by `grep`-ing each `settings.json` for its
+`[freshness] STALE` line. That passes over a file this spec had rewritten as
+long as the line survived somewhere, so it could not distinguish an untouched
+hook from an edited one, which is the only thing AC-9 exists to say. It now
+diffs both files against `3bc004bf5f0fb30b9c2127c1d2269face10fb37b`, the
+default-branch commit this branch was cut from. A fixed commit rather than
+`origin/main`: the base must not move under a later merge, or the assertion
+weakens silently as the branch ages. The `grep` is kept beside it, so a reader
+sees both that nothing moved and what did not move.
+
+**D-7 (2026-09-16). The partition reaches `check` through a new seam in
+`lib.rs`, not through a widened `CheckReport`.** `check`'s payload is built by
+`check_report`, and `CheckReport` **is** the `--json` envelope, which FR-009
+freezes. Widening it would move the JSON surface this spec says it does not
+move; calling a second core function from the CLI would index twice, which
+FR-002 forbids. `check_report_full` returns the same report plus the partition
+from the same run, and `check_report` becomes a wrapper over it, so no caller
+and no payload changes. The cost is one additive `extends` edge on spec 001's
+`lib.rs`, which §2 carries.
 
 ## Verification
 
@@ -442,9 +500,16 @@ target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep -qiE 
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" index >/dev/null
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep -q 'I-004'
 ! target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep 'codebase-index:' | grep -q 'STALE'
-# AC-6 negative: an in-progress spec is refused for the same code without being
-# accused of contradicting a completion claim it never made.
+# AC-6 in-flight arm (D-5): `draft` + `in-progress` is in flight under specs
+# 025/041/044, so the unit is a `W-001` warning, nothing blocks, and `check`
+# exits 0. Asserted for what it shows, which is why it is not the negative.
 sed -i.bak 's/implementation: complete/implementation: in-progress/' "${TMPDIR:-/tmp}/ss098"/specs/001-missing-territory/spec.md && rm -f "${TMPDIR:-/tmp}/ss098"/specs/001-missing-territory/spec.md.bak
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" compile >/dev/null && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" index >/dev/null
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check >/dev/null 2>&1; test $? -eq 0
+! target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep -q 'I-004'
+# AC-6 negative: a spec that blocks without declaring completion is refused for
+# the same code, and is not accused of contradicting a claim it never made.
+sed -i.bak -e 's/status: draft/status: approved/' -e 's/implementation: in-progress/implementation: deferred/' "${TMPDIR:-/tmp}/ss098"/specs/001-missing-territory/spec.md && rm -f "${TMPDIR:-/tmp}/ss098"/specs/001-missing-territory/spec.md.bak
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" compile >/dev/null && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" index >/dev/null
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep -q 'I-004'
 ! target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep -qi 'complete'
@@ -461,8 +526,11 @@ target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" index >/dev/null
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep -q 'spec-registry: fresh'
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep -q 'codebase-index: fresh'
-# AC-9: neither settings.json is edited by this spec, so the Stop hook keeps
-# its generic verdict and §3.5.1's carry-forward is mechanical, not a promise.
+# AC-9 (D-6): neither settings.json is edited by this spec. Compared against a
+# fixed base, the default-branch commit this branch was cut from, so the
+# assertion cannot weaken as the branch ages; the pattern check is kept beside
+# it so a reader sees what it is that did not move.
+git diff --quiet 3bc004bf5f0fb30b9c2127c1d2269face10fb37b -- kit/settings.json .claude/settings.json
 grep -q 'freshness. STALE' kit/settings.json
 grep -q 'freshness. STALE' .claude/settings.json
 rm -rf "${TMPDIR:-/tmp}/ss098"

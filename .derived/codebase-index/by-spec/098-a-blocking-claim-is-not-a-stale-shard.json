@@ -24,6 +24,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/tests/index_body.rs",
         "source": "spec-edge"
       }
@@ -84,6 +88,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/tests/index_body.rs"
           }
         ],
@@ -112,5 +129,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f1b650ffbc8f85c364e7ba7d6b65bc3574c4a520af2fe1920f7bb8f6754fbddc"
+  "shardHash": "b6e657c761bfc69ebf2480fd2da59294d9617d76451aee6621d4d52985a5fad7"
 }
