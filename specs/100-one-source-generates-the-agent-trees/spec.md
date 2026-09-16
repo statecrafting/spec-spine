@@ -322,15 +322,6 @@ during the build: the first draft refused only the two quote sequences, which
 left the escape that actually changes a body's meaning without changing its
 appearance.
 
-D-6 (2026-09-16, why `.claude/skills/` is hashed although its source already
-is). Added during the build, from a review finding. The first draft of §3.5
-listed only the two trees this spec claims, on the reasoning that an edit to a
-generation source is caught at the source. That reasoning covers edits that
-travel through the kit and misses the ones that do not: `.claude/skills/` is a
-real directory a session can edit directly, and such an edit matched no glob
-and no `C-002` check. The three generated trees now have one enforcement story
-instead of two.
-
 D-5 (2026-09-16, why a basic string rather than a TOML literal string). A
 literal (`'''`) string processes no escapes, which would make the three
 refusals of section 3.3 unnecessary. Two reasons not to: the four committed
@@ -362,3 +353,12 @@ sh -c '! grep -rqF "Codex.ai" .agents/skills .codex/agents'
 # 3.6: the acceptance.
 cargo test -p spec-spine-core --test agent_trees --locked
 ```
+
+D-6 (2026-09-16, why `.claude/skills/` is hashed although its source already
+is). Added during the build, from a review finding. The first draft of §3.5
+listed only the two trees this spec claims, on the reasoning that an edit to a
+generation source is caught at the source. That reasoning covers edits that
+travel through the kit and misses the ones that do not: `.claude/skills/` is a
+real directory a session can edit directly, and such an edit matched no glob
+and no `C-002` check. The three generated trees now have one enforcement story
+instead of two.

@@ -101,7 +101,8 @@ extra_hashed_inputs = [
   # one governance file whose bytes could change without staling a shard,
   # which is what L-008 refuses.
   ".codex/hooks.json",
-  # Spec 100 3.5: the two generated agent instruction trees, tracked and unowned
+  # Spec 100 3.5: the three generated agent instruction trees. Two of them,
+  # `.agents/skills/` and `.codex/agents/`, were tracked and unowned
   # since spec 081's own commit and claimed by 100. Governance files of exactly
   # the kind spec 074 3.2 says the glob remedy is right for: a handful, rarely
   # changed, and a change to one should stale the ledger. All three generated
