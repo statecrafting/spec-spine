@@ -67,10 +67,10 @@
       "Verification"
     ],
     "specPath": "specs/101-an-unresolved-claim-is-not-stale/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 098 stopped `check` calling an unresolved claim \"stale\" and stopped it prescribing `spec-spine index`, a remedy that provably does not work. It deliberately left the exit code alone, because 086 3.1 pins \"the exit code is unchanged: 2 when anything drifted\" and adopters branch on it. The result is a verb whose prose says \"this is not staleness\" while its exit code says staleness, and exit 2 is the code an adopter's CLAUDE.md maps to \"run spec-spine index\". This spec moves an unresolved claim to exit 1, the validation code, by an `amends` edge on 086. A spec claiming a unit that does not resolve is a corpus that does not describe its tree, which is a validation failure and not a ledger that has fallen behind. No message changes: 098 already made every report line correct.\n",
     "title": "An unresolved claim exits as a validation failure"
   },
-  "shardHash": "c820c6aba4c31bf4b5f5743f1ee83d7c2ca4ce802e3dd953c2bbf29e805b2540",
+  "shardHash": "c62588f32c6c6a597c1e5bb1bc9612e73875a541bd40450dfe51190b0e83cda0",
   "specVersion": "1.2.0"
 }
