@@ -1,0 +1,32 @@
+{
+  "mapping": {
+    "amends": [
+      "059-read-verbs-on-a-code-free-corpus"
+    ],
+    "dependsOn": [
+      "059-read-verbs-on-a-code-free-corpus",
+      "093-a-governed-read-names-its-version",
+      "103-an-amended-acceptance-is-the-one-that-runs"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "108-an-exact-key-set-refuses-what-the-rule-allows",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "11d9e7106cf5315e8e66371807d3125acb76b3667f5922502a2b34dfa4174c4f"
+}
