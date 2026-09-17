@@ -375,6 +375,36 @@ findings. The dependency is on their **records**, not on anything they do;
 nothing here executes, reads or relies on their behaviour, and no two of the four
 blocks share state.
 
+D-8 (2026-09-17, what the fixture assertions rest on, and why the contingency is
+loud). Review of the pull request named three assumptions this block carries, and
+all three are real. They are recorded here rather than only in a review thread,
+because a contingency a reader cannot find is the thing this series exists to
+unwind.
+
+`ready[0]` is `001-alpha` only because the two ready specs are independent and
+the order is settled by the ordinal tie-break spec 053 governs. If that tie-break
+ever moved, the assertion would **fail**, loudly and by value: `p['ready'][0]` is
+compared against the whole object, so a reordered plan reports
+`{'id': '003-gamma', ...}` and the line goes red. It does not go vacuous. The
+projection line beside it would keep passing, correctly, because what it asserts
+is that `--next` follows `ready` wherever `ready` points, which is 060 3.2's
+actual rule.
+
+The two prose greps depend on `registry plan` rendering the `not schedulable`
+label at a count of zero. 060's block established that it does, and this spec
+measured it again on the extended fixture. If the CLI ever suppressed the section
+at zero those lines fail, again visibly, and a reader is sent here.
+
+`grep -qE 'test result: ok\. [1-9][0-9]* passed'` depends on the stable Rust test
+harness's output format, which is outside this project's control. It is the form
+spec 106 D-7 introduced, and the alternative, a bare filtered run, is the vacuous
+pass that entry exists to close. A dependency on an external format that fails
+closed is better than an assertion that cannot fail.
+
+The common property is the one spec 107 D-3 turns on: each of these fails in the
+direction that sends a reader to a decision entry, rather than passing while
+asserting less than it appears to.
+
 ## Verification
 
 Each line is one command, run independently: no shell variable survives to the
