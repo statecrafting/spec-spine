@@ -1,7 +1,7 @@
 ---
 id: "104-every-hook-reads-the-code-the-same-way"
 title: "Every hook reads the exit code the same way"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-16"
 summary: >
