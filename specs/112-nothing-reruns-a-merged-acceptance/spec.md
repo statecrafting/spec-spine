@@ -432,6 +432,16 @@ the crossing that staled every block specs 105 through 110 repaired.
   acceptance failing at the second invocation that reused an `--out`. The
   marker is written at `mkdir` time instead. §3.6.
 
+### Implementation review (2026-09-17)
+
+The post-ratification review reproduced two violations of the existing contract:
+an unreadable ledger member counted as `exempt` instead of `not-run` (§3.3),
+and staged or committed fixture changes survived restoration (§3.6). The repair
+reads a selected spec's plan before granting exemption and restores the isolated
+worktree's index and tracked files from the tested SHA, detaching without moving
+a branch. Restoration errors refuse the sweep before another block runs. The
+requirements, lifecycle, authority edges, ledger and acceptance below are unchanged.
+
 ## Verification
 
 Each line is one command, run independently: no shell variable survives to the

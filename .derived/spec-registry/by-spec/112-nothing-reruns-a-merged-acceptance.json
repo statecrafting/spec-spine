@@ -70,6 +70,7 @@
       "3.9 When a maintainer runs it",
       "4. Out of scope",
       "5. Resolved decisions",
+      "Implementation review (2026-09-17)",
       "Verification"
     ],
     "specPath": "specs/112-nothing-reruns-a-merged-acceptance/spec.md",
@@ -77,6 +78,6 @@
     "summary": "A `## Verification` block is run once, by the session that writes it, and then never again. `verify` is outside the gate chain on purpose, so a block that a later approved spec legitimately invalidates goes red silently and stays red: specs 106 through 110 each exist to repair one such block, and each was found by hand. Spec 105 §4 named the remedy, \"a periodic sweep a maintainer runs, not a gate step\", and left naming its home as its own work. This spec is that home. It establishes `scripts/verify-sweep.sh`, a maintainer-invoked sweep that runs the whole corpus's declared acceptance against one already-merged revision in an isolated worktree, accounts for every spec under five outcomes of which only two are success, and closes the 000-047 population as a ledger that can only shrink and that no future spec can enter.\n",
     "title": "Nothing reruns a merged acceptance"
   },
-  "shardHash": "fa1fcf30eccb572e5792174bc7e03a67b20768279ff3351244d7da7bb5eae16c",
+  "shardHash": "ffcc5b3477505038c1b0fceffc11e1ce7d2dc65485048087197d9a5b5d14f717",
   "specVersion": "1.3.0"
 }
