@@ -24,6 +24,11 @@ depends_on:
   - "060-plan-answers-the-whole-question"
   - "093-a-governed-read-names-its-version"
   - "103-an-amended-acceptance-is-the-one-that-runs"
+  # D-7: not behavioural dependencies. This spec cites 107's and 108's decision
+  # records and states its own position in the series, so the order those claims
+  # assume is declared rather than left to the merge queue.
+  - "107-a-version-pin-is-not-a-contract"
+  - "108-an-exact-key-set-refuses-what-the-rule-allows"
 amends: ["060-plan-answers-the-whole-question"]
 # 3.1: this spec's `## Verification` block IS 060's acceptance from now on.
 # 060's own file is not edited (spec 040 3.1), and 093's is not either: 093
@@ -357,6 +362,18 @@ by substituting documents against the extended fixture:
 
 The one line that is fail-first at the parent in the ordinary sense is
 `registry show 109`, a not-found exit 1 there, which is 3.5's half.
+
+D-7 (2026-09-17, why 107 and 108 are declared dependencies). This spec cites
+both: D-2 contrasts its own shape with the corrections those two make, D-3
+compares its fixture decision with spec 108 D-3's, and 3.2 takes spec 107 D-4's
+redirect rule together with spec 108 D-8's boundary on it. 4 states this as the
+third of four. Review of spec 108's pull request established that a past-tense
+claim about a spec absent from the base is either a false claim or an undeclared
+ordering, and that declaring it is the honest resolution. The ordering is real:
+the four repairs were built in one sitting and each carries the previous one's
+findings. The dependency is on their **records**, not on anything they do;
+nothing here executes, reads or relies on their behaviour, and no two of the four
+blocks share state.
 
 ## Verification
 
