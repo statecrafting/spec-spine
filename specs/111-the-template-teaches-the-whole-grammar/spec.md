@@ -1,7 +1,7 @@
 ---
 id: "111-the-template-teaches-the-whole-grammar"
 title: "The template teaches the whole grammar"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-17"
 summary: >
