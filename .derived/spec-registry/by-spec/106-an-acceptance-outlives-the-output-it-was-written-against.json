@@ -1,0 +1,56 @@
+{
+  "record": {
+    "amends": [
+      "050-index-diagnostics-reach-a-gate"
+    ],
+    "amendsVerification": [
+      "050-index-diagnostics-reach-a-gate"
+    ],
+    "created": "2026-09-17",
+    "dependsOn": [
+      "050-index-diagnostics-reach-a-gate",
+      "057-claimed-but-unwitnessed",
+      "088-a-change-is-classified-under-the-bases-rules",
+      "093-a-governed-read-names-its-version",
+      "103-an-amended-acceptance-is-the-one-that-runs"
+    ],
+    "id": "106-an-acceptance-outlives-the-output-it-was-written-against",
+    "implementation": "pending",
+    "kind": "core",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "106: An acceptance outlives the output it was written against",
+      "1. Purpose",
+      "1.1 Three red assertions, no defect behind any of them",
+      "1.2 A literal pin cannot assert that a literal does not move",
+      "1.3 The crossings were silent, and nothing reruns a merged block",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 What spec 050's acceptance now is",
+      "3.2 The verdict line is read as a line, and the verb's exit status is kept",
+      "3.3 The envelope comparison is a consistency check, and says so",
+      "3.4 The payload member is asserted, because the rule is about it",
+      "3.5 The acceptance",
+      "3.6 No code changes",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/106-an-acceptance-outlives-the-output-it-was-written-against/spec.md",
+    "status": "draft",
+    "summary": "Spec 050's `## Verification` block has three assertions that no longer hold, and none of the three describes a defect. It compares the whole of `index check`'s stdout against one line, which spec 057 legitimately added a second line to; it takes `len()` of `index diagnostics --json` as a bare array, which spec 093 legitimately wrapped in an `items` envelope; and it pins `VERDICT_SCHEMA_VERSION` at the literal `0.2.0`, which spec 088 legitimately moved to `0.4.0`. The third is the sharpest: 050 3.6 rules that the envelope version MUST NOT move for a payload addition, and a literal pin cannot assert that, because it also fails for every move the rule permits. None of the three amending specs declared `amends_verification`, and all three predate the spec that built it. This spec declares 050's acceptance replaced and carries the corrected block, without editing 050's file.\n",
+    "title": "An acceptance outlives the output it was written against"
+  },
+  "shardHash": "af6bf601eb3f642e3f8f3ddccedcb05a962c336df5181f6afa1bbd5fa8605320",
+  "specVersion": "1.3.0"
+}
