@@ -1,0 +1,70 @@
+{
+  "record": {
+    "created": "2026-09-17",
+    "dependsOn": [
+      "049-verify-declared-acceptance",
+      "076-planned-territory-is-declared-not-inferred",
+      "103-an-amended-acceptance-is-the-one-that-runs"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "standards/spec/templates/spec-template.md"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dogfood.rs"
+        }
+      }
+    ],
+    "id": "111-the-template-teaches-the-whole-grammar",
+    "implementation": "complete",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/frontmatter.rs"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/02-agentic-builder-substrate.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "111: The template teaches the whole grammar",
+      "1. Purpose",
+      "1.1 A gap five specs recorded and none could close",
+      "1.2 The gap is five keys wide, not one",
+      "1.3 Why adding one key leaves the mechanism in place",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The template documents `amends_verification`",
+      "3.2 The template documents every key the parser accepts",
+      "3.3 The template shows the nested forms the corpus writes",
+      "3.4 The template carries the sections a spec is expected to have",
+      "3.5 The parser's key list is what the template is checked against",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/111-the-template-teaches-the-whole-grammar/spec.md",
+    "status": "draft",
+    "summary": "`standards/spec/templates/spec-template.md` is the file `/spec` copies to start every spec, and it is the only place in the corpus where the frontmatter grammar is written down for an author. It has fallen behind the parser. Spec 103 added `amends_verification` and the template never gained it, a gap five specs have now recorded in their own section 4 with nobody able to close it, because no spec claims the file. Measured against `KNOWN_KEYS`, four more keys are missing for the same reason, and the `extends` example omits `nature`, which 96 of the 111 specs in this corpus write. This spec claims the template, completes it, and gives it an acceptance that reads the parser's own key list, so the next key added to the grammar cannot reach `main` without the document that teaches it.\n",
+    "title": "The template teaches the whole grammar"
+  },
+  "shardHash": "c897a84d1504ec5b65a1b3b330b01fa72b94a42a889003c3ad2395aaac46983f",
+  "specVersion": "1.3.0"
+}

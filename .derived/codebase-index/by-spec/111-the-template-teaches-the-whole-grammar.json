@@ -1,0 +1,77 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "049-verify-declared-acceptance",
+      "076-planned-territory-is-declared-not-inferred",
+      "103-an-amended-acceptance-is-the-one-that-runs"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-types/tests/dogfood.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "standards/spec/templates/spec-template.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "standards/spec/templates/spec-template.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/templates/spec-template.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/tests/dogfood.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dogfood.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/frontmatter.rs"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/frontmatter.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/02-agentic-builder-substrate.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/02-agentic-builder-substrate.md"
+        }
+      }
+    ],
+    "specId": "111-the-template-teaches-the-whole-grammar",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "33b7c55d811b6015cc17906f30c760fb447c00b291ba91adfa29ea2aa36d8fe7"
+}
