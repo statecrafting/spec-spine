@@ -52,10 +52,10 @@ $ spec-spine verify 060
 verify: 060-plan-answers-the-whole-question: FAILED at command 8 (exit 1)
 ```
 
-Command 8 is
+Command 8 is, in full, because an abbreviation of it misleads (D-9):
 
 ```
-registry plan --next --json | python3 -c 'assert json.load(sys.stdin)=={"id":"001-alpha","title":"First thing"}'
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan --next --json | python3 -c 'import json,sys; assert json.load(sys.stdin)=={"id":"001-alpha","title":"First thing"}'
 ```
 
 and the verb answers
@@ -404,6 +404,21 @@ closed is better than an assertion that cannot fail.
 The common property is the one spec 107 D-3 turns on: each of these fails in the
 direction that sends a reader to a decision entry, rather than passing while
 asserting less than it appears to.
+
+D-9 (2026-09-17, why command 8 is quoted in full). The first draft of 1.1 quoted
+the line with its `import json,sys;` prefix and its `--repo` argument elided, for
+width. Review read the elision as the line itself and concluded that command 8
+had been failing on `NameError: name 'json' is not defined` rather than on the
+shape, and that 1.1's whole account of the redness was therefore wrong.
+
+It is not: the imports are in 060's file at line 238, and the measured failure at
+`e4d7d28` is an `AssertionError` on the comparison, which is what 1.1 says. But
+the objection is the right shape even though its conclusion is not, and the
+defect it lands on is this spec's: a quotation that changes what a command does
+is not a quotation. In a spec whose subject is assertions that say less than they
+appear to, an elision that makes an assertion appear to say **more** than it does
+is the same error pointing the other way. The line is now reproduced verbatim,
+and the next reader can run it.
 
 ## Verification
 

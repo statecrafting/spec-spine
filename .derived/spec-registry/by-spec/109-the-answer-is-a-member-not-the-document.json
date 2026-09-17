@@ -53,6 +53,6 @@
     "summary": "Spec 060's `## Verification` block compares the whole of `registry plan --next --json` against one spec object, and spec 093 moved that object under a `next` member so the empty ready set could be a value rather than a missing document, so `spec-spine verify 060` has been red since 093 merged. 093 declared an `amends` edge to 060 for exactly this change and carried the replacement text for 060's rule; what it could not reach was 060's acceptance, because spec 040 forbids editing the amended file and the block lives inside it. The same block leaves 060 3.2's strongest requirement unasserted: that `--next` is a projection of `plan` and does not reimplement selection, which a one-element fixture cannot show. This spec declares 060's acceptance replaced and carries the corrected block, without editing 060's file. It is the third of the four follow-ons spec 106 4 named.\n",
     "title": "The answer is a member, not the document"
   },
-  "shardHash": "f8987bb9d9984a5bbd736c1232f46b5e5ea6bc27b92d4b752b017a90111e14c4",
+  "shardHash": "6095a5a44bf72bffea834ff6067f59f9a6427c8e31fa02dedd6ed77b19e5b27e",
   "specVersion": "1.3.0"
 }
