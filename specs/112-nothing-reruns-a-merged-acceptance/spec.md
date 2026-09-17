@@ -26,6 +26,7 @@ depends_on:
 establishes:
   # 3.1 - 3.8: the sweep itself.
   - "scripts/verify-sweep.sh"
+  - "scripts/test-verify-sweep.py"
 extends:
   # 3.9: the maintainer runbook gains the pre-flight item that says when to run
   # it. `docs/releasing.md` is spec 007's unit; this adds a line and claims
@@ -440,7 +441,20 @@ and staged or committed fixture changes survived restoration (§3.6). The repair
 reads a selected spec's plan before granting exemption and restores the isolated
 worktree's index and tracked files from the tested SHA, detaching without moving
 a branch. Restoration errors refuse the sweep before another block runs. The
-requirements, lifecycle, authority edges, ledger and acceptance below are unchanged.
+requirements, lifecycle, ledger and acceptance below are unchanged.
+
+Review remediation preserves the four regression fixtures in
+`scripts/test-verify-sweep.py`, claimed above through the legitimate ownership
+ratchet. Run `python3 scripts/test-verify-sweep.py` with the in-tree release
+binary built. The runner uses disposable repositories and checks unreadable
+exemptions, clean worktree/index/HEAD bytes in the next spec after staged and
+committed mutations, and nonexecution after restoration fails. It supplements
+the 66 acceptance commands below. Keeping these checks only in temporary review
+files was rejected because the existing acceptance passed before the repair.
+For a negative control, export the pre-repair script with
+`git show 1d0e3c3c890345fd85072c0b460768be43ee6e83:scripts/verify-sweep.sh`
+to a temporary file and pass its path via `--sweep-script`; all four tests must
+fail. The runner never replaces the source checkout's sweep script.
 
 ## Verification
 

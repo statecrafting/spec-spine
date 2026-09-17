@@ -11,11 +11,28 @@
         "source": "spec-edge"
       },
       {
+        "path": "scripts/test-verify-sweep.py",
+        "source": "spec-edge"
+      },
+      {
         "path": "scripts/verify-sweep.sh",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "scripts/test-verify-sweep.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/test-verify-sweep.py"
+        }
+      },
       {
         "locations": [
           {
@@ -86,5 +103,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "18ae5327b81d8064097ed9f82740e82eda1caa2113ba655d022698a0ec1a0532"
+  "shardHash": "f2970aad54a6d617a5512cf7528ee745d162cbb37825782bfa4c878c603d8838"
 }
