@@ -131,11 +131,17 @@ spec 092's rule holds for the new half as well: the parser is the authority for
 spans and the name list for membership, which is what carries a mode-only or a
 binary change that git prints no `+++` header for.
 
-The union follows `union_name_statuses`: a path the committed range already
-registered keeps its spans and its deletion verdict, and a path only the
-working tree knows enters as a whole-file change. A file is deleted for the
-gate's purposes when the **later** of the two views says so, because that is the
-state a commit would record.
+A path only the working tree knows enters as a whole-file change. A path **both**
+views know keeps the **union** of their hunks: the change a commit would record
+touches every line either view touched, and dropping the later view's spans
+would let a working-tree edit to a line the committed range never touched go
+unjudged. A file is deleted for the gate's purposes when the **later** of the
+two views says so, because that is the state a commit would record.
+
+The two rules differ on purpose. Spans accumulate because they describe what
+changed, and both views changed something. The deletion verdict does not
+accumulate because it describes a final state, and only the later view knows
+it.
 
 ### 3.2 Untracked files are out, and that is not a gap
 
@@ -234,6 +240,15 @@ deleted in the committed range and restored in the working tree is not deleted
 by the change a commit would record, and the reverse is a deletion. The gate
 judges the state the commit would produce, so the working tree is the later
 word.
+
+D-4 (2026-09-16, why hunks union where the deletion verdict overwrites). Added
+during the build, from a review finding: §3.1's first draft said a path the
+committed range knows "keeps its spans", which describes neither what the code
+does nor what the gate needs. A span says what changed and both views changed
+something, so the union is the honest answer; a deletion verdict says what the
+final state is, and only the later view knows that. The code was right and the
+sentence was wrong, which is the direction worth recording: an acceptance that
+passes tells you nothing about a clause that describes the wrong mechanism.
 
 D-3 (2026-09-16, why exit 3 rather than a warning for a non-HEAD `--head`). The
 result would otherwise be a diff describing no state that ever existed, and a

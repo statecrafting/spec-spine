@@ -251,7 +251,8 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> 
         // question. Refused (exit 3) rather than silently ignoring one of them.
         if args.include_uncommitted {
             return Err(Error::Config(
-                "--include-uncommitted unions the working tree into a git diff, and                  --paths-from replaces that diff with a path list; pass one or the other"
+                "--include-uncommitted unions the working tree into a git diff, and \
+                 --paths-from replaces that diff with a path list; pass one or the other"
                     .to_string(),
             ));
         }
@@ -291,7 +292,8 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> 
         let head_oid = rev_parse(repo, "HEAD")?;
         if rev_parse(repo, &args.head)? != head_oid {
             return Err(Error::Config(format!(
-                "--include-uncommitted compares the working tree with HEAD, so it cannot be                  combined with --head {}, which resolves to a different commit",
+                "--include-uncommitted compares the working tree with HEAD, so it cannot be \
+                 combined with --head {}, which resolves to a different commit",
                 args.head
             )));
         }
