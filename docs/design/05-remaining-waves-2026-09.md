@@ -154,7 +154,7 @@ Not filed. Every item is measured; none needs a new record type.
 | B2 | One gate definition in the shipped workflow | `kit/govern.yml` line 57 runs `make gate`; the pull-request leg at lines 70 to 73 restates the commands, so the file adopters copy holds two definitions of one gate. |
 | B3 | Installing the kit does not trip the ratchet | `.githooks/*.sh` are `SOURCE_EXTS` sources, and a `README` claim beats `bypass_prefixes`, so following the kit's own install instructions can raise `C-002` in the adopter's first PR. |
 | B4 | `/shepherd` sees every reviewer | `shepherd/SKILL.md` line 137 queries `pulls/<n>/comments` only. An AI review pass posts to `issues/<n>/comments`, and the skill's green path returns before Step 3b, so that reviewer is invisible on both counts. The kit copy and this repository's copy are byte-identical (048, 081), so it is one edit in two pinned places. |
-| B5 | One governed source generates the agent instruction trees | `.agents/skills/` is fifteen tracked files carrying the pre-081 skill set, with `.Codex/rules/` paths that exist on no filesystem, added by spec 081's own commit and unchanged since. No spec claims it and no `extra_hashed_inputs` glob covers it. The maintainer's 2026-09-12 ruling is to generate the supported trees from one source with a parity test, in the shape `kit_embedded.rs` already uses, not to delete the tree. **B5 is parity, and parity only: it delivers no global installation, upgrade, pinning, compatibility floor or recorded resolved identity. Those are [note 06](06-harness-and-distribution-2026-09.md) §3.2 and §3.4, and shipping B5 must not be reported as delivering them.** |
+| B5 | One governed source generates the agent instruction trees | **Shipped as spec 100** (#222, ratified #223, 2026-09-16). `scripts/gen-agent-trees.py` writes `.claude/skills/`, `.agents/skills/` and `.codex/agents/` from one source, deletes what no source maps to, rewrites nothing, and all three trees are claimed and hashed. The measurement below is what it found. `.agents/skills/` was fifteen tracked files carrying the pre-081 skill set, with `.Codex/rules/` paths that exist on no filesystem, added by spec 081's own commit and unchanged since. No spec claims it and no `extra_hashed_inputs` glob covers it. The maintainer's 2026-09-12 ruling is to generate the supported trees from one source with a parity test, in the shape `kit_embedded.rs` already uses, not to delete the tree. **B5 is parity, and parity only: it delivers no global installation, upgrade, pinning, compatibility floor or recorded resolved identity. Those are [note 06](06-harness-and-distribution-2026-09.md) §3.2 and §3.4, and shipping B5 must not be reported as delivering them.** |
 
 One rider, which should not ride: the ownership ratchet's markdown blind spot.
 `C-002` reaches only `coverage.rs::SOURCE_EXTS`, so a tracked unclaimed
@@ -380,7 +380,7 @@ released.
 | Source item | Owner | Decision status | Spec or design reference | Remaining action |
 |---|---|---|---|---|
 | Mode-only and binary changes reach the gate | spec-spine | implemented; released in no tag yet | 092 | Ships with the next release |
-| Versioned, sorted read documents (note 04 F8, D7) | spec-spine | implemented | 093 | Its `## Verification` line 13 now fails on an empty ready set: amendment candidate, §9.4 |
+| Versioned, sorted read documents (note 04 F8, D7) | spec-spine | implemented | 093, amended by 103 | Its `## Verification` line 13 failed on an empty ready set. Spec 103 built the route an acceptance amendment needed (`amends_verification`, resolved by `verify`) and holds 093's corrected block; 093's file is untouched and `verify 093` is green |
 | Claim window declared, near misses reported | spec-spine | implemented | 094 | None |
 | Stray shard orphaned at the verbs | spec-spine | implemented | 095 | None |
 | One hash, one construction, one name (note 04 F9) | spec-spine | implemented | 096 | None |
@@ -393,7 +393,7 @@ released.
 | B3 kit install trips the ratchet | spec-spine | proposed | §3 B3 | Unfiled |
 | B4 `/shepherd` misses `issues/<n>/comments` | spec-spine | proposed | §3 B4 | Unfiled; one edit in two byte-identical places |
 | B5 one source generates the agent trees | spec-spine | proposed | §3 B5, note 06 §3.4 | Unfiled. Parity only; not distribution |
-| Staged coupling (`couple --head HEAD` reads `base...head`) | spec-spine | **unowned** | 090 §4, 092 §4, note 06 §3.9 | Both clauses say the other filed it. Nothing does. Decide H-7 |
+| Staged coupling (`couple --head HEAD` reads `base...head`) | spec-spine | **implemented** | 102, amending 090 §4 | H-7 decided 2026-09-16: fixed in `couple`. `--include-uncommitted` unions the committed range with `git diff HEAD`; the default is unchanged so CI stays reproducible. 090 §4's "is filed separately" is amended; 092 §4's sentence was accurate and is untouched |
 | Obligation records | spec-spine | proposed here, **proposed for deferral** by SP-03 | note 04 §4.4, revision 4 SP-03 | Neither adopted; needs a named consumer or an owner decision |
 | ContextClosure | spec-spine | proposed here, proposed for deferral by SP-03 | note 04 §4.5 | As above |
 | WorkScope | spec-spine | proposed here, proposed for deferral by SP-03 | note 04 §4.6, narrowed by 091 | As above |
@@ -412,10 +412,10 @@ released.
 | `Stop` hook calls every nonzero `check` "STALE" | spec-spine | proposed | note 06 §3.9 | Decision H-6 |
 | PR hook's `git diff --quiet -- .derived/` misses staged and untracked shards | spec-spine | proposed | note 06 §3.9 | Unfiled |
 | Commit-boundary freshness | spec-spine | implemented | 090 | 090 §4 explicitly excludes staged coupling; see the unowned row above |
-| Exit-code-aware PR gate | spec-spine | implemented | 080 | The `Stop` hook did not get the same treatment |
+| Exit-code-aware PR gate | spec-spine | **implemented** | 080, 099, 104 | 099 gave the session hooks the treatment; 104 closed the last two gaps: the gate now probes `check --help` on its exit-2 arm (spec 063) and `SessionStart` reports exit 3 as a read that was not performed |
 | Measurement plan | spec-spine and Statecraft | proposed | note 06 §3.10 | Precedes filing note 06's cost-justified items |
 | N2 draft in the ready set | spec-spine | see §9.3 | 038 §3.1, 048 D-2 | Consumer guidance owed |
-| N6 `I-004` refusal exits 2 | spec-spine | see §9.3 | 086 §3.1 | Reproduced; the message is wrong, not only the code |
+| N6 `I-004` refusal exits 2 | spec-spine | **implemented** | 101, amending 086 §3.1 and 098 §3.1 | Part 1 (the message) shipped with 098. Part 2 decided 2026-09-16: an unresolved claim exits 1, the validation code. Both approved specs stating the old rule are amended |
 | Personal settings inventory, Statecraft execution profiles, Aicortex retrieval | their owners | out of scope here | note 06 §4 | Boundaries recorded; nothing imported |
 
 ### 9.3 The two findings routed from aicortex
@@ -497,10 +497,10 @@ ratify-then-build may want it; that is a configurable lint, not a default.
 
 | # | Question | Who decides |
 |---|---|---|
-| R-1 | 093's `## Verification` line 13 asserts `d["next"]["id"]` and fails on the empty ready set that 093 §3.3 itself requires. The spec is approved, so the line is an **amendment**, not an edit | Human. A one-line `amends` in a new spec; do not edit 093 |
+| ~~R-1~~ | **Answered 2026-09-16, shipped as spec 103.** The one-line amendment needed a mechanism first: `verify` executes the amended file, so an acceptance amendment that did not redirect the executor changed nothing. 103 adds `amends_verification`, resolved through a chain and past a withdrawn holder, stated on every run. 093 is not edited | Decided |
 | R-2 | What goes next. Wave B's numbering is not an ordering: rank by impact and dependency. The three live candidates are the generated-protocol drift (§9.1), the `I-004` remedy line (§9.3), and R-1's acceptance amendment | Human |
-| R-3 | H-7: fix staged coupling in `couple`, in the harness, or declare it out of scope and correct 090 §4 and 092 §4, which currently both say the other filed it | Human |
-| R-4 | N6 part 2: does an `I-004` refusal move to exit 1? | Human; needs an `amends` on 086 |
+| ~~R-3~~ | **Answered 2026-09-16, shipped as spec 102.** Fixed in `couple`, not the harness: an adopter running it by hand pre-commit needed the same answer. `--include-uncommitted`, off by default. Only 090 §4's "is filed separately" was untrue and only it is amended | Decided |
+| ~~R-4~~ | **Answered 2026-09-16, shipped as spec 101.** It moves. Both 086 §3.1 and 098 §3.1 state the old rule normatively, so both are amended; 098's own forecast named only 086 | Decided |
 | R-5 | Whether SP-03's proposed deferral of obligations, WorkScope, ContextClosure, A10 and B23 is adopted. Until it is, wave C is neither scheduled nor withdrawn | Human, recorded in grand-refactor's adoption record, not here |
 | R-6 | Note 06's H-1 to H-6: package shape, revision declaration, the adopter's governed revision and resolved-package evidence, startup-path shape, how eligibility policy is expressed, and what the `Stop` hook does with exit 1 and 3. **Open questions, not gates**: none of them blocks an independent correctness fix | Human |
 | R-7 | Whether this repository enables `[coverage] governed_scope` | Human |
