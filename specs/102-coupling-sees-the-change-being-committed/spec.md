@@ -1,7 +1,7 @@
 ---
 id: "102-coupling-sees-the-change-being-committed"
 title: "The coupling gate can see the change being committed"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-16"
 summary: >
