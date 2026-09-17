@@ -167,6 +167,11 @@ enum Command {
         /// (whole-file authority; no hunk data).
         #[arg(long)]
         paths_from: Option<PathBuf>,
+        /// Also judge the index and working tree, so a pre-commit run sees the
+        /// change being committed (spec 102). Only valid when `--head` resolves
+        /// to `HEAD`, and never with `--paths-from`.
+        #[arg(long)]
+        include_uncommitted: bool,
         /// Emit the verdict as a JSON envelope on stdout (spec 037).
         #[arg(long)]
         json: bool,
@@ -320,6 +325,7 @@ fn main() -> ExitCode {
             head,
             pr_body,
             paths_from,
+            include_uncommitted,
             json,
         } => cmd_couple::run(
             &repo,
@@ -328,6 +334,7 @@ fn main() -> ExitCode {
                 head: head.clone(),
                 pr_body: pr_body.clone(),
                 paths_from: paths_from.clone(),
+                include_uncommitted: *include_uncommitted,
                 json: *json,
             },
         ),

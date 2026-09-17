@@ -3890,3 +3890,205 @@ fn spec101_the_unresolved_flag_axis_is_unchanged() {
     );
     assert_eq!(code(&run_in(root, &["check", "--fail-on-unresolved"])), 1);
 }
+
+// ===== spec 102: the coupling gate can see the change being committed =====
+
+/// The §1.1 scratch repository: `001-a` owns `src/`, committed on `main`, with
+/// a second spec `002-b` owning nothing so a later edit to `src/a.rs` has no
+/// authoring edit and must refuse.
+fn couple102_repo(root: &Path) {
+    let w = |rel: &str, content: &[u8]| {
+        let p = root.join(rel);
+        fs::create_dir_all(p.parent().unwrap()).unwrap();
+        fs::write(p, content).unwrap();
+    };
+    w(
+        "specs/001-a/spec.md",
+        b"---\nid: \"001-a\"\ntitle: \"a\"\nstatus: approved\ncreated: \"2026-09-16\"\nimplementation: complete\nsummary: \"s\"\nestablishes:\n  - \"src/\"\n---\n\n# a\n",
+    );
+    w("src/a.rs", b"pub fn a() {}\n");
+    // A second owner, so a test can dirty a path whose spec is edited nowhere
+    // in the union. Without it, an authoring edit in the committed range clears
+    // the working-tree change too, which is correct and therefore useless as a
+    // negative case.
+    w(
+        "specs/002-b/spec.md",
+        b"---\nid: \"002-b\"\ntitle: \"b\"\nstatus: approved\ncreated: \"2026-09-16\"\nimplementation: complete\nsummary: \"s\"\nestablishes:\n  - \"lib/\"\n---\n\n# b\n",
+    );
+    w("lib/b.rs", b"pub fn b() {}\n");
+    w(".gitignore", b".derived/**/build-meta.json\n");
+    for verb in ["compile", "index"] {
+        assert_eq!(code(&run_in(root, &[verb])), 0, "fixture {verb}");
+    }
+    git088(root, &["init", "-q", "-b", "main"]);
+    git088(root, &["add", "-A"]);
+    git088(root, &["commit", "-q", "-m", "base"]);
+}
+
+fn couple102(root: &Path, extra: &[&str]) -> std::process::Output {
+    let mut args = vec!["couple", "--base", "main", "--head", "HEAD"];
+    args.extend_from_slice(extra);
+    run_in(root, &args)
+}
+
+/// Spec 102 §1.1, §3.5: a staged edit is invisible to the committed range, and
+/// the unflagged verb reports a pass over an empty set.
+#[test]
+fn spec102_a_staged_edit_is_invisible_without_the_flag() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    couple102_repo(root);
+    fs::write(root.join("src/a.rs"), b"pub fn a() { /* drift */ }\n").unwrap();
+    git088(root, &["add", "-A"]);
+
+    let bare = couple102(root, &[]);
+    assert_eq!(code(&bare), 0, "{}", stderr(&bare));
+    assert!(
+        String::from_utf8_lossy(&bare.stdout).contains("0 path(s) checked"),
+        "the defect: a pass over nothing. {}",
+        String::from_utf8_lossy(&bare.stdout)
+    );
+
+    let out = couple102(root, &["--include-uncommitted"]);
+    assert_eq!(code(&out), 1, "{}", stderr(&out));
+    // Violations are written to stderr; the OK line is the stdout half.
+    assert!(stderr(&out).contains("src/a.rs"), "{}", stderr(&out));
+}
+
+/// Spec 102 §3.1: unstaged changes count too. `git diff HEAD` covers both.
+#[test]
+fn spec102_an_unstaged_edit_is_judged_under_the_flag() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    couple102_repo(root);
+    fs::write(root.join("src/a.rs"), b"pub fn a() { /* drift */ }\n").unwrap();
+
+    assert_eq!(code(&couple102(root, &[])), 0);
+    assert_eq!(code(&couple102(root, &["--include-uncommitted"])), 1);
+}
+
+/// Spec 102 §3.1, D-2: a path in both views is judged once, not twice.
+#[test]
+fn spec102_a_path_in_both_views_is_checked_once() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    couple102_repo(root);
+    // Committed on a branch off main, then edited again in the working tree.
+    git088(root, &["switch", "-q", "-c", "feature"]);
+    fs::write(root.join("src/a.rs"), b"pub fn a() { /* one */ }\n").unwrap();
+    git088(root, &["add", "-A"]);
+    git088(root, &["commit", "-q", "-m", "one"]);
+    fs::write(root.join("src/a.rs"), b"pub fn a() { /* one and two */ }\n").unwrap();
+
+    let out = couple102(root, &["--include-uncommitted"]);
+    let err = stderr(&out);
+    assert_eq!(
+        err.matches("C-001 'src/a.rs'").count(),
+        1,
+        "one violation per path, not one per view: {err}"
+    );
+}
+
+/// Spec 102 §3.3: the flag is meaningful only against `HEAD`.
+#[test]
+fn spec102_a_non_head_head_is_refused() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    couple102_repo(root);
+    git088(root, &["switch", "-q", "-c", "feature"]);
+    fs::write(root.join("src/a.rs"), b"pub fn a() { /* one */ }\n").unwrap();
+    git088(root, &["add", "-A"]);
+    git088(root, &["commit", "-q", "-m", "one"]);
+
+    // `main` is a real ref and a different commit from HEAD.
+    let out = run_in(
+        root,
+        &[
+            "couple",
+            "--base",
+            "main",
+            "--head",
+            "main",
+            "--include-uncommitted",
+        ],
+    );
+    assert_eq!(code(&out), 3, "{}", stderr(&out));
+    assert!(
+        stderr(&out).contains("--include-uncommitted"),
+        "{}",
+        stderr(&out)
+    );
+}
+
+/// Spec 102 §3.3: `--paths-from` carries no history to union with.
+#[test]
+fn spec102_paths_from_and_the_flag_are_refused_together() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    couple102_repo(root);
+    let list = root.join("paths.txt");
+    fs::write(&list, b"src/a.rs\n").unwrap();
+
+    let out = run_in(
+        root,
+        &[
+            "couple",
+            "--base",
+            "main",
+            "--head",
+            "HEAD",
+            "--paths-from",
+            list.to_str().unwrap(),
+            "--include-uncommitted",
+        ],
+    );
+    assert_eq!(code(&out), 3, "{}", stderr(&out));
+}
+
+/// Spec 102 §3.4: the default does not move. A dirty tree cannot change the
+/// verdict of an unflagged run, which is what keeps CI reproducible.
+#[test]
+fn spec102_the_unflagged_verdict_ignores_the_working_tree() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    couple102_repo(root);
+    git088(root, &["switch", "-q", "-c", "feature"]);
+    // A committed, properly authored change: 001-a owns src/ and is edited.
+    fs::write(root.join("src/a.rs"), b"pub fn a() { /* one */ }\n").unwrap();
+    let spec = root.join("specs/001-a/spec.md");
+    let body = fs::read_to_string(&spec).unwrap();
+    fs::write(&spec, body.replace("# a\n", "# a\n\nAn authoring edit.\n")).unwrap();
+    for verb in ["compile", "index"] {
+        assert_eq!(code(&run_in(root, &[verb])), 0);
+    }
+    git088(root, &["add", "-A"]);
+    git088(root, &["commit", "-q", "-m", "authored"]);
+
+    let clean = couple102(root, &[]);
+    assert_eq!(
+        code(&clean),
+        0,
+        "{}",
+        String::from_utf8_lossy(&clean.stdout)
+    );
+
+    // Now dirty the tree with an edit whose owning spec (002-b) is edited
+    // nowhere in the union. Editing `src/a.rs` again would NOT do: 001-a's
+    // authoring edit is in the committed range, so the unioned diff carries it
+    // and the gate clears, correctly.
+    fs::write(root.join("lib/b.rs"), b"pub fn b() { /* unauthored */ }\n").unwrap();
+    let still = couple102(root, &[]);
+    assert_eq!(
+        code(&still),
+        0,
+        "a dirty working tree must not change an unflagged verdict: {}",
+        String::from_utf8_lossy(&still.stdout)
+    );
+    let flagged = couple102(root, &["--include-uncommitted"]);
+    assert_eq!(code(&flagged), 1, "{}", stderr(&flagged));
+    assert!(
+        stderr(&flagged).contains("lib/b.rs"),
+        "{}",
+        stderr(&flagged)
+    );
+}
