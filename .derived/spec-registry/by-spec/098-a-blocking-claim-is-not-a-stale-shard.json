@@ -97,5 +97,5 @@
     "title": "A blocking claim is not a stale shard"
   },
   "shardHash": "271911831772d088b39a00906b20a7faa454be9f2e98ea407d66ab7cfc972756",
-  "specVersion": "1.3.0"
+  "specVersion": "1.2.0"
 }

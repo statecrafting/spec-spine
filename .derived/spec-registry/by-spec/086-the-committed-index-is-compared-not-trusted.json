@@ -92,5 +92,5 @@
     "title": "The committed index is compared, not trusted"
   },
   "shardHash": "a4a0098235e97351125211f5d785bf2c8ae6c38625c1a9eadd9cda52c2778449",
-  "specVersion": "1.3.0"
+  "specVersion": "1.2.0"
 }
