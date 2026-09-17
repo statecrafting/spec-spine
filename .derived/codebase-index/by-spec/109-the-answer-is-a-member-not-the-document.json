@@ -1,0 +1,32 @@
+{
+  "mapping": {
+    "amends": [
+      "060-plan-answers-the-whole-question"
+    ],
+    "dependsOn": [
+      "060-plan-answers-the-whole-question",
+      "093-a-governed-read-names-its-version",
+      "103-an-amended-acceptance-is-the-one-that-runs"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "109-the-answer-is-a-member-not-the-document",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "6577bc58656f195506c7dfe8ac7fad3f47911faadbb14d744e089d1682f12c75"
+}
