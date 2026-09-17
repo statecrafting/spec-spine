@@ -1,7 +1,8 @@
 {
   "mapping": {
     "amends": [
-      "086-the-committed-index-is-compared-not-trusted"
+      "086-the-committed-index-is-compared-not-trusted",
+      "098-a-blocking-claim-is-not-a-stale-shard"
     ],
     "dependsOn": [
       "075-one-name-one-freshness-verb",
@@ -80,5 +81,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "43c64de9d325ecb692731f742266a486e5ee69e5b0dea4f726b5c53cf1494fd0"
+  "shardHash": "76d8b64b2d58d88c3ac3429ffa02aec74a3b2ff1d4be2c9c2c155d03dbd685ea"
 }

@@ -23,7 +23,12 @@ depends_on:
   - "075-one-name-one-freshness-verb"
   - "086-the-committed-index-is-compared-not-trusted"
   - "098-a-blocking-claim-is-not-a-stale-shard"
-amends: ["086-the-committed-index-is-compared-not-trusted"]
+amends:
+  # 086 3.1's closing sentence, and 098 3.1's own MUST. Both are approved and
+  # both state the rule normatively, so both are amended (spec 040). 098 3.1
+  # names only 086 as needing the edge; that sentence undercounts itself.
+  - "086-the-committed-index-is-compared-not-trusted"
+  - "098-a-blocking-claim-is-not-a-stale-shard"
 extends:
   # 3.1: the composed exit code.
   - { spec: "075-one-name-one-freshness-verb", unit: "crates/spec-spine-cli/src/cmd_check.rs", nature: corrective }
@@ -135,6 +140,27 @@ The rest of 086 §3.1 stands: the three drift classes, the `--slice` sidecar
 comparison and the byte comparison itself are untouched, and this spec changes
 nothing about **what** `index check` detects, only which code it spends.
 
+Spec 098 §3.1 states the same rule in its own words and as its own MUST, so it
+is amended too. Where 098 reads:
+
+> `check` and `index check` MUST exit exactly as they do today for every input.
+> A blocking resolution diagnostic MUST still produce exit `2`; a stale shard
+> tree MUST still produce exit `2`; the two together MUST still produce exit
+> `2`.
+
+it now reads:
+
+> `check` and `index check` MUST exit exactly as they do today for every input
+> that carries no blocking resolution diagnostic. A stale shard tree MUST still
+> produce exit `2`. A blocking resolution diagnostic exits `1`, and the two
+> together exit `1`, which spec 101 decided and this spec deliberately did not.
+
+The rest of 098 §3.1 stands, including the `--fail-on-unresolved` sentence and
+spec 050 §3.3's precedence, both of which this spec leaves alone. 098's closing
+paragraph, which forecasts the decision and names the `amends` edge it would
+need, is left as the accurate record it is: it names 086 and not itself, which
+is the one thing about it this spec has to correct by also amending 098.
+
 ### 3.2 `index check` spends 1 on the same fact
 
 `spec-spine index check` MUST make the same move, for the same reason. The two
@@ -207,6 +233,15 @@ whose spec claims a file that does not exist cannot be made correct by
 regenerating, so reporting the half that regeneration fixes as the headline
 would send the operator to the remedy that does not work, which is the defect
 spec 098 removed from the prose.
+
+D-4 (2026-09-16, why spec 098 is amended as well as spec 086). Added during
+the build, from a review finding. Spec 098 §3.1 is titled "The exit codes do
+not move" and states the rule as its own MUST rather than merely citing 086's,
+so it is a second approved document carrying the behavior this spec changes,
+and spec 040 requires the edge to name every such document. 098's own forecast
+of this decision says it "would be a contract change needing an `amends` edge
+on 086", naming one spec where two were needed: an amendment that landed on 086
+alone would have left 098's MUST standing unamended against the code.
 
 D-3 (2026-09-16, why both verbs move together). A caller that runs `check`
 composes two trees; one that runs `index check` reads one. Neither difference
