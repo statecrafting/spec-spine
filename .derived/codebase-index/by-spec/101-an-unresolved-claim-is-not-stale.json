@@ -78,8 +78,8 @@
       }
     ],
     "specId": "101-an-unresolved-claim-is-not-stale",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "29818a6ec5df8b866c9198836ff23e230be141e814f986957e5662837e90bbd9"
+  "shardHash": "c46fcd02c1d3e4c9ae5d10ef053808be721109b0395f7862418a6f44ffe7f267"
 }

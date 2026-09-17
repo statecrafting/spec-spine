@@ -1,7 +1,7 @@
 ---
 id: "101-an-unresolved-claim-is-not-stale"
 title: "An unresolved claim exits as a validation failure"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-16"
 summary: >
