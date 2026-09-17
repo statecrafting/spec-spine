@@ -92,6 +92,21 @@ So the population has a clean, closed, historical boundary, which is what makes
 it settleable rather than a standing 43% of the corpus reported as noise on
 every run.
 
+### 1.3 Why this is not `verify --all`
+
+Spec 049 §4 declined a corpus-wide run in these words:
+
+> **`verify --all`.** A corpus-wide run is a loop in a caller, and what it
+> should do about `not-declared` specs (44 of 50 here) is a policy this spec
+> has no grounds to pick.
+
+Both halves are still right, and this spec is the one with the grounds. It
+supplies the policy (§3.4, §3.5) and it puts the loop in the caller (§3.1)
+rather than in the verb, so nothing about `verify` changes: the engine stays a
+pure function of `(config, file contents)`, the CLI keeps executing one spec,
+and no schema, no dependency and no subcommand is added to the tool that
+adopters install.
+
 ### 1.4 The first run, measured
 
 Run against `4e114fd` (the merged tip of `main` at the time of writing) with a
@@ -114,21 +129,6 @@ would have refused before any block executed.
 Worth writing down for whoever runs it next: no block left the worktree dirty,
 and the whole corpus fits inside one `cargo build --release`, so after the
 first build the 64 declared blocks cost about five minutes between them.
-
-### 1.3 Why this is not `verify --all`
-
-Spec 049 §4 declined a corpus-wide run in these words:
-
-> **`verify --all`.** A corpus-wide run is a loop in a caller, and what it
-> should do about `not-declared` specs (44 of 50 here) is a policy this spec
-> has no grounds to pick.
-
-Both halves are still right, and this spec is the one with the grounds. It
-supplies the policy (§3.4, §3.5) and it puts the loop in the caller (§3.1)
-rather than in the verb, so nothing about `verify` changes: the engine stays a
-pure function of `(config, file contents)`, the CLI keeps executing one spec,
-and no schema, no dependency and no subcommand is added to the tool that
-adopters install.
 
 ## 2. Territory
 
@@ -255,7 +255,10 @@ wants rather than only that it found nothing.
   removed when the run ends.
 - **The report is written outside the repository.** The sweep MUST refuse an
   output directory inside the repository under test, so a sweep can never dirty
-  the tree the gate judges. The containment test MUST compare physical paths;
+  the tree the gate judges, and it MUST refuse before creating anything: an
+  `--out` naming a path whose parent directories do not exist yet must leave the
+  repository exactly as it found it. The containment test MUST compare physical
+  paths;
   on macOS `git rev-parse --show-toplevel` answers `/private/var/...` where a
   `cd`+`pwd` answers `/var/...`, and a guard comparing the two forms passes a
   path that is in fact inside.
@@ -399,8 +402,11 @@ the crossing that staled every block specs 105 through 110 repaired.
 - **D-6 (2026-09-17, the containment guard compares physical paths).** Found by
   building this: the first `--out` guard compared `git rev-parse
   --show-toplevel` (`/private/var/...`) against a `cd`+`pwd` (`/var/...`) and
-  waved through a path inside the repository. Both sides are now `pwd -P`.
-  §3.6.
+  waved through a path inside the repository. Both sides are now `pwd -P`, and
+  the canonicalization creates nothing: an earlier form resolved the path by
+  `mkdir -p`'ing its parent first, which refused `--out <repo>/new/run` only
+  after `<repo>/new` had been created inside the tree it was protecting. It now
+  walks up to the deepest existing ancestor instead. §3.6.
 - **D-7 (2026-09-17, the acceptance is a fixture corpus, not this one).** This
   spec's `## Verification` cannot be "run the sweep on this repository": that
   run takes hours, and its outcome depends on 111 other specs' blocks, so the
@@ -529,6 +535,11 @@ python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/side/sweep.json'
 # --- 3.6: the report can never be written inside the repository under test ---
 SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/exempt.txt" --out "${TMPDIR:-/tmp}/ss112/repo/inside" >/dev/null 2>&1; test $? -eq 3
 test -d "${TMPDIR:-/tmp}/ss112/repo/specs" && test ! -e "${TMPDIR:-/tmp}/ss112/repo/inside"
+# ... and it refuses before creating anything, including when the named parents
+# do not exist yet (the case the `--out <repo>/inside` line above cannot reach,
+# since its parent is the repository root and already exists).
+SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/exempt.txt" --out "${TMPDIR:-/tmp}/ss112/repo/newsub/run" >/dev/null 2>&1; test $? -eq 3
+test ! -e "${TMPDIR:-/tmp}/ss112/repo/newsub"
 # --- 3.6: the run directory is cleared before use, so it must be one the
 # sweep is entitled to delete. A slipped --out at a directory holding anything
 # else is refused and its contents survive.

@@ -211,9 +211,21 @@ git -C "$root" merge-base --is-ancestor "$sha" "$trusted_ref" \
 
 short=$(git -C "$root" rev-parse --short "$sha")
 [ -n "$out" ] || out="${TMPDIR:-/tmp}/spec-spine-sweep-$short"
-out_parent=$(dirname "$out")
-mkdir -p "$out_parent" || die "cannot create $out_parent"
-out="$(cd "$out_parent" && pwd -P)/$(basename "$out")"
+# Canonicalized WITHOUT creating anything: the containment check below has to
+# be able to refuse before a single directory exists inside the repository.
+# Resolving by `mkdir -p` the parent first, then `cd`+`pwd`, refused
+# `--out <repo>/new/run` only after `<repo>/new` had already been created.
+# So walk up to the deepest ancestor that does exist, canonicalize that, and
+# re-attach the part that does not.
+probe="$out"
+suffix=""
+while [ ! -d "$probe" ]; do
+  case "$probe" in /|.|"") break ;; esac
+  suffix="$(basename "$probe")${suffix:+/$suffix}"
+  probe="$(dirname "$probe")"
+done
+[ -d "$probe" ] || die "cannot resolve --out: $out"
+out="$(cd "$probe" && pwd -P)${suffix:+/$suffix}"
 case "$out" in
   "$root"|"$root"/*) die "--out must be outside the repository ($root): the sweep must never
   write into the tree the gate judges" ;;
