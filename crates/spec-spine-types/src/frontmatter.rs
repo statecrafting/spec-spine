@@ -111,6 +111,9 @@ pub const KNOWN_KEYS: &[&str] = &[
     "superseded_by",
     "retirement_rationale",
     "amends_sections",
+    // Spec 103 3.1: the amended specs whose `## Verification` block this
+    // spec's own block replaces. A subset of `amends`.
+    "amends_verification",
     "unamendable",
     "amendment_record",
     // bootstrap marker
@@ -176,6 +179,11 @@ pub struct Frontmatter {
     pub retirement_rationale: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub amends_sections: Vec<String>,
+    /// Spec 103 3.1: amended specs whose `## Verification` block this spec's own
+    /// block replaces, so `verify <amended-id>` runs this spec's commands.
+    /// Every entry MUST also appear in `amends` (`V-020`).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub amends_verification: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub unamendable: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

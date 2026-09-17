@@ -198,6 +198,8 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
     // V-014 reads the records, not the parsed frontmatter, so it sees the
     // short-id-resolved `depends_on` (spec 016) rather than the authored text.
     detect_dependency_cycle(&records, &mut violations);
+    // Spec 103 3.1, 3.3.
+    detect_amends_verification(&records, &mut violations);
     // Spec 076 §3.5, over DECLARED units at compile time rather than over the
     // resolved graph. Naming the stage matters, because the obvious reading is
     // wrong: the existing duplicate-ownership machinery operates on
@@ -567,6 +569,89 @@ fn unit_identity(unit: &Unit) -> String {
 /// child order is authored order, so which cycle is found is a pure function of
 /// the corpus. One cycle is reported per compile: the path names every spec on
 /// it, and breaking it is what reveals any other.
+/// Spec 103 §3.1 and §3.3: `amends_verification` must be declarable without
+/// ambiguity.
+///
+/// Three refusals, all errors, because each leaves `verify` with a question it
+/// would otherwise have to answer by guessing:
+///
+/// - `V-018`: an entry that is not also in `amends`. Replacing what a spec
+///   accepts changes what that spec requires of the tree, which is an amendment,
+///   and spec 040 §3.3 makes the edge set the authoritative record of one. A
+///   spec taking over another's acceptance while `amended_by (incoming)` stayed
+///   silent would be exactly the undiscoverable amendment 040 exists to prevent.
+/// - `V-019`: two live specs naming the same target. Picking one by ordinal is a
+///   rule that always answers and never gives a reason; constitution V makes a
+///   disagreement about authority a question for a person.
+/// - `V-020`: a cycle in the replacement chain, which has no fixed point to
+///   resolve to.
+///
+/// A `superseded` or `retired` amender is skipped throughout (§3.2, D-5): its
+/// acceptance is no longer the corpus's, so it neither claims a target nor
+/// occupies one.
+fn detect_amends_verification(records: &[SpecRecord], out: &mut Vec<Violation>) {
+    let live = |r: &SpecRecord| !matches!(r.status, Status::Superseded | Status::Retired);
+    let all_ids: std::collections::BTreeSet<&str> = records.iter().map(|r| r.id.as_str()).collect();
+
+    // V-018, and the claim map V-019 reads. Records are id-sorted, so the first
+    // claimant of a target is stable and the message names the pair in a fixed
+    // order.
+    let mut claimed: std::collections::BTreeMap<&str, &str> = std::collections::BTreeMap::new();
+    for r in records.iter().filter(|r| live(r)) {
+        for target in &r.amends_verification {
+            if !r.amends.iter().any(|a| a == target) {
+                out.push(error(
+                    "V-018",
+                    format!(
+                        "amends_verification names '{target}', which is not in amends: replacing                          a spec's `## Verification` block amends that spec, so the edge that                          records the amendment must be declared too (spec 103 3.1)"
+                    ),
+                    Some(r.spec_path.clone()),
+                ));
+            }
+            if !all_ids.contains(target.as_str()) {
+                continue; // V-008/V-010 territory; not this rule's to restate.
+            }
+            match claimed.get(target.as_str()) {
+                Some(first) => out.push(error(
+                    "V-019",
+                    format!(
+                        "spec '{}' and spec '{first}' both replace the `## Verification` block                          of '{target}'; only one spec may hold another's acceptance, and which                          one is a question about authority rather than a tie to break                          (spec 103 3.3)",
+                        r.id
+                    ),
+                    Some(r.spec_path.clone()),
+                )),
+                None => {
+                    claimed.insert(target.as_str(), r.id.as_str());
+                }
+            }
+        }
+    }
+
+    // V-020: a cycle in the chain `target -> holder`. Walking from every target
+    // is enough; the map is small and the walk is bounded by its size.
+    for start in claimed.keys() {
+        let mut seen: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
+        let mut at: &str = start;
+        while let Some(next) = claimed.get(at) {
+            if !seen.insert(at) {
+                let path = records
+                    .iter()
+                    .find(|r| r.id == *start)
+                    .map(|r| r.spec_path.clone());
+                out.push(error(
+                    "V-020",
+                    format!(
+                        "the amends_verification chain starting at '{start}' is a cycle, so it                          resolves to no block (spec 103 3.2)"
+                    ),
+                    path,
+                ));
+                break;
+            }
+            at = next;
+        }
+    }
+}
+
 fn detect_dependency_cycle(records: &[SpecRecord], out: &mut Vec<Violation>) {
     const WHITE: u8 = 0;
     const GREY: u8 = 1;
@@ -692,6 +777,7 @@ fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
         superseded_by: fm.superseded_by,
         retirement_rationale: fm.retirement_rationale,
         amends_sections: fm.amends_sections,
+        amends_verification: fm.amends_verification,
         unamendable: fm.unamendable,
         amendment_record: fm.amendment_record,
         origin: fm.origin,
@@ -825,6 +911,7 @@ pub fn compile_spec(cfg: &Config, repo_root: &Path, id: &str) -> Result<SpecChec
         .collect();
     detect_duplicates(&id_paths, &mut cross);
     detect_dependency_cycle(&records, &mut cross);
+    detect_amends_verification(&records, &mut cross);
     for v in cross {
         if v.path.as_deref() == Some(spec_path.as_str()) || v.message.contains(&id) {
             violations.push(v);
@@ -1059,6 +1146,7 @@ fn recompute_cross_spec_violations(records: &[SpecRecord]) -> Vec<Violation> {
         }
     }
     detect_dependency_cycle(records, &mut out);
+    detect_amends_verification(records, &mut out);
     out
 }
 

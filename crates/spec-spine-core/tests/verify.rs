@@ -284,3 +284,149 @@ fn spec_044_is_not_declared() {
     let plan = verify_plan(&cfg(), repo, "044").unwrap();
     assert!(!plan.is_declared());
 }
+
+// --- spec 103: an amended acceptance is the one that runs -----------------
+//
+// Spec 040 forbids editing an amended spec's file and `verify` executes that
+// file, so before spec 103 an amendment could say an acceptance line was wrong
+// and change nothing about what ran. These pin the redirection.
+
+/// A spec document with a `## Verification` block and the given frontmatter
+/// lines beyond `id` and `status`.
+fn doc103(id: &str, status: &str, extra: &str, command: &str) -> String {
+    format!(
+        "---\nid: \"{id}\"\ntitle: \"t\"\nstatus: {status}\ncreated: \"2026-09-16\"\n\
+         summary: \"s\"\nimplementation: complete\n{extra}---\n\n# {id}\n\n\
+         ## Verification\n\n```verify:cli\n{command}\n```\n"
+    )
+}
+
+/// Spec 103 §3.2: `verify <amended>` runs the amender's block, and the plan
+/// names whose block it is holding.
+#[test]
+fn spec103_verify_runs_the_replacement_block() {
+    let t = corpus(&[
+        ("093-a", &doc103("093-a", "approved", "", "the-old-line")),
+        (
+            "103-b",
+            &doc103(
+                "103-b",
+                "approved",
+                "amends: [\"093-a\"]\namends_verification: [\"093-a\"]\n",
+                "the-corrected-line",
+            ),
+        ),
+    ]);
+    let plan = plan_at(t.path(), "093-a").unwrap();
+    assert_eq!(
+        plan.spec_id, "093-a",
+        "the plan answers for the spec asked for"
+    );
+    assert_eq!(plan.commands, ["the-corrected-line"]);
+    assert_eq!(plan.acceptance_from.as_deref(), Some("103-b"));
+
+    // The amender still runs its own block under its own name, with no
+    // attribution line to print.
+    let own = plan_at(t.path(), "103-b").unwrap();
+    assert_eq!(own.commands, ["the-corrected-line"]);
+    assert_eq!(own.acceptance_from, None);
+}
+
+/// Spec 103 §3.2: resolution follows the chain to its end, so a later
+/// amendment attaches to whichever spec currently holds the acceptance.
+#[test]
+fn spec103_resolution_follows_the_chain() {
+    let t = corpus(&[
+        ("093-a", &doc103("093-a", "approved", "", "first")),
+        (
+            "103-b",
+            &doc103(
+                "103-b",
+                "approved",
+                "amends: [\"093-a\"]\namends_verification: [\"093-a\"]\n",
+                "second",
+            ),
+        ),
+        (
+            "110-c",
+            &doc103(
+                "110-c",
+                "approved",
+                "amends: [\"103-b\"]\namends_verification: [\"103-b\"]\n",
+                "third",
+            ),
+        ),
+    ]);
+    let plan = plan_at(t.path(), "093-a").unwrap();
+    assert_eq!(plan.commands, ["third"], "the chain resolves to its end");
+    assert_eq!(plan.acceptance_from.as_deref(), Some("110-c"));
+}
+
+/// Spec 103 §3.2, D-5: a superseded or retired amender is skipped, so a
+/// retirement cannot silently change what a third spec asserts.
+#[test]
+fn spec103_a_withdrawn_amender_does_not_hold_the_acceptance() {
+    for status in ["superseded", "retired"] {
+        let t = corpus(&[
+            ("093-a", &doc103("093-a", "approved", "", "the-original")),
+            (
+                "103-b",
+                &doc103(
+                    "103-b",
+                    status,
+                    "amends: [\"093-a\"]\namends_verification: [\"093-a\"]\n",
+                    "the-withdrawn-one",
+                ),
+            ),
+        ]);
+        let plan = plan_at(t.path(), "093-a").unwrap();
+        assert_eq!(
+            plan.commands,
+            ["the-original"],
+            "a {status} amender must not hold another spec's acceptance"
+        );
+        assert_eq!(plan.acceptance_from, None);
+    }
+}
+
+/// Spec 103 §3.2: a spec nobody amends is untouched, which is every spec in
+/// the corpus but one.
+#[test]
+fn spec103_a_spec_with_no_amender_runs_its_own_block() {
+    let t = corpus(&[
+        ("093-a", &doc103("093-a", "approved", "", "its-own")),
+        ("103-b", &doc103("103-b", "approved", "", "unrelated")),
+    ]);
+    let plan = plan_at(t.path(), "093-a").unwrap();
+    assert_eq!(plan.commands, ["its-own"]);
+    assert_eq!(plan.acceptance_from, None);
+}
+
+/// Spec 103 §3.2: a cycle resolves to no replacement rather than looping.
+/// `compile` refuses it (`V-020`); `verify` runs against uncompiled trees too.
+#[test]
+fn spec103_a_cycle_does_not_hang_verify() {
+    let t = corpus(&[
+        (
+            "093-a",
+            &doc103(
+                "093-a",
+                "approved",
+                "amends: [\"103-b\"]\namends_verification: [\"103-b\"]\n",
+                "a",
+            ),
+        ),
+        (
+            "103-b",
+            &doc103(
+                "103-b",
+                "approved",
+                "amends: [\"093-a\"]\namends_verification: [\"093-a\"]\n",
+                "b",
+            ),
+        ),
+    ]);
+    let plan = plan_at(t.path(), "093-a").unwrap();
+    assert_eq!(plan.commands, ["a"], "falls back to the spec's own block");
+    assert_eq!(plan.acceptance_from, None);
+}

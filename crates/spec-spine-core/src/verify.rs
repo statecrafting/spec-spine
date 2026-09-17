@@ -36,10 +36,78 @@ pub fn plan(cfg: &Config, repo_root: &Path, id: &str) -> Result<VerifyPlan, Erro
     let specs_dir = repo_root.join(&cfg.layout.specs_dir);
     // Spec 084 3.4: the one policy, over the ids this verb already reads.
     let spec_id = crate::spec_id::resolve_spec_id(id, crate::spec_id::spec_dir_ids(&specs_dir)?)?;
-    let spec_md = specs_dir.join(&spec_id).join("spec.md");
+
+    // Spec 103 3.2: an amended acceptance is the one that runs. The block in
+    // `<spec_id>/spec.md` is not read at all when another spec holds it, which
+    // is the point: spec 040 forbids editing the amended file, so an acceptance
+    // amendment that did not redirect the executor would change nothing about
+    // what runs.
+    let source = resolve_acceptance_source(&specs_dir, &spec_id)?;
+    let read_from = source.as_deref().unwrap_or(&spec_id);
+    let spec_md = specs_dir.join(read_from).join("spec.md");
     let raw = fs::read_to_string(&spec_md)
         .map_err(|e| Error::Io(format!("read {}: {e}", spec_md.display())))?;
-    Ok(plan_from_markdown(&spec_id, &raw))
+    let mut plan = plan_from_markdown(&spec_id, &raw);
+    plan.acceptance_from = source;
+    Ok(plan)
+}
+
+/// The spec whose `## Verification` block answers for `spec_id`, when it is not
+/// `spec_id` itself (spec 103 3.2).
+///
+/// Reads the corpus rather than the committed registry (D-6): `verify` must stay
+/// runnable on a tree whose `.derived/` is stale or absent, since it is the verb
+/// an operator reaches for while repairing one. The scan covers the same
+/// directory `plan` already lists.
+///
+/// The chain is followed to its end, so a later amendment attaches to whichever
+/// spec currently holds the acceptance. `compile` refuses a fork (`V-019`) and a
+/// cycle (`V-020`); this function is defensive about a cycle anyway, because
+/// `verify` can run against a corpus nobody has compiled.
+fn resolve_acceptance_source(specs_dir: &Path, spec_id: &str) -> Result<Option<String>, Error> {
+    let holders = acceptance_holders(specs_dir)?;
+    let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut at = spec_id.to_string();
+    while let Some(next) = holders.get(&at) {
+        if !seen.insert(at.clone()) {
+            // A cycle resolves to no block. Fall back to the spec's own rather
+            // than looping; `compile` is where this is refused.
+            return Ok(None);
+        }
+        at = next.clone();
+    }
+    Ok((at != spec_id).then_some(at))
+}
+
+/// `amended spec id -> the live spec that replaces its acceptance`.
+///
+/// A `superseded` or `retired` holder is skipped (spec 103 3.2, D-5): its
+/// acceptance is no longer the corpus's, so the target keeps whatever held it
+/// before. Ids are visited in sorted order, so a fork `compile` would refuse
+/// resolves deterministically here rather than by directory-read order.
+fn acceptance_holders(
+    specs_dir: &Path,
+) -> Result<std::collections::BTreeMap<String, String>, Error> {
+    let mut out: std::collections::BTreeMap<String, String> = std::collections::BTreeMap::new();
+    for id in crate::spec_id::spec_dir_ids(specs_dir)? {
+        let path = specs_dir.join(&id).join("spec.md");
+        let Ok(raw) = fs::read_to_string(&path) else {
+            continue;
+        };
+        let Ok(fm) = spec_spine_types::parse_frontmatter(&raw) else {
+            continue;
+        };
+        if matches!(
+            fm.status,
+            spec_spine_types::Status::Superseded | spec_spine_types::Status::Retired
+        ) {
+            continue;
+        }
+        for target in &fm.amends_verification {
+            out.entry(target.clone()).or_insert_with(|| id.clone());
+        }
+    }
+    Ok(out)
 }
 
 /// The whole grammar, as a pure function of the spec's markdown.
@@ -83,6 +151,7 @@ pub fn plan_from_markdown(spec_id: &str, markdown: &str) -> VerifyPlan {
     }
 
     VerifyPlan {
+        acceptance_from: None,
         spec_id: spec_id.to_string(),
         commands,
         skipped: skipped

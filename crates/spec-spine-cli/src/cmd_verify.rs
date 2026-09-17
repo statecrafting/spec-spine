@@ -95,6 +95,15 @@ pub fn run(repo: &Path, id: &str, json: bool, plan_only: bool) -> Result<u8, Err
     let declared = plan.is_declared();
 
     if !json {
+        // Spec 103 §3.4: a block running under another spec's name, with no
+        // line saying so, is the laundering shape spec 040 §3.2 refuses. The
+        // whole value of amending rather than editing is that both documents
+        // stay readable, and that is worth nothing if the reader is not told to
+        // look at the second one.
+        if let Some(from) = &plan.acceptance_from {
+            outln!("verify: {}", plan.spec_id);
+            outln!("  acceptance amended by {from} (spec 040); its block is the one that runs");
+        }
         for s in &plan.skipped {
             outln!(
                 "verify: {}: {} {} block(s) are driven by the orchestrator; skipped here",

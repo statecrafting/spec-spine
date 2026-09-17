@@ -4092,3 +4092,185 @@ fn spec102_the_unflagged_verdict_ignores_the_working_tree() {
         stderr(&flagged)
     );
 }
+
+// ===== spec 103: an amended acceptance is the one that runs =====
+
+/// A spec document for the 103 fixtures.
+fn spec103_doc(id: &str, status: &str, extra: &str, command: &str) -> String {
+    format!(
+        "---\nid: \"{id}\"\ntitle: \"t\"\nstatus: {status}\ncreated: \"2026-09-16\"\n\
+         summary: \"s\"\nimplementation: complete\n{extra}---\n\n# {id}\n\n\
+         ## Verification\n\n```verify:cli\n{command}\n```\n"
+    )
+}
+
+fn spec103_write(root: &Path, id: &str, body: &str) {
+    let dir = root.join("specs").join(id);
+    fs::create_dir_all(&dir).unwrap();
+    fs::write(dir.join("spec.md"), body).unwrap();
+}
+
+/// Spec 103 §3.1, `V-018`: an entry that is not also in `amends`.
+#[test]
+fn spec103_amends_verification_outside_amends_is_v018() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    spec103_write(root, "093-a", &spec103_doc("093-a", "approved", "", "a"));
+    spec103_write(
+        root,
+        "103-b",
+        // `amends_verification` without the matching `amends`.
+        &spec103_doc(
+            "103-b",
+            "approved",
+            "amends_verification: [\"093-a\"]\n",
+            "b",
+        ),
+    );
+
+    let out = run_in(root, &["compile"]);
+    assert_eq!(code(&out), 1, "{}", stderr(&out));
+    let err = stderr(&out);
+    assert!(err.contains("V-018"), "{err}");
+    assert!(err.contains("not in amends"), "{err}");
+}
+
+/// Spec 103 §3.3, `V-019`: two live specs claiming one acceptance.
+#[test]
+fn spec103_two_specs_claiming_one_acceptance_is_v019() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    spec103_write(root, "093-a", &spec103_doc("093-a", "approved", "", "a"));
+    let extra = "amends: [\"093-a\"]\namends_verification: [\"093-a\"]\n";
+    spec103_write(root, "103-b", &spec103_doc("103-b", "approved", extra, "b"));
+    spec103_write(root, "104-c", &spec103_doc("104-c", "approved", extra, "c"));
+
+    let out = run_in(root, &["compile"]);
+    assert_eq!(code(&out), 1, "{}", stderr(&out));
+    assert!(stderr(&out).contains("V-019"), "{}", stderr(&out));
+
+    // D-5: withdrawing one of the two clears the fork rather than needing a
+    // tie-break, because a withdrawn spec holds nothing.
+    let withdrawn = format!("{extra}retirement_rationale: \"withdrawn\"\n");
+    spec103_write(
+        root,
+        "104-c",
+        &spec103_doc("104-c", "retired", &withdrawn, "c"),
+    );
+    let out = run_in(root, &["compile"]);
+    assert_eq!(code(&out), 0, "{}", stderr(&out));
+}
+
+/// Spec 103 §3.3, `V-020`: a cycle resolves to no block.
+#[test]
+fn spec103_a_cycle_in_the_chain_is_v020() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    spec103_write(
+        root,
+        "093-a",
+        &spec103_doc(
+            "093-a",
+            "approved",
+            "amends: [\"103-b\"]\namends_verification: [\"103-b\"]\n",
+            "a",
+        ),
+    );
+    spec103_write(
+        root,
+        "103-b",
+        &spec103_doc(
+            "103-b",
+            "approved",
+            "amends: [\"093-a\"]\namends_verification: [\"093-a\"]\n",
+            "b",
+        ),
+    );
+
+    let out = run_in(root, &["compile"]);
+    assert_eq!(code(&out), 1, "{}", stderr(&out));
+    assert!(stderr(&out).contains("V-020"), "{}", stderr(&out));
+}
+
+/// Spec 103 §3.4: `verify` says whose block it ran, and runs it.
+#[test]
+fn spec103_verify_states_the_substitution() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    spec103_write(
+        root,
+        "093-a",
+        &spec103_doc("093-a", "approved", "", "false"),
+    );
+    spec103_write(
+        root,
+        "103-b",
+        &spec103_doc(
+            "103-b",
+            "approved",
+            "amends: [\"093-a\"]\namends_verification: [\"093-a\"]\n",
+            "true",
+        ),
+    );
+
+    let out = run_in(root, &["verify", "093-a"]);
+    let stdout = String::from_utf8_lossy(&out.stdout);
+    assert!(
+        stdout.contains("acceptance amended by 103-b"),
+        "the substitution must never be silent: {stdout}"
+    );
+    // 093-a's own block is `false`, which would exit 1. The amender's is `true`.
+    assert_eq!(code(&out), 0, "{stdout}");
+    assert!(stdout.contains("$ true"), "{stdout}");
+    assert!(!stdout.contains("$ false"), "{stdout}");
+
+    // The amender under its own name prints no attribution line.
+    let own = run_in(root, &["verify", "103-b"]);
+    assert!(
+        !String::from_utf8_lossy(&own.stdout).contains("acceptance amended by"),
+        "{}",
+        String::from_utf8_lossy(&own.stdout)
+    );
+}
+
+/// Spec 103 §3.4: the fact is answerable from the ledger without running
+/// anything.
+#[test]
+fn spec103_registry_show_carries_amends_verification() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    spec103_write(root, "093-a", &spec103_doc("093-a", "approved", "", "a"));
+    spec103_write(
+        root,
+        "103-b",
+        &spec103_doc(
+            "103-b",
+            "approved",
+            "amends: [\"093-a\"]\namends_verification: [\"093-a\"]\n",
+            "b",
+        ),
+    );
+    assert_eq!(code(&run_in(root, &["compile"])), 0);
+
+    let out = run_in(root, &["registry", "show", "103-b", "--json"]);
+    assert_eq!(code(&out), 0, "{}", stderr(&out));
+    let json: serde_json::Value =
+        serde_json::from_slice(&out.stdout).expect("registry show emits JSON");
+    assert_eq!(
+        json["amendsVerification"],
+        serde_json::json!(["093-a"]),
+        "{json}"
+    );
+    // `registry show`'s `schemaVersion` is the READ axis (spec 093), not the
+    // registry's; the registry MINOR is asserted on the emitted shard instead.
+    let shard: serde_json::Value = serde_json::from_str(
+        &fs::read_to_string(root.join(".derived/spec-registry/by-spec/103-b.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(shard["specVersion"], "1.3.0", "{shard}");
+    assert_eq!(
+        shard["record"]["amendsVerification"],
+        serde_json::json!(["093-a"]),
+        "{shard}"
+    );
+}

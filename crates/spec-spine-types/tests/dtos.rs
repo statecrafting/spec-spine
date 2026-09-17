@@ -65,9 +65,11 @@ fn validation_passed_follows_error_tier() {
 fn schema_versions_are_pinned() {
     // 1.0.0: MAJOR, sharded registry (spec 024); 1.1.0: additive MINOR (spec
     // 028), optional `references` provenance `derived_at` timestamp; 1.2.0:
-    // additive MINOR (spec 076), optional `planned` on a unit payload. A
+    // additive MINOR (spec 076), optional `planned` on a unit payload; 1.3.0:
+    // additive MINOR (spec 103), optional `amendsVerification` naming the
+    // amended specs whose `## Verification` block this one replaces. A
     // consumer that knows 1.x keeps working, which is the MINOR rule.
-    assert_eq!(REGISTRY_SCHEMA_VERSION, "1.2.0");
+    assert_eq!(REGISTRY_SCHEMA_VERSION, "1.3.0");
     // 1.1.0: additive MINOR (spec 025): unresolved-unit severity tiers (W-001 /
     // W-002 warnings) on top of the spec-024 sharded MAJOR.
     assert_eq!(INDEX_SCHEMA_VERSION, "1.1.0");

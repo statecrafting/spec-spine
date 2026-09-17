@@ -112,5 +112,5 @@
     "title": "A hook bound to a tool route misses the work"
   },
   "shardHash": "70e6dda0da32da3beb2e87d1e5d6759060e34ac128bf1ecb4abfa0b4cfef8ca8",
-  "specVersion": "1.2.0"
+  "specVersion": "1.3.0"
 }
