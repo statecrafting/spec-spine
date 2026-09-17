@@ -25,8 +25,8 @@
       }
     ],
     "specId": "107-a-version-pin-is-not-a-contract",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "1069b75ca7142c1341a5bb7ba1454979bb86eee75e81bfc50287745dd3010e12"
+  "shardHash": "47ae297e67b102e52b4f7a30e0f01c292adae4513b7fefc45fcd532ae670b974"
 }
