@@ -285,7 +285,10 @@ wants rather than only that it found nothing.
   does not ship: a limit that silently does not exist on half the machines that
   run this is worse than none, because the report would still claim one. The
   child MUST be signalled as a process group, so the tree a block spawned dies
-  with it.
+  with it; where the shell did not give the job its own group, the sweep MUST
+  signal the process alone and MUST record that it did, since whatever the
+  block spawned then outlives the kill and a degraded run must not read as a
+  clean one.
 
 ### 3.7 The trust boundary is preserved and made mechanical
 

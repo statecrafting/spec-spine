@@ -307,7 +307,7 @@ ss_version=$("$ss" --version 2>/dev/null) || die "$ss does not answer --version"
 #
 # Exit 124 is returned for an exceeded limit, matching timeout(1)'s convention.
 run_limited() { # <seconds, 0 = no limit> <log> <spec-tmp> <spec-id>
-  local _limit="$1" _log="$2" _tmp="$3" _id="$4" _pid _waited
+  local _limit="$1" _log="$2" _tmp="$3" _id="$4" _pid _waited _grace
   if [ "$_limit" -le 0 ]; then
     ( cd "$tree" && TMPDIR="$_tmp" "$ss" verify "$_id" ) >"$_log" 2>&1
     return $?
@@ -319,8 +319,20 @@ run_limited() { # <seconds, 0 = no limit> <log> <spec-tmp> <spec-id>
   _waited=0
   while kill -0 "$_pid" 2>/dev/null; do
     if [ "$_waited" -ge "$_limit" ]; then
-      kill -TERM "-$_pid" 2>/dev/null || kill -TERM "$_pid" 2>/dev/null
-      sleep 2
+      # Signalling the group is the contract; a platform that did not give the
+      # job one is a degraded run, not a silent one, because whatever the block
+      # spawned then outlives the kill.
+      if ! kill -TERM "-$_pid" 2>/dev/null; then
+        printf '\n[verify-sweep] no process group for this job; signalling the process only, so anything it spawned may survive\n' >> "$_log"
+        kill -TERM "$_pid" 2>/dev/null || true
+      fi
+      # Grace, proportional to how long it actually takes to die rather than a
+      # flat wait every time.
+      _grace=0
+      while kill -0 "$_pid" 2>/dev/null && [ "$_grace" -lt 2 ]; do
+        sleep 1
+        _grace=$((_grace + 1))
+      done
       kill -KILL "-$_pid" 2>/dev/null || kill -KILL "$_pid" 2>/dev/null
       wait "$_pid" 2>/dev/null
       printf '\n[verify-sweep] killed after %ss\n' "$_limit" >> "$_log"
