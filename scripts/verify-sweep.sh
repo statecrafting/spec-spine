@@ -307,7 +307,7 @@ ss_version=$("$ss" --version 2>/dev/null) || die "$ss does not answer --version"
 #
 # Exit 124 is returned for an exceeded limit, matching timeout(1)'s convention.
 run_limited() { # <seconds, 0 = no limit> <log> <spec-tmp> <spec-id>
-  local _limit="$1" _log="$2" _tmp="$3" _id="$4" _pid _waited _grace
+  local _limit="$1" _log="$2" _tmp="$3" _id="$4" _pid _waited _grace _rc
   if [ "$_limit" -le 0 ]; then
     ( cd "$tree" && TMPDIR="$_tmp" "$ss" verify "$_id" ) >"$_log" 2>&1
     return $?
@@ -335,6 +335,14 @@ run_limited() { # <seconds, 0 = no limit> <log> <spec-tmp> <spec-id>
       done
       kill -KILL "-$_pid" 2>/dev/null || kill -KILL "$_pid" 2>/dev/null
       wait "$_pid" 2>/dev/null
+      _rc=$?
+      # It may have finished on its own in the window between the liveness
+      # check and the signal. A spec that actually reached a verdict keeps it;
+      # reporting it `not-run` because the clock ran out a moment later would
+      # be the sweep inventing an outcome it did not observe.
+      case "$_rc" in
+        0|1) return "$_rc" ;;
+      esac
       printf '\n[verify-sweep] killed after %ss\n' "$_limit" >> "$_log"
       return 124
     fi
@@ -363,6 +371,12 @@ if [ -n "$only" ]; then
     [ -n "$hit" ] || die "--only names no spec in the corpus at $short: $want
   Ids are a full \`NNN-slug\` or the 3-digit ordinal \`NNN\`, which is the short
   form spec-spine resolves everywhere (spec 016): \`049\`, not \`49\`."
+    # A spec selected twice would be run twice and counted twice, so the report
+    # would say the corpus is larger than it is. `--only 001,001` selects one.
+    case "
+$picked" in *"
+$hit
+"*) continue ;; esac
     picked="$picked$hit
 "
   done

@@ -239,6 +239,10 @@ sweep MUST accept a narrowed selection by spec id, so a maintainer can re-run a
 finding without re-running the corpus, and MUST record which selection produced
 a report.
 
+A spec MUST appear at most once in a selection: naming it twice MUST select it
+once, since a spec run twice is counted twice and the report would then say the
+corpus is larger than it is.
+
 An id is a full `NNN-slug` or the 3-digit ordinal `NNN`. That is the short form
 `spec-spine` itself resolves everywhere (spec 016, spec 084 §3.4): the tool
 answers `not found: spec '49'`, so the sweep accepts `049` and refuses `49` too.
@@ -288,7 +292,10 @@ wants rather than only that it found nothing.
   with it; where the shell did not give the job its own group, the sweep MUST
   signal the process alone and MUST record that it did, since whatever the
   block spawned then outlives the kill and a degraded run must not read as a
-  clean one.
+  clean one. A block that reached a verdict on its own in the moment between
+  the liveness check and the signal MUST keep that verdict: the sweep reports
+  what it observed, and `not-run` for a spec that in fact ran is an outcome it
+  invented.
 
 ### 3.7 The trust boundary is preserved and made mechanical
 
@@ -499,6 +506,9 @@ SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "
 python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/one/sweep.json'));assert [s['id'] for s in d['specs']]==['001-green'];assert d['selection']=='001'"
 # 3.5: an unpadded ordinal is refused the way the tool refuses it, and the
 # refusal names the form it wants rather than only reporting a miss.
+# 3.5: a spec named twice is selected once.
+SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/exempt.txt" --out "${TMPDIR:-/tmp}/ss112/dup" --only 001,001,001 >/dev/null 2>&1; test $? -eq 0
+python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/dup/sweep.json'));assert [s['id'] for s in d['specs']]==['001-green'], d['specs'];assert d['counts']['passed']==1"
 SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/exempt.txt" --out "${TMPDIR:-/tmp}/ss112/x" --only 1 >/dev/null 2>&1; test $? -eq 3
 SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/exempt.txt" --out "${TMPDIR:-/tmp}/ss112/x" --only 1 2>&1 | grep -q '3-digit ordinal'
 target/release/spec-spine verify 49 >/dev/null 2>&1; test $? -eq 1
