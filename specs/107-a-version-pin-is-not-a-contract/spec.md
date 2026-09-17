@@ -233,6 +233,10 @@ corpus change that uses it.
 - **Teaching `amends_verification` in the template.**
   `standards/spec/templates/spec-template.md` does not carry the key spec 103
   added. 106 4 names it as a real gap in territory neither spec owns.
+- **The piped `registry show` line in specs 105's and 106's blocks.** Both carry
+  the form D-4 rejects, and both are green, because on a merged tree the verb
+  they read succeeds. Correcting either is an amendment of that spec rather than
+  a repair of this block.
 
 ## 5. Resolved decisions
 
@@ -269,6 +273,16 @@ D-4 (2026-09-17, why the pipeline becomes a redirect). `cmd --json | python3 -c
 message naming the wrong defect. Worse in a two-document comparison, where two
 failures could compare equal. 3.2 requires files for that reason, following spec
 106 D-4, which recorded the same hazard when it hit it.
+
+The rule reaches **every** line in the block, including 3.5's `registry show`.
+The first draft left that one as a pipeline, inherited from spec 106's block,
+which put this spec in the position of stating a rule in D-4 and breaking it
+eleven lines later. Review caught it. The case is not hypothetical there and is
+the one a reviewer meets first: at the parent commit `registry show 107` exits 1
+and prints nothing, so the pipeline form reports a JSON decode error for what is
+a not-found, which is precisely the misattribution this entry exists to prevent.
+Spec 106's and spec 105's copies are green and are another spec's acceptance, so
+they are named in 4 rather than edited here.
 
 D-5 (2026-09-17, what the fail-first evidence is and is not). This spec changes
 no code, so the corrected lines pass at the parent commit `e4d7d28` against the
@@ -349,7 +363,13 @@ target/release/spec-spine compile --spec 999 ; test $? -eq 1
 target/release/spec-spine compile --spec 024 --check ; test $? -eq 3
 # --- spec 107's own mechanism (3.5) ---
 # The replacement is declared, read through the CLI rather than off the shard.
-target/release/spec-spine registry show 107 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["056-compile-one-spec"], d; assert d["amends"] == ["056-compile-one-spec"], d'
+# Redirected, not piped, for the reason D-4 gives: at the parent commit this
+# verb exits 1 and prints nothing, and a pipeline would report that as a JSON
+# decode error naming the wrong defect. The file is named for this spec, whose
+# mechanism it is, not for 056, whose acceptance the half above is (D-6).
+target/release/spec-spine registry show 107 --json > "${TMPDIR:-/tmp}/ss107-show.json"
+python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss107-show.json')); assert d['amendsVerification'] == ['056-compile-one-spec'], d; assert d['amends'] == ['056-compile-one-spec'], d"
+rm -f "${TMPDIR:-/tmp}/ss107-show.json"
 # Spec 056's file is not edited (spec 040 3.1): its own block still carries the
 # superseded literal pin. This goes red the moment someone resolves this by
 # editing 056 instead.
