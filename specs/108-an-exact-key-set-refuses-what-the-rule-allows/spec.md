@@ -1,7 +1,7 @@
 ---
 id: "108-an-exact-key-set-refuses-what-the-rule-allows"
 title: "An exact key set refuses what the rule allows"
-status: draft
+status: approved
 kind: "core"
 created: "2026-09-17"
 summary: >
@@ -16,7 +16,7 @@ summary: >
   form stays silent on a corpus with nothing to report. This spec declares 059's
   acceptance replaced and carries the corrected block, without editing 059's
   file. It is the second of the four follow-ons spec 106 4 named.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:

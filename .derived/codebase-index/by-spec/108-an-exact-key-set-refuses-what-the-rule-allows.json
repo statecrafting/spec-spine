@@ -26,8 +26,8 @@
       }
     ],
     "specId": "108-an-exact-key-set-refuses-what-the-rule-allows",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "31a16f517876cfe504c088903ccd14f0ce57a043a8994f0f243d09e12d154fd2"
+  "shardHash": "8bf7eb4002e763f33e28458232332eafaa6b9cefb1e5dd4732f30912168c251e"
 }
