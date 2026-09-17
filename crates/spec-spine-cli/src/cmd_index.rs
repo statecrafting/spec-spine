@@ -262,7 +262,15 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             // for them would name the wrong problem. The counts are still
             // reported either way; suppressing them would hide the number the
             // operator ran the command for.
-            let code = if matches!(freshness, Freshness::Fresh) {
+            let code = if partition.as_ref().is_some_and(|p| !p.blocking.is_empty()) {
+                // Spec 101 §3.2, amending spec 086 §3.1: an unresolved claim is
+                // a validation failure, not staleness. `check` composes this
+                // verb, so the two must spend the same code on the same fact;
+                // a caller must not have to know which one it invoked to know
+                // what a code means. Checked first, so a tree holding a
+                // blocking claim AND drift exits 1 (spec 075 §3.3's order).
+                1
+            } else if matches!(freshness, Freshness::Fresh) {
                 if *fail_on_unresolved && counts.has_unresolved() {
                     1
                 } else {
