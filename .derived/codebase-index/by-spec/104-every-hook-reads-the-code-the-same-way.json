@@ -111,8 +111,8 @@
       }
     ],
     "specId": "104-every-hook-reads-the-code-the-same-way",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "ecb27f6e2d210c02cf1c30f1549e112c6ccebe1637df35834772d7811e61110d"
+  "shardHash": "56e7c70c89bb0467ac5923515b00053867b99e441e990af80bd994d384e29395"
 }
