@@ -1,7 +1,7 @@
 ---
 id: "109-the-answer-is-a-member-not-the-document"
 title: "The answer is a member, not the document"
-status: draft
+status: approved
 kind: "core"
 created: "2026-09-17"
 summary: >
@@ -17,7 +17,7 @@ summary: >
   selection, which a one-element fixture cannot show. This spec declares 060's
   acceptance replaced and carries the corrected block, without editing 060's
   file. It is the third of the four follow-ons spec 106 4 named.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
