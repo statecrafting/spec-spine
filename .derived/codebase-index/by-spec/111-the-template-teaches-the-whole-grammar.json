@@ -70,8 +70,8 @@
       }
     ],
     "specId": "111-the-template-teaches-the-whole-grammar",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "33b7c55d811b6015cc17906f30c760fb447c00b291ba91adfa29ea2aa36d8fe7"
+  "shardHash": "e1684ffda8a1b773f4b242ca6768eef9c070bd8a40c24c93c60fcb1275bc1427"
 }
