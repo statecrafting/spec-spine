@@ -1,7 +1,7 @@
 ---
 id: "106-an-acceptance-outlives-the-output-it-was-written-against"
 title: "An acceptance outlives the output it was written against"
-status: draft
+status: approved
 kind: "core"
 created: "2026-09-17"
 summary: >
@@ -17,7 +17,7 @@ summary: >
   amending specs declared `amends_verification`, and all three predate the spec
   that built it. This spec declares 050's acceptance replaced and carries the
   corrected block, without editing 050's file.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
