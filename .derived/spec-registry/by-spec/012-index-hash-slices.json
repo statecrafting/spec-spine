@@ -100,5 +100,5 @@
     "title": "Index: named hash slices and `index check --slice <name>`"
   },
   "shardHash": "fef5ca06e8a92bb6ff921a371daef35ac26e764fdd8665649c3f1e420c31fdbc",
-  "specVersion": "1.2.0"
+  "specVersion": "1.3.0"
 }
