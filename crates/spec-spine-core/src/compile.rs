@@ -601,50 +601,60 @@ fn detect_amends_verification(records: &[SpecRecord], out: &mut Vec<Violation>) 
         for target in &r.amends_verification {
             if !r.amends.iter().any(|a| a == target) {
                 out.push(error(
-                    "V-018",
-                    format!(
-                        "amends_verification names '{target}', which is not in amends: replacing                          a spec's `## Verification` block amends that spec, so the edge that                          records the amendment must be declared too (spec 103 3.1)"
-                    ),
-                    Some(r.spec_path.clone()),
-                ));
+ "V-018",
+ format!(
+ "amends_verification names '{target}', which is not in amends: replacing a spec's `## Verification` block amends that spec, so the edge that records the amendment must be declared too (spec 103 3.1)"
+ ),
+ Some(r.spec_path.clone()),
+ ));
             }
             if !all_ids.contains(target.as_str()) {
                 continue; // V-008/V-010 territory; not this rule's to restate.
             }
             match claimed.get(target.as_str()) {
-                Some(first) => out.push(error(
-                    "V-019",
-                    format!(
-                        "spec '{}' and spec '{first}' both replace the `## Verification` block                          of '{target}'; only one spec may hold another's acceptance, and which                          one is a question about authority rather than a tie to break                          (spec 103 3.3)",
-                        r.id
-                    ),
-                    Some(r.spec_path.clone()),
-                )),
-                None => {
-                    claimed.insert(target.as_str(), r.id.as_str());
-                }
-            }
+ Some(first) => out.push(error(
+ "V-019",
+ format!(
+ "spec '{}' and spec '{first}' both replace the `## Verification` block of '{target}'; only one spec may hold another's acceptance, and which one is a question about authority rather than a tie to break (spec 103 3.3)",
+ r.id
+ ),
+ Some(r.spec_path.clone()),
+ )),
+ None => {
+ claimed.insert(target.as_str(), r.id.as_str());
+ }
+ }
         }
     }
 
     // V-020: a cycle in the chain `target -> holder`. Walking from every target
     // is enough; the map is small and the walk is bounded by its size.
+    //
+    // One report per cycle, the convention `detect_dependency_cycle` already
+    // sets: every node of a cycle is a start, so an unguarded walk reports a
+    // two-node cycle twice and an n-node cycle n times, which buries the one
+    // fact the reader needs under n copies of it.
+    let mut reported: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
     for start in claimed.keys() {
+        if reported.contains(*start) {
+            continue;
+        }
         let mut seen: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
         let mut at: &str = start;
         while let Some(next) = claimed.get(at) {
             if !seen.insert(at) {
+                reported.extend(seen.iter().copied());
                 let path = records
                     .iter()
                     .find(|r| r.id == *start)
                     .map(|r| r.spec_path.clone());
                 out.push(error(
-                    "V-020",
-                    format!(
-                        "the amends_verification chain starting at '{start}' is a cycle, so it                          resolves to no block (spec 103 3.2)"
-                    ),
-                    path,
-                ));
+ "V-020",
+ format!(
+ "the amends_verification chain starting at '{start}' is a cycle, so it resolves to no block (spec 103 3.3)"
+ ),
+ path,
+ ));
                 break;
             }
             at = next;

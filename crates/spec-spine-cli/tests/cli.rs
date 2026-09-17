@@ -4189,7 +4189,18 @@ fn spec103_a_cycle_in_the_chain_is_v020() {
 
     let out = run_in(root, &["compile"]);
     assert_eq!(code(&out), 1, "{}", stderr(&out));
-    assert!(stderr(&out).contains("V-020"), "{}", stderr(&out));
+    let err = stderr(&out);
+    assert!(err.contains("V-020"), "{err}");
+    // One report per cycle, the convention `detect_dependency_cycle` sets.
+    // Every node of a cycle is a start, so an unguarded walk reports a two-node
+    // cycle twice.
+    assert_eq!(
+        err.matches("V-020").count(),
+        1,
+        "one cycle, one diagnostic: {err}"
+    );
+    // The refusal is 3.3's, and the message says so.
+    assert!(err.contains("spec 103 3.3"), "{err}");
 }
 
 /// Spec 103 §3.4: `verify` says whose block it ran, and runs it.

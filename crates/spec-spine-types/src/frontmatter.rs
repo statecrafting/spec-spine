@@ -181,7 +181,7 @@ pub struct Frontmatter {
     pub amends_sections: Vec<String>,
     /// Spec 103 3.1: amended specs whose `## Verification` block this spec's own
     /// block replaces, so `verify <amended-id>` runs this spec's commands.
-    /// Every entry MUST also appear in `amends` (`V-020`).
+    /// Every entry MUST also appear in `amends` (`V-018`).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub amends_verification: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
