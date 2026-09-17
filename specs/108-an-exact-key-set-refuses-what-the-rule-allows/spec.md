@@ -172,12 +172,20 @@ the redirect. The same applies to the prose assertion of 3.4, which MUST NOT be
 written as `test -z "$(...)"`: a verb that failed and printed nothing would read
 as a verb that was correctly silent.
 
-The rule reaches **every** line in the block, 3.5's `registry show` included.
-That one is where the hazard is not hypothetical: at the parent commit the verb
-exits 1 and prints nothing, so a pipeline reports a JSON decode error for what
-is a not-found, naming the wrong defect to the first reviewer who runs the
-block. Spec 107 D-4 records the same correction, made under review on its own
+The rule reaches every line whose verb must **succeed**, 3.5's `registry show`
+included. That one is where the hazard is not hypothetical: at the parent commit
+the verb exits 1 and prints nothing, so a pipeline reports a JSON decode error
+for what is a not-found, naming the wrong defect to the first reviewer who runs
+the block. Spec 107 D-4 records the same correction, made under review on its own
 pull request.
+
+It does **not** reach a line whose verb is required to exit non-zero, and 059's
+block has one: the `index coverage --fail-on-untraced 2>&1 | grep -q 'no package
+was discovered'` line, where exit 1 **is** the behaviour 059 3.2 requires and the
+assertion is about the message the refusal carries. There the pipeline is
+load-bearing, because `grep`'s status is the one that should decide the line; a
+redirect would make the line fail on a correct refusal. That line is inherited
+unchanged for that reason, not by oversight. D-8.
 
 The fixture root inherited from 059's block stays at `${TMPDIR:-/tmp}/ss059`
 unchanged, and the live-corpus document is captured beside it rather than inside
@@ -349,6 +357,14 @@ by substituting documents and corpora:
 The one line that is fail-first at the parent in the ordinary sense is
 `registry show 108`, a not-found exit 1 there, which is 3.5's half.
 
+D-6 (2026-09-17, why the live-corpus document is captured outside the fixture
+root). The block's fixture line begins `rm -rf "${TMPDIR:-/tmp}/ss059"`, so a
+document written into that directory before it would be deleted, and one written
+after it would sit at the root of a corpus the following lines pass to `--repo`.
+Neither is harmful today and both invite a later reader to move a line and break
+something quietly. A sibling path costs nothing and the fixture line is inherited
+unchanged, which keeps the diff against 059's block to what 3.1 says it is.
+
 D-7 (2026-09-17, why spec 107 is a declared dependency). This spec cites 107 in
 1.2 as one of the corrected sites, in 3.2 as the precedent for redirecting the
 `registry show` read, and in 4 as the first of the series this is the second of.
@@ -362,13 +378,16 @@ is complete, which is the truth of it. The dependency is on 107's **record**, no
 on anything it does: nothing here executes, reads or relies on 107's behaviour,
 and the two blocks share no state.
 
-D-6 (2026-09-17, why the live-corpus document is captured outside the fixture
-root). The block's fixture line begins `rm -rf "${TMPDIR:-/tmp}/ss059"`, so a
-document written into that directory before it would be deleted, and one written
-after it would sit at the root of a corpus the following lines pass to `--repo`.
-Neither is harmful today and both invite a later reader to move a line and break
-something quietly. A sibling path costs nothing and the fixture line is inherited
-unchanged, which keeps the diff against 059's block to what 3.1 says it is.
+D-8 (2026-09-17, why one pipeline stays). Review of the pull request noted the
+`index coverage --fail-on-untraced | grep -q` line as in tension with 3.2's rule,
+and reading it that way is fair, because the first draft of 3.2 said the rule
+reached every line. It does not, and the boundary is which status the line should
+report. Where a verb must succeed, its status is the line's answer and a pipeline
+throws it away. Where a verb must **refuse**, as `--fail-on-untraced` must on an
+empty universe, its non-zero status is the expected outcome and the question is
+what the refusal said; there `grep`'s status is the right one to surface, and a
+redirect would turn a correct refusal into a failing line. 3.2 now states both
+halves rather than a rule with a silent exception.
 
 ## Verification
 
