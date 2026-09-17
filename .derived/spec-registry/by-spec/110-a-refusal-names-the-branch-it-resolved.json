@@ -1,0 +1,57 @@
+{
+  "record": {
+    "amends": [
+      "071-a-tag-push-is-not-a-push-to-main"
+    ],
+    "amendsVerification": [
+      "071-a-tag-push-is-not-a-push-to-main"
+    ],
+    "created": "2026-09-17",
+    "dependsOn": [
+      "071-a-tag-push-is-not-a-push-to-main",
+      "072-the-default-branch-is-configured-not-assumed",
+      "103-an-amended-acceptance-is-the-one-that-runs",
+      "107-a-version-pin-is-not-a-contract",
+      "108-an-exact-key-set-refuses-what-the-rule-allows",
+      "109-the-answer-is-a-member-not-the-document"
+    ],
+    "id": "110-a-refusal-names-the-branch-it-resolved",
+    "implementation": "pending",
+    "kind": "core",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "110: A refusal names the branch it resolved",
+      "1. Purpose",
+      "1.1 One red assertion, no defect behind it",
+      "1.2 After 072, the literal is the thing 071 3.2 forbids",
+      "1.3 The message is checked in one copy, where everything else is checked in three",
+      "1.4 The crossing was silent",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 What spec 071's acceptance now is",
+      "3.2 The message assertion reads the resolved name, and the literal's absence",
+      "3.3 The message is asserted in all three copies 071 already checks",
+      "3.4 The acceptance",
+      "3.5 No code changes",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/110-a-refusal-names-the-branch-it-resolved/spec.md",
+    "status": "draft",
+    "summary": "Spec 071's `## Verification` block greps the push gate's refusal message for the literal string `this would update main`, and spec 072 legitimately replaced that literal with the branch name the hook resolves, so `spec-spine verify 071` has been red since 072 merged. 071 3.2 requires the message to say what was actually refused and to name the tag push as allowed; it never required the default branch to be spelled `main`, and after 072 a message that said `main` on a repository whose default is something else would be saying the one thing 071 3.2 forbids. The same block checks the message in one of the three copies it checks every other assertion in. This spec declares 071's acceptance replaced and carries the corrected block, without editing 071's file. It is the last of the four follow-ons spec 106 4 named.\n",
+    "title": "A refusal names the branch it resolved"
+  },
+  "shardHash": "12f6ca5e1e97f067215b97d21b071abcd1172b52d08b8fe3b4d38d7a1a55d135",
+  "specVersion": "1.3.0"
+}
