@@ -1,7 +1,7 @@
 ---
 id: "103-an-amended-acceptance-is-the-one-that-runs"
 title: "An amended acceptance is the one that runs"
-status: draft
+status: approved
 kind: "core"
 created: "2026-09-16"
 summary: >
