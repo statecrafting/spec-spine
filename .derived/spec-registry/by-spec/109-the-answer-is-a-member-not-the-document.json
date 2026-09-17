@@ -1,0 +1,58 @@
+{
+  "record": {
+    "amends": [
+      "060-plan-answers-the-whole-question"
+    ],
+    "amendsVerification": [
+      "060-plan-answers-the-whole-question"
+    ],
+    "created": "2026-09-17",
+    "dependsOn": [
+      "060-plan-answers-the-whole-question",
+      "093-a-governed-read-names-its-version",
+      "103-an-amended-acceptance-is-the-one-that-runs",
+      "107-a-version-pin-is-not-a-contract",
+      "108-an-exact-key-set-refuses-what-the-rule-allows"
+    ],
+    "id": "109-the-answer-is-a-member-not-the-document",
+    "implementation": "pending",
+    "kind": "core",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "109: The answer is a member, not the document",
+      "1. Purpose",
+      "1.1 One red assertion, and this one has an amendment behind it",
+      "1.2 This is not an over-strict assertion; it is an amended rule",
+      "1.3 The block never asserted 060's strongest requirement",
+      "1.4 The crossing was silent",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 What spec 060's acceptance now is",
+      "3.2 The verb's exit status is the line's status",
+      "3.3 The pick is read from the member 093 put it in",
+      "3.4 The fixture gains a second ready spec, so \"first\" can fail",
+      "3.5 The acceptance",
+      "3.6 The empty ready set stays where spec 093 put it",
+      "3.7 No code changes",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/109-the-answer-is-a-member-not-the-document/spec.md",
+    "status": "draft",
+    "summary": "Spec 060's `## Verification` block compares the whole of `registry plan --next --json` against one spec object, and spec 093 moved that object under a `next` member so the empty ready set could be a value rather than a missing document, so `spec-spine verify 060` has been red since 093 merged. 093 declared an `amends` edge to 060 for exactly this change and carried the replacement text for 060's rule; what it could not reach was 060's acceptance, because spec 040 forbids editing the amended file and the block lives inside it. The same block leaves 060 3.2's strongest requirement unasserted: that `--next` is a projection of `plan` and does not reimplement selection, which a one-element fixture cannot show. This spec declares 060's acceptance replaced and carries the corrected block, without editing 060's file. It is the third of the four follow-ons spec 106 4 named.\n",
+    "title": "The answer is a member, not the document"
+  },
+  "shardHash": "6095a5a44bf72bffea834ff6067f59f9a6427c8e31fa02dedd6ed77b19e5b27e",
+  "specVersion": "1.3.0"
+}
