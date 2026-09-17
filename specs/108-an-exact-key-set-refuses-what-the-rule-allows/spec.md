@@ -23,6 +23,10 @@ depends_on:
   - "059-read-verbs-on-a-code-free-corpus"
   - "093-a-governed-read-names-its-version"
   - "103-an-amended-acceptance-is-the-one-that-runs"
+  # D-7: not a behavioural dependency. This spec cites 107's decision record as
+  # precedent and states its own position in the series, so the order those
+  # claims assume is declared rather than left to the merge queue.
+  - "107-a-version-pin-is-not-a-contract"
 amends: ["059-read-verbs-on-a-code-free-corpus"]
 # 3.1: this spec's `## Verification` block IS 059's acceptance from now on.
 # 059's own file is not edited (spec 040 3.1), and 093's is not either: 093
@@ -344,6 +348,19 @@ by substituting documents and corpora:
 
 The one line that is fail-first at the parent in the ordinary sense is
 `registry show 108`, a not-found exit 1 there, which is 3.5's half.
+
+D-7 (2026-09-17, why spec 107 is a declared dependency). This spec cites 107 in
+1.2 as one of the corrected sites, in 3.2 as the precedent for redirecting the
+`registry show` read, and in 4 as the first of the series this is the second of.
+Review of the pull request pointed out that all three are past-tense claims about
+a spec that was not in this branch's base, so either the ordering was real and
+undeclared or the claims were false. The ordering is real: the four repairs were
+built in one sitting and each carries the previous one's findings. Declaring it
+in `depends_on` makes the order the corpus enforces rather than one a reader has
+to trust, at the cost of marking this spec blocked in `registry plan` until 107
+is complete, which is the truth of it. The dependency is on 107's **record**, not
+on anything it does: nothing here executes, reads or relies on 107's behaviour,
+and the two blocks share no state.
 
 D-6 (2026-09-17, why the live-corpus document is captured outside the fixture
 root). The block's fixture line begins `rm -rf "${TMPDIR:-/tmp}/ss059"`, so a
