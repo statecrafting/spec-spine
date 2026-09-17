@@ -608,6 +608,17 @@ fn this_repository_runs_the_hooks_it_ships() {
 /// `check`, `0` for `couple`, and answers `--version` with `version`. Returns
 /// the hook's exit code and its stderr.
 fn run_pr_gate_with_stand_in(check_exit: i32, version: &str) -> (i32, String) {
+    // A binary that carries the verb: `check --help` succeeds.
+    run_pr_gate_with_stand_in_help(check_exit, 0, version)
+}
+
+/// As [`run_pr_gate_with_stand_in`], with the `check --help` probe's exit code
+/// chosen by the test as well (spec 104 3.3).
+///
+/// `help_exit` non-zero is a binary that does not carry the `check` verb, where
+/// clap spends exit 2 on the unrecognised subcommand: the case spec 104 3.1
+/// separates from staleness.
+fn run_pr_gate_with_stand_in_help(check_exit: i32, help_exit: i32, version: &str) -> (i32, String) {
     use std::io::Write;
     use std::os::unix::fs::PermissionsExt;
     use std::process::{Command, Stdio};
@@ -638,11 +649,15 @@ fn run_pr_gate_with_stand_in(check_exit: i32, version: &str) -> (i32, String) {
     ]);
 
     let stand_in = root.join("stand-in-spec-spine");
+    // `check --help` is matched BEFORE `check`, because the gate's probe and the
+    // gate's read differ only by that argument and the whole point of spec 104
+    // is that they are different questions.
     fs::write(
         &stand_in,
         format!(
-            "#!/bin/sh\nfor a in \"$@\"; do case \"$a\" in --version) echo '{version}'; exit 0;; \
-             check) exit {check_exit};; couple) exit 0;; esac; done\nexit 0\n"
+            "#!/bin/sh\ncase \"$*\" in\n  *--version*) echo '{version}'; exit 0 ;;\n\
+             \x20 *'check --help'*) exit {help_exit} ;;\n  *check*) exit {check_exit} ;;\n\
+             \x20 *couple*) exit 0 ;;\nesac\nexit 0\n"
         ),
     )
     .unwrap();
@@ -1159,4 +1174,93 @@ fn all_three_shipped_copies_carry_the_same_hooks() {
         kit,
         "the Codex copy must be the ones the kit ships (spec 099 3.4)"
     );
+}
+
+// ===== spec 104: every hook reads the exit code the same way =====
+
+/// Spec 104 §3.1, §3.3: exit 2 from a binary that carries the verb is
+/// staleness, and the message is unchanged.
+#[test]
+fn spec104_exit_2_from_a_current_binary_is_still_stale() {
+    let (code, err) = run_pr_gate_with_stand_in_help(2, 0, "spec-spine 0.19.0-stand-in");
+    assert_eq!(code, 2, "{err}");
+    assert!(err.contains("a committed shard tree is stale"), "{err}");
+    assert!(err.contains("spec-spine compile and index"), "{err}");
+}
+
+/// Spec 104 §3.1: exit 2 from a binary that does NOT carry the verb is clap's
+/// unrecognised-subcommand code, not this tool's staleness code.
+#[test]
+fn spec104_exit_2_from_a_binary_without_the_verb_is_not_stale() {
+    let (code, err) = run_pr_gate_with_stand_in_help(2, 127, "spec-spine 0.17.0-stand-in");
+    assert_eq!(code, 2, "every non-zero code still refuses: {err}");
+    // The defect: an adopter on 0.17.0 was told to regenerate correct shards.
+    assert!(
+        !err.contains("is stale"),
+        "a tree that was never read is not known to be stale: {err}"
+    );
+    assert!(
+        !err.contains("spec-spine compile and index"),
+        "the remedy that does not work must not be named: {err}"
+    );
+    assert!(err.contains("does not carry the check verb"), "{err}");
+    assert!(
+        err.contains("0.17.0-stand-in"),
+        "the binary is named: {err}"
+    );
+    assert!(err.contains("0.18.0"), "the floor is named: {err}");
+}
+
+/// Spec 104 §1.3, §3.3: the probe costs nothing on the happy path. A binary
+/// whose `check --help` fails but whose `check` succeeds still passes the
+/// gate, which pins that the probe is reached only from the exit-2 arm.
+#[test]
+fn spec104_the_probe_does_not_run_on_the_happy_path() {
+    let (code, err) = run_pr_gate_with_stand_in_help(0, 127, "spec-spine 0.19.0-stand-in");
+    assert_eq!(code, 0, "exit 0 is an answer and needs no probe: {err}");
+    assert!(!err.contains("does not carry the check verb"), "{err}");
+}
+
+/// Spec 104 §3.2: `SessionStart` reports an unperformed read as one, naming
+/// the binary, rather than as a shape it does not recognise.
+#[test]
+fn spec104_session_start_reports_exit_3_as_a_read_not_performed() {
+    let (code, out) = run_session_hook(
+        "SessionStart",
+        3,
+        "spec-spine: config error: unknown field `nope`\n",
+        "spec-spine 0.19.0-stand-in",
+        0,
+    );
+    assert_eq!(code, 0, "the banner advises and never refuses: {out}");
+    assert!(
+        !out.contains("unknown (check exit 3)"),
+        "exit 3 is a shape the verb documents, not an unrecognised one: {out}"
+    );
+    assert!(out.contains("NOT READ"), "{out}");
+    assert!(
+        out.contains("0.19.0-stand-in"),
+        "the binary is named, as the Stop hook has named it since spec 099: {out}"
+    );
+    // Both halves, since neither tree was judged.
+    assert_eq!(
+        out.matches("NOT READ").count(),
+        2,
+        "a read that did not happen did not happen for either tree: {out}"
+    );
+}
+
+/// Spec 104 §3.2: spec 099 §3.3's fallback stays for a code neither hook knows.
+#[test]
+fn spec104_an_unrecognised_code_still_falls_back() {
+    let (code, out) = run_session_hook(
+        "SessionStart",
+        7,
+        "something nobody has seen\n",
+        "spec-spine 0.19.0-stand-in",
+        0,
+    );
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("unknown (check exit 7)"), "{out}");
+    assert!(!out.contains("NOT READ"), "{out}");
 }

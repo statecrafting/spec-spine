@@ -1,9 +1,12 @@
 {
   "mapping": {
+    "amends": [
+      "080-a-gate-that-cannot-ask-says-so"
+    ],
     "dependsOn": [
-      "029-claude-code-skill-kit",
-      "031-registry-freshness-check",
-      "062-a-version-pin-the-cli-can-check"
+      "063-a-stale-binary-is-not-a-stale-ledger",
+      "080-a-gate-that-cannot-ask-says-so",
+      "099-the-session-hooks-report-the-verdict"
     ],
     "implementingPaths": [
       {
@@ -11,23 +14,15 @@
         "source": "spec-edge"
       },
       {
-        "path": "AGENTS.md",
+        "path": ".codex/hooks.json",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/main.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "path": "crates/spec-spine-core/src/kit_embedded.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/spec-spine-core/tests/kit_hooks.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "kit/AGENTS.md",
         "source": "spec-edge"
       },
       {
@@ -52,40 +47,27 @@
       {
         "locations": [
           {
-            "file": "AGENTS.md"
+            "file": ".codex/hooks.json"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "AGENTS.md"
+          "path": ".codex/hooks.json"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/main.rs"
+            "file": "crates/spec-spine-core/src/kit_embedded.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/main.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-cli/tests/cli.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-cli/tests/cli.rs"
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
         }
       },
       {
@@ -104,19 +86,6 @@
       {
         "locations": [
           {
-            "file": "kit/AGENTS.md"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "kit/AGENTS.md"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "kit/settings.json"
           }
         ],
@@ -130,20 +99,20 @@
       {
         "locations": [
           {
-            "file": "docs/design/03-adopter-audit-2026-09.md"
+            "file": "docs/design/06-harness-and-distribution-2026-09.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/03-adopter-audit-2026-09.md"
+          "path": "docs/design/06-harness-and-distribution-2026-09.md"
         }
       }
     ],
-    "specId": "063-a-stale-binary-is-not-a-stale-ledger",
-    "specStatus": "approved"
+    "specId": "104-every-hook-reads-the-code-the-same-way",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "096d02fa6a3e39fdd671d3041cfdfe8cb99fec0f567018681ac45d837892e718"
+  "shardHash": "ecb27f6e2d210c02cf1c30f1549e112c6ccebe1637df35834772d7811e61110d"
 }
