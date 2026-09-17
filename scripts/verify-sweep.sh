@@ -432,13 +432,6 @@ rows="$out/rows.tsv"
 n_passed=0; n_failed=0; n_notdecl=0; n_exempt=0; n_notrun=0
 
 for id in $selected; do
-  if exempt_p "$id"; then
-    printf '%s\texempt\t0\t0\t\t\t0\n' "$id" >> "$rows"
-    n_exempt=$((n_exempt + 1))
-    say "  exempt        $id"
-    continue
-  fi
-
   plan_out=$("$ss" --repo "$tree" verify "$id" --plan 2>/dev/null)
   plan_rc=$?
   if [ "$plan_rc" -ne 0 ]; then
@@ -449,6 +442,14 @@ for id in $selected; do
       "$id" "$plan_rc" "$plan_rc" >> "$rows"
     n_notrun=$((n_notrun + 1))
     say "  NOT-RUN       $id (verify --plan exit $plan_rc)"
+    continue
+  fi
+  # A ledger entry excuses absent acceptance, not an unreadable document.
+  # The plan must answer before an exemption can count as success (3.3).
+  if exempt_p "$id"; then
+    printf '%s\texempt\t0\t0\t\t\t0\n' "$id" >> "$rows"
+    n_exempt=$((n_exempt + 1))
+    say "  exempt        $id"
     continue
   fi
   total=$(printf '%s' "$plan_out" | grep -c . | tr -d ' ')
@@ -492,10 +493,24 @@ for id in $selected; do
   # leftovers of the last one. Ignored paths (target/, build-meta.json) are
   # deliberately kept: rebuilding them for every spec would cost hours.
   dirty=0
-  if [ -n "$(git -C "$tree" status --porcelain 2>/dev/null)" ]; then
+  tree_status=$(git -C "$tree" status --porcelain) \
+    || die "cannot inspect the isolated worktree after $id"
+  tree_head=$(git -C "$tree" rev-parse --verify HEAD) \
+    || die "cannot resolve the isolated worktree revision after $id"
+  if [ -n "$tree_status" ] || [ "$tree_head" != "$sha" ] \
+    || git -C "$tree" symbolic-ref -q HEAD >/dev/null 2>&1; then
     dirty=1
-    git -C "$tree" checkout -- . >/dev/null 2>&1 || true
-    git -C "$tree" clean -fdq >/dev/null 2>&1 || true
+    # Restore both the index and tracked files from the immutable revision.
+    # A path checkout would preserve staged edits; a clean status alone would
+    # miss a block that committed them. Detach so no branch is moved here.
+    git -C "$tree" checkout --detach --force "$sha" >/dev/null 2>&1 \
+      || die "cannot restore the isolated worktree to $sha after $id"
+    git -C "$tree" clean -fdq >/dev/null 2>&1 \
+      || die "cannot clean the isolated worktree after $id"
+    tree_status=$(git -C "$tree" status --porcelain) \
+      || die "cannot inspect the restored worktree after $id"
+    [ -z "$tree_status" ] \
+      || die "the isolated worktree is still dirty after restoring $id"
     say "                (block left the tree dirty; restored)"
   fi
 

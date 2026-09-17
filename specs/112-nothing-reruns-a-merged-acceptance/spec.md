@@ -26,6 +26,7 @@ depends_on:
 establishes:
   # 3.1 - 3.8: the sweep itself.
   - "scripts/verify-sweep.sh"
+  - "scripts/test-verify-sweep.py"
 extends:
   # 3.9: the maintainer runbook gains the pre-flight item that says when to run
   # it. `docs/releasing.md` is spec 007's unit; this adds a line and claims
@@ -431,6 +432,29 @@ the crossing that staled every block specs 105 through 110 repaired.
   which refused every retry after an aborted run, found by this spec's own
   acceptance failing at the second invocation that reused an `--out`. The
   marker is written at `mkdir` time instead. §3.6.
+
+### Implementation review (2026-09-17)
+
+The post-ratification review reproduced two violations of the existing contract:
+an unreadable ledger member counted as `exempt` instead of `not-run` (§3.3),
+and staged or committed fixture changes survived restoration (§3.6). The repair
+reads a selected spec's plan before granting exemption and restores the isolated
+worktree's index and tracked files from the tested SHA, detaching without moving
+a branch. Restoration errors refuse the sweep before another block runs. The
+requirements, lifecycle, ledger and acceptance below are unchanged.
+
+Review remediation preserves the four regression fixtures in
+`scripts/test-verify-sweep.py`, claimed above through the legitimate ownership
+ratchet. Run `python3 scripts/test-verify-sweep.py` with the in-tree release
+binary built. The runner uses disposable repositories and checks unreadable
+exemptions, clean worktree/index/HEAD bytes in the next spec after staged and
+committed mutations, and nonexecution after restoration fails. It supplements
+the 66 acceptance commands below. Keeping these checks only in temporary review
+files was rejected because the existing acceptance passed before the repair.
+For a negative control, export the pre-repair script with
+`git show 1d0e3c3c890345fd85072c0b460768be43ee6e83:scripts/verify-sweep.sh`
+to a temporary file and pass its path via `--sweep-script`; all four tests must
+fail. The runner never replaces the source checkout's sweep script.
 
 ## Verification
 
