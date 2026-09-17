@@ -34,8 +34,11 @@ extends:
   - { spec: "075-one-name-one-freshness-verb", unit: "crates/spec-spine-cli/src/cmd_check.rs", nature: corrective }
   # 3.2: the same fold at the primitive.
   - { spec: "004-codebase-index", unit: "crates/spec-spine-cli/src/cmd_index.rs", nature: corrective }
-  # 3.4: the acceptance, alongside spec 098's own cases.
-  - { spec: "010-registry-query-projection-flags", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
+  # 3.4: the acceptance, alongside spec 098's own cases. Attributed to 098
+  # rather than to any other owner of this file: these tests sit beside 098's
+  # blocking-claim cases and amend four of its assertions, so 098 is the
+  # crossing a reader is actually making.
+  - { spec: "098-a-blocking-claim-is-not-a-stale-shard", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---
@@ -103,7 +106,7 @@ No new file. Two exit-code folds and their acceptance:
 | `086` | `amends` | Section 3.1's closing sentence. |
 | `crates/spec-spine-cli/src/cmd_check.rs` | `extends` 075, corrective | The composed fold. |
 | `crates/spec-spine-cli/src/cmd_index.rs` | `extends` 004, corrective | The primitive's fold. |
-| `crates/spec-spine-cli/tests/cli.rs` | `extends` 010, additive | The acceptance. |
+| `crates/spec-spine-cli/tests/cli.rs` | `extends` 098, additive | The acceptance. |
 
 No message, no report line and no `--json` member changes.
 

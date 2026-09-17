@@ -3812,6 +3812,13 @@ fn spec101_a_blocking_claim_and_a_stale_shard_exit_1() {
         err.contains("regenerating addresses the stale shard(s) only"),
         "{err}"
     );
+
+    // Spec 101 §3.2 at the primitive, on the SAME corpus: a caller must not
+    // have to know which verb it invoked to know what a code means, and the
+    // mixed case is the one where the two folds could most easily disagree.
+    let idx = run_in(root, &["index", "check"]);
+    assert_eq!(code(&idx), 1, "{}", stderr(&idx));
+    assert!(stderr(&idx).contains("I-004"), "{}", stderr(&idx));
 }
 
 /// Spec 101 §3.3: the regression. Drift alone is still staleness, still 2.
