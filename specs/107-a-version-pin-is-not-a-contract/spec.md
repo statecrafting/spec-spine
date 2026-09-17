@@ -1,7 +1,7 @@
 ---
 id: "107-a-version-pin-is-not-a-contract"
 title: "A version pin is not a contract"
-status: draft
+status: approved
 kind: "core"
 created: "2026-09-17"
 summary: >
@@ -15,7 +15,7 @@ summary: >
   and stays green for a verb token that collides. This spec declares 056's
   acceptance replaced and carries the corrected block, without editing 056's
   file. It is the first of the four follow-ons spec 106 4 named.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
