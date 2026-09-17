@@ -28,8 +28,8 @@
       }
     ],
     "specId": "110-a-refusal-names-the-branch-it-resolved",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "a88f39fe4bdc94a29cb487de7be235f175b19f96fa9f1b06842672004e554180"
+  "shardHash": "7573c646aa691db9bca1c0c6cef0b98ba56a81e3fb68c54fe43267561570deea"
 }

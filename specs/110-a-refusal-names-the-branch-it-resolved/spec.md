@@ -1,7 +1,7 @@
 ---
 id: "110-a-refusal-names-the-branch-it-resolved"
 title: "A refusal names the branch it resolved"
-status: draft
+status: approved
 kind: "core"
 created: "2026-09-17"
 summary: >
@@ -16,7 +16,7 @@ summary: >
   it checks every other assertion in. This spec declares 071's acceptance
   replaced and carries the corrected block, without editing 071's file. It is the
   last of the four follow-ons spec 106 4 named.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
