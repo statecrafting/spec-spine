@@ -3547,7 +3547,10 @@ fn check_reports_an_unresolved_claim_as_itself() {
     blocking_corpus(root, "approved", "complete");
 
     let out = run_in(root, &["check"]);
-    assert_eq!(code(&out), 2, "{}", stderr(&out));
+    // Spec 101 §3.1 moved this from 2 to 1: an unresolved claim is a validation
+    // failure, not staleness. Spec 098 held the code still deliberately and
+    // filed the question forward as design note 05 R-4.
+    assert_eq!(code(&out), 1, "{}", stderr(&out));
     let err = stderr(&out);
     let index_line = err
         .lines()
@@ -3573,9 +3576,11 @@ fn check_reports_an_unresolved_claim_as_itself() {
         String::from_utf8_lossy(&out.stdout)
     );
 
-    // The same at the primitive verb, in its own words.
+    // The same at the primitive verb, in its own words and with the same code
+    // (spec 101 §3.2: a caller must not have to know which verb it invoked to
+    // know what a code means).
     let idx = run_in(root, &["index", "check"]);
-    assert_eq!(code(&idx), 2);
+    assert_eq!(code(&idx), 1);
     let ierr = stderr(&idx);
     assert!(ierr.contains("I-004"), "{ierr}");
     assert!(!ierr.contains("to refresh"), "{ierr}");
@@ -3597,7 +3602,7 @@ fn regenerating_leaves_the_message_accurate() {
         "the named remedy exits 0"
     );
     let out = run_in(root, &["check"]);
-    assert_eq!(code(&out), 2, "and the refusal stands");
+    assert_eq!(code(&out), 1, "and the refusal stands (spec 101 §3.1)");
     let err = stderr(&out);
     assert!(err.contains("I-004"), "{err}");
     assert!(
@@ -3618,10 +3623,12 @@ fn check_json_is_unchanged_by_the_message_fix() {
     blocking_corpus(root, "approved", "complete");
 
     let out = run_in(root, &["check", "--json"]);
-    assert_eq!(code(&out), 2);
+    // Spec 101 §3.3: `exitCode` carries the new code, which is the point. Every
+    // other member, the nesting and the version are what spec 098 left them.
+    assert_eq!(code(&out), 1);
     let json = envelope(&out);
     assert_eq!(json["schemaVersion"], "0.4.0", "{json}");
-    assert_eq!(json["exitCode"], 2, "{json}");
+    assert_eq!(json["exitCode"], 1, "{json}");
     assert_eq!(json["ok"], false, "{json}");
     let members: Vec<&str> = json
         .as_object()
@@ -3694,7 +3701,10 @@ fn a_mixed_tree_names_both_halves_at_the_verbs() {
     write_spec(root, "002-b", "002-b", "draft"); // 002-b's shard is now behind
 
     let out = run_in(root, &["check"]);
-    assert_eq!(code(&out), 2);
+    // Spec 101 §3.1: a tree holding both refusals exits 1, under spec 075
+    // §3.3's order. Both halves are still named below, which is spec 098's
+    // requirement and is what this test is really about.
+    assert_eq!(code(&out), 1);
     let err = stderr(&out);
     assert!(
         err.contains("codebase-index: STALE (run `spec-spine index`)"),
@@ -3738,4 +3748,145 @@ fn a_spec_that_claims_no_completion_is_not_accused_of_one() {
     let out = run_in(root2, &["check"]);
     assert_eq!(code(&out), 0, "{}", stderr(&out));
     assert!(!stderr(&out).contains("I-004"), "{}", stderr(&out));
+}
+
+// ---------------------------------------------------------------------------
+// Spec 101: an unresolved claim exits as a validation failure.
+//
+// The rule these pin is spec 086 §3.1's closing sentence as spec 101 §3.1
+// amends it: drift alone exits 2, a blocking diagnostic exits 1, and a tree
+// holding both exits 1 under spec 075 §3.3's order. Every message is spec
+// 098's and is asserted unchanged, because the value of this change is that it
+// moves one code and nothing else.
+// ---------------------------------------------------------------------------
+
+/// Spec 101 §3.1, §3.4: `check` spends the validation code on a blocking claim.
+#[test]
+fn spec101_check_exits_1_on_an_unresolved_claim() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    blocking_corpus(root, "approved", "complete");
+
+    let out = run_in(root, &["check"]);
+    assert_eq!(code(&out), 1, "{}", stderr(&out));
+    let err = stderr(&out);
+    // Spec 101 §3.3: the report is spec 098's, to the word.
+    assert!(err.contains("UNRESOLVED CLAIM"), "{err}");
+    let index_line = err
+        .lines()
+        .find(|l| l.starts_with("codebase-index:"))
+        .expect("the index half is attributed to its tree");
+    assert!(!index_line.contains("STALE"), "{index_line}");
+    assert!(!index_line.contains("spec-spine index"), "{index_line}");
+}
+
+/// Spec 101 §3.2: the primitive spends the same code on the same fact.
+#[test]
+fn spec101_index_check_exits_1_on_an_unresolved_claim() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    blocking_corpus(root, "approved", "complete");
+
+    let out = run_in(root, &["index", "check"]);
+    assert_eq!(code(&out), 1, "{}", stderr(&out));
+    assert!(stderr(&out).contains("I-004"), "{}", stderr(&out));
+}
+
+/// Spec 101 §3.1: validation dominates staleness, and both halves survive.
+#[test]
+fn spec101_a_blocking_claim_and_a_stale_shard_exit_1() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    write_spec(root, "002-b", "002-b", "approved");
+    blocking_corpus(root, "approved", "complete");
+    write_spec(root, "002-b", "002-b", "draft"); // 002-b's shard falls behind
+
+    let out = run_in(root, &["check"]);
+    assert_eq!(code(&out), 1, "{}", stderr(&out));
+    let err = stderr(&out);
+    // Spec 098 §3.3 / FR-006: neither half elided, regeneration attributed to
+    // the stale one alone. Moving the code must not cost the report.
+    assert!(err.contains("STALE"), "{err}");
+    assert!(err.contains("UNRESOLVED CLAIM"), "{err}");
+    assert!(
+        err.contains("regenerating addresses the stale shard(s) only"),
+        "{err}"
+    );
+
+    // Spec 101 §3.2 at the primitive, on the SAME corpus: a caller must not
+    // have to know which verb it invoked to know what a code means, and the
+    // mixed case is the one where the two folds could most easily disagree.
+    let idx = run_in(root, &["index", "check"]);
+    assert_eq!(code(&idx), 1, "{}", stderr(&idx));
+    assert!(stderr(&idx).contains("I-004"), "{}", stderr(&idx));
+}
+
+/// Spec 101 §3.3: the regression. Drift alone is still staleness, still 2.
+#[test]
+fn spec101_a_stale_shard_alone_still_exits_2() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    write_spec(root, "001-a", "001-a", "approved");
+    assert_eq!(code(&run_in(root, &["index"])), 0);
+    write_spec(root, "001-a", "001-a", "draft"); // a hashed input moves
+
+    let out = run_in(root, &["check"]);
+    assert_eq!(code(&out), 2, "{}", stderr(&out));
+    assert!(
+        stderr(&out).contains("codebase-index: STALE (run `spec-spine index`)"),
+        "{}",
+        stderr(&out)
+    );
+    assert_eq!(code(&run_in(root, &["index", "check"])), 2);
+}
+
+/// Spec 101 §3.3: `--json` carries the new code and nothing else moves.
+#[test]
+fn spec101_json_carries_the_new_code_and_keeps_its_shape() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    blocking_corpus(root, "approved", "complete");
+
+    let out = run_in(root, &["check", "--json"]);
+    assert_eq!(code(&out), 1);
+    let json = envelope(&out);
+    assert_eq!(json["exitCode"], 1, "{json}");
+    assert_eq!(json["ok"], false, "{json}");
+    assert_eq!(json["schemaVersion"], "0.4.0", "{json}");
+    let members: Vec<&str> = json
+        .as_object()
+        .unwrap()
+        .keys()
+        .map(|k| k.as_str())
+        .collect();
+    assert_eq!(
+        members,
+        ["exitCode", "ok", "report", "schemaVersion", "verb"],
+        "{json}"
+    );
+    // Spec 101 §4: `actual` stays spec 098 FR-009's deliberate hold, and
+    // `byCode` remains the discriminator a JSON consumer already had.
+    assert_eq!(
+        json["report"]["index"]["diagnostics"]["byCode"]["I-004"], 1,
+        "{json}"
+    );
+    assert_eq!(json["report"]["index"]["fresh"], false, "{json}");
+}
+
+/// Spec 101 §3.3: `--fail-on-unresolved` is a different axis and is untouched.
+#[test]
+fn spec101_the_unresolved_flag_axis_is_unchanged() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    // A draft spec owning a unit that does not resolve is W-001, warning tier
+    // (specs 025, 044): work in flight, not a blocking claim.
+    blocking_corpus(root, "draft", "in-progress");
+
+    assert_eq!(
+        code(&run_in(root, &["check"])),
+        0,
+        "{}",
+        stderr(&run_in(root, &["check"]))
+    );
+    assert_eq!(code(&run_in(root, &["check", "--fail-on-unresolved"])), 1);
 }

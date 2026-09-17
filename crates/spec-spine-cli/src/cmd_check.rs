@@ -39,7 +39,7 @@ pub fn run(
     // stale set arrive apart, so this verb can say which refusal it is holding
     // without indexing again and without reading back its own prose.
     let (report, freshness) = spec_spine_core::check_report_full(&cfg, repo)?;
-    let code = exit_code(&report, fail_on_unresolved, fail_on_warn);
+    let code = exit_code(&report, &freshness, fail_on_unresolved, fail_on_warn);
 
     if json {
         let value = serde_json::to_value(&report).map_err(|e| Error::Schema(e.to_string()))?;
@@ -66,7 +66,12 @@ pub fn run(
 ///
 /// Pinned by test rather than only documented, because it is the one part of
 /// this verb a caller cannot observe from a single run.
-fn exit_code(report: &CheckReport, fail_on_unresolved: bool, fail_on_warn: bool) -> u8 {
+fn exit_code(
+    report: &CheckReport,
+    freshness: &IndexFreshnessReport,
+    fail_on_unresolved: bool,
+    fail_on_warn: bool,
+) -> u8 {
     let registry = if !report.registry.validation_passed {
         1
     } else if fail_on_warn && report.registry.warnings > 0 {
@@ -80,9 +85,25 @@ fn exit_code(report: &CheckReport, fail_on_unresolved: bool, fail_on_warn: bool)
     } else {
         2
     };
-    let index = if !report.index.fresh {
+    let index = if !freshness.blocking.is_empty() {
+        // Spec 101 §3.1, amending spec 086 §3.1: an unresolved claim is a
+        // validation failure, not staleness. The decision reads the partition
+        // spec 098 §3.2 built rather than the composed `fresh` flag, which
+        // cannot tell the two refusals apart: a spec claiming a unit that does
+        // not resolve describes a corpus that does not match its tree, and
+        // regenerating provably cannot clear it. Spending 2 here sent every
+        // consumer that branches on the code to `spec-spine index`, forever.
+        //
+        // It is checked FIRST, so a tree holding both refusals exits 1. That is
+        // spec 075 §3.3's order (1 dominates 2) and not a new rule; the report
+        // still names both halves and still attributes regeneration to the
+        // stale one alone.
+        1
+    } else if !report.index.fresh {
         2
     } else if fail_on_unresolved && report.index.diagnostics.has_unresolved() {
+        // A different axis: the warning-tier W-001 / W-002 claims a spec makes
+        // over territory it has not written yet (specs 025, 044). Unchanged.
         1
     } else {
         0
