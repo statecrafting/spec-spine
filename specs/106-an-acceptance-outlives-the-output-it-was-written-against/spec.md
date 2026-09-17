@@ -136,7 +136,14 @@ line's status, which is what makes a failure of the verb a failure of the block.
 
 The version assertion MUST NOT pin a literal. It MUST instead compare the
 `schemaVersion` of two verbs whose `report` payloads differ, assert the value is
-non-empty, and assert that the payloads do in fact differ.
+non-empty, and assert that the two are in fact different verbs with different
+payloads.
+
+That difference MUST be asserted as a positive claim about a named member and a
+named verb token, never as an inequality of key sets. `sorted(a) != sorted(b)`
+over two payloads goes red whenever either one legitimately changes shape, which
+is the same fragility 1.2 rejects in a literal version pin, applied to a
+different axis (D-6).
 
 This is a consistency check and MUST be described as one. It witnesses that the
 two verbs are versioned by one envelope constant rather than per payload, which
@@ -212,6 +219,10 @@ spec 103 in v0.20.0; this spec is a corpus change that uses it.
   `standards/spec/templates/spec-template.md` documents the frontmatter grammar
   and does not carry the key spec 103 added. That is a real gap in territory
   this spec does not own.
+- **Spec 105's copy of the filtered test run.** Its block carries the same
+  `cargo test ... spec103_` line with the same vacuous-pass hole D-7 describes.
+  It is green today, it is another spec's acceptance, and correcting it is an
+  amendment of 105 rather than a repair of this block.
 - **The remaining literal version pins.** Spec 054's block pins
   `config_version` at `0.1.0` and spec 105's carries a `schemaVersion=='0.4.0'`
   inherited from 098. Both are green today and both are the shape 1.2 names. A
@@ -280,6 +291,29 @@ one particular parent commit is evidence only when the spec changes code.
 The one line that is fail-first at the parent in the ordinary sense is
 `registry show 106`, a not-found exit 1 there, which is 3.5's half.
 
+D-6 (2026-09-17, why the payload difference is a named member and not a key-set
+inequality). The first draft asserted `sorted(a['report']) != sorted(b['report'])`.
+Review pointed out that this is the shape 1.2 condemns: it is a claim about the
+relative shape of two payloads on one day, and it goes red if `compile`'s report
+ever gains the members `index check`'s carries, which is a change no rule here
+forbids. The objection is correct and it lands on this spec's own argument, so
+the assertion changed rather than the argument. What replaces it is two positive
+claims: the verb tokens differ (`index.check` against `compile.spec`, which spec
+037 makes part of the envelope), and `diagnostics` is present in one payload and
+absent from the other. Both are statements about what the verbs are, not about
+what they happened to contain when this was written.
+
+D-7 (2026-09-17, why the filtered test run asserts its own match count).
+`cargo test --test verify spec103_` exits 0 when the filter matches nothing:
+measured, `zzz_no_such_test_` gives `0 passed; 31 filtered out` and status 0. The
+line was copied from spec 105's block, where it has the same hole. A filter that
+stops matching after a rename would leave the line green while asserting nothing,
+which is the vacuous-pass family this corpus has already paid for once. The run
+is captured and its summary asserted to name a non-zero pass count, so the line
+goes red when the filter matches nothing as well as when a match fails. Spec
+105's copy is not edited here: a green line in another spec's block is not this
+spec's to change, and it is named in 4.
+
 ## Verification
 
 Each line is one command, run independently: no shell variable survives to the
@@ -320,14 +354,15 @@ python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss106/diagnostics.jso
 # not pinned to a literal. This is a consistency check: it witnesses one
 # envelope constant rather than per-payload versioning, and it does NOT prove
 # that a payload addition left the version unchanged, since a bump made for a
-# payload reason would move both verbs together.
+# payload reason would move both verbs together. The payload difference is
+# asserted as a named verb token and a named member, not as a key-set
+# inequality, which would be the same calendar shape on another axis (D-6).
 target/release/spec-spine index check --json > "${TMPDIR:-/tmp}/ss106/check.json"
 target/release/spec-spine compile --spec 024 --json > "${TMPDIR:-/tmp}/ss106/compile.json"
-python3 -c "import json; a=json.load(open('${TMPDIR:-/tmp}/ss106/check.json')); b=json.load(open('${TMPDIR:-/tmp}/ss106/compile.json')); assert a['schemaVersion'], a; assert a['schemaVersion']==b['schemaVersion'], (a['schemaVersion'], b['schemaVersion']); assert sorted(a['report']) != sorted(b['report']), (sorted(a['report']), sorted(b['report']))"
+python3 -c "import json; a=json.load(open('${TMPDIR:-/tmp}/ss106/check.json')); b=json.load(open('${TMPDIR:-/tmp}/ss106/compile.json')); assert a['schemaVersion'], a; assert a['schemaVersion']==b['schemaVersion'], (a['schemaVersion'], b['schemaVersion']); assert a['verb'] != b['verb'], (a['verb'], b['verb']); assert 'diagnostics' in a['report'] and 'diagnostics' not in b['report'], (sorted(a['report']), sorted(b['report']))"
 # 3.4: the member spec 050 added to `index check`'s payload is present. This is
 # the antecedent 050 3.6's rule is about, and 050's block never asserted it.
 python3 -c "import json; r=json.load(open('${TMPDIR:-/tmp}/ss106/check.json'))['report']; assert sorted(r['diagnostics'])==['byCode','errors','warnings'], r"
-rm -rf "${TMPDIR:-/tmp}/ss106"
 # --- spec 106's own mechanism (3.5) ---
 # The replacement is declared, read through the CLI rather than off the shard.
 target/release/spec-spine registry show 106 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["050-index-diagnostics-reach-a-gate"], d; assert d["amends"] == ["050-index-diagnostics-reach-a-gate"], d'
@@ -341,5 +376,10 @@ grep -qF '= "0.2.0"' specs/050-index-diagnostics-reach-a-gate/spec.md
 # what is asserted is that mechanism, not a new one. No `verify` command may
 # appear in this block: it is the block `verify 050` runs, and cmd_verify's
 # re-entry guard refuses a nested call before it honours `--plan` (3.5).
-cargo test -p spec-spine-core --test verify --locked spec103_
+# The run is captured and its summary asserted to name a non-zero pass count:
+# a name filter that matches nothing exits 0 (measured: `0 passed; 31 filtered
+# out`), so the bare line would stay green while asserting nothing (D-7).
+cargo test -p spec-spine-core --test verify --locked spec103_ > "${TMPDIR:-/tmp}/ss106/spec103.txt" 2>&1
+grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss106/spec103.txt"
+rm -rf "${TMPDIR:-/tmp}/ss106"
 ```
