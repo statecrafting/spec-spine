@@ -162,10 +162,15 @@ status and the verb's is discarded. The replacement MUST redirect each document
 to a file under `${TMPDIR:-/tmp}/ss060` and assert against the files, so a verb
 that fails takes the line down at the redirect.
 
-The rule reaches every line in the block, 3.5's `registry show` included: at the
-parent commit that verb exits 1 and prints nothing, and a pipeline would report
-a JSON decode error for what is a not-found. Spec 107 D-4 records the same
-correction, made under review on its own pull request.
+The rule reaches every line whose verb must **succeed**, which in this block is
+every line: 3.5's `registry show`, where at the parent commit the verb exits 1
+and prints nothing and a pipeline would report a JSON decode error for what is a
+not-found, and the two prose assertions, which 060 wrote as
+`registry plan | grep -q ...` and which are captured to a file here for the same
+reason. Spec 107 D-4 records the redirect rule and spec 108 D-8 records its
+boundary: a line whose verb is required to exit non-zero keeps its pipeline,
+because there the filter's status is the one that should decide the line. This
+block has no such line.
 
 The fixture root stays at `${TMPDIR:-/tmp}/ss060`, which is named for spec 060,
 whose acceptance this block is, not for this spec, which merely holds it.
@@ -391,8 +396,11 @@ python3 -c "import json; p=json.load(open('${TMPDIR:-/tmp}/ss060/plan.json')); a
 # blocker, rather than a count of them.
 python3 -c "import json; b=json.load(open('${TMPDIR:-/tmp}/ss060/plan.json'))['blocked'][0]; assert b['title']=='Second thing', b; assert b['blockedBy'][0]['id']=='001-alpha', b; assert b['blockedBy'][0]['state'], b"
 # 060 3.1: the prose form renders what the structure holds, remainder included.
-target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan | grep -q 'not schedulable'
-target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan | grep -q 'blocked by 001-alpha'
+# Captured once rather than piped twice, so the verb's own exit status is a
+# line's status and the two assertions read the same rendering (3.2).
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan > "${TMPDIR:-/tmp}/ss060/plan.txt"
+grep -q 'not schedulable' "${TMPDIR:-/tmp}/ss060/plan.txt"
+grep -q 'blocked by 001-alpha' "${TMPDIR:-/tmp}/ss060/plan.txt"
 # 3.3: 060 3.2's pick, read from the member spec 093 moved it into. Sorted keys
 # and the version member are 093 3.2's rule for every governed read, and the
 # pick is compared by value so a `--next` that dropped the title fails (D-1).
