@@ -1,7 +1,7 @@
 ---
 id: "105-an-amendment-carries-the-acceptance-it-replaces"
 title: "An amendment carries the acceptance it replaces"
-status: draft
+status: approved
 kind: "core"
 created: "2026-09-16"
 summary: >
@@ -16,7 +16,7 @@ summary: >
   after 101, naming the audit of the remaining blocks as its own work. This is
   that work for 098: this spec declares 098's acceptance replaced and carries
   the corrected block, without editing 098's file.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
