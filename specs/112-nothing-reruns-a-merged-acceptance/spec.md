@@ -1,7 +1,7 @@
 ---
 id: "112-nothing-reruns-a-merged-acceptance"
 title: "Nothing reruns a merged acceptance"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-17"
 summary: >

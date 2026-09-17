@@ -83,8 +83,8 @@
       }
     ],
     "specId": "112-nothing-reruns-a-merged-acceptance",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "3563900f03000b7885cb8fa7e0eaef527259243969e0c64da735f39d574b4dfa"
+  "shardHash": "5920499d07cf08d859f46964716fc4c680a6ac2bddbcbc83a6d63fe964c87ae8"
 }
