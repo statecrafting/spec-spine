@@ -36,6 +36,18 @@
 - [ ] `cargo package --workspace --locked` succeeds (it cross-verifies every
       crate from its packaged sources, in dependency order: the same check CI can
       run).
+- [ ] **Verification sweep green** (spec 112): `./scripts/verify-sweep.sh` from
+      a clean checkout, against the merged revision being released
+      (`--rev origin/main`). It runs every spec's `## Verification` block in an
+      isolated worktree and accounts for all of them; it exits 1 if any spec is
+      `failed`, `not-declared` or `not-run`, and prints the report path. This is
+      the only thing that reruns a merged acceptance: `verify` is outside the
+      gate chain on purpose, so a block invalidated by a later approved spec is
+      red silently until this runs. Run it here, and again after merging any
+      spec that carries `amends` or `amends_verification`, which is the crossing
+      that staled every block specs 105-110 had to repair. A finding is a spec
+      to file, not a line to relax; never edit an approved spec's block to make
+      the sweep green (spec 040, `.claude/rules/adversarial-prompt-refusal.md`).
 
 ## 1. crates.io: publish in dependency order
 

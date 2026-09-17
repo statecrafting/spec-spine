@@ -1,17 +1,17 @@
 {
   "mapping": {
     "dependsOn": [
-      "006-init-scaffold",
-      "039-declared-state-dir",
-      "043-governance-document-gaps"
+      "049-verify-declared-acceptance",
+      "103-an-amended-acceptance-is-the-one-that-runs",
+      "105-an-amendment-carries-the-acceptance-it-replaces"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-core/src/scaffold.rs",
+        "path": "docs/releasing.md",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/scaffold.rs",
+        "path": "scripts/verify-sweep.sh",
         "source": "spec-edge"
       }
     ],
@@ -19,72 +19,72 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/scaffold.rs"
+            "file": "scripts/verify-sweep.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/releasing.md"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/scaffold.rs"
+          "path": "docs/releasing.md"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/scaffold.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/scaffold.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/design/03-adopter-audit-2026-09.md"
+            "file": "crates/spec-spine-cli/src/cmd_verify.rs"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/03-adopter-audit-2026-09.md"
+          "path": "crates/spec-spine-cli/src/cmd_verify.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "spec-spine.toml"
+            "file": "crates/spec-spine-core/src/verify.rs"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "spec-spine.toml"
+          "path": "crates/spec-spine-core/src/verify.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "standards/spec/templates/constitution-template.md"
+            "file": "scripts/verify-spec.sh"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "standards/spec/templates/constitution-template.md"
+          "path": "scripts/verify-spec.sh"
         }
       }
     ],
-    "specId": "061-the-scaffold-ships-what-adopters-wrote",
-    "specStatus": "approved"
+    "specId": "112-nothing-reruns-a-merged-acceptance",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "63e30db7b4dd7828867f6b8c35190c28d714daae2064105d6b395ebafeede79b"
+  "shardHash": "3563900f03000b7885cb8fa7e0eaef527259243969e0c64da735f39d574b4dfa"
 }
