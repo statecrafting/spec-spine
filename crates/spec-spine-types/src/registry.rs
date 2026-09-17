@@ -105,6 +105,10 @@ pub struct SpecRecord {
     pub retirement_rationale: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub amends_sections: Vec<String>,
+    /// Spec 103 3.1: amended specs whose `## Verification` block this spec's
+    /// block replaces. Additive, so a MINOR of `REGISTRY_SCHEMA_VERSION`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub amends_verification: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub unamendable: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]

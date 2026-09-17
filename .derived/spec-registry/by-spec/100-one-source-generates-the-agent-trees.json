@@ -96,5 +96,5 @@
     "title": "One source generates the agent instruction trees"
   },
   "shardHash": "50cfe58352faacdc2a41023b568712fab2e96a41fae189aa49081cb0297a1880",
-  "specVersion": "1.2.0"
+  "specVersion": "1.3.0"
 }

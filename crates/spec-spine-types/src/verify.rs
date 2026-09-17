@@ -30,6 +30,16 @@ pub struct VerifyPlan {
     /// sorted by tag. Reported rather than silently ignored: a caller is
     /// entitled to know work was declined.
     pub skipped: Vec<SkippedBlocks>,
+    /// Spec 103 §3.2, §3.4: the spec whose `## Verification` block these
+    /// commands came from, when that is not `spec_id`.
+    ///
+    /// `None` is the ordinary case: the spec runs its own block. `Some(id)`
+    /// means `id` declared `spec_id` in `amends_verification`, so the block in
+    /// `spec_id`'s own file was **not** run. The plan carries the name rather
+    /// than the CLI recomputing it, because a value derived twice is a value
+    /// that can disagree with itself (D-7).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub acceptance_from: Option<String>,
 }
 
 impl VerifyPlan {

@@ -32,7 +32,13 @@
 /// predating this spec meets the key with a parse error and exits 3 rather than
 /// silently ignoring a claim about territory: the fail-closed direction, and the
 /// reason the flag is a typed field rather than a convention in a comment.
-pub const REGISTRY_SCHEMA_VERSION: &str = "1.2.0";
+/// `1.3.0`: additive `amendsVerification` (spec 103). A spec that amends
+/// another may declare that its own `## Verification` block replaces the
+/// amended spec's, so `verify <amended-id>` runs the replacement. Absent on
+/// every existing spec, so the field is omitted from every existing shard and
+/// only `specVersion` is restamped; `shardHash` is over `spec.md`'s bytes and
+/// does not move.
+pub const REGISTRY_SCHEMA_VERSION: &str = "1.3.0";
 
 /// `schemaVersion` emitted in the codebase index, carried by each index shard.
 /// `0.2.0`: additive `build.sliceHashes` (spec 012).
