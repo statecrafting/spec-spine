@@ -131,7 +131,9 @@ usage: $PROG [options]
   --trusted-ref <ref>   <rev> must be an ancestor of this (default: the
                         repository's origin/HEAD, else origin/main)
   --repo <dir>          repository to sweep (default: the current directory)
-  --only <id,...>       sweep only these spec ids (full or short ordinal)
+  --only <id,...>       sweep only these spec ids, as a full `NNN-slug` or the
+                        3-digit ordinal `NNN` (the short form spec-spine itself
+                        resolves; `49` is not one, `049` is)
   --out <dir>           run directory for the worktree, logs and report
                         (default: \${TMPDIR}/spec-spine-sweep-<shortsha>)
   --exempt-file <path>  read the exemption ledger from this file instead of
@@ -334,7 +336,9 @@ if [ -n "$only" ]; then
     for id in $corpus; do
       case "$id" in "$want"|"$want"-*) hit="$id" ;; esac
     done
-    [ -n "$hit" ] || die "--only names no spec in the corpus at $short: $want"
+    [ -n "$hit" ] || die "--only names no spec in the corpus at $short: $want
+  Ids are a full \`NNN-slug\` or the 3-digit ordinal \`NNN\`, which is the short
+  form spec-spine resolves everywhere (spec 016): \`049\`, not \`49\`."
     picked="$picked$hit
 "
   done
@@ -501,7 +505,11 @@ for line in pathlib.Path(env["SWEEP_ROWS"]).read_text().splitlines():
     row["exitCode"] = int(row["exitCode"] or 0)
     row["leftTreeDirty"] = row["leftTreeDirty"] == "1"
     row["seconds"] = int(row["seconds"] or 0)
-    row["log"] = f"logs/{row['id']}.log" if row["outcome"] in ("passed", "failed", "not-run") else None
+    # Cited only when it exists. A spec whose `verify --plan` failed never
+    # reached a run, so there is no log for it, and pointing the reader at a
+    # path that is not there is worse than saying there is nothing to read.
+    log = out / "logs" / f"{row['id']}.log"
+    row["log"] = f"logs/{row['id']}.log" if log.is_file() else None
     specs.append(row)
 
 counts = {k: 0 for k in ("passed", "failed", "not-declared", "exempt", "not-run")}

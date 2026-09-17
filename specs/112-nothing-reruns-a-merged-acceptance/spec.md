@@ -235,9 +235,16 @@ testable against a fixture corpus rather than only against this repository's own
 ### 3.5 Selection
 
 The default selection MUST be the whole corpus at the tested revision. The
-sweep MUST accept a narrowed selection by spec id (full or short ordinal), so a
-maintainer can re-run a finding without re-running the corpus, and MUST record
-which selection produced a report.
+sweep MUST accept a narrowed selection by spec id, so a maintainer can re-run a
+finding without re-running the corpus, and MUST record which selection produced
+a report.
+
+An id is a full `NNN-slug` or the 3-digit ordinal `NNN`. That is the short form
+`spec-spine` itself resolves everywhere (spec 016, spec 084 §3.4): the tool
+answers `not found: spec '49'`, so the sweep accepts `049` and refuses `49` too.
+Inventing a wider short form here would make the sweep the one place in the
+project where an id means something else, and its refusal MUST say which form it
+wants rather than only that it found nothing.
 
 ### 3.6 Isolation, fixtures, and what happens after a failure
 
@@ -306,6 +313,10 @@ MUST carry, at minimum:
 - per spec: the outcome, the number of declared commands, `verify`'s exit code,
   the failing command when there was one, whether the block dirtied the tree,
   and the path of the log holding that spec's output.
+
+A log path MUST be cited only when that log exists. A spec whose plan could not
+be read never reached a run and has no output, and a report that names a file
+which is not there sends the reader after evidence that was never produced.
 
 By default the binary MUST be built from the tested revision inside the
 worktree. It is the only binary whose version provably corresponds to the
@@ -466,6 +477,10 @@ python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/run/sweep.json')
 python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/run/sweep.json'));s={x['id']:x for x in d['specs']};assert 'FAILED at command 2' in s['002-red']['failure'];assert s['002-red']['exitCode']==1;assert s['002-red']['log']=='logs/002-red.log';assert s['002-red']['commands']==3"
 python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/run/sweep.json'));s={x['id']:x for x in d['specs']};assert s['004-slow']['exitCode']==124 and 'limit' in s['004-slow']['failure'];assert s['005-dirty']['leftTreeDirty'] is True;assert s['001-green']['leftTreeDirty'] is False"
 test -s "${TMPDIR:-/tmp}/ss112/run/logs/002-red.log"
+# 3.8: every cited log exists, and a spec that never ran cites none.
+python3 -c "import json,os;d=json.load(open('${TMPDIR:-/tmp}/ss112/run/sweep.json'));s={x['id']:x for x in d['specs']};assert s['007-ghost']['log'] is None;assert all(os.path.isfile('${TMPDIR:-/tmp}/ss112/run/'+x['log']) for x in d['specs'] if x['log'])"
+grep -qF 'logs/002-red.log' "${TMPDIR:-/tmp}/ss112/run/sweep.md"
+! grep -qF 'logs/007-ghost.log' "${TMPDIR:-/tmp}/ss112/run/sweep.md"
 grep -q 'not-declared' "${TMPDIR:-/tmp}/ss112/run/sweep.md"
 # 3.6: the worktree is removed and the swept repository is left clean.
 test -f "${TMPDIR:-/tmp}/ss112/run/sweep.json" && test ! -e "${TMPDIR:-/tmp}/ss112/run/tree"
@@ -473,6 +488,11 @@ test -f "${TMPDIR:-/tmp}/ss112/run/sweep.json" && test -z "$(git -C "${TMPDIR:-/
 # --- 3.5: a narrowed selection, by short ordinal, is recorded ---
 SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/exempt.txt" --out "${TMPDIR:-/tmp}/ss112/one" --only 001 >/dev/null 2>&1; test $? -eq 0
 python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/one/sweep.json'));assert [s['id'] for s in d['specs']]==['001-green'];assert d['selection']=='001'"
+# 3.5: an unpadded ordinal is refused the way the tool refuses it, and the
+# refusal names the form it wants rather than only reporting a miss.
+SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/exempt.txt" --out "${TMPDIR:-/tmp}/ss112/x" --only 1 >/dev/null 2>&1; test $? -eq 3
+SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/exempt.txt" --out "${TMPDIR:-/tmp}/ss112/x" --only 1 2>&1 | grep -q '3-digit ordinal'
+target/release/spec-spine verify 49 >/dev/null 2>&1; test $? -eq 1
 # --- 3.4: the ledger refuses, before anything is executed, in all four ways ---
 # Closed: nothing at or above the closing ordinal can be exempted, so no future
 # spec is covered by it.
@@ -495,7 +515,10 @@ grep -qE '^0[0-4][0-9]-' scripts/verify-sweep.sh
 # And it holds against the real corpus: running the BUILT-IN ledger over a
 # merged revision of this repository passes all four checks of 3.4 (closed,
 # live, only-shrinking, enumerated) and reports a legacy spec as `exempt`
-# rather than `not-declared`. A single `--only` keeps this to a second.
+# rather than `not-declared`. A single `--only` keeps this to a second. This
+# line needs `origin/main` present in the checkout, which a maintainer's clone
+# has and a remote-less mirror does not; 3.1 makes that the only context this
+# block runs in.
 SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --rev origin/main --trusted-ref origin/main --only 012 --out "${TMPDIR:-/tmp}/ss112/builtin" >/dev/null 2>&1; test $? -eq 0
 python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/builtin/sweep.json'));assert d['ledgerOrigin']=='built into verify-sweep.sh';assert [(s['id'],s['outcome']) for s in d['specs']]==[('012-index-hash-slices','exempt')]"
 # --- 3.7: the trust boundary is mechanical, and its override is visible ---
