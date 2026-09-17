@@ -27,8 +27,8 @@
       }
     ],
     "specId": "109-the-answer-is-a-member-not-the-document",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "dec7981a293efee9c931b7d2ba06bc0be70a0909145ded4078960f43bce812fa"
+  "shardHash": "71c233cb04d77888f31abf3c0d8cb51b84a9bf564bfaee4bd761f11b426b2503"
 }
