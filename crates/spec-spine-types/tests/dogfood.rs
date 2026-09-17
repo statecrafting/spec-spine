@@ -80,6 +80,25 @@ fn authoring_template_documents_every_frontmatter_key() {
         })
     };
 
+    // The loop below is vacuous against an empty `KNOWN_KEYS`: no entries, no
+    // `missing`, a green tripwire that checked nothing. Guarded by naming the
+    // five keys §1.2 measured as absent rather than by pinning a count: a count
+    // is a literal another spec can legitimately move, which is the
+    // over-assertion specs 107 to 110 were filed to repair (spec 111 D-6).
+    for key in [
+        "code_aliases",
+        "feature_branch",
+        "amends_verification",
+        "amendment_record",
+        "origin",
+    ] {
+        assert!(
+            KNOWN_KEYS.contains(&key),
+            "`{key}` left KNOWN_KEYS; this test's subject moved and the check \
+             below would pass without examining it"
+        );
+    }
+
     let missing: Vec<&str> = KNOWN_KEYS
         .iter()
         .copied()

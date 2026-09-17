@@ -199,6 +199,12 @@ template did.
 It MUST also assert the `amends_verification` guidance of §3.1 and the nested
 forms of §3.3, because a key name alone satisfies §3.2 while teaching nothing.
 
+The iteration MUST be guarded against vacuity. An empty `KNOWN_KEYS` yields an
+empty missing-set and a green assertion that examined nothing, which is the
+silent-tripwire shape this spec exists to remove. The guard MUST name the five
+keys §1.2 measured as absent and assert each is still in `KNOWN_KEYS`, so the
+check fails when its own subject moves.
+
 This is a Rust test rather than only a `## Verification` line because
 `cargo test --workspace` is in the gate chain and `verify` deliberately is not
 (spec 049). A check that runs only under `verify` is a check nothing reruns after
@@ -276,6 +282,18 @@ requires `<key>:` at the start of what remains. That anchoring is what keeps it
 from passing on prose: `kind` appears inside `{ kind: file, path: ... }` on six
 example lines, and none of them satisfies the test.
 
+D-6 (2026-09-17, why the non-vacuity guard names keys and does not pin a count).
+Review proposed `assert!(KNOWN_KEYS.len() >= 29)` ahead of the loop. That reads
+on the correct defect and fixes it the wrong way: it is a literal pin on a list
+designed to grow, and it goes red on a legitimate retirement of any key, which
+is precisely the shape specs 107 and 108 were filed to repair. Naming the five
+keys of §1.2 costs the same lines, cannot fire on an unrelated change, and says
+what it is protecting. The vacuous case was already unreachable in silence
+(`bootstrap_spec_000_parses`, in this same file, asserts `extra_frontmatter` is
+empty, which an emptied `KNOWN_KEYS` would break loudly) but an assertion whose
+own tripwire depends on a second test two functions away is not one a reader can
+check, and this spec's subject is checks that can fail.
+
 ## Verification
 
 Each line is one command, run independently: no shell variable survives to the
@@ -297,6 +315,10 @@ cargo build --release --locked
 cargo test -p spec-spine-types --test dogfood --locked authoring_template > "${TMPDIR:-/tmp}/ss111-dogfood.txt" 2>&1
 grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss111-dogfood.txt"
 rm -f "${TMPDIR:-/tmp}/ss111-dogfood.txt"
+# 3.5: the guard that keeps the iteration above from passing vacuously. Its
+# subject is named, so it fires when a key of §1.2 leaves the grammar rather
+# than when the list merely changes size (D-6).
+grep -qF 'left KNOWN_KEYS; this test' crates/spec-spine-types/tests/dogfood.rs
 # 3.1: the syntax, shown with the `amends` entry it requires.
 grep -qF '# amends_verification: ["NNN-predecessor"]' standards/spec/templates/spec-template.md
 # 3.1: the guidance, clause by clause. A key name alone teaches nothing.
