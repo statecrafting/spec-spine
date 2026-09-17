@@ -32,6 +32,11 @@ pub struct CoupleArgs {
     pub head: String,
     pub pr_body: Option<PathBuf>,
     pub paths_from: Option<PathBuf>,
+    /// Spec 102 §3.1: union the committed range with `git diff HEAD`, so a
+    /// pre-commit run judges the change being committed rather than an empty
+    /// set. Off by default: CI runs over a pushed range where the working tree
+    /// is irrelevant and must stay so (§3.4).
+    pub include_uncommitted: bool,
     /// Emit the verdict as a JSON envelope instead of prose (spec 037).
     pub json: bool,
 }
@@ -241,6 +246,16 @@ fn spec_md_rel(specs_dir: &str, id: &str) -> String {
 /// hunks) or from `git diff --no-color -U0 base...head`.
 fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> {
     if let Some(path) = &args.paths_from {
+        // Spec 102 §3.3: `--paths-from` carries its own path list and no history
+        // to union a working tree with, so the combination names no coherent
+        // question. Refused (exit 3) rather than silently ignoring one of them.
+        if args.include_uncommitted {
+            return Err(Error::Config(
+                "--include-uncommitted unions the working tree into a git diff, and \
+                 --paths-from replaces that diff with a path list; pass one or the other"
+                    .to_string(),
+            ));
+        }
         let text = std::fs::read_to_string(path)
             .map_err(|e| Error::Io(format!("read --paths-from {}: {e}", path.display())))?;
         let files = text
@@ -258,7 +273,7 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> 
         return Ok(DiffInput { files });
     }
 
-    let raw = run_git_diff(repo, &args.base, &args.head)?;
+    let raw = run_git_diff(repo, &[&format!("{}...{}", args.base, args.head)])?;
     let mut diff = parse_unified_diff(&raw);
     // Spec 092 §3.1: the parser is the authority for spans, the name list for
     // membership. The range is the same three-dot `base...head` the text diff
@@ -266,7 +281,70 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> 
     let range = format!("{}...{}", args.base, args.head);
     let statuses = changed_path_statuses(repo, &[range.as_str()])?;
     union_name_statuses(&mut diff, statuses);
+
+    // Spec 102 §3.1: the working tree, on request. `base...head` describes
+    // history alone, so before the commit exists the gate reports
+    // `0 path(s) checked, no drift` and exits 0, which reads as a pass.
+    if args.include_uncommitted {
+        // Spec 102 §3.3: the comparison is against HEAD, so a `--head` naming
+        // anything else would union a working tree against an unrelated commit
+        // and describe a state that never existed. Refused, not guessed.
+        let head_oid = rev_parse(repo, "HEAD")?;
+        if rev_parse(repo, &args.head)? != head_oid {
+            return Err(Error::Config(format!(
+                "--include-uncommitted compares the working tree with HEAD, so it cannot be \
+                 combined with --head {}, which resolves to a different commit",
+                args.head
+            )));
+        }
+        // `git diff HEAD` covers staged and unstaged changes to tracked files:
+        // exactly what a commit would record. A file never `git add`-ed is
+        // absent from both, which is right, since a commit would not carry it
+        // either (§3.2).
+        let wt_raw = run_git_diff(repo, &["HEAD"])?;
+        let wt = parse_unified_diff(&wt_raw);
+        union_diff(&mut diff, wt);
+        union_name_statuses(&mut diff, changed_path_statuses(repo, &["HEAD"])?);
+    }
     Ok(diff)
+}
+
+/// `git rev-parse <rev>`, for the one comparison spec 102 §3.3 needs.
+fn rev_parse(repo: &Path, rev: &str) -> Result<String, Error> {
+    let out = Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .args(["rev-parse", "--verify", "--end-of-options"])
+        .arg(rev)
+        .output()
+        .map_err(|e| Error::Io(format!("spawn git rev-parse: {e}")))?;
+    if !out.status.success() {
+        return Err(Error::Io(format!(
+            "git rev-parse {rev} exited {:?}: {}",
+            out.status.code(),
+            String::from_utf8_lossy(&out.stderr).trim()
+        )));
+    }
+    Ok(String::from_utf8_lossy(&out.stdout).trim().to_string())
+}
+
+/// Fold a second parsed diff into the first (spec 102 §3.1).
+///
+/// A path only the later view knows enters whole. A path both views know keeps
+/// the union of their hunks and takes the LATER view's deletion verdict: the
+/// gate judges the state a commit would produce, so a file deleted in the range
+/// and restored in the working tree is not a deletion, and the reverse is.
+fn union_diff(diff: &mut DiffInput, later: DiffInput) {
+    for f in later.files {
+        match diff.files.iter_mut().find(|e| e.path == f.path) {
+            Some(existing) => {
+                existing.hunks.extend(f.hunks);
+                existing.deleted = f.deleted;
+            }
+            None => diff.files.push(f),
+        }
+    }
+    diff.files.sort_by(|a, b| a.path.cmp(&b.path));
 }
 
 /// Add every path git reports changed that the hunk parser did not register
@@ -484,7 +562,7 @@ fn git_show(repo: &Path, rev: &str, path: &str) -> Option<String> {
     Some(String::from_utf8_lossy(&out.stdout).into_owned())
 }
 
-fn run_git_diff(repo: &Path, base: &str, head: &str) -> Result<String, Error> {
+fn run_git_diff(repo: &Path, revs: &[&str]) -> Result<String, Error> {
     let out = Command::new("git")
         .arg("-C")
         .arg(repo)
@@ -505,7 +583,7 @@ fn run_git_diff(repo: &Path, base: &str, head: &str) -> Result<String, Error> {
             "--no-renames",
             "--end-of-options",
         ])
-        .arg(format!("{base}...{head}"))
+        .args(revs)
         .output()
         .map_err(|e| Error::Io(format!("spawn git diff: {e}")))?;
     if !out.status.success() {
@@ -783,6 +861,9 @@ mod tests {
             head: "HEAD".into(),
             pr_body: None,
             paths_from: None,
+            // Spec 102: this fixture asserts the committed range alone, which
+            // is the default and what CI runs.
+            include_uncommitted: false,
             json: false,
         };
         let d = build_diff_input(root, &args).unwrap();
