@@ -300,8 +300,8 @@ forbids. The objection is correct and it lands on this spec's own argument, so
 the assertion changed rather than the argument. What replaces it is two positive
 claims: the verb tokens differ (`index.check` against `compile.spec`, which spec
 037 makes part of the envelope), and `diagnostics` is present in one payload and
-absent from the other. Both are statements about what the verbs are, not about
-what they happened to contain when this was written.
+absent from the other. The first is a statement about what the verbs are. The second is
+not, and D-8 records what it is instead.
 
 D-7 (2026-09-17, why the filtered test run asserts its own match count).
 `cargo test --test verify spec103_` exits 0 when the filter matches nothing:
@@ -313,6 +313,31 @@ is captured and its summary asserted to name a non-zero pass count, so the line
 goes red when the filter matches nothing as well as when a match fails. Spec
 105's copy is not edited here: a green line in another spec's block is not this
 spec's to change, and it is named in 4.
+
+D-8 (2026-09-17, what the second arm of the comparison actually rests on, and
+why 000 is the anchor). Review of D-6 pointed out that `'diagnostics' not in
+b['report']` is still a claim about what `compile`'s payload happens to contain,
+so D-6's sentence claiming both arms describe what the verbs *are* was an
+overclaim, in a spec whose subject is assertions that overclaim. It is corrected
+above rather than defended.
+
+The arm stays, because what it rests on is sound even though it is contingent.
+The structural weight is carried by the verb tokens, which spec 037 makes part of
+the envelope. The member arm adds that the two payloads differ in a named way,
+which is what makes a shared version say anything about payload independence, and
+its contingency is loud: if `compile`'s report ever gains `diagnostics` the line
+goes red and a reader is sent to this entry, rather than passing while asserting
+less than it appears to. The distinction from the literal pin 1.2 rejects is the
+failure mode, not the contingency: a pin goes red on a routine and expected event
+(088 performed one), while this goes red only if two verbs' payloads converge,
+which no rule here forbids but nothing plans either.
+
+The counter-verb is anchored on spec 000 rather than 024. `compile --spec` needs
+an id that resolves, and any id can be deleted, so the anchor is a dependency
+whichever one is chosen; 000 is the tier-1 bootstrap whose `unamendable` anchors
+are non-overridable, and its removal would end the corpus rather than merely
+break this line. 024 was the first draft's choice and it was arbitrary, which is
+the part review was right to flag.
 
 ## Verification
 
@@ -357,8 +382,11 @@ python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss106/diagnostics.jso
 # payload reason would move both verbs together. The payload difference is
 # asserted as a named verb token and a named member, not as a key-set
 # inequality, which would be the same calendar shape on another axis (D-6).
+# The counter-verb is anchored on spec 000, the tier-1 bootstrap spec, because
+# `compile --spec` needs an id that exists and 000 is the one id whose removal
+# would end the corpus rather than move this line (D-8).
 target/release/spec-spine index check --json > "${TMPDIR:-/tmp}/ss106/check.json"
-target/release/spec-spine compile --spec 024 --json > "${TMPDIR:-/tmp}/ss106/compile.json"
+target/release/spec-spine compile --spec 000 --json > "${TMPDIR:-/tmp}/ss106/compile.json"
 python3 -c "import json; a=json.load(open('${TMPDIR:-/tmp}/ss106/check.json')); b=json.load(open('${TMPDIR:-/tmp}/ss106/compile.json')); assert a['schemaVersion'], a; assert a['schemaVersion']==b['schemaVersion'], (a['schemaVersion'], b['schemaVersion']); assert a['verb'] != b['verb'], (a['verb'], b['verb']); assert 'diagnostics' in a['report'] and 'diagnostics' not in b['report'], (sorted(a['report']), sorted(b['report']))"
 # 3.4: the member spec 050 added to `index check`'s payload is present. This is
 # the antecedent 050 3.6's rule is about, and 050's block never asserted it.
