@@ -246,9 +246,24 @@ fn gate_steps(text: &str) -> Vec<GateStep> {
         .collect();
 
     // A line this parser drops is a step neither list would carry, so parity
-    // would hold over a gate with a missing step. Every line naming the binary
-    // has to become a step.
-    let named = fence.lines().filter(|l| l.contains("spec-spine ")).count();
+    // would hold over a gate with a missing step. Every line that reads as an
+    // invocation has to become one.
+    //
+    // Lenient about the comment marker where the parser is strict, which is
+    // exactly the gap being guarded: `#spec-spine check`, written without the
+    // space the parser requires, counts here and parses to nothing. Prose that
+    // merely mentions the binary ("# this replaces spec-spine compile --check")
+    // is an invocation under neither reading and is counted by neither, so the
+    // guard does not fire on a comment a future maintainer adds.
+    let named = fence
+        .lines()
+        .filter(|l| {
+            l.trim()
+                .trim_start_matches('#')
+                .trim_start()
+                .starts_with("spec-spine ")
+        })
+        .count();
     assert_eq!(
         steps.len(),
         named,
