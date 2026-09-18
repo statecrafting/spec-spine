@@ -194,8 +194,8 @@ struct GateStep {
 
 /// The fenced `sh` block under a document's "Run the gate before every commit"
 /// step, as ordered `spec-spine` steps. A leading `# ` marks a conditional step
-/// and is stripped; the trailing `  # …` is that condition's prose, not part of
-/// the invocation.
+/// and is stripped; a trailing ` # …` is that condition's prose, not part of the
+/// invocation.
 ///
 /// Deliberately generic over the text rather than reading one path, because the
 /// point is to run it over two documents: the one `kit/` ships and the one
@@ -209,7 +209,20 @@ fn gate_steps(text: &str) -> Vec<GateStep> {
         .find("```sh")
         .expect("the gate list is a fenced sh block");
     let body = &tail[open + "```sh".len()..];
-    let close = body.find("```").expect("the fence closes");
+    // The close is a fence on its own line, possibly indented: `kit/AGENTS.md`
+    // carries the block inside a numbered list. A bare `find("```")` would also
+    // match a backtick run inside the block and truncate it, and the drop guard
+    // below could not see that, because it counts over the same truncated slice.
+    let close = body
+        .match_indices("```")
+        .find(|(i, _)| {
+            body[..*i]
+                .rsplit('\n')
+                .next()
+                .is_some_and(|indent| indent.chars().all(char::is_whitespace))
+        })
+        .map(|(i, _)| i)
+        .expect("the fence closes on a line of its own");
     let fence = &body[..close];
     let steps: Vec<GateStep> = fence
         .lines()
@@ -220,7 +233,11 @@ fn gate_steps(text: &str) -> Vec<GateStep> {
                 None => (false, t),
             };
             let cmd = t.strip_prefix("spec-spine ")?;
-            let cmd = cmd.split("  #").next().unwrap_or(cmd).trim();
+            // One space, not two: `kit/AGENTS.md` is hand-maintained and is not
+            // held to the generator's spacing. Splitting on the wider separator
+            // would fold a single-spaced condition into the command, and two
+            // documents spelling it the same wrong way would compare equal.
+            let cmd = cmd.split(" #").next().unwrap_or(cmd).trim();
             Some(GateStep {
                 command: cmd.to_string(),
                 conditional,
