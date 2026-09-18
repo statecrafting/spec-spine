@@ -62,6 +62,10 @@ jobs:
       # `Spec-Drift-Waiver:` line is unrecoverable. Without the control this leg
       # coupled the default branch against itself, checked zero paths, and
       # returned a verdict about nothing.
+      # `BASE` is set for symmetry with the leg below and is not read while
+      # `COUPLE=0`: nothing else in the target compares a base to a head. It
+      # stays so that flipping the control is a one-word change here rather than
+      # a two-line one.
       - name: Governed loop
         if: github.event_name != 'pull_request'
         run: make gate BASE=origin/${{ github.base_ref || 'main' }} COUPLE=0

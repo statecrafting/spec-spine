@@ -686,6 +686,12 @@ fn strip_comment(line: &str) -> &str {
 /// The commands a `run:` script executes, with comments dropped and
 /// operator-separated commands split apart. Whatever survives here is something
 /// the runner runs; a mention in a comment does not.
+///
+/// This reads the workflow's SOURCE text. A `$RUNNER_TEMP` in it is the literal
+/// eight characters, never the runner's expansion of them, so what a variable
+/// expands to at job time cannot change how a step tokenises here. GitHub's own
+/// `${{ … }}` expressions ARE substituted before the shell sees them, which is
+/// why they are masked to one word first.
 fn script_commands(run: &str) -> Vec<String> {
     let masked = mask_expressions(run);
     let mut out = Vec::new();
@@ -882,8 +888,23 @@ fn the_one_gate_definition_serves_both_legs_through_explicit_controls() {
         .get("PR_BODY")
         .expect("the pull-request leg hands the body file to the gate");
     assert!(
-        !body.is_empty() && body.contains("pr-body"),
-        "the body reaches the gate as a file path: {pr:?}"
+        !body.is_empty(),
+        "the body reaches the gate as a path: {pr:?}"
+    );
+
+    // And it is the path the step just WROTE, not merely a path-shaped string.
+    // Tied to the step's own redirect rather than to the file's name, so
+    // renaming `pr-body.txt` cannot quietly turn this into an assertion about a
+    // filename; what spec 064 §3.2 requires is that the body travel as a file
+    // and that the gate be handed that file.
+    let run = legs_of(&steps, Leg::PullRequest)
+        .into_iter()
+        .find(|s| gate_invocation(s).is_some())
+        .and_then(|s| s.run.clone())
+        .expect("the pull-request step has a script");
+    assert!(
+        run.contains(&format!("> \"{body}\"")),
+        "PR_BODY must name the file this step writes; it writes none: {run}"
     );
 }
 

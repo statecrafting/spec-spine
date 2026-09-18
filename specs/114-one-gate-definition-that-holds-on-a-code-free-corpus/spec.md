@@ -192,6 +192,8 @@ exactly as a skip under `auto` is, and the line names which of the two decided
 it, so a reader of the log is never left guessing whether the configuration or
 the caller turned the assertion off.
 
+Any other value MUST be refused, not treated as `auto`. D-15.
+
 **A failed read is not a skip.** If `spec-spine config show` exits non-zero the
 target MUST fail with that status, not fall through to the announced skip. The
 probe cannot be a pipeline into `grep`, because a pipeline reports `grep`'s
@@ -212,7 +214,8 @@ local session has no PR body to give.
 The `gate` target MUST also accept a `COUPLE` variable deciding whether the
 coupling step runs at all. It defaults to **on**, so `make gate` in a local
 session is the whole governed loop exactly as it is today, and `COUPLE=0` skips
-the step. As with §3.2, the skip MUST be announced on one line that says drift
+the step. `1` and `0` are the only values; any other MUST be refused rather than
+read as "not `0`, so couple". D-15. As with §3.2, the skip MUST be announced on one line that says drift
 against a base was **not** checked; a caller that turned the step off still gets
 a gate that does not claim to have run it.
 
@@ -517,6 +520,24 @@ That is true and it is not a property anyone should have to know to read the
 file. The step now exports `PR_BODY_TEXT` and writes it to the file whose path
 it passes as `PR_BODY`, so the name that means a path only ever holds a path.
 
+D-15 (2026-09-18, why an unrecognised control value is refused rather than
+defaulted). Raised in review of the implementation PR. Written as a two-way
+`if`/`else`, `OWNERSHIP` accepted `1` and `0` and sent everything else to the
+configuration branch, and `COUPLE` treated every value but `0` as "couple". Both
+read plausibly and both fail in the direction the caller cannot see: a person
+typing `OWNERSHIP=yes` is asking for the assertion and would have got a
+config-governed run under the word they chose to override it with, and a person
+typing `COUPLE=false` to turn coupling off would have got coupling.
+
+That is the same substitution D-12 refuses one step earlier in the same recipe:
+an input the target could not honour, answered as though it had been. A control
+whose typo silently means the opposite of what was typed is not a control, and
+the whole point of §3.2's override and §3.3's `COUPLE` is that a caller can
+state a decision the file then observably carries out. Both now exit 3 on an
+unrecognised value, naming the value and the accepted set. The cost is that an
+adopter who guessed a spelling gets a refusal instead of a run; that is the
+cheap direction to be wrong in, and it is the one spec 059 chose for the verb.
+
 ## Verification
 
 Each line is one command, run independently: no shell variable survives to the
@@ -660,6 +681,15 @@ grep -qF 'fail-on-untraced' "${TMPDIR:-/tmp}/ss114-own1.txt"
 printf '#!/bin/sh\nif [ "$1" = config ]; then echo "simulated config failure" >&2; exit 3; fi\nexec %s "$@"\n' "$PWD/target/release/spec-spine" > "${TMPDIR:-/tmp}/ss114-wrapper" && chmod +x "${TMPDIR:-/tmp}/ss114-wrapper"
 ! make -C "${TMPDIR:-/tmp}/ss114" gate SPEC_SPINE="${TMPDIR:-/tmp}/ss114-wrapper" BASE=HEAD > "${TMPDIR:-/tmp}/ss114-cfgfail.txt" 2>&1
 ! grep -qi 'was NOT verified' "${TMPDIR:-/tmp}/ss114-cfgfail.txt"
+# 3.2 + 3.3: an unrecognised control value is refused, not silently defaulted
+# to the branch the caller was trying to override (D-15). Both controls, both
+# directions of the mistake.
+! make -C "${TMPDIR:-/tmp}/ss114" gate SPEC_SPINE="$PWD/target/release/spec-spine" BASE=HEAD OWNERSHIP=yes > "${TMPDIR:-/tmp}/ss114-badvar.txt" 2>&1
+grep -qF 'is not one of' "${TMPDIR:-/tmp}/ss114-badvar.txt"
+! make -C "${TMPDIR:-/tmp}/ss114" gate SPEC_SPINE="$PWD/target/release/spec-spine" BASE=HEAD COUPLE=false > "${TMPDIR:-/tmp}/ss114-badvar2.txt" 2>&1
+grep -qF 'is not one of' "${TMPDIR:-/tmp}/ss114-badvar2.txt"
+# And the refusal did not masquerade as a skip: no announcement line was printed.
+! grep -qi 'was NOT verified' "${TMPDIR:-/tmp}/ss114-badvar.txt"
 # 3.2: this repository's own verdict is unchanged, because the probe matches
 # here and the assertion runs (D-2).
 target/release/spec-spine config show | grep -qF 'require_ownership = true'
@@ -675,5 +705,5 @@ python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss114-show.json')); a
 # workflow for the chain. This goes red if someone resolves this by editing 077.
 grep -qF "grep -qF 'check --fail-on-unresolved --fail-on-warn' kit/govern.yml" specs/077-compile-warnings-reach-the-gate/spec.md
 rm -rf "${TMPDIR:-/tmp}/ss114"
-rm -f "${TMPDIR:-/tmp}/ss114-defs.txt" "${TMPDIR:-/tmp}/ss114-show.json" "${TMPDIR:-/tmp}/ss114-gate.txt" "${TMPDIR:-/tmp}/ss114-nocouple.txt" "${TMPDIR:-/tmp}/ss114-own1.txt" "${TMPDIR:-/tmp}/ss114-wrapper" "${TMPDIR:-/tmp}/ss114-cfgfail.txt"
+rm -f "${TMPDIR:-/tmp}/ss114-defs.txt" "${TMPDIR:-/tmp}/ss114-show.json" "${TMPDIR:-/tmp}/ss114-gate.txt" "${TMPDIR:-/tmp}/ss114-nocouple.txt" "${TMPDIR:-/tmp}/ss114-own1.txt" "${TMPDIR:-/tmp}/ss114-wrapper" "${TMPDIR:-/tmp}/ss114-cfgfail.txt" "${TMPDIR:-/tmp}/ss114-badvar.txt" "${TMPDIR:-/tmp}/ss114-badvar2.txt"
 ```

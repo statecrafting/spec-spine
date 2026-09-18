@@ -2272,6 +2272,12 @@ BASE       ?= origin/$(or $(SPEC_SPINE_DEFAULT_BRANCH),main)
 # 059 took out of the verb: `--fail-on-untraced` on a tree with no discovered
 # package used to enumerate nothing and exit 0 from a step named for the
 # assertion. A gate that did not run its check does not get to look green.
+#
+# An unrecognised value is REFUSED (exit 3), never quietly treated as `auto`. A
+# caller writing `OWNERSHIP=yes` is asking for the assertion; falling through to
+# the configuration would hand them a config-governed run under a word they
+# chose to override it with, which is the same class of silent substitution the
+# failed-read rule below exists to stop.
 OWNERSHIP  ?= auto
 
 # Spec 114 3.3: whether `gate` runs the coupling gate. ON by default, so a local
@@ -2289,6 +2295,10 @@ OWNERSHIP  ?= auto
 # GitHub permits an empty PR description, so a body-shaped inference would turn
 # every description-less pull request into a coupling gate that quietly did not
 # run.
+#
+# `1` and `0` are the only values; anything else is refused (exit 3) rather than
+# read as "not 0, so couple". A control whose typo means the opposite of what
+# was typed is not a control.
 COUPLE     ?= 1
 
 # Spec 114 3.3: a file holding the PR body, for the `Spec-Drift-Waiver:` line
@@ -2327,6 +2337,8 @@ gate:
 		run=yes; \
 	elif test "$(OWNERSHIP)" = "0"; then \
 		run=no; why="OWNERSHIP=0"; \
+	elif test "$(OWNERSHIP)" != "auto"; then \
+		echo "gate: OWNERSHIP=$(OWNERSHIP) is not one of auto, 1, 0" >&2; exit 3; \
 	else \
 		$(SPEC_SPINE) config show > "$$cfg"; st=$$?; \
 		if test $$st -ne 0; then rm -f "$$cfg"; exit $$st; fi; \
@@ -2340,6 +2352,8 @@ gate:
 	fi
 	@if test "$(COUPLE)" = "0"; then \
 		echo "gate: COUPLE=0, so drift against a base was NOT checked (the coupling gate did not run)"; \
+	elif test "$(COUPLE)" != "1"; then \
+		echo "gate: COUPLE=$(COUPLE) is not one of 1, 0" >&2; exit 3; \
 	else \
 		$(SPEC_SPINE) couple --base $(BASE) --head HEAD $(if $(PR_BODY),--pr-body "$(PR_BODY)"); \
 	fi
@@ -2442,6 +2456,10 @@ jobs:
       # `Spec-Drift-Waiver:` line is unrecoverable. Without the control this leg
       # coupled the default branch against itself, checked zero paths, and
       # returned a verdict about nothing.
+      # `BASE` is set for symmetry with the leg below and is not read while
+      # `COUPLE=0`: nothing else in the target compares a base to a head. It
+      # stays so that flipping the control is a one-word change here rather than
+      # a two-line one.
       - name: Governed loop
         if: github.event_name != 'pull_request'
         run: make gate BASE=origin/${{ github.base_ref || 'main' }} COUPLE=0
