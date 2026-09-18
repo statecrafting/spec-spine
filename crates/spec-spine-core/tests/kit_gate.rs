@@ -11,6 +11,9 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use spec_spine_core::scaffold_init;
+use spec_spine_types::Config;
+
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("../..")
@@ -175,6 +178,161 @@ fn the_kit_gate_chain_follows_agents_md() {
         cursor += pos + 1;
     }
     assert!(!gate.is_empty(), "the gate target must invoke spec-spine");
+}
+
+// ── spec 113: the scaffolded protocol is the gate the kit ships ───────────
+
+/// One step of a fenced gate list. `conditional` records whether the document
+/// renders the step commented out, which is how both protocols write a step
+/// that belongs in the gate only under a given configuration: dropping that
+/// distinction would let an unconditional assertion match a conditional one.
+#[derive(Debug, PartialEq, Eq)]
+struct GateStep {
+    command: String,
+    conditional: bool,
+}
+
+/// The fenced `sh` block under a document's "Run the gate before every commit"
+/// step, as ordered `spec-spine` steps. A leading `# ` marks a conditional step
+/// and is stripped; a trailing ` # …` is that condition's prose, not part of the
+/// invocation.
+///
+/// Deliberately generic over the text rather than reading one path, because the
+/// point is to run it over two documents: the one `kit/` ships and the one
+/// `scaffold.rs` generates.
+fn gate_steps(text: &str) -> Vec<GateStep> {
+    let start = text
+        .find("Run the gate before every commit")
+        .expect("the document names the gate step");
+    let tail = &text[start..];
+    let open = tail
+        .find("```sh")
+        .expect("the gate list is a fenced sh block");
+    let body = &tail[open + "```sh".len()..];
+    // The close is a fence on its own line, possibly indented: `kit/AGENTS.md`
+    // carries the block inside a numbered list. A bare `find("```")` would also
+    // match a backtick run inside the block and truncate it, and the drop guard
+    // below could not see that, because it counts over the same truncated slice.
+    let close = body
+        .match_indices("```")
+        .find(|(i, _)| {
+            body[..*i]
+                .rsplit('\n')
+                .next()
+                .is_some_and(|indent| indent.chars().all(char::is_whitespace))
+        })
+        .map(|(i, _)| i)
+        .expect("the fence closes on a line of its own");
+    let fence = &body[..close];
+    let steps: Vec<GateStep> = fence
+        .lines()
+        .filter_map(|l| {
+            let t = l.trim();
+            let (conditional, t) = match t.strip_prefix("# ") {
+                Some(rest) => (true, rest.trim()),
+                None => (false, t),
+            };
+            let cmd = t.strip_prefix("spec-spine ")?;
+            // One space, not two: `kit/AGENTS.md` is hand-maintained and is not
+            // held to the generator's spacing. Splitting on the wider separator
+            // would fold a single-spaced condition into the command, and two
+            // documents spelling it the same wrong way would compare equal.
+            let cmd = cmd.split(" #").next().unwrap_or(cmd).trim();
+            Some(GateStep {
+                command: cmd.to_string(),
+                conditional,
+            })
+        })
+        .collect();
+
+    // A line this parser drops is a step neither list would carry, so parity
+    // would hold over a gate with a missing step. Every line that reads as an
+    // invocation has to become one.
+    //
+    // Lenient about the comment marker where the parser is strict, which is
+    // exactly the gap being guarded: `#spec-spine check`, written without the
+    // space the parser requires, counts here and parses to nothing. Prose that
+    // merely mentions the binary ("# this replaces spec-spine compile --check")
+    // is an invocation under neither reading and is counted by neither, so the
+    // guard does not fire on a comment a future maintainer adds.
+    let named = fence
+        .lines()
+        .filter(|l| {
+            l.trim()
+                .trim_start_matches('#')
+                .trim_start()
+                .starts_with("spec-spine ")
+        })
+        .count();
+    assert_eq!(
+        steps.len(),
+        named,
+        "{named} fence line(s) name spec-spine and {} parsed as steps; a gate \
+         line this parser drops is invisible to the parity assertion",
+        steps.len()
+    );
+    steps
+}
+
+/// The `AGENTS.md` `init` generates, for a given configuration.
+fn scaffolded_agents_md(cfg: &Config) -> String {
+    scaffold_init(cfg)
+        .expect("the scaffold builds")
+        .files
+        .into_iter()
+        .find(|f| f.rel_path == "AGENTS.md")
+        .expect("init writes AGENTS.md")
+        .contents
+}
+
+/// §3.2: the protocol `init` generates names the same gate, step for step, as
+/// the protocol `kit/` ships. `spec-spine init --with-kit` writes both kinds of
+/// document into one tree, and until this test existed nothing compared them:
+/// spec 075 moved this repository's `AGENTS.md` and `kit/AGENTS.md` to the
+/// composed `check` and left the string literal in `scaffold.rs` on
+/// `index check --fail-on-unresolved`, so one command told an adopter two
+/// different things about the same gate for four releases.
+///
+/// Scoped to the gate list on purpose (113 D-2): the two documents are written
+/// for different readers and differ deliberately nearly everywhere else. The
+/// gate list is the part meant to be the same thing said twice.
+#[test]
+fn the_scaffolded_protocol_gate_matches_the_kits() {
+    let generated = gate_steps(&scaffolded_agents_md(&Config::default()));
+    let kit = gate_steps(&read("kit/AGENTS.md"));
+
+    assert!(
+        !kit.is_empty(),
+        "kit/AGENTS.md's gate list parsed empty, so this test asserts nothing"
+    );
+    assert_eq!(
+        generated, kit,
+        "the gate `scaffold.rs` generates and the gate `kit/AGENTS.md` ships \
+         have drifted. `spec-spine init --with-kit` writes both into one tree, \
+         so an adopter is told two different things about the same gate. Edit \
+         whichever is behind (113 §3.1)."
+    );
+}
+
+/// §3.1's four measured differences, asserted on the generated document
+/// directly, so a failure names the defect rather than only reporting a diff.
+/// The parity test above would catch any of these too; these say which one.
+#[test]
+fn the_scaffolded_protocol_names_the_composed_reads() {
+    let agents = scaffolded_agents_md(&Config::default());
+
+    // Spec 075: one name, one freshness verb, in the gate and at startup.
+    assert!(agents.contains("spec-spine check"), "{agents}");
+    assert!(!agents.contains("spec-spine compile --check"), "{agents}");
+    assert!(
+        !agents.contains("spec-spine index check --fail-on-unresolved"),
+        "{agents}"
+    );
+    // Spec 072: the base ref is resolved from the repository, not assumed.
+    assert!(agents.contains("git symbolic-ref --short"), "{agents}");
+    assert!(!agents.contains("couple --base origin/main"), "{agents}");
+    // The ownership assertion carries the condition it holds under.
+    assert!(agents.contains("require_ownership"), "{agents}");
 }
 
 fn agents_md_gate_commands() -> Vec<String> {
