@@ -82,10 +82,10 @@
       "Verification"
     ],
     "specPath": "specs/113-the-scaffolded-protocol-is-the-gate-the-kit-ships/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`init` writes an `AGENTS.md` whose gate is the shape this repository ran in June, and `kit/AGENTS.md`, which the same command copies into the same tree under `--with-kit`, carries the shape it runs today. They disagree on four lines: the freshness verb, the coupling base, whether the ownership assertion is conditional, and what a session reads at startup. Both invocations still work, so nothing is broken and an adopter simply gets the older gate, told in two voices by one command. This spec makes the generated protocol render the gate the kit documents. Spec 065's acceptance greps the scaffolded file for `spec-spine compile --check`, so the change falsifies an assertion narrower than the rule it stands for, and this spec declares 065's acceptance replaced rather than editing 065.\n",
     "title": "The scaffolded protocol is the gate the kit ships"
   },
-  "shardHash": "b1384a9d2ab4a0caec1a6e3c67cac24fab4d401d09d09f844fb726f0c07415d2",
+  "shardHash": "924aba10469cd79bae57b3e2ced3824d178656a44aea4ec302fd679cd3b802e0",
   "specVersion": "1.3.0"
 }
