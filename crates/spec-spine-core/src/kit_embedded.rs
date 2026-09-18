@@ -2342,7 +2342,13 @@ gate:
 	else \
 		$(SPEC_SPINE) config show > "$$cfg"; st=$$?; \
 		if test $$st -ne 0; then rm -f "$$cfg"; exit $$st; fi; \
-		if grep -qF 'require_ownership = true' "$$cfg"; then run=yes; fi; \
+		if grep -qF 'require_ownership = true' "$$cfg"; then \
+			run=yes; \
+		elif ! grep -qF 'require_ownership = false' "$$cfg"; then \
+			rm -f "$$cfg"; \
+			echo "gate: the effective config named no require_ownership setting, so the ownership decision could not be read" >&2; \
+			exit 3; \
+		fi; \
 		rm -f "$$cfg"; \
 	fi; \
 	if test "$$run" = yes; then \

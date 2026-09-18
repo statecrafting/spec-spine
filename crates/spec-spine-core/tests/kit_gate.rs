@@ -902,10 +902,32 @@ fn the_one_gate_definition_serves_both_legs_through_explicit_controls() {
         .find(|s| gate_invocation(s).is_some())
         .and_then(|s| s.run.clone())
         .expect("the pull-request step has a script");
+    let norm = normalize_redirects(&run);
     assert!(
-        run.contains(&format!("> \"{body}\"")),
+        [
+            format!(">\"{body}\""),
+            format!(">'{body}'"),
+            format!(">{body}")
+        ]
+        .iter()
+        .any(|w| norm.contains(w.as_str())),
         "PR_BODY must name the file this step writes; it writes none: {run}"
     );
+}
+
+/// A script with output redirections spelled one way: `1>` written `>`, and the
+/// whitespace around `>` removed. `> "x"`, `>"x"` and `1> "x"` all write the
+/// same file, and an assertion that told them apart would be testing a
+/// workflow's spacing rather than which file it writes.
+fn normalize_redirects(run: &str) -> String {
+    let mut s = run.replace("1>", ">");
+    while s.contains(" >") {
+        s = s.replace(" >", ">");
+    }
+    while s.contains("> ") {
+        s = s.replace("> ", ">");
+    }
+    s
 }
 
 /// §3.2: the ownership guard reads the effective configuration, and reads it in

@@ -196,6 +196,9 @@ Any other value MUST be refused, not treated as `auto`. D-15.
 
 **A failed read is not a skip.** If `spec-spine config show` exits non-zero the
 target MUST fail with that status, not fall through to the announced skip. The
+same holds for a read that succeeds and does not answer: the probe matches on
+the line the read prints, so the target MUST require that setting to be present
+in one of its two spellings and MUST refuse when neither is. D-16. The
 probe cannot be a pipeline into `grep`, because a pipeline reports `grep`'s
 status and discards the read's: a binary too old to have the verb, an unparsable
 `spec-spine.toml`, or a missing config would all read as "ownership is off" and
@@ -279,6 +282,16 @@ defect §3.4 exists to close, not a looser version of it. D-10.
 
 This spec's `## Verification` block MUST replace spec 077's in full, through
 `amends_verification` (spec 103 §3.1), and 077's file MUST NOT be edited.
+
+Both edges to 077 are declared, and they record different things. `amends` says
+this spec changes something 077 stated without editing 077's file, which is
+spec 040's instrument and is the honest declaration here: 077 §3.5 ranges over
+"every written form of the chain", and §3.4 removes one of those forms. What is
+untouched is 077's **requirement** and its **file**; what changes is the set of
+places the requirement ranges over, and an amendment is exactly how that is
+recorded. `amends_verification` then says which block runs. Declaring only the
+second would leave the change to 077's extension unrecorded; declaring only the
+first would leave 077's stale assertion live against changed behavior.
 
 One line moves:
 
@@ -538,6 +551,23 @@ unrecognised value, naming the value and the accepted set. The cost is that an
 adopter who guessed a spelling gets a refusal instead of a run; that is the
 cheap direction to be wrong in, and it is the one spec 059 chose for the verb.
 
+D-16 (2026-09-18, why an unanswerable configuration read is also refused).
+Raised in review alongside D-15, and a different failure from D-12's. D-12
+covers a read that FAILS; this covers a read that succeeds and says nothing the
+probe can use. The probe greps for `require_ownership = true`, so a `config
+show` whose format drifted, to `require_ownership=true` without the spaces, say,
+would match no line, be indistinguishable from the setting being off, and
+produce an announced skip that was really a failed probe. D-3 accepted the
+coupling to that text and gave its reasons; what D-3 did not settle is what
+happens when the text moves.
+
+The target therefore requires the setting to be THERE, in one of the two
+spellings the read can print, and exits 3 naming the problem when neither
+appears. Measured in both directions against a stand-in whose `config show`
+prints the key without spaces: refused at exit 3, where before it announced the
+skip and exited 0. The alternative, parsing `--json`, is still rejected for the
+reason D-3 gives.
+
 ## Verification
 
 Each line is one command, run independently: no shell variable survives to the
@@ -690,6 +720,13 @@ grep -qF 'is not one of' "${TMPDIR:-/tmp}/ss114-badvar.txt"
 grep -qF 'is not one of' "${TMPDIR:-/tmp}/ss114-badvar2.txt"
 # And the refusal did not masquerade as a skip: no announcement line was printed.
 ! grep -qi 'was NOT verified' "${TMPDIR:-/tmp}/ss114-badvar.txt"
+# 3.2: a configuration read that SUCCEEDS but answers nothing the probe can use
+# is refused too, not read as "ownership is off" (D-16). The stand-in prints the
+# setting in a spelling the probe does not match.
+printf '#!/bin/sh\nif [ "$1" = config ]; then echo "[coupling]"; echo "  require_ownership=true"; exit 0; fi\nexec %s "$@"\n' "$PWD/target/release/spec-spine" > "${TMPDIR:-/tmp}/ss114-fmtwrap" && chmod +x "${TMPDIR:-/tmp}/ss114-fmtwrap"
+! make -C "${TMPDIR:-/tmp}/ss114" gate SPEC_SPINE="${TMPDIR:-/tmp}/ss114-fmtwrap" BASE=HEAD > "${TMPDIR:-/tmp}/ss114-fmtfail.txt" 2>&1
+! grep -qi 'was NOT verified' "${TMPDIR:-/tmp}/ss114-fmtfail.txt"
+grep -qF 'could not be read' "${TMPDIR:-/tmp}/ss114-fmtfail.txt"
 # 3.2: this repository's own verdict is unchanged, because the probe matches
 # here and the assertion runs (D-2).
 target/release/spec-spine config show | grep -qF 'require_ownership = true'
@@ -705,5 +742,5 @@ python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss114-show.json')); a
 # workflow for the chain. This goes red if someone resolves this by editing 077.
 grep -qF "grep -qF 'check --fail-on-unresolved --fail-on-warn' kit/govern.yml" specs/077-compile-warnings-reach-the-gate/spec.md
 rm -rf "${TMPDIR:-/tmp}/ss114"
-rm -f "${TMPDIR:-/tmp}/ss114-defs.txt" "${TMPDIR:-/tmp}/ss114-show.json" "${TMPDIR:-/tmp}/ss114-gate.txt" "${TMPDIR:-/tmp}/ss114-nocouple.txt" "${TMPDIR:-/tmp}/ss114-own1.txt" "${TMPDIR:-/tmp}/ss114-wrapper" "${TMPDIR:-/tmp}/ss114-cfgfail.txt" "${TMPDIR:-/tmp}/ss114-badvar.txt" "${TMPDIR:-/tmp}/ss114-badvar2.txt"
+rm -f "${TMPDIR:-/tmp}/ss114-defs.txt" "${TMPDIR:-/tmp}/ss114-show.json" "${TMPDIR:-/tmp}/ss114-gate.txt" "${TMPDIR:-/tmp}/ss114-nocouple.txt" "${TMPDIR:-/tmp}/ss114-own1.txt" "${TMPDIR:-/tmp}/ss114-wrapper" "${TMPDIR:-/tmp}/ss114-cfgfail.txt" "${TMPDIR:-/tmp}/ss114-badvar.txt" "${TMPDIR:-/tmp}/ss114-badvar2.txt" "${TMPDIR:-/tmp}/ss114-fmtwrap" "${TMPDIR:-/tmp}/ss114-fmtfail.txt"
 ```
