@@ -1,7 +1,7 @@
 ---
 id: "113-the-scaffolded-protocol-is-the-gate-the-kit-ships"
 title: "The scaffolded protocol is the gate the kit ships"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-17"
 summary: >
