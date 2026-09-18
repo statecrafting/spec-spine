@@ -1,16 +1,19 @@
 {
   "mapping": {
     "amends": [
-      "046-kit-hooks-read-never-write"
+      "077-compile-warnings-reach-the-gate"
     ],
     "dependsOn": [
-      "046-kit-hooks-read-never-write",
-      "051-harness-runs-the-verbs-it-ships",
-      "065-init-and-the-kit-are-one-adoption"
+      "054-effective-config-is-a-governed-read",
+      "059-read-verbs-on-a-code-free-corpus",
+      "064-the-kit-ships-the-composite-gate",
+      "077-compile-warnings-reach-the-gate",
+      "089-a-skip-and-a-failure-are-different-answers",
+      "103-an-amended-acceptance-is-the-one-that-runs"
     ],
     "implementingPaths": [
       {
-        "path": ".claude/settings.json",
+        "path": "crates/spec-spine-core/Cargo.toml",
         "source": "spec-edge"
       },
       {
@@ -18,11 +21,15 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/kit_hooks.rs",
+        "path": "crates/spec-spine-core/tests/kit_gate.rs",
         "source": "spec-edge"
       },
       {
-        "path": "kit/settings.json",
+        "path": "kit/Makefile",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/govern.yml",
         "source": "spec-edge"
       }
     ],
@@ -30,14 +37,14 @@
       {
         "locations": [
           {
-            "file": ".claude/settings.json"
+            "file": "crates/spec-spine-core/Cargo.toml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": ".claude/settings.json"
+          "path": "crates/spec-spine-core/Cargo.toml"
         }
       },
       {
@@ -56,46 +63,59 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/kit_hooks.rs"
+            "file": "crates/spec-spine-core/tests/kit_gate.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/kit_hooks.rs"
+          "path": "crates/spec-spine-core/tests/kit_gate.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "kit/settings.json"
+            "file": "kit/Makefile"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "kit/settings.json"
+          "path": "kit/Makefile"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/releasing.md"
+            "file": "kit/govern.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/govern.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/releasing.md"
+          "path": "docs/design/05-remaining-waves-2026-09.md"
         }
       }
     ],
-    "specId": "071-a-tag-push-is-not-a-push-to-main",
-    "specStatus": "approved"
+    "specId": "114-one-gate-definition-that-holds-on-a-code-free-corpus",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "151f05d2b207827d51c09d9f472b768b24a0eb0077daa1b18548216715b9c71d"
+  "shardHash": "6c3fd7c91a3d00aab9f64de6c93e2d1654d36d311734225af049616841de3399"
 }
