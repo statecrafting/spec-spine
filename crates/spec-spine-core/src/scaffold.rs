@@ -346,22 +346,24 @@ fn agents_md(cfg: &Config) -> String {
          Run these reads before doing any work. Nothing here mutates the tree,\n\
          so there is no required ordering.\n\
          \n\
-         - `spec-spine compile --check`: is the committed spec registry what the\n\
-         \x20 corpus compiles to? `0` fresh, `2` stale (report it and continue;\n\
-         \x20 repairing the tree is later, committed work, not a side effect of\n\
-         \x20 reading it), `1` the corpus fails validation, which is the first\n\
-         \x20 task of the session rather than an aside.\n\
-         - `spec-spine index check`: the same question for the codebase index.\n\
+         - `spec-spine check`: the freshness read for **both** committed trees,\n\
+         \x20 the spec registry and the codebase index, in one verb (spec 075).\n\
+         \x20 `0` both fresh, `2` stale (report which tree it named and\n\
+         \x20 continue; repairing the tree is later, committed work, not a side\n\
+         \x20 effect of reading it), `1` the corpus fails validation, which is\n\
+         \x20 the first task of the session rather than an aside, `3` a read\n\
+         \x20 that could not be performed, so freshness is unknown for both.\n\
          - `spec-spine registry status-report --nonzero-only`: lifecycle counts.\n\
          - `spec-spine registry plan`: what can be worked on now, and what blocks\n\
          \x20 the rest.\n\
          - `spec-spine index coverage`: which source files no spec claims.\n\
          - `git log --oneline -10`: recent history.\n\
          \n\
-         Do **not** substitute a writing `compile` or `index` for the checks. A\n\
+         Do **not** substitute a writing `compile` or `index` for `check`. A\n\
          read that repairs the tree hides the fact that the *committed* copy was\n\
          stale, so the drift then reads as an uncommitted local edit rather than\n\
-         as a defect on the branch.\n\
+         as a defect on the branch. `check` carries the never-writes contract of\n\
+         both primitives it composes, which is what lets a read call it.\n\
          \n\
          **Ask `spec-spine --version` before believing any exit code.** Every\n\
          binary ever released answers it, and it exits 0. If the version predates\n\
@@ -400,10 +402,22 @@ fn agents_md(cfg: &Config) -> String {
          spec-spine compile\n\
          spec-spine index\n\
          spec-spine lint --fail-on-warn\n\
-         spec-spine index check --fail-on-unresolved\n\
-         spec-spine index coverage --fail-on-untraced\n\
-         spec-spine couple --base origin/main --head HEAD\n\
+         spec-spine check\n\
+         spec-spine couple --base \"$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)\" --head HEAD\n\
+         # spec-spine index coverage --fail-on-untraced  # if [coupling] require_ownership is on\n\
+         # spec-spine check --fail-on-unresolved --fail-on-warn  # opt in once the corpus builds what it claims\n\
          ```\n\
+         \n\
+         The base ref is resolved from the repository rather than assumed to be\n\
+         `origin/main` (spec 072). Set `$SPEC_SPINE_DEFAULT_BRANCH` to override\n\
+         the branch the push gate protects and `Makefile` compares against.\n\
+         \n\
+         Uncomment the two optional lines to match your CI, and keep this list\n\
+         and your CI job identical: the skills tell their reader to run \"the\n\
+         gate as `AGENTS.md` lists it\", so a step CI enforces and this list\n\
+         omits is a step every session skips. The second is opt-in by design: a\n\
+         corpus that ratifies before it builds legitimately carries unresolved\n\
+         units while work is under way.\n\
          \n\
          In CI, `compile --check` replaces `compile` and the writing `index` is\n\
          dropped: a gate must never repair the tree it is judging. `make gate`\n\

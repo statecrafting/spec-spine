@@ -362,9 +362,19 @@ fn plain_init_writes_an_agents_md_with_the_four_required_sections() {
     assert!(agents.contains("## Working the backlog"), "{agents}");
     assert!(agents.contains("## The gate"), "{agents}");
     // §3.1: the reads are the non-writing forms. A read that repairs the tree
-    // hides that the committed copy was stale.
-    assert!(agents.contains("spec-spine compile --check"), "{agents}");
-    assert!(agents.contains("spec-spine index check"), "{agents}");
+    // hides that the committed copy was stale. Since spec 075 the composed
+    // read is `spec-spine check`, which is the rendering of 065 §3.1's
+    // requirement that the protocol name reads that do not write; the pair
+    // this line used to pin was that rendering in September (113 §3.5).
+    assert!(agents.contains("spec-spine check"), "{agents}");
+    // And the superseded spellings are gone, not merely joined: a generator
+    // emitting both would satisfy the line above while shipping two protocols
+    // that disagree.
+    assert!(!agents.contains("spec-spine compile --check"), "{agents}");
+    assert!(
+        !agents.contains("spec-spine index check --fail-on-unresolved"),
+        "{agents}"
+    );
     // §3.1: and the spec 063 precondition.
     assert!(
         agents.contains("Ask `spec-spine --version` before believing any exit code"),
@@ -373,6 +383,14 @@ fn plain_init_writes_an_agents_md_with_the_four_required_sections() {
 }
 
 /// §3.1: config-aware, like everything else in the scaffold.
+///
+/// Spec 113 §3.3 holds this: the gate block's verbs become the kit's and the
+/// paths stay the adopter's. A generator that hard-coded paths while rewriting
+/// the gate is the failure this spec's own change is the likeliest cause of, so
+/// the negative halves are asserted rather than assumed. Both configured
+/// directories are chosen so the default is not a substring of them (113 D-4):
+/// `governance/specs` contains `specs`, so a `contains("specs/")` search
+/// matches a correctly configured tree and proves nothing either way.
 #[test]
 fn the_scaffolded_agents_md_follows_the_configured_layout() {
     let cfg =
@@ -380,6 +398,8 @@ fn the_scaffolded_agents_md_follows_the_configured_layout() {
     let agents = scaffolded(&cfg, "AGENTS.md");
     assert!(agents.contains("corpus/"), "{agents}");
     assert!(agents.contains("build/derived/"), "{agents}");
+    assert!(!agents.contains("specs/"), "{agents}");
+    assert!(!agents.contains(".derived/"), "{agents}");
 }
 
 /// §3.2: `--with-kit` writes the harness at the adopter's own paths. `kit/` is
