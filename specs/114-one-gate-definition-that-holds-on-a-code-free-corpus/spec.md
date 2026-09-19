@@ -278,6 +278,27 @@ workflow fixtures in the test itself, so the detector is shown refusing each
 form rather than assumed to. An assertion that a mention satisfies is the
 defect §3.4 exists to close, not a looser version of it. D-10.
 
+Quoted text is one of those mentions, and it is the one that got past the first
+implementation. The detector MUST read the script's shell quoting, so a
+separator inside a quoted string, or behind a backslash, does not divide one
+command into two. `echo 'text; make gate COUPLE=0 ; more text'` runs `echo` and
+nothing else; a detector splitting on every `;` reads the middle third of that
+string as an invocation of the target carrying `COUPLE=0`, from a step that runs
+no `make` at all. The test MUST carry that case in both quotings and for an
+escaped separator, alongside positive cases in which a real invocation follows a
+real separator. D-17.
+
+The detector MUST NOT read a shell construct it does not model. Where a `run:`
+script uses one, the detector MUST refuse the script and the test MUST fail,
+rather than reporting the commands it managed to find: an invocation hidden
+inside a construct the reader stepped over is reported as a step that invokes
+nothing, which is the same false answer pointing the other way. D-17.
+
+The two further assertions built on the same reader hold on the same terms: the
+one counting restated `spec-spine` verbs MUST NOT count a verb inside a quoted
+string, and the one matching `PR_BODY` against the file the step writes MUST NOT
+accept a `>` inside a quoted string as a redirection. D-17.
+
 ### 3.5 What spec 077's acceptance now is
 
 This spec's `## Verification` block MUST replace spec 077's in full, through
@@ -568,6 +589,83 @@ prints the key without spaces: refused at exit 3, where before it announced the
 skip and exited 0. The alternative, parsing `--json`, is still rejected for the
 reason D-3 gives.
 
+
+D-17 (2026-09-18, why §3.4's detector reads quoting, and what it refuses
+instead). Shipped at `bd0fa40`, the detector split each line of a `run:` script
+on `|`, `;` and `&` wherever those characters appeared, and only then asked
+whether a command's head was `make`. Independent review reproduced the
+consequence through the YAML fixture path §3.4 requires:
+`run: echo 'text; make gate COUPLE=0 ; more text'` split into three commands, the
+middle one `make gate COUPLE=0`, and `gate_invocation` returned
+`Some({"COUPLE": "0"})` for a step that runs one `echo`. That is a mention
+satisfying the invocation assertion, which is the thing §3.4 already forbade in
+its other three forms. The requirement did not change; the implementation did
+not meet it. The fixture at case 3 passed only because its echoed text carried
+no separator.
+
+The same reader is behind the other two assertions, and both were measured
+wrong in the same way: `spec_spine_verbs("echo 'a; spec-spine check
+--fail-on-unresolved --fail-on-warn'")` answered `["check"]`, which would refuse
+a workflow that delegates correctly, and the `PR_BODY` check ran a string search
+over the script with the whitespace around `>` removed, so
+`echo "wrote > $RUNNER_TEMP/pr-body.txt"` satisfied "the step writes this file"
+while writing nothing. One root cause, three assertions, corrected together.
+
+The correction is a reader for the subset of `sh` these scripts use: quoting,
+backslash escapes, comments, the separators, and redirections, with the
+redirect targets read off the parsed commands instead of matched in the text.
+It is deliberately **not** a shell parser and is not described as one. Every
+construct it can recognise but not model, a command substitution, a
+here-document, a subshell, a shell group, a process substitution, a `case` arm
+terminator, an unterminated quote, is refused, and `script_commands` turns the
+refusal into a panic. A test helper that cannot read a script must fail the test rather than
+answer from the part it understood: an invocation hidden inside a skipped
+construct would otherwise read as a step that invokes nothing. The shipped
+`kit/govern.yml` uses none of the refused forms, and a test asserts that, so the
+refusal costs the kit nothing today and is what a future script using one will
+hit.
+
+An existing crate was considered and not used. `shell-words` splits a command
+line into words and treats `;` and `|` as ordinary characters, so it answers the
+smaller half of the question and not the half this defect is in, which is where
+one command ends and the next begins; a full shell grammar is a dependency and a
+surface out of proportion to a test helper reading five scripts. The bounded
+reader with an explicit refusal list is the smaller claim, and it is the one
+that can be checked.
+
+Review of the first correction raised two forms, and they resolved in opposite
+directions once each was run rather than reasoned about. `;;` outside a `case`
+was accepted: `/bin/sh` and `dash` both call `echo a;; echo b` a syntax error,
+so the reader was accepting a construct the shell rejects, and a `case` is
+already refused by the `)` its arms carry. It is now refused in its own right,
+which is what "refuses what it does not model" has to mean. `> > file` was
+reported as a valid POSIX redirection the reader spuriously refuses; it is a
+syntax error in both `/bin/sh` ("syntax error near unexpected token `>`") and
+`dash` ("redirection unexpected"), so the refusal is correct and nothing
+changed. Measured, not assumed, because the two readings are indistinguishable
+from the prose alone.
+
+A second pass named the input twin of `>&`. `>&2` is consumed, because it names
+no file and changes no command; `<&` reached the generic path and refused with
+"a redirection with no target", which is a true refusal giving a false reason.
+It is now refused by name and exercised, so no refusal path in the reader is
+left unverified. The other half of that pass, that the descriptor-strip branch
+leaves the quoted flag set, is correct and is not a defect: the branch guard
+requires that flag to be false. The reset is written beside the one next to it
+regardless, so the word's state is cleared in one place rather than left correct
+by a condition the reader has to re-derive.
+
+`invocations()`, the line-based scanner over `kit/Makefile` target bodies, was
+inspected and is **not** changed here. It has the same shape of gap, a quoted
+`spec-spine` mention inside an `echo` would be counted, and the gap is inert:
+the `gate` target's announcement lines name no verb, and the direction of the
+error is a chain set that is too large, which makes
+`no_workflow_step_restates_a_verb_the_one_gate_definition_runs` stricter and
+makes `every_kit_gate_invocation_names_a_real_verb` fail loudly on the invented
+verb. It is spec 064's helper and its territory; recorded as measured, not as
+fixed.
+
+
 ## Verification
 
 Each line is one command, run independently: no shell variable survives to the
@@ -586,6 +684,25 @@ so it is read in two halves and labelled as such.
 | `COUPLE=0` in `kit/govern.yml` | red, absent: §1.4's measurement |
 | the `one_gate_definition` tests (§3.4) | red, they do not exist; written against the shipped workflow they fail on the pull-request leg |
 | `registry show 114` | red, not found, exit 1 |
+
+**Fail-first evidence for the §3.4 correction**, measured on 2026-09-18 at
+`bd0fa40`, the merged build (D-17):
+
+| Line | At `bd0fa40` |
+|---|---|
+| `the_one_gate_definition_detector_reads_shell_quoting_not_raw_separators` | red on its first negative: `gate_invocation` answered `Some({"COUPLE": "0"})` for `run: echo 'text; make gate COUPLE=0 ; more text'`, where `None` is required |
+| `the_one_gate_definition_detector_refuses_a_script_it_cannot_read` | red: `echo $(make gate)` parsed without complaint instead of being refused |
+| `! grep` for the unquoted split | red: `split(['\|', ';', '&'])` is the merged detector's own line |
+| the restatement half | red as measured directly: `spec_spine_verbs("echo 'a; spec-spine check --fail-on-unresolved --fail-on-warn'")` answered `["check"]` |
+| the redirection half | red as measured directly: with `normalize_redirects`, `echo "wrote > $RUNNER_TEMP/pr-body.txt"` satisfied "the step writes this file" |
+
+The two named tests were run against the merged algorithm restored in place, and
+against the correction: 3 red of 19 there, 19 green here. The third red,
+`the_one_gate_definition_serves_both_legs_through_explicit_controls`, was an
+artifact of the restored stand-in rather than a defect at `bd0fa40`: the merged
+code answered that assertion through `normalize_redirects`, which the stand-in
+did not carry. The redirection defect is recorded above from its own direct
+measurement, which is the honest evidence for it.
 
 The §3.4 tests were measured in both directions during the build: red against the
 shipped workflow, naming the pull-request leg as not invoking the target and
@@ -646,6 +763,15 @@ cargo test -p spec-spine-core --test kit_gate --locked one_gate_definition > "${
 # With a non-zero pass count, so a filter that matched nothing cannot pass for a
 # run (spec 106 D-7).
 grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss114-defs.txt"
+# 3.4 + D-17: the detector reads the script's shell quoting, and refuses a
+# construct it does not model. Named line by line, because the filtered run above
+# stays green if either test is deleted, and the correction is exactly what those
+# two tests carry.
+grep -qF 'the_one_gate_definition_detector_reads_shell_quoting_not_raw_separators ... ok' "${TMPDIR:-/tmp}/ss114-defs.txt"
+grep -qF 'the_one_gate_definition_detector_refuses_a_script_it_cannot_read ... ok' "${TMPDIR:-/tmp}/ss114-defs.txt"
+# And the split that manufactured the invocation is gone. Red at `bd0fa40`,
+# where that expression is the detector's own line (D-17).
+! grep -qF "split(['|', ';', '&'])" crates/spec-spine-core/tests/kit_gate.rs
 # 3.4: and the workflow no longer writes a second copy of the chain.
 ! grep -qF 'spec-spine check --fail-on-unresolved --fail-on-warn' kit/govern.yml
 ! grep -qF 'spec-spine lint --fail-on-warn' kit/govern.yml
