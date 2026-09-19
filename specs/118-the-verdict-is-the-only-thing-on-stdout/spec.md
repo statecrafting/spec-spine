@@ -321,6 +321,14 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   code path everywhere, and 3.2's deadlock argument requires concurrency in any
   case.
 
+- **D-3 (2026-09-19): a failed write of the forwarded bytes is not a failure of
+  the verb.** If writing a child's output to the parent's stderr fails, the
+  forward is abandoned and the command's exit status is still read and reported.
+  This follows spec 035 3.3: a process whose stderr has gone has no channel left
+  to report that fact, and failing the acceptance run because its log could not
+  be written would report a defect in the corpus that is not there. The verdict
+  is computed from exit statuses, which are unaffected.
+
 - **D-4 (2026-09-19): D-3 excuses delivering the bytes, never draining the
   pipe.** The first implementation of D-3 read "abandon the forward" as "stop
   reading", and that is a different promise. Measured on the merged
@@ -366,14 +374,6 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   one case D-3 actually decided. Deciding the other two is a policy change
   rather than a correction, it is not needed to fix what §1.1 and D-4 measured,
   and it is left to a later spec.
-
-- **D-3 (2026-09-19): a failed write of the forwarded bytes is not a failure of
-  the verb.** If writing a child's output to the parent's stderr fails, the
-  forward is abandoned and the command's exit status is still read and reported.
-  This follows spec 035 3.3: a process whose stderr has gone has no channel left
-  to report that fact, and failing the acceptance run because its log could not
-  be written would report a defect in the corpus that is not there. The verdict
-  is computed from exit statuses, which are unaffected.
 
 ## Verification
 
@@ -438,9 +438,12 @@ T=$(mktemp -d) && mkdir -p "$T/specs/006-closed" && printf '\055\055\055\nid: "0
 T=$(mktemp -d) && mkdir -p "$T/specs/007-flood" && printf '\055\055\055\nid: "007-flood"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 007-flood\n\n## Verification\n\n\140\140\140verify:cli\nawk %sBEGIN{s=sprintf("%%1000s","");gsub(/ /,"X",s);for(i=0;i<1000;i++)print s}%s >&2\n\140\140\140\n' "'" "'" > "$T/specs/007-flood/spec.md" && python3 -c "import json,subprocess,threading; p=subprocess.Popen(['target/release/spec-spine','--repo','$T','verify','007-flood','--json'],stdout=subprocess.PIPE,stderr=subprocess.PIPE); f=p.stderr.readline(); assert f.startswith(b'[verify] '),f; p.stderr.close(); t=threading.Timer(30,p.kill); t.start(); o=p.communicate()[0]; t.cancel(); assert p.returncode==0,p.returncode; d=json.loads(o); assert d['report']['outcome']=='passed',d" && rm -rf "$T"
 # The control the two lines above are measured against: the same volume with the
 # consumer left open. Every byte is delivered and the verdict is the same one, so
-# a pass above cannot be explained by a fixture that never wrote anything. Green
-# at `71a423a` on purpose: preservation, not evidence.
-T=$(mktemp -d) && mkdir -p "$T/specs/008-open" && printf '\055\055\055\nid: "008-open"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 008-open\n\n## Verification\n\n\140\140\140verify:cli\nawk %sBEGIN{s=sprintf("%%1000s","");gsub(/ /,"X",s);for(i=0;i<1000;i++)print s}%s >&2\n\140\140\140\n' "'" "'" > "$T/specs/008-open/spec.md" && target/release/spec-spine --repo "$T" verify 008-open --json > "$T/out" 2> "$T/err" && python3 -c "import json,os; d=json.load(open('$T/out')); assert d['report']['outcome']=='passed',d; n=os.path.getsize('$T/err'); assert n>1000000,n" && rm -rf "$T"
+# a pass above cannot be explained by a fixture that never wrote anything. The
+# forwarded lines are counted rather than the file weighed: a byte threshold
+# just under one stream's 1_001_000 clears by about a thousand bytes, thin
+# enough that a longer fixture command would turn a correct run red. Green at
+# `71a423a` on purpose: preservation, not evidence.
+T=$(mktemp -d) && mkdir -p "$T/specs/008-open" && printf '\055\055\055\nid: "008-open"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 008-open\n\n## Verification\n\n\140\140\140verify:cli\nawk %sBEGIN{s=sprintf("%%1000s","");gsub(/ /,"X",s);for(i=0;i<1000;i++)print s}%s >&2\n\140\140\140\n' "'" "'" > "$T/specs/008-open/spec.md" && target/release/spec-spine --repo "$T" verify 008-open --json > "$T/out" 2> "$T/err" && python3 -c "import json; d=json.load(open('$T/out')); assert d['report']['outcome']=='passed',d; n=sum(1 for l in open('$T/err') if l.rstrip(chr(10))=='X'*1000); assert n==1000,n" && rm -rf "$T"
 # The seam spec 049 3.1 draws is still drawn: the engine spawns nothing.
 test "$(grep -rl 'std::process::Command' crates/spec-spine-core/src crates/spec-spine-types/src | wc -l | tr -d ' ')" = "0"
 ```

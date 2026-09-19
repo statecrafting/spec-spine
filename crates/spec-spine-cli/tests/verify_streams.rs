@@ -508,9 +508,16 @@ fn an_open_stderr_consumer_receives_every_forwarded_byte() {
 
     assert_eq!(run.status.code(), Some(0));
     assert_eq!(run.envelope()["report"]["outcome"], "passed");
-    // ~1 MB per stream, plus the first line already consumed by the harness.
-    assert!(
-        run.stderr.len() > 2_000_000,
+    // Counted rather than weighed. `awk` writes 1000 lines of 1000 `X` to each
+    // stream, so an exact count says both arrived whole and says it without a
+    // margin: a byte threshold near 2 * 1_001_000 clears the transcript line
+    // the harness already consumed by about 1800 bytes, which is thin enough
+    // that a longer fixture command would turn a correct run red.
+    let whole = String::from_utf8_lossy(&run.stderr);
+    let payload = "X".repeat(1000);
+    assert_eq!(
+        whole.lines().filter(|l| *l == payload).count(),
+        2000,
         "both forwarded streams must arrive whole, got {} bytes",
         run.stderr.len()
     );
