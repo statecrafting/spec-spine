@@ -111,12 +111,14 @@ fn run_one(repo: &Path, command: &str, child_stack: &str, json: bool) -> Result<
         let _ = std::io::copy(&mut child_err, &mut std::io::stderr());
     }
 
-    let status = child
-        .wait()
-        .map_err(|e| Error::Io(format!("cannot wait for `{command}`: {e}")))?;
+    // The wait's result is held rather than propagated, so the join happens on
+    // the failing path too. With `?` here the thread outlived a `wait` error,
+    // and the ordering this comment claims held on every path but that one.
+    let waited = child.wait();
     // Joined before returning, so every forwarded byte is on stderr ahead of
     // this command's `exit` line and the next command's transcript.
     let _ = pump.join();
+    let status = waited.map_err(|e| Error::Io(format!("cannot wait for `{command}`: {e}")))?;
     Ok(status)
 }
 
