@@ -1,7 +1,7 @@
 ---
 id: "118-the-verdict-is-the-only-thing-on-stdout"
 title: "The verdict is the only thing on stdout"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-19"
 implementation: complete
