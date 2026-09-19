@@ -355,6 +355,11 @@ enum FixtureFailure {
     /// A line arrived, but it is not the opening transcript line. An empty
     /// `got` is end-of-file: the fixture exited without writing one.
     BadTranscript { got: String },
+    /// Reading the fixture's stderr failed outright. Kept apart from
+    /// `BadTranscript`, which is a statement about content: an operating-system
+    /// failure reported as a content mismatch sends the reader looking at the
+    /// fixture instead of at the pipe.
+    TranscriptUnreadable { error: String },
     /// The fixture leader was still running when the budget expired.
     NotFinished { waited: Duration },
     /// The leader had exited on its own, but a reader was still waiting for
@@ -376,6 +381,9 @@ impl std::fmt::Display for FixtureFailure {
                 f,
                 "the transcript's first line must start with {TRANSCRIPT:?} under --json, got {got:?}"
             ),
+            FixtureFailure::TranscriptUnreadable { error } => {
+                write!(f, "the fixture's stderr could not be read: {error}")
+            }
             FixtureFailure::NotFinished { waited } => {
                 write!(f, "the fixture did not finish within {waited:?}")
             }
@@ -414,15 +422,21 @@ fn signal_fixture_group(pid: u32) {
 #[cfg(not(unix))]
 fn signal_fixture_group(_pid: u32) {}
 
-/// Did this status come from the harness's own `SIGKILL`?
+/// Does this status look like the harness's own `SIGKILL`?
+///
+/// A diagnostic, not a determination: a `SIGKILL` delivered from anywhere else
+/// (an out-of-memory killer, a stray `pkill`) is indistinguishable from this
+/// one, and would be read as a leader that was still running. Nothing branches
+/// on the answer except which of two failure messages is printed; the tree has
+/// been signalled and the leader reaped either way.
 #[cfg(unix)]
-fn killed_by_the_harness(status: &std::process::ExitStatus) -> bool {
+fn looks_killed_by_the_harness(status: &std::process::ExitStatus) -> bool {
     use std::os::unix::process::ExitStatusExt;
     status.signal() == Some(9)
 }
 
 #[cfg(not(unix))]
-fn killed_by_the_harness(_status: &std::process::ExitStatus) -> bool {
+fn looks_killed_by_the_harness(_status: &std::process::ExitStatus) -> bool {
     true
 }
 
@@ -489,7 +503,18 @@ impl Fixture {
 
 impl Drop for Fixture {
     fn drop(&mut self) {
-        let _ = self.terminate();
+        if self.status.is_some() {
+            return;
+        }
+        signal_fixture_group(self.child.id());
+        let _ = self.child.kill();
+        // Deliberately not `terminate`: a `Drop` that panics while a case's
+        // assertion is unwinding aborts the test process, which would replace a
+        // readable failure with a crash. The wait is still made, so the leader
+        // is reaped here too.
+        if let Ok(status) = self.child.wait() {
+            self.status = Some(status);
+        }
     }
 }
 
@@ -551,17 +576,21 @@ fn try_run_fixture(
             return Err(FixtureFailure::NoTranscript { waited });
         }
     };
+    // The line's content is the assertion; nothing downstream needs the text,
+    // so no arm produces a value.
     match read {
-        Ok(line) if line.starts_with(TRANSCRIPT) => line,
+        Ok(line) if line.starts_with(TRANSCRIPT) => {}
         Ok(line) => {
             fixture.terminate();
             return Err(FixtureFailure::BadTranscript { got: line });
         }
         Err(e) => {
             fixture.terminate();
-            return Err(FixtureFailure::BadTranscript { got: e.to_string() });
+            return Err(FixtureFailure::TranscriptUnreadable {
+                error: e.to_string(),
+            });
         }
-    };
+    }
 
     let err_rx = if close {
         // Closing the read end is what makes the parent's subsequent writes
@@ -609,11 +638,13 @@ fn try_run_fixture(
 /// polled, so it is unreaped and the group id is still this fixture's), then
 /// read the status back to say which of the two things happened: a leader that
 /// was still running is a hang, and a leader that had already exited means a
-/// descendant was holding the pipe.
+/// descendant was holding the pipe. That reading is a diagnostic label only,
+/// with the ambiguity `looks_killed_by_the_harness` names; both labels describe
+/// a tree that has been terminated and a leader that has been reaped.
 fn stuck(fixture: &mut Fixture, started: Instant, stream: &'static str) -> FixtureFailure {
     let waited = started.elapsed();
     let status = fixture.terminate();
-    if killed_by_the_harness(&status) {
+    if looks_killed_by_the_harness(&status) {
         FixtureFailure::NotFinished { waited }
     } else {
         FixtureFailure::ReaderStuck { stream, waited }

@@ -442,7 +442,11 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   this, because by then the leader is reaped and the signal would no longer be
   safe to send. The harness detects that case (a reader still waiting for
   end-of-file after a leader that exited) and reports it as a failure rather
-  than silently passing; no fixture in this suite produces it.
+  than silently passing; no fixture in this suite produces it. Which of the two
+  it names is a diagnostic label rather than a determination: a `SIGKILL`
+  delivered from outside the harness is indistinguishable from the harness's
+  own, and would be read as a leader that was still running. Nothing branches
+  on the label; the tree is terminated and the leader reaped under either.
 
   **Platform handling.** The group signal is `kill -9 -<pgid>` through
   `/bin/sh`, rather than a `libc` dependency taken for one signal; the process
