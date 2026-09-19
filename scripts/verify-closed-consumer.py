@@ -70,14 +70,22 @@ class Tree:
         self._status = None
 
     def kill_group(self):
-        """Signal the whole tree.  Returns False iff the leader was reaped."""
+        """Signal the whole tree.  True iff the tree is now terminated.
+
+        The two errors are not the same answer.  `ProcessLookupError` means
+        there was nothing left in the group to signal, so the postcondition
+        already holds; `PermissionError` means the signal was *refused*, and
+        returning True there would claim a termination that did not happen.
+        """
         with self._lock:
             if self._status is not None:
                 return False
             try:
                 os.killpg(self._proc.pid, signal.SIGKILL)
-            except (ProcessLookupError, PermissionError):
+            except ProcessLookupError:
                 pass
+            except PermissionError:
+                return False
             return True
 
     def reap(self, timeout=None):
@@ -152,6 +160,10 @@ def main(argv):
 
     first = proc.stderr.readline()
     proc.stderr.close()
+    # `join` returns only on end-of-file on the child's stdout, which needs
+    # every member of the tree to have released that pipe.  So by the time
+    # `reap` is reached the leader has either exited or been killed by the
+    # watchdog, and the unbounded `reap` below cannot be the thing that hangs.
     reader.join()
     status = tree.reap()
     watchdog.cancel()

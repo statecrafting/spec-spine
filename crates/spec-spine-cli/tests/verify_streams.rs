@@ -557,6 +557,14 @@ impl Fixture {
     /// once the leader has been reaped, which is where the pid-recycling
     /// invariant is kept: nothing signals a group whose leader is gone, and
     /// the supervisor cannot slip a signal in between the two halves here.
+    ///
+    /// The lock is deliberately held across `wait`, which blocks a concurrent
+    /// `Tree::kill_group` for the duration. That window is the price of the
+    /// invariant, and it is bounded: the `wait` is preceded by a `SIGKILL`,
+    /// which cannot be caught or blocked, so the leader is already dying.
+    /// Releasing the lock to wait and re-taking it to publish `Reaped` would
+    /// narrow the window by reopening the signal-after-reap race this type
+    /// exists to close.
     fn terminate(&mut self) -> std::process::ExitStatus {
         let tree = Arc::clone(&self.tree);
         let mut guard = tree.lock();
@@ -1179,6 +1187,12 @@ fn an_exited_leaders_descendant_on_the_pipes_is_still_terminated() {
     match outcome {
         // The leader's own exit 0 is read back after the group signal, which is
         // what tells the two apart: a live leader comes back killed.
+        //
+        // `"stdout"` is not a race with the other pipe, even though the
+        // descendant inherits both. This case runs with the consumer closed,
+        // and a closed consumer drops the stderr reader rather than draining
+        // it, so stdout is the only stream the harness is waiting on and the
+        // only one `stuck` can ever name here.
         Err(FixtureFailure::ReaderStuck { stream, .. }) => assert_eq!(stream, "stdout"),
         other => panic!("expected a reader held open by a descendant, got {other:?}"),
     }
