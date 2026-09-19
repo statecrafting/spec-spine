@@ -1,32 +1,30 @@
 {
   "mapping": {
     "dependsOn": [
-      "001-compile-registry",
-      "004-codebase-index"
+      "048-kit-ships-the-governed-loop-skills",
+      "081-the-kit-ships-what-the-loop-calls",
+      "082-a-refusal-is-not-a-remediation-round",
+      "100-one-source-generates-the-agent-trees"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-core/src/compile.rs",
+        "path": ".agents/skills/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/index.rs",
+        "path": ".claude/skills/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/compile.rs",
+        "path": "crates/spec-spine-core/src/kit_embedded.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/index.rs",
+        "path": "crates/spec-spine-core/tests/kit_skills.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/edges.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-types/tests/grammar.rs",
+        "path": "kit/.claude/skills/",
         "source": "spec-edge"
       }
     ],
@@ -34,85 +32,85 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/compile.rs"
+            "file": ".agents/skills/"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/compile.rs"
+          "path": ".agents/skills/"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/index.rs"
+            "file": ".claude/skills/"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/index.rs"
+          "path": ".claude/skills/"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/compile.rs"
+            "file": "crates/spec-spine-core/src/kit_embedded.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/compile.rs"
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/index.rs"
+            "file": "crates/spec-spine-core/tests/kit_skills.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/index.rs"
+          "path": "crates/spec-spine-core/tests/kit_skills.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/edges.rs"
+            "file": "kit/.claude/skills/"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/edges.rs"
+          "path": "kit/.claude/skills/"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/tests/grammar.rs"
+            "file": "docs/design/05-remaining-waves-2026-09.md"
           }
         ],
-        "ownership": true,
-        "sourceField": "extends",
+        "ownership": false,
+        "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/tests/grammar.rs"
+          "path": "docs/design/05-remaining-waves-2026-09.md"
         }
       }
     ],
-    "specId": "018-constrains-discriminator-optional-unit",
-    "specStatus": "approved"
+    "specId": "116-shepherd-reads-every-reviewer",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "d86e428329413353d31004f0f1fea7c41f32516b7e86ea479ddc4dff2e15d53d"
+  "shardHash": "0437de254befc64db286cd311da50be5d3f8c09a5d4091bf31bf9cb88d6988e7"
 }

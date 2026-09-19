@@ -1383,7 +1383,10 @@ gh pr checks <number> --json name,state,bucket,link 2>/dev/null \
 
 Read the rollup for the recorded head sha only. Route on it:
 
-- every required check `SUCCESS`: go to Step 4;
+- every required check `SUCCESS`: go to Step 3b, and to Step 4 only
+  through it. A green PR is the one case where a reviewer's comment is the
+  only thing between the branch and the default branch, so it is the last
+  case that may skip reading them;
 - any required check `FAILURE` or `CANCELLED`: go to Step 2;
 - `PENDING` or `QUEUED`: keep polling;
 - a response missing the fields you need: stop as a typed failure ("cannot
@@ -1405,9 +1408,11 @@ gh run view <run-id> --log-failed | tail -80
 **CRITICAL: stop here. A CRITICAL finding consumes no round.** It is not
 remediated, it does not spend one of the two rounds below, and it is
 reported with its evidence and a proposed remedy for a human to accept or
-refuse. The report's thread line reads `not read` on this path, never
-`none`: the threads were never fetched, and reporting that as an absence of
-threads is a claim this run did not make. Exactly four things are CRITICAL:
+refuse. The report's thread line reads
+`not read: stopped at CRITICAL` on this path, never `none` and never
+`could not read`: the threads were never fetched, and reporting that as an absence of threads is a claim
+this run did not make. This is the only path that reaches a stop without
+reading them. Exactly four things are CRITICAL:
 
 1. a coupling refusal whose only remedy is editing a spec this session is
    not implementing, or a `Spec-Drift-Waiver:`;
@@ -1474,11 +1479,55 @@ After two remediation rounds that still end red, stop. Report the run
 ids, the log tails, and what you tried; say plainly that the PR needs a
 human. Flapping CI (green then red on the same sha) counts as a round.
 
-## Step 3b: review threads
+What a round costs is an edit to the branch, not the colour of CI. A
+confirmed finding from a review thread, whose fix is authorized and inside
+the spec's territory, spends a round even when every required check was
+green. Reading a thread, classifying it, retrying a failed read and
+rejecting a finding as a false positive spend none of it: that is work on
+the question, not on the pull request. The budget is two either way, and
+two spent rounds with substantive findings still open is a stop, not a
+clearance.
+
+## Step 3b: review threads (all three endpoints, every page)
+
+A reviewer can write in three places and GitHub keeps them apart. Read all
+three, on every path that reaches Step 4 except the CRITICAL stop above.
+Save each to a file outside the worktree, so the read's own exit status is
+the thing you check rather than a downstream `--jq`, and so a read never
+dirties the tree the gate is about to judge:
 
 ```sh
-gh api "repos/{owner}/{repo}/pulls/<number>/comments" --jq '.[] | {id, path, line, body, user: .user.login}'
+T="${TMPDIR:-/tmp}/shepherd-<number>"; mkdir -p "$T"
+gh api --paginate "repos/{owner}/{repo}/pulls/<number>/comments" > "$T/line-comments.json"; echo "line-comments exit=$?"
+gh api --paginate "repos/{owner}/{repo}/issues/<number>/comments" > "$T/pr-comments.json"; echo "pr-comments exit=$?"
+gh api --paginate "repos/{owner}/{repo}/pulls/<number>/reviews" > "$T/reviews.json"; echo "reviews exit=$?"
 ```
+
+- `pulls/<number>/comments` is a comment anchored to a line of the diff.
+- `issues/<number>/comments` is a comment on the pull request itself, which
+  is where `gh pr comment` writes and so where most CI reviewers post.
+- `pulls/<number>/reviews` is the body of a submitted review, which is
+  where a `CHANGES_REQUESTED` with no line anchor leaves its words.
+
+`--paginate` on all three: `gh api` returns one page by default, and three
+endpoints read one page deep is the same blindness one level down. Check
+each command's **exit status** before you believe its output. A failed call
+prints nothing and exits non-zero, which through a pipe is indistinguishable
+from an endpoint with no threads; a paginated call that fails after some
+pages is a partial result and never a complete one.
+
+**A failed read gets one retry, then stops the run before Step 4.** Name the
+endpoint, keep the command, its exit status and its stderr, and report which
+of the three reads did succeed. Do not merge on a partial read: partial
+results never establish complete review coverage. Reading, classifying,
+retrying and rejecting a false positive consume no remediation round.
+
+Say which endpoint each thread came from when you report it, so a reader can
+tell a line comment from a review body. Triage every finding against the
+source and the governing requirements **before** editing anything: an
+automated reviewer's comment is a reviewer's comment and is classified by
+Step 2's severity rules like any other, and checking a claim against the code
+is what separates a real finding from invented vocabulary.
 
 Address each thread that asks for a concrete change inside the spec's
 territory as part of a remediation round. A thread that asks for a
@@ -1487,6 +1536,10 @@ question: quote it in the report, do not resolve it by editing the spec.
 `reviewDecision: CHANGES_REQUESTED` with no actionable thread is a stop.
 
 ## Step 4: CHECKPOINT, merge
+
+Step 3b ran and all three of its reads succeeded: that is a precondition of
+arriving here, not a formality. If any endpoint could not be read after its
+one retry, or substantive findings are still open, stop instead and report.
 
 Merging is outward-facing. Confirm with the user unless the prompt carries
 the operator's standing run-start authorization (an orchestrator's driven
@@ -1538,11 +1591,18 @@ next session takes the next spec (`/next`).
 Head sha watched: <sha> (rounds: <k>)
 Checks: <name>: <state> ...
 Classification: <name>: <CRITICAL|HIGH|MEDIUM|LOW> ... | all green
-Review threads: <none | n addressed | n need a human | not read: stopped at CRITICAL>
+Review threads: <none | n addressed | n need a human | could not read <endpoint> | not read: stopped at CRITICAL>
+Thread reads: <pulls/comments: ok(n) | issues/comments: ok(n) | pulls/reviews: ok(n)>, all paginated
 Remediation: <none | round 1: <run-id> <cause> -> <fix> | round 2: ...>
 Merge: <sha> squash, branch deleted | NOT merged: <reason, needs human>
 On disk: main contains <sha> | <divergence>
 ```
+
+`none` means all three of Step 3b's reads succeeded and returned no
+feedback, and nothing else. `could not read <endpoint>` names an endpoint
+that would not answer after its retry. `not read: stopped at CRITICAL` is
+the path that never looked. Coverage that did succeed is reported on its own
+line beside a failure, never folded into the value above it.
 
 ## Project layer
 
