@@ -25,6 +25,7 @@ use std::io::{BufRead, BufReader, Read};
 use std::path::Path;
 use std::process::{Command, Output};
 use std::sync::mpsc::{self, Receiver};
+use std::sync::{Arc, Mutex, MutexGuard};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -350,8 +351,16 @@ impl Consumed {
 /// failure never leaves the harness's own processes behind.
 #[derive(Debug)]
 enum FixtureFailure {
-    /// The budget expired with no line at all on the fixture's stderr.
-    NoTranscript { waited: Duration },
+    /// The budget expired with no line at all on the fixture's stderr. The
+    /// leader's status at termination is carried because it is the first thing
+    /// a recurrence needs: a leader that was still running had started and gone
+    /// quiet, and one that had already exited never got as far as its first
+    /// write. Neither is inferable from the elapsed time alone, and the merged
+    /// harness discarded it.
+    NoTranscript {
+        waited: Duration,
+        status: std::process::ExitStatus,
+    },
     /// A line arrived, but it is not the opening transcript line. An empty
     /// `got` is end-of-file: the fixture exited without writing one.
     BadTranscript { got: String },
@@ -373,9 +382,14 @@ enum FixtureFailure {
 impl std::fmt::Display for FixtureFailure {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            FixtureFailure::NoTranscript { waited } => write!(
+            FixtureFailure::NoTranscript { waited, status } => write!(
                 f,
-                "no transcript line on the fixture's stderr within {waited:?}"
+                "no transcript line on the fixture's stderr within {waited:?} (the leader was {} when the harness terminated it)",
+                if looks_killed_by_the_harness(status) {
+                    "still running".to_string()
+                } else {
+                    format!("already finished, {status}")
+                }
             ),
             FixtureFailure::BadTranscript { got } => write!(
                 f,
@@ -440,18 +454,89 @@ fn looks_killed_by_the_harness(_status: &std::process::ExitStatus) -> bool {
     true
 }
 
+/// The state of one fixture tree, as the two threads that may act on it see it.
+#[derive(Debug, Clone, Copy)]
+enum TreeState {
+    /// Spawned and **unreaped**. The pid is the process-group id, and while the
+    /// leader is unreaped that pid cannot be recycled, so signalling the
+    /// negative of it cannot reach some other tree.
+    Live(u32),
+    /// The leader has been reaped. Nothing may be signalled from here.
+    Reaped(std::process::ExitStatus),
+}
+
+/// The authority to terminate one fixture tree.
+///
+/// This exists because the thread that *owns* a fixture is, in the safeguard
+/// cases, the thread whose deadline is under suspicion: a supervisor that could
+/// only ask that worker to clean up would be relying on the very mechanism it is
+/// testing. The handle is created by the supervisor before the worker starts,
+/// so cleanup never travels through the worker.
+///
+/// **The invariant, and how it is held.** Nothing signals a process group whose
+/// leader has been reaped. Signalling and reaping both take this mutex, and a
+/// reap publishes `Reaped` in the same critical section as the `wait` that
+/// produced it, so there is no window in which a signal can follow a reap. That
+/// is a stronger guarantee than a poll-then-signal test, which reaps as a side
+/// effect of asking and thereby destroys the thing it was checking for.
+#[derive(Debug, Default)]
+struct Tree {
+    state: Mutex<Option<TreeState>>,
+}
+
+impl Tree {
+    fn new() -> Arc<Tree> {
+        Arc::new(Tree::default())
+    }
+
+    /// Poisoning is recovered from rather than propagated: a poisoned lock here
+    /// means a case is already failing, and turning that into a second panic
+    /// inside cleanup would replace a readable failure with a crash.
+    fn lock(&self) -> MutexGuard<'_, Option<TreeState>> {
+        self.state.lock().unwrap_or_else(|e| e.into_inner())
+    }
+
+    /// Record the leader the harness just spawned.
+    fn published(&self, pid: u32) {
+        *self.lock() = Some(TreeState::Live(pid));
+    }
+
+    /// Terminate the tree, from any thread. Returns whether a signal was sent:
+    /// `false` means the leader had already been reaped by its owner, which is
+    /// the one state in which signalling would no longer be safe.
+    fn kill_group(&self) -> bool {
+        let guard = self.lock();
+        match *guard {
+            Some(TreeState::Live(pid)) => {
+                signal_fixture_group(pid);
+                true
+            }
+            _ => false,
+        }
+    }
+
+    /// The leader's status, once its owner has reaped it.
+    fn reaped_status(&self) -> Option<std::process::ExitStatus> {
+        match *self.lock() {
+            Some(TreeState::Reaped(status)) => Some(status),
+            _ => None,
+        }
+    }
+}
+
 /// A fixture process and its tree, terminated and reaped on drop.
 ///
 /// Drop is what makes an assertion failure anywhere in a case clean up: the
 /// panic unwinds through the harness, the tree is signalled, and the leader is
-/// reaped before the test thread reports.
+/// reaped before the test thread reports. The `Tree` it holds is shared with
+/// the supervisor, and every reap below happens inside that lock.
 struct Fixture {
     child: std::process::Child,
-    status: Option<std::process::ExitStatus>,
+    tree: Arc<Tree>,
 }
 
 impl Fixture {
-    fn spawn(mut cmd: Command) -> Fixture {
+    fn spawn(mut cmd: Command, tree: Arc<Tree>) -> Fixture {
         cmd.stdin(std::process::Stdio::null())
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped());
@@ -463,57 +548,68 @@ impl Fixture {
             // runner down with it.
             cmd.process_group(0);
         }
-        Fixture {
-            child: cmd.spawn().expect("the fixture must spawn"),
-            status: None,
-        }
+        let child = cmd.spawn().expect("the fixture must spawn");
+        tree.published(child.id());
+        Fixture { child, tree }
     }
 
-    /// Kill the whole tree and reap the leader. A no-op once the leader has
-    /// been reaped, which is also where the pid-recycling invariant is kept:
-    /// nothing signals a group whose leader is gone.
+    /// Kill the whole tree and reap the leader, inside the tree's lock. A no-op
+    /// once the leader has been reaped, which is where the pid-recycling
+    /// invariant is kept: nothing signals a group whose leader is gone, and
+    /// the supervisor cannot slip a signal in between the two halves here.
     fn terminate(&mut self) -> std::process::ExitStatus {
-        if let Some(status) = self.status {
-            return status;
+        let tree = Arc::clone(&self.tree);
+        let mut guard = tree.lock();
+        match *guard {
+            Some(TreeState::Reaped(status)) => status,
+            Some(TreeState::Live(pid)) => {
+                signal_fixture_group(pid);
+                // Belt for the non-Unix fallback, and harmless where the group
+                // signal already landed.
+                let _ = self.child.kill();
+                let status = self.child.wait().expect("the fixture leader must reap");
+                *guard = Some(TreeState::Reaped(status));
+                status
+            }
+            None => unreachable!("a Fixture publishes its leader when it spawns"),
         }
-        signal_fixture_group(self.child.id());
-        // Belt for the non-Unix fallback, and harmless where the group signal
-        // already landed.
-        let _ = self.child.kill();
-        let status = self.child.wait().expect("the fixture leader must reap");
-        self.status = Some(status);
-        status
     }
 
-    /// Has the leader exited? Reaps it if so, which is why no group signal may
-    /// follow a `Some`.
+    /// Has the leader exited? Reaps it if so, under the lock, so the `Reaped`
+    /// state is published in the same breath as the `try_wait` that found it.
     fn poll_exit(&mut self) -> Option<std::process::ExitStatus> {
-        if self.status.is_some() {
-            return self.status;
-        }
-        match self.child.try_wait().expect("try_wait on the fixture") {
-            Some(status) => {
-                self.status = Some(status);
-                Some(status)
+        let tree = Arc::clone(&self.tree);
+        let mut guard = tree.lock();
+        match *guard {
+            Some(TreeState::Reaped(status)) => Some(status),
+            Some(TreeState::Live(_)) => {
+                match self.child.try_wait().expect("try_wait on the fixture") {
+                    Some(status) => {
+                        *guard = Some(TreeState::Reaped(status));
+                        Some(status)
+                    }
+                    None => None,
+                }
             }
-            None => None,
+            None => unreachable!("a Fixture publishes its leader when it spawns"),
         }
     }
 }
 
 impl Drop for Fixture {
     fn drop(&mut self) {
-        if self.status.is_some() {
-            return;
-        }
-        signal_fixture_group(self.child.id());
-        let _ = self.child.kill();
-        // Deliberately not `terminate`: a `Drop` that panics while a case's
-        // assertion is unwinding aborts the test process, which would replace a
-        // readable failure with a crash. The wait is still made, so the leader
-        // is reaped here too.
-        if let Ok(status) = self.child.wait() {
-            self.status = Some(status);
+        let tree = Arc::clone(&self.tree);
+        let mut guard = tree.lock();
+        if let Some(TreeState::Live(pid)) = *guard {
+            signal_fixture_group(pid);
+            let _ = self.child.kill();
+            // Deliberately not `terminate`: a `Drop` that panics while a case's
+            // assertion is unwinding aborts the test process, which would
+            // replace a readable failure with a crash. The wait is still made,
+            // so the leader is reaped here too.
+            if let Ok(status) = self.child.wait() {
+                *guard = Some(TreeState::Reaped(status));
+            }
         }
     }
 }
@@ -544,13 +640,19 @@ fn drain(mut pipe: impl Read + Send + 'static) -> Receiver<Vec<u8>> {
 /// Whichever stage overruns, the fixture tree is signalled while its leader is
 /// still unreaped and the leader is then reaped, so no path here leaves a
 /// fixture process or a descendant of one running.
+///
+/// `tree` is the caller's handle on the same fixture. It is passed in rather
+/// than created here so that a supervisor holds termination authority from
+/// before the spawn: if this function's own budget is broken, the supervisor can
+/// still terminate the tree without going through this thread.
 fn try_run_fixture(
     cmd: Command,
     close: bool,
     budget: Duration,
+    tree: Arc<Tree>,
 ) -> Result<Consumed, FixtureFailure> {
     let started = Instant::now();
-    let mut fixture = Fixture::spawn(cmd);
+    let mut fixture = Fixture::spawn(cmd, tree);
 
     // The stdout pump starts before anything is awaited. A fixture that floods
     // stdout while the harness is still waiting for its transcript would
@@ -572,8 +674,8 @@ fn try_run_fixture(
         Ok(pair) => pair,
         Err(_) => {
             let waited = started.elapsed();
-            fixture.terminate();
-            return Err(FixtureFailure::NoTranscript { waited });
+            let status = fixture.terminate();
+            return Err(FixtureFailure::NoTranscript { waited, status });
         }
     };
     // The line's content is the assertion; nothing downstream needs the text,
@@ -655,7 +757,7 @@ fn stuck(fixture: &mut Fixture, started: Instant, stream: &'static str) -> Fixtu
 fn run_with_stderr_consumer(root: &Path, id: &str, close: bool) -> Consumed {
     let mut cmd = bin();
     cmd.arg("--repo").arg(root).args(["verify", id, "--json"]);
-    try_run_fixture(cmd, close, DEADLINE).unwrap_or_else(|e| {
+    try_run_fixture(cmd, close, DEADLINE, Tree::new()).unwrap_or_else(|e| {
         panic!(
             "`verify {id}` with the stderr consumer {}: {e}",
             if close { "closed" } else { "open" }
@@ -800,14 +902,47 @@ const SAFEGUARD_BUDGET: Duration = Duration::from_secs(2);
 #[cfg(unix)]
 const OUTER_BOUND: Duration = Duration::from_secs(40);
 
-/// Run `f` on a worker thread and fail if it has not returned within `bound`.
+/// How long the supervisor waits, after terminating the tree, for the worker to
+/// notice and reap its own leader. The group signal closes the fixture's pipes,
+/// which is what unblocks a worker stuck reading them, so this is a short grace
+/// rather than a second deadline.
+#[cfg(unix)]
+const OUTER_GRACE: Duration = Duration::from_secs(5);
+
+/// What an outer-bounded run produced.
+#[derive(Debug)]
+enum Supervised<T> {
+    Returned(T),
+    /// The worker overran the bound. The tree was terminated **by the
+    /// supervising thread**, and `reaped` carries the leader's status if its
+    /// owner reaped it within `OUTER_GRACE`.
+    Overran {
+        signalled: bool,
+        reaped: Option<std::process::ExitStatus>,
+    },
+}
+
+/// Run `f` on a worker thread, and if it has not returned within `bound`,
+/// terminate the fixture tree from **this** thread.
 ///
 /// The bound exists precisely for the case where the harness's own deadline is
-/// broken, so it cannot be built from that deadline. A worker that overruns is
-/// abandoned rather than joined; that is a harness defect being reported, and
-/// the report is the point.
+/// broken, so neither the bound nor the cleanup may be built from it. Before
+/// this correction the worker owned the only `Fixture`, so a worker abandoned at
+/// the bound took its `Drop` guard with it: the fixture survived the reported
+/// failure, kept whatever descendants it had, and performed their delayed side
+/// effects. Exiting the test binary does not fix that either, because the
+/// fixture is deliberately in a process group of its own.
+///
+/// So `tree` is created by the caller before the worker starts, and cleanup goes
+/// straight to it. Afterwards the worker is given `OUTER_GRACE` to return, not
+/// because the report needs it but because the leader should be reaped by its
+/// owner; whether that happened is reported rather than assumed.
 #[cfg(unix)]
-fn within<T: Send + 'static>(bound: Duration, f: impl FnOnce() -> T + Send + 'static) -> T {
+fn supervise<T: Send + 'static>(
+    bound: Duration,
+    tree: &Arc<Tree>,
+    f: impl FnOnce() -> T + Send + 'static,
+) -> Supervised<T> {
     let (tx, rx) = mpsc::channel();
     thread::spawn(move || {
         let _ = tx.send(f());
@@ -817,13 +952,36 @@ fn within<T: Send + 'static>(bound: Duration, f: impl FnOnce() -> T + Send + 'st
     // timeout would name the wrong failure: the real panic is already on
     // stderr, and the case should say to go and read it.
     match rx.recv_timeout(bound) {
-        Ok(value) => value,
-        Err(mpsc::RecvTimeoutError::Timeout) => {
-            panic!("the fixture harness did not return within its outer bound of {bound:?}")
-        }
+        Ok(value) => Supervised::Returned(value),
         Err(mpsc::RecvTimeoutError::Disconnected) => {
             panic!("the fixture harness panicked; its own message is above this one")
         }
+        Err(mpsc::RecvTimeoutError::Timeout) => {
+            let signalled = tree.kill_group();
+            let _ = rx.recv_timeout(OUTER_GRACE);
+            Supervised::Overran {
+                signalled,
+                reaped: tree.reaped_status(),
+            }
+        }
+    }
+}
+
+/// `supervise` for the cases that expect the harness to honour its own budget:
+/// an overrun is the harness defect being reported, and the tree has already
+/// been terminated by the time the panic is raised.
+#[cfg(unix)]
+fn within<T: Send + 'static>(
+    bound: Duration,
+    tree: &Arc<Tree>,
+    f: impl FnOnce() -> T + Send + 'static,
+) -> T {
+    match supervise(bound, tree, f) {
+        Supervised::Returned(value) => value,
+        Supervised::Overran { signalled, reaped } => panic!(
+            "the fixture harness did not return within its outer bound of {bound:?} \
+             (the supervisor terminated the tree: signalled={signalled}, reaped={reaped:?})"
+        ),
     }
 }
 
@@ -842,9 +1000,11 @@ fn a_fixture_that_never_emits_a_transcript_is_given_up_at_the_budget() {
     // is the harness.
     cmd.arg("-c").arg("sleep 600");
 
+    let tree = Tree::new();
     let started = Instant::now();
-    let outcome = within(OUTER_BOUND, move || {
-        try_run_fixture(cmd, true, SAFEGUARD_BUDGET)
+    let outcome = within(OUTER_BOUND, &tree, {
+        let tree = Arc::clone(&tree);
+        move || try_run_fixture(cmd, true, SAFEGUARD_BUDGET, tree)
     });
     let elapsed = started.elapsed();
 
@@ -886,9 +1046,11 @@ fn a_timed_out_fixtures_descendant_is_terminated_before_its_side_effect() {
         marker.display()
     ));
 
+    let tree = Tree::new();
     let started = Instant::now();
-    let outcome = within(OUTER_BOUND, move || {
-        try_run_fixture(cmd, true, SAFEGUARD_BUDGET)
+    let outcome = within(OUTER_BOUND, &tree, {
+        let tree = Arc::clone(&tree);
+        move || try_run_fixture(cmd, true, SAFEGUARD_BUDGET, tree)
     });
     let elapsed = started.elapsed();
 
@@ -906,6 +1068,133 @@ fn a_timed_out_fixtures_descendant_is_terminated_before_its_side_effect() {
     assert!(
         !marker.exists(),
         "a descendant of the fixture survived cleanup and performed its side effect at {}",
+        marker.display()
+    );
+}
+
+/// The outer supervisor must terminate the fixture, not merely report that the
+/// inner deadline was missed.
+///
+/// The inner budget here is deliberately broken: ten minutes, which the case
+/// never reaches, so the only thing that can end this run is the supervisor.
+/// Before this correction the supervisor panicked on its waiting thread while
+/// the worker stayed blocked owning the `Fixture`; dropping the waiting thread
+/// runs no guard, and the fixture is in a process group of its own, so exiting
+/// the test binary does not reach it either. The witness is the descendant's
+/// delayed side effect, checked past the moment it was scheduled for.
+#[test]
+#[cfg(unix)]
+fn a_broken_inner_deadline_is_terminated_by_the_outer_supervisor() {
+    let tmp = tempfile::tempdir().unwrap();
+    let marker = tmp.path().join("delayed-side-effect.txt");
+    let delay = Duration::from_secs(6);
+
+    let mut cmd = Command::new("/bin/sh");
+    cmd.arg("-c").arg(format!(
+        "( sleep {}; printf x > \"{}\" ) &\nprintf '{TRANSCRIPT}fixture\\n' >&2\nsleep 600\n",
+        delay.as_secs(),
+        marker.display()
+    ));
+
+    // Ten minutes: a budget that cannot expire inside this case.
+    let broken_budget = Duration::from_secs(600);
+    let tree = Tree::new();
+    let started = Instant::now();
+    let outcome = supervise(SAFEGUARD_BUDGET, &tree, {
+        let tree = Arc::clone(&tree);
+        move || try_run_fixture(cmd, true, broken_budget, tree)
+    });
+    let elapsed = started.elapsed();
+
+    match outcome {
+        Supervised::Overran { signalled, reaped } => {
+            assert!(
+                signalled,
+                "the supervisor must terminate the tree itself, not ask the worker to"
+            );
+            let status = reaped.expect(
+                "the leader must be reaped: the group signal closes the pipes its owner is \
+                 blocked on, which is what lets that owner finish",
+            );
+            assert!(
+                looks_killed_by_the_harness(&status),
+                "the leader was terminated by the supervisor, got {status:?}"
+            );
+        }
+        Supervised::Returned(returned) => {
+            panic!("a ten-minute inner budget must not have returned on its own: {returned:?}")
+        }
+    }
+    assert!(
+        elapsed < SAFEGUARD_BUDGET + OUTER_GRACE + SAFEGUARD_BUDGET,
+        "the supervisor took {elapsed:?} to give up on a {SAFEGUARD_BUDGET:?} bound"
+    );
+
+    // Past the moment the descendant was scheduled to write, with margin.
+    thread::sleep((delay + Duration::from_secs(2)).saturating_sub(started.elapsed()));
+    assert!(
+        !marker.exists(),
+        "a descendant of the fixture survived the supervisor's cleanup and performed its \
+         side effect at {}",
+        marker.display()
+    );
+}
+
+/// A leader that exits while a descendant keeps its pipes is cleaned up too.
+///
+/// This is the case spec 118 D-6 described as left unhandled, on the reasoning
+/// that the leader would be reaped by then and the group signal no longer safe
+/// to send. That reasoning does not match the harness it describes: the readers
+/// are awaited **before** the leader is ever polled, so at the moment a reader
+/// overruns the leader is still unreaped, its pid cannot have been recycled, and
+/// `stuck` signals the group before reaping it. The case is green on purpose,
+/// and what it corrects is the prose rather than the code.
+///
+/// The fixture writes its transcript line, backgrounds a descendant that would
+/// write a file after a delay, and exits 0. The descendant inherits the leader's
+/// stdout pipe, so no end-of-file arrives; the absence of the file, checked past
+/// the moment it was scheduled for, is the witness that cleanup reached it.
+#[test]
+#[cfg(unix)]
+fn an_exited_leaders_descendant_on_the_pipes_is_still_terminated() {
+    let tmp = tempfile::tempdir().unwrap();
+    let marker = tmp.path().join("delayed-side-effect.txt");
+    let delay = Duration::from_secs(6);
+
+    let mut cmd = Command::new("/bin/sh");
+    cmd.arg("-c").arg(format!(
+        "( sleep {}; printf x > \"{}\" ) &\nprintf '{TRANSCRIPT}fixture\\n' >&2\nexit 0\n",
+        delay.as_secs(),
+        marker.display()
+    ));
+
+    let tree = Tree::new();
+    let started = Instant::now();
+    let outcome = within(OUTER_BOUND, &tree, {
+        let tree = Arc::clone(&tree);
+        move || try_run_fixture(cmd, true, SAFEGUARD_BUDGET, tree)
+    });
+    let elapsed = started.elapsed();
+
+    match outcome {
+        // The leader's own exit 0 is read back after the group signal, which is
+        // what tells the two apart: a live leader comes back killed.
+        Err(FixtureFailure::ReaderStuck { stream, .. }) => assert_eq!(stream, "stdout"),
+        other => panic!("expected a reader held open by a descendant, got {other:?}"),
+    }
+    assert!(
+        elapsed < SAFEGUARD_BUDGET * 4,
+        "giving up took {elapsed:?}, which is not inside the budget of {SAFEGUARD_BUDGET:?}"
+    );
+    assert!(
+        tree.reaped_status().is_some(),
+        "the leader must be reaped by the time the harness reports"
+    );
+
+    thread::sleep((delay + Duration::from_secs(2)).saturating_sub(started.elapsed()));
+    assert!(
+        !marker.exists(),
+        "a descendant of an exited leader survived cleanup and performed its side effect at {}",
         marker.display()
     );
 }

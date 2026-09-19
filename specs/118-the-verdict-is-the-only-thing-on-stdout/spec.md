@@ -18,6 +18,10 @@ establishes:
   # existing `verify` cases there all run `true`, which is exactly why none of
   # them could see this defect.
   - "crates/spec-spine-cli/tests/verify_streams.rs"
+  # D-7: the one copy of the closed-consumer supervision the acceptance lines
+  # drive. It was written inline three times over, and a supervision defect
+  # written three times is fixed three times or not at all.
+  - "scripts/verify-closed-consumer.py"
 extends:
   # 3.1, 3.2, 3.3: the execution site and the two channels it writes.
   - { spec: "049-verify-declared-acceptance", unit: "crates/spec-spine-cli/src/cmd_verify.rs", nature: additive }
@@ -273,17 +277,22 @@ streams, which is the property 1.2 found missing:
    property of the machine rather than of a fixture; 3.1 covers it by
    construction, since the child that would have failed to spawn is the one
    configured not to hold the parent's stdout.
-8. The two safeguards in 6, exercised on their own terms. Neither case runs
+8. The safeguards in 6, exercised on their own terms. None of these cases runs
    `verify`: what is under test is the harness, and a correct `verify` cannot
-   produce either condition, so each fixture is a shell script chosen to break
-   the harness in one specific way. A fixture that never writes a transcript
-   line is given up at the budget rather than waited on for as long as it
-   lives; a fixture that backgrounds a descendant which would write a file
-   after a delay has that descendant terminated, witnessed by the file's
-   absence checked after the moment it was scheduled for. Each runs under an
-   **outer** bound that does not depend on the budget it is testing, so a
-   broken deadline is reported rather than waited on. Both are Unix-only,
-   which is where this suite is supported (D-6).
+   produce any of these conditions, so each fixture is a shell script chosen to
+   break the harness in one specific way. A fixture that never writes a
+   transcript line is given up at the budget rather than waited on for as long
+   as it lives; a fixture that backgrounds a descendant which would write a
+   file after a delay has that descendant terminated, witnessed by the file's
+   absence checked after the moment it was scheduled for; a fixture whose
+   **leader exits** while that descendant keeps the pipes is terminated on the
+   same witness; and a run whose **inner deadline is deliberately broken** is
+   terminated by the outer supervisor rather than merely reported, on the same
+   witness again. Each runs under an **outer** bound that does not depend on the
+   budget it is testing, and the outer supervisor holds termination authority
+   over the fixture independently of the worker performing the run, so a broken
+   deadline is cleaned up as well as reported (D-7). All are Unix-only, which is
+   where this suite is supported (D-6).
 
 In `tests/cli.rs`, the existing envelope case gains a fixture whose command
 writes to both streams, so the `"stdout is one JSON envelope"` expectation it
@@ -437,16 +446,21 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   tree. Every path that learns the leader's status either signals first or has
   already established that the tree is finished.
 
-  **What that leaves unestablished, stated rather than implied:** a fixture
-  that exits on its own while leaving a descendant behind is not cleaned up by
-  this, because by then the leader is reaped and the signal would no longer be
-  safe to send. The harness detects that case (a reader still waiting for
-  end-of-file after a leader that exited) and reports it as a failure rather
-  than silently passing; no fixture in this suite produces it. Which of the two
-  it names is a diagnostic label rather than a determination: a `SIGKILL`
-  delivered from outside the harness is indistinguishable from the harness's
-  own, and would be read as a leader that was still running. Nothing branches
-  on the label; the tree is terminated and the leader reaped under either.
+  **A paragraph here was wrong, and D-7 replaces it.** It said that a fixture
+  which exits on its own while leaving a descendant behind is not cleaned up,
+  "because by then the leader is reaped and the signal would no longer be safe
+  to send". That does not describe the harness the same decision specifies. The
+  readers are awaited *before* the leader is ever polled, which is the sentence
+  immediately above; at the moment a reader overruns, the leader is therefore
+  still unreaped, the group id still names this tree, and the cleanup path
+  signals the group before reaping. The case is handled, and D-7 records the
+  regression that witnesses it.
+
+  Which of the two conditions the harness names is a diagnostic label rather
+  than a determination: a `SIGKILL` delivered from outside the harness is
+  indistinguishable from the harness's own, and would be read as a leader that
+  was still running. Nothing branches on the label; the tree is terminated and
+  the leader reaped under either.
 
   **Platform handling.** The group signal is `kill -9 -<pgid>` through
   `/bin/sh`, rather than a `libc` dependency taken for one signal; the process
@@ -459,6 +473,10 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   with `atexit` so an assertion failure cleans up too. The timer thread is a
   daemon, so a failing assertion is not made to wait out the watchdog.
 
+  Its account of the acceptance watchdogs was also wrong, in the other
+  direction: it credited the `p.poll() is None` guard with keeping the
+  invariant, and D-7 measures what that guard actually does.
+
   This is a correction to test infrastructure and to the acceptance commands
   that mirror it. No requirement in §3 is weakened, no verdict semantics move,
   and no process supervision is introduced into the verb: §4's "a general
@@ -468,6 +486,130 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   **D-5 is untouched.** Whether a forwarding panic or a failure to read a
   child's pipe should change the acceptance verdict is still open, and nothing
   here treats either as equivalent to a destination-write failure.
+
+- **D-7 (2026-09-19): cleanup is the supervisor's, and a guard that reaps is
+  not a guard.** D-6 left two cleanup obligations unmet and described one of
+  them as a limitation. Both are implemented here. The verb is untouched: this
+  is the harness and the acceptance commands that mirror it, and no requirement
+  in §3 moves.
+
+  **The Rust harness: the outer bound reported a failure it did not clean up.**
+  `within` ran the fixture on a worker thread and panicked on the *waiting*
+  thread when the bound expired. The worker still owned the `Fixture`, still
+  blocked; dropping the waiting thread runs no guard of the worker's, and
+  exiting the test binary reaches nothing either, because the fixture is
+  deliberately in a process group of its own. Measured, with the group signal
+  injected out and a ten-minute inner budget under a two-second outer bound:
+  the case reports at 7.02 s and the fixture leader is still running
+  afterwards, `ps` showing it reparented to init in its own group
+  (`66493 1 66493 sleep 600`).
+
+  So termination authority is moved off the worker. A `Tree` handle is created
+  by the supervisor *before* the worker starts; the worker publishes the
+  leader's pid into it at spawn, and on an overrun the supervisor signals the
+  group itself rather than asking the worker to. The worker is then given a
+  short grace to return, because the group signal closes the pipes it is
+  blocked on, so its own leader gets reaped by its owner; whether that happened
+  is reported rather than assumed.
+
+  **The Python watchdog: `p.poll()` reaps, so the guard disabled the cleanup it
+  was guarding.** `p.poll() is None and os.killpg(p.pid, signal.SIGKILL)` reads
+  like D-6's invariant and is the opposite of it. If the leader has exited while
+  a descendant still holds the pipes, `poll()` reaps the leader, the guard
+  concludes the tree is finished, and the group signal is skipped: the
+  descendant keeps running and the reader stays blocked on a pipe that will
+  never close. Measured on an isolated fixture whose descendant sleeps two
+  seconds: a 0.2 s watchdog returned only after 2.01 s, with the descendant's
+  delayed side effect present.
+
+  The guard is replaced by coordination rather than by a second watchdog.
+  Signalling and reaping take one lock, and a reap publishes its status inside
+  the same critical section as the `wait` that produced it, so no signal can
+  follow a reap and the negative pgid cannot come to name a recycled pid. The
+  reap holds that lock for one bounded `wait` at a time and releases it between
+  attempts, so the watchdog can always fire while a reap is in progress; that is
+  the signal-after-reap race closed without introducing a wait-forever one.
+  `communicate()` goes with it, for the same reason `poll()` did: it reaps
+  implicitly, on a path the lock does not cover.
+
+  **Consolidated rather than layered.** The three inline watchdogs in
+  `## Verification` become one claimed script,
+  `scripts/verify-closed-consumer.py`, driven by flags. A supervision defect
+  written three times is fixed three times or not at all, which is how D-6's
+  version of this shipped with the same bug in each copy.
+
+  **What each side now guarantees, separately.** The Rust harness bounds the
+  whole fixture lifecycle under the inner budget and terminates the tree on any
+  exit from it; independently of that, the outer supervisor terminates the tree
+  and reports whether the leader was reaped, and that path does not depend on
+  the inner budget being honoured. The Python watchdog bounds one command's
+  whole run from before the first read, and terminates the tree on expiry
+  whether or not the leader is still alive; it does not have an outer
+  supervisor, because it is itself the outer supervisor: there is no inner
+  deadline under it to be broken.
+
+  **The exited-leader case is handled, not accepted.** The regression
+  `an_exited_leaders_descendant_on_the_pipes_is_still_terminated` runs a fixture
+  that writes its transcript line, backgrounds a descendant which would write a
+  file after six seconds, and exits 0. The descendant holds the leader's stdout
+  pipe, so no end-of-file arrives, the reader overruns, and cleanup signals the
+  group while the leader is still unreaped. The file is absent when checked past
+  the moment it was scheduled for. The case is green on the code as merged at
+  `c7e6a75`, which is the point: what was defective there was D-6's description,
+  and the regression is what stops the description drifting from the harness
+  again.
+
+  **One run of this suite has failed, and no deadline moves for it.** The first
+  run of `verify_streams` after `c7e6a75` merged failed five cases with
+  `NoTranscript` at 30 s; the next run of the same binary passed all thirteen in
+  25.56 s. Both are retained. What the failing run rules out is most of what it
+  looks like: in the same run `plan_json_is_one_envelope_and_runs_nothing` and
+  `json_error_envelope_is_the_whole_of_stdout` were also reported as "running
+  for over 60 seconds" and then passed, and neither of those uses the fixture
+  harness, has a budget, or causes `verify` to spawn a single subprocess. So
+  whatever stalled that process stalled every `spec-spine` exec in it, including
+  the ones with no forwarding, no consumer and no process group involved; the
+  run was also the first after a fresh link of the binary.
+
+  It recurred twice while this correction was being built, on a development
+  machine carrying six to eight concurrent `cargo`/`rustc` processes from
+  unrelated work at load averages of 6 to 12, and this time it was observed
+  rather than inferred.
+
+  Once, the **test binary itself** sat in state `S` at 0.0% CPU **with no child
+  processes at all** for about four and a half minutes, then ran all fifteen
+  cases in **8.01 s** and passed. With no children there is no fixture to be
+  waiting on, so nothing in this suite can have been the thing that was slow.
+
+  The other time, five cases failed at 30 s and ten passed, and which five is
+  the finding. Every failing case is one that execs `spec-spine` **under a
+  deadline**. Every case that execs the same binary with no deadline
+  (`plan_json_is_one_envelope_and_runs_nothing`,
+  `json_keeps_a_passing_commands_output_off_stdout`,
+  `prose_mode_channels_are_unchanged` and the rest) passed in the same run, by
+  waiting the stall out; and the four safeguard cases, whose fixtures are
+  `/bin/sh` rather than `spec-spine`, were unaffected. The enriched failure
+  message says the leader was **still running** in all five: the process had
+  been spawned and had not reached its first write. Measured immediately
+  afterwards, the same binary answered `--version` in 0.00 s, and it had not
+  been relinked since 01:56, so first-exec signature evaluation does not explain
+  this one. `syspolicyd` was at 35.8% and then 51.8% CPU throughout.
+
+  So the symptom is a transient stall in getting a large binary from `exec` to
+  its first instruction on a loaded host, it is outside this spec's territory,
+  and it is visible only where a deadline is watching. **The cause is not
+  established**, and neither host load nor code-signature evaluation is claimed
+  as one here.
+
+  `DEADLINE` therefore stays at 30 s. Raising it would convert a reported
+  symptom into a hidden one, the symptom is not in the code this spec changed,
+  and the environment the gate actually runs in is `ubuntu-latest`, where it has
+  not been seen. What does change is that `NoTranscript` now carries the
+  leader's status at termination, which is what told the two recurrences apart.
+
+  **D-5 is untouched.** Whether a forwarding panic or a failure to read a
+  child's pipe should change the acceptance verdict is still open, and nothing
+  here touches it.
 
 ## Verification
 
@@ -525,19 +667,22 @@ T=$(mktemp -d) && mkdir -p "$T/specs/005-prose" && printf '\055\055\055\nid: "00
 # line went through `eprintln!` and panicked: exit **101**, stdout empty. The
 # watchdog kills and reaps rather than leaving a hung fixture behind, and it is a
 # `threading.Timer` rather than `timeout(1)`, which macOS does not ship. The
-# watchdog is armed **before** the initial `readline`, so a fixture that never
-# writes a transcript is bounded too, and it signals the fixture's process group
-# (`start_new_session=True` + `os.killpg`) so descendants go with it (D-6). The
-# `p.poll() is None` guard keeps D-6's invariant: nothing signals a group whose
-# leader has been reaped. `atexit` repeats the cleanup when an assertion fires,
-# and the timer thread is a daemon so a failing assertion is not made to wait it
+# supervision is `scripts/verify-closed-consumer.py`, one copy driven by flags
+# rather than three inline repetitions of it (D-7): the watchdog is armed
+# **before** the initial read, so a fixture that never writes a transcript is
+# bounded too; it signals the fixture's process group (`start_new_session=True`
+# + `os.killpg`) so descendants go with it; and signalling and reaping share one
+# lock, so nothing signals a group whose leader has been reaped. The
+# `p.poll() is None` guard D-6 credited with that invariant did the opposite,
+# and D-7 measures it. `atexit` repeats the cleanup when an assertion fires, and
+# the timer thread is a daemon so a failing assertion is not made to wait it
 # out.
-T=$(mktemp -d) && mkdir -p "$T/specs/006-closed" && printf '\055\055\055\nid: "006-closed"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 006-closed\n\n## Verification\n\n\140\140\140verify:cli\nsleep 0.2; true\n\140\140\140\n' > "$T/specs/006-closed/spec.md" && python3 -c "import atexit,json,os,signal,subprocess,threading; p=subprocess.Popen(['target/release/spec-spine','--repo','$T','verify','006-closed','--json'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True); k=lambda: p.poll() is None and os.killpg(p.pid,signal.SIGKILL); atexit.register(lambda: p.poll() is None and (os.killpg(p.pid,signal.SIGKILL) or p.wait())); t=threading.Timer(30,k); t.daemon=True; t.start(); f=p.stderr.readline(); assert f.startswith(b'[verify] '),f; p.stderr.close(); o=p.communicate()[0]; t.cancel(); assert p.returncode==0,p.returncode; d=json.loads(o); assert d['report']['outcome']=='passed',d" && rm -rf "$T"
+T=$(mktemp -d) && mkdir -p "$T/specs/006-closed" && printf '\055\055\055\nid: "006-closed"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 006-closed\n\n## Verification\n\n\140\140\140verify:cli\nsleep 0.2; true\n\140\140\140\n' > "$T/specs/006-closed/spec.md" && python3 scripts/verify-closed-consumer.py --deadline 30 --transcript-prefix '[verify] ' --expect-returncode 0 --expect-outcome passed -- target/release/spec-spine --repo "$T" verify 006-closed --json && rm -rf "$T"
 # D-4's other half, on volume: ~1 MB on the child's stderr, well past any pipe
 # buffer. Red at `71a423a`, where `io::copy` returned on the first failed write
 # and left the pipe undrained while `wait` blocked on a child blocked filling it;
 # the watchdog fires and the assertion reads -9 rather than 0.
-T=$(mktemp -d) && mkdir -p "$T/specs/007-flood" && printf '\055\055\055\nid: "007-flood"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 007-flood\n\n## Verification\n\n\140\140\140verify:cli\nawk %sBEGIN{s=sprintf("%%1000s","");gsub(/ /,"X",s);for(i=0;i<1000;i++)print s}%s >&2\n\140\140\140\n' "'" "'" > "$T/specs/007-flood/spec.md" && python3 -c "import atexit,json,os,signal,subprocess,threading; p=subprocess.Popen(['target/release/spec-spine','--repo','$T','verify','007-flood','--json'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True); k=lambda: p.poll() is None and os.killpg(p.pid,signal.SIGKILL); atexit.register(lambda: p.poll() is None and (os.killpg(p.pid,signal.SIGKILL) or p.wait())); t=threading.Timer(30,k); t.daemon=True; t.start(); f=p.stderr.readline(); assert f.startswith(b'[verify] '),f; p.stderr.close(); o=p.communicate()[0]; t.cancel(); assert p.returncode==0,p.returncode; d=json.loads(o); assert d['report']['outcome']=='passed',d" && rm -rf "$T"
+T=$(mktemp -d) && mkdir -p "$T/specs/007-flood" && printf '\055\055\055\nid: "007-flood"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 007-flood\n\n## Verification\n\n\140\140\140verify:cli\nawk %sBEGIN{s=sprintf("%%1000s","");gsub(/ /,"X",s);for(i=0;i<1000;i++)print s}%s >&2\n\140\140\140\n' "'" "'" > "$T/specs/007-flood/spec.md" && python3 scripts/verify-closed-consumer.py --deadline 30 --transcript-prefix '[verify] ' --expect-returncode 0 --expect-outcome passed -- target/release/spec-spine --repo "$T" verify 007-flood --json && rm -rf "$T"
 # The control the two lines above are measured against: the same volume with the
 # consumer left open. Every byte is delivered and the verdict is the same one, so
 # a pass above cannot be explained by a fixture that never wrote anything. The
@@ -549,13 +694,22 @@ T=$(mktemp -d) && mkdir -p "$T/specs/008-open" && printf '\055\055\055\nid: "008
 # D-6, on the watchdog itself, and it needs no `spec-spine`: the fixture is a
 # shell script that writes nothing at all and backgrounds a descendant which
 # would write a file six seconds later. Both safeguards are exercised at once.
-# `readline` returns only because the watchdog fired during it, which is the
+# The read returns only because the watchdog fired during it, which is the
 # half that was unbounded; `$T/delayed` is absent when checked past the moment
 # it was scheduled for, which is the half that reached the leader only. Measured
 # with the group signal replaced by a parent-only `p.kill()`: the fixture's own
-# `sleep 600` survives holding both pipes, `readline` never returns, and the
+# `sleep 600` survives holding both pipes, the read never returns, and the
 # line has to be killed by hand.
-T=$(mktemp -d) && printf '( sleep 6; printf x > %s/delayed ) &\nsleep 600\n' "$T" > "$T/fx.sh" && python3 -c "import atexit,os,signal,subprocess,threading,time; p=subprocess.Popen(['/bin/sh','$T/fx.sh'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True); k=lambda: p.poll() is None and os.killpg(p.pid,signal.SIGKILL); atexit.register(lambda: p.poll() is None and (os.killpg(p.pid,signal.SIGKILL) or p.wait())); t=threading.Timer(2,k); t.daemon=True; t.start(); s=time.monotonic(); f=p.stderr.readline(); p.stderr.close(); o=p.communicate()[0]; e=time.monotonic()-s; assert f==b'',f; assert p.returncode==-9,p.returncode; assert e<20,e" && sleep 7 && test ! -f "$T/delayed" && rm -rf "$T"
+T=$(mktemp -d) && printf '( sleep 6; printf x > %s/delayed ) &\nsleep 600\n' "$T" > "$T/fx.sh" && python3 scripts/verify-closed-consumer.py --deadline 2 --no-transcript --expect-returncode -9 --max-elapsed 20 -- /bin/sh "$T/fx.sh" && sleep 7 && test ! -f "$T/delayed" && rm -rf "$T"
+# D-7's Python half: the leader **exits** while a descendant keeps both pipes and
+# would write a file six seconds later. The watchdog must still signal the group
+# even though the leader is finished, and the leader's own `exit 0` is what comes
+# back, not a signal. Measured against the `p.poll() is None` guard D-6 shipped,
+# with a 0.2 s deadline and a two-second descendant: `poll()` reaps the leader,
+# the guard concludes the tree is gone, the group signal is skipped, and the run
+# returns after 2.01 s with `$T/delayed` present. Here the deadline is 2 s and
+# the descendant six, so a pass cannot be a fixture that finished on its own.
+T=$(mktemp -d) && printf '( sleep 6; printf x > %s/delayed ) &\nexit 0\n' "$T" > "$T/fx.sh" && python3 scripts/verify-closed-consumer.py --deadline 2 --no-transcript --expect-returncode 0 --max-elapsed 20 -- /bin/sh "$T/fx.sh" && sleep 7 && test ! -f "$T/delayed" && rm -rf "$T"
 # The seam spec 049 3.1 draws is still drawn: the engine spawns nothing.
 test "$(grep -rl 'std::process::Command' crates/spec-spine-core/src crates/spec-spine-types/src | wc -l | tr -d ' ')" = "0"
 ```

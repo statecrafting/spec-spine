@@ -17,6 +17,10 @@
       {
         "path": "crates/spec-spine-cli/tests/verify_streams.rs",
         "source": "multiple"
+      },
+      {
+        "path": "scripts/verify-closed-consumer.py",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
@@ -31,6 +35,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/tests/verify_streams.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-closed-consumer.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-closed-consumer.py"
         }
       },
       {
@@ -90,5 +107,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "7c57fcef7d3b85d77d392bfc71ccef22bf83aed2b9e531fcbd9f24a2651b911b"
+  "shardHash": "3840c2b22faa60649279b1b6bbc3bc447610060f87193ef788606c8fe93620af"
 }
