@@ -259,8 +259,13 @@ streams, which is the property 1.2 found missing:
    command whose output exceeds a pipe buffer on its stdout, the same on its
    stderr, and a failing command that keeps its own exit code and position and
    still stops the block. An open-consumer control runs the same volume, so a
-   pass cannot be explained by a fixture that wrote nothing. The harness kills
-   and reaps on a timeout rather than leaving a hung fixture behind.
+   pass cannot be explained by a fixture that wrote nothing. The harness bounds
+   the **whole** fixture lifecycle under one budget taken before the spawn:
+   start-up, the opening transcript line, completion, and the shutdown of the
+   reader threads. Fixtures are spawned into a process group of their own, and
+   a timeout or an assertion failure terminates that group and reaps the
+   leader, so nothing is left to a broken pipe to propagate to a descendant
+   (D-6).
 7. An error path under `--json`: the `R-001` refusal of spec 049 3.7 puts one
    error envelope on stdout, carrying `error.kind: "validation"` and the
    `R-001` violation, with no `report` member and nothing else on the stream.
@@ -268,6 +273,17 @@ streams, which is the property 1.2 found missing:
    property of the machine rather than of a fixture; 3.1 covers it by
    construction, since the child that would have failed to spawn is the one
    configured not to hold the parent's stdout.
+8. The two safeguards in 6, exercised on their own terms. Neither case runs
+   `verify`: what is under test is the harness, and a correct `verify` cannot
+   produce either condition, so each fixture is a shell script chosen to break
+   the harness in one specific way. A fixture that never writes a transcript
+   line is given up at the budget rather than waited on for as long as it
+   lives; a fixture that backgrounds a descendant which would write a file
+   after a delay has that descendant terminated, witnessed by the file's
+   absence checked after the moment it was scheduled for. Each runs under an
+   **outer** bound that does not depend on the budget it is testing, so a
+   broken deadline is reported rather than waited on. Both are Unix-only,
+   which is where this suite is supported (D-6).
 
 In `tests/cli.rs`, the existing envelope case gains a fixture whose command
 writes to both streams, so the `"stdout is one JSON envelope"` expectation it
@@ -381,6 +397,74 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   rather than a correction, it is not needed to fix what §1.1 and D-4 measured,
   and it is left to a later spec.
 
+- **D-6 (2026-09-19): the regression harness's own deadline and cleanup were
+  both narrower than the sentence describing them.** §3.5 item 6 said the
+  harness "kills and reaps on a timeout rather than leaving a hung fixture
+  behind", and the harness as merged at `4d2dbb8` did neither completely. Two
+  gaps, both corrected here, and neither touching the verb:
+
+  - **The budget did not cover the start of the run.** The opening
+    `read_line` on the fixture's stderr happened before the deadline loop was
+    entered, so a fixture that never writes a transcript line was waited on for
+    as long as it lived, outside the bound. The Python acceptance watchdogs
+    below had the same shape: the `threading.Timer` was started *after* the
+    initial `readline`. Measured, with the harness's initial read made
+    unbounded again and a silent `sh -c 'sleep 600'` fixture: the case does not
+    return, and the outer bound reports it at 40.01 s. With the correction the
+    same fixture is given up inside its 2 s budget.
+  - **Cleanup reached the leader only.** A timeout killed and waited for the
+    fixture process and nothing else, which leaves a descendant of it running;
+    an isolated probe measured one writing a file after the leader had been
+    killed and reaped. Measured here, with the group signal replaced by a
+    no-op: `a_timed_out_fixtures_descendant_is_terminated_before_its_side_effect`
+    fails on its witness, `a descendant of the fixture survived cleanup and
+    performed its side effect`. With the correction the file is absent when
+    checked two seconds past the moment it was scheduled for.
+
+  So: the budget is taken before the spawn and covers start-up, the initial
+  transcript acquisition, completion and reader shutdown; fixtures are spawned
+  into a process group of their own (`Command::process_group(0)`); and a
+  timeout, a rejected transcript or an assertion failure anywhere in a case
+  terminates that group and reaps the leader, the last of these through the
+  fixture guard's `Drop`. Termination is a group signal, never a broken pipe
+  left to propagate: a descendant holding the leader's pipe open is exactly the
+  case a broken pipe does not reach, and it is also why the harness waits for
+  its readers *before* it reaps the leader.
+
+  **The invariant that keeps the group signal safe:** nothing signals a process
+  group whose leader has been reaped. While the leader is unreaped its pid
+  cannot be recycled, so the negative pgid cannot have come to name some other
+  tree. Every path that learns the leader's status either signals first or has
+  already established that the tree is finished.
+
+  **What that leaves unestablished, stated rather than implied:** a fixture
+  that exits on its own while leaving a descendant behind is not cleaned up by
+  this, because by then the leader is reaped and the signal would no longer be
+  safe to send. The harness detects that case (a reader still waiting for
+  end-of-file after a leader that exited) and reports it as a failure rather
+  than silently passing; no fixture in this suite produces it.
+
+  **Platform handling.** The group signal is `kill -9 -<pgid>` through
+  `/bin/sh`, rather than a `libc` dependency taken for one signal; the process
+  group is set with the standard library's `Command::process_group`. Both are
+  `#[cfg(unix)]`, as are the two safeguard cases of §3.5 item 8, and the
+  non-Unix fallback kills the leader alone. This suite's supported environments
+  are Unix: CI is `ubuntu-latest` and development is macOS. The acceptance
+  watchdogs use `start_new_session=True` and `os.killpg` for the same reason,
+  guarded by `p.poll() is None` so they keep the same invariant, and registered
+  with `atexit` so an assertion failure cleans up too. The timer thread is a
+  daemon, so a failing assertion is not made to wait out the watchdog.
+
+  This is a correction to test infrastructure and to the acceptance commands
+  that mirror it. No requirement in §3 is weakened, no verdict semantics move,
+  and no process supervision is introduced into the verb: §4's "a general
+  process-output framework" stays out of scope, and the cleanup here is a
+  fixture guard in one test file, not a runner.
+
+  **D-5 is untouched.** Whether a forwarding panic or a failure to read a
+  child's pipe should change the acceptance verdict is still open, and nothing
+  here treats either as equivalent to a destination-write failure.
+
 ## Verification
 
 Each line is one command and no shell variable survives to the next, so every
@@ -402,7 +486,8 @@ names is not an assertion about the channel.
 # The block drives the release binary, and `cargo test` builds only debug
 # artifacts, so it is built first.
 cargo build --release --locked
-# 3.5, and D-4 + D-5's closed-consumer regressions, which live in the same file.
+# 3.5, D-4 + D-5's closed-consumer regressions, and D-6's two safeguard cases,
+# which live in the same file.
 # Of the four closed-consumer cases two fail at `71a423a` by exiting 101 and two
 # by hitting the suite's 30 s deadline, while the open-consumer control passes
 # there, so the suite distinguishes the correction from the fixture. The whole
@@ -435,13 +520,20 @@ T=$(mktemp -d) && mkdir -p "$T/specs/005-prose" && printf '\055\055\055\nid: "00
 # completion rather than start-up. Red at `71a423a`, where the `[verify] exit 0`
 # line went through `eprintln!` and panicked: exit **101**, stdout empty. The
 # watchdog kills and reaps rather than leaving a hung fixture behind, and it is a
-# `threading.Timer` rather than `timeout(1)`, which macOS does not ship.
-T=$(mktemp -d) && mkdir -p "$T/specs/006-closed" && printf '\055\055\055\nid: "006-closed"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 006-closed\n\n## Verification\n\n\140\140\140verify:cli\nsleep 0.2; true\n\140\140\140\n' > "$T/specs/006-closed/spec.md" && python3 -c "import json,subprocess,threading; p=subprocess.Popen(['target/release/spec-spine','--repo','$T','verify','006-closed','--json'],stdout=subprocess.PIPE,stderr=subprocess.PIPE); f=p.stderr.readline(); assert f.startswith(b'[verify] '),f; p.stderr.close(); t=threading.Timer(30,p.kill); t.start(); o=p.communicate()[0]; t.cancel(); assert p.returncode==0,p.returncode; d=json.loads(o); assert d['report']['outcome']=='passed',d" && rm -rf "$T"
+# `threading.Timer` rather than `timeout(1)`, which macOS does not ship. The
+# watchdog is armed **before** the initial `readline`, so a fixture that never
+# writes a transcript is bounded too, and it signals the fixture's process group
+# (`start_new_session=True` + `os.killpg`) so descendants go with it (D-6). The
+# `p.poll() is None` guard keeps D-6's invariant: nothing signals a group whose
+# leader has been reaped. `atexit` repeats the cleanup when an assertion fires,
+# and the timer thread is a daemon so a failing assertion is not made to wait it
+# out.
+T=$(mktemp -d) && mkdir -p "$T/specs/006-closed" && printf '\055\055\055\nid: "006-closed"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 006-closed\n\n## Verification\n\n\140\140\140verify:cli\nsleep 0.2; true\n\140\140\140\n' > "$T/specs/006-closed/spec.md" && python3 -c "import atexit,json,os,signal,subprocess,threading; p=subprocess.Popen(['target/release/spec-spine','--repo','$T','verify','006-closed','--json'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True); k=lambda: p.poll() is None and os.killpg(p.pid,signal.SIGKILL); atexit.register(lambda: p.poll() is None and (os.killpg(p.pid,signal.SIGKILL) or p.wait())); t=threading.Timer(30,k); t.daemon=True; t.start(); f=p.stderr.readline(); assert f.startswith(b'[verify] '),f; p.stderr.close(); o=p.communicate()[0]; t.cancel(); assert p.returncode==0,p.returncode; d=json.loads(o); assert d['report']['outcome']=='passed',d" && rm -rf "$T"
 # D-4's other half, on volume: ~1 MB on the child's stderr, well past any pipe
 # buffer. Red at `71a423a`, where `io::copy` returned on the first failed write
 # and left the pipe undrained while `wait` blocked on a child blocked filling it;
 # the watchdog fires and the assertion reads -9 rather than 0.
-T=$(mktemp -d) && mkdir -p "$T/specs/007-flood" && printf '\055\055\055\nid: "007-flood"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 007-flood\n\n## Verification\n\n\140\140\140verify:cli\nawk %sBEGIN{s=sprintf("%%1000s","");gsub(/ /,"X",s);for(i=0;i<1000;i++)print s}%s >&2\n\140\140\140\n' "'" "'" > "$T/specs/007-flood/spec.md" && python3 -c "import json,subprocess,threading; p=subprocess.Popen(['target/release/spec-spine','--repo','$T','verify','007-flood','--json'],stdout=subprocess.PIPE,stderr=subprocess.PIPE); f=p.stderr.readline(); assert f.startswith(b'[verify] '),f; p.stderr.close(); t=threading.Timer(30,p.kill); t.start(); o=p.communicate()[0]; t.cancel(); assert p.returncode==0,p.returncode; d=json.loads(o); assert d['report']['outcome']=='passed',d" && rm -rf "$T"
+T=$(mktemp -d) && mkdir -p "$T/specs/007-flood" && printf '\055\055\055\nid: "007-flood"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 007-flood\n\n## Verification\n\n\140\140\140verify:cli\nawk %sBEGIN{s=sprintf("%%1000s","");gsub(/ /,"X",s);for(i=0;i<1000;i++)print s}%s >&2\n\140\140\140\n' "'" "'" > "$T/specs/007-flood/spec.md" && python3 -c "import atexit,json,os,signal,subprocess,threading; p=subprocess.Popen(['target/release/spec-spine','--repo','$T','verify','007-flood','--json'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True); k=lambda: p.poll() is None and os.killpg(p.pid,signal.SIGKILL); atexit.register(lambda: p.poll() is None and (os.killpg(p.pid,signal.SIGKILL) or p.wait())); t=threading.Timer(30,k); t.daemon=True; t.start(); f=p.stderr.readline(); assert f.startswith(b'[verify] '),f; p.stderr.close(); o=p.communicate()[0]; t.cancel(); assert p.returncode==0,p.returncode; d=json.loads(o); assert d['report']['outcome']=='passed',d" && rm -rf "$T"
 # The control the two lines above are measured against: the same volume with the
 # consumer left open. Every byte is delivered and the verdict is the same one, so
 # a pass above cannot be explained by a fixture that never wrote anything. The
@@ -450,6 +542,16 @@ T=$(mktemp -d) && mkdir -p "$T/specs/007-flood" && printf '\055\055\055\nid: "00
 # enough that a longer fixture command would turn a correct run red. Green at
 # `71a423a` on purpose: preservation, not evidence.
 T=$(mktemp -d) && mkdir -p "$T/specs/008-open" && printf '\055\055\055\nid: "008-open"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 008-open\n\n## Verification\n\n\140\140\140verify:cli\nawk %sBEGIN{s=sprintf("%%1000s","");gsub(/ /,"X",s);for(i=0;i<1000;i++)print s}%s >&2\n\140\140\140\n' "'" "'" > "$T/specs/008-open/spec.md" && target/release/spec-spine --repo "$T" verify 008-open --json > "$T/out" 2> "$T/err" && python3 -c "import json; d=json.load(open('$T/out')); assert d['report']['outcome']=='passed',d; n=sum(1 for l in open('$T/err') if l.rstrip(chr(10))=='X'*1000); assert n==1000,n" && rm -rf "$T"
+# D-6, on the watchdog itself, and it needs no `spec-spine`: the fixture is a
+# shell script that writes nothing at all and backgrounds a descendant which
+# would write a file six seconds later. Both safeguards are exercised at once.
+# `readline` returns only because the watchdog fired during it, which is the
+# half that was unbounded; `$T/delayed` is absent when checked past the moment
+# it was scheduled for, which is the half that reached the leader only. Measured
+# with the group signal replaced by a parent-only `p.kill()`: the fixture's own
+# `sleep 600` survives holding both pipes, `readline` never returns, and the
+# line has to be killed by hand.
+T=$(mktemp -d) && printf '( sleep 6; printf x > %s/delayed ) &\nsleep 600\n' "$T" > "$T/fx.sh" && python3 -c "import atexit,os,signal,subprocess,threading,time; p=subprocess.Popen(['/bin/sh','$T/fx.sh'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,start_new_session=True); k=lambda: p.poll() is None and os.killpg(p.pid,signal.SIGKILL); atexit.register(lambda: p.poll() is None and (os.killpg(p.pid,signal.SIGKILL) or p.wait())); t=threading.Timer(2,k); t.daemon=True; t.start(); s=time.monotonic(); f=p.stderr.readline(); p.stderr.close(); o=p.communicate()[0]; e=time.monotonic()-s; assert f==b'',f; assert p.returncode==-9,p.returncode; assert e<20,e" && sleep 7 && test ! -f "$T/delayed" && rm -rf "$T"
 # The seam spec 049 3.1 draws is still drawn: the engine spawns nothing.
 test "$(grep -rl 'std::process::Command' crates/spec-spine-core/src crates/spec-spine-types/src | wc -l | tr -d ' ')" = "0"
 ```
