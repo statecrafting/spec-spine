@@ -104,8 +104,8 @@
       }
     ],
     "specId": "118-the-verdict-is-the-only-thing-on-stdout",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "8266babdeee7f199fb3d80b4096d4cb88a593e3d9d29ff399806daf538cc88aa"
+  "shardHash": "6175bdbb607893e4fdf481786ddeed5eb8a9bd7aafa4b2552b492a41ff8c7237"
 }
