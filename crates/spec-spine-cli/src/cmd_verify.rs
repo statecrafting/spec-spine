@@ -211,6 +211,12 @@ fn run_one(repo: &Path, command: &str, child_stack: &str, json: bool) -> Result<
     let mut child_out = child.stdout.take().expect("stdout was piped");
     let pump = std::thread::spawn(move || drain_to_stderr(&mut child_out));
     let mut child_err = child.stderr.take().expect("stderr was piped");
+    // Wrapped so `note_drain` reads both results through one shape. The `Err`
+    // arm is unreachable for this one by construction: a panic here would
+    // unwind `run_one` itself rather than be caught, so only the pump thread
+    // can ever report `Err`. That is a property of where the drain runs, not a
+    // claim that this stream cannot fail, and `InputFailed` still reaches
+    // `note_drain` from here.
     let err_drained = Ok(drain_to_stderr(&mut child_err));
 
     // The wait's result is held rather than propagated, so the join happens on
