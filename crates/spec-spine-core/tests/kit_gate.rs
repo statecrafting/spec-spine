@@ -8,6 +8,7 @@
 //! and skills are held to: a gate never writes, and the chain has one
 //! definition.
 
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -166,6 +167,16 @@ fn the_kit_gate_chain_follows_agents_md() {
 
     let mut cursor = 0usize;
     for cmd in &gate {
+        // Spec 114 3.2: `config show` is the ownership guard's PROBE, a
+        // configuration read that decides whether the next step runs. It is not
+        // a step of the governed chain and `AGENTS.md` does not list it, so the
+        // in-order walk skips it. It is not thereby unasserted: it still has to
+        // name a real, read-only verb (the two tests above), and
+        // `the_gate_reads_the_effective_config_before_asserting_ownership`
+        // below refuses a gate that stopped making it.
+        if normalize(cmd) == "config show" {
+            continue;
+        }
         let n = normalize(cmd);
         let found = listed_heads[cursor..]
             .iter()
@@ -386,8 +397,23 @@ fn the_workflow_records_why_the_probe_is_a_job() {
     );
     // §3.2: the PR body reaches the gate through a file, not through shell
     // quoting, because a body carrying a waiver line has no safe quoting.
-    assert!(wf.contains("--pr-body"), "{wf}");
+    //
+    // Since spec 114 §3.4 the workflow reaches `--pr-body` by handing the file
+    // to the one gate definition, which names the flag; asserting the flag's
+    // spelling in the workflow would now refuse the consolidation 064's own
+    // header comment asks for. The property is unchanged and is asserted in
+    // both halves: the workflow writes the file and passes its path, and the
+    // target turns that path into `--pr-body`.
     assert!(wf.contains("RUNNER_TEMP"), "{wf}");
+    assert!(
+        wf.contains("PR_BODY="),
+        "the file's path is handed to the gate: {wf}"
+    );
+    let makefile = read("kit/Makefile");
+    assert!(
+        makefile.contains("--pr-body"),
+        "the one gate definition is where the flag is spelled: {makefile}"
+    );
 }
 
 /// §3.3: the kit's copy is the source, and this repository's `.githooks/` is
@@ -548,4 +574,491 @@ fn a_guarded_recipe_skips_when_absent_and_fails_when_the_command_fails() {
             );
         }
     }
+}
+
+// ── spec 114: one gate definition, and both legs of the workflow call it ──
+
+/// One executable step of a workflow: the event condition it runs under and the
+/// script it runs, read out of the parsed document.
+///
+/// Parsed rather than searched, because §3.4's property is about which commands
+/// run and a text search cannot tell a command from a sentence about one.
+/// `kit/govern.yml` names `make gate` twice at the parent commit and only one of
+/// those is a step; the other is the header comment saying the workflow has one
+/// gate definition while the pull-request leg restated it (114 D-5).
+#[derive(Debug)]
+struct WorkflowStep {
+    name: Option<String>,
+    cond: Option<String>,
+    run: Option<String>,
+}
+
+/// Every step of every job, in document order.
+fn workflow_steps(yaml: &str) -> Vec<WorkflowStep> {
+    let doc: serde_yaml::Value =
+        serde_yaml::from_str(yaml).unwrap_or_else(|e| panic!("the workflow parses as YAML: {e}"));
+    let mut out = Vec::new();
+    let Some(jobs) = doc.get("jobs").and_then(|j| j.as_mapping()) else {
+        return out;
+    };
+    for (_, job) in jobs {
+        let Some(steps) = job.get("steps").and_then(|s| s.as_sequence()) else {
+            continue;
+        };
+        for step in steps {
+            out.push(WorkflowStep {
+                name: step
+                    .get("name")
+                    .and_then(|v| v.as_str())
+                    .map(str::to_string),
+                cond: step.get("if").and_then(|v| v.as_str()).map(str::to_string),
+                run: step.get("run").and_then(|v| v.as_str()).map(str::to_string),
+            });
+        }
+    }
+    out
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+enum Leg {
+    Push,
+    PullRequest,
+}
+
+/// Which event leg a step runs on, read from its `if:` expression and from
+/// nothing else (114 §3.4). A step *named* "Governed loop (pull request)" that
+/// carries a push condition is a push step, and a leg identified by its name
+/// would be identified by the half of the file a maintainer forgets to update.
+fn leg(cond: Option<&str>) -> Option<Leg> {
+    let c = cond?;
+    if c.contains("github.event_name == 'pull_request'") {
+        Some(Leg::PullRequest)
+    } else if c.contains("github.event_name != 'pull_request'") {
+        Some(Leg::Push)
+    } else {
+        None
+    }
+}
+
+/// Every `${{ … }}` expression replaced by one opaque word. GitHub substitutes
+/// these before the shell sees the script, so an expression is a single token
+/// and never a shell operator: without this the `||` inside
+/// `${{ github.base_ref || 'main' }}` would read as a command separator and
+/// split one `make` invocation into three commands.
+fn mask_expressions(run: &str) -> String {
+    let mut out = String::with_capacity(run.len());
+    let mut rest = run;
+    while let Some(open) = rest.find("${{") {
+        out.push_str(&rest[..open]);
+        match rest[open..].find("}}") {
+            Some(close) => {
+                out.push_str("GITHUB_EXPR");
+                rest = &rest[open + close + 2..];
+            }
+            None => {
+                out.push_str("GITHUB_EXPR");
+                rest = "";
+            }
+        }
+    }
+    out.push_str(rest);
+    out
+}
+
+/// A shell line with its comment tail removed. A `#` inside quotes, or joined to
+/// the preceding word (`refs/heads#1`), is not a comment marker.
+fn strip_comment(line: &str) -> &str {
+    let b = line.as_bytes();
+    let (mut sq, mut dq) = (false, false);
+    for (i, &c) in b.iter().enumerate() {
+        match c {
+            b'\'' if !dq => sq = !sq,
+            b'"' if !sq => dq = !dq,
+            b'#' if !sq && !dq && (i == 0 || b[i - 1].is_ascii_whitespace()) => {
+                return &line[..i];
+            }
+            _ => {}
+        }
+    }
+    line
+}
+
+/// The commands a `run:` script executes, with comments dropped and
+/// operator-separated commands split apart. Whatever survives here is something
+/// the runner runs; a mention in a comment does not.
+///
+/// This reads the workflow's SOURCE text. A `$RUNNER_TEMP` in it is the literal
+/// eight characters, never the runner's expansion of them, so what a variable
+/// expands to at job time cannot change how a step tokenises here. GitHub's own
+/// `${{ … }}` expressions ARE substituted before the shell sees them, which is
+/// why they are masked to one word first.
+fn script_commands(run: &str) -> Vec<String> {
+    let masked = mask_expressions(run);
+    let mut out = Vec::new();
+    for line in masked.lines() {
+        for part in strip_comment(line).split(['|', ';', '&']) {
+            let cmd = part.trim();
+            if !cmd.is_empty() {
+                out.push(cmd.to_string());
+            }
+        }
+    }
+    out
+}
+
+/// The `make` targets a `run:` script actually invokes, and the variables each
+/// invocation sets.
+///
+/// A target named in a comment, echoed as text, or written into the step's
+/// `name:` is not an invocation: only the words of a command whose head is
+/// `make` count. That distinction is the whole of §3.4, and 114 D-10 is why it
+/// is exercised on fixtures rather than assumed.
+fn make_invocations(run: &str) -> Vec<(Vec<String>, BTreeMap<String, String>)> {
+    let mut out = Vec::new();
+    for cmd in script_commands(run) {
+        let mut toks = cmd.split_whitespace();
+        let Some(head) = toks.next() else { continue };
+        if head != "make" && !head.ends_with("/make") {
+            continue;
+        }
+        let (mut targets, mut vars) = (Vec::new(), BTreeMap::new());
+        let mut skip_next = false;
+        for t in toks {
+            if skip_next {
+                skip_next = false;
+                continue;
+            }
+            if t == "-f" || t == "-C" {
+                skip_next = true;
+                continue;
+            }
+            if t.starts_with('-') {
+                continue;
+            }
+            match t.split_once('=') {
+                Some((k, v)) => {
+                    vars.insert(k.to_string(), v.trim_matches(['"', '\'']).to_string());
+                }
+                None => targets.push(t.to_string()),
+            }
+        }
+        out.push((targets, vars));
+    }
+    out
+}
+
+/// The `make gate` invocation of a step, if the step has one.
+fn gate_invocation(step: &WorkflowStep) -> Option<BTreeMap<String, String>> {
+    let run = step.run.as_deref()?;
+    make_invocations(run)
+        .into_iter()
+        .find(|(targets, _)| targets.iter().any(|t| t == "gate"))
+        .map(|(_, vars)| vars)
+}
+
+/// The `spec-spine` verbs a `run:` script invokes, as `verb` or `verb subverb`.
+fn spec_spine_verbs(run: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    for cmd in script_commands(run) {
+        let mut toks = cmd.split_whitespace();
+        let Some(head) = toks.next() else { continue };
+        if head != "spec-spine" && !head.ends_with("/spec-spine") {
+            continue;
+        }
+        let Some(verb) = toks.next() else { continue };
+        let mut v = verb.to_string();
+        if let Some(sub) = toks.next() {
+            if !sub.starts_with('-') {
+                v.push(' ');
+                v.push_str(sub);
+            }
+        }
+        out.push(v);
+    }
+    out
+}
+
+/// The verbs the one gate definition runs, read off `kit/Makefile`'s `gate`
+/// target rather than listed here. A step added to the target is a step the
+/// workflow may not restate, without anyone remembering to extend a constant.
+fn one_gate_definition_verbs() -> BTreeSet<String> {
+    invocations(&target_body(&read("kit/Makefile"), "gate"))
+        .iter()
+        .map(|c| {
+            let mut toks = c.split_whitespace();
+            let verb = toks.next().unwrap_or("").to_string();
+            match toks.next() {
+                Some(sub) if !sub.starts_with('-') => format!("{verb} {sub}"),
+                _ => verb,
+            }
+        })
+        .collect()
+}
+
+/// The steps of `kit/govern.yml` running on one event leg.
+fn legs_of(steps: &[WorkflowStep], want: Leg) -> Vec<&WorkflowStep> {
+    steps
+        .iter()
+        .filter(|s| leg(s.cond.as_deref()) == Some(want))
+        .collect()
+}
+
+/// §3.4: both legs reach the chain by calling the one gate definition. Each leg
+/// is found by its event condition, which is the only place a workflow says what
+/// it runs on.
+#[test]
+fn both_workflow_legs_invoke_the_one_gate_definition() {
+    let steps = workflow_steps(&read("kit/govern.yml"));
+    assert!(
+        !steps.is_empty(),
+        "kit/govern.yml parsed to no steps, so this test asserts nothing"
+    );
+    for want in [Leg::Push, Leg::PullRequest] {
+        let calling: Vec<_> = legs_of(&steps, want)
+            .into_iter()
+            .filter(|s| gate_invocation(s).is_some())
+            .collect();
+        assert_eq!(
+            calling.len(),
+            1,
+            "expected exactly one {want:?} step invoking the `gate` target, got {}. \
+             The workflow's own header says the gate has one definition; a leg that \
+             restates the chain instead is the drift spec 114 §3.4 closes. Steps: {:#?}",
+            calling.len(),
+            steps
+        );
+    }
+}
+
+/// §3.4: and no step restates a verb that definition already runs. The header
+/// comment is not a step, and a verb named in one is not an invocation.
+#[test]
+fn no_workflow_step_restates_a_verb_the_one_gate_definition_runs() {
+    let chain = one_gate_definition_verbs();
+    assert!(
+        chain.contains("couple") && chain.contains("check"),
+        "the gate target's verbs parsed as {chain:?}, which is not the chain"
+    );
+    let mut restated: Vec<String> = Vec::new();
+    for step in workflow_steps(&read("kit/govern.yml")) {
+        let Some(run) = step.run.as_deref() else {
+            continue;
+        };
+        for v in spec_spine_verbs(run) {
+            if chain.contains(&v) {
+                restated.push(format!("{:?} runs `spec-spine {v}`", step.name));
+            }
+        }
+    }
+    assert!(
+        restated.is_empty(),
+        "the workflow restates the chain instead of calling the one definition: {restated:?}"
+    );
+}
+
+/// §3.3 + §3.4: the two legs differ by an argument, not by a second chain. The
+/// push leg turns coupling off, because spec 064 §3.2 says `couple` runs on
+/// `pull_request` only; the pull-request leg leaves it on and hands over the
+/// body file. Neither is inferred from the other: the control is explicit.
+#[test]
+fn the_one_gate_definition_serves_both_legs_through_explicit_controls() {
+    let steps = workflow_steps(&read("kit/govern.yml"));
+
+    let push = legs_of(&steps, Leg::Push)
+        .into_iter()
+        .find_map(gate_invocation)
+        .expect("a push step invoking the gate target");
+    assert_eq!(
+        push.get("COUPLE").map(String::as_str),
+        Some("0"),
+        "spec 064 §3.2: the shipped workflow runs `couple` on pull_request only, \
+         so the push leg must spend the explicit control: {push:?}"
+    );
+
+    let pr = legs_of(&steps, Leg::PullRequest)
+        .into_iter()
+        .find_map(gate_invocation)
+        .expect("a pull-request step invoking the gate target");
+    assert_ne!(
+        pr.get("COUPLE").map(String::as_str),
+        Some("0"),
+        "the pull-request leg is the one that must couple: {pr:?}"
+    );
+    let body = pr
+        .get("PR_BODY")
+        .expect("the pull-request leg hands the body file to the gate");
+    assert!(
+        !body.is_empty(),
+        "the body reaches the gate as a path: {pr:?}"
+    );
+
+    // And it is the path the step just WROTE, not merely a path-shaped string.
+    // Tied to the step's own redirect rather than to the file's name, so
+    // renaming `pr-body.txt` cannot quietly turn this into an assertion about a
+    // filename; what spec 064 §3.2 requires is that the body travel as a file
+    // and that the gate be handed that file.
+    let run = legs_of(&steps, Leg::PullRequest)
+        .into_iter()
+        .find(|s| gate_invocation(s).is_some())
+        .and_then(|s| s.run.clone())
+        .expect("the pull-request step has a script");
+    let norm = normalize_redirects(&run);
+    assert!(
+        [
+            format!(">\"{body}\""),
+            format!(">'{body}'"),
+            format!(">{body}")
+        ]
+        .iter()
+        .any(|w| norm.contains(w.as_str())),
+        "PR_BODY must name the file this step writes; it writes none: {run}"
+    );
+}
+
+/// A script with output redirections spelled one way: `1>` written `>`, and the
+/// whitespace around `>` removed. `> "x"`, `>"x"` and `1> "x"` all write the
+/// same file, and an assertion that told them apart would be testing a
+/// workflow's spacing rather than which file it writes.
+fn normalize_redirects(run: &str) -> String {
+    let mut s = run.replace("1>", ">");
+    while s.contains(" >") {
+        s = s.replace(" >", ">");
+    }
+    while s.contains("> ") {
+        s = s.replace("> ", ">");
+    }
+    s
+}
+
+/// §3.2: the ownership guard reads the effective configuration, and reads it in
+/// a form whose failure is a failure. `config show | grep -q` would report
+/// grep's status and discard the read's, so every way the read can fail would
+/// produce an honest-sounding skip and a green gate (114 D-12).
+#[test]
+fn the_gate_reads_the_effective_config_before_asserting_ownership() {
+    let gate = target_body(&read("kit/Makefile"), "gate");
+    assert!(
+        invocations(&gate).iter().any(|c| c == "config show"),
+        "the guard must read the effective config through the CLI: {gate}"
+    );
+    assert!(
+        gate.contains("require_ownership"),
+        "on the condition kit/AGENTS.md already publishes: {gate}"
+    );
+    for line in gate.lines() {
+        assert!(
+            !(line.contains("config show") && line.contains("| grep")),
+            "the probe must not be a pipeline, whose status is grep's: {line}"
+        );
+    }
+}
+
+/// §3.4 + D-10: the detector refuses a mention that is not an invocation, in
+/// each of the three forms a mention arrives in. Built as fixtures so the
+/// refusals are exercised on every run, rather than shipping a broken workflow
+/// to prove them.
+#[test]
+fn the_one_gate_definition_detector_refuses_a_mention_that_is_not_an_invocation() {
+    // A positive control first, so a detector that answered "no" to everything
+    // could not pass this test.
+    let real = r#"
+jobs:
+  govern:
+    steps:
+      - name: Governed loop
+        if: github.event_name != 'pull_request'
+        run: make gate BASE=origin/${{ github.base_ref || 'main' }} COUPLE=0
+"#;
+    let steps = workflow_steps(real);
+    let vars = legs_of(&steps, Leg::Push)
+        .into_iter()
+        .find_map(gate_invocation)
+        .expect("a real invocation is detected");
+    assert_eq!(vars.get("COUPLE").map(String::as_str), Some("0"));
+    assert_eq!(
+        vars.get("BASE").map(String::as_str),
+        Some("origin/GITHUB_EXPR"),
+        "the `||` inside a GitHub expression is not a command separator"
+    );
+
+    // 1. The step's NAME says `make gate`; the script restates the chain.
+    let named = r#"
+jobs:
+  govern:
+    steps:
+      - name: Governed loop (make gate)
+        if: github.event_name != 'pull_request'
+        run: spec-spine check --fail-on-unresolved --fail-on-warn
+"#;
+    let steps = workflow_steps(named);
+    assert!(
+        legs_of(&steps, Leg::Push)
+            .into_iter()
+            .all(|s| gate_invocation(s).is_none()),
+        "a target named in a step's `name:` is not an invocation of it"
+    );
+    assert_eq!(
+        spec_spine_verbs(steps[0].run.as_deref().unwrap()),
+        vec!["check".to_string()],
+        "and the restatement it hides is still counted"
+    );
+
+    // 2. A COMMENT inside the script says `make gate`.
+    let commented = r#"
+jobs:
+  govern:
+    steps:
+      - name: Governed loop (pull request)
+        if: github.event_name == 'pull_request'
+        run: |
+          # make gate would run the whole chain here
+          spec-spine lint --fail-on-warn
+"#;
+    let steps = workflow_steps(commented);
+    assert!(
+        legs_of(&steps, Leg::PullRequest)
+            .into_iter()
+            .all(|s| gate_invocation(s).is_none()),
+        "a target named in a script comment is not an invocation of it"
+    );
+
+    // 3. The script ECHOES the words.
+    let echoed = r#"
+jobs:
+  govern:
+    steps:
+      - name: Governed loop (pull request)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "this job runs make gate"
+          spec-spine couple --base origin/main --head HEAD
+"#;
+    let steps = workflow_steps(echoed);
+    assert!(
+        legs_of(&steps, Leg::PullRequest)
+            .into_iter()
+            .all(|s| gate_invocation(s).is_none()),
+        "a target echoed as text is not an invocation of it"
+    );
+    assert_eq!(
+        spec_spine_verbs(steps[0].run.as_deref().unwrap()),
+        vec!["couple".to_string()]
+    );
+
+    // 4. A leg is its CONDITION, not its name: a step called "(pull request)"
+    //    that runs on a push is a push step.
+    let mislabelled = r#"
+jobs:
+  govern:
+    steps:
+      - name: Governed loop (pull request)
+        if: github.event_name != 'pull_request'
+        run: make gate COUPLE=0
+"#;
+    let steps = workflow_steps(mislabelled);
+    assert!(
+        legs_of(&steps, Leg::PullRequest).is_empty(),
+        "the leg is read from the event condition, not from the step's name"
+    );
+    assert_eq!(legs_of(&steps, Leg::Push).len(), 1);
 }

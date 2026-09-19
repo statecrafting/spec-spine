@@ -1,33 +1,35 @@
 {
   "mapping": {
+    "amends": [
+      "077-compile-warnings-reach-the-gate"
+    ],
     "dependsOn": [
-      "050-index-diagnostics-reach-a-gate",
-      "075-one-name-one-freshness-verb",
-      "086-the-committed-index-is-compared-not-trusted"
+      "054-effective-config-is-a-governed-read",
+      "059-read-verbs-on-a-code-free-corpus",
+      "064-the-kit-ships-the-composite-gate",
+      "077-compile-warnings-reach-the-gate",
+      "089-a-skip-and-a-failure-are-different-answers",
+      "103-an-amended-acceptance-is-the-one-that-runs"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/cmd_check.rs",
+        "path": "crates/spec-spine-core/Cargo.toml",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/cmd_index.rs",
+        "path": "crates/spec-spine-core/src/kit_embedded.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "path": "crates/spec-spine-core/tests/kit_gate.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/diagnostics.rs",
+        "path": "kit/Makefile",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/lib.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/tests/index_body.rs",
+        "path": "kit/govern.yml",
         "source": "spec-edge"
       }
     ],
@@ -35,79 +37,66 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_check.rs"
+            "file": "crates/spec-spine-core/Cargo.toml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_check.rs"
+          "path": "crates/spec-spine-core/Cargo.toml"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_index.rs"
+            "file": "crates/spec-spine-core/src/kit_embedded.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/cli.rs"
+            "file": "crates/spec-spine-core/tests/kit_gate.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/cli.rs"
+          "path": "crates/spec-spine-core/tests/kit_gate.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/diagnostics.rs"
+            "file": "kit/Makefile"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/diagnostics.rs"
+          "path": "kit/Makefile"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/lib.rs"
+            "file": "kit/govern.yml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/lib.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/tests/index_body.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/index_body.rs"
+          "path": "kit/govern.yml"
         }
       },
       {
@@ -124,9 +113,9 @@
         }
       }
     ],
-    "specId": "095-a-stray-shard-is-orphaned-at-the-verbs",
-    "specStatus": "approved"
+    "specId": "114-one-gate-definition-that-holds-on-a-code-free-corpus",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "5207c815fcdcc76456dce2eb4263307d13f6d6797c1d155041c66d19b4a44196"
+  "shardHash": "86eddc7daed05d63216cc1a90b3dbc24a93385ec6a06df7f3e89cc855683b1c9"
 }
