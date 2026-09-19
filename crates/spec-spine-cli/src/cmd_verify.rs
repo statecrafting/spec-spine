@@ -5,13 +5,18 @@
 //! process lives here, so `spec_spine_core` stays a pure function of
 //! `(config, file contents)`.
 //!
+//! Under `--json` stdout belongs to the one verdict envelope (spec 037 §3.1), so
+//! an acceptance command's own output is forwarded to stderr rather than
+//! inherited, and the transcript spec 049 §3.5 requires goes there with it
+//! (spec 118). Without the flag every byte goes where it always has.
+//!
 //! **This command runs code the corpus declares** (spec 049 §3.6). That is safe
 //! where the corpus and the operator share a trust domain, and it is why
 //! `verify` is not part of the gate chain, which runs on branches whose
 //! contents are in the general case a stranger's.
 
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, ExitStatus, Stdio};
 
 use spec_spine_core::verify;
 use spec_spine_types::{
@@ -36,6 +41,84 @@ const STACK_VAR: &str = "SPEC_SPINE_VERIFY_STACK";
 /// the failure is unbounded rather than merely wrong, so the verb refuses it
 /// instead of executing it (spec 049 3.7).
 const RE_ENTRY_CODE: &str = "R-001";
+
+/// Write one transcript line to the channel the mode assigns it (spec 118 §3.3).
+///
+/// Spec 049 §3.5 requires the echo and names no channel. Without `--json` it is
+/// stdout, which is what `verify` has printed since 049 shipped. Under `--json`
+/// stdout carries the one verdict envelope and nothing else (spec 037 §3.1), so
+/// the transcript joins the child's own bytes on stderr, where spec 035 §3.3
+/// puts every CLI diagnostic. Reading it as a stdout requirement is what made
+/// it vanish under `--json` altogether, which is the mode a CI log is most
+/// likely to be produced in.
+fn transcript(json: bool, args: std::fmt::Arguments<'_>) {
+    if json {
+        eprintln!("{args}");
+    } else {
+        out::line(args);
+    }
+}
+
+/// Run one acceptance command from the repository root and return its status.
+///
+/// Without `--json` the child inherits both of the parent's streams, which is
+/// spec 049's shipped behaviour and stays byte for byte what it was. Under
+/// `--json` the parent's stdout is reserved for the verdict envelope, so the
+/// child is given pipes and both of its streams are forwarded to the parent's
+/// stderr (spec 118 §3.1). Diverting at the spawn rather than filtering at the
+/// write is what makes that total: the report path and the error path are then
+/// covered by the same fact, that the child never holds the stdout descriptor.
+///
+/// The forwarding is concurrent with the child and with itself (spec 118 §3.2).
+/// A pipe buffer is finite, so a forwarder that waited for the child to exit
+/// would deadlock on the first command verbose enough to fill one, and
+/// `cargo test` over a workspace is that command. Nothing is accumulated:
+/// `io::copy` streams through a fixed buffer, so a command's output may be
+/// megabytes without the verb growing with it. The price is that the two pipes
+/// are buffered independently, so their interleaving is not preserved; spec 118
+/// §3.2 promises no ordering between them for exactly that reason.
+///
+/// A failed write of the forwarded bytes abandons that forward and is not a
+/// failure of the verb (spec 118 D-3, following spec 035 §3.3): a process whose
+/// stderr has gone has no channel left to report the fact, and the verdict is
+/// computed from exit statuses, which are unaffected.
+fn run_one(repo: &Path, command: &str, child_stack: &str, json: bool) -> Result<ExitStatus, Error> {
+    let mut cmd = Command::new("sh");
+    cmd.arg("-c")
+        .arg(command)
+        .current_dir(repo)
+        .env(STACK_VAR, child_stack);
+
+    if !json {
+        return cmd
+            .status()
+            .map_err(|e| Error::Io(format!("cannot run `{command}`: {e}")));
+    }
+
+    let mut child = cmd
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| Error::Io(format!("cannot run `{command}`: {e}")))?;
+
+    // The child's stdout gets a thread of its own; its stderr is drained on
+    // this one. Two readers, so neither pipe can block the other.
+    let mut child_out = child.stdout.take().expect("stdout was piped");
+    let pump = std::thread::spawn(move || {
+        let _ = std::io::copy(&mut child_out, &mut std::io::stderr());
+    });
+    if let Some(mut child_err) = child.stderr.take() {
+        let _ = std::io::copy(&mut child_err, &mut std::io::stderr());
+    }
+
+    let status = child
+        .wait()
+        .map_err(|e| Error::Io(format!("cannot wait for `{command}`: {e}")))?;
+    // Joined before returning, so every forwarded byte is on stderr ahead of
+    // this command's `exit` line and the next command's transcript.
+    let _ = pump.join();
+    Ok(status)
+}
 
 /// Returns the exit code: `0` for `passed` and `not-declared`, `1` for
 /// `failed`. `plan_only` prints what would run and returns `0` without
@@ -117,22 +200,12 @@ pub fn run(repo: &Path, id: &str, json: bool, plan_only: bool) -> Result<u8, Err
     let mut ran = 0usize;
     let mut failure = None;
     for (i, command) in plan.commands.iter().enumerate() {
-        if !json {
-            outln!("[verify] $ {command}");
-        }
-        let status = Command::new("sh")
-            .arg("-c")
-            .arg(command)
-            .current_dir(repo)
-            .env(STACK_VAR, &child_stack)
-            .status()
-            .map_err(|e| Error::Io(format!("cannot run `{command}`: {e}")))?;
+        transcript(json, format_args!("[verify] $ {command}"));
+        let status = run_one(repo, command, &child_stack, json)?;
         ran += 1;
-        if !json {
-            match status.code() {
-                Some(c) => outln!("[verify] exit {c}"),
-                None => outln!("[verify] killed by signal"),
-            }
+        match status.code() {
+            Some(c) => transcript(json, format_args!("[verify] exit {c}")),
+            None => transcript(json, format_args!("[verify] killed by signal")),
         }
         if !status.success() {
             failure = Some(VerifyFailure {
