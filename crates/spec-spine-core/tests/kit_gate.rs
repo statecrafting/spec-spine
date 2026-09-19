@@ -692,8 +692,8 @@ enum Pending {
 /// quoting, backslash escapes, comments, the separators `; | || & && newline`,
 /// and redirections, because those are what tell a command from a mention. Every
 /// other construct it can recognise but not model, a command substitution, a
-/// here-document, a subshell, a shell group or a `case` arm terminator, it
-/// **refuses**, and
+/// here-document, a subshell, a shell group, a `case` arm terminator or an
+/// input descriptor duplication, it **refuses**, and
 /// `script_commands` turns that refusal into a panic. A test helper that cannot
 /// read a script must fail the test, not guess at it: guessing is exactly how
 /// `echo 'text; make gate COUPLE=0 ; more text'` came to be read as an
@@ -771,6 +771,10 @@ impl ScriptReader {
         {
             self.word.clear();
             self.open = false;
+            // Already false, because the branch guard requires it. Reset beside
+            // `open` anyway, so the word's state is cleared in one place rather
+            // than left correct by a condition a reader has to re-derive.
+            self.quoted = false;
         } else {
             self.finish_word()?;
         }
@@ -930,6 +934,15 @@ impl ScriptReader {
                 }
                 '<' if self.at(1) == Some('(') => {
                     return Err("a process substitution (`<(`) is not supported".to_string());
+                }
+                // `>&2` is consumed above, because it names no file and changes
+                // no command. `<&` is refused instead of mirrored: nothing here
+                // needs it, and reaching it through the generic path reported
+                // "a redirection with no target", which is not what is wrong.
+                '<' if self.at(1) == Some('&') => {
+                    return Err(
+                        "an input descriptor duplication (`<&`) is not supported".to_string()
+                    );
                 }
                 '<' => {
                     self.open_redirect(Pending::In)?;
@@ -1462,6 +1475,9 @@ fn the_one_gate_definition_detector_refuses_a_script_it_cannot_read() {
         // `;;` is a syntax error outside a `case`, and a `case` is refused by
         // its `)`. Refusing both means nothing unmodelled is accepted.
         ("echo a;; echo b", "`;;`"),
+        // `>&2` is consumed; its input twin is refused, and the refusal says so
+        // rather than reporting a missing target.
+        ("cat 0<&1", "`<&`"),
         ("diff <(make gate) b", "process substitution"),
         ("echo 'unterminated", "unterminated single quote"),
         ("echo \"unterminated", "unterminated double quote"),

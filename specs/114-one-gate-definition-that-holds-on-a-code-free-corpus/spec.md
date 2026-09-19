@@ -645,6 +645,16 @@ syntax error in both `/bin/sh` ("syntax error near unexpected token `>`") and
 changed. Measured, not assumed, because the two readings are indistinguishable
 from the prose alone.
 
+A second pass named the input twin of `>&`. `>&2` is consumed, because it names
+no file and changes no command; `<&` reached the generic path and refused with
+"a redirection with no target", which is a true refusal giving a false reason.
+It is now refused by name and exercised, so no refusal path in the reader is
+left unverified. The other half of that pass, that the descriptor-strip branch
+leaves the quoted flag set, is correct and is not a defect: the branch guard
+requires that flag to be false. The reset is written beside the one next to it
+regardless, so the word's state is cleared in one place rather than left correct
+by a condition the reader has to re-derive.
+
 `invocations()`, the line-based scanner over `kit/Makefile` target bodies, was
 inspected and is **not** changed here. It has the same shape of gap, a quoted
 `spec-spine` mention inside an `echo` would be counted, and the gap is inert:
