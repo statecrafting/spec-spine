@@ -1881,7 +1881,16 @@ fn verify_runs_commands_and_reports_outcomes() {
 #[test]
 fn verify_json_is_a_verdict_envelope_that_agrees_with_the_exit_code() {
     let tmp = tempfile::tempdir().unwrap();
-    write_verify_spec(tmp.path(), "001-pass", "```verify:cli\ntrue\n```");
+    // The command writes to BOTH of its streams (spec 118 §3.5). With `true`
+    // here, as this fixture read until spec 118, the `expect` below could not
+    // fail: nothing was ever in front of the envelope for it to trip on. The
+    // markers are assembled by the child so they appear in its output and not in
+    // the command text the envelope echoes.
+    write_verify_spec(
+        tmp.path(),
+        "001-pass",
+        "```verify:cli\nprintf 'O%sT-F\\n' U; printf 'E%sR-F\\n' R >&2\n```",
+    );
     write_verify_spec(
         tmp.path(),
         "002-fail",
