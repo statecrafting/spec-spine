@@ -107,9 +107,8 @@ fn run_one(repo: &Path, command: &str, child_stack: &str, json: bool) -> Result<
     let pump = std::thread::spawn(move || {
         let _ = std::io::copy(&mut child_out, &mut std::io::stderr());
     });
-    if let Some(mut child_err) = child.stderr.take() {
-        let _ = std::io::copy(&mut child_err, &mut std::io::stderr());
-    }
+    let mut child_err = child.stderr.take().expect("stderr was piped");
+    let _ = std::io::copy(&mut child_err, &mut std::io::stderr());
 
     // The wait's result is held rather than propagated, so the join happens on
     // the failing path too. With `?` here the thread outlived a `wait` error,
