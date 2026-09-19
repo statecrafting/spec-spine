@@ -175,6 +175,16 @@ child to exit before reading would deadlock on exactly the verbose command this
 verb exists to run. Reading both streams concurrently with the child's execution
 is therefore a correctness requirement, not a performance preference.
 
+Forwarding and draining are separate obligations, and only the first of them
+may be given up. If the parent's stderr stops accepting bytes, the CLI MUST
+still read both child pipes to end-of-file, discarding what it cannot deliver,
+and MUST NOT close either pipe because a write failed. D-3 excuses delivering
+the bytes; nothing excuses draining the pipe, because a child blocked writing
+into a pipe nobody is reading never reaches an exit status, and the verdict is
+computed from exit statuses. For the same reason a transcript write under
+`--json` MUST NOT panic on a failed write. D-4 records what each of those cost
+when it was not done.
+
 The two streams are buffered independently by the operating system, and this
 spec promises **no** ordering between them. A command's interleaved stdout and
 stderr may appear on the parent's stderr in an order neither the command nor the
@@ -243,7 +253,15 @@ streams, which is the property 1.2 found missing:
    does not exist.
 5. Without `--json`, the child's stdout is on the parent's stdout and the
    transcript is there too: the preservation half of 3.4.
-6. An error path under `--json`: the `R-001` refusal of spec 049 3.7 puts one
+6. A consumer that reads the opening transcript line and then **closes** the
+   parent's stderr, with a bounded deadline, an asserted process status, and
+   the whole of stdout parsed as one envelope: a quiet successful command, a
+   command whose output exceeds a pipe buffer on its stdout, the same on its
+   stderr, and a failing command that keeps its own exit code and position and
+   still stops the block. An open-consumer control runs the same volume, so a
+   pass cannot be explained by a fixture that wrote nothing. The harness kills
+   and reaps on a timeout rather than leaving a hung fixture behind.
+7. An error path under `--json`: the `R-001` refusal of spec 049 3.7 puts one
    error envelope on stdout, carrying `error.kind: "validation"` and the
    `R-001` violation, with no `report` member and nothing else on the stream.
    The spawn-failure path is not tested, because making `sh` unspawnable is a
@@ -303,6 +321,52 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   code path everywhere, and 3.2's deadlock argument requires concurrency in any
   case.
 
+- **D-4 (2026-09-19): D-3 excuses delivering the bytes, never draining the
+  pipe.** The first implementation of D-3 read "abandon the forward" as "stop
+  reading", and that is a different promise. Measured on the merged
+  implementation at `71a423a`, with a consumer that reads the opening
+  transcript line and then closes the parent's stderr:
+
+  - a child writing ~1.3 MB to its stderr does not complete at all (killed at a
+    30 s deadline; the same child with the consumer open completes in ~0.5 s and
+    exits 0 with a valid envelope). `io::copy` returned on the first failed
+    write, the child's pipe was left undrained, the child blocked filling it,
+    and `child.wait()` blocked on the child.
+  - `sleep 0.2; true` exits **101** with an empty stdout. The `[verify] exit 0`
+    transcript line went through `eprintln!`, which unwraps its write, so the
+    process panicked before the envelope was produced.
+  - the same volume on the child's *stdout* exits **101** by a third route: the
+    forwarding thread owned its end of that pipe and dropped it on the failed
+    write, which handed the child an `EPIPE` and changed the child's own
+    outcome.
+
+  Each of those makes an undeliverable log decide the verdict, which is exactly
+  what D-3 forbids; the clause is not weakened here, it is implemented. So:
+  when the destination fails, both child pipes MUST still be read to
+  end-of-file with the undeliverable bytes discarded, neither pipe may be closed
+  because forwarding failed, and a transcript write under `--json` MUST NOT
+  panic on a failed write, for the reason spec 035 §3.2 gives about stdout.
+  Draining continues through a fixed buffer per stream, so §3.2's bound and its
+  concurrency requirement are unchanged.
+
+- **D-5 (2026-09-19): a destination failure, a forwarding panic and an
+  unreadable pipe are three facts, and the verb does not report them as one.**
+  The forwarding thread's join result was discarded, so a panic in it was
+  indistinguishable from a stderr that stopped accepting bytes. They are not the
+  same: a panic is a defect in this CLI and an unreadable pipe is an
+  operating-system failure, and in neither case is there evidence that the
+  parent's stderr failed. D-3 covers the first alone. The verb therefore keeps
+  the three outcomes distinct and, for the two D-3 does not cover, writes a
+  best-effort warning to stderr naming the stream and the condition (silent for
+  a destination failure, which by definition has nowhere to be reported).
+
+  **What is left open, deliberately:** whether a forwarding panic or an
+  unreadable child pipe should affect the acceptance verdict. Today none of the
+  three does, which preserves the shipped behaviour and D-3's reasoning for the
+  one case D-3 actually decided. Deciding the other two is a policy change
+  rather than a correction, it is not needed to fix what §1.1 and D-4 measured,
+  and it is left to a later spec.
+
 - **D-3 (2026-09-19): a failed write of the forwarded bytes is not a failure of
   the verb.** If writing a child's output to the parent's stderr fails, the
   forward is abandoned and the command's exit status is still read and reported.
@@ -332,7 +396,11 @@ names is not an assertion about the channel.
 # The block drives the release binary, and `cargo test` builds only debug
 # artifacts, so it is built first.
 cargo build --release --locked
-# 3.5: the channel regressions, and the existing end-to-end suite they extend.
+# 3.5, and D-4 + D-5's closed-consumer regressions, which live in the same file.
+# Of the four closed-consumer cases two fail at `71a423a` by exiting 101 and two
+# by hitting the suite's 30 s deadline, while the open-consumer control passes
+# there, so the suite distinguishes the correction from the fixture. The whole
+# file is run rather than a name filter, which would pass on matching nothing.
 cargo test -p spec-spine-cli --test verify_streams --locked
 cargo test -p spec-spine-cli --test cli --locked
 # 3.1 + 3.2 + 3.3, end to end on a passing command that writes to both streams:
@@ -356,6 +424,23 @@ T=$(mktemp -d) && mkdir -p "$T/specs/004-loop" && printf '\055\055\055\nid: "004
 # parent's stdout, and so is the transcript. Green at 5f95613 on purpose; this
 # line is what stops the correction from moving the prose mode too.
 T=$(mktemp -d) && mkdir -p "$T/specs/005-prose" && printf '\055\055\055\nid: "005-prose"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 005-prose\n\n## Verification\n\n\140\140\140verify:cli\nprintf %%sOISEOUTFIVE N; printf %%sOISEERRFIVE N >&2\n\140\140\140\n' > "$T/specs/005-prose/spec.md" && target/release/spec-spine --repo "$T" verify 005-prose > "$T/out" 2> "$T/err" && grep -q NOISEOUTFIVE "$T/out" && grep -q NOISEERRFIVE "$T/err" && grep -q 'verify. \$ printf %sOISEOUTFIVE N' "$T/out" && grep -q 'verify. exit 0' "$T/out" && grep -q 'passed (1 command(s))' "$T/out" && rm -rf "$T"
+# D-4 end to end, on a quiet successful command. The consumer reads the opening
+# transcript line and then closes the parent's stderr, so what is exercised is
+# completion rather than start-up. Red at `71a423a`, where the `[verify] exit 0`
+# line went through `eprintln!` and panicked: exit **101**, stdout empty. The
+# watchdog kills and reaps rather than leaving a hung fixture behind, and it is a
+# `threading.Timer` rather than `timeout(1)`, which macOS does not ship.
+T=$(mktemp -d) && mkdir -p "$T/specs/006-closed" && printf '\055\055\055\nid: "006-closed"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 006-closed\n\n## Verification\n\n\140\140\140verify:cli\nsleep 0.2; true\n\140\140\140\n' > "$T/specs/006-closed/spec.md" && python3 -c "import json,subprocess,threading; p=subprocess.Popen(['target/release/spec-spine','--repo','$T','verify','006-closed','--json'],stdout=subprocess.PIPE,stderr=subprocess.PIPE); f=p.stderr.readline(); assert f.startswith(b'[verify] '),f; p.stderr.close(); t=threading.Timer(30,p.kill); t.start(); o=p.communicate()[0]; t.cancel(); assert p.returncode==0,p.returncode; d=json.loads(o); assert d['report']['outcome']=='passed',d" && rm -rf "$T"
+# D-4's other half, on volume: ~1 MB on the child's stderr, well past any pipe
+# buffer. Red at `71a423a`, where `io::copy` returned on the first failed write
+# and left the pipe undrained while `wait` blocked on a child blocked filling it;
+# the watchdog fires and the assertion reads -9 rather than 0.
+T=$(mktemp -d) && mkdir -p "$T/specs/007-flood" && printf '\055\055\055\nid: "007-flood"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 007-flood\n\n## Verification\n\n\140\140\140verify:cli\nawk %sBEGIN{s=sprintf("%%1000s","");gsub(/ /,"X",s);for(i=0;i<1000;i++)print s}%s >&2\n\140\140\140\n' "'" "'" > "$T/specs/007-flood/spec.md" && python3 -c "import json,subprocess,threading; p=subprocess.Popen(['target/release/spec-spine','--repo','$T','verify','007-flood','--json'],stdout=subprocess.PIPE,stderr=subprocess.PIPE); f=p.stderr.readline(); assert f.startswith(b'[verify] '),f; p.stderr.close(); t=threading.Timer(30,p.kill); t.start(); o=p.communicate()[0]; t.cancel(); assert p.returncode==0,p.returncode; d=json.loads(o); assert d['report']['outcome']=='passed',d" && rm -rf "$T"
+# The control the two lines above are measured against: the same volume with the
+# consumer left open. Every byte is delivered and the verdict is the same one, so
+# a pass above cannot be explained by a fixture that never wrote anything. Green
+# at `71a423a` on purpose: preservation, not evidence.
+T=$(mktemp -d) && mkdir -p "$T/specs/008-open" && printf '\055\055\055\nid: "008-open"\ntitle: "T"\nstatus: approved\ncreated: "2026-09-19"\nsummary: "s"\n---\n# 008-open\n\n## Verification\n\n\140\140\140verify:cli\nawk %sBEGIN{s=sprintf("%%1000s","");gsub(/ /,"X",s);for(i=0;i<1000;i++)print s}%s >&2\n\140\140\140\n' "'" "'" > "$T/specs/008-open/spec.md" && target/release/spec-spine --repo "$T" verify 008-open --json > "$T/out" 2> "$T/err" && python3 -c "import json,os; d=json.load(open('$T/out')); assert d['report']['outcome']=='passed',d; n=os.path.getsize('$T/err'); assert n>1000000,n" && rm -rf "$T"
 # The seam spec 049 3.1 draws is still drawn: the engine spawns nothing.
 test "$(grep -rl 'std::process::Command' crates/spec-spine-core/src crates/spec-spine-types/src | wc -l | tr -d ' ')" = "0"
 ```

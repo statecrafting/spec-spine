@@ -15,6 +15,7 @@
 //! `verify` is not part of the gate chain, which runs on branches whose
 //! contents are in the general case a stranger's.
 
+use std::io::{ErrorKind, Read, Write};
 use std::path::Path;
 use std::process::{Command, ExitStatus, Stdio};
 
@@ -53,10 +54,109 @@ const RE_ENTRY_CODE: &str = "R-001";
 /// likely to be produced in.
 fn transcript(json: bool, args: std::fmt::Arguments<'_>) {
     if json {
-        eprintln!("{args}");
+        diagnostic(args);
     } else {
         out::line(args);
     }
+}
+
+/// Write one line to the parent's stderr, best effort.
+///
+/// `eprintln!` unwraps its write, so a consumer that read the opening
+/// transcript line and then closed the parent's stderr made `verify --json`
+/// exit **101** with an empty stdout: the next `[verify] exit 0` panicked
+/// before the envelope was written. That is spec 035 §3.2's argument about
+/// stdout, met again on the channel spec 118 §3.3 moved this mode's
+/// diagnostics to, and it has the same answer. A diagnostic that cannot be
+/// delivered is dropped; it never decides the verdict and it never decides the
+/// exit code (spec 118 D-3).
+fn diagnostic(args: std::fmt::Arguments<'_>) {
+    let stderr = std::io::stderr();
+    let mut handle = stderr.lock();
+    let _ = writeln!(handle, "{args}");
+}
+
+/// The size of the drain buffer. Fixed, so spec 118 §3.2's bound holds: the
+/// verb does not grow with the child's output.
+const DRAIN_BUF: usize = 16 * 1024;
+
+/// How a drain of one child stream ended (spec 118 D-5).
+///
+/// The three are deliberately not one value. Spec 118 D-3 excuses exactly one
+/// of them, and reporting the other two as that one would assert something
+/// about the parent's stderr that was never observed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Drained {
+    /// Read to EOF, every byte delivered to the parent's stderr.
+    Delivered,
+    /// Read to EOF, but the parent's stderr stopped accepting bytes partway and
+    /// the remainder was discarded. This is the condition spec 118 D-3 names.
+    Discarded,
+    /// The pipe could not be read to EOF. Nothing is known about what the child
+    /// still had to say, and D-3 does not speak to this case.
+    InputFailed,
+}
+
+/// Read `src` to end-of-file, writing what it yields to the parent's stderr and
+/// discarding the rest once stderr stops accepting bytes (spec 118 D-3, D-4).
+///
+/// Reading continues past a destination failure, and that is the whole point.
+/// An `io::copy` returns on the first failed write, which left the child's pipe
+/// undrained while `wait` blocked on the child: a command writing more than a
+/// pipe buffer then blocked on its own write forever, and `verify` hung with
+/// it. Measured at `71a423a`: a child writing ~1.3 MB to stderr completes in
+/// ~0.5 s with the consumer open and does not complete at all once the consumer
+/// closes. Draining to EOF costs nothing when the destination is healthy and is
+/// the only thing that lets the child finish when it is not.
+///
+/// The pipe is not closed early either. Dropping it would hand the child an
+/// `EPIPE` on its next write and turn a failure to deliver logs into a change
+/// of the child's exit status, which is precisely the outcome spec 118 D-3
+/// forbids: the verdict is computed from exit statuses, so it must not depend
+/// on whether the parent could write its logs anywhere.
+///
+/// Memory stays bounded: one fixed buffer per stream, nothing accumulated,
+/// which is the same guarantee `io::copy` gave and spec 118 §3.2 requires.
+fn drain_to_stderr<R: Read>(src: &mut R) -> Drained {
+    let mut buf = [0u8; DRAIN_BUF];
+    let mut outcome = Drained::Delivered;
+    loop {
+        let n = match src.read(&mut buf) {
+            Ok(0) => return outcome,
+            Ok(n) => n,
+            Err(e) if e.kind() == ErrorKind::Interrupted => continue,
+            Err(_) => return Drained::InputFailed,
+        };
+        if outcome == Drained::Delivered {
+            let stderr = std::io::stderr();
+            let mut handle = stderr.lock();
+            if handle.write_all(&buf[..n]).is_err() {
+                outcome = Drained::Discarded;
+            }
+        }
+    }
+}
+
+/// Say, on stderr, what a drain that was neither complete nor merely
+/// undeliverable actually was.
+///
+/// `Discarded` is silent on purpose: it means the parent's stderr is gone, so
+/// there is no channel left to report it on, and spec 118 D-3 already rules it
+/// out as a failure of the verb. The other two are different facts. A thread
+/// that panicked is a defect in this CLI, and a pipe that could not be read is
+/// an operating-system failure; neither is evidence that the parent's stderr
+/// stopped accepting bytes, and stderr is very likely still working, so the
+/// verb says so rather than filing all three under D-3. None of the three
+/// changes the verdict, which spec 118 D-3 computes from exit statuses alone.
+fn note_drain(stream: &str, command: &str, drained: &std::thread::Result<Drained>) {
+    let what = match drained {
+        Ok(Drained::Delivered | Drained::Discarded) => return,
+        Ok(Drained::InputFailed) => "could not be read to end",
+        Err(_) => "forwarding panicked",
+    };
+    diagnostic(format_args!(
+        "[verify] warning: the child's {stream} {what} while running `{command}`; its output is incomplete and the verdict is unaffected"
+    ));
 }
 
 /// Run one acceptance command from the repository root and return its status.
@@ -78,10 +178,14 @@ fn transcript(json: bool, args: std::fmt::Arguments<'_>) {
 /// are buffered independently, so their interleaving is not preserved; spec 118
 /// §3.2 promises no ordering between them for exactly that reason.
 ///
-/// A failed write of the forwarded bytes abandons that forward and is not a
-/// failure of the verb (spec 118 D-3, following spec 035 §3.3): a process whose
-/// stderr has gone has no channel left to report the fact, and the verdict is
-/// computed from exit statuses, which are unaffected.
+/// A failed write of the forwarded bytes discards the rest of that stream and
+/// is not a failure of the verb (spec 118 D-3, following spec 035 §3.3): a
+/// process whose stderr has gone has no channel left to report the fact, and
+/// the verdict is computed from exit statuses, which are unaffected. Reading
+/// does not stop with delivery, and neither pipe is closed early: spec 118 D-4
+/// separates the obligation to deliver the bytes, which D-3 excuses, from the
+/// obligation to drain the pipe, which nothing excuses, because a child blocked
+/// on a pipe nobody is reading never reaches an exit status at all.
 fn run_one(repo: &Path, command: &str, child_stack: &str, json: bool) -> Result<ExitStatus, Error> {
     let mut cmd = Command::new("sh");
     cmd.arg("-c")
@@ -102,21 +206,26 @@ fn run_one(repo: &Path, command: &str, child_stack: &str, json: bool) -> Result<
         .map_err(|e| Error::Io(format!("cannot run `{command}`: {e}")))?;
 
     // The child's stdout gets a thread of its own; its stderr is drained on
-    // this one. Two readers, so neither pipe can block the other.
+    // this one. Two readers, so neither pipe can block the other, and each
+    // reads to EOF whether or not its bytes can be delivered.
     let mut child_out = child.stdout.take().expect("stdout was piped");
-    let pump = std::thread::spawn(move || {
-        let _ = std::io::copy(&mut child_out, &mut std::io::stderr());
-    });
+    let pump = std::thread::spawn(move || drain_to_stderr(&mut child_out));
     let mut child_err = child.stderr.take().expect("stderr was piped");
-    let _ = std::io::copy(&mut child_err, &mut std::io::stderr());
+    let err_drained = Ok(drain_to_stderr(&mut child_err));
 
     // The wait's result is held rather than propagated, so the join happens on
     // the failing path too. With `?` here the thread outlived a `wait` error,
     // and the ordering this comment claims held on every path but that one.
+    //
+    // Both drains have reached EOF before the wait, so the child cannot be
+    // blocked on a full pipe here no matter how much it wrote or where those
+    // bytes ended up.
     let waited = child.wait();
     // Joined before returning, so every forwarded byte is on stderr ahead of
     // this command's `exit` line and the next command's transcript.
-    let _ = pump.join();
+    let out_drained = pump.join();
+    note_drain("stdout", command, &out_drained);
+    note_drain("stderr", command, &err_drained);
     let status = waited.map_err(|e| Error::Io(format!("cannot wait for `{command}`: {e}")))?;
     Ok(status)
 }
