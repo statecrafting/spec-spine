@@ -690,10 +690,21 @@ impl Tree {
     /// cancellation, so the supervisor can tell that cleanup from the ordinary
     /// one.
     fn cancelled_reap(&self, status: std::process::ExitStatus) {
-        *self.lock() = TreeState::Reaped {
-            status,
-            after_cancel: true,
-        };
+        let mut guard = self.lock();
+        match *guard {
+            // The only legal predecessor: `publish` set it on this same thread,
+            // and nothing else writes it. Refused rather than overwritten, and
+            // in every build rather than only in debug, because an unconditional
+            // write here would answer a mis-call with a plausible
+            // `Reaped { after_cancel: true }` that no state ever passed through.
+            TreeState::CancellingSpawn(_) => {
+                *guard = TreeState::Reaped {
+                    status,
+                    after_cancel: true,
+                };
+            }
+            other => unreachable!("a cancelled reap follows a cancelled spawn, not {other:?}"),
+        }
     }
 
     /// Terminate the tree, from any thread, and **record the request** whether

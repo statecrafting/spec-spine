@@ -701,10 +701,15 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   `AlreadyReaped`. Every state transition is matched exhaustively, with the
   states a transition cannot legitimately be in refused rather than absorbed by
   a wildcard: a `_` arm on `publish` overwrote a live or reaped pid with a
-  `Live` that had no process behind it and answered `Proceed`. The reaping
-  assertion in `a_broken_inner_deadline_is_terminated_by_the_outer_supervisor`
-  is kept rather than relaxed: it is the `Reaped` arm, and each of the other
-  four is its own named failure.
+  `Live` that had no process behind it and answered `Proceed`, and an
+  unconditional write in `cancelled_reap` would have answered a mis-call with a
+  plausible `Reaped { after_cancel: true }` that no state ever passed through.
+  The refusals hold in every build rather than only where assertions are
+  compiled in, since a state machine that is sound only in debug is not one. The
+  reaping assertion in
+  `a_broken_inner_deadline_is_terminated_by_the_outer_supervisor` is kept rather
+  than relaxed: it is the `Reaped` arm, and each of the other five is its own
+  named failure.
 
   **The regressions are synchronised, not timed.** Each of the three orderings
   is produced by holding the worker at a rendezvous placed at the exact point
