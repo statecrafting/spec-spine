@@ -502,6 +502,16 @@ enum TreeState {
     /// here does not spawn at all, and a worker that has already spawned when
     /// it reaches publication terminates and reaps what it started.
     Cancelled,
+    /// A cancellation was found at publication, and the leader that had just
+    /// been created is being terminated and reaped **by its spawner**, which is
+    /// the only holder of its `Child`.
+    ///
+    /// This is a state of its own rather than more `Cancelled` because a
+    /// process exists in it. Folded into `Cancelled` it read back as "nothing
+    /// was ever started", which is one of the three answers this type exists to
+    /// keep apart, told about the wrong one. The window is short (the `wait` it
+    /// covers follows a `SIGKILL`) and it is still a window.
+    CancellingSpawn(u32),
     /// Spawned and **unreaped**. The pid is the process-group id, and while the
     /// leader is unreaped that pid cannot be recycled, so signalling the
     /// negative of it cannot reach some other tree.
@@ -564,6 +574,12 @@ enum Cleanup {
     /// spawned, found the cancellation at publication, and terminated and
     /// reaped what it had started.
     CancelledThenCleanedUp(std::process::ExitStatus),
+    /// Cancellation was recorded before publication, the worker spawned into
+    /// it, and its cleanup of that leader had not finished when the grace
+    /// expired. A process existed: this is **not** `NeverStarted`, and the
+    /// difference matters, because one says the supervisor found nothing to
+    /// terminate and the other says a termination is still in flight.
+    CancelledCleanupInFlight(u32),
     /// The leader had already been reaped by its owner before the supervisor
     /// asked. Nothing was signalled, and nothing needed to be.
     AlreadyReaped(std::process::ExitStatus),
@@ -577,7 +593,9 @@ impl Cleanup {
             Cleanup::Reaped(status)
             | Cleanup::CancelledThenCleanedUp(status)
             | Cleanup::AlreadyReaped(status) => Some(*status),
-            Cleanup::SignalledNotReaped | Cleanup::NeverStarted => None,
+            Cleanup::SignalledNotReaped
+            | Cleanup::NeverStarted
+            | Cleanup::CancelledCleanupInFlight(_) => None,
         }
     }
 }
@@ -628,8 +646,11 @@ impl Tree {
     /// re-reads the state after the process exists.
     fn may_spawn(&self) -> Permit {
         match *self.lock() {
+            TreeState::Unspawned => Permit::Proceed,
             TreeState::Cancelled => Permit::Cancelled,
-            _ => Permit::Proceed,
+            TreeState::CancellingSpawn(_) | TreeState::Live(_) | TreeState::Reaped { .. } => {
+                unreachable!("a tree is spawned into once")
+            }
         }
     }
 
@@ -643,10 +664,24 @@ impl Tree {
     fn publish(&self, pid: u32) -> Permit {
         let mut guard = self.lock();
         match *guard {
-            TreeState::Cancelled => Permit::Cancelled,
-            _ => {
+            TreeState::Unspawned => {
                 *guard = TreeState::Live(pid);
                 Permit::Proceed
+            }
+            TreeState::Cancelled => {
+                // A process exists from here until the spawner's reap
+                // publishes `Reaped`. Leaving the state at `Cancelled` across
+                // that `wait` would have it read back as "nothing was ever
+                // started".
+                *guard = TreeState::CancellingSpawn(pid);
+                Permit::Cancelled
+            }
+            // A wildcard here would silently overwrite a live or reaped pid
+            // with a `Live` that has no process behind it, and answer
+            // `Proceed`. These states are refused for the same reason
+            // `terminate` and `poll_exit` refuse them.
+            TreeState::CancellingSpawn(_) | TreeState::Live(_) | TreeState::Reaped { .. } => {
+                unreachable!("a tree is published into once")
             }
         }
     }
@@ -672,6 +707,12 @@ impl Tree {
         let mut guard = self.lock();
         match *guard {
             TreeState::Live(pid) => {
+                // The state is left `Live`: the worker owns the reap, and
+                // publishing `Reaped` here without the `wait` that produced it
+                // is the very thing this type forbids. Re-entering is
+                // deliberate and safe. A second `SIGKILL` at an unreaped
+                // leader is idempotent, and the pid cannot have been recycled
+                // while it is unreaped, so the group is still this fixture's.
                 signal_fixture_group(pid);
                 CancelOutcome::Signalled
             }
@@ -681,6 +722,11 @@ impl Tree {
             }
             // Already cancelled: the record is there and still binds.
             TreeState::Cancelled => CancelOutcome::Recorded,
+            // The spawner has already signalled this group and is reaping it.
+            // Signalling again would be safe, since the leader is unreaped, but
+            // it is the spawner's cleanup to finish and nothing here hurries
+            // it.
+            TreeState::CancellingSpawn(_) => CancelOutcome::Recorded,
             // The one state in which signalling would be unsafe: the pid may
             // since have been recycled onto somebody else's tree.
             TreeState::Reaped { status, .. } => CancelOutcome::AlreadyReaped(status),
@@ -718,6 +764,7 @@ impl Tree {
                 after_cancel: false,
             } => Cleanup::Reaped(status),
             TreeState::Live(_) => Cleanup::SignalledNotReaped,
+            TreeState::CancellingSpawn(pid) => Cleanup::CancelledCleanupInFlight(pid),
             TreeState::Cancelled | TreeState::Unspawned => Cleanup::NeverStarted,
         }
     }
@@ -857,7 +904,7 @@ impl Fixture {
                 };
                 status
             }
-            TreeState::Unspawned | TreeState::Cancelled => {
+            TreeState::Unspawned | TreeState::Cancelled | TreeState::CancellingSpawn(_) => {
                 unreachable!("a Fixture exists only once its leader has been published")
             }
         }
@@ -880,7 +927,7 @@ impl Fixture {
                 }
                 None => None,
             },
-            TreeState::Unspawned | TreeState::Cancelled => {
+            TreeState::Unspawned | TreeState::Cancelled | TreeState::CancellingSpawn(_) => {
                 unreachable!("a Fixture exists only once its leader has been published")
             }
         }
@@ -1470,6 +1517,11 @@ fn a_broken_inner_deadline_is_terminated_by_the_outer_supervisor() {
                  live tree ({status:?}); this case is the after-publication ordering, and the \
                  pre-publication ones have their own cases"
             ),
+            Cleanup::CancelledCleanupInFlight(pid) => panic!(
+                "the cancellation was recorded before publication and the spawner's cleanup of \
+                 leader {pid} was still in flight after {OUTER_GRACE:?}; this case is the \
+                 after-publication ordering, and the pre-publication ones have their own cases"
+            ),
             Cleanup::AlreadyReaped(status) => panic!(
                 "the leader was already reaped when the supervisor acted ({status:?}), so the \
                  supervisor's own termination was not what ended this fixture"
@@ -1950,4 +2002,58 @@ fn a_cancellation_after_publication_is_signalled_and_reaped_by_the_worker() {
          side effect at {}",
         marker.display()
     );
+}
+
+/// The window between a spawner finding a cancellation and finishing its reap
+/// is one in which a **process exists**, and it must not read back as one in
+/// which none ever did.
+///
+/// The `wait` that window covers follows a `SIGKILL` and is therefore short,
+/// which is why folding it into `Cancelled` did not show up in the orderings
+/// above: `run.collect()` returns after the reap, so those cases only ever see
+/// the state on the far side of it. A supervisor's grace can expire inside it,
+/// and `NeverStarted` would then tell it there had been nothing to terminate.
+///
+/// Driven directly on the state machine, with no process: what is under test is
+/// the reading, and a fixture would only reintroduce the timing that hides it.
+#[test]
+#[cfg(unix)]
+fn a_spawners_cleanup_in_flight_does_not_read_as_nothing_started() {
+    let tree = Tree::new();
+    assert!(matches!(tree.cleanup(), Cleanup::NeverStarted));
+    assert!(matches!(tree.cancel(), CancelOutcome::Recorded));
+    assert!(
+        matches!(tree.cleanup(), Cleanup::NeverStarted),
+        "a cancellation with nothing spawned under it is still nothing started"
+    );
+
+    // What `Fixture::spawn` does on finding the cancellation at publication,
+    // minus the process: the pid is recorded, and the reap that follows it has
+    // not happened yet.
+    assert_eq!(tree.publish(4242), Permit::Cancelled);
+    match tree.cleanup() {
+        Cleanup::CancelledCleanupInFlight(pid) => assert_eq!(pid, 4242),
+        other => panic!("a spawner's cleanup in flight must not read as {other:?}"),
+    }
+    // A supervisor asking again here must not signal: the spawner has already
+    // signalled this group and owns the reap. Nothing in this case may reach
+    // pid 4242, which belongs to whoever happens to hold it.
+    assert!(matches!(tree.cancel(), CancelOutcome::Recorded));
+    assert_eq!(
+        tree.cleanup().reaped(),
+        None,
+        "nothing has been reaped while the cleanup is still in flight"
+    );
+
+    // And the spawner's reap closes it.
+    let reaped = Command::new("/bin/sh")
+        .arg("-c")
+        .arg("exit 3")
+        .status()
+        .unwrap();
+    tree.cancelled_reap(reaped);
+    match tree.cleanup() {
+        Cleanup::CancelledThenCleanedUp(status) => assert_eq!(status.code(), Some(3)),
+        other => panic!("the spawner's reap must close the in-flight state, got {other:?}"),
+    }
 }

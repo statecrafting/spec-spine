@@ -304,7 +304,10 @@ streams, which is the property 1.2 found missing:
    rather than having exited on its own, that it was reaped and by whom, and
    that a descendant's delayed side effect does not occur, checked past the
    moment it was scheduled for. Cleanup is a `Drop` guard, so a failing
-   assertion leaves no fixture behind (D-8).
+   assertion leaves no fixture behind. A further case asserts the reading of the
+   window between a spawner finding a cancellation and finishing its reap, in
+   which a process exists: it is driven on the state machine directly, because a
+   fixture would reintroduce the timing that hides it (D-8).
 
 In `tests/cli.rs`, the existing envelope case gains a fixture whose command
 writes to both streams, so the `"stdout is one JSON envelope"` expectation it
@@ -653,17 +656,24 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   afterwards, which the harness would not have done.
 
   **The lifecycle, and who cleans up in each ordering.** `TreeState` gains
-  `Unspawned` and `Cancelled` alongside `Live` and `Reaped`, so the states cover
-  start-up rather than beginning at the first publication:
+  `Unspawned`, `Cancelled` and `CancellingSpawn` alongside `Live` and `Reaped`,
+  so the states cover start-up rather than beginning at the first publication:
 
   1. **Cancelled before the spawn.** `Unspawned` becomes `Cancelled`, and the
      worker's pre-spawn check refuses to spawn at all. No process is created, so
      nobody owns cleanup.
   2. **Cancelled between the spawn and publication.** `Cancelled` is still the
-     state when the worker reaches publication, so publication is refused. The
-     worker holds the only `Child` and is therefore the only party that can
-     `wait`: **it** signals the group and reaps the leader before returning, and
-     records that reap as `Reaped { after_cancel: true }`.
+     state when the worker reaches publication, so publication is refused and
+     the state becomes `CancellingSpawn(pid)`. The worker holds the only `Child`
+     and is therefore the only party that can `wait`: **it** signals the group
+     and reaps the leader before returning, and records that reap as
+     `Reaped { after_cancel: true }`. `CancellingSpawn` is a state of its own
+     rather than more `Cancelled` because **a process exists in it**. Folded
+     into `Cancelled`, a supervisor whose grace expired during that `wait` read
+     back `NeverStarted`, which is one of the three answers this type exists to
+     keep apart, told about the wrong one. The window is short, since the `wait`
+     follows a `SIGKILL`, and it is still a window, so it is named
+     (`Cleanup::CancelledCleanupInFlight`) rather than acknowledged.
   3. **Cancelled after publication.** Unchanged, and kept under a case of its
      own. The supervisor signals the live group; the signal closes the pipes the
      worker is blocked on, and the worker reaps its own leader.
@@ -687,7 +697,11 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   worker that had not yet spawned anything all read `reaped: None`. Two of those
   are defects in different halves of the harness and the third is not a defect.
   A `Cleanup` enum names them apart: `Reaped`, `SignalledNotReaped`,
-  `NeverStarted`, `CancelledThenCleanedUp` and `AlreadyReaped`. The reaping
+  `NeverStarted`, `CancelledThenCleanedUp`, `CancelledCleanupInFlight` and
+  `AlreadyReaped`. Every state transition is matched exhaustively, with the
+  states a transition cannot legitimately be in refused rather than absorbed by
+  a wildcard: a `_` arm on `publish` overwrote a live or reaped pid with a
+  `Live` that had no process behind it and answered `Proceed`. The reaping
   assertion in `a_broken_inner_deadline_is_terminated_by_the_outer_supervisor`
   is kept rather than relaxed: it is the `Reaped` arm, and each of the other
   four is its own named failure.
@@ -706,8 +720,15 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   **Each injected defect was measured.** With the recording removed from the
   pre-publication arm, orderings 1 and 2 fail and ordering 3 passes; with the
   group signal in the spawner's cleanup replaced by a leader-only kill, ordering
-  2 fails on the descendant's side effect. No fixture process survived either
-  failing run.
+  2 fails on the descendant's side effect; with `CancellingSpawn` collapsed back
+  into `Cancelled`, the in-flight case fails on `NeverStarted`. No fixture
+  process survived any failing run.
+
+  The in-flight reading is asserted directly on the state machine, with no
+  process behind it. The `wait` it covers is short enough that a fixture case
+  only ever sees the state on the far side of it, so driving a fixture would
+  reintroduce exactly the timing that hides the defect; what is under test is
+  the reading.
 
   **D-5 is untouched**, and so is every requirement in 3: this is the harness
   and nothing else.
