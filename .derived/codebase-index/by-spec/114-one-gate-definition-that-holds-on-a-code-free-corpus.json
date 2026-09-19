@@ -114,8 +114,8 @@
       }
     ],
     "specId": "114-one-gate-definition-that-holds-on-a-code-free-corpus",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "a952c3d3df4ed05b8e457f0c68bcbe16099685aee6929a9df216df78b1fc6535"
+  "shardHash": "6c2560188af38c3c0cfa8fae6ea6dfff94411d0b0adbd5bfc3bed58a675263c3"
 }

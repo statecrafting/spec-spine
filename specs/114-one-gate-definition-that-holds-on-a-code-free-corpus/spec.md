@@ -1,7 +1,7 @@
 ---
 id: "114-one-gate-definition-that-holds-on-a-code-free-corpus"
 title: "One gate definition, and it holds on a code-free corpus"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-17"
 summary: >
