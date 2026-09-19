@@ -294,6 +294,21 @@ rather than reporting the commands it managed to find: an invocation hidden
 inside a construct the reader stepped over is reported as a step that invokes
 nothing, which is the same false answer pointing the other way. D-17.
 
+Refusing a construct it does not model includes refusing an **operand** it does
+not model. Where the reader consumes a redirection form that names no file, an
+output descriptor duplication (`>&`), it MUST read that form's operand and MUST
+accept only the two operands it models: a run of one or more ASCII digits, and a
+bare `-`. An operand that is missing, one that carries a tail (`>&2abc`), and a
+form only some shells accept (`>&word`) MUST be refused, and the refusal MUST
+name what is wrong with the operand rather than report a missing redirection
+target. Consuming a run of **zero** operand characters as if the form were
+well-spelled clears the pending redirection and hands the caller a command the
+script does not contain: `make gate COUPLE=0 >&` is a syntax error to every
+shell the kit runs under, and it read as a clean invocation of the gate target.
+The test MUST carry the missing operand at more than one token boundary, so a
+correction cannot be an end-of-input special case, and MUST carry the supported
+operands as positive controls so the refusal does not swallow them. D-18.
+
 The two further assertions built on the same reader hold on the same terms: the
 one counting restated `spec-spine` verbs MUST NOT count a verb inside a quoted
 string, and the one matching `PR_BODY` against the file the step writes MUST NOT
@@ -665,6 +680,47 @@ makes `every_kit_gate_invocation_names_a_real_verb` fail loudly on the invented
 verb. It is spec 064's helper and its territory; recorded as measured, not as
 fixed.
 
+D-18 (2026-09-18, why the descriptor duplication reads its operand). The
+correction merged at `5f251d6` consumed `>&` before looking at what followed it:
+the branch advanced past the `&`, consumed a run of digits and `-` characters,
+and then cleared the pending redirection unconditionally, on the reasoning that
+a duplication names no file. A run of **zero** such characters took that same
+path. Independent review reproduced the consequence through §3.4's YAML fixture
+path: `run: make gate COUPLE=0 >&` parsed to the single command
+`make gate COUPLE=0` with no redirect, and `gate_invocation` answered
+`Some({"COUPLE": "0"})`. `/bin/sh`, `dash` and `zsh` each reject that script as a
+syntax error at the newline, measured with `-n` rather than by executing it. A
+script no runner can run was satisfying the assertion that a leg invokes the one
+gate definition, which is D-17's defect surviving in the one branch that steps
+over characters instead of reading them.
+
+The supported operands are now stated rather than assumed: a run of one or more
+ASCII digits, which duplicates that descriptor, and a bare `-`, which closes the
+redirected one. Those are the two POSIX spells, and the shipped `kit/govern.yml`
+uses the first. The operand is read to the next token boundary first, so a tail
+is seen rather than left behind as a word of the command: `>&2abc` was consuming
+`2` and contributing `abc` to the command's words, which is a second way to
+manufacture a command the script does not contain. Missing, malformed
+(`>&2abc`, `>&-2`, `>&2-`) and unsupported (`>&word`, and `>& word` with the
+space) are all refused, each naming its operand.
+
+`>>&` is refused in the same correction and for the same reason, not as
+unrelated tidying: it reached the duplication branch because the reader consumed
+an optional second `>` before testing for `&`, so `>>&2` read as a well-formed
+duplication. `dash` calls it a syntax error ("`&` unexpected") and so does
+`bash`; accepting what both shells reject is the same class of error D-17
+recorded for `;;`.
+
+Boundary cases were measured rather than reasoned about, because the first
+correction's hole was exactly an unexamined boundary. The missing operand is
+exercised at end of input, before a newline, before `;` and before `|`, so the
+fix cannot be an end-of-input special case, and the supported operands are
+exercised at those same boundaries so the refusal does not swallow them. The
+shell syntax checks are supporting evidence only: `dash -n` accepts `>&2abc`,
+which it rejects at run time instead, so the reader is deliberately stricter
+than a syntax check here. It refuses what it does not model, which is the
+standing posture of D-17 and not a new claim.
+
 
 ## Verification
 
@@ -695,6 +751,16 @@ so it is read in two halves and labelled as such.
 | `! grep` for the unquoted split | red: `split(['\|', ';', '&'])` is the merged detector's own line |
 | the restatement half | red as measured directly: `spec_spine_verbs("echo 'a; spec-spine check --fail-on-unresolved --fail-on-warn'")` answered `["check"]` |
 | the redirection half | red as measured directly: with `normalize_redirects`, `echo "wrote > $RUNNER_TEMP/pr-body.txt"` satisfied "the step writes this file" |
+
+**Fail-first evidence for the descriptor-duplication correction**, measured on
+2026-09-18 at `5f251d6`, the merged first correction (D-18):
+
+| Line | At `5f251d6` |
+|---|---|
+| `the_one_gate_definition_detector_refuses_an_unmodelled_descriptor_duplication` | red on its first negative: `make gate COUPLE=0 >&` parsed to `[ShellCommand { words: ["make", "gate", "COUPLE=0"], redirects: [] }]`, where a refusal is required |
+| the same fixture through the §3.4 path | red: `gate_invocation` answered `Some({"COUPLE": "0"})` for a step whose script `/bin/sh`, `dash` and `zsh` all reject with a syntax error at the newline (`dash -n`: "Syntax error: newline unexpected") |
+| `>>&2` | red: accepted as a well-formed duplication, which `dash -n` rejects as a syntax error at the `&` |
+| the supported operands (`>&2`, `>&-`, `2>&1`, `>&10`) | green at `5f251d6` and green after: preservation, not evidence |
 
 The two named tests were run against the merged algorithm restored in place, and
 against the correction: 3 red of 19 there, 19 green here. The third red,
@@ -769,6 +835,9 @@ grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss114-defs.txt"
 # two tests carry.
 grep -qF 'the_one_gate_definition_detector_reads_shell_quoting_not_raw_separators ... ok' "${TMPDIR:-/tmp}/ss114-defs.txt"
 grep -qF 'the_one_gate_definition_detector_refuses_a_script_it_cannot_read ... ok' "${TMPDIR:-/tmp}/ss114-defs.txt"
+# 3.4 + D-18: and it refuses an output descriptor duplication whose operand it
+# does not model, which is the form that got past the first correction.
+grep -qF 'the_one_gate_definition_detector_refuses_an_unmodelled_descriptor_duplication ... ok' "${TMPDIR:-/tmp}/ss114-defs.txt"
 # And the split that manufactured the invocation is gone. Red at `bd0fa40`,
 # where that expression is the detector's own line (D-17).
 ! grep -qF "split(['|', ';', '&'])" crates/spec-spine-core/tests/kit_gate.rs

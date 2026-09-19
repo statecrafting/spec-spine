@@ -785,6 +785,44 @@ impl ScriptReader {
         Ok(())
     }
 
+    /// Read the operand of an output descriptor duplication: the `2` of `>&2`,
+    /// with `>&` already consumed.
+    ///
+    /// Two operands are supported, which are the two POSIX spells: a run of one
+    /// or more ASCII digits duplicates that descriptor, and a bare `-` closes
+    /// the redirected one. Neither names a file, so a well-formed duplication
+    /// leaves the command exactly as it found it, and the redirection it opened
+    /// takes no target word.
+    ///
+    /// Everything else is refused: an operand that is missing, one that carries
+    /// a tail (`>&2abc`, `>&-2`), and the `>&word` redirect-to-file that only
+    /// some shells accept. The operand is read to the next token boundary
+    /// first, so a tail is seen rather than left behind as a word of the
+    /// command. Consuming a run of zero descriptor characters as if it were
+    /// `>&2` is what let `make gate COUPLE=0 >&`, a syntax error to every shell
+    /// the kit runs under, read as a clean invocation of the gate target
+    /// (114 D-18).
+    fn output_duplication(&mut self) -> Result<(), String> {
+        let mut operand = String::new();
+        while let Some(c) = self.at(0) {
+            if c.is_whitespace() || matches!(c, ';' | '|' | '&' | '<' | '>' | '(' | ')') {
+                break;
+            }
+            operand.push(c);
+            self.i += 1;
+        }
+        if operand.is_empty() {
+            return Err("an output descriptor duplication (`>&`) with no descriptor".to_string());
+        }
+        if operand != "-" && !operand.chars().all(|c| c.is_ascii_digit()) {
+            return Err(format!(
+                "an output descriptor duplication operand (`{operand}`) that is neither a descriptor number nor `-`"
+            ));
+        }
+        self.pending = Pending::Word;
+        Ok(())
+    }
+
     fn single_quoted(&mut self) -> Result<(), String> {
         self.i += 1;
         loop {
@@ -917,16 +955,22 @@ impl ScriptReader {
                 '>' => {
                     self.open_redirect(Pending::Out)?;
                     self.i += 1;
-                    if self.at(0) == Some('>') {
+                    let appending = self.at(0) == Some('>');
+                    if appending {
                         self.i += 1;
                     }
-                    // `>&2` duplicates a descriptor; it names no file.
+                    // `>&2` duplicates a descriptor; it names no file. Its
+                    // operand decides that, so the operand is read and checked
+                    // rather than assumed (114 D-18).
                     if self.at(0) == Some('&') {
-                        self.i += 1;
-                        while matches!(self.at(0), Some(d) if d.is_ascii_digit() || d == '-') {
-                            self.i += 1;
+                        if appending {
+                            return Err(
+                                "an appending descriptor duplication (`>>&`) is not supported"
+                                    .to_string(),
+                            );
                         }
-                        self.pending = Pending::Word;
+                        self.i += 1;
+                        self.output_duplication()?;
                     }
                 }
                 '<' if self.at(1) == Some('<') => {
@@ -1511,4 +1555,112 @@ fn the_one_gate_definition_detector_refuses_a_script_it_cannot_read() {
                 });
         }
     }
+}
+
+/// §3.4 + D-18: an output descriptor duplication is read by its operand, and an
+/// operand the reader does not model is refused rather than dropped.
+///
+/// `>&` was consumed as "duplicates a descriptor, names no file" before its
+/// operand was looked at, so a run of **zero** descriptor characters cleared the
+/// pending redirection just as `>&2` does. `make gate COUPLE=0 >&` is a syntax
+/// error to `/bin/sh`, `dash` and `zsh` alike, and the reader read it as a
+/// clean invocation of the gate target: a script no runner can run satisfied the
+/// assertion that a leg invokes the one gate definition.
+///
+/// The supported operands are the two POSIX spells: a run of one or more ASCII
+/// digits (`>&2`, duplicate that descriptor) and exactly `-` (`>&-`, close).
+/// Everything else, missing, malformed, or a form only some shells accept, is
+/// refused.
+#[test]
+fn the_one_gate_definition_detector_refuses_an_unmodelled_descriptor_duplication() {
+    // A positive control first, in both supported spells and against both
+    // adjacent boundaries, so a reader that refused everything could not pass.
+    for supported in [
+        "echo x >&2",
+        "echo x >&2\n",
+        "echo x >&2 ; make gate COUPLE=0",
+        "echo x >&2;make gate COUPLE=0",
+        "echo x >&2|cat",
+        "echo x 2>&1",
+        "echo x 2>&1 ; make gate COUPLE=0",
+        "echo x >&10",
+        "echo x >&-",
+        "echo x >&- ; make gate COUPLE=0",
+    ] {
+        let cmds = ScriptReader::new(supported).parse().unwrap_or_else(|e| {
+            panic!("a supported duplication must still read: {supported}: {e}")
+        });
+        assert!(
+            cmds.iter().all(|c| c.redirects.is_empty()),
+            "a duplication names no file: {supported} read as {cmds:?}"
+        );
+        assert_eq!(
+            cmds[0].words,
+            vec!["echo".to_string(), "x".to_string()],
+            "and it is not a word of the command either: {supported}"
+        );
+    }
+
+    // The reported reproduction, plus the malformed and unsupported operands
+    // beside it. Each names what is wrong with it rather than reporting a
+    // missing target, which is a different defect.
+    for (run, want) in [
+        // Missing: the operand runs out at end of input, at a newline, and at a
+        // separator. The first is the reproduction; the others are the same
+        // hole one token boundary along, so the fix is not an end-of-input
+        // special case.
+        ("make gate COUPLE=0 >&", "no descriptor"),
+        ("make gate COUPLE=0 >&\necho done", "no descriptor"),
+        ("make gate COUPLE=0 >& ; echo done", "no descriptor"),
+        ("make gate COUPLE=0 >&| cat", "no descriptor"),
+        // A space before the operand is `>&word`, which only some shells read
+        // as a redirection to a file. It is not modelled either way.
+        ("make gate COUPLE=0 >& out.txt", "no descriptor"),
+        // Malformed: digits with a tail, `-` with a tail, and a bare word.
+        ("make gate COUPLE=0 >&2abc", "`2abc`"),
+        ("make gate COUPLE=0 >&-2", "`-2`"),
+        ("make gate COUPLE=0 >&2-", "`2-`"),
+        ("make gate COUPLE=0 >&out.txt", "`out.txt`"),
+        // `>>&` is a syntax error to `dash` and to `bash` alike; the reader
+        // accepted it because it reached the same `&` branch as `>&`.
+        ("make gate COUPLE=0 >>&2", "`>>&`"),
+    ] {
+        let err = ScriptReader::new(run)
+            .parse()
+            .expect_err(&format!("`{run}` must be refused, not parsed"));
+        assert!(
+            err.contains(want),
+            "`{run}` was refused as {err:?}, which does not name {want}"
+        );
+    }
+
+    // And through the whole §3.4 path, parsed from YAML and read by leg: the
+    // refusal has to reach the assertion that a leg invokes the gate, not just
+    // the helper under it. `script_commands` turns the refusal into a panic, so
+    // the step answers neither "invokes" nor "does not invoke".
+    let unrunnable = r#"
+jobs:
+  govern:
+    steps:
+      - name: Governed loop
+        if: github.event_name != 'pull_request'
+        run: |
+          make gate COUPLE=0 >&
+"#;
+    let steps = workflow_steps(unrunnable);
+    assert_eq!(steps.len(), 1, "the fixture parsed to no steps");
+    assert_eq!(
+        legs_of(&steps, Leg::Push).len(),
+        1,
+        "the fixture's step is a push step"
+    );
+    let caught = std::panic::catch_unwind(move || {
+        legs_of(&steps, Leg::Push)
+            .into_iter()
+            .find_map(gate_invocation)
+    });
+    assert!(
+        caught.is_err(),
+        "a script no shell can run must not satisfy the invocation assertion; it answered {caught:?}"
+    );
 }
