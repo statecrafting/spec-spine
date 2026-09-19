@@ -616,9 +616,9 @@ backslash escapes, comments, the separators, and redirections, with the
 redirect targets read off the parsed commands instead of matched in the text.
 It is deliberately **not** a shell parser and is not described as one. Every
 construct it can recognise but not model, a command substitution, a
-here-document, a subshell, a shell group, a process substitution, an
-unterminated quote, is refused, and `script_commands` turns the refusal into a
-panic. A test helper that cannot read a script must fail the test rather than
+here-document, a subshell, a shell group, a process substitution, a `case` arm
+terminator, an unterminated quote, is refused, and `script_commands` turns the
+refusal into a panic. A test helper that cannot read a script must fail the test rather than
 answer from the part it understood: an invocation hidden inside a skipped
 construct would otherwise read as a step that invokes nothing. The shipped
 `kit/govern.yml` uses none of the refused forms, and a test asserts that, so the
@@ -632,6 +632,18 @@ one command ends and the next begins; a full shell grammar is a dependency and a
 surface out of proportion to a test helper reading five scripts. The bounded
 reader with an explicit refusal list is the smaller claim, and it is the one
 that can be checked.
+
+Review of the first correction raised two forms, and they resolved in opposite
+directions once each was run rather than reasoned about. `;;` outside a `case`
+was accepted: `/bin/sh` and `dash` both call `echo a;; echo b` a syntax error,
+so the reader was accepting a construct the shell rejects, and a `case` is
+already refused by the `)` its arms carry. It is now refused in its own right,
+which is what "refuses what it does not model" has to mean. `> > file` was
+reported as a valid POSIX redirection the reader spuriously refuses; it is a
+syntax error in both `/bin/sh` ("syntax error near unexpected token `>`") and
+`dash` ("redirection unexpected"), so the refusal is correct and nothing
+changed. Measured, not assumed, because the two readings are indistinguishable
+from the prose alone.
 
 `invocations()`, the line-based scanner over `kit/Makefile` target bodies, was
 inspected and is **not** changed here. It has the same shape of gap, a quoted

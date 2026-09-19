@@ -692,7 +692,8 @@ enum Pending {
 /// quoting, backslash escapes, comments, the separators `; | || & && newline`,
 /// and redirections, because those are what tell a command from a mention. Every
 /// other construct it can recognise but not model, a command substitution, a
-/// here-document, a subshell or a shell group, it **refuses**, and
+/// here-document, a subshell, a shell group or a `case` arm terminator, it
+/// **refuses**, and
 /// `script_commands` turns that refusal into a panic. A test helper that cannot
 /// read a script must fail the test, not guess at it: guessing is exactly how
 /// `echo 'text; make gate COUPLE=0 ; more text'` came to be read as an
@@ -876,12 +877,17 @@ impl ScriptReader {
                     self.finish_word()?;
                     self.i += 1;
                 }
+                // `;;` terminates a `case` arm and means nothing outside one:
+                // `/bin/sh` and `dash` both call `echo a;; echo b` a syntax
+                // error. A `case` is already refused, because its arms carry
+                // `)`; refusing the terminator too means the reader never
+                // accepts a construct it has not modelled (114 D-17).
+                ';' if self.at(1) == Some(';') => {
+                    return Err("a `case` arm terminator (`;;`) is not supported".to_string());
+                }
                 '\n' | ';' => {
                     self.finish_cmd()?;
                     self.i += 1;
-                    if c == ';' && self.at(0) == Some(';') {
-                        self.i += 1;
-                    }
                 }
                 '|' => {
                     self.finish_cmd()?;
@@ -1453,6 +1459,9 @@ fn the_one_gate_definition_detector_refuses_a_script_it_cannot_read() {
         ("( make gate )", "subshell"),
         ("{ make gate; }", "shell group"),
         ("cat <<EOF\nmake gate\nEOF", "here-document"),
+        // `;;` is a syntax error outside a `case`, and a `case` is refused by
+        // its `)`. Refusing both means nothing unmodelled is accepted.
+        ("echo a;; echo b", "`;;`"),
         ("diff <(make gate) b", "process substitution"),
         ("echo 'unterminated", "unterminated single quote"),
         ("echo \"unterminated", "unterminated double quote"),

@@ -95,6 +95,6 @@
     "summary": "`make gate` exits 1 on the repository `spec-spine init --with-kit` has just created. The refusal is spec 059's, which made `index coverage --fail-on-untraced` refuse an empty coverage universe rather than pass it vacuously, and that is the right answer for a CI step named for the ownership assertion and the wrong one for the composite gate a specify-first adopter runs from minute one. `kit/AGENTS.md` already states the condition, as a commented line; `kit/Makefile` runs the assertion unguarded and `kit/govern.yml`'s pull-request leg restates the whole chain a third time, in a file whose own header says the gate has one definition rather than two that drift. This spec gives the gate one definition, gives it an announced skip rather than a silent one, gives it explicit controls for the two steps a caller may legitimately not want, and makes the shipped workflow call it from both legs.\n",
     "title": "One gate definition, and it holds on a code-free corpus"
   },
-  "shardHash": "1ce9f639789f7701413d2501a502a1632112066dfeb0faf1be86f87d0f8fb874",
+  "shardHash": "1fed21c5a6a3d757d519bc0576ffeb4353c4bb5fc219449c0ad9278f49fa86f2",
   "specVersion": "1.3.0"
 }
