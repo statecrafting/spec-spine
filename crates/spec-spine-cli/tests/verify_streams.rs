@@ -278,7 +278,7 @@ fn json_forwards_more_than_a_pipe_buffer_without_deadlocking() {
 
 // ---------------------------------------------------------------------------
 // A consumer that stops reading the parent's stderr (spec 118 §3.2, D-3, D-4),
-// and the harness that bounds it (D-9).
+// and the harness that bounds it (D-6).
 //
 // The cases above all keep both of the parent's pipes drained to the end, so
 // every write from the parent succeeds. That is the healthy half of the
@@ -295,7 +295,7 @@ fn json_forwards_more_than_a_pipe_buffer_without_deadlocking() {
 // Each case below closes the consumer *after* that first line, so what it
 // exercises is forwarding and completion rather than start-up.
 //
-// The harness itself is the subject of D-9. Its first shape bounded only the
+// The harness itself is the subject of D-6. Its first shape bounded only the
 // middle of the run: the opening `read_line` happened before the deadline loop
 // was entered, so a fixture that never wrote a transcript blocked outside the
 // bound, and its cleanup killed and reaped the fixture leader alone, which
@@ -779,7 +779,7 @@ fn an_open_stderr_consumer_receives_every_forwarded_byte() {
 }
 
 // ---------------------------------------------------------------------------
-// The safeguards themselves (spec 118 D-9).
+// The safeguards themselves (spec 118 D-6).
 //
 // Neither case runs `verify`: the fixture is a shell script chosen to break the
 // harness in one specific way, because what is under test is the harness, and a
@@ -812,9 +812,19 @@ fn within<T: Send + 'static>(bound: Duration, f: impl FnOnce() -> T + Send + 'st
     thread::spawn(move || {
         let _ = tx.send(f());
     });
-    rx.recv_timeout(bound).unwrap_or_else(|_| {
-        panic!("the fixture harness did not return within its outer bound of {bound:?}")
-    })
+    // `Disconnected` arrives the moment the worker's sender drops, which is
+    // what a panic inside the worker looks like from here. Reporting that as a
+    // timeout would name the wrong failure: the real panic is already on
+    // stderr, and the case should say to go and read it.
+    match rx.recv_timeout(bound) {
+        Ok(value) => value,
+        Err(mpsc::RecvTimeoutError::Timeout) => {
+            panic!("the fixture harness did not return within its outer bound of {bound:?}")
+        }
+        Err(mpsc::RecvTimeoutError::Disconnected) => {
+            panic!("the fixture harness panicked; its own message is above this one")
+        }
+    }
 }
 
 /// A fixture that never writes a transcript line must be given up on at the
