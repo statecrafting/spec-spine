@@ -16,7 +16,7 @@ summary: >
   none`, which is a claim it did not check. This spec makes the thread read cover
   every place a reviewer can write, makes it happen before the merge checkpoint
   on every path, and forbids reporting an absence that was never looked for.
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
