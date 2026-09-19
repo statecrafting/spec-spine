@@ -368,6 +368,12 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   best-effort warning to stderr naming the stream and the condition (silent for
   a destination failure, which by definition has nowhere to be reported).
 
+  One stream can meet two of these: stderr stops accepting bytes and the
+  child's pipe then becomes unreadable. The read failure is reported, because
+  it is the one whose consequence is unknown and the one D-3 does not excuse.
+  That precedence is stated rather than left to fall out of the code, since it
+  is the single place this clause's three outcomes collapse to two.
+
   **What is left open, deliberately:** whether a forwarding panic or an
   unreadable child pipe should affect the acceptance verdict. Today none of the
   three does, which preserves the shipped behaviour and D-3's reasoning for the

@@ -94,6 +94,13 @@ enum Drained {
     Discarded,
     /// The pipe could not be read to EOF. Nothing is known about what the child
     /// still had to say, and D-3 does not speak to this case.
+    ///
+    /// This outranks `Discarded` when both happen to one stream: a destination
+    /// that stopped accepting bytes has a known consequence and an excuse in
+    /// D-3, while a pipe that could not be read has neither, so the read
+    /// failure is the fact worth reporting. The precedence is deliberate
+    /// rather than incidental, and it is the one place D-5's three outcomes
+    /// collapse to two.
     InputFailed,
 }
 
