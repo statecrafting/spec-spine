@@ -223,9 +223,11 @@ fn run_one(repo: &Path, command: &str, child_stack: &str, json: bool) -> Result<
     // the failing path too. With `?` here the thread outlived a `wait` error,
     // and the ordering this comment claims held on every path but that one.
     //
-    // Both drains have reached EOF before the wait, so the child cannot be
-    // blocked on a full pipe here no matter how much it wrote or where those
-    // bytes ended up.
+    // The stderr drain has reached EOF by this point; the stdout drain is still
+    // running on the pump thread and finishes on its own schedule. What matters
+    // is not that either has finished but that both are reading concurrently
+    // with the child, so neither pipe can be left full while this wait runs,
+    // whatever the destination did with the bytes.
     let waited = child.wait();
     // Joined before returning, so every forwarded byte is on stderr ahead of
     // this command's `exit` line and the next command's transcript.
