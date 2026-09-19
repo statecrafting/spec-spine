@@ -293,6 +293,21 @@ streams, which is the property 1.2 found missing:
    over the fixture independently of the worker performing the run, so a broken
    deadline is cleaned up as well as reported (D-7). All are Unix-only, which is
    where this suite is supported (D-6).
+9. Cancellation across the **whole** startup lifecycle, one case per ordering:
+   cancelled before the worker starts spawning, cancelled after a process exists
+   but before its pid is published, and cancelled after publication, which is
+   the already-correct path kept under a case of its own. Each ordering is
+   produced by synchronisation rather than by timing: the worker is held at a
+   rendezvous at the exact point under test, or the case waits until the state
+   it tests at is observably reached. Where a process was created, the case
+   witnesses all three guarantees separately: that the leader was terminated
+   rather than having exited on its own, that it was reaped and by whom, and
+   that a descendant's delayed side effect does not occur, checked past the
+   moment it was scheduled for. Cleanup is a `Drop` guard, so a failing
+   assertion leaves no fixture behind. A further case asserts the reading of the
+   window between a spawner finding a cancellation and finishing its reap, in
+   which a process exists: it is driven on the state machine directly, because a
+   fixture would reintroduce the timing that hides it (D-8).
 
 In `tests/cli.rs`, the existing envelope case gains a fixture whose command
 writes to both streams, so the `"stdout is one JSON envelope"` expectation it
@@ -595,11 +610,23 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   been relinked since 01:56, so first-exec signature evaluation does not explain
   this one. `syspolicyd` was at 35.8% and then 51.8% CPU throughout.
 
-  So the symptom is a transient stall in getting a large binary from `exec` to
-  its first instruction on a loaded host, it is outside this spec's territory,
-  and it is visible only where a deadline is watching. **The cause is not
-  established**, and neither host load nor code-signature evaluation is claimed
-  as one here.
+  What that narrows, and what it does not. The shared symptom points away from
+  the forwarding, the consumer and the process-group handling this spec
+  changed: those cases have none of it and stalled anyway. It does **not** rule
+  out this spec's territory, and an earlier revision of this paragraph said it
+  did. `plan_json_is_one_envelope_and_runs_nothing` launches the same CLI and
+  runs the same start-up: argument parsing, config resolution, corpus load, the
+  whole path from `exec` to the first write. A cost anywhere along that shared
+  initialisation would show up in both the cases with a deadline and the cases
+  without, and only the first kind would report it. So the no-deadline cases
+  narrow the search to what every `spec-spine` exec does; they do not exclude
+  this spec's changes from it, because this spec's changes are reached through
+  that same start-up.
+
+  **The cause is not established.** Not host load, not code-signature
+  evaluation, and not this spec's territory: none of the three is claimed here,
+  and the evidence is kept whole, the failing runs alongside the passing ones,
+  so whoever establishes it starts from all of it rather than from a conclusion.
 
   `DEADLINE` therefore stays at 30 s. Raising it would convert a reported
   symptom into a hidden one, the symptom is not in the code this spec changed,
@@ -610,6 +637,106 @@ clarification of spec 049's. If it is wanted there it is additive and separate.
   **D-5 is untouched.** Whether a forwarding panic or a failure to read a
   child's pipe should change the acceptance verdict is still open, and nothing
   here touches it.
+
+- **D-8 (2026-09-19): cancellation is a state of the tree, not an event that
+  needs a listener.** D-7 moved termination authority off the worker and onto a
+  `Tree` the supervisor holds from before the worker starts. It closed the
+  ordering it was written for, in which the leader's pid has already been
+  published, and left the whole of start-up open.
+
+  **Measured, on the code as merged at `c218a33`.** `Tree::kill_group` matched
+  `Live(pid)` and answered everything else with a bare `false`. "Everything
+  else" included the state the tree is in before the worker has published
+  anything, and that arm changed no state: the request was answered and
+  forgotten. With the worker delayed past the supervisor's bound before its
+  spawn, the supervisor reported `Overran { signalled: false, reaped: None }`
+  at 6.01 s, the worker then spawned a fixture into a tree that no longer
+  remembered being cancelled, and the fixture's descendant performed its
+  delayed side effect. The probe terminated and reaped the fixture itself
+  afterwards, which the harness would not have done.
+
+  **The lifecycle, and who cleans up in each ordering.** `TreeState` gains
+  `Unspawned`, `Cancelled` and `CancellingSpawn` alongside `Live` and `Reaped`,
+  so the states cover start-up rather than beginning at the first publication:
+
+  1. **Cancelled before the spawn.** `Unspawned` becomes `Cancelled`, and the
+     worker's pre-spawn check refuses to spawn at all. No process is created, so
+     nobody owns cleanup.
+  2. **Cancelled between the spawn and publication.** `Cancelled` is still the
+     state when the worker reaches publication, so publication is refused and
+     the state becomes `CancellingSpawn(pid)`. The worker holds the only `Child`
+     and is therefore the only party that can `wait`: **it** signals the group
+     and reaps the leader before returning, and records that reap as
+     `Reaped { after_cancel: true }`. `CancellingSpawn` is a state of its own
+     rather than more `Cancelled` because **a process exists in it**. Folded
+     into `Cancelled`, a supervisor whose grace expired during that `wait` read
+     back `NeverStarted`, which is one of the three answers this type exists to
+     keep apart, told about the wrong one. The window is short, since the `wait`
+     follows a `SIGKILL`, and it is still a window, so it is named
+     (`Cleanup::CancelledCleanupInFlight`) rather than acknowledged.
+  3. **Cancelled after publication.** Unchanged, and kept under a case of its
+     own. The supervisor signals the live group; the signal closes the pipes the
+     worker is blocked on, and the worker reaps its own leader.
+  4. **Cancelled after the reap.** Still refused. Signalling a reaped leader's
+     pgid could reach a recycled pid, which is the invariant D-7 established and
+     nothing here weakens: every reap still publishes its status inside the same
+     critical section as the `wait` that produced it.
+
+  **The lock is not held across the spawn.** The pre-spawn check releases the
+  lock before `cmd.spawn()`. Holding it would close ordering 2 by blocking the
+  supervisor behind a `fork`/`exec` of unbounded duration, and the supervisor is
+  the one thread whose purpose is to act when the worker cannot. The window is
+  **absorbed** at publication instead of hidden: the state is re-read under the
+  lock once the process exists, and a cancellation found there is honoured by
+  the thread that created the process. The only place the lock spans a blocking
+  call is still the `wait` that follows a `SIGKILL`, which cannot be caught.
+
+  **`reaped: None` said three things at once.** The supervisor's report carried
+  `signalled: bool` and `reaped: Option<ExitStatus>`, and a tree that was never
+  terminated, a tree that was terminated whose leader was never reaped, and a
+  worker that had not yet spawned anything all read `reaped: None`. Two of those
+  are defects in different halves of the harness and the third is not a defect.
+  A `Cleanup` enum names them apart: `Reaped`, `SignalledNotReaped`,
+  `NeverStarted`, `CancelledThenCleanedUp`, `CancelledCleanupInFlight` and
+  `AlreadyReaped`. Every state transition is matched exhaustively, with the
+  states a transition cannot legitimately be in refused rather than absorbed by
+  a wildcard: a `_` arm on `publish` overwrote a live or reaped pid with a
+  `Live` that had no process behind it and answered `Proceed`, and an
+  unconditional write in `cancelled_reap` would have answered a mis-call with a
+  plausible `Reaped { after_cancel: true }` that no state ever passed through.
+  The refusals hold in every build rather than only where assertions are
+  compiled in, since a state machine that is sound only in debug is not one. The
+  reaping assertion in
+  `a_broken_inner_deadline_is_terminated_by_the_outer_supervisor` is kept rather
+  than relaxed: it is the `Reaped` arm, and each of the other five is its own
+  named failure.
+
+  **The regressions are synchronised, not timed.** Each of the three orderings
+  is produced by holding the worker at a rendezvous placed at the exact point
+  under test, or by waiting until the state being tested at is observably
+  reached; none of them sleeps to produce its ordering, so none of them passes
+  or fails with the load on the runner. The interposition points are `None` on
+  every other path. Cleanup is a `Drop` guard rather than statements at the end
+  of a case, because an assertion that fails runs no statement written after it:
+  the guard records the cancellation first, then frees a worker parked at a
+  rendezvous, then waits for it, in that order, since freeing first would
+  release the worker into a tree that had not yet been cancelled.
+
+  **Each injected defect was measured.** With the recording removed from the
+  pre-publication arm, orderings 1 and 2 fail and ordering 3 passes; with the
+  group signal in the spawner's cleanup replaced by a leader-only kill, ordering
+  2 fails on the descendant's side effect; with `CancellingSpawn` collapsed back
+  into `Cancelled`, the in-flight case fails on `NeverStarted`. No fixture
+  process survived any failing run.
+
+  The in-flight reading is asserted directly on the state machine, with no
+  process behind it. The `wait` it covers is short enough that a fixture case
+  only ever sees the state on the far side of it, so driving a fixture would
+  reintroduce exactly the timing that hides the defect; what is under test is
+  the reading.
+
+  **D-5 is untouched**, and so is every requirement in 3: this is the harness
+  and nothing else.
 
 ## Verification
 
@@ -632,8 +759,8 @@ names is not an assertion about the channel.
 # The block drives the release binary, and `cargo test` builds only debug
 # artifacts, so it is built first.
 cargo build --release --locked
-# 3.5, D-4 + D-5's closed-consumer regressions, and D-6's two safeguard cases,
-# which live in the same file.
+# 3.5, D-4 + D-5's closed-consumer regressions, D-6/D-7's safeguard cases and
+# D-8's three cancellation orderings, which all live in the same file.
 # Of the four closed-consumer cases two fail at `71a423a` by exiting 101 and two
 # by hitting the suite's 30 s deadline, while the open-consumer control passes
 # there, so the suite distinguishes the correction from the fixture. The whole

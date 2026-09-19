@@ -377,6 +377,15 @@ enum FixtureFailure {
         stream: &'static str,
         waited: Duration,
     },
+    /// The run was cancelled by the supervisor across the startup lifecycle,
+    /// and the worker returned rather than proceeding under it. `leader` is the
+    /// status of a leader that had already been created when the cancellation
+    /// was found and was terminated and reaped here; `None` means the
+    /// cancellation was seen before anything was spawned, so no process was
+    /// ever created.
+    Cancelled {
+        leader: Option<std::process::ExitStatus>,
+    },
 }
 
 impl std::fmt::Display for FixtureFailure {
@@ -404,6 +413,16 @@ impl std::fmt::Display for FixtureFailure {
             FixtureFailure::ReaderStuck { stream, waited } => write!(
                 f,
                 "the fixture exited but its {stream} was still open after {waited:?}: a descendant held it"
+            ),
+            FixtureFailure::Cancelled { leader: None } => write!(
+                f,
+                "the run was cancelled before the fixture was spawned; no process was created"
+            ),
+            FixtureFailure::Cancelled {
+                leader: Some(status),
+            } => write!(
+                f,
+                "the run was cancelled between the spawn and the publication of the leader's pid; the leader was terminated and reaped ({status})"
             ),
         }
     }
@@ -455,14 +474,58 @@ fn looks_killed_by_the_harness(_status: &std::process::ExitStatus) -> bool {
 }
 
 /// The state of one fixture tree, as the two threads that may act on it see it.
+///
+/// The four states cover the **whole** startup lifecycle, which is what the
+/// first shape of this type did not. It began at `Live`, with "nothing has been
+/// spawned yet" carried outside the enum as `Option::None`, and a cancellation
+/// arriving in that state matched a catch-all arm that sent no signal and
+/// **recorded nothing**. The worker then went on to spawn a fixture under a
+/// cancellation it could not see, and the supervisor reported
+/// `Overran { signalled: false, reaped: None }` while the fixture ran on and
+/// performed its delayed side effect (D-8).
+///
+/// ```text
+///   Unspawned ──cancel──▶ Cancelled ──publish──▶ Reaped{after_cancel: true}
+///       │                     │                    (the spawner cleans up)
+///       │                     └──spawn refused──▶ Cancelled (terminal)
+///       └──publish──▶ Live(pid) ──cancel──▶ Live ──reap──▶ Reaped{false}
+///                          └────────────────reap──────────▶ Reaped{false}
+/// ```
 #[derive(Debug, Clone, Copy)]
 enum TreeState {
+    /// The handle exists; no process does. Nothing to signal, and nothing has
+    /// asked for one.
+    Unspawned,
+    /// Termination was requested before any pid was published, and nothing has
+    /// been spawned under that request yet. **This state is the correction.**
+    /// It binds whoever spawns next: a worker that reaches its pre-spawn check
+    /// here does not spawn at all, and a worker that has already spawned when
+    /// it reaches publication terminates and reaps what it started.
+    Cancelled,
+    /// A cancellation was found at publication, and the leader that had just
+    /// been created is being terminated and reaped **by its spawner**, which is
+    /// the only holder of its `Child`.
+    ///
+    /// This is a state of its own rather than more `Cancelled` because a
+    /// process exists in it. Folded into `Cancelled` it read back as "nothing
+    /// was ever started", which is one of the three answers this type exists to
+    /// keep apart, told about the wrong one. The window is short (the `wait` it
+    /// covers follows a `SIGKILL`) and it is still a window.
+    CancellingSpawn(u32),
     /// Spawned and **unreaped**. The pid is the process-group id, and while the
     /// leader is unreaped that pid cannot be recycled, so signalling the
     /// negative of it cannot reach some other tree.
     Live(u32),
     /// The leader has been reaped. Nothing may be signalled from here.
-    Reaped(std::process::ExitStatus),
+    ///
+    /// `after_cancel` records which reap this was: the ordinary end of a run
+    /// (`false`), or the cleanup of a leader that was spawned into a standing
+    /// cancellation (`true`). The supervisor reports the two apart, because a
+    /// tree it never signalled and a tree it signalled are different findings.
+    Reaped {
+        status: std::process::ExitStatus,
+        after_cancel: bool,
+    },
 }
 
 /// The authority to terminate one fixture tree.
@@ -479,47 +542,241 @@ enum TreeState {
 /// produced it, so there is no window in which a signal can follow a reap. That
 /// is a stronger guarantee than a poll-then-signal test, which reaps as a side
 /// effect of asking and thereby destroys the thing it was checking for.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 struct Tree {
-    state: Mutex<Option<TreeState>>,
+    state: Mutex<TreeState>,
+}
+
+/// What the supervisor's request to terminate a tree achieved, read back after
+/// the grace it allowed the worker.
+///
+/// The three failure modes the report has to keep apart are named here rather
+/// than folded into one `Option`. A `reaped: None` said all three of "the tree
+/// was never terminated", "it was terminated and the leader was not reaped" and
+/// "there was nothing to terminate yet" in the same word, and the first two are
+/// defects in different halves of the harness while the third is not a defect
+/// at all (D-8).
+#[derive(Debug)]
+enum Cleanup {
+    /// A live group was signalled and its leader reaped by its owner inside the
+    /// grace. The guarantee this harness is asked for, met.
+    Reaped(std::process::ExitStatus),
+    /// A live group was signalled and the leader was still unreaped when the
+    /// grace expired. Termination happened; **reaping** did not. Distinct from
+    /// `NeverStarted`: the tree is dead either way here.
+    SignalledNotReaped,
+    /// Cancellation was recorded before any pid was published, and the worker
+    /// had still not spawned anything when the grace expired. Nothing existed
+    /// to terminate; the cancellation stands and binds the worker if it ever
+    /// resumes. This is delayed worker scheduling, not a failure to terminate.
+    NeverStarted,
+    /// Cancellation was recorded before publication, and the worker then
+    /// spawned, found the cancellation at publication, and terminated and
+    /// reaped what it had started.
+    CancelledThenCleanedUp(std::process::ExitStatus),
+    /// Cancellation was recorded before publication, the worker spawned into
+    /// it, and its cleanup of that leader had not finished when the grace
+    /// expired. A process existed: this is **not** `NeverStarted`, and the
+    /// difference matters, because one says the supervisor found nothing to
+    /// terminate and the other says a termination is still in flight.
+    CancelledCleanupInFlight(u32),
+    /// The leader had already been reaped by its owner before the supervisor
+    /// asked. Nothing was signalled, and nothing needed to be.
+    AlreadyReaped(std::process::ExitStatus),
+}
+
+impl Cleanup {
+    /// The leader's status where one was reaped. `None` is the two states in
+    /// which no leader was reaped, which are told apart by the variant.
+    fn reaped(&self) -> Option<std::process::ExitStatus> {
+        match self {
+            Cleanup::Reaped(status)
+            | Cleanup::CancelledThenCleanedUp(status)
+            | Cleanup::AlreadyReaped(status) => Some(*status),
+            Cleanup::SignalledNotReaped
+            | Cleanup::NeverStarted
+            | Cleanup::CancelledCleanupInFlight(_) => None,
+        }
+    }
+}
+
+/// What `Tree::cancel` found when it was asked to terminate a tree.
+#[derive(Debug, Clone, Copy)]
+enum CancelOutcome {
+    /// A live group was signalled.
+    Signalled,
+    /// Nothing had been published yet. The cancellation is now recorded on the
+    /// tree and binds whoever spawns next.
+    Recorded,
+    /// The leader had already been reaped by its owner, which is the one state
+    /// in which signalling the group would no longer be safe.
+    AlreadyReaped(std::process::ExitStatus),
+}
+
+/// What a spawner found when it asked whether it may still start, or publish.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Permit {
+    /// No cancellation is standing. Go ahead.
+    Proceed,
+    /// A cancellation is standing. Nothing may be left running.
+    Cancelled,
 }
 
 impl Tree {
     fn new() -> Arc<Tree> {
-        Arc::new(Tree::default())
+        Arc::new(Tree {
+            state: Mutex::new(TreeState::Unspawned),
+        })
     }
 
     /// Poisoning is recovered from rather than propagated: a poisoned lock here
     /// means a case is already failing, and turning that into a second panic
     /// inside cleanup would replace a readable failure with a crash.
-    fn lock(&self) -> MutexGuard<'_, Option<TreeState>> {
+    fn lock(&self) -> MutexGuard<'_, TreeState> {
         self.state.lock().unwrap_or_else(|e| e.into_inner())
     }
 
-    /// Record the leader the harness just spawned.
-    fn published(&self, pid: u32) {
-        *self.lock() = Some(TreeState::Live(pid));
+    /// May a spawn start? Read under the lock and the lock **released** before
+    /// the caller spawns.
+    ///
+    /// Holding the lock across the spawn would close the window this returns
+    /// into, and would do it by blocking the supervisor behind a `fork`/`exec`
+    /// of unbounded duration: the one thread whose whole purpose is to act when
+    /// the worker cannot. The window is absorbed at `publish` instead, which
+    /// re-reads the state after the process exists.
+    fn may_spawn(&self) -> Permit {
+        match *self.lock() {
+            TreeState::Unspawned => Permit::Proceed,
+            TreeState::Cancelled => Permit::Cancelled,
+            TreeState::CancellingSpawn(_) | TreeState::Live(_) | TreeState::Reaped { .. } => {
+                unreachable!("a tree is spawned into once")
+            }
+        }
     }
 
-    /// Terminate the tree, from any thread. Returns whether a signal was sent:
-    /// `false` means the leader had already been reaped by its owner, which is
-    /// the one state in which signalling would no longer be safe.
-    fn kill_group(&self) -> bool {
-        let guard = self.lock();
+    /// Record the leader the harness just spawned, or refuse it.
+    ///
+    /// `Permit::Cancelled` means a cancellation arrived while the spawn was in
+    /// flight. The state is left `Cancelled`, and the caller, which is the only
+    /// holder of the `Child` and so the only party that can `wait`, owns
+    /// terminating and reaping what it started; it publishes the result through
+    /// `cancelled_reap`.
+    fn publish(&self, pid: u32) -> Permit {
+        let mut guard = self.lock();
         match *guard {
-            Some(TreeState::Live(pid)) => {
-                signal_fixture_group(pid);
-                true
+            TreeState::Unspawned => {
+                *guard = TreeState::Live(pid);
+                Permit::Proceed
             }
-            _ => false,
+            TreeState::Cancelled => {
+                // A process exists from here until the spawner's reap
+                // publishes `Reaped`. Leaving the state at `Cancelled` across
+                // that `wait` would have it read back as "nothing was ever
+                // started".
+                *guard = TreeState::CancellingSpawn(pid);
+                Permit::Cancelled
+            }
+            // A wildcard here would silently overwrite a live or reaped pid
+            // with a `Live` that has no process behind it, and answer
+            // `Proceed`. These states are refused for the same reason
+            // `terminate` and `poll_exit` refuse them.
+            TreeState::CancellingSpawn(_) | TreeState::Live(_) | TreeState::Reaped { .. } => {
+                unreachable!("a tree is published into once")
+            }
+        }
+    }
+
+    /// Record the reap of a leader that was spawned into a standing
+    /// cancellation, so the supervisor can tell that cleanup from the ordinary
+    /// one.
+    fn cancelled_reap(&self, status: std::process::ExitStatus) {
+        let mut guard = self.lock();
+        match *guard {
+            // The only legal predecessor: `publish` set it on this same thread,
+            // and nothing else writes it. Refused rather than overwritten, and
+            // in every build rather than only in debug, because an unconditional
+            // write here would answer a mis-call with a plausible
+            // `Reaped { after_cancel: true }` that no state ever passed through.
+            TreeState::CancellingSpawn(_) => {
+                *guard = TreeState::Reaped {
+                    status,
+                    after_cancel: true,
+                };
+            }
+            other => unreachable!("a cancelled reap follows a cancelled spawn, not {other:?}"),
+        }
+    }
+
+    /// Terminate the tree, from any thread, and **record the request** whether
+    /// or not there was anything to signal yet.
+    ///
+    /// The recording is the correction. The previous shape answered a
+    /// cancellation arriving before publication with a bare `false` and no
+    /// state change, so the request evaporated and the worker spawned into a
+    /// tree that no longer remembered being cancelled.
+    fn cancel(&self) -> CancelOutcome {
+        let mut guard = self.lock();
+        match *guard {
+            TreeState::Live(pid) => {
+                // The state is left `Live`: the worker owns the reap, and
+                // publishing `Reaped` here without the `wait` that produced it
+                // is the very thing this type forbids. Re-entering is
+                // deliberate and safe. A second `SIGKILL` at an unreaped
+                // leader is idempotent, and the pid cannot have been recycled
+                // while it is unreaped, so the group is still this fixture's.
+                signal_fixture_group(pid);
+                CancelOutcome::Signalled
+            }
+            TreeState::Unspawned => {
+                *guard = TreeState::Cancelled;
+                CancelOutcome::Recorded
+            }
+            // Already cancelled: the record is there and still binds.
+            TreeState::Cancelled => CancelOutcome::Recorded,
+            // The spawner has already signalled this group and is reaping it.
+            // Signalling again would be safe, since the leader is unreaped, but
+            // it is the spawner's cleanup to finish and nothing here hurries
+            // it.
+            TreeState::CancellingSpawn(_) => CancelOutcome::Recorded,
+            // The one state in which signalling would be unsafe: the pid may
+            // since have been recycled onto somebody else's tree.
+            TreeState::Reaped { status, .. } => CancelOutcome::AlreadyReaped(status),
+        }
+    }
+
+    /// The published pid while the leader is live. A case that has to wait
+    /// until publication has actually happened reads this rather than sleeping
+    /// for a length of time it hopes is enough.
+    fn live_pid(&self) -> Option<u32> {
+        match *self.lock() {
+            TreeState::Live(pid) => Some(pid),
+            _ => None,
         }
     }
 
     /// The leader's status, once its owner has reaped it.
     fn reaped_status(&self) -> Option<std::process::ExitStatus> {
         match *self.lock() {
-            Some(TreeState::Reaped(status)) => Some(status),
+            TreeState::Reaped { status, .. } => Some(status),
             _ => None,
+        }
+    }
+
+    /// What the state says happened, for the supervisor's report. Read after
+    /// the grace, so a `Live` here is a leader its owner never reaped.
+    fn cleanup(&self) -> Cleanup {
+        match *self.lock() {
+            TreeState::Reaped {
+                status,
+                after_cancel: true,
+            } => Cleanup::CancelledThenCleanedUp(status),
+            TreeState::Reaped {
+                status,
+                after_cancel: false,
+            } => Cleanup::Reaped(status),
+            TreeState::Live(_) => Cleanup::SignalledNotReaped,
+            TreeState::CancellingSpawn(pid) => Cleanup::CancelledCleanupInFlight(pid),
+            TreeState::Cancelled | TreeState::Unspawned => Cleanup::NeverStarted,
         }
     }
 }
@@ -535,8 +792,69 @@ struct Fixture {
     tree: Arc<Tree>,
 }
 
+/// Interposition points inside the spawn lifecycle.
+///
+/// Each closure is run by the worker at exactly the moment named, and nothing
+/// else. They exist so the three cancellation orderings can be produced by
+/// **synchronisation** rather than by racing the machine: a case blocks the
+/// worker at the point it wants to test, cancels from the test thread, and
+/// releases it. An ordering reproduced by a sleep would be a case that passes
+/// or fails with the load on the runner.
+///
+/// Both are `None` on every production path, where `Fixture::spawn` is exactly
+/// what it was.
+#[derive(Default)]
+struct SpawnGates {
+    /// Run before the pre-spawn cancellation check, so a case can cancel while
+    /// no process exists.
+    before_spawn: Option<Box<dyn FnOnce() + Send>>,
+    /// Run after the process exists and before its pid is published, so a case
+    /// can cancel in the window between the two.
+    before_publish: Option<Box<dyn FnOnce() + Send>>,
+}
+
+/// The result of asking for a fixture, which a standing cancellation can
+/// refuse.
+enum Spawned {
+    Started(Fixture),
+    /// The cancellation was already recorded when the pre-spawn check ran, so
+    /// **no process was created**. There is nothing to terminate and nothing to
+    /// reap.
+    RefusedBeforeSpawn,
+    /// The cancellation arrived while the spawn was in flight. The leader that
+    /// had just been created was terminated as a group and reaped here, by the
+    /// thread that created it, before this returned.
+    CleanedUpAfterSpawn(std::process::ExitStatus),
+}
+
 impl Fixture {
-    fn spawn(mut cmd: Command, tree: Arc<Tree>) -> Fixture {
+    /// Spawn the fixture, unless a cancellation is standing.
+    ///
+    /// Three orderings, and the cleanup owner of each:
+    ///
+    /// 1. **Cancelled before the spawn.** The pre-spawn check sees `Cancelled`
+    ///    and returns without creating a process. Nobody owns cleanup, because
+    ///    nothing was created.
+    /// 2. **Cancelled between the spawn and publication.** `publish` re-reads
+    ///    the state after the `Child` exists and answers `Cancelled`. This
+    ///    thread owns the cleanup: it holds the only `Child`, so it is the only
+    ///    party that can `wait`, and it signals the group and reaps before
+    ///    returning.
+    /// 3. **Not cancelled.** The pid is published and the returned `Fixture`
+    ///    owns cleanup, on its own paths and on `Drop`.
+    ///
+    /// The tree's lock is **not** held across `cmd.spawn()`. Doing so would
+    /// close ordering 2 by blocking the supervisor behind a `fork`/`exec`,
+    /// which is the one thread that must be able to act while the worker
+    /// cannot; the window is absorbed at publication instead of hidden.
+    fn spawn(mut cmd: Command, tree: Arc<Tree>, gates: SpawnGates) -> Spawned {
+        if let Some(gate) = gates.before_spawn {
+            gate();
+        }
+        if tree.may_spawn() == Permit::Cancelled {
+            return Spawned::RefusedBeforeSpawn;
+        }
+
         cmd.stdin(std::process::Stdio::null())
             .stdout(std::process::Stdio::piped())
             .stderr(std::process::Stdio::piped());
@@ -548,9 +866,24 @@ impl Fixture {
             // runner down with it.
             cmd.process_group(0);
         }
-        let child = cmd.spawn().expect("the fixture must spawn");
-        tree.published(child.id());
-        Fixture { child, tree }
+        let mut child = cmd.spawn().expect("the fixture must spawn");
+        let pid = child.id();
+
+        if let Some(gate) = gates.before_publish {
+            gate();
+        }
+        if tree.publish(pid) == Permit::Cancelled {
+            // Ordering 2. The pid was never published, so nothing else can
+            // signal this group; it is cleaned up here or not at all. The
+            // leader is unreaped at the moment of the signal, so its pid cannot
+            // have been recycled onto another tree.
+            signal_fixture_group(pid);
+            let _ = child.kill();
+            let status = child.wait().expect("the fixture leader must reap");
+            tree.cancelled_reap(status);
+            return Spawned::CleanedUpAfterSpawn(status);
+        }
+        Spawned::Started(Fixture { child, tree })
     }
 
     /// Kill the whole tree and reap the leader, inside the tree's lock. A no-op
@@ -569,17 +902,22 @@ impl Fixture {
         let tree = Arc::clone(&self.tree);
         let mut guard = tree.lock();
         match *guard {
-            Some(TreeState::Reaped(status)) => status,
-            Some(TreeState::Live(pid)) => {
+            TreeState::Reaped { status, .. } => status,
+            TreeState::Live(pid) => {
                 signal_fixture_group(pid);
                 // Belt for the non-Unix fallback, and harmless where the group
                 // signal already landed.
                 let _ = self.child.kill();
                 let status = self.child.wait().expect("the fixture leader must reap");
-                *guard = Some(TreeState::Reaped(status));
+                *guard = TreeState::Reaped {
+                    status,
+                    after_cancel: false,
+                };
                 status
             }
-            None => unreachable!("a Fixture publishes its leader when it spawns"),
+            TreeState::Unspawned | TreeState::Cancelled | TreeState::CancellingSpawn(_) => {
+                unreachable!("a Fixture exists only once its leader has been published")
+            }
         }
     }
 
@@ -589,17 +927,20 @@ impl Fixture {
         let tree = Arc::clone(&self.tree);
         let mut guard = tree.lock();
         match *guard {
-            Some(TreeState::Reaped(status)) => Some(status),
-            Some(TreeState::Live(_)) => {
-                match self.child.try_wait().expect("try_wait on the fixture") {
-                    Some(status) => {
-                        *guard = Some(TreeState::Reaped(status));
-                        Some(status)
-                    }
-                    None => None,
+            TreeState::Reaped { status, .. } => Some(status),
+            TreeState::Live(_) => match self.child.try_wait().expect("try_wait on the fixture") {
+                Some(status) => {
+                    *guard = TreeState::Reaped {
+                        status,
+                        after_cancel: false,
+                    };
+                    Some(status)
                 }
+                None => None,
+            },
+            TreeState::Unspawned | TreeState::Cancelled | TreeState::CancellingSpawn(_) => {
+                unreachable!("a Fixture exists only once its leader has been published")
             }
-            None => unreachable!("a Fixture publishes its leader when it spawns"),
         }
     }
 }
@@ -608,7 +949,7 @@ impl Drop for Fixture {
     fn drop(&mut self) {
         let tree = Arc::clone(&self.tree);
         let mut guard = tree.lock();
-        if let Some(TreeState::Live(pid)) = *guard {
+        if let TreeState::Live(pid) = *guard {
             signal_fixture_group(pid);
             let _ = self.child.kill();
             // Deliberately not `terminate`: a `Drop` that panics while a case's
@@ -616,7 +957,10 @@ impl Drop for Fixture {
             // replace a readable failure with a crash. The wait is still made,
             // so the leader is reaped here too.
             if let Ok(status) = self.child.wait() {
-                *guard = Some(TreeState::Reaped(status));
+                *guard = TreeState::Reaped {
+                    status,
+                    after_cancel: false,
+                };
             }
         }
     }
@@ -659,8 +1003,35 @@ fn try_run_fixture(
     budget: Duration,
     tree: Arc<Tree>,
 ) -> Result<Consumed, FixtureFailure> {
+    try_run_fixture_gated(cmd, close, budget, tree, SpawnGates::default())
+}
+
+/// `try_run_fixture` with the spawn-lifecycle interposition points open.
+///
+/// Only the three cancellation-ordering cases pass a non-default `gates`;
+/// every other caller goes through `try_run_fixture`, where both are `None`
+/// and this is the function it always was.
+fn try_run_fixture_gated(
+    cmd: Command,
+    close: bool,
+    budget: Duration,
+    tree: Arc<Tree>,
+    gates: SpawnGates,
+) -> Result<Consumed, FixtureFailure> {
     let started = Instant::now();
-    let mut fixture = Fixture::spawn(cmd, tree);
+    // A cancellation standing anywhere across the startup lifecycle ends the
+    // run here, with the leader (if one was ever created) already terminated
+    // and reaped by `Fixture::spawn`. Proceeding instead is what left a fixture
+    // running behind a supervisor that had given up on it (D-8).
+    let mut fixture = match Fixture::spawn(cmd, tree, gates) {
+        Spawned::Started(fixture) => fixture,
+        Spawned::RefusedBeforeSpawn => return Err(FixtureFailure::Cancelled { leader: None }),
+        Spawned::CleanedUpAfterSpawn(status) => {
+            return Err(FixtureFailure::Cancelled {
+                leader: Some(status),
+            });
+        }
+    };
 
     // The stdout pump starts before anything is awaited. A fixture that floods
     // stdout while the harness is still waiting for its transcript would
@@ -921,12 +1292,16 @@ const OUTER_GRACE: Duration = Duration::from_secs(5);
 #[derive(Debug)]
 enum Supervised<T> {
     Returned(T),
-    /// The worker overran the bound. The tree was terminated **by the
-    /// supervising thread**, and `reaped` carries the leader's status if its
-    /// owner reaped it within `OUTER_GRACE`.
+    /// The worker overran the bound. The supervising thread cancelled the tree
+    /// and `cleanup` says what that achieved, read back after `OUTER_GRACE`.
+    ///
+    /// This carried `signalled: bool` and `reaped: Option<ExitStatus>` before
+    /// D-8, and those two fields could not tell the three answers apart: a tree
+    /// that was never terminated, a tree that was terminated whose leader was
+    /// never reaped, and a worker that had not yet spawned anything all read
+    /// `reaped: None`, the last two of them defects and the third not.
     Overran {
-        signalled: bool,
-        reaped: Option<std::process::ExitStatus>,
+        cleanup: Cleanup,
     },
 }
 
@@ -945,6 +1320,13 @@ enum Supervised<T> {
 /// straight to it. Afterwards the worker is given `OUTER_GRACE` to return, not
 /// because the report needs it but because the leader should be reaped by its
 /// owner; whether that happened is reported rather than assumed.
+///
+/// The cancellation is recorded on the tree **whether or not there was anything
+/// to signal**, which is D-8. A bound that expires before the worker has
+/// published a pid used to send no signal and leave no trace, so the worker went
+/// on to spawn a fixture into a tree that had been given up on; the standing
+/// cancellation now binds it instead. `Cleanup` reports which of the orderings
+/// this was.
 #[cfg(unix)]
 fn supervise<T: Send + 'static>(
     bound: Duration,
@@ -965,12 +1347,19 @@ fn supervise<T: Send + 'static>(
             panic!("the fixture harness panicked; its own message is above this one")
         }
         Err(mpsc::RecvTimeoutError::Timeout) => {
-            let signalled = tree.kill_group();
+            let outcome = tree.cancel();
+            // The grace is given in every case, including the one where there
+            // was nothing to signal: a cancellation recorded before publication
+            // is honoured by the worker when it resumes, and this is the window
+            // in which that happens.
             let _ = rx.recv_timeout(OUTER_GRACE);
-            Supervised::Overran {
-                signalled,
-                reaped: tree.reaped_status(),
-            }
+            let cleanup = match outcome {
+                // Terminal already; nothing was signalled and nothing needed
+                // to be.
+                CancelOutcome::AlreadyReaped(status) => Cleanup::AlreadyReaped(status),
+                CancelOutcome::Signalled | CancelOutcome::Recorded => tree.cleanup(),
+            };
+            Supervised::Overran { cleanup }
         }
     }
 }
@@ -986,9 +1375,9 @@ fn within<T: Send + 'static>(
 ) -> T {
     match supervise(bound, tree, f) {
         Supervised::Returned(value) => value,
-        Supervised::Overran { signalled, reaped } => panic!(
+        Supervised::Overran { cleanup } => panic!(
             "the fixture harness did not return within its outer bound of {bound:?} \
-             (the supervisor terminated the tree: signalled={signalled}, reaped={reaped:?})"
+             (the supervisor cancelled the tree: {cleanup:?})"
         ),
     }
 }
@@ -1115,20 +1504,40 @@ fn a_broken_inner_deadline_is_terminated_by_the_outer_supervisor() {
     let elapsed = started.elapsed();
 
     match outcome {
-        Supervised::Overran { signalled, reaped } => {
-            assert!(
-                signalled,
-                "the supervisor must terminate the tree itself, not ask the worker to"
-            );
-            let status = reaped.expect(
-                "the leader must be reaped: the group signal closes the pipes its owner is \
-                 blocked on, which is what lets that owner finish",
-            );
-            assert!(
+        // The three answers are separated rather than collapsed, so a
+        // recurrence names which half of the guarantee was missed. The
+        // reaping assertion is kept, not dropped: it is `Cleanup::Reaped`
+        // here, and every other variant is a distinct, named failure.
+        Supervised::Overran { cleanup } => match cleanup {
+            Cleanup::Reaped(status) => assert!(
                 looks_killed_by_the_harness(&status),
                 "the leader was terminated by the supervisor, got {status:?}"
-            );
-        }
+            ),
+            Cleanup::SignalledNotReaped => panic!(
+                "the tree was terminated but its leader was never reaped: the group signal \
+                 closes the pipes its owner is blocked on, which is what lets that owner \
+                 finish, and it did not within {OUTER_GRACE:?}"
+            ),
+            Cleanup::NeverStarted => panic!(
+                "the supervisor found nothing to terminate: the worker had published no pid \
+                 by the bound and had still spawned nothing {OUTER_GRACE:?} later, so this \
+                 case did not exercise the after-publication path it is written for"
+            ),
+            Cleanup::CancelledThenCleanedUp(status) => panic!(
+                "the cancellation was recorded before publication rather than signalled at a \
+                 live tree ({status:?}); this case is the after-publication ordering, and the \
+                 pre-publication ones have their own cases"
+            ),
+            Cleanup::CancelledCleanupInFlight(pid) => panic!(
+                "the cancellation was recorded before publication and the spawner's cleanup of \
+                 leader {pid} was still in flight after {OUTER_GRACE:?}; this case is the \
+                 after-publication ordering, and the pre-publication ones have their own cases"
+            ),
+            Cleanup::AlreadyReaped(status) => panic!(
+                "the leader was already reaped when the supervisor acted ({status:?}), so the \
+                 supervisor's own termination was not what ended this fixture"
+            ),
+        },
         Supervised::Returned(returned) => {
             panic!("a ten-minute inner budget must not have returned on its own: {returned:?}")
         }
@@ -1211,4 +1620,451 @@ fn an_exited_leaders_descendant_on_the_pipes_is_still_terminated() {
         "a descendant of an exited leader survived cleanup and performed its side effect at {}",
         marker.display()
     );
+}
+
+// ---------------------------------------------------------------------------
+// Cancellation across the whole startup lifecycle (spec 118 D-8).
+//
+// The safeguard cases above all cancel a tree whose pid has already been
+// published, which is the one ordering the merged `Tree` handled. The three
+// below cover the lifecycle end to end: cancelled before the worker starts
+// spawning, cancelled after a process exists but before its pid is published,
+// and cancelled after publication, which is the already-correct path kept
+// under a case of its own so a change to the other two cannot quietly move it.
+//
+// None of them uses a sleep to produce its ordering. The worker is blocked at
+// the exact point under test by a rendezvous, or waited for until the state it
+// is being tested at is observably reached, so the case decides the ordering
+// rather than the load on the machine.
+// ---------------------------------------------------------------------------
+
+/// How long a case waits for a rendezvous, a worker's result, or a condition
+/// the other thread will certainly reach. Not a race budget: it exists so a
+/// regression is reported instead of hanging the suite.
+#[cfg(unix)]
+const SYNC_BOUND: Duration = Duration::from_secs(20);
+
+/// The worker half of a one-shot rendezvous, and the case's handle on it.
+///
+/// The worker announces it has arrived and then blocks until released. It
+/// treats a **disconnected** release channel as a release, which is what makes
+/// the cleanup below work: dropping the case's end frees a worker blocked here
+/// even when the case is unwinding from a failed assertion.
+#[cfg(unix)]
+fn rendezvous() -> (
+    Box<dyn FnOnce() + Send>,
+    mpsc::Receiver<()>,
+    mpsc::Sender<()>,
+) {
+    let (arrived_tx, arrived_rx) = mpsc::channel();
+    let (release_tx, release_rx) = mpsc::channel::<()>();
+    let gate = Box::new(move || {
+        let _ = arrived_tx.send(());
+        let _ = release_rx.recv();
+    }) as Box<dyn FnOnce() + Send>;
+    (gate, arrived_rx, release_tx)
+}
+
+/// One cancellation-ordering case's worker, with cleanup that does not depend
+/// on the case reaching its end.
+///
+/// **Why this is a guard rather than a sequence of statements.** Every case
+/// below can fail an assertion while a fixture is running and a worker is
+/// blocked at a rendezvous. Statements written after that assertion do not run.
+/// `Drop` does, on the unwinding thread, and it does the three things in the
+/// order that makes them work: record the cancellation **first**, so a worker
+/// that has not spawned yet is bound by it; then drop the release channel, so a
+/// worker parked at a rendezvous is freed to honour it; then wait for that
+/// worker, so the case does not report while its fixture is still being cleaned
+/// up. Doing the middle step first would free the worker to spawn a fixture
+/// into a tree that had not yet been cancelled, which is the defect this whole
+/// section is about.
+#[cfg(unix)]
+struct GatedRun<T> {
+    tree: Arc<Tree>,
+    arrived: Option<mpsc::Receiver<()>>,
+    release: Option<mpsc::Sender<()>>,
+    result: Option<Receiver<T>>,
+}
+
+#[cfg(unix)]
+impl<T> GatedRun<T> {
+    /// Start `f` on a worker thread. `gate` is its rendezvous handle, or
+    /// `None` for a case that synchronises on observed state instead.
+    fn start(
+        tree: &Arc<Tree>,
+        gate: Option<(mpsc::Receiver<()>, mpsc::Sender<()>)>,
+        f: impl FnOnce() -> T + Send + 'static,
+    ) -> GatedRun<T>
+    where
+        T: Send + 'static,
+    {
+        let (tx, rx) = mpsc::channel();
+        thread::spawn(move || {
+            let _ = tx.send(f());
+        });
+        let (arrived, release) = match gate {
+            Some((a, r)) => (Some(a), Some(r)),
+            None => (None, None),
+        };
+        GatedRun {
+            tree: Arc::clone(tree),
+            arrived,
+            release,
+            result: Some(rx),
+        }
+    }
+
+    /// Block until the worker has reached its rendezvous.
+    fn await_gate(&self) {
+        self.arrived
+            .as_ref()
+            .expect("this case was started with a rendezvous")
+            .recv_timeout(SYNC_BOUND)
+            .expect("the worker must reach its rendezvous");
+    }
+
+    /// Let the worker past its rendezvous.
+    fn release(&mut self) {
+        drop(self.release.take());
+    }
+
+    /// The worker's result, within `SYNC_BOUND`.
+    fn collect(&mut self) -> T {
+        self.result
+            .take()
+            .expect("the worker's result is collected once")
+            .recv_timeout(SYNC_BOUND)
+            .expect("the worker must return once it is released")
+    }
+}
+
+#[cfg(unix)]
+impl<T> Drop for GatedRun<T> {
+    fn drop(&mut self) {
+        // Order matters; see the type's documentation.
+        self.tree.cancel();
+        drop(self.release.take());
+        if let Some(rx) = self.result.take() {
+            let _ = rx.recv_timeout(SYNC_BOUND);
+        }
+    }
+}
+
+/// Wait until `cond` holds, failing the case rather than hanging it.
+///
+/// Polling a condition another thread will certainly reach is a
+/// synchronisation point, not a guess at how long something takes: the case
+/// proceeds at the moment the state it needs is observable, and `SYNC_BOUND` is
+/// only there so a regression reports.
+#[cfg(unix)]
+fn wait_until(what: &str, mut cond: impl FnMut() -> bool) {
+    let started = Instant::now();
+    while !cond() {
+        assert!(
+            started.elapsed() < SYNC_BOUND,
+            "waited {SYNC_BOUND:?} for {what}"
+        );
+        thread::sleep(Duration::from_millis(2));
+    }
+}
+
+/// A fixture that backgrounds a descendant which would write `marker` after
+/// `delay`, touches `ready` once that descendant exists, writes its transcript
+/// line, and then blocks for as long as it is allowed to.
+///
+/// `ready` is what lets a case wait for the descendant to exist rather than
+/// hope it does: a group signal sent before the fork would clean up a tree of
+/// one, and the case would assert nothing about descendants.
+#[cfg(unix)]
+fn descendant_fixture(marker: &Path, ready: &Path, delay: Duration) -> Command {
+    let mut cmd = Command::new("/bin/sh");
+    cmd.arg("-c").arg(format!(
+        "( sleep {}; printf x > \"{}\" ) &\nprintf r > \"{}\"\nprintf '{TRANSCRIPT}fixture\\n' >&2\nsleep 600\n",
+        delay.as_secs(),
+        marker.display(),
+        ready.display()
+    ));
+    cmd
+}
+
+/// How long past a descendant's scheduled write a case waits before reading the
+/// marker. The absence is only evidence once the moment it was scheduled for
+/// has passed.
+#[cfg(unix)]
+fn past_the_side_effect(started: Instant, delay: Duration) {
+    thread::sleep((delay + Duration::from_secs(2)).saturating_sub(started.elapsed()));
+}
+
+/// **Ordering 1: cancelled before the worker starts spawning.**
+///
+/// The worker is held at a rendezvous immediately before its pre-spawn check,
+/// so no process exists when the cancellation is recorded. The merged `Tree`
+/// answered that cancellation with a bare `false` and no state change, and the
+/// worker then spawned a fixture nothing would ever terminate.
+///
+/// The witness is that the fixture **never ran at all**: its `ready` file, which
+/// it writes as its second act, is absent, and so is the descendant's delayed
+/// side effect, checked past the moment it was scheduled for.
+#[test]
+#[cfg(unix)]
+fn a_cancellation_before_the_spawn_starts_no_fixture() {
+    let tmp = tempfile::tempdir().unwrap();
+    let marker = tmp.path().join("delayed-side-effect.txt");
+    let ready = tmp.path().join("fixture-ran.txt");
+    let delay = Duration::from_secs(6);
+    let cmd = descendant_fixture(&marker, &ready, delay);
+
+    let tree = Tree::new();
+    let (gate, arrived, release) = rendezvous();
+    let started = Instant::now();
+    let mut run = GatedRun::start(&tree, Some((arrived, release)), {
+        let tree = Arc::clone(&tree);
+        move || {
+            try_run_fixture_gated(
+                cmd,
+                true,
+                Duration::from_secs(600),
+                tree,
+                SpawnGates {
+                    before_spawn: Some(gate),
+                    ..SpawnGates::default()
+                },
+            )
+        }
+    });
+
+    run.await_gate();
+    // The cancellation the merged code dropped on the floor.
+    match tree.cancel() {
+        CancelOutcome::Recorded => {}
+        other => panic!("a cancellation before any spawn must be recorded, got {other:?}"),
+    }
+    run.release();
+
+    match run.collect() {
+        Err(FixtureFailure::Cancelled { leader: None }) => {}
+        other => panic!("expected the spawn to be refused outright, got {other:?}"),
+    }
+    match tree.cleanup() {
+        Cleanup::NeverStarted => {}
+        other => panic!("nothing was spawned, so there is nothing to have reaped: {other:?}"),
+    }
+    assert!(
+        !ready.exists(),
+        "the fixture ran under a standing cancellation: {}",
+        ready.display()
+    );
+
+    past_the_side_effect(started, delay);
+    assert!(
+        !marker.exists(),
+        "a fixture spawned under a standing cancellation performed its delayed side effect at {}",
+        marker.display()
+    );
+}
+
+/// **Ordering 2: cancelled after a process exists but before its pid is
+/// published.**
+///
+/// The worker is held at a rendezvous between `cmd.spawn()` returning and the
+/// publication of the leader's pid. The fixture is therefore running, with a
+/// descendant of its own, and the tree does not yet know its pid: nothing but
+/// the worker can signal that group, which is why the worker is the cleanup
+/// owner of this ordering.
+///
+/// The case waits for the fixture's `ready` file before cancelling, so the
+/// descendant demonstrably exists and the group signal has something to reach
+/// beyond the leader. The witnesses are all three of the guarantees asked for:
+/// the leader was **terminated** (a `SIGKILL` status, not an exit of its own),
+/// it was **reaped** (`CancelledThenCleanedUp` carries the status the `wait`
+/// returned), and the descendant's **delayed side effect does not occur**.
+#[test]
+#[cfg(unix)]
+fn a_cancellation_between_the_spawn_and_the_publication_cleans_up() {
+    let tmp = tempfile::tempdir().unwrap();
+    let marker = tmp.path().join("delayed-side-effect.txt");
+    let ready = tmp.path().join("fixture-ran.txt");
+    let delay = Duration::from_secs(6);
+    let cmd = descendant_fixture(&marker, &ready, delay);
+
+    let tree = Tree::new();
+    let (gate, arrived, release) = rendezvous();
+    let started = Instant::now();
+    let mut run = GatedRun::start(&tree, Some((arrived, release)), {
+        let tree = Arc::clone(&tree);
+        move || {
+            try_run_fixture_gated(
+                cmd,
+                true,
+                Duration::from_secs(600),
+                tree,
+                SpawnGates {
+                    before_publish: Some(gate),
+                    ..SpawnGates::default()
+                },
+            )
+        }
+    });
+
+    // The worker is parked with a live, unpublished leader.
+    run.await_gate();
+    assert!(
+        tree.live_pid().is_none(),
+        "the rendezvous sits before publication, so no pid can be on the tree yet"
+    );
+    // The fixture has forked its descendant by the time this file exists, so
+    // the cancellation below is measured against a tree of more than one.
+    wait_until("the fixture to fork its descendant", || ready.exists());
+
+    match tree.cancel() {
+        CancelOutcome::Recorded => {}
+        other => panic!("the pid is unpublished, so the cancellation must be recorded: {other:?}"),
+    }
+    run.release();
+
+    let status = match run.collect() {
+        Err(FixtureFailure::Cancelled {
+            leader: Some(status),
+        }) => status,
+        other => panic!("expected the spawner to clean up the leader it created, got {other:?}"),
+    };
+    assert!(
+        looks_killed_by_the_harness(&status),
+        "the leader must have been terminated rather than have exited on its own, got {status:?}"
+    );
+    match tree.cleanup() {
+        Cleanup::CancelledThenCleanedUp(recorded) => assert_eq!(
+            recorded, status,
+            "the reap the spawner performed is the one recorded on the tree"
+        ),
+        other => panic!("the leader must be reaped by the thread that created it: {other:?}"),
+    }
+    assert_eq!(
+        tree.cleanup().reaped(),
+        Some(status),
+        "a cleanup that reaped a leader reports its status"
+    );
+
+    past_the_side_effect(started, delay);
+    assert!(
+        !marker.exists(),
+        "a descendant of a leader cancelled before publication survived and performed its \
+         side effect at {}",
+        marker.display()
+    );
+}
+
+/// **Ordering 3: cancelled after publication.** The path that was already
+/// correct, kept under a case of its own.
+///
+/// The case waits until the pid is observably on the tree, so the ordering is
+/// decided rather than raced, then cancels from the test thread exactly as the
+/// supervisor does. Cleanup is the worker's here: the group signal closes the
+/// pipes it is blocked on, and it reaps its own leader.
+///
+/// `a_broken_inner_deadline_is_terminated_by_the_outer_supervisor` covers the
+/// same ordering through `supervise`, where the cancellation is produced by an
+/// expiring bound. This one isolates the transition from the bound.
+#[test]
+#[cfg(unix)]
+fn a_cancellation_after_publication_is_signalled_and_reaped_by_the_worker() {
+    let tmp = tempfile::tempdir().unwrap();
+    let marker = tmp.path().join("delayed-side-effect.txt");
+    let ready = tmp.path().join("fixture-ran.txt");
+    let delay = Duration::from_secs(6);
+    let cmd = descendant_fixture(&marker, &ready, delay);
+
+    let tree = Tree::new();
+    let started = Instant::now();
+    // A budget that cannot expire inside this case: the only thing that can end
+    // this run is the cancellation below.
+    let mut run = GatedRun::start(&tree, None, {
+        let tree = Arc::clone(&tree);
+        move || try_run_fixture(cmd, true, Duration::from_secs(600), tree)
+    });
+
+    wait_until("the worker to publish the leader's pid", || {
+        tree.live_pid().is_some()
+    });
+    wait_until("the fixture to fork its descendant", || ready.exists());
+
+    match tree.cancel() {
+        CancelOutcome::Signalled => {}
+        other => panic!("a published, unreaped leader must be signalled, got {other:?}"),
+    }
+
+    // The group signal closes the pipes the worker is blocked on, which is what
+    // lets it finish and reap its own leader.
+    let _ = run.collect();
+    let status = match tree.cleanup() {
+        Cleanup::Reaped(status) => status,
+        other => panic!("the worker must reap the leader the supervisor signalled: {other:?}"),
+    };
+    assert!(
+        looks_killed_by_the_harness(&status),
+        "the leader was terminated by the cancellation, got {status:?}"
+    );
+
+    past_the_side_effect(started, delay);
+    assert!(
+        !marker.exists(),
+        "a descendant of a leader cancelled after publication survived and performed its \
+         side effect at {}",
+        marker.display()
+    );
+}
+
+/// The window between a spawner finding a cancellation and finishing its reap
+/// is one in which a **process exists**, and it must not read back as one in
+/// which none ever did.
+///
+/// The `wait` that window covers follows a `SIGKILL` and is therefore short,
+/// which is why folding it into `Cancelled` did not show up in the orderings
+/// above: `run.collect()` returns after the reap, so those cases only ever see
+/// the state on the far side of it. A supervisor's grace can expire inside it,
+/// and `NeverStarted` would then tell it there had been nothing to terminate.
+///
+/// Driven directly on the state machine, with no process: what is under test is
+/// the reading, and a fixture would only reintroduce the timing that hides it.
+#[test]
+#[cfg(unix)]
+fn a_spawners_cleanup_in_flight_does_not_read_as_nothing_started() {
+    let tree = Tree::new();
+    assert!(matches!(tree.cleanup(), Cleanup::NeverStarted));
+    assert!(matches!(tree.cancel(), CancelOutcome::Recorded));
+    assert!(
+        matches!(tree.cleanup(), Cleanup::NeverStarted),
+        "a cancellation with nothing spawned under it is still nothing started"
+    );
+
+    // What `Fixture::spawn` does on finding the cancellation at publication,
+    // minus the process: the pid is recorded, and the reap that follows it has
+    // not happened yet.
+    assert_eq!(tree.publish(4242), Permit::Cancelled);
+    match tree.cleanup() {
+        Cleanup::CancelledCleanupInFlight(pid) => assert_eq!(pid, 4242),
+        other => panic!("a spawner's cleanup in flight must not read as {other:?}"),
+    }
+    // A supervisor asking again here must not signal: the spawner has already
+    // signalled this group and owns the reap. Nothing in this case may reach
+    // pid 4242, which belongs to whoever happens to hold it.
+    assert!(matches!(tree.cancel(), CancelOutcome::Recorded));
+    assert_eq!(
+        tree.cleanup().reaped(),
+        None,
+        "nothing has been reaped while the cleanup is still in flight"
+    );
+
+    // And the spawner's reap closes it.
+    let reaped = Command::new("/bin/sh")
+        .arg("-c")
+        .arg("exit 3")
+        .status()
+        .unwrap();
+    tree.cancelled_reap(reaped);
+    match tree.cleanup() {
+        Cleanup::CancelledThenCleanedUp(status) => assert_eq!(status.code(), Some(3)),
+        other => panic!("the spawner's reap must close the in-flight state, got {other:?}"),
+    }
 }
