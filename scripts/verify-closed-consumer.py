@@ -120,8 +120,14 @@ def main(argv):
     cmd = args.cmd[1:] if args.cmd[:1] == ["--"] else args.cmd
     if not cmd:
         ap.error("a command is required after --")
-    if bool(args.transcript_prefix) == bool(args.no_transcript):
+    # `is not None`, not truthiness: `bool("")` is False, so an explicit
+    # `--transcript-prefix ""` would read as an absent flag, slip past an
+    # exactly-one guard written with `bool(...)`, and then assert nothing at all
+    # because every byte string starts with `b""`.
+    if (args.transcript_prefix is not None) == args.no_transcript:
         ap.error("exactly one of --transcript-prefix and --no-transcript")
+    if args.transcript_prefix == "":
+        ap.error("--transcript-prefix must not be empty: every line starts with it")
 
     started = time.monotonic()
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
