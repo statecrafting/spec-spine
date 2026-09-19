@@ -665,45 +665,309 @@ fn mask_expressions(run: &str) -> String {
     out
 }
 
-/// A shell line with its comment tail removed. A `#` inside quotes, or joined to
-/// the preceding word (`refs/heads#1`), is not a comment marker.
-fn strip_comment(line: &str) -> &str {
-    let b = line.as_bytes();
-    let (mut sq, mut dq) = (false, false);
-    for (i, &c) in b.iter().enumerate() {
-        match c {
-            b'\'' if !dq => sq = !sq,
-            b'"' if !sq => dq = !dq,
-            b'#' if !sq && !dq && (i == 0 || b[i - 1].is_ascii_whitespace()) => {
-                return &line[..i];
-            }
-            _ => {}
-        }
-    }
-    line
+/// One command of a `run:` script: the words it executes, with the shell
+/// quoting removed, and the targets of its output redirections.
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+struct ShellCommand {
+    words: Vec<String>,
+    redirects: Vec<String>,
 }
 
-/// The commands a `run:` script executes, with comments dropped and
-/// operator-separated commands split apart. Whatever survives here is something
-/// the runner runs; a mention in a comment does not.
+/// What the word now being read is the target of.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Pending {
+    /// An ordinary word of the command.
+    Word,
+    /// The file an output redirection writes.
+    Out,
+    /// The file an input redirection reads, which nothing here asks about.
+    In,
+}
+
+/// A reader for the subset of `sh` a `run:` script in this kit is allowed to
+/// use, over text GitHub's `${{ … }}` expressions have already been masked out
+/// of.
+///
+/// It is **not** a shell parser, and it does not pretend to be one. It knows
+/// quoting, backslash escapes, comments, the separators `; | || & && newline`,
+/// and redirections, because those are what tell a command from a mention. Every
+/// other construct it can recognise but not model, a command substitution, a
+/// here-document, a subshell or a shell group, it **refuses**, and
+/// `script_commands` turns that refusal into a panic. A test helper that cannot
+/// read a script must fail the test, not guess at it: guessing is exactly how
+/// `echo 'text; make gate COUPLE=0 ; more text'` came to be read as an
+/// invocation of the gate target (114 D-17).
+struct ScriptReader {
+    src: Vec<char>,
+    i: usize,
+    cmds: Vec<ShellCommand>,
+    cur: ShellCommand,
+    /// The word being read, with its quoting already removed.
+    word: String,
+    /// A word is open, which an empty `""` also makes true.
+    open: bool,
+    /// Some part of the open word came from inside quotes or from an escape, so
+    /// its characters are literal whatever they spell.
+    quoted: bool,
+    pending: Pending,
+}
+
+impl ScriptReader {
+    fn new(script: &str) -> Self {
+        Self {
+            src: script.chars().collect(),
+            i: 0,
+            cmds: Vec::new(),
+            cur: ShellCommand::default(),
+            word: String::new(),
+            open: false,
+            quoted: false,
+            pending: Pending::Word,
+        }
+    }
+
+    fn at(&self, off: usize) -> Option<char> {
+        self.src.get(self.i + off).copied()
+    }
+
+    fn finish_word(&mut self) -> Result<(), String> {
+        if !self.open {
+            return Ok(());
+        }
+        let w = std::mem::take(&mut self.word);
+        self.open = false;
+        let was_quoted = std::mem::replace(&mut self.quoted, false);
+        if !was_quoted && (w == "{" || w == "}") {
+            return Err(format!("a shell group (`{w}`) is not supported"));
+        }
+        match std::mem::replace(&mut self.pending, Pending::Word) {
+            Pending::Word => self.cur.words.push(w),
+            Pending::Out => self.cur.redirects.push(w),
+            Pending::In => {}
+        }
+        Ok(())
+    }
+
+    fn finish_cmd(&mut self) -> Result<(), String> {
+        self.finish_word()?;
+        if self.pending != Pending::Word {
+            return Err("a redirection with no target".to_string());
+        }
+        let c = std::mem::take(&mut self.cur);
+        if !c.words.is_empty() || !c.redirects.is_empty() {
+            self.cmds.push(c);
+        }
+        Ok(())
+    }
+
+    /// Open a redirection. A bare run of digits immediately before the operator
+    /// is a file descriptor (`2> log`) and not a word of the command.
+    fn open_redirect(&mut self, kind: Pending) -> Result<(), String> {
+        if self.open
+            && !self.quoted
+            && !self.word.is_empty()
+            && self.word.chars().all(|c| c.is_ascii_digit())
+        {
+            self.word.clear();
+            self.open = false;
+        } else {
+            self.finish_word()?;
+        }
+        if self.pending != Pending::Word {
+            return Err("two redirection operators in a row".to_string());
+        }
+        self.pending = kind;
+        Ok(())
+    }
+
+    fn single_quoted(&mut self) -> Result<(), String> {
+        self.i += 1;
+        loop {
+            match self.at(0) {
+                None => return Err("an unterminated single quote".to_string()),
+                Some('\'') => {
+                    self.i += 1;
+                    break;
+                }
+                Some(c) => {
+                    self.word.push(c);
+                    self.i += 1;
+                }
+            }
+        }
+        self.open = true;
+        self.quoted = true;
+        Ok(())
+    }
+
+    fn double_quoted(&mut self) -> Result<(), String> {
+        self.i += 1;
+        loop {
+            match self.at(0) {
+                None => return Err("an unterminated double quote".to_string()),
+                Some('"') => {
+                    self.i += 1;
+                    break;
+                }
+                Some('`') => {
+                    return Err("a backtick command substitution is not supported".to_string());
+                }
+                Some('$') if self.at(1) == Some('(') => {
+                    return Err("a command substitution (`$(`) is not supported".to_string());
+                }
+                Some('\\') => match self.at(1) {
+                    None => return Err("an unterminated double quote".to_string()),
+                    Some('\n') => self.i += 2,
+                    Some(n @ ('$' | '`' | '"' | '\\')) => {
+                        self.word.push(n);
+                        self.i += 2;
+                    }
+                    Some(_) => {
+                        self.word.push('\\');
+                        self.i += 1;
+                    }
+                },
+                Some(c) => {
+                    self.word.push(c);
+                    self.i += 1;
+                }
+            }
+        }
+        self.open = true;
+        self.quoted = true;
+        Ok(())
+    }
+
+    fn parse(mut self) -> Result<Vec<ShellCommand>, String> {
+        while let Some(c) = self.at(0) {
+            match c {
+                '\\' => match self.at(1) {
+                    None => return Err("a trailing backslash".to_string()),
+                    // A line continuation joins the two lines into one command.
+                    Some('\n') => self.i += 2,
+                    // Anything else is one literal character: `\;` is a
+                    // semicolon the shell does not read as a separator.
+                    Some(n) => {
+                        self.word.push(n);
+                        self.open = true;
+                        self.quoted = true;
+                        self.i += 2;
+                    }
+                },
+                '\'' => self.single_quoted()?,
+                '"' => self.double_quoted()?,
+                '`' => return Err("a backtick command substitution is not supported".to_string()),
+                '$' if self.at(1) == Some('(') => {
+                    return Err("a command substitution (`$(`) is not supported".to_string());
+                }
+                '(' | ')' => {
+                    return Err(format!(
+                        "a subshell or process substitution (`{c}`) is not supported"
+                    ));
+                }
+                // A `#` opens a comment only at the start of a word, so
+                // `refs/heads#1` is one word and not a comment.
+                '#' if !self.open => {
+                    while matches!(self.at(0), Some(ch) if ch != '\n') {
+                        self.i += 1;
+                    }
+                }
+                ' ' | '\t' | '\r' => {
+                    self.finish_word()?;
+                    self.i += 1;
+                }
+                '\n' | ';' => {
+                    self.finish_cmd()?;
+                    self.i += 1;
+                    if c == ';' && self.at(0) == Some(';') {
+                        self.i += 1;
+                    }
+                }
+                '|' => {
+                    self.finish_cmd()?;
+                    self.i += 1;
+                    if self.at(0) == Some('|') {
+                        self.i += 1;
+                    }
+                }
+                '&' if self.at(1) == Some('>') => {
+                    self.open_redirect(Pending::Out)?;
+                    self.i += 2;
+                    if self.at(0) == Some('>') {
+                        self.i += 1;
+                    }
+                }
+                '&' => {
+                    self.finish_cmd()?;
+                    self.i += 1;
+                    if self.at(0) == Some('&') {
+                        self.i += 1;
+                    }
+                }
+                '>' => {
+                    self.open_redirect(Pending::Out)?;
+                    self.i += 1;
+                    if self.at(0) == Some('>') {
+                        self.i += 1;
+                    }
+                    // `>&2` duplicates a descriptor; it names no file.
+                    if self.at(0) == Some('&') {
+                        self.i += 1;
+                        while matches!(self.at(0), Some(d) if d.is_ascii_digit() || d == '-') {
+                            self.i += 1;
+                        }
+                        self.pending = Pending::Word;
+                    }
+                }
+                '<' if self.at(1) == Some('<') => {
+                    return Err("a here-document (`<<`) is not supported".to_string());
+                }
+                '<' if self.at(1) == Some('(') => {
+                    return Err("a process substitution (`<(`) is not supported".to_string());
+                }
+                '<' => {
+                    self.open_redirect(Pending::In)?;
+                    self.i += 1;
+                }
+                ch => {
+                    self.word.push(ch);
+                    self.open = true;
+                    self.i += 1;
+                }
+            }
+        }
+        self.finish_cmd()?;
+        Ok(self.cmds)
+    }
+}
+
+/// The commands a `run:` script executes: comments dropped, quoting removed, and
+/// the script split at the separators a shell would split it at **and at no
+/// others**. Whatever survives here is something the runner runs; a mention in a
+/// comment, or inside a quoted string, does not.
 ///
 /// This reads the workflow's SOURCE text. A `$RUNNER_TEMP` in it is the literal
 /// eight characters, never the runner's expansion of them, so what a variable
 /// expands to at job time cannot change how a step tokenises here. GitHub's own
 /// `${{ … }}` expressions ARE substituted before the shell sees them, which is
 /// why they are masked to one word first.
-fn script_commands(run: &str) -> Vec<String> {
+///
+/// A script using a form [`ScriptReader`] does not model is a panic, not a
+/// guess: the shipped workflow uses none of them, and a future one that does
+/// must be read by something that understands it rather than mis-read by this.
+fn script_commands(run: &str) -> Vec<ShellCommand> {
     let masked = mask_expressions(run);
-    let mut out = Vec::new();
-    for line in masked.lines() {
-        for part in strip_comment(line).split(['|', ';', '&']) {
-            let cmd = part.trim();
-            if !cmd.is_empty() {
-                out.push(cmd.to_string());
-            }
-        }
-    }
-    out
+    ScriptReader::new(&masked).parse().unwrap_or_else(|e| {
+        panic!("a `run:` script uses a shell form this reader does not support ({e}), so it is refused rather than guessed at: {run}")
+    })
+}
+
+/// The files a `run:` script's own commands redirect output into.
+fn redirect_targets(run: &str) -> BTreeSet<String> {
+    script_commands(run)
+        .into_iter()
+        .flat_map(|c| c.redirects)
+        .collect()
 }
 
 /// The `make` targets a `run:` script actually invokes, and the variables each
@@ -716,7 +980,7 @@ fn script_commands(run: &str) -> Vec<String> {
 fn make_invocations(run: &str) -> Vec<(Vec<String>, BTreeMap<String, String>)> {
     let mut out = Vec::new();
     for cmd in script_commands(run) {
-        let mut toks = cmd.split_whitespace();
+        let mut toks = cmd.words.iter().map(String::as_str);
         let Some(head) = toks.next() else { continue };
         if head != "make" && !head.ends_with("/make") {
             continue;
@@ -736,8 +1000,10 @@ fn make_invocations(run: &str) -> Vec<(Vec<String>, BTreeMap<String, String>)> {
                 continue;
             }
             match t.split_once('=') {
+                // The reader has already removed the quoting, so
+                // `PR_BODY="$RUNNER_TEMP/pr-body.txt"` arrives as its path.
                 Some((k, v)) => {
-                    vars.insert(k.to_string(), v.trim_matches(['"', '\'']).to_string());
+                    vars.insert(k.to_string(), v.to_string());
                 }
                 None => targets.push(t.to_string()),
             }
@@ -760,7 +1026,7 @@ fn gate_invocation(step: &WorkflowStep) -> Option<BTreeMap<String, String>> {
 fn spec_spine_verbs(run: &str) -> Vec<String> {
     let mut out = Vec::new();
     for cmd in script_commands(run) {
-        let mut toks = cmd.split_whitespace();
+        let mut toks = cmd.words.iter().map(String::as_str);
         let Some(head) = toks.next() else { continue };
         if head != "spec-spine" && !head.ends_with("/spec-spine") {
             continue;
@@ -897,37 +1163,21 @@ fn the_one_gate_definition_serves_both_legs_through_explicit_controls() {
     // renaming `pr-body.txt` cannot quietly turn this into an assertion about a
     // filename; what spec 064 §3.2 requires is that the body travel as a file
     // and that the gate be handed that file.
+    //
+    // Read off the parsed commands rather than searched for in the text. `> "x"`,
+    // `>"x"` and `1> "x"` all write the same file and all reduce to the same
+    // target here, while a `>` inside a quoted string writes nothing and is not
+    // one (114 D-17).
     let run = legs_of(&steps, Leg::PullRequest)
         .into_iter()
         .find(|s| gate_invocation(s).is_some())
         .and_then(|s| s.run.clone())
         .expect("the pull-request step has a script");
-    let norm = normalize_redirects(&run);
+    let written = redirect_targets(&run);
     assert!(
-        [
-            format!(">\"{body}\""),
-            format!(">'{body}'"),
-            format!(">{body}")
-        ]
-        .iter()
-        .any(|w| norm.contains(w.as_str())),
-        "PR_BODY must name the file this step writes; it writes none: {run}"
+        written.contains(body),
+        "PR_BODY must name a file this step writes; it writes {written:?}: {run}"
     );
-}
-
-/// A script with output redirections spelled one way: `1>` written `>`, and the
-/// whitespace around `>` removed. `> "x"`, `>"x"` and `1> "x"` all write the
-/// same file, and an assertion that told them apart would be testing a
-/// workflow's spacing rather than which file it writes.
-fn normalize_redirects(run: &str) -> String {
-    let mut s = run.replace("1>", ">");
-    while s.contains(" >") {
-        s = s.replace(" >", ">");
-    }
-    while s.contains("> ") {
-        s = s.replace("> ", ">");
-    }
-    s
 }
 
 /// §3.2: the ownership guard reads the effective configuration, and reads it in
@@ -1061,4 +1311,179 @@ jobs:
         "the leg is read from the event condition, not from the step's name"
     );
     assert_eq!(legs_of(&steps, Leg::Push).len(), 1);
+}
+
+/// §3.4 + D-17: the detector reads the script's shell quoting, so text a command
+/// carries cannot manufacture a command. Splitting on `;`, `|` and `&` wherever
+/// they appeared was the defect: it turned the single `echo` below into three
+/// commands, the middle one an invocation of the gate target with `COUPLE=0`,
+/// from a step that runs no `make` at all.
+///
+/// Quoted text is the same class of mention as a comment or a step `name:`, and
+/// §3.4 already refuses those. This is that requirement holding for the form
+/// that got past it.
+#[test]
+fn the_one_gate_definition_detector_reads_shell_quoting_not_raw_separators() {
+    // Positive controls first, one per separator, so a detector that answered
+    // "no" to every fixture below could not pass this test. Each of these is a
+    // real invocation that follows a real separator.
+    for real in [
+        "echo hi ; make gate COUPLE=0",
+        "echo hi && make gate COUPLE=0",
+        "echo hi | cat ; make gate COUPLE=0",
+        "echo hi\nmake gate COUPLE=0",
+        "make gate COUPLE=0 ; echo done",
+    ] {
+        let step = WorkflowStep {
+            name: None,
+            cond: Some("github.event_name != 'pull_request'".to_string()),
+            run: Some(real.to_string()),
+        };
+        assert_eq!(
+            gate_invocation(&step).and_then(|v| v.get("COUPLE").cloned()),
+            Some("0".to_string()),
+            "a real invocation after a real separator is still detected: {real}"
+        );
+    }
+
+    // And the same text, quoted. Every one of these is a single `echo`.
+    let mentions = [
+        // The reported reproduction, single-quoted.
+        "echo 'text; make gate COUPLE=0 ; more text'",
+        // Double-quoted, which the same split treated the same way.
+        "echo \"text; make gate COUPLE=0 ; more text\"",
+        // The other two separators, in both quotings.
+        "echo 'a | make gate COUPLE=0 | b'",
+        "echo \"a && make gate COUPLE=0 && b\"",
+        // A separator escaped rather than quoted is also not a separator.
+        r"echo text\; make gate COUPLE=0",
+        // Quoted inside a longer, otherwise ordinary script.
+        "set -e\necho 'ran: make gate COUPLE=0; ok'\nspec-spine lint --fail-on-warn",
+    ];
+    for run in mentions {
+        let step = WorkflowStep {
+            name: None,
+            cond: Some("github.event_name != 'pull_request'".to_string()),
+            run: Some(run.to_string()),
+        };
+        assert_eq!(
+            gate_invocation(&step),
+            None,
+            "quoted or escaped text is not an invocation of the target: {run}"
+        );
+    }
+
+    // The same fixture through the whole §3.4 path, parsed from YAML and read by
+    // leg, because that is where the property is asserted and a helper can be
+    // right while the path through it is not.
+    let quoted = r#"
+jobs:
+  govern:
+    steps:
+      - name: Governed loop
+        if: github.event_name != 'pull_request'
+        run: |
+          echo 'text; make gate COUPLE=0 ; more text'
+      - name: Governed loop (pull request)
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "text; make gate PR_BODY=/tmp/pr-body.txt ; more text"
+"#;
+    let steps = workflow_steps(quoted);
+    assert_eq!(steps.len(), 2, "the fixture parsed to no steps");
+    for want in [Leg::Push, Leg::PullRequest] {
+        assert!(
+            legs_of(&steps, want)
+                .into_iter()
+                .all(|s| gate_invocation(s).is_none()),
+            "a {want:?} step that only echoes the target does not invoke it"
+        );
+    }
+
+    // The restatement detector shares the reader, so it shares the correction:
+    // a quoted verb was counted as a restatement, which would have refused a
+    // workflow that delegates correctly.
+    assert!(
+        spec_spine_verbs("echo 'a; spec-spine check --fail-on-unresolved --fail-on-warn'")
+            .is_empty(),
+        "a verb inside a quoted string is not an invocation of it"
+    );
+    assert_eq!(
+        spec_spine_verbs("echo 'a; spec-spine check' ; spec-spine index coverage"),
+        vec!["index coverage".to_string()],
+        "and the real invocation beside it is still counted"
+    );
+
+    // And so does the PR-body redirection: a `>` inside quotes writes no file.
+    assert!(
+        redirect_targets("echo \"wrote > $RUNNER_TEMP/pr-body.txt\"").is_empty(),
+        "a redirection operator inside a quoted string is text, not a redirect"
+    );
+    assert!(
+        redirect_targets("printf '%s' \"$PR_BODY_TEXT\" > \"$RUNNER_TEMP/pr-body.txt\"")
+            .contains("$RUNNER_TEMP/pr-body.txt"),
+        "and a real redirect still names the file it writes"
+    );
+    // Spelled three ways, one target: the assertion is about which file is
+    // written, not about a workflow's spacing.
+    for spelling in [
+        "printf x > out.txt",
+        "printf x >out.txt",
+        "printf x 1> out.txt",
+    ] {
+        assert!(
+            redirect_targets(spelling).contains("out.txt"),
+            "redirect spelling changes nothing: {spelling}"
+        );
+    }
+}
+
+/// §3.4 + D-17: and a script the reader cannot model is refused, not guessed at.
+///
+/// The reader knows quoting, escapes, comments, separators and redirections. A
+/// command substitution or a here-document can carry a command it would read as
+/// text, so the honest answer is that the script was not understood. A helper
+/// that guessed here would be the same defect one construct further along.
+#[test]
+fn the_one_gate_definition_detector_refuses_a_script_it_cannot_read() {
+    for (run, want) in [
+        ("echo $(make gate)", "command substitution"),
+        ("echo `make gate`", "backtick"),
+        ("echo \"$(make gate)\"", "command substitution"),
+        ("( make gate )", "subshell"),
+        ("{ make gate; }", "shell group"),
+        ("cat <<EOF\nmake gate\nEOF", "here-document"),
+        ("diff <(make gate) b", "process substitution"),
+        ("echo 'unterminated", "unterminated single quote"),
+        ("echo \"unterminated", "unterminated double quote"),
+        ("make gate >", "redirection with no target"),
+    ] {
+        let err = ScriptReader::new(run)
+            .parse()
+            .expect_err(&format!("`{run}` must be refused, not parsed"));
+        assert!(
+            err.contains(want),
+            "`{run}` was refused as {err:?}, which does not name {want}"
+        );
+    }
+
+    // And the refusal reaches the caller as a failure rather than an empty
+    // answer, which would read as "this step invokes nothing".
+    let caught = std::panic::catch_unwind(|| script_commands("echo $(make gate)"));
+    assert!(
+        caught.is_err(),
+        "script_commands must fail on a script it cannot read, not return {caught:?}"
+    );
+
+    // The shipped workflow uses none of those forms, so the refusal costs it
+    // nothing: every one of its steps reads.
+    for step in workflow_steps(&read("kit/govern.yml")) {
+        if let Some(run) = step.run.as_deref() {
+            ScriptReader::new(&mask_expressions(run))
+                .parse()
+                .unwrap_or_else(|e| {
+                    panic!("kit/govern.yml step {:?} does not read: {e}", step.name)
+                });
+        }
+    }
 }
