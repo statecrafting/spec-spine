@@ -343,6 +343,18 @@ fn run_script(step: &Step, script: &str, dir: &Path, env: &BTreeMap<String, Stri
         }
     }
     let out = cmd.output().expect("bash runs");
+    // 119 3.8 rule 5: this harness models `GITHUB_OUTPUT` and not `GITHUB_ENV`,
+    // because no step of this job writes one. A step that started to would have
+    // its value silently dropped and the suite would stay green, which is the
+    // failure mode rule 5 exists to prevent, so the unsupported form refuses
+    // loudly instead of going unevaluated.
+    let env_written = fs::read_to_string(&env_file).unwrap();
+    assert!(
+        env_written.trim().is_empty(),
+        "{WORKFLOW} step {:?} wrote to `GITHUB_ENV`, which this harness does not model \
+         (spec 119 3.8 rule 5). It refuses rather than silently dropping the value:\n{env_written}",
+        step.name
+    );
     let mut outputs = BTreeMap::new();
     for line in fs::read_to_string(&out_file).unwrap().lines() {
         if let Some((k, v)) = line.split_once('=') {
