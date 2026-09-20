@@ -386,7 +386,24 @@ file and no JSON parser will read it. The failure fires exactly when pagination
 does, which is the condition this spec exists to handle, and it would have been
 found by the first PR with more than thirty comments rather than by a test. The
 reads therefore pass `--slurp`, which wraps the pages in one outer array, and the
-skill says the file is an array of pages and how to flatten it. This is the
+skill says the file is an array of pages and how to flatten it.
+
+Measured, not reasoned, because a reviewer read `--slurp` the other way round
+and the two readings imply different flatten commands. Against this spec's own
+pull request on 2026-09-19,
+`gh api --paginate --slurp "repos/statecrafting/spec-spine/issues/266/comments"`
+wrote a file whose top level is an `array` of length 1 whose single element is
+an `array` of length 2, each of whose items carries the comment keys
+(`author_association`, `body`, `created_at`, `html_url`, `id`). `.[0].id` fails
+with "Cannot index array with string", which is the error a flat-array reading
+predicts would not happen, so `[.[][]]` is the flatten and `.[] | .id` is the
+mistake. `gh` 2.73.0 documents the same shape: "Each page is a separate JSON
+array or object. Pass `--slurp` to wrap all pages of JSON arrays or objects into
+an outer JSON array."
+
+An acceptance block cannot witness this. It would need a live multi-page
+endpoint and a network, and the block runs against a checkout; what it pins is
+that the flag is on every read, which is the part a later edit could drop. This is the
 output format of a required read, not a new requirement: §3.1's obligation,
 §3.3's values and §3.4's budget are unchanged, and the alternative that would have
 satisfied a parser (piping into `--jq`) is the one §3.1 forbids because it
