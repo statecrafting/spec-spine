@@ -1,7 +1,7 @@
 ---
 id: "115-the-kit-ships-no-claim-an-adopter-cannot-resolve"
 title: "The kit ships no claim an adopter cannot resolve"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-17"
 summary: >
