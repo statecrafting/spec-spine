@@ -378,6 +378,20 @@ Nothing is deferred to a follow-up spec either; the residue is written down as
 §4's limitation, where the next reader meets it, instead of being filed where it
 can age.
 
+D-12 (2026-09-19, why the reads also pass `--slurp`). §3.1 requires every page
+and says nothing about what the pages look like once they land, which left a gap
+the first implementation fell into: `gh api --paginate` writes **each page as its
+own top-level JSON value**, so a two-page read redirects `[...][...]` into the
+file and no JSON parser will read it. The failure fires exactly when pagination
+does, which is the condition this spec exists to handle, and it would have been
+found by the first PR with more than thirty comments rather than by a test. The
+reads therefore pass `--slurp`, which wraps the pages in one outer array, and the
+skill says the file is an array of pages and how to flatten it. This is the
+output format of a required read, not a new requirement: §3.1's obligation,
+§3.3's values and §3.4's budget are unchanged, and the alternative that would have
+satisfied a parser (piping into `--jq`) is the one §3.1 forbids because it
+destroys the read's exit status.
+
 ## Verification
 
 Each line is one command, run independently: no shell variable survives to the
@@ -424,6 +438,11 @@ grep -qF 'pulls/<number>/reviews' .claude/skills/shepherd/SKILL.md
 # the same wrong answer one level down (D-5). A count of `--paginate` is not the
 # assertion: three flags on one endpoint would satisfy it (D-7).
 grep -F 'gh api' kit/.claude/skills/shepherd/SKILL.md | grep -F 'pulls/<number>/comments' | grep -qF -- '--paginate'
+# 3.1 / D-12: and `--slurp`, without which the paginated file is a run of
+# top-level JSON values rather than one document.
+grep -F 'gh api' kit/.claude/skills/shepherd/SKILL.md | grep -F 'pulls/<number>/comments' | grep -qF -- '--slurp'
+grep -F 'gh api' kit/.claude/skills/shepherd/SKILL.md | grep -F 'issues/<number>/comments' | grep -qF -- '--slurp'
+grep -F 'gh api' kit/.claude/skills/shepherd/SKILL.md | grep -F 'pulls/<number>/reviews' | grep -qF -- '--slurp'
 grep -F 'gh api' kit/.claude/skills/shepherd/SKILL.md | grep -F 'issues/<number>/comments' | grep -qF -- '--paginate'
 grep -F 'gh api' kit/.claude/skills/shepherd/SKILL.md | grep -F 'pulls/<number>/reviews' | grep -qF -- '--paginate'
 # 3.1: and the read's own exit status is checkable, which a pipe into `--jq`

@@ -1498,9 +1498,9 @@ dirties the tree the gate is about to judge:
 
 ```sh
 T="${TMPDIR:-/tmp}/shepherd-<number>"; mkdir -p "$T"
-gh api --paginate "repos/{owner}/{repo}/pulls/<number>/comments" > "$T/line-comments.json"; echo "line-comments exit=$?"
-gh api --paginate "repos/{owner}/{repo}/issues/<number>/comments" > "$T/pr-comments.json"; echo "pr-comments exit=$?"
-gh api --paginate "repos/{owner}/{repo}/pulls/<number>/reviews" > "$T/reviews.json"; echo "reviews exit=$?"
+gh api --paginate --slurp "repos/{owner}/{repo}/pulls/<number>/comments" > "$T/line-comments.json"; echo "line-comments exit=$?"
+gh api --paginate --slurp "repos/{owner}/{repo}/issues/<number>/comments" > "$T/pr-comments.json"; echo "pr-comments exit=$?"
+gh api --paginate --slurp "repos/{owner}/{repo}/pulls/<number>/reviews" > "$T/reviews.json"; echo "reviews exit=$?"
 ```
 
 - `pulls/<number>/comments` is a comment anchored to a line of the diff.
@@ -1510,8 +1510,13 @@ gh api --paginate "repos/{owner}/{repo}/pulls/<number>/reviews" > "$T/reviews.js
   where a `CHANGES_REQUESTED` with no line anchor leaves its words.
 
 `--paginate` on all three: `gh api` returns one page by default, and three
-endpoints read one page deep is the same blindness one level down. Check
-each command's **exit status** before you believe its output. A failed call
+endpoints read one page deep is the same blindness one level down.
+`--slurp` with it, because `--paginate` alone writes **each page as its own
+top-level JSON value**, so a two-page read redirects `[...][...]` into the file
+and no JSON parser will read it. `--slurp` wraps the pages in one outer array
+instead, so each file is an array of pages: flatten it (`jq '[.[][]]' "$T/…"`)
+before reading the threads. Check each command's **exit status** before you
+believe its output. A failed call
 prints nothing and exits non-zero, which through a pipe is indistinguishable
 from an endpoint with no threads; a paginated call that fails after some
 pages is a partial result and never a complete one.
