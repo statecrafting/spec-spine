@@ -143,12 +143,21 @@ D-5, D-7.
 Each read's **exit status** MUST be checked before its output is believed, and
 the status of the command that performs the read, not of a pipeline stage
 downstream of it. A failed `gh api` call prints nothing to stdout and exits
-non-zero; piped straight into `--jq`, it is indistinguishable from an endpoint
+non-zero; judged by its output alone it is indistinguishable from an endpoint
 that returned no threads. A paginated read that fails **after** emitting some
 pages fails the same way and MUST be caught by the same status check: the pages
 already in hand are a partial result, never a complete one. A read that did not
 succeed is an unread endpoint, and §3.3 governs what may be reported about it.
-D-5.
+D-5, D-13.
+
+Each read MUST also land in a **defined output shape** and MUST be **parsed**
+before anything is claimed about it. `--slurp` is required with `--paginate` so
+that the saved file is one document whose top level is an outer array of pages
+(D-12). After a successful read the session MUST parse that document, MUST
+inspect **every item of every page**, and MUST count **feedback items** rather
+than outer pages: `[[]]` is one page carrying no feedback. A parse that fails is
+an unread endpoint for §3.3's purposes: it MUST NOT be reported as complete
+coverage and MUST NOT be merged on. D-13.
 
 A failed read permits **one** retry of that endpoint. If the retry also fails,
 the run MUST stop before the merge checkpoint. It MUST name the endpoint that
@@ -312,9 +321,12 @@ asked for anything, on a PR where one did.
 
 They are stated as requirements because §3.3 already forbids the conclusion and
 nothing in the drafted §3.1 prevented it. `gh api` without `--paginate` returns
-one page, and a failed call prints nothing to stdout while `--jq` turns that into
-an empty result; a session following the drafted step would report `none` in both
-cases in good faith. An acceptance block over a skill's text can witness
+one page, and a failed call prints nothing to stdout, which a session that reads
+only the output takes for an empty result; a session following the drafted step
+would report `none` in both cases in good faith. (**Superseded in part by D-13**:
+this paragraph originally attributed the lost status to `--jq`. `--jq` is an
+option of `gh api`, not a downstream command, and does not itself hide the read's
+exit status. The requirement is unchanged; the explanation was wrong.) An acceptance block over a skill's text can witness
 `--paginate` in the shipped command. It cannot witness that a session checked an
 exit status, which is why §3.3 carries the obligation in the words the session
 reads rather than only in a grep.
@@ -378,11 +390,15 @@ Nothing is deferred to a follow-up spec either; the residue is written down as
 §4's limitation, where the next reader meets it, instead of being filed where it
 can age.
 
-D-12 (2026-09-19, why the reads also pass `--slurp`). §3.1 requires every page
+D-12 (2026-09-19, why the reads also pass `--slurp`; **corrected in part by
+D-13**, see the two marked sentences). §3.1 requires every page
 and says nothing about what the pages look like once they land, which left a gap
 the first implementation fell into: `gh api --paginate` writes **each page as its
 own top-level JSON value**, so a two-page read redirects `[...][...]` into the
-file and no JSON parser will read it. The failure fires exactly when pagination
+file. *(Superseded sentence: this read "and no JSON parser will read it". That
+overstates it. The file is a stream of top-level JSON values; stream-aware tools
+consume it, and only a single-document parser rejects it. D-13 records the
+measurement.)* The failure fires exactly when pagination
 does, which is the condition this spec exists to handle, and it would have been
 found by the first PR with more than thirty comments rather than by a test. The
 reads therefore pass `--slurp`, which wraps the pages in one outer array, and the
@@ -401,13 +417,62 @@ mistake. `gh` 2.73.0 documents the same shape: "Each page is a separate JSON
 array or object. Pass `--slurp` to wrap all pages of JSON arrays or objects into
 an outer JSON array."
 
-An acceptance block cannot witness this. It would need a live multi-page
+An acceptance block cannot witness the live shape. It would need a multi-page
 endpoint and a network, and the block runs against a checkout; what it pins is
-that the flag is on every read, which is the part a later edit could drop. This is the
+that the flag is on every read, which is the part a later edit could drop, and
+(since D-13) that the documented way of reading the saved document gives the
+right answers on fixtures. This is the
 output format of a required read, not a new requirement: §3.1's obligation,
-§3.3's values and §3.4's budget are unchanged, and the alternative that would have
-satisfied a parser (piping into `--jq`) is the one §3.1 forbids because it
-destroys the read's exit status.
+§3.3's values and §3.4's budget are unchanged. *(Superseded sentence: this
+closed by calling `--jq` "the alternative that would have satisfied a parser",
+"the one §3.1 forbids because it destroys the read's exit status". `--jq` is an
+option of the same `gh api` command, it does not combine pages into the slurped
+document, and it does not itself destroy the read's status. §3.1 forbids
+nothing about `--jq`; it requires that the read's own status be checked. D-13.)*
+
+D-13 (2026-09-19, the `--jq` explanation was wrong, and "no JSON parser" was an
+overstatement; what replaces both). Three earlier passages explained the shipped
+commands by way of `--jq`: §3.1's status paragraph ("piped straight into
+`--jq`"), D-5 ("`--jq` turns that into an empty result"), and D-12's closing
+sentence ("the alternative that would have satisfied a parser (piping into
+`--jq`) is the one §3.1 forbids"). The skill carried the same explanation and the
+test suite pinned it as a prohibition: every `gh api` line was asserted not to
+contain `--jq`. All of that is superseded.
+
+`--jq` is an **option of `gh api`**, not a downstream shell command. It is parsed
+by `gh`, it runs inside the same process, and the exit status the shell observes
+is still `gh api`'s own. It does not by itself hide anything. What hides a failed
+read is judging the read by its output instead of its exit code, or placing
+another command downstream of it in a pipeline; neither is peculiar to `--jq`,
+and neither is fixed by banning it. A prohibition on `--jq` therefore pinned a
+false explanation while witnessing nothing about coverage, and it is removed from
+the skill, from `kit_skills.rs` and from the acceptance block. In its place the
+suite asserts the obligations that actually keep a thread from going unread:
+`--paginate` **and** `--slurp` on each endpoint's own command line (the earlier
+Rust assertion checked only `--paginate`, and a file-wide flag count would have
+been green for a flag in the surrounding prose), a documented output shape, a
+parse before the document is believed, and a count of feedback items rather than
+of outer pages.
+
+D-12's "no JSON parser will read it" is also corrected. `gh api --paginate`
+without `--slurp` writes a **stream** of top-level JSON values. Stream-aware
+tools consume it: `jq` reads `[{"id":1}][{"id":2}]` as two inputs and exits 0,
+and `jq -s` combines them into one document. What rejects it is a
+single-document parser: `python3 -c 'json.load(...)'` fails with
+`Extra data: line 1 column 11` and exits 1 (measured 2026-09-19). The reason to
+pass `--slurp` is a **defined** shape, not an unreadable file, and the framing is
+done by `gh api`, not by `--jq`: `--slurp` decides how `gh` wraps the pages it
+already fetched.
+
+Measured, on fixtures, 2026-09-19, because §4 cannot reach a live multi-page
+endpoint and because the reading rule is what a session actually executes:
+`[[]]` is one page and **zero** feedback items; `[[{…}]]` is one page and one;
+`[[{…},{…}],[{…}]]` is **two** pages and **three** items, which is why the count
+that matters is `[.[][]] | length` and not `length`; and a truncated document
+(`[[{"id":1}]`) makes `jq` exit 5 with a parse error and yields no count at all,
+which is why a parse failure is an unread endpoint rather than an empty one.
+Those four cases are now acceptance lines. They validate the documented reading
+approach, not whether a session obeys prose, and §4 says so where they sit.
 
 ## Verification
 
@@ -422,13 +487,17 @@ executable from here, and §4 does not pretend otherwise.
 |---|---|
 | `grep 'issues/<number>/comments'`, `grep 'pulls/<number>/reviews'` | red in all four copies, both absent (exit 1) |
 | per-endpoint `--paginate` (§3.1) | red: `--paginate` appears zero times in either copy, so the one shipped read is unpaginated |
-| `! ... gh api ... --jq` (§3.1) | red, the shipped read pipes into `--jq` and loses its own status |
+| `exit status`, `before you believe its output` (§3.1) | red at `origin/main`, both absent; the shipped read passed its output straight to `--jq` and nothing judged the read's own status |
+| per-endpoint `--slurp` (§3.1, D-12) | red at `origin/main`: zero of the three reads carried it (measured 2026-09-19) |
+| `outer array of pages`, `every item of every page`, `not the feedback count`, `A parse that fails` (§3.1, D-13) | red at `origin/main` **and** at `c708ca9`, all four absent in both (measured 2026-09-19) |
+| the four fixture lines (§3.1, D-13) | green at both bases: they validate the documented reading approach against known inputs, not the repository's state, and are pinned here so a later edit that changes the documented iteration has to face them. The line above is what couples them to this repository |
 | `could not read <endpoint>` on the `Review threads:` line (§3.3) | red, the line offers `none`, `n addressed`, `n need a human`, `not read: stopped at CRITICAL`, and nothing for an endpoint that would not answer |
 | `Thread reads:` line (§3.3) | red, absent |
 | `! grep 'every required check \`SUCCESS\`: go to Step 4'` | red, that is exactly what Step 1 says (one occurrence) |
 | `grep '\`SUCCESS\`' | grep 'Step 3b'` (§3.2) | red, the all-green route names Step 4 and not Step 3b |
 | `one retry`, `before Step 4`, `even when every required check was` | red, all three absent |
 | the five `shepherd_*` tests added to `kit_skills.rs` | red: all five fail against the parent's skill text, each naming the line it read |
+| `shepherd_documents_how_to_read_the_saved_pages` (D-13) | red at `origin/main` (no `## Step 3b` section at all) and red at `c708ca9` (section present, all four needles absent) |
 | `registry show 116` | red, not found, exit 1 |
 
 Five lines are **green at the parent and stay green**, and are preservation
@@ -462,9 +531,31 @@ grep -F 'gh api' kit/.claude/skills/shepherd/SKILL.md | grep -F 'issues/<number>
 grep -F 'gh api' kit/.claude/skills/shepherd/SKILL.md | grep -F 'pulls/<number>/reviews' | grep -qF -- '--slurp'
 grep -F 'gh api' kit/.claude/skills/shepherd/SKILL.md | grep -F 'issues/<number>/comments' | grep -qF -- '--paginate'
 grep -F 'gh api' kit/.claude/skills/shepherd/SKILL.md | grep -F 'pulls/<number>/reviews' | grep -qF -- '--paginate'
-# 3.1: and the read's own exit status is checkable, which a pipe into `--jq`
-# destroys.
-! grep -F 'gh api' kit/.claude/skills/shepherd/SKILL.md | grep -q -- '--jq'
+# 3.1 / D-13: the read's own exit status is the thing checked. Asserted on the
+# obligation, not by banning `--jq`: `--jq` is an option of `gh api`, runs in the
+# same process, and does not itself hide the read's status, so the earlier
+# negative pinned a false explanation and witnessed nothing about coverage.
+grep -qF 'exit status' kit/.claude/skills/shepherd/SKILL.md
+grep -qF 'before you believe its output' kit/.claude/skills/shepherd/SKILL.md
+# 3.1 / D-12 / D-13: the saved document's shape is documented, and so is the way
+# to read all of it: parse first, look at every item of every page, count
+# feedback items rather than outer pages.
+grep -qF 'outer array of pages' kit/.claude/skills/shepherd/SKILL.md
+grep -qF 'every item of every page' kit/.claude/skills/shepherd/SKILL.md
+grep -qF 'not the feedback count' kit/.claude/skills/shepherd/SKILL.md
+grep -qF 'A parse that fails' kit/.claude/skills/shepherd/SKILL.md
+grep -qF '[.[][]]' kit/.claude/skills/shepherd/SKILL.md
+grep -qF '[.[][]]' .claude/skills/shepherd/SKILL.md
+# 3.1 / D-13: and that documented reading gives the right answers. Four
+# fixtures outside the worktree, standing in for the live endpoint §4 cannot
+# reach: empty, single-page, multi-page, malformed. These validate the reading
+# approach, not a session's obedience to prose.
+printf '%s' '[[]]' > "${TMPDIR:-/tmp}/ss116-empty.json" && test "$(jq '[.[][]] | length' "${TMPDIR:-/tmp}/ss116-empty.json")" = 0
+printf '%s' '[[{"id":1}]]' > "${TMPDIR:-/tmp}/ss116-single.json" && test "$(jq '[.[][]] | length' "${TMPDIR:-/tmp}/ss116-single.json")" = 1
+printf '%s' '[[{"id":1},{"id":2}],[{"id":3}]]' > "${TMPDIR:-/tmp}/ss116-multi.json" && test "$(jq '[.[][]] | length' "${TMPDIR:-/tmp}/ss116-multi.json")" = 3
+printf '%s' '[[{"id":1},{"id":2}],[{"id":3}]]' > "${TMPDIR:-/tmp}/ss116-multi.json" && test "$(jq 'length' "${TMPDIR:-/tmp}/ss116-multi.json")" = 2
+printf '%s' '[[{"id":1}]' > "${TMPDIR:-/tmp}/ss116-bad.json" && ! jq '[.[][]] | length' "${TMPDIR:-/tmp}/ss116-bad.json"
+rm -f "${TMPDIR:-/tmp}/ss116-empty.json" "${TMPDIR:-/tmp}/ss116-single.json" "${TMPDIR:-/tmp}/ss116-multi.json" "${TMPDIR:-/tmp}/ss116-bad.json"
 # 3.1 / D-8: one retry, then a stop before the merge checkpoint.
 grep -qF 'one retry' kit/.claude/skills/shepherd/SKILL.md
 grep -qF 'before Step 4' kit/.claude/skills/shepherd/SKILL.md

@@ -646,13 +646,15 @@ fn skill_section<'a>(body: &'a str, heading: &str) -> &'a str {
     &rest[..end]
 }
 
-/// Spec 116 3.1: `/shepherd` reads all three places a reviewer can write, and
-/// reads every page of each. Asserted per endpoint over the command line that
-/// names it, rather than by counting `--paginate` in the file: a count is green
-/// for three flags on one endpoint and for three flags in prose, neither of
-/// which reads a second endpoint (116 D-5).
+/// Spec 116 3.1 / D-12: `/shepherd` reads all three places a reviewer can
+/// write, reads every page of each, and lands the pages in one document.
+/// Asserted per endpoint over the command line that names it, rather than by
+/// counting flags in the file: a file-wide count is green for three flags on
+/// one endpoint and for three flags in prose, neither of which reads a second
+/// endpoint (116 D-5), and green for `--slurp` mentioned only in the
+/// surrounding paragraph while a read drops it (116 D-13).
 #[test]
-fn shepherd_reads_all_three_endpoints_paginated() {
+fn shepherd_reads_all_three_endpoints_paginated_and_slurped() {
     let endpoints = [
         "pulls/<number>/comments",
         "issues/<number>/comments",
@@ -668,10 +670,13 @@ fn shepherd_reads_all_three_endpoints_paginated() {
                 .unwrap_or_else(|| {
                     panic!("{label}/shepherd: Step 3b runs no `gh api` on {endpoint} (116 3.1)")
                 });
-            assert!(
-                cmd.contains("--paginate"),
-                "{label}/shepherd: the read of {endpoint} is not paginated (116 3.1, D-5): {cmd}"
-            );
+            for flag in ["--paginate", "--slurp"] {
+                assert!(
+                    cmd.contains(flag),
+                    "{label}/shepherd: the read of {endpoint} does not pass {flag} \
+                     (116 3.1, D-5, D-12): {cmd}"
+                );
+            }
         }
     }
 }
@@ -707,8 +712,9 @@ fn shepherd_green_path_routes_through_the_thread_read() {
 
 /// Spec 116 3.1 / 3.3 / D-8: a read that fails is retried once and then stops
 /// the run before the merge, with the endpoint named. The exit status belongs
-/// to the read itself, which is why the shipped commands redirect rather than
-/// pipe into `--jq` (116 3.1).
+/// to the read itself: the obligation is to check that status before trusting
+/// the output, which is a property of how the read is judged and not of any one
+/// `gh api` option (116 D-13).
 #[test]
 fn shepherd_stops_on_a_read_it_could_not_complete() {
     for (label, dir) in skill_dirs() {
@@ -738,11 +744,48 @@ fn shepherd_stops_on_a_read_it_could_not_complete() {
                 "{label}/shepherd: Step 3b must say {needle:?}: {why}"
             );
         }
-        for line in threads.lines().filter(|l| l.contains("gh api")) {
+    }
+}
+
+/// Spec 116 3.1 / D-12 / D-13: the shipped step says what the saved document
+/// looks like and how to read all of it. The earlier assertion here banned
+/// `--jq` on any `gh api` line, which pinned a false explanation (`--jq` is an
+/// option of `gh api`, not a downstream command, and does not itself hide the
+/// read's status) and witnessed nothing about coverage. These are the
+/// obligations that actually keep a thread from going unread: the output shape
+/// is documented, the document is parsed before it is believed, a parse failure
+/// blocks the coverage claim, and the count is of feedback items rather than of
+/// outer pages.
+#[test]
+fn shepherd_documents_how_to_read_the_saved_pages() {
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        let threads = skill_section(&body, "Step 3b");
+        for (needle, why) in [
+            (
+                "outer array of pages",
+                "the saved document's shape is documented (116 D-12)",
+            ),
+            (
+                "[.[][]]",
+                "the iteration that reaches every item of every page is shown (116 D-13)",
+            ),
+            (
+                "A parse that fails",
+                "a document that will not parse is an unread endpoint (116 D-13)",
+            ),
+            (
+                "not the feedback count",
+                "pages are not feedback items (116 D-13)",
+            ),
+            (
+                "every item of every page",
+                "the whole document is inspected, not its first page (116 D-13)",
+            ),
+        ] {
             assert!(
-                !line.contains("--jq"),
-                "{label}/shepherd: a read piped into `--jq` hides its own exit \
-                 status (116 3.1): {line}"
+                threads.contains(needle),
+                "{label}/shepherd: Step 3b must say {needle:?}: {why}"
             );
         }
     }

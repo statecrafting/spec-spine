@@ -150,7 +150,7 @@ clearance.
 A reviewer can write in three places and GitHub keeps them apart. Read all
 three, on every path that reaches Step 4 except the CRITICAL stop above.
 Save each to a file outside the worktree, so the read's own exit status is
-the thing you check rather than a downstream `--jq`, and so a read never
+the thing you check before you trust its output, and so a read never
 dirties the tree the gate is about to judge:
 
 ```sh
@@ -168,15 +168,44 @@ gh api --paginate --slurp "repos/{owner}/{repo}/pulls/<number>/reviews" > "$T/re
 
 `--paginate` on all three: `gh api` returns one page by default, and three
 endpoints read one page deep is the same blindness one level down.
-`--slurp` with it, because `--paginate` alone writes **each page as its own
-top-level JSON value**, so a two-page read redirects `[...][...]` into the file
-and no JSON parser will read it. `--slurp` wraps the pages in one outer array
-instead, so each file is an array of pages: flatten it (`jq '[.[][]]' "$T/…"`)
-before reading the threads. Check each command's **exit status** before you
-believe its output. A failed call
-prints nothing and exits non-zero, which through a pipe is indistinguishable
-from an endpoint with no threads; a paginated call that fails after some
-pages is a partial result and never a complete one.
+
+`--slurp` with it, for a defined output shape. `--paginate` alone writes
+**each page as its own top-level JSON value**, so a two-page read leaves
+`[...][...]` in the file: that is a *stream* of JSON values, which
+stream-aware tools consume (`jq` reads it as two inputs; `jq -s` combines
+them) and which a single-document parser rejects (`python3 -c 'json.load(…)'`
+fails with `Extra data`). `--slurp` removes the ambiguity: the file is **one
+document whose top level is an outer array of pages**, each page an array of
+items. `--slurp` is a `gh api` option, not a parser: it decides how `gh`
+frames the pages it already fetched.
+
+Check each command's **exit status** before you believe its output. A failed
+`gh api` call prints nothing to stdout and exits non-zero, which is
+indistinguishable from an endpoint with no threads if you read only the
+output; a paginated call that fails after some pages is a partial result and
+never a complete one. Redirecting to a file keeps that status on the read
+itself. (`--jq` is an option of `gh api`, not a downstream command, and does
+not by itself hide the read's status; what hides it is judging the read by its
+output instead of its exit code, or putting another command downstream of it
+in a pipeline. The reason these reads redirect is the defined shape above and
+a file the triage can re-read, not a hazard peculiar to `--jq`.)
+
+Then **parse the saved document before you claim anything about it**, and
+count feedback items, not outer pages:
+
+```sh
+jq 'length' "$T/pr-comments.json"          # pages fetched
+jq '[.[][]] | length' "$T/pr-comments.json"  # feedback items across every page
+jq -r '.[][] | "\(.id)\t\(.user.login)\t\(.body)"' "$T/pr-comments.json"
+```
+
+- A parse that fails (`jq` exits non-zero) is a read you have not read:
+  treat it exactly like a failed read below. You may not claim complete
+  coverage on it and you may not merge on it.
+- The page count is not the feedback count. `[[]]` is one page with **no
+  feedback**, and `[[a,b],[c]]` is two pages with **three** items.
+- Inspect **every item of every page**, not the first page and not the first
+  item. `.[][]` is the iteration that reaches them; `.[]` reaches pages.
 
 **A failed read gets one retry, then stops the run before Step 4.** Name the
 endpoint, keep the command, its exit status and its stderr, and report which
