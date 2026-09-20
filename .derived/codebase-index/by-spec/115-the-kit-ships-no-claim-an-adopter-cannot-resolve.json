@@ -196,8 +196,8 @@
       }
     ],
     "specId": "115-the-kit-ships-no-claim-an-adopter-cannot-resolve",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "c4d0835be3d27780c58170929f5072cfe9507e5d4a9ea71b6349875a5a94fa09"
+  "shardHash": "f90ddb6767fdad265781c690d0077dc3b923ac86a0414c811acca606552cfe5f"
 }

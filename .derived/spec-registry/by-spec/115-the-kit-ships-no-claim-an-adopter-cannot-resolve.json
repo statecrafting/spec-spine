@@ -120,10 +120,10 @@
       "Verification"
     ],
     "specPath": "specs/115-the-kit-ships-no-claim-an-adopter-cannot-resolve/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Three of the shell scripts `init --with-kit` writes carry a `# Spec:` claim header naming a spec id that exists in this repository's corpus and in no adopter's. Here the headers are inert, because `.githooks/` falls outside every discovered package and the scanner never reads them, which is what spec 097 measured. In an adopter whose package is the repository root they are read, resolve to nothing, and are reported as `unknown-spec` near misses; under `[coupling] require_ownership` the same three files are unclaimed sources. The sharp end is shadowing: the scanner takes the first claim attempt in the window whether it resolves or not, so an adopter who adds their own valid header below the kit's gets a file that still reads as unowned. This spec makes the kit ship provenance rather than a claim.\n",
     "title": "The kit ships no claim an adopter cannot resolve"
   },
-  "shardHash": "12281211c4f983e7fd17152c48d6c0fbf1758e8e640814f9c55f90764211c862",
+  "shardHash": "907ed053ba1fec519a95e3faf5cf442c4fc2874ee919d8a6451cdd0a0f72e5dd",
   "specVersion": "1.3.0"
 }
