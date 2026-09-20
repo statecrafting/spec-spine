@@ -1,0 +1,169 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "032-ownership-coverage",
+      "064-the-kit-ships-the-composite-gate",
+      "065-init-and-the-kit-are-one-adoption",
+      "094-a-claim-below-the-header-window-is-not-silent",
+      "097-governed-scope-is-declared-not-inferred",
+      "114-one-gate-definition-that-holds-on-a-code-free-corpus"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".githooks/enable-hooks.sh",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".githooks/enable-merge-driver.sh",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".githooks/merge-derived-index.sh",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/kit_embedded.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/kit_gate.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/.githooks/enable-hooks.sh",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/.githooks/enable-merge-driver.sh",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/.githooks/merge-derived-index.sh",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".githooks/enable-hooks.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/enable-hooks.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".githooks/enable-merge-driver.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/enable-merge-driver.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".githooks/merge-derived-index.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/merge-derived-index.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/kit_embedded.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/kit_gate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/kit_gate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/.githooks/enable-hooks.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.githooks/enable-hooks.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/.githooks/enable-merge-driver.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.githooks/enable-merge-driver.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "kit/.githooks/merge-derived-index.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.githooks/merge-derived-index.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "115-the-kit-ships-no-claim-an-adopter-cannot-resolve",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "242ee0860b25b25e81815f3226aa9cc8ef6964e1662aca15f9fcd46e75320634"
+}
