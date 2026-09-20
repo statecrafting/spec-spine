@@ -628,3 +628,244 @@ fn the_readme_describes_when_to_scope_a_rule() {
         "the caveat: {readme}"
     );
 }
+
+/// The lines of a skill body that belong to the `## ` section whose heading
+/// starts with `heading`, the heading line included. Spec 116's assertions are
+/// about where an instruction sits as much as about its words: a pagination
+/// flag in the wrong step, or a merge precondition in a step the merge path
+/// never reads, satisfies a file-wide grep and changes nothing.
+fn skill_section<'a>(body: &'a str, heading: &str) -> &'a str {
+    let start = body
+        .find(&format!("## {heading}"))
+        .unwrap_or_else(|| panic!("no section `## {heading}`"));
+    let rest = &body[start..];
+    let end = rest[3..]
+        .find("\n## ")
+        .map(|i| i + 3 + 1)
+        .unwrap_or(rest.len());
+    &rest[..end]
+}
+
+/// Spec 116 3.1 / D-12: `/shepherd` reads all three places a reviewer can
+/// write, reads every page of each, and lands the pages in one document.
+/// Asserted per endpoint over the command line that names it, rather than by
+/// counting flags in the file: a file-wide count is green for three flags on
+/// one endpoint and for three flags in prose, neither of which reads a second
+/// endpoint (116 D-5), and green for `--slurp` mentioned only in the
+/// surrounding paragraph while a read drops it (116 D-13).
+#[test]
+fn shepherd_reads_all_three_endpoints_paginated_and_slurped() {
+    let endpoints = [
+        "pulls/<number>/comments",
+        "issues/<number>/comments",
+        "pulls/<number>/reviews",
+    ];
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        let threads = skill_section(&body, "Step 3b");
+        for endpoint in endpoints {
+            let cmd = threads
+                .lines()
+                .find(|l| l.contains(endpoint) && l.contains("gh api"))
+                .unwrap_or_else(|| {
+                    panic!("{label}/shepherd: Step 3b runs no `gh api` on {endpoint} (116 3.1)")
+                });
+            for flag in ["--paginate", "--slurp"] {
+                assert!(
+                    cmd.contains(flag),
+                    "{label}/shepherd: the read of {endpoint} does not pass {flag} \
+                     (116 3.1, D-5, D-12): {cmd}"
+                );
+            }
+        }
+    }
+}
+
+/// Spec 116 3.2: the green path reaches the merge checkpoint *through* the
+/// thread read. Asserted positively, on the routing bullet itself: the old
+/// literal's absence is satisfied by deleting the line, by renumbering it, and
+/// by a rewording that still routes past Step 3b.
+#[test]
+fn shepherd_green_path_routes_through_the_thread_read() {
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        let watch = skill_section(&body, "Step 1");
+        let bullet = watch
+            .split("\n- ")
+            .find(|b| b.contains("`SUCCESS`"))
+            .unwrap_or_else(|| panic!("{label}/shepherd: Step 1 has no all-green route (116 3.2)"));
+        assert!(
+            bullet.contains("Step 3b"),
+            "{label}/shepherd: the all-green route does not pass through the thread \
+             read (116 3.2): {bullet}"
+        );
+        // And the thread read is a precondition where the merge happens, not
+        // only a promise made in the step before it.
+        let merge = skill_section(&body, "Step 4");
+        assert!(
+            merge.contains("Step 3b"),
+            "{label}/shepherd: the merge checkpoint does not require the thread \
+             read (116 3.2): {merge}"
+        );
+    }
+}
+
+/// Spec 116 3.1 / 3.3 / D-8: a read that fails is retried once and then stops
+/// the run before the merge, with the endpoint named. The exit status belongs
+/// to the read itself: the obligation is to check that status before trusting
+/// the output, which is a property of how the read is judged and not of any one
+/// `gh api` option (116 D-13).
+#[test]
+fn shepherd_stops_on_a_read_it_could_not_complete() {
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        let threads = skill_section(&body, "Step 3b");
+        for (needle, why) in [
+            ("exit status", "the read's own status is checked (116 3.1)"),
+            (
+                "one retry",
+                "a failed read is retried exactly once (116 D-8)",
+            ),
+            (
+                "before Step 4",
+                "the second failure stops before the merge (116 D-8)",
+            ),
+            (
+                "partial",
+                "a partial read is never complete coverage (116 D-8)",
+            ),
+            (
+                "consume no remediation round",
+                "reading and retrying cost no round (116 3.4, D-9)",
+            ),
+        ] {
+            assert!(
+                threads.contains(needle),
+                "{label}/shepherd: Step 3b must say {needle:?}: {why}"
+            );
+        }
+    }
+}
+
+/// Spec 116 3.1 / D-12 / D-13: the shipped step says what the saved document
+/// looks like and how to read all of it. The earlier assertion here banned
+/// `--jq` on any `gh api` line, which pinned a false explanation (`--jq` is an
+/// option of `gh api`, not a downstream command, and does not itself hide the
+/// read's status) and witnessed nothing about coverage. These are the
+/// obligations that actually keep a thread from going unread: the output shape
+/// is documented, the document is parsed before it is believed, a parse failure
+/// blocks the coverage claim, and the count is of feedback items rather than of
+/// outer pages.
+#[test]
+fn shepherd_documents_how_to_read_the_saved_pages() {
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        let threads = skill_section(&body, "Step 3b");
+        for (needle, why) in [
+            (
+                "outer array of pages",
+                "the saved document's shape is documented (116 D-12)",
+            ),
+            (
+                "[.[][]]",
+                "the iteration that reaches every item of every page is shown (116 D-13)",
+            ),
+            (
+                "A parse that fails",
+                "a document that will not parse is an unread endpoint (116 D-13)",
+            ),
+            (
+                "not the feedback count",
+                "pages are not feedback items (116 D-13)",
+            ),
+            (
+                "every item of every page",
+                "the whole document is inspected, not its first page (116 D-13)",
+            ),
+        ] {
+            assert!(
+                threads.contains(needle),
+                "{label}/shepherd: Step 3b must say {needle:?}: {why}"
+            );
+        }
+    }
+}
+
+/// Spec 116 3.3 / D-10: three distinct report values. `none` is the claim that
+/// all three reads succeeded and found nothing; `could not read <endpoint>` is
+/// an endpoint that would not answer; spec 082's `not read: stopped at
+/// CRITICAL` is the path that never looked. The cheap way to satisfy 3.3 is to
+/// widen one value until it covers two cases and names neither, so each is
+/// pinned on the report template line where it has to appear.
+#[test]
+fn shepherd_report_keeps_three_distinct_thread_values() {
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        let line = body
+            .lines()
+            .find(|l| l.starts_with("Review threads:"))
+            .unwrap_or_else(|| panic!("{label}/shepherd: no `Review threads:` report line"));
+        for needle in [
+            "none",
+            "could not read <endpoint>",
+            "not read: stopped at CRITICAL",
+        ] {
+            assert!(
+                line.contains(needle),
+                "{label}/shepherd: the thread report line must offer {needle:?} \
+                 (116 3.3, D-10): {line}"
+            );
+        }
+        // Successful coverage is reported beside a failure, not folded into it.
+        assert!(
+            body.lines().any(|l| l.starts_with("Thread reads:")),
+            "{label}/shepherd: partial coverage has no line of its own (116 3.3)"
+        );
+        // And the CRITICAL stop still says which of the two unread reasons it is.
+        let classify = skill_section(&body, "Step 2");
+        assert!(
+            classify.contains("not read: stopped at CRITICAL"),
+            "{label}/shepherd: the CRITICAL stop lost spec 082's value (116 3.3)"
+        );
+    }
+}
+
+/// Spec 116 3.4: reading three endpoints instead of one buys no extra rounds.
+/// Spec 048 3.1 bounds remediation at two and spec 082 defines what one is;
+/// 116 only says which work is an edit. Pinned so a later widening of the input
+/// cannot arrive with a wider budget attached.
+#[test]
+fn shepherd_keeps_the_two_round_budget() {
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        assert!(
+            body.contains("at most two rounds"),
+            "{label}/shepherd: the two-round budget is gone (116 3.4)"
+        );
+        assert!(
+            body.contains("After two remediation rounds"),
+            "{label}/shepherd: the stop after two rounds is gone (116 3.4)"
+        );
+        for banned in ["three rounds", "at most three", "a third round"] {
+            assert!(
+                !body.contains(banned),
+                "{label}/shepherd: budget widened to {banned:?} (116 3.4)"
+            );
+        }
+        // A round is spent on an edit, not on a red check: the budget is
+        // unchanged, but what draws on it now includes a confirmed thread fix
+        // on a PR whose checks were green all along (116 D-9). `green` alone is
+        // already in this step at the parent, so the phrase asserted is the one
+        // that carries the ruling.
+        let remediate = skill_section(&body, "Step 3:");
+        assert!(
+            remediate.contains("even when every required check was"),
+            "{label}/shepherd: Step 3 must say a confirmed thread fix spends a \
+             round even on a green PR (116 3.4, D-9): {remediate}"
+        );
+        assert!(
+            remediate.contains("rejecting a finding as a false positive spend none"),
+            "{label}/shepherd: Step 3 must say triage spends no round (116 3.4, D-9)"
+        );
+    }
+}

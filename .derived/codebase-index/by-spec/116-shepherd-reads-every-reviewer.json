@@ -2,9 +2,15 @@
   "mapping": {
     "dependsOn": [
       "048-kit-ships-the-governed-loop-skills",
-      "081-the-kit-ships-what-the-loop-calls"
+      "081-the-kit-ships-what-the-loop-calls",
+      "082-a-refusal-is-not-a-remediation-round",
+      "100-one-source-generates-the-agent-trees"
     ],
     "implementingPaths": [
+      {
+        "path": ".agents/skills/",
+        "source": "spec-edge"
+      },
       {
         "path": ".claude/skills/",
         "source": "spec-edge"
@@ -23,6 +29,19 @@
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".agents/skills/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".agents/skills/"
+        }
+      },
       {
         "locations": [
           {
@@ -74,11 +93,24 @@
           "kind": "file",
           "path": "kit/.claude/skills/"
         }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
       }
     ],
-    "specId": "082-a-refusal-is-not-a-remediation-round",
-    "specStatus": "approved"
+    "specId": "116-shepherd-reads-every-reviewer",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "0429feae1c61dbe64b4a5ffbe409871ae51052ae25ba1b7085b099e16ad7d778"
+  "shardHash": "00848b7256f5d641405ba00908ed4add0b99b7d8f518121a91618ab10e260b9e"
 }
