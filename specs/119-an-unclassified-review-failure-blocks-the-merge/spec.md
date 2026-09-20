@@ -1,7 +1,7 @@
 ---
 id: "119-an-unclassified-review-failure-blocks-the-merge"
 title: "An unclassified review failure blocks the merge"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-20"
 implementation: complete
