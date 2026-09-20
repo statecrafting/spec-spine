@@ -2039,7 +2039,11 @@ reads `[layout] specs_dir` from `spec-spine.toml` itself.
 .derived/codebase-index/slices.json merge=spec-spine-derived-regen
 "#),
     (r#".githooks/enable-hooks.sh"#, r#"#!/usr/bin/env bash
-# Spec: specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md
+# Governed in the spec-spine repository by
+# specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md. Provenance
+# only, never a claim header: the claim syntax would name a spec id that
+# exists in no adopter's corpus, and would shadow one the adopter adds below
+# it (spec 115).
 #
 # One-command, idempotent enablement of this repository's committed git hooks
 # in THIS clone. Run once per clone: `core.hooksPath` lives in per-clone
@@ -2078,7 +2082,11 @@ echo "enabled: $(ls .githooks | tr '\n' ' ')"
 echo "disable with: git config --unset core.hooksPath"
 "#),
     (r#".githooks/enable-merge-driver.sh"#, r#"#!/usr/bin/env bash
-# Spec: 020-derived-artifact-merge-driver
+# Governed in the spec-spine repository by
+# specs/020-derived-artifact-merge-driver/spec.md. Provenance only, never a
+# claim header: the claim syntax would name a spec id that exists in no
+# adopter's corpus, and would shadow one the adopter adds below it
+# (spec 115).
 #
 # One-command, idempotent enablement of the `spec-spine-derived-regen` git merge
 # driver in THIS clone. Run once per clone: the driver registration lives in
@@ -2115,7 +2123,11 @@ echo "  index:     $(git check-attr merge .derived/codebase-index/by-spec/000-x.
 echo "[enable-merge-driver] derived-artifact conflicts will now auto-regenerate on merge/rebase."
 "#),
     (r#".githooks/merge-derived-index.sh"#, r#"#!/usr/bin/env bash
-# Spec: 020-derived-artifact-merge-driver
+# Governed in the spec-spine repository by
+# specs/020-derived-artifact-merge-driver/spec.md. Provenance only, never a
+# claim header: the claim syntax would name a spec id that exists in no
+# adopter's corpus, and would shadow one the adopter adds below it
+# (spec 115).
 #
 # Git merge driver `spec-spine-derived-regen` for the committed derived
 # artifacts, which since spec 024 are sharded per authority unit:
@@ -2226,7 +2238,11 @@ echo "[merge-derived-index] regenerated $PATHNAME from the merged tree." >&2
 exit 0
 "#),
     (r#".githooks/pre-commit"#, r#"#!/usr/bin/env sh
-# Spec: specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md
+# Governed in the spec-spine repository by
+# specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md. Provenance
+# only, never a claim header: the claim syntax would name a spec id that
+# exists in no adopter's corpus, and would shadow one the adopter adds below
+# it (spec 115).
 #
 # The commit boundary (spec 090). Every other hook the kit ships is bound to a
 # Claude Code tool name, so it fires only when the session took that route. A

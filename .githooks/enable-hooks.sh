@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# Spec: specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md
+# Governed in the spec-spine repository by
+# specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md. Provenance
+# only, never a claim header: the claim syntax would name a spec id that
+# exists in no adopter's corpus, and would shadow one the adopter adds below
+# it (spec 115).
 #
 # One-command, idempotent enablement of this repository's committed git hooks
 # in THIS clone. Run once per clone: `core.hooksPath` lives in per-clone

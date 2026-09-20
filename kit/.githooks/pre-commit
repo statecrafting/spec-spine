@@ -1,5 +1,9 @@
 #!/usr/bin/env sh
-# Spec: specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md
+# Governed in the spec-spine repository by
+# specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md. Provenance
+# only, never a claim header: the claim syntax would name a spec id that
+# exists in no adopter's corpus, and would shadow one the adopter adds below
+# it (spec 115).
 #
 # The commit boundary (spec 090). Every other hook the kit ships is bound to a
 # Claude Code tool name, so it fires only when the session took that route. A

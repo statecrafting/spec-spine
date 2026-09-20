@@ -1,52 +1,52 @@
 {
   "mapping": {
     "dependsOn": [
-      "001-compile-registry",
-      "002-registry-query"
+      "032-ownership-coverage",
+      "064-the-kit-ships-the-composite-gate",
+      "065-init-and-the-kit-are-one-adoption",
+      "094-a-claim-below-the-header-window-is-not-silent",
+      "097-governed-scope-is-declared-not-inferred",
+      "114-one-gate-definition-that-holds-on-a-code-free-corpus"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/cmd_attest.rs",
+        "path": ".githooks/enable-hooks.sh",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/cmd_compile.rs",
+        "path": ".githooks/enable-merge-driver.sh",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/cmd_couple.rs",
+        "path": ".githooks/merge-derived-index.sh",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/cmd_index.rs",
+        "path": ".githooks/pre-commit",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/cmd_init.rs",
+        "path": "crates/spec-spine-core/src/kit_embedded.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/cmd_lint.rs",
+        "path": "crates/spec-spine-core/tests/kit_gate.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/cmd_registry.rs",
+        "path": "kit/.githooks/enable-hooks.sh",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/main.rs",
+        "path": "kit/.githooks/enable-merge-driver.sh",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/out.rs",
+        "path": "kit/.githooks/merge-derived-index.sh",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/verify_attestation.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "path": "kit/.githooks/pre-commit",
         "source": "spec-edge"
       }
     ],
@@ -54,150 +54,150 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/out.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-cli/src/out.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-cli/src/cmd_attest.rs"
+            "file": ".githooks/enable-hooks.sh"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_attest.rs"
+          "path": ".githooks/enable-hooks.sh"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_compile.rs"
+            "file": ".githooks/enable-merge-driver.sh"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_compile.rs"
+          "path": ".githooks/enable-merge-driver.sh"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_couple.rs"
+            "file": ".githooks/merge-derived-index.sh"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+          "path": ".githooks/merge-derived-index.sh"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_index.rs"
+            "file": ".githooks/pre-commit"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+          "path": ".githooks/pre-commit"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_init.rs"
+            "file": "crates/spec-spine-core/src/kit_embedded.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_init.rs"
+          "path": "crates/spec-spine-core/src/kit_embedded.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_lint.rs"
+            "file": "crates/spec-spine-core/tests/kit_gate.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_lint.rs"
+          "path": "crates/spec-spine-core/tests/kit_gate.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_registry.rs"
+            "file": "kit/.githooks/enable-hooks.sh"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+          "path": "kit/.githooks/enable-hooks.sh"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/main.rs"
+            "file": "kit/.githooks/enable-merge-driver.sh"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/main.rs"
+          "path": "kit/.githooks/enable-merge-driver.sh"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/verify_attestation.rs"
+            "file": "kit/.githooks/merge-derived-index.sh"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/verify_attestation.rs"
+          "path": "kit/.githooks/merge-derived-index.sh"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/cli.rs"
+            "file": "kit/.githooks/pre-commit"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/cli.rs"
+          "path": "kit/.githooks/pre-commit"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
         }
       }
     ],
-    "specId": "035-stdout-closed-reader",
-    "specStatus": "approved"
+    "specId": "115-the-kit-ships-no-claim-an-adopter-cannot-resolve",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "0318f3245535d46a380a356c3cb36d5f32b3c2886f800fc79446d0ac07191e0f"
+  "shardHash": "c4d0835be3d27780c58170929f5072cfe9507e5d4a9ea71b6349875a5a94fa09"
 }

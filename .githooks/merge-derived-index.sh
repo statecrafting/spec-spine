@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# Spec: 020-derived-artifact-merge-driver
+# Governed in the spec-spine repository by
+# specs/020-derived-artifact-merge-driver/spec.md. Provenance only, never a
+# claim header: the claim syntax would name a spec id that exists in no
+# adopter's corpus, and would shadow one the adopter adds below it
+# (spec 115).
 #
 # Git merge driver `spec-spine-derived-regen` for the committed derived
 # artifacts, which since spec 024 are sharded per authority unit:
