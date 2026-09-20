@@ -1,0 +1,69 @@
+{
+  "record": {
+    "created": "2026-09-20",
+    "dependsOn": [
+      "073-a-workflow-bump-is-not-a-governed-change",
+      "116-shepherd-reads-every-reviewer"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/ai_review_policy.rs"
+      }
+    ],
+    "id": "119-an-unclassified-review-failure-blocks-the-merge",
+    "implementation": "complete",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "exemplar",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ai-pr-review.yml"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionHeadings": [
+      "119: An unclassified review failure blocks the merge",
+      "1. Purpose",
+      "1.1 What was observed",
+      "1.2 The misclassification",
+      "1.3 Two adjacent holes, in scope",
+      "1.4 What this spec does not fix",
+      "2. Territory",
+      "2.1 What coupling and a behavioral test each protect",
+      "3. Behavior",
+      "3.1 Success and failure are separated before any text is read",
+      "3.2 Class 1, structural skip, unchanged",
+      "3.3 Class 2, secret unset, unchanged",
+      "3.4 Class 3, a review was produced and published",
+      "3.5 Class 4, access refusal",
+      "3.6 Class 5, recognized transient",
+      "3.6.1 A timeout is not a recognized transient signal",
+      "3.7 Class 6, unclassified, blocks",
+      "3.8 The policy test executes the workflow's own script",
+      "3.8.1 Fixture matrix",
+      "3.8.2 The inversion regression check",
+      "3.9 Precedence",
+      "3.10 Acceptance",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/119-an-unclassified-review-failure-blocks-the-merge/spec.md",
+    "status": "draft",
+    "summary": "The AI review job classifies a failed reviewer invocation into two outcomes, and its fall-through is a pass. On 2026-09-20 the provider returned \"Your organization does not have access to Claude. Please login again or contact your administrator.\" and the job matched it against a token allowlist (`authentication_error`, `permission_error`, `unauthorized`, `forbidden`, and three more), found no match, set `review_status=api_failure`, exited 0, and `ci-gate` went green on PR #267 with no review. The refusal was prose and the allowlist reads tokens, so an access refusal took the transient-outage branch. Two further holes sit beside it: `review_status=ok` is set from exit status alone, so a reviewer that exits 0 having written nothing publishes an empty review the gate reads as reviewed, and the transient notice swallows a failed `gh pr comment` with a warning, so the one artifact that makes a skip visible can be absent while the gate still passes. This spec states the classification policy the job must implement: success and failure are separated by exit status before any text is read, refusal signals outrank transient signals inside a failed invocation, transient signals are recognized only in the contextual forms their emitting layer produces, and everything else blocks. It is defended by a test that executes the workflow's own script rather than a copy of its patterns, so inverting a blocking branch is caught even when its regexes are untouched.\n",
+    "title": "An unclassified review failure blocks the merge"
+  },
+  "shardHash": "08c6d6ed1131e937c8d2f6e1c788c5b97f0317bd47466d11dc5a702d6185812d",
+  "specVersion": "1.3.0"
+}
