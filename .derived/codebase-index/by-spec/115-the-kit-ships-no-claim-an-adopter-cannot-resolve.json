@@ -22,6 +22,10 @@
         "source": "spec-edge"
       },
       {
+        "path": ".githooks/pre-commit",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/kit_embedded.rs",
         "source": "spec-edge"
       },
@@ -39,6 +43,10 @@
       },
       {
         "path": "kit/.githooks/merge-derived-index.sh",
+        "source": "spec-edge"
+      },
+      {
+        "path": "kit/.githooks/pre-commit",
         "source": "spec-edge"
       }
     ],
@@ -80,6 +88,19 @@
         "unit": {
           "kind": "file",
           "path": ".githooks/merge-derived-index.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".githooks/pre-commit"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/pre-commit"
         }
       },
       {
@@ -150,6 +171,19 @@
       {
         "locations": [
           {
+            "file": "kit/.githooks/pre-commit"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "kit/.githooks/pre-commit"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/design/05-remaining-waves-2026-09.md"
           }
         ],
@@ -165,5 +199,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "242ee0860b25b25e81815f3226aa9cc8ef6964e1662aca15f9fcd46e75320634"
+  "shardHash": "8b94a92cb5cfa3f382dc2a39d426c82b60a5317c5c11c71d1142845aad755a67"
 }

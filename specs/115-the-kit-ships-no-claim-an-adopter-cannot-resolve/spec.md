@@ -33,8 +33,11 @@ extends:
   - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/.githooks/enable-hooks.sh", nature: additive }
   - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/.githooks/enable-merge-driver.sh", nature: additive }
   - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/.githooks/merge-derived-index.sh", nature: additive }
+  # 2 puts the commit-boundary hook and its kit original in the territory: a
+  # header is left in place only because nothing reads it today (D-5).
+  - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/.githooks/pre-commit", nature: additive }
   # Spec 064 3.3 asserts the two trees are equal, so the edit lands in both.
-  - { spec: "020-derived-artifact-merge-driver", paths: [".githooks/enable-hooks.sh", ".githooks/enable-merge-driver.sh", ".githooks/merge-derived-index.sh"] }
+  - { spec: "020-derived-artifact-merge-driver", paths: [".githooks/enable-hooks.sh", ".githooks/enable-merge-driver.sh", ".githooks/merge-derived-index.sh", ".githooks/pre-commit"] }
   - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/kit_gate.rs", nature: additive }
   - { spec: "065-init-and-the-kit-are-one-adoption", unit: "crates/spec-spine-core/src/kit_embedded.rs", nature: additive }
 references:
@@ -261,6 +264,17 @@ directory of shell scripts would make that sentence false in every corpus the
 tool creates. An adopter deciding which spec owns their hooks is the adopter
 making an authority decision, which is the thing this tool exists to keep in
 their hands. §3.5 says so rather than letting the spec's title imply otherwise.
+
+D-5 (2026-09-20, the two `pre-commit` files were in the Territory and not in the
+frontmatter). Section 2 puts `.githooks/pre-commit` and `kit/.githooks/pre-commit`
+in the territory and says why: they carry the same header, and the only reason
+the measurement of 1.1 does not list them is that `coverage.rs::SOURCE_EXTS`
+cannot see an extensionless file. The filed `extends` list named the three `.sh`
+files alone, so the edit 3.1 requires would have been an unclaimed change to
+another spec's unit. The two edges are added here, to the same targets the
+sibling files use (064 for the kit copy, 020 for this repository's), which
+amends nobody: what 3.1 requires is unchanged, and 3.1's assertion already
+covered both files because it reads every delivered file rather than a list.
 
 ## Verification
 

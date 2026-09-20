@@ -12,7 +12,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use spec_spine_core::scaffold_init;
+use spec_spine_core::{scaffold_init, scaffold_init_with};
 use spec_spine_types::Config;
 
 fn repo_root() -> PathBuf {
@@ -1662,5 +1662,43 @@ jobs:
     assert!(
         caught.is_err(),
         "a script no shell can run must not satisfy the invocation assertion; it answered {caught:?}"
+    );
+}
+
+/// Spec 115 §3.1: no file `init --with-kit` writes into an adopter's tree
+/// carries a line the claim scanner recognizes as a claim attempt.
+///
+/// The recognizer is applied rather than imitated: `near_miss_headers_in` is
+/// the scanner's own reader, and against an **empty** id set nothing can
+/// resolve, so every attempt `index.rs::header_attempt` recognizes is reported
+/// as `unknown-spec`. A substring search for the claim token is not the same
+/// question (spec 094 §1 measured eleven files against the recognizer's one),
+/// and it would also hit the provenance wording §3.2 keeps.
+///
+/// `//!` lines are `doc-comment-marker` misses, not attempts, and are not
+/// asserted on here: they claim nothing in any corpus.
+#[test]
+fn no_claim_header_reaches_an_adopters_tree() {
+    use spec_spine_types::NearMissReason;
+
+    let files = scaffold_init_with(&Config::default(), true).unwrap().files;
+    assert!(
+        files.len() > 10,
+        "the kit scaffold produced {} files; the assertion below would be vacuous",
+        files.len()
+    );
+    let empty = BTreeSet::new();
+    let mut offenders = Vec::new();
+    for f in &files {
+        for miss in spec_spine_core::index::near_miss_headers_in(&f.rel_path, &f.contents, &empty) {
+            if miss.reason == NearMissReason::UnknownSpec {
+                offenders.push(format!("{}:{}", f.rel_path, miss.line));
+            }
+        }
+    }
+    assert!(
+        offenders.is_empty(),
+        "these delivered files carry a claim header that resolves in no adopter's corpus, \
+         and shadow a valid one added below it (spec 115 §1.3): {offenders:?}"
     );
 }

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# Spec: 020-derived-artifact-merge-driver
+# Governed in the spec-spine repository by
+# specs/020-derived-artifact-merge-driver/spec.md. Provenance only, never a
+# claim header: the claim syntax would name a spec id that exists in no
+# adopter's corpus, and would shadow one the adopter adds below it
+# (spec 115).
 #
 # One-command, idempotent enablement of the `spec-spine-derived-regen` git merge
 # driver in THIS clone. Run once per clone: the driver registration lives in
