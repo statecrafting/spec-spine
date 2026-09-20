@@ -353,13 +353,13 @@ jobs:
           # 3.9 rule 4: within a failed invocation, refusal outranks transient.
           # A 529 that also says "does not have access" is not an outage that
           # happens to mention organizations.
-          if printf '%s' "$err" | grep -qiE "$REFUSAL_RE"; then
+          if printf '%s\n' "$err" | grep -qiE "$REFUSAL_RE"; then
             echo "::error::The provider refused this AI review invocation (rc=${rc}): the diagnostics above carry an explicit refusal of access or credit. This is not a recognized transient failure, so ci-gate blocks (spec 119 3.5). These logs record what was returned; they do not establish why, so do not read a cause into them."
             exit 1
           fi
 
           transient=no
-          if printf '%s' "$err" | grep -qiE "$TRANSIENT_RE"; then
+          if printf '%s\n' "$err" | grep -qiE "$TRANSIENT_RE"; then
             transient=yes
           elif printf '%s\n' "$err" | grep -iE "$NET_ERRNO_RE" | grep -qiE "$NET_CONTEXT_RE"; then
             # Same line, both halves: an errno on its own could be quoted back
