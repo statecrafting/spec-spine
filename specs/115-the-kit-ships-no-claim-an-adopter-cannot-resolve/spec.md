@@ -16,7 +16,7 @@ summary: >
   whether it resolves or not, so an adopter who adds their own valid header below
   the kit's gets a file that still reads as unowned. This spec makes the kit ship
   provenance rather than a claim.
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
