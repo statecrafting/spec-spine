@@ -451,6 +451,7 @@ classification succeeded and whose publication failed MUST still fail the job.
 | 19 | 137 | empty | empty | 6 | unset | 1, `::error::` | none | FAIL |
 | 20 | 124 | empty | `The operation timed out after 300 seconds` | 6 | unset | 1, `::error::` | none | FAIL |
 | 28 | 1 | empty | `ETIMEDOUT` (errno alone, no transport context) | 6 | unset | 1, `::error::` | none | FAIL |
+| 29 | 1 | empty | `ETIMEDOUT` and `fetch failed` on separate lines | 6 | unset | 1, `::error::` | none | FAIL |
 | 21 | 0 | `## Findings\n\nNone.\n` | empty | 3 | `ok` | 0 | review, 0 | PASS |
 | 22 | 0 | empty | empty | 6 | unset | 1, `::error::` | none | FAIL |
 | 23 | 0 | whitespace only | empty | 6 | unset | 1, `::error::` | none | FAIL |
@@ -461,10 +462,10 @@ classification succeeded and whose publication failed MUST still fail the job.
 
 Row 24 is 3.1's guarantee: its review text carries `403`, `OAuth token`,
 `unauthorized`, `billing` and `seat`, and is class 3 because `rc` is 0. Rows 12
-and 13 are the two precedence rules of 3.9. Row 9 and row 28 are the two halves of 3.6's
-contextual-form rule: a transport phrase with no errno and an errno with no
-transport phrase each fail to classify, and only their conjunction on one line
-is a signal. Rows 18, 19 and 20 are the negative
+and 13 are the two precedence rules of 3.9. Rows 9, 28 and 29 are the three cases of 3.6's
+contextual-form rule: a transport phrase with no errno, an errno with no
+transport phrase, and both present but on separate lines each fail to classify,
+because only their conjunction on one line is a signal. Rows 18, 19 and 20 are the negative
 timeout fixtures of 3.6.1: `124` and `137` are statuses a child can return on
 its own, so without a recognized diagnostic signal they block, and row 20 adds
 timeout-sounding prose to show that the combination does not rescue them
@@ -714,6 +715,20 @@ nothing is published. Removing the conjunct turns that one case red and no
 other, which is what makes it an assertion about the conjunct rather than about
 the classifier. The mutation is in memory; the workflow on disk is never
 written.
+
+`D-17 (2026-09-20, the same-line rule has three cases, not two).` D-15 closed
+3.6's contextual-form rule by adding row 28, on the reading that the rule has
+two halves: a transport phrase without an errno, and an errno without a
+transport phrase. That reading was incomplete. The rule 3.6 states is that the
+errno and the context phrase appear **in the same diagnostic line**, so the
+third case is both present on *different* lines, and no row covered it. The
+implementation pipes one grep into another precisely so that the second reads
+only the lines the first emitted, and it is correct; what was missing was
+anything that would notice if it stopped being. Rewriting the branch as two
+independent full-text greps leaves rows 9 and 28 green and classifies the
+two-line input as transient, which is a silent green reached without touching a
+single pattern byte. Row 29 supplies the case, and the mutant it was written
+against fails on it.
 
 ## Verification
 

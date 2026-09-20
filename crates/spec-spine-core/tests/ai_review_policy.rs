@@ -550,6 +550,7 @@ fn matrix() -> Vec<Case> {
         b(19, "exit 137 is 128+SIGKILL, not proof of a bound (D-10)", "").rc(137),
         b(20, "124 plus timeout prose is still two non-signals", "The operation timed out after 300 seconds").rc(124),
         b(28, "a bare errno with no transport context is not a transient signal", "ETIMEDOUT"),
+        b(29, "an errno and a transport phrase on separate lines are not a conjunction", "ETIMEDOUT\nfetch failed"),
         b(21, "a review was produced and published", "").reviewed("## Findings\n\nNone.\n"),
         b(22, "rc 0 with an empty body publishes nothing", "").empty_review(""),
         b(23, "rc 0 with a whitespace-only body publishes nothing", "").empty_review("   \n  \n"),
@@ -882,12 +883,12 @@ fn policy_matrix_holds_against_the_workflows_own_scripts() {
     let cases = matrix();
     // The row set, not just its size: a count alone passes a matrix that
     // duplicated one row and dropped another, which is the way a fixture goes
-    // missing in an edit. 3.8.1 numbers its rows 1 to 28 and every one of them
+    // missing in an edit. 3.8.1 numbers its rows 1 to 29 and every one of them
     // is an assertion some other row does not make.
     let rows: std::collections::BTreeSet<u32> = cases.iter().map(|c| c.row).collect();
     assert_eq!(
         rows,
-        (1..=28).collect::<std::collections::BTreeSet<u32>>(),
+        (1..=29).collect::<std::collections::BTreeSet<u32>>(),
         "every row of 3.8.1 is present exactly once"
     );
     assert_eq!(cases.len(), rows.len(), "no row number appears twice");
