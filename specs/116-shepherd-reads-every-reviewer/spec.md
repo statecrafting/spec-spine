@@ -1,7 +1,7 @@
 ---
 id: "116-shepherd-reads-every-reviewer"
 title: "Shepherd reads every reviewer"
-status: draft
+status: approved
 kind: "harness"
 created: "2026-09-17"
 summary: >
