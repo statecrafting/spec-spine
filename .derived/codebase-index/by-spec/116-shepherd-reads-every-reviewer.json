@@ -109,8 +109,8 @@
       }
     ],
     "specId": "116-shepherd-reads-every-reviewer",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "00848b7256f5d641405ba00908ed4add0b99b7d8f518121a91618ab10e260b9e"
+  "shardHash": "2d8efdd0b254bc02b2ce20d143e1a9627843e25ba15b29ae96e9fbe232618093"
 }
