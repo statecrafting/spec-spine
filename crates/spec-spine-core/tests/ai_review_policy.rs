@@ -868,7 +868,17 @@ fn assert_case(job: &Job, case: &Case) {
 fn policy_matrix_holds_against_the_workflows_own_scripts() {
     let job = parse_job();
     let cases = matrix();
-    assert_eq!(cases.len(), 28, "the matrix has 28 rows");
+    // The row set, not just its size: a count alone passes a matrix that
+    // duplicated one row and dropped another, which is the way a fixture goes
+    // missing in an edit. 3.8.1 numbers its rows 1 to 28 and every one of them
+    // is an assertion some other row does not make.
+    let rows: std::collections::BTreeSet<u32> = cases.iter().map(|c| c.row).collect();
+    assert_eq!(
+        rows,
+        (1..=28).collect::<std::collections::BTreeSet<u32>>(),
+        "every row of 3.8.1 is present exactly once"
+    );
+    assert_eq!(cases.len(), rows.len(), "no row number appears twice");
     for case in &cases {
         assert_case(&job, case);
     }
