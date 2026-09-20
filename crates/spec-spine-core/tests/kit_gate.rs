@@ -1701,4 +1701,18 @@ fn no_claim_header_reaches_an_adopters_tree() {
         "these delivered files carry a claim header that resolves in no adopter's corpus, \
          and shadow a valid one added below it (spec 115 §1.3): {offenders:?}"
     );
+
+    // The positive control: the reader above is the thing under test, so a run
+    // that reported nothing has to be shown capable of reporting. The bytes are
+    // the header this spec removed, and the assertion is that this very call
+    // still names it. Without this line an empty `offenders` is also what a
+    // reader that stopped recognizing claim headers would produce, which is the
+    // vacuous pass spec 106 D-7 names.
+    let control = "#!/usr/bin/env bash\n# Spec: specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md\n";
+    let seen = spec_spine_core::index::near_miss_headers_in("control.sh", control, &empty);
+    assert!(
+        seen.iter().any(|m| m.reason == NearMissReason::UnknownSpec),
+        "the recognizer reported nothing for a file that carries the header this spec \
+         removed, so the assertion above could not have failed either: {seen:?}"
+    );
 }
