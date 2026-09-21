@@ -608,6 +608,25 @@ then "Nothing was written". The refusal comes first and the summary does not
 print at all. A report that has to be reconciled with the line below it is worse
 than no report.
 
+D-44 (2026-09-21, a `.` component is refused, and `components()` cannot find
+it). `rules/./one.md` leaves nothing, the kernel resolves it, the existence
+check succeeds, and then the LITERAL string is searched, matches nothing, and
+the run rewrites nothing, reports nothing and exits 0. That is D-26's silent
+total no-op arriving through the path field.
+
+The review proposed adding `Component::CurDir` beside `ParentDir`. That was
+implemented and the test still failed: `Path::components()` normalises an
+interior `.` away, so `rules/./one.md` yields only `Normal` components and the
+arm never fires. It catches a LEADING `./`, which D-24 already refused. The test
+is on the string, which is what is compared against the corpus anyway. Without a
+test exercising it, the guard would have looked correct, matched the review's
+advice, and done nothing.
+
+D-45 (2026-09-21, a refused `--plan` says the plan is not ready, not that
+nothing was written). Under a dry run nothing was going to be written, so the
+sentence answered a question nobody asked and read as a refusal of the command
+rather than of the plan.
+
 ## Verification
 
 Each line is one command, run independently.

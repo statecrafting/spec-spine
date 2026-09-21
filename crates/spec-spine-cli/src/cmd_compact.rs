@@ -65,10 +65,21 @@ pub fn run(repo: &Path, args: &CompactArgs) -> Result<u8, Error> {
                 l.rel_path, l.line, l.path, l.text
             ));
         }
-        out::line(format_args!(
-            "compact: declare a form rule that covers them, name the file or section historical, \
-             or fix the occurrence. Nothing was written."
-        ));
+        // The remedy is the same either way; what differs is what the reader
+        // just asked for. Under `--plan` nothing was going to be written, so
+        // saying "nothing was written" would answer a question nobody asked and
+        // read as a refusal of their command rather than of their plan.
+        if args.plan {
+            out::line(format_args!(
+                "compact: declare a form rule that covers them, name the file or section \
+                 historical, or fix the occurrence. The plan is not ready to apply."
+            ));
+        } else {
+            out::line(format_args!(
+                "compact: declare a form rule that covers them, name the file or section \
+                 historical, or fix the occurrence. Nothing was written."
+            ));
+        }
         return Ok(1);
     }
 

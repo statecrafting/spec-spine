@@ -864,13 +864,13 @@ fn a_retarget_does_not_rewrite_a_sibling_sharing_the_prefix() {
 #[test]
 fn a_retired_path_outside_the_corpus_is_refused() {
     let tmp = fixture("x");
-    for outside in ["/etc/passwd", "../elsewhere.md"] {
+    for outside in ["/etc/passwd", "../elsewhere.md", "rules/./one.md"] {
         let mut e = retire_rules();
         e.path = outside.into();
         let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
         assert_eq!(err.exit_code(), 3, "{outside}: {err}");
         assert!(
-            format!("{err}").contains("inside the corpus"),
+            format!("{err}").contains("as the corpus spells it"),
             "{outside}: {err}"
         );
     }
@@ -1297,7 +1297,12 @@ fn a_scalar_whose_value_ends_in_a_colon_is_not_an_emptied_key() {
 #[test]
 fn a_historical_file_outside_the_corpus_is_refused() {
     let tmp = fixture("x");
-    for bad in ["../outside.md", "/etc/passwd", "./docs/note.md"] {
+    for bad in [
+        "../outside.md",
+        "/etc/passwd",
+        "./docs/note.md",
+        "docs/./note.md",
+    ] {
         let mut e = retire_rules();
         e.historical_files = vec![bad.to_string()];
         let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();

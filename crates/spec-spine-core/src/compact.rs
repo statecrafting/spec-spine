@@ -814,6 +814,16 @@ fn drop_empty_edge_keys(src: &str) -> String {
     out
 }
 
+/// Does `path` carry a `.` component, as a STRING?
+///
+/// `Path::components()` normalises an interior `.` away, so `rules/./one.md`
+/// yields only `Normal` components and a `CurDir` arm never fires. What is
+/// compared against the corpus is the literal string, so that is what is
+/// tested.
+fn has_dot_component(path: &str) -> bool {
+    path == "." || path.starts_with("./") || path.contains("/./") || path.ends_with("/.")
+}
+
 /// Refuse a renamed spec directory holding a file the rewrite cannot carry.
 ///
 /// `scannable_files` is an extension filter, so a binary or an image inside a
@@ -1302,13 +1312,22 @@ fn validate_retire(
         // never have named would be matched as a string across every scanned
         // file.
         let candidate = Path::new(&e.path);
+        // `..` leaves the corpus. A `.` does not, and is worse for it:
+        // `rules/./one.md` resolves, the existence check succeeds, and then the
+        // LITERAL string is searched and matches nothing, so the run rewrites
+        // nothing, reports nothing and exits 0.
+        //
+        // The `.` test is on the string rather than on `components()`, which
+        // normalises an interior `.` away and would never yield `CurDir` for it.
         if candidate.is_absolute()
             || candidate
                 .components()
                 .any(|c| matches!(c, std::path::Component::ParentDir))
+            || has_dot_component(&e.path)
         {
             return Err(Error::Config(format!(
-                "compact: the plan retires `{}`, which is not a path inside the corpus",
+                "compact: the plan retires `{}`; write it as the corpus spells it, with no `.` or \
+                 `..` component and no leading slash",
                 e.path
             )));
         }
@@ -1343,7 +1362,7 @@ fn validate_retire(
             if p.is_absolute()
                 || p.components()
                     .any(|c| matches!(c, std::path::Component::ParentDir))
-                || f.starts_with("./")
+                || has_dot_component(f)
             {
                 return Err(Error::Config(format!(
                     "compact: `{}` lists `{f}` as historical; a corpus-relative path is compared \
