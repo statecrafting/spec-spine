@@ -204,8 +204,9 @@ enum Command {
     },
     /// Rewrite the corpus under an authored compaction plan (spec 096).
     Compact {
-        /// The authored plan: which specs leave, which spec answers for each,
-        /// and whether the survivors' ordinals are compacted.
+        /// The authored plan: which specs leave and which spec answers for
+        /// each, whether the survivors' ordinals are compacted, and which
+        /// paths retire and what replaces each form they are spelled in.
         #[arg(long, value_name = "FILE")]
         plan_file: PathBuf,
         /// Print the map and the per-form report and write nothing. Reading a

@@ -5,15 +5,58 @@
       "050-claimed-but-unwitnessed",
       "093-the-harness-this-repository-runs"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-cli/src/cmd_compact.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/compact.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/retire.rs",
+        "source": "multiple"
+      }
+    ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/retire.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/tests/retire.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_compact.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_compact.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/compact.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compact.rs"
         }
       },
       {
@@ -34,5 +77,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "65105a943682cece3b0e14402415195fbda66eebbd7e80f633f4e5d9f988eb18"
+  "shardHash": "99150af5c54afcb3e2999a7c2d200959532c5f441cd2f57c617c43c2e52d0c7d"
 }

@@ -54,6 +54,7 @@ fn plan() -> CompactPlan {
         }],
         renumber: Renumber::Contiguous,
         foreign_projects: vec!["OAP".into()],
+        ..Default::default()
     }
 }
 
@@ -341,6 +342,7 @@ fn applying_the_output_to_the_output_is_idempotent() {
             remove: vec![],
             renumber: Renumber::Contiguous,
             foreign_projects: vec!["OAP".into()],
+            ..Default::default()
         },
     )
     .unwrap();
@@ -396,7 +398,12 @@ fn the_report_names_the_form_behind_every_rewrite_and_counts_per_form() {
     }
     // Every form is counted, including the ones that fired zero times: a form
     // absent from the table cannot be noticed as absent (defect 2).
-    for form in [Form::FullId, Form::Citation, Form::ShortIdArg] {
+    for form in [
+        Form::FullId,
+        Form::Citation,
+        Form::ShortIdArg,
+        Form::RetiredPath,
+    ] {
         assert!(c.counts.contains_key(form.as_str()), "{:?}", c.counts);
     }
 }
@@ -411,11 +418,22 @@ fn the_report_of_a_plan_that_changes_nothing_is_empty_not_absent() {
             remove: vec![],
             renumber: Renumber::None,
             foreign_projects: vec![],
+            ..Default::default()
         },
     )
     .unwrap();
     assert_eq!(c.rewrite_count(), 0);
-    assert_eq!(c.counts.len(), 3, "{:?}", c.counts);
+    // Every form is present with a zero, not absent: a form absent from the
+    // table cannot be noticed as absent, which is defect 2. Asserted per form
+    // rather than by a count, so adding a form does not silently satisfy it.
+    for form in [
+        Form::FullId,
+        Form::Citation,
+        Form::ShortIdArg,
+        Form::RetiredPath,
+    ] {
+        assert_eq!(c.counts.get(form.as_str()), Some(&0), "{:?}", c.counts);
+    }
 }
 
 /// §3.7: a citation outlives the document it cites, and after a renumber a bare
