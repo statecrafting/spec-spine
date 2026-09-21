@@ -6,7 +6,7 @@ kind: "tooling"
 created: "2026-09-20"
 summary: >
   Spec 095 removed 27 specs and renumbered 93, which meant rewriting about six
-  thousand references by hand. Five distinct defects were introduced doing it,
+  thousand references by hand. Seven distinct defects were introduced doing it,
   every one a rewrite rule that matched more or less than its author meant, and
   every one silent: the corpus compiled, the gate passed, and the citations
   pointed at the wrong documents. Four were caught only because spec 089 built a
@@ -16,7 +16,7 @@ summary: >
   in, a rewritten corpus out as data, idempotent, refusing every ambiguity the
   five defects came from, and reporting what it changed rather than leaving a
   six-thousand-line diff to read.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -25,9 +25,9 @@ depends_on:
   - "089-nothing-reruns-a-merged-acceptance"
   - "095-the-corpus-describes-what-exists"
 establishes:
-  - { kind: file, path: "crates/spec-spine-core/src/compact.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/compact.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/src/cmd_compact.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/compact.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/compact.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/src/cmd_compact.rs" }
 extends:
   - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
@@ -53,6 +53,14 @@ defects, measured on 2026-09-20:
 | 3 | The citation rule matched `spec 022` **inside** `--spec 022-index-sharding`, because the hyphen after the digits is a word boundary, so every `--spec <full-id>` was rewritten **twice**. | 18 lines across 7 specs named a third, unrelated spec |
 | 4 | The rewrite was scoped to acceptance blocks with a **non-greedy fence regex**, and one block greps for the literal opening fence, which closed the match early. | one file was rewritten in half, and the second pass then double-applied |
 | 5 | An **absence assertion** read a message with the repository path interpolated into it, and the sweep names its temporary directory after the spec id. | a spec named `...-is-not-a-stale-shard` failed an assertion about the word `stale` |
+| 6 | The prose-citation rule was **line-oriented**, and a citation wraps: the keyword ends a line and the ordinal opens the next one behind a `///` or `#` continuation. | 28 citations across 24 files, every one now resolving to a different document |
+| 7 | A citation may name **more than one ordinal** (`spec 017/021`, `specs 022 and 023`), and only the first was read. | 13 more, in the same condition |
+
+Defects 6 and 7 were measured on 2026-09-20, after this spec was filed, by
+diffing the pre-collapse tree against the merged one: for every citation whose
+ordinal the map moved, whether the same file still carries the old ordinal. They
+are listed here rather than in a successor because they are the same finding
+this spec already had, and because §3.3's rules are what they change.
 
 Every one is the same shape: a pattern that matched more, or less, than its
 author meant. Every one was silent. `compile`, `index`, `lint`, `couple` and
@@ -140,6 +148,16 @@ are as normative as the forms:
    word character: those digits belong to a full id, which form 1 has already
    handled, and matching them again is defect 3. It MUST NOT match when preceded
    by another project's name (`OAP spec 177`).
+
+   The keyword and its ordinal MAY be separated by **one** line break, with the
+   indentation and comment marker (`///`, `//!`, `//`, `#`, `*`, `>`) the
+   wrapped line carries. A scan that reads one line at a time misses these, and
+   28 of them survived spec 095's rewrite (defect 6). Two line breaks MUST NOT
+   match: a paragraph boundary is not a wrapped sentence.
+
+   A citation MAY name **more than one** ordinal, joined by `/`, `,`, `&`, `and`
+   or `or`, each of which MUST be rewritten (defect 7). The separator may itself
+   carry the one permitted line break.
 3. **A bare short id as a command argument**, following `registry show`,
    `registry relationships`, `verify`, `index owner`, `attest --spec`,
    `compile --spec`, `verify-attestation --spec` or `delta`. This is defect 2.
@@ -241,6 +259,28 @@ Each of §1.1's five gets a test that fails against the rule that produced it.
 A spec written from a post-mortem is worth what its acceptance can still catch a
 year later, and the prose above will not fail.
 
+D-5 (2026-09-20, the foreign-project exclusion is a named list, not a
+heuristic). §3.3 form 2 excludes a citation of another project's corpus, and the
+only reliable signal is the name in front of the keyword. The plan carries
+`foreign_projects`, defaulting to the one this corpus contains. The wider
+protection is structural rather than lexical: an ordinal outside the map is
+never rewritten, so the list matters only where a foreign ordinal collides with
+one of ours.
+
+D-6 (2026-09-20, the scanned file set is extension-bounded). The walk already
+prunes the derived root, the state root, `.git` and `resolver_exclusions`. What
+the build added is an extension filter and the two lockfiles, because a rewrite
+of a lockfile or a binary is never what a plan meant and a three-digit run in a
+checksum is not a citation.
+
+D-7 (2026-09-20, what §3.4's idempotence asserts). Applying the output to the
+output means running the verb again against the rewritten tree. The second run's
+plan has nothing left to remove and its corpus is already contiguous, so its map
+is the identity and it MUST report zero rewrites. Within a single run the same
+property is held by construction: every match is found against the original text
+and applied once, simultaneously, never key by key, which is how a renumber
+double-shifts.
+
 ## Verification
 
 Each line is one command, run independently.
@@ -275,6 +315,13 @@ grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss096-2.txt"
 # 1.1 defect 3, and 3.4: applying the output to the output changes nothing.
 cargo test -p spec-spine-core --test compact --locked idempotent > "${TMPDIR:-/tmp}/ss096-3.txt" 2>&1
 grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss096-3.txt"
+# 1.1 defect 6: a citation broken across a line is rewritten.
+cargo test -p spec-spine-core --test compact --locked broken_across > "${TMPDIR:-/tmp}/ss096-6.txt" 2>&1
+grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss096-6.txt"
+# 1.1 defect 7: a citation naming more than one ordinal rewrites every one.
+cargo test -p spec-spine-core --test compact --locked more_than_one_ordinal > "${TMPDIR:-/tmp}/ss096-7.txt" 2>&1
+grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss096-7.txt"
+rm -f "${TMPDIR:-/tmp}/ss096-6.txt" "${TMPDIR:-/tmp}/ss096-7.txt"
 # 1.1 defect 4: a block that greps for its own fence is rewritten whole.
 cargo test -p spec-spine-core --test compact --locked fence > "${TMPDIR:-/tmp}/ss096-4.txt" 2>&1
 grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss096-4.txt"

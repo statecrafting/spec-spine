@@ -20,6 +20,7 @@ macro_rules! out {
 
 mod cmd_attest;
 mod cmd_check;
+mod cmd_compact;
 mod cmd_compile;
 mod cmd_config;
 mod cmd_couple;
@@ -201,6 +202,23 @@ enum Command {
         #[arg(long)]
         json: bool,
     },
+    /// Rewrite the corpus under an authored compaction plan (spec 096).
+    Compact {
+        /// The authored plan: which specs leave, which spec answers for each,
+        /// and whether the survivors' ordinals are compacted.
+        #[arg(long, value_name = "FILE")]
+        plan_file: PathBuf,
+        /// Print the map and the per-form report and write nothing. Reading a
+        /// rewrite of this size before taking it is the whole affordance.
+        #[arg(long)]
+        plan: bool,
+        /// Rewrite even though the working tree is dirty.
+        #[arg(long)]
+        force: bool,
+        /// Where the map document is written.
+        #[arg(long, value_name = "FILE", default_value = cmd_compact::DEFAULT_MAP_PATH)]
+        map_out: PathBuf,
+    },
     /// Emit a reproducible corpus attestation; optionally seal it (spec 021).
     Attest {
         /// Scope the attestation to one spec (spec 039), writing
@@ -325,6 +343,20 @@ fn main() -> ExitCode {
                 paths_from: paths_from.clone(),
                 include_uncommitted: *include_uncommitted,
                 json: *json,
+            },
+        ),
+        Command::Compact {
+            plan_file,
+            plan,
+            force,
+            map_out,
+        } => cmd_compact::run(
+            &repo,
+            &cmd_compact::CompactArgs {
+                plan_file: plan_file.clone(),
+                plan: *plan,
+                force: *force,
+                map_out: map_out.clone(),
             },
         ),
         Command::Delta { base, head, json } => cmd_delta::run(
