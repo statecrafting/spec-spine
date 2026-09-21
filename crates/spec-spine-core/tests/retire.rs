@@ -1156,6 +1156,41 @@ fn a_second_occurrence_abutting_the_first_still_reads_its_left_boundary() {
     );
 }
 
+/// §3.3: an edge is a key that opens a LIST. A block scalar such as
+/// `summary: >` opens no list, and reading it as one set the current edge to
+/// `summary`, so its indented continuation lines were matched against unit
+/// actions and could be withdrawn outright.
+#[test]
+fn a_block_scalar_key_does_not_open_an_edge_list() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "specs/001-beta/spec.md",
+        "---\nid: \"001-beta\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         implementation: complete\nsummary: >\n  A summary that mentions rules/one.md in its\n\
+         \x20 continuation line.\n---\n\n# 001-beta\n\nBody.\n",
+    );
+    let mut e = retire_rules();
+    e.units = vec![UnitAction {
+        spec: "001-beta".into(),
+        edge: "summary".into(),
+        action: UnitActionKind::Withdraw,
+        to: None,
+        acknowledge_approved: true,
+    }];
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let beta = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "specs/001-beta/spec.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(
+        beta.is_empty() || beta.contains("mentions"),
+        "a block-scalar continuation was withdrawn as a unit: {beta:?}"
+    );
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]

@@ -669,11 +669,27 @@ fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (Str
             out.push(raw.to_string());
             continue;
         }
-        // A key at column zero opens (or closes) an edge list.
-        if !line.starts_with(' ') && !line.starts_with('-') && line.contains(':') {
-            edge = Some(line.split(':').next().unwrap_or("").to_string());
-            out.push(raw.to_string());
-            continue;
+        // A key at column zero that opens a LIST: the line is exactly `key:`
+        // with nothing after it. `id: "000-alpha"` is a scalar and opens
+        // nothing, and reading it as an edge set `edge` to `id`, so the next
+        // indented line was matched against unit actions naming a list that
+        // was never entered. Benign only because no plan targets `id`.
+        if !line.starts_with(' ') && !line.starts_with('-') {
+            let trimmed = line.trim_end();
+            if let Some(key) = trimmed.strip_suffix(':')
+                && !key.is_empty()
+                && !key.contains(' ')
+            {
+                edge = Some(key.to_string());
+                out.push(raw.to_string());
+                continue;
+            }
+            // Any other column-zero line ends the list it followed.
+            if trimmed.contains(':') {
+                edge = None;
+                out.push(raw.to_string());
+                continue;
+            }
         }
         let Some(current) = edge.as_deref() else {
             out.push(raw.to_string());

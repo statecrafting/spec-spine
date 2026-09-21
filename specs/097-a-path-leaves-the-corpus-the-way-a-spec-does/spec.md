@@ -474,6 +474,20 @@ passed identically with and without the bug, hidden behind an `is_empty() ||`
 clause. A test that cannot fail is the failure mode this corpus has met most
 often; it is worth the three attempts to know which one it is.
 
+D-29 (2026-09-21, an edge is a key that opens a LIST). The frontmatter walk
+treated any column-zero line containing a colon as an edge, so `summary: >` set
+the current edge to `summary` and its indented continuation lines were matched
+against unit actions as if they were list items. A unit action naming `summary`
+therefore DELETED a sentence out of an approved spec's frontmatter. An edge key
+is a line that is exactly `key:`; any other column-zero key ends the list it
+followed.
+
+The review judged this benign, reasoning from `id:` and `title:`, where the next
+line is another column-zero key and nothing is captured. The first test written
+for it used `id:` and passed against the defect for the same reason. A block
+scalar is the case that bites, because its continuation lines are indented and
+indistinguishable from items by shape alone.
+
 ## Verification
 
 Each line is one command, run independently.
