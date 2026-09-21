@@ -331,13 +331,13 @@ each corrected line was measured against instead, and that it failed there.
 cargo build --release --locked
 cargo test -p spec-spine-core --test compile --locked
 # 3.1: the flag exists, resolves the short id, and validates without writing.
-target/release/spec-spine compile --spec 020
-target/release/spec-spine compile --spec 020-index-sharding --json
+target/release/spec-spine compile --spec 022
+target/release/spec-spine compile --spec 022-index-sharding --json
 # Scratch: each line is its own shell, so a verb's stdout is carried in a file
 # rather than a variable. The redirect leaves the verb's own exit status as the
 # line's status, which a pipeline into `python3` would not (3.2, D-4).
 rm -rf "${TMPDIR:-/tmp}/ss056" && mkdir -p "${TMPDIR:-/tmp}/ss056"
-target/release/spec-spine compile --spec 020 --json > "${TMPDIR:-/tmp}/ss056/spec.json"
+target/release/spec-spine compile --spec 022 --json > "${TMPDIR:-/tmp}/ss056/spec.json"
 target/release/spec-spine compile --check --json > "${TMPDIR:-/tmp}/ss056/check.json"
 # 3.3: 056 3.4 requires a verb token that distinguishes `--spec` from
 # `compile --check`, so both tokens are read and the envelope version is
@@ -359,7 +359,7 @@ target/release/spec-spine compile --check
 # 056 3.1: an unknown id is exit 1 (not found), never exit 2.
 target/release/spec-spine compile --spec 999 ; test $? -eq 1
 # 056 3.1: `--spec` and `--check` are different questions, and the pair is refused.
-target/release/spec-spine compile --spec 020 --check ; test $? -eq 3
+target/release/spec-spine compile --spec 022 --check ; test $? -eq 3
 # --- spec 085's own mechanism (3.5) ---
 # The replacement is declared, read through the CLI rather than off the shard.
 # Redirected, not piped, for the reason D-4 gives: at the parent commit this

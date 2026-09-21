@@ -543,16 +543,16 @@ sh -c 'cargo test -p spec-spine-cli --bin spec-spine --locked spec_id_census 2>&
 # 3.1 the four arguments that refuse the short form today accept it.
 target/release/spec-spine registry show 015 >/dev/null
 target/release/spec-spine registry relationships 015 >/dev/null
-target/release/spec-spine attest --spec 052 >/dev/null
-sh -c 'target/release/spec-spine attest --spec 052-a-malformed-id-is-refused-not-a-panic >/dev/null && target/release/spec-spine verify-attestation --spec 052 --recompute >/dev/null'
+target/release/spec-spine attest --spec 059 >/dev/null
+sh -c 'target/release/spec-spine attest --spec 059-a-malformed-id-is-refused-not-a-panic >/dev/null && target/release/spec-spine verify-attestation --spec 059 --recompute >/dev/null'
 # 3.3 show: the short and full forms print the same bytes.
 sh -c 'A=$(target/release/spec-spine registry show 015-short-id-resolution --json); B=$(target/release/spec-spine registry show 015 --json); test -n "$A" && test "$A" = "$B"'
 # 3.3 relationships: the same bytes, and the incoming edge a raw-argument comparison drops is present.
 sh -c 'A=$(target/release/spec-spine registry relationships 015-short-id-resolution --json); B=$(target/release/spec-spine registry relationships 015 --json); echo "$A" | grep -q 043-verify-declared-acceptance && test "$A" = "$B"'
 # 3.3 attest: the same payload bytes, which a short-form attestation over zero units would not be.
-sh -c 'A=$(target/release/spec-spine attest --spec 052-a-malformed-id-is-refused-not-a-panic --json); B=$(target/release/spec-spine attest --spec 052 --json); echo "$A" | grep -q "\"contentHash\": \"" && test "$A" = "$B"'
+sh -c 'A=$(target/release/spec-spine attest --spec 059-a-malformed-id-is-refused-not-a-panic --json); B=$(target/release/spec-spine attest --spec 059 --json); echo "$A" | grep -q "\"contentHash\": \"" && test "$A" = "$B"'
 # 3.3 attest: the file is named by the resolved id, and nothing is named after the argument.
-sh -c 'D=.statecraft/derived/attestation/by-spec; rm -f "$D/070.json" "$D/059-a-malformed-id-is-refused-not-a-panic.json"; target/release/spec-spine attest --spec 052 >/dev/null || exit 1; test -f "$D/059-a-malformed-id-is-refused-not-a-panic.json" && test ! -e "$D/070.json"'
+sh -c 'D=.statecraft/derived/attestation/by-spec; rm -f "$D/070.json" "$D/059-a-malformed-id-is-refused-not-a-panic.json"; target/release/spec-spine attest --spec 059 >/dev/null || exit 1; test -f "$D/059-a-malformed-id-is-refused-not-a-panic.json" && test ! -e "$D/070.json"'
 # 3.2 and D-6 a path is not an id: each of these resolved through the filesystem before 084.
 sh -c 'for a in ../specs/059-a-malformed-id-is-refused-not-a-panic 059-a-malformed-id-is-refused-not-a-panic/; do target/release/spec-spine verify "$a" --plan >/dev/null 2>&1; test $? -eq 1 || { echo "resolved a path: $a" >&2; exit 1; }; done; E=$(target/release/spec-spine compile --spec ./059-a-malformed-id-is-refused-not-a-panic 2>&1); echo "$E" | grep -q "not found" && ! echo "$E" | grep -q V-001'
 # 3.4 no source file outside spec_id.rs carries the ordinal-segment match.
@@ -560,12 +560,12 @@ sh -c 'test $(grep -rl "split(.-.).next()" crates/spec-spine-core/src crates/spe
 # 3.1 the five arguments that refuse no match do it at exit 1 with one message.
 sh -c 'E="${TMPDIR:-/tmp}/ss084.nm"; : > "$E"; X=0; for c in "registry show 999" "registry relationships 999" "compile --spec 999" "verify 999 --plan" "attest --spec 999"; do target/release/spec-spine $c >/dev/null 2>>"$E"; test $? -eq 1 || { echo "not exit 1: $c" >&2; X=1; }; done; U=$(sort -u "$E" | grep -c .); L=$(grep -c . "$E"); rm -f "$E"; test $X -eq 0 && test $L -eq 5 && test $U -eq 1'
 # 3.6 a full id is still accepted at all six arguments (a guard: passes before and after).
-sh -c 'for c in "registry show 015-short-id-resolution" "registry relationships 015-short-id-resolution" "compile --spec 014-short-id-resolution" "verify 015-short-id-resolution --plan" "attest --spec 014-short-id-resolution" "verify-attestation --spec 014-short-id-resolution --recompute"; do target/release/spec-spine $c >/dev/null || { echo "full id refused: $c" >&2; exit 1; }; done'
+sh -c 'for c in "registry show 015-short-id-resolution" "registry relationships 015-short-id-resolution" "compile --spec 015-short-id-resolution" "verify 015-short-id-resolution --plan" "attest --spec 015-short-id-resolution" "verify-attestation --spec 015-short-id-resolution --recompute"; do target/release/spec-spine $c >/dev/null || { echo "full id refused: $c" >&2; exit 1; }; done'
 # 3.6 an unknown id keeps its exit code, and a partial ordinal is not an ordinal (guards).
 sh -c 'target/release/spec-spine registry show 999 >/dev/null 2>&1; test $? -eq 1'
 sh -c 'target/release/spec-spine registry show 16 >/dev/null 2>&1; test $? -eq 1'
 # 3.2 and D-4 step 4 at verify-attestation, whose set is the attestation files: with 016's removed, 016 matches none and falls through to exit 3.
-sh -c 'rm -f .statecraft/derived/attestation/by-spec/015-short-id-resolution.json; target/release/spec-spine verify-attestation --spec 014 --recompute >/dev/null 2>&1; test $? -eq 3'
+sh -c 'rm -f .statecraft/derived/attestation/by-spec/015-short-id-resolution.json; target/release/spec-spine verify-attestation --spec 015 --recompute >/dev/null 2>&1; test $? -eq 3'
 # 3.2 validate_spec_id still refuses a path-shaped argument at verify-attestation, at exit 3 (a guard).
 sh -c 'target/release/spec-spine verify-attestation --spec ../x --recompute >/dev/null 2>&1; test $? -eq 3'
 # A scratch corpus whose two specs share an ordinal, the mistake a new draft makes.

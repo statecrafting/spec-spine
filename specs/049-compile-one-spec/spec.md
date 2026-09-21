@@ -225,15 +225,15 @@ clap refuses it with exit 2.
 cargo build --release --locked
 cargo test -p spec-spine-core --test compile --locked
 # 3.1: the flag exists, resolves the short id, and validates without writing.
-target/release/spec-spine compile --spec 020
-target/release/spec-spine compile --spec 020-index-sharding --json
+target/release/spec-spine compile --spec 022
+target/release/spec-spine compile --spec 022-index-sharding --json
 # 3.4: the envelope's verb distinguishes it from `compile --check`, and the
 # version moved for the additive token.
-target/release/spec-spine compile --spec 020 --json | python3 -c 'import json,sys; v=json.load(sys.stdin); assert v["verb"]=="compile.spec", v; assert v["schemaVersion"]=="0.3.0", v'
+target/release/spec-spine compile --spec 022 --json | python3 -c 'import json,sys; v=json.load(sys.stdin); assert v["verb"]=="compile.spec", v; assert v["schemaVersion"]=="0.3.0", v'
 # 3.5: it wrote nothing. The committed shards are exactly as they were.
 target/release/spec-spine compile --check
 # 3.1: an unknown id is exit 1 (not found), never exit 2.
 target/release/spec-spine compile --spec 999 ; test $? -eq 1
 # 3.1: `--spec` and `--check` are different questions, and the pair is refused.
-target/release/spec-spine compile --spec 020 --check ; test $? -eq 3
+target/release/spec-spine compile --spec 022 --check ; test $? -eq 3
 ```

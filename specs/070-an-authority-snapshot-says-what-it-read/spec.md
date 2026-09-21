@@ -691,7 +691,7 @@ builds it itself rather than relying on a neighbour that happens to run first.
 cargo build --release --locked
 target/release/spec-spine attest --snapshot --json > "${TMPDIR:-/tmp}/ss087-self.json" && grep -q '"matchesRecompute": true' "${TMPDIR:-/tmp}/ss087-self.json"
 A=$(target/release/spec-spine attest --snapshot --json); B=$(target/release/spec-spine attest --snapshot --json); test -n "$A" && test "$A" = "$B"
-H=$(target/release/spec-spine attest --spec 056-an-attestation-covers-the-territory-it-claims --json | sed -n 's/.*"attestationHash": "\([0-9a-f]*\)".*/\1/p'); test -n "$H" && grep -q "\"specAttestationHash\": \"$H\"" .statecraft/derived/attestation/snapshot.json
+H=$(target/release/spec-spine attest --spec 066-an-attestation-covers-the-territory-it-claims --json | sed -n 's/.*"attestationHash": "\([0-9a-f]*\)".*/\1/p'); test -n "$H" && grep -q "\"specAttestationHash\": \"$H\"" .statecraft/derived/attestation/snapshot.json
 test "$(( $(grep -c '"specAttestationHash"' .statecraft/derived/attestation/snapshot.json) + $(grep -c '"specAttestationUnavailable"' .statecraft/derived/attestation/snapshot.json) ))" -eq "$(target/release/spec-spine registry list --ids-only | wc -l | tr -d ' ')"
 target/release/spec-spine verify-attestation --snapshot --recompute
 rm -rf "${TMPDIR:-/tmp}/ss087" && mkdir -p "${TMPDIR:-/tmp}/ss087/specs/001-a" "${TMPDIR:-/tmp}/ss087/g"

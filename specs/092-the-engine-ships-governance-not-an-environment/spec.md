@@ -845,9 +845,9 @@ grep -qF '029-claude-code-skill-kit' docs/corpus-map.md
 git rev-parse --verify 113-the-harness-delivers-what-it-documents > /dev/null
 git cat-file -e 487bbd9:specs/117-the-derived-tree-question-asked-honestly/spec.md
 # Declared and read through the CLI, redirected rather than piped (spec 085 D-4).
-target/release/spec-spine registry show 092 --json > "${TMPDIR:-/tmp}/ss092-show.json"
-python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss092-show.json')); assert d['id'] == '092-the-engine-ships-governance-not-an-environment', d"
-rm -f "${TMPDIR:-/tmp}/ss092-show.json"
+target/release/spec-spine registry show 092 --json > "${TMPDIR:-/tmp}/ss120-show.json"
+python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss120-show.json')); assert d['id'] == '092-the-engine-ships-governance-not-an-environment', d"
+rm -f "${TMPDIR:-/tmp}/ss120-show.json"
 # The stack's own gate, last, because a green governance loop over code that
 # does not compile asserts nothing.
 cargo test --workspace --locked

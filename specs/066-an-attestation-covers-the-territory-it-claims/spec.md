@@ -56,7 +56,7 @@ eighty-three specs. It does not report a bad verdict for them. It fails to
 produce a payload at all:
 
 ```
-$ spec-spine attest --spec 074-the-harness-this-repository-runs
+$ spec-spine attest --spec 093-the-harness-this-repository-runs
 spec-spine: io error: read /.../.claude/agents/ for spec
 '093-the-harness-this-repository-runs' unit
 Directory { path: ".claude/agents/", planned: false }: Is a directory (os error 21)
@@ -476,9 +476,9 @@ cargo build --release --locked
 # 3.5 the regression guards, which fail against pre-083 code.
 cargo test -p spec-spine-core --test attest --locked
 # 3.1 the spec the defect was found on attests, at exit 0 rather than exit 3.
-target/release/spec-spine attest --spec 074-the-harness-this-repository-runs >/dev/null
+target/release/spec-spine attest --spec 093-the-harness-this-repository-runs >/dev/null
 # 3.1 its payload carries at least one real hash, not an error envelope.
-sh -c 'test $(target/release/spec-spine attest --spec 074-the-harness-this-repository-runs --json | grep -c "\"contentHash\": \"") -ge 1'
+sh -c 'test $(target/release/spec-spine attest --spec 093-the-harness-this-repository-runs --json | grep -c "\"contentHash\": \"") -ge 1'
 # 3.1 and every spec in the corpus attests, which was false for 14 of 83.
 sh -c 'for id in $(target/release/spec-spine registry list --ids-only); do target/release/spec-spine attest --spec "$id" >/dev/null || { echo "unattestable: $id" >&2; exit 1; }; done'
 # A scratch corpus whose one spec claims two empty directories.
@@ -502,6 +502,6 @@ sh -c 'C="rm -rf ${TMPDIR:-/tmp}/ss083/outside ${TMPDIR:-/tmp}/ss083/d1/ptr"; mk
 sh -c 'ln -s .. "${TMPDIR:-/tmp}/ss083/d1/loop"; target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss083" attest --spec 001-dirs >/dev/null 2>&1; R=$?; rm -f "${TMPDIR:-/tmp}/ss083/d1/loop"; test $R -eq 0'
 rm -rf "${TMPDIR:-/tmp}/ss083"
 # 3.5 a file-only spec still attests, and the schema constant is unmoved.
-target/release/spec-spine attest --spec 052-a-malformed-id-is-refused-not-a-panic >/dev/null
-target/release/spec-spine attest --spec 052-a-malformed-id-is-refused-not-a-panic --json | grep -q '"schemaVersion": "0.1.0"'
+target/release/spec-spine attest --spec 059-a-malformed-id-is-refused-not-a-panic >/dev/null
+target/release/spec-spine attest --spec 059-a-malformed-id-is-refused-not-a-panic --json | grep -q '"schemaVersion": "0.1.0"'
 ```

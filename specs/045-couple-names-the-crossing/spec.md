@@ -190,7 +190,7 @@ footer MUST name that spec and emit a concrete `extends` block for the violating
 paths:
 
 ```
-spec 042-couple-names-the-crossing is the only spec.md edited in this diff,
+spec 045-couple-names-the-crossing is the only spec.md edited in this diff,
 and owns none of the paths above. Cross into the owning territory by
 declaring, in specs/045-couple-names-the-crossing/spec.md:
 
@@ -335,7 +335,7 @@ printf 'crates/spec-spine-core/src/index.rs\n' | target/release/spec-spine coupl
 printf 'crates/spec-spine-core/src/index.rs\n' | target/release/spec-spine couple --paths-from /dev/stdin 2>&1 | grep -q 'amends nobody'
 printf 'crates/spec-spine-core/src/index.rs\n' | target/release/spec-spine couple --paths-from /dev/stdin 2>&1 | grep -q 'needs explicit human approval'
 # 3.3: exactly one spec.md in the change set makes the block concrete.
-printf 'crates/spec-spine-core/src/index.rs\nspecs/045-couple-names-the-crossing/spec.md\n' | target/release/spec-spine couple --paths-from /dev/stdin 2>&1 | grep -q 'spec 042-couple-names-the-crossing is the only spec.md edited'
+printf 'crates/spec-spine-core/src/index.rs\nspecs/045-couple-names-the-crossing/spec.md\n' | target/release/spec-spine couple --paths-from /dev/stdin 2>&1 | grep -q 'spec 045-couple-names-the-crossing is the only spec.md edited'
 printf 'crates/spec-spine-core/src/index.rs\nspecs/045-couple-names-the-crossing/spec.md\n' | target/release/spec-spine couple --paths-from /dev/stdin 2>&1 | grep -q 'unit: "crates/spec-spine-core/src/index.rs", nature: additive'
 # 3.3: two edited spec.md paths fall back to the generic form.
 printf 'crates/spec-spine-core/src/index.rs\nspecs/045-couple-names-the-crossing/spec.md\nspecs/005-coupling-gate/spec.md\n' | target/release/spec-spine couple --paths-from /dev/stdin 2>&1 | grep -q '<owning-spec-id>'

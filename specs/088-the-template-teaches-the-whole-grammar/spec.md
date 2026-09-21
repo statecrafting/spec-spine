@@ -323,7 +323,7 @@ grep -qF '# amends_verification: ["NNN-predecessor"]' standards/spec/templates/s
 # 3.1: the guidance, clause by clause. A key name alone teaches nothing.
 grep -qF 'Every entry MUST also appear in `amends` (`V-018`)' standards/spec/templates/spec-template.md
 grep -qF 'V-019' standards/spec/templates/spec-template.md
-grep -qF 'V-020' standards/spec/templates/spec-template.md
+grep -qF 'V-019' standards/spec/templates/spec-template.md
 grep -qF 'skips a `superseded` or `retired`' standards/spec/templates/spec-template.md
 grep -qF "prints which spec's block it ran" standards/spec/templates/spec-template.md
 grep -qF 'amendsVerification' standards/spec/templates/spec-template.md
