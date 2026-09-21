@@ -1,7 +1,7 @@
 ---
 id: "098-a-citation-the-renumber-could-not-see"
 title: "A citation the renumber could not see"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-21"
 summary: >

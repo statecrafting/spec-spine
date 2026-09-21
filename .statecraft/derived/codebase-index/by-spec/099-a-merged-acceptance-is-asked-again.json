@@ -94,8 +94,8 @@
       }
     ],
     "specId": "099-a-merged-acceptance-is-asked-again",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "290960e81850d91500ed2f0ba073fac7228d987e8de1e8450d650fc4a2351504"
+  "shardHash": "dc42ee21ba4a414cd9adf3b5c4a33ad97949a8c31286e6d2a3324f6ab1346712"
 }
