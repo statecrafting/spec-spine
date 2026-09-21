@@ -315,6 +315,23 @@ punctuation, and `.` is both: `rules/one.md.` closes a sentence while
 nothing but space follows it. The first rule listed `.` unconditionally, which
 contradicted the path-character test three lines above it.
 
+D-9 (2026-09-20, §3.7's leftover refusal reads every file the rewrite READ).
+The exit-1 rule was written into §3.7 at filing and not built: an occurrence no
+rule covered stayed in place in silence, the plan looked applied, and the gate
+was green over a corpus still naming a retired path. The scan reads the examined
+set rather than the emitted one, because a file no rule touched is precisely
+where such an occurrence hides and is not in the emitted set at all.
+
+D-10 (2026-09-20, a spared line spares every occurrence on it, and reports each).
+A line carrying two retired paths, one of them inside a negation, was spared as a
+line and reported once. §3.5's "reported, never silent" is a claim about
+occurrences: each one now gets its own record naming the clause that spared it.
+
+D-11 (2026-09-20, a glob replacement is a directory prefix). The glob rule
+substitutes the path prefix and leaves the wildcard, so `rules/*.md` with
+`AGENTS.md` reads `AGENTS.md*.md`. A replacement that does not end in `/` is
+refused; `~` still removes the pattern outright.
+
 ## Verification
 
 Each line is one command, run independently.

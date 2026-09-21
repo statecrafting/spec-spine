@@ -46,6 +46,29 @@ pub fn run(repo: &Path, args: &CompactArgs) -> Result<u8, Error> {
     let outcome = compact(&cfg, repo, &plan)?;
     report(&outcome, args.plan);
 
+    // Spec 097 §3.7: an occurrence the rules could not account for means the
+    // tool has met a spelling it has no rule for. Reported and refused, whether
+    // or not anything was written: a rewrite that silently left the path in
+    // place is the failure this verb exists to prevent.
+    if !outcome.leftover.is_empty() {
+        out::line(format_args!(
+            "\ncompact: REFUSED, {} occurrence(s) of a retired path survived the rewrite and no \
+             clause spared them:",
+            outcome.leftover.len()
+        ));
+        for l in &outcome.leftover {
+            out::line(format_args!(
+                "  {}:{} [{}] {}",
+                l.rel_path, l.line, l.path, l.text
+            ));
+        }
+        out::line(format_args!(
+            "compact: declare a form rule that covers them, name the file or section historical, \
+             or fix the occurrence. Nothing was written."
+        ));
+        return Ok(1);
+    }
+
     if args.plan {
         out::line(format_args!(
             "\ncompact: --plan, so nothing was written. {} rewrite(s) in {} file(s) would be applied.",

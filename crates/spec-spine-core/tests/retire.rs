@@ -583,6 +583,78 @@ fn every_occurrence_of_a_duplicated_unit_line_is_withdrawn() {
     assert!(beta.contents.contains("keep.md"), "{}", beta.contents);
 }
 
+/// §3.7: an occurrence the rules could not account for is reported, not left in
+/// silence. A form the plan never declared leaves the path in place, and the
+/// first build emitted that quietly: the plan looked applied and the corpus
+/// still named a path that was gone.
+#[test]
+fn an_occurrence_no_rule_covers_is_reported_as_leftover() {
+    // The citation rule covers prose. A quoted YAML value is the `path` form,
+    // which this plan does not declare.
+    let tmp = fixture("x");
+    write(tmp.path(), "docs/data.yml", "target: \"rules/one.md\"\n");
+    let c = compact(&cfg(), tmp.path(), &plan_with(retire_rules())).unwrap();
+    assert!(
+        c.leftover
+            .iter()
+            .any(|l| l.rel_path == "docs/data.yml" && l.path == "rules/one.md"),
+        "{:?}",
+        c.leftover
+    );
+}
+
+/// §3.5: every occurrence on a spared line is spared, and every one is
+/// reported. A second path sharing a line with a negation was left out of the
+/// report entirely.
+#[test]
+fn a_second_path_on_a_spared_line_is_reported_too() {
+    let tmp = fixture("! test -e rules/one.md && test -e rules/two.md\n");
+    let mut second = retire_rules();
+    second.path = "rules/two.md".into();
+    second.forms = [(
+        "citation".to_string(),
+        Some("`AGENTS.md` \"Two\"".to_string()),
+    )]
+    .into_iter()
+    .collect();
+    let plan = CompactPlan {
+        retire: vec![retire_rules(), second],
+        ..Default::default()
+    };
+    let c = compact(&cfg(), tmp.path(), &plan).unwrap();
+    let on_note: Vec<_> = c
+        .skipped
+        .iter()
+        .filter(|s| s.rel_path == "docs/note.md")
+        .collect();
+    assert_eq!(
+        on_note.len(),
+        2,
+        "both occurrences on the spared line are reported: {:?}",
+        c.skipped
+    );
+    assert!(on_note.iter().all(|s| s.clause == SkipClause::Negation));
+}
+
+/// §3.1: a glob rule substitutes the path PREFIX and leaves the wildcard, so a
+/// replacement that is not a directory prefix produces `AGENTS.md*.md`.
+#[test]
+fn a_glob_replacement_that_is_not_a_prefix_is_refused() {
+    let tmp = fixture("x");
+    let mut e = retire_rules();
+    e.path = "rules/".into();
+    e.kind = RetireKind::Directory;
+    e.forms = [
+        ("citation".to_string(), Some("`AGENTS.md`".to_string())),
+        ("glob".to_string(), Some("AGENTS.md".to_string())),
+    ]
+    .into_iter()
+    .collect();
+    let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
+    assert_eq!(err.exit_code(), 3, "{err}");
+    assert!(format!("{err}").contains("directory prefix"), "{err}");
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]

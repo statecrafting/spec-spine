@@ -160,6 +160,22 @@ pub struct Compaction {
     /// that spared each (spec 097 §3.5). Reported, never silent.
     #[serde(default)]
     pub skipped: Vec<Skipped>,
+    /// Occurrences of a retired path that survived the rewrite and were spared
+    /// by no clause (spec 097 §3.7). The tool has found a spelling it has no
+    /// rule for, and the consumer refuses on it: exit 1, with this list.
+    #[serde(default)]
+    pub leftover: Vec<Leftover>,
+}
+
+/// An occurrence §3.7 cannot account for.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Leftover {
+    pub rel_path: String,
+    pub line: usize,
+    pub text: String,
+    /// The retired path still present in `text`.
+    pub path: String,
 }
 
 impl Compaction {
@@ -226,6 +242,7 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
         .collect();
     let mut removed_paths = Vec::new();
     let mut skipped: Vec<Skipped> = Vec::new();
+    let mut examined: Vec<(String, String)> = Vec::new();
 
     for rel in scannable_files(cfg, repo_root) {
         let Ok(contents) = std::fs::read_to_string(repo_root.join(&rel)) else {
@@ -266,6 +283,13 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
             after
         };
         let to = target_path(cfg, &rel, &map);
+        // Every file the rewrite READ, with its final contents. §3.7's leftover
+        // scan reads this rather than the emitted set: a file no rule touched is
+        // precisely where an unaccounted occurrence hides, and it is not in the
+        // emitted set at all.
+        if !plan.retire.is_empty() {
+            examined.push((rel.clone(), new_contents.clone()));
+        }
         if file_rewrites.is_empty() && to == rel {
             continue;
         }
@@ -285,6 +309,7 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
         });
     }
 
+    let leftover = unaccounted(&examined, &skipped, &plan.retire);
     let entries = map_entries(&map);
     let map_document = render_map(&entries);
     Ok(Compaction {
@@ -294,8 +319,46 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
         rewrites,
         counts,
         map_document,
+        leftover,
         skipped,
     })
+}
+
+/// Every occurrence of a retired path still in the rewritten files that no skip
+/// clause accounts for (spec 097 §3.7).
+///
+/// A form the rules do not cover leaves the path in place, and the first build
+/// left it there in silence: the plan looked applied, the gate was green, and
+/// the corpus still named a path that was gone. Read from the OUTPUT, so it
+/// cannot be fooled by a rule that fired and then missed.
+fn unaccounted(
+    examined: &[(String, String)],
+    skipped: &[Skipped],
+    entries: &[RetireEntry],
+) -> Vec<Leftover> {
+    let mut out = Vec::new();
+    for (rel, contents) in examined {
+        for (n, line) in contents.split_inclusive('\n').enumerate() {
+            for e in entries {
+                if !line.contains(&e.path) {
+                    continue;
+                }
+                let spared = skipped
+                    .iter()
+                    .any(|s| &s.rel_path == rel && s.line == n + 1);
+                if spared {
+                    continue;
+                }
+                out.push(Leftover {
+                    rel_path: rel.clone(),
+                    line: n + 1,
+                    text: line.trim_end().to_string(),
+                    path: e.path.clone(),
+                });
+            }
+        }
+    }
+    out
 }
 
 /// Every spec id in the corpus, and the subset that is `approved`, from ONE
@@ -1165,6 +1228,18 @@ fn validate_retire(
                     RETIRE_FORMS.join(", ")
                 )));
             }
+            if form == "glob"
+                && let Some(text) = replacement
+                && !text.ends_with('/')
+            {
+                return Err(Error::Config(format!(
+                    "compact: `{}` replaces the glob form with `{text}`, which is not a directory \
+                     prefix. A glob rule substitutes the path PREFIX and leaves the wildcard, so \
+                     `rules/*.md` with `{text}` would read `{text}*.md`. End it with `/`, or use \
+                     `~` to remove the pattern.",
+                    e.path
+                )));
+            }
             if replacement.is_none() && form != "glob" {
                 return Err(Error::Config(format!(
                     "compact: `{}` gives the form `{form}` no replacement; only `glob` may be removed outright",
@@ -1227,9 +1302,23 @@ fn retire_file(
         // A line spared by one entry is spared, full stop. Advancing to the
         // next entry let it rewrite a line the report had already called left
         // alone, so the report described a file that was not the one emitted.
-        let mut spared = false;
+        let mut spared: Option<SkipClause> = None;
         for e in entries {
-            if spared || !current.contains(&e.path) {
+            if !current.contains(&e.path) {
+                continue;
+            }
+            // The line is already spared by an earlier entry. This entry's
+            // occurrence on it is spared too, and is RECORDED: "reported, never
+            // silent" is a claim about occurrences, and a second path sharing a
+            // line with a negation was previously left out of the report
+            // entirely.
+            if let Some(clause) = spared {
+                skipped.push(Skipped {
+                    rel_path: rel.to_string(),
+                    line: n + 1,
+                    text: current.trim_end().to_string(),
+                    clause,
+                });
                 continue;
             }
             if e.historical_files.iter().any(|f| f == rel) {
@@ -1239,7 +1328,7 @@ fn retire_file(
                     text: current.trim_end().to_string(),
                     clause: SkipClause::HistoricalFile,
                 });
-                spared = true;
+                spared = Some(SkipClause::HistoricalFile);
                 continue;
             }
             if e.historical_sections
@@ -1252,7 +1341,7 @@ fn retire_file(
                     text: current.trim_end().to_string(),
                     clause: SkipClause::HistoricalSection,
                 });
-                spared = true;
+                spared = Some(SkipClause::HistoricalSection);
                 continue;
             }
             if NEGATIONS.iter().any(|m| current.contains(m)) {
@@ -1262,7 +1351,7 @@ fn retire_file(
                     text: current.trim_end().to_string(),
                     clause: SkipClause::Negation,
                 });
-                spared = true;
+                spared = Some(SkipClause::Negation);
                 continue;
             }
             let before = current.clone();
@@ -1333,7 +1422,9 @@ fn replace_bare(line: &str, path: &str, text: &str) -> String {
             Some(b'.') => rest.as_bytes()[after + 1..]
                 .first()
                 .is_none_or(|n| n.is_ascii_whitespace()),
-            Some(b) => matches!(b, b' ' | b',' | b';' | b':' | b')' | b'\n'),
+            // `\r` is in the set for a CRLF line: without it a path at the end
+            // of one reads as unterminated and is left alone.
+            Some(b) => matches!(b, b' ' | b',' | b';' | b':' | b')' | b'\n' | b'\r'),
         };
         out.push_str(&rest[..at]);
         if before_ok && after_ok {

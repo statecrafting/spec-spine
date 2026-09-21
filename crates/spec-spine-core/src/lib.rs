@@ -56,7 +56,7 @@ pub use attest::{
     verify_spec_recompute, with_stored_bytes, with_stored_bytes_spec,
 };
 pub use compact::{
-    CompactPlan, Compaction, RetireEntry, RetireKind, SkipClause, Skipped, UnitAction,
+    CompactPlan, Compaction, Leftover, RetireEntry, RetireKind, SkipClause, Skipped, UnitAction,
     UnitActionKind, compact, parse_plan,
 };
 pub use compile::{
