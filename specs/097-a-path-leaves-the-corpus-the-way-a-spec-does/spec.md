@@ -557,6 +557,18 @@ neither a pattern nor a sentence. The behaviour is pinned by a test whose
 comment carries the proposal and the measurement, so the next reader reaching
 for the same change finds the answer rather than the question.
 
+D-38 (2026-09-21, a `#` inside a fence is a comment, not a heading, and the
+line is still processed). Every spec here carries `verify:cli` blocks full of
+`# comment` lines, and the heading tracker read them as headings: a keyword
+naming the real section stopped matching inside the block, and one that happened
+to match a comment spared everything after it.
+
+The first fix skipped fenced lines entirely, which would have hidden every
+occurrence inside a `verify:cli` block from §3.7. That is the silence D-26
+refuses, arrived at while repairing a different defect. Only the heading update
+is suppressed; the line is rewritten, spared and accounted for exactly as any
+other.
+
 ## Verification
 
 Each line is one command, run independently.

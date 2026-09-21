@@ -1513,6 +1513,37 @@ fn a_backticked_glob_is_handled_by_the_glob_form() {
     );
 }
 
+/// §3.5: a `#` inside a fenced block is a shell comment, not a heading. Every
+/// spec here carries `verify:cli` blocks full of them, and reading one as a
+/// heading replaced the real section: a keyword naming the real section stopped
+/// matching inside the block, and a keyword that happened to match the comment
+/// spared everything after it.
+#[test]
+fn a_comment_inside_a_fence_is_not_a_heading() {
+    let tmp = fixture(
+        "## History\n\n```verify:cli\n# Live paths follow\ntest -e rules/one.md\n```\n\n`rules/one.md` again.\n",
+    );
+    let mut e = retire_rules();
+    e.historical_sections = vec!["History".into()];
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    // Everything under `## History` is spared, including the fenced lines and
+    // the prose after the block: the comment never became the heading.
+    assert!(
+        c.leftover.iter().all(|l| l.rel_path != "docs/note.md"),
+        "{:?}",
+        c.leftover
+    );
+    assert!(
+        c.skipped
+            .iter()
+            .filter(|s| s.rel_path == "docs/note.md")
+            .count()
+            >= 2,
+        "the fenced line and the prose after it are both reported: {:?}",
+        c.skipped
+    );
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]

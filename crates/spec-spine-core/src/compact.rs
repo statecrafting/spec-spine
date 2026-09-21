@@ -1440,9 +1440,35 @@ fn retire_file(
     // refused as unaccounted for. A section contains everything nested in it.
     let mut headings: Vec<(usize, String)> = Vec::new();
 
+    let mut fence: Option<String> = None;
     for (n, line) in src.split_inclusive('\n').enumerate() {
         let trimmed_line = line.trim_start();
-        if trimmed_line.starts_with('#') && line.contains(' ') {
+        // A fenced block's contents are not prose. Every spec here carries
+        // `verify:cli` blocks full of `# comment` lines, and reading one as a
+        // heading replaced the real section: a `historical_sections` keyword
+        // that happened to match such a comment then spared every citation
+        // after the block, and one that named the real section stopped
+        // matching inside it.
+        let opens_or_closes = trimmed_line.starts_with("```") || trimmed_line.starts_with("~~~");
+        match (&fence, opens_or_closes) {
+            (Some(open), true) if trimmed_line.trim_end().starts_with(open.as_str()) => {
+                fence = None;
+            }
+            (None, true) => {
+                fence = Some(
+                    trimmed_line
+                        .chars()
+                        .take_while(|c| *c == '`' || *c == '~')
+                        .collect(),
+                );
+            }
+            _ => {}
+        }
+        // Only the HEADING update is suppressed inside a fence. The line itself
+        // is still rewritten, spared and accounted for: skipping it outright
+        // would hide every occurrence in a `verify:cli` block from §3.7, which
+        // is the silence this spec exists to refuse.
+        if fence.is_none() && trimmed_line.starts_with('#') && line.contains(' ') {
             let level = trimmed_line.chars().take_while(|c| *c == '#').count();
             headings.retain(|(l, _)| *l < level);
             headings.push((
