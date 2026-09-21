@@ -1,7 +1,7 @@
 ---
 id: "097-a-path-leaves-the-corpus-the-way-a-spec-does"
 title: "A path leaves the corpus the way a spec does"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-20"
 summary: >

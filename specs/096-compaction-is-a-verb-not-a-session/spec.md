@@ -1,7 +1,7 @@
 ---
 id: "096-compaction-is-a-verb-not-a-session"
 title: "Compaction is a verb, not a session"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-20"
 summary: >
