@@ -1,5 +1,11 @@
 # 06: The harness and its distribution (2026-09-15)
 
+> **Status (2026-09-21): historical.** Superseded by note 07 4, which
+> dispositions every section of this note against the Statecraft boundary, and
+> by note 08 2.2, which holds what is left of the harness question. Several
+> sections here describe distributing a harness this repository no longer
+> distributes. Read it for the measurements, not as a plan.
+
 A design note, not a spec. Nothing here is filed, approved, or implemented.
 
 Notes 04 and 05 record what the **authority records** should become. Neither
