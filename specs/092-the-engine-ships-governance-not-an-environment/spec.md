@@ -546,38 +546,64 @@ built for 048 keeps 048's id and names 120 as `acceptanceFrom`, which is spec
 082 3.4's rule that the substitution is stated and never silent, exercised
 against the real corpus instead of a fixture.
 
-**A third state exists and is recorded rather than repaired.** Some blocks now
-pass *vacuously*: spec 061's, for instance, holds `test ! -e
-kit/scripts/verify-spec.sh` and two `! grep` lines over files under `kit/`, and
-every one of those is trivially true once the tree is gone. The sweep reports
-them as `passed`, which is honest about the exit code and says nothing about the
-assertion. They are **not** rewritten here. Replacing the acceptance of a spec
-whose block passes is precisely what the rule above forbids, and repairing
-vacuity across the blocks this change emptied is an audit of its own, of the
-shape specs 084 to 110 each were. What this spec owes is to say so, which is
-this paragraph, so the next reader of a green sweep row knows which kind of
-green it is.
+**A third state existed, and was recorded before it was repaired.** Some blocks
+passed *vacuously* after this change: spec 061's, for instance, held `test ! -e
+kit/scripts/verify-spec.sh` and two `! grep` lines over files under `kit/` and
+under a skill directory that had been renamed, and every one of those is
+trivially true once the file is gone, because `! grep` over a missing file
+passes on the error rather than on the absence. The sweep reports them as
+`passed`, which is honest about the exit code and says nothing about the
+assertion.
+
+They were not rewritten when this spec was built, and this paragraph was what it
+owed instead, so that the next reader of a green sweep row knew which kind of
+green it was. The audit that owed them came on **2026-09-21**, under the owner's
+direction and under this spec's authority, and it is small enough to state here
+rather than to file: measured across the corpus, exactly one **live** block
+carried vacuous lines. Thirteen specs' own blocks are dead text, their
+acceptance having moved to an amender (`verify <id> --plan --json` names the
+holder in `acceptanceFrom`), and a line in a block that never runs asserts
+nothing either way. The live one was spec 061's three lines, resolved by the
+rule the corrections above already follow:
+
+- a vacuous line whose subject **survives** under another name is corrected to
+  read the surviving file, with an existence line beside it so the negative
+  cannot go vacuous a second time. 061's stderr-ritual assertion now reads
+  `.claude/skills/prime/SKILL.md`, the skill spec 062 renamed;
+- a vacuous line whose subject is **gone** is removed, with the reason left in
+  the block. 061 §3.6's subject was the kit's copy of a script, and no assertion
+  replaces a requirement that has no subject. A line that cannot fail is a worse
+  record than an absent one.
+
+Neither move weakens an assertion, which is the rule this section opens with:
+one reads a file that exists instead of erroring on a path that cannot, and the
+other stops claiming to check something that is not there.
 
 ### 3.13 The unmerged spec 117 proposal is withdrawn
 
 Spec 117, "The derived-tree question, asked honestly", was drafted on
-2026-09-17 and never merged; its only copy is on the branch
-`113-the-harness-delivers-what-it-documents` at `487bbd9`. Its subject is the
-PR-gate hook's `git diff --quiet -- .derived/` test, in four copies:
-`kit/settings.json`, `.claude/settings.json`, `.codex/hooks.json` and
-`kit_embedded.rs`. Three of those four are removed by this spec.
+2026-09-17 and never merged. Its subject is the PR-gate hook's `git diff
+--quiet -- .derived/` test, in four copies: `kit/settings.json`,
+`.claude/settings.json`, `.codex/hooks.json` and `kit_embedded.rs`. Three of
+those four are removed by this spec.
 
-The proposal is withdrawn as filed. It MUST NOT be implemented here: its
-territory is largely gone, its acceptance greps files that will not exist, and
-implementing a hook body in copies scheduled for deletion is work with no
-subject. The ordinal 117 stays reserved and unused, the branch MUST NOT be
-deleted, and the defect it measured stays true of the one copy that remains.
+The proposal is withdrawn **as filed**. It MUST NOT be implemented as written:
+three quarters of its territory is gone, its acceptance greps files that will
+not exist, and writing a hook body into copies scheduled for deletion is work
+with no subject. The ordinal it was drafted under does not survive either;
+spec 095's collapse renumbered the corpus to a contiguous run, so there is no
+117 to reserve and nothing here reserves one.
 
-That defect is therefore carried forward as an open item rather than closed:
-the retained `.claude/settings.json` PR gate still asks a question blind to a
-staged shard and to an untracked one. It is not fixed here because this spec's
-subject is the boundary, and a hook whose owner is about to change is not the
-place to land a behavior change. 4 records it.
+What does survive is the defect, which stays true of the one copy that remains,
+and the measurement behind it, which is a fact about plain git rather than about
+the kit. Both are **carried into spec 093 §3.13**, the section that specifies
+the hook `.claude/settings.json` holds: the three states git distinguishes, the
+per-state reads that tell them apart, the cancellation case that rules out a
+single `HEAD`-relative comparison, and a matrix that decides the gate's verdict
+rather than its spelling. This spec left the defect open because a hook whose
+owner was about to change is not the place to land a behavior change; the owner
+of the surviving copy is settled, and the requirement moved there on 2026-09-21.
+D-7.
 
 ### 3.14 The documentation site goes with the environment
 
@@ -610,9 +636,10 @@ The README MUST stop linking a site that is not published.
 
 ## 4. Out of scope
 
-- **Fixing the PR gate's derived-tree test.** 3.13. The defect is real, the
-  branch is preserved, and the fix belongs to whoever owns the hook after
-  Statecraft's delivery lands. D-7.
+- **Fixing the PR gate's derived-tree test.** 3.13. The defect is real and it
+  is not this spec's to fix: this change is the boundary, and the fix belongs
+  with whoever specifies the surviving hook. That is spec 093, where it landed
+  on 2026-09-21 as §3.13. D-7.
 - **Retiring `.claude/`.** 3.5 keeps it and says what would retire it.
   Removing this repository's working harness before its replacement exists
   would leave no development instruction at all.
@@ -629,9 +656,12 @@ The README MUST stop linking a site that is not published.
   answer for what an amended acceptance does. D-3.
 - **Retiring or deleting any historical spec.** 3.11 rule 3.
 - **Repairing the blocks this change left passing vacuously.** 3.12's third
-  state. An audit of the same shape as specs 084 to 110, and the sweep spec 089
-  built is what schedules it; what it cannot do is tell a vacuous green from a
-  real one, which is why the paragraph exists.
+  state, out of scope when this spec was built and settled on 2026-09-21 under
+  the same authority, once the audit it was deferred for turned out to be one
+  spec wide. The sweep spec 089 built is what schedules such an audit; what it
+  cannot do is tell a vacuous green from a real one, which is why 3.12's
+  paragraph exists and why the repair is recorded there rather than inferred
+  from a green row.
 - **Teaching `couple` to read a deleted path's ownership at the base.**
   3.11.1 measures the gap and D-11 records why it is not closed here. It is a
   behavior change to the gate, needing a second index at the library boundary
@@ -696,11 +726,18 @@ trap that fires at PR time, in someone else's repository, with a refusal that
 names their shards. The configuration key spells an exception; the engine
 should not need one to know what its own output is.
 
-D-7 (2026-09-20, spec 117 is withdrawn rather than implemented or deleted).
-3.13. Withdrawn, not abandoned: the measurement is reproduced in its own
-document, the branch that holds it is preserved, and 4 names the remaining
-copy. Implementing it would mean writing a hook body into three files this same
-change deletes.
+D-7 (2026-09-20, spec 117 is withdrawn rather than implemented; amended
+2026-09-21, the record is the successor's text and not a branch). 3.13.
+Implementing the draft here would mean writing a hook body into three files
+this same change deletes. Withdrawn is not abandoned, and the original entry
+made the carry-forward a *reference*: the measurement stayed on an unmerged
+branch, at a commit, and this spec's acceptance asserted that both still
+existed. That is a record only the machine that holds the branch can read. It
+was never pushed, so the two lines passed in the author's clone and failed
+everywhere else, which is the failure mode this corpus has a name for: a
+measurement taken in one checkout that speaks for every checkout. The carry is
+therefore a **restatement** in spec 093 §3.13, in a document every clone has,
+and the branch is evidence of history rather than an obligation on anyone.
 
 D-8 (2026-09-20, `.statecraft/derived/` is committed and `.statecraft/state/`
 is not). The committed shard tree is what makes `check` a freshness gate on a
@@ -872,11 +909,15 @@ rm -f "${TMPDIR:-/tmp}/ss120-diag.txt"
 # is accounted for now.
 grep -qF '029-claude-code-skill-kit' docs/corpus-map.md
 ! test -e specs/029-claude-code-skill-kit
-# 3.13: the ordinal stays reserved and the branch that holds the proposal is
-# still here.
-! test -e specs/117-the-derived-tree-question-asked-honestly
-git rev-parse --verify 113-the-harness-delivers-what-it-documents > /dev/null
-git cat-file -e 487bbd9:specs/117-the-derived-tree-question-asked-honestly/spec.md
+# 3.13: the withdrawal is carried by the successor's text, in a document every
+# clone has. The three lines this replaces asserted the existence of a local
+# branch and of a blob at a commit on it, neither of which was ever pushed: they
+# passed in one checkout and failed in every other, including CI's. What is
+# asserted instead is that spec 093 states the requirement and that the gate
+# body actually asks the question, which is the fact the withdrawal was
+# protecting. D-7.
+grep -qF 'The derived-tree question is asked in every state git distinguishes' specs/093-the-harness-this-repository-runs/spec.md
+! grep -qF 'diff --quiet -- .statecraft/derived/' .claude/settings.json
 # Declared and read through the CLI, redirected rather than piped (spec 085 D-4).
 target/release/spec-spine registry show 092 --json > "${TMPDIR:-/tmp}/ss120-show.json"
 python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss120-show.json')); assert d['id'] == '092-the-engine-ships-governance-not-an-environment', d"

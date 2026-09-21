@@ -214,8 +214,8 @@ The `PreToolUse` gate on `gh pr create` MUST branch on the **exit status** of
 Every branch except `0` MUST still refuse. A gate whose check did not run is not
 green.
 
-The gate MUST then refuse when the derived tree is not committed, and MUST NOT
-stage, commit or regenerate anything to fix it.
+The gate MUST then refuse when the derived tree is not committed (§3.13), and
+MUST NOT stage, commit or regenerate anything to fix it.
 
 ### 3.9 Exit 2 is the one ambiguous code, so it is probed
 
@@ -274,6 +274,69 @@ Every hook that invokes `spec-spine` MUST resolve it in this order, first that
 exists: `$SPEC_SPINE_BIN`, then `<root>/target/release/spec-spine`, then `PATH`.
 A repository that builds its own binary must be governed by the one it builds;
 the `PATH` fallback keeps an installed CLI working.
+
+### 3.13 The derived-tree question is asked in every state git distinguishes
+
+§3.8's refusal is only as good as the question underneath it, and the question
+the gate asked was `git diff --quiet -- <derived>/`. That compares the **index**
+to the **working tree**: it is silent about anything staged and it never
+mentions an untracked file. Reproduced against plain git, in a repository where
+a shard is committed:
+
+```
+$ printf 'b\n' > <derived>/x.json && git add <derived>/x.json
+$ git diff --quiet -- <derived>/ ; echo $?
+0
+$ printf 'c\n' > <derived>/new.json          # untracked
+$ git diff --quiet -- <derived>/ ; echo $?
+0
+```
+
+Neither blind spot is a corner. **Staged** is what `git add` leaves behind, and
+`git add` was the first half of the remedy the refusal itself printed, so the
+message produced the state the test could not see. **Untracked** is what a new
+spec's shards are before anyone adds them, one per authority unit in `by-spec/`
+and `by-package/`, which is the shape of most pull requests this repository
+opens. The consequence is not a missed warning: `gh pr create` proceeds, the
+branch is pushed without the shards, and CI fails on a stale tree, which is the
+failure the hook exists to move to the second it takes to read a `git` exit
+code.
+
+The gate MUST therefore refuse when the derived tree differs from `HEAD` in any
+of the three states git distinguishes: unstaged changes to tracked files, staged
+changes, and untracked files under the derived directory. Ignored files are not
+part of the question; `build-meta.json` is gitignored by design, and a gate
+refusing on it would refuse every clone.
+
+Each state MUST be read **independently**, and `git diff HEAD` is not the
+instrument for the first two. It **cancels**: a shard edited, staged, and then
+restored in the working tree to the bytes `HEAD` already holds leaves
+`git diff HEAD` empty while both `git diff --cached` and `git diff` report the
+file, so a gate asking that one question calls a half-finished refresh clean.
+And one `HEAD`-relative comparison cannot say **which** state it found, which
+the message has to name because the remedies differ. So the reads are
+`git diff --cached --name-only`, `git diff --name-only` and
+`git ls-files --others --exclude-standard`, each scoped to the derived
+directory; `--exclude-standard` is what keeps the gitignored build metadata out
+of the third and MUST NOT be dropped.
+
+The refusal MUST name each state it found, and a tree carrying two of them MUST
+name both rather than the first. It MUST print the paths. "Uncommitted" covers
+all three and tells a reader nothing about which command to run next: the remedy
+for a staged shard is `git commit`, and for an untracked one it is `git add`
+first. This is §3.8's rule for `check`'s exit codes, applied to the one question
+the gate asks git rather than the tool.
+
+The derived directory MUST be the configured one, read as the tool's own typed
+answer (`config show --json`) rather than spelled into the hook, for spec 094
+§3.2's reason: `[layout] derived_dir` is configurable, and a hook hard-coding
+the default silently stops gating a repository that changed it. A configuration
+the binary could not answer is **not** evidence of a dirty tree: the hook
+announces the skip (§3.4) and does not manufacture a refusal out of a read that
+did not happen.
+
+The gate stays read-only. It MUST NOT stage, commit or regenerate anything; §3.1
+is unchanged and so is its reason.
 
 ## 4. Behavior: the skills, agents and rules
 
@@ -461,7 +524,20 @@ rather than restating them, and MUST:
 - run the shipped `PreToolUse`, `Stop` and `SessionStart` bodies against a
   stand-in binary whose `check` exit code, `check --help` exit code and output
   the test chooses, asserting §3.8, §3.9 and §3.10 verdict by verdict, including
-  that the exit-3 message names the binary and does **not** say "stale".
+  that the exit-3 message names the binary and does **not** say "stale";
+- run the shipped `PreToolUse` body against a scratch repository whose derived
+  tree is in each state of §3.13, asserting the **verdict** rather than the
+  source: a committed tree passes; an unstaged, a staged and an untracked shard
+  are each refused and each named; a staged edit cancelled by a working-tree
+  restoration to `HEAD` is refused (the tree where `git diff HEAD` is empty, so
+  the case must assert that emptiness or it stops being that case); two states
+  at once name both; a gitignored `build-meta.json` alone passes; and, in a
+  repository whose `derived_dir` is not the default, a change under the
+  configured path is refused while one under `.derived/` is not. A grep for the
+  new commands would pass against a body that still let a staged shard through
+  on another branch of the same `if`, which is why the verdict is what is
+  asserted, and the configured-path pair is the only case a hook spelling both
+  paths cannot satisfy.
 
 `harness_skills.rs` MUST assert §4.1's set, §4.2's frontmatter, §4.3's
 invariance and project layer, §4.4's read-only forms, §4.5's subset property,
@@ -502,8 +578,13 @@ hook, is superseded there rather than here, for D-3's reason.
   the engine's specs; this spec governs only how a hook reads them.
 - **The `Stop` hook refusing rather than advising.** It advises; a session that
   has ended cannot act on a refusal.
-- **The PR gate's blindness to a staged or untracked shard.** Measured and
-  recorded by spec 092 §3.13 and §4, left open there.
+- **A `spec-spine` verb answering "is the derived tree committed".** It is the
+  better shape: a tested verb with one definition, and no `git` in a shell
+  script embedded in JSON. It is also new CLI surface with its own exit-code
+  contract, and the core may not shell out, so the verb would take its answer
+  from the CLI layer the way `couple` takes a `DiffInput`. That is a spec, not
+  a clause of §3.13. When it exists the hook calls it, and §3.13's matrix is
+  what proves the replacement kept the three answers. D-5.
 
 ## 8. Resolved decisions
 
@@ -526,6 +607,20 @@ a CI job are run by whoever commits, builds or opens the pull request. That line
 puts `.githooks/pre-commit` in 093 even though it is a hook, and puts
 `AGENTS.md` here even though the gate list lives in it, because the gate list is
 read by a session and executed by `make`.
+
+D-5 (2026-09-21, the derived-tree question is repaired here rather than in a
+successor spec). §3.13's defect was measured on 2026-09-17 and drafted as a
+spec of its own against four copies of the hook; spec 092 deleted three of
+them, withdrew the draft, and recorded the defect as open against the copy that
+survives. That copy is this spec's territory, so the requirement belongs in
+this document: filing a separate spec to change one clause of a hook this spec
+establishes adds a document to a corpus that has just been compressed, and
+leaves a reader of §3.8 with a refusal whose question is specified elsewhere.
+The owner authorized the direct edit on 2026-09-21. What is added is a
+requirement the gate did not meet, not a relaxation of one it did: the
+measurement, the three reads, the cancellation case and the matrix are carried
+over from the withdrawn draft intact, which is why they are stated here in full
+rather than cited to a branch.
 
 D-4 (2026-09-20, the four rules move into `AGENTS.md` and `.claude/rules/` is
 deleted). `.claude/` is the harness of one agent. Three of these four rules bind
@@ -551,6 +646,17 @@ Each line is one command, run independently.
 `approved` with no `supersededBy`; the sixteen directories exist; and
 `harness_skills.rs` carries no assertion naming this spec.
 
+**Fail-first evidence for §3.13**, measured on 2026-09-21 against the hook body
+this section replaces: the four structural lines below are red (the old body is
+what `! grep -qF 'diff --quiet -- .statecraft/derived/'` matches, and neither
+per-state read is in it), and the matrix run is red **seven cases of eight**,
+the eighth being `the_pr_gate_ignores_the_gitignored_build_metadata`, which is a
+guard against over-refusing and passes on both sides by construction. The
+`! grep -qF 'diff HEAD'` line is likewise green on both sides: it guards against
+the *drafted* fix rather than against the old body, because a single
+HEAD-relative comparison satisfies every other line here and is the mechanism
+the cancellation case rules out.
+
 ```verify:cli
 cargo build --release --locked
 # 2: the territory exists and is this spec's.
@@ -571,6 +677,20 @@ rm -f "${TMPDIR:-/tmp}/ss092-h.txt"
 cargo test -p spec-spine-core --test harness_skills --locked > "${TMPDIR:-/tmp}/ss092-s.txt" 2>&1
 grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss092-s.txt"
 rm -f "${TMPDIR:-/tmp}/ss092-s.txt"
+# 3.13: the derived-tree question, in each state git distinguishes. The matrix
+# is what decides it, under its own filter and with a non-zero pass count, so a
+# name matching nothing cannot pass for a run.
+cargo test -p spec-spine-core --test harness_hooks --locked pr_gate_ > "${TMPDIR:-/tmp}/ss092-d.txt" 2>&1
+grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss092-d.txt"
+rm -f "${TMPDIR:-/tmp}/ss092-d.txt"
+# 3.13: the index-versus-worktree form is gone rather than joined by the others.
+# Two branches of one `if` can coexist, and a body that kept the old test on
+# another arm would satisfy the matrix's name and still ship the blind spot.
+! grep -qF 'diff --quiet -- .statecraft/derived/' .claude/settings.json
+# 3.13: and the HEAD-relative form is not what replaced it (D-5's cancellation).
+! grep -qF 'diff HEAD' .claude/settings.json
+grep -qF 'diff --cached --name-only' .claude/settings.json
+grep -qF 'ls-files --others --exclude-standard' .claude/settings.json
 # 4.1: ten skills, and the session skill is not the shadowed name.
 test "$(ls -1 .claude/skills | wc -l | tr -d ' ')" = 10
 test -f .claude/skills/prime/SKILL.md

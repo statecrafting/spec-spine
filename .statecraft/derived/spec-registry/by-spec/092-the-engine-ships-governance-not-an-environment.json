@@ -332,6 +332,6 @@
     "summary": "spec-spine has been shipping two products. One is a governance engine: a compiler, an indexer, a classifier, a coupling gate, a verifier. The other is a development environment: twenty-nine files of skills, agents, rules, hooks, a Makefile and a CI workflow, embedded into the binary as a 2,707-line generated module and written out by a public `init --with-kit`, plus two further generated projections of the same instructions for other agent runtimes. The second product is now Statecraft's: the Statecraft CLI is the sole distributor and initializer of the managed development environment, and it places the compiled governance artifacts at `.statecraft/derived/`. This spec removes the public initialization command, the kit, the embedded kit, the agent-tree projections and the parity machinery that held them equal; narrows the retained library scaffold to governance starter content and nothing else; relocates this repository's own committed derived trees; and records, per predecessor, what the removal does to the claims and the acceptance those specs left behind.\n",
     "title": "The engine ships governance, not an environment"
   },
-  "shardHash": "bc6f2405f16d183e44dbb94942e717c9419816198e195cfba7104bf1baa21178",
+  "shardHash": "ade18bf100cab021ee15a096d3135f3275b1d7aaf963743b40de56aa6bbec139",
   "specVersion": "1.3.0"
 }

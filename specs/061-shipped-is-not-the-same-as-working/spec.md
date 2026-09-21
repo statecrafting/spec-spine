@@ -495,12 +495,21 @@ cargo build --release --locked
 cargo test -p spec-spine-core --test scaffold --locked
 # 3.1 and 3.2 the new refusal and the message 057 specified.
 cargo test -p spec-spine-core --test lint --locked
-# 3.6 the kit no longer ships the script spec 043 absorbed.
-test ! -e kit/scripts/verify-spec.sh
-# 3.7 the version read is scheduled, and the retired ritual is gone.
+# 3.6 has no assertion here any more, and deliberately none. Its subject was
+# `kit/scripts/verify-spec.sh`, the copy the kit shipped to adopters; spec 092
+# removed the kit, so `test ! -e kit/scripts/verify-spec.sh` was true of a path
+# nothing in this repository can create, and a line that cannot fail is a worse
+# record than an absent one. This repository's own `scripts/verify-spec.sh` is
+# a different file and a live one: it is the wrapper 043's verb is called
+# through, never a second implementation of it, and it is spec 043's to assert.
+# 3.7 the version read is scheduled, and the retired ritual is gone. Asserted
+# over the skill that exists: the session skill was renamed `init` -> `prime`
+# and the kit copy was removed, and `! grep` over a missing file passes on the
+# error rather than on the absence, so both lines this replaces asserted
+# nothing. The existence line is what keeps the negative honest.
 grep -qF 'spec-spine --version' AGENTS.md
-! grep -qF 'unexpected argument' .claude/skills/init/SKILL.md
-! grep -qF 'unexpected argument' kit/.claude/skills/init/SKILL.md
+test -f .claude/skills/prime/SKILL.md
+! grep -qF 'unexpected argument' .claude/skills/prime/SKILL.md
 # 3.8 this repository pins itself.
 grep -qE '^\[meta\]' spec-spine.toml
 # 3.9 the note reaches the cohort whose config carries the broken value.

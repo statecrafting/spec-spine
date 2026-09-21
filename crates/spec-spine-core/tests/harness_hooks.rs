@@ -741,6 +741,327 @@ fn the_pr_gate_reports_a_corpus_that_does_not_validate() {
     assert!(!err.contains("is stale"), "{err}");
 }
 
+// ── spec 093 3.13: the derived-tree question, in all three states ────────────
+
+/// Run the shipped `PreToolUse` body against `gh pr create` in a scratch
+/// repository whose derived tree is at `declared`, after `arrange` has put the
+/// tree into the state under test. The stand-in binary answers `check` 0 and
+/// `couple` 0, so the only thing that can refuse is the derived-tree read.
+///
+/// `declared` is what `config show --json` reports; `None` is a binary that
+/// cannot answer, which spec 093 3.13 requires to skip rather than refuse.
+///
+/// The repository is committed with one tracked shard under `<dd>/` and a
+/// `.gitignore` covering `build-meta.json`, which is the shape of a governed
+/// repository and the reason `--exclude-standard` is load-bearing.
+fn run_pr_gate_derived(
+    dir: &str,
+    declared: Option<&str>,
+    arrange: impl FnOnce(&std::path::Path, &dyn Fn(&[&str])),
+) -> (i32, String) {
+    use std::io::Write;
+    use std::os::unix::fs::PermissionsExt;
+    use std::process::{Command, Stdio};
+
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    let git = |args: &[&str]| {
+        let st = Command::new("git")
+            .args(args)
+            .current_dir(root)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .expect("git runs");
+        assert!(st.success(), "git {args:?}");
+    };
+    git(&["init", "-q", "-b", "feat"]);
+    fs::create_dir_all(root.join("specs")).unwrap();
+    fs::write(root.join("specs/.keep"), "").unwrap();
+    let shard_dir = root.join(dir).join("spec-registry/by-spec");
+    fs::create_dir_all(&shard_dir).unwrap();
+    fs::write(shard_dir.join("001-x.json"), "{}\n").unwrap();
+    fs::write(
+        root.join(".gitignore"),
+        format!("{dir}/spec-registry/build-meta.json\n"),
+    )
+    .unwrap();
+    git(&["add", "-A"]);
+    git(&[
+        "-c",
+        "user.email=t@example.invalid",
+        "-c",
+        "user.name=t",
+        "commit",
+        "-qm",
+        "c",
+    ]);
+
+    arrange(root, &git);
+
+    let config_arm = match declared {
+        Some(d) => format!(
+            "  *'config show --json'*) printf '%s\\n' '{{\"layout\":{{\"derived_dir\":\"{d}\"}}}}'; exit 0 ;;\n"
+        ),
+        None => String::new(),
+    };
+    let stand_in = root.join("stand-in-spec-spine");
+    fs::write(
+        &stand_in,
+        format!(
+            "#!/bin/sh\ncase \"$*\" in\n  *--version*) echo 'spec-spine 0.21.0-stand-in'; exit 0 ;;\n\
+             {config_arm}\x20 *'check --help'*) exit 0 ;;\n  *check*) exit 0 ;;\n\
+             \x20 *couple*) exit 0 ;;\nesac\nexit 0\n"
+        ),
+    )
+    .unwrap();
+    fs::set_permissions(&stand_in, fs::Permissions::from_mode(0o755)).unwrap();
+
+    let body = hook_bodies()["PreToolUse"].join("\n");
+    let payload = serde_json::json!({
+        "tool_input": { "command": "gh pr create --title t --body b" },
+        "cwd": root.to_str().unwrap(),
+    })
+    .to_string();
+    let mut child = Command::new("sh")
+        .arg("-c")
+        .arg(&body)
+        .current_dir(root)
+        .env("SPEC_SPINE_BIN", &stand_in)
+        .env_remove("SPEC_SPINE_DEFAULT_BRANCH")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("sh runs");
+    child
+        .stdin
+        .as_mut()
+        .expect("stdin")
+        .write_all(payload.as_bytes())
+        .expect("payload written");
+    let out = child.wait_with_output().expect("hook exits");
+    // Spec 094 D-4: the repository path is replaced before the message is
+    // asserted on, so a temporary directory whose name happens to carry one of
+    // the words cannot decide the test.
+    let mut msg = String::from_utf8_lossy(&out.stderr).into_owned();
+    msg.push_str(&String::from_utf8_lossy(&out.stdout));
+    let msg = msg.replace(&root.to_string_lossy().to_string(), "<repo>");
+    (out.status.code().unwrap_or(-1), msg)
+}
+
+/// The label the gate prints for each state. Asserted with the `[pr-gate] `
+/// prefix on purpose: `"unstaged changes"` CONTAINS `"staged changes"`, so a
+/// bare substring test cannot tell case 3 from case 2.
+const UNSTAGED: &str = "[pr-gate] unstaged changes";
+const STAGED: &str = "[pr-gate] staged changes";
+const UNTRACKED: &str = "[pr-gate] untracked files";
+
+/// Case 1: a committed derived tree is clean and the gate proceeds.
+#[test]
+fn the_pr_gate_passes_a_committed_derived_tree() {
+    let (code, msg) = run_pr_gate_derived(
+        ".statecraft/derived",
+        Some(".statecraft/derived"),
+        |_, _| {},
+    );
+    assert_eq!(code, 0, "{msg}");
+    assert!(!msg.contains("BLOCKED"), "{msg}");
+    assert!(!msg.contains("skipped"), "the read was answered: {msg}");
+}
+
+/// Case 2: an unstaged edit to a tracked shard, the one state the old
+/// `git diff --quiet` form could see.
+#[test]
+fn the_pr_gate_refuses_an_unstaged_shard() {
+    let (code, msg) = run_pr_gate_derived(
+        ".statecraft/derived",
+        Some(".statecraft/derived"),
+        |root, _| {
+            fs::write(
+                root.join(".statecraft/derived/spec-registry/by-spec/001-x.json"),
+                "{\"a\":1}\n",
+            )
+            .unwrap();
+        },
+    );
+    assert_eq!(code, 2, "{msg}");
+    assert!(msg.contains(UNSTAGED), "{msg}");
+    assert!(msg.contains("001-x.json"), "names the path: {msg}");
+    assert!(!msg.contains(STAGED), "only the state it found: {msg}");
+    assert!(!msg.contains(UNTRACKED), "{msg}");
+}
+
+/// Case 3: a staged shard. `git add` is the first half of the remedy the gate
+/// itself printed, so this was the blind spot the message produced.
+#[test]
+fn the_pr_gate_refuses_a_staged_shard() {
+    let (code, msg) = run_pr_gate_derived(
+        ".statecraft/derived",
+        Some(".statecraft/derived"),
+        |root, git| {
+            fs::write(
+                root.join(".statecraft/derived/spec-registry/by-spec/001-x.json"),
+                "{\"a\":1}\n",
+            )
+            .unwrap();
+            git(&["add", ".statecraft/derived"]);
+        },
+    );
+    assert_eq!(code, 2, "a staged shard is not committed: {msg}");
+    assert!(msg.contains(STAGED), "{msg}");
+    assert!(msg.contains("001-x.json"), "{msg}");
+    assert!(!msg.contains(UNSTAGED), "{msg}");
+}
+
+/// Case 4: an untracked shard, which no form of `git diff` reports. A new
+/// spec's shards are untracked until someone adds them, which is the shape of
+/// most pull requests this repository opens.
+#[test]
+fn the_pr_gate_refuses_an_untracked_shard() {
+    let (code, msg) = run_pr_gate_derived(
+        ".statecraft/derived",
+        Some(".statecraft/derived"),
+        |root, _| {
+            fs::write(
+                root.join(".statecraft/derived/spec-registry/by-spec/002-new.json"),
+                "{}\n",
+            )
+            .unwrap();
+        },
+    );
+    assert_eq!(code, 2, "{msg}");
+    assert!(msg.contains(UNTRACKED), "{msg}");
+    assert!(msg.contains("002-new.json"), "{msg}");
+    assert!(!msg.contains(STAGED), "{msg}");
+}
+
+/// Case 5: a staged edit restored in the working tree to `HEAD`'s contents.
+/// `git diff HEAD` prints nothing for this tree while both per-state reads
+/// report the file, which is why the mechanism is three reads and not one. A
+/// gate asking a single HEAD-relative question calls this clean.
+#[test]
+fn the_pr_gate_refuses_a_staged_edit_cancelled_in_the_working_tree() {
+    let path = ".statecraft/derived/spec-registry/by-spec/001-x.json";
+    let (code, msg) = run_pr_gate_derived(
+        ".statecraft/derived",
+        Some(".statecraft/derived"),
+        |root, git| {
+            fs::write(root.join(path), "{\"a\":1}\n").unwrap();
+            git(&["add", ".statecraft/derived"]);
+            // Back to the committed bytes, leaving the index holding the edit.
+            fs::write(root.join(path), "{}\n").unwrap();
+            // The tree this arranges is the one D-2 measured: `git diff HEAD` is
+            // empty here. Asserted, so the case cannot quietly stop being the case
+            // it was written to be.
+            let st = std::process::Command::new("git")
+                .args(["diff", "--quiet", "HEAD", "--", ".statecraft/derived"])
+                .current_dir(root)
+                .status()
+                .expect("git runs");
+            assert!(
+                st.success(),
+                "the fixture must be the cancelling tree: git diff HEAD reports a difference"
+            );
+        },
+    );
+    assert_eq!(code, 2, "a staged shard is not committed: {msg}");
+    assert!(msg.contains(STAGED), "{msg}");
+    assert!(msg.contains("001-x.json"), "{msg}");
+}
+
+/// Case 6: two states at once are both named, not the first one found.
+#[test]
+fn the_pr_gate_names_every_state_it_found() {
+    let (code, msg) = run_pr_gate_derived(
+        ".statecraft/derived",
+        Some(".statecraft/derived"),
+        |root, git| {
+            fs::write(
+                root.join(".statecraft/derived/spec-registry/by-spec/001-x.json"),
+                "{\"a\":1}\n",
+            )
+            .unwrap();
+            git(&["add", ".statecraft/derived"]);
+            fs::write(
+                root.join(".statecraft/derived/spec-registry/by-spec/002-new.json"),
+                "{}\n",
+            )
+            .unwrap();
+        },
+    );
+    assert_eq!(code, 2, "{msg}");
+    assert!(msg.contains(STAGED), "{msg}");
+    assert!(msg.contains(UNTRACKED), "{msg}");
+}
+
+/// Case 7: the gitignored build metadata alone is not a dirty tree.
+/// `build-meta.json` carries a wall-clock `builtAt` and is written by every
+/// build, so a gate refusing on it refuses every clone. This is what
+/// `--exclude-standard` buys, and the assertion fails without it.
+#[test]
+fn the_pr_gate_ignores_the_gitignored_build_metadata() {
+    let (code, msg) = run_pr_gate_derived(
+        ".statecraft/derived",
+        Some(".statecraft/derived"),
+        |root, _| {
+            fs::write(
+                root.join(".statecraft/derived/spec-registry/build-meta.json"),
+                "{\"builtAt\":\"now\"}\n",
+            )
+            .unwrap();
+        },
+    );
+    assert_eq!(code, 0, "{msg}");
+    assert!(!msg.contains("BLOCKED"), "{msg}");
+}
+
+/// Case 8: the derived directory is the CONFIGURED one. A repository whose
+/// derived tree is somewhere else refuses a change under that path, and a
+/// change under the default `.derived/` in the same repository is not its
+/// derived tree and does not refuse. A hook hard-coding both paths passes
+/// every other case here and fails the second half of this one.
+#[test]
+fn the_pr_gate_reads_the_configured_derived_directory() {
+    let (code, msg) = run_pr_gate_derived("var/ledger", Some("var/ledger"), |root, _| {
+        fs::write(
+            root.join("var/ledger/spec-registry/by-spec/003-new.json"),
+            "{}\n",
+        )
+        .unwrap();
+    });
+    assert_eq!(code, 2, "the configured tree is the one read: {msg}");
+    assert!(msg.contains(UNTRACKED), "{msg}");
+    assert!(msg.contains("var/ledger"), "{msg}");
+
+    let (code, msg) = run_pr_gate_derived("var/ledger", Some("var/ledger"), |root, _| {
+        fs::create_dir_all(root.join(".derived")).unwrap();
+        fs::write(root.join(".derived/stray.json"), "{}\n").unwrap();
+    });
+    assert_eq!(
+        code, 0,
+        "the DEFAULT path is not this repository's derived tree: {msg}"
+    );
+    assert!(!msg.contains("BLOCKED"), "{msg}");
+}
+
+/// A binary that cannot answer where the derived tree is has not shown the
+/// tree to be dirty. The gate says it skipped (spec 093 3.4) and does not
+/// invent a refusal from a read that did not happen.
+#[test]
+fn the_pr_gate_skips_the_derived_read_it_could_not_perform() {
+    let (code, msg) = run_pr_gate_derived(".statecraft/derived", None, |root, _| {
+        fs::write(
+            root.join(".statecraft/derived/spec-registry/by-spec/002-new.json"),
+            "{}\n",
+        )
+        .unwrap();
+    });
+    assert_eq!(code, 0, "{msg}");
+    assert!(msg.contains("derived_dir not reported"), "{msg}");
+    assert!(!msg.contains("BLOCKED"), "{msg}");
+}
+
 // ── spec 093: the session hooks report the verdict, not a guess ──────────────
 
 /// `check`'s report for a corpus whose committed shards are byte-exact but

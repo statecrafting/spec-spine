@@ -57,6 +57,7 @@
       "3.10 The session hooks report the verdict, not a guess",
       "3.11 The destructive-command refusals",
       "3.12 The hooks resolve the binary the project declares",
+      "3.13 The derived-tree question is asked in every state git distinguishes",
       "4. Behavior: the skills, agents and rules",
       "4.1 Ten skills",
       "4.2 The frontmatter contract",
@@ -81,6 +82,6 @@
     "summary": "Sixteen specs governed one tree. `.claude/` is four hooks, ten skills, four agents and four rules, and the requirements on them were spread over specs 093, 047, 048, 051, 063, 068, 071, 072, 078, 080, 081, 082, 099, 104, 110 and 116, each written when that tree was a product this repository distributed. Spec 092 removed the distribution; what is left is one tree that one repository reads, described in sixteen places, most of them half about copies that no longer exist. This spec is that description, in one place: what the hooks may do, what the push gate refuses, how every hook reads a verdict, what the ten skills are and what each must contain, what the four rules say, and who owns the protocol. Every surviving requirement of the seventeen is carried here; what is dropped is named in §6 with the reason, and in every case the reason is that its subject was a copy spec 092 deleted.\n",
     "title": "The harness this repository runs"
   },
-  "shardHash": "157f947d78d4ebd9c09577181eb1ce6bb1e2eea8b940c33b358d50c6389bdcb4",
+  "shardHash": "f77983214c403ad2b61d42a9b5810763bb9b89dd5806769d6d36779608ab2585",
   "specVersion": "1.3.0"
 }
