@@ -27,7 +27,6 @@ extends:
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "specs/040-governance-document-gaps/spec.md" }, role: context }
-  - { unit: { kind: file, path: "scripts/verify-spec.sh" }, role: prior-art }
 summary: >
   A spec's `## Verification` section states what would make its claims true, and
   nothing runs it. Three adopters independently wrote the same 78-line
@@ -270,20 +269,61 @@ convenience, and it is the natural CLI surface for the pure function 3.1 keeps
 in the engine. It is also how a reviewer inspects a `## Verification` block
 contributed by someone else without running it.
 
+### 3.9 The hand-written runner is retired, not kept beside the verb
+
+`scripts/verify-spec.sh` was 78 lines of `awk` and `sh`, written independently
+by three adopters and copied into this repository, and this verb was built to
+absorb it. 4 kept it alive for one reason: removing it stranded every adopter
+whose pinned `spec-spine` predated the release carrying the verb, and the
+retirement's trigger was named as "adopters upgrading, not this spec merging".
+
+Both halves of that are spent. Spec 092 removed `kit/` outright, so this
+repository ships no copy to strand anyone with, and the only remaining copy was
+its own. Nothing calls it: no `Makefile` target, no CI job, no git hook, and the
+`verify` skill is forbidden from falling back to it (spec 093 4.6).
+
+It MUST be removed, because by 2026-09-21 it had stopped agreeing with the verb.
+The script parses the markdown directly and knows nothing about
+`amends_verification`, so for the thirteen specs whose acceptance another spec
+holds (spec 082 3.2) it runs the superseded block while `spec-spine verify`
+runs the holder's. A second implementation that returns a different verdict for
+the same spec is the failure 3.1's seam and this spec's whole argument exist to
+prevent, and 093 4.6's last clause names it by name: "rather than silently
+running a second implementation".
+
+What the verb does that the script did, unchanged: the numbered-or-not heading,
+the `verify:cli` fences in document order, comments and blank lines skipped,
+first failure stopping the run, `not-declared` as an honest zero, and other
+fence tags counted and reported rather than run. What it adds: short-id
+resolution, the configured corpus root instead of a `$SPECS_DIR` environment
+variable, `--plan`, `--json`, `amends_verification` resolution, this spec's
+exit-code contract, and 33 tests where the script had none in any of the four
+repositories that held a copy.
+
+The two `references` units naming the path (this spec's `prior-art` and spec
+089's `context`) are withdrawn in the same change. A `references` unit on a
+path that does not exist is a `W-002` unresolved unit, and
+`check --fail-on-unresolved` is in the gate.
+
 ## 4. Out of scope
 
-**Retiring `scripts/verify-spec.sh` and its kit copy.** The audit's shape for
-this item ends with both scripts retired and `/verify` wrapping the verb, and
-this spec deliberately stops one step short. Removing the script from `kit/`
-strands every adopter whose pinned `spec-spine` predates the release carrying
-this verb, and all four adopters currently run two to four releases behind. The
-retirement is a follow-on filed once the verb ships, and it will need an
-`amends` edge on spec 093, which established the script, rather than a silent
-deletion of another spec's unit. Nothing here edits 048.
+**~~Retiring `scripts/verify-spec.sh` and its kit copy.~~ Done, 2026-09-21,
+3.9.** This spec stopped one step short when it was written, because removing
+the script stranded every adopter whose pinned `spec-spine` predated the
+release carrying the verb, and all four adopters then ran two to four releases
+behind. The kit copy went with the kit (spec 092) and the retained copy had
+begun disagreeing with the verb, so the follow-on this bullet scheduled is 3.9
+rather than a spec of its own. The `amends` edge it anticipated onto the spec
+that established the script is not available and not needed: that spec was one
+of the sixteen spec 093 consolidated, the path is owned by nobody
+(`index owner` answers "no spec owns this path"), and the clause that once
+said the copies "MUST NOT be deleted" is not in the corpus any more.
 
-**Rewriting the `/verify` skill.** Same reason. The skill keeps calling the
-script until the retirement spec moves it, so an adopter's harness works on
-either side of the upgrade.
+**~~Rewriting the `/verify` skill.~~ Done elsewhere.** This bullet had the
+script's reason and expired with it: spec 093 4.6 now requires the skill to
+invoke the verb, forbids the fallback, and requires it to name the upgrade
+rather than silently run a second implementation. The skill is spec 093's, so
+nothing here edits it beyond the sentence that named the removed path.
 
 **Verifying that code matches a spec's prose.** Unchanged from spec 038 4 and
 044 4: no gate does this, and this verb does not either. It runs what the author

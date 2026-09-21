@@ -75,10 +75,11 @@ stranger's.
 `spec-spine verify` arrived in 0.15.0. An older binary rejects the
 subcommand. Report that plainly and name the upgrade
 (`spec-spine --version`, then reinstall or rebuild at the pin `AGENTS.md`
-names). Do NOT fall back to `scripts/verify-spec.sh`: a harness that
-quietly runs a second implementation of one protocol is the drift this
-skill was rewritten to remove. The script is deprecated and exists only for
-adopters still pinned below 0.15.0.
+names). Do NOT fall back to `scripts/verify-spec.sh` or any other
+hand-written runner: a harness that quietly runs a second implementation of
+one protocol is the drift this skill was rewritten to remove. That script was
+retired on 2026-09-21 (spec 043 §3.9); it resolved no `amends_verification`,
+so it answered differently from the verb for every amended spec.
 
 ## Step 3: read the result honestly
 

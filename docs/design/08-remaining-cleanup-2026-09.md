@@ -213,9 +213,12 @@ are gone, that the harness comes from Statecraft, and that spec ids moved, with
   files. An approved spec's prose is a record of what was true when it was
   ratified and is not edited (spec 037). The map resolves the ids; the paths are
   history.
-- **`scripts/verify-spec.sh`** is the script `spec-spine verify` absorbed. It is
-  still here and still claimed; no skill calls it, and `harness_skills.rs`
-  asserts that.
+- ~~**`scripts/verify-spec.sh`**~~ **retired 2026-09-21** (spec 043 3.9). It
+  had stopped being residue: the script resolves no `amends_verification`, so
+  from the moment thirteen specs' acceptance moved to an amender it answered
+  differently from the verb for every one of them. Nothing called it, no spec
+  owned the path, and the clause that once said the copies "MUST NOT be
+  deleted" had gone with the spec 093 consolidation.
 - **`.statecraft/derived/attestation/`** accumulates on-demand output. 103 files
   for spec ids the corpus no longer has were removed in this session; it will
   accumulate again and is gitignored.

@@ -84,24 +84,11 @@
           "kind": "file",
           "path": "crates/spec-spine-core/src/verify.rs"
         }
-      },
-      {
-        "locations": [
-          {
-            "file": "scripts/verify-spec.sh"
-          }
-        ],
-        "ownership": false,
-        "sourceField": "references",
-        "unit": {
-          "kind": "file",
-          "path": "scripts/verify-spec.sh"
-        }
       }
     ],
     "specId": "089-nothing-reruns-a-merged-acceptance",
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "9f27b320b3988396733848d1364795e2bd43b035b4ede890d36e9158b2499ff7"
+  "shardHash": "ee6ede696504034f4a2bd79e4e658846d69257eb14cc632a154642c02dd0bbc2"
 }

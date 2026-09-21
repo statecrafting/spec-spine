@@ -390,11 +390,17 @@ resolution §3.6 performs.
 ### 4.6 `verify` wraps the verb
 
 The `verify` skill MUST invoke `spec-spine verify <id>` through the binary
-invocation `AGENTS.md` names, MUST NOT invoke `scripts/verify-spec.sh`, MUST
-report the verb's outcomes in the verb's own words, and MUST describe `--plan` as
-the way to read a `## Verification` block before running it. When the configured
-binary does not carry the verb, the skill MUST say so and name the upgrade rather
-than silently running a second implementation.
+invocation `AGENTS.md` names, MUST NOT send a session to a hand-written runner
+instead, MUST report the verb's outcomes in the verb's own words, and MUST
+describe `--plan` as the way to read a `## Verification` block before running
+it. When the configured binary does not carry the verb, the skill MUST say so
+and name the upgrade rather than silently running a second implementation.
+
+The named runner was `scripts/verify-spec.sh`, retired on 2026-09-21 under
+spec 043 3.9 once it had begun answering differently from the verb: it parses
+the markdown directly and resolves no `amends_verification`, so it ran a
+superseded block wherever one exists. The prohibition outlives the file and is
+written to, because the failure is a second implementation and not a path.
 
 ### 4.7 `next` and `build` apply the lifecycle rules
 
