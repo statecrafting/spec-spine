@@ -545,6 +545,18 @@ span, or an identifier character, meaning the backtick belongs to a longer
 token. The suite caught the regression on the first run, and the case is pinned
 now.
 
+D-37 (2026-09-21, a backticked glob is a glob, and the alternative was
+measured). A review read `glob_at`'s use of the value context as a defect,
+because a backtick does not disqualify a glob there, and proposed the prose
+context instead. Implementing that leaves `` `rules/*.md` `` unrewritten AND
+reports it as unaccounted for: the citation form cannot match it either, since
+the exact backticked path is absent and the bare occurrence is disqualified by
+the same backtick. The run then refuses a corpus the rules can repair. Letting
+the citation form win instead would splice prose in front of `*.md`, which is
+neither a pattern nor a sentence. The behaviour is pinned by a test whose
+comment carries the proposal and the measurement, so the next reader reaching
+for the same change finds the answer rather than the question.
+
 ## Verification
 
 Each line is one command, run independently.

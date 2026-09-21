@@ -1473,6 +1473,46 @@ fn a_backticked_citation_ending_a_sentence_is_rewritten() {
     assert!(c.leftover.is_empty(), "{:?}", c.leftover);
 }
 
+/// A backticked GLOB is a glob. The glob form replaces its path prefix and the
+/// citation form leaves it alone.
+///
+/// Pinned because a review proposed the opposite, reading `glob_at`'s use of the
+/// value context as a bug: a backtick does not disqualify a glob there. Making
+/// it disqualify one was measured, and it leaves `` `rules/*.md` `` unrewritten
+/// AND reports it as unaccounted for, because the citation form cannot match it
+/// either (the exact backticked path is absent, and the bare occurrence is
+/// disqualified by the same backtick). The run then refuses a corpus the rules
+/// can repair. Splicing a prose citation in front of `*.md` would also produce
+/// something that is neither a pattern nor a sentence.
+#[test]
+fn a_backticked_glob_is_handled_by_the_glob_form() {
+    let tmp = fixture("Patterns live in `rules/*.md` today.\n");
+    let mut e = retire_rules();
+    e.path = "rules/".into();
+    e.kind = RetireKind::Directory;
+    e.forms = [
+        ("citation".to_string(), Some("`AGENTS.md`".to_string())),
+        ("glob".to_string(), Some("kept/".to_string())),
+    ]
+    .into_iter()
+    .collect();
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/note.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(out.contains("`kept/*.md`"), "{out:?}");
+    // Scoped to the prose file: `000-alpha` claims `rules/` in frontmatter and
+    // this plan declares no rule for that, which §3.7 is right to report.
+    assert!(
+        c.leftover.iter().all(|l| l.rel_path != "docs/note.md"),
+        "{:?}",
+        c.leftover
+    );
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]
