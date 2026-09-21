@@ -127,6 +127,6 @@
     "summary": "Two adopters installed spec-spine on the same day and each found a shipped artifact that does not do what it says. A glob form that matches no files reached one by hand and the other through a pre-069 scaffold, where the fix to the default can never arrive and 058's migration note explicitly does not look. `init --with-kit` writes the merge-driver hooks without an executable bit and without the binding that makes them fire. It installs a script the tool absorbed two releases ago, and it will write a second spec at an ordinal the corpus already uses. The session protocol calls a version read a precondition and never schedules it, while the skill beside it still prescribes the stderr ritual that protocol retired. Every one of these shipped for the same reason: the acceptance asserted that a thing exists rather than that it works. This spec closes them together and adds the refusal that would have caught the first one in an adopter's own config.\n",
     "title": "Shipped is not the same as working"
   },
-  "shardHash": "222cee44f4d746200689cd36841cf97038d5551a8601dd95c5b6b6dcf1d1b7b7",
+  "shardHash": "f42830c83acea69f23d8178f2ca5802b70abf7d1219bb89614c2d2451b013e24",
   "specVersion": "1.3.0"
 }

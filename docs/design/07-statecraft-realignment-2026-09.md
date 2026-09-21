@@ -103,14 +103,19 @@ it is what this repository does to its own `.claude/` tree.
 
 ## 5. Spec 117
 
-`117-the-derived-tree-question-asked-honestly` was drafted 2026-09-17, never
-merged, and exists only on the branch
-`113-the-harness-delivers-what-it-documents` at `487bbd9`. It is withdrawn as
-filed: three of the four hook copies it targets are removed by spec 092. The
-defect it measured, a PR-gate test blind to a staged shard and to an untracked
-one, remains true of the single retained copy in `.claude/settings.json`; it is
-recorded as open in spec 092 4 and the branch is preserved. The ordinal stays
-reserved.
+`117-the-derived-tree-question-asked-honestly` was drafted 2026-09-17 and never
+merged. It is withdrawn as filed: three of the four hook copies it targets are
+removed by spec 092, and spec 095's renumber leaves no ordinal 117 to reserve.
+
+The defect it measured, a PR-gate test blind to a staged shard and to an
+untracked one, was true of the single retained copy in `.claude/settings.json`.
+Spec 092 4 recorded it as open, pointing at an unmerged branch and a commit on
+it for the measurement. That reference was only readable in the clone that held
+the branch, and spec 092's acceptance asserted both existed, so those two lines
+passed for their author and failed in CI and in every other checkout. The
+carry-forward is therefore a restatement, not a pointer: the measurement, the
+three states, the cancellation case and the matrix are spec 093 3.13, and the
+hook was fixed against it on 2026-09-21.
 
 ## 6. What is outstanding
 
@@ -118,8 +123,8 @@ reserved.
 |---|---|---|
 | `@.statecraft/AGENTS.md` bridge in this repository's root `AGENTS.md` | Statecraft initializer | not applied: the initializer must write `.statecraft/AGENTS.md` first, and an import of a missing file is a broken instruction |
 | Retirement of this repository's `.claude/` tree | Statecraft global delivery | held: `.claude/` stays until its replacement is concretely available |
-| The PR-gate derived-tree test | whoever owns the hook after delivery | open, see 5 |
-| Ratification of spec 092 | a human | spec 092 is `draft`; this realignment was built under a specific owner authorization, and no agent flips it to `approved` |
+| The PR-gate derived-tree test | spec 093, which specifies the surviving hook | closed 2026-09-21: spec 093 3.13, with the matrix in `harness_hooks.rs`. See 5 |
+| Ratification of spec 092 | a human | done: `approved`. The realignment was built under a specific owner authorization, and the flip was a human's |
 
 ## 7. The collapse that followed (2026-09-20)
 
