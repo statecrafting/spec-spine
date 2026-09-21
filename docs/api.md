@@ -265,7 +265,7 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   "list" | "show" | "status-report" | "relationships" | "plan", "id"?: string,
   "status"?: string, "idsOnly"?: bool, "nonzeroOnly"?: bool }` (the projection
   fields, spec 009, default to `false`). Every answer is a **read document**
-  (spec 094): an object with sorted keys and `schemaVersion` =
+  (spec 074): an object with sorted keys and `schemaVersion` =
   `READ_SCHEMA_VERSION`; `list` (with or without `idsOnly`) carries its array
   under `items`. `plan` (spec 035) returns `{ "ready": [...], "blocked":
   [{ "id", "blockedBy": [{ "id", "state" }] }], ..., "schemaVersion" }`.
@@ -305,7 +305,7 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   under `report`, versioned by `VERDICT_SCHEMA_VERSION`; see
   `specs/034-machine-readable-verdicts/spec.md`.
 - `coverage_json` (spec 029) returns the `CoverageReport` as a read document
-  (spec 094, so it also carries `schemaVersion`): `sourceFiles`,
+  (spec 074, so it also carries `schemaVersion`): `sourceFiles`,
   `claimedFiles`, the sorted `floorOnlyFiles` / `unclaimedFiles` lists, and
   per-package counts. A stale committed index is `Error::Stale`, not a report.
 - `verify_plan_json` (spec 043) returns a spec's `VerifyPlan`: the `verify:cli`
@@ -317,13 +317,13 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
 - `render_json` (spec 010) takes `config_json` and the aggregate index JSON
   text and returns the markdown projection (a JSON-encoded string).
   `orphans_json` (spec 010) takes only the index JSON text and returns the
-  orphaned-spec ids under `items` in a read document (spec 094).
+  orphaned-spec ids under `items` in a read document (spec 074).
 
 All emitted JSON is **pretty-printed with sorted keys, LF line endings, and a
 trailing newline** (diffability over compactness; see
 [design/00-architecture.md](design/00-architecture.md) §10.1). For the read
 documents this holds because they all go through one emitter,
-`spec_spine_core::read_document` (spec 094); the facades that return compact
+`spec_spine_core::read_document` (spec 074); the facades that return compact
 JSON (`lint_json`, `couple_json` and the other verdict payloads) are the
 exception, and the CLI's envelope around them is sorted and pretty.
 

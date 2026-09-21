@@ -1294,12 +1294,12 @@ fn resolve_unit(
 }
 
 /// How many opening lines of a file a `// Spec:` comment header may claim from
-/// (spec 095 §3.1). The value shipped with spec 029 and is declared, not chosen:
+/// (spec 075 §3.1). The value shipped with spec 029 and is declared, not chosen:
 /// changing it would move ownership in every adopter corpus at once.
 pub const COMMENT_HEADER_CLAIM_WINDOW: usize = 16;
 
 /// The last line the near-miss scan reads for a header below the claim window
-/// (spec 095 §3.6). Measured on this repository's tree at the time: the
+/// (spec 075 §3.6). Measured on this repository's tree at the time: the
 /// scanner's own recognizer found no resolving header in lines 17 to 64, and
 /// past 64 found only embedded file content, in the generated module spec 092
 /// §3.4 has since removed. That was not a misplaced header either, which is the
@@ -1329,7 +1329,7 @@ fn scan_comment_headers(
 
 /// Every file the header scans read, as `(repo-relative path, content)`:
 /// `SOURCE_EXTS` inside a discovered package, `resolver_exclusions` pruned. One
-/// enumeration for the claim scan and the near-miss scan (spec 095 §3.3), so
+/// enumeration for the claim scan and the near-miss scan (spec 075 §3.3), so
 /// the two cannot disagree about which files were asked. A file that is not
 /// UTF-8 is skipped by both, as the claim scan always has.
 fn header_scan_files(
@@ -1355,7 +1355,7 @@ fn header_scan_files(
     out
 }
 
-/// §3.2 steps 1 to 3 (spec 095): the reference a line offers, when the line is
+/// §3.2 steps 1 to 3 (spec 075): the reference a line offers, when the line is
 /// a claim attempt. Leading whitespace is trimmed, **at most one** `//` or `#`
 /// marker is stripped (the marker is optional), and the rest must begin with
 /// `Spec:`. Declared as it shipped, looser than the documented form on purpose:
@@ -1370,7 +1370,7 @@ fn header_attempt(line: &str) -> Option<&str> {
 }
 
 /// The spec a file claims through its header: the first claim attempt inside
-/// the window decides, resolving or not (spec 095 §3.2). An unresolvable
+/// the window decides, resolving or not (spec 075 §3.2). An unresolvable
 /// attempt therefore shadows a valid header below it.
 fn claim_in_window(content: &str, all_ids: &BTreeSet<String>) -> Option<String> {
     content
@@ -1380,7 +1380,7 @@ fn claim_in_window(content: &str, all_ids: &BTreeSet<String>) -> Option<String> 
         .and_then(|reference| spec_id_from_path(reference, all_ids))
 }
 
-/// The near misses in one file's content (spec 095 §3.3), in line order.
+/// The near misses in one file's content (spec 075 §3.3), in line order.
 ///
 /// Inside the claim window, up to and including the first claim attempt: a
 /// `//! Spec:` line is a `doc-comment-marker` (it is not an attempt, so it does
@@ -1439,7 +1439,7 @@ pub fn near_miss_headers_in(
 }
 
 /// Every near miss across the header scan's file universe, sorted by path then
-/// line (spec 095 §3.3). Computed on read for the coverage report; no index
+/// line (spec 075 §3.3). Computed on read for the coverage report; no index
 /// shard records it (§2, D-2).
 ///
 /// The spec ids are discovered from the corpus exactly as [`index`] discovers
@@ -1464,7 +1464,7 @@ pub(crate) fn near_miss_headers(
 
 /// Extract the spec id from a `<specs_dir>/NNN-slug/spec.md` reference: every
 /// trailing `/spec.md` is trimmed and the final segment must be a corpus id
-/// (spec 095 §3.2 step 4). Not a path check, as shipped.
+/// (spec 075 §3.2 step 4). Not a path check, as shipped.
 fn spec_id_from_path(reference: &str, all_ids: &BTreeSet<String>) -> Option<String> {
     let trimmed = reference.trim_end_matches("/spec.md");
     let candidate = trimmed.rsplit('/').next().unwrap_or(trimmed);

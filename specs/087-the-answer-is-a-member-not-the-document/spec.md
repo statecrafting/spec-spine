@@ -6,7 +6,7 @@ kind: "core"
 created: "2026-09-17"
 summary: >
   Spec 053's `## Verification` block compares the whole of
-  `registry plan --next --json` against one spec object, and spec 094 moved that
+  `registry plan --next --json` against one spec object, and spec 074 moved that
   object under a `next` member so the empty ready set could be a value rather
   than a missing document, so `spec-spine verify 060` has been red since 093
   merged. 093 declared an `amends` edge to 060 for exactly this change and
@@ -87,7 +87,7 @@ because the repair looks identical and the reasoning is not.
 060 3.2 states the shape as a contract: under `--json`, "the single spec object
 rather than an array, so a consumer does not index into a one-element list to
 reach the thing it asked for." The block asserted exactly that, and it was
-right to. Spec 094 then **changed the contract**, deliberately and with its
+right to. Spec 074 then **changed the contract**, deliberately and with its
 reasons recorded: `plan --next`'s empty case emitted the bare literal `null`,
 which cannot carry a version member, so the pick moved under a nullable `next`
 and the document became an object in both cases. 093 3.5 carries the
@@ -126,7 +126,7 @@ claim about order.
 
 ### 1.4 The crossing was silent
 
-Spec 094 changed a document shape another approved spec's acceptance pinned,
+Spec 074 changed a document shape another approved spec's acceptance pinned,
 declared the `amends` edge, and nothing told 060's block. `verify` is the one
 verb that executes what the corpus declares, so it sits outside the gate chain
 deliberately (`AGENTS.md`); CI never runs it. Spec 084 1.3 records the identical
@@ -186,7 +186,7 @@ line free to begin with `rm -rf`.
 
 The whole-document equality MUST be replaced by three claims:
 
-- the document's keys are **sorted**, which is spec 094 3.2's rule for every
+- the document's keys are **sorted**, which is spec 074 3.2's rule for every
   governed read;
 - it carries a non-empty `schemaVersion`, which is 093's addition and the half
   that fails against pre-093 output;
@@ -247,7 +247,7 @@ reading the plan from inside is a validation failure. The instance-level fact,
 that `spec-spine verify 060` and `spec-spine verify 109` both exit 0 on the
 merged tree, is what a reviewer runs and what the release sweep runs.
 
-### 3.6 The empty ready set stays where spec 094 put it
+### 3.6 The empty ready set stays where spec 074 put it
 
 The block MUST keep 060's `registry plan --next` line against this repository,
 which asserts that an empty ready set is exit 0 rather than a failure, and MUST
@@ -271,7 +271,7 @@ corpus change that uses it.
 
 ## 4. Out of scope
 
-- **Editing spec 053, or spec 094.** 1.2 and the frontmatter comment. 060 keeps
+- **Editing spec 053, or spec 074.** 1.2 and the frontmatter comment. 060 keeps
   the block it was ratified with, which is the record spec 037 3.2 protects, and
   093 already amended 060's rule by the book and carried the replacement text.
 - **The empty-ready-set document.** 3.6. Guarded by 093 3.8 in
@@ -462,7 +462,7 @@ python3 -c "import json; b=json.load(open('${TMPDIR:-/tmp}/ss060/plan.json'))['b
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan > "${TMPDIR:-/tmp}/ss060/plan.txt"
 grep -q 'not schedulable' "${TMPDIR:-/tmp}/ss060/plan.txt"
 grep -q 'blocked by 001-alpha' "${TMPDIR:-/tmp}/ss060/plan.txt"
-# 3.3: 060 3.2's pick, read from the member spec 094 moved it into. Sorted keys
+# 3.3: 060 3.2's pick, read from the member spec 074 moved it into. Sorted keys
 # and the version member are 093 3.2's rule for every governed read, and the
 # pick is compared by value so a `--next` that dropped the title fails (D-1).
 python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss060/next.json')); k=list(d); assert k==sorted(k), k; assert d['schemaVersion'], d; assert d['next']=={'id':'001-alpha','title':'First thing'}, d"
@@ -472,7 +472,7 @@ python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss060/next.json')); k
 python3 -c "import json; n=json.load(open('${TMPDIR:-/tmp}/ss060/next.json'))['next']; p=json.load(open('${TMPDIR:-/tmp}/ss060/plan.json')); assert p['ready'][0]==n, (p['ready'], n)"
 # 060 3.2: and an empty ready set is a true answer at exit 0, not a failure.
 # This repository is that case now. Nothing is asserted about the contents:
-# that document's `next: null` path is guarded by spec 094 3.8 in
+# that document's `next: null` path is guarded by spec 074 3.8 in
 # crates/spec-spine-cli/tests/cli.rs, and asserting it here would pin corpus
 # state, which 060's own decision of 2026-09-08 rejects (3.6, D-4).
 target/release/spec-spine registry plan --next
@@ -484,7 +484,7 @@ target/release/spec-spine compile --check
 # Redirected, not piped, for the reason D-5 gives: at the parent commit this
 # verb exits 1 and prints nothing. The file is named for this spec, whose
 # mechanism it is, not for 060, whose acceptance the half above is (3.2).
-target/release/spec-spine registry show 109 --json > "${TMPDIR:-/tmp}/ss109-show.json"
+target/release/spec-spine registry show 070 --json > "${TMPDIR:-/tmp}/ss109-show.json"
 python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss109-show.json')); assert d['amendsVerification'] == ['053-plan-answers-the-whole-question'], d; assert d['amends'] == ['053-plan-answers-the-whole-question'], d"
 rm -f "${TMPDIR:-/tmp}/ss109-show.json"
 # Spec 053's file is not edited (spec 037 3.1): its own block still carries the

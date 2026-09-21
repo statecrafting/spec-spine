@@ -875,7 +875,7 @@ fn json_envelope_carries_owners_not_prose() {
     assert_eq!(v["schemaVersion"], spec_spine_types::VERDICT_SCHEMA_VERSION);
 }
 
-// ── spec 093: a mode-only or binary change is a change ───────────────────
+// ── spec 073: a mode-only or binary change is a change ───────────────────
 
 /// Bytes git's content sniffing classifies as binary (a NUL in the first
 /// block), so `git diff` prints `Binary files ... differ` and no `+++` header.

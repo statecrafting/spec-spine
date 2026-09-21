@@ -428,7 +428,7 @@ pub fn coverage_with_inventory(
     if let Ok(registry) = crate::compile::load_committed_registry(cfg, repo_root) {
         report.planned_territory = crate::query::planned_territory(&registry);
     }
-    // Spec 095 §3.4: the headers that tried to claim a file and did not, over
+    // Spec 075 §3.4: the headers that tried to claim a file and did not, over
     // the claim scan's own universe. Beside the classification, never inside
     // it: `coverage_with` above has already counted every file.
     report.near_miss_headers = crate::index::near_miss_headers(cfg, repo_root, &index.packages)?;

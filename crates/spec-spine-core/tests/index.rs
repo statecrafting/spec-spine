@@ -1580,7 +1580,7 @@ fn a_planned_unit_that_resolves_is_owned_like_any_other() {
     );
 }
 
-// ── spec 095: the claim window and the recognizer, declared ──────────────
+// ── spec 075: the claim window and the recognizer, declared ──────────────
 
 /// A floorless crate holding one file with `content`, and the spec
 /// `000-bootstrap` its header can name. Returns the specs that own the file

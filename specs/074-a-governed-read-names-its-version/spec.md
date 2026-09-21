@@ -55,7 +55,7 @@ extends:
   # 3.4: the axis is documented beside the others (a hashed input, so this
   # edit restales every shard, paid once here).
   - { spec: "057-the-docs-name-what-adopters-derived", unit: "docs/schema-versioning.md", nature: additive }
-  # 3.3: `coverage_json` now emits the read layout, so spec 095's assertion on
+  # 3.3: `coverage_json` now emits the read layout, so spec 075's assertion on
   # its member spelling parses the document instead of matching compact text.
   - { spec: "029-ownership-coverage", unit: "crates/spec-spine-core/tests/coverage.rs", nature: corrective }
   # 3.7: the CLI-level assertions over the emitted documents.
@@ -496,10 +496,10 @@ corpus this repository is not, and `verify` runs against this tree; it lives in
 grep -qF 'READ_SCHEMA_VERSION' crates/spec-spine-types/src/version.rs
 # 3.2, 3.5: every object read is sorted and versioned.
 target/release/spec-spine registry plan --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
-target/release/spec-spine registry show 093 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
+target/release/spec-spine registry show 061 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine registry status-report --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine registry status-report --nonzero-only --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
-target/release/spec-spine registry relationships 093 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
+target/release/spec-spine registry relationships 061 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine index owner Cargo.toml --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine index coverage --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine index orphans --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'

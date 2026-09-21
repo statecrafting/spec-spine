@@ -59,7 +59,7 @@ Lists specs that have no resolved code units (i.e., specs that claim authority o
 
 - **`--json`**: Output `{ "orphaned": [ids], "inFlight": [ids], "schemaVersion" }`.
 
-The `--json` output of `index owner`, `index coverage`, `index diagnostics` and `index orphans` is a **read document** (spec 094): a JSON object with sorted keys and a top-level `schemaVersion`. `index diagnostics --json` carries its listing under `items`.
+The `--json` output of `index owner`, `index coverage`, `index diagnostics` and `index orphans` is a **read document** (spec 074): a JSON object with sorted keys and a top-level `schemaVersion`. `index diagnostics --json` carries its listing under `items`.
 
 ### `index coverage`
 
@@ -76,7 +76,7 @@ By default the universe is inferred: a source extension, inside a discovered pac
 
 With the scope set, `index coverage` matches it against the tracked files (`git ls-files --cached --others --exclude-standard`, minus missing files), or against `--paths-from FILE` where git is not available; a git failure exits `3`. The report adds `declaredScopeFiles` and `enumeration` (`tracked`, `supplied`, or `walk` for a library caller that supplied no list). Both are absent while the scope is empty, and nothing else changes.
 
-#### How a comment header claims (spec 095)
+#### How a comment header claims (spec 075)
 
 A comment header claims the file it sits in, and only when it is in the **first 16 lines** of that file. For each of those lines, in order: leading whitespace is trimmed; at most one leading `//` or `#` is stripped (the marker is optional); the rest must begin with `Spec:`; and after every trailing `/spec.md` is removed, the final `/`-separated segment of the reference must be the id of a spec in the corpus. So `// Spec: specs/042-x/spec.md`, `# Spec: specs/042-x/spec.md` (for `.py` and `.sh`) and `// Spec: 042-x` all claim for `042-x`.
 

@@ -815,7 +815,7 @@ fn coverage_reports_planned_territory_separately_from_the_counts() {
     assert!(report.is_fully_claimed());
 }
 
-// ── spec 095: near-miss comment headers ──────────────────────────────────
+// ── spec 075: near-miss comment headers ──────────────────────────────────
 
 /// One floorless crate. `claimed.rs` claims through a header; `low.rs` puts a
 /// resolving header on line 17; `ghost.rs` names a spec not in the corpus;
@@ -922,7 +922,7 @@ fn coverage_reports_each_near_miss_reason() {
     );
     // The payload spelling, since a consumer reads the JSON.
     // Parsed rather than matched as text: the facade's layout is the read
-    // emitter's (spec 094), and the member spelling is what is asserted.
+    // emitter's (spec 074), and the member spelling is what is asserted.
     let json: serde_json::Value =
         serde_json::from_str(&coverage_json("{}", fx.path().to_str().unwrap()).unwrap()).unwrap();
     let reasons: Vec<&str> = json["nearMissHeaders"]

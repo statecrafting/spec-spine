@@ -1,4 +1,4 @@
-//! The read-document emitter (spec 094).
+//! The read-document emitter (spec 074).
 //!
 //! A read document is the JSON a verb emits when it answers a question rather
 //! than rendering a verdict: `registry list`, `show`, `status-report`,
@@ -20,7 +20,7 @@ use spec_spine_types::{Error, READ_SCHEMA_VERSION};
 
 use crate::canonical_json;
 
-/// How a read document is versioned (spec 094 §3.2). An argument, never
+/// How a read document is versioned (spec 074 §3.2). An argument, never
 /// inferred from member names: an emitter that looked for a member called
 /// `version` would silently exempt the first document that grew one.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -37,10 +37,10 @@ pub enum Versioning {
 /// The member the stamped version sits under.
 pub const READ_VERSION_MEMBER: &str = "schemaVersion";
 
-/// The member a top-level array is wrapped under (spec 094 §3.3).
+/// The member a top-level array is wrapped under (spec 074 §3.3).
 pub const ITEMS_MEMBER: &str = "items";
 
-/// Emit one read document (spec 094 §3.2, §3.3).
+/// Emit one read document (spec 074 §3.2, §3.3).
 ///
 /// 1. serialize `value`;
 /// 2. bring it to object form: an array is wrapped as `{ "items": [...] }` in
@@ -64,13 +64,13 @@ pub fn read_document<T: Serialize + ?Sized>(value: &T, mode: Versioning) -> Resu
         Value::Null => {
             return Err(Error::Schema(
                 "internal: a read document cannot be a bare null; the caller names the \
-                 member an absent answer sits under (spec 094 §3.3)"
+                 member an absent answer sits under (spec 074 §3.3)"
                     .to_string(),
             ));
         }
         other => {
             return Err(Error::Schema(format!(
-                "internal: a read document must be an object, got a bare {} (spec 094 §3.3)",
+                "internal: a read document must be an object, got a bare {} (spec 074 §3.3)",
                 scalar_kind(&other)
             )));
         }
@@ -84,7 +84,7 @@ pub fn read_document<T: Serialize + ?Sized>(value: &T, mode: Versioning) -> Resu
             // document.
             if object.contains_key(READ_VERSION_MEMBER) {
                 return Err(Error::Schema(format!(
-                    "internal: a read document to be stamped already carries `{READ_VERSION_MEMBER}`; stamping would overwrite it (spec 094 §3.2)"
+                    "internal: a read document to be stamped already carries `{READ_VERSION_MEMBER}`; stamping would overwrite it (spec 074 §3.2)"
                 )));
             }
             object.insert(
@@ -96,7 +96,7 @@ pub fn read_document<T: Serialize + ?Sized>(value: &T, mode: Versioning) -> Resu
             if !object.contains_key(member) {
                 return Err(Error::Schema(format!(
                     "internal: a read document exempted from stamping must carry its own \
-                     version member `{member}` (spec 094 §3.2)"
+                     version member `{member}` (spec 074 §3.2)"
                 )));
             }
         }

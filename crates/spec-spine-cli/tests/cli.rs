@@ -284,7 +284,7 @@ fn registry_list_ids_only_projection() {
     );
 
     // JSON form: the id strings, same order, under `items` in a versioned read
-    // document (spec 094 §3.6, amending 010 §3.1).
+    // document (spec 074 §3.6, amending 010 §3.1).
     let json = bin()
         .arg("--repo")
         .arg(tmp.path())
@@ -1473,7 +1473,7 @@ fn registry_plan_partitions_the_corpus() {
     assert_eq!(code(&out), 0);
     let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
     // A read document, not a spec 034 envelope: the report's members at the top
-    // level, versioned on the read axis (spec 094), with no `ok` or `report`.
+    // level, versioned on the read axis (spec 074), with no `ok` or `report`.
     assert_eq!(
         v["schemaVersion"],
         spec_spine_types::READ_SCHEMA_VERSION,
@@ -1500,7 +1500,7 @@ fn registry_plan_partitions_the_corpus() {
     );
     assert_eq!(v["notSchedulable"], 1);
 
-    // §3.2, as spec 094 §3.6 amends it: `--next` is the single pick, the object
+    // §3.2, as spec 074 §3.6 amends it: `--next` is the single pick, the object
     // rather than a one-element array, under a named `next` member.
     let next = run_in(root, &["registry", "plan", "--next", "--json"]);
     assert_eq!(code(&next), 0);
@@ -2236,7 +2236,7 @@ fn index_diagnostics_lists_them_and_never_refuses() {
     let out = run(&["index", "diagnostics", "--json"]);
     assert_eq!(code(&out), 0);
     let doc: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
-    // Spec 094 §3.6: the listing sits under `items` in a versioned object.
+    // Spec 074 §3.6: the listing sits under `items` in a versioned object.
     let v = &doc["items"];
     assert_eq!(v.as_array().unwrap().len(), 1);
     assert_eq!(v[0]["code"], "W-001");
@@ -3024,7 +3024,7 @@ fn the_consumer_verbs_still_refuse_an_unparseable_stray() {
     );
 }
 
-// ── spec 094: a governed read names its version ──────────────────────────
+// ── spec 074: a governed read names its version ──────────────────────────
 
 /// `document` parsed as an object whose top-level keys are sorted, returned for
 /// further assertions. Key order is read from the bytes, since a parsed map
@@ -4292,7 +4292,7 @@ fn spec103_registry_show_carries_amends_verification() {
         serde_json::json!(["093-a"]),
         "{json}"
     );
-    // `registry show`'s `schemaVersion` is the READ axis (spec 094), not the
+    // `registry show`'s `schemaVersion` is the READ axis (spec 074), not the
     // registry's; the registry MINOR is asserted on the emitted shard instead.
     let shard: serde_json::Value = serde_json::from_str(
         &fs::read_to_string(root.join(".derived/spec-registry/by-spec/103-b.json")).unwrap(),

@@ -72,9 +72,9 @@
     ],
     "specPath": "specs/081-coupling-sees-the-change-being-committed/spec.md",
     "status": "approved",
-    "summary": "`couple --base X --head HEAD` builds a `git diff X...HEAD`, so every path in the working tree and the index is invisible to it. The documented pre-commit coupling check therefore cannot see the change it is being run to judge: on a branch whose work is not yet committed it reports `0 path(s) checked, no drift` and exits 0, which reads as a pass. Spec 094 §4 placed the defect out of scope and said it \"is filed separately\"; spec 093 §4 placed it out of scope and pointed back at 090. Nothing filed it, and the phrase in 090 §4 has been untrue since it was written. This spec files it: `--include-uncommitted` unions the committed range with `git diff HEAD`, so the gate judges what a commit would contain. The library stays pure and still shells out to nothing; the CLI does the git work, as it already does for the range.\n",
+    "summary": "`couple --base X --head HEAD` builds a `git diff X...HEAD`, so every path in the working tree and the index is invisible to it. The documented pre-commit coupling check therefore cannot see the change it is being run to judge: on a branch whose work is not yet committed it reports `0 path(s) checked, no drift` and exits 0, which reads as a pass. Spec 094 §4 placed the defect out of scope and said it \"is filed separately\"; spec 073 §4 placed it out of scope and pointed back at 090. Nothing filed it, and the phrase in 090 §4 has been untrue since it was written. This spec files it: `--include-uncommitted` unions the committed range with `git diff HEAD`, so the gate judges what a commit would contain. The library stays pure and still shells out to nothing; the CLI does the git work, as it already does for the range.\n",
     "title": "The coupling gate can see the change being committed"
   },
-  "shardHash": "b1a031b8fe1d8365e9e29c9367886683e7a8f43265fc3246509fa190348eb0c8",
+  "shardHash": "93111f1973d08905577e460e2afcd4f30c259e5576d39d548ea543eee8ca5758",
   "specVersion": "1.3.0"
 }

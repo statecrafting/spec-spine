@@ -5,7 +5,7 @@ status: approved
 kind: "core"
 created: "2026-09-16"
 summary: >
-  Spec 094's `## Verification` line 13 asserts `d["next"]["id"]` on `registry
+  Spec 074's `## Verification` line 13 asserts `d["next"]["id"]` on `registry
   plan --next`, which is a claim about the corpus rather than about the code: it
   holds only while something is ready to build. The corpus finished, `next`
   became `null`, and `spec-spine verify 093` has been red ever since, failing an
@@ -54,7 +54,7 @@ references:
 
 ### 1.1 An acceptance line that asserted a fact about the calendar
 
-Spec 094's `## Verification` block, command 13:
+Spec 074's `## Verification` block, command 13:
 
 ```
 target/release/spec-spine registry plan --next --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]; assert d["next"]["id"]'
@@ -81,17 +81,17 @@ verify: 074-a-governed-read-names-its-version: FAILED at command 13 (exit 1)
 ```
 
 The assertion does not merely fail; it asserts the opposite of what its own
-spec requires. Spec 094 §3.3 fixes `next` as "present and `null`" for an absent
+spec requires. Spec 074 §3.3 fixes `next` as "present and `null`" for an absent
 answer and gives the reason: "A consumer that must test whether `id` is present
 to learn whether anything is ready is sniffing for members, which is precisely
 what §1.2 records as the cost this spec removes." Line 13 sniffs for the
-member. Spec 094 §3.8 even places the empty-ready-set case deliberately in
+member. Spec 074 §3.8 even places the empty-ready-set case deliberately in
 `tests/cli.rs` "because `verify` runs against this tree", and then wrote the
 populated case into the block that runs against this tree.
 
 ### 1.2 An amendment with nowhere to land
 
-Spec 094 is `approved`, so the line is not an edit anyone may make: spec 037
+Spec 074 is `approved`, so the line is not an edit anyone may make: spec 037
 §3.1 is absolute that the amended spec's `spec.md` is not touched, and design
 note 05 §9.4 records R-1 as "a one-line `amends` in a new spec; do not edit
 093".
@@ -212,9 +212,9 @@ nothing if the reader is not told to look.
 `registry show <id>` MUST carry `amendsVerification` like any other edge, so
 the fact is answerable without running anything.
 
-### 3.5 What spec 094's acceptance now is
+### 3.5 What spec 074's acceptance now is
 
-This spec's `## Verification` block replaces spec 094's in full, and 093's file
+This spec's `## Verification` block replaces spec 074's in full, and 093's file
 is not edited. It is 093's block with command 13 corrected:
 
 ```
@@ -248,7 +248,7 @@ the bumped schema, which is what makes the DTO and the schema move together.
 
 ## 4. Out of scope
 
-- **Editing spec 094.** §1.2. Its file keeps the block it was ratified with,
+- **Editing spec 074.** §1.2. Its file keeps the block it was ratified with,
   which is the record spec 037 §3.2 protects.
 - **Per-line or per-command replacement.** §3.5. A block is the unit.
 - **Auditing the other ninety-nine blocks for the same defect.** This spec
@@ -313,7 +313,7 @@ before, which is the state the corpus was in before the superseded spec existed.
 
 Each line is one command (spec 043 §3.2).
 
-**This block is spec 094's acceptance as well as this spec's** (§3.5). Spec 094's
+**This block is spec 074's acceptance as well as this spec's** (§3.5). Spec 074's
 own file is not edited, so a reader comparing the two sees exactly what changed:
 one assertion, on `registry plan --next`. Everything else is 093's block
 verbatim, and running it here is what makes `verify 093` mean something again.
@@ -344,16 +344,16 @@ sh -c 'n=$(cargo test -p spec-spine-core --test verify --locked spec103_ 2>&1 | 
 cargo test -p spec-spine-core --test verify --locked spec103_
 cargo test -p spec-spine-cli --test cli --locked spec103_
 # 3.1: the compiled field is a governed read.
-target/release/spec-spine registry show 103 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["074-a-governed-read-names-its-version"], d'
-# --- spec 094's acceptance, which this block now holds (3.5) ---
+target/release/spec-spine registry show 093 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["074-a-governed-read-names-its-version"], d'
+# --- spec 074's acceptance, which this block now holds (3.5) ---
 # 3.4: the axis exists and starts where the note says.
 grep -qF 'READ_SCHEMA_VERSION' crates/spec-spine-types/src/version.rs
 # 3.2, 3.5: every object read is sorted and versioned.
 target/release/spec-spine registry plan --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
-target/release/spec-spine registry show 093 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
+target/release/spec-spine registry show 061 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine registry status-report --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine registry status-report --nonzero-only --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
-target/release/spec-spine registry relationships 093 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
+target/release/spec-spine registry relationships 061 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine index owner Cargo.toml --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine index coverage --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine index orphans --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'

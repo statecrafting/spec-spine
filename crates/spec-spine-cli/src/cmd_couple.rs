@@ -10,7 +10,7 @@
 //! `core.quotepath=false` keeps unicode paths matchable, and `--end-of-options`
 //! stops a crafted ref from being parsed as a git flag. Git prints no `+++`
 //! header for a mode-only or binary change, so membership is completed from
-//! `git diff --name-status -z` over the same range (spec 093): the parser stays
+//! `git diff --name-status -z` over the same range (spec 073): the parser stays
 //! the authority for spans, the name list for which paths changed.
 
 use std::path::{Path, PathBuf};
@@ -275,7 +275,7 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> 
 
     let raw = run_git_diff(repo, &[&format!("{}...{}", args.base, args.head)])?;
     let mut diff = parse_unified_diff(&raw);
-    // Spec 093 §3.1: the parser is the authority for spans, the name list for
+    // Spec 073 §3.1: the parser is the authority for spans, the name list for
     // membership. The range is the same three-dot `base...head` the text diff
     // read, so both answers describe one set of changes.
     let range = format!("{}...{}", args.base, args.head);
@@ -348,7 +348,7 @@ fn union_diff(diff: &mut DiffInput, later: DiffInput) {
 }
 
 /// Add every path git reports changed that the hunk parser did not register
-/// (spec 093 §3.1, §3.2).
+/// (spec 073 §3.1, §3.2).
 ///
 /// Git prints no `---`/`+++` header for a mode-only or a binary change, so
 /// [`parse_unified_diff`] never sees those paths. Each enters as a whole-file
@@ -471,7 +471,7 @@ pub(crate) fn merge_base(repo: &Path, base: &str, head: &str) -> Result<String, 
 /// from its `+++`/`---` headers, and git prints none for a binary file or a
 /// mode-only change, so both would be absent from a report that claims to
 /// classify every changed path. Expressed through [`changed_path_statuses`]
-/// (spec 093 §3.3), so `couple` and `delta` cannot disagree about which paths
+/// (spec 073 §3.3), so `couple` and `delta` cannot disagree about which paths
 /// changed.
 pub(crate) fn changed_path_names(repo: &Path, from: &str, to: &str) -> Result<Vec<String>, Error> {
     Ok(changed_path_statuses(repo, &[from, to])?
@@ -481,7 +481,7 @@ pub(crate) fn changed_path_names(repo: &Path, from: &str, to: &str) -> Result<Ve
 }
 
 /// Every changed path with its status letter, `(status, path)`, in git's order
-/// (spec 093 §3.3). `revs` is the revision operand list: `[from, to]` for
+/// (spec 073 §3.3). `revs` is the revision operand list: `[from, to]` for
 /// `delta`, or the single `base...head` operand `couple`'s text diff reads.
 ///
 /// `-z` keeps a path containing a newline intact and unquoted,
@@ -814,7 +814,7 @@ mod tests {
         assert!(!d.files[2].deleted && d.files[2].hunks.is_empty());
     }
 
-    /// Spec 093 §3.7 case 5, over a real repository: a text edit made together
+    /// Spec 073 §3.7 case 5, over a real repository: a text edit made together
     /// with a mode flip is reported by both sources, and the adapter keeps the
     /// hunk span the parser found rather than flattening it to whole-file. Here
     /// and not in `tests/couple.rs`, because no verdict the binary emits depends

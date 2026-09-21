@@ -154,7 +154,7 @@ authority over. What 098 actually depends on is the message shape those hooks
 emit, and that is what survives here, asserted against the files as they stand.
 
 An acceptance line MUST assert a property of the code, not a property of the
-commit graph. This is the same family as spec 094's calendar assertion that
+commit graph. This is the same family as spec 074's calendar assertion that
 spec 082 corrected, and it is recorded here so the third instance is recognised
 rather than rediscovered.
 
@@ -354,7 +354,7 @@ grep -q 'freshness. STALE' .claude/settings.json
 rm -rf "${TMPDIR:-/tmp}/ss098"
 # --- spec 083's own mechanism (3.5) ---
 # The replacement is declared, read through the CLI rather than off the shard.
-target/release/spec-spine registry show 105 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["079-a-blocking-claim-is-not-a-stale-shard"], d; assert d["amends"] == ["079-a-blocking-claim-is-not-a-stale-shard"], d'
+target/release/spec-spine registry show 066 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["079-a-blocking-claim-is-not-a-stale-shard"], d; assert d["amends"] == ["079-a-blocking-claim-is-not-a-stale-shard"], d'
 # Spec 079's file is not edited (spec 037 3.1): its own block still carries the
 # superseded form of the primitive-verb assertion, which is the half a reader
 # compares against. This goes red the moment someone edits 098 to make it pass.

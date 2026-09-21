@@ -6,7 +6,7 @@ kind: "core"
 created: "2026-09-17"
 summary: >
   Spec 052's `## Verification` block asserts that `index orphans --json` has
-  exactly the keys `orphaned` and `inFlight`, and spec 094 legitimately added a
+  exactly the keys `orphaned` and `inFlight`, and spec 074 legitimately added a
   `schemaVersion` member to every governed read, so `spec-spine verify 059` has
   been red since 093 merged. 059 3.1 requires the two named arrays to be present
   and always emitted; it never required them to be the only members, and an
@@ -61,7 +61,7 @@ and the verb answers
 { "inFlight": [...], "orphaned": [...], "schemaVersion": "0.1.0" }
 ```
 
-Spec 094 routed every read document through one emitter that sorts keys and
+Spec 074 routed every read document through one emitter that sorts keys and
 stamps a `READ_SCHEMA_VERSION`, `index orphans` among the ten verbs it names,
 and recorded the addition for this verb explicitly in its D-8. Every other
 assertion in 059's block is green. Run one line at a time to the end of the
@@ -105,7 +105,7 @@ consumer's breakage is a wrong type, not an extra key.
 
 This is the fourth site in this corpus with an acceptance stricter than its
 rule, and the second where the over-assertion is about shape rather than a
-version literal: spec 094's calendar assertion (corrected by 103), spec 044's
+version literal: spec 074's calendar assertion (corrected by 103), spec 044's
 version pin (corrected by 106), spec 049's version pin (corrected by 107), and
 this. Spec 084 1.2 states the general form.
 
@@ -131,7 +131,7 @@ The assertions are two lines against a fixture the block already has.
 
 ### 1.4 The crossing was silent
 
-Spec 094 changed the shape of a document another approved spec's acceptance
+Spec 074 changed the shape of a document another approved spec's acceptance
 pinned, named that verb in its own D-8, and nothing told 059. `verify` is the
 one verb that executes what the corpus declares, so it sits outside the gate
 chain deliberately (`AGENTS.md`); CI never runs it. Spec 084 1.3 records the
@@ -194,7 +194,7 @@ it, so the fixture the other assertions build is not disturbed.
 
 The equality MUST be replaced by four claims about the document:
 
-- it is an object whose keys are **sorted**, which is spec 094 3.2's rule for
+- it is an object whose keys are **sorted**, which is spec 074 3.2's rule for
   every governed read and the half that fails against pre-093 output;
 - it carries a non-empty `schemaVersion`, which is 093's addition;
 - `orphaned` is present and is a **list**;
@@ -251,7 +251,7 @@ reading the plan from inside is a validation failure. The instance-level fact,
 that `spec-spine verify 059` and `spec-spine verify 108` both exit 0 on the
 merged tree, is what a reviewer runs and what the release sweep runs.
 
-### 3.6 No `amends` edge was owed to 059 by spec 094, and none is claimed here
+### 3.6 No `amends` edge was owed to 059 by spec 074, and none is claimed here
 
 This spec carries `amends: ["059-..."]` because spec 082 3.1 requires every
 `amends_verification` entry to appear there: replacing what a spec accepts is an
@@ -274,7 +274,7 @@ corpus change that uses it.
 
 ## 4. Out of scope
 
-- **Editing spec 052, or spec 094.** 1.2 and the frontmatter comment. 059 keeps
+- **Editing spec 052, or spec 074.** 1.2 and the frontmatter comment. 059 keeps
   the block it was ratified with, which is the record spec 037 3.2 protects, and
   093's text is true as written.
 - **Asserting the id ordering inside each group.** 059 3.1 requires each group to
@@ -415,7 +415,7 @@ cargo test -p spec-spine-core --test coverage --locked
 target/release/spec-spine index orphans --json > "${TMPDIR:-/tmp}/ss059-live.json"
 # Presence, type, sorted keys and the version member. Not a key-set equality:
 # 059 requires the two arrays to be there, not to be the only members, and
-# spec 094 added `schemaVersion` to every governed read (3.3).
+# spec 074 added `schemaVersion` to every governed read (3.3).
 python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss059-live.json')); k=list(d); assert k==sorted(k), k; assert d['schemaVersion'], d; assert isinstance(d['orphaned'], list), d; assert isinstance(d['inFlight'], list), d"
 rm -f "${TMPDIR:-/tmp}/ss059-live.json"
 # 3.2 + 3.3 of spec 052: the empty-universe fixture. Built once at a fixed path,
@@ -455,7 +455,7 @@ target/release/spec-spine compile --check
 # verb exits 1 and prints nothing, and a pipeline would report that as a JSON
 # decode error naming the wrong defect. The file is named for this spec, whose
 # mechanism it is, not for 059, whose acceptance the half above is (D-6).
-target/release/spec-spine registry show 108 --json > "${TMPDIR:-/tmp}/ss108-show.json"
+target/release/spec-spine registry show 069 --json > "${TMPDIR:-/tmp}/ss108-show.json"
 python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss108-show.json')); assert d['amendsVerification'] == ['052-read-verbs-on-a-code-free-corpus'], d; assert d['amends'] == ['052-read-verbs-on-a-code-free-corpus'], d"
 rm -f "${TMPDIR:-/tmp}/ss108-show.json"
 # Spec 052's file is not edited (spec 037 3.1): its own block still carries the

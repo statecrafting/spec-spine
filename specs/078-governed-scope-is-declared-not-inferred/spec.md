@@ -129,14 +129,14 @@ kit/.githooks/merge-derived-index.sh  # Spec: 094-one-gate-and-the-boundaries-it
 py/scripts/smoke_test.sh              # Spec: specs/007-python-distribution/spec.md
 ```
 
-Each header satisfies the recognizer spec 095 §3.2 declares, and each names a
+Each header satisfies the recognizer spec 075 §3.2 declares, and each names a
 spec that exists. `scan_comment_headers` never reads any of them, because it
 walks discovered packages and these files are in none. An author followed the
 documented mechanism exactly and got nothing, with no diagnostic saying so. The
 only reason these headers have any effect at all is oblique: `kit/.githooks/`
 is embedded verbatim into `kit_embedded.rs`, which **is** inside a package, so
 the copies inside the generated Rust file are the ones the scanner reads (spec
-095 §3.6 measures them there).
+075 §3.6 measures them there).
 
 That is the finding this spec rests on. The question is not whether markdown
 should be code. It is that the ratchet is looking somewhere else entirely: at
@@ -155,7 +155,7 @@ The obvious move, adding `md`, `yml`, `toml` to `SOURCE_EXTS`, fails on the
 third conjunct and would misfire on the first. `AGENTS.md`, `CLAUDE.md`,
 `.github/workflows/*.yml` and `spec-spine.toml` sit at the repository root or in
 directories no package contains, so a longer extension list still cannot see
-them. Meanwhile `SOURCE_EXTS` is shared with `scan_comment_headers` (spec 095
+them. Meanwhile `SOURCE_EXTS` is shared with `scan_comment_headers` (spec 075
 §3.2), so widening it also widens what the claim scanner reads, which is a
 second change wearing the first one's clothes. Forty-four tracked governance
 files fail the extension conjunct today; adding extensions reaches none of them
@@ -274,7 +274,7 @@ governed-scope file:
 3. a `// Spec:` comment header: available only where the file's syntax has a
    line comment **and** its extension is in `SOURCE_EXTS` **and** the file lies
    inside a discovered package, because that is where the scanner walks (spec
-   095 §3.2). This spec does **not** widen the scanner.
+   075 §3.2). This spec does **not** widen the scanner.
 
 The consequence MUST be stated exactly, because §1.2's most striking measurement
 is on the wrong side of it: **the seven inert headers stay inert after this
@@ -286,7 +286,7 @@ the files. The same holds for extension: a `.md` or `.yml` file in the governed
 scope is claimed from frontmatter or not at all.
 
 That asymmetry MUST be documented rather than designed around. Widening the
-claim scanner is a change to what claims, which spec 095 §4 reserves for a spec
+claim scanner is a change to what claims, which spec 075 §4 reserves for a spec
 that measures it first, and which this spec deliberately does not carry: a
 mechanism spec that also moved the claim boundary would ship two changes under
 one review.

@@ -127,7 +127,7 @@
       "3.2 `verify` runs the replacement",
       "3.3 An ambiguous replacement is refused, not guessed",
       "3.4 The substitution is stated, never silent",
-      "3.5 What spec 094's acceptance now is",
+      "3.5 What spec 074's acceptance now is",
       "3.6 The acceptance",
       "4. Out of scope",
       "5. Resolved decisions",
@@ -135,9 +135,9 @@
     ],
     "specPath": "specs/082-an-amended-acceptance-is-the-one-that-runs/spec.md",
     "status": "approved",
-    "summary": "Spec 094's `## Verification` line 13 asserts `d[\"next\"][\"id\"]` on `registry plan --next`, which is a claim about the corpus rather than about the code: it holds only while something is ready to build. The corpus finished, `next` became `null`, and `spec-spine verify 093` has been red ever since, failing an assertion that contradicts 093 §3.3's own requirement that an absent answer be a present `null` member. The line is wrong and 093 is approved, so correcting it is an amendment. Spec 037 forbids editing the amended file and `verify` executes that file, so until now an amendment could not reach an acceptance block at all. This spec gives it a route: a spec that `amends` another may declare that its own `## Verification` block replaces the amended spec's, and `verify` runs the replacement and says whose it ran.\n",
+    "summary": "Spec 074's `## Verification` line 13 asserts `d[\"next\"][\"id\"]` on `registry plan --next`, which is a claim about the corpus rather than about the code: it holds only while something is ready to build. The corpus finished, `next` became `null`, and `spec-spine verify 093` has been red ever since, failing an assertion that contradicts 093 §3.3's own requirement that an absent answer be a present `null` member. The line is wrong and 093 is approved, so correcting it is an amendment. Spec 037 forbids editing the amended file and `verify` executes that file, so until now an amendment could not reach an acceptance block at all. This spec gives it a route: a spec that `amends` another may declare that its own `## Verification` block replaces the amended spec's, and `verify` runs the replacement and says whose it ran.\n",
     "title": "An amended acceptance is the one that runs"
   },
-  "shardHash": "138d73174f1116f88bfe3b75f415a911455470d53c863315ef230eddd2aacb65",
+  "shardHash": "e604cdfdee90e921e7b45390257601a9607650e466b502eb9ee4e73a7cd6a0cf",
   "specVersion": "1.3.0"
 }

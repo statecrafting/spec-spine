@@ -58,7 +58,7 @@ all, and the decay is not hypothetical:
 
 | spec | its acceptance went red because | repaired by |
 |---|---|---|
-| 093 | spec 094's block asserted a corpus-dependent value | 103 |
+| 093 | spec 074's block asserted a corpus-dependent value | 103 |
 | 098 | spec 080 amended away the exit code five lines required | 105 |
 | 071 | a later spec moved the output an assertion pinned | 110 |
 | 060 | the answer became a member rather than the document | 109 |

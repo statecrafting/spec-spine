@@ -59,6 +59,6 @@
     "summary": "The governed loop has one definition and three boundaries where it is enforced: the commit, the pull request, and the merge. Five specs described that, each written against a copy the repository distributed. 020 put the merge driver in `.githooks/`; 064 wrote the composite gate as `kit/Makefile` and the workflow as `kit/govern.yml`; 089 fixed the guard that conflated a skip with a failure; 090 added the commit-boundary hook; 114 gave the target its controls and made the workflow call it instead of restating it. Spec 092 removed the copies and moved the gate to the repository root. This spec is the gate, in one place: the target and its controls, the two CI legs that call it, the commit-boundary hook that refuses without repairing, and the merge driver that resolves a same-shard conflict by regenerating rather than by leaving markers.\n",
     "title": "One gate, and the boundaries it holds"
   },
-  "shardHash": "b5e94d41651f405f58cf3ac1d1ec4b8dd55f5169d38aa65b3ee414494c9d606f",
+  "shardHash": "91cf7811723761188908263832258e86739f4c9a980afa0666f653a9ed3dc8d9",
   "specVersion": "1.3.0"
 }

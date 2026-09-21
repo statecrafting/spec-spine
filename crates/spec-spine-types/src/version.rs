@@ -85,7 +85,7 @@ pub const VERDICT_SCHEMA_VERSION: &str = "0.4.0";
 /// envelope it arrived in or the ledger it was classified against.
 pub const DELTA_SCHEMA_VERSION: &str = "0.1.0";
 
-/// `schemaVersion` carried by every read document (spec 094): the JSON a read
+/// `schemaVersion` carried by every read document (spec 074): the JSON a read
 /// verb, or the facade function behind it, emits when it answers a question
 /// rather than rendering a verdict.
 ///

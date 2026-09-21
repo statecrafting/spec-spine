@@ -40,8 +40,10 @@ establishes:
 ### 1.1 One chain, five documents, and a copy in each
 
 The governed loop is six commands in an order. Where that order was written down
-mattered more than it sounds: spec 064's whole argument is that a chain with two
-spellings drifts, and spec 114 D-1 records what happened the one time a workflow
+mattered more than it sounds: `064-the-kit-ships-the-composite-gate`'s whole
+argument is that a chain with two spellings drifts, and
+`114-one-gate-definition-that-holds-on-a-code-free-corpus` D-1 records what
+happened the one time a workflow
 restated the chain beside the target instead of calling it (the pull-request leg
 coupled, the push leg coupled too, and the header comment claimed one
 definition while the file carried two).
@@ -287,7 +289,7 @@ as an invocation.
 | 089 §3.3 | the embedded copy in `kit_embedded.rs` |
 | 090 §3.6 | `kit/.githooks/pre-commit` |
 | 114 §3.4's `govern.yml` clauses | the shipped workflow; the requirements move to `ci.yml` unchanged |
-| 114 §3.5, §3.6 | spec 064's acceptance replacement, which spec 092 §3.12 now holds |
+| 114 §3.5, §3.6 | the acceptance replacement for what is now spec 064, which spec 092 §3.12 holds |
 | 020's merge-queue enablement prose | an administrative act, done once, not a requirement on a file |
 
 Nothing about the gate's strength is relaxed. Every `MUST` above is one of the
@@ -305,7 +307,8 @@ five's, with the file renamed where spec 092 moved it.
 ## 8. Resolved decisions
 
 D-1 (2026-09-20, the definition is a `Makefile`, not a composite CLI verb). A
-`spec-spine gate` verb was considered and refused for the reason 064 gives: the
+`spec-spine gate` verb was considered and refused for the reason
+`064-the-kit-ships-the-composite-gate` gives: the
 chain's steps differ between a local session (which may write) and CI (which may
 not), and the variability lives in the caller. A make target is where a caller's
 variability belongs, and it stays runnable by a human with no wrapper.

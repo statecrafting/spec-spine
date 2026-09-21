@@ -1624,7 +1624,7 @@ jobs:
 /// the scanner's own reader, and against an **empty** id set nothing can
 /// resolve, so every attempt `index.rs::header_attempt` recognizes is reported
 /// as `unknown-spec`. A substring search for the claim token is not the same
-/// question (spec 095 §1 measured eleven files against the recognizer's one),
+/// question (spec 075 §1 measured eleven files against the recognizer's one),
 /// and it would also hit the provenance wording §3.2 keeps.
 ///
 /// `//!` lines are `doc-comment-marker` misses, not attempts, and are not

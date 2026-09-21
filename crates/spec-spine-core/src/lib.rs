@@ -125,7 +125,7 @@ pub fn compile_json(config_json: &str, repo_root: &str) -> Result<String, Error>
 /// "idsOnly"?: bool, "nonzeroOnly"?: bool }`. The projection fields (spec 009)
 /// default to `false`, so pre-010 requests behave identically.
 ///
-/// Every answer is a read document (spec 094): sorted keys, `schemaVersion`,
+/// Every answer is a read document (spec 074): sorted keys, `schemaVersion`,
 /// and `list`'s array under `items`.
 pub fn query_json(request_json: &str) -> Result<String, Error> {
     #[derive(Deserialize)]
@@ -156,7 +156,7 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         .map_err(|e| Error::Parse(format!("invalid query request: {e}")))?;
     let registry = load_registry(request.registry.as_bytes())?;
 
-    // Spec 094 §3.3: every answer here is a read document, so it goes through
+    // Spec 074 §3.3: every answer here is a read document, so it goes through
     // the one emitter the CLI's read verbs use. The CLI and the facade cannot
     // then emit different shapes: `list` wraps under `items`, and every
     // document carries `schemaVersion` with its keys sorted.
@@ -192,7 +192,7 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
             read_document(&relationships(&registry, &id)?, Versioning::Stamp)?
         }
         // Spec 035. Not the spec 034 verdict envelope, which wraps the
-        // adjudicating verbs; a read document instead (spec 094).
+        // adjudicating verbs; a read document instead (spec 074).
         Op::Plan => read_document(&plan(&registry)?, Versioning::Stamp)?,
     };
     Ok(json)
@@ -474,11 +474,11 @@ pub fn render_json(config_json: &str, index_json: &str) -> Result<String, Error>
 }
 
 /// List the committed index's orphaned specs (spec 010), as a read document
-/// carrying the id strings under `items` (spec 094). `index_json` is the
+/// carrying the id strings under `items` (spec 074). `index_json` is the
 /// `index.json` text.
 pub fn orphans_json(index_json: &str) -> Result<String, Error> {
     let index = load_index(index_json.as_bytes())?;
-    // Spec 094 §3.3: a read document, so the id array is wrapped under `items`.
+    // Spec 074 §3.3: a read document, so the id array is wrapped under `items`.
     read_document(&render::orphans(&index), Versioning::Stamp)
 }
 

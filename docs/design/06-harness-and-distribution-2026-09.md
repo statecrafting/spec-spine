@@ -364,7 +364,7 @@ Re-verified at `3bc004b` against the 0.19.0 binary:
 **The unfiled one, now filed.** `couple --head HEAD` builds a `base...head`
 diff, so the documented pre-commit coupling check cannot see the change being
 committed. Spec 094 §4 placed it out of scope and said it "is filed
-separately"; spec 093 §4 placed it out of scope and pointed back at 090.
+separately"; spec 073 §4 placed it out of scope and pointed back at 090.
 Checked at `3bc004b` and again at `a6ef6e3`: no spec in the corpus filed it, and
 the phrase in 090 §4 was untrue from the day it was written.
 

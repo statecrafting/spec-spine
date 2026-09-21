@@ -10,7 +10,7 @@ summary: >
   coupling check therefore cannot see the change it is being run to judge: on a
   branch whose work is not yet committed it reports `0 path(s) checked, no
   drift` and exits 0, which reads as a pass. Spec 094 §4 placed the defect out
-  of scope and said it "is filed separately"; spec 093 §4 placed it out of scope
+  of scope and said it "is filed separately"; spec 073 §4 placed it out of scope
   and pointed back at 090. Nothing filed it, and the phrase in 090 §4 has been
   untrue since it was written. This spec files it: `--include-uncommitted`
   unions the committed range with `git diff HEAD`, so the gate judges what a
@@ -71,7 +71,7 @@ Spec 094 §4:
 > change being committed. That is a real defect in a different verb and is filed
 > separately; section 3.2 refuses to paper over it here.
 
-Spec 093 §4:
+Spec 073 §4:
 
 > **`couple --head HEAD` reading `base...head`.** Spec 094 §4 named this
 > separately: the documented pre-commit coupling check cannot see the change
@@ -124,7 +124,7 @@ file that already does it.
   the working tree against the commit they sit on.
 
 Both MUST be paired with a `--name-status` read over the same two ranges, so
-spec 093's rule holds for the new half as well: the parser is the authority for
+spec 073's rule holds for the new half as well: the parser is the authority for
 spans and the name list for membership, which is what carries a mode-only or a
 binary change that git prints no `+++` header for.
 
@@ -204,7 +204,7 @@ refusal. The last is the regression guard for §3.4.
 
 ## 4. Out of scope
 
-- **Amending spec 093 §4.** Its sentence says spec 094 "named this separately",
+- **Amending spec 073 §4.** Its sentence says spec 094 "named this separately",
   which is true: 090 did name it. The false claim is 090's "is filed
   separately", and that is the only one amended here. Correcting a sentence
   that is accurate would be noise in the amendment record, and design note 05

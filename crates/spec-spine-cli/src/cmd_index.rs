@@ -140,7 +140,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
         Some(IndexAction::Diagnostics { json }) => {
             let diags = committed_diagnostics(&cfg, repo)?;
             if *json {
-                // Spec 094 §3.6: the listing sits under `items` in a versioned
+                // Spec 074 §3.6: the listing sits under `items` in a versioned
                 // object; the emitter wraps the array.
                 out!("{}", read_document(&diags, Versioning::Stamp)?);
             } else {
@@ -573,7 +573,7 @@ fn render_coverage(report: &CoverageReport) -> String {
             let _ = writeln!(out, "    {entry}");
         }
     }
-    // Spec 095 §3.4: a file that tried to claim itself and failed, told apart
+    // Spec 075 §3.4: a file that tried to claim itself and failed, told apart
     // from one that never tried. Explanation only; the counts above stand.
     if !report.near_miss_headers.is_empty() {
         let _ = writeln!(

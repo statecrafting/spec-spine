@@ -351,7 +351,7 @@ grep -qF 'green before the work asserts' standards/spec/templates/spec-template.
 # The claim is declared, read through the CLI rather than off the shard.
 # Redirected, not piped: a failing verb prints nothing and a pipeline would
 # report that as a JSON decode error naming the wrong defect (spec 085 D-4).
-target/release/spec-spine registry show 111 --json > "${TMPDIR:-/tmp}/ss111-show.json"
+target/release/spec-spine registry show 088 --json > "${TMPDIR:-/tmp}/ss111-show.json"
 python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss111-show.json')); assert 'standards/spec/templates/spec-template.md' in json.dumps(d['establishes']), d['establishes']"
 rm -f "${TMPDIR:-/tmp}/ss111-show.json"
 # The ownership answer the five prior specs could not get. Exit 0 with the id

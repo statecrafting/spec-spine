@@ -9,7 +9,7 @@ summary: >
   and none of the three describes a defect. It compares the whole of `index
   check`'s stdout against one line, which spec 050 legitimately added a second
   line to; it takes `len()` of `index diagnostics --json` as a bare array, which
-  spec 094 legitimately wrapped in an `items` envelope; and it pins
+  spec 074 legitimately wrapped in an `items` envelope; and it pins
   `VERDICT_SCHEMA_VERSION` at the literal `0.2.0`, which spec 071 legitimately
   moved to `0.4.0`. The third is the sharpest: 050 3.6 rules that the envelope
   version MUST NOT move for a payload addition, and a literal pin cannot assert
@@ -79,7 +79,7 @@ else moves it, which 3.6 expressly permits. Spec 071 moved it for an
 envelope-level reason of its own, which is the permitted case, and the line went
 red. A pin that fails for the permitted case is not a weak assertion of the rule;
 it is an assertion of the calendar, and spec 082 3.5 corrected the same shape in
-spec 094's block.
+spec 074's block.
 
 The same paragraph is why command 8's replacement cannot be a stronger pin. What
 3.6 forbids is a causal link between one kind of change and one constant, and no
@@ -369,7 +369,7 @@ rm -rf "${TMPDIR:-/tmp}/ss106" && mkdir -p "${TMPDIR:-/tmp}/ss106"
 # assertion reads the verdict line rather than the whole of stdout.
 target/release/spec-spine index check > "${TMPDIR:-/tmp}/ss106/check.txt"
 test "$(head -1 "${TMPDIR:-/tmp}/ss106/check.txt")" = "index is fresh"
-# 3.4: the read verb answers, and answers as JSON. Spec 094 wrapped the payload
+# 3.4: the read verb answers, and answers as JSON. Spec 074 wrapped the payload
 # in an `items` envelope, so the count is of `items` and not of the document.
 target/release/spec-spine index diagnostics
 target/release/spec-spine index diagnostics --json > "${TMPDIR:-/tmp}/ss106/diagnostics.json"
@@ -392,7 +392,7 @@ python3 -c "import json; a=json.load(open('${TMPDIR:-/tmp}/ss106/check.json')); 
 python3 -c "import json; r=json.load(open('${TMPDIR:-/tmp}/ss106/check.json'))['report']; assert sorted(r['diagnostics'])==['byCode','errors','warnings'], r"
 # --- spec 084's own mechanism (3.5) ---
 # The replacement is declared, read through the CLI rather than off the shard.
-target/release/spec-spine registry show 106 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["044-index-diagnostics-reach-a-gate"], d; assert d["amends"] == ["044-index-diagnostics-reach-a-gate"], d'
+target/release/spec-spine registry show 067 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["044-index-diagnostics-reach-a-gate"], d; assert d["amends"] == ["044-index-diagnostics-reach-a-gate"], d'
 # Spec 044's file is not edited (spec 037 3.1): its own block still carries all
 # three superseded assertion forms. These go red the moment someone resolves
 # this by editing 050 instead.

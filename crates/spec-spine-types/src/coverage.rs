@@ -40,7 +40,7 @@ pub struct CoverageReport {
     /// what it did before.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub planned_territory: Vec<String>,
-    /// Comment headers that tried to claim their file and did not (spec 095
+    /// Comment headers that tried to claim their file and did not (spec 075
     /// §3.3, §3.4), sorted by path then line.
     ///
     /// Explains a classification and never alters one: a file listed here is
@@ -106,7 +106,7 @@ impl InventoryProvenance {
     }
 }
 
-/// One comment header that did not claim its file (spec 095 §3.3).
+/// One comment header that did not claim its file (spec 075 §3.3).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NearMissHeader {
@@ -121,7 +121,7 @@ pub struct NearMissHeader {
     pub spec_id: Option<String>,
 }
 
-/// Why a header claimed nothing (spec 095 §3.3).
+/// Why a header claimed nothing (spec 075 §3.3).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum NearMissReason {

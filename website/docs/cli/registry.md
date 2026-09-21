@@ -28,7 +28,7 @@ Lists specs from the committed registry.
 - **`--ids-only`**: Print only the spec IDs, one per line.
 - **`--json`**: Output a read document: `{ "items": [...], "schemaVersion" }`, where `items` holds the spec records, or the id strings with `--ids-only`.
 
-Every `registry` subcommand's `--json` output is a **read document** (spec 094): a JSON object with sorted keys and a top-level `schemaVersion` on the read-document axis. A read is not a verdict, so it is not wrapped in the `ok` / `exitCode` / `report` envelope the gate verbs use.
+Every `registry` subcommand's `--json` output is a **read document** (spec 074): a JSON object with sorted keys and a top-level `schemaVersion` on the read-document axis. A read is not a verdict, so it is not wrapped in the `ok` / `exitCode` / `report` envelope the gate verbs use.
 
 ### `registry show <id>`
 

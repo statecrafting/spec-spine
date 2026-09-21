@@ -17,7 +17,7 @@
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.4.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.1.0` | library |
-| read documents (`--json` on the read verbs, and the facades behind them; spec 094) | `schemaVersion` | `0.1.0` | library |
+| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.1.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
 
@@ -217,7 +217,7 @@ without breaking readers:
   fields ride through without a schema bump (see
   [overlay-contract.md](overlay-contract.md) §5).
 
-## The read-document axis: spec 094
+## The read-document axis: spec 074
 
 `READ_SCHEMA_VERSION` versions **the shape of an answer**: the JSON a read verb
 emits with `--json` (`registry list`, `show`, `status-report`, `relationships`,
@@ -233,7 +233,7 @@ Every read document is an object with sorted keys and a top-level
 already carries `config_version` (spec 047) and gains no second version member.
 A read is not a verdict, so it is not wrapped in the spec 034 envelope.
 
-**Breaking in the release that ships spec 094**, for the CLI and the facades
+**Breaking in the release that ships spec 074**, for the CLI and the facades
 alike:
 
 | Document | Before | After |

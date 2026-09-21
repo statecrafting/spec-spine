@@ -52,7 +52,7 @@ pub fn run(repo: &Path, action: &ConfigAction) -> Result<u8, Error> {
         // query, and it takes `--json` the way `registry show` does: the
         // object itself.
         //
-        // Spec 094 §3.7: sorted through the read-document emitter like every
+        // Spec 074 §3.7: sorted through the read-document emitter like every
         // other read, but not stamped. It already names a version, 054's
         // `config_version`, and a second version member would leave a consumer
         // no rule for which one to dispatch on.
