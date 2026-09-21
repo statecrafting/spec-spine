@@ -673,9 +673,16 @@ fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (Str
             out.push(raw.to_string());
             continue;
         };
-        let mut emitted = false;
+        // EVERY matching action fires, not just the first. One line can name
+        // two retired paths (an inline sequence does), and stopping at the
+        // first dropped the second in silence. A withdrawal wins over a
+        // retarget on the same line: the line is leaving, so there is nothing
+        // left to point elsewhere.
+        let mut withdrawn = false;
+        let mut retargeted: Option<String> = None;
         for (entry, action) in &actions {
-            if action.edge != current || !names_path(line, &entry.path) {
+            let subject = retargeted.as_deref().unwrap_or(line);
+            if action.edge != current || !names_path(subject, &entry.path) {
                 continue;
             }
             match action.action {
@@ -686,28 +693,30 @@ fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (Str
                         new: String::new(),
                         form: Form::RetiredPath,
                     });
+                    withdrawn = true;
+                    break;
                 }
                 UnitActionKind::Retarget => {
                     let to = action.to.as_deref().unwrap_or_default();
-                    let replaced = line.replace(&entry.path, to);
-                    // The line keeps the ending it arrived with: rewriting a
-                    // CRLF file's retargeted lines to LF changes bytes the plan
-                    // never named, in exactly the files it did name.
-                    let ending = &raw[line.len()..];
+                    let replaced = subject.replace(&entry.path, to);
                     rewrites.push(Rewrite {
                         line: n + 1,
-                        old: line.to_string(),
+                        old: subject.to_string(),
                         new: replaced.clone(),
                         form: Form::RetiredPath,
                     });
-                    out.push(format!("{replaced}{ending}"));
+                    retargeted = Some(replaced);
                 }
             }
-            emitted = true;
-            break;
         }
-        if !emitted {
-            out.push(raw.to_string());
+        if !withdrawn {
+            match retargeted {
+                // The line keeps the ending it arrived with: rewriting a CRLF
+                // file's retargeted lines to LF changes bytes the plan never
+                // named, in exactly the files it did name.
+                Some(replaced) => out.push(format!("{replaced}{}", &raw[line.len()..])),
+                None => out.push(raw.to_string()),
+            }
         }
     }
 
@@ -1222,6 +1231,14 @@ fn validate_retire(
     approved: &BTreeSet<String>,
 ) -> Result<(), Error> {
     for e in entries {
+        // An empty path is `find` returning Some(0) forever, and the presence
+        // check would pass it: `repo_root.join("")` is the repository root.
+        if e.path.trim().is_empty() {
+            return Err(Error::Config(
+                "compact: a `retire` entry has an empty `path`; every line in the tree contains it"
+                    .into(),
+            ));
+        }
         if !repo_root.join(&e.path).exists() {
             return Err(Error::Config(format!(
                 "compact: the plan retires `{}`, which the tree does not have",
@@ -1315,7 +1332,12 @@ fn retire_file(
         let own: Vec<Option<SkipClause>> = entries
             .iter()
             .map(|e| {
-                if !current.contains(&e.path) {
+                // `names_path`, not `contains`: `! test -e kit/rules/one.md`
+                // contains `rules/one.md` as a substring, and reading it as an
+                // occurrence produced a spurious skip record. Worse, that record
+                // made §3.7 treat the whole line as accounted for, so a real
+                // unaccounted occurrence beside it went unreported.
+                if !names_path(current.as_str(), &e.path) {
                     None
                 } else if e.historical_files.iter().any(|f| f == rel) {
                     Some(SkipClause::HistoricalFile)
@@ -1334,7 +1356,7 @@ fn retire_file(
             .collect();
         let line_clause = own.iter().flatten().next().copied();
         for (i, e) in entries.iter().enumerate() {
-            if !current.contains(&e.path) {
+            if !names_path(current.as_str(), &e.path) {
                 continue;
             }
             if let Some(clause) = own[i].or(line_clause) {

@@ -345,6 +345,16 @@ first entry's clause is accurate about the outcome and wrong about the reason,
 so each entry's own clause is decided first and the line-level one is the
 fallback.
 
+D-14 (2026-09-20, an empty retired path is refused). `find("")` answers
+`Some(0)` at every position and advances nothing, and the existence check passes
+it because `repo_root.join("")` is the repository root. §3.7's refusal list is
+the whole tree, or the scan never terminates; neither is an answer.
+
+D-15 (2026-09-20, every unit action on a line fires). One line can name two
+retired paths, which is what the `paths:` sugar writes, and stopping at the
+first match dropped the second in silence. A withdrawal wins over a retarget on
+the same line: the line is leaving, so there is nothing left to point elsewhere.
+
 ## Verification
 
 Each line is one command, run independently.

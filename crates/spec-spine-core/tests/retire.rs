@@ -698,6 +698,91 @@ fn each_occurrence_on_a_spared_line_carries_its_own_clause() {
     );
 }
 
+/// An empty path matches at every position and advances nowhere, and the
+/// presence check passes it: `repo_root.join("")` is the repository root.
+#[test]
+fn an_empty_retired_path_is_refused() {
+    let tmp = fixture("x");
+    let mut e = retire_rules();
+    e.path = String::new();
+    let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
+    assert_eq!(err.exit_code(), 3, "{err}");
+    assert!(format!("{err}").contains("empty"), "{err}");
+}
+
+/// §3.5: a negation naming a LONGER path is not an occurrence of the retired
+/// one. Reading it as one produced a spurious skip record, and that record made
+/// §3.7 treat the whole line as accounted for, so a real unaccounted occurrence
+/// beside it went unreported.
+#[test]
+fn a_negation_on_a_longer_path_is_not_a_skip_of_the_retired_one() {
+    let tmp = fixture("! test -e kit/rules/one.md\n");
+    let c = compact(&cfg(), tmp.path(), &plan_with(retire_rules())).unwrap();
+    assert!(
+        c.skipped.iter().all(|s| s.rel_path != "docs/note.md"),
+        "a longer path produced a skip record: {:?}",
+        c.skipped
+    );
+    assert!(c.leftover.is_empty(), "{:?}", c.leftover);
+}
+
+/// Two unit actions can name the same line, and both fire. Stopping at the
+/// first dropped the second in silence.
+#[test]
+fn every_unit_action_matching_a_line_fires() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "specs/001-beta/spec.md",
+        &spec_doc(
+            "001-beta",
+            // `paths:` sugar puts two units on ONE line, which is the shape a
+            // second action on the same line actually takes in this grammar.
+            "extends:\n  - { spec: \"000-alpha\", paths: [\"rules/one.md\", \"rules/two.md\"] }\n",
+            "Body.",
+        ),
+    );
+    let mut first = retire_rules();
+    first.units = vec![UnitAction {
+        spec: "001-beta".into(),
+        edge: "extends".into(),
+        action: UnitActionKind::Retarget,
+        to: Some("AGENTS.md".into()),
+        acknowledge_approved: true,
+    }];
+    let mut second = retire_rules();
+    second.path = "rules/two.md".into();
+    second.forms = [(
+        "citation".to_string(),
+        Some("`AGENTS.md` \"Two\"".to_string()),
+    )]
+    .into_iter()
+    .collect();
+    second.units = vec![UnitAction {
+        spec: "001-beta".into(),
+        edge: "extends".into(),
+        action: UnitActionKind::Retarget,
+        to: Some("CLAUDE.md".into()),
+        acknowledge_approved: true,
+    }];
+    let plan = CompactPlan {
+        retire: vec![first, second],
+        ..Default::default()
+    };
+    let c = compact(&cfg(), tmp.path(), &plan).unwrap();
+    let beta = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "specs/001-beta/spec.md")
+        .expect("the owning spec is rewritten");
+    assert!(beta.contents.contains("AGENTS.md"), "{}", beta.contents);
+    assert!(
+        beta.contents.contains("CLAUDE.md"),
+        "the second action fired too:\n{}",
+        beta.contents
+    );
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]
