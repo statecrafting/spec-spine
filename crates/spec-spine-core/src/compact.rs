@@ -353,9 +353,17 @@ fn unaccounted(
                 if !names_path(line, &e.path) {
                     continue;
                 }
+                // Matched on the line's TEXT, not its number. A glob deletion
+                // removes a line from the output, so every later skip record's
+                // source line number is ahead of the same line's position here,
+                // and a coordinate match reported a correctly spared occurrence
+                // as unaccounted for. A spared line is emitted unchanged, so
+                // its text is the same in both, and the report keeps source
+                // numbers, which is what a reader of the original file needs.
+                let text = line.trim_end();
                 let spared = skipped
                     .iter()
-                    .any(|s| &s.rel_path == rel && s.line == n + 1 && s.path == e.path);
+                    .any(|s| &s.rel_path == rel && s.path == e.path && s.text == text);
                 if spared {
                     continue;
                 }

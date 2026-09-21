@@ -427,6 +427,13 @@ passes every guard and matches nothing, because the literal carries the prefix
 and the corpus spells the path bare: the run would rewrite nothing and then
 report every bare occurrence as unaccounted for. Refused, naming the prefix.
 
+D-25 (2026-09-21, a spare is matched by its text, not by its coordinate). A
+glob deletion removes a line from the output, so every later skip record's
+source line number runs ahead of that line's position in the emitted file, and
+§3.7 reported a correctly spared occurrence as unaccounted for. A spared line is
+emitted unchanged, so its text identifies it in both, and the report keeps
+source numbers, which is what a reader of the original file needs.
+
 ## Verification
 
 Each line is one command, run independently.

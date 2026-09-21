@@ -1005,6 +1005,58 @@ fn a_path_form_replacement_containing_the_path_fires_once() {
     assert!(!out.contains("kept/kept/"), "applied twice: {out}");
 }
 
+/// §3.7: a glob deletion removes a line, so every later skip record's source
+/// line number runs ahead of that line's position in the output. Matching a
+/// spare by coordinate then failed, and a correctly spared occurrence was
+/// reported as unaccounted for.
+#[test]
+fn a_glob_deletion_does_not_shift_a_later_skip_out_of_alignment() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "docs/list.toml",
+        "patterns = [\n  \"rules/*.md\",\n]\n! test -e rules/one.md\n",
+    );
+    let mut e = retire_rules();
+    e.path = "rules/".into();
+    e.kind = RetireKind::Directory;
+    e.forms = [
+        ("citation".to_string(), Some("`AGENTS.md`".to_string())),
+        ("glob".to_string(), None),
+    ]
+    .into_iter()
+    .collect();
+    let mut second = retire_rules();
+    second.forms = [(
+        "citation".to_string(),
+        Some("`AGENTS.md` \"One\"".to_string()),
+    )]
+    .into_iter()
+    .collect();
+    let plan = CompactPlan {
+        retire: vec![e, second],
+        ..Default::default()
+    };
+    let c = compact(&cfg(), tmp.path(), &plan).unwrap();
+    assert!(
+        c.skipped
+            .iter()
+            .any(|s| s.rel_path == "docs/list.toml" && s.clause == SkipClause::Negation),
+        "the negation is spared: {:?}",
+        c.skipped
+    );
+    // Scoped to the file under test: `000-alpha`'s frontmatter claims `rules/`
+    // and this plan declares neither a `path` form nor a unit action for it, so
+    // that IS an unaccounted occurrence and §3.7 is right to report it.
+    assert!(
+        c.leftover
+            .iter()
+            .all(|l| l.rel_path != "docs/list.toml"),
+        "a spared line was reported as unaccounted for: {:?}",
+        c.leftover
+    );
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]
