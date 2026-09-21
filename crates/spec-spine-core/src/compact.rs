@@ -39,11 +39,6 @@ pub enum Renumber {
 }
 
 /// The authored plan (spec 096 §3.1).
-///
-/// `Default` is load-bearing, as it is on `ScaffoldFile`: spec 097 added a
-/// field and every struct literal that built one broke. Construct with
-/// `..Default::default()` so the next field added here breaks nothing, and
-/// `serde(default)` on each field does the same for a plan written before it.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CompactPlan {
@@ -60,11 +55,6 @@ pub struct CompactPlan {
     /// project's ordinal happens to collide with one of ours.
     #[serde(default = "default_foreign_projects")]
     pub foreign_projects: Vec<String>,
-    /// Paths leaving the corpus (spec 097 §3.1). A spec id and a path are two
-    /// spellings of the same retirement, so they share this plan, the refusal
-    /// set, the idempotence requirement and the per-form report.
-    #[serde(default)]
-    pub retire: Vec<RetireEntry>,
 }
 
 fn default_foreign_projects() -> Vec<String> {
@@ -84,8 +74,6 @@ pub enum Form {
     Citation,
     /// A bare short id as an argument to a command that takes a spec id.
     ShortIdArg,
-    /// An occurrence of a path leaving the corpus (spec 097).
-    RetiredPath,
 }
 
 impl Form {
@@ -94,7 +82,6 @@ impl Form {
             Form::FullId => "full-id",
             Form::Citation => "citation",
             Form::ShortIdArg => "short-id-arg",
-            Form::RetiredPath => "retired-path",
         }
     }
 }
@@ -156,10 +143,6 @@ pub struct Compaction {
     pub counts: BTreeMap<String, usize>,
     /// The map document's contents (spec 096 §3.7).
     pub map_document: String,
-    /// Occurrences of a retired path deliberately left alone, with the clause
-    /// that spared each (spec 097 §3.5). Reported, never silent.
-    #[serde(default)]
-    pub skipped: Vec<Skipped>,
 }
 
 impl Compaction {
@@ -189,11 +172,6 @@ pub fn parse_plan(src: &str) -> Result<CompactPlan, Error> {
 pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Compaction, Error> {
     let corpus = read_corpus(cfg, repo_root)?;
     let map = build_map(&corpus, plan)?;
-    // Spec 097 §3.1 and §3.7: every retirement is validated before anything is
-    // rewritten, including the human acknowledgement an approved spec needs.
-    if !plan.retire.is_empty() {
-        validate_retire(&plan.retire, repo_root, &spec_statuses(cfg, repo_root)?)?;
-    }
 
     // The rewrite is a single simultaneous pass per file: a sequential
     // replace-per-key would apply one key's output to the next key's input,
@@ -202,12 +180,7 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
     let mut files = Vec::new();
     let mut rewrites = Vec::new();
     let mut counts: BTreeMap<String, usize> = BTreeMap::new();
-    for form in [
-        Form::FullId,
-        Form::Citation,
-        Form::ShortIdArg,
-        Form::RetiredPath,
-    ] {
+    for form in [Form::FullId, Form::Citation, Form::ShortIdArg] {
         counts.insert(form.as_str().to_string(), 0);
     }
 
@@ -217,7 +190,6 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
         .map(|(k, _)| k.as_str())
         .collect();
     let mut removed_paths = Vec::new();
-    let mut skipped: Vec<Skipped> = Vec::new();
 
     for rel in scannable_files(cfg, repo_root) {
         let Ok(contents) = std::fs::read_to_string(repo_root.join(&rel)) else {
@@ -234,15 +206,7 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
             }
             continue;
         }
-        let (new_contents, mut file_rewrites) = rewrite_file(&contents, &map, &keys, plan);
-        let new_contents = if plan.retire.is_empty() {
-            new_contents
-        } else {
-            let (after, retired, mut skips) = retire_file(&rel, &new_contents, &plan.retire);
-            file_rewrites.extend(retired);
-            skipped.append(&mut skips);
-            after
-        };
+        let (new_contents, file_rewrites) = rewrite_file(&contents, &map, &keys, plan);
         let to = target_path(cfg, &rel, &map);
         if file_rewrites.is_empty() && to == rel {
             continue;
@@ -272,19 +236,7 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
         rewrites,
         counts,
         map_document,
-        skipped,
     })
-}
-
-/// Every spec's `status`, for the acknowledgement rule of spec 097 §3.3.
-fn spec_statuses(cfg: &Config, repo_root: &Path) -> Result<BTreeMap<String, String>, Error> {
-    let outcome = crate::compile::compile(cfg, repo_root)?;
-    Ok(outcome
-        .registry
-        .specs
-        .iter()
-        .map(|s| (s.id.clone(), format!("{:?}", s.status).to_ascii_lowercase()))
-        .collect())
 }
 
 // ── the corpus ───────────────────────────────────────────────────────────────
@@ -782,301 +734,6 @@ fn scan_short_id_args(
             }
         }
     }
-}
-
-// ── spec 097: a path leaves the corpus the way a spec does ───────────────────
-
-/// Whether a retired path names a file or a subtree (spec 097 §3.1).
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum RetireKind {
-    #[default]
-    File,
-    Directory,
-}
-
-/// What happens to a frontmatter unit naming a retired path (spec 097 §3.3).
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum UnitActionKind {
-    /// The unit leaves the spec's frontmatter.
-    Withdraw,
-    /// The unit points at `to` instead.
-    Retarget,
-}
-
-/// A named change to one spec's frontmatter (spec 097 §3.3). Named per spec and
-/// per edge, never inferred: there is no grammar in this corpus for withdrawing
-/// a claim, and the only route is an edit to the owning spec's own frontmatter.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct UnitAction {
-    pub spec: String,
-    pub edge: String,
-    pub action: UnitActionKind,
-    #[serde(default)]
-    pub to: Option<String>,
-    /// A human's acknowledgement that this changes an `approved` spec. The flag
-    /// is a human's to write, the way a `Spec-Drift-Waiver` is.
-    #[serde(default)]
-    pub acknowledge_approved: bool,
-}
-
-/// One path leaving the corpus (spec 097 §3.1).
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct RetireEntry {
-    pub path: String,
-    #[serde(default)]
-    pub kind: RetireKind,
-    /// A replacement per FORM, not per path: in the retirement this was
-    /// measured on, four files became one section each of another document,
-    /// the directory became a phrase, and the glob became nothing at all.
-    ///
-    /// Keys are `citation`, `glob` and `path` (§3.2 and D-2). A `null` value is
-    /// a deletion the plan states; an absent key is a form with no rule, which
-    /// §3.1 refuses rather than silently skipping.
-    #[serde(default)]
-    pub forms: BTreeMap<String, Option<String>>,
-    #[serde(default)]
-    pub units: Vec<UnitAction>,
-    /// Files whose occurrences are history rather than citations (§3.5).
-    #[serde(default)]
-    pub historical_files: Vec<String>,
-    /// Headings under which an occurrence is history rather than a citation.
-    #[serde(default)]
-    pub historical_sections: Vec<String>,
-}
-
-/// Why an occurrence was left alone (spec 097 §3.5). Reported, never silent:
-/// the eleven survivors of the retirement this was measured on were found by
-/// reading a `grep`, and a tool that keeps them without saying so has only
-/// moved the reading.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum SkipClause {
-    /// The line negates the path: `! test -e`, `! grep`, `assert!(!`, `MUST NOT`.
-    Negation,
-    /// The occurrence sits under a heading the plan calls historical.
-    HistoricalSection,
-    /// The occurrence sits in a file the plan calls historical.
-    HistoricalFile,
-}
-
-impl SkipClause {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            SkipClause::Negation => "negation",
-            SkipClause::HistoricalSection => "historical-section",
-            SkipClause::HistoricalFile => "historical-file",
-        }
-    }
-}
-
-/// One occurrence the rewrite deliberately did not touch.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Skipped {
-    pub rel_path: String,
-    pub line: usize,
-    pub text: String,
-    pub clause: SkipClause,
-}
-
-/// The forms a path is spelled in (spec 097 §3.2).
-const RETIRE_FORMS: &[&str] = &["citation", "glob", "path"];
-
-/// Markers that turn an occurrence into a statement about an absence (§3.5).
-const NEGATIONS: &[&str] = &[
-    "! test ",
-    "! grep",
-    "!test ",
-    "assert!(!",
-    "MUST NOT",
-    "! [ -",
-];
-
-/// Refuse a `retire` entry the rules cannot serve, before anything is rewritten
-/// (spec 097 §3.1, §3.7).
-fn validate_retire(
-    entries: &[RetireEntry],
-    repo_root: &Path,
-    statuses: &BTreeMap<String, String>,
-) -> Result<(), Error> {
-    for e in entries {
-        if !repo_root.join(&e.path).exists() {
-            return Err(Error::Config(format!(
-                "compact: the plan retires `{}`, which the tree does not have",
-                e.path
-            )));
-        }
-        for (form, replacement) in &e.forms {
-            if !RETIRE_FORMS.contains(&form.as_str()) {
-                return Err(Error::Config(format!(
-                    "compact: `{}` declares the form `{form}`, which has no rule; the forms are {}",
-                    e.path,
-                    RETIRE_FORMS.join(", ")
-                )));
-            }
-            if replacement.is_none() && form != "glob" {
-                return Err(Error::Config(format!(
-                    "compact: `{}` gives the form `{form}` no replacement; only `glob` may be removed outright",
-                    e.path
-                )));
-            }
-        }
-        for u in &e.units {
-            if u.action == UnitActionKind::Retarget && u.to.is_none() {
-                return Err(Error::Config(format!(
-                    "compact: `{}` retargets `{}`'s {} unit with no `to`",
-                    e.path, u.spec, u.edge
-                )));
-            }
-            let status = statuses.get(&u.spec).map(String::as_str).unwrap_or("");
-            if status.is_empty() {
-                return Err(Error::Config(format!(
-                    "compact: `{}` names a unit on `{}`, which the corpus does not have",
-                    e.path, u.spec
-                )));
-            }
-            if status == "approved" && !u.acknowledge_approved {
-                return Err(Error::Config(format!(
-                    "compact: `{}` changes the frontmatter of `{}`, which is approved. \
-                     Withdrawing or retargeting a unit on an approved spec is a human's \
-                     decision: add `acknowledge_approved: true` to that entry, or remove it.",
-                    e.path, u.spec
-                )));
-            }
-        }
-    }
-    Ok(())
-}
-
-/// Apply every retirement to one file's text, returning the rewrites and the
-/// occurrences deliberately left alone.
-fn retire_file(
-    rel: &str,
-    src: &str,
-    entries: &[RetireEntry],
-) -> (String, Vec<Rewrite>, Vec<Skipped>) {
-    let mut out = String::with_capacity(src.len());
-    let mut rewrites = Vec::new();
-    let mut skipped = Vec::new();
-    let mut heading = String::new();
-
-    for (n, line) in src.split_inclusive('\n').enumerate() {
-        if line.trim_start().starts_with('#') && line.contains(' ') {
-            heading = line.trim().trim_start_matches('#').trim().to_string();
-        }
-        let mut current = line.to_string();
-        for e in entries {
-            if !current.contains(&e.path) {
-                continue;
-            }
-            if e.historical_files.iter().any(|f| f == rel) {
-                skipped.push(Skipped {
-                    rel_path: rel.to_string(),
-                    line: n + 1,
-                    text: current.trim_end().to_string(),
-                    clause: SkipClause::HistoricalFile,
-                });
-                continue;
-            }
-            if e.historical_sections
-                .iter()
-                .any(|h| heading.contains(h.as_str()))
-            {
-                skipped.push(Skipped {
-                    rel_path: rel.to_string(),
-                    line: n + 1,
-                    text: current.trim_end().to_string(),
-                    clause: SkipClause::HistoricalSection,
-                });
-                continue;
-            }
-            if NEGATIONS.iter().any(|m| current.contains(m)) {
-                skipped.push(Skipped {
-                    rel_path: rel.to_string(),
-                    line: n + 1,
-                    text: current.trim_end().to_string(),
-                    clause: SkipClause::Negation,
-                });
-                continue;
-            }
-            let before = current.clone();
-            current = apply_forms(&current, e);
-            if current != before {
-                rewrites.push(Rewrite {
-                    line: n + 1,
-                    old: before.trim_end().to_string(),
-                    new: current.trim_end().to_string(),
-                    form: Form::RetiredPath,
-                });
-            }
-        }
-        out.push_str(&current);
-    }
-    (out, rewrites, skipped)
-}
-
-/// The six spellings of §3.2, reduced to the three that take a replacement
-/// (D-2): a glob line, a backticked or bare prose citation, and a path in a
-/// YAML value, a shell word or a Rust string literal.
-fn apply_forms(line: &str, e: &RetireEntry) -> String {
-    let mut s = line.to_string();
-    // A glob: the path followed by a wildcard segment. Removing it removes the
-    // whole list entry, because a pattern matching nothing reads like a claim
-    // being hashed and hashes nothing.
-    if let Some(rule) = e.forms.get("glob") {
-        let is_glob = s.contains(&format!("{}*", e.path))
-            || s.contains(&format!("{}/*", e.path.trim_end_matches('/')));
-        if is_glob {
-            return match rule {
-                None => String::new(),
-                Some(text) => replace_glob(&s, &e.path, text),
-            };
-        }
-    }
-    if let Some(Some(text)) = e.forms.get("citation") {
-        s = s.replace(&format!("`{}`", e.path), text);
-        s = replace_bare(&s, &e.path, text);
-    }
-    if let Some(Some(text)) = e.forms.get("path") {
-        s = s.replace(&format!("\"{}\"", e.path), &format!("\"{text}\""));
-        s = s.replace(&format!("'{}'", e.path), &format!("'{text}'"));
-    }
-    s
-}
-
-fn replace_glob(line: &str, path: &str, text: &str) -> String {
-    line.replace(path, text)
-}
-
-/// A bare occurrence, bounded by whitespace or by sentence punctuation, and
-/// never a substring of a longer path (§3.2 form 2).
-fn replace_bare(line: &str, path: &str, text: &str) -> String {
-    let mut out = String::with_capacity(line.len());
-    let mut rest = line;
-    while let Some(at) = rest.find(path) {
-        let before_ok = at == 0
-            || !matches!(rest.as_bytes()[at - 1], b'/' | b'.' | b'`' | b'"' | b'\'')
-                && !rest.as_bytes()[at - 1].is_ascii_alphanumeric();
-        let after = at + path.len();
-        let after_ok = after >= rest.len()
-            || matches!(
-                rest.as_bytes()[after],
-                b' ' | b',' | b';' | b':' | b')' | b'\n' | b'.'
-            );
-        out.push_str(&rest[..at]);
-        if before_ok && after_ok {
-            out.push_str(text);
-        } else {
-            out.push_str(path);
-        }
-        rest = &rest[after..];
-    }
-    out.push_str(rest);
-    out
 }
 
 // ── fenced blocks (spec 096 §3.5) ────────────────────────────────────────────

@@ -16,7 +16,7 @@ summary: >
   grammar a path actually has and, more importantly, the exclusions: eleven of
   those 81 occurrences had to survive, because a sentence recording that a path
   USED to exist is not a citation of it.
-implementation: complete
+implementation: pending
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -24,10 +24,7 @@ depends_on:
   - "050-claimed-but-unwitnessed"
   - "093-the-harness-this-repository-runs"
 establishes:
-  - { kind: file, path: "crates/spec-spine-core/tests/retire.rs" }
-extends:
-  - { spec: "096-compaction-is-a-verb-not-a-session", unit: { kind: file, path: "crates/spec-spine-core/src/compact.rs" }, nature: additive }
-  - { spec: "096-compaction-is-a-verb-not-a-session", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_compact.rs" }, nature: additive }
+  - { kind: file, path: "crates/spec-spine-core/tests/retire.rs", planned: true }
 references:
   - { unit: { kind: file, path: "docs/design/08-remaining-cleanup-2026-09.md" }, role: context }
 ---
@@ -104,11 +101,11 @@ interpolated into it, and it is why §3.5 below is normative rather than advisor
 
 The plan type, the rewrite and the report are spec 096's: `compact.rs` gains the
 `retire` section, `cmd_compact.rs` reads it, and the `Compaction` report carries
-its rewrites in the shape §3.6 there already defines. The two `extends` edges naming those
-files were added by this build rather than by the filing: `V-017` refuses an
-`extends` onto a unit its owner has only `planned`, and 096 held them as planned
-until it was built, so the edges could not be declared before the spec they
-extend existed. This spec adds a second
+its rewrites in the shape §3.6 there already defines. No `extends` edge names
+those two files here, and not by omission: `V-017` refuses an `extends` onto a
+unit its owner has only `planned`, which is what 096 holds until it is built.
+The edges are added to this frontmatter by the build that writes into them,
+which is the ordinary claim a session makes for territory it touches. This spec adds a second
 kind of entry to one verb, not a second verb. The two retirements share the
 plan file, the refusal set, the idempotence requirement and the per-form report,
 and splitting them would mean maintaining two of each.
