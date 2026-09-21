@@ -415,6 +415,18 @@ Acting on that occurrence rewrites something no plan named, and sparing it
 records a clause that was never true of the file. Participation is decided
 against the line as it arrived.
 
+D-23 (2026-09-21, the detector and the rewriter recognise the same occurrence).
+§3.7 reported `[rules/one.md]` as unaccounted for and no form rewrote it, so the
+run refused a corpus no rule could have repaired. Every earlier round of this
+family was two readers disagreeing about a match; this is the scan being broader
+than the rules it scans for. A markdown link label is a citation, so the prose
+context delimits on brackets and the citation form covers it.
+
+D-24 (2026-09-21, a plan writes the path the corpus writes). `./rules/one.md`
+passes every guard and matches nothing, because the literal carries the prefix
+and the corpus spells the path bare: the run would rewrite nothing and then
+report every bare occurrence as unaccounted for. Refused, naming the prefix.
+
 ## Verification
 
 Each line is one command, run independently.

@@ -208,7 +208,13 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
     // Spec 097 §3.1 and §3.7: every retirement is validated before anything is
     // rewritten, including the human acknowledgement an approved spec needs.
     if !plan.retire.is_empty() {
-        let (corpus_ids, approved) = corpus_and_approved(cfg, repo_root)?;
+        // The compile answers a question only the unit actions ask. A plan that
+        // retires paths and names no frontmatter unit pays nothing for it.
+        let (corpus_ids, approved) = if plan.retire.iter().any(|e| !e.units.is_empty()) {
+            corpus_and_approved(cfg, repo_root)?
+        } else {
+            (BTreeSet::new(), BTreeSet::new())
+        };
         validate_retire(&plan.retire, repo_root, &corpus_ids, &approved)?;
     }
 
@@ -621,7 +627,9 @@ enum PathContext {
 /// §3.7's leftover scan. Three separate defects came from three readers each
 /// carrying a slightly different copy of this rule.
 fn occurs_as_path(bytes: &[u8], at: usize, len: usize, ctx: PathContext) -> bool {
+    // `[` opens a markdown link label; it delimits rather than disqualifies.
     let left_ok = at == 0
+        || matches!(bytes[at - 1], b'[')
         || match ctx {
             PathContext::Prose => {
                 !is_path_char(bytes[at - 1]) && !matches!(bytes[at - 1], b'`' | b'"' | b'\'')
@@ -642,7 +650,10 @@ fn occurs_as_path(bytes: &[u8], at: usize, len: usize, ctx: PathContext) -> bool
             Some(b'.') => bytes[after + 1..]
                 .first()
                 .is_none_or(|n| n.is_ascii_whitespace()),
-            Some(b) => matches!(b, b' ' | b',' | b';' | b':' | b')' | b'\n' | b'\r'),
+            // `]` closes a markdown link label, which IS a citation: without it
+            // `[rules/one.md]` was detected by §3.7 and rewritten by no form,
+            // so the scan refused a corpus no rule could have repaired.
+            Some(b) => matches!(b, b' ' | b',' | b';' | b':' | b')' | b']' | b'\n' | b'\r'),
         },
     }
 }
@@ -1308,6 +1319,17 @@ fn validate_retire(
         // boundary rule is happy to find it: `rules` matches the English word
         // in any sentence, which §3.7 then reports as an unaccounted occurrence
         // and refuses the run over.
+        // `./rules/one.md` passes every guard and then matches nothing: the
+        // literal string carries the prefix and the corpus writes the path
+        // bare, so the run rewrites nothing and reports every bare occurrence
+        // as unaccounted for.
+        if e.path.starts_with("./") {
+            return Err(Error::Config(format!(
+                "compact: the plan retires `{}`; write the path as the corpus spells it, without \
+                 the `./` prefix",
+                e.path
+            )));
+        }
         if matches!(e.kind, RetireKind::Directory) && !e.path.ends_with('/') {
             return Err(Error::Config(format!(
                 "compact: `{}` is `kind: directory` and does not end with `/`; without the slash \
@@ -1492,8 +1514,11 @@ fn apply_forms(line: &str, e: &RetireEntry) -> String {
         s = replace_bare(&s, &e.path, text);
     }
     if let Some(Some(text)) = e.forms.get("path") {
-        s = s.replace(&format!("\"{}\"", e.path), &format!("\"{text}\""));
-        s = s.replace(&format!("'{}'", e.path), &format!("'{text}'"));
+        // Through the one replacement function, like every other form (D-19).
+        // The quote-delimited `str::replace` this replaced was safe only
+        // because quotes bind tightly; it would fire twice on a pass where the
+        // replacement text itself contained the quoted path.
+        s = replace_path_in(&s, &e.path, text, PathContext::Value);
     }
     s
 }

@@ -950,6 +950,61 @@ fn an_occurrence_another_entrys_replacement_created_is_not_spared() {
     );
 }
 
+/// §3.2 and §3.7 have to agree about what an occurrence IS. A markdown link
+/// label was detected by the scan and rewritten by no form, so the run refused a
+/// corpus no rule could have repaired. A label is a citation.
+#[test]
+fn a_markdown_link_label_is_a_citation_and_is_rewritten() {
+    let tmp = fixture("See [rules/one.md] for the rule.\n");
+    let c = compact(&cfg(), tmp.path(), &plan_with(retire_rules())).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/note.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(out.contains("[`AGENTS.md` \"Rules\"]"), "{out}");
+    assert!(c.leftover.is_empty(), "{:?}", c.leftover);
+}
+
+/// §3.1: a `./` prefix passes every guard and then matches nothing, because the
+/// corpus writes the path bare. The run would rewrite nothing and report every
+/// bare occurrence as unaccounted for.
+#[test]
+fn a_dot_slash_prefixed_path_is_refused() {
+    let tmp = fixture("x");
+    let mut e = retire_rules();
+    e.path = "./rules/one.md".into();
+    let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
+    assert_eq!(err.exit_code(), 3, "{err}");
+    assert!(format!("{err}").contains("./"), "{err}");
+}
+
+/// §3.3: the `path` form replaces through the same function as every other
+/// form, so a replacement that itself contains the quoted path does not fire a
+/// second time on the same pass.
+#[test]
+fn a_path_form_replacement_containing_the_path_fires_once() {
+    let tmp = fixture("x");
+    write(tmp.path(), "docs/data.yml", "target: \"rules/one.md\"\n");
+    let mut e = retire_rules();
+    e.forms = [
+        ("citation".to_string(), Some("`AGENTS.md`".to_string())),
+        ("path".to_string(), Some("kept/rules/one.md".to_string())),
+    ]
+    .into_iter()
+    .collect();
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/data.yml")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(out.contains("kept/rules/one.md"), "{out}");
+    assert!(!out.contains("kept/kept/"), "applied twice: {out}");
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]
