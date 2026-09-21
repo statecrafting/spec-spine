@@ -512,7 +512,7 @@ python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/run/sweep.json')
 # whose plan cannot be read MUST NOT be reported as declaring no acceptance.
 python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/run/sweep.json'));s={x['id']:x for x in d['specs']};assert '--plan' in s['007-ghost']['failure'] and s['007-ghost']['exitCode']!=0;assert 'limit' in s['004-slow']['failure']"
 # 3.8: the evidence a finding is reproduced from.
-python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/run/sweep.json'));assert len(d['revision'])==40;assert d['trustedRef']=='main';assert d['binaryVersion'].startswith('spec-spine ');assert d['selection']=='all';assert d['ledgerClosedAt']==48"
+python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/run/sweep.json'));assert len(d['revision'])==40;assert d['trustedRef']=='main';assert d['binaryVersion'].startswith('spec-spine ');assert d['selection']=='all';assert d['ledgerClosedAt']==43"
 python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/run/sweep.json'));s={x['id']:x for x in d['specs']};assert 'FAILED at command 2' in s['002-red']['failure'];assert s['002-red']['exitCode']==1;assert s['002-red']['log']=='logs/002-red.log';assert s['002-red']['commands']==3"
 python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/run/sweep.json'));s={x['id']:x for x in d['specs']};assert s['004-slow']['exitCode']==124 and 'limit' in s['004-slow']['failure'];assert s['005-dirty']['leftTreeDirty'] is True;assert s['001-green']['leftTreeDirty'] is False"
 test -s "${TMPDIR:-/tmp}/ss112/run/logs/002-red.log"
@@ -540,19 +540,19 @@ target/release/spec-spine verify 49 >/dev/null 2>&1; test $? -eq 1
 # spec is covered by it.
 printf '050-too-late\n' > "${TMPDIR:-/tmp}/ss112/e-closed.txt"
 SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/e-closed.txt" --out "${TMPDIR:-/tmp}/ss112/x" >/dev/null 2>&1; test $? -eq 3
-SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/e-closed.txt" --out "${TMPDIR:-/tmp}/ss112/x" 2>&1 | grep -q 'closed ordinal 48'
+SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/e-closed.txt" --out "${TMPDIR:-/tmp}/ss112/x" 2>&1 | grep -q 'closed ordinal 43'
 # Only shrinks: an entry whose spec declares acceptance is a stale exemption.
 printf '001-green\n' > "${TMPDIR:-/tmp}/ss112/e-stale.txt"
 SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/e-stale.txt" --out "${TMPDIR:-/tmp}/ss112/x" >/dev/null 2>&1; test $? -eq 3
 SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/e-stale.txt" --out "${TMPDIR:-/tmp}/ss112/x" 2>&1 | grep -q 'exemption is stale'
 # Live: an entry naming no spec in the corpus accounts for nothing.
-printf '044-gone\n' > "${TMPDIR:-/tmp}/ss112/e-dangling.txt"
+printf '030-gone\n' > "${TMPDIR:-/tmp}/ss112/e-dangling.txt"
 SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/e-dangling.txt" --out "${TMPDIR:-/tmp}/ss112/x" 2>&1 | grep -q 'names no spec in the corpus'
 # Enumerated and closed: the ledger this repository actually ships carries no id
 # at or above the closing ordinal, so no future spec can enter it (D-2). The
 # count is deliberately not asserted: the ledger shrinks as the debt is retired,
 # and a pinned size would refuse the retirement 3.4 exists to allow.
-test -f scripts/verify-sweep.sh && ! grep -qE '^0(4[89]|[5-9][0-9])-|^[1-9][0-9][0-9]?-' scripts/verify-sweep.sh
+test -f scripts/verify-sweep.sh && ! grep -qE '^0(4[3-9]|[5-9][0-9])-|^[1-9][0-9][0-9]?-' scripts/verify-sweep.sh
 grep -qE '^0[0-4][0-9]-' scripts/verify-sweep.sh
 # And it holds against the real corpus: running the BUILT-IN ledger over a
 # merged revision of this repository passes all four checks of 3.4 (closed,

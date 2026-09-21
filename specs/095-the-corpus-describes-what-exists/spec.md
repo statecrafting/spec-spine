@@ -28,6 +28,13 @@ establishes:
   # 3.7: a citation outlives the document it cites, and after a collapse and a
   # renumber the ordinal alone misleads. This is the file that answers both.
   - "docs/corpus-map.md"
+extends:
+  # 3.5: the exemption ledger and the ordinal it closes at.
+  - { spec: "089-nothing-reruns-a-merged-acceptance", unit: "scripts/verify-sweep.sh", nature: corrective }
+# 3.5: the ledger's closing ordinal is a number spec 089's acceptance pins, and
+# this change moves it. The correction is that number and nothing else.
+amends:
+  - "089-nothing-reruns-a-merged-acceptance"
 references:
   - { unit: { kind: file, path: "docs/design/07-statecraft-realignment-2026-09.md" }, role: context }
 ---
@@ -188,6 +195,22 @@ first spec that was never exempt. The four properties spec 089 §3.4 requires of
 the ledger (individually named, closed, only shrinks, live) are unchanged and
 MUST still hold.
 
+Two of spec 089's own assertions read the boundary and are corrected to the new
+one, which is §3.6's "only a path spelling changed" case applied to a number:
+the reported `ledgerClosedAt`, and the refusal message naming the closing
+ordinal. Its dangling-exemption fixture moves below the new boundary too, or the
+ledger refuses it as *closed* and the message under test never appears.
+
+**One assertion of spec 089 cannot pass until this merges, and is left
+failing.** It runs the sweep against `origin/main` with the built-in ledger, to
+prove the shipped ledger works on a trusted, already-merged revision. The
+ledger this change writes describes a corpus that exists only on this branch,
+so against `origin/main` every entry is dangling and the sweep refuses, exit 3,
+correctly. On the default branch after this merges, `origin/main` is this
+corpus and the assertion holds again. Rewriting it to read `HEAD` would trade
+away the one thing it tests, which is that the ledger is true of a merged
+revision rather than of the branch that wrote it.
+
 ### 3.6 What the exception does not permit
 
 - **Weakening a requirement.** A clause is carried or its subject is gone. There
@@ -274,9 +297,10 @@ rm -f "${TMPDIR:-/tmp}/ss095-ids.txt"
 # and an unresolved unit is what `check` refuses, so a green pair is the proof.
 target/release/spec-spine check --fail-on-unresolved --fail-on-warn
 target/release/spec-spine lint --fail-on-warn
-# 3.3: and no removed id is cited outside the three specs that account for it
-# and the map that resolves it. Read per id, so a failure names the one at fault.
-sh -c 'for id in 006-init-scaffold 029-claude-code-skill-kit 046-kit-hooks-read-never-write 064-the-kit-ships-the-composite-gate 100-one-source-generates-the-agent-trees 116-shepherd-reads-every-reviewer; do if grep -rlF "$id" specs crates .claude/skills .claude/rules .claude/agents AGENTS.md CLAUDE.md README.md 2>/dev/null | grep -qv "^specs/09[345]-"; then echo "still cited: $id"; exit 1; fi; done; exit 0'
+# 3.3: and no removed id is cited outside the specs that account for it and the
+# map that resolves it. The four are 092, which removed the surface, and the
+# three filed here. Read per id, so a failure names the one at fault.
+sh -c 'for id in 006-init-scaffold 029-claude-code-skill-kit 046-kit-hooks-read-never-write 064-the-kit-ships-the-composite-gate 100-one-source-generates-the-agent-trees 116-shepherd-reads-every-reviewer; do if grep -rlF "$id" specs crates .claude/skills .claude/rules .claude/agents AGENTS.md CLAUDE.md README.md 2>/dev/null | grep -qv "^specs/09[2345]-"; then echo "still cited: $id"; exit 1; fi; done; exit 0'
 # 3.2 and 3.4: every removed spec is named by a successor and is in the map.
 test "$(grep -cE '^\| `[0-9]{3}-[a-z0-9-]+` \|' docs/corpus-map.md)" -ge 27
 sh -c 'n=0; for f in specs/*/spec.md; do n=$((n + $(grep -cE "^- \`[0-9]{3}-[a-z0-9-]+\`$" "$f"))); done; test "$n" -eq 27 || { echo "predecessors named: $n, want 27"; exit 1; }'

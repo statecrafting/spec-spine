@@ -1,5 +1,8 @@
 {
   "mapping": {
+    "amends": [
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
     "dependsOn": [
       "037-amendment-authoring",
       "092-the-engine-ships-governance-not-an-environment",
@@ -9,6 +12,10 @@
     "implementingPaths": [
       {
         "path": "docs/corpus-map.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/verify-sweep.sh",
         "source": "spec-edge"
       }
     ],
@@ -29,6 +36,19 @@
       {
         "locations": [
           {
+            "file": "scripts/verify-sweep.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/design/07-statecraft-realignment-2026-09.md"
           }
         ],
@@ -44,5 +64,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "81697f42813c0e16a391410ace774603cf30c80e3db58e3fe8ca9e19125343e8"
+  "shardHash": "e1c563ecc23ec2a1ebe69cf088cc87fa39efd9c73b815e81f01cfa4c29b67b52"
 }
