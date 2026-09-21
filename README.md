@@ -53,6 +53,10 @@ spec-spine lint             # corpus conformance
 spec-spine couple --base origin/main --head HEAD   # the PR-time drift gate
 ```
 
+Spec ids in this repository were renumbered by spec 095;
+[docs/corpus-map.md](docs/corpus-map.md) maps every old id to its new one and
+every removed id to the spec that answers for it.
+
 A new corpus needs `spec-spine.toml`, `standards/spec/` and a bootstrap spec
 before those verbs have anything to read. spec-spine produces that starter
 content as **data**, through the library

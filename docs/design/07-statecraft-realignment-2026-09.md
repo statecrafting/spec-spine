@@ -120,3 +120,24 @@ reserved.
 | Retirement of this repository's `.claude/` tree | Statecraft global delivery | held: `.claude/` stays until its replacement is concretely available |
 | The PR-gate derived-tree test | whoever owns the hook after delivery | open, see 5 |
 | Ratification of spec 092 | a human | spec 092 is `draft`; this realignment was built under a specific owner authorization, and no agent flips it to `approved` |
+
+## 7. The collapse that followed (2026-09-20)
+
+Removing the kit correctly left the corpus describing a product that no longer
+exists: 102 withdrawn unit claims across 29 specs, 29 specs whose acceptance was
+one block standing for all of them, and 41 documents reading as live instruction
+about deleted files. The owner authorized a one-time exception to the amendment
+rules to settle it, and spec 095 is the record.
+
+- six specs deleted outright (their whole subject was removed);
+- twenty-one merged into two: spec 093 is the whole of what `.claude/` must
+  contain, spec 094 the one definition of the governed loop and the three
+  boundaries that enforce it;
+- the 93 survivors renumbered to `000` through `092`, chronological order kept,
+  with the three new specs at `093` through `095`.
+
+`docs/corpus-map.md` maps every removed id to the spec that answers for it and
+every old ordinal to its new one. Every citation in this note, in the other
+design notes, and in the specs was rewritten with it; citations in git history,
+merged pull requests and adopter repositories were not, which is what the map is
+for.

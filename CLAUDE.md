@@ -18,7 +18,8 @@ AGENTS.md standard), it holds the session protocol `/prime` executes, and its
 "Working the backlog" section is the operating loop. **The gate chain is
 defined there, not here**, and `harness_skills.rs` asserts every skill's inlined
 gate floor is a subset of that list, so a step added to `AGENTS.md` reaches
-every skill.
+every skill. The executable form of that list is the root `Makefile`'s `gate`
+target (spec 094); `.claude/` itself is spec 093's.
 
 ## Commands
 
@@ -273,6 +274,12 @@ Consequences for working here:
   neither root is ordinary governed territory.
 - `docs/design/07-statecraft-realignment-2026-09.md` holds the boundary, the
   producer contract and the disposition of the earlier harness plans.
+- **Spec ids moved.** Spec 095 collapsed 27 specs into three and renumbered the
+  survivors so the ordinals are contiguous (000 through 095). A citation written
+  before that, in git history, a merged pull request or an adopter repository,
+  names an ordinal that has moved or a document that is gone.
+  **`docs/corpus-map.md` is the map**, both directions. Read it before trusting
+  a spec number you did not get from `registry list`.
 
 ## Schema & release versioning (two decoupled axes)
 
