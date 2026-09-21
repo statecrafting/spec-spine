@@ -1666,6 +1666,37 @@ fn a_retirement_counts_its_rewrites() {
     );
 }
 
+/// The citation form runs two scanners over the same line: the backticked
+/// occurrence and the bare one. They do not overlap because the prose context
+/// disqualifies a path whose left neighbour is a backtick, which is a property
+/// held by two rules agreeing rather than by construction. Pinned so a change
+/// to either boundary rule that re-introduced double-rewriting would fail here.
+#[test]
+fn a_backticked_and_a_bare_occurrence_on_one_line_are_each_rewritten_once() {
+    let tmp = fixture("See `rules/one.md` and rules/one.md.\n");
+    let c = compact(&cfg(), tmp.path(), &plan_with(retire_rules())).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/note.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert_eq!(
+        out, "See `AGENTS.md` \"Rules\" and `AGENTS.md` \"Rules\".\n",
+        "each occurrence is replaced exactly once"
+    );
+    // Exactly two records, not three: the bare scanner must not also claim the
+    // path inside the backticks.
+    let n = c
+        .rewrites
+        .iter()
+        .filter(|f| f.rel_path == "docs/note.md")
+        .flat_map(|f| f.rewrites.iter())
+        .count();
+    assert_eq!(n, 1, "one line, one record: {:?}", c.rewrites);
+    assert!(c.leftover.is_empty(), "{:?}", c.leftover);
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]

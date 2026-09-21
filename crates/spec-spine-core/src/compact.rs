@@ -698,12 +698,16 @@ fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (Str
                 out.push(raw.to_string());
                 continue;
             }
-            // Any other column-zero line ends the list it followed.
-            if trimmed.contains(':') {
+            // Any column-zero line WITH CONTENT ends the list it followed,
+            // whether or not it carries a colon. The earlier form required one,
+            // so a column-zero line without a colon left `edge` set and the
+            // comment claimed otherwise. A blank line does not end a list: YAML
+            // allows one between items.
+            if !trimmed.is_empty() {
                 edge = None;
-                out.push(raw.to_string());
-                continue;
             }
+            out.push(raw.to_string());
+            continue;
         }
         let Some(current) = edge.as_deref() else {
             out.push(raw.to_string());

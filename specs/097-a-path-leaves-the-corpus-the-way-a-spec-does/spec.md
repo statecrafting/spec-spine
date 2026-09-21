@@ -627,6 +627,21 @@ nothing was written). Under a dry run nothing was going to be written, so the
 sentence answered a question nobody asked and read as a refusal of the command
 rather than of the plan.
 
+D-46 (2026-09-21, the comment and the code agree about what ends a list). The
+frontmatter walk cleared the current edge only on a column-zero line carrying a
+colon, while its comment said any column-zero line ended the list. Valid YAML
+does not produce the gap, and the invariant a later reader would rely on was not
+the one enforced. A column-zero line with content ends the list; a blank line
+does not, because YAML allows one between items.
+
+D-47 (2026-09-21, two scanners agreeing is not a construction). The citation
+form runs a backticked scanner and a bare one over the same line, and they do
+not collide only because the prose context disqualifies a path whose left
+neighbour is a backtick. Nothing asserted that, so a change to either boundary
+rule could have re-introduced double-rewriting silently. The exact output and
+the record count are pinned. Same reasoning as D-33: a property that holds by
+agreement between two rules is one nobody can rely on while editing either.
+
 ## Verification
 
 Each line is one command, run independently.
