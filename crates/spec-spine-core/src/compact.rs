@@ -1282,6 +1282,23 @@ fn validate_retire(
                 e.path
             )));
         }
+        // `"any heading".contains("")` is true, so an empty keyword spares
+        // every occurrence in every file and disables the retirement without
+        // saying anything. A plan that spares everything has stopped being a
+        // plan.
+        if e.historical_sections.iter().any(|h| h.trim().is_empty()) {
+            return Err(Error::Config(format!(
+                "compact: `{}` lists an empty `historical_sections` entry; it matches every \
+                 heading, so every occurrence in every file would be spared",
+                e.path
+            )));
+        }
+        if e.historical_files.iter().any(|f| f.trim().is_empty()) {
+            return Err(Error::Config(format!(
+                "compact: `{}` lists an empty `historical_files` entry",
+                e.path
+            )));
+        }
         if matches!(e.kind, RetireKind::Directory) && !e.path.ends_with('/') {
             return Err(Error::Config(format!(
                 "compact: `{}` is `kind: directory` and does not end with `/`; without the slash \
@@ -1476,10 +1493,14 @@ fn apply_forms(line: &str, e: &RetireEntry) -> String {
     if let Some(rule) = e.forms.get("glob")
         && glob_at(&s, &e.path).is_some()
     {
-        return match rule {
-            None => String::new(),
-            Some(text) => replace_glob(&s, &e.path, text),
-        };
+        match rule {
+            // A deletion takes the whole line, so nothing else can apply to it.
+            None => return String::new(),
+            // A replacement does not: a line can carry a glob AND a citation of
+            // the same path, and returning here left the citation behind for
+            // §3.7 to refuse, on a corpus the rules could in fact repair.
+            Some(text) => s = replace_glob(&s, &e.path, text),
+        }
     }
     if let Some(Some(text)) = e.forms.get("citation") {
         s = s.replace(&format!("`{}`", e.path), text);

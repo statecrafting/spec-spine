@@ -444,6 +444,19 @@ source line number runs ahead of that line's position in the emitted file, and
 emitted unchanged, so its text identifies it in both, and the report keeps
 source numbers, which is what a reader of the original file needs.
 
+D-26 (2026-09-21, a plan that spares everything is refused). `"any
+heading".contains("")` is true, so one empty `historical_sections` keyword
+spares every occurrence in every file: the retirement does nothing, the report
+says everything was left alone deliberately, and the run exits 0. Every other
+refusal in §3.7 exists to stop a silent partial rewrite; this one stops a silent
+total one. Empty `historical_files` entries go with it.
+
+D-27 (2026-09-21, a glob replacement does not take the line). A deletion does,
+so nothing else can apply to it. A replacement leaves the rest of the line
+standing, and returning early stranded a citation sharing it for §3.7 to refuse,
+on a corpus the rules could repair. Same shape as D-23: the tool refusing
+something it was capable of handling.
+
 ## Verification
 
 Each line is one command, run independently.

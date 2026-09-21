@@ -1063,6 +1063,71 @@ fn a_glob_deletion_does_not_shift_a_later_skip_out_of_alignment() {
     );
 }
 
+/// §3.5: an empty `historical_sections` keyword matches every heading, because
+/// `"anything".contains("")` is true, so every occurrence in every file would be
+/// spared and the retirement would do nothing without saying so.
+#[test]
+fn an_empty_historical_entry_is_refused() {
+    let tmp = fixture("x");
+    for (sections, files) in [
+        (vec!["".to_string()], vec![]),
+        (vec![], vec!["  ".to_string()]),
+    ] {
+        let mut e = retire_rules();
+        e.historical_sections = sections;
+        e.historical_files = files;
+        let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
+        assert_eq!(err.exit_code(), 3, "{err}");
+        assert!(format!("{err}").contains("empty"), "{err}");
+    }
+}
+
+/// A glob REPLACEMENT does not take the whole line, so a citation sharing it is
+/// still rewritten. Returning early left the citation behind for §3.7 to refuse,
+/// on a corpus the rules could in fact repair.
+#[test]
+fn a_glob_replacement_does_not_strand_a_citation_on_the_same_line() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "docs/list.toml",
+        "patterns = [\"rules/*.md\"]  # see rules/one.md\n",
+    );
+    let mut e = retire_rules();
+    e.path = "rules/".into();
+    e.kind = RetireKind::Directory;
+    e.forms = [
+        ("citation".to_string(), Some("`AGENTS.md`".to_string())),
+        ("glob".to_string(), Some("kept/".to_string())),
+    ]
+    .into_iter()
+    .collect();
+    let mut second = retire_rules();
+    second.forms = [(
+        "citation".to_string(),
+        Some("`AGENTS.md` \"One\"".to_string()),
+    )]
+    .into_iter()
+    .collect();
+    let plan = CompactPlan {
+        retire: vec![e, second],
+        ..Default::default()
+    };
+    let c = compact(&cfg(), tmp.path(), &plan).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/list.toml")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(out.contains("kept/*.md"), "the glob is replaced: {out}");
+    assert!(
+        c.leftover.iter().all(|l| l.rel_path != "docs/list.toml"),
+        "a citation was stranded: {:?}",
+        c.leftover
+    );
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]
