@@ -535,6 +535,16 @@ under `## History`. Everything below it was refused. The tracker keeps the
 heading STACK, a keyword matches any ancestor, and the section still ends at the
 next sibling.
 
+D-36 (2026-09-21, a delimiter is not a boundary character). The backticked
+citation was the last form matched by raw substring, safe only because a `/`
+happens to precede every path in this corpus. Giving it `is_path_char` on both
+sides was worse than the gap: `.` IS a path character, so the check refused
+every citation that ended a sentence. The backticks are the delimiters; what
+must not abut them is another backtick, meaning this is inside a longer code
+span, or an identifier character, meaning the backtick belongs to a longer
+token. The suite caught the regression on the first run, and the case is pinned
+now.
+
 ## Verification
 
 Each line is one command, run independently.

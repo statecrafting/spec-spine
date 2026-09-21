@@ -1484,7 +1484,7 @@ fn retire_file(
                     .any(|h| headings.iter().any(|(_, head)| head.contains(h.as_str())))
                 {
                     Some(SkipClause::HistoricalSection)
-                } else if NEGATIONS.iter().any(|m| current.contains(m)) {
+                } else if NEGATIONS.iter().any(|m| line.contains(m)) {
                     Some(SkipClause::Negation)
                 } else {
                     None
@@ -1523,6 +1523,10 @@ fn retire_file(
         // match a spare once a deletion has shifted the lines. Both were bugs;
         // neither is expressible from this position.
         for (i, e) in entries.iter().enumerate() {
+            // `own[i].is_none()` is implied by `line_clause.is_none()` today,
+            // and is kept: it states the condition this loop actually means,
+            // and a later `line_clause` that does not cover every entry would
+            // otherwise silently start reporting spared occurrences.
             if present[i]
                 && own[i].is_none()
                 && line_clause.is_none()
@@ -1577,12 +1581,26 @@ fn apply_forms(line: &str, e: &RetireEntry) -> String {
         }
     }
     if let Some(Some(text)) = e.forms.get("citation") {
+        // The backticked form. The backticks ARE the delimiters, so the test is
+        // not `is_path_char`: a `.` legitimately follows a closing backtick as
+        // sentence punctuation, and the first version of this check refused
+        // every citation that ended a sentence. What must not abut the span is
+        // another backtick, which would mean this is the inside of a longer
+        // code span, or an identifier character, which would mean the backtick
+        // is part of a longer token.
         let quoted = format!("`{}`", e.path);
+        let bytes = line.as_bytes();
+        let delimits = |b: u8| !matches!(b, b'`') && !b.is_ascii_alphanumeric() && b != b'_';
         let mut from = 0usize;
         while let Some(rel) = line[from..].find(&quoted) {
             let at = from + rel;
-            spans.push((at, at + quoted.len(), text.clone()));
-            from = at + quoted.len();
+            let end = at + quoted.len();
+            let left_ok = at == 0 || delimits(bytes[at - 1]);
+            let right_ok = end >= bytes.len() || delimits(bytes[end]);
+            if left_ok && right_ok {
+                spans.push((at, end, text.clone()));
+            }
+            from = end;
         }
         spans.extend(occurrence_spans(line, &e.path, text, PathContext::Prose));
     }

@@ -1454,6 +1454,25 @@ fn every_glob_occurrence_on_a_line_is_replaced() {
     );
 }
 
+/// The backticked citation is delimited by its backticks, and a `.` after the
+/// closing one is sentence punctuation rather than a path character. The first
+/// boundary test written for this used `is_path_char` on both sides and refused
+/// every citation that ended a sentence.
+#[test]
+fn a_backticked_citation_ending_a_sentence_is_rewritten() {
+    let tmp = fixture("See `rules/one.md`. And `rules/one.md`, again.\n");
+    let c = compact(&cfg(), tmp.path(), &plan_with(retire_rules())).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/note.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(out.contains("`AGENTS.md` \"Rules\"."), "{out}");
+    assert!(out.contains("`AGENTS.md` \"Rules\","), "{out}");
+    assert!(c.leftover.is_empty(), "{:?}", c.leftover);
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]
