@@ -217,6 +217,18 @@ adds.
 
 ## 5. Verification
 
+> **Superseded acceptance (2026-09-21).** This block no longer runs.
+> `085-a-version-pin-is-not-a-contract` declares this spec in
+> `amends_verification`, so `spec-spine verify 049` builds its plan from that
+> spec's block and names the substitution in `acceptanceFrom` (spec 082 3.2
+> and 3.4).
+>
+> The commands below are kept **verbatim** and are not corrected, even where a
+> path in one no longer exists: the amending spec's own acceptance asserts
+> that these exact lines are still here, which is how the corpus proves this
+> spec was amended rather than edited (spec 037 3.1). Editing them here is the
+> laundering move amendment exists to refuse, and it goes red.
+
 Every assertion fails against pre-056 code: `--spec` is an unknown argument and
 clap refuses it with exit 2.
 

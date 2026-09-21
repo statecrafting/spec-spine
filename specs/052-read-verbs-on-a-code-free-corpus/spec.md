@@ -219,6 +219,18 @@ honest, not a second scheduler.
 
 ## 5. Verification
 
+> **Superseded acceptance (2026-09-21).** This block no longer runs.
+> `086-an-exact-key-set-refuses-what-the-rule-allows` declares this spec in
+> `amends_verification`, so `spec-spine verify 052` builds its plan from that
+> spec's block and names the substitution in `acceptanceFrom` (spec 082 3.2
+> and 3.4).
+>
+> The commands below are kept **verbatim** and are not corrected, even where a
+> path in one no longer exists: the amending spec's own acceptance asserts
+> that these exact lines are still here, which is how the corpus proves this
+> spec was amended rather than edited (spec 037 3.1). Editing them here is the
+> laundering move amendment exists to refuse, and it goes red.
+
 Both changes fail against pre-059 code: `orphans` emitted one flat array, and
 `--fail-on-untraced` exited 0 on an empty universe.
 

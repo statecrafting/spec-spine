@@ -212,6 +212,27 @@ nothing if the reader is not told to look.
 `registry show <id>` MUST carry `amendsVerification` like any other edge, so
 the fact is answerable without running anything.
 
+**And it is stated in the document, not only at the verb.** The line above is
+printed by `verify`, which is not where a reader of the markdown is. That
+reader opens an amended spec, finds a `## Verification` section with a fenced
+block under it, and has nothing telling them that block does not run: the
+substitution is stated to whoever executes and withheld from whoever reads.
+Measured on 2026-09-21, thirteen of this corpus's sections were in that state.
+
+So the amended spec's `## Verification` section MUST carry, **before** its
+fence, a marked note naming the spec that holds its acceptance. It is the same
+act as the printed line at the other end of the same argument, and the argument
+is 3.4's own: both documents remaining readable is worth nothing if the reader
+is not told to look. A spec that still runs its own block MUST NOT carry the
+note, or its presence stops meaning anything wherever it appears.
+
+The commands under the note MUST NOT be corrected, and the note MUST say so. A
+path in one of them may have stopped existing, and the standing temptation is
+to tidy it; that edit is exactly what spec 037 3.1 refuses, and in four of this
+corpus's cases the amending spec's own acceptance greps those exact lines to
+prove the predecessor was amended rather than edited. A superseded block is the
+record of what was asserted at ratification. A record is not maintained.
+
 ### 3.5 What spec 074's acceptance now is
 
 This spec's `## Verification` block replaces spec 074's in full, and 093's file
@@ -304,6 +325,18 @@ to come from somewhere, and computing it twice, once for the plan and once for
 the message, is how the two drift. The plan names the spec whose block it holds;
 the CLI prints the line when that name differs from the one asked for.
 
+D-8 (2026-09-21, why the note is prose in the document rather than a
+generated line or a lint code). Three alternatives were available. `verify`
+could be asked to rewrite the section, which makes a read verb a writer of the
+corpus it reads and is refused everywhere else in this engine. A new `L-` code
+could refuse a fence in an amended spec outright, which deletes the record the
+amending specs grep. Or the state could have been left to `acceptanceFrom`,
+which is what it was, and which is the defect: the fact was answerable and
+nobody reading the document was answering it. Prose that a corpus-reading test
+quantifies over costs one paragraph per amendment, is visible exactly where the
+confusion happens, and cannot drift from the registry, because the test resolves
+the holder through `verify_plan` rather than trusting the paragraph.
+
 D-5 (2026-09-16, why a superseded amender is skipped rather than refused).
 Superseding a spec is a normal lifecycle act and must not become a validation
 failure in a third spec. Skipping returns the acceptance to whatever held it
@@ -373,4 +406,15 @@ cargo test -p spec-spine-core --test read --locked
 cargo test -p spec-spine-cli --test cli --locked
 # 3.4: the axis is documented where the others are.
 grep -qF 'READ_SCHEMA_VERSION' docs/schema-versioning.md
+# 3.4, the document half: every spec whose acceptance another spec holds says
+# so above its own fence, and no spec that still holds its own says it. Read
+# over the real corpus, because the corpus is the set the rule quantifies over,
+# and resolved through `verify_plan` rather than by trusting the paragraph.
+cargo test -p spec-spine-core --test verify --locked superseded > "${TMPDIR:-/tmp}/ss082-sup.txt" 2>&1
+grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss082-sup.txt"
+rm -f "${TMPDIR:-/tmp}/ss082-sup.txt"
+# 3.4: and one concrete instance beside the quantified one, the spec whose
+# acceptance this block IS. Asserted as an ORDERING, because a note after the
+# fence is read by nobody who stopped at the commands.
+python3 -c 'p="specs/074-a-governed-read-names-its-version/spec.md"; t=open(p).read(); assert t.index("> **Superseded acceptance") < t.index("```verify:cli"), p'
 ```

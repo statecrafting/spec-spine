@@ -229,6 +229,17 @@ its header commented out too.
 
 ## 5. Verification
 
+> **Superseded acceptance (2026-09-21).** This block no longer runs.
+> `092-the-engine-ships-governance-not-an-environment` declares this spec in
+> `amends_verification`, so `spec-spine verify 054` builds its plan from that
+> spec's block and names the substitution in `acceptanceFrom` (spec 082 3.2
+> and 3.4).
+>
+> The commands below are kept **verbatim** and are not corrected, even where a
+> path in one no longer exists. A predecessor is amended, never edited (spec
+> 037 3.1): this block is the record of what was asserted when this spec was
+> ratified, and the amending spec is where the assertion lives now.
+
 Each line below is one command: spec 043 §3.2 makes a fence's body line a
 command, so a trailing `\` continuation becomes its own fragment and fails. The
 scaffold is materialized once at a fixed path, because each line is its own

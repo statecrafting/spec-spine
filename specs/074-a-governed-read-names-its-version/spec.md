@@ -478,6 +478,17 @@ caller is affected.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-21).** This block no longer runs.
+> `082-an-amended-acceptance-is-the-one-that-runs` declares this spec in
+> `amends_verification`, so `spec-spine verify 074` builds its plan from that
+> spec's block and names the substitution in `acceptanceFrom` (spec 082 3.2
+> and 3.4).
+>
+> The commands below are kept **verbatim** and are not corrected, even where a
+> path in one no longer exists. A predecessor is amended, never edited (spec
+> 037 3.1): this block is the record of what was asserted when this spec was
+> ratified, and the amending spec is where the assertion lives now.
+
 Each line is one command. Every line asserting a version member, an `items`
 wrapper or a `next` member fails against pre-093 code, because no read document
 carries any of them; those are the fail-first evidence. The sorted-key
