@@ -488,6 +488,26 @@ for it used `id:` and passed against the defect for the same reason. A block
 scalar is the case that bites, because its continuation lines are indented and
 indistinguishable from items by shape alone.
 
+D-30 (2026-09-21, a line's fate is decided before anything is recorded about
+it). A retarget and a withdrawal from two different entries can name one line.
+Recording the retarget and then discovering the withdrawal left a rewrite record
+for a line that never reached the output, and §3.6's per-form count included it.
+A withdrawal is looked for first; the record follows the decision.
+
+D-31 (2026-09-21, a historical file is a corpus path). It is compared literally
+against corpus-relative paths, so `../outside.md` excludes nothing and says
+nothing, and the retirement proceeds without the exclusion its author intended.
+Refused with the same rule the retired path itself carries. No file outside the
+corpus was ever read: the failure is silence, not reach.
+
+D-32 (2026-09-21, an unreachable finding, fixed anyway, and said so). The
+emptied-key scan tested `ends_with(':')`, which the review read as able to drop a
+scalar whose value ends in a colon. It cannot: a quoted scalar ends with `"`, and
+an unquoted one ending in `:` does not parse, so no corpus that compiles reaches
+the predicate. The scan uses the walk's key rule now because an undeclared
+assumption is worth removing, and the test says it asserts the rule rather than
+reproducing a defect. A test that cannot fail should at least admit it.
+
 ## Verification
 
 Each line is one command, run independently.

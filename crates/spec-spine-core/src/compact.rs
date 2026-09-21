@@ -700,7 +700,24 @@ fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (Str
         // first dropped the second in silence. A withdrawal wins over a
         // retarget on the same line: the line is leaving, so there is nothing
         // left to point elsewhere.
-        let mut withdrawn = false;
+        // A withdrawal on this line wins, so it is looked for FIRST. Recording
+        // a retarget and then discovering a withdrawal left a rewrite record
+        // for a line that never reached the output, and the per-form count
+        // included it.
+        let withdrawn = actions.iter().any(|(entry, action)| {
+            action.action == UnitActionKind::Withdraw
+                && action.edge == current
+                && names_path_in(line, &entry.path, PathContext::Value)
+        });
+        if withdrawn {
+            rewrites.push(Rewrite {
+                line: n + 1,
+                old: line.to_string(),
+                new: String::new(),
+                form: Form::RetiredPath,
+            });
+            continue;
+        }
         let mut retargeted: Option<String> = None;
         for (entry, action) in &actions {
             let subject = retargeted.as_deref().unwrap_or(line);
@@ -708,16 +725,8 @@ fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (Str
                 continue;
             }
             match action.action {
-                UnitActionKind::Withdraw => {
-                    rewrites.push(Rewrite {
-                        line: n + 1,
-                        old: line.to_string(),
-                        new: String::new(),
-                        form: Form::RetiredPath,
-                    });
-                    withdrawn = true;
-                    break;
-                }
+                // Handled above, before any record was written.
+                UnitActionKind::Withdraw => continue,
                 UnitActionKind::Retarget => {
                     let to = action.to.as_deref().unwrap_or_default();
                     let replaced = replace_path_in(subject, &entry.path, to, PathContext::Value);
@@ -731,7 +740,7 @@ fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (Str
                 }
             }
         }
-        if !withdrawn {
+        {
             match retargeted {
                 // The line keeps the ending it arrived with: rewriting a CRLF
                 // file's retargeted lines to LF changes bytes the plan never
@@ -757,10 +766,16 @@ fn drop_empty_edge_keys(src: &str) -> String {
             delimiters += 1;
         }
         let in_frontmatter = delimiters == 1 && line != "---";
+        // The same rule the walk uses: a key line is exactly `key:`. Testing
+        // only `ends_with(':')` read a scalar whose VALUE ends in a colon
+        // (`summary: "See rule:"`) as a key, and would have dropped it.
+        let trimmed_key = line.trim_end();
         let is_key = in_frontmatter
             && !line.starts_with(' ')
             && !line.starts_with('-')
-            && line.ends_with(':');
+            && trimmed_key
+                .strip_suffix(':')
+                .is_some_and(|k| !k.is_empty() && !k.contains(' '));
         if is_key {
             // Look past blank lines: a key separated from its first item by
             // one is still a key with items, and dropping it would delete a
@@ -1308,6 +1323,20 @@ fn validate_retire(
                  heading, so every occurrence in every file would be spared",
                 e.path
             )));
+        }
+        for f in &e.historical_files {
+            let p = Path::new(f);
+            if p.is_absolute()
+                || p.components()
+                    .any(|c| matches!(c, std::path::Component::ParentDir))
+                || f.starts_with("./")
+            {
+                return Err(Error::Config(format!(
+                    "compact: `{}` lists `{f}` as historical; a corpus-relative path is compared \
+                     literally, so this one would exclude nothing and say nothing",
+                    e.path
+                )));
+            }
         }
         if e.historical_files.iter().any(|f| f.trim().is_empty()) {
             return Err(Error::Config(format!(

@@ -12,7 +12,7 @@ use std::fs;
 use std::path::Path;
 
 use spec_spine_core::compact::{
-    CompactPlan, RetireEntry, RetireKind, SkipClause, UnitAction, UnitActionKind, compact,
+    CompactPlan, Form, RetireEntry, RetireKind, SkipClause, UnitAction, UnitActionKind, compact,
     parse_plan,
 };
 use spec_spine_types::{Config, load_config};
@@ -1189,6 +1189,121 @@ fn a_block_scalar_key_does_not_open_an_edge_list() {
         beta.is_empty() || beta.contains("mentions"),
         "a block-scalar continuation was withdrawn as a unit: {beta:?}"
     );
+}
+
+/// A withdrawal on a line wins over a retarget on the same line, and the report
+/// says so once. Recording the retarget and then discovering the withdrawal
+/// left a rewrite record for a line that never reached the output.
+#[test]
+fn a_withdrawal_beats_a_retarget_on_the_same_line_and_is_recorded_once() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "specs/001-beta/spec.md",
+        &spec_doc(
+            "001-beta",
+            "extends:\n  - { spec: \"000-alpha\", paths: [\"rules/\", \"rules/one.md\"] }\n",
+            "Body.",
+        ),
+    );
+    let mut first = retire_rules();
+    first.path = "rules/".into();
+    first.kind = RetireKind::Directory;
+    first.forms = [("citation".to_string(), Some("`AGENTS.md`".to_string()))]
+        .into_iter()
+        .collect();
+    first.units = vec![UnitAction {
+        spec: "001-beta".into(),
+        edge: "extends".into(),
+        action: UnitActionKind::Retarget,
+        to: Some("AGENTS.md".into()),
+        acknowledge_approved: true,
+    }];
+    let mut second = retire_rules();
+    second.units = vec![UnitAction {
+        spec: "001-beta".into(),
+        edge: "extends".into(),
+        action: UnitActionKind::Withdraw,
+        to: None,
+        acknowledge_approved: true,
+    }];
+    let plan = CompactPlan {
+        retire: vec![first, second],
+        ..Default::default()
+    };
+    let c = compact(&cfg(), tmp.path(), &plan).unwrap();
+    let beta = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "specs/001-beta/spec.md")
+        .expect("the owning spec is rewritten");
+    assert!(!beta.contents.contains("rules/"), "{}", beta.contents);
+    let on_line: Vec<_> = c
+        .rewrites
+        .iter()
+        .filter(|f| f.rel_path == "specs/001-beta/spec.md")
+        .flat_map(|f| f.rewrites.iter())
+        .filter(|r| r.form == Form::RetiredPath)
+        .collect();
+    assert_eq!(
+        on_line.len(),
+        1,
+        "one record for a line that left once: {on_line:?}"
+    );
+}
+
+/// The emptied-key scan uses the same key rule as the walk.
+///
+/// This asserts the rule rather than reproducing a defect: the shape the review
+/// described is not reachable in a corpus that compiles. A quoted scalar ends
+/// with `"`, and an unquoted one ending in `:` fails to parse, so no valid
+/// frontmatter reaches the `ends_with(':')` predicate the scan used to carry.
+/// The fix removes an undeclared assumption, and this keeps a colon-bearing
+/// scalar beside a withdrawal so a future key rule cannot quietly drop it.
+#[test]
+fn a_scalar_whose_value_ends_in_a_colon_is_not_an_emptied_key() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "specs/001-beta/spec.md",
+        "---\nid: \"001-beta\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         implementation: complete\nsummary: \"See rule:\"\nestablishes:\n\
+         \x20 - { kind: file, path: \"rules/one.md\" }\n---\n\n# 001-beta\n\nBody.\n",
+    );
+    let mut e = retire_rules();
+    e.units = vec![UnitAction {
+        spec: "001-beta".into(),
+        edge: "establishes".into(),
+        action: UnitActionKind::Withdraw,
+        to: None,
+        acknowledge_approved: true,
+    }];
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let beta = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "specs/001-beta/spec.md")
+        .expect("the owning spec is rewritten");
+    assert!(
+        beta.contents.contains("summary: \"See rule:\""),
+        "a scalar was dropped as an emptied key:\n{}",
+        beta.contents
+    );
+    assert!(!beta.contents.contains("establishes:"), "{}", beta.contents);
+}
+
+/// A historical file is compared literally against corpus-relative paths, so a
+/// traversal spelling excludes nothing and says nothing.
+#[test]
+fn a_historical_file_outside_the_corpus_is_refused() {
+    let tmp = fixture("x");
+    for bad in ["../outside.md", "/etc/passwd", "./docs/note.md"] {
+        let mut e = retire_rules();
+        e.historical_files = vec![bad.to_string()];
+        let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
+        assert_eq!(err.exit_code(), 3, "{bad}: {err}");
+        assert!(format!("{err}").contains("historical"), "{bad}: {err}");
+    }
 }
 
 // ── the plan file ────────────────────────────────────────────────────────────
