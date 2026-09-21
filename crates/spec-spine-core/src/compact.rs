@@ -504,6 +504,43 @@ fn build_map(corpus: &[String], plan: &CompactPlan) -> Result<BTreeMap<String, T
     Ok(map)
 }
 
+/// A character that can be part of a path segment. `_` and `-` are in it and are
+/// not alphanumeric, which is why they are named: a test that asked only
+/// `is_ascii_alphanumeric` read `_rules/one.md` as a citation of `rules/one.md`.
+fn is_path_char(b: u8) -> bool {
+    matches!(b, b'/' | b'.' | b'_' | b'-') || b.is_ascii_alphanumeric()
+}
+
+/// Is the byte before a BARE prose occurrence one that disqualifies it?
+///
+/// A path character means this is a longer path. A quote or a backtick means
+/// another form already owns the occurrence: the backticked citation and the
+/// quoted `path` form are both replaced before this runs, so matching them
+/// again would rewrite one occurrence twice.
+fn preceded_by_path_char(bytes: &[u8], at: usize) -> bool {
+    at > 0 && (is_path_char(bytes[at - 1]) || matches!(bytes[at - 1], b'`' | b'"' | b'\''))
+}
+
+/// Does `line` name `path` as itself, rather than as the head of a longer path?
+///
+/// Used for a frontmatter unit, where the value IS quoted (`path: "rules/"`), so
+/// a quote is a delimiter rather than a disqualifier. `apply_unit_actions` used
+/// a bare `contains` and would edit a unit claiming `kit/rules/sub/` when
+/// `rules/` retires; this is that test, with the quote rule the other call site
+/// needs deliberately left out.
+fn names_path(line: &str, path: &str) -> bool {
+    let bytes = line.as_bytes();
+    let mut from = 0usize;
+    while let Some(rel) = line[from..].find(path) {
+        let at = from + rel;
+        if at == 0 || !is_path_char(bytes[at - 1]) {
+            return true;
+        }
+        from = at + path.len();
+    }
+    false
+}
+
 /// Apply the plan's unit actions to one spec's frontmatter (spec 097 §3.3).
 ///
 /// Line-scoped inside the frontmatter block and inside the named edge's list: a
@@ -552,7 +589,7 @@ fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (Str
         };
         let mut emitted = false;
         for (entry, action) in &actions {
-            if action.edge != current || !line.contains(&entry.path) {
+            if action.edge != current || !names_path(line, &entry.path) {
                 continue;
             }
             match action.action {
@@ -604,7 +641,13 @@ fn drop_empty_edge_keys(src: &str) -> String {
             && !line.starts_with('-')
             && line.ends_with(':');
         if is_key {
-            let next = lines.get(i + 1).map(|l| l.trim_end_matches(['\n', '\r']));
+            // Look past blank lines: a key separated from its first item by
+            // one is still a key with items, and dropping it would delete a
+            // live claim.
+            let next = lines[i + 1..]
+                .iter()
+                .map(|l| l.trim_end_matches(['\n', '\r']))
+                .find(|l| !l.trim().is_empty());
             // An INDENTED `-` is a list item. The closing `---` also starts
             // with one, and reading it as an item kept every emptied key.
             let has_items = next.is_some_and(|l| {
@@ -1153,8 +1196,12 @@ fn retire_file(
             heading = line.trim().trim_start_matches('#').trim().to_string();
         }
         let mut current = line.to_string();
+        // A line spared by one entry is spared, full stop. Advancing to the
+        // next entry let it rewrite a line the report had already called left
+        // alone, so the report described a file that was not the one emitted.
+        let mut spared = false;
         for e in entries {
-            if !current.contains(&e.path) {
+            if spared || !current.contains(&e.path) {
                 continue;
             }
             if e.historical_files.iter().any(|f| f == rel) {
@@ -1164,6 +1211,7 @@ fn retire_file(
                     text: current.trim_end().to_string(),
                     clause: SkipClause::HistoricalFile,
                 });
+                spared = true;
                 continue;
             }
             if e.historical_sections
@@ -1176,6 +1224,7 @@ fn retire_file(
                     text: current.trim_end().to_string(),
                     clause: SkipClause::HistoricalSection,
                 });
+                spared = true;
                 continue;
             }
             if NEGATIONS.iter().any(|m| current.contains(m)) {
@@ -1185,6 +1234,7 @@ fn retire_file(
                     text: current.trim_end().to_string(),
                     clause: SkipClause::Negation,
                 });
+                spared = true;
                 continue;
             }
             let before = current.clone();
@@ -1243,21 +1293,8 @@ fn replace_bare(line: &str, path: &str, text: &str) -> String {
     let mut rest = line;
     while let Some(at) = rest.find(path) {
         // A path character before the match means this is a DIFFERENT path:
-        // `kit/rules/one.md` and `_rules/one.md` are not the retired one. `_`
-        // and `-` are path characters and are not alphanumeric, so they are
-        // named here rather than left to `is_ascii_alphanumeric`.
-        let before = if at == 0 {
-            None
-        } else {
-            Some(rest.as_bytes()[at - 1])
-        };
-        let before_ok = match before {
-            None => true,
-            Some(b) => {
-                !matches!(b, b'/' | b'.' | b'`' | b'"' | b'\'' | b'_' | b'-')
-                    && !b.is_ascii_alphanumeric()
-            }
-        };
+        // `kit/rules/one.md` and `_rules/one.md` are not the retired one.
+        let before_ok = !preceded_by_path_char(rest.as_bytes(), at);
         let after = at + path.len();
         let after_ok = after >= rest.len()
             || matches!(

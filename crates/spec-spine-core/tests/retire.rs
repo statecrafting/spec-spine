@@ -202,6 +202,119 @@ fn every_skip_names_the_clause_that_produced_it() {
     }
 }
 
+/// §3.3: a frontmatter unit claiming a LONGER path is not the retired one. The
+/// unit matcher used a bare `contains` while the prose matcher had a boundary
+/// test, so `kit/rules/sub/` matched a retirement of `rules/` and was edited.
+#[test]
+fn a_unit_claiming_a_longer_path_is_not_the_retired_one() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "specs/001-beta/spec.md",
+        &spec_doc(
+            "001-beta",
+            "establishes:\n  - { kind: directory, path: \"kit/rules/sub/\" }\n",
+            "Body.",
+        ),
+    );
+    let mut e = retire_rules();
+    e.path = "rules/".into();
+    e.kind = RetireKind::Directory;
+    e.forms = [("citation".to_string(), Some("`AGENTS.md`".to_string()))]
+        .into_iter()
+        .collect();
+    e.units = vec![UnitAction {
+        spec: "001-beta".into(),
+        edge: "establishes".into(),
+        action: UnitActionKind::Withdraw,
+        to: None,
+        acknowledge_approved: true,
+    }];
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let beta = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "specs/001-beta/spec.md");
+    if let Some(beta) = beta {
+        assert!(
+            beta.contents.contains("kit/rules/sub/"),
+            "a longer path was withdrawn:\n{}",
+            beta.contents
+        );
+    }
+}
+
+/// §3.5: a line one entry spares is spared, full stop. Advancing to the next
+/// entry let it rewrite a line the report had already called left alone, so the
+/// report described a file that was not the one emitted.
+#[test]
+fn a_line_one_entry_spares_is_not_rewritten_by_another() {
+    let tmp = fixture("! test -e rules/one.md && test -e rules/two.md\n");
+    let mut first = retire_rules();
+    first.historical_files = vec![];
+    let mut second = retire_rules();
+    second.path = "rules/two.md".into();
+    second.forms = [(
+        "citation".to_string(),
+        Some("`AGENTS.md` \"Two\"".to_string()),
+    )]
+    .into_iter()
+    .collect();
+    let plan = CompactPlan {
+        retire: vec![first, second],
+        ..Default::default()
+    };
+    let c = compact(&cfg(), tmp.path(), &plan).unwrap();
+    assert!(
+        !c.skipped.is_empty(),
+        "the negation is reported as spared: {:?}",
+        c.skipped
+    );
+    // The emitted file must be the one the report describes.
+    let emitted = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/note.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(
+        emitted.is_empty() || emitted.contains("rules/two.md"),
+        "a spared line was rewritten by a second entry: {emitted}"
+    );
+}
+
+/// §3.3: a key separated from its first item by a blank line still has items.
+#[test]
+fn a_blank_line_between_a_key_and_its_items_does_not_empty_it() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "specs/001-beta/spec.md",
+        &spec_doc(
+            "001-beta",
+            "establishes:\n\n  - { kind: file, path: \"rules/one.md\" }\n  - \"keep.md\"\n",
+            "Body.",
+        ),
+    );
+    let mut e = retire_rules();
+    e.units = vec![UnitAction {
+        spec: "001-beta".into(),
+        edge: "establishes".into(),
+        action: UnitActionKind::Withdraw,
+        to: None,
+        acknowledge_approved: true,
+    }];
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let beta = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "specs/001-beta/spec.md")
+        .expect("the owning spec is rewritten");
+    assert!(beta.contents.contains("establishes:"), "{}", beta.contents);
+    assert!(beta.contents.contains("keep.md"), "{}", beta.contents);
+    assert!(!beta.contents.contains("rules/one.md"), "{}", beta.contents);
+}
+
 // ── §3.1 and §3.7 the refusals ───────────────────────────────────────────────
 
 #[test]

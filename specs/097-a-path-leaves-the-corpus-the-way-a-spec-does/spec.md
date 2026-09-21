@@ -280,6 +280,21 @@ occurrence that is part of a longer path. The first boundary test asked only
 `is_ascii_alphanumeric`, which let `_rules/one.md` through as a citation of
 `rules/one.md`. Both characters are named explicitly now.
 
+D-4 (2026-09-20, the two boundary tests are not the same test). A bare prose
+occurrence is disqualified by a quote or a backtick, because the backticked
+citation and the quoted `path` form are replaced before it runs and matching
+them again rewrites one occurrence twice. A frontmatter unit is not: its value
+IS quoted, so a quote there is a delimiter. Both read one `is_path_char`, and
+the difference between them is stated where each is defined. Sharing a single
+predicate was tried first and withdrew every unit in the corpus, because
+`path: "rules/"` reads as disqualified.
+
+D-5 (2026-09-20, a line one entry spares is spared). The skip loop advanced to
+the next plan entry after recording a skip, so a line called left alone in the
+report could still be rewritten by a later entry, and the report then described
+a file that was not the one emitted. §3.5's "reported, never silent" is a claim
+about the output, not about one entry's view of it.
+
 ## Verification
 
 Each line is one command, run independently.
