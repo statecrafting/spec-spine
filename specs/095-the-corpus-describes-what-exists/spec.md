@@ -300,7 +300,7 @@ target/release/spec-spine lint --fail-on-warn
 # 3.3: and no removed id is cited outside the specs that account for it and the
 # map that resolves it. The four are 092, which removed the surface, and the
 # three filed here. Read per id, so a failure names the one at fault.
-sh -c 'for id in 006-init-scaffold 029-claude-code-skill-kit 046-kit-hooks-read-never-write 064-the-kit-ships-the-composite-gate 100-one-source-generates-the-agent-trees 116-shepherd-reads-every-reviewer; do if grep -rlF "$id" specs crates .claude/skills .claude/rules .claude/agents AGENTS.md CLAUDE.md README.md 2>/dev/null | grep -qv "^specs/09[2345]-"; then echo "still cited: $id"; exit 1; fi; done; exit 0'
+sh -c 'for id in 006-init-scaffold 029-claude-code-skill-kit 046-kit-hooks-read-never-write 064-the-kit-ships-the-composite-gate 100-one-source-generates-the-agent-trees 116-shepherd-reads-every-reviewer; do if grep -rlF "$id" specs crates .claude/skills .claude/agents AGENTS.md CLAUDE.md README.md 2>/dev/null | grep -qv "^specs/09[2345]-"; then echo "still cited: $id"; exit 1; fi; done; exit 0'
 # 3.2 and 3.4: every removed spec is named by a successor and is in the map.
 test "$(grep -cE '^\| `[0-9]{3}-[a-z0-9-]+` \|' docs/corpus-map.md)" -ge 27
 sh -c 'n=0; for f in specs/*/spec.md; do n=$((n + $(grep -cE "^- \`[0-9]{3}-[a-z0-9-]+\`$" "$f"))); done; test "$n" -eq 27 || { echo "predecessors named: $n, want 27"; exit 1; }'

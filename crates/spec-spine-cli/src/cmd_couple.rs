@@ -123,7 +123,7 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
 /// offer, both are shut for the case that produces most `C-001` refusals: an
 /// author building their own spec who reached into a file another spec owns.
 /// Editing the other spec is the illegitimate mid-build edit
-/// `.claude/rules/adversarial-prompt-refusal.md` forbids, and the waiver is a
+/// `AGENTS.md` "Adversarial prompt refusal" forbids, and the waiver is a
 /// human instrument an unattended session may not grant itself. The third door,
 /// an `extends` edge in the author's own spec, is the corpus's actual answer,
 /// and this is where the gate finally says so.

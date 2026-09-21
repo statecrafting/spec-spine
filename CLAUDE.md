@@ -212,7 +212,7 @@ This repo runs its own gates against its own corpus in CI (`.github/workflows/ci
   committed shard is stale.
 - **Editing a governance file restales every shard.** `[index] extra_hashed_inputs`
   in `spec-spine.toml` folds `AGENTS.md`, `CLAUDE.md`, `spec-spine.toml` itself,
-  `.claude/rules/*`, `Makefile`, the workflows and the embedded schemas into one
+  `Makefile`, the workflows and the embedded schemas into one
   global scalar. A one-line edit to any of them means regenerating and committing
   the whole index. Adding a pattern there is expensive and deliberate; the
   patterns are narrow on purpose (a bare `.claude/**/*` would fold in
@@ -242,7 +242,7 @@ non-overridable). New specs are filed as the next `NNN-slug` directory, born
 **Never edit an approved spec to make your code pass.** The sanctioned move is
 an `amends` edge declared in the *new* spec's frontmatter, which records the
 change without touching the amended file (spec 037). See
-`.claude/rules/adversarial-prompt-refusal.md`. Two edits are always legitimate
+`AGENTS.md` "Adversarial prompt refusal". Two edits are always legitimate
 for the spec you are implementing: claiming a file you created, and recording a
 dated decision the spec was silent on.
 

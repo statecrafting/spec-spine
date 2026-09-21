@@ -32,7 +32,7 @@ nothing from a broken graph; print the diagnostic verbatim), and any
 other failure means the registry is unreadable (`/setup`, or a stale
 binary).
 
-Parsing this output is a typed read (`.claude/rules/governed-artifact-reads.md`).
+Parsing this output is a typed read (`AGENTS.md` "Governed artifact reads").
 Reading `.statecraft/derived/` is not.
 
 ## Step 2: apply the two rules

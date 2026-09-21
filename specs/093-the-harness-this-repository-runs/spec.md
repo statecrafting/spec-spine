@@ -29,7 +29,6 @@ establishes:
   - "AGENTS.md"
   - { kind: directory, path: ".claude/skills/" }
   - { kind: directory, path: ".claude/agents/" }
-  - { kind: directory, path: ".claude/rules/" }
   - ".claude/settings.json"
   # What holds it to the above.
   - "crates/spec-spine-core/tests/harness_hooks.rs"
@@ -90,11 +89,10 @@ spec is `docs/corpus-map.md`, which spec 095 establishes for exactly this reason
 
 | Path | What |
 |---|---|
-| `AGENTS.md` | the cross-agent protocol, the gate list, the project layer |
+| `AGENTS.md` | the cross-agent protocol, the four standing rules, the gate list, the project layer |
 | `.claude/settings.json` | four hook bodies and the destructive-command refusals |
 | `.claude/skills/` | the ten loop skills |
 | `.claude/agents/` | the four agent briefs |
-| `.claude/rules/` | three unconditional rules and one path-scoped |
 | `crates/spec-spine-core/tests/harness_hooks.rs` | the hook bodies, run as programs |
 | `crates/spec-spine-core/tests/harness_skills.rs` | the skills, agents and rules |
 
@@ -395,15 +393,17 @@ consume **no** round.
 
 ### 4.10 The four rules
 
-`.claude/rules/` MUST hold exactly four files:
+The four standing rules are `AGENTS.md`'s `## Rules` section, one `###`
+subsection each (D-4). `.claude/rules/` MUST NOT exist: a rule that binds every
+agent does not belong in one agent's harness directory.
 
-**`governed-artifact-reads.md`** (unconditional). Derived artifacts are read only
+**Governed artifact reads** (unconditional). Derived artifacts are read only
 through `spec-spine` subcommands, never by ad-hoc `jq`, `grep`, `python`, `awk`
 or `sed` over the JSON. It MUST state that parsing the **output** of a subcommand
 is a typed read and is allowed, and why: the tool has already deserialized the
 shards and answers in a contract it versions.
 
-**`adversarial-prompt-refusal.md`** (unconditional). It MUST name the two edits
+**Adversarial prompt refusal** (unconditional). It MUST name the two edits
 always legitimate for the spec a session is implementing (claiming a file the
 session created, and recording a dated decision the spec was silent on), MUST say
 that changing what a spec requires is never the session's to do mid-build, MUST
@@ -411,17 +411,17 @@ point at the `extends` edge as the way to touch another spec's unit, and MUST sa
 that a `Spec-Drift-Waiver` is a human instrument an agent never writes on its own
 authority.
 
-**`orchestrator-rules.md`** (unconditional). It MUST say that regenerated shards
+**Orchestrator rules** (unconditional). It MUST say that regenerated shards
 are committed with the change that made them stale, and why, and MUST state "one
 session, one spec" pointing at `AGENTS.md`.
 
-**`derived-artifacts-are-compiler-output.md`** (path-scoped). Exactly one rule
-carries `paths:` frontmatter, and it is this one, scoped to the **configured**
-derived directory. It MUST say, in its own text, that it does not replace
-`governed-artifact-reads.md` and cannot: a rule that loads only when the derived
-tree is touched cannot prevent the mistake it is about, because the mistake is
-reaching for `jq` **instead of** the subcommand, and a session that does so may
-never touch a path the glob matches.
+**Derived artifacts are compiler output**. It MUST name the **configured**
+derived directory as its scope, in its own text, and it MUST say that it does
+not replace **Governed artifact reads** and cannot: the mistake that rule
+prevents is reaching for `jq` **instead of** the subcommand, and a session that
+does so may never touch a path the scope matches. The scope is now prose rather
+than `paths:` frontmatter, because frontmatter scoping is a loading mechanism of
+one agent's harness and the rule outlived it.
 
 ### 4.11 The four agents
 
@@ -466,8 +466,8 @@ rather than restating them, and MUST:
 `harness_skills.rs` MUST assert §4.1's set, §4.2's frontmatter, §4.3's
 invariance and project layer, §4.4's read-only forms, §4.5's subset property,
 §4.8's four classes and four CRITICAL rows, §4.9's three endpoints with
-`--paginate` and `--slurp` and the three distinct thread values, §4.10's rule set
-including exactly one `paths:` file, and §4.11's agents.
+`--paginate` and `--slurp` and the three distinct thread values, §4.10's four rule sections
+and the scoped one's self-limiting clause, and §4.11's agents.
 
 A filter-based run MUST assert a **non-zero** pass count: a name filter matching
 nothing exits 0, so the bare invocation would stay green while asserting nothing.
@@ -486,6 +486,7 @@ tree that remains is relaxed.
 | 068 §3.1's config-aware glob, §3.3, §3.4's parity | `init --with-kit`, the kit README, the kit copy |
 | 071 §3.3, 072 §3.4, 080 §3.3, 081 §3.3, 099 §3.4, 104 §3.3, 110 §3.3 | assertions over `kit/`, `.codex/`, `.agents/` and `kit_embedded.rs` |
 | 082 §3.5, 116 §3.5 | the two-tree and four-copy equality assertions |
+| 068 §3.1's `paths:` frontmatter requirement | a loading mechanism of one agent's harness, dropped with the directory by D-4 |
 
 One clause moved rather than dropped: 072 §3.3's `Makefile` base-ref derivation
 is spec 094's, with the rest of the gate. Spec 094, the commit-boundary git
@@ -526,6 +527,21 @@ puts `.githooks/pre-commit` in 093 even though it is a hook, and puts
 `AGENTS.md` here even though the gate list lives in it, because the gate list is
 read by a session and executed by `make`.
 
+D-4 (2026-09-20, the four rules move into `AGENTS.md` and `.claude/rules/` is
+deleted). `.claude/` is the harness of one agent. Three of these four rules bind
+every agent, are cited by 18 approved specs, and were loaded by Claude Code's
+own auto-discovery of `.claude/rules/*.md` and by step 0 of the protocol, which
+read them by path. Only the first of those two paths is Claude-specific, and it
+is the one a fold into the cross-agent protocol gives up: a session now meets
+them at `/prime` rather than at startup. What it buys is that the rules stop
+depending on a directory this repository intends to remove, and the citations in
+the corpus point at a document that is staying. The fourth rule loses its
+`paths:` scoping with the directory; its own text already argued the
+unconditional rule is the one doing the work, and it now says its scope in
+prose. The citation rewrite that came with the fold is four literal full-path
+strings, which is why it was safe to do by hand where spec 095's ordinal
+rewrites were not.
+
 ## Verification
 
 Each line is one command, run independently.
@@ -541,7 +557,6 @@ cargo build --release --locked
 test -f AGENTS.md
 test -d .claude/skills
 test -d .claude/agents
-test -d .claude/rules
 test -f .claude/settings.json
 test -f crates/spec-spine-core/tests/harness_hooks.rs
 test -f crates/spec-spine-core/tests/harness_skills.rs
@@ -560,10 +575,12 @@ rm -f "${TMPDIR:-/tmp}/ss092-s.txt"
 test "$(ls -1 .claude/skills | wc -l | tr -d ' ')" = 10
 test -f .claude/skills/prime/SKILL.md
 ! test -e .claude/skills/init
-# 4.10: four rules, exactly one of them path-scoped.
-test "$(ls -1 .claude/rules/*.md | wc -l | tr -d ' ')" = 4
-test "$(grep -l '^paths:' .claude/rules/*.md | wc -l | tr -d ' ')" = 1
-grep -q '^paths:' .claude/rules/derived-artifacts-are-compiler-output.md
+# 4.10: the four rules are sections of the protocol, and the directory is gone.
+! test -e .claude/rules
+grep -qF '### Governed artifact reads' AGENTS.md
+grep -qF '### Adversarial prompt refusal' AGENTS.md
+grep -qF '### Orchestrator rules' AGENTS.md
+grep -qF '### Derived artifacts are compiler output' AGENTS.md
 # 4.12: the protocol names its owner, by path, and not as a claim header.
 grep -qF 'specs/093-the-harness-this-repository-runs/spec.md' AGENTS.md
 ! grep -qE '^// Spec:' AGENTS.md

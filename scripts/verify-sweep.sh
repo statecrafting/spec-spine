@@ -39,7 +39,7 @@
 #       3 the sweep refused to run (usage, untrusted revision, bad ledger, I/O)
 #
 # Reads the corpus only through `spec-spine` (registry list, verify), per
-# .claude/rules/governed-artifact-reads.md.
+# AGENTS.md "Governed artifact reads".
 
 set -u
 

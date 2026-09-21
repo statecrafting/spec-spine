@@ -51,6 +51,6 @@
     "summary": "Spec 044's `## Verification` block has three assertions that no longer hold, and none of the three describes a defect. It compares the whole of `index check`'s stdout against one line, which spec 050 legitimately added a second line to; it takes `len()` of `index diagnostics --json` as a bare array, which spec 074 legitimately wrapped in an `items` envelope; and it pins `VERDICT_SCHEMA_VERSION` at the literal `0.2.0`, which spec 071 legitimately moved to `0.4.0`. The third is the sharpest: 050 3.6 rules that the envelope version MUST NOT move for a payload addition, and a literal pin cannot assert that, because it also fails for every move the rule permits. None of the three amending specs declared `amends_verification`, and all three predate the spec that built it. This spec declares 050's acceptance replaced and carries the corrected block, without editing 050's file.\n",
     "title": "An acceptance outlives the output it was written against"
   },
-  "shardHash": "ed7cff77e8f28a2d708ae008a321a317f51382bab047e566f9e3b38fb8400f4a",
+  "shardHash": "ed39cfc510e2b15af0adef4978d96ad49190210e2464c769c089c8bc2c8e47cf",
   "specVersion": "1.3.0"
 }

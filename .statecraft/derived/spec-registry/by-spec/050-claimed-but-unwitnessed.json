@@ -112,6 +112,6 @@
     "summary": "A `file` unit carries no span, and only span-backing source files are folded into a per-spec index shard hash. So a spec can claim a file, `index check` can report fresh, `index coverage` can report it claimed, and the file's contents can be rewritten from end to end with no gate noticing. This is not hypothetical in this repository: `AGENTS.md` is claimed by three specs, and appending a line to it leaves both `index check` and `compile --check` reporting fresh. Twenty-four claimed paths here are in that state, and spec 021 signs an attestation over a ledger that never hashed any of them. This spec adds `L-008`, a warning naming each claimed path that contributes to no content hash, and one line of `index check` output reporting the count. It does not fold claimed files into the hash: that would change what staleness means, and the honest first move is to say how large the gap is.\n",
     "title": "A claim no hash witnesses"
   },
-  "shardHash": "366d8d81b8c86dc5830f61cc0d94d8aa8aa6c7ff73926f877f07c6eed78e8094",
+  "shardHash": "d50b8b8c6fb4730a5d7adeb5a8b66c420fc76c7483d9d6832bd99c7c9679b33e",
   "specVersion": "1.3.0"
 }

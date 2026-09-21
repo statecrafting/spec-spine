@@ -11,10 +11,6 @@
         "source": "spec-edge"
       },
       {
-        "path": ".claude/rules/",
-        "source": "spec-edge"
-      },
-      {
         "path": ".claude/settings.json",
         "source": "spec-edge"
       },
@@ -47,19 +43,6 @@
         "unit": {
           "kind": "directory",
           "path": ".claude/agents/"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": ".claude/rules/"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "directory",
-          "path": ".claude/rules/"
         }
       },
       {
@@ -132,5 +115,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "94dec21885803edbef491fb8f97678c4a566c47660f9f4ffc312675f5837f41c"
+  "shardHash": "f1cbe22a3f696aaab04bacad49274c6c9f591e226e014222bd7de90f721c98cf"
 }

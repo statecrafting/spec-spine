@@ -37,7 +37,7 @@ extends:
   - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/tests/dtos.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
-  - { unit: { kind: file, path: ".claude/rules/adversarial-prompt-refusal.md" }, role: context }
+  - { unit: { kind: file, path: "AGENTS.md" }, role: context }
 summary: >
   The coupling gate has always named the specs that own a drifted path, and has
   never named the mechanism for crossing into their territory. Its resolution
@@ -77,7 +77,7 @@ Two doors, and for the case that produces most of these refusals, both are shut.
 
 The author is usually building their own spec and has reached into a file
 another spec owns. Door one, editing `004-codebase-index/spec.md`, is exactly
-the edit `.claude/rules/adversarial-prompt-refusal.md` forbids: changing what a
+the edit `AGENTS.md` "Adversarial prompt refusal" forbids: changing what a
 spec requires, mid-build, to clear a mechanical refusal. Door two, the waiver,
 is a human instrument. The adopter audit found it configured, hook-gated and
 documented in all four governed repositories and **used in none of them**, and

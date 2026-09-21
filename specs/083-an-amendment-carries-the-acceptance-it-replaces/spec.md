@@ -174,7 +174,7 @@ the CLI rather than off the shard.
 Spec 079's file MUST still carry the superseded form of the primitive-verb
 assertion (`index check`, `-eq 2`). That is the spec 037 §3.1 half, and it is
 the assertion that goes red if someone ever resolves this by editing 098
-instead, which is the move `.claude/rules/adversarial-prompt-refusal.md`
+instead, which is the move `AGENTS.md` "Adversarial prompt refusal"
 refuses.
 
 The resolution itself MUST keep passing through spec 082's own cases

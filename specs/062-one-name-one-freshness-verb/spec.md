@@ -18,7 +18,7 @@ establishes:
   # spec 044's `--fail-on-unresolved` and its gate refuses warnings too, so a
   # claim on a path that does not exist would have refused the filing PR. The
   # claim lands with the file, which is the edit
-  # `.claude/rules/adversarial-prompt-refusal.md` names as always legitimate.
+  # `AGENTS.md` "Adversarial prompt refusal" names as always legitimate.
   - "crates/spec-spine-cli/src/cmd_check.rs"
 extends:
   # 3.2 the composed verb reaches the CLI's dispatch and the facade.
@@ -111,7 +111,7 @@ claim on a path that does not exist refuses the gate: spec 041's in-flight
 window makes the unresolved unit a `W-001` warning rather than an error, and
 this repository's gate refuses warnings too. The claim therefore lands in the
 implementing change, with the file, which is exactly the edit
-`.claude/rules/adversarial-prompt-refusal.md` names as always legitimate for
+`AGENTS.md` "Adversarial prompt refusal" names as always legitimate for
 the spec being implemented. Filing it in the draft would put the corpus in a
 state its own CI refuses, for the sake of claiming a file nobody has written.
 

@@ -66,10 +66,29 @@ tidiness:
    verdict. They are asserted by `tests/harness_hooks.rs` against the file on
    disk. A global replacement has to carry them or the enforcement goes with the
    tree.
-3. `.claude/rules/` is four rules, one path-scoped, and the scaffold no longer
-   writes any of them (spec 092 §3.3), so this repository's copy is the only
-   copy.
-4. `.claude/settings.json` and `.claude/skills/*/SKILL.md` are hashed inputs
+   **Partly discharged, 2026-09-20.** The push gate is repository-agnostic git
+   policy: it needs `git` and `jq` and knows nothing about spec-spine. It is now
+   installed globally at `~/.claude/hooks/push-gate.sh`, registered as a
+   `PreToolUse(Bash)` hook in `~/.claude/settings.json`, so every repository on
+   this machine is protected rather than only this one. It was **copied, not
+   moved**: `harness_hooks.rs` exercises that body as a program over a matrix of
+   command spellings and branch names, and a test cannot read `$HOME` and stay
+   hermetic. Moving it today would delete the only assertions this gate has
+   while `.claude/` itself stays, and buy nothing. The two run in sequence and
+   refuse identically; when the tree finally goes, the project copy goes with it
+   and the global one is already in place and already proven. The PR gate and
+   the two session hooks are spec-spine-specific and stay until Statecraft
+   delivers.
+
+3. ~~`.claude/rules/`~~ **done, 2026-09-20.** The four rules are now
+   `AGENTS.md`'s `## Rules` section (spec 093 D-4) and the directory is gone.
+   This was the one class that could never have relocated to a global home: the
+   rules are spec-spine governance, and under `~/.claude/rules/` they would bind
+   every project the user opens. Folding them into the cross-agent protocol
+   removed them from `.claude/` without moving them anywhere. What it gave up is
+   Claude Code's auto-discovery of `.claude/rules/*.md`: a session now meets
+   them at `/prime` instead of at startup.
+4. `.claude/settings.json`, `.claude/agents/*.md` and `.claude/skills/*/SKILL.md` are hashed inputs
    (`spec-spine.toml [index] extra_hashed_inputs`). Removing them restales every
    shard, which is a regeneration, not a problem, but it belongs in the same
    change.

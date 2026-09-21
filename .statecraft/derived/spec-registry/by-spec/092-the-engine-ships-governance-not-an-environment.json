@@ -273,7 +273,7 @@
         "spec": "093-the-harness-this-repository-runs",
         "unit": {
           "kind": "file",
-          "path": ".claude/rules/orchestrator-rules.md"
+          "path": "AGENTS.md"
         }
       },
       {
@@ -332,6 +332,6 @@
     "summary": "spec-spine has been shipping two products. One is a governance engine: a compiler, an indexer, a classifier, a coupling gate, a verifier. The other is a development environment: twenty-nine files of skills, agents, rules, hooks, a Makefile and a CI workflow, embedded into the binary as a 2,707-line generated module and written out by a public `init --with-kit`, plus two further generated projections of the same instructions for other agent runtimes. The second product is now Statecraft's: the Statecraft CLI is the sole distributor and initializer of the managed development environment, and it places the compiled governance artifacts at `.statecraft/derived/`. This spec removes the public initialization command, the kit, the embedded kit, the agent-tree projections and the parity machinery that held them equal; narrows the retained library scaffold to governance starter content and nothing else; relocates this repository's own committed derived trees; and records, per predecessor, what the removal does to the claims and the acceptance those specs left behind.\n",
     "title": "The engine ships governance, not an environment"
   },
-  "shardHash": "fb3147edc2d17110a9babcf8a7396a1b408dd0ed550a0b167b3f15e700207a4a",
+  "shardHash": "56f9d82c2becff417d363027753c2ba9deea02c73125549638ee8a37a5f1b422",
   "specVersion": "1.3.0"
 }

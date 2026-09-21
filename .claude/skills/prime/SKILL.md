@@ -15,7 +15,7 @@ sessions alike.
 
 1. Read `AGENTS.md`: the section from `## New Sessions` inclusive to the
    next `## ` heading exclusive. That section is the step list.
-2. Load the standing rules it names first (`.claude/rules/`), then execute
+2. Load the standing rules it names first (its own `## Rules` section), then execute
    the protocol, using parallel tool calls wherever it says "dispatch
    simultaneously".
 3. Emit the structured summary the protocol prescribes: the

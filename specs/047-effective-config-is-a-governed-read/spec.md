@@ -51,7 +51,7 @@ summary: >
 Every read in this system is meant to go through a typed consumer. The
 constitution's principle II says machine truth is read only through the
 `spec-spine` binary or the `spec-spine-core` library, and
-`.claude/rules/governed-artifact-reads.md` says the same to every agent working
+`AGENTS.md` "Governed artifact reads" says the same to every agent working
 in an adopting repository. The reason is always the same: a hand-rolled parser
 encodes today's assumptions and then goes quietly wrong when the contract moves.
 
@@ -93,7 +93,7 @@ item 5 of the adopter audit's ranked backlog for the tool.
 
 A new `crates/spec-spine-cli/src/cmd_config.rs` and its acceptance test are
 created by the implementing change and claimed there, per
-`.claude/rules/adversarial-prompt-refusal.md`: adding a file you created to the
+`AGENTS.md` "Adversarial prompt refusal": adding a file you created to the
 spec you are implementing is one of the two always-legitimate mid-build edits.
 
 Nothing about the gate's decision is in this spec's territory. `couple.rs`

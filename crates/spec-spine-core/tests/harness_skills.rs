@@ -487,43 +487,54 @@ fn no_skill_names_a_gate_flag_agents_md_omits() {
     }
 }
 
-// ── spec 093: one path-scoped rule, exercised here ────────────────────────
+// ── spec 093 4.10: the four rules, as sections of the protocol ────────────
 
-/// §3.1: exactly one rule carries `paths:` frontmatter. The value is the worked
-/// example and the fit; a directory of conditional rules would make adopters
-/// read scoping decisions that are theirs to make.
+/// The lines of `AGENTS.md` that belong to the `### ` section named `heading`.
+fn rule_section(body: &str, heading: &str) -> String {
+    let start = body
+        .find(&format!("### {heading}\n"))
+        .unwrap_or_else(|| panic!("AGENTS.md has no rule section `### {heading}`"));
+    let rest = &body[start..];
+    let end = rest[4..]
+        .find("\n## ")
+        .map(|i| i + 4 + 1)
+        .unwrap_or(rest.len());
+    rest[..end].to_string()
+}
+
+fn agents_md() -> String {
+    fs::read_to_string(repo_root().join("AGENTS.md")).unwrap()
+}
+
+/// 4.10 / D-4: the four rules are sections of the cross-agent protocol, and the
+/// directory they used to live in is gone. `.claude/` is one agent's harness; a
+/// rule that binds every agent is not scoped to it.
 #[test]
-fn exactly_one_rule_is_path_scoped() {
-    let dir = repo_root().join(".claude/rules");
-    let scoped: Vec<String> = fs::read_dir(&dir)
-        .unwrap()
-        .filter_map(|e| e.ok())
-        .filter(|e| e.path().extension().is_some_and(|x| x == "md"))
-        .filter(|e| {
-            let body = fs::read_to_string(e.path()).unwrap();
-            body.starts_with("---\n") && body.contains("\npaths:\n")
-        })
-        .map(|e| e.file_name().to_string_lossy().into_owned())
-        .collect();
-    assert_eq!(
-        scoped,
-        vec!["derived-artifacts-are-compiler-output.md".to_string()],
-        "one path-scoped rule, not three"
+fn the_four_rules_are_sections_of_the_protocol() {
+    let body = agents_md();
+    for heading in [
+        "Governed artifact reads",
+        "Adversarial prompt refusal (the coherence guard)",
+        "Orchestrator rules",
+        "Derived artifacts are compiler output",
+    ] {
+        assert!(
+            body.contains(&format!("### {heading}\n")),
+            "AGENTS.md must carry the rule section `### {heading}`"
+        );
+    }
+    assert!(
+        !repo_root().join(".claude/rules").exists(),
+        "the rule directory is folded into AGENTS.md, not kept alongside it"
     );
 }
 
-/// §3.1: it is scoped to the derived tree and carries the artifact-specific
-/// half of the governed-reads rule, including the clarification spec 093 added
-/// and that adopters most needed: parsing a subcommand's OUTPUT is a typed read.
+/// 4.10: the derived-tree rule names the CONFIGURED derived root, not the
+/// product default (spec 092 3.7 moved it), and carries the clarification
+/// adopters most needed: parsing a subcommand's OUTPUT is a typed read.
 #[test]
 fn the_scoped_rule_covers_the_derived_tree_and_allows_reading_cli_output() {
-    let body = fs::read_to_string(
-        repo_root().join(".claude/rules/derived-artifacts-are-compiler-output.md"),
-    )
-    .unwrap();
-    // Scoped to THIS repository's configured derived root, not to the product
-    // default: spec 092 §3.7 moved it, and a rule still naming `.derived/**`
-    // would be scoped to a directory that no longer exists here.
+    let body = rule_section(&agents_md(), "Derived artifacts are compiler output");
     let cfg = spec_spine_types::load_config(
         &fs::read_to_string(repo_root().join("spec-spine.toml")).unwrap(),
     )
@@ -538,18 +549,16 @@ fn the_scoped_rule_covers_the_derived_tree_and_allows_reading_cli_output() {
     );
 }
 
-/// §3.2: the rule says, in its own text, that it does not replace the
-/// unconditional one and cannot. A reader comparing the two files will
+/// 4.10: the scoped half says, in its own text, that it does not replace the
+/// unconditional one and cannot. A reader comparing the two sections will
 /// otherwise conclude one is redundant, and the redundant-looking one is the
 /// one that does the work.
 #[test]
 fn the_scoped_rule_says_it_does_not_replace_the_unconditional_one() {
-    let root = repo_root();
-    let scoped =
-        fs::read_to_string(root.join(".claude/rules/derived-artifacts-are-compiler-output.md"))
-            .unwrap();
+    let body = agents_md();
+    let scoped = rule_section(&body, "Derived artifacts are compiler output");
     assert!(
-        scoped.contains("does not replace `governed-artifact-reads.md`"),
+        scoped.contains("does not replace \"Governed artifact reads\""),
         "{scoped}"
     );
     assert!(
@@ -558,13 +567,8 @@ fn the_scoped_rule_says_it_does_not_replace_the_unconditional_one() {
     );
 
     // And the unconditional rule keeps its full content.
-    let unconditional =
-        fs::read_to_string(root.join(".claude/rules/governed-artifact-reads.md")).unwrap();
+    let unconditional = rule_section(&body, "Governed artifact reads");
     assert!(unconditional.contains("jq"), "{unconditional}");
-    assert!(
-        !unconditional.contains("\npaths:\n"),
-        "it stays unconditional"
-    );
 }
 
 /// The lines of a skill body that belong to the `## ` section whose heading

@@ -123,7 +123,7 @@ dispatch on type and version, and treat an unknown MAJOR as `unsupported`,
 which is neither pass nor fail. A document with no version cannot be dispatched
 on at all. The consumer's options are to pin a tool version (which spec 055's
 `required_version` floor exists to make unnecessary) or to sniff for members,
-which is the ad-hoc parsing `.claude/rules/governed-artifact-reads.md` was
+which is the ad-hoc parsing `AGENTS.md` "Governed artifact reads" was
 written against, one layer up.
 
 This is design note 04's F8 and its D7. F8 records the finding; D7 records the

@@ -37,7 +37,7 @@ spec-spine is a Rust library plus CLI over a markdown spec corpus.
 | Distributions | `npm/`, `py/` | Adopter packaging |
 | Derived | `.statecraft/derived/` | Compiler output (registry, index) |
 
-Key files: `CLAUDE.md` (conventions), `AGENTS.md` (session protocol), `.claude/rules/` (behavioral rules).
+Key files: `CLAUDE.md` (conventions), `AGENTS.md` (session protocol, and the behavioral rules in its `## Rules` section).
 
 Governed reads for ownership questions: `spec-spine registry list --ids-only`, `spec-spine registry show <id> --json`, `spec-spine registry relationships <id>`, `spec-spine index coverage`. Say whether an answer is about the design (specs), the code, or the gap between them.
 

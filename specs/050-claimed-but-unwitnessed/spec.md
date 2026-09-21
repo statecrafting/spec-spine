@@ -82,7 +82,7 @@ tree that specs 095, 046, 048 and 051 exist to govern.
 Three separate things read as safe and are not:
 
 - **The Stop and PostToolUse hooks** run `index check` after an edit to
-  `AGENTS.md`, `CLAUDE.md`, `.claude/rules/*.md` and `.claude/skills/*/*.md`.
+  `AGENTS.md`, `CLAUDE.md` and `.claude/skills/*/*.md`.
   Every one of those paths is unhashed, so the check is a formality on exactly
   the paths the hook lists.
 - **`index coverage`** reports a claimed file as claimed, which is true and is
@@ -245,7 +245,7 @@ turn the check off rather than record a decision.
 `spec-spine.toml` rather than here, because the decision is a configuration:
 
 - **Twenty covered by a hashed-input glob.** The governance and harness files
-  specs claim (`AGENTS.md`, `CLAUDE.md`, `.claude/rules/`, `.githooks/`,
+  specs claim (`AGENTS.md`, `CLAUDE.md`, `.githooks/`,
   `scripts/`, `install.sh`, three `docs/` files, the `kit/` copies) plus the
   five embedded JSON Schemas, which are hashed rather than allowlisted because a
   schema edit is exactly what the ledger should notice.

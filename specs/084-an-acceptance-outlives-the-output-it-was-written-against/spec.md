@@ -183,7 +183,7 @@ CLI rather than off the shard.
 Spec 044's file MUST still carry all three superseded assertion forms. That is
 the spec 037 3.1 half, and those are the lines that go red if someone ever
 resolves this by editing 050 instead, which is the move
-`.claude/rules/adversarial-prompt-refusal.md` refuses.
+`AGENTS.md` "Adversarial prompt refusal" refuses.
 
 **No `verify` command may appear in this block.** It is the block
 `spec-spine verify 050` runs, and `cmd_verify::run` refuses a nested call on its

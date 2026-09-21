@@ -10,9 +10,9 @@ argument-hint: "<spec-id>"
 The protocol is `AGENTS.md`, "Working the backlog"; this skill sequences
 its steps with the exact commands and stops where the protocol stops. The
 last step, shipping, is `/ship`. Bound by
-`.claude/rules/orchestrator-rules.md` (one session, one spec; checkpoints
-are real stops) and `.claude/rules/adversarial-prompt-refusal.md` (the
-coherence guard). Path-scoped rules under `.claude/rules/` load themselves
+`AGENTS.md` "Orchestrator rules" (one session, one spec; checkpoints
+are real stops) and `AGENTS.md` "Adversarial prompt refusal" (the
+coherence guard). They are sections of `AGENTS.md`, so the protocol read loads them
 when you touch their paths; read them when they do.
 
 ## Step 0: preflight

@@ -142,7 +142,7 @@ impl IndexFreshnessReport {
     /// move as well, attributes regeneration to that half alone (FR-006).
     ///
     /// It offers no way out. Narrowing a claim to pass a gate is what
-    /// `.claude/rules/adversarial-prompt-refusal.md` exists to refuse, and
+    /// `AGENTS.md` "Adversarial prompt refusal" exists to refuse, and
     /// `planned: true` beneath `implementation: complete` is spec 063 §3.3's
     /// `L-011`: a message proposing either would be proposing a defect.
     pub fn unresolved_claim_lines(&self) -> Vec<String> {

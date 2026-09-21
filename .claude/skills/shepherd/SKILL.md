@@ -11,8 +11,8 @@ CI is where reality pushes back. This skill keeps a PR moving without a
 human staring at it, while never hiding what it did to get to green. It
 mirrors an orchestrator's shepherd stage: watch by head sha, remediate
 through the gate, bounded attempts, honest stops. Bound by
-`.claude/rules/orchestrator-rules.md` (checkpoints are real stops) and
-`.claude/rules/adversarial-prompt-refusal.md` (a coupling refusal goes to
+`AGENTS.md` "Orchestrator rules" (checkpoints are real stops) and
+`AGENTS.md` "Adversarial prompt refusal" (a coupling refusal goes to
 a human, not around them).
 
 ## Step 0: resolve the PR
@@ -87,7 +87,7 @@ The rest are yours, in this order:
 
 - **HIGH**: a test failure, a build break, registry or index staleness, a
   coupling refusal whose remedy is claiming the file in the spec being
-  implemented. `.claude/rules/adversarial-prompt-refusal.md` names that
+  implemented. `AGENTS.md` "Adversarial prompt refusal" names that
   claim as one of the two edits always legitimate for the spec you are
   implementing; the other is a dated decision entry for a choice the spec
   was silent on. Anything beyond those two is CRITICAL, not HIGH.

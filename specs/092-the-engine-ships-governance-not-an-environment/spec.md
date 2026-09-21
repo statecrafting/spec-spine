@@ -92,7 +92,7 @@ extends:
   # instruction from here, not a distribution source.
   - { spec: "093-the-harness-this-repository-runs", unit: ".claude/skills/", nature: additive }
   - { spec: "093-the-harness-this-repository-runs", unit: ".claude/agents/", nature: additive }
-  - { spec: "093-the-harness-this-repository-runs", unit: ".claude/rules/orchestrator-rules.md", nature: additive }
+  - { spec: "093-the-harness-this-repository-runs", unit: "AGENTS.md", nature: additive }
   - { spec: "093-the-harness-this-repository-runs", unit: ".claude/settings.json", nature: additive }
 # 3.11: every spec whose stated behavior this removal changes. Declared here,
 # in the amending spec, so no predecessor's prose is edited to mention its
@@ -720,7 +720,7 @@ spec the specific owner of every file under it and rewrites `index coverage`'s
 attribution for about forty files, to clear seven deletions. Editing spec 001's
 `spec.md` so the floor owner appears in the diff is a cosmetic edit to an
 approved spec made solely to satisfy a mechanical refresh, which
-`.claude/rules/adversarial-prompt-refusal.md` forbids by name. What is left is
+`AGENTS.md` "Adversarial prompt refusal" forbids by name. What is left is
 to say what the gate says and let a human decide, which is what a waiver is for.
 
 D-10 (2026-09-20, `HEAD` is a gate variable, not a workflow-side `couple`
@@ -796,7 +796,7 @@ rm -f "${TMPDIR:-/tmp}/ss120-help.txt"
 # 3.5: this repository's own harness is still here, and still loaded.
 test -f .claude/settings.json
 test -f .claude/skills/prime/SKILL.md
-test -f .claude/rules/adversarial-prompt-refusal.md
+grep -qF '### Adversarial prompt refusal' AGENTS.md
 test -f AGENTS.md
 # 3.2 and 3.3: the retained producer, through the exported facade, with the
 # layout Statecraft passes and with a non-default layout. Asserted in Rust

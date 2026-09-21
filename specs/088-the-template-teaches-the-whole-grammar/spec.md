@@ -268,7 +268,7 @@ and worse to live with: the assertion belongs beside
 `bootstrap_spec_000_parses`, which already reads a repository document and holds
 it to this crate's grammar. `dogfood.rs` is owned by 000 through the package
 floor and a `// Spec:` header, and an `extends` edge carrying that unit is a
-first-class claim that amends nobody (`.claude/rules/adversarial-prompt-refusal.md`).
+first-class claim that amends nobody (`AGENTS.md` "Adversarial prompt refusal").
 Spec 000's file is not edited; seven specs already extend the sibling
 `grammar.rs` the same way.
 

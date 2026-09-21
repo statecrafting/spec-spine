@@ -49,7 +49,7 @@ as the record of what was true. Read quickly, though, "patches in place" sounds
 like an instruction to edit the predecessor, which is the opposite of what it
 means and the opposite of what the corpus does.
 
-`.claude/rules/adversarial-prompt-refusal.md` says never to amend an owning spec
+`AGENTS.md` "Adversarial prompt refusal" says never to amend an owning spec
 to satisfy a mechanical refresh. That rule governs agents working in this repo
 and is not part of the corpus, so it does not answer the question for anyone
 reading the specs alone.

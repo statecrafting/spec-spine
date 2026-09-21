@@ -59,7 +59,7 @@ and this repository's own `/next` skill has to issue a second `registry` call to
 turn an id into a line a human can act on.
 
 There is also a shape mismatch. The corpus's working rule is one session, one
-spec: `.claude/rules/orchestrator-rules.md` says so, `AGENTS.md` says so, and
+spec: `AGENTS.md` "Orchestrator rules" says so, `AGENTS.md` says so, and
 every driven session begins by picking exactly one. `plan` returns a list, so
 every caller takes the first element and re-derives which "first" means the
 right one. That derivation is contractual (topological, ties by ascending id)

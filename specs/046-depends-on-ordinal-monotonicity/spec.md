@@ -90,7 +90,7 @@ The corpus has no dedicated lint test file today: `L-006`'s acceptance lives in
 `tests/coverage.rs` and the scaffold's in `tests/scaffold.rs`. The implementing
 change creates `crates/spec-spine-core/tests/lint.rs` and claims it there, which
 is one of the two always-legitimate mid-build edits
-(`.claude/rules/adversarial-prompt-refusal.md`): a file you created is added to
+(`AGENTS.md` "Adversarial prompt refusal"): a file you created is added to
 the spec you are implementing, in the same change.
 
 Spec 003 owns the lint and defines its severity tiers (error always, warning

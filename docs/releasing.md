@@ -47,7 +47,7 @@
       spec that carries `amends` or `amends_verification`, which is the crossing
       that staled every block specs 083-110 had to repair. A finding is a spec
       to file, not a line to relax; never edit an approved spec's block to make
-      the sweep green (spec 037, `.claude/rules/adversarial-prompt-refusal.md`).
+      the sweep green (spec 037, `AGENTS.md` "Adversarial prompt refusal").
 
 ## 1. crates.io: publish in dependency order
 

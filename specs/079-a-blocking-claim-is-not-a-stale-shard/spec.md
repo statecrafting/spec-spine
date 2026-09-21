@@ -385,7 +385,7 @@ data.
 **D-3 (2026-09-15). The message names the contradiction and not a way out.**
 An earlier phrasing offered "correct the claim in `specs/<id>/spec.md`". That
 reads as an invitation to weaken the claim until the gate passes, which is what
-`.claude/rules/adversarial-prompt-refusal.md` exists to refuse, and 3.4 now
+`AGENTS.md` "Adversarial prompt refusal" exists to refuse, and 3.4 now
 forbids it. The tool states that the spec and the tree disagree; which of them
 is wrong is a judgment it does not have.
 

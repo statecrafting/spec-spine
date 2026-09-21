@@ -190,7 +190,7 @@ CLI rather than off the shard.
 Spec 049's file MUST still carry the superseded literal pin. That is the spec
 037 3.1 half, and it is the assertion that goes red if someone ever resolves
 this by editing 056 instead, which is the move
-`.claude/rules/adversarial-prompt-refusal.md` refuses.
+`AGENTS.md` "Adversarial prompt refusal" refuses.
 
 The resolution itself MUST keep passing through spec 082's own cases (`spec103_`
 in `crates/spec-spine-core/tests/verify.rs`). No code changes here, so the

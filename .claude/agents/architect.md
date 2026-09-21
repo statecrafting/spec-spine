@@ -37,7 +37,7 @@ spec-spine is a Rust library plus CLI: a typed, hash-verifiable authority ledger
 | Distributions | `npm/`, `py/` | Adopter-facing packaging, not used by the self-governance loop |
 | Derived | `.statecraft/derived/` | Compiler output (registry, index), read only through the binary |
 
-Specs are the source of truth: every feature starts as a spec under `specs/`, following `standards/spec/templates/spec-template.md`. The behavioral rules are in `.claude/rules/` (orchestrator, governed artifact reads, adversarial prompt refusal).
+Specs are the source of truth: every feature starts as a spec under `specs/`, following `standards/spec/templates/spec-template.md`. The behavioral rules are `AGENTS.md`'s `## Rules` section (orchestrator, governed artifact reads, adversarial prompt refusal, derived artifacts are compiler output).
 
 ## Process
 

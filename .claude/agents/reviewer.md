@@ -90,7 +90,7 @@ For each changed file:
   decision entry, a dated status note, the `implementation` flip, and a new
   `extends` edge are legitimate mid-build edits. Anything that changes what
   the spec *requires* is a coherence-guard finding, severity critical
-  (`.claude/rules/adversarial-prompt-refusal.md`).
+  (`AGENTS.md` "Adversarial prompt refusal").
 - Flag drift the gate cannot see: code doing something the owning spec's
   narrative never describes, even when `couple` passes (an over-broad edge).
 - Read the spec through `spec-spine registry show <id> --json` and
@@ -172,7 +172,7 @@ This agent has `memory: project` and writes to `.claude/agent-memory/reviewer/ME
 - **Drift signatures**: the same class of defect seen twice. Examples: a status flip whose owning spec lacks the relationship edge to stay coupling-clean, a `Cargo.toml` change shipping without spec coverage, a stale committed codebase index.
 - **Stable preferences**: author conventions that are consistently applied but not written in `CLAUDE.md`.
 - **spec-spine quirks**: non-obvious toolchain behaviors you only discover by reviewing many changes (e.g. which inputs the codebase index hashes and which it does not).
-- **Recurring coherence-guard triggers**: patterns of "edit the spec to satisfy an action" that need extra scrutiny (see `.claude/rules/adversarial-prompt-refusal.md`).
+- **Recurring coherence-guard triggers**: patterns of "edit the spec to satisfy an action" that need extra scrutiny (see `AGENTS.md` "Adversarial prompt refusal").
 
 **Do NOT record** single-PR details (file paths from one diff, commit hashes, "user asked about spec NNN"), explanations of how the toolchain works (that lives in specs and the standard), or transcripts of past reviews. The memory should read like a senior reviewer's mental model after a year on the project: patterns, not events.
 

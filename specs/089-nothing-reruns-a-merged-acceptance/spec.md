@@ -161,7 +161,7 @@ MUST NOT parse `## Verification` itself. `verify` already resolves
 block carried for an amended spec is the block the sweep runs, and the sweep
 gets that for free rather than reimplementing it. Its selection MUST come from
 `spec-spine registry list --ids-only`, a governed read
-(`.claude/rules/governed-artifact-reads.md`); the sweep MUST NOT read
+(`AGENTS.md` "Governed artifact reads"); the sweep MUST NOT read
 `.derived/**` directly.
 
 Whether a spec declares acceptance MUST be decided with `verify <id> --plan`,

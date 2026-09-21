@@ -663,7 +663,7 @@ fn the_completion_claim_is_named_only_when_it_was_made() {
 #[test]
 fn the_report_offers_no_way_out_of_the_refusal() {
     // Spec 079 §3.4 / AC-7 / D-3. Narrowing a claim until the gate passes is
-    // what `.claude/rules/adversarial-prompt-refusal.md` exists to refuse, and
+    // what `AGENTS.md` "Adversarial prompt refusal" exists to refuse, and
     // `planned: true` beneath `implementation: complete` is spec 063 §3.3's
     // `L-011`: a message proposing either would be proposing a defect.
     let fx = fixture();

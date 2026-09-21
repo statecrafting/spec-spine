@@ -254,7 +254,7 @@ target/release/spec-spine registry show 022-index-sharding --json | python3 -c '
 # above, which edits a spec.md without recompiling and watches the reported
 # hash stay put. It is asserted there rather than here because reading the
 # shard to compare against it is exactly the ad-hoc parse
-# `.claude/rules/governed-artifact-reads.md` forbids.
+# `AGENTS.md` "Governed artifact reads" forbids.
 # 3.3: nothing committed moves.
 target/release/spec-spine compile --check
 ```

@@ -8,7 +8,7 @@ allowed-tools: Bash, Read
 
 Get a fresh clone operational. After this completes, `/prime` can report
 lifecycle and structural counts through `spec-spine`, never by ad-hoc
-parsing of `.statecraft/derived/**/*.json` (`.claude/rules/governed-artifact-reads.md`).
+parsing of `.statecraft/derived/**/*.json` (`AGENTS.md` "Governed artifact reads").
 
 ## Process
 

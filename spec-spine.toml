@@ -81,7 +81,6 @@ extra_hashed_inputs = [
   # Governance and harness files specs claim (spec 050).
   "AGENTS.md",
   "CLAUDE.md",
-  ".claude/rules/*.md",
   ".claude/settings.json",
   ".githooks/*.sh",
   # Spec 094: a git hook must be named exactly, so the `*.sh` pattern above

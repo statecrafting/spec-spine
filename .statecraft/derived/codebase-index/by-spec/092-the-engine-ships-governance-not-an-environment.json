@@ -29,10 +29,6 @@
         "source": "spec-edge"
       },
       {
-        "path": ".claude/rules/orchestrator-rules.md",
-        "source": "spec-edge"
-      },
-      {
         "path": ".claude/settings.json",
         "source": "spec-edge"
       },
@@ -180,19 +176,6 @@
       {
         "locations": [
           {
-            "file": ".claude/rules/orchestrator-rules.md"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": ".claude/rules/orchestrator-rules.md"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": ".claude/settings.json"
           }
         ],
@@ -279,6 +262,19 @@
         "unit": {
           "kind": "file",
           "path": ".github/workflows/ci.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "AGENTS.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
         }
       },
       {
@@ -572,5 +568,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "e682f3491f8b8dfa8a52d401a601c6737adf67e67f9857ffa716b325ad0083f8"
+  "shardHash": "15423153b869bd3233f2a5d4a1d2858dcc6cf81061335e073fe76389732c4325"
 }

@@ -49,6 +49,6 @@
     "summary": "Spec 049's `## Verification` block pins the verdict envelope at the literal `0.3.0`, which spec 071 legitimately moved to `0.4.0`, so `spec-spine verify 056` has been red since 088 merged. The pin was never what 056 required: 056 3.4 states that `--spec` emits the spec 034 envelope with a `verb` token distinguishing it from `compile --check`, and records the bump it performed as a fact about that bump, not as a standing ceiling. A literal pin cannot assert either half, because it goes red for every move the rule permits and stays green for a verb token that collides. This spec declares 056's acceptance replaced and carries the corrected block, without editing 056's file. It is the first of the four follow-ons spec 084 4 named.\n",
     "title": "A version pin is not a contract"
   },
-  "shardHash": "86b05d9ba425988f5bc969c6e9109f16bed4d8c905c3502a49658550b9f37f3c",
+  "shardHash": "e0035d3066ab7dfadfb12723da4417afafcc76cb27bca992ddd01e337fa2c063",
   "specVersion": "1.3.0"
 }

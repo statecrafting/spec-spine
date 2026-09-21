@@ -90,7 +90,7 @@ reasons has to parse the formatted violation lines, which is a shape this projec
 has changed more than once and reserves the right to change again. A consumer
 that wants staleness has to distinguish the literal string `index is fresh` from
 its negation. That consumer is doing exactly what
-`.claude/rules/governed-artifact-reads.md` forbids, and it has no supported
+`AGENTS.md` "Governed artifact reads" forbids, and it has no supported
 alternative, because the rule directs it to the subcommands and the subcommands
 answer in prose.
 
