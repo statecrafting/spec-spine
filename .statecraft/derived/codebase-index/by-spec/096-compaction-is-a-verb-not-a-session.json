@@ -8,17 +8,33 @@
     ],
     "implementingPaths": [
       {
+        "path": "crates/spec-spine-cli/src/cmd_compact.rs",
+        "source": "multiple"
+      },
+      {
         "path": "crates/spec-spine-cli/src/main.rs",
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/compact.rs",
+        "source": "multiple"
+      },
+      {
         "path": "crates/spec-spine-core/src/lib.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/compact.rs",
+        "source": "multiple"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_compact.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -27,7 +43,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/compact.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -36,7 +56,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/compact.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -88,5 +112,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "346ba72bf7e32022bfb5f5b14ae103f889450c0bc5cc6cc1ac02203b4ffb2c42"
+  "shardHash": "34ae16b1a6c16ac9f9045521443a342ad1e3f6b2ac6c690ec8aece64dd9bcbca"
 }

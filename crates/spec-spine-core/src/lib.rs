@@ -15,6 +15,7 @@
 
 pub mod attest;
 mod canonical_json;
+pub mod compact;
 pub mod compile;
 pub mod couple;
 pub mod coverage;
@@ -54,6 +55,7 @@ pub use attest::{
     payload_schema_version, spec_attestation_hash, stored_bytes_hash, verify_recompute,
     verify_spec_recompute, with_stored_bytes, with_stored_bytes_spec,
 };
+pub use compact::{CompactPlan, Compaction, compact, parse_plan};
 pub use compile::{
     CompileOutcome, MAX_UNDECLARED_EXTRA_FRONTMATTER, RegistryShardSet, SpecCheckReport,
     check_registry_freshness, compare_committed_registry, compile, compile_spec,
@@ -569,6 +571,15 @@ pub fn delta_json(request_json: &str) -> Result<String, Error> {
 pub fn scaffold_init_json(config_json: &str) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
     to_json(&scaffold_init(&config)?)
+}
+
+/// Compact the corpus under an authored plan (spec 096). `plan_yaml` is the
+/// plan document; the result is the `Compaction`, files included, for the
+/// caller to write. Pure with respect to the tree: reads, never writes.
+pub fn compact_json(config_json: &str, repo_root: &str, plan_yaml: &str) -> Result<String, Error> {
+    let config = config_from_json(config_json)?;
+    let plan = parse_plan(plan_yaml)?;
+    to_json(&compact(&config, std::path::Path::new(repo_root), &plan)?)
 }
 
 /// Build a corpus attestation (spec 021). Returns
