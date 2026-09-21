@@ -44,12 +44,15 @@ pub fn run(repo: &Path, args: &CompactArgs) -> Result<u8, Error> {
 
     let cfg = load_repo_config(repo)?;
     let outcome = compact(&cfg, repo, &plan)?;
-    report(&outcome, args.plan);
 
     // Spec 097 §3.7: an occurrence the rules could not account for means the
     // tool has met a spelling it has no rule for. Reported and refused, whether
     // or not anything was written: a rewrite that silently left the path in
     // place is the failure this verb exists to prevent.
+    // The refusal comes FIRST, and the summary does not print at all. Printing
+    // the rewrite summary and then "nothing was written" gave a reader two
+    // contradictory accounts of the same run and made them decide which one was
+    // true.
     if !outcome.leftover.is_empty() {
         out::line(format_args!(
             "\ncompact: REFUSED, {} occurrence(s) of a retired path survived the rewrite and no \
@@ -68,6 +71,8 @@ pub fn run(repo: &Path, args: &CompactArgs) -> Result<u8, Error> {
         ));
         return Ok(1);
     }
+
+    report(&outcome, args.plan);
 
     if args.plan {
         out::line(format_args!(

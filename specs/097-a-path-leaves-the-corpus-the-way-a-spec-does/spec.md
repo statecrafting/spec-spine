@@ -601,6 +601,13 @@ stayed at zero through a live rewrite without a test failing. It is now asserted
 non-zero and equal to the number of records, which is the assertion those tests
 only looked like they were making.
 
+D-43 (2026-09-21, a refused run prints the refusal and not a summary of what it
+did not do). The rewrite summary printed first and the §3.7 refusal after it, so
+a reader got two accounts of one run: counts and skipped lines implying work,
+then "Nothing was written". The refusal comes first and the summary does not
+print at all. A report that has to be reconciled with the line below it is worse
+than no report.
+
 ## Verification
 
 Each line is one command, run independently.
