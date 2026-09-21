@@ -1,7 +1,7 @@
-//! The change-classification report (spec 088).
+//! The change-classification report (spec 071).
 //!
 //! `couple` answers one question about a change: did owned code move without an
-//! owning `spec.md` in the same diff. Spec 088 §1 measures two changes that pass
+//! owning `spec.md` in the same diff. Spec 071 §1 measures two changes that pass
 //! it and should never be approved on the candidate's own say-so: a candidate
 //! deleting a command from the `## Verification` block that judges it, and a
 //! candidate claiming another spec's unit with a new `extends` edge. Both are
@@ -25,10 +25,10 @@ use crate::attest::ToolStamp;
 pub use crate::version::DELTA_SCHEMA_VERSION;
 
 /// The value of [`DeltaReport::classified_under`]. The only side the candidate
-/// did not write (spec 088 D-1).
+/// did not write (spec 071 D-1).
 pub const CLASSIFIED_UNDER_BASE: &str = "base";
 
-/// One structural class a changed path can carry (spec 088 §3.3).
+/// One structural class a changed path can carry (spec 071 §3.3).
 ///
 /// Declared in alphabetical order so the derived `Ord` sorts by token: every
 /// list of classes in a report is emitted in that order, which is what makes two
@@ -85,7 +85,7 @@ impl DeltaClass {
     ];
 
     /// Whether a consumer must judge this class under the base's policy
-    /// (spec 088 §3.5).
+    /// (spec 071 §3.5).
     ///
     /// `implementation`, `derived`, `bypassed` and `unowned` are not listed.
     /// That is a statement about structure only: a path carrying none of the
@@ -109,7 +109,7 @@ impl DeltaClass {
 ///
 /// Reported, not inferred from: with renames disabled a move is a `deleted`
 /// entry and an `added` one, and the report never says the two are one file
-/// (spec 088 §3.3).
+/// (spec 071 §3.3).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ChangeKind {
@@ -131,7 +131,7 @@ pub struct DeltaCommits {
     pub head: String,
 }
 
-/// The classification of one change (spec 088 §3.6).
+/// The classification of one change (spec 071 §3.6).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeltaReport {
@@ -171,7 +171,7 @@ pub struct DeltaChange {
     pub lifecycle: Option<BTreeMap<String, ValueChange>>,
 }
 
-/// How a spec's declared acceptance moved (spec 088 §3.4).
+/// How a spec's declared acceptance moved (spec 071 §3.4).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VerificationDelta {
@@ -188,7 +188,7 @@ pub struct VerificationDelta {
     pub commands_only_in_head: usize,
 }
 
-/// How authority over a path moved (spec 088 §3.4).
+/// How authority over a path moved (spec 071 §3.4).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthorityDelta {
@@ -217,7 +217,7 @@ pub struct ValueChange {
 ///
 /// `required: false` means only that no class [`DeltaClass::requires_prior_policy`]
 /// names is present. It does not mean the change is safe, correct or approved,
-/// and spec-spine never evaluates the approval (spec 088 §3.5).
+/// and spec-spine never evaluates the approval (spec 071 §3.5).
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PriorPolicy {

@@ -1,0 +1,85 @@
+{
+  "mapping": {
+    "amends": [
+      "069-the-committed-index-is-compared-not-trusted",
+      "079-a-blocking-claim-is-not-a-stale-shard"
+    ],
+    "dependsOn": [
+      "062-one-name-one-freshness-verb",
+      "069-the-committed-index-is-compared-not-trusted",
+      "079-a-blocking-claim-is-not-a-stale-shard"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-cli/src/cmd_check.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/src/cmd_index.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_check.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_check.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_index.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/cli.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "080-an-unresolved-claim-is-not-stale",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "f558d4aedc5837ba34376bb47efa229713b2418ceb8fed508015fb1603434d23"
+}

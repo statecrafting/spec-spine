@@ -1,4 +1,4 @@
-//! The read-document emitter (spec 093).
+//! The read-document emitter (spec 094).
 //!
 //! A read document is the JSON a verb emits when it answers a question rather
 //! than rendering a verdict: `registry list`, `show`, `status-report`,
@@ -12,7 +12,7 @@
 //! Every read document goes through [`read_document`]: sorted keys, canonical
 //! layout, object form, and `schemaVersion` = [`READ_SCHEMA_VERSION`] unless the
 //! caller says the document already names its own version. The verdict verbs
-//! keep spec 037's envelope and do not come here.
+//! keep spec 034's envelope and do not come here.
 
 use serde::Serialize;
 use serde_json::Value;
@@ -20,7 +20,7 @@ use spec_spine_types::{Error, READ_SCHEMA_VERSION};
 
 use crate::canonical_json;
 
-/// How a read document is versioned (spec 093 §3.2). An argument, never
+/// How a read document is versioned (spec 094 §3.2). An argument, never
 /// inferred from member names: an emitter that looked for a member called
 /// `version` would silently exempt the first document that grew one.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -29,7 +29,7 @@ pub enum Versioning {
     Stamp,
     /// Insert nothing: the document already carries a version its own spec
     /// declares, under the named member. `config show` (`config_version`,
-    /// spec 054) is the only such document. The member must be present, so the
+    /// spec 047) is the only such document. The member must be present, so the
     /// exemption cannot be claimed by a document with nothing to exempt.
     Preexisting(&'static str),
 }
@@ -37,10 +37,10 @@ pub enum Versioning {
 /// The member the stamped version sits under.
 pub const READ_VERSION_MEMBER: &str = "schemaVersion";
 
-/// The member a top-level array is wrapped under (spec 093 §3.3).
+/// The member a top-level array is wrapped under (spec 094 §3.3).
 pub const ITEMS_MEMBER: &str = "items";
 
-/// Emit one read document (spec 093 §3.2, §3.3).
+/// Emit one read document (spec 094 §3.2, §3.3).
 ///
 /// 1. serialize `value`;
 /// 2. bring it to object form: an array is wrapped as `{ "items": [...] }` in
@@ -64,13 +64,13 @@ pub fn read_document<T: Serialize + ?Sized>(value: &T, mode: Versioning) -> Resu
         Value::Null => {
             return Err(Error::Schema(
                 "internal: a read document cannot be a bare null; the caller names the \
-                 member an absent answer sits under (spec 093 §3.3)"
+                 member an absent answer sits under (spec 094 §3.3)"
                     .to_string(),
             ));
         }
         other => {
             return Err(Error::Schema(format!(
-                "internal: a read document must be an object, got a bare {} (spec 093 §3.3)",
+                "internal: a read document must be an object, got a bare {} (spec 094 §3.3)",
                 scalar_kind(&other)
             )));
         }
@@ -84,7 +84,7 @@ pub fn read_document<T: Serialize + ?Sized>(value: &T, mode: Versioning) -> Resu
             // document.
             if object.contains_key(READ_VERSION_MEMBER) {
                 return Err(Error::Schema(format!(
-                    "internal: a read document to be stamped already carries `{READ_VERSION_MEMBER}`; stamping would overwrite it (spec 093 §3.2)"
+                    "internal: a read document to be stamped already carries `{READ_VERSION_MEMBER}`; stamping would overwrite it (spec 094 §3.2)"
                 )));
             }
             object.insert(
@@ -96,7 +96,7 @@ pub fn read_document<T: Serialize + ?Sized>(value: &T, mode: Versioning) -> Resu
             if !object.contains_key(member) {
                 return Err(Error::Schema(format!(
                     "internal: a read document exempted from stamping must carry its own \
-                     version member `{member}` (spec 093 §3.2)"
+                     version member `{member}` (spec 094 §3.2)"
                 )));
             }
         }

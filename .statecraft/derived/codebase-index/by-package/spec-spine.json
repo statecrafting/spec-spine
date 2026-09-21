@@ -3,9 +3,9 @@
     "kind": "npm-package",
     "name": "spec-spine",
     "path": "npm",
-    "specRef": "007-distribution",
+    "specRef": "006-distribution",
     "version": "0.21.0"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "c2ab72d11ac47537b9902dff258f16dcb43e578a7371d255849b73b1ddd03da5"
+  "shardHash": "f82bb3b8e04383d6f5e5af29ea4eefc1c88fddf6d6d871451676cfc09a185653"
 }

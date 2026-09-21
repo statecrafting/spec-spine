@@ -1,8 +1,8 @@
-//! Scaffold tests (spec 006, narrowed by spec 120 3.3): the generated corpus is
+//! Scaffold tests (spec 095, narrowed by spec 092 3.3): the generated corpus is
 //! well-formed; a scaffolded repo compiles and lints clean, proving the
 //! governance half of adoption works with zero library edits.
 //!
-//! Since spec 120 the scaffold is a producer Statecraft consumes rather than the
+//! Since spec 092 the scaffold is a producer Statecraft consumes rather than the
 //! output of a `spec-spine init` command, and it produces governance content
 //! only. The assertions that read `AGENTS.md`, `.claude/rules/` and the embedded
 //! kit went with the surface they were about; the ones that say a scaffolded
@@ -55,7 +55,7 @@ fn scaffolded_corpus_compiles_and_lints_clean() {
     );
 }
 
-/// Spec 045 3.3: a freshly scaffolded corpus has nothing to schedule. The
+/// Spec 042 3.3: a freshly scaffolded corpus has nothing to schedule. The
 /// bootstrap spec used to carry no `implementation` key, which `plan` read as
 /// `pending`, so every `init` adopter's ready set was the bootstrap spec,
 /// forever. It now declares `n-a`, and the plan of a scaffold is empty.
@@ -81,7 +81,7 @@ fn scaffolded_corpus_has_nothing_ready_to_schedule() {
     );
 }
 
-/// Spec 043 1.1: the scaffolded constitution shipped an amendment clause that
+/// Spec 040 1.1: the scaffolded constitution shipped an amendment clause that
 /// named an edge an adopter could not write. It now states the mechanism, and
 /// this asserts the defect cannot return silently.
 #[test]
@@ -122,7 +122,7 @@ fn non_default_namespace_scaffolds_coherently() {
     assert!(outcome.registry.validation.passed);
 }
 
-// ── spec 061: the scaffold ships what every adopter wrote by hand ─────────
+// ── spec 054: the scaffold ships what every adopter wrote by hand ─────────
 
 fn scaffolded(cfg: &Config, rel: &str) -> String {
     scaffold_init(cfg)
@@ -221,7 +221,7 @@ fn the_scaffolded_config_round_trips_a_non_default_configuration() {
     assert_eq!(load_config(&toml).unwrap(), cfg);
 }
 
-/// Spec 069 §3.2: the emitted default is the working glob form. The round-trip
+/// Spec 058 §3.2: the emitted default is the working glob form. The round-trip
 /// assertion above cannot catch this: it compares the emitted file against
 /// `Config::default()`, so it holds just as well when both carry a pattern that
 /// matches nothing. This asserts the value itself, and the negative half is the
@@ -241,7 +241,7 @@ fn the_scaffolded_default_hashes_files_not_directories() {
         );
     }
     // The trap outlives the default: an adopter narrowing this list can still
-    // write it, so the warning stays (and spec 061's own acceptance greps it).
+    // write it, so the warning stays (and spec 054's own acceptance greps it).
     assert!(toml.contains("matches DIRECTORIES"), "{toml}");
 }
 
@@ -273,7 +273,7 @@ fn the_scaffolded_config_names_the_knobs_adopters_needed() {
     assert!(toml.contains("L-006"), "{toml}");
     assert!(toml.contains("L-007"), "{toml}");
     assert!(toml.contains("L-008"), "{toml}");
-    // And the glob trap spec 057 found is called out where it bites.
+    // And the glob trap spec 050 found is called out where it bites.
     assert!(toml.contains("`dir/**` matches DIRECTORIES"), "{toml}");
 }
 
@@ -291,7 +291,7 @@ fn the_constitution_template_is_the_real_one_and_cannot_drift() {
             .expect("the checked-in template");
     assert_eq!(emitted, checked_in, "the constant and the file must agree");
 
-    // The properties spec 043 asked for, mirrored from its assertion on the
+    // The properties spec 040 asked for, mirrored from its assertion on the
     // constitution itself.
     assert!(emitted.contains("Tier 2"), "{emitted}");
     assert!(emitted.contains("Normative hierarchy"), "{emitted}");
@@ -300,10 +300,10 @@ fn the_constitution_template_is_the_real_one_and_cannot_drift() {
     assert!(emitted.contains("<Principle name>"), "{emitted}");
 }
 
-// ── spec 066: the contract records the lifecycle table ────────────────────
+// ── spec 056: the contract records the lifecycle table ────────────────────
 
 /// §3.3: the scaffolded contract carries both sections, so a new adopter gets
-/// them rather than writing them. This is the pattern spec 043 §3.4
+/// them rather than writing them. This is the pattern spec 040 §3.4
 /// established when it added the amendment mechanism to the scaffolded
 /// constitution.
 #[test]
@@ -348,11 +348,11 @@ fn the_longer_contract_does_not_break_the_scaffolded_corpus() {
     }
 }
 
-// ── spec 074 3.3 and 3.4: the scaffold carries the facts the writer applies ──
+// ── spec 061 3.3 and 3.4: the scaffold carries the facts the writer applies ──
 
-// ── spec 120: the producer boundary Statecraft consumes ───────────────────
+// ── spec 092: the producer boundary Statecraft consumes ───────────────────
 
-/// The layout values Statecraft passes (spec 120 §3.3). Named once here so the
+/// The layout values Statecraft passes (spec 092 §3.3). Named once here so the
 /// assertions below read the same four values the contract names.
 fn statecraft_layout() -> Config {
     let mut cfg = Config::default();
@@ -457,7 +457,7 @@ fn the_statecraft_layout_scaffolds_coherently() {
     );
     // And the governed half of `.statecraft/` is NOT excluded. A `.statecraft/`
     // line would put the committed ledger outside version control, which is
-    // the failure spec 120 §3.9 exists to refuse.
+    // the failure spec 092 §3.9 exists to refuse.
     assert!(
         !ignore.lines().any(|l| l.trim() == ".statecraft/"),
         "the whole directory must not be ignored: {ignore}"
@@ -585,7 +585,7 @@ fn the_producer_performs_no_io() {
         assert!(
             !code.contains(forbidden),
             "scaffold.rs contains `{forbidden}`; the producer is a pure function \
-             of its argument (spec 120 §3.2)"
+             of its argument (spec 092 §3.2)"
         );
     }
     // The positive control: the reader above is the thing under test, so a run

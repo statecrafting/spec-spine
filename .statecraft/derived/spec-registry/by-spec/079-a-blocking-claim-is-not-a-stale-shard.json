@@ -1,0 +1,101 @@
+{
+  "record": {
+    "created": "2026-09-15",
+    "dependsOn": [
+      "004-codebase-index",
+      "044-index-diagnostics-reach-a-gate",
+      "062-one-name-one-freshness-verb",
+      "069-the-committed-index-is-compared-not-trusted"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "062-one-name-one-freshness-verb",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_check.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "069-the-committed-index-is-compared-not-trusted",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index_body.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      }
+    ],
+    "id": "079-a-blocking-claim-is-not-a-stale-shard",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "098: A blocking claim is not a stale shard",
+      "1. Purpose",
+      "1.1 One verdict, two refusals, one remedy",
+      "1.2 The remedy does not work, and the tree says so",
+      "1.3 What is wrong is the description, not the decision",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The exit codes do not move",
+      "3.2 The two refusals are distinguished at the source",
+      "3.3 What the verbs say",
+      "3.4 Naming the contradiction, without naming a way out of it",
+      "3.5 The harness contract this changes, and the one it does not",
+      "3.5.1 The `Stop` hook is not fixed by this spec",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/079-a-blocking-claim-is-not-a-stale-shard/spec.md",
+    "status": "approved",
+    "summary": "`check_index_freshness` folds two different refusals into one verdict: a committed shard whose bytes moved, and a spec whose claimed unit does not resolve. Both arrive as `Freshness::Stale`, so `check` prints \"codebase-index: STALE (run `spec-spine index`)\" and `index check` prints \"index is STALE (run `spec-spine index` to refresh)\" for a corpus whose shards are byte-exact. The named remedy provably does not work: reproduced at 0.19.0, `index` exits 0, writes the shard, and `check` still exits 2, because re-indexing cannot create a file a spec claims. An adopter documenting exit 2 as staleness follows that advice indefinitely. This spec keeps the refusal and the exit code exactly as they are and changes what the two freshness verbs say: a blocking resolution diagnostic is reported as its own class, names the owning spec and unit, and says regeneration will not clear it. The mixed case reports both and says which half regeneration addresses.\n",
+    "title": "A blocking claim is not a stale shard"
+  },
+  "shardHash": "77cfad5878415e6ebf46ad3a2e58a15771d8e0eea0e342e4425066e321c8be3a",
+  "specVersion": "1.3.0"
+}

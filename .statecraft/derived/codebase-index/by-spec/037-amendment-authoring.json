@@ -1,0 +1,76 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "005-coupling-gate"
+    ],
+    "implementingPaths": [
+      {
+        "path": "standards/spec/contract.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "standards/spec/contract.md",
+            "span": {
+              "endLine": 45,
+              "startLine": 37
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "anchor": "amendment-authoring",
+          "file": "standards/spec/contract.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/023-unresolved-unit-severity/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/023-unresolved-unit-severity/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/033-configured-corpus-root/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/033-configured-corpus-root/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "standards/spec/constitution.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/constitution.md"
+        }
+      }
+    ],
+    "specId": "037-amendment-authoring",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "cc060be8cdd793b079f60e5d2f452582bd382f1f5e2601077eff26cc768f5193"
+}

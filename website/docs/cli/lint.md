@@ -39,7 +39,7 @@ By default, it exits with status `1` only if there are error-tier violations.
 ```bash
 $ spec-spine lint --fail-on-warn
 Linting corpus...
-WARN: spec 042-old-thing has no relationships.
+WARN: spec 039-old-thing has no relationships.
 1 warning(s) found.
 # (Exits with 1)
 ```

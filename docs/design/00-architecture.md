@@ -29,7 +29,7 @@ specs (`establishes`/`extends`/`refines`/`supersedes`/`amends`/`co_authority`/
 `constrains`/`references`) and the **authority units** it owns (file / section /
 symbol). A deterministic **compiler** emits the spec-as-source registry; a
 deterministic **indexer** emits the code-as-source index (with a per-shard
-staleness mechanism). Since spec 024 both are stored as per-unit shard trees
+staleness mechanism). Since spec 022 both are stored as per-unit shard trees
 (`by-spec/`, `by-package/`), not monolithic files. A **coupling gate** joins the
 two views (assembled from the shards) at PR time and refuses drift; a **lint**
 enforces corpus well-formedness; a **refusal
@@ -87,11 +87,11 @@ spec-spine/
 |---|---|---|
 | Engine | 5 separate binary crates under `tools/` | one importable lib crate `spec-spine-core` |
 | Shared types | `spec_types` + `canonical-json` (2 crates) | folded into `spec-spine-types` (+ internal `canonical_json` module in core) |
-| CLI surface | 5 binaries (`./bin/<name>`), a copy-not-symlink "bin strategy" (aide spec 039) | one git-style multi-call binary `spec-spine` |
+| CLI surface | 5 binaries (`./bin/<name>`), a copy-not-symlink "bin strategy" (aide spec 036) | one git-style multi-call binary `spec-spine` |
 | Stable boundary | the CLIs (de-facto) | the **library API** (bindings wrap this, not the CLI) |
 
 The five-binary split exists in the references because they were *internal repo
-tooling* invoked from a Makefile, and the `./bin/` copy strategy (aide spec 039)
+tooling* invoked from a Makefile, and the `./bin/` copy strategy (aide spec 036)
 was invented to shorten callsites. An installable artifact wants the opposite:
 one `cargo install spec-spine-cli` → one `spec-spine` on `PATH`. The five
 capabilities become **subcommands**, not binaries (§5.2). The "bin strategy" is
@@ -143,22 +143,22 @@ separately as frontmatter, not as a graph edge.)
 
 A spec declares the units it owns via a `unit:` object on an edge. The full
 grammar (ported from OAP `LogicalUnit`, `spec-types/src/lib.rs`) is six kinds.
-v1 shipped three (file / section / symbol); **spec 017 added the other three**
+v1 shipped three (file / section / symbol); **spec 016 added the other three**
 (directory / crate / module) as the planned additive MINOR, so all six now
 resolve:
 
 | Unit kind | Status | Shape | Resolution |
 |---|---|---|---|
 | `file` | v1 | `{ kind: file, path }` | literal path; trailing-`/` path ⇒ directory subtree (prefix match) |
-| `section` | v1 | `{ kind: section, file, anchor }` | anchor parser by file type (Makefile target / Markdown heading slug / `region:` marker / workflow `jobs.<name>` / bounded keypath, spec 022) |
+| `section` | v1 | `{ kind: section, file, anchor }` | anchor parser by file type (Makefile target / Markdown heading slug / `region:` marker / workflow `jobs.<name>` / bounded keypath, spec 020) |
 | `symbol` | v1 | `{ kind: symbol, id }` | tree-sitter (**Rust + TypeScript**; Python deferred, Q4) → `(file, line-span)` |
-| `directory` | spec 017 | `{ kind: directory, path }` | explicit subtree kind (same prefix-match semantics as a trailing-slash `file`) |
-| `crate` | spec 017 | `{ kind: crate, id }` | resolved by manifest name to the package directory subtree |
-| `module` | spec 017 | `{ kind: module, id }` | `::`-qualified module path, resolved via the module index |
+| `directory` | spec 016 | `{ kind: directory, path }` | explicit subtree kind (same prefix-match semantics as a trailing-slash `file`) |
+| `crate` | spec 016 | `{ kind: crate, id }` | resolved by manifest name to the package directory subtree |
+| `module` | spec 016 | `{ kind: module, id }` | `::`-qualified module path, resolved via the module index |
 
 A bare string on an edge is shorthand for `{ kind: file, path }`. The `Unit`
 enum was designed additively, so the three later kinds slotted in as a MINOR
-schema bump (spec 017) without breaking readers.
+schema bump (spec 016) without breaking readers.
 
 ### 2.3 Three linkage directions (how code ↔ spec connect)
 
@@ -269,7 +269,7 @@ indexer_id  = "spec-spine"
 bypass_prefixes = []
 # The PR-body waiver keyword (free-text reason follows the colon).
 waiver_keyword = "Spec-Drift-Waiver:"
-# Spec 032: refuse a changed source file that no spec specifically claims
+# Spec 029: refuse a changed source file that no spec specifically claims
 # (C-002). Off by default: full coverage is a state a repo reaches, not one it
 # inherits. `spec-spine index coverage` reports the distance.
 require_ownership = false
@@ -391,7 +391,7 @@ extensibility model (OAP's enrichers do exactly this).
 ```rust
 // Free functions in `spec_spine_core::query`, not inherent methods on Registry:
 pub fn list        (registry: &Registry, filter: &ListFilter) -> Vec<&SpecRecord>;
-pub fn list_ids    (registry: &Registry, filter: &ListFilter) -> Vec<&str>;   // idsOnly projection (spec 010)
+pub fn list_ids    (registry: &Registry, filter: &ListFilter) -> Vec<&str>;   // idsOnly projection (spec 009)
 pub fn show        (registry: &Registry, id: &str)            -> Result<&SpecRecord, Error>;
 pub fn status_report(registry: &Registry)                     -> StatusReport; // counts by status
 pub fn relationships(registry: &Registry, id: &str)           -> Result<RelationshipView, Error>;
@@ -445,14 +445,14 @@ pub fn scaffold_init_json  (config_json: &str)                  -> Result<String
 ### 5.2 CLI: one multi-call `spec-spine` binary (recommended; no blocker found)
 
 ```
-spec-spine compile [--check]                        # → .derived/spec-registry/by-spec/ shards (+ build-meta.json); --check verifies the committed shards without writing (spec 031)
+spec-spine compile [--check]                        # → .derived/spec-registry/by-spec/ shards (+ build-meta.json); --check verifies the committed shards without writing (spec 028)
 spec-spine index   [check | render | orphans]       # check = per-shard staleness gate; default subcmd writes the index shard trees
 spec-spine registry list|show|status-report|relationships
 spec-spine lint    [--fail-on-warn] [--fail-on-info]
 spec-spine couple  [--base origin/main] [--head HEAD] [--pr-body FILE] [--paths-from FILE]
 ```
 
-There is no `init` verb. It existed until spec 120, which moved project
+There is no `init` verb. It existed until spec 092, which moved project
 initialization to the Statecraft CLI and left `scaffold_init` as a library
 producer of governance starter content: see
 `design/07-statecraft-realignment-2026-09.md`.
@@ -490,7 +490,7 @@ We **do not inherit those lines.** spec-spine starts every schema fresh at
 `0.1.0`, decoupled from any consumer's history.
 
 Each schema started at `0.1.0`; the values below are current (registry and
-index have since taken additive MINOR bumps as features shipped, e.g. spec 012
+index have since taken additive MINOR bumps as features shipped, e.g. spec 011
 hash slices, 013 passthrough, 017 unit kinds, 019 structured supersedes).
 
 | Artifact | Field | Current value | Owner |
@@ -500,7 +500,7 @@ hash slices, 013 passthrough, 017 unit kinds, 019 structured supersedes).
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from golden) |
 
-Since spec 024 both artifacts are sharded (one committed file per authority unit;
+Since spec 022 both artifacts are sharded (one committed file per authority unit;
 the monolithic `registry.json` / `index.json` is no longer emitted). The `1.0.0`
 MAJOR marks that on-disk shape; a 0.x reader rejects a 1.x shard. The aggregate
 view (validation, orphans, untraced code, content hash) is recomputed from the
@@ -567,7 +567,7 @@ specs/
 ├─ 003-conformance-lint/spec.md         # lint capability
 ├─ 004-codebase-index/spec.md           # indexer + unit grammar capability
 ├─ 005-coupling-gate/spec.md            # coupling gate capability
-└─ 006-init-scaffold/spec.md            # adoption / init capability
+└─ 095-the-corpus-describes-what-exists/spec.md            # adoption / init capability
 standards/spec/
 ├─ constitution.md                      # durable principles (tier 2)
 ├─ contract.md                          # normative summary
@@ -669,7 +669,7 @@ checks; full enumeration lands in the Phase 1/3/4 specs):
   errors) fails `index check`.
 - **`C###`**: *coupling* gate violations (spec 005). `C-001` = a changed,
   non-bypassed path lacks an authoring edit to any spec that owns it (and no
-  waiver excuses it) → exit 1. `C-002` (spec 032, only with `[coupling]
+  waiver excuses it) → exit 1. `C-002` (spec 029, only with `[coupling]
   require_ownership`) = a changed source file inside a package that no spec
   specifically claims (floor-only or unowned) → exit 1; one path raises at
   most one of the two.
@@ -697,7 +697,7 @@ forking.
   `x86_64-unknown-linux-gnu`, `aarch64-unknown-linux-gnu`,
   `x86_64-pc-windows-msvc`, each with a `.sha256` sidecar, plus an `install.sh`
   (`curl … | sh`) that detects platform/arch and drops the binary on `PATH`.
-- **SBOM** (CycloneDX per archive): **shipped** (spec 021). The release workflow
+- **SBOM** (CycloneDX per archive): **shipped** (spec 019). The release workflow
   emits a per-target CycloneDX SBOM plus build provenance, with a gate that
   fails closed on a zero-component SBOM (§10 Q7).
 
@@ -760,10 +760,10 @@ as recommended unless you redirect.
 | Q2 | **CLI shape:** one multi-call binary vs five? | ✅ **One multi-call `spec-spine` binary** (confirmed) |
 | Q3 | **Bootstrap corpus:** minimal-original vs re-derive? | ✅ **Minimal-original** (6 capability specs + 000) (confirmed) |
 | Q4 | **v1 symbol-resolution languages?** | ✅ **Rust + TypeScript** in v1; **Python deferred** (confirmed). Expands Phase 3: two tree-sitter grammars. |
-| Q5 | Include `directory`/`crate`/`module` unit kinds in v1? | v1 shipped file/section/symbol; ✅ **all three later added (spec 017)** as the planned additive MINOR: `directory` as an explicit kind, `crate`/`module` resolved via the package/module index |
+| Q5 | Include `directory`/`crate`/`module` unit kinds in v1? | v1 shipped file/section/symbol; ✅ **all three later added (spec 016)** as the planned additive MINOR: `directory` as an explicit kind, `crate`/`module` resolved via the package/module index |
 | Q6 | Registry/index JSON: pretty (diffable) vs compact (OAP)? | **Pretty**, sorted keys, LF, trailing newline |
-| Q7 | Per-archive CycloneDX SBOM in the release workflow? | ✅ **Shipped (spec 021):** per-target CycloneDX SBOM + build provenance, gated to fail closed on a zero-component SBOM |
-| Q8 | `index.extra_hashed_inputs` default base set contents? | `["standards/**/*", ".github/workflows/**/*"]` + always-hashed core (specs, manifests, config). Shipped as `["standards/**", ".github/workflows/**"]`, which matched **directories** and therefore no files; ✅ **corrected (spec 069)** |
+| Q7 | Per-archive CycloneDX SBOM in the release workflow? | ✅ **Shipped (spec 019):** per-target CycloneDX SBOM + build provenance, gated to fail closed on a zero-component SBOM |
+| Q8 | `index.extra_hashed_inputs` default base set contents? | `["standards/**/*", ".github/workflows/**/*"]` + always-hashed core (specs, manifests, config). Shipped as `["standards/**", ".github/workflows/**"]`, which matched **directories** and therefore no files; ✅ **corrected (spec 058)** |
 | Q9 | `manifest.metadata_namespace` default `"spec-spine"` ⇒ `[package.metadata.spec-spine]` (hyphenated TOML key, legal but unusual). Prefer `"spec"`? | Keep **`"spec-spine"`** (self-describing; hyphenated bare keys are valid TOML) |
 | Q10 | How much provenance/`references` semantics in v1? | Ship the `references` edge + open `provenance.uri_schemes` config + basic URI well-formedness; defer rich knowledge-graph semantics |
 | Q11 | MSRV / edition: match references (2024/1.85) or lower MSRV for reach? | **Match references (edition 2024)** unless you want broader adopter MSRV |

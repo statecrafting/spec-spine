@@ -6,22 +6,22 @@
 > already answers it, states what every digest covers, and says what each
 > result proves and what it does not. Nothing here is a new API. Proposed
 > additions are in [design/04](design/04-authority-evidence-extension.md).
-> Specs 085 and 086 shipped in `v0.19.0`. Spec 088 (`delta`) is built on `main`
+> Specs 068 and 086 shipped in `v0.19.0`. Spec 071 (`delta`) is built on `main`
 > and not yet in a release; draft 087 is still a proposal, and is marked as one
 > wherever it appears.
 
 **Measured state.** Every output below was produced on 2026-09-11 at commit
 `75181a5` (main) by a binary built from that commit. The binary reports
 `spec-spine 0.18.0`, and so does the released `v0.18.0`, which is eight commits
-older and does not contain spec 083 (see §8). The corpus held 85 specs: 84
+older and does not contain spec 066 (see §8). The corpus held 85 specs: 84
 `approved` with `implementation: complete`, and 084 `draft` with
 `implementation: pending`. Both committed trees were fresh. The hashes below
 reproduce only on a clean export of `75181a5` (§6); any other tree, including a
 working tree with later specs in it, gives different values, which is the
 point of them.
 
-**Since then.** Spec 085 (a verifier checks the bytes it was given) and spec
-086 (the committed index is compared, not trusted) shipped in `v0.19.0`. The
+**Since then.** Spec 068 (a verifier checks the bytes it was given) and spec
+069 (the committed index is compared, not trusted) shipped in `v0.19.0`. The
 measurements are kept as taken, and §4, §5 and §8 say beside them what
 `v0.19.0` does. A consumer running a binary older than `0.19.0` still gets the
 behavior measured here.
@@ -37,7 +37,7 @@ behavior measured here.
 | Who owns a path, and how? | `index owner <path> --json` | `owners_for_path`, `classify`, `authorities` | raw JSON, **no envelope, no version field** | 0 (also when nothing owns it), 3 |
 | Which source files does no spec claim? | `index coverage [--fail-on-untraced] --json` | `coverage_json` | raw JSON, **no envelope, no version field** | 0, 1, 2, 3 |
 | Does a change drift from its owning spec? | `couple --base B --head H [--pr-body F] --json` | `couple_json` (caller supplies the parsed diff) | envelope `0.3.0`, verb `couple` | 0, 1 drift, 2 stale index, 3 |
-| What kind of change is it, under the base's rules? (spec 088, unreleased) | `delta --base B --head H --json` | `delta_json` (caller supplies both exported trees, the changed paths and the commit ids) | `DeltaReport` `schemaVersion 0.1.0` inside envelope `0.4.0`, verb `delta` | 0 whenever a report was produced, 2 stale index at the merge base, 3 |
+| What kind of change is it, under the base's rules? (spec 071, unreleased) | `delta --base B --head H --json` | `delta_json` (caller supplies both exported trees, the changed paths and the commit ids) | `DeltaReport` `schemaVersion 0.1.0` inside envelope `0.4.0`, verb `delta` | 0 whenever a report was produced, 2 stale index at the merge base, 3 |
 | What does a spec declare as acceptance? | `verify --plan --json <id>` | `verify_plan_json` | envelope `0.3.0`, verb `verify` | 0, 1 unknown id, 3 |
 | Run that acceptance (**executes**) | `verify <id> --json` | none: the library never runs a command | envelope `0.3.0`, `VerifyReport` | 0, 1, 3 |
 | What is workable now? | `registry plan --json` | `query_json` op `plan` | raw JSON, **no envelope, no version field** | 0, 3 |
@@ -45,19 +45,19 @@ behavior measured here.
 | Freeze one spec's territory | `attest --spec <full-id> [--sign --key K] --json` | `attest_spec_json` | `SpecAttestation` `schemaVersion 0.1.0` | 0 whenever a payload was written, 1 unknown id (the short id is refused until 084), 3 |
 | Check a frozen record | `verify-attestation [--spec <full-id>] --recompute \| --signature --public-key P --json` | `verify_attestation_json`, `verify_spec_attestation_json` (recompute only) | envelope `0.3.0` | 0 match, 1 mismatch or invalid, 3 |
 
-The envelope versions above are `v0.19.0`'s. Spec 088 adds the `delta` verb
+The envelope versions above are `v0.19.0`'s. Spec 071 adds the `delta` verb
 token, an additive change that moves every verb's envelope to `0.4.0` from the
 first release carrying it; nothing else in an envelope changes.
 
 Three rules from the existing specs govern how these may be read:
 
-- **An `attest` exit code is not a verdict** (spec 042 3.1, amending 023). Exit
+- **An `attest` exit code is not a verdict** (spec 039 3.1, amending 023). Exit
   0 means a payload was written. The verdicts are inside it, and a failing one
   is still exit 0. A caller that wants a refusal runs `check`, `lint` or
   `couple`.
-- **`--json` changes what is written, never what is decided** (spec 037). Parse
+- **`--json` changes what is written, never what is decided** (spec 034). Parse
   the envelope; do not match prose. The prose is a rendering and has changed.
-- **`verify` is the one verb that executes** (spec 049 3.6). It runs commands
+- **`verify` is the one verb that executes** (spec 043 3.6). It runs commands
   written in a markdown file, with the caller's environment, and is not a
   sandbox. `verify --plan` reads the same commands without running them.
 
@@ -72,8 +72,8 @@ or `attest.rs`, independent of the others and of the package version.
 | index shards | `schemaVersion` | `1.1.0` |
 | `CorpusAttestation` | `schemaVersion` | `0.1.0` |
 | `SpecAttestation` | `schemaVersion` | `0.1.0` |
-| verdict envelope | `schemaVersion` | `0.3.0` in `v0.19.0`; `0.4.0` since spec 088 |
-| `DeltaReport` (spec 088) | `schemaVersion` | `0.1.0`, unreleased |
+| verdict envelope | `schemaVersion` | `0.3.0` in `v0.19.0`; `0.4.0` since spec 071 |
+| `DeltaReport` (spec 071) | `schemaVersion` | `0.1.0`, unreleased |
 | `build-meta.json` | `schemaVersion` | `0.1.0` (non-deterministic, gitignored) |
 | `spec-spine.toml` | `config_version` | `0.1.0` (optional key) |
 | the tool | `spec-spine --version`, `tool.version` in an attestation | `0.18.0` when measured; every release moves it |
@@ -85,7 +85,7 @@ stores or digests their bytes has nothing to pin; use the enveloped verbs, or
 the facade, for anything retained.
 
 When measured, `docs/schema-versioning.md` still listed the registry and index
-at `1.0.0` and omitted the two attestation axes and the envelope. Spec 085
+at `1.0.0` and omitted the two attestation axes and the envelope. Spec 068
 corrected it; the constants above remain the authority.
 
 **The tool version is not a build identity, and spec-spine does not make it
@@ -169,7 +169,7 @@ twice gives byte-identical output):
 }
 ```
 
-`attest --spec 083-an-attestation-covers-the-territory-it-claims --json`
+`attest --spec 056-an-attestation-covers-the-territory-it-claims --json`
 (report only):
 
 ```json
@@ -177,7 +177,7 @@ twice gives byte-identical output):
   "attestation": {
     "lifecycle": { "implementation": "complete", "status": "approved" },
     "schemaVersion": "0.1.0",
-    "specId": "083-an-attestation-covers-the-territory-it-claims",
+    "specId": "066-an-attestation-covers-the-territory-it-claims",
     "specSourceHash": "d99fcb2660da006550cc9af5141520b2609d90dd847985e0cc550768fbc4e789",
     "tool": { "name": "spec-spine", "version": "0.18.0" },
     "units": [
@@ -203,9 +203,9 @@ twice gives byte-identical output):
 The same verb for the draft 084 reports `resolution.ok: false`, because three
 of its thirteen owning units are `planned` and not yet written; its lifecycle
 reads `draft` / `pending`, which is what makes that `false` interpretable
-(spec 042 3.1).
+(spec 039 3.1).
 
-`verify --plan --json 084-a-short-id-names-the-same-spec-at-every-verb`
+`verify --plan --json 067-a-short-id-names-the-same-spec-at-every-verb`
 returns `{ "specId", "commands": [26 strings], "skipped": [] }` in the same
 envelope. `verify-attestation --recompute --signature --public-key P --json`
 on an untouched sealed pair:
@@ -236,7 +236,7 @@ Normalization strips a leading BOM and folds CRLF and CR to LF.
 | `inputsManifestHash` | `CorpusAttestation`; the registry's `build.contentHash` | every `spec.md`, and nothing else | `content_hash` over `("spec:<id>", shardHash)` pairs |
 | `registryHash` | `CorpusAttestation` | the compiled aggregate registry, **recomputed in memory** | SHA-256 of its canonical JSON |
 | index shard hash | each committed index shard | the spec's `spec.md`, the files backing its `section` / `symbol` spans, and the global-inputs scalar | `content_hash` |
-| global-inputs scalar | inside every index shard hash | `spec-spine.toml` plus every `[index] extra_hashed_inputs` match, minus `layout.state_dir`; workflows fold as their governance projection (spec 073) | `content_hash` |
+| global-inputs scalar | inside every index shard hash | `spec-spine.toml` plus every `[index] extra_hashed_inputs` match, minus `layout.state_dir`; workflows fold as their governance projection (spec 060) | `content_hash` |
 | `indexHash` | `CorpusAttestation` under `--with-coupling` | the recomputed index's `contentHash` | fold of index shard hashes |
 | `joinHash` | same | the pair | SHA-256 of `"<registryHash>:<indexHash>"` |
 | `findingsHash` | both attestations | every lint finding, info tier included (corpus); the findings whose path is the spec's (per spec) | SHA-256 of canonical JSON of the list |
@@ -244,9 +244,9 @@ Normalization strips a leading BOM and folds CRLF and CR to LF.
 | unit `contentHash` | `SpecAttestation` | what an owning unit resolves to: files; directories walked under `resolver_exclusions` and `state_dir`; symlinks as their target text; non-UTF-8 files as the text `sha256:<hex of bytes>` | `content_hash` |
 | `attestationHash` | beside a payload, never inside it | the payload | SHA-256 of its canonical JSON, which is exactly the bytes written to disk |
 | seal `sig` | detached `.sig` | `attestationHash` | Ed25519 over its 32 raw bytes |
-| `registry show` `contentHash` | query output | one `spec.md` | the `shardHash` construction; it does **not** equal `specSourceHash` for the same file. Until spec 096 the prose line glossed it as "sha256 of this spec.md" and approved spec 055 §3.4 said the same; 096 amends that sentence and the line now names the path framing, with a CLI test pinning both constructions (closed) |
+| `registry show` `contentHash` | query output | one `spec.md` | the `shardHash` construction; it does **not** equal `specSourceHash` for the same file. Until spec 077 the prose line glossed it as "sha256 of this spec.md" and approved spec 048 §3.4 said the same; 096 amends that sentence and the line now names the path framing, with a CLI test pinning both constructions (closed) |
 
-### The authority snapshot (spec 087)
+### The authority snapshot (spec 070)
 
 `attest --snapshot` writes `<derived>/attestation/snapshot.json`, an
 `AuthoritySnapshot` on its own schema axis. Every digest it **introduces** is
@@ -258,10 +258,10 @@ the standing normalization applied; any other file is a `b` piece with its
 exact bytes. Paths are deduplicated, so a path appears once. The length prefix
 and the kind byte are what the unframed `content_hash` above lacks: under
 `frame/1` a split piece set cannot collide with a joined one, and a binary file
-cannot collide with the text `sha256:<hex>` spec 083 substitutes for it. It
+cannot collide with the text `sha256:<hex>` spec 066 substitutes for it. It
 binds **normalized text**, not exact bytes: a governance file rewritten from LF
 to CRLF has the same `frame/1` digest, which is what makes a Windows and a
-Linux checkout of one revision agree. Spec 085's verifier, by contrast, checks
+Linux checkout of one revision agree. Spec 068's verifier, by contrast, checks
 exact bytes.
 
 | Digest | Where | Covers | Construction |
@@ -269,9 +269,9 @@ exact bytes.
 | `config.hash` | `AuthoritySnapshot` | `spec-spine.toml`; absent when there is none | `frame/1` |
 | `committed.registry.hash`, `committed.index.hash` | same | the committed shard files (and the index's slices sidecar), as stored; absent when the tree is | `frame/1` |
 | `committed.*.matchesRecompute` | same | whether every committed shard is byte-identical to the recompute and the sets match | a flag, not a digest |
-| `governanceInputs.hash` | same | `spec-spine.toml` and every `extra_hashed_inputs` match outside the state root, by path, as their own content (not spec 073's projection) | `frame/1` |
+| `governanceInputs.hash` | same | `spec-spine.toml` and every `extra_hashed_inputs` match outside the state root, by path, as their own content (not spec 060's projection) | `frame/1` |
 | `specs[].territoryDigest` | same | the files, symlinks and empty directories a spec's owning units resolve to, whole files never spans; absent when nothing resolves | `frame/1` |
-| `specs[].specAttestationHash` | same | historical evidence only: the `attestationHash` `attest --spec` emits for that spec, or absent with `specAttestationUnavailable: "non-utf8-direct-claim"` where that verb cannot produce a record | spec 042's |
+| `specs[].specAttestationHash` | same | historical evidence only: the `attestationHash` `attest --spec` emits for that spec, or absent with `specAttestationUnavailable: "non-utf8-direct-claim"` where that verb cannot produce a record | spec 039's |
 | `corpus.inputsManifestHash`, `corpus.registryHash`, `verdicts.lint.findingsHash` | same | as in `CorpusAttestation` | unchanged |
 
 What a snapshot establishes, for one tree and one tool version: exactly which
@@ -289,12 +289,12 @@ needed for anything else.
 ### What the digests do not cover
 
 - **No attestation commits to a git revision or a repository identity.** The
-  payloads are content-addressed and git-agnostic by design (spec 023 3). The
+  payloads are content-addressed and git-agnostic by design (spec 021 3). The
   binding to a commit is the consumer's record, and it is checkable by
   recomputing from that commit's tree (§6).
 - **The corpus attestation does not commit to source code bytes**, even with
   `--with-coupling`. A `file`, `directory` or `crate` unit carries no span, so
-  it contributes to no index hash (spec 057); this repository allows all 72 of
+  it contributes to no index hash (spec 050); this repository allows all 72 of
   its such claims. `couple.ok` in a corpus attestation means "every claimed
   unit resolves with no blocking resolver diagnostic". Only `SpecAttestation`
   unit hashes cover claimed bytes, and only for the one spec's owning units.
@@ -331,13 +331,13 @@ needed for anything else.
 |---|---|
 | `attest --with-coupling` and `couple --base B --head H` | The first asks whether every claimed unit resolves in one tree. The second asks whether a diff between two revisions touched owned code without its owning spec. Neither implies the other. |
 | a recomputed attestation and a fresh committed tree | `attest` never reads the committed shards. `check` does. |
-| `check` fresh and "the committed index is what the corpus indexes to", up to `v0.18.0` | Up to `v0.18.0`, `index check` did not re-resolve. It read each committed shard's own mapping, hashed the span files that mapping named, and compared the result with `shardHash`. For a unit with no span (`file`, `directory`, `crate`) nothing constrained the body. Measured on a scratch repository: a shard rewritten so its spec owns nothing, `shardHash` untouched, read fresh, and `couple` then derived ownership from it. Since `v0.19.0` (spec 086) the two are the same claim: `index check` indexes in memory and compares shard bytes and the shard set, as the registry side has since spec 031 3.1, and `couple`, `index coverage` and `index owner` read the committed index only after that comparison passes. |
-| `couple` exit 0 and "the owning spec approves this change" | C-001 clears when **any** owning spec's `spec.md` is in the diff. An edit that weakens that spec, including its `## Verification` block, clears it. The guard against that is a rule addressed to agents (`.claude/rules/adversarial-prompt-refusal.md`), not a mechanism; design note 02 G7 records it as unsolved. Spec 088's `delta` reports such an edit as `verification`, with the base and head plan digests; it reports, and refuses nothing. |
-| `couple` exit 0 and "the owners were the owners before this change" | Owners are read from the committed index **at the candidate**. A candidate that files a new spec with an `extends` edge on a unit becomes an owner of that unit in the same diff and clears C-001 with its own `spec.md`. That is the sanctioned route for legitimate work (spec 047), and it is also an authority transfer no one outside the diff approved. Spec 088's `delta` reports it as `authority` on the unit, with `baseOwners` from the merge base's index and `headOwners` from the head tree resolved under the merge base's configuration. |
-| `delta`'s `priorPolicy.required: false` and "this change is safe" | `required: false` means only that no path carries `requirement`, `verification`, `authority`, `lifecycle`, `constitutional`, `policy` or `unknown`. It does not mean the change is safe, correct or approved. `delta` interprets no prose, sees a change to a file a verification command reads only as `implementation`, and decides nothing (spec 088 3.5, 3.7). A consumer judges each listed class under the base revision's policy and records who approved it. |
+| `check` fresh and "the committed index is what the corpus indexes to", up to `v0.18.0` | Up to `v0.18.0`, `index check` did not re-resolve. It read each committed shard's own mapping, hashed the span files that mapping named, and compared the result with `shardHash`. For a unit with no span (`file`, `directory`, `crate`) nothing constrained the body. Measured on a scratch repository: a shard rewritten so its spec owns nothing, `shardHash` untouched, read fresh, and `couple` then derived ownership from it. Since `v0.19.0` (spec 069) the two are the same claim: `index check` indexes in memory and compares shard bytes and the shard set, as the registry side has since spec 028 3.1, and `couple`, `index coverage` and `index owner` read the committed index only after that comparison passes. |
+| `couple` exit 0 and "the owning spec approves this change" | C-001 clears when **any** owning spec's `spec.md` is in the diff. An edit that weakens that spec, including its `## Verification` block, clears it. The guard against that is a rule addressed to agents (`.claude/rules/adversarial-prompt-refusal.md`), not a mechanism; design note 02 G7 records it as unsolved. Spec 071's `delta` reports such an edit as `verification`, with the base and head plan digests; it reports, and refuses nothing. |
+| `couple` exit 0 and "the owners were the owners before this change" | Owners are read from the committed index **at the candidate**. A candidate that files a new spec with an `extends` edge on a unit becomes an owner of that unit in the same diff and clears C-001 with its own `spec.md`. That is the sanctioned route for legitimate work (spec 093), and it is also an authority transfer no one outside the diff approved. Spec 071's `delta` reports it as `authority` on the unit, with `baseOwners` from the merge base's index and `headOwners` from the head tree resolved under the merge base's configuration. |
+| `delta`'s `priorPolicy.required: false` and "this change is safe" | `required: false` means only that no path carries `requirement`, `verification`, `authority`, `lifecycle`, `constitutional`, `policy` or `unknown`. It does not mean the change is safe, correct or approved. `delta` interprets no prose, sees a change to a file a verification command reads only as `implementation`, and decides nothing (spec 071 3.5, 3.7). A consumer judges each listed class under the base revision's policy and records who approved it. |
 | `couple`'s subject and the candidate commit | `couple` diffs `merge-base(B, H)...H` but checks freshness and resolves units in the working tree. It speaks for `H` only when the working tree is a clean checkout of `H`. Its report echoes neither commit. |
 | `verify` passing and the spec being satisfied | A declared command exited 0 on one machine at one time, under the candidate's own copy of the block. |
-| a valid seal and a trustworthy signer | The seal proves possession of a key. Which keys to trust is the consumer's policy (spec 023 6). |
+| a valid seal and a trustworthy signer | The seal proves possession of a key. Which keys to trust is the consumer's policy (spec 021 6). |
 
 ## 6. Binding authority evidence to a candidate revision, offline
 
@@ -351,14 +351,14 @@ git rev-parse 75181a5 '75181a5^{tree}'
 #   fc93c505763e60f3a23f9425b6f8c724009be578
 
 # A clean export of exactly that tree. An untracked or ignored file inside a
-# claimed directory changes a unit hash (spec 083 3.4), so never attest a
+# claimed directory changes a unit hash (spec 066 3.4), so never attest a
 # working tree you did not just check out.
 W=$(mktemp -d) && git archive 75181a5 | tar -x -C "$W"
 
 spec-spine --repo "$W" check --fail-on-unresolved --fail-on-warn --json > check.json
 spec-spine --repo "$W" attest --with-coupling --json > corpus.json
-spec-spine --repo "$W" attest --spec 084-a-short-id-names-the-same-spec-at-every-verb --json > spec.json
-spec-spine --repo "$W" verify --plan --json 084-a-short-id-names-the-same-spec-at-every-verb > plan.json
+spec-spine --repo "$W" attest --spec 057-a-short-id-names-the-same-spec-at-every-verb --json > spec.json
+spec-spine --repo "$W" verify --plan --json 067-a-short-id-names-the-same-spec-at-every-verb > plan.json
 
 # The diff verdict needs git: run it in a clean checkout whose HEAD is the candidate.
 spec-spine couple --base e4032ff --head 75181a5 --json > couple.json
@@ -386,11 +386,11 @@ output; the values are the real ones from that run):
     { "type": "CorpusAttestation", "schemaVersion": "0.1.0", "scope": "specs+code",
       "attestationHash": "44046b3957ede75148d10db258cca3e7c544fb90a7b13f124996c750ad6caf99" },
     { "type": "SpecAttestation", "schemaVersion": "0.1.0",
-      "specId": "084-a-short-id-names-the-same-spec-at-every-verb",
+      "specId": "067-a-short-id-names-the-same-spec-at-every-verb",
       "specSourceHash": "de71e87232a69abd2c1e45ba2415f0f8db68c72fdd6c727df7568e21357d8692",
       "attestationHash": "ab0e784071cd3be65060f2ead325e0e2d87d3ff8f803f8fbdcea249b8ca05644" }
   ],
-  "plan": { "specId": "084-a-short-id-names-the-same-spec-at-every-verb", "commands": 26,
+  "plan": { "specId": "067-a-short-id-names-the-same-spec-at-every-verb", "commands": 26,
             "sha256": "0172fbfd35a0cd50be10d10c71802ac65d1d591c10677c11c8a5a390b7a1a3cc" }
 }
 ```
@@ -405,7 +405,7 @@ not a failure of content: rerun under the recorded version.
 What that record then establishes, and nothing more: at that tree, under that
 tool version, the committed ledger matched the corpus; the corpus validated and
 linted clean; every claimed unit resolved; the diff from the merge base did not
-touch owned code without an owning `spec.md` in the same diff; spec 084's own
+touch owned code without an owning `spec.md` in the same diff; spec 067's own
 text and owning units hashed to the listed values; and its declared acceptance
 was those 26 commands. It does not establish that the commands were run, that
 they pass, that the specification is correct, or that anyone with authority
@@ -415,19 +415,19 @@ approved the change.
 
 1. **Read the plan, never the block.** `verify --plan --json <id>` is a pure
    read and runs nothing. Parse it; do not re-implement the `## Verification`
-   grammar (spec 049 3.2). Blocks the tool does not run are listed under
+   grammar (spec 043 3.2). Blocks the tool does not run are listed under
    `skipped` rather than dropped.
 2. **Read it from the trusted base, not from the candidate.** A candidate that
    edits its own `## Verification` block and its code in one diff passes
    `couple` (§5). Take the plan from the base revision's copy of the spec, or
    treat any difference between the base and candidate plans as a change that
    needs approval under the base's policy. Record `specSourceHash` for the copy
-   the plan came from. `delta --base B --head H --json` (spec 088) makes this
+   the plan came from. `delta --base B --head H --json` (spec 071) makes this
    difference mechanical: a spec whose plan differs carries `verification`,
    with `basePlanHash`, `headPlanHash` and how many commands are only on each
    side.
 3. **Execute only in a worker that was explicitly authorized to run it.** The
-   commands are shell (`sh -c`), inherit the caller's environment (spec 049
+   commands are shell (`sh -c`), inherit the caller's environment (spec 043
    3.5), and are a stranger's in the general case. Never run them in a process
    holding control-plane credentials. Isolation, credentials and time limits
    are the consumer's policy; spec-spine does not sandbox and does not claim to.
@@ -444,7 +444,7 @@ from `75181a5`. Both print `spec-spine 0.18.0`.
 
 | Case | Result | Reading |
 |---|---|---|
-| `v0.18.0` `attest --spec` over all 85 specs | 71 succeed, 14 exit 3 ("Is a directory") | spec 083's fix is not released |
+| `v0.18.0` `attest --spec` over all 85 specs | 71 succeed, 14 exit 3 ("Is a directory") | spec 066's fix is not released |
 | `75181a5` over the same | 85 succeed | |
 | per-spec attestation of 048 made at `75181a5`, verified by `v0.18.0` | exit 3, I/O error | the version stamps are equal, so the named `versionMismatch` outcome cannot fire |
 | corpus attestation made by either, verified by the other | `match` | historical corpus evidence is unaffected |
@@ -452,7 +452,7 @@ from `75181a5`. Both print `spec-spine 0.18.0`.
 
 Against a sealed attestation, using a scratch key:
 
-| Tamper | `--recompute` at `75181a5` | `--signature` at `75181a5` | Verdict at `75181a5` | Since `v0.19.0` (spec 085) |
+| Tamper | `--recompute` at `75181a5` | `--signature` at `75181a5` | Verdict at `75181a5` | Since `v0.19.0` (spec 068) |
 |---|---|---|---|---|
 | none | match | valid | exit 0 | exit 0 |
 | add an unknown member, top level or nested (`"prCouple": {"ok": true}`) | match | **valid** | **exit 0** | exit 3, parse error naming the member |
@@ -464,13 +464,13 @@ Against a sealed attestation, using a scratch key:
 | a verdict flipped | content mismatch naming the field | invalid | exit 1 | exit 1, `contentMismatch` |
 | duplicate key | refused, parse error | | exit 3 | exit 3 |
 
-The four bold rows were contract gaps, not intended behavior. Spec 023 AC-4
+The four bold rows were contract gaps, not intended behavior. Spec 021 AC-4
 says a single tampered payload byte fails the signature, and the attestation
 module's own documentation says loaders reject an unknown MAJOR. The verifier
 deserialized without refusing unknown members and re-canonicalized before
 checking the seal, so the bytes it verified were not the bytes a consumer
-reads. Spec 085 closes all four in `v0.19.0`: the verifier reads the file once
-and both modes decide on those bytes. The last column is spec 085's own
+reads. Spec 068 closes all four in `v0.19.0`: the verifier reads the file once
+and both modes decide on those bytes. The last column is spec 068's own
 `## Verification` block, which passed in full (25 commands) on a `0.19.0`
 build; the reformat row was measured with a compact copy.
 
@@ -502,10 +502,10 @@ the gate floor `check --fail-on-warn`, `lint --fail-on-warn`,
 
 Separately, the CLI's export and adoption paths run `attest --with-coupling` and
 `attest` and match `attestationHash:` in prose with a regular expression
-(`export.ts`, `adopt/holdback.ts`), the pattern spec 037's migration note
+(`export.ts`, `adopt/holdback.ts`), the pattern spec 034's migration note
 names as the one that broke; `stages/verify.ts` re-implements the
 `## Verification` grammar rather than reading `verify --plan --json`. Its
 `spec-spine.toml` pins `required_version = "0.18.0"` (a caret range) and CI
 installs from `main`'s `install.sh` without a version, so it runs `v0.18.0`,
-which predates spec 083; it does not call `attest --spec` today. The requests
+which predates spec 066; it does not call `attest --spec` today. The requests
 this implies are in design/04 §7.

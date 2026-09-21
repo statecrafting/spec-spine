@@ -1,11 +1,11 @@
-//! Shared shard-storage primitives (spec 024).
+//! Shared shard-storage primitives (spec 022).
 //!
 //! The two committed artifacts (the spec registry and the codebase index) are
 //! stored as one file per authority unit (`by-spec/<id>.json`,
 //! `by-package/<slug>.json`) instead of one monolithic file behind a global
 //! content-hash line. Two PRs that touch different units then write disjoint
 //! files and never conflict textually, so GitHub's server-side merge and the
-//! merge queue's speculative build form clean stacks (the spec 020 merge driver
+//! merge queue's speculative build form clean stacks (the spec 094 merge driver
 //! is needed only for the rare same-shard conflict).
 //!
 //! This module holds the storage mechanics common to both artifacts:
@@ -67,7 +67,7 @@ pub fn global_inputs_hash(cfg: &Config, repo_root: &Path) -> String {
     for pattern in &cfg.index.extra_hashed_inputs {
         for file in glob_files(repo_root, pattern) {
             let rel = rel_posix(repo_root, &file);
-            // Spec 039 3.2: nothing under a declared state root contributes to
+            // Spec 036 3.2: nothing under a declared state root contributes to
             // any content hash, so a tool writing its own state can never make
             // the committed ledger stale. Filtered here rather than left to the
             // adopter's glob, because a pattern wide enough to reach in (`**`,
@@ -77,7 +77,7 @@ pub fn global_inputs_hash(cfg: &Config, repo_root: &Path) -> String {
                 continue;
             }
             if let Ok(content) = fs::read_to_string(&file) {
-                // Spec 073 3.1: a workflow folds as its governance projection,
+                // Spec 060 3.1: a workflow folds as its governance projection,
                 // not as raw bytes. `.github/workflows/**/*` is half the
                 // shipped default and this scalar is inside EVERY shard hash,
                 // so without the projection a one-character action-ref bump
@@ -190,10 +190,10 @@ pub fn read_shard_files(dir: &Path) -> Result<Vec<(String, Vec<u8>)>, Error> {
 
 /// Glob `pattern` under `repo_root`, returning matched files, sorted.
 ///
-/// Crate-visible since spec 088: `delta` classifies a path as policy exactly
+/// Crate-visible since spec 071: `delta` classifies a path as policy exactly
 /// when [`global_inputs_hash`] folds it, and asks with this matcher rather than
 /// a pattern test over the path, which would disagree on a pattern ending in a
-/// bare `**` (it walks to directories, so it folds no file; spec 069).
+/// bare `**` (it walks to directories, so it folds no file; spec 058).
 pub(crate) fn glob_files(repo_root: &Path, pattern: &str) -> Vec<PathBuf> {
     let joined = repo_root.join(pattern);
     let mut out: Vec<PathBuf> = match glob::glob(&joined.to_string_lossy()) {

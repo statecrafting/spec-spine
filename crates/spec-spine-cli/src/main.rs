@@ -6,7 +6,7 @@
 /// `println!` for stdout that does not panic when the reader goes away.
 ///
 /// Defined before the `mod` items below so every submodule sees it (textual
-/// macro scoping). See `out.rs` for why this exists (spec 035).
+/// macro scoping). See `out.rs` for why this exists (spec 032).
 macro_rules! outln {
     () => { $crate::out::line(format_args!("")) };
     ($($arg:tt)*) => { $crate::out::line(format_args!($($arg)*)) };
@@ -61,25 +61,25 @@ enum Command {
         /// `index check`.
         #[arg(long)]
         check: bool,
-        /// Emit the verdict as a JSON envelope on stdout (spec 037). Requires
+        /// Emit the verdict as a JSON envelope on stdout (spec 034). Requires
         /// `--check` or `--spec`: the writing form mutates `.derived`, and its
-        /// verdict is deliberately not machine-readable (spec 037 4).
+        /// verdict is deliberately not machine-readable (spec 034 4).
         #[arg(long)]
         json: bool,
-        /// Validate exactly one spec and write nothing (spec 056). Accepts the
+        /// Validate exactly one spec and write nothing (spec 049). Accepts the
         /// short id (`056`). Incompatible with `--check`.
         #[arg(long, value_name = "ID")]
         spec: Option<String>,
         /// Fail (exit 1) when the compile produces any warning-tier violation
-        /// (spec 077). Accepted on every form of the verb: it changes the exit
+        /// (spec 064). Accepted on every form of the verb: it changes the exit
         /// code only, never `validation.passed` and never an emitted byte, and
-        /// an exit code is not written output, so spec 037 §4's withholding of
+        /// an exit code is not written output, so spec 034 §4's withholding of
         /// `--json` from the writing form does not reach it.
         #[arg(long)]
         fail_on_warn: bool,
     },
     /// Both freshness reads in one verb: are the committed registry shards and
-    /// the committed index shards current (spec 075)?
+    /// the committed index shards current (spec 062)?
     ///
     /// Additive over `compile --check` and `index check`, which keep their
     /// flags and their contracts. Reads only; it never repairs the tree it is
@@ -92,7 +92,7 @@ enum Command {
         #[arg(long)]
         fail_on_unresolved: bool,
         /// Fail (exit 1) when the compile produces any warning-tier violation
-        /// (spec 077 §3.3). Forwarded to the **compile** half, the mirror of
+        /// (spec 064 §3.3). Forwarded to the **compile** half, the mirror of
         /// `--fail-on-unresolved` above. This is the only form CI can call:
         /// the self-governance job runs `check` in place of `compile` and
         /// `index`, so a `--fail-on-warn` that existed only on the primitive
@@ -102,7 +102,7 @@ enum Command {
         /// and either may be passed alone.
         #[arg(long)]
         fail_on_warn: bool,
-        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        /// Emit the verdict as a JSON envelope on stdout (spec 034).
         #[arg(long)]
         json: bool,
     },
@@ -130,14 +130,14 @@ enum Command {
         /// Fail (exit 1) if any info-tier diagnostic is present.
         #[arg(long)]
         fail_on_info: bool,
-        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        /// Emit the verdict as a JSON envelope on stdout (spec 034).
         #[arg(long)]
         json: bool,
     },
     /// Run a spec's declared acceptance: the `verify:cli` commands under its
     /// `## Verification` heading, in order, stopping at the first failure.
     ///
-    /// Runs code the corpus declares (spec 049), so it is deliberately not part
+    /// Runs code the corpus declares (spec 043), so it is deliberately not part
     /// of the gate chain. `<id>` accepts the short form (`049`).
     Verify {
         /// Spec id, full (`049-slug`) or short (`049`).
@@ -147,7 +147,7 @@ enum Command {
         /// for the one verb that runs what the corpus declares.
         #[arg(long)]
         plan: bool,
-        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        /// Emit the verdict as a JSON envelope on stdout (spec 034).
         #[arg(long)]
         json: bool,
     },
@@ -167,16 +167,16 @@ enum Command {
         #[arg(long)]
         paths_from: Option<PathBuf>,
         /// Also judge the index and working tree, so a pre-commit run sees the
-        /// change being committed (spec 102). Only valid when `--head` resolves
+        /// change being committed (spec 081). Only valid when `--head` resolves
         /// to `HEAD`, and never with `--paths-from`.
         #[arg(long)]
         include_uncommitted: bool,
-        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        /// Emit the verdict as a JSON envelope on stdout (spec 034).
         #[arg(long)]
         json: bool,
     },
     /// Classify every path a change touches under the merge base's rules
-    /// (spec 088). A report, not a gate: exit 0 whenever a report was produced.
+    /// (spec 071). A report, not a gate: exit 0 whenever a report was produced.
     ///
     /// Each changed path carries every class that applies: implementation,
     /// requirement, verification, authority, lifecycle, constitutional, policy,
@@ -197,13 +197,13 @@ enum Command {
         /// Head ref.
         #[arg(long, default_value = "HEAD")]
         head: String,
-        /// Emit the report as a JSON envelope on stdout (spec 037).
+        /// Emit the report as a JSON envelope on stdout (spec 034).
         #[arg(long)]
         json: bool,
     },
-    /// Emit a reproducible corpus attestation; optionally seal it (spec 023).
+    /// Emit a reproducible corpus attestation; optionally seal it (spec 021).
     Attest {
-        /// Scope the attestation to one spec (spec 042), writing
+        /// Scope the attestation to one spec (spec 039), writing
         /// `<derived>/attestation/by-spec/<id>.json`. Accepts the short id
         /// (`042`); the file is named by the resolved id. Records the verdicts;
         /// it is not a gate, and exit 0 means only that an attestation was
@@ -213,7 +213,7 @@ enum Command {
         /// Also record the coupling (specs-and-code-in-sync) verdict.
         #[arg(long)]
         with_coupling: bool,
-        /// Emit an authority snapshot instead (spec 087), writing
+        /// Emit an authority snapshot instead (spec 070), writing
         /// `<derived>/attestation/snapshot.json`: which inputs were read, what
         /// they hashed to, whether the committed ledger matches the recompute,
         /// and every spec's territory digest. Cannot combine with `--spec` or
@@ -229,17 +229,17 @@ enum Command {
         /// Override the seal's key id (defaults to the hex public key).
         #[arg(long, value_name = "ID")]
         key_id: Option<String>,
-        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        /// Emit the verdict as a JSON envelope on stdout (spec 034).
         #[arg(long)]
         json: bool,
     },
     /// Verify a corpus attestation by recompute and/or detached signature.
     VerifyAttestation {
-        /// Verify the per-spec attestation for this id (spec 042). Accepts
+        /// Verify the per-spec attestation for this id (spec 039). Accepts
         /// the short id (`042`), resolved against the attestation files.
         #[arg(long, value_name = "ID")]
         spec: Option<String>,
-        /// Verify the authority snapshot (spec 087) instead of an attestation.
+        /// Verify the authority snapshot (spec 070) instead of an attestation.
         #[arg(long)]
         snapshot: bool,
         /// Re-read the corpus and check it reproduces the attestation (no key).
@@ -257,14 +257,14 @@ enum Command {
         /// The detached seal file (defaults to the attestation's sibling .sig).
         #[arg(long, value_name = "PATH")]
         seal: Option<PathBuf>,
-        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        /// Emit the verdict as a JSON envelope on stdout (spec 034).
         #[arg(long)]
         json: bool,
     },
 }
 
 fn main() -> ExitCode {
-    // Spec 063 §3.1: a command line clap cannot parse is a usage error, and a
+    // Spec 093 §3.1: a command line clap cannot parse is a usage error, and a
     // usage error is exit 3. Clap's own default is 2, which this tool spends on
     // staleness, so an unknown flag was indistinguishable from a stale ledger
     // except by matching clap's English on stderr. After this, exit 2 from any
@@ -279,7 +279,7 @@ fn main() -> ExitCode {
     };
 
     let json_verb = cli.command.json_verb();
-    // Spec 062 §3.2: the version pin is checked before any work. A read from a
+    // Spec 055 §3.2: the version pin is checked before any work. A read from a
     // mismatched binary is the quiet failure this exists to prevent: `registry
     // plan` from an old binary answers a question about a corpus it may
     // misunderstand, and answers it confidently.
@@ -382,7 +382,7 @@ fn main() -> ExitCode {
     match result {
         Ok(code) => ExitCode::from(code),
         Err(e) => {
-            // Spec 037 3.3: under `--json` a failure is an envelope on stdout,
+            // Spec 034 3.3: under `--json` a failure is an envelope on stdout,
             // not bare prose on stderr, so a consumer's happy path and error
             // path have the same shape. Handled once here rather than in six
             // commands: every `run` returning `Err` lands in this arm.
@@ -426,7 +426,7 @@ impl Command {
                 check: true,
                 ..
             } => Some(verb::COMPILE_CHECK),
-            // Spec 056: `--spec` is its own verb. A consumer that branched on
+            // Spec 049: `--spec` is its own verb. A consumer that branched on
             // `compile.check` must not silently receive a single-spec verdict.
             Command::Compile {
                 json: true,
@@ -458,11 +458,11 @@ pub(crate) fn load_repo_config(repo: &Path) -> Result<Config, Error> {
     }
 }
 
-/// Enforce `[meta] required_version` (spec 062 §3.2).
+/// Enforce `[meta] required_version` (spec 055 §3.2).
 ///
-/// `--version` and `--help` are clap's, and never reach here. Spec 062 exempted
+/// `--version` and `--help` are clap's, and never reach here. Spec 055 exempted
 /// `init`, the one verb that ran in a repository with no configuration yet;
-/// spec 120 §3.1 removed it, so every remaining verb reads a corpus that
+/// spec 092 §3.1 removed it, so every remaining verb reads a corpus that
 /// already has a `spec-spine.toml` and the exemption has nothing left to name.
 ///
 /// A configuration that cannot be read at all is left to the verb: this returns
@@ -476,7 +476,7 @@ fn check_version_pin(repo: &Path, command: &Command) -> Result<(), Error> {
 }
 
 /// Render a clap error and map it to this tool's exit-code contract
-/// (spec 063 §3.1).
+/// (spec 093 §3.1).
 ///
 /// Help and version are successful requests for information: stdout, exit 0.
 /// Everything else is the invocation failing to parse, which belongs in the
@@ -495,7 +495,7 @@ fn exit_for_clap_error(e: clap::Error) -> ExitCode {
         // `spec-spine` with no subcommand prints help, but nobody asked for
         // help: the invocation was incomplete. It exits 3 with its siblings
         // rather than 0, so a script that dropped the verb still fails. See
-        // spec 063 §3.1's decision entry.
+        // spec 093 §3.1's decision entry.
         _ => {
             // Clap's message, unchanged: it names the offending argument better
             // than a paraphrase would.
@@ -509,7 +509,7 @@ fn exit_for_clap_error(e: clap::Error) -> ExitCode {
 mod tests {
     use clap::CommandFactory;
 
-    /// Spec 084 §3.5: the six arguments that take a spec id, and no seventh.
+    /// Spec 067 §3.5: the six arguments that take a spec id, and no seventh.
     ///
     /// 049 §3.2 and 056 §3.1 each asserted the cross-verb rule in prose and
     /// nothing held it, which is how `registry show`, `registry relationships`,
@@ -564,7 +564,7 @@ mod tests {
 
         assert_eq!(
             found, expected,
-            "the set of spec-id arguments moved (spec 084 §3.5). Every one of \
+            "the set of spec-id arguments moved (spec 067 §3.5). Every one of \
              them must resolve through `spec_spine_core::spec_id` (084 §3.4), \
              and must be driven by the matrix in \
              `crates/spec-spine-cli/tests/spec_id.rs`. Add it to both lists, or \

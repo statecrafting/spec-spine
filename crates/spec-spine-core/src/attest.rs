@@ -1,4 +1,4 @@
-//! The attest capability (spec 023): a pure, reproducible attestation over the
+//! The attest capability (spec 021): a pure, reproducible attestation over the
 //! spec corpus state.
 //!
 //! `attest` freezes a verdict spec-spine already computes (`compile`, `lint`,
@@ -149,7 +149,7 @@ pub fn attest(
     })
 }
 
-/// Build a [`SpecAttestation`] over one spec's territory (spec 042).
+/// Build a [`SpecAttestation`] over one spec's territory (spec 039).
 ///
 /// Pure function of `(config, file contents)`, exactly as [`attest`]: it runs
 /// `compile`, `lint` and `index`, all themselves pure, and reduces their output
@@ -166,7 +166,7 @@ pub fn attest_spec(
     spec_id: &str,
 ) -> Result<SpecAttestOutcome, Error> {
     let compiled = compile(cfg, repo_root)?;
-    // Spec 084 3.1 and 3.3: resolve once against the ids of the compile this
+    // Spec 067 3.1 and 3.3: resolve once against the ids of the compile this
     // verb already runs, then use the resolved id for **every** value derived
     // from it. The argument selects the record, selects the index mapping whose
     // units are hashed, and is written as the payload's `specId`; resolving
@@ -205,7 +205,7 @@ pub fn attest_spec(
     )
 }
 
-/// SHA-256 over a spec's own normalized `spec.md` (spec 042 `specSourceHash`).
+/// SHA-256 over a spec's own normalized `spec.md` (spec 039 `specSourceHash`).
 pub(crate) fn spec_source_hash(
     repo_root: &Path,
     record: &spec_spine_types::SpecRecord,
@@ -218,9 +218,9 @@ pub(crate) fn spec_source_hash(
     Ok(sha256_hex(hash::normalize(&text).as_bytes()))
 }
 
-/// Why a spec's units could not be hashed under spec 042's construction.
+/// Why a spec's units could not be hashed under spec 039's construction.
 ///
-/// The one distinction a caller acts on (spec 087 §3.2.1): a directly claimed
+/// The one distinction a caller acts on (spec 070 §3.2.1): a directly claimed
 /// file whose content is not UTF-8, which this construction reads as text and
 /// so cannot answer, against every other failure. [`attest_spec`] turns both
 /// into the same `Error` it always returned, word for word.
@@ -238,7 +238,7 @@ impl SpecUnitsError {
 }
 
 /// The owning units of `spec_id` with the content hash of what each resolved
-/// to, and whether every one resolved (spec 042, spec 083).
+/// to, and whether every one resolved (spec 039, spec 066).
 pub(crate) fn spec_units(
     cfg: &spec_spine_types::Config,
     repo_root: &Path,
@@ -278,7 +278,7 @@ pub(crate) fn spec_units(
         let mut pieces: Vec<(String, String)> = Vec::with_capacity(resolved.locations.len());
         for loc in &resolved.locations {
             let path = repo_root.join(&loc.file);
-            // Spec 083 3.1: the branch is on what the location IS, never on the
+            // Spec 066 3.1: the branch is on what the location IS, never on the
             // unit's declared kind. A `directory` unit and a trailing-slash
             // `file` unit both resolve to a directory (spec 000 4.2 calls them
             // one concept), and a `crate` unit resolves to a package root, so a
@@ -292,7 +292,7 @@ pub(crate) fn spec_units(
                     &cfg.layout,
                 );
                 if entries.is_empty() {
-                    // Spec 083 3.3: an empty or fully pruned directory hashes
+                    // Spec 066 3.3: an empty or fully pruned directory hashes
                     // its own repo-relative POSIX path. Hashing nothing would
                     // emit SHA-256 of the empty input, one constant shared by
                     // every empty claim in every repository, which reads as
@@ -310,7 +310,7 @@ pub(crate) fn spec_units(
                                     resolved.unit
                                 )))
                             })?;
-                            // Spec 083 3.2 + D-5: a claimed subtree contains
+                            // Spec 066 3.2 + D-5: a claimed subtree contains
                             // whatever it contains, so the walk meets bytes that
                             // are not UTF-8 (an image, a `.DS_Store`). Text
                             // keeps the standing normalization; anything else
@@ -326,7 +326,7 @@ pub(crate) fn spec_units(
                             };
                             pieces.push((pathutil::rel_posix(repo_root, &file), content));
                         }
-                        // Spec 083 3.2: the link's target text, never its
+                        // Spec 066 3.2: the link's target text, never its
                         // target's content. That records a retarget (3.4) while
                         // keeping content outside the repository out of the
                         // payload, and makes a cycle unreachable.
@@ -338,7 +338,7 @@ pub(crate) fn spec_units(
                 continue;
             }
             let content = fs::read_to_string(&path).map_err(|e| {
-                // Spec 087 §3.2.1: `InvalidData` is exactly "the bytes were read
+                // Spec 070 §3.2.1: `InvalidData` is exactly "the bytes were read
                 // and are not UTF-8", the one shape this construction cannot
                 // answer. The message is unchanged either way.
                 let non_utf8 = e.kind() == std::io::ErrorKind::InvalidData;
@@ -364,10 +364,10 @@ pub(crate) fn spec_units(
     Ok((units, all_resolved))
 }
 
-/// Assemble a [`SpecAttestation`] from inputs already computed (spec 042).
+/// Assemble a [`SpecAttestation`] from inputs already computed (spec 039).
 ///
 /// Split from [`attest_spec`] so one compile, index and lint can serve every
-/// spec in a snapshot (spec 087 §3.2); the bytes produced are the ones
+/// spec in a snapshot (spec 070 §3.2); the bytes produced are the ones
 /// `attest_spec` has always produced.
 pub(crate) fn build_spec_attestation(
     cfg: &spec_spine_types::Config,
@@ -387,7 +387,7 @@ pub(crate) fn build_spec_attestation(
     // spec and appear in no per-spec attestation. Every current `L-` rule sets
     // the offending spec's path, so nothing is dropped today; a future
     // cross-cutting rule that did not would need a scoping answer here rather
-    // than inheriting silence. The corpus-scoped attestation (spec 023) hashes
+    // than inheriting silence. The corpus-scoped attestation (spec 021) hashes
     // the whole findings set and is unaffected either way.
     let mine: Vec<_> = lint_report
         .violations
@@ -401,11 +401,11 @@ pub(crate) fn build_spec_attestation(
     let findings_hash = sha256_hex(canonical_json::to_string(&mine)?.as_bytes());
 
     // Error-tier only, which is what `validation.passed` means and therefore
-    // what spec 023's corpus-scoped `compile.ok` reports. `lint_ok` above uses
+    // what spec 021's corpus-scoped `compile.ok` reports. `lint_ok` above uses
     // the wider error-or-warning floor for the same reason: it mirrors the
     // `--fail-on-warn` gate 023 chose, a lint report having no single flag to
     // read. Both floors are copied exactly so the two scopes stay comparable
-    // (spec 042 D-4).
+    // (spec 039 D-4).
     let compile_ok = !compiled
         .registry
         .validation
@@ -423,7 +423,7 @@ pub(crate) fn build_spec_attestation(
         spec_source_hash,
         lifecycle: AttestedLifecycle {
             status: status_label(record.status).to_string(),
-            // Emitted in its canonical kebab-case spelling: spec 015 accepts
+            // Emitted in its canonical kebab-case spelling: spec 014 accepts
             // `n/a` on the way in and normalizes it, so two specs written in
             // different dialects attest identically.
             implementation: record
@@ -461,7 +461,7 @@ pub struct SpecAttestOutcome {
     pub attestation_hash: String,
 }
 
-/// Verify a [`SpecAttestation`] by recompute (spec 042 3.5), mirroring
+/// Verify a [`SpecAttestation`] by recompute (spec 039 3.5), mirroring
 /// [`verify_recompute`]: a `tool.version` mismatch stays a distinct, named
 /// outcome rather than a false content mismatch.
 pub fn verify_spec_recompute(
@@ -485,7 +485,7 @@ pub fn verify_spec_recompute(
     // saying only that something did.
     let mut differences = Vec::new();
     let (a, b) = (attestation, &recomputed);
-    // Named rather than folded into the catch-all below (spec 085 3.3): a
+    // Named rather than folded into the catch-all below (spec 068 3.3): a
     // report reading "tool.name or schemaVersion" tells a consumer which two
     // fields to go and diff by hand, which is the work it was meant to save.
     if a.schema_version != b.schema_version {
@@ -584,7 +584,7 @@ pub fn attestation_hash(attestation: &CorpusAttestation) -> Result<String, Error
 }
 
 /// SHA-256 (lowercase hex) over the stored bytes of an attestation file: the
-/// digest a seal is checked against (spec 085 3.1).
+/// digest a seal is checked against (spec 068 3.1).
 ///
 /// For every file `attest` has written the file *is* the canonical JSON, so this
 /// equals [`attestation_hash`] and every seal ever produced verifies exactly as
@@ -596,7 +596,7 @@ pub fn stored_bytes_hash(bytes: &[u8]) -> String {
 }
 
 /// Read `schemaVersion` out of a JSON payload before it is strictly parsed
-/// (spec 085 3.3).
+/// (spec 068 3.3).
 ///
 /// Reading it loosely first is what lets a payload from a MAJOR line this build
 /// does not understand be refused as unreadable rather than as an unknown
@@ -615,13 +615,13 @@ pub fn payload_schema_version(bytes: &[u8], what: &str) -> Result<String, Error>
 }
 
 /// Refuse a corpus attestation whose schema MAJOR this build does not
-/// understand (spec 085 3.3), in the registry and index loaders' own words.
+/// understand (spec 068 3.3), in the registry and index loaders' own words.
 pub fn check_attestation_major(schema_version: &str) -> Result<(), Error> {
     crate::shard::check_major("attestation", schema_version, ATTESTATION_SCHEMA_VERSION)
 }
 
 /// Refuse a per-spec attestation whose schema MAJOR this build does not
-/// understand (spec 085 3.3).
+/// understand (spec 068 3.3).
 pub fn check_spec_attestation_major(schema_version: &str) -> Result<(), Error> {
     crate::shard::check_major(
         "spec attestation",
@@ -630,7 +630,7 @@ pub fn check_spec_attestation_major(schema_version: &str) -> Result<(), Error> {
     )
 }
 
-/// Fold spec 085 3.1's byte comparison into a corpus recompute outcome.
+/// Fold spec 068 3.1's byte comparison into a corpus recompute outcome.
 ///
 /// A [`VerifyOutcome::Match`] says the parsed values are what the corpus
 /// recomputes. It becomes a content mismatch when the stored bytes are not that
@@ -652,7 +652,7 @@ pub fn with_stored_bytes(
     }
 }
 
-/// [`with_stored_bytes`] for a per-spec attestation (spec 085 3.1).
+/// [`with_stored_bytes`] for a per-spec attestation (spec 068 3.1).
 pub fn with_stored_bytes_spec(
     outcome: VerifyOutcome,
     attestation: &SpecAttestation,
@@ -708,7 +708,7 @@ pub fn verify_recompute(
     let mut differences = Vec::new();
     let a = attestation;
     let b = &recomputed;
-    // Compared like every other member (spec 085 3.3). Skipping it let an
+    // Compared like every other member (spec 068 3.3). Skipping it let an
     // attestation claiming a schema this build never emitted recompute as a
     // match: the values agreed, and the one field saying what shape they were
     // written in went unread.

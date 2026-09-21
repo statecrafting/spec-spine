@@ -1,4 +1,4 @@
-//! Spec 088: a change classified under the base's rules.
+//! Spec 071: a change classified under the base's rules.
 //!
 //! The classification matrix of §3.8, library side. Every case builds a base
 //! tree with its committed index written exactly as `spec-spine index` writes

@@ -50,7 +50,7 @@ fn emitted_registry_conforms_to_embedded_schema() {
 
 #[test]
 fn emitted_registry_shards_conform_to_embedded_schema() {
-    // Spec 024: every committed per-spec registry shard must validate against the
+    // Spec 022: every committed per-spec registry shard must validate against the
     // embedded shard schema, so a DTO/schema drift fails the build.
     let tmp = tempfile::tempdir().unwrap();
     write_spec(tmp.path(), "000-root", "origin:\n  retroactive: true\n");

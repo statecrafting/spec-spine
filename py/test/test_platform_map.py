@@ -1,4 +1,4 @@
-"""Spec: specs/008-python-distribution/spec.md.
+"""Spec: specs/007-python-distribution/spec.md.
 
 Network- and disk-free unit test of the (os, cpu) -> target mapping, the wheel
 platform tags, and the unsupported-host refusal -- the Python parallel of

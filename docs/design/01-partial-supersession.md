@@ -1,7 +1,7 @@
 # 01: Partial supersession (structured `supersedes`)
 
 **Status:** decided and shipped. Option A was implemented as spec
-`019-structured-partial-supersedes` (approved, complete). This document is the
+`018-structured-partial-supersedes` (approved, complete). This document is the
 historical design analysis that preceded the decision; the analysis and
 algorithm sketch below match what was built, but the "open question" and staged
 recommendation framing is superseded (see the postscript at the end).
@@ -31,7 +31,7 @@ supersedes:
   - { spec: "042-old-thing", scope: partial, unit: "src/foo/bar.rs" }
 ```
 
-Read in English: *"this spec takes over spec 042's authority over
+Read in English: *"this spec takes over spec 039's authority over
 `src/foo/bar.rs` specifically; 042 keeps everything else it owns."* Contrast
 the full form this library accepts today:
 
@@ -65,7 +65,7 @@ couple.rs`. The relevant pieces:
   spec ids. The architecture edge table (§2.1) already labels the edge
   *"replaces a predecessor (partial/full); inherits current authority"*, so
   "partial" was a **named-but-unbuilt** capability at the time of this analysis,
-  not a foreign concept. (Both forms are now implemented as of spec 019; this
+  not a foreign concept. (Both forms are now implemented as of spec 018; this
   section describes the pre-019 baseline.)
 - **`build_superseders`** (`couple.rs`): folds the registry into a
   `predecessor_id -> { superseder_ids }` map. The key is a bare id; there is no
@@ -209,7 +209,7 @@ demand signal this small).
 ## 9. Outcome (postscript)
 
 The decision was taken and **Option A shipped directly as spec
-`019-structured-partial-supersedes`** (approved, complete), not the staged
+`018-structured-partial-supersedes`** (approved, complete), not the staged
 Option-D-then-A path recommended in §7, and not under the `017` number used as a
 placeholder above (`017` became the unrelated directory/crate/module-units
 spec). The implementation matches the §5 sketch:

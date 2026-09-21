@@ -1,0 +1,48 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "037-amendment-authoring",
+      "092-the-engine-ships-governance-not-an-environment",
+      "093-the-harness-this-repository-runs",
+      "094-one-gate-and-the-boundaries-it-holds"
+    ],
+    "implementingPaths": [
+      {
+        "path": "docs/corpus-map.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/corpus-map.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "docs/corpus-map.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/07-statecraft-realignment-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/07-statecraft-realignment-2026-09.md"
+        }
+      }
+    ],
+    "specId": "095-the-corpus-describes-what-exists",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "8c393e4e5ef2085333397838fd3c70fe8fe80cf0ed32565e4eb36ca15048c9f3"
+}

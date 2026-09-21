@@ -3,7 +3,7 @@ name: determinism
 # Cross-triple determinism GOLDEN. spec-spine's central claim is that every
 # artifact-producing step is a pure function of (config, file contents): so the
 # emitted registry + index shard trees (including tree-sitter symbol line-spans)
-# are byte-identical on every platform. Since spec 024 both artifacts are sharded
+# are byte-identical on every platform. Since spec 022 both artifacts are sharded
 # directories (`by-spec/`, `by-package/`), so each leg publishes a TREE digest
 # that folds every shard's path and content into one hash; the gather job fails
 # if any digest differs. This proves determinism empirically instead of merely
@@ -18,7 +18,7 @@ name: determinism
 # build-meta.json is excluded: it carries a wall-clock `builtAt`, the sole
 # non-deterministic artifact (see docs/design/00-architecture.md §10.1).
 
-# Spec 020: driven by ci.yml as a reusable workflow so a single `ci-gate` check
+# Spec 094: driven by ci.yml as a reusable workflow so a single `ci-gate` check
 # covers determinism too (and it runs on the merge queue through ci.yml's
 # merge_group trigger). `workflow_dispatch` keeps it runnable on its own.
 on:
@@ -67,7 +67,7 @@ jobs:
             elif command -v shasum    >/dev/null 2>&1; then shasum -a 256 "$1" | awk '{print $1}'
             else openssl dgst -sha256 "$1" | awk '{print $NF}'; fi
           }
-          # Spec 024: the committed artifacts are sharded directories, not single
+          # Spec 022: the committed artifacts are sharded directories, not single
           # files. A tree digest folds every shard's path AND content into one
           # hash: list every file under the dir (except the wall-clock
           # build-meta.json), sort POSIX, hash each, then hash the manifest. So a

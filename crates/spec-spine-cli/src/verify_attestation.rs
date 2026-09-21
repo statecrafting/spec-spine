@@ -1,4 +1,4 @@
-//! `spec-spine verify-attestation`: two independent verification modes (spec 023
+//! `spec-spine verify-attestation`: two independent verification modes (spec 021
 //! FR-004), either or both selectable in one invocation.
 //!
 //! `--recompute` re-reads the corpus and checks it reproduces the attestation:
@@ -7,7 +7,7 @@
 //! checks the detached seal against a supplied public key. A mode that cannot
 //! run fails visibly (FR-006); skip-as-pass is forbidden.
 //!
-//! Both modes decide on the **bytes of the file that was handed in** (spec 085
+//! Both modes decide on the **bytes of the file that was handed in** (spec 068
 //! 3.1). The file is read once; the seal is checked over SHA-256 of those bytes
 //! and `--recompute` compares them against the canonical serialization of what
 //! they parsed to. For every file `attest` wrote the two are the same bytes, so
@@ -33,17 +33,17 @@ use crate::seal;
 
 /// Parsed `verify-attestation` arguments.
 pub struct VerifyArgs {
-    /// Verify the per-spec attestation for this id (spec 042); `None` verifies
-    /// the corpus-scoped one (spec 023).
+    /// Verify the per-spec attestation for this id (spec 039); `None` verifies
+    /// the corpus-scoped one (spec 021).
     pub spec: Option<String>,
-    /// Verify the authority snapshot (spec 087) rather than an attestation.
+    /// Verify the authority snapshot (spec 070) rather than an attestation.
     pub snapshot: bool,
     pub recompute: bool,
     pub signature: bool,
     pub attestation: Option<PathBuf>,
     pub public_key: Option<PathBuf>,
     pub seal: Option<PathBuf>,
-    /// Emit the verdict as a JSON envelope instead of prose (spec 037).
+    /// Emit the verdict as a JSON envelope instead of prose (spec 034).
     pub json: bool,
 }
 
@@ -61,7 +61,7 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     if args.snapshot && args.spec.is_some() {
         return Err(Error::Config(
             "verify-attestation --snapshot cannot combine with --spec: each names a different \
-             record (spec 087 3.5)"
+             record (spec 070 3.5)"
                 .to_string(),
         ));
     }
@@ -69,7 +69,7 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     if let Some(id) = &args.spec {
         validate_spec_id(id)?;
     }
-    // Spec 084 3.2: the short form resolves here too, against the set this verb
+    // Spec 067 3.2: the short form resolves here too, against the set this verb
     // already reads, which is the attestation files rather than the corpus. A
     // `--signature` check is legitimate on an attestation whose spec has since
     // left the corpus, and a corpus-wide set would refuse it (084 D-3).
@@ -130,9 +130,9 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     // Under --json the two modes accumulate into one report object rather than
     // printing as they go. `outcome` is present exactly when --recompute ran and
     // is byte-for-byte what `spec_spine_core::verify_attestation_json` returns
-    // for the same inputs (spec 037 3.1); `signature` is present exactly when
+    // for the same inputs (spec 034 3.1); `signature` is present exactly when
     // --signature ran, an additive member for the mode the facade does not model.
-    // Both are needed because spec 037 3.2 requires the envelope to report the
+    // Both are needed because spec 034 3.2 requires the envelope to report the
     // same verdict the prose reports, and the prose reports both.
     let mut report = serde_json::Map::new();
 
@@ -255,11 +255,11 @@ fn default_attestation_path(repo: &Path, cfg: &Config, spec: Option<&str>) -> Pa
     }
 }
 
-/// Resolve `--spec` against the per-spec attestation files (spec 084 3.2).
+/// Resolve `--spec` against the per-spec attestation files (spec 067 3.2).
 ///
 /// Step 4 of 084 3.1 does **not** refuse here. The argument falls through as
 /// given and the read fails exactly as it does today: exit 3, with the hint to
-/// run `attest --spec` first. A missing attestation file is I/O, which spec 042
+/// run `attest --spec` first. A missing attestation file is I/O, which spec 039
 /// 3.5 assigns to exit 3, and refusing at exit 1 to match the other five would
 /// change that verb's code for a missing file (084 D-4). Only an argument that
 /// resolves is newly accepted, and only an ambiguous one is newly refused.
@@ -331,7 +331,7 @@ fn load_json<T: serde::de::DeserializeOwned>(
 
 /// Read an artifact's bytes, naming it and the command that would have produced
 /// it. Separate from the parse because the attestation's bytes outlive the
-/// parse: they are what both verification modes decide on (spec 085 3.1).
+/// parse: they are what both verification modes decide on (spec 068 3.1).
 fn read_artifact(path: &Path, what: &str, hint: &str) -> Result<Vec<u8>, Error> {
     fs::read(path).map_err(|e| {
         Error::Io(format!(
@@ -342,7 +342,7 @@ fn read_artifact(path: &Path, what: &str, hint: &str) -> Result<Vec<u8>, Error> 
 }
 
 /// Deserialize bytes already read, naming the file in the failure. The DTOs
-/// refuse unknown members (spec 085 3.2), so this is also where a payload
+/// refuse unknown members (spec 068 3.2), so this is also where a payload
 /// carrying a claim this build cannot evaluate is turned away.
 fn parse_artifact<T: serde::de::DeserializeOwned>(
     bytes: &[u8],

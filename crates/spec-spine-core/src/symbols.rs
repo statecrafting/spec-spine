@@ -3,12 +3,12 @@
 //!
 //! Symbol indexing covers top-level items only (no `impl` methods, no inline
 //! `mod` bodies) for Rust (`.rs`) and TypeScript (`.ts`/`.tsx`). The module index
-//! (spec 017) additionally resolves top-level inline `mod X { ... }` blocks to
+//! (spec 016) additionally resolves top-level inline `mod X { ... }` blocks to
 //! their block spans. The tree-sitter core and grammar crates are pinned exactly
 //! so spans are identical across platforms.
 //!
 //! The tree-sitter machinery (the `build_*` functions and their parse helpers) is
-//! gated behind the default `symbol-resolution` feature (spec 027). The
+//! gated behind the default `symbol-resolution` feature (spec 025). The
 //! [`SymbolIndex`] / [`ModuleIndex`] types and their `resolve` lookups carry no
 //! tree-sitter dependency and are always compiled, so the index resolver and its
 //! committed-shard readers build with the feature off; symbol/module units then
@@ -48,7 +48,7 @@ impl SymbolIndex {
     }
 }
 
-/// A resolved Rust module index (spec 017): `::`-qualified module path → physical
+/// A resolved Rust module index (spec 016): `::`-qualified module path → physical
 /// locations. File-modules resolve whole-file (`span: None`); a top-level inline
 /// `mod X { ... }` block resolves to its block span. TypeScript carries no
 /// analogous module authority unit in the corpus, so this is Rust-only.

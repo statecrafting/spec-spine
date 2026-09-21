@@ -1,0 +1,80 @@
+{
+  "record": {
+    "created": "2026-09-16",
+    "dependsOn": [
+      "005-coupling-gate",
+      "073-a-mode-only-or-binary-change-is-a-change"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "009-registry-query-projection-flags",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      }
+    ],
+    "id": "081-coupling-sees-the-change-being-committed",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/06-harness-and-distribution-2026-09.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "102: The coupling gate can see the change being committed",
+      "1. Purpose",
+      "1.1 A gate that reports on nothing reports a pass",
+      "1.2 Two out-of-scope clauses pointing at each other",
+      "1.3 Why the fix belongs in `couple` and not in the harness",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 `--include-uncommitted` adds the working tree to the range",
+      "3.2 Untracked files are out, and that is not a gap",
+      "3.3 The flag is meaningful only against `HEAD`",
+      "3.4 The default does not move",
+      "3.5 What spec 094 §4 now says",
+      "3.6 The acceptance",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/081-coupling-sees-the-change-being-committed/spec.md",
+    "status": "approved",
+    "summary": "`couple --base X --head HEAD` builds a `git diff X...HEAD`, so every path in the working tree and the index is invisible to it. The documented pre-commit coupling check therefore cannot see the change it is being run to judge: on a branch whose work is not yet committed it reports `0 path(s) checked, no drift` and exits 0, which reads as a pass. Spec 094 §4 placed the defect out of scope and said it \"is filed separately\"; spec 093 §4 placed it out of scope and pointed back at 090. Nothing filed it, and the phrase in 090 §4 has been untrue since it was written. This spec files it: `--include-uncommitted` unions the committed range with `git diff HEAD`, so the gate judges what a commit would contain. The library stays pure and still shells out to nothing; the CLI does the git work, as it already does for the range.\n",
+    "title": "The coupling gate can see the change being committed"
+  },
+  "shardHash": "b1a031b8fe1d8365e9e29c9367886683e7a8f43265fc3246509fa190348eb0c8",
+  "specVersion": "1.3.0"
+}

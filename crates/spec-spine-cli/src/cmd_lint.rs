@@ -11,7 +11,7 @@ use crate::out;
 /// Returns the exit code: `1` if any error-tier diagnostic (always), or any
 /// warning/info under the matching `--fail-on-*` flag; otherwise `0`.
 ///
-/// `json` (spec 037) replaces the stdout prose with one verdict envelope whose
+/// `json` (spec 034) replaces the stdout prose with one verdict envelope whose
 /// `report` is the violation array `spec_spine_core::lint_json` returns. The
 /// `--fail-on-*` flags still decide the code, so the same corpus can be `ok`
 /// under one gating policy and not under another with an identical report.

@@ -55,6 +55,6 @@
     "summary": "The compile capability: read every specs/NNN-slug/spec.md, validate its frontmatter, and emit a deterministic spec-as-source registry.json plus a non-deterministic build-meta.json. Establishes the spec-spine-core engine scaffolding (content hashing, canonical JSON, markdown heading extraction) and the `spec-spine compile` CLI subcommand.\n",
     "title": "Compile the spec corpus into a deterministic registry"
   },
-  "shardHash": "58803b08fdf779e5843f33e636689e1f29f677e49494300adc25d1cb42fef5fb",
+  "shardHash": "43188d563d68c524de330f47ebcadd3ccb4b25dda182af1b97d9421947dcf9a1",
   "specVersion": "1.3.0"
 }

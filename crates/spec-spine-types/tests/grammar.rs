@@ -55,7 +55,7 @@ fn tagged_units_parse() {
 
 #[test]
 fn directory_crate_module_units_parse() {
-    // Spec 017: the three reserved unit kinds now parse from their tagged form.
+    // Spec 016: the three reserved unit kinds now parse from their tagged form.
     let dir: Unit = serde_yaml::from_str("{ kind: directory, path: \"src/api\" }").unwrap();
     assert_eq!(
         dir,
@@ -80,7 +80,7 @@ fn directory_crate_module_units_parse() {
             planned: false
         }
     );
-    // The wrapper form (spec 015) composes with the new kinds.
+    // The wrapper form (spec 014) composes with the new kinds.
     let wrapped: Unit =
         serde_yaml::from_str("{ unit: { kind: directory, path: \"crates/x\" } }").unwrap();
     assert_eq!(
@@ -94,7 +94,7 @@ fn directory_crate_module_units_parse() {
 
 #[test]
 fn unit_wrapper_form_unwraps() {
-    // Spec 015 §3.1: `{ unit: <unit> }` is a 1:1 wrapper that normalizes to the
+    // Spec 014 §3.1: `{ unit: <unit> }` is a 1:1 wrapper that normalizes to the
     // inner unit. The inner may itself be a bare string or a tagged map.
     let bare: Unit = serde_yaml::from_str("{ unit: \"src/lib.rs\" }").unwrap();
     assert_eq!(
@@ -121,7 +121,7 @@ fn unit_wrapper_form_unwraps() {
 fn directory_subtree_detection() {
     assert!(Unit::file("src/").is_directory_subtree());
     assert!(!Unit::file("src/lib.rs").is_directory_subtree());
-    // An explicit directory unit is always a subtree (spec 017).
+    // An explicit directory unit is always a subtree (spec 016).
     assert!(
         Unit::Directory {
             path: "src".into(),
@@ -165,7 +165,7 @@ fn establishes_accepts_mixed_forms() {
 
 #[test]
 fn establishes_accepts_unit_wrapper() {
-    // Spec 015 §3.1: the predecessor dialect wraps each establishes item in a
+    // Spec 014 §3.1: the predecessor dialect wraps each establishes item in a
     // single-key `unit:` map. Wrapped and bare forms parse to the same units,
     // and may be mixed within one list.
     let fm = fm_with_edges(
@@ -193,7 +193,7 @@ fn establishes_accepts_unit_wrapper() {
 
 #[test]
 fn implementation_na_slash_is_alias_for_na() {
-    // Spec 015 §3.2: `n/a` is a deserialize-only alias for the canonical `n-a`,
+    // Spec 014 §3.2: `n/a` is a deserialize-only alias for the canonical `n-a`,
     // which is the only spelling ever emitted.
     let slash = fm_with_edges("implementation: n/a\n");
     let kebab = fm_with_edges("implementation: n-a\n");
@@ -217,7 +217,7 @@ fn extends_item_parses() {
 
 #[test]
 fn extends_paths_sugar_expands_to_file_units() {
-    // Spec 014 §3.1/§3.2: the predecessor dialect's `paths:` list is sugar
+    // Spec 013 §3.1/§3.2: the predecessor dialect's `paths:` list is sugar
     // for N single-unit items, expanded at parse time in authored order.
     let fm = fm_with_edges(
         "extends:\n  - { spec: \"000-x\", paths: [\"a.rs\", \"src/api/\"], nature: additive }\n",
@@ -281,7 +281,7 @@ extends:\n  - { spec: \"000-x\", paths: [{ kind: file, path: \"a.rs\" }] }\n---\
 
 #[test]
 fn constrains_discriminator_and_optional_unit() {
-    // Spec 018: a path-scoped item carries flavor + unit; a spec-scoped item
+    // Spec 017: a path-scoped item carries flavor + unit; a spec-scoped item
     // carries kind + target_specs and no unit. Both spellings are accepted.
     let fm = fm_with_edges(
         "constrains:\n  - { flavor: invariant-freeze, unit: \"schema.json\" }\n  - { kind: sequencing-plan, target_specs: [\"001-a\", \"002-b\"] }\n",
@@ -311,7 +311,7 @@ fn supersedes_and_amends_are_id_lists() {
 
 #[test]
 fn supersedes_full_and_partial_forms_parse() {
-    // Spec 019: a bare id and `{ scope: full }` both normalize to the bare-string
+    // Spec 018: a bare id and `{ scope: full }` both normalize to the bare-string
     // full form; `{ scope: partial, unit }` and `{ scope: partial, note }` stay
     // structured. (Covers OAP shapes 108 / 073 / 114 / 199 respectively.)
     let fm = fm_with_edges(
@@ -340,7 +340,7 @@ fn supersedes_full_and_partial_forms_parse() {
 
 #[test]
 fn references_provenance_derived_at_round_trips() {
-    // Spec 028 AC-1: a `references` provenance `{ kind, ref, derived_at }` parses
+    // Spec 026 AC-1: a `references` provenance `{ kind, ref, derived_at }` parses
     // and the timestamp is preserved on re-emit. (The shape OAP spec 165 emits.)
     let fm = fm_with_edges(
         "references:\n  - { role: decomposition-origin, provenance: { kind: code-fingerprint, ref: \"xray-fingerprint://abc123\", derived_at: \"2026-06-18T00:00:00Z\" } }\n",
@@ -372,7 +372,7 @@ fn references_provenance_derived_at_round_trips() {
 
 #[test]
 fn references_provenance_without_derived_at_omits_the_field() {
-    // Spec 028 AC-2: an item without `derived_at` parses unchanged and does NOT
+    // Spec 026 AC-2: an item without `derived_at` parses unchanged and does NOT
     // serialize the field (`skip_serializing_if`), so existing goldens are
     // byte-identical.
     let fm = fm_with_edges(
@@ -392,14 +392,14 @@ fn references_provenance_without_derived_at_omits_the_field() {
 
 #[test]
 fn references_provenance_unknown_field_is_rejected() {
-    // Spec 028 AC-3: a genuinely-unknown provenance field still trips
+    // Spec 026 AC-3: a genuinely-unknown provenance field still trips
     // `deny_unknown_fields`; the gate is not weakened by the additive field.
     let src = "---\nid: x\ntitle: t\nstatus: draft\ncreated: \"2026-06-08\"\nsummary: s\n\
 references:\n  - { provenance: { kind: k, ref: \"r\", bogus: \"x\" } }\n---\n";
     assert!(parse_frontmatter(src).is_err());
 }
 
-// ── spec 076: the `planned` flag on a unit payload ──────────────────────────
+// ── spec 063: the `planned` flag on a unit payload ──────────────────────────
 
 /// §3.1: the flag is valid only in the **object form**, on any unit kind. The
 /// bare-string shorthand cannot carry it, and the grammar is deliberately not

@@ -1,5 +1,5 @@
-// Spec: specs/046-kit-hooks-read-never-write/spec.md
-//! Harness hook tests (spec 046, retargeted by spec 120 3.5): the Claude Code
+// Spec: specs/093-the-harness-this-repository-runs/spec.md
+//! Harness hook tests (spec 093, retargeted by spec 092 3.5): the Claude Code
 //! hooks THIS repository runs observe the tree, they do not repair it. Three of
 //! the four originally ran a writing subcommand (`compile`, `index`) from a
 //! context that could not commit the result, and one of those writes stalled an
@@ -7,7 +7,7 @@
 //! These tests read `.claude/settings.json` and refuse a mutating `spec-spine`
 //! invocation in any hook other than the one sanctioned write.
 //!
-//! Until spec 120 the subject was `kit/settings.json`, the copy the repository
+//! Until spec 092 the subject was `kit/settings.json`, the copy the repository
 //! distributed, and a separate assertion held this repository's copy equal to
 //! it. The kit is gone and the distribution is Statecraft's; what is left is the
 //! file a session here actually loads, which is the one these assertions now
@@ -17,7 +17,6 @@
 
 use std::collections::BTreeMap;
 use std::fs;
-use std::path::Path;
 
 const SETTINGS: &str = include_str!("../../../.claude/settings.json");
 
@@ -106,16 +105,16 @@ fn is_read_only(verb: &[String]) -> bool {
     match verb.first().map(String::as_str) {
         Some("compile") => verb.iter().any(|w| w == "--check"),
         Some("index") => verb.get(1).map(String::as_str) == Some("check"),
-        // Spec 075 3.2: the composed freshness verb carries the never-writes
+        // Spec 062 3.2: the composed freshness verb carries the never-writes
         // contract of both primitives it calls, which is precisely why a hook
         // may run it. A `check` that could repair the tree would make a stale
         // committed ledger invisible on the branch that carries it.
         Some("check") | Some("couple") => true,
-        // Spec 090 3.2: the commit-boundary hook asks the tool where the
+        // Spec 094 3.2: the commit-boundary hook asks the tool where the
         // derived directory is rather than hardcoding `.derived`. `config`
         // has one subcommand and it prints.
         Some("config") => true,
-        // Spec 063 §3.2: the hooks ask `--version` before believing an exit
+        // Spec 093 §3.2: the hooks ask `--version` before believing an exit
         // code. Named explicitly rather than folded into a "flags are safe"
         // rule, because this predicate denies by default on purpose and the
         // exemptions should be countable.
@@ -146,7 +145,7 @@ fn every_hook_invokes_spec_spine_at_least_once() {
     }
 }
 
-/// Spec 046 3.1: no hook writes into the tree it observes, except the live
+/// Spec 093 3.1: no hook writes into the tree it observes, except the live
 /// session's recompile after a spec edit (3.2), which is the one place the
 /// actor can commit what it wrote.
 #[test]
@@ -165,7 +164,7 @@ fn hooks_read_and_never_write() {
     }
 }
 
-/// Spec 046 3.3: the PR gate and the post-edit check act on the repository the
+/// Spec 093 3.3: the PR gate and the post-edit check act on the repository the
 /// action targets, not on the session's project directory.
 #[test]
 fn action_hooks_are_scoped_to_the_target_repo() {
@@ -191,7 +190,7 @@ fn action_hooks_are_scoped_to_the_target_repo() {
     }
 }
 
-/// Spec 046 3.4, as spec 072 3.2 amends it: pushing to the default branch is
+/// Spec 093 3.4, as spec 093 3.2 amends it: pushing to the default branch is
 /// refused, by branch and by refspec, before the PR gate runs. The name is now
 /// resolved rather than spelled, so this guard reads the resolved variable in
 /// each of the four sites instead of the literal `main` 046 named.
@@ -199,7 +198,7 @@ fn action_hooks_are_scoped_to_the_target_repo() {
 fn pre_tool_use_refuses_a_push_to_the_default_branch() {
     let body = hook_bodies()["PreToolUse"].join("\n");
     assert!(body.contains("git push"), "no push gate");
-    // Spec 072 3.1: the three resolution steps, in order.
+    // Spec 093 3.1: the three resolution steps, in order.
     let env = body
         .find("SPEC_SPINE_DEFAULT_BRANCH")
         .expect("resolver must honour $SPEC_SPINE_DEFAULT_BRANCH");
@@ -238,7 +237,7 @@ fn pre_tool_use_refuses_a_push_to_the_default_branch() {
         body.contains("update $def"),
         "the refusal message must name the branch it resolved (072 3.2)"
     );
-    // Spec 071 3.1: anchored on the command that invokes the push verb. A
+    // Spec 093 3.1: anchored on the command that invokes the push verb. A
     // substring match over the whole command refused any command merely
     // containing the text, this test file among them.
     assert!(
@@ -247,9 +246,9 @@ fn pre_tool_use_refuses_a_push_to_the_default_branch() {
     );
 }
 
-/// Spec 071 3.3: the push gate is asserted by **running** it.
+/// Spec 093 3.3: the push gate is asserted by **running** it.
 ///
-/// Spec 046 gave this gate a substring assertion, and a substring assertion
+/// Spec 093 gave this gate a substring assertion, and a substring assertion
 /// passes identically on the over-broad body and the corrected one: it cannot
 /// see behavior, only text. That is why an over-broad match shipped to every
 /// adopter and survived four releases, and it is why these cases execute the
@@ -264,7 +263,7 @@ fn the_push_gate_refuses_only_what_would_update_main() {
         .status()
         .is_err()
     {
-        // Spec 046 3.5: a check that cannot run says so rather than passing
+        // Spec 093 3.5: a check that cannot run says so rather than passing
         // quietly. CI runs this job on ubuntu-latest, where jq is present.
         eprintln!("SKIPPED the_push_gate_refuses_only_what_would_update_main: jq absent");
         return;
@@ -312,7 +311,7 @@ fn the_push_gate_refuses_only_what_would_update_main() {
         ),
         ("git push -u origin feat/x", "feat", false),
         ("git push", "feat", false),
-        // Not a push at all: the second defect spec 071 fixes. Both of these
+        // Not a push at all: the second defect spec 093 fixes. Both of these
         // merely mention the gate, and both were refused before.
         ("grep -n 'origin main' settings.json", "main", false),
         ("sed -n 's/git push origin main//p' f", "main", false),
@@ -328,7 +327,7 @@ fn the_push_gate_refuses_only_what_would_update_main() {
     }
 }
 
-/// How the throwaway repository declares its default branch (spec 072 3.1).
+/// How the throwaway repository declares its default branch (spec 093 3.1).
 ///
 /// `Floor` is a repository that answers neither way, which is the common CI
 /// checkout and the case that must keep behaving exactly as it did before 072.
@@ -341,7 +340,7 @@ enum Declared {
     Env(&'static str),
 }
 
-/// Spec 072 3.5: the same gate, on a repository whose default branch is not
+/// Spec 093 3.5: the same gate, on a repository whose default branch is not
 /// `main`.
 ///
 /// This is the row that would have caught the defect. A gate asserted only
@@ -383,7 +382,7 @@ fn the_push_gate_protects_the_branch_the_repository_actually_has() {
             "feat",
             true,
         ),
-        // A tag push made from it: allowed. Spec 071's release step, preserved
+        // A tag push made from it: allowed. Spec 093's release step, preserved
         // on a repository 071 could not describe.
         (
             Declared::OriginHead("trunk"),
@@ -529,7 +528,7 @@ fn run_pre_tool_use_on(cmd: &str, branch: &str, declared: &Declared) -> i32 {
     child.wait().expect("hook exits").code().unwrap_or(-1)
 }
 
-/// Spec 046 3.5: a hook that cannot do its job says so instead of exiting
+/// Spec 093 3.5: a hook that cannot do its job says so instead of exiting
 /// quietly. Every body names the absent-tool condition it skipped on.
 #[test]
 fn hooks_report_when_they_skip() {
@@ -558,7 +557,7 @@ fn the_write_scanner_recognises_writes() {
     assert!(is_read_only(&v[0]));
 }
 
-/// Spec 051 3.5: a hook resolves the binary the project declares before it
+/// Spec 093 3.5: a hook resolves the binary the project declares before it
 /// falls back to whatever `PATH` happens to hold. A repository that builds its
 /// own binary must be governed by the one it builds. The machine that motivated
 /// this spec had `spec-spine` on `PATH` one release behind the checkout, which
@@ -588,7 +587,7 @@ fn hooks_resolve_the_projects_binary_before_path() {
     }
 }
 
-// ── spec 080: a gate that cannot ask says so ─────────────────────────────────
+// ── spec 093: a gate that cannot ask says so ─────────────────────────────────
 
 /// Run the shipped `PreToolUse` body against `gh pr create` with
 /// `$SPEC_SPINE_BIN` pointing at a stand-in that exits `check_exit` for
@@ -600,10 +599,10 @@ fn run_pr_gate_with_stand_in(check_exit: i32, version: &str) -> (i32, String) {
 }
 
 /// As [`run_pr_gate_with_stand_in`], with the `check --help` probe's exit code
-/// chosen by the test as well (spec 104 3.3).
+/// chosen by the test as well (spec 093 3.3).
 ///
 /// `help_exit` non-zero is a binary that does not carry the `check` verb, where
-/// clap spends exit 2 on the unrecognised subcommand: the case spec 104 3.1
+/// clap spends exit 2 on the unrecognised subcommand: the case spec 093 3.1
 /// separates from staleness.
 fn run_pr_gate_with_stand_in_help(check_exit: i32, help_exit: i32, version: &str) -> (i32, String) {
     use std::io::Write;
@@ -637,7 +636,7 @@ fn run_pr_gate_with_stand_in_help(check_exit: i32, help_exit: i32, version: &str
 
     let stand_in = root.join("stand-in-spec-spine");
     // `check --help` is matched BEFORE `check`, because the gate's probe and the
-    // gate's read differ only by that argument and the whole point of spec 104
+    // gate's read differ only by that argument and the whole point of spec 093
     // is that they are different questions.
     fs::write(
         &stand_in,
@@ -680,7 +679,7 @@ fn run_pr_gate_with_stand_in_help(check_exit: i32, help_exit: i32, version: &str
     )
 }
 
-/// Spec 080 3.1 and 3.2: exit 3 is a read that was not performed. The gate
+/// Spec 093 3.1 and 3.2: exit 3 is a read that was not performed. The gate
 /// still refuses, says so in those terms, names the binary and what it
 /// answers to `--version`, and never calls the tree stale.
 #[test]
@@ -724,7 +723,7 @@ fn the_pr_gate_still_reports_a_stale_tree_as_stale() {
     );
 }
 
-/// Spec 080 3.1: exit 1 is a corpus that does not validate, which is neither
+/// Spec 093 3.1: exit 1 is a corpus that does not validate, which is neither
 /// stale nor a missing read.
 #[test]
 fn the_pr_gate_reports_a_corpus_that_does_not_validate() {
@@ -734,91 +733,7 @@ fn the_pr_gate_reports_a_corpus_that_does_not_validate() {
     assert!(!err.contains("is stale"), "{err}");
 }
 
-// --- spec 090: the commit boundary ------------------------------------------
-
-/// The hook that fires whatever wrote the bytes. Read as a file rather than
-/// out of `.claude/settings.json`, because this one is a git hook and not a
-/// Claude Code hook; the property asserted over it is the same.
-fn pre_commit_body() -> String {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    fs::read_to_string(root.join(".githooks/pre-commit")).expect(".githooks/pre-commit exists")
-}
-
-/// Spec 090 3.1: the one hook whose actor IS the committer still refuses
-/// rather than repairs. A pre-commit hook that regenerated the derived tree
-/// would collapse "was never stale" and "was stale until the hook fixed it"
-/// into the same commit, and telling those apart is the whole content of
-/// `check`.
-#[test]
-fn the_commit_boundary_hook_reads_and_never_repairs() {
-    let body = pre_commit_body();
-    let verbs = spec_spine_invocations(&body);
-    assert!(
-        !verbs.is_empty(),
-        "no recognised spec-spine call in .githooks/pre-commit; a hook the \
-         scanner reads as call-free would pass this test vacuously"
-    );
-    for verb in &verbs {
-        assert!(
-            is_read_only(verb),
-            ".githooks/pre-commit runs a writing verb: {verb:?}"
-        );
-    }
-}
-
-/// Spec 090 3.1: and it stages nothing. Refusing while quietly adding the
-/// regenerated shards to the index is the same repair wearing a refusal's
-/// exit code.
-#[test]
-fn the_commit_boundary_hook_stages_nothing() {
-    for line in pre_commit_body().lines() {
-        let trimmed = line.trim_start();
-        if trimmed.starts_with('#') {
-            continue;
-        }
-        assert!(
-            !trimmed.contains("git add"),
-            ".githooks/pre-commit stages a file: {line}"
-        );
-    }
-}
-
-/// Spec 090 3.2: no coupling verdict at this boundary. `couple` builds its
-/// diff from `git diff base...head`, a range of commits, which cannot contain
-/// the change being committed. A verdict there would be about the previous
-/// commit wearing this one's name.
-#[test]
-fn the_commit_boundary_hook_runs_no_coupling_verdict() {
-    for verb in spec_spine_invocations(&pre_commit_body()) {
-        assert_ne!(
-            verb.first().map(String::as_str),
-            Some("couple"),
-            ".githooks/pre-commit asks for a coupling verdict it cannot get"
-        );
-    }
-}
-
-/// Spec 090 3.3: a refusal that hides its own escape hatch produces a
-/// contributor who disables the hook entirely.
-#[test]
-fn the_commit_boundary_hook_names_its_own_escape() {
-    assert!(
-        pre_commit_body().contains("--no-verify"),
-        "the refusal must name the standard bypass"
-    );
-}
-
-/// Spec 090 3.4: registration is per clone, and the enabler is the only thing
-/// that turns the hook on. Until it runs, the hook is inert bytes in the tree.
-#[test]
-fn the_enabler_registers_the_hooks_path_and_says_how_to_undo_it() {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let sh = fs::read_to_string(root.join(".githooks/enable-hooks.sh")).unwrap();
-    assert!(sh.contains("git config core.hooksPath"), "{sh}");
-    assert!(sh.contains("--unset core.hooksPath"), "{sh}");
-}
-
-// ── spec 099: the session hooks report the verdict, not a guess ──────────────
+// ── spec 093: the session hooks report the verdict, not a guess ──────────────
 
 /// `check`'s report for a corpus whose committed shards are byte-exact but
 /// whose spec claims a unit that does not resolve. Copied from a 0.19.0 run
@@ -847,13 +762,13 @@ const NOT_READ: &str =
 const HEALTHY: &str = "spec-registry: fresh\ncodebase-index: fresh\n";
 
 /// Run one shipped session-hook body against a stand-in binary whose `check`
-/// exit code and report are both chosen by the caller: the shape spec 080 3.4
+/// exit code and report are both chosen by the caller: the shape spec 093 3.4
 /// established for the PR gate, which is why the assertions below can pin the
 /// distinction between verdicts rather than the mere presence of a message.
 ///
 /// `help_exit` is what the stand-in spends on `check --help`. Non-zero stands
 /// for a binary predating the verb, which clap answers with exit 2, the same
-/// code this tool spends on staleness (spec 063 3.1).
+/// code this tool spends on staleness (spec 093 3.1).
 ///
 /// The body is read out of `.claude/settings.json`, never restated here. A test
 /// that asserted against its own copy of the script would pass while the
@@ -919,9 +834,9 @@ fn run_session_start(check_exit: i32, report: &str) -> (i32, String) {
     )
 }
 
-/// Spec 099 3.1: an unresolved claim is reported as itself. The remedy the
+/// Spec 093 3.1: an unresolved claim is reported as itself. The remedy the
 /// staleness line carries is regeneration, and regeneration provably does not
-/// clear a claim on a unit that does not exist (spec 098 1.2): `index` exits
+/// clear a claim on a unit that does not exist (spec 079 1.2): `index` exits
 /// 0, writes the same bytes, and the next read refuses identically.
 #[test]
 fn the_stop_hook_reports_an_unresolved_claim_as_itself() {
@@ -953,7 +868,7 @@ fn the_stop_hook_still_reports_a_stale_tree_as_stale() {
     assert!(!out.contains("UNRESOLVED CLAIM"), "{out}");
 }
 
-/// Spec 099 3.1: in the mixed case both are reported and neither is elided.
+/// Spec 093 3.1: in the mixed case both are reported and neither is elided.
 /// Reporting only the stale half is what the pre-099 body did through the
 /// `SessionStart` banner, and it named regeneration for a refusal half of
 /// which regeneration does not touch.
@@ -968,7 +883,7 @@ fn the_stop_hook_reports_both_halves_of_a_mixed_verdict() {
     );
 }
 
-/// Spec 099 3.1: exit 1 is a corpus that does not validate, which is neither
+/// Spec 093 3.1: exit 1 is a corpus that does not validate, which is neither
 /// stale nor cleared by regenerating.
 #[test]
 fn the_stop_hook_reports_a_corpus_that_does_not_validate() {
@@ -979,7 +894,7 @@ fn the_stop_hook_reports_a_corpus_that_does_not_validate() {
     assert!(!out.contains("spec-spine compile"), "{out}");
 }
 
-/// Spec 099 3.1 and 3.2, on spec 080's rule: exit 3 is a read that was not
+/// Spec 093 3.1 and 3.2, on spec 093's rule: exit 3 is a read that was not
 /// performed. The hook says so, names the binary and what it answers to
 /// `--version`, and never calls the tree stale.
 #[test]
@@ -999,7 +914,7 @@ fn the_stop_hook_reports_a_read_it_could_not_perform() {
     assert!(!out.contains("spec-spine compile"), "{out}");
 }
 
-/// Spec 099 3.2: clap spends exit 2 on an unrecognised subcommand and this
+/// Spec 093 3.2: clap spends exit 2 on an unrecognised subcommand and this
 /// tool spends exit 2 on staleness, so a binary predating `check` hands back
 /// the staleness code without having read anything. The probe runs first and
 /// the code is never believed on its own.
@@ -1019,7 +934,7 @@ fn the_stop_hook_reports_a_binary_that_predates_the_verb() {
     );
 }
 
-/// Spec 099 3.1: a report the hook does not recognise is said to be exactly
+/// Spec 093 3.1: a report the hook does not recognise is said to be exactly
 /// that. Guessing either remedy is the defect one level down.
 #[test]
 fn the_stop_hook_guesses_no_remedy_for_a_report_it_cannot_read() {
@@ -1037,7 +952,7 @@ fn the_stop_hook_says_nothing_when_both_trees_are_fresh() {
     assert!(out.trim().is_empty(), "a fresh tree gets no banner: {out}");
 }
 
-/// Spec 099 1.4: the hook advises and does not refuse, in every branch. Design
+/// Spec 093 1.4: the hook advises and does not refuse, in every branch. Design
 /// note 06's H-6 asks whether that should change; pinning the posture here
 /// means a later answer to it is a deliberate edit rather than a side effect
 /// of one, which is exactly what this spec was not allowed to decide.
@@ -1059,7 +974,7 @@ fn the_stop_hook_advises_and_never_refuses() {
     }
 }
 
-/// Spec 099 3.3: after spec 098 the blocking-only verdict stopped matching
+/// Spec 093 3.3: after spec 079 the blocking-only verdict stopped matching
 /// `codebase-index: STALE` and fell to the `unknown (check exit 2)` fallback.
 /// "Unknown" was no longer false, which is why 098 accepted it as a trade, and
 /// it told a session nothing it could act on.
@@ -1074,7 +989,7 @@ fn the_session_banner_reports_an_unresolved_claim_as_itself() {
     );
 }
 
-/// The stale-only banner is unchanged, wording included, for spec 098 3.3's
+/// The stale-only banner is unchanged, wording included, for spec 079 3.3's
 /// reason: a caller reading staleness today reads it after.
 #[test]
 fn the_session_banner_keeps_the_stale_only_wording() {
@@ -1087,7 +1002,7 @@ fn the_session_banner_keeps_the_stale_only_wording() {
     assert!(!out.contains("UNRESOLVED CLAIM"), "{out}");
 }
 
-/// Spec 099 3.3: the mixed banner reported the stale half and dropped the
+/// Spec 093 3.3: the mixed banner reported the stale half and dropped the
 /// unresolved one, so a reader regenerated, watched the refusal survive, and
 /// had been told nothing about why.
 #[test]
@@ -1097,7 +1012,7 @@ fn the_session_banner_reports_both_halves_of_a_mixed_verdict() {
     assert!(out.contains("STALE"), "{out}");
     assert!(
         out.contains("UNRESOLVED CLAIM"),
-        "the mixed banner dropped this half before spec 099: {out}"
+        "the mixed banner dropped this half before spec 093: {out}"
     );
 }
 
@@ -1111,9 +1026,9 @@ fn the_session_banner_still_reports_a_healthy_tree() {
     );
 }
 
-// ===== spec 104: every hook reads the exit code the same way =====
+// ===== spec 093: every hook reads the exit code the same way =====
 
-/// Spec 104 §3.1, §3.3: exit 2 from a binary that carries the verb is
+/// Spec 093 §3.1, §3.3: exit 2 from a binary that carries the verb is
 /// staleness, and the message is unchanged.
 #[test]
 fn spec104_exit_2_from_a_current_binary_is_still_stale() {
@@ -1123,7 +1038,7 @@ fn spec104_exit_2_from_a_current_binary_is_still_stale() {
     assert!(err.contains("spec-spine compile and index"), "{err}");
 }
 
-/// Spec 104 §3.1: exit 2 from a binary that does NOT carry the verb is clap's
+/// Spec 093 §3.1: exit 2 from a binary that does NOT carry the verb is clap's
 /// unrecognised-subcommand code, not this tool's staleness code.
 #[test]
 fn spec104_exit_2_from_a_binary_without_the_verb_is_not_stale() {
@@ -1146,7 +1061,7 @@ fn spec104_exit_2_from_a_binary_without_the_verb_is_not_stale() {
     assert!(err.contains("0.18.0"), "the floor is named: {err}");
 }
 
-/// Spec 104 §1.3, §3.3: the probe costs nothing on the happy path. A binary
+/// Spec 093 §1.3, §3.3: the probe costs nothing on the happy path. A binary
 /// whose `check --help` fails but whose `check` succeeds still passes the
 /// gate, which pins that the probe is reached only from the exit-2 arm.
 #[test]
@@ -1156,7 +1071,7 @@ fn spec104_the_probe_does_not_run_on_the_happy_path() {
     assert!(!err.contains("does not carry the check verb"), "{err}");
 }
 
-/// Spec 104 §3.2: `SessionStart` reports an unperformed read as one, naming
+/// Spec 093 §3.2: `SessionStart` reports an unperformed read as one, naming
 /// the binary, rather than as a shape it does not recognise.
 #[test]
 fn spec104_session_start_reports_exit_3_as_a_read_not_performed() {
@@ -1175,7 +1090,7 @@ fn spec104_session_start_reports_exit_3_as_a_read_not_performed() {
     assert!(out.contains("NOT READ"), "{out}");
     assert!(
         out.contains("0.19.0-stand-in"),
-        "the binary is named, as the Stop hook has named it since spec 099: {out}"
+        "the binary is named, as the Stop hook has named it since spec 093: {out}"
     );
     // Both halves, since neither tree was judged.
     assert_eq!(
@@ -1185,7 +1100,7 @@ fn spec104_session_start_reports_exit_3_as_a_read_not_performed() {
     );
 }
 
-/// Spec 104 §3.2: spec 099 §3.3's fallback stays for a code neither hook knows.
+/// Spec 093 §3.2: spec 093 §3.3's fallback stays for a code neither hook knows.
 #[test]
 fn spec104_an_unrecognised_code_still_falls_back() {
     let (code, out) = run_session_hook(

@@ -23,7 +23,7 @@ spec-spine verify-attestation --spec <id> --recompute [--json]
 
 ## Description
 
-### Corpus scope (spec 023)
+### Corpus scope (spec 021)
 
 `attest` compiles the corpus in memory, records the compile, lint and (with
 `--with-coupling`) coupling verdicts together with the registry content hash,
@@ -33,7 +33,7 @@ adds a detached Ed25519 seal (`attestation.json.sig`) over the attestation hash.
 The seal, not the payload, is where the key and any timestamp live, so the
 payload stays byte-reproducible by anyone.
 
-### Per-spec scope (spec 042)
+### Per-spec scope (spec 039)
 
 `attest --spec <id>` narrows the subject to one spec and writes
 `<derived_dir>/attestation/by-spec/<id>.json`. The payload carries:
@@ -89,11 +89,11 @@ every code edit and would need its own freshness gate.
 ## Example
 
 ```bash
-$ spec-spine attest --spec 042-per-spec-attestation
-attested 042-per-spec-attestation -> .derived/attestation/by-spec/042-per-spec-attestation.json
+$ spec-spine attest --spec 036-per-spec-attestation
+attested 039-per-spec-attestation -> .derived/attestation/by-spec/039-per-spec-attestation.json
   attestationHash: cf10f56d53f98d2ba12c7b60510c6f089cb219458965be2f32669cd4761e2a97
 
-$ spec-spine verify-attestation --spec 042-per-spec-attestation --recompute --json
+$ spec-spine verify-attestation --spec 036-per-spec-attestation --recompute --json
 {
   "exitCode": 0,
   "ok": true,

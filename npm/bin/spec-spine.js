@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-// Spec: specs/007-distribution/spec.md
+// Spec: specs/006-distribution/spec.md
 //
 // The launcher. Resolves the prebuilt binary for this host (see lib/platform.js)
 // and exec's it, forwarding argv and the child's exit code. It is a pure

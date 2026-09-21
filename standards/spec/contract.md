@@ -15,7 +15,7 @@ govern.
 
 ## Outputs (machine truth: compiler-owned JSON, read via the typed consumer only)
 
-Since spec 024 both views are committed as **per-unit shard trees**; the
+Since spec 022 both views are committed as **per-unit shard trees**; the
 aggregate view is recomputed from the shard set on read, never committed.
 
 - `<derived_dir>/spec-registry/by-spec/<id>.json`: spec-as-source shards (output of `compile`).
@@ -41,7 +41,7 @@ amended spec's `spec.md` is not edited to record that it has been amended: its
 text is the contract as it stood, and rewriting it to mention a successor is how
 history stops being queryable (constitution V). The inbound view is a compiled
 read, `spec-spine registry relationships <amended-id>`, which reports
-`amended_by (incoming)`. See spec 040.
+`amended_by (incoming)`. See spec 037.
 
 ## Amending the constitution
 
@@ -53,13 +53,13 @@ a named `aspect`, `co_authority` on one genuinely shared) and by contradicting
 no `specs/000` `unamendable` anchor. The constitution is a standing statement,
 so unlike an amended `spec.md` it is edited in place. The file is on the gate's
 bypass floor, so the claim is a ledger fact rather than a `C-001` refusal. See
-spec 043.
+spec 040.
 
 ## Authority units
 
 `file` (bare string shorthand; trailing slash ⇒ subtree), `section`
 (`{file, anchor}`), `symbol` (`{id}`, resolved by the indexer), and `directory`/
-`crate`/`module` (added by spec 017 as an additive minor, no schema-file edit).
+`crate`/`module` (added by spec 016 as an additive minor, no schema-file edit).
 Symbol resolution covers Rust + TS in v1; Python is deferred.
 
 ## Lifecycle as scheduling
@@ -73,8 +73,8 @@ or absent.
 |---|---|---|---|
 | `draft` | absent, `pending`, `in-progress` | yes | `W-001` warning |
 | `approved` | `pending`, `in-progress` | yes | `W-001` warning |
-| `approved` | absent | no (settled, spec 045) | error |
-| any | `complete` | no | error (spec 041) |
+| `approved` | absent | no (settled, spec 042) | error |
+| any | `complete` | no | error (spec 038) |
 | any | `n-a`, `deferred` | no | takes its answer from `status` |
 | `superseded`, `retired` | any | no | takes its answer from `status` |
 
@@ -85,11 +85,11 @@ corpus lives in for months, and it is the state `spec-spine registry plan`
 offers as ready.
 
 **`draft` is never a claim about code.** A draft's unresolved units are expected,
-which is why they warn (`W-001`) instead of refusing. Spec 044 defines that
+which is why they warn (`W-001`) instead of refusing. Spec 041 defines that
 window.
 
 **An absent `implementation` is not a third value.** It defers to `status` (spec
-045): on a `draft` it reads as `pending`, and on anything ratified it reads as
+042): on a `draft` it reads as `pending`, and on anything ratified it reads as
 settled. That is what keeps a bootstrap spec owning no code from being offered
 as ready forever, and it is why `n-a` exists for a record spec that is ratified
 and owns nothing.
@@ -103,7 +103,7 @@ summary; those are the argument.
 `frontmatter.extra_known_keys` in `spec-spine.toml` declares frontmatter keys
 this corpus recognizes beyond the grammar. A declared key stops the conformance
 lint warning about it, and its value is preserved verbatim into the registry as
-`extraFrontmatter` (spec 013), so a consumer can read it.
+`extraFrontmatter` (spec 012), so a consumer can read it.
 
 The config lists the names and records nothing about what they mean. An adopter
 who declares keys should write down their semantics, in their own constitution

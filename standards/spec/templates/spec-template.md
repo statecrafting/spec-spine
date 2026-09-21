@@ -66,11 +66,11 @@ implementation: pending        # pending | in-progress | complete | n-a | deferr
 #
 # `amends_verification`: the amended specs whose `## Verification` block THIS
 # spec's block replaces, so `spec-spine verify <amended-id>` runs the commands
-# below instead of the ones in the amended file (spec 103 §3.2).
+# below instead of the ones in the amended file (spec 082 §3.2).
 #
 # Reach for it when an approved spec's acceptance line has gone wrong: it
 # asserts more than the spec requires, or it pinned an output a later approved
-# spec legitimately moved. Spec 040 forbids editing the amended file and
+# spec legitimately moved. Spec 037 forbids editing the amended file and
 # `verify` executes that file, so a replacement declared here is the only route
 # to a red block on an approved spec.
 #

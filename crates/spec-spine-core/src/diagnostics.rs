@@ -1,6 +1,6 @@
-//! Reading the diagnostics the indexer already recorded (spec 050).
+//! Reading the diagnostics the indexer already recorded (spec 044).
 //!
-//! The indexer classifies an unresolved unit into one of three tiers (spec 025):
+//! The indexer classifies an unresolved unit into one of three tiers (spec 023):
 //! `W-002` for a non-owning `references` edge, `W-001` for an owning edge on a
 //! spec that is in flight, and the natural `I-0xx` hard error otherwise. All
 //! three land in the committed shard. The error tier is gated, because
@@ -12,7 +12,7 @@
 //! **committed shard set** and recomputes nothing: the counts describe the
 //! ledger the corpus actually compiled to, which is the only answer that can be
 //! checked against what is in git. When the ledger and the tree disagree, that
-//! disagreement is staleness and `index check` reports it separately (spec 050
+//! disagreement is staleness and `index check` reports it separately (spec 044
 //! 3.3, 3.5).
 
 use std::collections::BTreeMap;
@@ -25,7 +25,7 @@ use spec_spine_types::{
 use crate::index::{index_dir, read_committed_index_shards};
 use crate::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
 
-/// The two codes spec 025 uses for a unit that resolved to nothing.
+/// The two codes spec 023 uses for a unit that resolved to nothing.
 ///
 /// `--fail-on-unresolved` is defined over exactly this set, which is why it is
 /// not spelled `--fail-on-warn`: it names what the codes *mean*, and `lint`
@@ -63,7 +63,7 @@ pub struct DiagnosticCounts {
     /// does not grow with codes a corpus does not have.
     pub by_code: BTreeMap<String, usize>,
     /// Committed shard files the tally could not read, as `<dir>/<name>`,
-    /// sorted (spec 095 §3.3). Their diagnostics are not in the counts above.
+    /// sorted (spec 076 §3.3). Their diagnostics are not in the counts above.
     ///
     /// Not serialized: the payload carries the number, as
     /// [`IndexCheckReport::skipped_shards`], and this list exists so the prose
@@ -76,7 +76,7 @@ pub struct DiagnosticCounts {
 
 impl DiagnosticCounts {
     /// Whether any unit resolved to nothing under a warning tier: what
-    /// `--fail-on-unresolved` refuses (spec 050 3.2).
+    /// `--fail-on-unresolved` refuses (spec 044 3.2).
     pub fn has_unresolved(&self) -> bool {
         UNRESOLVED_CODES
             .iter()
@@ -84,7 +84,7 @@ impl DiagnosticCounts {
     }
 
     /// Nothing recorded in either tier. A clean corpus keeps the bare verdict
-    /// line (spec 050 3.1).
+    /// line (spec 044 3.1).
     pub fn is_empty(&self) -> bool {
         self.warnings == 0 && self.errors == 0
     }
@@ -137,15 +137,15 @@ pub fn committed_diagnostics(
 /// This still reads the shard set a second time: `check_index_freshness` has
 /// already read it, and does not hand it back. Folding the two into one read
 /// means refactoring the staleness gate itself, which is load-bearing and owned
-/// by spec 004, so it is left alone deliberately (spec 050 3.5). The cost is
+/// by spec 004, so it is left alone deliberately (spec 044 3.5). The cost is
 /// one extra pass over small per-spec JSON files, paid by a verb that already
 /// hashes every input.
 ///
-/// **Best-effort since spec 095.** A file in either shard directory that does
+/// **Best-effort since spec 076.** A file in either shard directory that does
 /// not deserialize into its shard type, or that carries a foreign schema MAJOR,
 /// is skipped and named in [`DiagnosticCounts::unreadable`] instead of raising
 /// `Error::Parse`. The callers are the judging verbs (`index check`, `check` and
-/// their facades), which compute the freshness verdict first; spec 086 already
+/// their facades), which compute the freshness verdict first; spec 069 already
 /// reads such a file as `orphaned` or `modified`, and a tally that threw would
 /// discard that verdict for exit 3 (095 §1.1). The consumers that must refuse a
 /// corrupt ledger read it through `read_committed_index_shards`, which is
@@ -201,14 +201,14 @@ fn shard_files(dir: &Path, label: &str, unreadable: &mut Vec<String>) -> Vec<(St
     })
 }
 
-/// Whether a shard's `schemaVersion` is one this build reads (spec 086 D-5's
+/// Whether a shard's `schemaVersion` is one this build reads (spec 069 D-5's
 /// MAJOR rule, applied as a skip rather than a refusal).
 fn known_major(found: &str) -> bool {
     shard::check_major("index", found, INDEX_SCHEMA_VERSION).is_ok()
 }
 
 /// Annotate a stale report's drift lines with the files the tally could not
-/// read (spec 095 §3.3): the prose form names them on the lines that already
+/// read (spec 076 §3.3): the prose form names them on the lines that already
 /// list the stale shards. A name the capped list does not show gets its own
 /// line, so no skipped file goes unnamed. Shared by `index check` and `check`.
 pub fn annotate_unreadable(actual: &str, unreadable: &[String]) -> String {
@@ -252,10 +252,10 @@ pub fn count(diagnostics: &[AttributedDiagnostic]) -> DiagnosticCounts {
 }
 
 /// `index check`'s report payload: the freshness verdict plus the diagnostics
-/// the committed ledger records (spec 050 3.1).
+/// the committed ledger records (spec 044 3.1).
 ///
 /// Defined here, and serialized by both the facade (`check_freshness_json`) and
-/// the CLI's `--json` arm, so the two cannot drift. Spec 037's parity test pins
+/// the CLI's `--json` arm, so the two cannot drift. Spec 034's parity test pins
 /// them against each other; before this type they were composed twice.
 ///
 /// `compile --check` deliberately does **not** use this shape. It renders the
@@ -270,23 +270,23 @@ pub struct IndexCheckReport {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub actual: Option<String>,
     pub diagnostics: DiagnosticCounts,
-    /// Claimed paths that exist and that no content hash covers (spec 057).
+    /// Claimed paths that exist and that no content hash covers (spec 050).
     ///
     /// Additive on one verb's report payload, so `VERDICT_SCHEMA_VERSION` does
-    /// not move: spec 050 §3.6 settled that, and this follows it rather than
+    /// not move: spec 044 §3.6 settled that, and this follows it rather than
     /// reopening it. Reporting only; `index check`'s exit code is unchanged
     /// with and without `--fail-on-unresolved`, because the gate half is the
     /// lint's and one flag must not mean two conditions.
     #[serde(default)]
     pub unwitnessed: UnwitnessedCounts,
     /// How many committed shard files the diagnostics tally skipped because
-    /// they would not deserialize (spec 095 §3.3).
+    /// they would not deserialize (spec 076 §3.3).
     ///
     /// Additive: `default` so a payload from a pre-095 producer reads zero, and
     /// omitted when zero so a tree with nothing skipped emits exactly the bytes
     /// it emitted before, which is the common case in every corpus. The verdict
-    /// schema does not move (spec 050 §3.6). A non-zero value accompanies a
-    /// stale verdict: the files it counts are drift by spec 086's comparison.
+    /// schema does not move (spec 044 §3.6). A non-zero value accompanies a
+    /// stale verdict: the files it counts are drift by spec 069's comparison.
     #[serde(default, skip_serializing_if = "is_zero")]
     pub skipped_shards: usize,
 }
@@ -295,7 +295,7 @@ fn is_zero(n: &usize) -> bool {
     *n == 0
 }
 
-/// The registry half of a composed `check` verdict (spec 075 §3.4).
+/// The registry half of a composed `check` verdict (spec 062 §3.4).
 ///
 /// Freshness **and** validation, because the two answer different questions
 /// about one tree and the composed exit code needs both: a corpus that fails
@@ -313,7 +313,7 @@ pub struct RegistryCheckReport {
     /// False when the corpus itself does not validate, in which case `fresh`
     /// was never computed and is reported `false`.
     pub validation_passed: bool,
-    /// Warning-tier violations the compile produced (spec 077 §3.4).
+    /// Warning-tier violations the compile produced (spec 064 §3.4).
     ///
     /// Carried so the composed verb can refuse under `--fail-on-warn` without
     /// recompiling, and can say **which tree** refused. Without it an exit `1`
@@ -325,10 +325,10 @@ pub struct RegistryCheckReport {
 }
 
 /// Both trees' verdicts, from the one verb the session protocol calls
-/// (spec 075 §3.2).
+/// (spec 062 §3.2).
 ///
 /// Each half keeps the shape its own primitive emits, unsummarized and
-/// unmerged: spec 031 §3.3 makes the registry stale report's structure
+/// unmerged: spec 028 §3.3 makes the registry stale report's structure
 /// contractual because a protocol reads the drifted shard names back to an
 /// operator, and exit 2 alone cannot say which shard moved. A composed verb
 /// that flattened the two would break a contract that already exists.
@@ -339,7 +339,7 @@ pub struct CheckReport {
     pub index: IndexCheckReport,
 }
 
-/// The claimed-but-unwitnessed tally `index check` reports (spec 057 §3.3).
+/// The claimed-but-unwitnessed tally `index check` reports (spec 050 §3.3).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UnwitnessedCounts {
@@ -357,7 +357,7 @@ impl IndexCheckReport {
         Self::with_unwitnessed(freshness, counts, UnwitnessedCounts::default())
     }
 
-    /// As [`Self::new`], carrying the spec 057 tally.
+    /// As [`Self::new`], carrying the spec 050 tally.
     pub fn with_unwitnessed(
         freshness: &crate::index::Freshness,
         counts: DiagnosticCounts,

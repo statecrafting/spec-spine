@@ -1,0 +1,70 @@
+{
+  "record": {
+    "amends": [
+      "038-completion-held-to-claims"
+    ],
+    "created": "2026-09-06",
+    "dependsOn": [
+      "023-unresolved-unit-severity",
+      "038-completion-held-to-claims"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index.rs"
+        }
+      }
+    ],
+    "id": "041-in-progress-is-in-flight",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/038-completion-held-to-claims/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/023-unresolved-unit-severity/spec.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "044: `in-progress` is in flight",
+      "1. Purpose",
+      "1.1 The two values make the same claim",
+      "1.2 It bites the ratify-then-build corpus, and one exists",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The predicate",
+      "3.2 Why this does not weaken spec 038",
+      "3.3 What is deliberately not added",
+      "4. Out of scope",
+      "5. Verification"
+    ],
+    "specPath": "specs/041-in-progress-is-in-flight/spec.md",
+    "status": "approved",
+    "summary": "Spec 023 grants an in-flight spec leniency: an unresolved owning unit is a counted `W-001` warning rather than a blocking error, because work under way may legitimately claim territory that does not exist yet. Its predicate names `status: draft` and `implementation: pending` and does not name `in-progress`, so a spec whose implementation is openly underway gets hard errors for every file it has not written. Spec 038 3.1 wrote that cell down and 4 called it very likely a defect, then left it alone on the grounds that one spec should not both tighten and loosen the same predicate. This is the spec 4 deferred. `in-progress` and `pending` are the same claim about the filesystem, that the work is not finished, and only one of them buys the leniency designed for exactly that state. The asymmetry has no argument behind it: 025 never discussed `in-progress`, which is what makes the omission look accidental rather than chosen. It bites a corpus that ratifies a design before building it, which lives in `approved` + `in-progress` for the whole build; the rahi corpus is in that state today.\n",
+    "title": "`implementation: in-progress` is in flight"
+  },
+  "shardHash": "cf92736ceb8b4dd9d357262b849e2d5abe1726fa5ce28501d7e1967ef871aea8",
+  "specVersion": "1.3.0"
+}

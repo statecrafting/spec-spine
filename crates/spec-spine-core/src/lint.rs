@@ -38,7 +38,7 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
 
         // L-001: ordinary spec claims no territory.
         //
-        // Spec 120 §3.11: a `superseded` or `retired` spec is not an ordinary
+        // Spec 092 §3.11: a `superseded` or `retired` spec is not an ordinary
         // spec. L-001 exists to catch an author who wrote a spec and forgot to
         // say what it governs; a document whose authority has been transferred
         // by an explicit `supersedes` edge, or withdrawn, is making a correct
@@ -87,8 +87,8 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
             }
         }
         // L-006: a unit claimed inside the declared, ungoverned state root
-        // (spec 039 3.4). Error tier: neither the claim nor the bypass wins,
-        // because letting the claim win would reintroduce spec 009's override
+        // (spec 036 3.4). Error tier: neither the claim nor the bypass wins,
+        // because letting the claim win would reintroduce spec 008's override
         // into a directory whose whole purpose is to be ungoverned, and letting
         // the bypass win would silently discard a unit an author wrote
         // deliberately. Both are wrong, so the corpus is told instead.
@@ -108,9 +108,9 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         }
 
         // L-007: a `depends_on` entry that does not point backward in filing
-        // order (spec 053 §3.2). Opt-in: when the knob is off nothing is
+        // order (spec 046 §3.2). Opt-in: when the knob is off nothing is
         // emitted at all, not emitted-and-filtered, so a corpus that has not
-        // opted in sees byte-identical output before and after spec 053.
+        // opted in sees byte-identical output before and after spec 046.
         //
         // Error tier, matching `L-006`: the knob alone decides whether the
         // corpus is held to this, and an adopter who turned it on turned it on
@@ -135,7 +135,7 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
             }
         }
 
-        // L-009 (spec 058 §3.2): a heading that is a near miss for the defects
+        // L-009 (spec 051 §3.2): a heading that is a near miss for the defects
         // anchor. Info tier, the tier this corpus reserves for a nudge on
         // otherwise valid prose (`L-005` is the other): it surfaces under
         // `--fail-on-info`, which no gate here runs, so a corpus is told
@@ -172,7 +172,7 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         }
     }
 
-    // L-008 (spec 057): a claimed path that exists and that no content hash
+    // L-008 (spec 050): a claimed path that exists and that no content hash
     // covers. Its contents can be rewritten end to end with `index check` and
     // `compile --check` both reporting fresh, which is the sentence this
     // diagnostic qualifies.
@@ -193,7 +193,7 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
                 .map(|s| s.spec_path.clone());
             violations.push(warn(
                 "L-008",
-                // Spec 074 3.2, conformance with 057 3.x: the two remedies are
+                // Spec 061 3.2, conformance with 057 3.x: the two remedies are
                 // genuinely different choices and the message must say how, or
                 // it reads as a pick-either. It sent an adopter to the wrong
                 // one. A glob folds the file into the GLOBAL scalar, which
@@ -216,7 +216,7 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         }
     }
 
-    // L-011 / L-012 (spec 076 3.3, 3.4): the `planned` flag cannot outlive the
+    // L-011 / L-012 (spec 063 3.3, 3.4): the `planned` flag cannot outlive the
     // work, in either direction.
     //
     // Read from the **committed** index for the resolved half, by the same
@@ -243,7 +243,7 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
             // L-011: completion asserts the work is done and a planned unit
             // asserts it is not. Error tier, not warning: the two together are
             // a contradiction inside the spec's own frontmatter rather than a
-            // gap someone might hold deliberately. Spec 041 established that
+            // gap someone might hold deliberately. Spec 038 established that
             // `complete` ends the in-flight window; this extends the same
             // principle to the new field, which is what keeps `planned` from
             // becoming a state nobody owns the exit from.
@@ -281,7 +281,7 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         }
     }
 
-    // L-010 (spec 074 3.1): an `[index] extra_hashed_inputs` pattern ending in
+    // L-010 (spec 061 3.1): an `[index] extra_hashed_inputs` pattern ending in
     // `/**`. In the `glob` crate `dir/**` enumerates DIRECTORIES and the hasher
     // keeps only entries that are files, so such a pattern can never contribute
     // a byte to any content hash, whatever the tree contains.
@@ -289,12 +289,12 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
     // Two adopters hit this on one day: one wrote `crates/**`, measured no
     // effect and concluded the key was inert; the other found `standards/**`
     // and `.github/workflows/**` inherited from a scaffold and confirmed they
-    // "had never contributed to any content hash". Spec 069 fixed the default
+    // "had never contributed to any content hash". Spec 058 fixed the default
     // and could not fix a value already written into an adopter's own file.
     //
     // The check is on the PATTERN, not on whether it currently matches. A
     // pattern matching nothing today may be a legitimate forward-looking entry
-    // in a specify-first corpus, which is the false positive spec 069 4 named
+    // in a specify-first corpus, which is the false positive spec 058 4 named
     // when it deferred this lint. A pattern ending `/**` is inert under EVERY
     // tree, so refusing the form is decidable from the config alone and has no
     // legitimate counter-example: an adopter who wants to match nothing writes
@@ -303,7 +303,7 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
     // Warning tier, so `lint --fail-on-warn` refuses it. Unlike `L-008`, which
     // flags a state a corpus may hold deliberately, this one never is.
     //
-    // Second table (spec 079 3.1): `[index.slices]` carries pattern lists with
+    // Second table (spec 065 3.1): `[index.slices]` carries pattern lists with
     // `extra_hashed_inputs` semantics and the slice walk keeps only files, so
     // `dir/**` is equally inert there. One code, not `L-011` (079 D-2): the
     // defect and the remedy are identical, only the sentence about what is
@@ -313,7 +313,7 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
     // Each message names its table, and for a slice the slice, on one line
     // (079 3.2). The slice message speaks about the slice's own hash, the one
     // `index check --slice <name>` gates, and never about a content hash:
-    // slices are independent of `contentHash` by spec 012's design, so the
+    // slices are independent of `contentHash` by spec 011's design, so the
     // `extra_hashed_inputs` sentence would be a false statement under a true
     // code (079 3.3). One emission site for both tables, so the code stays
     // unique by construction.
@@ -351,7 +351,7 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
     Ok(LintReport { violations })
 }
 
-/// Both ids' ordinals, or `None` when either lacks one (spec 053 §3.3).
+/// Both ids' ordinals, or `None` when either lacks one (spec 046 §3.3).
 ///
 /// Silence is the honest answer when the order is undefined. The corpus does
 /// not require numeric ids: `V-001` requires only that the directory equal the
@@ -367,7 +367,7 @@ fn ordinal_pair(declaring: &str, target: &str) -> Option<(u64, u64)> {
 /// Numeric rather than lexical, so a corpus that outgrows three digits and
 /// files `1001-foo` orders above `999-bar` instead of below it. Iterating
 /// `char`s rather than slicing bytes keeps this safe on a non-ASCII id, which
-/// is the defect `detect_duplicates` carries and which spec 053 §4 declines to
+/// is the defect `detect_duplicates` carries and which spec 046 §4 declines to
 /// fix from inside a lint change.
 fn ordinal(id: &str) -> Option<u64> {
     let digits: String = id.chars().take_while(char::is_ascii_digit).collect();
@@ -400,12 +400,12 @@ fn edge_targets(spec: &SpecRecord) -> Vec<String> {
 ///
 /// All six of them: `establishes`, `extends`, `refines`, `supersedes`,
 /// `co_authority` and `constrains`. A partial `supersedes` item carries the unit
-/// whose authority transfers (spec 019), so it claims a path exactly as the
+/// whose authority transfers (spec 018), so it claims a path exactly as the
 /// others do; omitting it would let a superseding spec hold a claim inside the
 /// state root that no diagnostic ever named, which is the contradiction `L-006`
 /// exists to surface.
 ///
-/// `references` is excluded: spec 034 settled that a cited file is not a claimed
+/// `references` is excluded: spec 031 settled that a cited file is not a claimed
 /// one, so citing something inside the state root is not that contradiction.
 /// `amends` is excluded too, because its subject is the amended spec's `spec.md`
 /// rather than an arbitrary unit, and a `spec.md` lives under `specs_dir`, which
@@ -497,9 +497,9 @@ fn unit_label(unit: &Unit) -> String {
 /// Every unit a spec claims through an ownership-bearing edge.
 ///
 /// The same six edges `claimed_paths` walks, returning the units rather than
-/// their paths, because spec 076's checks are about the unit (a symbol or crate
+/// their paths, because spec 063's checks are about the unit (a symbol or crate
 /// unit has no path and can be planned exactly as a file can). `references` is
-/// excluded for the reason spec 034 gave: a cited file is not a claimed one, so
+/// excluded for the reason spec 031 gave: a cited file is not a claimed one, so
 /// a spec cannot plan territory by citing it.
 fn owned_units(spec: &SpecRecord) -> Vec<Unit> {
     let mut units: Vec<Unit> = spec.establishes.clone();

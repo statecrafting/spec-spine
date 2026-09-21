@@ -16,7 +16,7 @@ name: release
 # archives (no second Rust build); publish-npm is gated on NPM_TOKEN and
 # publish-pypi on vars.PYPI_TRUSTED_PUBLISHING: absent the one-time setup each
 # is a clean no-op. Each archive ships a per-target CycloneDX SBOM and a SLSA
-# build-provenance attestation (spec 021).
+# build-provenance attestation (spec 019).
 
 on:
   push:
@@ -43,7 +43,7 @@ jobs:
           - { os: macos-latest,     triple: aarch64-apple-darwin }
           - { os: windows-latest,   triple: x86_64-pc-windows-msvc }
     runs-on: ${{ matrix.os }}
-    # Spec 021: id-token + attestations are for the build-provenance attestation
+    # Spec 019: id-token + attestations are for the build-provenance attestation
     # over each archive; nothing in this job writes repo contents.
     permissions:
       contents: read
@@ -78,7 +78,7 @@ jobs:
             shasum -a 256 "${ARCHIVE_BASE}.tar.gz" > "${ARCHIVE_BASE}.tar.gz.sha256"
           fi
           cat "${ARCHIVE_BASE}.tar.gz.sha256"
-          echo "ARCHIVE_FILE=${ARCHIVE_BASE}.tar.gz" >> "$GITHUB_ENV"   # the attestation subject (spec 021)
+          echo "ARCHIVE_FILE=${ARCHIVE_BASE}.tar.gz" >> "$GITHUB_ENV"   # the attestation subject (spec 019)
 
       - name: Package (zip + sha256) for Windows
         if: runner.os == 'Windows'
@@ -89,9 +89,9 @@ jobs:
           $hash = (Get-FileHash "$base.zip" -Algorithm SHA256).Hash.ToLower()
           "$hash  $base.zip" | Out-File -Encoding ascii -NoNewline "$base.zip.sha256"
           Get-Content "$base.zip.sha256"
-          Add-Content -Path $env:GITHUB_ENV -Value "ARCHIVE_FILE=$base.zip"   # the attestation subject (spec 021)
+          Add-Content -Path $env:GITHUB_ENV -Value "ARCHIVE_FILE=$base.zip"   # the attestation subject (spec 019)
 
-      # --- Supply-chain artifacts (spec 021): per-target CycloneDX SBOM + provenance ---
+      # --- Supply-chain artifacts (spec 019): per-target CycloneDX SBOM + provenance ---
       # NOTE: these steps run only on a `v*` tag (this workflow is tag-gated), so
       # they are not exercised by PR CI. Third-party actions are pinned to a full
       # commit SHA (the `# vX.Y.Z` comment is the human-readable version) so a tag

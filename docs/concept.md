@@ -97,7 +97,7 @@ Three properties fall out of this design:
    reports the pairs on the ready set that claim the same units. This is a
    lower bound on collision, not a proof of independence: a shared lockfile, a
    regenerated shard or a consumed API are collisions no frontmatter declares
-   (spec 091). The graph tells them what it was told.
+   (spec 072). The graph tells them what it was told.
 2. **Shared territory is typed, not undefined.** When two documents touch the
    same path, say a project-wide build file where many features add targets, they
    declare co-authority section-by-section, with named anchors. The collision

@@ -100,11 +100,11 @@ file, not the `amends` edge:
 
 The anchor is the heading slug the indexer computes, so `## V. Legacy as
 evidence` is `v-legacy-as-evidence`. `amends` is not the instrument: its targets
-are spec ids, and this file is not a spec. Spec 043 states the rule and is its
+are spec ids, and this file is not a spec. Spec 040 states the rule and is its
 own worked example.
 
 Unlike an amended `spec.md`, which is a record of what the corpus held when it
-was ratified and is therefore never edited to mention its successors (spec 040),
+was ratified and is therefore never edited to mention its successors (spec 037),
 this document is a standing statement of what is true now. It is edited in
 place, and its history lives in the specs that claimed each section and in git.
 

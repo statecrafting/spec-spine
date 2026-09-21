@@ -1,0 +1,136 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "005-coupling-gate",
+      "043-verify-declared-acceptance",
+      "092-the-engine-ships-governance-not-an-environment"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".claude/agents/",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".claude/rules/",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".claude/settings.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".claude/skills/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "AGENTS.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/harness_hooks.rs",
+        "source": "multiple"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/harness_skills.rs",
+        "source": "multiple"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".claude/agents/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "directory",
+          "path": ".claude/agents/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".claude/rules/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "directory",
+          "path": ".claude/rules/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".claude/skills/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "directory",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".claude/settings.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "AGENTS.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/harness_hooks.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/harness_hooks.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/harness_skills.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/harness_skills.rs"
+        }
+      }
+    ],
+    "specId": "093-the-harness-this-repository-runs",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "5fb3b3fd6d1e58a1cdce75195f4d5066c23396c848308596fa0a8ac39e371d4d"
+}

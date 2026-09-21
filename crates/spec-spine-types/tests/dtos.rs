@@ -63,34 +63,34 @@ fn validation_passed_follows_error_tier() {
 
 #[test]
 fn schema_versions_are_pinned() {
-    // 1.0.0: MAJOR, sharded registry (spec 024); 1.1.0: additive MINOR (spec
+    // 1.0.0: MAJOR, sharded registry (spec 022); 1.1.0: additive MINOR (spec
     // 028), optional `references` provenance `derived_at` timestamp; 1.2.0:
-    // additive MINOR (spec 076), optional `planned` on a unit payload; 1.3.0:
-    // additive MINOR (spec 103), optional `amendsVerification` naming the
+    // additive MINOR (spec 063), optional `planned` on a unit payload; 1.3.0:
+    // additive MINOR (spec 082), optional `amendsVerification` naming the
     // amended specs whose `## Verification` block this one replaces. A
     // consumer that knows 1.x keeps working, which is the MINOR rule.
     assert_eq!(REGISTRY_SCHEMA_VERSION, "1.3.0");
-    // 1.1.0: additive MINOR (spec 025): unresolved-unit severity tiers (W-001 /
+    // 1.1.0: additive MINOR (spec 023): unresolved-unit severity tiers (W-001 /
     // W-002 warnings) on top of the spec-024 sharded MAJOR.
     assert_eq!(INDEX_SCHEMA_VERSION, "1.1.0");
     assert_eq!(BUILD_META_SCHEMA_VERSION, "0.1.0");
     assert_eq!(CONFIG_VERSION, "0.1.0");
-    // Spec 037: the verdict envelope, versioned from its first release rather
-    // than acquiring a version after the first consumer breaks. Spec 049 took
-    // it to 0.2.0, spec 056 to 0.3.0 and spec 088 to 0.4.0: a new `verb` token
+    // Spec 034: the verdict envelope, versioned from its first release rather
+    // than acquiring a version after the first consumer breaks. Spec 043 took
+    // it to 0.2.0, spec 049 to 0.3.0 and spec 071 to 0.4.0: a new `verb` token
     // is additive, so a consumer's existing match arms still hold, which is
     // exactly the MINOR rule version.rs states.
     assert_eq!(VERDICT_SCHEMA_VERSION, "0.4.0");
-    // Spec 042: the per-spec attestation, independent of the ledger versions so
+    // Spec 039: the per-spec attestation, independent of the ledger versions so
     // a consumer pins the evidence shape it verifies without pinning the ledger
     // it was derived from.
     assert_eq!(SPEC_ATTESTATION_SCHEMA_VERSION, "0.1.0");
-    // Spec 088: the change-classification report, on its own axis for the same
+    // Spec 071: the change-classification report, on its own axis for the same
     // reason.
     assert_eq!(DELTA_SCHEMA_VERSION, "0.1.0");
 }
 
-/// Spec 088 §3.3 and §3.6: the class tokens and the verb token are the external
+/// Spec 071 §3.3 and §3.6: the class tokens and the verb token are the external
 /// contract a consumer's policy matches on, so their spelling is pinned here,
 /// and so is which classes call for a judgment under the base's policy.
 #[test]
@@ -146,7 +146,7 @@ fn delta_class_tokens_and_prior_policy_set_are_pinned() {
     );
 }
 
-/// Spec 037 3.1: the envelope a consumer parses is one shape across six verbs.
+/// Spec 034 3.1: the envelope a consumer parses is one shape across six verbs.
 /// Pinned here rather than only in the CLI tests, because the members and their
 /// spelling are the external contract, not an implementation detail.
 #[test]
@@ -165,7 +165,7 @@ fn verdict_envelope_round_trips_with_the_documented_members() {
     assert!(value.get("error").is_none());
 }
 
-/// Spec 037 3.3: `kind` is a closed set of stable tokens, and the exit code in
+/// Spec 034 3.3: `kind` is a closed set of stable tokens, and the exit code in
 /// the envelope is the one the process returns.
 #[test]
 fn verdict_failure_kinds_are_the_documented_tokens() {

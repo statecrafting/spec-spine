@@ -1,4 +1,4 @@
-"""Spec: specs/008-python-distribution/spec.md §3.4 (unsupported hosts fail clearly).
+"""Spec: specs/007-python-distribution/spec.md §3.4 (unsupported hosts fail clearly).
 
 The `spec-spine` console entry point shipped by the sdist. It is reached only on
 a host with no prebuilt wheel (musl/Alpine, win-arm64, 32-bit, ...), because on a

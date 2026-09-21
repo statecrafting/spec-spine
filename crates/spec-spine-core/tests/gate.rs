@@ -1,4 +1,4 @@
-//! Gate tests (spec 064, retargeted by spec 120 3.6): this repository has one
+//! Gate tests (spec 094, retargeted by spec 092 3.6): this repository has one
 //! definition of the governed loop, it is the root `Makefile`, and CI calls it
 //! rather than restating it.
 //!
@@ -73,7 +73,7 @@ fn invocations(body: &str) -> Vec<String> {
 
 /// The verbs this binary has. A gate file naming anything else is broken.
 const VERBS: &[&str] = &[
-    // Spec 075: the composed freshness read the protocol and the gate call.
+    // Spec 062: the composed freshness read the protocol and the gate call.
     "check",
     "compile",
     "index",
@@ -81,7 +81,7 @@ const VERBS: &[&str] = &[
     "lint",
     "couple",
     "verify",
-    // Spec 120 3.1 removed `init`; a gate file naming it is now broken, which
+    // Spec 092 3.1 removed `init`; a gate file naming it is now broken, which
     // is what this list is for.
     "attest",
     "verify-attestation",
@@ -89,7 +89,7 @@ const VERBS: &[&str] = &[
 ];
 
 /// Read-only forms, by the same rule `tests/harness_hooks.rs` applies to the hooks
-/// (spec 046): `compile` reads only with `--check`, `index` reads only as a
+/// (spec 093): `compile` reads only with `--check`, `index` reads only as a
 /// named read action.
 fn is_read_only(cmd: &str) -> bool {
     let mut w = cmd.split_whitespace();
@@ -104,7 +104,7 @@ fn is_read_only(cmd: &str) -> bool {
                 | Some("render")
                 | Some("owner")
         ),
-        // Spec 075 3.2: `check` carries the never-writes contract of the two
+        // Spec 062 3.2: `check` carries the never-writes contract of the two
         // primitives it composes, which is what lets the gate call it.
         Some("check") | Some("couple") | Some("registry") | Some("lint") | Some("config") => true,
         _ => false,
@@ -112,7 +112,7 @@ fn is_read_only(cmd: &str) -> bool {
 }
 
 /// §3.4: every invocation names a verb this binary has. A gate file naming a
-/// renamed verb is exactly the drift spec 048 found in the skills.
+/// renamed verb is exactly the drift spec 093 found in the skills.
 #[test]
 fn every_gate_invocation_names_a_real_verb() {
     for rel in ["Makefile", ".github/workflows/ci.yml"] {
@@ -127,7 +127,7 @@ fn every_gate_invocation_names_a_real_verb() {
 }
 
 /// §3.1 + §3.4: the gate path never writes. A gate that writes repairs what it
-/// is meant to judge, which is the rule spec 046 established for the hooks and
+/// is meant to judge, which is the rule spec 093 established for the hooks and
 /// which the build half must hold to as well.
 #[test]
 fn the_gate_target_is_read_only() {
@@ -161,7 +161,7 @@ fn target_body(makefile: &str, target: &str) -> String {
 }
 
 /// §3.4: the chain in `Makefile` is the chain `AGENTS.md` lists, in order.
-/// The same assertion spec 051 made for the skills: a step CI enforces and the
+/// The same assertion spec 093 made for the skills: a step CI enforces and the
 /// gate omits is a step every adopter skips.
 #[test]
 fn the_gate_chain_follows_agents_md() {
@@ -177,7 +177,7 @@ fn the_gate_chain_follows_agents_md() {
 
     let mut cursor = 0usize;
     for cmd in &gate {
-        // Spec 114 3.2: `config show` is the ownership guard's PROBE, a
+        // Spec 094 3.2: `config show` is the ownership guard's PROBE, a
         // configuration read that decides whether the next step runs. It is not
         // a step of the governed chain and `AGENTS.md` does not list it, so the
         // in-order walk skips it. It is not thereby unasserted: it still has to
@@ -201,10 +201,10 @@ fn the_gate_chain_follows_agents_md() {
     assert!(!gate.is_empty(), "the gate target must invoke spec-spine");
 }
 
-// ── spec 113: how a document's gate list is read ─────────────────────────
+// ── spec 095: how a document's gate list is read ─────────────────────────
 //
-// Spec 113 §3.2 compared the gate list in two documents step for step: the one
-// the kit shipped and the one `scaffold.rs` generated. Spec 120 §3.3 and §3.4
+// Spec 095 §3.2 compared the gate list in two documents step for step: the one
+// the kit shipped and the one `scaffold.rs` generated. Spec 092 §3.3 and §3.4
 // removed both, so the comparison has no second document. The PARSER stays and
 // becomes the one `agents_md_gate_commands` uses, because what it carries is
 // not the comparison: it is the drop guard below, which refuses a fence line
@@ -228,7 +228,7 @@ struct GateStep {
 ///
 /// Deliberately generic over the text rather than reading one path. It was
 /// written to run over two documents, the one the kit shipped and the one the
-/// scaffold generated; spec 120 3.3 and 3.4 removed both, and the parser stays
+/// scaffold generated; spec 092 3.3 and 3.4 removed both, and the parser stays
 /// generic because the property it reads is a property of a gate list, not of a
 /// filename.
 fn gate_steps(text: &str) -> Vec<GateStep> {
@@ -341,9 +341,9 @@ fn language_targets_probe_for_a_manifest_not_a_tool() {
 
 /// §3.2: the PR body reaches the gate as a FILE.
 ///
-/// Spec 073's other half, the `has_cargo` job-output probe, was a property of
+/// Spec 060's other half, the `has_cargo` job-output probe, was a property of
 /// the workflow the kit shipped to a repository that might have no Cargo
-/// manifest. That workflow is gone (spec 120 3.4) and this repository is a
+/// manifest. That workflow is gone (spec 092 3.4) and this repository is a
 /// Cargo workspace, so the probe has no subject here; the `Makefile`'s guarded
 /// language targets, which are the same finding in the file that survived, are
 /// asserted two tests above.
@@ -353,7 +353,7 @@ fn the_pr_body_reaches_the_gate_as_a_file() {
     // §3.2: the PR body reaches the gate through a file, not through shell
     // quoting, because a body carrying a waiver line has no safe quoting.
     //
-    // Since spec 114 §3.4 the workflow reaches `--pr-body` by handing the file
+    // Since spec 094 §3.4 the workflow reaches `--pr-body` by handing the file
     // to the one gate definition, which names the flag; asserting the flag's
     // spelling in the workflow would now refuse the consolidation 064's own
     // header comment asks for. The property is unchanged and is asserted in
@@ -371,14 +371,14 @@ fn the_pr_body_reaches_the_gate_as_a_file() {
     );
 }
 
-/// Spec 020 3.3, held through spec 120 3.7: the merge driver is registered on
+/// Spec 094 3.3, held through spec 092 3.7: the merge driver is registered on
 /// the shard globs this repository **actually commits**, which are derived from
 /// the configured `derived_dir` and not from the default it used to be.
 ///
 /// This is the assertion that catches a half-done relocation: a `.gitattributes`
 /// still naming `.derived/` registers the driver on files nothing writes, and a
 /// same-shard conflict then arrives with conflict markers in a committed
-/// artifact, which is exactly what spec 020 exists to prevent. Read out of the
+/// artifact, which is exactly what spec 094 exists to prevent. Read out of the
 /// effective configuration rather than restated, so the two cannot drift again.
 #[test]
 fn the_gitattributes_registers_the_driver_on_the_configured_shard_globs() {
@@ -437,7 +437,7 @@ fn with_failing_command(line: &str) -> Option<String> {
     Some(format!("{probe}; then false; else {tail}"))
 }
 
-/// §3.1 (spec 089): a guarded target distinguishes "the manifest is absent"
+/// §3.1 (spec 094): a guarded target distinguishes "the manifest is absent"
 /// from "the command failed". `test -f M && cmd || echo skipping` does not:
 /// `||` fires for either, so a failing command exits 0 printing a false skip.
 /// Static half, so the shape is refused at review time and not only at run
@@ -465,10 +465,10 @@ fn a_guarded_target_does_not_conflate_a_skip_with_a_failure() {
     }
 }
 
-/// §3.2 (spec 089): the shipped recipe lines are RUN, in both states, so the
+/// §3.2 (spec 094): the shipped recipe lines are RUN, in both states, so the
 /// two answers are proved rather than asserted about the text.
 ///
-/// This is the acceptance the defect got past. Spec 064's
+/// This is the acceptance the defect got past. Spec 094's
 /// `language_targets_probe_for_a_manifest_not_a_tool` passes for the broken
 /// shape and the fixed one alike, because both contain `test -f Cargo.toml`;
 /// an acceptance that never forces a command to fail cannot tell them apart.
@@ -487,7 +487,7 @@ fn a_guarded_recipe_skips_when_absent_and_fails_when_the_command_fails() {
     for target in ["test", "build", "fmt", "clippy"] {
         for line in guarded_lines(&makefile, target) {
             // The manifest is absent: the command never runs, the line exits 0
-            // and says so. This is spec 064 3.1's no-op, still true.
+            // and says so. This is spec 094 3.1's no-op, still true.
             let empty = tempfile::tempdir().unwrap();
             let out = run(&line, empty.path());
             assert!(
@@ -519,7 +519,7 @@ fn a_guarded_recipe_skips_when_absent_and_fails_when_the_command_fails() {
     }
 }
 
-// ── spec 114: one gate definition, and both legs of the workflow call it ──
+// ── spec 094: one gate definition, and both legs of the workflow call it ──
 
 /// One executable step of a workflow: the event condition it runs under and the
 /// script it runs, read out of the parsed document.
@@ -1095,7 +1095,7 @@ fn both_workflow_legs_invoke_the_one_gate_definition() {
             1,
             "expected exactly one {want:?} step invoking the `gate` target, got {}. \
              The workflow's own header says the gate has one definition; a leg that \
-             restates the chain instead is the drift spec 114 §3.4 closes. Steps: {:#?}",
+             restates the chain instead is the drift spec 094 §3.4 closes. Steps: {:#?}",
             calling.len(),
             steps
         );
@@ -1129,7 +1129,7 @@ fn no_workflow_step_restates_a_verb_the_one_gate_definition_runs() {
 }
 
 /// §3.3 + §3.4: the two legs differ by an argument, not by a second chain. The
-/// push leg turns coupling off, because spec 064 §3.2 says `couple` runs on
+/// push leg turns coupling off, because spec 094 §3.2 says `couple` runs on
 /// `pull_request` only; the pull-request leg leaves it on and hands over the
 /// body file. Neither is inferred from the other: the control is explicit.
 #[test]
@@ -1143,7 +1143,7 @@ fn the_one_gate_definition_serves_both_legs_through_explicit_controls() {
     assert_eq!(
         push.get("COUPLE").map(String::as_str),
         Some("0"),
-        "spec 064 §3.2: the shipped workflow runs `couple` on pull_request only, \
+        "spec 094 §3.2: the shipped workflow runs `couple` on pull_request only, \
          so the push leg must spend the explicit control: {push:?}"
     );
 
@@ -1167,7 +1167,7 @@ fn the_one_gate_definition_serves_both_legs_through_explicit_controls() {
     // And it is the path the step just WROTE, not merely a path-shaped string.
     // Tied to the step's own redirect rather than to the file's name, so
     // renaming `pr-body.txt` cannot quietly turn this into an assertion about a
-    // filename; what spec 064 §3.2 requires is that the body travel as a file
+    // filename; what spec 094 §3.2 requires is that the body travel as a file
     // and that the gate be handed that file.
     //
     // Read off the parsed commands rather than searched for in the text. `> "x"`,
@@ -1611,7 +1611,7 @@ jobs:
     );
 }
 
-/// Spec 115 §3.1, held through spec 120 §3.3: no file the scaffold produces
+/// Spec 095 §3.1, held through spec 092 §3.3: no file the scaffold produces
 /// carries a line the claim scanner recognizes as a claim attempt.
 ///
 /// 115 measured this against the kit's shell scripts, whose `# Spec:` headers
@@ -1624,7 +1624,7 @@ jobs:
 /// the scanner's own reader, and against an **empty** id set nothing can
 /// resolve, so every attempt `index.rs::header_attempt` recognizes is reported
 /// as `unknown-spec`. A substring search for the claim token is not the same
-/// question (spec 094 §1 measured eleven files against the recognizer's one),
+/// question (spec 095 §1 measured eleven files against the recognizer's one),
 /// and it would also hit the provenance wording §3.2 keeps.
 ///
 /// `//!` lines are `doc-comment-marker` misses, not attempts, and are not
@@ -1651,7 +1651,7 @@ fn no_claim_header_reaches_an_adopters_tree() {
     assert!(
         offenders.is_empty(),
         "these delivered files carry a claim header that resolves in no adopter's corpus, \
-         and shadow a valid one added below it (spec 115 §1.3): {offenders:?}"
+         and shadow a valid one added below it (spec 095 §1.3): {offenders:?}"
     );
 
     // The positive control: the reader above is the thing under test, so a run
@@ -1659,12 +1659,184 @@ fn no_claim_header_reaches_an_adopters_tree() {
     // the header this spec removed, and the assertion is that this very call
     // still names it. Without this line an empty `offenders` is also what a
     // reader that stopped recognizing claim headers would produce, which is the
-    // vacuous pass spec 106 D-7 names.
-    let control = "#!/usr/bin/env bash\n# Spec: specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md\n";
+    // vacuous pass spec 084 D-7 names.
+    let control =
+        "#!/usr/bin/env bash\n# Spec: specs/094-one-gate-and-the-boundaries-it-holds/spec.md\n";
     let seen = spec_spine_core::index::near_miss_headers_in("control.sh", control, &empty);
     assert!(
         seen.iter().any(|m| m.reason == NearMissReason::UnknownSpec),
         "the recognizer reported nothing for a file that carries the header this spec \
          removed, so the assertion above could not have failed either: {seen:?}"
     );
+}
+
+/// Every `spec-spine ...` invocation in a hook body, as the verb words that
+/// follow the binary (after an optional `--repo <dir>`), up to the first shell
+/// metacharacter. `"$sc"` is the kit's alias for the binary and is expanded.
+fn spec_spine_invocations(body: &str) -> Vec<Vec<String>> {
+    let expanded = body.replace("\"$sc\"", "spec-spine");
+    let mut out = Vec::new();
+    for line in expanded.lines() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with('#') {
+            continue;
+        }
+        let mut rest = line;
+        while let Some(pos) = rest.find("spec-spine") {
+            let after = &rest[pos + "spec-spine".len()..];
+            // Skip the `sc=spec-spine` assignment and `command -v` probes, and
+            // any prose mention (the binary name inside an echo string).
+            let before = &rest[..pos];
+            let is_probe = before.trim_end().ends_with("sc=")
+                || before.ends_with('\'')
+                || before.ends_with('"')
+                || before.contains("command -v")
+                || before.contains("echo")
+                || before.contains("run ");
+            if !is_probe && after.starts_with(' ') {
+                let words: Vec<String> = after
+                    .split([';', '|', '&', ')', '>', '<', '\n', '\''])
+                    .next()
+                    .unwrap_or("")
+                    .split_whitespace()
+                    .map(str::to_string)
+                    .collect();
+                // This scanner rewrites the literal `"$sc"` to `spec-spine`
+                // above, so the guard `[ -n "$sc" ]` reads here as
+                // `[ -n spec-spine ]`. At runtime `$sc` holds a resolved path,
+                // and either way the line is a shell test, not a call. A real
+                // invocation's first word is a subcommand or a flag (051 3.5).
+                let is_call = words.first().is_some_and(|w| {
+                    w.starts_with('-') || w.starts_with(|c: char| c.is_ascii_alphabetic())
+                });
+                let mut words = words.into_iter().peekable();
+                if words.peek().map(String::as_str) == Some("--repo") {
+                    words.next();
+                    words.next();
+                }
+                let stripped: Vec<String> = words.collect();
+                // `"$sc" --repo "$root"` with no subcommand strips to nothing.
+                // An empty vec is not an invocation, and recording one would
+                // hand every downstream assertion a verb with no first word.
+                if is_call && !stripped.is_empty() {
+                    out.push(stripped);
+                }
+            }
+            rest = after;
+        }
+    }
+    out
+}
+
+/// Whether an invocation only reads: `compile --check`, `index check`, and
+/// `couple` are the read verbs the hooks need. `compile` and `index` without
+/// their check flag write committed shards.
+fn hook_verb_is_read_only(verb: &[String]) -> bool {
+    match verb.first().map(String::as_str) {
+        Some("compile") => verb.iter().any(|w| w == "--check"),
+        Some("index") => verb.get(1).map(String::as_str) == Some("check"),
+        // Spec 062 3.2: the composed freshness verb carries the never-writes
+        // contract of both primitives it calls, which is precisely why a hook
+        // may run it. A `check` that could repair the tree would make a stale
+        // committed ledger invisible on the branch that carries it.
+        Some("check") | Some("couple") => true,
+        // Spec 094 3.2: the commit-boundary hook asks the tool where the
+        // derived directory is rather than hardcoding `.derived`. `config`
+        // has one subcommand and it prints.
+        Some("config") => true,
+        // Spec 093 §3.2: the hooks ask `--version` before believing an exit
+        // code. Named explicitly rather than folded into a "flags are safe"
+        // rule, because this predicate denies by default on purpose and the
+        // exemptions should be countable.
+        Some("--version" | "--help") => true,
+        Some(_) => false,
+        None => false,
+    }
+}
+
+// ── the commit boundary (spec 094, moved here by spec 094 D-2) ───────────
+//
+// A pre-commit hook is run by whoever commits, not by a session reading
+// instructions, so it is the gate's and its assertions live beside the gate's.
+
+/// The hook that fires whatever wrote the bytes. Read as a file rather than
+/// out of `.claude/settings.json`, because this one is a git hook and not a
+/// Claude Code hook; the property asserted over it is the same.
+fn pre_commit_body() -> String {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    fs::read_to_string(root.join(".githooks/pre-commit")).expect(".githooks/pre-commit exists")
+}
+
+/// Spec 094 3.1: the one hook whose actor IS the committer still refuses
+/// rather than repairs. A pre-commit hook that regenerated the derived tree
+/// would collapse "was never stale" and "was stale until the hook fixed it"
+/// into the same commit, and telling those apart is the whole content of
+/// `check`.
+#[test]
+fn the_commit_boundary_hook_reads_and_never_repairs() {
+    let body = pre_commit_body();
+    let verbs = spec_spine_invocations(&body);
+    assert!(
+        !verbs.is_empty(),
+        "no recognised spec-spine call in .githooks/pre-commit; a hook the \
+         scanner reads as call-free would pass this test vacuously"
+    );
+    for verb in &verbs {
+        assert!(
+            hook_verb_is_read_only(verb),
+            ".githooks/pre-commit runs a writing verb: {verb:?}"
+        );
+    }
+}
+
+/// Spec 094 3.1: and it stages nothing. Refusing while quietly adding the
+/// regenerated shards to the index is the same repair wearing a refusal's
+/// exit code.
+#[test]
+fn the_commit_boundary_hook_stages_nothing() {
+    for line in pre_commit_body().lines() {
+        let trimmed = line.trim_start();
+        if trimmed.starts_with('#') {
+            continue;
+        }
+        assert!(
+            !trimmed.contains("git add"),
+            ".githooks/pre-commit stages a file: {line}"
+        );
+    }
+}
+
+/// Spec 094 3.2: no coupling verdict at this boundary. `couple` builds its
+/// diff from `git diff base...head`, a range of commits, which cannot contain
+/// the change being committed. A verdict there would be about the previous
+/// commit wearing this one's name.
+#[test]
+fn the_commit_boundary_hook_runs_no_coupling_verdict() {
+    for verb in spec_spine_invocations(&pre_commit_body()) {
+        assert_ne!(
+            verb.first().map(String::as_str),
+            Some("couple"),
+            ".githooks/pre-commit asks for a coupling verdict it cannot get"
+        );
+    }
+}
+
+/// Spec 094 3.3: a refusal that hides its own escape hatch produces a
+/// contributor who disables the hook entirely.
+#[test]
+fn the_commit_boundary_hook_names_its_own_escape() {
+    assert!(
+        pre_commit_body().contains("--no-verify"),
+        "the refusal must name the standard bypass"
+    );
+}
+
+/// Spec 094 3.4: registration is per clone, and the enabler is the only thing
+/// that turns the hook on. Until it runs, the hook is inert bytes in the tree.
+#[test]
+fn the_enabler_registers_the_hooks_path_and_says_how_to_undo_it() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let sh = fs::read_to_string(root.join(".githooks/enable-hooks.sh")).unwrap();
+    assert!(sh.contains("git config core.hooksPath"), "{sh}");
+    assert!(sh.contains("--unset core.hooksPath"), "{sh}");
 }

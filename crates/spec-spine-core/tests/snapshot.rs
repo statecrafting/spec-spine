@@ -1,7 +1,7 @@
-//! The authority snapshot (spec 087): the `frame/1` construction's guards
+//! The authority snapshot (spec 070): the `frame/1` construction's guards
 //! (length framing, piece kinds, dedup), the piece rule of §3.3.1, the
 //! separation between the committed tree and the recompute, the unavailable
-//! join hash of §3.2.1, determinism, and verification under spec 085's rules.
+//! join hash of §3.2.1, determinism, and verification under spec 068's rules.
 
 use std::fs;
 use std::path::Path;
@@ -317,7 +317,7 @@ fn governance_inputs_are_named_and_hashed_as_their_own_content() {
     assert_ne!(after.governance_inputs.hash, before);
 }
 
-// ── verification (§3.5, spec 085) ────────────────────────────────────────
+// ── verification (§3.5, spec 068) ────────────────────────────────────────
 
 #[test]
 fn recompute_matches_then_names_what_moved() {

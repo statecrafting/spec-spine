@@ -1,0 +1,334 @@
+{
+  "record": {
+    "amends": [
+      "022-index-sharding",
+      "032-stdout-closed-reader",
+      "054-the-scaffold-ships-what-adopters-wrote",
+      "055-a-version-pin-the-cli-can-check",
+      "056-the-contract-records-the-lifecycle-table",
+      "058-the-shipped-default-hashes-what-it-names",
+      "061-shipped-is-not-the-same-as-working",
+      "062-one-name-one-freshness-verb",
+      "064-compile-warnings-reach-the-gate",
+      "067-a-short-id-names-the-same-spec-at-every-verb",
+      "068-a-verifier-checks-the-bytes-it-was-given",
+      "070-an-authority-snapshot-says-what-it-read",
+      "083-an-amendment-carries-the-acceptance-it-replaces",
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "amendsVerification": [
+      "054-the-scaffold-ships-what-adopters-wrote",
+      "055-a-version-pin-the-cli-can-check",
+      "056-the-contract-records-the-lifecycle-table",
+      "058-the-shipped-default-hashes-what-it-names",
+      "062-one-name-one-freshness-verb",
+      "064-compile-warnings-reach-the-gate",
+      "083-an-amendment-carries-the-acceptance-it-replaces"
+    ],
+    "created": "2026-09-20",
+    "dependsOn": [
+      "036-declared-state-dir",
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/scaffold.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/scaffold.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "reductive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/harness_hooks.rs"
+        }
+      },
+      {
+        "nature": "reductive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/harness_skills.rs"
+        }
+      },
+      {
+        "nature": "reductive",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": "Makefile"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      },
+      {
+        "nature": "reductive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "reductive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "036-declared-state-dir",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "043-verify-declared-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/verify.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "089-nothing-reruns-a-merged-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/adoption-guide.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "078-governed-scope-is-declared-not-inferred",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/coverage.rs"
+        }
+      },
+      {
+        "nature": "reductive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/specify-first.md"
+        }
+      },
+      {
+        "nature": "reductive",
+        "spec": "006-distribution",
+        "unit": {
+          "kind": "file",
+          "path": "npm/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/agents/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/rules/orchestrator-rules.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      }
+    ],
+    "id": "092-the-engine-ships-governance-not-an-environment",
+    "implementation": "pending",
+    "kind": "architecture",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/06-harness-and-distribution-2026-09.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionHeadings": [
+      "120: The engine ships governance, not an environment",
+      "1. Purpose",
+      "1.1 Two products, one repository",
+      "1.2 The owner has moved",
+      "1.3 What the managed layout is",
+      "1.4 Why there is no compatibility path",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The public initialization command is removed",
+      "3.2 One retained producer, and it stays pure",
+      "3.3 What the scaffold produces, and what it must not",
+      "3.4 The kit and its embedding are removed",
+      "3.5 The projections go; this repository's own harness stays",
+      "3.6 The gate has one definition and this repository owns it",
+      "3.7 This repository's derived trees move to `.statecraft/derived/`",
+      "3.8 The configured derived directory is derived everywhere",
+      "3.9 `.statecraft/` is not runtime state",
+      "3.10 The instruction bridge is Statecraft's to insert",
+      "3.11 Removed paths, and the claims they leave behind",
+      "3.11.1 What the coupling gate says about the removal, measured",
+      "3.12 Acceptance replacement",
+      "3.13 The unmerged spec 117 proposal is withdrawn",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/092-the-engine-ships-governance-not-an-environment/spec.md",
+    "status": "draft",
+    "summary": "spec-spine has been shipping two products. One is a governance engine: a compiler, an indexer, a classifier, a coupling gate, a verifier. The other is a development environment: twenty-nine files of skills, agents, rules, hooks, a Makefile and a CI workflow, embedded into the binary as a 2,707-line generated module and written out by a public `init --with-kit`, plus two further generated projections of the same instructions for other agent runtimes. The second product is now Statecraft's: the Statecraft CLI is the sole distributor and initializer of the managed development environment, and it places the compiled governance artifacts at `.statecraft/derived/`. This spec removes the public initialization command, the kit, the embedded kit, the agent-tree projections and the parity machinery that held them equal; narrows the retained library scaffold to governance starter content and nothing else; relocates this repository's own committed derived trees; and records, per predecessor, what the removal does to the claims and the acceptance those specs left behind.\n",
+    "title": "The engine ships governance, not an environment"
+  },
+  "shardHash": "1f9d93cdb33e8014e741b470a05fa0b5a40e43eaa352cf9653beb68d105ab5a5",
+  "specVersion": "1.3.0"
+}

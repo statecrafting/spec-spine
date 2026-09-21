@@ -23,7 +23,6 @@ summary: >
   scaffolding (content hashing, canonical JSON, markdown heading extraction) and
   the `spec-spine compile` CLI subcommand.
 ---
-
 # 001: Compile the spec corpus into a deterministic registry
 
 ## 1. Purpose

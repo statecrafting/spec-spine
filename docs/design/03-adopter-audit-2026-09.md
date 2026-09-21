@@ -11,7 +11,7 @@ versions of byte-stable output on real corpora.
 The audit had two questions. What did the adopters have to build by hand that
 the substrate or the kit should have given them? And what did they get wrong
 that a better kit would have prevented? This note records the answers, what
-was acted on the same day (specs 045, 046, 047), and the ranked backlog.
+was acted on the same day (specs 042, 046, 047), and the ranked backlog.
 
 ## 1. The state of the field
 
@@ -24,7 +24,7 @@ was acted on the same day (specs 045, 046, 047), and the ranked backlog.
 
 Three of the four are **specify-first**: the whole corpus is ratified before a
 line of code exists, and specs live at `approved` + `pending` for months. That
-is the mode specs 041 and 044 were built for, and it is the mode the kit's
+is the mode specs 038 and 044 were built for, and it is the mode the kit's
 documentation never mentions. Every specify-first adopter independently
 invented: a Makefile whose language targets are guarded on a manifest probe so
 the composite is green on a code-free tree; a CI job-output guard because
@@ -44,10 +44,10 @@ Half the edge vocabulary is unused in the field: no adopter uses `refines`,
 
 ## 2. Acted on today
 
-### 2.1 Spec 045: an absent `implementation` key takes its answer from `status`
+### 2.1 Spec 042: an absent `implementation` key takes its answer from `status`
 
-Spec 038 reads an absent `implementation` as `pending` and offers the spec as
-ready. Spec 041's table reads `approved` + absent as settled, and `index.rs`
+Spec 035 reads an absent `implementation` as `pending` and offers the spec as
+ready. Spec 038's table reads `approved` + absent as settled, and `index.rs`
 agrees. The two verbs disagreed about the same key, and the prose in 041 §3.5
 and 044 §3.3 ("an absent key still behaves as `pending`") contradicted the
 tables one section above them. The concrete bite: the scaffold's bootstrap
@@ -56,7 +56,7 @@ spec has no `implementation` key, so **every `spec-spine init` adopter's
 claude-observatory does today. This repository did until #102 patched its own
 spec 000 by hand; 045 fixes the rule instead of the instance.
 
-### 2.2 Spec 046: the kit's hooks wrote when they should have read
+### 2.2 Spec 093: the kit's hooks wrote when they should have read
 
 Three of the four `kit/settings.json` hooks mutate the tree they are meant to
 observe, and one of those mutations deadlocked a pipeline for eleven hours.
@@ -83,7 +83,7 @@ hooks into the kit and adds a test that refuses a mutating subcommand in any
 kit hook that is not the one sanctioned write (recompiling after a spec edit in
 a live session, which can still commit).
 
-### 2.3 Spec 047: the three rules every adopter had to amend by hand
+### 2.3 Spec 093: the three rules every adopter had to amend by hand
 
 All three adopters that rewrote the kit's rules made the same three changes,
 independently, in the same places:
@@ -115,7 +115,7 @@ or sensor concepts into `Config`.
 1. **`spec-spine verify <id>`**, running `verify:cli` fences from a spec's
    `## Verification` section, reporting `not-declared` as an honest zero, and
    reporting-and-skipping other fence tags. Three adopters carry the same
-   78-line `scripts/verify-spec.sh`. Spec 043 §4 already named this "the most
+   78-line `scripts/verify-spec.sh`. Spec 040 §4 already named this "the most
    substantial thing the adoption invented and the one most worth having."
 2. **Surface index diagnostics in a gate.** aicortex has 248 `W-001` warnings
    that only `index render` shows; `lint --fail-on-warn` says 0 warnings,
@@ -177,7 +177,7 @@ or sensor concepts into `Config`.
    `--pr-body` from `$RUNNER_TEMP`).
 3. **`spec-spine init --with-kit`**, or make `init` write `AGENTS.md`. The
    scaffold writes a corpus and three rules; the kit adds the protocol, the
-   hooks, agents and skills; nothing joins them. Spec 043 named this G5.
+   hooks, agents and skills; nothing joins them. Spec 040 named this G5.
 4. **A specify-first adoption page**: the lifecycle table, the guarded
    Makefile, the CI probe, `n-a` for record specs, why 248 warnings is fine.
 5. **`CONSTITUTION_TEMPLATE` in `scaffold.rs` is still the two-bullet stub**
@@ -223,7 +223,7 @@ the audit. None of these is spec-spine's to fix.
 - **hqgit, aicortex, rahi**: hqgit residue survived the "purge" commits:
   `/build` names rules that do not exist (`ledger-invariants`,
   `trust-invariants` in aicortex and rahi), `017-ledger-entry-dag` is the
-  example id in five skills of repos with no spec 017, `.gitattributes` cites
+  example id in five skills of repos with no spec 016, `.gitattributes` cites
   hqgit's golden vectors, aicortex's `/spec` carries hqgit's domain enum (six
   of eight values wrong) and will generate specs that fail `V-005`.
 - **hqgit, aicortex**: `AGENTS.md` claims an em-dash hook that does not exist;
@@ -269,46 +269,46 @@ mistake in one function and are argued together.
 
 | §3 (tool) | Filed as |
 |---|---|
-| 1. `spec-spine verify <id>` | 049-verify-declared-acceptance |
-| 2. Surface index diagnostics in a gate | 050-index-diagnostics-reach-a-gate |
-| 3. `couple` names the owning spec and points at `extends` | 052-couple-names-the-crossing |
-| 4. Ordinal-monotonic `depends_on` | 053-depends-on-ordinal-monotonicity |
-| 5. A governed read for effective coupling config | 054-effective-config-is-a-governed-read |
-| 6. Owner-of-path query | 055-the-ledger-answers-what-consumers-rebuild |
-| 7. Per-spec content hash on `registry show --json` | 055-the-ledger-answers-what-consumers-rebuild |
-| 8. `compile --spec <id>` | 056-compile-one-spec |
-| 9. Lint a claimed `file` unit outside every hashed input | 057-claimed-but-unwitnessed |
-| 10. Lint the retroactive-adoption shape | 058-retroactive-adoption-shape |
-| 11. `index orphans` under the in-flight predicate | 059-read-verbs-on-a-code-free-corpus |
-| 12. `--fail-on-untraced` on a package-less tree | 059-read-verbs-on-a-code-free-corpus |
-| 13. Richer `registry plan` output | 060-plan-answers-the-whole-question |
-| 14. `registry plan --next` | 060-plan-answers-the-whole-question |
-| 15. `build-meta.json` and the working tree | 061-the-scaffold-ships-what-adopters-wrote |
-| 16. A version pin the CLI can check | 062-a-version-pin-the-cli-can-check |
-| 17. The stale-binary exit-2 ambiguity | 063-a-stale-binary-is-not-a-stale-ledger |
+| 1. `spec-spine verify <id>` | 043-verify-declared-acceptance |
+| 2. Surface index diagnostics in a gate | 044-index-diagnostics-reach-a-gate |
+| 3. `couple` names the owning spec and points at `extends` | 045-couple-names-the-crossing |
+| 4. Ordinal-monotonic `depends_on` | 046-depends-on-ordinal-monotonicity |
+| 5. A governed read for effective coupling config | 047-effective-config-is-a-governed-read |
+| 6. Owner-of-path query | 048-the-ledger-answers-what-consumers-rebuild |
+| 7. Per-spec content hash on `registry show --json` | 048-the-ledger-answers-what-consumers-rebuild |
+| 8. `compile --spec <id>` | 049-compile-one-spec |
+| 9. Lint a claimed `file` unit outside every hashed input | 050-claimed-but-unwitnessed |
+| 10. Lint the retroactive-adoption shape | 051-retroactive-adoption-shape |
+| 11. `index orphans` under the in-flight predicate | 052-read-verbs-on-a-code-free-corpus |
+| 12. `--fail-on-untraced` on a package-less tree | 052-read-verbs-on-a-code-free-corpus |
+| 13. Richer `registry plan` output | 053-plan-answers-the-whole-question |
+| 14. `registry plan --next` | 053-plan-answers-the-whole-question |
+| 15. `build-meta.json` and the working tree | 054-the-scaffold-ships-what-adopters-wrote |
+| 16. A version pin the CLI can check | 055-a-version-pin-the-cli-can-check |
+| 17. The stale-binary exit-2 ambiguity | 093-the-harness-this-repository-runs |
 
 | §4 (kit and scaffold) | Filed as |
 |---|---|
-| 1. Ship the `.derived/` merge driver in `kit/` | 064-the-kit-ships-the-composite-gate |
-| 2. Ship a `Makefile` and a `govern.yml` | 064-the-kit-ships-the-composite-gate |
-| 3. `spec-spine init --with-kit` | 065-init-and-the-kit-are-one-adoption |
-| 4. A specify-first adoption page | 067-the-docs-name-what-adopters-derived |
-| 5. `CONSTITUTION_TEMPLATE` is still the stub | 061-the-scaffold-ships-what-adopters-wrote |
-| 6. The scaffolded `spec-spine.toml` hides every knob | 061-the-scaffold-ships-what-adopters-wrote |
-| 7. Contract additions | 066-the-contract-records-the-lifecycle-table |
-| 8. Document two interactions found by experiment | 067-the-docs-name-what-adopters-derived |
-| 9. Skills for the governed loop | 048-kit-ships-the-governed-loop-skills |
-| 10. A path-scoped rule example | 068-a-path-scoped-rule-example |
-| 11. State that the waiver is a human instrument | 047-harness-rules-name-the-legitimate-edits |
-| 12. Dogfood the hooks | 046-kit-hooks-read-never-write |
-| 13. Migration note for 037 | 067-the-docs-name-what-adopters-derived |
-| 14. `state_dir` needs its `.gitignore` half | 061-the-scaffold-ships-what-adopters-wrote |
+| 1. Ship the `.derived/` merge driver in `kit/` | 094-one-gate-and-the-boundaries-it-holds |
+| 2. Ship a `Makefile` and a `govern.yml` | 094-one-gate-and-the-boundaries-it-holds |
+| 3. `spec-spine init --with-kit` | 095-the-corpus-describes-what-exists |
+| 4. A specify-first adoption page | 057-the-docs-name-what-adopters-derived |
+| 5. `CONSTITUTION_TEMPLATE` is still the stub | 054-the-scaffold-ships-what-adopters-wrote |
+| 6. The scaffolded `spec-spine.toml` hides every knob | 054-the-scaffold-ships-what-adopters-wrote |
+| 7. Contract additions | 056-the-contract-records-the-lifecycle-table |
+| 8. Document two interactions found by experiment | 057-the-docs-name-what-adopters-derived |
+| 9. Skills for the governed loop | 093-the-harness-this-repository-runs |
+| 10. A path-scoped rule example | 093-the-harness-this-repository-runs |
+| 11. State that the waiver is a human instrument | 093-the-harness-this-repository-runs |
+| 12. Dogfood the hooks | 093-the-harness-this-repository-runs |
+| 13. Migration note for 037 | 057-the-docs-name-what-adopters-derived |
+| 14. `state_dir` needs its `.gitignore` half | 054-the-scaffold-ships-what-adopters-wrote |
 
 §5 (adopter-side follow-ups) is unchanged and remains each repository's own
 work. Nothing in it is spec-spine's to fix.
 
 One finding surfaced while filing, and is recorded here because it belongs to no
-backlog item. Spec 057's premise was verified rather than assumed: `AGENTS.md`
+backlog item. Spec 050's premise was verified rather than assumed: `AGENTS.md`
 is claimed by three specs, and appending a line to it leaves both
 `spec-spine index check` and `spec-spine compile --check` reporting fresh.
 Twenty-four claimed paths in this repository are in that state.

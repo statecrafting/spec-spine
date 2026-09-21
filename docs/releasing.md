@@ -3,8 +3,8 @@
 > Four distribution paths ship together: **crates.io** (the library + CLI, and
 > the path that unblocks bindings), **prebuilt binaries** (the `curl | sh` install
 > path), **npm** (the same prebuilt binaries, repackaged so a TS/JS repo can
-> `npm i -D spec-spine`; spec 007), and **PyPI** (the same binaries again, as
-> platform wheels so a Python team can `uvx spec-spine`; spec 008). This is the
+> `npm i -D spec-spine`; spec 006), and **PyPI** (the same binaries again, as
+> platform wheels so a Python team can `uvx spec-spine`; spec 007). This is the
 > maintainer runbook. Adopters do not read this; they read
 > [adoption-guide.md](adoption-guide.md).
 
@@ -36,7 +36,7 @@
 - [ ] `cargo package --workspace --locked` succeeds (it cross-verifies every
       crate from its packaged sources, in dependency order: the same check CI can
       run).
-- [ ] **Verification sweep green** (spec 112): `./scripts/verify-sweep.sh` from
+- [ ] **Verification sweep green** (spec 089): `./scripts/verify-sweep.sh` from
       a clean checkout, against the merged revision being released
       (`--rev origin/main`). It runs every spec's `## Verification` block in an
       isolated worktree and accounts for all of them; it exits 1 if any spec is
@@ -45,9 +45,9 @@
       gate chain on purpose, so a block invalidated by a later approved spec is
       red silently until this runs. Run it here, and again after merging any
       spec that carries `amends` or `amends_verification`, which is the crossing
-      that staled every block specs 105-110 had to repair. A finding is a spec
+      that staled every block specs 083-110 had to repair. A finding is a spec
       to file, not a line to relax; never edit an approved spec's block to make
-      the sweep green (spec 040, `.claude/rules/adversarial-prompt-refusal.md`).
+      the sweep green (spec 037, `.claude/rules/adversarial-prompt-refusal.md`).
 
 ## 1. crates.io: publish in dependency order
 
@@ -87,7 +87,7 @@ supported targets, `x86_64`/`aarch64` `apple-darwin`, `x86_64`/`aarch64`
 them to the GitHub Release.
 [`install.sh`](../install.sh) (`curl | sh`) consumes those assets.
 
-### Supply-chain artifacts (spec 021)
+### Supply-chain artifacts (spec 019)
 
 Each of the five archives ships with two supply-chain artifacts, generated in the
 same `build` matrix (no second Rust build):
@@ -109,7 +109,7 @@ These steps run only on a `v*` tag (the release workflow is tag-gated), so they
 are not exercised by PR CI; if the pinned action versions move, sanity-check them
 before the next release.
 
-## 3. npm: the binary-distribution shim (spec 007)
+## 3. npm: the binary-distribution shim (spec 006)
 
 The same `v*` tag drives the `publish-npm` job. It does **not** rebuild Rust: it
 downloads the build matrix's archives and repackages them as npm packages, then
@@ -156,7 +156,7 @@ Local dry-run before tagging (no publish, no network): from `npm/`, run
 binary, packs + installs both packages into a throwaway project, and runs
 `spec-spine --version` through the launcher).
 
-## 4. PyPI: the wheel shim (spec 008)
+## 4. PyPI: the wheel shim (spec 007)
 
 The same `v*` tag drives the `publish-pypi` job. Like npm, it does **not**
 rebuild Rust: it downloads the build matrix's archives and repackages them, here

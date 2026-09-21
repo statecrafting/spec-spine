@@ -1,14 +1,14 @@
-// Spec: specs/118-the-verdict-is-the-only-thing-on-stdout/spec.md
-//! `spec-spine verify`'s two output channels (spec 118).
+// Spec: specs/090-the-verdict-is-the-only-thing-on-stdout/spec.md
+//! `spec-spine verify`'s two output channels (spec 090).
 //!
 //! Every fixture here runs a command that writes to **both** of its streams,
-//! which is the property spec 118 §1.2 found missing from the `verify` cases in
+//! which is the property spec 090 §1.2 found missing from the `verify` cases in
 //! `cli.rs`: each of those runs `true`, `exit 7` or a fence that is never
 //! executed, so not one of them writes a byte, and the assertion that stdout is
 //! one envelope could not fail against them.
 //!
 //! What is asserted is the channel, not the verdict. The verdict, the report
-//! fields and the exit-code mapping are spec 049's and are covered in `cli.rs`;
+//! fields and the exit-code mapping are spec 043's and are covered in `cli.rs`;
 //! the cases below assert that under `--json` stdout carries exactly one
 //! envelope, that the child's bytes and the transcript reach stderr instead,
 //! and that without the flag none of that moves.
@@ -62,7 +62,7 @@ fn run(root: &Path, args: &[&str]) -> Output {
 
 /// Parse the WHOLE of stdout as exactly one JSON document. `from_slice` refuses
 /// trailing content, so a byte in front of the envelope or after it fails here,
-/// which is the defect spec 118 §1.1 measured.
+/// which is the defect spec 090 §1.1 measured.
 fn one_envelope(out: &Output) -> serde_json::Value {
     serde_json::from_slice(&out.stdout).unwrap_or_else(|e| {
         panic!(
@@ -73,7 +73,7 @@ fn one_envelope(out: &Output) -> serde_json::Value {
     })
 }
 
-/// Spec 118 §3.1, §3.2, §3.3 on a passing command: stdout is one envelope, both
+/// Spec 090 §3.1, §3.2, §3.3 on a passing command: stdout is one envelope, both
 /// of the child's streams are on stderr, and the transcript is there too.
 #[test]
 fn json_keeps_a_passing_commands_output_off_stdout() {
@@ -107,7 +107,7 @@ fn json_keeps_a_passing_commands_output_off_stdout() {
     );
     assert!(se.contains("OUT-A"), "child stdout must be on stderr: {se}");
     assert!(se.contains("ERR-A"), "child stderr must be on stderr: {se}");
-    // The transcript spec 049 §3.5 requires, on the channel spec 118 §3.3
+    // The transcript spec 043 §3.5 requires, on the channel spec 090 §3.3
     // assigns it. Under `--json` it was suppressed entirely before this spec.
     assert!(
         se.contains("[verify] $ printf 'O%sT-A\\n' U; printf 'E%sR-A\\n' R >&2"),
@@ -116,7 +116,7 @@ fn json_keeps_a_passing_commands_output_off_stdout() {
     assert!(se.contains("[verify] exit 0"), "the exit line too: {se}");
 }
 
-/// Spec 118 §3.1, §3.4 on a failure: the channel holds, the failure detail is
+/// Spec 090 §3.1, §3.4 on a failure: the channel holds, the failure detail is
 /// retained, and the next command in the block does not run.
 #[test]
 fn json_keeps_a_failing_commands_output_off_stdout_and_stops_there() {
@@ -128,7 +128,7 @@ fn json_keeps_a_failing_commands_output_off_stdout_and_stops_there() {
     );
 
     let out = run(tmp.path(), &["verify", "002-fail", "--json"]);
-    // Spec 049 §3.3: the drift-tier 1, never the command's own 7.
+    // Spec 043 §3.3: the drift-tier 1, never the command's own 7.
     assert_eq!(code(&out), 1);
 
     let v = one_envelope(&out);
@@ -159,7 +159,7 @@ fn json_keeps_a_failing_commands_output_off_stdout_and_stops_there() {
     );
 }
 
-/// Spec 118 §3.1's error path: the `R-001` refusal of spec 049 §3.7 is one
+/// Spec 090 §3.1's error path: the `R-001` refusal of spec 043 §3.7 is one
 /// error envelope and the whole of stdout, with nothing beside it.
 #[test]
 fn json_error_envelope_is_the_whole_of_stdout() {
@@ -180,14 +180,14 @@ fn json_error_envelope_is_the_whole_of_stdout() {
     assert_eq!(v["error"]["violations"][0]["code"], "R-001");
     assert!(
         v.get("report").is_none(),
-        "`report` and `error` are exclusive (spec 037 §3.1): {v}"
+        "`report` and `error` are exclusive (spec 034 §3.1): {v}"
     );
     // The refusal precedes execution, so nothing was run; what this asserts is
     // that the error path carries one envelope and no prose.
     assert!(!stdout(&out).contains("never-runs"), "{}", stdout(&out));
 }
 
-/// Spec 118 §3.4: `--plan --json` is one envelope and spawns nothing.
+/// Spec 090 §3.4: `--plan --json` is one envelope and spawns nothing.
 #[test]
 fn plan_json_is_one_envelope_and_runs_nothing() {
     let tmp = tempfile::tempdir().unwrap();
@@ -213,9 +213,9 @@ fn plan_json_is_one_envelope_and_runs_nothing() {
     assert!(!stderr(&out).contains("ERR-C"), "{}", stderr(&out));
 }
 
-/// Spec 118 §3.4's preservation half: without `--json` the child inherits both
-/// streams and the transcript is on stdout, exactly as spec 049 shipped it.
-/// Green before spec 118 on purpose; this is what stops the correction from
+/// Spec 090 §3.4's preservation half: without `--json` the child inherits both
+/// streams and the transcript is on stdout, exactly as spec 043 shipped it.
+/// Green before spec 090 on purpose; this is what stops the correction from
 /// moving the prose mode too.
 #[test]
 fn prose_mode_channels_are_unchanged() {
@@ -248,7 +248,7 @@ fn prose_mode_channels_are_unchanged() {
     );
 }
 
-/// Spec 118 §3.2: output larger than a pipe buffer neither deadlocks nor
+/// Spec 090 §3.2: output larger than a pipe buffer neither deadlocks nor
 /// reaches stdout. A forwarder that read either stream only after the child
 /// exited would hang here rather than fail, which is why the case is a test and
 /// not a comment.
@@ -278,12 +278,12 @@ fn json_forwards_more_than_a_pipe_buffer_without_deadlocking() {
 }
 
 // ---------------------------------------------------------------------------
-// A consumer that stops reading the parent's stderr (spec 118 §3.2, D-3, D-4),
+// A consumer that stops reading the parent's stderr (spec 090 §3.2, D-3, D-4),
 // and the harness that bounds it (D-6).
 //
 // The cases above all keep both of the parent's pipes drained to the end, so
 // every write from the parent succeeds. That is the healthy half of the
-// channel contract, and it left the unhealthy half unasserted: spec 118 D-3
+// channel contract, and it left the unhealthy half unasserted: spec 090 D-3
 // says that an inability to deliver logs must not change the acceptance
 // verdict, and at `71a423a` it changed it twice. A consumer that read the
 // opening transcript line and then closed the parent's stderr made a child
@@ -322,7 +322,7 @@ const VOLUME: &str =
 /// second locally.
 const DEADLINE: Duration = Duration::from_secs(30);
 
-/// The opening line every `verify --json` run writes to stderr (spec 118 §3.3).
+/// The opening line every `verify --json` run writes to stderr (spec 090 §3.3).
 const TRANSCRIPT: &str = "[verify] $ ";
 
 /// What one run under a stderr consumer produced.
@@ -335,7 +335,7 @@ struct Consumed {
 }
 
 impl Consumed {
-    /// The whole of stdout as exactly one JSON document, per spec 118 §3.1.
+    /// The whole of stdout as exactly one JSON document, per spec 090 §3.1.
     fn envelope(&self) -> serde_json::Value {
         serde_json::from_slice(&self.stdout).unwrap_or_else(|e| {
             panic!(
@@ -1144,7 +1144,7 @@ fn run_with_stderr_consumer(root: &Path, id: &str, close: bool) -> Consumed {
     })
 }
 
-/// Spec 118 D-3 on a quiet successful command: closing the consumer changes
+/// Spec 090 D-3 on a quiet successful command: closing the consumer changes
 /// nothing about the verdict. At `71a423a` this exited **101** with an empty
 /// stdout, because the `[verify] exit 0` line panicked on the failed write
 /// before the envelope was ever produced.
@@ -1167,7 +1167,7 @@ fn a_closed_stderr_consumer_does_not_change_a_quiet_passs_verdict() {
     assert_eq!(v["report"]["ran"], 1);
 }
 
-/// Spec 118 §3.2 with the destination gone, on the child's **stderr**. This is
+/// Spec 090 §3.2 with the destination gone, on the child's **stderr**. This is
 /// the hang: at `71a423a` the parent stopped reading this pipe on the first
 /// failed write and then waited on a child that was blocked filling it.
 #[test]
@@ -1185,7 +1185,7 @@ fn a_closed_stderr_consumer_does_not_hang_a_child_flooding_its_stderr() {
 /// thread rather than from the waiting one. A pump that dropped its input on a
 /// forwarding failure would close the child's stdout and hand it an `EPIPE`,
 /// turning an undeliverable log into a changed exit status, which is the
-/// outcome spec 118 D-3 forbids.
+/// outcome spec 090 D-3 forbids.
 #[test]
 fn a_closed_stderr_consumer_does_not_hang_a_child_flooding_its_stdout() {
     let tmp = tempfile::tempdir().unwrap();
@@ -1197,7 +1197,7 @@ fn a_closed_stderr_consumer_does_not_hang_a_child_flooding_its_stdout() {
     assert_eq!(run.envelope()["report"]["outcome"], "passed");
 }
 
-/// Spec 118 §3.4 with the destination gone: a failing command keeps its own
+/// Spec 090 §3.4 with the destination gone: a failing command keeps its own
 /// exit code and its position, and stop-on-first-failure still holds. The
 /// failure details reach the consumer on the channel that still works, and the
 /// second command's absence is asserted by its missing side effect rather than
@@ -1260,7 +1260,7 @@ fn an_open_stderr_consumer_receives_every_forwarded_byte() {
 }
 
 // ---------------------------------------------------------------------------
-// The safeguards themselves (spec 118 D-6).
+// The safeguards themselves (spec 090 D-6).
 //
 // Neither case runs `verify`: the fixture is a shell script chosen to break the
 // harness in one specific way, because what is under test is the harness, and a
@@ -1559,7 +1559,7 @@ fn a_broken_inner_deadline_is_terminated_by_the_outer_supervisor() {
 
 /// A leader that exits while a descendant keeps its pipes is cleaned up too.
 ///
-/// This is the case spec 118 D-6 described as left unhandled, on the reasoning
+/// This is the case spec 090 D-6 described as left unhandled, on the reasoning
 /// that the leader would be reaped by then and the group signal no longer safe
 /// to send. That reasoning does not match the harness it describes: the readers
 /// are awaited **before** the leader is ever polled, so at the moment a reader
@@ -1623,7 +1623,7 @@ fn an_exited_leaders_descendant_on_the_pipes_is_still_terminated() {
 }
 
 // ---------------------------------------------------------------------------
-// Cancellation across the whole startup lifecycle (spec 118 D-8).
+// Cancellation across the whole startup lifecycle (spec 090 D-8).
 //
 // The safeguard cases above all cancel a tree whose pid has already been
 // published, which is the one ordering the merged `Tree` handled. The three

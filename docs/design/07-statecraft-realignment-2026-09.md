@@ -1,7 +1,7 @@
 # 07: The Statecraft realignment (2026-09-20)
 
 A design note. What it records is filed as spec
-`120-the-engine-ships-governance-not-an-environment`; this note holds the
+`092-the-engine-ships-governance-not-an-environment`; this note holds the
 boundary and the disposition of the earlier notes, not a second copy of the
 spec.
 
@@ -59,7 +59,7 @@ state_dir     = ".statecraft/state"
 ```
 
 This is a producer contract, not a public initialization command under a new
-name. Spec 120 3.1 removes `spec-spine init` and forbids a replacement verb.
+name. Spec 092 3.1 removes `spec-spine init` and forbids a replacement verb.
 
 ## 3. The managed layout
 
@@ -94,7 +94,7 @@ withdrawal of any approved requirement.
 | 3.6 build eligibility belongs to repository policy | spec-spine (`build` skill) + policy | **superseded**: eligibility orchestration is Statecraft's. The governance half (what `registry plan` answers) was already spec-spine's and stays |
 | 3.7 one scheduler | spec-spine | **superseded**: scheduling is Statecraft's |
 | 3.8 validation boundaries and evidence reuse | mixed | governance-side reuse stays a spec-spine question; orchestration-side reuse is Statecraft's |
-| 3.9 hook verdicts and enforcement boundaries | spec-spine | partly delivered by specs 099 and 104 against this repository's own hooks. Distribution of hooks is Statecraft's; H-6 stays open and is now Statecraft's question |
+| 3.9 hook verdicts and enforcement boundaries | spec-spine | partly delivered by specs 093 and 104 against this repository's own hooks. Distribution of hooks is Statecraft's; H-6 stays open and is now Statecraft's question |
 | 3.10 a measurement plan | spec-spine | **superseded**: the thing it measures is not distributed here any more |
 
 Note 05's wave B ("the kit and the harness deliver what they document") is
@@ -106,10 +106,10 @@ it is what this repository does to its own `.claude/` tree.
 `117-the-derived-tree-question-asked-honestly` was drafted 2026-09-17, never
 merged, and exists only on the branch
 `113-the-harness-delivers-what-it-documents` at `487bbd9`. It is withdrawn as
-filed: three of the four hook copies it targets are removed by spec 120. The
+filed: three of the four hook copies it targets are removed by spec 092. The
 defect it measured, a PR-gate test blind to a staged shard and to an untracked
 one, remains true of the single retained copy in `.claude/settings.json`; it is
-recorded as open in spec 120 4 and the branch is preserved. The ordinal stays
+recorded as open in spec 092 4 and the branch is preserved. The ordinal stays
 reserved.
 
 ## 6. What is outstanding
@@ -119,4 +119,4 @@ reserved.
 | `@.statecraft/AGENTS.md` bridge in this repository's root `AGENTS.md` | Statecraft initializer | not applied: the initializer must write `.statecraft/AGENTS.md` first, and an import of a missing file is a broken instruction |
 | Retirement of this repository's `.claude/` tree | Statecraft global delivery | held: `.claude/` stays until its replacement is concretely available |
 | The PR-gate derived-tree test | whoever owns the hook after delivery | open, see 5 |
-| Ratification of spec 120 | a human | spec 120 is `draft`; this realignment was built under a specific owner authorization, and no agent flips it to `approved` |
+| Ratification of spec 092 | a human | spec 092 is `draft`; this realignment was built under a specific owner authorization, and no agent flips it to `approved` |

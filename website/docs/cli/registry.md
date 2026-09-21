@@ -28,7 +28,7 @@ Lists specs from the committed registry.
 - **`--ids-only`**: Print only the spec IDs, one per line.
 - **`--json`**: Output a read document: `{ "items": [...], "schemaVersion" }`, where `items` holds the spec records, or the id strings with `--ids-only`.
 
-Every `registry` subcommand's `--json` output is a **read document** (spec 093): a JSON object with sorted keys and a top-level `schemaVersion` on the read-document axis. A read is not a verdict, so it is not wrapped in the `ok` / `exitCode` / `report` envelope the gate verbs use.
+Every `registry` subcommand's `--json` output is a **read document** (spec 094): a JSON object with sorted keys and a top-level `schemaVersion` on the read-document axis. A read is not a verdict, so it is not wrapped in the `ok` / `exitCode` / `report` envelope the gate verbs use.
 
 ### `registry show <id>`
 
@@ -37,11 +37,11 @@ Shows the details of a single spec.
 - **`--json`**: Output as JSON.
 
 `contentHash` is the spec's committed registry shard hash, read from the ledger
-and never recomputed (spec 055). It is **path-framed**: SHA-256 over the
+and never recomputed (spec 048). It is **path-framed**: SHA-256 over the
 spec's repo-relative POSIX path, a NUL byte (`0x00`), then the file's
 normalized bytes (BOM stripped, CRLF and CR folded to LF). It therefore does not
 equal a plain SHA-256 of the file. The unframed digest is `specSourceHash`,
-which `spec-spine attest --spec <id>` reports (spec 096).
+which `spec-spine attest --spec <id>` reports (spec 077).
 
 ### `registry status-report`
 
@@ -58,7 +58,7 @@ Shows the relationship neighborhood (incoming and outgoing edges) for a specific
 
 ### `registry plan`
 
-The ready set (spec 038): which specs a scheduler may hand out now, and what blocks the rest.
+The ready set (spec 035): which specs a scheduler may hand out now, and what blocks the rest.
 
 - **Excluded** from the output entirely: `status` is `superseded` or `retired`, or `implementation` is `complete`, `n-a` or `deferred`. A spec with no `implementation` key counts as `pending`.
 - **Blocked**: at least one `depends_on` target is not finished (neither `complete` nor `n-a`). Each blocker is named with its `state`; a `depends_on` target that does not resolve to a spec blocks with `state: "unresolved"` rather than being ignored.

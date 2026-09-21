@@ -4,7 +4,7 @@
 //! Parsing is pure. The `---`-delimited block is split out
 //! ([`split_frontmatter`]), the known keys are deserialized into [`Frontmatter`],
 //! and every key not in [`KNOWN_KEYS`] overflows into `extra_frontmatter` as a
-//! `serde_json::Value`. The value domain splits on declaration (spec 013):
+//! `serde_json::Value`. The value domain splits on declaration (spec 012):
 //! a key listed in `config.frontmatter.extra_known_keys` (passed to
 //! [`parse_frontmatter_with`]) carries **any JSON-representable YAML value**,
 //! transported verbatim under canonical-JSON normalization; an undeclared key
@@ -59,7 +59,7 @@ pub enum Implementation {
 }
 
 /// A failed frontmatter parse, classified for the compiler's V-code mapping
-/// (spec 013 §3.3).
+/// (spec 012 §3.3).
 #[derive(Clone, Debug)]
 pub enum FrontmatterIssue {
     /// Malformed YAML or a grammar violation: the V-002 class.
@@ -111,7 +111,7 @@ pub const KNOWN_KEYS: &[&str] = &[
     "superseded_by",
     "retirement_rationale",
     "amends_sections",
-    // Spec 103 3.1: the amended specs whose `## Verification` block this
+    // Spec 082 3.1: the amended specs whose `## Verification` block this
     // spec's own block replaces. A subset of `amends`.
     "amends_verification",
     "unamendable",
@@ -179,7 +179,7 @@ pub struct Frontmatter {
     pub retirement_rationale: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub amends_sections: Vec<String>,
-    /// Spec 103 3.1: amended specs whose `## Verification` block this spec's own
+    /// Spec 082 3.1: amended specs whose `## Verification` block this spec's own
     /// block replaces, so `verify <amended-id>` runs this spec's commands.
     /// Every entry MUST also appear in `amends` (`V-018`).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -251,7 +251,7 @@ pub fn parse_frontmatter(src: &str) -> Result<Frontmatter> {
     parse_frontmatter_with(src, &[]).map_err(Into::into)
 }
 
-/// Parse with declared-key awareness (spec 013): a key listed in `declared`
+/// Parse with declared-key awareness (spec 012): a key listed in `declared`
 /// (the adopter's `frontmatter.extra_known_keys`) carries any
 /// JSON-representable YAML value, transported verbatim; an undeclared key
 /// keeps the scalar / string-list restriction. A top-level `null` value drops
@@ -302,7 +302,7 @@ pub fn parse_frontmatter_with(
         frontmatter.extra_frontmatter.insert(key.to_string(), json);
     }
 
-    // `paths:` sugar on extends/refines items (spec 014): expanded here, in
+    // `paths:` sugar on extends/refines items (spec 013): expanded here, in
     // the shared parse path, so every consumer (compile, index, lint, couple)
     // sees only single-unit edges.
     frontmatter.extends =
@@ -313,7 +313,7 @@ pub fn parse_frontmatter_with(
             .map_err(malformed)?;
     // Full-scope supersedes (`{ scope: full }` / bare id) collapse to the
     // bare-string form so the wire stays byte-identical for full-only corpora
-    // (spec 019).
+    // (spec 018).
     frontmatter.supersedes =
         crate::edges::normalize_supersedes(std::mem::take(&mut frontmatter.supersedes));
 
@@ -358,7 +358,7 @@ fn yaml_to_extra(v: &serde_yaml::Value) -> std::result::Result<serde_json::Value
     }
 }
 
-/// The DECLARED-key path (spec 013 §3.2): full YAML → JSON conversion.
+/// The DECLARED-key path (spec 012 §3.2): full YAML → JSON conversion.
 /// Mappings require string keys; tags and non-finite numbers are
 /// unrepresentable. Map key order is canonicalized by the sorted
 /// `serde_json::Map` (authoring order is not preserved: the price of

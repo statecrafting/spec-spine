@@ -1,11 +1,11 @@
-// Spec: specs/119-an-unclassified-review-failure-blocks-the-merge/spec.md
-//! Spec 119: an unclassified review failure blocks the merge.
+// Spec: specs/091-an-unclassified-review-failure-blocks-the-merge/spec.md
+//! Spec 091: an unclassified review failure blocks the merge.
 //!
 //! The AI review job's failure classifier used to fall through to a pass: a
 //! non-zero invocation whose diagnostics matched no auth token was treated as
 //! a provider outage, given a warning, and let through. On PR #267 an
 //! organization-access refusal arrived as prose, matched nothing, and a PR
-//! merged with no review. Spec 119 inverts the default and this file is what
+//! merged with no review. Spec 091 inverts the default and this file is what
 //! holds the inversion in place.
 //!
 //! The rule of this suite (119 3.8): it runs **the workflow's own `run:`
@@ -191,7 +191,7 @@ impl Ctx {
         }
         panic!(
             "{whence}: unsupported expression `${{{{ {e} }}}}`. This harness is bounded to the \
-             forms the ai-review job contains (spec 119 3.8 rule 5); it refuses rather than \
+             forms the ai-review job contains (spec 091 3.8 rule 5); it refuses rather than \
              guessing, and it is not to be grown into an Actions emulator."
         );
     }
@@ -247,7 +247,7 @@ fn eval_if(step: &Step, ctx: &Ctx) -> bool {
             panic!(
                 "{whence}: unsupported form {c:?}. Supported: `success()` and \
                  `steps.<id>.outputs.<name>` or `github.<path>` compared with ==/!= to a \
-                 single-quoted literal, joined by `&&` (spec 119 3.8 rule 5)."
+                 single-quoted literal, joined by `&&` (spec 091 3.8 rule 5)."
             );
         }
         value &= eval_conjunct(c, ctx, &whence);
@@ -273,7 +273,7 @@ fn eval_conjunct(c: &str, ctx: &Ctx, whence: &str) -> bool {
     } else {
         panic!(
             "{whence}: unsupported form {c:?}; this harness evaluates only ==/!= comparisons \
-             against a single-quoted literal (spec 119 3.8 rule 5)."
+             against a single-quoted literal (spec 091 3.8 rule 5)."
         );
     };
     let literal = literal
@@ -314,7 +314,7 @@ fn shell_argv(step: &Step) -> Vec<&'static str> {
         Some(other) => panic!(
             "{WORKFLOW} step {:?} declares `shell: {other}`, which this harness does not \
              implement. It refuses rather than silently substituting a default \
-             (spec 119 3.8 rule 5).",
+             (spec 091 3.8 rule 5).",
             step.name
         ),
     }
@@ -352,7 +352,7 @@ fn run_script(step: &Step, script: &str, dir: &Path, env: &BTreeMap<String, Stri
     assert!(
         env_written.trim().is_empty(),
         "{WORKFLOW} step {:?} wrote to `GITHUB_ENV`, which this harness does not model \
-         (spec 119 3.8 rule 5). It refuses rather than silently dropping the value:\n{env_written}",
+         (spec 091 3.8 rule 5). It refuses rather than silently dropping the value:\n{env_written}",
         step.name
     );
     let mut outputs = BTreeMap::new();
@@ -1037,7 +1037,7 @@ fn no_timeout_wrapper_is_introduced_and_the_job_bound_is_preserved() {
     let text = fs::read_to_string(repo_root().join(WORKFLOW)).unwrap();
     assert!(
         !text.contains("AI_REVIEW_TIMEOUT"),
-        "spec 119 D-10 withdrew the AI_REVIEW_TIMEOUT bound"
+        "spec 091 D-10 withdrew the AI_REVIEW_TIMEOUT bound"
     );
     assert!(
         text.contains("timeout-minutes: 10"),

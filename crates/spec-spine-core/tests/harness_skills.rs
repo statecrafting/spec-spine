@@ -1,5 +1,5 @@
-// Spec: specs/048-kit-ships-the-governed-loop-skills/spec.md
-//! Harness skill tests (spec 048, retargeted by spec 120 3.5): this
+// Spec: specs/093-the-harness-this-repository-runs/spec.md
+//! Harness skill tests (spec 093, retargeted by spec 092 3.5): this
 //! repository's own `.claude/skills/` set for the governed loop. Four adopters
 //! had each rewritten the same five loop skills, and the copies had drifted (a
 //! renamed tool, a rule format Claude Code does not read, a "read-only" review
@@ -7,7 +7,7 @@
 //! project-layer section every skill must end with, and the read-only forms the
 //! read skills use.
 //!
-//! Until spec 120 the same assertions ran twice, once over `kit/.claude/skills/`
+//! Until spec 092 the same assertions ran twice, once over `kit/.claude/skills/`
 //! and once over this repository's copy, with a byte-equality test between them.
 //! The kit is gone and distributing a skill set is Statecraft's; what remains is
 //! the set a session here loads. Nothing about what a skill must contain was
@@ -18,11 +18,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 /// The ten skills, the loop first, in the order "Working the backlog" runs
-/// them, then the two the loop calls. Spec 081 removed the five support
+/// them, then the two the loop calls. Spec 093 removed the five support
 /// skills nothing in the kit invoked (`validate-and-fix`, `cleanup`,
 /// `implement-plan`, `research`, `refactor-claude-md`).
 const SKILLS: &[&str] = &[
-    // Spec 075 3.1: `prime`, not `init`. Claude Code ships its own `/init`,
+    // Spec 062 3.1: `prime`, not `init`. Claude Code ships its own `/init`,
     // which generates a CLAUDE.md: a one-time, repository-level operation that
     // WRITES, where this one is per-session and reports. The kit shadowed a
     // built-in and inverted its meaning on both axes that matter. No alias was
@@ -127,7 +127,7 @@ fn the_loop_ships_the_same_ten_skills() {
         assert_eq!(
             skill_names(&dir),
             want,
-            "{label}: skill set differs from spec 081 3.1"
+            "{label}: skill set differs from spec 093 3.1"
         );
     }
 }
@@ -144,7 +144,7 @@ fn every_skill_declares_name_description_and_allowed_tools() {
         );
         assert!(
             field(&fm, "allowed-tools").is_some_and(|t| !t.is_empty()),
-            "{name}: needs an allowed-tools list (spec 048 3.2)"
+            "{name}: needs an allowed-tools list (spec 093 3.2)"
         );
     }
 }
@@ -156,7 +156,7 @@ fn every_skill_ends_with_a_project_layer_section() {
         let body = read_skill(&dir, name);
         assert!(
             body.contains("\n## Project layer\n"),
-            "{name}: missing the `## Project layer` section (spec 048 3.3)"
+            "{name}: missing the `## Project layer` section (spec 093 3.3)"
         );
     }
 }
@@ -209,7 +209,7 @@ fn read_skills_never_run_a_writing_verb() {
         for verb in spec_spine_verbs(&body) {
             assert!(
                 !is_write(&verb),
-                "{name}: read-only skill invokes `spec-spine {}` (spec 048 3.4)",
+                "{name}: read-only skill invokes `spec-spine {}` (spec 093 3.4)",
                 verb.join(" ")
             );
         }
@@ -228,7 +228,7 @@ fn the_loop_skills_wrap_the_tool_verbs_they_exist_for() {
         ("shepherd", "headRefOid"),
         ("spec", "registry list --ids-only"),
         ("spec", "status: draft"),
-        // Spec 075 3.1 and 3.5: the session skill is `prime`, and the verb it
+        // Spec 062 3.1 and 3.5: the session skill is `prime`, and the verb it
         // wraps is the composed freshness read rather than either primitive.
         ("prime", "spec-spine check"),
         ("setup", "registry plan"),
@@ -239,14 +239,14 @@ fn the_loop_skills_wrap_the_tool_verbs_they_exist_for() {
     for (name, needle) in must {
         assert!(
             read_skill(&dir, name).contains(needle),
-            "{name}: must mention {needle:?} (spec 048 3.1)"
+            "{name}: must mention {needle:?} (spec 093 3.1)"
         );
     }
 }
 
-/// Spec 082 3.5: `/shepherd` classifies a red required check before it edits
+/// Spec 093 3.5: `/shepherd` classifies a red required check before it edits
 /// anything, and a CRITICAL finding consumes none of the two remediation
-/// rounds spec 048 3.1 bounds. Spec 081 4 recorded this triage as the one idea
+/// rounds spec 093 3.1 bounds. Spec 093 4 recorded this triage as the one idea
 /// the five removed skills carried that no neighbour had, and deferred it
 /// rather than smuggle it in under a removal. The four CRITICAL rows are a
 /// closed list on purpose (082 D-2), so each is pinned by the phrase the
@@ -276,18 +276,18 @@ fn shepherd_classifies_before_it_spends_a_round() {
         for needle in must {
             assert!(
                 body.contains(needle),
-                "{label}/shepherd: must mention {needle:?} (spec 082 3.5)"
+                "{label}/shepherd: must mention {needle:?} (spec 093 3.5)"
             );
         }
     }
 }
 
-/// Spec 051 3.2 kept the script in the kit while adopters were pinned below
-/// 0.15.0 and moved the harness onto `spec-spine verify`. Spec 074 3.6 removed
+/// Spec 093 3.2 kept the script in the kit while adopters were pinned below
+/// 0.15.0 and moved the harness onto `spec-spine verify`. Spec 061 3.6 removed
 /// it once they had upgraded (2026-09-09): the kit no longer ships it, no kit
 /// file lists it as shipped, and no skill may call it. This repository's own
-/// `scripts/verify-spec.sh` stays, established by spec 048.
-/// Spec 074 3.6, retained through spec 120: `spec-spine verify` absorbed the
+/// `scripts/verify-spec.sh` stays, established by spec 093.
+/// Spec 061 3.6, retained through spec 092: `spec-spine verify` absorbed the
 /// hand-written script, and no skill may call the deprecated copy. The halves
 /// of this test that read `kit/` are gone with the kit; the half that matters
 /// (a skill telling a session to run the script instead of the verb) is here.
@@ -304,7 +304,7 @@ fn no_skill_calls_the_absorbed_verify_script() {
             for line in body.lines() {
                 assert!(
                     !line.contains("scripts/verify-spec.sh") || line.contains("Do NOT"),
-                    "{label}/{name}: calls the deprecated script (spec 051 3.1)"
+                    "{label}/{name}: calls the deprecated script (spec 093 3.1)"
                 );
             }
         }
@@ -322,7 +322,7 @@ fn the_agents_carry_the_legitimate_edit_rule_and_no_em_dash() {
     let reviewer = fs::read_to_string(root.join(".claude/agents/reviewer.md")).unwrap();
     assert!(
         reviewer.contains("legitimate mid-build edits"),
-        "reviewer polices spec 047 3.2"
+        "reviewer polices spec 093 3.2"
     );
     assert!(
         reviewer.contains("Gate Evidence"),
@@ -346,13 +346,13 @@ fn the_write_scanner_recognises_writes() {
     assert!(!is_write(&w("couple --base origin/main --head HEAD")));
 }
 
-// --- spec 051 3.3: one gate list ------------------------------------------
+// --- spec 093 3.3: one gate list ------------------------------------------
 
 /// The gate chain, as `standards/spec/contract.md` defines it. Both the CI
 /// scanner and the parse guard read this one list: two copies could drift, and
 /// a verb missing from either makes the subset assertion vacuous for that verb
 /// without failing. Adding a verb to the chain means adding it here.
-/// `check` (spec 075) is the composed freshness verb the protocol now calls;
+/// `check` (spec 062) is the composed freshness verb the protocol now calls;
 /// `compile` and `index` stay listed because they remain the single-tree reads
 /// and a repository may still gate on one alone.
 const GOVERNANCE_VERBS: &[&str] = &["check", "compile", "index", "lint", "couple"];
@@ -421,7 +421,7 @@ fn ci_governance_commands(root: &Path) -> Vec<String> {
     out
 }
 
-/// Spec 051 3.3. Every skill tells its reader to run "the gate as `AGENTS.md`
+/// Spec 093 3.3. Every skill tells its reader to run "the gate as `AGENTS.md`
 /// lists it", so a step CI enforces and that list omits is a step every session
 /// skips. That is the drift this spec was filed for: `index coverage
 /// --fail-on-untraced` was enforced in CI and absent from the list four skills
@@ -487,7 +487,7 @@ fn no_skill_names_a_gate_flag_agents_md_omits() {
     }
 }
 
-// ── spec 068: one path-scoped rule, exercised here ────────────────────────
+// ── spec 093: one path-scoped rule, exercised here ────────────────────────
 
 /// §3.1: exactly one rule carries `paths:` frontmatter. The value is the worked
 /// example and the fit; a directory of conditional rules would make adopters
@@ -513,7 +513,7 @@ fn exactly_one_rule_is_path_scoped() {
 }
 
 /// §3.1: it is scoped to the derived tree and carries the artifact-specific
-/// half of the governed-reads rule, including the clarification spec 047 added
+/// half of the governed-reads rule, including the clarification spec 093 added
 /// and that adopters most needed: parsing a subcommand's OUTPUT is a typed read.
 #[test]
 fn the_scoped_rule_covers_the_derived_tree_and_allows_reading_cli_output() {
@@ -522,7 +522,7 @@ fn the_scoped_rule_covers_the_derived_tree_and_allows_reading_cli_output() {
     )
     .unwrap();
     // Scoped to THIS repository's configured derived root, not to the product
-    // default: spec 120 §3.7 moved it, and a rule still naming `.derived/**`
+    // default: spec 092 §3.7 moved it, and a rule still naming `.derived/**`
     // would be scoped to a directory that no longer exists here.
     let cfg = spec_spine_types::load_config(
         &fs::read_to_string(repo_root().join("spec-spine.toml")).unwrap(),
@@ -534,7 +534,7 @@ fn the_scoped_rule_covers_the_derived_tree_and_allows_reading_cli_output() {
     assert!(body.contains("jq"), "{body}");
     assert!(
         body.contains("Parsing the output of a subcommand is fine"),
-        "the clarification spec 047 added: {body}"
+        "the clarification spec 093 added: {body}"
     );
 }
 
@@ -568,7 +568,7 @@ fn the_scoped_rule_says_it_does_not_replace_the_unconditional_one() {
 }
 
 /// The lines of a skill body that belong to the `## ` section whose heading
-/// starts with `heading`, the heading line included. Spec 116's assertions are
+/// starts with `heading`, the heading line included. Spec 093's assertions are
 /// about where an instruction sits as much as about its words: a pagination
 /// flag in the wrong step, or a merge precondition in a step the merge path
 /// never reads, satisfies a file-wide grep and changes nothing.
@@ -584,7 +584,7 @@ fn skill_section<'a>(body: &'a str, heading: &str) -> &'a str {
     &rest[..end]
 }
 
-/// Spec 116 3.1 / D-12: `/shepherd` reads all three places a reviewer can
+/// Spec 093 3.1 / D-12: `/shepherd` reads all three places a reviewer can
 /// write, reads every page of each, and lands the pages in one document.
 /// Asserted per endpoint over the command line that names it, rather than by
 /// counting flags in the file: a file-wide count is green for three flags on
@@ -619,7 +619,7 @@ fn shepherd_reads_all_three_endpoints_paginated_and_slurped() {
     }
 }
 
-/// Spec 116 3.2: the green path reaches the merge checkpoint *through* the
+/// Spec 093 3.2: the green path reaches the merge checkpoint *through* the
 /// thread read. Asserted positively, on the routing bullet itself: the old
 /// literal's absence is satisfied by deleting the line, by renumbering it, and
 /// by a rewording that still routes past Step 3b.
@@ -648,7 +648,7 @@ fn shepherd_green_path_routes_through_the_thread_read() {
     }
 }
 
-/// Spec 116 3.1 / 3.3 / D-8: a read that fails is retried once and then stops
+/// Spec 093 3.1 / 3.3 / D-8: a read that fails is retried once and then stops
 /// the run before the merge, with the endpoint named. The exit status belongs
 /// to the read itself: the obligation is to check that status before trusting
 /// the output, which is a property of how the read is judged and not of any one
@@ -685,7 +685,7 @@ fn shepherd_stops_on_a_read_it_could_not_complete() {
     }
 }
 
-/// Spec 116 3.1 / D-12 / D-13: the shipped step says what the saved document
+/// Spec 093 3.1 / D-12 / D-13: the shipped step says what the saved document
 /// looks like and how to read all of it. The earlier assertion here banned
 /// `--jq` on any `gh api` line, which pinned a false explanation (`--jq` is an
 /// option of `gh api`, not a downstream command, and does not itself hide the
@@ -729,9 +729,9 @@ fn shepherd_documents_how_to_read_the_saved_pages() {
     }
 }
 
-/// Spec 116 3.3 / D-10: three distinct report values. `none` is the claim that
+/// Spec 093 3.3 / D-10: three distinct report values. `none` is the claim that
 /// all three reads succeeded and found nothing; `could not read <endpoint>` is
-/// an endpoint that would not answer; spec 082's `not read: stopped at
+/// an endpoint that would not answer; spec 093's `not read: stopped at
 /// CRITICAL` is the path that never looked. The cheap way to satisfy 3.3 is to
 /// widen one value until it covers two cases and names neither, so each is
 /// pinned on the report template line where it has to appear.
@@ -763,13 +763,13 @@ fn shepherd_report_keeps_three_distinct_thread_values() {
         let classify = skill_section(&body, "Step 2");
         assert!(
             classify.contains("not read: stopped at CRITICAL"),
-            "{label}/shepherd: the CRITICAL stop lost spec 082's value (116 3.3)"
+            "{label}/shepherd: the CRITICAL stop lost spec 093's value (116 3.3)"
         );
     }
 }
 
-/// Spec 116 3.4: reading three endpoints instead of one buys no extra rounds.
-/// Spec 048 3.1 bounds remediation at two and spec 082 defines what one is;
+/// Spec 093 3.4: reading three endpoints instead of one buys no extra rounds.
+/// Spec 093 3.1 bounds remediation at two and spec 093 defines what one is;
 /// 116 only says which work is an edit. Pinned so a later widening of the input
 /// cannot arrive with a wider budget attached.
 #[test]

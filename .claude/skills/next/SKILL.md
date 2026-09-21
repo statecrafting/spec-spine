@@ -10,13 +10,13 @@ The backlog is the spec corpus. Step 1 of `AGENTS.md` "Working the
 backlog" picks the spec, and this skill computes that pick from typed
 reads. Two rules sit on top of what the tool reports:
 
-- **Approval is a human act.** `spec-spine registry plan` (spec 038)
+- **Approval is a human act.** `spec-spine registry plan` (spec 035)
   schedules by `implementation` and `depends_on`; it will offer a
   `status: draft` spec whose dependencies are met. A draft is never a
   work order: drop it from the ready set and list it as "awaiting
   approval".
 - **One session, one spec.** A spec at `implementation: in-progress` is
-  in flight (spec 044): it belongs to another session or to an
+  in flight (spec 041): it belongs to another session or to an
   interrupted one. Report it separately; never offer it as new work
   unless a human names it.
 

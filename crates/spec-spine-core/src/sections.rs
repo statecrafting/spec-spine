@@ -1,4 +1,4 @@
-//! Section anchor parsing (spec 004 §3.3, widened by spec 022). Given a file's
+//! Section anchor parsing (spec 004 §3.3, widened by spec 020). Given a file's
 //! content and name, enumerate its named sections as `(anchor, LineSpan)`.
 //! Dispatchers: Makefile targets, Markdown heading slugs, `region:` markers, CI
 //! `jobs.<name>` blocks, and the spec-022 bounded keypath grammar for the three
@@ -6,7 +6,7 @@
 //! `package.json`). Shared by the indexer (resolve a declared section unit) and,
 //! later, the coupling gate (attribute a diff hunk to a section).
 //!
-//! Spec 022 widens which `anchor` strings resolve on the eligible structured
+//! Spec 020 widens which `anchor` strings resolve on the eligible structured
 //! files only: a section anchor may be a dotted mapping/table keypath
 //! (`permissions`, `on.merge_group`, `jobs.build.permissions`,
 //! `workspace.package`, `scripts`). Eligibility is a hard predicate (§3.2): a
@@ -28,20 +28,20 @@ pub fn enumerate_sections(content: &str, file_name: &str) -> Vec<(String, LineSp
     } else if has_ext(base, &["md", "markdown"]) {
         markdown_sections(content)
     } else if base == "Cargo.toml" {
-        // spec 022: first-party manifest -> table keypaths.
+        // spec 020: first-party manifest -> table keypaths.
         cargo_toml_sections(content)
     } else if base == "package.json" {
-        // spec 022: first-party manifest -> member keypaths (no region fallback:
+        // spec 020: first-party manifest -> member keypaths (no region fallback:
         // JSON has no comment syntax).
         package_json_sections(content)
     } else if has_ext(base, &["yml", "yaml"]) {
         if is_workflow_path(file_name) {
-            // spec 022: governed workflow -> keypath grammar (a strict superset
+            // spec 020: governed workflow -> keypath grammar (a strict superset
             // of the legacy bare-`jobs.<name>` behavior).
             workflow_yaml_sections(content)
         } else {
             // Foreign YAML (Helm values, infra manifests) keeps whole-file /
-            // `# region:` ownership, exactly as spec 022 §3.2 promised. Spec 026
+            // `# region:` ownership, exactly as spec 020 §3.2 promised. Spec 024
             // implements that region half (retiring §4's deferred D4) and unions
             // it with the legacy bare-`jobs.<name>` anchors so a foreign YAML that
             // carried a resolvable job anchor does not regress (026 FR-002).
@@ -55,7 +55,7 @@ pub fn enumerate_sections(content: &str, file_name: &str) -> Vec<(String, LineSp
 }
 
 /// True if `path` is a governed workflow file: directly under `.github/workflows/`
-/// and ending `.yml` / `.yaml` (spec 022 §3.2). The path is repo-relative POSIX
+/// and ending `.yml` / `.yaml` (spec 020 §3.2). The path is repo-relative POSIX
 /// (the `Unit::Section.file` value), so a leading `./` is tolerated.
 fn is_workflow_path(path: &str) -> bool {
     const DIR: &str = ".github/workflows/";
@@ -115,12 +115,12 @@ fn markdown_sections(content: &str) -> Vec<(String, LineSpan)> {
 
 /// Kebab-case slug of a heading: lowercase, alnum kept, runs of other chars
 /// collapse to a single `-`, trimmed.
-/// The anchor the indexer computes for a heading (spec 058 §3.1 names this as
+/// The anchor the indexer computes for a heading (spec 051 §3.1 names this as
 /// the rule the defects heading is judged by).
 ///
 /// Public so the lint asks the indexer's own question rather than carrying a
 /// second copy of the slug rule. A governance document that names an anchor and
-/// a consumer that matches a string is exactly the mismatch spec 058 exists to
+/// a consumer that matches a string is exactly the mismatch spec 051 exists to
 /// close, and two slug implementations would reopen it from the other side.
 pub fn anchor_of(heading_text: &str) -> String {
     slug(heading_text)
@@ -141,7 +141,7 @@ pub fn is_defects_anchor(anchor: &str) -> bool {
 }
 
 /// True when an anchor reads as an *attempt* at the defects section that
-/// [`is_defects_anchor`] will not match: the `L-009` near-miss (spec 058 §3.2).
+/// [`is_defects_anchor`] will not match: the `L-009` near-miss (spec 051 §3.2).
 ///
 /// Two shapes, not "contains `defect`". A heading whose anchor **ends** with
 /// `defect`/`defects` is a section named for defects that got the spelling
@@ -183,7 +183,7 @@ fn makefile_sections(content: &str) -> Vec<(String, LineSpan)> {
     let lines: Vec<&str> = content.lines().collect();
     let mut out: Vec<(String, LineSpan)> = Vec::new();
     // Tags awaiting their target. A single `Option` silently clobbered an
-    // unconsumed `## tag:` when a second one preceded any target (spec 026 D2);
+    // unconsumed `## tag:` when a second one preceded any target (spec 024 D2);
     // a vector preserves every tag deterministically, so none is ever lost.
     let mut pending_tags: Vec<String> = Vec::new();
 
@@ -362,9 +362,9 @@ fn ci_job_sections(content: &str) -> Vec<(String, LineSpan)> {
     out
 }
 
-// ===== spec 022: workflow YAML keypaths =====
+// ===== spec 020: workflow YAML keypaths =====
 
-/// Bounded keypath enumeration for a governed workflow (spec 022 §3.3). Yields,
+/// Bounded keypath enumeration for a governed workflow (spec 020 §3.3). Yields,
 /// by an indentation-aware structural scan that generalizes [`ci_job_sections`]:
 /// every top-level key (`on`, `permissions`, `env`, `jobs`, ...); every
 /// second-level key as a dotted `parent.child` anchor (`on.merge_group`,
@@ -478,9 +478,9 @@ fn mapping_key(trimmed: &str) -> Option<String> {
     Some(key.to_string())
 }
 
-// ===== spec 022: Cargo.toml table keypaths =====
+// ===== spec 020: Cargo.toml table keypaths =====
 
-/// Bounded table-keypath enumeration for a `Cargo.toml` (spec 022 §3.3). Uses
+/// Bounded table-keypath enumeration for a `Cargo.toml` (spec 020 §3.3). Uses
 /// `toml_edit`'s span-aware immutable document so multi-line strings, dotted
 /// keys, and inline tables are handled correctly (where a hand-rolled scanner
 /// would mis-detect a `[header]` inside a multi-line string). Each table
@@ -590,9 +590,9 @@ fn collect_toml(
     min_start
 }
 
-// ===== spec 022: package.json member keypaths =====
+// ===== spec 020: package.json member keypaths =====
 
-/// Bounded member-keypath enumeration for a `package.json` (spec 022 §3.3). A
+/// Bounded member-keypath enumeration for a `package.json` (spec 020 §3.3). A
 /// brace-depth, string-aware line scan: each object member resolves to the span
 /// from its `"key":` line to the line where its value ends (its matching close
 /// for an object/array, its own line for a scalar). Max depth 2 (top level plus
@@ -888,12 +888,12 @@ mod tests {
         );
     }
 
-    // ===== spec 026: resolution + discovery fixes =====
+    // ===== spec 024: resolution + discovery fixes =====
 
     #[test]
     fn foreign_yaml_resolves_region_markers() {
         // A Helm values.yaml is not a governed workflow, so its `# region:`
-        // markers must resolve (spec 026 D1, fulfilling spec 022 §3.2).
+        // markers must resolve (spec 024 D1, fulfilling spec 020 §3.2).
         let yaml = "image:\n  repo: x\n# region: access-gate\nrbac:\n  create: true\n# endregion\nother: 1\n";
         assert_eq!(
             resolve_section(yaml, "deploy/values.yaml", "access-gate"),
@@ -903,7 +903,7 @@ mod tests {
 
     #[test]
     fn foreign_yaml_still_resolves_bare_jobs() {
-        // Non-regression (spec 026 FR-002): a foreign YAML with a `jobs:` block
+        // Non-regression (spec 024 FR-002): a foreign YAML with a `jobs:` block
         // keeps its bare-job anchors via the union with ci_job_sections.
         let yaml = "jobs:\n  build:\n    runs-on: x\n  test:\n    runs-on: y\n";
         assert!(resolve_section(yaml, "other.yaml", "build").is_some());
@@ -912,7 +912,7 @@ mod tests {
 
     #[test]
     fn makefile_multiple_pending_tags_are_not_lost() {
-        // spec 026 D2: a `## tag:` followed by non-target lines then a second
+        // spec 024 D2: a `## tag:` followed by non-target lines then a second
         // `## tag:` must not clobber the first; both tag the next target.
         let mk = "## tag: ci-fast\nVAR := 1\n## tag: ci-slow\ntest:\n\tcargo test\n";
         let names: Vec<String> = enumerate_sections(mk, "Makefile")
@@ -930,7 +930,7 @@ mod tests {
         assert!(names.contains(&"test".to_string()));
     }
 
-    // ===== spec 022: keypath section anchors =====
+    // ===== spec 020: keypath section anchors =====
 
     const WORKFLOW: &str = "\
 name: CI

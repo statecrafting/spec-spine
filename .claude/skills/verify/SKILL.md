@@ -14,7 +14,7 @@ order, stopping at the first non-zero exit. This is the local rehearsal of
 the "Satisfy the spec's acceptance criteria verbatim" step of `AGENTS.md`,
 "Working the backlog".
 
-The verb is `spec-spine verify` (spec 049). It requires **spec-spine 0.15.0
+The verb is `spec-spine verify` (spec 043). It requires **spec-spine 0.15.0
 or later**.
 
 ## Step 0: scope

@@ -1,10 +1,10 @@
-//! The governance scaffolder (spec 006, narrowed by spec 120 §3.3): generate a
+//! The governance scaffolder (spec 095, narrowed by spec 092 §3.3): generate a
 //! new corpus's starter governance content as **files-as-data**. Pure function
 //! of `(config)`: no filesystem writes happen here, no environment is read, no
 //! process is launched and no clock is consulted. The consumer writes the
 //! returned [`ScaffoldFile`]s.
 //!
-//! Since spec 120 the consumer is the Statecraft CLI rather than a
+//! Since spec 092 the consumer is the Statecraft CLI rather than a
 //! `spec-spine init` command: initialization of a managed project belongs to
 //! Statecraft, and this module produces only the governance half of it. It
 //! emits no `AGENTS.md`, no `CLAUDE.md`, no `.claude/`, `.codex/` or
@@ -23,7 +23,7 @@ use spec_spine_types::{Config, Error};
 /// One file `init` writes: repo-relative path, contents, and how the writer
 /// reconciles it with a file already on disk.
 ///
-/// `#[derive(Default)]` is load-bearing for the two fields spec 074 3.4 and 3.3
+/// `#[derive(Default)]` is load-bearing for the two fields spec 061 3.4 and 3.3
 /// added: a bare added field breaks every struct literal that builds one, and
 /// deriving `Default` does not by itself rescue those literals. What rescues
 /// them is constructing with `..Default::default()`, which every site in this
@@ -35,27 +35,27 @@ pub struct ScaffoldFile {
     pub rel_path: String,
     pub contents: String,
     pub overwrite: bool,
-    /// Spec 074 3.4: the file must arrive executable. It was written for the
+    /// Spec 061 3.4: the file must arrive executable. It was written for the
     /// shell scripts the kit shipped, which landed at 644 while their own
-    /// documentation invoked them by path; spec 120 3.3 removed those, so
+    /// documentation invoked them by path; spec 092 3.3 removed those, so
     /// nothing the scaffold returns sets this today.
     ///
     /// Retained as part of the response shape a consumer implements against
-    /// (spec 120 D-2). The bit is **data in the returned `Scaffold`**, not an
+    /// (spec 092 D-2). The bit is **data in the returned `Scaffold`**, not an
     /// IO decision taken by the writer, so the scaffold stays a pure function
     /// of its configuration. On a platform with no executable bit it is inert.
     #[serde(default)]
     pub executable: bool,
-    /// Spec 074 3.3: append the contents to an existing file rather than
+    /// Spec 061 3.3: append the contents to an existing file rather than
     /// skipping it, when they are not already present. Written for the
     /// `.gitattributes` stanza that binds the committed shard globs to the
-    /// merge driver: spec 065 3.2 excluded it as "a block to append to an
+    /// merge driver: spec 095 3.2 excluded it as "a block to append to an
     /// existing file rather than a file to write", which shipped the two
     /// merge-driver hooks with nothing binding them.
     ///
     /// Appending is idempotent (see `append_marker`), and an existing file is
     /// preserved. The writer decides only whether the file exists; what to do
-    /// about it is declared here. Since spec 120 3.3 the `.gitignore` fragment
+    /// about it is declared here. Since spec 092 3.3 the `.gitignore` fragment
     /// is the one file that carries it, for the same reason: a consumer must
     /// reconcile with an ignore file the repository may already have, never
     /// replace it.
@@ -72,7 +72,7 @@ pub struct ScaffoldFile {
 }
 
 /// The full set of governance files the scaffold produces. The consumer
-/// writes them; spec 120 §3.3 is the list.
+/// writes them; spec 092 §3.3 is the list.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Scaffold {
@@ -80,7 +80,7 @@ pub struct Scaffold {
 }
 
 /// The marker whose presence in an existing `.gitignore` means the scaffold's
-/// exclusion block is already there (spec 120 §3.3).
+/// exclusion block is already there (spec 092 §3.3).
 ///
 /// A marker rather than a whole-block comparison, because a consumer's
 /// repository may reformat or comment the block and must not receive a second
@@ -116,7 +116,7 @@ pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
             CONSTITUTION_TEMPLATE.to_string(),
         ),
         file(format!("{specs}/000-bootstrap/spec.md"), bootstrap_spec(ns)),
-        // Spec 120 §3.3: the `.gitignore` fragment is content for the consumer
+        // Spec 092 §3.3: the `.gitignore` fragment is content for the consumer
         // to RECONCILE, not permission to replace an ignore file the repository
         // already has. It is returned as an append with a marker, and the
         // writer decides only whether the file exists.
@@ -137,7 +137,7 @@ pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
 /// A documented starter `spec-spine.toml`, config-aware so a non-default
 /// namespace / layout scaffolds coherently.
 ///
-/// Spec 061 §3.2: every table and every key, each at its actual default and
+/// Spec 054 §3.2: every table and every key, each at its actual default and
 /// each with a line saying what it does and, where one exists, which diagnostic
 /// code it drives. The scaffold emitted five knobs and adopters needed
 /// thirteen, so each of them read the source or derived the name by experiment;
@@ -189,7 +189,7 @@ fn config_toml(cfg: &Config) -> String {
          derived_dir   = \"{derived}\"\n\
          standards_dir = \"{standards}\"\n\
          schemas_dir   = \"{schemas}\"\n\
-         # An ungoverned root for a tool's own working files (spec 039): excluded\n\
+         # An ungoverned root for a tool's own working files (spec 036): excluded\n\
          # from every content hash, and bypassed by the coupling gate. L-006 if a\n\
          # spec claims a unit inside it. Empty means no such root is declared.\n\
          state_dir     = \"{state}\"\n\
@@ -209,7 +209,7 @@ fn config_toml(cfg: &Config) -> String {
          # files; you want `dir/**/*`, which is what the default below has.\n\
          # The bare form is not an error and not empty: it parses, it prints\n\
          # back through `config show`, and it matches nothing at all. It was\n\
-         # the shipped default until spec 069, and spec 057 found the same\n\
+         # the shipped default until spec 058, and spec 050 found the same\n\
          # form in spec-spine\x27s own config before that. If you narrow or\n\
          # extend this list, keep the trailing `/*`:\n\
          #\n\
@@ -302,10 +302,10 @@ fn quoted(values: &[String]) -> String {
         .join(", ")
 }
 
-/// The scaffolded `.gitignore` (spec 061 §3.1).
+/// The scaffolded `.gitignore` (spec 054 §3.1).
 ///
 /// Every adopter independently learned that `build-meta.json` carries a wall
-/// clock and dirties the tree, and spec 039's `state_dir` had the same missing
+/// clock and dirties the tree, and spec 036's `state_dir` had the same missing
 /// half: the live failure it fixed was a permanently dirty tree, not a
 /// classification. Both paths come from `Config`, so a non-default
 /// `derived_dir` or `state_dir` scaffolds coherently.
@@ -328,7 +328,7 @@ fn gitignore(cfg: &Config) -> String {
     let state = cfg.layout.state_dir.trim_end_matches('/');
     if !state.is_empty() {
         out.push_str(&format!(
-            "\n# The declared state root (spec 039): a tool's own working files,\n\
+            "\n# The declared state root (spec 036): a tool's own working files,\n\
              # ungoverned and outside every content hash.\n\
              {state}/\n"
         ));
@@ -356,7 +356,7 @@ fn bootstrap_spec(ns: &str) -> String {
          title: \"Bootstrap spec system\"\n\
          status: approved\n\
          # This spec defines what a spec is; it owns no code, so there is nothing\n\
-         # to implement. `n-a` keeps `registry plan` from offering it (spec 045).\n\
+         # to implement. `n-a` keeps `registry plan` from offering it (spec 042).\n\
          implementation: n-a\n\
          created: \"REPLACE-WITH-DATE\"\n\
          summary: >\n\
@@ -581,9 +581,9 @@ The config lists the names and records nothing about what they mean. If you\n\
 declare keys, write down their semantics here or in your constitution, next to\n\
 the rest of what governs the corpus.\n";
 
-/// The adopter-facing constitution template (spec 061 §3.3).
+/// The adopter-facing constitution template (spec 054 §3.3).
 ///
-/// The two-bullet stub spec 043 complained about survived that spec, because
+/// The two-bullet stub spec 040 complained about survived that spec, because
 /// 043 §3.4 updated `CONSTITUTION` (the scaffolded document) and left the
 /// **template** behind. Two adopters deleted what they were given. This is the
 /// real thirty-four-line document: the tier statement, the normative hierarchy,
@@ -640,7 +640,7 @@ mod tests {
         assert!(paths.contains(&"spec-spine.toml"));
         assert!(paths.contains(&"standards/spec/constitution.md"));
         assert!(paths.contains(&"specs/000-bootstrap/spec.md"));
-        // Spec 120 3.3: governance only. The three `.claude/rules/` files this
+        // Spec 092 3.3: governance only. The three `.claude/rules/` files this
         // used to assert are a development environment, and the environment has
         // another owner; `tests/scaffold.rs` holds the exact set.
         assert!(!paths.iter().any(|p| p.starts_with(".claude/")));

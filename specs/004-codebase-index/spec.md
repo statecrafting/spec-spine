@@ -26,7 +26,6 @@ summary: >
   authorities(unit). Establishes the manifest/section/symbol resolution layer and
   the `spec-spine index` CLI subcommand.
 ---
-
 # 004: Codebase index and the unit grammar
 
 ## 1. Purpose
@@ -128,7 +127,7 @@ back to raw bytes: over-hashing is the fail-closed direction. Upgrading across
 this amendment changes every npm-bearing repo's computed hash once: re-run
 `spec-spine index` when bumping the dependency.
 
-**Cargo.toml folds as its own governance projection too** (spec 030, extending
+**Cargo.toml folds as its own governance projection too** (spec 027, extending
 this amendment to the cargo ecosystem): the parsed manifest with its dependency
 tables (`dependencies` / `dev-dependencies` / `build-dependencies`, at the top
 level and under `[workspace]` / `[target.<cfg>]`) stripped, so a cargo version

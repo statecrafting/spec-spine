@@ -26,7 +26,6 @@ summary: >
   non-overridable, and it bootstraps the corpus by declaring authority it has
   held since before the graph existed (`origin.retroactive`).
 ---
-
 # 000: Bootstrap spec system
 
 This is the spec that defines what a spec is. It bootstraps the corpus: it was

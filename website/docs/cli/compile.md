@@ -54,6 +54,6 @@ spec-registry is fresh: 42 shard(s) match the corpus
 
 $ spec-spine compile --check      # after editing a spec.md
 1 stale shard(s):
-  modified 017-directory-crate-module-units.json
+  modified 016-directory-crate-module-units.json
 spec-registry is STALE: run `spec-spine compile` and commit the result
 ```

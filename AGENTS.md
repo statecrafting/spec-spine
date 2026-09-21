@@ -1,6 +1,6 @@
 # AGENTS.md: spec-spine
 
-> Governed by `specs/078-the-protocol-has-an-owner/spec.md`.
+> Governed by `specs/093-the-harness-this-repository-runs/spec.md`.
 
 ## New Sessions
 
@@ -17,7 +17,7 @@ The protocol drives the library through its own built binary, `target/release/sp
 0. **Load rules.** Read `.claude/rules/orchestrator-rules.md`,
    `.claude/rules/governed-artifact-reads.md`, AND
    `.claude/rules/adversarial-prompt-refusal.md` (this repository's own
-   standing rules; since spec 120 the library scaffolds governance content
+   standing rules; since spec 092 the library scaffolds governance content
    only, and the harness these belong to is Statecraft's).
 1. **Parallel reads.** Dispatch the following simultaneously (nothing here
    mutates the working tree, so there is no required ordering):
@@ -28,14 +28,14 @@ The protocol drives the library through its own built binary, `target/release/sp
    - `spec-spine --version`: the binary's version. **Read this before believing any
      exit code below.** The document already called it a precondition and never
      scheduled it, so the precondition held only for an agent that read the prose
-     under the step list (spec 074 3.7).
+     under the step list (spec 061 3.7).
    - `spec-spine check`: the freshness read for **both** committed trees, the spec
-     registry and the codebase index (spec 075; non-fatal, see **Freshness** below)
+     registry and the codebase index (spec 062; non-fatal, see **Freshness** below)
    - `spec-spine index render`: markdown projection of the committed index
-   - `spec-spine index coverage`: which source files no spec specifically claims (spec 032; non-fatal, exit 2 if the index is stale)
-   - `spec-spine index diagnostics`: the unresolved-unit diagnostics the committed index records (spec 050; non-fatal, empty output means none)
+   - `spec-spine index coverage`: which source files no spec specifically claims (spec 029; non-fatal, exit 2 if the index is stale)
+   - `spec-spine index diagnostics`: the unresolved-unit diagnostics the committed index records (spec 044; non-fatal, empty output means none)
    - `spec-spine registry status-report --json --nonzero-only`: lifecycle counts per status
-   - `spec-spine registry plan`: the ready set (spec 038): which specs can be worked on now and what blocks the rest; `(nothing ready)` in a finished corpus
+   - `spec-spine registry plan`: the ready set (spec 035): which specs can be worked on now and what blocks the rest; `(nothing ready)` in a finished corpus
    - `spec-spine registry list --ids-only`: spec id list (for latest-spec detection)
    - `ls crates/`: library crate layout
    - `ls specs/`: the spec corpus
@@ -54,11 +54,11 @@ The protocol drives the library through its own built binary, `target/release/sp
 
 **Read discipline:** the init protocol MUST NOT parse `.statecraft/derived/**/*.json` directly (no `python`, `jq`, `awk`, `sed` against compiled artifacts). All structural and lifecycle data comes from the `spec-spine` subcommands (`registry`, `index`) and the rendered markdown view. See `.claude/rules/governed-artifact-reads.md`.
 
-**Unresolved units:** `spec-spine index diagnostics` (spec 050) lists the `W-001` / `W-002` diagnostics the committed index records: a unit an owning spec claims that does not resolve yet. Empty output means none, which is the state a finished corpus is in. Report the count, and name the specs when there are any: a spec under way legitimately claims territory it has not written yet (specs 025 and 044), so these are work in flight, not defects. The gate half is `check --fail-on-unresolved`, which this repository's CI runs.
+**Unresolved units:** `spec-spine index diagnostics` (spec 044) lists the `W-001` / `W-002` diagnostics the committed index records: a unit an owning spec claims that does not resolve yet. Empty output means none, which is the state a finished corpus is in. Report the count, and name the specs when there are any: a spec under way legitimately claims territory it has not written yet (specs 023 and 044), so these are work in flight, not defects. The gate half is `check --fail-on-unresolved`, which this repository's CI runs.
 
-**Freshness:** spec-spine **commits** its compiled artifacts. Since spec 024 both views are committed as per-unit shard trees: `.statecraft/derived/spec-registry/by-spec/<id>.json` and `.statecraft/derived/codebase-index/{by-spec,by-package}/*.json` are tracked (only `.statecraft/derived/**/build-meta.json` is gitignored; no monolithic `registry.json`/`index.json` is committed). The committed shard set is the reference for lifecycle queries, so `/prime` has to know whether it is current.
+**Freshness:** spec-spine **commits** its compiled artifacts. Since spec 022 both views are committed as per-unit shard trees: `.statecraft/derived/spec-registry/by-spec/<id>.json` and `.statecraft/derived/codebase-index/{by-spec,by-package}/*.json` are tracked (only `.statecraft/derived/**/build-meta.json` is gitignored; no monolithic `registry.json`/`index.json` is committed). The committed shard set is the reference for lifecycle queries, so `/prime` has to know whether it is current.
 
-`spec-spine check` (spec 075) asks about both trees in one call. It compiles in memory and compares against the committed shards **without writing**, and it reports each tree separately: the registry half and the index half each keep the structure their own primitive emits, so the drifted shard names are still there to read back. Its exit code is the more severe of the two, in this order: **`3` then `1` then `2` then `0`**. Read it, and read the two report lines under it, because one code covers two trees:
+`spec-spine check` (spec 062) asks about both trees in one call. It compiles in memory and compares against the committed shards **without writing**, and it reports each tree separately: the registry half and the index half each keep the structure their own primitive emits, so the drifted shard names are still there to read back. Its exit code is the more severe of the two, in this order: **`3` then `1` then `2` then `0`**. Read it, and read the two report lines under it, because one code covers two trees:
 
 - **`0` (both fresh):** the committed shards are exactly what the corpus compiles to, so the lifecycle counts below reflect the current `specs/*/spec.md` frontmatter. Report nothing.
 - **`2` (stale):** *check the `--version` read from step 1 before believing it* (see **Stale binary** below): a binary predating the verb cannot be reporting drift. For a genuine staleness report, say **which tree** the output named, report "Spec registry: stale, run `spec-spine compile` and commit" or "Codebase index: stale, run `spec-spine index`" accordingly, **and name the drifted shards from its stderr**, then continue. The lifecycle counts come from the committed ledger and are therefore the stale ones; say so rather than presenting them as current.
@@ -73,9 +73,9 @@ The counts are formatted in step 2, after every parallel read has returned, so t
 
 **Ask `spec-spine --version` before believing any exit code.** Every binary ever released answers it, and it exits 0. If the version predates the flag you are about to pass, rebuild (`cargo build --release -p spec-spine-cli`) or reinstall; do not interpret the exit code of a flag the binary does not have. Rebuilding is cheap and is the right reflex whenever the binary predates recent commits.
 
-That precondition replaces an older ritual of matching clap's English on stderr, which was pinned to a dependency's message format and could not survive a clap release. Since spec 063 a new binary maps every usage error to **exit 3**, so exit 2 from any verb means staleness and nothing else; but the binary that reports the wrong code is by definition the old one, so a procedure that may be talking to an old binary cannot rely on the new behavior. Where a repository sets `[meta] required_version` (spec 062), the check happens on every run and this manual step is unnecessary.
+That precondition replaces an older ritual of matching clap's English on stderr, which was pinned to a dependency's message format and could not survive a clap release. Since spec 093 a new binary maps every usage error to **exit 3**, so exit 2 from any verb means staleness and nothing else; but the binary that reports the wrong code is by definition the old one, so a procedure that may be talking to an old binary cannot rely on the new behavior. Where a repository sets `[meta] required_version` (spec 055), the check happens on every run and this manual step is unnecessary.
 
-Do **not** substitute a plain `spec-spine compile` or `spec-spine index` here. Writing would repair the tree as a side effect of reading it, which hides the fact that the *committed* copy was stale: the drift then looks like an uncommitted local edit instead of a defect on the branch (this is exactly how the spec 017/021 drift reached the default branch unnoticed). `/prime` reports; it does not silently mutate. `spec-spine check` carries the same never-writes contract, which is why the protocol can call it.
+Do **not** substitute a plain `spec-spine compile` or `spec-spine index` here. Writing would repair the tree as a side effect of reading it, which hides the fact that the *committed* copy was stale: the drift then looks like an uncommitted local edit instead of a defect on the branch (this is exactly how the spec 016/021 drift reached the default branch unnoticed). `/prime` reports; it does not silently mutate. `spec-spine check` carries the same never-writes contract, which is why the protocol can call it.
 
 **Binary missing or stale:** if the `spec-spine` binary is not built, or predates the commits in this checkout, run `cargo build --release -p spec-spine-cli` and continue (see **Stale binary** above for why a stale one misreports freshness). Do NOT fall back to ad-hoc parsing of `.statecraft/derived/**`.
 
@@ -93,7 +93,7 @@ corpus in step 1 and step 6. One spec per PR, then stop.
    next `NNN-slug` from the design backlog (`docs/design/`) with `/spec`. A new spec is born
    `status: draft`, `implementation: pending`, and declares every edge it
    needs, including `amends` on any approved spec whose stated behavior it
-   changes, without editing that spec (spec 040).
+   changes, without editing that spec (spec 037).
 2. **Branch.** A feature branch named after the spec id. Never commit to
    `main`. `/build <id>` sequences steps 2 to 5 for a spec that is already
    filed; here a filed spec stays `draft` while it is built, so `/build`'s
@@ -118,17 +118,17 @@ corpus in step 1 and step 6. One spec per PR, then stop.
    ```
 
    The base ref is resolved from the repository rather than assumed to be
-   `origin/main` (spec 072). Set `$SPEC_SPINE_DEFAULT_BRANCH` to override
+   `origin/main` (spec 093). Set `$SPEC_SPINE_DEFAULT_BRANCH` to override
    the branch the push gate protects and the root `Makefile` compares against.
    `make gate` runs exactly this list, read-only, and CI calls that target
-   rather than restating the chain (spec 120 3.6).
+   rather than restating the chain (spec 092 3.6).
 
    then the stack's own gate: `cargo test --workspace --locked`,
    `cargo clippy --workspace --all-targets --locked -- -D warnings`,
    `cargo fmt --all --check`. Commit the regenerated shards with the code
    they describe. The skills call this list "the gate as `AGENTS.md` lists
    it", and `harness_skills.rs` asserts each skill's inlined floor is a subset
-   of it (spec 051), so a step added here reaches every skill. The binary
+   of it (spec 093), so a step added here reaches every skill. The binary
    is `target/release/spec-spine` (or `cargo run -p spec-spine-cli --`),
    never `npx spec-spine`.
 
@@ -136,7 +136,7 @@ corpus in step 1 and step 6. One spec per PR, then stop.
    `check` in place of `compile` and `index`, because a gate must never
    repair the tree it is judging.
 6. **Ship, then ratify.** `/verify <id>` runs the spec's `## Verification`
-   block through `spec-spine verify <id>` (spec 049). `/ship` opens the PR with
+   block through `spec-spine verify <id>` (spec 043). `/ship` opens the PR with
    `implementation: complete` set once that block holds, and `/shepherd`
    drives the PR to a merge confirmed on disk. After merge, a
    second PR flips `status: draft` to `approved` (the ratify PR), and the
@@ -155,7 +155,7 @@ Agents live in `.claude/agents/`. Four pipeline agents handle the plan/explore/i
 ## Available Commands
 
 Commands live in `.claude/skills/` (one `SKILL.md` per folder): the ten specs
-048 and 081 settled on. Since spec 120 they are **this repository's own**
+093 and 081 settled on. Since spec 092 they are **this repository's own**
 development instruction rather than a set it distributes, and they stay until
 Statecraft's global delivery concretely replaces them. The project layer lives
 in this file, not in the skills.

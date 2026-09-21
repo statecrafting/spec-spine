@@ -1,8 +1,8 @@
-//! Spec 086: the committed index is compared, not trusted.
+//! Spec 069: the committed index is compared, not trusted.
 //!
 //! The tamper matrix against the committed index, library side. Every case here
 //! rewrites the committed tree and asks `check_index_freshness` what it makes of
-//! it, because before spec 086 that function never compared the shard *body*
+//! it, because before spec 069 that function never compared the shard *body*
 //! with anything: it read each committed mapping, asked that mapping which files
 //! backed its spans, and compared a recomputed hash with the shard's own
 //! `shardHash` field.
@@ -17,7 +17,7 @@
 //! start passing because a hash happened to change.
 //!
 //! Being span-free also keeps the fixture identical with and without the
-//! `symbol-resolution` feature (spec 027), which CI builds both ways.
+//! `symbol-resolution` feature (spec 025), which CI builds both ways.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -43,7 +43,7 @@ fn fixture() -> tempfile::TempDir {
     write(r, "Cargo.toml", "[workspace]\nmembers = [\"a\"]\n");
     // No `[package.metadata.spec-spine]` stanza, deliberately: a manifest
     // spec_ref would put a *floor* under every file in the crate, and a floor
-    // survives a tampered `establishes` claim. Spec 086 §1 measured the case
+    // survives a tampered `establishes` claim. Spec 069 §1 measured the case
     // where the specific claim is the only ownership, which is the case a
     // `C-001` decision turns on.
     write(
@@ -127,7 +127,7 @@ fn stale_report(cfg: &Config, repo: &Path) -> String {
 
 #[test]
 fn a_regenerated_tree_reads_fresh() {
-    // Spec 086 §3.5: the byte comparison must not cost the ordinary case. A tree
+    // Spec 069 §3.5: the byte comparison must not cost the ordinary case. A tree
     // the indexer just wrote is what every green run looks like.
     let fx = fixture();
     let cfg = Config::default();
@@ -140,7 +140,7 @@ fn a_regenerated_tree_reads_fresh() {
 
 #[test]
 fn a_rewritten_body_reads_modified_though_its_own_hash_still_matches() {
-    // The defect spec 086 §1 measured, in one assertion: the committed body says
+    // The defect spec 069 §1 measured, in one assertion: the committed body says
     // 001-a owns `a/src/zz.rs`, the corpus says it owns `a/src/lib.rs`, and
     // `shardHash` is untouched and still correct for its own declared inputs.
     // Pre-086 this read fresh, and `couple` then derived ownership from it.
@@ -170,7 +170,7 @@ fn a_rewritten_body_reads_modified_though_its_own_hash_still_matches() {
 
 #[test]
 fn an_owner_query_refuses_a_tampered_tree() {
-    // Spec 086 §3.3: every reader inherits the comparison, so the owner set a
+    // Spec 069 §3.3: every reader inherits the comparison, so the owner set a
     // C-001 decision uses is the one the corpus resolves to. Pre-086 this query
     // answered "no spec owns this path" from the rewritten body, with exit 0.
     let fx = fixture();
@@ -203,7 +203,7 @@ fn a_deleted_shard_reads_missing() {
 
 #[test]
 fn a_stray_file_reads_orphaned() {
-    // Spec 086 §3.1 counts a stray file in either shard directory as orphaned.
+    // Spec 069 §3.1 counts a stray file in either shard directory as orphaned.
     // It is classified by name, without being parsed: the comparison is what
     // decides, so a file that would not deserialize is drift to report rather
     // than an error to raise.
@@ -286,7 +286,7 @@ fn a_blocking_shard_that_also_differs_is_named_once() {
     let report = stale_report(&cfg, fx.path());
     assert!(
         report.contains("blocking-diagnostics by-spec/002-gone.json"),
-        "the blocking refusal must survive (spec 050): {report}"
+        "the blocking refusal must survive (spec 044): {report}"
     );
     assert!(
         !report.contains("modified by-spec/002-gone.json"),
@@ -320,7 +320,7 @@ fn a_blocking_shard_that_is_also_missing_is_named_once() {
     let report = stale_report(&cfg, fx.path());
     assert!(
         report.contains("blocking-diagnostics by-spec/002-gone.json"),
-        "the blocking refusal must survive (spec 050): {report}"
+        "the blocking refusal must survive (spec 044): {report}"
     );
     assert_eq!(
         report.matches("by-spec/002-gone.json").count(),
@@ -336,7 +336,7 @@ fn a_blocking_shard_that_is_also_missing_is_named_once() {
 #[test]
 fn a_foreign_schema_major_is_refused_not_reported_as_drift() {
     // A must-keep-working line, not a defect probe: it passes before and after
-    // spec 086. The read boundary refused a shard from an unknown MAJOR with a
+    // spec 069. The read boundary refused a shard from an unknown MAJOR with a
     // clean schema error, and byte comparison must not turn that into "stale,
     // run `spec-spine index`", whose remedy would overwrite a tree written by a
     // newer build.
@@ -372,7 +372,7 @@ fn a_foreign_schema_major_is_refused_not_reported_as_drift() {
 
 #[test]
 fn a_schema_restamp_inside_our_major_reads_modified() {
-    // Spec 086 §3.1: the byte comparison catches a stale hash, a hand-edited
+    // Spec 069 §3.1: the byte comparison catches a stale hash, a hand-edited
     // body and a schema restamp alike. A MINOR restamp stays inside the MAJOR
     // this build understands, so it is drift to report, not a schema error: the
     // remedy is to regenerate, which is what a stale verdict says.
@@ -393,7 +393,7 @@ fn a_schema_restamp_inside_our_major_reads_modified() {
 
 #[test]
 fn the_facade_keeps_the_verdict_when_a_shard_will_not_parse() {
-    // Spec 095 §3.1, §3.6: `a_stray_file_reads_orphaned` above is still true and
+    // Spec 076 §3.1, §3.6: `a_stray_file_reads_orphaned` above is still true and
     // is not sufficient, because the verbs discarded that verdict *after* this
     // function returned. The facade is one of the four entry points (§3.4), so
     // it is asserted here, over both routes to drift: an unexpected stray and an
@@ -431,9 +431,9 @@ fn the_facade_keeps_the_verdict_when_a_shard_will_not_parse() {
     );
 }
 
-// --- spec 098: a blocking claim is not a stale shard -------------------------
+// --- spec 079: a blocking claim is not a stale shard -------------------------
 //
-// Spec 086 made this file the place the committed index is interrogated, and
+// Spec 069 made this file the place the committed index is interrogated, and
 // 098's subject is the verdict that interrogation produces: `check_index_
 // freshness` folded two independent refusals into one `Stale`, which carries
 // exactly one remedy. The cases below are the four states of that partition,
@@ -444,7 +444,7 @@ fn the_facade_keeps_the_verdict_when_a_shard_will_not_parse() {
 /// that make the claim *block* rather than warn.
 ///
 /// `status` and `implementation` are both passed because they decide the tier:
-/// spec 025 §3.1 arm 2 with spec 041's table makes `approved` + `complete` and
+/// spec 023 §3.1 arm 2 with spec 038's table makes `approved` + `complete` and
 /// `approved` + `deferred` blocking, and anything in flight a `W-001` warning.
 fn claim_a_missing_unit(root: &Path, id: &str, status: &str, implementation: &str) {
     write(
@@ -464,7 +464,7 @@ fn report(cfg: &Config, repo: &Path) -> spec_spine_core::IndexFreshnessReport {
 
 #[test]
 fn a_blocking_claim_is_carried_as_data_not_as_a_stale_shard() {
-    // Spec 098 §3.2, FR-002/FR-004: the partition reaches the caller as data,
+    // Spec 079 §3.2, FR-002/FR-004: the partition reaches the caller as data,
     // with the code, the owning spec and the unit on it. Before 098 all of that
     // survived only as the text `blocking-diagnostics by-spec/<id>.json`.
     let fx = fixture();
@@ -490,7 +490,7 @@ fn a_blocking_claim_is_carried_as_data_not_as_a_stale_shard() {
     assert!(!r.is_fresh());
 
     // FR-001: the verdict every existing caller reads is unchanged, down to the
-    // line it has carried since spec 050.
+    // line it has carried since spec 044.
     assert_eq!(
         r.freshness(),
         check_index_freshness(&cfg, fx.path()).unwrap(),
@@ -507,7 +507,7 @@ fn a_blocking_claim_is_carried_as_data_not_as_a_stale_shard() {
 
 #[test]
 fn regenerating_does_not_clear_a_blocking_claim() {
-    // Spec 098 AC-2, the regression the old message promised away: `index`
+    // Spec 079 AC-2, the regression the old message promised away: `index`
     // exits 0, writes the same bytes, and the next read refuses identically,
     // because the diagnostic is recomputed from the corpus and re-indexing
     // cannot create a file a spec claims.
@@ -538,7 +538,7 @@ fn regenerating_does_not_clear_a_blocking_claim() {
 
 #[test]
 fn a_mixed_tree_reports_both_and_attributes_the_remedy_to_one() {
-    // Spec 098 §3.3 mixed, FR-006. A reader who regenerates must find the second
+    // Spec 079 §3.3 mixed, FR-006. A reader who regenerates must find the second
     // half still refusing, and must have been told so in advance.
     let fx = fixture();
     let cfg = Config::default();
@@ -560,7 +560,7 @@ fn a_mixed_tree_reports_both_and_attributes_the_remedy_to_one() {
     );
 
     // Neither half is elided, and the stale half names its shard with its class
-    // (spec 031 §3.3, spec 086 §3.2).
+    // (spec 028 §3.3, spec 069 §3.2).
     match r.stale_verdict() {
         Freshness::Stale { actual, .. } => {
             assert!(actual.contains("modified by-spec/001-a.json"), "{actual}");
@@ -581,7 +581,7 @@ fn a_mixed_tree_reports_both_and_attributes_the_remedy_to_one() {
 
 #[test]
 fn the_stale_only_verdict_is_unchanged() {
-    // Spec 098 FR-008 / AC-3: a caller that reads staleness today reads exactly
+    // Spec 079 FR-008 / AC-3: a caller that reads staleness today reads exactly
     // the same staleness after this spec, wording included. With nothing
     // blocking, the two renderings are the same value.
     let fx = fixture();
@@ -613,7 +613,7 @@ fn the_stale_only_verdict_is_unchanged() {
 
 #[test]
 fn a_healthy_tree_reports_neither() {
-    // Spec 098 AC-5.
+    // Spec 079 AC-5.
     let fx = fixture();
     let cfg = Config::default();
     emit(&cfg, fx.path());
@@ -625,8 +625,8 @@ fn a_healthy_tree_reports_neither() {
 
 #[test]
 fn the_completion_claim_is_named_only_when_it_was_made() {
-    // Spec 098 §3.4 / AC-6. `implementation: complete` is a falsifiable claim
-    // that the files exist (spec 041), so a blocking diagnostic against it is a
+    // Spec 079 §3.4 / AC-6. `implementation: complete` is a falsifiable claim
+    // that the files exist (spec 038), so a blocking diagnostic against it is a
     // contradiction in the spec's own frontmatter and the report says so. A spec
     // that blocks *without* declaring completion is refused for the same code
     // and accused of nothing further.
@@ -641,7 +641,7 @@ fn the_completion_claim_is_named_only_when_it_was_made() {
     );
     assert!(lines.contains("the spec and the tree disagree"), "{lines}");
 
-    // `approved` + `deferred` is not in flight (spec 041's table), so it still
+    // `approved` + `deferred` is not in flight (spec 038's table), so it still
     // blocks, and it claims no completion.
     claim_a_missing_unit(fx.path(), "002-missing", "approved", "deferred");
     emit(&cfg, fx.path());
@@ -652,7 +652,7 @@ fn the_completion_claim_is_named_only_when_it_was_made() {
     assert!(!lines.contains("implementation: complete"), "{lines}");
 
     // And the in-flight arm blocks nothing at all, which is why it cannot be
-    // the negative above (spec 098 D-5).
+    // the negative above (spec 079 D-5).
     claim_a_missing_unit(fx.path(), "002-missing", "draft", "in-progress");
     emit(&cfg, fx.path());
     let r = report(&cfg, fx.path());
@@ -662,9 +662,9 @@ fn the_completion_claim_is_named_only_when_it_was_made() {
 
 #[test]
 fn the_report_offers_no_way_out_of_the_refusal() {
-    // Spec 098 §3.4 / AC-7 / D-3. Narrowing a claim until the gate passes is
+    // Spec 079 §3.4 / AC-7 / D-3. Narrowing a claim until the gate passes is
     // what `.claude/rules/adversarial-prompt-refusal.md` exists to refuse, and
-    // `planned: true` beneath `implementation: complete` is spec 076 §3.3's
+    // `planned: true` beneath `implementation: complete` is spec 063 §3.3's
     // `L-011`: a message proposing either would be proposing a defect.
     let fx = fixture();
     let cfg = Config::default();

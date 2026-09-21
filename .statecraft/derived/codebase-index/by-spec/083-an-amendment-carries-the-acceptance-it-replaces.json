@@ -1,0 +1,32 @@
+{
+  "mapping": {
+    "amends": [
+      "079-a-blocking-claim-is-not-a-stale-shard"
+    ],
+    "dependsOn": [
+      "079-a-blocking-claim-is-not-a-stale-shard",
+      "080-an-unresolved-claim-is-not-stale",
+      "082-an-amended-acceptance-is-the-one-that-runs"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "083-an-amendment-carries-the-acceptance-it-replaces",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "587835eb08fd64773486005040bc0ae72314744487e661bff32a0cdaddc628de"
+}

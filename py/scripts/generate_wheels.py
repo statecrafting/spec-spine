@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Spec: specs/008-python-distribution/spec.md (extends 007-distribution).
+"""Spec: specs/007-python-distribution/spec.md (extends 006-distribution).
 
 Assemble the five per-triple platform wheels for the Python/uvx channel from the
 release archives, at publish time -- the Python parallel of npm's
@@ -86,7 +86,7 @@ def _extract_from_archive(target: str, archives_dir: Path, tag: str, bin_file: s
     members are stored "./"-prefixed (./spec-spine). A strict tar (GNU tar) will
     not match a bare `spec-spine`; extracting everything lands the binary at
     <tmp>/<bin_file> on every tar/zip flavor. (The npm generator learned this the
-    hard way; see spec 007 §3.6.)
+    hard way; see spec 006 §3.6.)
     """
     rec = pm.TARGETS[target]
     is_win = rec["windows"]
@@ -286,7 +286,7 @@ def verify_version_lock(version: str) -> None:
     current = read_pyproject_version()
     if current != version:
         die(
-            "version lock mismatch (spec 008 §3.5):\n"
+            "version lock mismatch (spec 007 §3.5):\n"
             f"  - pyproject version is {current}, expected {version}\n"
             "Re-run with --write-main to update, or fix pyproject.toml."
         )

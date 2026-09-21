@@ -1,4 +1,4 @@
-//! `spec-spine check`: both freshness reads, one verb (spec 075).
+//! `spec-spine check`: both freshness reads, one verb (spec 062).
 //!
 //! The session protocol asks one question, "is the committed state current",
 //! and had to know two spellings to ask it: `compile --check` is a flag where
@@ -35,7 +35,7 @@ pub fn run(
     // on it. That is the top of the precedence in 3.3, and it is the right
     // shape: a read that could not be performed has not answered, so no verdict
     // from the other tree makes the overall answer trustworthy.
-    // Spec 098 §3.2: one read, two facts. The index half's blocking set and its
+    // Spec 079 §3.2: one read, two facts. The index half's blocking set and its
     // stale set arrive apart, so this verb can say which refusal it is holding
     // without indexing again and without reading back its own prose.
     let (report, freshness) = spec_spine_core::check_report_full(&cfg, repo)?;
@@ -53,7 +53,7 @@ pub fn run(
 }
 
 /// The composed exit code: **`3` dominates `1` dominates `2` dominates `0`**
-/// (spec 075 §3.3).
+/// (spec 062 §3.3).
 ///
 /// `3` is not reachable here because an unperformed read is an `Err` that never
 /// arrives at this function; it is named in the order because the order is the
@@ -75,7 +75,7 @@ fn exit_code(
     let registry = if !report.registry.validation_passed {
         1
     } else if fail_on_warn && report.registry.warnings > 0 {
-        // Spec 077 §3.3: the forwarded refusal is a `1`, which lands inside the
+        // Spec 064 §3.3: the forwarded refusal is a `1`, which lands inside the
         // fold below rather than altering it. It sits above freshness for the
         // same reason validation does: a refused corpus makes its own staleness
         // the less useful answer.
@@ -86,16 +86,16 @@ fn exit_code(
         2
     };
     let index = if !freshness.blocking.is_empty() {
-        // Spec 101 §3.1, amending spec 086 §3.1: an unresolved claim is a
+        // Spec 080 §3.1, amending spec 069 §3.1: an unresolved claim is a
         // validation failure, not staleness. The decision reads the partition
-        // spec 098 §3.2 built rather than the composed `fresh` flag, which
+        // spec 079 §3.2 built rather than the composed `fresh` flag, which
         // cannot tell the two refusals apart: a spec claiming a unit that does
         // not resolve describes a corpus that does not match its tree, and
         // regenerating provably cannot clear it. Spending 2 here sent every
         // consumer that branches on the code to `spec-spine index`, forever.
         //
         // It is checked FIRST, so a tree holding both refusals exits 1. That is
-        // spec 075 §3.3's order (1 dominates 2) and not a new rule; the report
+        // spec 062 §3.3's order (1 dominates 2) and not a new rule; the report
         // still names both halves and still attributes regeneration to the
         // stale one alone.
         1
@@ -103,7 +103,7 @@ fn exit_code(
         2
     } else if fail_on_unresolved && report.index.diagnostics.has_unresolved() {
         // A different axis: the warning-tier W-001 / W-002 claims a spec makes
-        // over territory it has not written yet (specs 025, 044). Unchanged.
+        // over territory it has not written yet (specs 023, 044). Unchanged.
         1
     } else {
         0
@@ -125,9 +125,9 @@ fn severity_max(a: u8, b: u8) -> u8 {
     if rank(a) >= rank(b) { a } else { b }
 }
 
-/// The registry half, attributed to its tree (spec 075 §3.4).
+/// The registry half, attributed to its tree (spec 062 §3.4).
 ///
-/// The stale report passes through with its structure intact: spec 031 §3.3
+/// The stale report passes through with its structure intact: spec 028 §3.3
 /// makes it contractual because the session protocol reads the drifted shard
 /// names back to the operator, and exit 2 alone cannot say which shard moved.
 fn report_registry(report: &CheckReport, fail_on_warn: bool) {
@@ -139,7 +139,7 @@ fn report_registry(report: &CheckReport, fail_on_warn: bool) {
         );
         return;
     }
-    // Spec 077 §3.4: name the count and the tree, so an exit 1 from this verb
+    // Spec 064 §3.4: name the count and the tree, so an exit 1 from this verb
     // is attributable. The pointer to `compile --check` for the individual
     // violations stays correct: that primitive still prints them.
     if fail_on_warn && r.warnings > 0 {
@@ -162,9 +162,9 @@ fn report_registry(report: &CheckReport, fail_on_warn: bool) {
     }
 }
 
-/// The index half, attributed to its tree (spec 075 §3.4).
+/// The index half, attributed to its tree (spec 062 §3.4).
 ///
-/// Spec 098 §3.3 splits the refusal this used to print one way. Staleness means
+/// Spec 079 §3.3 splits the refusal this used to print one way. Staleness means
 /// "the committed artifact is behind the source, regenerate it"; an unresolved
 /// claim means "the spec and the tree disagree about what exists", which no
 /// command repairs. Both still exit 2 (§3.1), and the stale-only report is
@@ -175,7 +175,7 @@ fn report_index(report: &CheckReport, freshness: &IndexFreshnessReport, fail_on_
         if !freshness.stale.is_empty() {
             eprintln!("codebase-index: STALE (run `spec-spine index`)");
             if let Freshness::Stale { actual, .. } = freshness.stale_verdict() {
-                // Spec 095 §3.3: a shard the diagnostics tally could not read is
+                // Spec 076 §3.3: a shard the diagnostics tally could not read is
                 // named on its drift line, not left to the payload count alone.
                 eprintln!(
                     "{}",
@@ -219,7 +219,7 @@ fn report_index(report: &CheckReport, freshness: &IndexFreshnessReport, fail_on_
 mod tests {
     use super::*;
 
-    /// Spec 075 §3.3: the order is the contract, so it is pinned here rather
+    /// Spec 062 §3.3: the order is the contract, so it is pinned here rather
     /// than only described. A caller cannot observe a precedence from a single
     /// run, which is why documenting it would not have been enough.
     #[test]

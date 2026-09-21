@@ -1,5 +1,5 @@
-// Spec: specs/084-a-short-id-names-the-same-spec-at-every-verb/spec.md
-//! Spec 084 §3.4 and §3.5: the one spec-id policy, the library entry points
+// Spec: specs/067-a-short-id-names-the-same-spec-at-every-verb/spec.md
+//! Spec 067 §3.4 and §3.5: the one spec-id policy, the library entry points
 //! that call it, and the JSON facade over them.
 //!
 //! The matrix in `crates/spec-spine-cli/tests/spec_id.rs` drives the six
@@ -40,7 +40,7 @@ fn an_exact_id_beats_a_segment_match_in_either_order() {
     }
 }
 
-/// Step 2, and the two non-matches spec 016 §3.1 names by hand: a partial
+/// Step 2, and the two non-matches spec 015 §3.1 names by hand: a partial
 /// ordinal is not an ordinal, and a wrong full slug does not snap to a
 /// neighbour.
 #[test]

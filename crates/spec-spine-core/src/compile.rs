@@ -26,7 +26,7 @@ use crate::{canonical_json, hash, markdown, shard};
 /// record set on read.
 const CROSS_SPEC_CODES: &[&str] = &[
     "V-003", "V-004", "V-008", "V-010", "V-014",
-    // Spec 076 §3.5: the three planned-territory collisions. Each needs to know
+    // Spec 063 §3.5: the three planned-territory collisions. Each needs to know
     // something about a spec other than the one being validated, so each is
     // corpus-wide and none belongs on a single spec's shard.
     "V-015", "V-016", "V-017",
@@ -39,7 +39,7 @@ pub const MAX_UNDECLARED_EXTRA_FRONTMATTER: usize = 8;
 
 /// The result of a compile: the typed registry, its canonical JSON bytes, the
 /// validation flag the CLI maps to an exit code, and the per-spec shard
-/// projection the CLI writes to disk (spec 024).
+/// projection the CLI writes to disk (spec 022).
 ///
 /// `registry` + `json` are the aggregate in-memory view (consumed by `attest`,
 /// the JSON facade, and the conformance test); `shards` is the committed form.
@@ -51,7 +51,7 @@ pub struct CompileOutcome {
 }
 
 impl CompileOutcome {
-    /// How many warning-tier violations this compile produced (spec 077 §3.2).
+    /// How many warning-tier violations this compile produced (spec 064 §3.2).
     ///
     /// Exposed here rather than left to each caller's own filter so the CLI,
     /// the facade and `check_report` read one number. `validation_passed` is
@@ -68,7 +68,7 @@ impl CompileOutcome {
     }
 }
 
-/// The committed-form projection of a registry: one shard per spec (spec 024),
+/// The committed-form projection of a registry: one shard per spec (spec 022),
 /// sorted by id for determinism.
 pub struct RegistryShardSet {
     pub spec_shards: Vec<RegistrySpecShard>,
@@ -130,7 +130,7 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
                     body,
                 });
             }
-            // V-013 (spec 013 §3.3): a DECLARED extra key carrying a value
+            // V-013 (spec 012 §3.3): a DECLARED extra key carrying a value
             // JSON cannot represent. Same skip-and-continue semantics as
             // V-002 (001 §3.1).
             Err(FrontmatterIssue::UnrepresentableDeclared { key, detail }) => {
@@ -159,7 +159,7 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
         .collect();
     detect_duplicates(&id_paths, &mut violations);
 
-    // --- short-id resolution (spec 016): rewrite a depends_on / superseded_by
+    // --- short-id resolution (spec 015): rewrite a depends_on / superseded_by
     // reference that names a spec by its leading number (`109`) to the full id
     // (`109-slug`), before validation (V-008/V-010) and record construction see
     // it. A genuinely dangling or ambiguous reference is left unchanged, so its
@@ -173,7 +173,7 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
             *by = resolve_spec_ref(by, &all_ids);
         }
         // The predecessor named by a `supersedes` item may use a short id too
-        // (spec 019), so the gate's predecessor→superseder transfer keys match.
+        // (spec 018), so the gate's predecessor→superseder transfer keys match.
         for item in &mut p.fm.supersedes {
             let resolved = resolve_spec_ref(item.spec(), &all_ids);
             item.set_spec(resolved);
@@ -196,11 +196,11 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
     }
     records.sort_by(|a, b| a.id.cmp(&b.id));
     // V-014 reads the records, not the parsed frontmatter, so it sees the
-    // short-id-resolved `depends_on` (spec 016) rather than the authored text.
+    // short-id-resolved `depends_on` (spec 015) rather than the authored text.
     detect_dependency_cycle(&records, &mut violations);
-    // Spec 103 3.1, 3.3.
+    // Spec 082 3.1, 3.3.
     detect_amends_verification(&records, &mut violations);
-    // Spec 076 §3.5, over DECLARED units at compile time rather than over the
+    // Spec 063 §3.5, over DECLARED units at compile time rather than over the
     // resolved graph. Naming the stage matters, because the obvious reading is
     // wrong: the existing duplicate-ownership machinery operates on
     // `TraceMapping`, and §3.2 excludes a planned unit from ever producing one,
@@ -209,7 +209,7 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
     // promise a refusal that never happens.
     validate_planned_territory(&records, &mut violations);
 
-    // --- shard projection + aggregate content hash (spec 024) ---
+    // --- shard projection + aggregate content hash (spec 022) ---
     // One shard per spec, each carrying its compiled record, its corpus-
     // independent ("local") violations, and a hash over its `spec.md` (the
     // registry's only hashed input, matching the pre-shard `build.contentHash`).
@@ -363,7 +363,7 @@ fn validate_spec(
             ));
         }
     }
-    // V-011: a constrains item must scope something (spec 018): a code `unit`
+    // V-011: a constrains item must scope something (spec 017): a code `unit`
     // (path-scoped, e.g. invariant-freeze) or `target_specs` (spec-scoped, e.g.
     // a sequencing plan). An item with neither asserts an invariant over nothing.
     for c in &fm.constrains {
@@ -381,9 +381,9 @@ fn validate_spec(
 ///
 /// This is the `NNN` of spec 001 §3.2, read by character. Slicing `&id[..3]`
 /// outright panics when byte 3 falls inside a multi-byte character, which is
-/// the defect spec 070 fixes; counting ASCII digits can only ever stop on a
+/// the defect spec 059 fixes; counting ASCII digits can only ever stop on a
 /// character boundary, because every byte it accepts is a one-byte character.
-/// An id with no leading digit yields `""`, which spec 070 §3.2 defines as
+/// An id with no leading digit yields `""`, which spec 059 §3.2 defines as
 /// having no numeric prefix at all. `lint.rs::ordinal` reads the same run and
 /// parses it, because ordering is a different question about these characters.
 fn numeric_prefix(id: &str) -> &str {
@@ -398,7 +398,7 @@ fn detect_duplicates(specs: &[(String, String)], out: &mut Vec<Violation>) {
     let mut prefix_owner: BTreeMap<&str, &str> = BTreeMap::new();
     for (id, spec_path) in specs {
         *id_counts.entry(id.as_str()).or_insert(0) += 1;
-        // Spec 070 §3.2: an id with no numeric prefix shares one with nothing,
+        // Spec 059 §3.2: an id with no numeric prefix shares one with nothing,
         // so it is not a V-004 candidate. V-012 is what refuses it.
         let prefix = numeric_prefix(id);
         if prefix.is_empty() {
@@ -426,7 +426,7 @@ fn detect_duplicates(specs: &[(String, String)], out: &mut Vec<Violation>) {
     }
 }
 
-/// Spec 076 §3.5: planned territory is subject to the ownership rules that
+/// Spec 063 §3.5: planned territory is subject to the ownership rules that
 /// already exist, and this spec introduces no second set.
 ///
 /// All three checks are **corpus-wide**, decided with every spec's frontmatter
@@ -528,7 +528,7 @@ fn validate_planned_territory(specs: &[SpecRecord], out: &mut Vec<Violation>) {
 }
 
 /// Every unit a spec claims through an ownership-bearing edge, for the §3.5
-/// collision checks. `references` is excluded (spec 034: a cited file is not a
+/// collision checks. `references` is excluded (spec 031: a cited file is not a
 /// claimed one), and so is `amends`, whose subject is a spec rather than a unit.
 fn owning_units(spec: &SpecRecord) -> Vec<Unit> {
     let mut units: Vec<Unit> = spec.establishes.clone();
@@ -555,7 +555,7 @@ fn unit_identity(unit: &Unit) -> String {
     }
 }
 
-/// V-014 (error): a cycle in the `depends_on` graph (spec 033).
+/// V-014 (error): a cycle in the `depends_on` graph (spec 030).
 ///
 /// spec-spine attaches no scheduling semantics to `depends_on`, but a cycle is
 /// a corpus defect under any reading: the edge says one spec's authority rests
@@ -569,7 +569,7 @@ fn unit_identity(unit: &Unit) -> String {
 /// child order is authored order, so which cycle is found is a pure function of
 /// the corpus. One cycle is reported per compile: the path names every spec on
 /// it, and breaking it is what reveals any other.
-/// Spec 103 §3.1 and §3.3: `amends_verification` must be declarable without
+/// Spec 082 §3.1 and §3.3: `amends_verification` must be declarable without
 /// ambiguity.
 ///
 /// Three refusals, all errors, because each leaves `verify` with a question it
@@ -577,7 +577,7 @@ fn unit_identity(unit: &Unit) -> String {
 ///
 /// - `V-018`: an entry that is not also in `amends`. Replacing what a spec
 ///   accepts changes what that spec requires of the tree, which is an amendment,
-///   and spec 040 §3.3 makes the edge set the authoritative record of one. A
+///   and spec 037 §3.3 makes the edge set the authoritative record of one. A
 ///   spec taking over another's acceptance while `amended_by (incoming)` stayed
 ///   silent would be exactly the undiscoverable amendment 040 exists to prevent.
 /// - `V-019`: two live specs naming the same target. Picking one by ordinal is a
@@ -603,7 +603,7 @@ fn detect_amends_verification(records: &[SpecRecord], out: &mut Vec<Violation>) 
                 out.push(error(
  "V-018",
  format!(
- "amends_verification names '{target}', which is not in amends: replacing a spec's `## Verification` block amends that spec, so the edge that records the amendment must be declared too (spec 103 3.1)"
+ "amends_verification names '{target}', which is not in amends: replacing a spec's `## Verification` block amends that spec, so the edge that records the amendment must be declared too (spec 082 3.1)"
  ),
  Some(r.spec_path.clone()),
  ));
@@ -615,7 +615,7 @@ fn detect_amends_verification(records: &[SpecRecord], out: &mut Vec<Violation>) 
  Some(first) => out.push(error(
  "V-019",
  format!(
- "spec '{}' and spec '{first}' both replace the `## Verification` block of '{target}'; only one spec may hold another's acceptance, and which one is a question about authority rather than a tie to break (spec 103 3.3)",
+ "spec '{}' and spec '{first}' both replace the `## Verification` block of '{target}'; only one spec may hold another's acceptance, and which one is a question about authority rather than a tie to break (spec 082 3.3)",
  r.id
  ),
  Some(r.spec_path.clone()),
@@ -651,7 +651,7 @@ fn detect_amends_verification(records: &[SpecRecord], out: &mut Vec<Violation>) 
                 out.push(error(
  "V-020",
  format!(
- "the amends_verification chain starting at '{start}' is a cycle, so it resolves to no block (spec 103 3.3)"
+ "the amends_verification chain starting at '{start}' is a cycle, so it resolves to no block (spec 082 3.3)"
  ),
  path,
  ));
@@ -795,9 +795,9 @@ fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
     }
 }
 
-// ===== spec 056: validate one spec, write nothing =====
+// ===== spec 049: validate one spec, write nothing =====
 
-/// One spec's validation verdict (spec 056 §3.2).
+/// One spec's validation verdict (spec 049 §3.2).
 #[derive(Clone, Debug, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SpecCheckReport {
@@ -812,7 +812,7 @@ pub struct SpecCheckReport {
 }
 
 /// Validate exactly one spec against the committed registry, writing nothing
-/// (spec 056).
+/// (spec 049).
 ///
 /// The verb exists because an author with an unfinished draft has had no way to
 /// ask whether it parses. `compile` writes, so asking commits the draft to the
@@ -829,7 +829,7 @@ pub struct SpecCheckReport {
 /// stands, and what stands is what was committed.
 pub fn compile_spec(cfg: &Config, repo_root: &Path, id: &str) -> Result<SpecCheckReport, Error> {
     let specs_dir = repo_root.join(&cfg.layout.specs_dir);
-    // Spec 084 3.4: the one policy, over the ids this verb already reads. A
+    // Spec 067 3.4: the one policy, over the ids this verb already reads. A
     // string comparison against the listing, never `specs_dir.join(id)`, so a
     // path-shaped argument is refused rather than walked to (084 3.2, D-6).
     let dirname = crate::spec_id::resolve_spec_id(id, crate::spec_id::spec_dir_ids(&specs_dir)?)?;
@@ -875,7 +875,7 @@ pub fn compile_spec(cfg: &Config, repo_root: &Path, id: &str) -> Result<SpecChec
     let mut all_ids: std::collections::BTreeSet<String> =
         committed.iter().map(|r| r.id.clone()).collect();
     all_ids.insert(fm.id.clone());
-    // Short-id resolution (spec 016) before validation sees the references, so
+    // Short-id resolution (spec 015) before validation sees the references, so
     // `V-008` / `V-010` judge the resolved value exactly as `compile` does.
     for dep in &mut fm.depends_on {
         *dep = resolve_spec_ref(dep, &all_ids);
@@ -946,7 +946,7 @@ fn finish_spec_report(
     }
 }
 
-// ===== committed-shard IO + assembly (spec 024) =====
+// ===== committed-shard IO + assembly (spec 022) =====
 
 /// The committed spec-registry directory: `<derived>/spec-registry`.
 pub fn registry_dir(cfg: &Config, repo_root: &Path) -> PathBuf {
@@ -972,11 +972,11 @@ pub fn registry_shard_files(shards: &RegistryShardSet) -> Result<Vec<(String, St
         .collect()
 }
 
-/// The cap on how many stale shards a freshness report names (spec 031 §3.3),
+/// The cap on how many stale shards a freshness report names (spec 028 §3.3),
 /// so a corpus-wide restamp reports `and N more` instead of flooding a CI log.
 const STALE_REPORT_CAP: usize = 20;
 
-/// Registry-shard freshness (spec 031): does the committed shard tree equal what
+/// Registry-shard freshness (spec 028): does the committed shard tree equal what
 /// the current corpus compiles to? Compiles in memory and delegates to
 /// [`compare_committed_registry`]; **never writes**.
 ///
@@ -990,7 +990,7 @@ pub fn check_registry_freshness(cfg: &Config, repo_root: &Path) -> Result<Freshn
 }
 
 /// Compare a freshly compiled shard set against the committed one, byte for
-/// byte (spec 031 §3.1).
+/// byte (spec 028 §3.1).
 ///
 /// The comparison is over the serialized shard *bytes*, not the `shardHash`
 /// field: canonical emission makes a fresh compile reproducible, so an exact
@@ -1006,7 +1006,7 @@ pub fn check_registry_freshness(cfg: &Config, repo_root: &Path) -> Result<Freshn
 ///
 /// An unbuilt registry reads as `Stale`, not [`Error::Io`]: a registry that was
 /// never built is by definition not vouching for the corpus (same reasoning as
-/// spec 012 §3.3 for an index predating its slice config).
+/// spec 011 §3.3 for an index predating its slice config).
 pub fn compare_committed_registry(
     cfg: &Config,
     repo_root: &Path,
@@ -1041,7 +1041,7 @@ pub fn compare_committed_registry(
     }
     stale.sort();
     let total = stale.len();
-    // One line per stale shard (spec 031 §3.3), so a CI log stays greppable and
+    // One line per stale shard (spec 028 §3.3), so a CI log stays greppable and
     // each finding is its own line rather than one wrapped blob.
     let mut lines: Vec<String> = stale
         .iter()
@@ -1082,7 +1082,7 @@ fn read_committed_registry_shards(
     Ok(shards)
 }
 
-/// Assemble the aggregate [`Registry`] from the committed shard set (spec 024).
+/// Assemble the aggregate [`Registry`] from the committed shard set (spec 022).
 /// The aggregate validation and content hash are recomputed on read: per-shard
 /// "local" violations are merged, the corpus-wide checks (duplicate id/prefix,
 /// dangling edges) are re-derived from the assembled records, and the content

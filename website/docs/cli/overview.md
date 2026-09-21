@@ -40,7 +40,7 @@ There is no initialization command. `spec-spine init` was removed, along with it
 
 ## Machine-readable verdicts (`--json`)
 
-The verbs that render a **verdict** (`compile --check`, `index check`, `lint`, `couple`, `attest`, `verify-attestation`) take `--json` (spec 037). Under the flag a verb writes exactly one JSON object to stdout:
+The verbs that render a **verdict** (`compile --check`, `index check`, `lint`, `couple`, `attest`, `verify-attestation`) take `--json` (spec 034). Under the flag a verb writes exactly one JSON object to stdout:
 
 ```json
 {

@@ -1,12 +1,12 @@
-//! A change classified under the base's rules (spec 088).
+//! A change classified under the base's rules (spec 071).
 //!
 //! [`delta`] is a pure function of `(base root, head root, changed paths,
 //! commit ids)`: it reads two exported trees and never runs `git` or reads the
 //! clock. The CLI resolves the merge base, lists the changed paths, exports both
 //! trees and echoes the three commit ids in; this module only reads files.
 //!
-//! **The merge base's rules classify** (spec 088 §3.2, D-1). The configuration
-//! is the base's, and so is the committed index, compared under spec 086 before
+//! **The merge base's rules classify** (spec 071 §3.2, D-1). The configuration
+//! is the base's, and so is the committed index, compared under spec 069 before
 //! it is used. A candidate that edits `spec-spine.toml` gets that edit reported
 //! as `policy`, and the rest of its diff classified exactly as it would have been
 //! without it.
@@ -44,7 +44,7 @@ use crate::verify::{plan_from_markdown, without_verification_section};
 const CONFIG_FILE: &str = "spec-spine.toml";
 
 /// Frontmatter keys whose change is `authority`: the eight typed edges and
-/// `depends_on` (spec 088 §3.3). `origin` is a bootstrap marker, not an edge.
+/// `depends_on` (spec 071 §3.3). `origin` is a bootstrap marker, not an edge.
 const AUTHORITY_KEYS: &[&str] = &[
     "establishes",
     "extends",
@@ -87,13 +87,13 @@ struct Side<'a> {
     superseders: &'a BTreeMap<String, BTreeSet<String>>,
 }
 
-/// Classify every changed path under the base's rules (spec 088 §3.2 to §3.6).
+/// Classify every changed path under the base's rules (spec 071 §3.2 to §3.6).
 ///
 /// `cfg` is the **merge base's** configuration. `changed` is the path list of
 /// `merge-base...head` with renames disabled, repo-relative and POSIX; it is
 /// deduplicated and sorted here, and a path escaping the roots is refused.
 ///
-/// The base's committed index is compared with its tree first (spec 086) and a
+/// The base's committed index is compared with its tree first (spec 069) and a
 /// mismatch is [`Error::Stale`]: the rules this report is computed under would
 /// otherwise be whatever the committed body says. The head's ownership is
 /// resolved by indexing the head tree in memory under the same configuration,
@@ -188,7 +188,7 @@ fn checked_paths(changed: &[String]) -> Result<BTreeSet<String>, Error> {
     Ok(out)
 }
 
-/// Every class one path carries (spec 088 §3.3), with the detail §3.4 attaches.
+/// Every class one path carries (spec 071 §3.3), with the detail §3.4 attaches.
 fn classify_path(
     cfg: &Config,
     base: &Side<'_>,
@@ -333,10 +333,10 @@ fn under_root(root: &str, path: &str) -> bool {
 ///
 /// Found with the hash's own matcher, [`shard::glob_files`], not a pattern test
 /// over the path. The two disagree on a pattern ending in a bare `**`, which the
-/// filesystem walk resolves to directories and therefore to no file (spec 069),
-/// and a dead glob is dead everywhere (spec 079). Both trees are walked, so a
+/// filesystem walk resolves to directories and therefore to no file (spec 058),
+/// and a dead glob is dead everywhere (spec 065). Both trees are walked, so a
 /// path deleted at head and one added at head are each found on the side where
-/// it exists. A declared state root contributes to no hash (spec 039).
+/// it exists. A declared state root contributes to no hash (spec 036).
 fn hashed_input_paths(cfg: &Config, roots: &[&Path]) -> BTreeSet<String> {
     let mut out = BTreeSet::new();
     for root in roots {
@@ -404,7 +404,7 @@ impl SpecSide {
     }
 }
 
-/// Classify a changed `spec.md` by what moved inside it (spec 088 §3.3, §3.4).
+/// Classify a changed `spec.md` by what moved inside it (spec 071 §3.3, §3.4).
 fn classify_spec_md(
     cfg: &Config,
     id: &str,
@@ -419,7 +419,7 @@ fn classify_spec_md(
         return Ok(out);
     };
 
-    // Verification: the plan, parsed by spec 049's grammar. An added or removed
+    // Verification: the plan, parsed by spec 043's grammar. An added or removed
     // spec differs by construction, since one side has no plan at all.
     let base_plan = base_text.map(|t| plan_from_markdown(id, t).commands);
     let head_plan = head_text.map(|t| plan_from_markdown(id, t).commands);
@@ -575,8 +575,8 @@ fn count_only_in(a: &[String], b: &[String]) -> usize {
 
 /// The typed edge items of one side, keyed by frontmatter key, as JSON values.
 ///
-/// Typed rather than raw so the `paths:` sugar (spec 014) and the full-scope
-/// `supersedes` spelling (spec 019) compare as the edges they expand to.
+/// Typed rather than raw so the `paths:` sugar (spec 013) and the full-scope
+/// `supersedes` spelling (spec 018) compare as the edges they expand to.
 fn edge_items(fm: &Frontmatter) -> Result<BTreeMap<&'static str, Vec<serde_json::Value>>, Error> {
     fn values<T: serde::Serialize>(items: &[T]) -> Result<Vec<serde_json::Value>, Error> {
         items

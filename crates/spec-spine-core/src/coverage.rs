@@ -1,4 +1,4 @@
-//! Ownership coverage (spec 032): the inverse of the coupling gate's question.
+//! Ownership coverage (spec 029): the inverse of the coupling gate's question.
 //!
 //! `couple` asks "did an owned path change without its spec?" (`C-001`). This
 //! module asks "which source files does no spec *specifically* own?", and, when
@@ -39,7 +39,7 @@ use crate::pathutil::rel_posix;
 /// as a source file.
 pub const SOURCE_EXTS: &[&str] = &["rs", "ts", "tsx", "js", "jsx", "go", "py", "sh"];
 
-/// How one source file is owned, at whole-file granularity (spec 032 §3.1).
+/// How one source file is owned, at whole-file granularity (spec 029 §3.1).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Ownership {
     /// A resolved ownership-bearing unit (any kind, exact or subtree) or a
@@ -103,10 +103,10 @@ pub fn classify(index: &CodebaseIndex, path: &str) -> Ownership {
 
 /// Is `path` in the coverage universe: a source file (by extension) inside a
 /// discovered package, outside `index.resolver_exclusions`, and not bypassed
-/// by the gate (claim-aware, spec 009)? The report and `C-002` share this
+/// by the gate (claim-aware, spec 008)? The report and `C-002` share this
 /// predicate, so a path one of them ignores the other ignores too.
 ///
-/// A declared `layout.state_dir` (spec 039) is excluded here through
+/// A declared `layout.state_dir` (spec 036) is excluded here through
 /// [`is_bypassed_path`], which means excluded from the numerator **and** the
 /// denominator: state is not source, so counting it as unclaimed debt would be
 /// a coverage figure that can never reach 100%.
@@ -114,11 +114,11 @@ pub fn in_coverage_universe(cfg: &Config, index: &CodebaseIndex, path: &str) -> 
     in_coverage_universe_with(cfg, index, &GovernedScope::empty(), path)
 }
 
-/// [`in_coverage_universe`] widened by a declared governed scope (spec 097
+/// [`in_coverage_universe`] widened by a declared governed scope (spec 078
 /// §3.3): a path the scope names bypasses the extension and package conjuncts,
 /// and still answers to `resolver_exclusions` and the bypass verdict, spec
 /// 009's claim precedence included. With an empty scope this is exactly the
-/// four-conjunct universe spec 032 built.
+/// four-conjunct universe spec 029 built.
 pub fn in_coverage_universe_with(
     cfg: &Config,
     index: &CodebaseIndex,
@@ -140,7 +140,7 @@ fn inferred_universe(index: &CodebaseIndex, path: &str) -> bool {
             .any(|p| package_contains(&p.path, path))
 }
 
-/// The files `[coverage] governed_scope` names, resolved once (spec 097).
+/// The files `[coverage] governed_scope` names, resolved once (spec 078).
 ///
 /// Membership is decided by globbing the declared patterns against the tree,
 /// with exactly the matcher `[index] extra_hashed_inputs` uses, so the two lists
@@ -154,14 +154,14 @@ pub struct GovernedScope {
 }
 
 impl GovernedScope {
-    /// The empty scope: the universe spec 032 built, unchanged.
+    /// The empty scope: the universe spec 029 built, unchanged.
     pub fn empty() -> Self {
         Self::default()
     }
 
     /// Every existing file the declared scope matches, minus its exclusions.
     /// What the coupling gate needs: every path it judges is in the diff, so
-    /// no enumeration can remove one (spec 097 D-7).
+    /// no enumeration can remove one (spec 078 D-7).
     pub fn from_globs(cfg: &Config, repo_root: &Path) -> Self {
         let matched = |patterns: &[String]| -> BTreeSet<String> {
             patterns
@@ -181,7 +181,7 @@ impl GovernedScope {
     }
 
     /// The declared scope restricted to an inventory: a file must be matched
-    /// **and** listed (spec 097 §3.6). An empty inventory therefore matches
+    /// **and** listed (spec 078 §3.6). An empty inventory therefore matches
     /// nothing, which is the answer its caller gave.
     pub fn within(cfg: &Config, repo_root: &Path, inventory: &BTreeSet<String>) -> Self {
         let mut scope = Self::from_globs(cfg, repo_root);
@@ -205,8 +205,8 @@ impl GovernedScope {
 
 /// Every file under `repo_root`, for a caller that supplied no inventory (spec
 /// 097 §3.6). Skips `.git/` (not corpus, and machine-specific), the declared
-/// state root (bypassed unconditionally by spec 039), the configured derived
-/// root (compiler output, spec 120 §3.8), and `resolver_exclusions`; never
+/// state root (bypassed unconditionally by spec 036), the configured derived
+/// root (compiler output, spec 092 §3.8), and `resolver_exclusions`; never
 /// descends through a symlink, so it cannot leave the repository.
 /// Repo-relative POSIX, sorted.
 pub fn walk_repository(cfg: &Config, repo_root: &Path) -> BTreeSet<String> {
@@ -277,7 +277,7 @@ pub fn coverage_with(cfg: &Config, index: &CodebaseIndex, files: &[String]) -> C
     coverage_with_scope(cfg, index, files, &GovernedScope::empty())
 }
 
-/// [`coverage_with`] over a universe widened by `scope` (spec 097 §3.5). A file
+/// [`coverage_with`] over a universe widened by `scope` (spec 078 §3.5). A file
 /// in the universe only because the scope names it counts toward the totals
 /// and toward no package, since its denominator is not a package; it is
 /// classified exactly as any other file, so outside every package it is
@@ -326,7 +326,7 @@ pub fn coverage_with_scope(
     };
     for file in universe {
         // A file the inferred universe holds belongs to its package; one only
-        // the declared scope holds belongs to none (spec 097 §3.5).
+        // the declared scope holds belongs to none (spec 078 §3.5).
         let mut entry = if inferred_universe(index, file) {
             owning_package(&index.packages, file).and_then(|p| per_package.get_mut(&p.path))
         } else {
@@ -369,7 +369,7 @@ pub fn coverage(cfg: &Config, repo_root: &Path) -> Result<CoverageReport, Error>
 }
 
 /// [`coverage`] with the inventory a declared governed scope is matched against
-/// (spec 097 §3.6). The three cases are three different answers:
+/// (spec 078 §3.6). The three cases are three different answers:
 ///
 /// - `Some` with paths: the scope matches exactly those, and the report names
 ///   the provenance the caller declared;
@@ -379,7 +379,7 @@ pub fn coverage(cfg: &Config, repo_root: &Path) -> Result<CoverageReport, Error>
 ///   says `walk`.
 ///
 /// With `[coverage] governed_scope` empty the inventory is not consulted, the
-/// root is not walked, and the report is the one spec 032 emits.
+/// root is not walked, and the report is the one spec 029 emits.
 pub fn coverage_with_inventory(
     cfg: &Config,
     repo_root: &Path,
@@ -416,7 +416,7 @@ pub fn coverage_with_inventory(
         report.enumeration = Some(enumeration);
         report
     };
-    // Spec 076 §3.6: planned territory is a DECLARED state, so it is read from
+    // Spec 063 §3.6: planned territory is a DECLARED state, so it is read from
     // the spec-as-source view. It cannot come from the index: a planned unit
     // that has not resolved contributes no `ResolvedUnit` and no location, by
     // §3.2, which is exactly why the report was blind to it.
@@ -428,7 +428,7 @@ pub fn coverage_with_inventory(
     if let Ok(registry) = crate::compile::load_committed_registry(cfg, repo_root) {
         report.planned_territory = crate::query::planned_territory(&registry);
     }
-    // Spec 094 §3.4: the headers that tried to claim a file and did not, over
+    // Spec 095 §3.4: the headers that tried to claim a file and did not, over
     // the claim scan's own universe. Beside the classification, never inside
     // it: `coverage_with` above has already counted every file.
     report.near_miss_headers = crate::index::near_miss_headers(cfg, repo_root, &index.packages)?;
@@ -442,7 +442,7 @@ fn normalize_listed(path: &str) -> String {
     p.strip_prefix("./").unwrap_or(&p).to_string()
 }
 
-/// Why a coverage universe is empty, when it is (spec 059 §3.2, §3.3).
+/// Why a coverage universe is empty, when it is (spec 052 §3.2, §3.3).
 ///
 /// The two cases have different fixes: no discovered package is usually
 /// `layout.standalone_rust_workspaces` / `standalone_npm_packages` not naming a
@@ -475,7 +475,7 @@ impl EmptyUniverse {
     }
 }
 
-/// `Some(reason)` when the universe is empty (spec 059 §3.2).
+/// `Some(reason)` when the universe is empty (spec 052 §3.2).
 ///
 /// `--fail-on-untraced` is an assertion, and an assertion over an empty set is
 /// vacuously true: mathematically correct and operationally wrong. A person

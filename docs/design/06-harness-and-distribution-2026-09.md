@@ -355,7 +355,7 @@ Re-verified at `3bc004b` against the 0.19.0 binary:
 | Finding | Status at `3bc004b` |
 |---|---|
 | The `Stop` hook calls every nonzero `check` result "STALE" | **Fixed by 099.** The hook runs `"$sc" check >/dev/null 2>&1 && exit 0` and otherwise prints `[freshness] STALE`. Exit 1 (validation, or a refused unresolved unit) and exit 3 (I/O, parse, schema, config) are reported as staleness. |
-| The PR hook mislabels the same codes | **Fixed by 080, completed by 104.** The gate switches on the code; 104 added spec 063's `check --help` probe on the exit-2 arm, so a binary predating the verb is no longer called stale there. |
+| The PR hook mislabels the same codes | **Fixed by 080, completed by 104.** The gate switches on the code; 104 added spec 093's `check --help` probe on the exit-2 arm, so a binary predating the verb is no longer called stale there. |
 | The PR hook's derived test is `git diff --quiet -- .derived/` | **Current.** That asks about unstaged tracked changes. A staged shard and an untracked new shard both pass it. `git diff HEAD -- .derived/` plus an untracked check is the honest form of the question; a tested CLI verb answering "is the derived tree committed" is better still. |
 | Push interception matches command text | **Current and bounded by design.** 071 gave it a (command, branch) matrix; `git -C`, wrappers and alternate quoting remain outside what shell-text matching can decide. |
 | Missing `jq` yields "skipped" and success | **Current.** Advisory and enforcing behavior share one exit path. CI is the enforcement boundary, which is the right place; the hooks should say which they are. |
@@ -363,12 +363,12 @@ Re-verified at `3bc004b` against the 0.19.0 binary:
 
 **The unfiled one, now filed.** `couple --head HEAD` builds a `base...head`
 diff, so the documented pre-commit coupling check cannot see the change being
-committed. Spec 090 §4 placed it out of scope and said it "is filed
-separately"; spec 092 §4 placed it out of scope and pointed back at 090.
+committed. Spec 094 §4 placed it out of scope and said it "is filed
+separately"; spec 093 §4 placed it out of scope and pointed back at 090.
 Checked at `3bc004b` and again at `a6ef6e3`: no spec in the corpus filed it, and
 the phrase in 090 §4 was untrue from the day it was written.
 
-**Spec 102 files it** (2026-09-16, H-7 decided: fix it in `couple`).
+**Spec 081 files it** (2026-09-16, H-7 decided: fix it in `couple`).
 `--include-uncommitted` unions the committed range with `git diff HEAD`, off by
 default so a dirty runner cannot move a CI verdict. 090 §4's phrase is amended
 there; 092 §4's sentence says only that 090 "named" it, which was accurate, and

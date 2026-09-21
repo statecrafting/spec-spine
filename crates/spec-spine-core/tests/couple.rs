@@ -12,7 +12,7 @@ fn index_from(mappings: Value) -> CodebaseIndex {
     index_with_packages(json!([]), mappings)
 }
 
-/// Like [`index_from`] but with a package inventory, which the spec 032
+/// Like [`index_from`] but with a package inventory, which the spec 029
 /// ownership ratchet needs (its universe is "source files inside a package").
 fn index_with_packages(packages: Value, mappings: Value) -> CodebaseIndex {
     serde_json::from_value(json!({
@@ -344,7 +344,7 @@ fn amends_expands_owners_when_base_set_nonempty() {
     assert!(!cleared.has_blocking_drift(), "{:?}", cleared.violations);
 }
 
-// ── the configured corpus root (spec 036) ─────────────────────────────────
+// ── the configured corpus root (spec 033) ─────────────────────────────────
 
 /// A repo whose corpus lives somewhere other than `specs/`.
 fn contracts_config() -> Config {
@@ -368,7 +368,7 @@ fn owns_lib_rs() -> CodebaseIndex {
 
 #[test]
 fn custom_specs_dir_clears_drift_via_the_owning_spec() {
-    // Before spec 036 the primary-owner heuristic looked for a literal
+    // Before spec 033 the primary-owner heuristic looked for a literal
     // `specs/<id>/spec.md`, so under a non-default `layout.specs_dir` NO edit to
     // the owning spec could ever clear `C-001`: the path it searched for did not
     // exist in the repo. The gate was unusable for such an adopter.
@@ -511,7 +511,7 @@ fn supersedes_transfers_authority_additively() {
     assert!(!via_succ.has_blocking_drift(), "{:?}", via_succ.violations);
 }
 
-// ── spec 019: partial (unit-scoped) supersession ──────────────────────────
+// ── spec 018: partial (unit-scoped) supersession ──────────────────────────
 
 #[test]
 fn partial_supersedes_scopes_transfer_to_the_named_unit() {
@@ -637,7 +637,7 @@ fn partial_supersedes_without_unit_transfers_nothing() {
     assert!(!via_succ.violations[0].message.contains("041-succ"));
 }
 
-// ── spec 009: explicit claims take precedence over bypass ─────────────────
+// ── spec 008: explicit claims take precedence over bypass ─────────────────
 
 #[test]
 fn explicit_claim_overrides_the_floor() {
@@ -685,7 +685,7 @@ fn explicit_claim_overrides_the_floor() {
 
 #[test]
 fn implicit_ownership_does_not_override_bypass() {
-    // Spec 009 §3.2: manifest-floor / comment-header ownership (the
+    // Spec 008 §3.2: manifest-floor / comment-header ownership (the
     // implementingPaths sources) keeps deferring to bypass.
     let index = index_from(json!([{
         "specId": "001-a",
@@ -710,7 +710,7 @@ fn implicit_ownership_does_not_override_bypass() {
 
 #[test]
 fn claim_overrides_adopter_bypass_for_exactly_the_claimed_file() {
-    // Spec 009 §3.3: the rule overrides config additions too; the specific
+    // Spec 008 §3.3: the rule overrides config additions too; the specific
     // intent (the claim) beats the broad one (the bypass pattern).
     let index = index_from(json!([{
         "specId": "002-docs",
@@ -818,7 +818,7 @@ fn section_claim_under_floor_is_evaluated_with_span_semantics() {
 #[test]
 fn is_bypassed_path_is_claim_aware() {
     // The CLI's auto-waiver pre-filter must see the same path set the gate
-    // checks (spec 005 §3.5 x spec 009).
+    // checks (spec 005 §3.5 x spec 008).
     let index = index_from(json!([{
         "specId": "007-d",
         "implementingPaths": [],
@@ -846,7 +846,7 @@ fn is_bypassed_path_is_claim_aware() {
     ));
 }
 
-// ── spec 032: the ownership ratchet (C-002) ───────────────────────────────
+// ── spec 029: the ownership ratchet (C-002) ───────────────────────────────
 
 /// `require_ownership = true`, everything else default.
 fn ratchet_config() -> Config {
@@ -1118,7 +1118,7 @@ fn bypassed_paths_never_raise_c002() {
 
 #[test]
 fn explicit_claim_under_bypass_is_c001_not_c002() {
-    // Spec 009: an explicit unit claim beats the bypass set. Such a path has a
+    // Spec 008: an explicit unit claim beats the bypass set. Such a path has a
     // specific owner by construction, so it can only ever be C-001.
     let mut cfg = ratchet_config();
     cfg.coupling
@@ -1185,16 +1185,16 @@ fn one_diff_can_carry_both_codes_but_one_path_carries_one() {
     );
 }
 
-// ── spec 039: the declared state root is bypassed unconditionally ─────────
+// ── spec 036: the declared state root is bypassed unconditionally ─────────
 
 /// A changed file under `layout.state_dir` trips neither `C-001` nor `C-002`,
-/// and the effect is not reachable through the spec 009 claim override: a claim
+/// and the effect is not reachable through the spec 008 claim override: a claim
 /// inside the root is a contradiction `lint` reports as `L-006`, not a
 /// precedence question the gate resolves in either direction.
 #[test]
 fn a_declared_state_root_is_bypassed_and_a_claim_cannot_override_it() {
     // The state file is claimed as explicitly as a unit can be, which is what
-    // would otherwise beat the entire bypass set under spec 009.
+    // would otherwise beat the entire bypass set under spec 008.
     let index = index_with_packages(
         json!([{ "name": "app", "path": "", "kind": "rust-lib", "specRef": "001-a" }]),
         json!([{
@@ -1245,7 +1245,7 @@ fn a_declared_state_root_is_bypassed_and_a_claim_cannot_override_it() {
     );
 }
 
-/// Spec 039 3.2: with `require_ownership` on, an unclaimed file under the root
+/// Spec 036 3.2: with `require_ownership` on, an unclaimed file under the root
 /// is not `C-002` debt either. State is not source, so the ratchet has nothing
 /// to say about it.
 #[test]
@@ -1285,12 +1285,12 @@ fn the_ownership_ratchet_does_not_reach_into_the_state_root() {
     assert_eq!(declared.checked_paths, 0);
 }
 
-// ── spec 052: the owner set is carried as data, not only as prose ─────────
+// ── spec 045: the owner set is carried as data, not only as prose ─────────
 
 /// §3.1: every `C-001` carries `owners`, holding exactly the owner set its
 /// message names, in the same sorted order. Before this spec the gate computed
 /// that set and then destroyed it by formatting it into English, so an
-/// orchestrator reading the spec 037 envelope had to regex a sentence back into
+/// orchestrator reading the spec 034 envelope had to regex a sentence back into
 /// a list.
 #[test]
 fn c001_carries_its_owners_as_data() {
@@ -1392,7 +1392,7 @@ fn empty_owners_is_omitted_from_json() {
     );
 }
 
-// ── spec 097: the gate reads the declared governed scope ─────────────────
+// ── spec 078: the gate reads the declared governed scope ─────────────────
 
 mod governed_scope {
     use std::fs;
@@ -1505,7 +1505,7 @@ mod governed_scope {
 
     /// §3.3, D-2: an unclaimed file under a built-in bypass prefix stays
     /// bypassed although the scope names it; the same prefix with an explicit
-    /// unit claim is governed exactly as spec 009 makes it (drift without its
+    /// unit claim is governed exactly as spec 008 makes it (drift without its
     /// spec, clean with it).
     #[test]
     fn a_bypassed_path_stays_bypassed_unless_a_unit_claims_it() {
@@ -1546,7 +1546,7 @@ mod governed_scope {
     }
 }
 
-// ── spec 120 §3.8: the CONFIGURED derived root is bypassed ────────────────
+// ── spec 092 §3.8: the CONFIGURED derived root is bypassed ────────────────
 
 /// A configuration whose derived tree is not at the default path.
 fn relocated_derived() -> Config {
@@ -1655,7 +1655,7 @@ fn a_regenerated_shard_at_the_configured_derived_root_is_not_drift() {
     );
 }
 
-/// The effective-bypass read (spec 016 D-3's consumer contract) reports the
+/// The effective-bypass read (spec 015 D-3's consumer contract) reports the
 /// configured root too, so a tool judging another repository sees the same set
 /// the gate applies rather than a floor that is half a contract.
 #[test]

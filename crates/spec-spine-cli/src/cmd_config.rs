@@ -1,5 +1,5 @@
 //! `spec-spine config show`: the effective configuration, as a governed read
-//! (spec 054).
+//! (spec 047).
 //!
 //! `spec-spine.toml` is only half the configuration a coupling decision is made
 //! from. The other half is `couple.rs::DEFAULT_BYPASS_PREFIXES`, thirteen
@@ -12,7 +12,7 @@
 //!
 //! This verb **reads**. It never writes, never creates a missing
 //! `spec-spine.toml`, and never emits a "suggested" file: scaffolding is
-//! `init`'s job and has been since spec 006.
+//! `init`'s job and has been since spec 095.
 
 use std::path::Path;
 
@@ -45,14 +45,14 @@ pub fn run(repo: &Path, action: &ConfigAction) -> Result<u8, Error> {
     let effective = EffectiveConfig::new(&cfg, effective_bypass_prefixes(&cfg));
 
     if *json {
-        // Deliberately NOT the spec 037 verdict envelope. An envelope carries
+        // Deliberately NOT the spec 034 verdict envelope. An envelope carries
         // `ok` and `exitCode`, and a verdict is what a gate returns. This verb
         // decides nothing and cannot fail a gate, so an envelope would put a
         // permanently-true `ok` on a verb with no notion of passing. It is a
         // query, and it takes `--json` the way `registry show` does: the
         // object itself.
         //
-        // Spec 093 §3.7: sorted through the read-document emitter like every
+        // Spec 094 §3.7: sorted through the read-document emitter like every
         // other read, but not stamped. It already names a version, 054's
         // `config_version`, and a second version member would leave a consumer
         // no rule for which one to dispatch on.
@@ -72,7 +72,7 @@ pub fn run(repo: &Path, action: &ConfigAction) -> Result<u8, Error> {
     Ok(0)
 }
 
-/// The prose rendering. Carries no fact the JSON lacks (spec 054 §3.3): it is
+/// The prose rendering. Carries no fact the JSON lacks (spec 047 §3.3): it is
 /// the same object, laid out for a person.
 fn render(e: &EffectiveConfig) {
     out::line(format_args!("\n[manifest]"));

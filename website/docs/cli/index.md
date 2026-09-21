@@ -26,20 +26,20 @@ Scans the repository for manifests (e.g., `Cargo.toml`, `package.json`) and spec
 
 ### `index check`
 
-The staleness gate. It indexes the corpus in memory, without writing, and compares the result byte-for-byte with the committed shard tree (spec 086), the way [`compile --check`](./compile.md) does for the registry. Each drifted shard is named with its class:
+The staleness gate. It indexes the corpus in memory, without writing, and compares the result byte-for-byte with the committed shard tree (spec 069), the way [`compile --check`](./compile.md) does for the registry. Each drifted shard is named with its class:
 
 - **`modified`**: a committed shard whose bytes differ from the shard a fresh index emits. A stale `shardHash`, a hand-edited body and a schema restamp all read this way.
 - **`missing`**: a spec or package with no committed shard.
 - **`orphaned`**: a committed shard with no spec or package behind it.
-- **`blocking-diagnostics`**: **machine surface only.** Not emitted in the human-readable CLI output since spec 098; it still reaches `--json` and library callers, as the paragraph below describes.
+- **`blocking-diagnostics`**: **machine surface only.** Not emitted in the human-readable CLI output since spec 079; it still reaches `--json` and library callers, as the paragraph below describes.
 
-A spec claiming a unit that does not resolve is a different refusal, and since spec 098 the prose says so separately rather than calling it staleness. What spec 098 fixes is the content, not the wording: the report is classed as an unresolved claim distinct from staleness, it carries one line per diagnostic naming the diagnostic code, the owning spec and the unit, it states that regenerating the index does not clear it, and it points at `spec-spine index diagnostics` when the list is capped. When the owning spec declares `implementation: complete`, the report adds that the spec and the tree disagree about what exists. Where shards moved as well, both halves are reported and regeneration is attributed to the stale half alone.
+A spec claiming a unit that does not resolve is a different refusal, and since spec 079 the prose says so separately rather than calling it staleness. What spec 079 fixes is the content, not the wording: the report is classed as an unresolved claim distinct from staleness, it carries one line per diagnostic naming the diagnostic code, the owning spec and the unit, it states that regenerating the index does not clear it, and it points at `spec-spine index diagnostics` when the list is capped. When the owning spec declares `implementation: complete`, the report adds that the spec and the tree disagree about what exists. Where shards moved as well, both halves are reported and regeneration is attributed to the stale half alone.
 
 Current output puts that section under an `UNRESOLVED CLAIM:` heading carrying the claim and spec counts. Treat the classed facts above as the contract and the exact phrasing as illustrative: 098's acceptance pins the code, the spec id, the unit and the regeneration statement, and deliberately does not pin the heading text. Match on the diagnostic code, never on the sentence.
 
 A shard with an unresolved claim is reported **only** there. It is withheld from the class list above, so it appears as neither `modified` nor `missing` even when its bytes also moved, and the stale count does not include it. Regenerating fixes a drifted shard and does not fix an unresolved claim, so the line kept is the one whose remedy is not a command.
 
-The exit code is unchanged either way: `2`. In the [verdict envelope](./overview.md#machine-readable-verdicts---json) and in the library verdict, an unresolved claim still appears in the drift vector as a **`blocking-diagnostics`** line (spec 050), so a machine caller reads what it read before. The two surfaces count differently on purpose: a shard yields exactly one `blocking-diagnostics` entry however many diagnostics it carries, while the human-readable output prints one line per diagnostic, up to 20, then points at `spec-spine index diagnostics` for the rest.
+The exit code is unchanged either way: `2`. In the [verdict envelope](./overview.md#machine-readable-verdicts---json) and in the library verdict, an unresolved claim still appears in the drift vector as a **`blocking-diagnostics`** line (spec 044), so a machine caller reads what it read before. The two surfaces count differently on purpose: a shard yields exactly one `blocking-diagnostics` entry however many diagnostics it carries, while the human-readable output prints one line per diagnostic, up to 20, then points at `spec-spine index diagnostics` for the rest.
 
 `check`, and the freshness guard in front of `couple`, `index coverage` and `index owner`, run the same comparison, so a committed index that reads fresh is exactly what the corpus indexes to.
 
@@ -59,7 +59,7 @@ Lists specs that have no resolved code units (i.e., specs that claim authority o
 
 - **`--json`**: Output `{ "orphaned": [ids], "inFlight": [ids], "schemaVersion" }`.
 
-The `--json` output of `index owner`, `index coverage`, `index diagnostics` and `index orphans` is a **read document** (spec 093): a JSON object with sorted keys and a top-level `schemaVersion`. `index diagnostics --json` carries its listing under `items`.
+The `--json` output of `index owner`, `index coverage`, `index diagnostics` and `index orphans` is a **read document** (spec 094): a JSON object with sorted keys and a top-level `schemaVersion`. `index diagnostics --json` carries its listing under `items`.
 
 ### `index coverage`
 
@@ -70,13 +70,13 @@ Reports, per source file inside a discovered package, whether a spec *specifical
 
 The same classifier drives the coupling gate's `C-002` when `[coupling] require_ownership` is on, so this report lists exactly the files that flag would refuse.
 
-#### A declared governed scope (spec 097)
+#### A declared governed scope (spec 078)
 
-By default the universe is inferred: a source extension, inside a discovered package. `[coverage] governed_scope` declares more: glob patterns (as in `extra_hashed_inputs`, so `dir/**/*`, not `dir/**`) naming files that join the universe whatever their extension and wherever they sit, and so join `C-002` under `require_ownership`. `governed_scope_exclusions` carves files back out of that addition only. A resolver exclusion or a bypass prefix still wins; a unit claim still overrides a bypass exactly as spec 009 says. Such a file is claimed by a frontmatter unit, never by a comment header.
+By default the universe is inferred: a source extension, inside a discovered package. `[coverage] governed_scope` declares more: glob patterns (as in `extra_hashed_inputs`, so `dir/**/*`, not `dir/**`) naming files that join the universe whatever their extension and wherever they sit, and so join `C-002` under `require_ownership`. `governed_scope_exclusions` carves files back out of that addition only. A resolver exclusion or a bypass prefix still wins; a unit claim still overrides a bypass exactly as spec 008 says. Such a file is claimed by a frontmatter unit, never by a comment header.
 
 With the scope set, `index coverage` matches it against the tracked files (`git ls-files --cached --others --exclude-standard`, minus missing files), or against `--paths-from FILE` where git is not available; a git failure exits `3`. The report adds `declaredScopeFiles` and `enumeration` (`tracked`, `supplied`, or `walk` for a library caller that supplied no list). Both are absent while the scope is empty, and nothing else changes.
 
-#### How a comment header claims (spec 094)
+#### How a comment header claims (spec 095)
 
 A comment header claims the file it sits in, and only when it is in the **first 16 lines** of that file. For each of those lines, in order: leading whitespace is trimmed; at most one leading `//` or `#` is stripped (the marker is optional); the rest must begin with `Spec:`; and after every trailing `/spec.md` is removed, the final `/`-separated segment of the reference must be the id of a spec in the corpus. So `// Spec: specs/042-x/spec.md`, `# Spec: specs/042-x/spec.md` (for `.py` and `.sh`) and `// Spec: 042-x` all claim for `042-x`.
 
@@ -92,7 +92,7 @@ The **first** `Spec:` line in the window decides. If its reference names no spec
 - **`index check`:**
   - `0`: Fresh.
   - `2`: Stale (at least one shard is `modified`, `missing`, `orphaned`, or carries a blocking diagnostic).
-  - `3`: I/O, parse or schema error: no committed index, or a committed shard from a schema MAJOR this build does not understand. A committed shard file that does not parse is drift, not an error: `orphaned` when the recompute does not expect it, `modified` when it does, and `--json` counts it as `skippedShards` (spec 095).
+  - `3`: I/O, parse or schema error: no committed index, or a committed shard from a schema MAJOR this build does not understand. A committed shard file that does not parse is drift, not an error: `orphaned` when the recompute does not expect it, `modified` when it does, and `--json` counts it as `skippedShards` (spec 076).
 - **`index coverage`:**
   - `0`: Reported (or, with `--fail-on-untraced`, fully claimed).
   - `1`: `--fail-on-untraced` and at least one source file is floor-only or unclaimed.
@@ -120,4 +120,4 @@ index is STALE (run `spec-spine index` to refresh)
 # (Exits with 2)
 ```
 
-In a repository with unwitnessed claims (spec 057), the fresh report adds an `unwitnessed claims` count line beneath the verdict.
+In a repository with unwitnessed claims (spec 050), the fresh report adds an `unwitnessed claims` count line beneath the verdict.

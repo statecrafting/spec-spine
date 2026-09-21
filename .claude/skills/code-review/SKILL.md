@@ -19,7 +19,7 @@ review never dirties the tree; a stale verdict is itself a finding.
 
 ```sh
 git fetch origin
-BASE="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"   # spec 072: resolved, not assumed
+BASE="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"   # spec 093: resolved, not assumed
 git status --short && git diff --stat && git log --oneline -10
 git diff "$BASE"...HEAD --stat        # committed delta
 git diff HEAD --stat                  # uncommitted delta

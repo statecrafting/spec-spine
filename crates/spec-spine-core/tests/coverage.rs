@@ -1,4 +1,4 @@
-//! Ownership-coverage tests (spec 032): the classifier's tiers, the universe
+//! Ownership-coverage tests (spec 029): the classifier's tiers, the universe
 //! the report and the gate share, determinism, the freshness guard, and the
 //! JSON facade. Fixtures are real trees fed through `index`, so the
 //! implementing-path and resolved-unit shapes are the indexer's own.
@@ -343,7 +343,7 @@ fn facade_round_trips_the_report() {
     assert!(json.contains("\"floorOnlyFiles\""), "camelCase wire form");
 }
 
-// ===== spec 039: layout.state_dir leaves the coverage universe =====
+// ===== spec 036: layout.state_dir leaves the coverage universe =====
 
 /// A repo at 100% stays at 100% when state files appear under a declared root,
 /// and the denominator shrinks by exactly the number of files there.
@@ -421,7 +421,7 @@ fn a_declared_state_root_leaves_both_sides_of_the_coverage_ratio() {
     }
 }
 
-/// Spec 039 3.2: files under the root contribute to no content hash, so a tool
+/// Spec 036 3.2: files under the root contribute to no content hash, so a tool
 /// writing its own state can never make the committed ledger stale.
 #[test]
 fn writing_state_does_not_stale_the_committed_index() {
@@ -481,7 +481,7 @@ fn writing_state_does_not_stale_the_committed_index() {
     );
 }
 
-/// Spec 039 3.4: a spec claiming a unit inside the ungoverned root is a
+/// Spec 036 3.4: a spec claiming a unit inside the ungoverned root is a
 /// contradiction, reported at error tier so `lint` exits 1 without
 /// `--fail-on-warn`. Neither the claim nor the bypass wins.
 #[test]
@@ -522,7 +522,7 @@ fn a_claim_inside_the_state_root_is_an_l006_error() {
         "names the unit: {}",
         l006[0].message
     );
-    // `references` is non-owning (spec 034), so citing a file inside the root
+    // `references` is non-owning (spec 031), so citing a file inside the root
     // is not the contradiction this reports.
     assert!(
         !l006[0].message.contains("cited.rs"),
@@ -591,7 +591,7 @@ fn l006_covers_every_ownership_bearing_edge() {
 }
 
 /// No two lint diagnostics share a code. `L-006` was the next free code when
-/// spec 039 was written; the spec makes "the next free code in the band" the
+/// spec 036 was written; the spec makes "the next free code in the band" the
 /// binding rule, so this asserts the namespace rather than trusting a comment.
 #[test]
 fn lint_diagnostic_codes_are_unique() {
@@ -614,11 +614,11 @@ fn lint_diagnostic_codes_are_unique() {
     }
 }
 
-/// Spec 039 3.2: the resolver does not scan the root, so no unit ever resolves
+/// Spec 036 3.2: the resolver does not scan the root, so no unit ever resolves
 /// to a path inside it. Asserted through a symbol unit, which is the only kind
 /// that could reach in without naming the path.
 ///
-/// Gated on `symbol-resolution` (spec 027) because the control half needs the
+/// Gated on `symbol-resolution` (spec 025) because the control half needs the
 /// symbol to resolve when nothing is declared, and feature-off it never does.
 /// The walk itself is covered feature-independently by the `enumerate_source_files`
 /// assertion in `a_declared_state_root_leaves_both_sides_of_the_coverage_ratio`.
@@ -681,7 +681,7 @@ fn the_resolver_does_not_reach_into_the_state_root() {
     }
 }
 
-// ── spec 059: an empty coverage universe is a refusal, not a pass ─────────
+// ── spec 052: an empty coverage universe is a refusal, not a pass ─────────
 
 /// §3.2 + §3.3: no discovered package is an empty universe, and the reason
 /// names the likely cause rather than only the condition.
@@ -762,7 +762,7 @@ fn packages_without_source_files_point_at_resolver_exclusions() {
     );
 }
 
-// ── spec 076 §3.6: coverage can see planned territory ───────────────────────
+// ── spec 063 §3.6: coverage can see planned territory ───────────────────────
 
 /// §3.6: a file nothing claims and a file something has planned are different
 /// states, and the report could not tell them apart. It reads the DECLARED
@@ -815,7 +815,7 @@ fn coverage_reports_planned_territory_separately_from_the_counts() {
     assert!(report.is_fully_claimed());
 }
 
-// ── spec 094: near-miss comment headers ──────────────────────────────────
+// ── spec 095: near-miss comment headers ──────────────────────────────────
 
 /// One floorless crate. `claimed.rs` claims through a header; `low.rs` puts a
 /// resolving header on line 17; `ghost.rs` names a spec not in the corpus;
@@ -922,7 +922,7 @@ fn coverage_reports_each_near_miss_reason() {
     );
     // The payload spelling, since a consumer reads the JSON.
     // Parsed rather than matched as text: the facade's layout is the read
-    // emitter's (spec 093), and the member spelling is what is asserted.
+    // emitter's (spec 094), and the member spelling is what is asserted.
     let json: serde_json::Value =
         serde_json::from_str(&coverage_json("{}", fx.path().to_str().unwrap()).unwrap()).unwrap();
     let reasons: Vec<&str> = json["nearMissHeaders"]
@@ -977,7 +977,7 @@ fn the_report_window_ends_at_line_64() {
     assert!(near_miss_headers_in("f.rs", &both, &ids).is_empty());
 }
 
-// ── spec 097: governed scope is declared, not inferred ───────────────────
+// ── spec 078: governed scope is declared, not inferred ───────────────────
 
 /// One crate (`crate-a`, no floor) claiming `src/lib.rs`, plus files the
 /// inferred universe cannot see: a root `AGENTS.md` (claimed by frontmatter),

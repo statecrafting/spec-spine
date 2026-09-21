@@ -1,0 +1,58 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "060-a-workflow-bump-is-not-a-governed-change"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/tests/ai_review_policy.rs",
+        "source": "multiple"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/ai_review_policy.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/ai_review_policy.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/ai-pr-review.yml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ai-pr-review.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/ci.yml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      }
+    ],
+    "specId": "091-an-unclassified-review-failure-blocks-the-merge",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "d780af3665c4e610dfa5ea11c76568d4de15d4584c6a2d5acc8dd98e3eb87639"
+}

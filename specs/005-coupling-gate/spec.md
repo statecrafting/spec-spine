@@ -31,7 +31,6 @@ summary: >
   waivers and an additive bypass list. Establishes the couple engine and the
   `spec-spine couple` subcommand.
 ---
-
 # 005: The coupling gate
 
 ## 1. Purpose
@@ -164,7 +163,7 @@ either the predecessor or the successor clears the path.
   Git-diff mode only (`--paths-from` carries no content). The freshness
   half of the dependabot story is spec 004 §3.5's governance-projection
   hashing, which keeps a dep-only bump from staling the committed index.
-  **Spec 030 extends this mechanism** to two more ecosystems under the same
+  **Spec 027 extends this mechanism** to two more ecosystems under the same
   opt-in flag: a `Cargo.toml` whose only change is dependency version
   specifiers, and a claimed `.github/workflows/*.yml` whose only change is the
   `@ref` of `uses:` action references. The whole-diff rule is unchanged (every
@@ -207,7 +206,7 @@ owner sets are `BTreeSet`-ordered. No clock, env, or git in core.
 
 ## 4. Out of scope
 
-The indexer and unit resolution (spec 004). The `init` scaffolder (spec 006).
+The indexer and unit resolution (spec 004). The `init` scaffolder (spec 095).
 
 Span-backing source staleness is **in scope** as of Phase 4.5: the index
 content-hash folds every source file behind a resolved `symbol`/`section` span

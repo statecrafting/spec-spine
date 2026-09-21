@@ -31,7 +31,7 @@ pub struct Config {
     pub provenance: ProvenanceConfig,
     pub frontmatter: FrontmatterConfig,
     pub lint: LintConfig,
-    /// `[coverage]`: the declared governed scope (spec 097).
+    /// `[coverage]`: the declared governed scope (spec 078).
     pub coverage: CoverageConfig,
     pub meta: MetaConfig,
 }
@@ -95,7 +95,7 @@ pub struct LayoutConfig {
     pub standalone_rust_workspaces: Vec<String>,
     /// npm packages outside the declared workspaces.
     pub standalone_npm_packages: Vec<String>,
-    /// A declared, ungoverned tool-state root (spec 039). Empty means **no
+    /// A declared, ungoverned tool-state root (spec 036). Empty means **no
     /// state root is declared**, and every behavior keyed on it is inert.
     ///
     /// Declared: the gates recognize it, so `couple` bypasses it, `coverage`
@@ -143,7 +143,7 @@ impl LayoutConfig {
     }
 
     /// Whether `path` (repo-relative, POSIX) lies under the **configured**
-    /// derived root (spec 120 §3.8).
+    /// derived root (spec 092 §3.8).
     ///
     /// The derived tree is compiler output wherever it is configured to sit,
     /// and two places in the engine used to answer that question by spelling
@@ -174,7 +174,7 @@ fn under(root: &str, path: &str) -> bool {
 
 /// A layout root reduced to its comparable form: no trailing slash, and no
 /// leading `./`, so `state`, `state/` and `./state` name one root (the handling
-/// spec 036 established for `specs_dir`).
+/// spec 033 established for `specs_dir`).
 fn trim_root(value: &str) -> &str {
     value
         .trim_end_matches('/')
@@ -191,7 +191,7 @@ pub struct IndexConfig {
     pub extra_hashed_inputs: Vec<String>,
     /// Directory names pruned from symbol/section resolution walks.
     pub resolver_exclusions: Vec<String>,
-    /// `[index.slices]` (spec 012): named glob groups, each emitted as a
+    /// `[index.slices]` (spec 011): named glob groups, each emitted as a
     /// `build.sliceHashes` entry and gated by `index check --slice <name>`.
     /// Names match `[a-z0-9][a-z0-9-]*`; each list is non-empty, with
     /// `extra_hashed_inputs` pattern semantics. Slices are independent of the
@@ -202,7 +202,7 @@ pub struct IndexConfig {
 impl Default for IndexConfig {
     fn default() -> Self {
         IndexConfig {
-            // Spec 069: the trailing `/*` is load-bearing. In the `glob`
+            // Spec 058: the trailing `/*` is load-bearing. In the `glob`
             // crate `dir/**` enumerates directories, and `glob_files` keeps
             // only entries that are files, so the bare form these two carried
             // until 069 matched nothing at all: an adopter on the default
@@ -266,7 +266,7 @@ pub struct CouplingConfig {
     /// version string (a new package, a `scripts` edit, spec-binding
     /// metadata) refuses the auto-waiver, fail-closed. Default `false`.
     pub auto_waive_dependency_only: bool,
-    /// Opt-in ownership ratchet (spec 032). When `true`, a changed source file
+    /// Opt-in ownership ratchet (spec 029). When `true`, a changed source file
     /// inside a discovered package that no spec **specifically** claims is a
     /// `C-002` violation instead of being skipped as "not a coupling concern".
     /// Specific means a resolved ownership-bearing unit (file / section /
@@ -318,7 +318,7 @@ pub struct FrontmatterConfig {
     pub extra_known_keys: Vec<String>,
 }
 
-/// `[lint]`: opt-in conformance conventions (spec 053).
+/// `[lint]`: opt-in conformance conventions (spec 046).
 ///
 /// A table of its own rather than a field on an existing one, because no
 /// existing home is honest: `[frontmatter]` configures the authored grammar and
@@ -329,7 +329,7 @@ pub struct FrontmatterConfig {
 #[serde(default, deny_unknown_fields)]
 pub struct LintConfig {
     /// Emit `L-007` for a `depends_on` entry that does not name a lower
-    /// ordinal than the spec declaring it (spec 053 §3.2).
+    /// ordinal than the spec declaring it (spec 046 §3.2).
     ///
     /// Off by default. The convention is real but not universal: a corpus that
     /// files by domain, or one that renumbered once and lives with the result,
@@ -338,7 +338,7 @@ pub struct LintConfig {
     /// maintaining it, not a verdict on anybody who did not.
     pub require_ordinal_monotonic_depends_on: bool,
     /// Glob patterns naming claimed paths this corpus deliberately leaves out
-    /// of every content hash, suppressing `L-008` for them (spec 057).
+    /// of every content hash, suppressing `L-008` for them (spec 050).
     ///
     /// An unwitnessed claim is a real gap and a legitimate state, and a corpus
     /// that has decided which of its gaps are deliberate should be able to
@@ -352,7 +352,7 @@ pub struct LintConfig {
 }
 
 /// `[coverage]`: paths this corpus governs whatever their extension and
-/// wherever they sit (spec 097).
+/// wherever they sit (spec 078).
 ///
 /// The ownership ratchet's universe is otherwise inferred: a source extension
 /// inside a discovered package. That leaves out governance files at the root,
@@ -367,14 +367,14 @@ pub struct LintConfig {
 #[serde(default, deny_unknown_fields)]
 pub struct CoverageConfig {
     /// Paths that join the coverage universe regardless of extension or package.
-    /// A resolver exclusion and a bypass still win (spec 097 §3.3).
+    /// A resolver exclusion and a bypass still win (spec 078 §3.3).
     pub governed_scope: Vec<String>,
     /// Carved back out of `governed_scope`, applied after it. It removes only
     /// what the scope added, never a file in the universe for another reason.
     pub governed_scope_exclusions: Vec<String>,
 }
 
-/// `[meta]`: facts about the governed repository itself (spec 062).
+/// `[meta]`: facts about the governed repository itself (spec 055).
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct MetaConfig {
@@ -545,7 +545,7 @@ impl Comparator {
 
 impl Config {
     /// Refuse when `[meta] required_version` is present and `running` does not
-    /// satisfy it (spec 062 §3.2).
+    /// satisfy it (spec 055 §3.2).
     ///
     /// [`Error::Config`] (exit 3): a configuration the tool cannot honour, which
     /// is what 3 means. Emphatically not 1 (nothing was validated), not 2
@@ -580,7 +580,7 @@ impl Config {
     }
 }
 
-/// Where a bypass entry came from (spec 054 §3.2).
+/// Where a bypass entry came from (spec 047 §3.2).
 ///
 /// Attribution is the load-bearing part of `config show`, and the reason it is
 /// not a TOML echo. A consumer answers two different questions from the same
@@ -608,7 +608,7 @@ impl BypassSource {
     }
 }
 
-/// One entry of the merged bypass list the gate matches against (spec 054 §3.2).
+/// One entry of the merged bypass list the gate matches against (spec 047 §3.2).
 ///
 /// An entry declared in both lists appears **once**, attributed to both. That is
 /// legal and harmless, since the match is an `or`; reporting it twice would
@@ -621,7 +621,7 @@ pub struct BypassEntry {
 }
 
 /// `[coupling]` as the gate resolves it: the adopter's keys, plus the bypass
-/// list merged with the built-in floor and attributed (spec 054 §3.2).
+/// list merged with the built-in floor and attributed (spec 047 §3.2).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct EffectiveCouplingConfig {
     pub waiver_keyword: String,
@@ -635,7 +635,7 @@ pub struct EffectiveCouplingConfig {
 }
 
 /// The configuration the verbs in this process would consume, every default
-/// resolved (spec 054 §3.4).
+/// resolved (spec 047 §3.4).
 ///
 /// No field is omitted for being defaulted. Omitting them would rebuild the
 /// problem this exists to solve: a consumer would see a short document and have
@@ -669,7 +669,7 @@ pub struct EffectiveConfig {
     pub provenance: ProvenanceConfig,
     pub frontmatter: FrontmatterConfig,
     pub lint: LintConfig,
-    /// `[coverage]`: the declared governed scope (spec 097).
+    /// `[coverage]`: the declared governed scope (spec 078).
     pub coverage: CoverageConfig,
     pub meta: MetaConfig,
 }
@@ -716,13 +716,13 @@ pub fn load_config(toml_src: &str) -> Result<Config> {
 }
 
 /// `layout.state_dir` may not overlap `specs_dir` or `derived_dir` in either
-/// direction (spec 039 3.2).
+/// direction (spec 036 3.2).
 ///
 /// The comparison is against the **resolved** values of those two keys, never
 /// against their defaults. Both are configurable, so a check written against the
 /// literal `specs` would clear a repo with `specs_dir = "corpus"` and
 /// `state_dir = "corpus/state"` and quietly make every `spec.md` under it
-/// ungoverned. This is the defect spec 036 fixed in `couple.rs`, and a
+/// ungoverned. This is the defect spec 033 fixed in `couple.rs`, and a
 /// validation rule is exactly where a default is easiest to hardcode.
 ///
 /// The test is overlap, not equality, because the dangerous values are the ones
@@ -763,7 +763,7 @@ fn validate_state_dir(config: &Config) -> Result<()> {
     // The repository root contains every governed root, so it fails the overlap
     // test below only if that test knows `.` is an ancestor of everything, which
     // a string comparison does not. Refused by name instead: this is the value
-    // spec 039 3.2 calls the worst outcome, since every gate would keep exiting
+    // spec 036 3.2 calls the worst outcome, since every gate would keep exiting
     // 0 while adjudicating nothing at all.
     let state = trim_root(raw);
     if state.is_empty() || state == "." {
@@ -777,7 +777,7 @@ fn validate_state_dir(config: &Config) -> Result<()> {
     // roots, never against their defaults. Both are configurable, so a check
     // written against the literal `specs` would clear a repo with
     // `specs_dir = "corpus"` and `state_dir = "corpus/state"` and quietly make
-    // every `spec.md` under it ungoverned. This is the defect spec 036 fixed in
+    // every `spec.md` under it ungoverned. This is the defect spec 033 fixed in
     // `couple.rs`, and a validation rule is exactly where a default is easiest
     // to hardcode.
     //
@@ -806,7 +806,7 @@ fn validate_state_dir(config: &Config) -> Result<()> {
     Ok(())
 }
 
-/// `[index.slices]` grammar (spec 012 §3.1): names match
+/// `[index.slices]` grammar (spec 011 §3.1): names match
 /// `[a-z0-9][a-z0-9-]*`, glob lists are non-empty.
 fn validate_slices(config: &Config) -> Result<()> {
     for (name, globs) in &config.index.slices {

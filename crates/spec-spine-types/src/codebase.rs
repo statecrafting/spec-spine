@@ -33,7 +33,7 @@ pub struct IndexBuild {
     pub repo_root: String,
     /// SHA-256 over the normalized, path-sorted manifest + spec + extra inputs.
     pub content_hash: String,
-    /// Per-slice content hashes (spec 012): one entry per `[index.slices]`
+    /// Per-slice content hashes (spec 011): one entry per `[index.slices]`
     /// key, same normalization as `content_hash`. Absent when no slices are
     /// configured; loaders tolerate absence (additive MINOR).
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
@@ -195,7 +195,7 @@ impl Diagnostics {
     }
 }
 
-// ===== sharded committed form (spec 024) =====
+// ===== sharded committed form (spec 022) =====
 //
 // The committed index is stored as one file per authority unit so two PRs that
 // touch different specs/packages write disjoint files and never conflict
@@ -205,7 +205,7 @@ impl Diagnostics {
 // functions of the shards, recomputed on read, never committed).
 
 /// One spec's traceability shard: `<derived>/codebase-index/by-spec/<id>.json`.
-/// A PR confined to spec X's inputs rewrites only X's shard (spec 024 FR-002).
+/// A PR confined to spec X's inputs rewrites only X's shard (spec 022 FR-002).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct IndexSpecShard {

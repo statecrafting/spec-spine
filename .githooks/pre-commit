@@ -1,16 +1,16 @@
 #!/usr/bin/env sh
 # Governed in the spec-spine repository by
-# specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md. Provenance
+# specs/094-one-gate-and-the-boundaries-it-holds/spec.md. Provenance
 # only, never a claim header: the claim syntax would name a spec id that
 # exists in no adopter's corpus, and would shadow one the adopter adds below
-# it (spec 115).
+# it (spec 095).
 #
-# The commit boundary (spec 090). Every other hook the kit ships is bound to a
+# The commit boundary (spec 094). Every other hook the kit ships is bound to a
 # Claude Code tool name, so it fires only when the session took that route. A
 # commit is one command whatever wrote the bytes, which makes this the only
 # guard in the kit that is a property of the change rather than of the actor.
 #
-# It REFUSES and never repairs (spec 046 3.1, spec 090 3.1). Regenerating and
+# It REFUSES and never repairs (spec 093 3.1, spec 094 3.1). Regenerating and
 # staging here would collapse "was never stale" and "was stale until the hook
 # fixed it" into the same commit, and telling those apart is the whole content
 # of `check`. The remedy is `make refresh`, run by the committer.
@@ -23,7 +23,7 @@ set -eu
 root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 [ -d "$root/specs" ] || exit 0
 
-# Spec 051's resolution order: the explicit override, then the binary this
+# Spec 093's resolution order: the explicit override, then the binary this
 # repository builds, then PATH. A repository that builds its own must be
 # governed by the one it builds.
 spec_spine_bin() {
@@ -34,7 +34,7 @@ spec_spine_bin() {
 
 sc=$(spec_spine_bin "$root") || sc=''
 if [ -z "$sc" ]; then
-  echo '[pre-commit] spec-spine absent, freshness check skipped (spec 046 3.5)'
+  echo '[pre-commit] spec-spine absent, freshness check skipped (spec 093 3.5)'
   exit 0
 fi
 
@@ -45,7 +45,7 @@ refuse() {
   exit 1
 }
 
-# 1. Freshness. `check` reads both committed trees and never writes (spec 075),
+# 1. Freshness. `check` reads both committed trees and never writes (spec 062),
 # which is the property that lets a hook call it at all.
 code=0
 out=$("$sc" --repo "$root" check 2>&1) || code=$?

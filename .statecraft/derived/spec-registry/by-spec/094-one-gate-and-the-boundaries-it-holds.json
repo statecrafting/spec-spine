@@ -1,0 +1,64 @@
+{
+  "record": {
+    "created": "2026-09-20",
+    "dependsOn": [
+      "005-coupling-gate",
+      "022-index-sharding",
+      "047-effective-config-is-a-governed-read",
+      "052-read-verbs-on-a-code-free-corpus",
+      "092-the-engine-ships-governance-not-an-environment"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "Makefile"
+      },
+      {
+        "kind": "directory",
+        "path": ".githooks/"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/ci.yml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/gate.rs"
+      }
+    ],
+    "id": "094-one-gate-and-the-boundaries-it-holds",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "high",
+    "sectionHeadings": [
+      "093: One gate, and the boundaries it holds",
+      "1. Purpose",
+      "1.1 One chain, five documents, and a copy in each",
+      "1.2 Three boundaries, one definition",
+      "1.3 The five this replaces",
+      "2. Territory",
+      "3. Behavior: the one definition",
+      "3.1 The target",
+      "3.2 The language targets are guarded on a manifest, and the guard is an `if`",
+      "3.3 The ownership assertion is conditional, and every skip is announced",
+      "3.4 The coupling step has explicit controls",
+      "3.5 The gate holds on a corpus with no code",
+      "4. Behavior: the boundaries",
+      "4.1 The pull-request and push legs call the target",
+      "4.2 The commit boundary refuses; it does not repair",
+      "4.3 The merge boundary regenerates rather than marking",
+      "5. The tests",
+      "6. What the five said that is not carried here",
+      "7. Out of scope",
+      "8. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/094-one-gate-and-the-boundaries-it-holds/spec.md",
+    "status": "draft",
+    "summary": "The governed loop has one definition and three boundaries where it is enforced: the commit, the pull request, and the merge. Five specs described that, each written against a copy the repository distributed. 020 put the merge driver in `.githooks/`; 064 wrote the composite gate as `kit/Makefile` and the workflow as `kit/govern.yml`; 089 fixed the guard that conflated a skip with a failure; 090 added the commit-boundary hook; 114 gave the target its controls and made the workflow call it instead of restating it. Spec 092 removed the copies and moved the gate to the repository root. This spec is the gate, in one place: the target and its controls, the two CI legs that call it, the commit-boundary hook that refuses without repairing, and the merge driver that resolves a same-shard conflict by regenerating rather than by leaving markers.\n",
+    "title": "One gate, and the boundaries it holds"
+  },
+  "shardHash": "8006cab0ad9ebb28eb445f4da623c7a9c16af535bc726b5da624eac7d7bd9c31",
+  "specVersion": "1.3.0"
+}

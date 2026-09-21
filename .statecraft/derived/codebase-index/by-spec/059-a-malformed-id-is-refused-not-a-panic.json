@@ -1,0 +1,63 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "001-compile-registry",
+      "046-depends-on-ordinal-monotonicity"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/src/compile.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/compile.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/compile.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/compile.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/compile.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/00-architecture.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-architecture.md"
+        }
+      }
+    ],
+    "specId": "059-a-malformed-id-is-refused-not-a-panic",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "8e5cd537c044caf24a023d3211adea954aadbc7418720669f89531036ca5a884"
+}

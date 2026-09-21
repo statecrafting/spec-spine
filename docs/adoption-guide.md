@@ -147,7 +147,7 @@ git add .derived/           # committed so the staleness + coupling checks can c
 
 > **Why commit `.derived/`?** Determinism makes the committed registry/index a
 > reliable baseline. Both artifacts are stored **sharded** (one file per
-> authority unit; spec 024), so two PRs touching different specs/packages write
+> authority unit; spec 022), so two PRs touching different specs/packages write
 > disjoint files and never conflict. The staleness check (`spec-spine index
 > check`) recomputes each shard's hash (and the shard set) and compares it to the
 > committed shards; the coupling gate joins the committed registry + index
@@ -201,7 +201,7 @@ forms and run plain `spec-spine compile` and `spec-spine index` to build the
 artifacts in-job: with nothing committed to compare against, the freshness gates
 would report every shard missing and fail permanently.
 
-**Refusing warnings (`--fail-on-warn`, spec 077).** `compile` emits one
+**Refusing warnings (`--fail-on-warn`, spec 064).** `compile` emits one
 warning-tier code, `V-010`, for a `depends_on` naming a spec that does not
 exist. The tier is deliberate: a corpus that files specs forward must be able to
 name a dependency filed after the spec that names it, so escalation is the
@@ -232,7 +232,7 @@ The waiver is global to the run and downgrades violations to warnings.
 ### Coverage: "is everything specified?"
 
 The gate above refuses drift in code a spec claims; it says nothing about code
-no spec claims. `spec-spine index coverage` (spec 032) answers that, per
+no spec claims. `spec-spine index coverage` (spec 029) answers that, per
 source file, against the committed index:
 
 ```sh
@@ -272,7 +272,7 @@ divergence observed across the reference repos. Every sub-table is
 | `domains.allowed` | closed enum for the optional `domain` field; **empty ⇒ disabled** (free-text) | `[]` |
 | `kind.allowed` | closed enum for the optional `kind` field; symmetric with `domains` | `[]` |
 | `layout.specs_dir` / `derived_dir` / `standards_dir` / `schemas_dir` | path conventions, never hardcoded | `specs` / `.derived` / `standards/spec` / `standards/schemas` |
-| `layout.state_dir` | one repo-relative directory for the state of tools built around spec-spine (spec 039); bypassed by `couple`, excluded from `coverage`, never resolved or hashed, never read or written by spec-spine; must not overlap `specs_dir` / `derived_dir` | `""` (nothing declared) |
+| `layout.state_dir` | one repo-relative directory for the state of tools built around spec-spine (spec 036); bypassed by `couple`, excluded from `coverage`, never resolved or hashed, never read or written by spec-spine; must not overlap `specs_dir` / `derived_dir` | `""` (nothing declared) |
 | `layout.cargo_workspace` | root Cargo workspace manifest | `Cargo.toml` |
 | `layout.npm_workspaces` | manifests that *declare* npm/pnpm workspace members | `["package.json", "pnpm-workspace.yaml"]` |
 | `layout.standalone_rust_workspaces` / `standalone_npm_packages` | crates/packages outside the root workspace | `[]` |
@@ -282,8 +282,8 @@ divergence observed across the reference repos. Every sub-table is
 | `branding.compiler_id` / `indexer_id` | ids stamped in emitted `build` metadata | `"spec-spine"` |
 | `coupling.bypass_prefixes` | **additions** to the built-in bypass floor (additive; cannot remove a floor entry) | `[]` |
 | `coupling.waiver_keyword` | the PR-body waiver keyword | `"Spec-Drift-Waiver:"` |
-| `coupling.require_ownership` | the ownership ratchet (spec 032): a changed source file inside a package that no spec **specifically** claims (a resolved unit or a `// Spec:` header; a manifest floor alone does not count) is a `C-002` violation. Read `spec-spine index coverage` first; turn on to stop new debt | `false` |
-| `coupling.auto_waive_dependency_only` | when `true` and no PR-body waiver is present, mechanically self-waives PRs where every non-bypassed changed path is a recognized dependency manifest with only version-pin changes: a `package.json` dependency table, a `Cargo.toml` dependency version, or a claimed `.github/workflows/*.yml` `uses:` action ref (the dependabot-class path); fail-closed on anything more (spec 005 §3.5, extended by spec 030) | `false` |
+| `coupling.require_ownership` | the ownership ratchet (spec 029): a changed source file inside a package that no spec **specifically** claims (a resolved unit or a `// Spec:` header; a manifest floor alone does not count) is a `C-002` violation. Read `spec-spine index coverage` first; turn on to stop new debt | `false` |
+| `coupling.auto_waive_dependency_only` | when `true` and no PR-body waiver is present, mechanically self-waives PRs where every non-bypassed changed path is a recognized dependency manifest with only version-pin changes: a `package.json` dependency table, a `Cargo.toml` dependency version, or a claimed `.github/workflows/*.yml` `uses:` action ref (the dependabot-class path); fail-closed on anything more (spec 005 §3.5, extended by spec 027) | `false` |
 | `provenance.uri_schemes` | open kind→scheme map for provenance URIs | `{ knowledge = "knowledge://", code-fingerprint = "fingerprint://" }` |
 | `frontmatter.extra_known_keys` | recognized frontmatter keys added without forking the types crate | `[]` |
 
@@ -369,10 +369,10 @@ the other is how a governance file ends up outside both.
 > **Watch the glob form** in `extra_hashed_inputs`. `dir/**` matches
 > **directories**, so it hashes no files; you want `dir/**/*`. This repository
 > carried `["standards/**", ".github/workflows/**"]` for a long time, matching
-> nothing, until spec 057's predicate found it. So did the shipped default
-> behind it, until spec 069.
+> nothing, until spec 050's predicate found it. So did the shipped default
+> behind it, until spec 058.
 
-> **Upgrading across spec 069.** `[index] extra_hashed_inputs` shipped a default
+> **Upgrading across spec 058.** `[index] extra_hashed_inputs` shipped a default
 > that matched no files. It is fixed. If you did not override the key, your next
 > `spec-spine index` will rewrite every shard once, because the standards tree
 > and the workflow directory are entering the content hash for the first time.
@@ -380,7 +380,7 @@ the other is how a governance file ends up outside both.
 > that was silently outside the ledger is now inside it.
 
 > **If your own `spec-spine.toml` carries `standards/**` or
-> `.github/workflows/**`** (spec 074 3.9), those entries match **no files**, and
+> `.github/workflows/**`** (spec 061 3.9), those entries match **no files**, and
 > upgrading does not change them: the value is yours, not the default, and spec
 > 069 only fixed the default. **The absence of a restale on upgrade is therefore
 > not evidence that you were unaffected.** It is the opposite: your patterns
@@ -389,16 +389,16 @@ the other is how a governance file ends up outside both.
 > `spec-spine index` once, and commit the result.
 >
 > Every repository whose config was generated before v0.16.0 is in this cohort,
-> because the scaffolded `spec-spine.toml` carried the default's value. Since spec 074,
+> because the scaffolded `spec-spine.toml` carried the default's value. Since spec 061,
 > `spec-spine lint` names the pattern for you: `L-010` refuses any
 > `extra_hashed_inputs` entry ending in `/**`.
 
-> **Upgrading across spec 075.** `spec-spine check` is new and additive: it runs both freshness reads and
+> **Upgrading across spec 062.** `spec-spine check` is new and additive: it runs both freshness reads and
 > reports each tree separately, so the protocol asks one question with one verb.
 > `compile --check` and `index check` are unchanged, keep their flags and their
 > contracts, and remain the right call when you regenerated only one tree.
 
-> **Upgrading across spec 073.** A GitHub Actions workflow now folds into the
+> **Upgrading across spec 060.** A GitHub Actions workflow now folds into the
 > content hash as its **governance projection**: the parsed document with the
 > pinned ref of every `uses:` reference removed and the action path kept. A
 > Dependabot action bump therefore stales nothing, while a changed action, an
@@ -408,7 +408,7 @@ the other is how a governance file ends up outside both.
 > did before it. Commit the result. No schema version changes: only a hash
 > value moves.
 >
-> If you seal your ledger (spec 023), a **corpus attestation created before
+> If you seal your ledger (spec 021), a **corpus attestation created before
 > this change** was computed over hashes from the previous rule. Re-attest
 > after re-indexing. `verify-attestation --recompute` compares the tool version
 > before it compares content, so a pre-073 attestation reports

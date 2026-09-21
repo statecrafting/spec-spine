@@ -31,6 +31,6 @@
     "summary": "The conformance lint: corpus well-formedness checks beyond compile's structural validation, emitted as L-codes with error/warning/info tiers. Error-tier always fails; warning-tier fails under --fail-on-warn; info-tier under --fail-on-info. Establishes the lint engine and the `spec-spine lint` CLI subcommand.\n",
     "title": "Corpus conformance lint"
   },
-  "shardHash": "be02284a66e38f359de7ac79a51d03d21ed5a9f66eb6fbb933dd9d66129f3a26",
+  "shardHash": "47ee7fb563e0969b59bd74e4a3d351440552fe475a0e9f70bbf05416bc1c9e04",
   "specVersion": "1.3.0"
 }

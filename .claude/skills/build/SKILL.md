@@ -128,7 +128,7 @@ criteria one by one and cite the evidence for each.
   `spec-spine compile && spec-spine index`, the gate, and commit
   (`chore(<NNN>): mark <spec-id> complete`, or fold the flip into the
   final `feat(<NNN>)` commit). The gate then holds the spec to every unit
-  it claims (spec 041).
+  it claims (spec 038).
 - One cannot be satisfied here (external state, a missing sibling): keep
   `implementation: in-progress`, add a dated status note to the spec
   saying exactly what remains, recompile, commit, and report it.

@@ -1,4 +1,4 @@
-//! Stdout writes that survive a closed reader (spec 035).
+//! Stdout writes that survive a closed reader (spec 032).
 //!
 //! `println!` unwraps its write, so a reader that stops early made the process
 //! panic: `spec-spine registry list --json | head` exited **101**, outside the
@@ -58,7 +58,7 @@ pub(crate) fn block(args: Arguments<'_>) {
     finish(write!(handle, "{args}").and_then(|()| handle.flush()));
 }
 
-/// Write a machine-readable verdict envelope (spec 037) to stdout.
+/// Write a machine-readable verdict envelope (spec 034) to stdout.
 ///
 /// Canonical JSON already ends in a newline, so this goes through [`block`]:
 /// the envelope survives a reader that closes early exactly as every other

@@ -86,7 +86,7 @@ pub struct SpecRecord {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub refines: Vec<RefineItem>,
     /// Full supersession serializes as a bare predecessor id; a partial item
-    /// serializes as an object (spec 019).
+    /// serializes as an object (spec 018).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub supersedes: Vec<SupersedeItem>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -105,7 +105,7 @@ pub struct SpecRecord {
     pub retirement_rationale: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub amends_sections: Vec<String>,
-    /// Spec 103 3.1: amended specs whose `## Verification` block this spec's
+    /// Spec 082 3.1: amended specs whose `## Verification` block this spec's
     /// block replaces. Additive, so a MINOR of `REGISTRY_SCHEMA_VERSION`.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub amends_verification: Vec<String>,
@@ -119,13 +119,13 @@ pub struct SpecRecord {
     pub origin: Option<Origin>,
 
     // --- overflow ---
-    /// Declared keys carry any JSON value (spec 013); undeclared keys are
+    /// Declared keys carry any JSON value (spec 012); undeclared keys are
     /// scalars or string arrays.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub extra_frontmatter: BTreeMap<String, serde_json::Value>,
 }
 
-// ===== sharded committed form (spec 024) =====
+// ===== sharded committed form (spec 022) =====
 //
 // The committed registry is stored as one file per spec so two PRs that add or
 // edit different specs write disjoint files and never conflict textually on a
@@ -136,7 +136,7 @@ pub struct SpecRecord {
 // are pure functions of the assembled record set), never committed.
 
 /// One spec's registry shard: `<derived>/spec-registry/by-spec/<id>.json`.
-/// A PR that adds or edits spec X rewrites only X's shard (spec 024 FR-002).
+/// A PR that adds or edits spec X rewrites only X's shard (spec 022 FR-002).
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RegistrySpecShard {
@@ -190,11 +190,11 @@ pub struct Violation {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
     /// The spec ids that own `path`, sorted, for the codes where "owner" is a
-    /// fact the producer computed (spec 052: `C-001` alone). Empty everywhere
+    /// fact the producer computed (spec 045: `C-001` alone). Empty everywhere
     /// else, and omitted from serialization when empty, so every other
     /// producer's JSON is byte-identical to what it emitted before this field
     /// existed. It carries as data the owner set `message` renders into
-    /// English, so a consumer of the spec 037 `--json` envelope reads the
+    /// English, so a consumer of the spec 034 `--json` envelope reads the
     /// owners instead of regexing a sentence.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub owners: Vec<String>,

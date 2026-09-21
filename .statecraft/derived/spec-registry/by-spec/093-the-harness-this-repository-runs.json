@@ -1,0 +1,90 @@
+{
+  "record": {
+    "created": "2026-09-20",
+    "dependsOn": [
+      "005-coupling-gate",
+      "043-verify-declared-acceptance",
+      "092-the-engine-ships-governance-not-an-environment"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "AGENTS.md"
+      },
+      {
+        "kind": "directory",
+        "path": ".claude/skills/"
+      },
+      {
+        "kind": "directory",
+        "path": ".claude/agents/"
+      },
+      {
+        "kind": "directory",
+        "path": ".claude/rules/"
+      },
+      {
+        "kind": "file",
+        "path": ".claude/settings.json"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/harness_hooks.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/harness_skills.rs"
+      }
+    ],
+    "id": "093-the-harness-this-repository-runs",
+    "implementation": "pending",
+    "kind": "harness",
+    "owner": "The spec-spine Authors",
+    "risk": "high",
+    "sectionHeadings": [
+      "092: The harness this repository runs",
+      "1. Purpose",
+      "1.1 One tree, sixteen owners",
+      "1.2 What this spec is",
+      "1.3 The sixteen this replaces",
+      "2. Territory",
+      "3. Behavior: the hooks",
+      "3.1 Hooks read; they do not repair",
+      "3.2 The one sanctioned write",
+      "3.3 A hook acts on the repository the action targets",
+      "3.4 A hook that skips says so",
+      "3.5 The push gate: the match is anchored on the invocation",
+      "3.6 The push gate: the protected branch is resolved, never assumed",
+      "3.7 The push gate: only what would update that branch",
+      "3.8 The PR gate reads `check`'s exit code",
+      "3.9 Exit 2 is the one ambiguous code, so it is probed",
+      "3.10 The session hooks report the verdict, not a guess",
+      "3.11 The destructive-command refusals",
+      "3.12 The hooks resolve the binary the project declares",
+      "4. Behavior: the skills, agents and rules",
+      "4.1 Ten skills",
+      "4.2 The frontmatter contract",
+      "4.3 Repository-invariant, with a project layer",
+      "4.4 A read skill reads",
+      "4.5 One gate list, and a test that pins it",
+      "4.6 `verify` wraps the verb",
+      "4.7 `next` and `build` apply the lifecycle rules",
+      "4.8 `shepherd` classifies before it edits",
+      "4.9 `shepherd` reads every reviewer, on every path",
+      "4.10 The four rules",
+      "4.11 The four agents",
+      "4.12 The protocol has an owner",
+      "5. The tests",
+      "6. What the sixteen said that is not carried here",
+      "7. Out of scope",
+      "8. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/093-the-harness-this-repository-runs/spec.md",
+    "status": "draft",
+    "summary": "Sixteen specs governed one tree. `.claude/` is four hooks, ten skills, four agents and four rules, and the requirements on them were spread over specs 093, 047, 048, 051, 063, 068, 071, 072, 078, 080, 081, 082, 099, 104, 110 and 116, each written when that tree was a product this repository distributed. Spec 092 removed the distribution; what is left is one tree that one repository reads, described in sixteen places, most of them half about copies that no longer exist. This spec is that description, in one place: what the hooks may do, what the push gate refuses, how every hook reads a verdict, what the ten skills are and what each must contain, what the four rules say, and who owns the protocol. Every surviving requirement of the seventeen is carried here; what is dropped is named in §6 with the reason, and in every case the reason is that its subject was a copy spec 092 deleted.\n",
+    "title": "The harness this repository runs"
+  },
+  "shardHash": "6ad71efc819c361aff277bbefe7e870ace01fe4f8705eb1b6233cd182e35f2e6",
+  "specVersion": "1.3.0"
+}
