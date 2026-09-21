@@ -1,4 +1,4 @@
-//! Attest (spec 023): determinism (AC-1), recompute match/mismatch (AC-2), the
+//! Attest (spec 021): determinism (AC-1), recompute match/mismatch (AC-2), the
 //! coupling scope and its independently-checkable verdict (AC-3), and
 //! version-aware verification (AC-5). The signature round-trip (AC-4) lives in
 //! the CLI crate's `seal.rs` unit tests: the core is key-free.
@@ -98,7 +98,7 @@ fn ac5_a_different_tool_version_is_a_named_version_mismatch() {
 fn ac3_with_coupling_verdict_is_independently_checkable() {
     let tmp = tempfile::tempdir().unwrap();
     // A spec that claims a code unit via a file establishes edge. It must be
-    // settled (approved + complete): under spec 025 a missing owning unit only
+    // settled (approved + complete): under spec 023 a missing owning unit only
     // blocks the coupling verdict for a settled spec; a draft/pending spec's
     // unbuilt unit is a non-blocking W-001 (legitimate in-flight work).
     let spec_dir = tmp.path().join("specs").join("001-a");
@@ -147,7 +147,7 @@ fn ac3_with_coupling_verdict_is_independently_checkable() {
     assert!(drifted.attestation.verdicts.lint.ok);
 }
 
-// ===== spec 042: per-spec attestation =====
+// ===== spec 039: per-spec attestation =====
 
 use spec_spine_core::{attest_spec, verify_spec_recompute};
 
@@ -241,10 +241,10 @@ fn lifecycle_distinguishes_an_absent_key_from_n_a() {
         Some("n-a")
     );
 
-    // Spec 015 accepts `n/a` on the way in and normalizes it, so the emitted
+    // Spec 014 accepts `n/a` on the way in and normalizes it, so the emitted
     // value is the canonical `n-a` in both dialects. Everything except
     // `specSourceHash` matches; that field hashes the spec's own bytes, which
-    // genuinely differ, so it cannot and must not match (spec 042 D-1).
+    // genuinely differ, so it cannot and must not match (spec 039 D-1).
     let slash = spec_fixture(&format!("implementation: n/a\n{OWNED}"));
     let c = attest_spec(&cfg, slash.path(), "001-a").unwrap();
     assert_eq!(
@@ -266,7 +266,7 @@ fn lifecycle_distinguishes_an_absent_key_from_n_a() {
     );
 }
 
-/// A `references` unit appears in no `units` entry: spec 034 settled that a
+/// A `references` unit appears in no `units` entry: spec 031 settled that a
 /// cited file is not a claimed one, and an attestation of territory must not
 /// assert authority the gate does not.
 #[test]
@@ -383,22 +383,22 @@ fn a_location_that_resolves_but_cannot_be_read_is_an_error() {
     assert_eq!(gone.units[0].content_hash, None, "no hash of nothing");
 
     // A directory at the claimed path used to be this test's "unreadable" case
-    // and asserted exit 3. Spec 083 3.1 changes that deliberately: a resolved
+    // and asserted exit 3. Spec 066 3.1 changes that deliberately: a resolved
     // location that is a directory is walked, not opened, because most of this
     // corpus claims subtrees exactly that way. The error path below is what
     // survives of the original assertion.
     fs::create_dir(tmp.path().join("code.txt")).unwrap();
     let walked = attest_spec(&cfg, tmp.path(), "001-a")
-        .expect("spec 083 3.1: a directory location is walked, never opened")
+        .expect("spec 066 3.1: a directory location is walked, never opened")
         .attestation;
     assert!(walked.verdicts.resolution.ok);
     assert!(
         walked.units[0].content_hash.is_some(),
-        "an empty claimed directory still hashes (spec 083 3.3)"
+        "an empty claimed directory still hashes (spec 066 3.3)"
     );
 
     // Resolvable but genuinely unreadable: the read is what fails, and it must
-    // still propagate rather than being skipped (spec 042 3.1, spec 083 3.1).
+    // still propagate rather than being skipped (spec 039 3.1, spec 066 3.1).
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
@@ -515,7 +515,7 @@ fn lint_and_compile_verdicts_go_false_for_the_attested_spec() {
     assert_eq!(broken.spec_id, "999-x");
 }
 
-// ===== spec 083: an attestation covers the territory it claims =====
+// ===== spec 066: an attestation covers the territory it claims =====
 //
 // Every guard 083 3.5 names. The first is the one the corpus actually
 // exercises: thirteen of the fourteen specs the defect reached claim a subtree
@@ -798,7 +798,7 @@ fn spec083_a_regular_file_unit_does_not_take_the_directory_path() {
     );
 }
 
-// ===== spec 085: a verifier checks the bytes it was given =====
+// ===== spec 068: a verifier checks the bytes it was given =====
 
 use spec_spine_core::{
     NON_CANONICAL_BYTES, check_attestation_major, payload_schema_version, verify_attestation_json,

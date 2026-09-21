@@ -94,7 +94,7 @@ pub fn list<'a>(registry: &'a Registry, filter: &ListFilter) -> Vec<&'a SpecReco
         .collect()
 }
 
-/// The `--ids-only` projection of [`list`] (spec 010 §3.1): the same filter and
+/// The `--ids-only` projection of [`list`] (spec 009 §3.1): the same filter and
 /// order, reduced to bare spec ids.
 pub fn list_ids<'a>(registry: &'a Registry, filter: &ListFilter) -> Vec<&'a str> {
     list(registry, filter)
@@ -105,7 +105,7 @@ pub fn list_ids<'a>(registry: &'a Registry, filter: &ListFilter) -> Vec<&'a str>
 
 /// One spec by id, or [`Error::NotFound`].
 pub fn show<'a>(registry: &'a Registry, id: &str) -> Result<&'a SpecRecord, Error> {
-    // Spec 084 3.1: the short form resolves here as it does at every other
+    // Spec 067 3.1: the short form resolves here as it does at every other
     // argument, against the set this verb already reads. The registry answers
     // from the ledger and `query_json` is handed registry text and nothing
     // else, so no other set is available to it (084 3.2, D-3).
@@ -128,7 +128,7 @@ pub struct StatusReport {
     pub retired: usize,
 }
 
-/// The `--nonzero-only` projection of a [`StatusReport`] (spec 010 §3.2):
+/// The `--nonzero-only` projection of a [`StatusReport`] (spec 009 §3.2):
 /// zero-count statuses are omitted from serialization; `total` always
 /// serializes and still reflects the whole corpus.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -198,7 +198,7 @@ pub struct RelationshipView {
 /// Build the relationship view for `id`, or [`Error::NotFound`].
 pub fn relationships(registry: &Registry, id: &str) -> Result<RelationshipView, Error> {
     let spec = show(registry, id)?;
-    // Spec 084 3.3: every value derived from the id after resolution comes from
+    // Spec 067 3.3: every value derived from the id after resolution comes from
     // the **resolved** id. `show` already resolved; comparing the raw argument
     // here is the partial fix 084 1.3 describes, which prints a spec's outgoing
     // edges and an empty `depended_on_by` at exit 0. A wrong answer at exit 0
@@ -212,7 +212,7 @@ pub fn relationships(registry: &Registry, id: &str) -> Result<RelationshipView, 
             .map(|other| other.id.clone())
             .collect()
     };
-    // `supersedes` carries structured items (spec 019); the relationship view
+    // `supersedes` carries structured items (spec 018); the relationship view
     // is id-only, so project each item to its predecessor id.
     let superseded_by: Vec<String> = registry
         .specs
@@ -235,7 +235,7 @@ pub fn relationships(registry: &Registry, id: &str) -> Result<RelationshipView, 
     })
 }
 
-// ===== spec 038: `registry plan` =====
+// ===== spec 035: `registry plan` =====
 
 /// One unfinished dependency, with the state that makes it a blocker.
 ///
@@ -257,13 +257,13 @@ pub struct Blocker {
 pub struct BlockedSpec {
     pub id: String,
     /// The spec's title, joined from the same registry the plan was computed
-    /// from (spec 060 §3.1). Additive on this object; a consumer that ignored
+    /// from (spec 053 §3.1). Additive on this object; a consumer that ignored
     /// it before still parses.
     pub title: String,
     pub blocked_by: Vec<Blocker>,
 }
 
-/// A schedulable spec on the ready set (spec 060 §3.3).
+/// A schedulable spec on the ready set (spec 053 §3.3).
 ///
 /// Ready entries were bare id strings, so this is a **breaking** shape change,
 /// and the right one: a parallel `readyTitles` array to be zipped by position
@@ -282,7 +282,7 @@ pub struct ReadySpec {
 /// **Both sets are ordered, and both orderings are part of the contract.**
 /// `ready` is topological over `depends_on` with ties by ascending id;
 /// `blocked` is ascending id, and each entry's `blocked_by` follows that spec's
-/// own authored `depends_on` order. Spec 038 3.2 requires the report to be a
+/// own authored `depends_on` order. Spec 035 3.2 requires the report to be a
 /// pure function of the corpus rather than of a hash-map iteration order, and
 /// that covers the whole document: a `--json` consumer diffing `blocked` across
 /// runs is relying on a stated guarantee, not on the `BTreeMap` that happens to
@@ -298,10 +298,10 @@ pub struct Plan {
     ///
     /// Reported because otherwise the two counts do not add up to the corpus
     /// and a reader cannot tell whether the missing specs were excluded or
-    /// lost (spec 060 §3.1).
+    /// lost (spec 053 §3.1).
     pub not_schedulable: usize,
     /// Territory specs have declared they intend to own and have not written
-    /// yet (spec 076 §3.6).
+    /// yet (spec 063 §3.6).
     ///
     /// Reported as a **declared state** rather than derived from a suppressed
     /// diagnostic: §3.2 removes the `W-001` a planned unit used to produce, so
@@ -313,7 +313,7 @@ pub struct Plan {
     /// what it did before.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub planned: Vec<PlannedTerritory>,
-    /// Pairs on the ready set that claim the same territory (spec 091 §3.3).
+    /// Pairs on the ready set that claim the same territory (spec 072 §3.3).
     ///
     /// Readiness is computed from `depends_on` alone, so two specs with no edge
     /// between them are both offered even when they land in the same files.
@@ -327,7 +327,7 @@ pub struct Plan {
     pub overlaps: Vec<Overlap>,
 }
 
-/// Two ready specs that claim the same territory (spec 091).
+/// Two ready specs that claim the same territory (spec 072).
 ///
 /// A **report, never a clearance**. The pair is evidence that two specs land in
 /// the same place; an absent pair is not evidence that they do not. Disjoint
@@ -347,7 +347,7 @@ pub struct Overlap {
     pub units: Vec<String>,
 }
 
-/// One spec's planned territory: what it has said it will own (spec 076).
+/// One spec's planned territory: what it has said it will own (spec 063).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PlannedTerritory {
@@ -359,7 +359,7 @@ pub struct PlannedTerritory {
 }
 
 impl Plan {
-    /// The single pick: the first element of `ready` (spec 060 §3.2).
+    /// The single pick: the first element of `ready` (spec 053 §3.2).
     ///
     /// A projection, never a second selection. The first element of the
     /// topological order is already the defined pick; this names it so callers
@@ -370,7 +370,7 @@ impl Plan {
     }
 }
 
-/// Partition the corpus into the ready set and the blocked set (spec 038).
+/// Partition the corpus into the ready set and the blocked set (spec 035).
 ///
 /// **This answers what is *claimed*, never what is done.** `implementation` is
 /// self-declared and no gate verifies that a spec marked `complete` has any
@@ -383,14 +383,14 @@ impl Plan {
 /// (`status` `superseded` or `retired`) or when someone has already answered
 /// "should this be scheduled" with no (`implementation` `complete`, `n-a` or
 /// `deferred`). An absent `implementation` takes its answer from `status`
-/// (spec 045): on a `draft` it reads as `pending`, because an unstated
+/// (spec 042): on a `draft` it reads as `pending`, because an unstated
 /// intention is the same input to a scheduler as a stated intention to start;
 /// on anything ratified it reads as settled, which is what the gate already
 /// concludes about the same key (041 3.1, 044 3.1) and what keeps a bootstrap
 /// spec that owns no code from being offered as ready forever.
 ///
 /// Returns [`Error::Validation`] naming the path if `depends_on` contains a
-/// cycle. Spec 033 refuses one at compile time, so a registry that exists is
+/// cycle. Spec 030 refuses one at compile time, so a registry that exists is
 /// acyclic; this guards a hand-edited shard or one written by another tool
 /// version, and it terminates rather than looping or truncating.
 ///
@@ -464,7 +464,7 @@ pub fn plan(registry: &Registry) -> Result<Plan, Error> {
             .collect(),
         blocked,
         not_schedulable,
-        // Spec 076 §3.6, over every spec rather than the ready set alone: a
+        // Spec 063 §3.6, over every spec rather than the ready set alone: a
         // blocked spec's planned territory is exactly what a reader wants when
         // deciding what unblocking it would cost.
         planned: registry
@@ -479,14 +479,14 @@ pub fn plan(registry: &Registry) -> Result<Plan, Error> {
                 })
             })
             .collect(),
-        // Spec 091 §3.4: over the ready set only. A blocked spec is not a
+        // Spec 072 §3.4: over the ready set only. A blocked spec is not a
         // fan-out candidate, so a collision with one is not a fact about this
         // dispatch.
         overlaps: ready_overlaps(&ready, &by_id),
     })
 }
 
-/// Every pair on the ready set that claims the same territory (spec 091).
+/// Every pair on the ready set that claims the same territory (spec 072).
 ///
 /// Quadratic in the ready set, which is the right complexity for a set whose
 /// whole purpose is to be small enough for a person to read.
@@ -531,13 +531,13 @@ fn ready_overlaps(ready: &[&str], by_id: &BTreeMap<&str, &SpecRecord>) -> Vec<Ov
     out
 }
 
-/// Every unit a spec claims, over the ownership-bearing edges (spec 091 §3.1).
+/// Every unit a spec claims, over the ownership-bearing edges (spec 072 §3.1).
 ///
-/// `references` is absent by construction: spec 034 made it non-owning, the
+/// `references` is absent by construction: spec 031 made it non-owning, the
 /// coupling gate ignores it, and an overlap computed from it would report a
 /// collision between two specs that merely read the same document.
 ///
-/// A `planned` unit (spec 076) counts. A spec that has declared territory it
+/// A `planned` unit (spec 063) counts. A spec that has declared territory it
 /// has not written yet is exactly the one most likely to collide with a spec
 /// that has.
 fn owned_units(spec: &SpecRecord) -> Vec<&spec_spine_types::Unit> {
@@ -554,7 +554,7 @@ fn owned_units(spec: &SpecRecord) -> Vec<&spec_spine_types::Unit> {
     out
 }
 
-/// The path a unit denotes, when it denotes one (spec 091 §3.2).
+/// The path a unit denotes, when it denotes one (spec 072 §3.2).
 ///
 /// A `section` answers with its file: two anchors in one file are not the same
 /// bytes, but they are the same file, and this report is a lower bound on
@@ -577,7 +577,7 @@ fn unit_ident(unit: &spec_spine_types::Unit) -> Option<&str> {
     }
 }
 
-/// Whether two paths name territory that intersects (spec 091 §3.2).
+/// Whether two paths name territory that intersects (spec 072 §3.2).
 ///
 /// Equal, or one denotes a subtree containing the other. A trailing `/` is the
 /// subtree marker the `file` shorthand already uses, and a `directory` unit is
@@ -597,7 +597,7 @@ fn paths_intersect(a: &str, b: &str, a_subtree: bool, b_subtree: bool) -> bool {
     (a_subtree && covers(a, b)) || (b_subtree && covers(b, a))
 }
 
-/// Whether two units claim intersecting territory (spec 091 §3.2).
+/// Whether two units claim intersecting territory (spec 072 §3.2).
 ///
 /// Path-bearing units compare by path; identity-bearing units compare by exact
 /// id. **Across the two groups there is no comparison**: deciding whether a
@@ -622,7 +622,7 @@ fn units_intersect(a: &spec_spine_types::Unit, b: &spec_spine_types::Unit) -> bo
 }
 
 /// Every spec's planned territory as `<spec id>: <unit identity>` lines,
-/// sorted (spec 076 §3.6).
+/// sorted (spec 063 §3.6).
 ///
 /// Shared by `registry plan` and `index coverage` so the two reads cannot
 /// disagree about what the corpus has declared.
@@ -705,7 +705,7 @@ fn unit_identity(unit: &spec_spine_types::Unit) -> String {
 /// on its own, which is not what deferring something means.
 ///
 /// An absent key is not a fifth value with its own row. It defers to `status`
-/// (spec 045): `draft` + absent is schedulable, exactly as `draft` + `pending`
+/// (spec 042): `draft` + absent is schedulable, exactly as `draft` + `pending`
 /// is; anything else + absent is settled and is not offered. The alternative,
 /// reading absence as `pending` regardless of `status`, made `plan` disagree
 /// with `index` about the same spec and offered every `init`-scaffolded
@@ -724,7 +724,7 @@ fn schedulable(spec: &SpecRecord) -> bool {
 /// The state of `dep` if it blocks, or `None` if it is finished.
 ///
 /// A dependency is finished only when its `implementation` is `complete` or
-/// `n-a`, or when the key is absent on a spec that is not a `draft` (spec 045:
+/// `n-a`, or when the key is absent on a spec that is not a `draft` (spec 042:
 /// an absent key defers to `status`, and a ratified spec with nothing to say
 /// about its implementation is settled, the same reading `index` gives it). A
 /// target absent from the registry blocks as `unresolved`: a dangling

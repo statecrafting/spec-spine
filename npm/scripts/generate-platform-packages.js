@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-// Spec: specs/007-distribution/spec.md
+// Spec: specs/006-distribution/spec.md
 //
 // Assemble the per-triple platform packages (@spec-spine/cli-<os>-<cpu>) from
 // the release archives, at publish time. Each package carries exactly one
@@ -33,7 +33,7 @@ const NPM_DIR = path.resolve(__dirname, '..');
 const REPO_ROOT = path.resolve(NPM_DIR, '..');
 
 // platform key -> { release triple, node os, node cpu }. Mirrors release.yml and
-// lib/platform.js's SUPPORTED map (specs/007-distribution/spec.md sec 3.2).
+// lib/platform.js's SUPPORTED map (specs/006-distribution/spec.md sec 3.2).
 const TARGETS = {
   'darwin-arm64': { triple: 'aarch64-apple-darwin', os: 'darwin', cpu: 'arm64' },
   'darwin-x64': { triple: 'x86_64-apple-darwin', os: 'darwin', cpu: 'x64' },
@@ -151,7 +151,7 @@ function platformPackageJson(target, version) {
     files: ['bin/'],
     // Scoped packages default to restricted on npm; publishConfig.access is the
     // reliable way to publish them publicly (the `npm publish --access public`
-    // flag alone proved insufficient). See specs/007-distribution/spec.md sec 3.6.
+    // flag alone proved insufficient). See specs/006-distribution/spec.md sec 3.6.
     publishConfig: { access: 'public' },
   };
 }
@@ -228,7 +228,7 @@ function verifyMainLock(version) {
   }
   if (problems.length > 0) {
     die(
-      `version lock mismatch (specs/007-distribution/spec.md sec 3.5):\n  - ${problems.join('\n  - ')}\n` +
+      `version lock mismatch (specs/006-distribution/spec.md sec 3.5):\n  - ${problems.join('\n  - ')}\n` +
         'Re-run with --write-main to update, or fix package.json.',
     );
   }

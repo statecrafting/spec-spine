@@ -25,7 +25,7 @@ extension and the engine is never called from Python. The project publishes:
   matches (musl/Alpine, win-arm64, 32-bit), and its `spec-spine` command prints a
   clear message pointing at `cargo install spec-spine-cli`.
 
-This mirrors the npm shim (spec 007): npm uses `os`/`cpu`-gated
+This mirrors the npm shim (spec 006): npm uses `os`/`cpu`-gated
 `optionalDependencies`; Python uses wheel platform tags. One project, many
 wheels.
 

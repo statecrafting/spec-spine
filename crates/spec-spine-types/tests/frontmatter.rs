@@ -1,5 +1,5 @@
 //! Frontmatter tests: split, required keys, enums, extra-frontmatter overflow,
-//! and the declared-key passthrough (spec 013).
+//! and the declared-key passthrough (spec 012).
 
 use serde_json::json;
 use spec_spine_types::{
@@ -94,7 +94,7 @@ custom_note: \"hello\"\n\
 
 #[test]
 fn declared_key_carries_nested_yaml_verbatim() {
-    // Modeled on OAP's `compliance:` shape (spec 013 §3.5).
+    // Modeled on OAP's `compliance:` shape (spec 012 §3.5).
     let src = "---\n\
 id: x\ntitle: t\nstatus: draft\ncreated: \"2026-06-08\"\nsummary: s\n\
 compliance:\n  reviewed: true\n  owasp:\n    - \"A01\"\n    - { control: \"A03\", note: 7 }\n\

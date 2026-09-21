@@ -7,7 +7,7 @@ use std::path::Path;
 
 use spec_spine_core::{authorities, index, index_shard_files};
 // Freshness / shard-emit helpers are exercised only by the staleness tests, which
-// are gated on `symbol-resolution` (spec 027): their `mixed_fixture` declares
+// are gated on `symbol-resolution` (spec 025): their `mixed_fixture` declares
 // symbol units, so feature-off they emit blocking diagnostics.
 #[cfg(feature = "symbol-resolution")]
 use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
@@ -22,7 +22,7 @@ fn write(root: &Path, rel: &str, content: &str) {
 }
 
 /// Write an index outcome to disk as the CLI's `spec-spine index` does: the
-/// per-spec/per-package shard tree (spec 024), not a monolithic `index.json`.
+/// per-spec/per-package shard tree (spec 022), not a monolithic `index.json`.
 #[cfg(feature = "symbol-resolution")]
 fn emit_index_shards(cfg: &Config, repo: &Path, outcome: &IndexOutcome) {
     let dir = index_dir(cfg, repo);
@@ -37,7 +37,7 @@ fn spec(id: &str, body: &str) -> String {
     )
 }
 
-/// Like [`spec`] but with an explicit lifecycle `status` (spec 025 fixtures need
+/// Like [`spec`] but with an explicit lifecycle `status` (spec 023 fixtures need
 /// `draft` corpora; the default helper hardcodes `approved`).
 fn spec_with_status(id: &str, status: &str, body: &str) -> String {
     format!(
@@ -190,9 +190,9 @@ fn missing_file_unit_is_blocking_diagnostic_i004() {
     assert!(idx.diagnostics.errors.iter().any(|d| d.code == "I-004"));
 }
 
-// ===== spec 069: the shipped default hashes what it names =====
+// ===== spec 058: the shipped default hashes what it names =====
 
-/// Spec 069 §3.3: the **shipped default** folds real files into the content
+/// Spec 058 §3.3: the **shipped default** folds real files into the content
 /// hash. Until 069 it folded none: `extra_hashed_inputs` defaulted to
 /// `["standards/**", ".github/workflows/**"]`, `**` enumerates directories, and
 /// `glob_files` keeps only entries that are files, so the default matched
@@ -253,9 +253,9 @@ fn the_shipped_default_hashes_the_files_it_names() {
     );
 }
 
-// ===== spec 026: resolution + discovery fixes =====
+// ===== spec 024: resolution + discovery fixes =====
 
-/// AC-1 (spec 026 D1): a section unit on a foreign (non-workflow) YAML resolves
+/// AC-1 (spec 024 D1): a section unit on a foreign (non-workflow) YAML resolves
 /// via its `# region:` marker end to end, with no spurious I-006.
 #[test]
 fn foreign_yaml_section_unit_resolves_no_i006() {
@@ -287,7 +287,7 @@ fn foreign_yaml_section_unit_resolves_no_i006() {
     );
 }
 
-/// AC-4 (spec 026 D3): a non-root pnpm-workspace.yaml resolves its member globs
+/// AC-4 (spec 024 D3): a non-root pnpm-workspace.yaml resolves its member globs
 /// relative to its own directory, not the repo root.
 #[test]
 fn nested_pnpm_workspace_discovers_members() {
@@ -314,7 +314,7 @@ fn nested_pnpm_workspace_discovers_members() {
     );
 }
 
-// ===== spec 025: lifecycle- and edge-aware unresolved-unit severity =====
+// ===== spec 023: lifecycle- and edge-aware unresolved-unit severity =====
 
 /// AC-1: an unresolved unit on a non-owning `references` edge is a counted
 /// `W-002` warning, never a blocking error, regardless of lifecycle.
@@ -379,7 +379,7 @@ fn ac2_draft_owning_unit_is_w001_warning_not_error() {
 }
 
 /// AC-3: `status: approved` but `implementation: pending` is in-flight, so an
-/// unresolved owning unit is `W-001` (spec 025 §3.1 arm 2 keys on either signal).
+/// unresolved owning unit is `W-001` (spec 023 §3.1 arm 2 keys on either signal).
 #[test]
 fn ac3_pending_owning_unit_is_w001_warning_not_error() {
     let tmp = tempfile::tempdir().unwrap();
@@ -409,7 +409,7 @@ fn ac3_pending_owning_unit_is_w001_warning_not_error() {
 }
 
 /// AC-4: a settled (`approved` + `complete`) spec's missing owning unit stays a
-/// hard `I-004` error, unchanged by spec 025 (the complement of AC-2 / AC-3).
+/// hard `I-004` error, unchanged by spec 023 (the complement of AC-2 / AC-3).
 #[test]
 fn ac4_settled_owning_unit_still_errors_i004() {
     let tmp = tempfile::tempdir().unwrap();
@@ -530,7 +530,7 @@ fn emitted_index_shards_conform_to_embedded_schema() {
     check(INDEX_PACKAGE_SHARD_SCHEMA, &by_package);
 }
 
-// Gated on `symbol-resolution` (spec 027): `mixed_fixture` declares symbol units
+// Gated on `symbol-resolution` (spec 025): `mixed_fixture` declares symbol units
 // owned by settled specs, which without resolution emit blocking diagnostics, so
 // `check_index_freshness` reports the just-emitted index stale (correct contract,
 // but it makes this generic-staleness assertion unusable feature-off).
@@ -608,7 +608,7 @@ fn authorities_resolves_owners() {
     assert!(owners.contains(&"001-rs".to_string()), "owners: {owners:?}");
 }
 
-// ===== spec 017: crate / directory / module unit kinds =====
+// ===== spec 016: crate / directory / module unit kinds =====
 
 /// The resolved locations for the first resolved unit of `spec_id`.
 fn first_unit_locations<'a>(
@@ -753,7 +753,7 @@ fn module_unit_resolves_inline_and_file_modules() {
 
 #[test]
 fn spec_scoped_constrains_produces_no_resolved_unit() {
-    // Spec 018: a constrains item with target_specs and no unit claims no code
+    // Spec 017: a constrains item with target_specs and no unit claims no code
     // path, so it contributes no resolved unit to the index.
     let tmp = tempfile::tempdir().unwrap();
     write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = []\n");
@@ -788,7 +788,7 @@ fn unresolved_module_unit_is_blocking_diagnostic_i008() {
     assert!(idx.diagnostics.errors.iter().any(|d| d.code == "I-008"));
 }
 
-// ===== spec 034: `references` is non-owning, so it seeds no implementing path =====
+// ===== spec 031: `references` is non-owning, so it seeds no implementing path =====
 
 /// AC-1: an owning edge contributes an implementing path; a `references` edge to
 /// an equally-real file does not.
@@ -908,7 +908,7 @@ fn references_does_not_confer_c001_ownership() {
     );
 }
 
-// ===== spec 041: `implementation: complete` defeats draft leniency =====
+// ===== spec 038: `implementation: complete` defeats draft leniency =====
 
 /// Index a one-spec corpus whose frontmatter is exactly `status` +
 /// `implementation`, so the two axes are varied independently.
@@ -955,7 +955,7 @@ fn counts(idx: &spec_spine_types::CodebaseIndex) -> (usize, usize) {
     )
 }
 
-/// Specs 041 and 044: the lifecycle fields are read as what they say. A spec
+/// Specs 038 and 044: the lifecycle fields are read as what they say. A spec
 /// asserting completion is never in flight whatever its `status` (041); one
 /// declaring the work unfinished always is, whether `pending` or `in-progress`
 /// (044).
@@ -977,7 +977,7 @@ fn completion_defeats_draft_leniency_across_both_axes() {
         ("draft", Some("deferred"), true),
         ("draft", None, true),
         ("approved", Some("pending"), true),
-        // Spec 044: the one cell that spec moves. `pending` and `in-progress`
+        // Spec 041: the one cell that spec moves. `pending` and `in-progress`
         // make the same claim about the filesystem, that the work is not
         // finished, and only one of them used to buy the leniency built for it.
         ("approved", Some("in-progress"), true),
@@ -1042,7 +1042,7 @@ fn a_complete_draft_that_told_the_truth_is_silent() {
     );
 }
 
-/// Spec 041 3.5: this touches the lifecycle arm only, never edge authority. An
+/// Spec 038 3.5: this touches the lifecycle arm only, never edge authority. An
 /// unresolved **non-owning** `references` unit stays `W-002` in every
 /// combination, including the one row that moved.
 #[test]
@@ -1089,7 +1089,7 @@ fn a_non_owning_reference_stays_w002_in_every_combination() {
     }
 }
 
-/// Spec 044 3.2: leniency is not a pass. A spec at `in-progress` whose units
+/// Spec 041 3.2: leniency is not a pass. A spec at `in-progress` whose units
 /// all resolve is silent, and one whose units do not resolve still reports each
 /// missing unit by name as a counted `W-001`.
 #[test]
@@ -1109,7 +1109,7 @@ fn in_progress_leniency_reports_rather_than_ignores() {
     );
 }
 
-// ── spec 055: who owns this path ──────────────────────────────────────────
+// ── spec 048: who owns this path ──────────────────────────────────────────
 
 /// A repo where 001 owns a file by unit, 002 owns the crate by manifest floor,
 /// and a third file carries a `// Spec:` header naming 003.
@@ -1146,7 +1146,7 @@ fn owners_of(root: &Path, path: &str) -> spec_spine_core::OwnerReport {
 
 /// §3.1: the three linkage kinds are reported separately, because a consumer's
 /// next decision depends on which one it is. A unit claim is deliberate; a
-/// floor is a blanket that counts as debt for coverage (spec 032).
+/// floor is a blanket that counts as debt for coverage (spec 029).
 #[test]
 fn owner_separates_unit_floor_and_header_linkage() {
     let tmp = tempfile::tempdir().unwrap();
@@ -1284,7 +1284,7 @@ fn a_superseding_spec_is_reported_as_inherited() {
     );
 }
 
-// ── spec 073: a workflow folds as its governance projection ─────────────────
+// ── spec 060: a workflow folds as its governance projection ─────────────────
 
 /// A workflow whose bump must be invisible to the ledger, and whose every
 /// other edit must not be.
@@ -1306,7 +1306,7 @@ fn proj(content: &str) -> String {
         .expect("the fixture parses as a mapping")
 }
 
-/// Spec 073 3.1: only the pinned ref is dropped. A tag bump and a SHA-pin bump
+/// Spec 060 3.1: only the pinned ref is dropped. A tag bump and a SHA-pin bump
 /// are the two shapes Dependabot produces, and neither is a governed change.
 #[test]
 fn a_uses_ref_bump_leaves_the_workflow_projection_unchanged() {
@@ -1326,9 +1326,9 @@ fn a_uses_ref_bump_leaves_the_workflow_projection_unchanged() {
     );
 }
 
-/// Spec 073 3.1: the action path is preserved. Dropping the whole `uses:`
+/// Spec 060 3.1: the action path is preserved. Dropping the whole `uses:`
 /// value would make swapping `actions/checkout` for a fork invisible to the
-/// ledger, which is the security property spec 030's waiver already relies on.
+/// ledger, which is the security property spec 027's waiver already relies on.
 #[test]
 fn changing_which_action_runs_changes_the_projection() {
     let base = proj(WF);
@@ -1343,7 +1343,7 @@ fn changing_which_action_runs_changes_the_projection() {
     );
 }
 
-/// Spec 073 3.1 and 3.5: unpinning is a change to the security posture, not a
+/// Spec 060 3.1 and 3.5: unpinning is a change to the security posture, not a
 /// version bump. This is the case a bare `owner/action` projection would miss:
 /// `a/b@v4` and `a/b` would fold together and the unpin would be invisible.
 #[test]
@@ -1354,7 +1354,7 @@ fn unpinning_an_action_changes_the_projection() {
     );
 }
 
-/// Spec 073 3.1: everything the projection does not recognize survives it.
+/// Spec 060 3.1: everything the projection does not recognize survives it.
 #[test]
 fn every_other_workflow_edit_changes_the_projection() {
     let base = proj(WF);
@@ -1403,7 +1403,7 @@ fn every_other_workflow_edit_changes_the_projection() {
     }
 }
 
-/// Spec 073 3.5: a comment-only or reformat-only edit leaves the parsed
+/// Spec 060 3.5: a comment-only or reformat-only edit leaves the parsed
 /// document unchanged, so it leaves the projection unchanged. Asserted rather
 /// than left to chance, because it is the projection's defined behavior and a
 /// reader could reasonably expect either answer.
@@ -1417,7 +1417,7 @@ fn a_comment_or_reformat_only_workflow_edit_leaves_the_projection_unchanged() {
     );
 }
 
-/// Spec 073 3.1: over-hashing is the fail-closed direction. A file the parser
+/// Spec 060 3.1: over-hashing is the fail-closed direction. A file the parser
 /// cannot read stales on every edit rather than silently on none, which is
 /// what the npm and cargo projections already do.
 #[test]
@@ -1427,7 +1427,7 @@ fn an_unparseable_workflow_falls_back_to_raw_bytes() {
     assert!(spec_spine_core::manifest::workflow_hash_projection("- just\n- a list\n").is_none());
 }
 
-/// Spec 073 3.5, end to end on a real index: the whole point of the change is
+/// Spec 060 3.5, end to end on a real index: the whole point of the change is
 /// that the global-inputs scalar every shard hash carries stops moving under a
 /// bump the bot cannot repair.
 #[cfg(feature = "symbol-resolution")]
@@ -1477,7 +1477,7 @@ fn a_workflow_bump_leaves_every_shard_hash_alone_and_a_run_edit_does_not() {
     );
 }
 
-// ── spec 076: planned territory is declared, not inferred ───────────────────
+// ── spec 063: planned territory is declared, not inferred ───────────────────
 
 /// A corpus with one spec claiming `unit_yaml` (a frontmatter fragment).
 fn planned_fixture(unit_yaml: &str, status: &str, implementation: &str) -> tempfile::TempDir {
@@ -1507,7 +1507,7 @@ fn diag_codes(tmp: &tempfile::TempDir) -> Vec<String> {
         .collect()
 }
 
-/// Spec 076 §3.2, and the case the spec was filed for: a draft that declares
+/// Spec 063 §3.2, and the case the spec was filed for: a draft that declares
 /// territory it has not written passes, while a draft with a path that is
 /// simply wrong still does not. That asymmetry is the whole safety argument.
 #[test]
@@ -1531,7 +1531,7 @@ fn a_planned_unit_produces_no_diagnostic_and_an_unmarked_one_still_does() {
     );
 }
 
-/// Spec 076 §3.2: every other classification is unchanged. A settled spec's
+/// Spec 063 §3.2: every other classification is unchanged. A settled spec's
 /// unresolved unit is still a hard error, and marking it planned is the only
 /// thing that changes that.
 #[test]
@@ -1544,7 +1544,7 @@ fn planned_does_not_soften_any_other_classification() {
     );
 }
 
-/// Spec 076 §3.2 and §3.4: a planned unit contributes nothing while it does not
+/// Spec 063 §3.2 and §3.4: a planned unit contributes nothing while it does not
 /// resolve, and everything once it does. `authorities` must answer for it
 /// exactly as for an unplanned claim, which is why the index stores subjects.
 #[test]
@@ -1580,7 +1580,7 @@ fn a_planned_unit_that_resolves_is_owned_like_any_other() {
     );
 }
 
-// ── spec 094: the claim window and the recognizer, declared ──────────────
+// ── spec 075: the claim window and the recognizer, declared ──────────────
 
 /// A floorless crate holding one file with `content`, and the spec
 /// `000-bootstrap` its header can name. Returns the specs that own the file
@@ -1695,4 +1695,104 @@ fn every_loose_form_in_the_recognizer_table_still_claims() {
             "{line:?} in {file} must still claim"
         );
     }
+}
+
+// ── spec 092 §3.8, §3.9: `.statecraft/` is a parent, not a classification ──
+
+/// The managed layout: the derived tree and the state root under one parent,
+/// classified separately.
+fn statecraft_layout_config() -> Config {
+    let mut cfg = Config::default();
+    cfg.layout.derived_dir = ".statecraft/derived".to_string();
+    cfg.layout.state_dir = ".statecraft/state".to_string();
+    cfg
+}
+
+/// §3.9: three answers, one parent directory, and they must be distinguishable
+/// by measurement rather than by inspection.
+///
+/// A source file under `.statecraft/` is governed territory and the walk sees
+/// it. One under `.statecraft/state/` is spec 036's ungoverned root and the
+/// walk does not. One under `.statecraft/derived/` is compiler output and the
+/// walk does not, which is the half spec 092 §3.8 added: `resolver_exclusions`
+/// matches path COMPONENTS, so the default `.derived` was reachable as one and
+/// a nested root is not.
+///
+/// The control is the same tree read under the DEFAULT configuration, where
+/// none of the three is special and all three are enumerated. Without it a
+/// green here is also what a walk that had stopped descending into
+/// `.statecraft/` altogether would produce, which is the failure §3.9 refuses.
+#[test]
+fn statecraft_derived_and_state_are_pruned_and_the_rest_is_governed() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(r, "Cargo.toml", "[workspace]\nmembers = []\n");
+    write(r, ".statecraft/tools/thing.sh", "#!/bin/sh\necho hi\n");
+    write(r, ".statecraft/AGENTS.md", "# project instructions\n");
+    write(r, ".statecraft/state/scratch.sh", "#!/bin/sh\n");
+    write(
+        r,
+        ".statecraft/derived/spec-registry/by-spec/000-a.json",
+        "{}\n",
+    );
+    write(r, ".statecraft/derived/gen.sh", "#!/bin/sh\n");
+
+    let managed = spec_spine_core::walk_repository(&statecraft_layout_config(), r);
+    assert!(
+        managed.contains(".statecraft/tools/thing.sh"),
+        "a governed file under the parent stays visible: {managed:?}"
+    );
+    assert!(
+        managed.contains(".statecraft/AGENTS.md"),
+        "so does the project instruction file: {managed:?}"
+    );
+    assert!(
+        !managed.iter().any(|p| p.starts_with(".statecraft/state/")),
+        "runtime state is excluded: {managed:?}"
+    );
+    assert!(
+        !managed
+            .iter()
+            .any(|p| p.starts_with(".statecraft/derived/")),
+        "compiler output is excluded: {managed:?}"
+    );
+
+    // The control: under the default configuration these are ordinary paths,
+    // so the exclusions above are the configuration's doing and not the
+    // directory name's.
+    let default = spec_spine_core::walk_repository(&Config::default(), r);
+    for p in [
+        ".statecraft/tools/thing.sh",
+        ".statecraft/state/scratch.sh",
+        ".statecraft/derived/gen.sh",
+    ] {
+        assert!(
+            default.contains(p),
+            "`{p}` must be enumerated under the default configuration, or this \
+             test's exclusions prove nothing: {default:?}"
+        );
+    }
+}
+
+/// §3.8: the same rule at the unit level, since `is_derived_path` is what both
+/// the walks and the coupling gate ask. Separator-aware, so a sibling that
+/// merely shares the prefix is not the derived tree.
+#[test]
+fn statecraft_derived_matching_is_separator_aware() {
+    let cfg = statecraft_layout_config();
+    assert!(cfg.layout.is_derived_path(".statecraft/derived"));
+    assert!(cfg.layout.is_derived_path(".statecraft/derived/a/b.json"));
+    assert!(
+        !cfg.layout
+            .is_derived_path(".statecraft/derived-backup/a.json")
+    );
+    assert!(!cfg.layout.is_derived_path(".statecraft"));
+    assert!(!cfg.layout.is_derived_path(".statecraft/AGENTS.md"));
+    // The default keeps answering for the default.
+    assert!(Config::default().layout.is_derived_path(".derived/x.json"));
+    assert!(
+        !Config::default()
+            .layout
+            .is_derived_path(".statecraft/derived/x.json")
+    );
 }

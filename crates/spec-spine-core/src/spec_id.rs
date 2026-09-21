@@ -1,6 +1,6 @@
-//! The one spec-id resolution policy (spec 084 §3.4).
+//! The one spec-id resolution policy (spec 067 §3.4).
 //!
-//! Spec 016 §3.1 defines what a short id is: an exact id first, otherwise the
+//! Spec 015 §3.1 defines what a short id is: an exact id first, otherwise the
 //! one id whose **whole leading dash-segment** equals the reference. `070`
 //! resolves `070-a-slug`; `70` resolves nothing; `070-typo` resolves nothing
 //! rather than snapping to a neighbour.
@@ -13,7 +13,7 @@
 //! over a set of ids**: an argument is never joined onto a path before it has
 //! resolved, which is what closes that (084 §3.2, D-6).
 //!
-//! The module belongs to neither 001 nor 004. Spec 016 §2 used a mirror rather
+//! The module belongs to neither 001 nor 004. Spec 015 §2 used a mirror rather
 //! than a shared call to keep the compile gate from taking a code dependency on
 //! the indexer's file; that reason survives here, because both now depend on a
 //! third file instead of on each other (084 D-1).
@@ -27,7 +27,7 @@ use std::path::Path;
 
 use spec_spine_types::Error;
 
-/// What an argument matched in a set of spec ids (spec 084 §3.1, steps 1-4).
+/// What an argument matched in a set of spec ids (spec 067 §3.1, steps 1-4).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SpecIdMatch {
     /// Steps 1 and 2: an exact id, or the one id whose leading dash-segment
@@ -40,7 +40,7 @@ pub enum SpecIdMatch {
     NoMatch,
 }
 
-/// Apply spec 016 §3.1 to any set of ids.
+/// Apply spec 015 §3.1 to any set of ids.
 ///
 /// An exact match wins over a segment match regardless of iteration order, so
 /// a corpus holding both `070` and `070-slug` resolves `070` to itself rather
@@ -76,9 +76,9 @@ where
 }
 
 /// The strict form: ambiguous and no match become the one [`Error::NotFound`]
-/// of spec 084 §3.1, which is exit 1.
+/// of spec 067 §3.1, which is exit 1.
 ///
-/// Both messages are fixed here and nowhere else. Spec 084 §3.1 requires that
+/// Both messages are fixed here and nowhere else. Spec 067 §3.1 requires that
 /// for the same argument and the same candidates a reader cannot tell from the
 /// refusal which verb produced it, and a message assembled at the call site is
 /// exactly how the four copies drifted apart.
@@ -125,7 +125,7 @@ pub fn ambiguous(arg: &str, candidates: &[String]) -> Error {
 ///
 /// `verify-attestation` is the exception and does not call this: its argument
 /// falls through unresolved so a missing attestation file stays the exit 3 that
-/// spec 042 §3.5 assigns to I/O (084 §3.2, D-4).
+/// spec 039 §3.5 assigns to I/O (084 §3.2, D-4).
 pub fn no_match(arg: &str) -> Error {
     Error::NotFound(format!("spec '{arg}'"))
 }
@@ -134,7 +134,7 @@ pub fn no_match(arg: &str) -> Error {
 /// `spec.md`, sorted.
 ///
 /// The set for `compile --spec` and `verify`, which resolve against the
-/// filesystem because a draft that has never compiled has no shard and spec 056
+/// filesystem because a draft that has never compiled has no shard and spec 049
 /// §3.1 exists for exactly that draft. It lives here so the two callers stop
 /// carrying a `read_dir` loop each (084 §3.4).
 pub fn spec_dir_ids(specs_dir: &Path) -> Result<Vec<String>, Error> {

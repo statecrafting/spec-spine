@@ -97,14 +97,14 @@ say "checksum verified"
 # --- verify provenance attestation (authenticity, not just integrity) --------
 # The .sha256 sidecar is fetched from the same release as the archive, so it
 # proves integrity but NOT authenticity: a rewritten release ships a matching
-# sidecar. GitHub build-provenance attestations (spec 021) close that gap. Use
+# sidecar. GitHub build-provenance attestations (spec 019) close that gap. Use
 # `gh attestation verify` when available. Best-effort by default (many curl|sh
 # users have no authenticated `gh`); set SPEC_SPINE_REQUIRE_ATTESTATION=1 to
 # make an unverifiable download a hard failure.
 if [ "${SPEC_SPINE_SKIP_ATTESTATION:-0}" = "1" ]; then
   say "provenance attestation check skipped (SPEC_SPINE_SKIP_ATTESTATION=1)"
 elif have gh && gh attestation verify "${tmp}/${archive}" --repo "${REPO}" >/dev/null 2>&1; then
-  say "provenance attestation verified (spec 021)"
+  say "provenance attestation verified (spec 019)"
 elif [ "${SPEC_SPINE_REQUIRE_ATTESTATION:-0}" = "1" ]; then
   die "provenance attestation could NOT be verified and SPEC_SPINE_REQUIRE_ATTESTATION=1 is set (rewritten release, or 'gh' missing/unauthenticated)"
 else

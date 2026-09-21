@@ -1,8 +1,8 @@
-//! Spec 053: `L-007`, the opt-in ordinal-monotonicity check on `depends_on`.
+//! Spec 046: `L-007`, the opt-in ordinal-monotonicity check on `depends_on`.
 //!
 //! The corpus had no dedicated lint test file before this spec: `L-006`'s
 //! acceptance lives in `tests/coverage.rs` and the scaffold's in
-//! `tests/scaffold.rs`. This is that file, and spec 053 claims it.
+//! `tests/scaffold.rs`. This is that file, and spec 046 claims it.
 
 use std::fs;
 use std::path::Path;
@@ -210,7 +210,7 @@ fn a_forward_dependency_does_not_fail_compile() {
     );
 }
 
-// ── spec 057: a claim no hash witnesses ───────────────────────────────────
+// ── spec 050: a claim no hash witnesses ───────────────────────────────────
 
 /// Commit the index shard tree, as `spec-spine index` does. `L-008` reads the
 /// committed index rather than recomputing one, so a corpus without this step
@@ -270,7 +270,7 @@ fn an_unwitnessed_claim_is_an_l008_warning_naming_both_remedies() {
         "{}",
         v.message
     );
-    // Spec 074 3.2, conformance with 057: naming both remedies is not enough.
+    // Spec 061 3.2, conformance with 057: naming both remedies is not enough.
     // 057 requires the message to say how they DIFFER, and the shipped string
     // dropped that, so it read as a pick-either and sent an adopter to the
     // wrong one. A glob restamps every shard; a span-backed unit stales one.
@@ -425,7 +425,7 @@ fn witnessed_paths_covers_every_hash_contributor() {
     assert!(witnessed.contains("extra.txt"), "{witnessed:?}");
 }
 
-// ── spec 058: the defects heading has one spelling ────────────────────────
+// ── spec 051: the defects heading has one spelling ────────────────────────
 
 use spec_spine_core::sections::{anchor_of, is_defects_anchor, is_near_miss_defects_anchor};
 
@@ -551,7 +551,7 @@ fn retroactive_origin_alone_produces_no_diagnostic() {
     );
 }
 
-// ── spec 074 3.1 and 3.10: L-010, a pattern that can match no file ──────────
+// ── spec 061 3.1 and 3.10: L-010, a pattern that can match no file ──────────
 
 /// A corpus with one well-formed spec and the given `extra_hashed_inputs`.
 fn corpus_with_hashed_inputs(patterns: &[&str]) -> (tempfile::TempDir, Config) {
@@ -575,7 +575,7 @@ fn codes(tmp: &tempfile::TempDir, cfg: &Config) -> Vec<(String, Severity)> {
         .collect()
 }
 
-/// Spec 074 3.1: `dir/**` enumerates directories and the hasher keeps only
+/// Spec 061 3.1: `dir/**` enumerates directories and the hasher keeps only
 /// files, so the pattern can contribute no bytes to any content hash whatever
 /// the tree contains. Two adopters hit this on the same day.
 #[test]
@@ -604,9 +604,9 @@ fn l010_is_silent_on_the_working_glob_form() {
     );
 }
 
-/// Spec 074 3.1: the check is on the PATTERN, not on whether it currently
+/// Spec 061 3.1: the check is on the PATTERN, not on whether it currently
 /// matches. A forward-looking entry in a specify-first corpus matches nothing
-/// today and is legitimate; that false positive is why spec 069 4 deferred this
+/// today and is legitimate; that false positive is why spec 058 4 deferred this
 /// lint, and narrowing to the one unconditionally inert form is the answer.
 #[test]
 fn l010_does_not_fire_on_a_pattern_that_merely_matches_nothing_yet() {
@@ -617,7 +617,7 @@ fn l010_does_not_fire_on_a_pattern_that_merely_matches_nothing_yet() {
     );
 }
 
-/// Spec 074 3.2: the message must name the working form, because the entire
+/// Spec 061 3.2: the message must name the working form, because the entire
 /// cost of this defect is that the broken form looks correct.
 #[test]
 fn the_l010_message_names_the_working_form() {
@@ -632,7 +632,7 @@ fn the_l010_message_names_the_working_form() {
     assert!(msg.contains("standards/**/*"), "{msg}");
 }
 
-// ── spec 079 3.1 to 3.4: L-010 reads `[index.slices]` too ───────────────────
+// ── spec 065 3.1 to 3.4: L-010 reads `[index.slices]` too ───────────────────
 
 /// A corpus with one well-formed spec and the given `[index.slices]` table.
 /// No `extra_hashed_inputs`, so every `L-010` here is attributable to a slice.
@@ -661,7 +661,7 @@ fn l010_messages(tmp: &tempfile::TempDir, cfg: &Config) -> Vec<(String, Severity
         .collect()
 }
 
-/// Spec 079 3.1: the same rule, the same code, the same tier, applied to every
+/// Spec 065 3.1: the same rule, the same code, the same tier, applied to every
 /// pattern in every slice. The check is on the pattern: `deploy/**` pointed at
 /// a directory that did not exist yet, which is exactly the entry that would
 /// have stayed silently empty on the day it arrived.
@@ -679,7 +679,7 @@ fn l010_refuses_a_slice_pattern_that_can_match_no_file() {
     );
 }
 
-/// Spec 079 3.4: the corrected form passes, so the test pins the boundary and
+/// Spec 065 3.4: the corrected form passes, so the test pins the boundary and
 /// not the mere presence of a warning.
 #[test]
 fn l010_is_silent_on_the_working_slice_form() {
@@ -693,7 +693,7 @@ fn l010_is_silent_on_the_working_slice_form() {
     );
 }
 
-/// Spec 079 3.2: one code now covers two tables, so the message names the
+/// Spec 065 3.2: one code now covers two tables, so the message names the
 /// table and the slice, on one line, so a reader can find the offending line
 /// without guessing which table it came from.
 #[test]
@@ -707,7 +707,7 @@ fn the_slice_l010_message_names_the_table_the_slice_and_the_working_form() {
     assert!(msg.contains(".github/workflows/**/*"), "{msg}");
 }
 
-/// Spec 079 3.3: slices are independent of `contentHash` by spec 012's design,
+/// Spec 065 3.3: slices are independent of `contentHash` by spec 011's design,
 /// so the slice message must not claim a content hash is affected, in any
 /// spelling. The `extra_hashed_inputs` form says it legitimately, which is
 /// why the assertion is scoped to a corpus with no such table.
@@ -756,7 +756,7 @@ fn l010_reports_both_tables_and_each_form_names_its_own_table() {
     );
 }
 
-// ── spec 076 §3.3 and §3.4: the flag cannot outlive the work ────────────────
+// ── spec 063 §3.3 and §3.4: the flag cannot outlive the work ────────────────
 
 /// A corpus whose one spec claims `unit_yaml` at the given lifecycle.
 fn planned_corpus(unit_yaml: &str, status: &str, implementation: &str) -> tempfile::TempDir {
@@ -863,7 +863,7 @@ fn l012_is_silent_while_the_planned_unit_is_still_unwritten() {
     assert!(!lint_codes(&tmp).iter().any(|(c, _)| c == "L-012"));
 }
 
-// ── spec 076 §3.5: collisions reuse the ownership rules ─────────────────────
+// ── spec 063 §3.5: collisions reuse the ownership rules ─────────────────────
 
 /// Write one spec with arbitrary extra frontmatter lines.
 fn spec_with(tmp: &tempfile::TempDir, id: &str, extra: &str) {

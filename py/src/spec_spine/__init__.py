@@ -6,7 +6,7 @@ scripts directory, so `spec-spine`/`uvx spec-spine` runs the native binary with
 no Python in the path. This importable package ships only in the sdist, which is
 built solely on hosts with no matching wheel (musl, win-arm64, 32-bit), where its
 `spec-spine` entry point prints a clear refusal (see _refuse.py). Spec:
-specs/008-python-distribution/spec.md.
+specs/007-python-distribution/spec.md.
 """
 
 from __future__ import annotations

@@ -1,0 +1,33 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "004-codebase-index",
+      "005-coupling-gate"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/src/sections.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/sections.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/sections.rs"
+        }
+      }
+    ],
+    "specId": "020-keypath-section-anchors",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "a44218f1fa7a58b65c4f531bb8922a35fe4a0cf38f365ddc7c4504bb7216f663"
+}

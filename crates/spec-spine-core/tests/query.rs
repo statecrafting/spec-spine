@@ -19,7 +19,7 @@ fn write_spec(root: &Path, id: &str, extra: &str) {
     fs::write(spec_dir.join("spec.md"), body).unwrap();
 }
 
-/// The ready set's ids. Spec 060 made `Plan::ready` carry titles as well, so
+/// The ready set's ids. Spec 053 made `Plan::ready` carry titles as well, so
 /// assertions that are about scheduling order project back to ids here rather
 /// than each restating the shape.
 fn ready_ids(plan: &spec_spine_core::Plan) -> Vec<&str> {
@@ -96,7 +96,7 @@ fn relationships_show_incoming_and_outgoing() {
     assert!(beta.depended_on_by.is_empty());
 }
 
-// ===== spec 038: `registry plan` =====
+// ===== spec 035: `registry plan` =====
 
 /// Build a registry from `(id, status, implementation, depends_on)` rows.
 ///
@@ -285,7 +285,7 @@ fn plan_excludes_specs_the_corpus_has_moved_past_or_taken_off_the_schedule() {
 
 #[test]
 fn plan_reads_an_absent_implementation_key_on_a_draft_as_pending() {
-    // Spec 045: an absent key defers to `status`. On a draft, unstated is the
+    // Spec 042: an absent key defers to `status`. On a draft, unstated is the
     // same input to a scheduler as a stated intention to start.
     let reg = registry_of(&[
         ("001-silent", "draft", None, &[]),
@@ -311,7 +311,7 @@ fn plan_reads_an_absent_implementation_key_on_a_draft_as_pending() {
 
 #[test]
 fn plan_reads_an_absent_implementation_key_on_a_ratified_spec_as_settled() {
-    // Spec 045: `approved` + absent is what the gate already treats as settled
+    // Spec 042: `approved` + absent is what the gate already treats as settled
     // (041 3.1), so `plan` neither offers it nor lets it block. This is the
     // scaffold's bootstrap spec, which used to be offered as ready forever.
     let reg = registry_of(&[
@@ -677,7 +677,7 @@ fn plan_blocked_by_follows_authored_depends_on_order() {
     );
 }
 
-// ── spec 055: the shard's content hash is readable ────────────────────────
+// ── spec 048: the shard's content hash is readable ────────────────────────
 
 /// §3.3: the hash is read from the committed shard, never recomputed. A `show`
 /// that hashed `spec.md` afresh would report a value the ledger does not hold,
@@ -726,7 +726,7 @@ fn shard_content_hash_is_read_from_the_committed_shard() {
     );
 }
 
-// ── spec 060: the plan answers the whole question ─────────────────────────
+// ── spec 053: the plan answers the whole question ─────────────────────────
 
 /// §3.1: titles come from the same registry the plan was computed from. No
 /// second load, no second call, which is the forty lines of Python adopters
@@ -807,7 +807,7 @@ fn next_on_a_finished_corpus_is_none_not_an_error() {
     assert_eq!(p.not_schedulable, 1);
 }
 
-/// §3.1: spec 038's ordering contract is untouched. `ready` stays topological
+/// §3.1: spec 035's ordering contract is untouched. `ready` stays topological
 /// with ties by ascending id; adding titles is a join, not a re-sort.
 #[test]
 fn the_ordering_contract_survives_the_titles() {
@@ -821,7 +821,7 @@ fn the_ordering_contract_survives_the_titles() {
     assert_eq!(ids, ["001-alpha", "002-beta", "003-gamma"]);
 }
 
-// ── spec 076 §3.6: the ledger records planned territory as a state ──────────
+// ── spec 063 §3.6: the ledger records planned territory as a state ──────────
 
 /// §3.6: `registry plan` can report planned territory. Before the flag, the
 /// read that exists to answer "what is being worked on and who will own it"
@@ -874,7 +874,7 @@ fn plan_spec(tmp: &tempfile::TempDir, id: &str, extra: &str) {
     .unwrap();
 }
 
-// --- spec 091: two ready specs can collide -----------------------------------
+// --- spec 072: two ready specs can collide -----------------------------------
 
 /// A corpus of `(id, extra frontmatter)` pairs, compiled, planned.
 fn plan_of(specs: &[(&str, &str)]) -> spec_spine_core::Plan {
@@ -894,7 +894,7 @@ fn overlap_lines(plan: &spec_spine_core::Plan) -> Vec<String> {
         .collect()
 }
 
-/// Spec 091 §1.1: readiness is computed from `depends_on`, so two specs with no
+/// Spec 072 §1.1: readiness is computed from `depends_on`, so two specs with no
 /// edge between them are both ready. §3.3: the pair is reported.
 #[test]
 fn plan_reports_two_ready_specs_claiming_the_same_file() {
@@ -953,7 +953,7 @@ fn plan_does_not_report_a_shared_path_prefix_that_is_not_a_subtree() {
     assert!(plan.overlaps.is_empty(), "{:?}", plan.overlaps);
 }
 
-/// §3.1: `references` is non-owning (spec 034). Two specs that read the same
+/// §3.1: `references` is non-owning (spec 031). Two specs that read the same
 /// document have not collided, and reporting them would make the field a
 /// source of noise in every corpus that cites a design note.
 #[test]

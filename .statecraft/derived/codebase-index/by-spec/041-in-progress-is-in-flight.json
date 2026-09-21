@@ -1,0 +1,79 @@
+{
+  "mapping": {
+    "amends": [
+      "038-completion-held-to-claims"
+    ],
+    "dependsOn": [
+      "023-unresolved-unit-severity",
+      "038-completion-held-to-claims"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/src/index.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/index.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/index.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/index.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/023-unresolved-unit-severity/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/023-unresolved-unit-severity/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/038-completion-held-to-claims/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/038-completion-held-to-claims/spec.md"
+        }
+      }
+    ],
+    "specId": "041-in-progress-is-in-flight",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "9c84eabbca2d642d4459bd4def01739ae38e66d112f98dbf560827c4cb584b36"
+}

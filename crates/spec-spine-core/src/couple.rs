@@ -6,7 +6,7 @@
 //! **`git` never runs here**: the CLI parses `git diff --no-color -U0
 //! base...head` into a typed [`DiffInput`] and passes it in.
 //!
-//! Spec 032 adds a second, opt-in verdict: with `[coupling] require_ownership`
+//! Spec 029 adds a second, opt-in verdict: with `[coupling] require_ownership`
 //! on, a changed source file that no spec *specifically* owns is `C-002`. The
 //! ownership question is answered by [`crate::coverage`], the same classifier
 //! `spec-spine index coverage` reports with, so the report predicts the gate.
@@ -70,7 +70,7 @@ pub struct DiffFile {
     pub hunks: Vec<LineSpan>,
     /// The path no longer exists at head (the CLI sets this from a
     /// `+++ /dev/null` header). Drift (`C-001`) treats a deletion like any
-    /// whole-file change; the ownership ratchet (`C-002`, spec 032) never
+    /// whole-file change; the ownership ratchet (`C-002`, spec 029) never
     /// refuses one, since removing unowned code is how coverage goes up.
     /// Additive: absent in older `couple_json` requests, so it defaults off.
     #[serde(default)]
@@ -124,7 +124,7 @@ pub fn couple(
     }
     let registry = load_committed_registry(cfg, repo_root)?;
     let index = load_committed_index(cfg, repo_root)?;
-    // Spec 097 §3.3: the gate reads the universe the coverage report reads. The
+    // Spec 078 §3.3: the gate reads the universe the coverage report reads. The
     // scope is resolved against the tree without an enumeration: every path
     // judged here is in the diff, which is tracked by construction or is the
     // caller's own `--paths-from` list, so no inventory could remove one (D-7).
@@ -154,7 +154,7 @@ pub fn couple_with(
     )
 }
 
-/// [`couple_with`] with a resolved governed scope (spec 097 §3.3), which widens
+/// [`couple_with`] with a resolved governed scope (spec 078 §3.3), which widens
 /// the universe the `C-002` arm asks about. No IO.
 pub fn couple_with_scope(
     cfg: &Config,
@@ -166,7 +166,7 @@ pub fn couple_with_scope(
 ) -> Result<CoupleReport, Error> {
     let diff_paths: BTreeSet<String> = diff.files.iter().map(|f| f.path.clone()).collect();
     let superseders = build_superseders(registry);
-    // Spec 036: every "is this a spec.md, and whose?" question below is asked
+    // Spec 033: every "is this a spec.md, and whose?" question below is asked
     // against the configured corpus root, never a literal `specs/`.
     let specs_dir = cfg.layout.specs_dir.as_str();
 
@@ -175,9 +175,9 @@ pub fn couple_with_scope(
 
     for file in &diff.files {
         let path = &file.path;
-        // Effective bypass = declared state root (spec 039), else the
+        // Effective bypass = declared state root (spec 036), else the
         // hardcoded floor ∪ adopter list (additive) UNLESS an explicit,
-        // resolved unit claim covers the path (spec 009). One predicate,
+        // resolved unit claim covers the path (spec 008). One predicate,
         // shared with `index coverage`, so the report and the gate cannot
         // disagree about which paths are even looked at.
         if is_bypassed_path(cfg, index, path) {
@@ -185,7 +185,7 @@ pub fn couple_with_scope(
         }
         checked_paths += 1;
 
-        // Spec 032: the ownership ratchet. Asked before the drift question,
+        // Spec 029: the ownership ratchet. Asked before the drift question,
         // over exactly the universe `index coverage` reports on, so the report
         // predicts this arm. A deleted path is never refused for lacking an
         // owner. `C-002` takes precedence over `C-001` for one path (claiming
@@ -205,7 +205,7 @@ pub fn couple_with_scope(
                 )),
             };
             if let Some(message) = message {
-                // No `owners` (spec 052 §3.1): `C-002` fires precisely when no
+                // No `owners` (spec 045 §3.1): `C-002` fires precisely when no
                 // spec specifically claims the path, so there is no owner to
                 // name. The floor specs the message reports are why the path is
                 // debt, not who owns it.
@@ -222,9 +222,9 @@ pub fn couple_with_scope(
             continue; // primary-owner heuristic: any one owner's spec.md cleared it
         }
 
-        // Spec 052 §3.1: the owner set is carried as data as well as rendered
+        // Spec 045 §3.1: the owner set is carried as data as well as rendered
         // into the message. `owners` is the sole non-prose copy, in the same
-        // sorted order the sentence names, so a consumer of the spec 037
+        // sorted order the sentence names, so a consumer of the spec 034
         // envelope reads it instead of regexing English. `owners` came from a
         // `BTreeSet`, so the order is the message's by construction.
         let names: Vec<String> = owners.iter().cloned().collect();
@@ -250,7 +250,7 @@ pub fn couple_with_scope(
     })
 }
 
-/// The merged bypass list the gate matches against, attributed (spec 054 §3.2).
+/// The merged bypass list the gate matches against, attributed (spec 047 §3.2).
 ///
 /// The built-in floor first, then the adopter's entries in their declared
 /// order, which is the order [`is_bypassed_path`] evaluates them. A prefix
@@ -261,7 +261,7 @@ pub fn couple_with_scope(
 /// This exists because half the list is a constant compiled into the binary and
 /// therefore unreadable from outside the process. claude-observatory, which
 /// judges repositories other than itself, hand-parses each target's TOML and
-/// records in its spec 016 D-3 that the built-in floor is simply unknowable to
+/// records in its spec 015 D-3 that the built-in floor is simply unknowable to
 /// it. That is a consumer reimplementing half a contract and knowing the other
 /// half is wrong. Nothing about the gate's decision changes here: a value it
 /// already computes becomes reachable.
@@ -273,6 +273,19 @@ pub fn effective_bypass_prefixes(cfg: &Config) -> Vec<BypassEntry> {
             sources: vec![BypassSource::BuiltIn],
         })
         .collect();
+    // Spec 092 §3.8: the configured derived root is a built-in floor entry, so
+    // a reader of this list sees the same set the gate applies. Reported as
+    // built-in rather than as config: the adopter did not ask for a bypass,
+    // they named where the compiler writes, and the gate derived the rest.
+    // Skipped when it is already the default `.derived`, which is on the
+    // constant above and would otherwise be listed twice.
+    let derived = format!("{}/", cfg.layout.derived_dir.trim_end_matches('/'));
+    if derived != "/" && !entries.iter().any(|e| e.prefix == derived) {
+        entries.push(BypassEntry {
+            prefix: derived,
+            sources: vec![BypassSource::BuiltIn],
+        });
+    }
     for declared in &cfg.coupling.bypass_prefixes {
         match entries.iter_mut().find(|e| &e.prefix == declared) {
             Some(existing) => {
@@ -290,15 +303,15 @@ pub fn effective_bypass_prefixes(cfg: &Config) -> Vec<BypassEntry> {
 }
 
 /// The effective bypass verdict for one path: hardcoded floor ∪ adopter list
-/// (additive), with explicit unit claims taking precedence (spec 009),
+/// (additive), with explicit unit claims taking precedence (spec 008),
 /// exactly as [`couple_with`] applies it. Public so the CLI's
 /// dependency-only auto-waiver pre-filter (spec 005 §3.5) examines the same
 /// non-bypassed path set the gate itself will check; the claim-awareness is
 /// what keeps a claim-overridden floor path from slipping past that
 /// pre-filter into a mechanical waiver.
 pub fn is_bypassed_path(cfg: &Config, index: &CodebaseIndex, path: &str) -> bool {
-    // Spec 039: a declared state root is bypassed unconditionally, and the
-    // check precedes the spec 009 claim override rather than joining it. A
+    // Spec 036: a declared state root is bypassed unconditionally, and the
+    // check precedes the spec 008 claim override rather than joining it. A
     // claim inside the root is not a precedence question to resolve in either
     // direction: it is a contradiction, and `lint` reports it as `L-006`.
     // Letting the claim win would reintroduce override into a directory whose
@@ -307,12 +320,29 @@ pub fn is_bypassed_path(cfg: &Config, index: &CodebaseIndex, path: &str) -> bool
     if cfg.layout.is_state_path(path) {
         return true;
     }
+    // Spec 092 §3.8: the CONFIGURED derived root, on the same terms. The floor
+    // below spells `.derived/`, which is the default and not the answer: a
+    // repository whose `derived_dir` is elsewhere has every regenerated shard
+    // judged as source, so the change that recomputes the ledger becomes a
+    // `C-001` drift refusal against a spec that says nothing about shard bytes
+    // and, under `require_ownership`, a `C-002` unclaimed file as well. The
+    // gate should not need a configuration key to recognise its own output.
+    //
+    // Placed with the state root, before the spec 008 claim override, for the
+    // same reason: a unit claiming a compiled artifact is a contradiction
+    // (`lint` reports the derived tree as the compiler's), not a precedence
+    // question. The literal `.derived/` stays on the floor below, so a
+    // repository that configures nothing keeps exactly the behavior it has and
+    // one mid-migration has both paths answered.
+    if cfg.layout.is_derived_path(path) {
+        return true;
+    }
     !explicitly_claimed(path, index)
         && (is_bypass(path, DEFAULT_BYPASS_PREFIXES)
             || is_bypass(path, &cfg.coupling.bypass_prefixes))
 }
 
-/// Spec 009 §3.1: true iff at least one **resolved, ownership-bearing unit
+/// Spec 008 §3.1: true iff at least one **resolved, ownership-bearing unit
 /// claim** covers `path`: a location file matching exactly, or by directory
 /// prefix for a directory-form file unit (004 §3.3). Implicit path-level
 /// ownership (manifest metadata, comment headers → `implementingPaths`)
@@ -353,7 +383,7 @@ pub fn parse_waiver(cfg: &Config, body: &str) -> Option<Waiver> {
 /// resolved-unit ownership with whole-file `implementingPaths`, applies
 /// supersedes transfer, then amends-awareness under the FR-005 strict guard.
 ///
-/// Public since spec 055: `index owner <path>` reports what the gate would
+/// Public since spec 048: `index owner <path>` reports what the gate would
 /// decide, and it must call this rather than reimplement it. A second
 /// implementation that agreed today and drifted next quarter would be worse
 /// than no verb at all, because a consumer would have stopped rebuilding the
@@ -442,7 +472,7 @@ fn any_owner_in_diff(
 
 /// Direct `predecessor → {superseders}` map from the registry's `supersedes`.
 ///
-/// Public since spec 055, so a caller can assemble the same input
+/// Public since spec 048, so a caller can assemble the same input
 /// [`owners_for_path`] is given inside the gate.
 ///
 /// Only **full** supersession contributes a whole-spec authority transfer (spec
@@ -526,11 +556,11 @@ fn is_bypass<S: AsRef<str>>(path: &str, prefixes: &[S]) -> bool {
 /// `spec_id_for_spec_md_path`). `None` for any other path.
 ///
 /// The exact inverse of [`spec_md_rel`], against the configured
-/// `layout.specs_dir` rather than a literal `specs/` (spec 036). The prefix and
+/// `layout.specs_dir` rather than a literal `specs/` (spec 033). The prefix and
 /// the separator are stripped in two steps on purpose: a single
 /// `strip_prefix("specs")` would accept `specsX/005-x/spec.md`.
 ///
-/// Public since spec 052: the CLI's resolution footer asks the same question of
+/// Public since spec 045: the CLI's resolution footer asks the same question of
 /// the diff (is exactly one spec.md edited, and whose?) and must ask it with the
 /// gate's own answer rather than a second, drifting copy of the path grammar.
 pub fn spec_id_for_spec_md_path<'p>(specs_dir: &str, path: &'p str) -> Option<&'p str> {
@@ -543,7 +573,7 @@ pub fn spec_id_for_spec_md_path<'p>(specs_dir: &str, path: &'p str) -> Option<&'
 
 // ===== committed-artifact loaders (the IO half of `couple`) =====
 //
-// Both artifacts are stored as a per-spec/per-package shard tree (spec 024);
+// Both artifacts are stored as a per-spec/per-package shard tree (spec 022);
 // these delegate to the single assembler each producer owns, which reconstructs
 // the aggregate `Registry` / `CodebaseIndex` from the shard set. The gate logic
 // in [`couple_with`] consumes those aggregates unchanged.
@@ -615,7 +645,7 @@ mod tests {
 
     #[test]
     fn spec_md_path_parse_honors_configured_dir() {
-        // Spec 036: the corpus root is configuration, not a literal.
+        // Spec 033: the corpus root is configuration, not a literal.
         assert_eq!(
             spec_id_for_spec_md_path("contracts", "contracts/005-x/spec.md"),
             Some("005-x")

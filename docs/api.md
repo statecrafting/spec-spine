@@ -28,7 +28,7 @@ CLI and excluded from determinism/golden checks.
 | Crate | Role | Depend on it when… |
 |---|---|---|
 | `spec-spine-types` | DTOs, frontmatter grammar, `Config`, schema-version constants, embedded JSON Schemas, the `Error` enum | you only need the data shapes (e.g. an overlay reading the registry) |
-| `spec-spine-core` | the engine: `compile` / `index` / `lint` / `couple` / query + `scaffold_init` + the JSON facade | you are embedding the engine or building over the artifacts |
+| `spec-spine-core` | the engine: `compile` / `index` / `lint` / `couple` / query + the governance `scaffold_init` producer + the JSON facade | you are embedding the engine, building over the artifacts, or initializing a corpus from your own tooling |
 | `spec-spine-cli` | the thin `spec-spine` multi-call binary | you want the command-line tool (`cargo install spec-spine-cli`) |
 
 `spec-spine-core` re-exports the whole type substrate, so a Rust caller can
@@ -72,10 +72,10 @@ pub fn couple_with(cfg: &Config, registry: &Registry, index: &CodebaseIndex,
 // the committed by-spec / by-package shards) match the current inputs?
 pub fn check_index_freshness(cfg: &Config, repo_root: &Path) -> Result<Freshness, Error>;
 
-// Per-slice staleness (spec 012): `name` is a configured `[index.slices]` key.
+// Per-slice staleness (spec 011): `name` is a configured `[index.slices]` key.
 pub fn check_slice_freshness(cfg: &Config, repo_root: &Path, name: &str) -> Result<Freshness, Error>;
 
-// Ownership coverage (spec 032): which source files no spec specifically
+// Ownership coverage (spec 029): which source files no spec specifically
 // claims. Freshness-guarded like `couple` (a stale index is Error::Stale);
 // the pure form takes an already-loaded index and a path listing.
 pub fn coverage     (cfg: &Config, repo_root: &Path) -> Result<CoverageReport, Error>;
@@ -101,14 +101,14 @@ The gate never shells out; the caller passes a parsed diff:
 ```rust
 pub struct DiffInput { pub files: Vec<DiffFile> }
 pub struct DiffFile  { pub path: String, pub hunks: Vec<LineSpan>,    // empty hunks ⇒ whole-file change
-                       pub deleted: bool }                            // `+++ /dev/null`; C-002 skips it (spec 032)
+                       pub deleted: bool }                            // `+++ /dev/null`; C-002 skips it (spec 029)
 pub struct Waiver    { pub reason: String }
 
 // Build a Waiver from a PR body using the configured keyword:
 pub fn parse_waiver(cfg: &Config, pr_body: &str) -> Option<Waiver>;
 
 // Mechanical dependency-only auto-waiver (spec 005 §3.5; cargo + workflow
-// classes added by spec 030), used when `coupling.auto_waive_dependency_only`
+// classes added by spec 027), used when `coupling.auto_waive_dependency_only`
 // is set and no PR-body waiver is present. dependency_only_waiver dispatches
 // per manifest class; is_dependency_manifest is the CLI pre-filter predicate:
 pub struct FileContents { pub path: String, pub base: String, pub head: String }
@@ -143,10 +143,17 @@ use spec_spine_types::{Config, load_config};
 // workspace default with specs/ at the root).
 pub fn load_config(toml_src: &str) -> Result<Config, Error>;
 
-// init returns files-as-data; the CLI writes them. Keeps core IO-light & testable.
+// The governance scaffold returns files-as-data; the CONSUMER writes them
+// (spec 092: the Statecraft CLI, since there is no `spec-spine init`). Pure:
+// no writes, no environment reads, no process launches, no clock. It produces
+// spec-spine.toml, the constitution, the contract, the two templates, the
+// bootstrap spec and a .gitignore fragment, and no agent or environment
+// artifact of any kind.
 pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error>;
 pub struct Scaffold     { pub files: Vec<ScaffoldFile> }
-pub struct ScaffoldFile { pub rel_path: String, pub contents: String, pub overwrite: bool }
+pub struct ScaffoldFile { pub rel_path: String, pub contents: String, pub overwrite: bool,
+                          pub executable: bool, pub append: bool,
+                          pub append_marker: Option<String> }
 ```
 
 Every `Config` sub-struct is `#[serde(default, deny_unknown_fields)]`: a
@@ -182,7 +189,7 @@ Read-only queries over a loaded `Registry`:
 use spec_spine_core::{list, list_ids, show, status_report, relationships, ListFilter};
 
 pub fn list        (registry: &Registry, filter: &ListFilter)  -> Vec<&SpecRecord>;
-pub fn list_ids    (registry: &Registry, filter: &ListFilter)  -> Vec<&str>;  // idsOnly projection (spec 010)
+pub fn list_ids    (registry: &Registry, filter: &ListFilter)  -> Vec<&str>;  // idsOnly projection (spec 009)
 pub fn show        (registry: &Registry, id: &str)             -> Result<&SpecRecord, Error>;
 pub fn status_report(registry: &Registry)                      -> StatusReport;
 pub fn relationships(registry: &Registry, id: &str)            -> Result<RelationshipView, Error>;
@@ -257,14 +264,14 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
 - `query_json` request: `{ "registry": "<registry.json text>", "op":
   "list" | "show" | "status-report" | "relationships" | "plan", "id"?: string,
   "status"?: string, "idsOnly"?: bool, "nonzeroOnly"?: bool }` (the projection
-  fields, spec 010, default to `false`). Every answer is a **read document**
-  (spec 093): an object with sorted keys and `schemaVersion` =
+  fields, spec 009, default to `false`). Every answer is a **read document**
+  (spec 074): an object with sorted keys and `schemaVersion` =
   `READ_SCHEMA_VERSION`; `list` (with or without `idsOnly`) carries its array
-  under `items`. `plan` (spec 038) returns `{ "ready": [...], "blocked":
+  under `items`. `plan` (spec 035) returns `{ "ready": [...], "blocked":
   [{ "id", "blockedBy": [{ "id", "state" }] }], ..., "schemaVersion" }`.
 - `couple_json` request: `{ "config"?: Config, "repoRoot": string, "diff":
   DiffInput, "waiver"?: { "reason": string } }`.
-- `delta_json` (spec 088) request: `{ "config"?: Config, "baseRoot": string,
+- `delta_json` (spec 071) request: `{ "config"?: Config, "baseRoot": string,
   "headRoot": string, "changed": [string], "commits": { "base", "mergeBase",
   "head" } }`. The two roots are exported trees; `config` is the merge base's
   (absent, it is read from `<baseRoot>/spec-spine.toml`). Returns the
@@ -274,14 +281,14 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   means only that no structural class changed, not that the change is safe,
   correct or approved.
 - `check_freshness_json` returns `{ "fresh": bool, "expected"?, "actual"? }`.
-  `check_registry_freshness_json` (spec 031) returns the same shape for the
+  `check_registry_freshness_json` (spec 028) returns the same shape for the
   committed registry shards; staleness only, the validation verdict rides on
   `compile_json`.
-- `attest_json` (spec 023) and `attest_spec_json` (spec 042) return
+- `attest_json` (spec 021) and `attest_spec_json` (spec 039) return
   `{ "attestation": <CorpusAttestation | SpecAttestation>, "attestationHash":
   "<hex>" }`. Both are pure: no key, no clock (signing is a CLI post-pass). A
   failing verdict still yields a payload; attestation is a record, not a gate.
-- **Two digests of one `spec.md`, two names (spec 096).** A `SpecAttestation`'s
+- **Two digests of one `spec.md`, two names (spec 077).** A `SpecAttestation`'s
   `specSourceHash` is SHA-256 over the file's normalized bytes (BOM stripped,
   CRLF and CR folded to LF) with **no path prefix**: the value an ordinary
   digest of the normalized file reproduces, reported only by `attest --spec`.
@@ -289,34 +296,34 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   `shardHash`: SHA-256 over the repo-relative POSIX path, a NUL byte, then the
   same normalized bytes. The two are never equal for one file, and
   `registry show` does not report the unframed one, because it reads the
-  committed ledger and never recomputes (spec 055 §3.2).
+  committed ledger and never recomputes (spec 048 §3.2).
 - `verify_attestation_json` / `verify_spec_attestation_json` request:
   `{ "config"?: Config, "repoRoot": string, "attestation": <...> }`; they return
   `{ "outcome": "match" }`, `{ "outcome": "versionMismatch", "expected",
   "actual" }`, or `{ "outcome": "contentMismatch", "differences": [...] }`.
-- The CLI's `--json` verdict envelope (spec 037) wraps these payloads verbatim
+- The CLI's `--json` verdict envelope (spec 034) wraps these payloads verbatim
   under `report`, versioned by `VERDICT_SCHEMA_VERSION`; see
-  `specs/037-machine-readable-verdicts/spec.md`.
-- `coverage_json` (spec 032) returns the `CoverageReport` as a read document
-  (spec 093, so it also carries `schemaVersion`): `sourceFiles`,
+  `specs/034-machine-readable-verdicts/spec.md`.
+- `coverage_json` (spec 029) returns the `CoverageReport` as a read document
+  (spec 074, so it also carries `schemaVersion`): `sourceFiles`,
   `claimedFiles`, the sorted `floorOnlyFiles` / `unclaimedFiles` lists, and
   per-package counts. A stale committed index is `Error::Stale`, not a report.
-- `verify_plan_json` (spec 049) returns a spec's `VerifyPlan`: the `verify:cli`
+- `verify_plan_json` (spec 043) returns a spec's `VerifyPlan`: the `verify:cli`
   commands its `## Verification` section declares, in document order, plus the
   fence tags it declined (`skipped`). `spec_id` accepts the short form (spec
-  016). **The plan is all the library produces**: running the commands is the
+  015). **The plan is all the library produces**: running the commands is the
   caller's act, never the engine's, which is the same seam that keeps `git` on
   the CLI side of `couple`. A library with no shell can still read the plan.
-- `render_json` (spec 011) takes `config_json` and the aggregate index JSON
+- `render_json` (spec 010) takes `config_json` and the aggregate index JSON
   text and returns the markdown projection (a JSON-encoded string).
-  `orphans_json` (spec 011) takes only the index JSON text and returns the
-  orphaned-spec ids under `items` in a read document (spec 093).
+  `orphans_json` (spec 010) takes only the index JSON text and returns the
+  orphaned-spec ids under `items` in a read document (spec 074).
 
 All emitted JSON is **pretty-printed with sorted keys, LF line endings, and a
 trailing newline** (diffability over compactness; see
 [design/00-architecture.md](design/00-architecture.md) §10.1). For the read
 documents this holds because they all go through one emitter,
-`spec_spine_core::read_document` (spec 093); the facades that return compact
+`spec_spine_core::read_document` (spec 074); the facades that return compact
 JSON (`lint_json`, `couple_json` and the other verdict payloads) are the
 exception, and the CLI's envelope around them is sorted and pretty.
 

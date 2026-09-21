@@ -1,7 +1,7 @@
 //! `spec-spine registry …`: typed, read-only queries over the compiled
 //! registry. Assembles the registry from its committed per-spec shards via the
 //! library (never ad-hoc parsing, per spec 000 §1; the shard tree replaces the
-//! monolithic `registry.json` since spec 024).
+//! monolithic `registry.json` since spec 022).
 
 use std::path::Path;
 
@@ -28,7 +28,7 @@ pub enum RegistryQuery {
     },
     /// Show one spec by id.
     Show {
-        /// Spec id, full (`016-short-id-resolution`) or short (`016`).
+        /// Spec id, full (`015-short-id-resolution`) or short (`016`).
         id: String,
         #[arg(long)]
         json: bool,
@@ -43,16 +43,16 @@ pub enum RegistryQuery {
     },
     /// Show a spec's relationship neighborhood.
     Relationships {
-        /// Spec id, full (`016-short-id-resolution`) or short (`016`).
+        /// Spec id, full (`015-short-id-resolution`) or short (`016`).
         id: String,
         #[arg(long)]
         json: bool,
     },
-    /// Which specs can be worked on now, and what blocks the rest (spec 038).
+    /// Which specs can be worked on now, and what blocks the rest (spec 035).
     Plan {
         #[arg(long)]
         json: bool,
-        /// Print only the single pick: the first ready spec (spec 060). An
+        /// Print only the single pick: the first ready spec (spec 053). An
         /// empty ready set is `(nothing ready)` at exit 0, not a failure.
         #[arg(long)]
         next: bool,
@@ -75,7 +75,7 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 status: status.as_deref().map(parse_status).transpose()?,
             };
             if *ids_only {
-                // Spec 010 §3.1: ids and nothing else; an empty corpus prints
+                // Spec 009 §3.1: ids and nothing else; an empty corpus prints
                 // nothing (no "(no specs)" placeholder) and still exits 0.
                 let ids = list_ids(&registry, &filter);
                 if *json {
@@ -100,7 +100,7 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
         }
         RegistryQuery::Show { id, json } => {
             let spec = show(&registry, id)?;
-            // Spec 055 §3.3: the hash the committed shard records, read and
+            // Spec 048 §3.3: the hash the committed shard records, read and
             // never recomputed. Added at the output boundary and nowhere else:
             // putting it on `SpecRecord` would write it into every shard, whose
             // schema is `additionalProperties: false`, for a value the shard
@@ -124,7 +124,7 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                     // 055 §3.4: say which hash this is in the same breath as
                     // reporting it. The registry's and the index's per-spec
                     // hashes are the same shape, and a consumer that confuses
-                    // them gets a pin that fires on unrelated edits. Spec 096:
+                    // them gets a pin that fires on unrelated edits. Spec 077:
                     // and name the construction, since it is framed by the path
                     // and so is not the digest of the file's bytes, which a
                     // consumer reproducing it would otherwise compute.
@@ -160,12 +160,12 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
         RegistryQuery::Plan { json, next } => {
             let plan = plan(&registry)?;
             if *next {
-                // Spec 060 §3.2: a projection of `plan`, never a second
+                // Spec 053 §3.2: a projection of `plan`, never a second
                 // selection. An empty ready set exits 0: "nothing to do" is a
                 // true answer to "what should I work on", and a driven session
                 // that treats it as an error stops for the wrong reason.
                 //
-                // Spec 093 §3.3 (amending 060 §3.2): with `--json` the pick sits
+                // Spec 074 §3.3 (amending 060 §3.2): with `--json` the pick sits
                 // under a named `next` member, built here for the populated
                 // answer and the empty one alike, so both are one shape and
                 // "nothing is ready" is a present `null` rather than a missing
@@ -207,7 +207,7 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
 /// question a person asks at a terminal is "what can I do now"; `--json` carries
 /// every blocker and its state for the consumer that asks "why not that one".
 fn print_plan(plan: &Plan) {
-    // Spec 060 §3.1: render what the structure already holds. Titles come from
+    // Spec 053 §3.1: render what the structure already holds. Titles come from
     // the registry the plan was computed from, and each blocked spec's reasons
     // are printed rather than counted: `blocked_by` carries the state of every
     // blocker, and printing the count while discarding the states throws away
@@ -237,7 +237,7 @@ fn print_plan(plan: &Plan) {
             outln!("       blocked by {}", reasons.join(", "));
         }
     }
-    // Spec 076 §3.6: what the corpus has said it will own and has not written
+    // Spec 063 §3.6: what the corpus has said it will own and has not written
     // yet. Reported below both sets rather than folded into either, because a
     // blocked spec's planned territory is exactly what a reader wants when
     // weighing what unblocking it would cost.
@@ -256,7 +256,7 @@ fn print_plan(plan: &Plan) {
             }
         }
     }
-    // Spec 091 §3.3: printed after both sets and after planned territory,
+    // Spec 072 §3.3: printed after both sets and after planned territory,
     // because it is a fact *about* the ready set rather than a third set. The
     // caveat rides on the heading line and not in a footnote: a reader who
     // skims the count and stops must not come away with a clearance.
@@ -323,7 +323,7 @@ fn print_ids(label: &str, ids: &[String]) {
     }
 }
 
-/// Emit a read document (spec 093): sorted keys, object form, `schemaVersion`.
+/// Emit a read document (spec 074): sorted keys, object form, `schemaVersion`.
 /// Every `--json` arm of this verb comes through here, which is what makes a
 /// projection flag a versioned document rather than a call site that forgot.
 fn print_json<T: serde::Serialize>(value: &T) -> Result<(), Error> {

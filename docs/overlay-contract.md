@@ -58,7 +58,7 @@ pub fn load_registry(bytes: &[u8]) -> Result<Registry,      Error>;
 pub fn load_index   (bytes: &[u8]) -> Result<CodebaseIndex, Error>;
 ```
 
-The committed artifacts are **sharded** (one file per authority unit, spec 024),
+The committed artifacts are **sharded** (one file per authority unit, spec 022),
 so read them from disk through the loaders that fold the shard set into the
 aggregate: `load_committed_registry(cfg, repo_root)` and
 `load_committed_index(cfg, repo_root)` (see [api.md](api.md)). They return the
@@ -73,7 +73,7 @@ use spec_spine_core::{load_committed_registry, load_committed_index};
 use spec_spine_core::types::Config;
 
 fn run(cfg: &Config, repo_root: &std::path::Path) -> Result<(), Box<dyn std::error::Error>> {
-    // The committed registry / index are sharded (spec 024): one file per
+    // The committed registry / index are sharded (spec 022): one file per
     // authority unit, no monolithic JSON to read. These loaders fold the shard
     // set into the aggregate `Registry` / `CodebaseIndex` on read.
     let registry = load_committed_registry(cfg, repo_root)?;
@@ -136,7 +136,7 @@ those through the compiler **without forking the types crate**, two ways:
   overflows into a capped `extra_frontmatter` map on the `SpecRecord`. Undeclared
   keys are restricted to scalar and string-list values; keys you list in
   `extra_known_keys` carry any JSON-representable YAML value, including arbitrary
-  nesting (spec 013). Your overlay reads it from the loaded `Registry`.
+  nesting (spec 012). Your overlay reads it from the loaded `Registry`.
 
 The compiler validates and emits these deterministically alongside the generic
 fields; the overlay picks them up from the typed `Registry`. Neither path

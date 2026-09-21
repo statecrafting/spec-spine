@@ -1,5 +1,5 @@
-// Spec: specs/084-a-short-id-names-the-same-spec-at-every-verb/spec.md
-//! Spec 084 §3.5: the six-argument matrix.
+// Spec: specs/067-a-short-id-names-the-same-spec-at-every-verb/spec.md
+//! Spec 067 §3.5: the six-argument matrix.
 //!
 //! 049 §3.2 and 056 §3.1 each asserted the cross-verb rule in prose, and
 //! nothing held it: four of the six arguments refused the short form through
@@ -245,7 +245,7 @@ fn no_match_is_one_refusal_at_the_five_arguments_that_refuse_it() {
 
 /// §3.2 and D-4: at `verify-attestation`, step 4 does not refuse. The argument
 /// falls through as given and the read fails exactly as it does today, which
-/// spec 042 §3.5 assigns to exit 3.
+/// spec 039 §3.5 assigns to exit 3.
 #[test]
 fn verify_attestation_falls_through_to_exit_three_on_no_match() {
     let t = corpus();

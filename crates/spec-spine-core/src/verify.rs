@@ -1,9 +1,9 @@
-//! Declared acceptance (spec 049): read a spec's `## Verification` section and
+//! Declared acceptance (spec 043): read a spec's `## Verification` section and
 //! report the commands it declares.
 //!
 //! Ported from `scripts/verify-spec.sh`, the 78-line runner three adopters
-//! wrote independently and spec 048 vendored into `kit/`. The grammar is
-//! preserved (spec 049 §3.2 is the table this module is measured against); what
+//! wrote independently and spec 093 vendored into `kit/`. The grammar is
+//! preserved (spec 043 §3.2 is the table this module is measured against); what
 //! changes is where it lives. A parse of authored markdown belongs to the
 //! compiler, and constitution II says a consumer reads its typed answer rather
 //! than re-deriving it with `awk`.
@@ -12,7 +12,7 @@
 //! executes it, which is the seam spec 005 already draws for `git`: the library
 //! stays a pure function of `(config, file contents)` and stays usable from a
 //! binding that has no shell. Deciding to execute code is a decision this layer
-//! declines to make for a caller (spec 049 §3.1).
+//! declines to make for a caller (spec 043 §3.1).
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -26,20 +26,20 @@ const CLI_TAG: &str = "verify:cli";
 
 /// Read `<specs_dir>/<id>/spec.md` and return the commands it declares.
 ///
-/// `id` accepts the short form (spec 016): `049` resolves to `049-slug` when
+/// `id` accepts the short form (spec 015): `049` resolves to `049-slug` when
 /// exactly one directory carries that ordinal. A `spec.md` that does not exist,
 /// or a short id matching none or several, is [`Error::NotFound`], which maps
-/// to exit 1. Spec 049 §3.3 is explicit that it must not be exit 2: in this
+/// to exit 1. Spec 043 §3.3 is explicit that it must not be exit 2: in this
 /// tool 2 means stale, and the ported script's use of it for a bad id would
 /// have made `verify` the one verb where the code meant something else.
 pub fn plan(cfg: &Config, repo_root: &Path, id: &str) -> Result<VerifyPlan, Error> {
     let specs_dir = repo_root.join(&cfg.layout.specs_dir);
-    // Spec 084 3.4: the one policy, over the ids this verb already reads.
+    // Spec 067 3.4: the one policy, over the ids this verb already reads.
     let spec_id = crate::spec_id::resolve_spec_id(id, crate::spec_id::spec_dir_ids(&specs_dir)?)?;
 
-    // Spec 103 3.2: an amended acceptance is the one that runs. The block in
+    // Spec 082 3.2: an amended acceptance is the one that runs. The block in
     // `<spec_id>/spec.md` is not read at all when another spec holds it, which
-    // is the point: spec 040 forbids editing the amended file, so an acceptance
+    // is the point: spec 037 forbids editing the amended file, so an acceptance
     // amendment that did not redirect the executor would change nothing about
     // what runs.
     let source = resolve_acceptance_source(&specs_dir, &spec_id)?;
@@ -53,7 +53,7 @@ pub fn plan(cfg: &Config, repo_root: &Path, id: &str) -> Result<VerifyPlan, Erro
 }
 
 /// The spec whose `## Verification` block answers for `spec_id`, when it is not
-/// `spec_id` itself (spec 103 3.2).
+/// `spec_id` itself (spec 082 3.2).
 ///
 /// Reads the corpus rather than the committed registry (D-6): `verify` must stay
 /// runnable on a tree whose `.derived/` is stale or absent, since it is the verb
@@ -81,7 +81,7 @@ fn resolve_acceptance_source(specs_dir: &Path, spec_id: &str) -> Result<Option<S
 
 /// `amended spec id -> the live spec that replaces its acceptance`.
 ///
-/// A `superseded` or `retired` holder is skipped (spec 103 3.2, D-5): its
+/// A `superseded` or `retired` holder is skipped (spec 082 3.2, D-5): its
 /// acceptance is no longer the corpus's, so the target keeps whatever held it
 /// before. Ids are visited in sorted order, so a fork `compile` would refuse
 /// resolves deterministically here rather than by directory-read order.
@@ -112,7 +112,7 @@ fn acceptance_holders(
 
 /// The whole grammar, as a pure function of the spec's markdown.
 ///
-/// Split from [`plan`] so spec 049 §3.2's table is testable as fixtures over
+/// Split from [`plan`] so spec 043 §3.2's table is testable as fixtures over
 /// strings, with no directory to arrange. The script this replaces had no tests
 /// in any of the four repositories carrying it.
 pub fn plan_from_markdown(spec_id: &str, markdown: &str) -> VerifyPlan {
@@ -167,7 +167,7 @@ pub fn plan_from_markdown(spec_id: &str, markdown: &str) -> VerifyPlan {
 /// A numbered heading (`## 5. Verification`) is the same section, which is what
 /// this corpus actually writes. Returns an empty string when there is no such
 /// heading, which [`plan_from_markdown`] then reports as no commands, since
-/// spec 049 §3.2 makes "no section" and "a section with no commands" one
+/// spec 043 §3.2 makes "no section" and "a section with no commands" one
 /// outcome.
 fn verification_section(markdown: &str) -> String {
     let mut out = String::new();
@@ -191,7 +191,7 @@ fn verification_section(markdown: &str) -> String {
 /// The markdown with its `## Verification` section removed: the exact
 /// complement of what [`verification_section`] reads.
 ///
-/// Spec 088 §3.3 classifies a change to a spec's body *outside* this section as
+/// Spec 071 §3.3 classifies a change to a spec's body *outside* this section as
 /// a `requirement` and a change to its plan as `verification`. Asking where the
 /// section ends with a second copy of the heading grammar would let the two
 /// classes disagree with the plan the moment either copy moved, so the question

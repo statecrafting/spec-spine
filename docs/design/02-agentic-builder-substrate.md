@@ -38,7 +38,7 @@ The test for whether a requirement belongs in spec-spine at all:
 
 The right-hand column must not reach `Config`. Where a builder genuinely needs
 per-spec configuration, the mechanism already exists and requires no change:
-`frontmatter.extra_known_keys` (spec 013) lets a spec carry `agent: codex` today,
+`frontmatter.extra_known_keys` (spec 012) lets a spec carry `agent: codex` today,
 passed through into the registry as declared extra frontmatter that spec-spine
 stores and never interprets.
 
@@ -57,16 +57,16 @@ is what makes the remaining backlog small.
 | Requirement | Provided by |
 |---|---|
 | Adjudicate an arbitrary target repo from a daemon's own home | the global `--repo <DIR>` flag |
-| Target corpora not rooted at `specs/` | `layout.specs_dir` (spec 036) |
-| Per-spec configuration the substrate ignores | `frontmatter.extra_known_keys` (spec 013) |
+| Target corpora not rooted at `specs/` | `layout.specs_dir` (spec 033) |
+| Per-spec configuration the substrate ignores | `frontmatter.extra_known_keys` (spec 012) |
 | "A gate is a command, an exit-code taxonomy, an artifact path" | the `0/1/2/3` contract, mapped in exactly one place |
 | Adjudicate outside a pull request, without git | `couple --paths-from`, `--pr-body` / `$SPEC_SPINE_PR_BODY` |
-| A tamper-evident, offline-verifiable record | `attest` / `verify-attestation`: `CorpusAttestation` plus a detached Ed25519 `LedgerSeal` (spec 023) |
-| A dependency graph for the scheduler | `depends_on` plus cycle refusal (spec 033) |
+| A tamper-evident, offline-verifiable record | `attest` / `verify-attestation`: `CorpusAttestation` plus a detached Ed25519 `LedgerSeal` (spec 021) |
+| A dependency graph for the scheduler | `depends_on` plus cycle refusal (spec 030) |
 | A non-Rust consumer | the JSON facade, complete across every verb |
-| Draft specs whose units do not exist yet | severity tiers on unresolved units (spec 025): a `draft` or `implementation: pending` spec yields counted `W-001`/`W-002` warnings, not blocking errors |
+| Draft specs whose units do not exist yet | severity tiers on unresolved units (spec 023): a `draft` or `implementation: pending` spec yields counted `W-001`/`W-002` warnings, not blocking errors |
 
-Spec 023 also already solved the hardest design problem the builder poses, in a
+Spec 021 also already solved the hardest design problem the builder poses, in a
 form that generalizes: it keeps the reproducible payload pure and puts the
 wall-clock instant and the signer identity in the **detached seal**. Section 5
 holds every new artifact to that shape.
@@ -137,7 +137,7 @@ file.
 
 `depends_on`, `status`, and `implementation` all exist; nothing answers "which
 specs are ready to build, in dependency order". The builder needs it once per
-session. Cheap, because spec 033 already walks the graph and refuses cycles.
+session. Cheap, because spec 030 already walks the graph and refuses cycles.
 
 ### G7. The coherence guard is a prompt, not a gate
 
@@ -163,7 +163,7 @@ the format is still being designed.
 **Evidence cannot be a `compile` output.** Every artifact-producing function is a
 pure function of `(Config, file contents)`: no clock, no env, no git. A build
 record (which agent, which session, at what time, at what cost) is irreducibly
-impure. Follow spec 023 exactly: the attestation payload stays pure and
+impure. Follow spec 021 exactly: the attestation payload stays pure and
 reproducible, and the impure record is a signed sibling excluded from the
 determinism gates. Do not let the builder's needs leak a clock into the ledger;
 determinism is the central claim, and the four-triple CI gate will catch it
@@ -171,13 +171,13 @@ anyway, loudly and late.
 
 **Every committed artifact class needs its freshness gate designed with it.**
 This repo learned it expensively: committed registry shards had no freshness
-check, stale `shardHash`es reached `main` undetected, and spec 031 exists to
+check, stale `shardHash`es reached `main` undetected, and spec 028 exists to
 close that. Evidence committed by a *daemon* rather than by `compile` is a third
 class with no gate at all. Specify the check verb in the same document that
 introduces the artifact, not in the follow-up after it rots.
 
 **Sharding already gives evidence its conflict story.** Per-spec bundles are
-naturally disjoint, so keeping them under `by-spec/`-shaped paths (spec 024)
+naturally disjoint, so keeping them under `by-spec/`-shaped paths (spec 022)
 means two concurrent builds never contend for one file. Take the property for
 free rather than reinventing it.
 
@@ -196,7 +196,7 @@ later reader discover it.
 | 3 | G5, G8 | to be filed | Adoption and the compliance guarantee |
 | 4 | G7 | to be filed | Design first; assert no mechanism yet |
 
-An unnumbered item landed alongside wave 1: spec 040 writes down how an
+An unnumbered item landed alongside wave 1: spec 037 writes down how an
 amendment is authored (declared once, in the amending spec; the predecessor is
 never edited). It adds no mechanism, and exists because a review asked the same
 question six times without the corpus being able to answer it.
@@ -207,18 +207,18 @@ Wave 1 is filed alongside this note.
 point of having checked.** Two findings from the code, not from this analysis:
 
 - **G1 was over-stated here.** `index.rs::in_flight` is
-  `status == "draft" || implementation == Pending`, and spec 025 already makes an
+  `status == "draft" || implementation == Pending`, and spec 023 already makes an
   unresolved owning unit a blocking error for any spec that is not in flight. So
   an *approved* spec marked `complete` is already held to its claims. What was
   missing is one arm of one predicate: `Implementation::Complete` never enters
   the expression, so `status: draft` alone buys leniency, and this corpus files
-  every spec as `draft` + `complete` when its code lands. Spec 041 is that fix,
+  every spec as `draft` + `complete` when its code lands. Spec 038 is that fix,
   and needs no attestation.
 - **G2's committed bundle does not survive contact with the repo.**
   `.derived/attestation/` is gitignored: 023's attestation is on-demand by
   design. A committed per-spec bundle would restale on every edit to any claimed
   unit and would need a fourth committed tree with a fifth gate verb, which is
-  this note's own constraint turned against the proposal. Spec 042 keeps the
+  this note's own constraint turned against the proposal. Spec 039 keeps the
   artifact on-demand and signed.
 
 The two are therefore independent rather than one consuming the other, and

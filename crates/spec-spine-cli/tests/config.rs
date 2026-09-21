@@ -1,5 +1,5 @@
 //! `spec-spine config show`: the effective configuration as a governed read
-//! (spec 054).
+//! (spec 047).
 
 use std::fs;
 use std::path::Path;
@@ -45,7 +45,7 @@ fn it_reports_on_a_repository_that_never_compiled() {
 }
 
 /// §3.1: `config` is a read. An absent `spec-spine.toml` is defaults, not a
-/// file to create; scaffolding is `init`'s job and has been since spec 006.
+/// file to create; scaffolding is `init`'s job and has been since spec 095.
 #[test]
 fn it_never_writes_a_config_file() {
     let tmp = tempfile::tempdir().unwrap();
@@ -59,7 +59,7 @@ fn it_never_writes_a_config_file() {
 
 /// §3.2: the floor is reported merged and attributed, in the order the gate
 /// evaluates: built-in first, then the adopter's, each in declared order. This
-/// is the fact claude-observatory recorded as unknowable (its spec 016 D-3).
+/// is the fact claude-observatory recorded as unknowable (its spec 015 D-3).
 #[test]
 fn the_bypass_floor_is_merged_ordered_and_attributed() {
     let tmp = tempfile::tempdir().unwrap();
@@ -117,7 +117,7 @@ fn a_prefix_in_both_lists_appears_once_with_both_sources() {
     assert_eq!(sources, vec!["built-in", "spec-spine.toml"]);
 }
 
-/// §3.3: the JSON form is the object, never the spec 037 verdict envelope. An
+/// §3.3: the JSON form is the object, never the spec 034 verdict envelope. An
 /// envelope carries `ok` and `exitCode`, and this verb decides nothing.
 #[test]
 fn the_json_form_is_not_a_verdict_envelope() {

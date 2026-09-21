@@ -1,6 +1,6 @@
 'use strict';
 
-// Spec: specs/007-distribution/spec.md
+// Spec: specs/006-distribution/spec.md
 //
 // The pure (process.platform, process.arch) -> platform-package mapping behind
 // the launcher (bin/spec-spine.js). No I/O on the mapping path, so it is
@@ -12,7 +12,7 @@ const path = require('node:path');
 
 // The five supported (platform-arch) targets. This table is one fact shared
 // with release.yml's build matrix and install.sh's detection; keep all three in
-// lockstep (specs/007-distribution/spec.md sec 3.2).
+// lockstep (specs/006-distribution/spec.md sec 3.2).
 const SUPPORTED = {
   'darwin-arm64': '@spec-spine/cli-darwin-arm64',
   'darwin-x64': '@spec-spine/cli-darwin-x64',

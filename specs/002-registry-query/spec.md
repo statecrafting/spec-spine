@@ -21,7 +21,6 @@ summary: >
   unknown MAJOR schema version). Establishes the query module and the
   `spec-spine registry` CLI subcommands; extends 001's public surface additively.
 ---
-
 # 002: Typed read-only query over the registry
 
 ## 1. Purpose

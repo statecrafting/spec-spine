@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://spec-spine.dev/schemas/codebase-index-package-shard.schema.json",
-  "title": "spec-spine codebase index, per-package inventory shard (spec 024)",
+  "title": "spec-spine codebase index, per-package inventory shard (spec 022)",
   "description": "One file per discovered package under <derived>/codebase-index/by-package/<slug>.json. The deterministic, conflict-free committed form of one package's inventory record.",
   "type": "object",
   "required": ["schemaVersion", "shardHash", "package"],

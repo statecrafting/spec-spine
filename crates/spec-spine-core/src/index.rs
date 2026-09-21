@@ -35,7 +35,7 @@ const BLOCKING_CODES: &[&str] = &[
 ///
 /// `index` + `json` are the aggregate in-memory view (the universal currency:
 /// consumed by `attest`, the JSON facade, and the conformance test). `shards` is
-/// the per-unit committed projection the CLI writes to disk (spec 024); it is a
+/// the per-unit committed projection the CLI writes to disk (spec 022); it is a
 /// pure reshaping of the same data, so the two never disagree.
 pub struct IndexOutcome {
     pub index: CodebaseIndex,
@@ -43,7 +43,7 @@ pub struct IndexOutcome {
     pub shards: IndexShardSet,
     /// The specs whose frontmatter declares `implementation: complete`.
     ///
-    /// Spec 098 §3.4: a blocking resolution diagnostic against a spec that
+    /// Spec 079 §3.4: a blocking resolution diagnostic against a spec that
     /// records the work as done is a contradiction worth naming, and the
     /// implementation axis is not on [`TraceMapping`] (only `spec_status` is),
     /// so it is carried out of the one place that already read the frontmatter
@@ -52,7 +52,7 @@ pub struct IndexOutcome {
 }
 
 /// The committed-form projection of an index: one shard per spec and one per
-/// package (spec 024). Sorted (specs by id, packages by path) for determinism.
+/// package (spec 022). Sorted (specs by id, packages by path) for determinism.
 pub struct IndexShardSet {
     pub spec_shards: Vec<IndexSpecShard>,
     pub package_shards: Vec<IndexPackageShard>,
@@ -65,7 +65,7 @@ pub enum Freshness {
     Stale { expected: String, actual: String },
 }
 
-/// One error-tier resolution diagnostic, as data (spec 098 §3.2).
+/// One error-tier resolution diagnostic, as data (spec 079 §3.2).
 ///
 /// Every field a report needs is carried here rather than recovered from the
 /// rendered line: the code, the spec that declared the claim, and the unit that
@@ -82,14 +82,14 @@ pub struct BlockingClaim {
     pub message: String,
     /// The claimed path, where the code has one.
     pub unit: Option<String>,
-    /// The owning spec declares `implementation: complete` (spec 098 §3.4):
+    /// The owning spec declares `implementation: complete` (spec 079 §3.4):
     /// the spec records the work as done while the unit it claims is absent.
     pub claims_complete: bool,
     /// The shard this diagnostic is recorded in, repo-relative to the index dir.
     pub shard: String,
 }
 
-/// The two refusals `check` folds into one verdict, kept apart (spec 098 §3.2).
+/// The two refusals `check` folds into one verdict, kept apart (spec 079 §3.2).
 ///
 /// `blocking` is a spec claiming a unit that does not resolve; `stale` is a
 /// committed shard whose bytes moved. They need different work from different
@@ -110,8 +110,8 @@ impl IndexFreshnessReport {
     /// The verdict every existing caller reads, unchanged.
     ///
     /// The blocking half re-enters as the `blocking-diagnostics <shard>` line it
-    /// has carried since spec 050, one line per shard rather than one per
-    /// diagnostic, so the count line means what it meant before. Spec 098 §3.1
+    /// has carried since spec 044, one line per shard rather than one per
+    /// diagnostic, so the count line means what it meant before. Spec 079 §3.1
     /// and FR-009: the exit codes and the `--json` envelope do not move, and
     /// this is the function that holds them still.
     pub fn freshness(&self) -> Freshness {
@@ -133,7 +133,7 @@ impl IndexFreshnessReport {
     }
 
     /// The unresolved-claim report, one classed line per diagnostic
-    /// (spec 098 §3.3).
+    /// (spec 079 §3.3).
     ///
     /// Rendered once, here, because `check` and `index check` must say the same
     /// thing about the same fact and a second copy is a second wording. Each
@@ -142,8 +142,8 @@ impl IndexFreshnessReport {
     /// move as well, attributes regeneration to that half alone (FR-006).
     ///
     /// It offers no way out. Narrowing a claim to pass a gate is what
-    /// `.claude/rules/adversarial-prompt-refusal.md` exists to refuse, and
-    /// `planned: true` beneath `implementation: complete` is spec 076 §3.3's
+    /// `AGENTS.md` "Adversarial prompt refusal" exists to refuse, and
+    /// `planned: true` beneath `implementation: complete` is spec 063 §3.3's
     /// `L-011`: a message proposing either would be proposing a defect.
     pub fn unresolved_claim_lines(&self) -> Vec<String> {
         if self.blocking.is_empty() {
@@ -192,7 +192,7 @@ impl IndexFreshnessReport {
     /// The stale half alone, for a verb that reports the two separately.
     ///
     /// Byte-identical to [`Self::freshness`] whenever nothing blocks, which is
-    /// what keeps spec 098 AC-3's "unchanged, wording included" mechanical.
+    /// what keeps spec 079 AC-3's "unchanged, wording included" mechanical.
     pub fn stale_verdict(&self) -> Freshness {
         drift_verdict(self.stale.clone(), self.emitted)
     }
@@ -202,7 +202,7 @@ impl IndexFreshnessReport {
 struct SpecInfo {
     id: String,
     status: String,
-    /// The owning spec's implementation lifecycle. Spec 025's lifecycle severity
+    /// The owning spec's implementation lifecycle. Spec 023's lifecycle severity
     /// tier keys on `draft` status or `pending` implementation; carried here so
     /// the resolve loop has both signals without re-reading frontmatter.
     implementation: Option<Implementation>,
@@ -214,12 +214,12 @@ struct SpecInfo {
 
 impl SpecInfo {
     /// True when the spec is still in flight, so an unresolved *owning* unit is a
-    /// counted warning rather than a blocking error (spec 025 §3.1 arm 2).
+    /// counted warning rather than a blocking error (spec 023 §3.1 arm 2).
     ///
     /// `status` and `implementation` are orthogonal axes: the first is a claim
     /// about design review, the second a claim about code. Where they disagree
     /// about whether claimed code exists, the more specific claim wins, which is
-    /// what spec 041 added to this predicate.
+    /// what spec 038 added to this predicate.
     ///
     /// | `status` | `implementation` | in flight |
     /// |---|---|---|
@@ -230,9 +230,9 @@ impl SpecInfo {
     ///
     /// The rule under both arms is that **the field is read as what it says**.
     /// `complete` is a falsifiable assertion that the files exist, so the
-    /// indexer checks it (spec 041); `pending` and `in-progress` both say the
+    /// indexer checks it (spec 038); `pending` and `in-progress` both say the
     /// claimed territory is not finished, which is the condition the leniency
-    /// exists for, so it does not (spec 044). `status: draft` says the design is
+    /// exists for, so it does not (spec 041). `status: draft` says the design is
     /// unratified, a statement about review that knows nothing about whether the
     /// files exist; letting it silence a check on the other axis is not leniency
     /// toward work in progress, it is declining to read what the author wrote.
@@ -277,7 +277,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
 
     // Symbol index, built only if some spec declares a symbol unit (avoids
     // parsing all source for corpora that use only file/section units). When the
-    // `symbol-resolution` feature is compiled out (spec 027), tree-sitter is not
+    // `symbol-resolution` feature is compiled out (spec 025), tree-sitter is not
     // linked: no index is built and symbol units resolve to nothing (the same
     // result a corpus declaring no symbol units already yields).
     #[cfg(feature = "symbol-resolution")]
@@ -301,8 +301,8 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
     #[cfg(not(feature = "symbol-resolution"))]
     let symbol_index = SymbolIndex::default();
 
-    // Module index, built only if some spec declares a module unit (spec 017).
-    // Tree-sitter-backed, so likewise gated behind `symbol-resolution` (spec 027).
+    // Module index, built only if some spec declares a module unit (spec 016).
+    // Tree-sitter-backed, so likewise gated behind `symbol-resolution` (spec 025).
     #[cfg(feature = "symbol-resolution")]
     let module_index = {
         let needs_modules = specs.iter().any(|s| {
@@ -325,7 +325,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
     let module_index = ModuleIndex::default();
 
     // The scalar folded into every shard hash so a config / extra-input change
-    // restamps all shards (spec 024); two PRs touching only disjoint specs never
+    // restamps all shards (spec 022); two PRs touching only disjoint specs never
     // touch it, so the conflict-free property holds.
     let global_inputs = shard::global_inputs_hash(cfg, repo_root);
 
@@ -346,7 +346,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
         let in_flight = spec.in_flight();
         for (field, unit, ownership) in &spec.units {
             // `resolve_unit` always emits the natural `I-0xx` hard error into a
-            // local buffer; spec 025 then reclassifies an unresolved unit by
+            // local buffer; spec 023 then reclassifies an unresolved unit by
             // severity tier (edge authority, then owning-spec lifecycle) before
             // merging it into the spec's diagnostics.
             let mut unit_diags = Diagnostics::default();
@@ -366,7 +366,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
                 in_flight,
                 unit.is_planned(),
             );
-            // Only an owning edge contributes an implementing path (spec 034).
+            // Only an owning edge contributes an implementing path (spec 031).
             // `references` is non-owning by definition, so a file a spec merely
             // cites is not a file it implements. Every consumer of
             // `implementing_paths` reads it as a claim: `owners_for_path` and
@@ -385,7 +385,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
                 }
             }
             resolved_units.push(ResolvedUnit {
-                // Spec 076 §3.4: the **subject**, with the flag cleared.
+                // Spec 063 §3.4: the **subject**, with the flag cleared.
                 // `planned` annotates a claim's resolution state, not which
                 // territory it names, so a planned claim that has resolved
                 // answers an `authorities` lookup exactly as an unplanned one
@@ -478,7 +478,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
         .collect();
     untraced_code.sort();
 
-    // --- shard projection + aggregate content hash (spec 024) ---
+    // --- shard projection + aggregate content hash (spec 022) ---
     // Each shard self-describes its input hash; the aggregate `build.contentHash`
     // is the fold of those hashes (recomputable on read from the shard set, never
     // committed to a shared file).
@@ -542,7 +542,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
     })
 }
 
-/// The cap on how many drifted shards a freshness report names (spec 031 §3.3),
+/// The cap on how many drifted shards a freshness report names (spec 028 §3.3),
 /// so a corpus-wide restamp reports `and N more` instead of flooding a CI log.
 ///
 /// The registry keeps its own copy of this cap beside its own comparison, and
@@ -563,7 +563,7 @@ struct SchemaProbe {
 ///
 /// Byte comparison alone would call it `modified`, and the remedy a stale
 /// verdict advises, "run `spec-spine index`", would overwrite a tree a newer
-/// build wrote. That refusal is what the read boundary gave before spec 086
+/// build wrote. That refusal is what the read boundary gave before spec 069
 /// (`read_committed_index_shards` gates every shard's MAJOR), and it still
 /// guards every *reader* of this tree; keeping it here means the freshness
 /// verb in front of them does not answer first with worse advice.
@@ -619,17 +619,17 @@ fn compare_shard_dir(
 }
 
 /// Compare a freshly built shard set against the committed index tree, byte for
-/// byte (spec 086 §3.1), exactly as the registry's comparison does (spec 031
+/// byte (spec 069 §3.1), exactly as the registry's comparison does (spec 028
 /// §3.1).
 ///
-/// Before spec 086 this side compared only each committed shard's recomputed
+/// Before spec 069 this side compared only each committed shard's recomputed
 /// `shardHash`, and it derived the files to hash *from the committed body
 /// itself* (`span_files_for_mapping`). The body was therefore trusted to name
 /// its own inputs and was never compared with anything, so for a `file`,
 /// `directory` or `crate` unit, none of which carries a span, a rewritten body
 /// kept its hash and read fresh; the coupling gate then resolved ownership from
 /// it, and `.derived/` is on the bypass floor, so the edit tripped nothing
-/// (spec 086 §1 measures the case end to end). Comparing the serialized bytes
+/// (spec 069 §1 measures the case end to end). Comparing the serialized bytes
 /// is what makes the committed tree a ledger rather than a cache: canonical
 /// emission (sorted keys, 2-space, LF, trailing newline) makes a fresh index
 /// reproducible, so an exact comparison catches a stale hash, a hand-edited
@@ -645,11 +645,11 @@ pub(crate) fn committed_index_drift(
 ) -> Result<Vec<String>, Error> {
     let dir = index_dir(cfg, repo_root);
     // An index that was never built stays an `Error::Io`, the answer this
-    // function's caller gave before spec 086 and the one every reader of this
+    // function's caller gave before spec 069 and the one every reader of this
     // tree still gives. The registry's comparison calls that state stale
-    // instead (spec 031 §3.2), but that choice belongs to the verb that reads a
+    // instead (spec 028 §3.2), but that choice belongs to the verb that reads a
     // registry: adopting it here would move an exit code from 3 to 2 on
-    // `couple`, `coverage` and `index owner`, none of which spec 086 touches.
+    // `couple`, `coverage` and `index owner`, none of which spec 069 touches.
     // See 086 D-4.
     if !dir.exists() {
         return Err(Error::Io(format!(
@@ -669,7 +669,7 @@ pub(crate) fn committed_index_drift(
 
 /// Render drift lines as a [`Freshness`], in the registry's report shape.
 ///
-/// That shape is contractual (spec 031 §3.3): the session protocol reads the
+/// That shape is contractual (spec 028 §3.3): the session protocol reads the
 /// drifted shard names back to an operator, and exit 2 alone cannot say which
 /// shard moved. One line per shard, each carrying its class, capped so a
 /// corpus-wide restamp does not flood a CI log.
@@ -694,26 +694,26 @@ fn drift_verdict(mut drift: Vec<String>, emitted: usize) -> Freshness {
     }
 }
 
-/// Index freshness (spec 086 §3.1): does the committed shard tree equal what the
+/// Index freshness (spec 069 §3.1): does the committed shard tree equal what the
 /// current corpus indexes to? Indexes in memory and compares the serialized
 /// shard bytes and the shard set. **Never writes.**
 ///
-/// Every reader of the committed index inherits this (spec 086 §3.2). `check`,
+/// Every reader of the committed index inherits this (spec 069 §3.2). `check`,
 /// and the freshness guard in front of `couple`, `index coverage` and
 /// `index owner`, all call this one function, so a committed index that reads
 /// fresh is byte-identical to the recompute, and the owner set a `C-001`
 /// decision uses is the one the corpus resolves to at that tree rather than
 /// whatever the committed body says.
 ///
-/// The blocking-diagnostic refusal (spec 050) is unchanged. It is read from the
+/// The blocking-diagnostic refusal (spec 044) is unchanged. It is read from the
 /// fresh index rather than from the committed body, which is the same move this
 /// function makes everywhere else: a committed body with its diagnostics
 /// deleted would otherwise answer for itself.
 ///
-/// This replaces the per-shard hash recompute of spec 024 FR-003, whose
+/// This replaces the per-shard hash recompute of spec 022 FR-003, whose
 /// bounded trade (024 §5) let a resolution flip caused purely by a sibling
 /// change go unreported until the next full `index` run. A byte comparison
-/// catches it; spec 086 amends that section.
+/// catches it; spec 069 amends that section.
 pub fn check_index_freshness(
     cfg: &spec_spine_types::Config,
     repo_root: &Path,
@@ -722,7 +722,7 @@ pub fn check_index_freshness(
 }
 
 /// The same read as [`check_index_freshness`], with the two refusals kept apart
-/// (spec 098 §3.2).
+/// (spec 079 §3.2).
 ///
 /// `check_index_freshness` answers one question ("may a reader trust the
 /// committed index?") and flattens two independent facts into it: a committed
@@ -799,7 +799,7 @@ pub fn index_freshness_report(
 }
 
 /// Recompute one named slice and compare it to the committed
-/// `build.sliceHashes` entry (spec 012 §3.3). A single-subject gate: it never
+/// `build.sliceHashes` entry (spec 011 §3.3). A single-subject gate: it never
 /// consults the global hash or diagnostics. Unknown name → [`Error::Config`]
 /// (exit 3); a committed index with no entry for a configured slice is
 /// `Stale`, not an error: an index predating the slice config is by
@@ -847,7 +847,7 @@ pub fn authorities(index: &CodebaseIndex, unit: &Unit) -> Vec<String> {
     owners.into_iter().collect()
 }
 
-// ===== committed-shard IO + assembly (spec 024) =====
+// ===== committed-shard IO + assembly (spec 022) =====
 
 /// The committed codebase-index directory: `<derived>/codebase-index`.
 pub fn index_dir(cfg: &spec_spine_types::Config, repo_root: &Path) -> PathBuf {
@@ -886,7 +886,7 @@ pub fn index_shard_files(
     Ok((by_spec, by_package))
 }
 
-/// The per-slice sidecar (spec 012, relocated by spec 024): `slices.json`. The
+/// The per-slice sidecar (spec 011, relocated by spec 022): `slices.json`. The
 /// index slices live in their own small file (emitted only when `[index.slices]`
 /// is configured) rather than a global `index.json` build block, so a corpus
 /// with no slices commits no such file.
@@ -1017,7 +1017,7 @@ fn read_committed_slice_hashes(
         .unwrap_or_default()
 }
 
-/// One `build.sliceHashes` entry per configured slice (spec 012 §3.2).
+/// One `build.sliceHashes` entry per configured slice (spec 011 §3.2).
 fn compute_slice_hashes(
     cfg: &spec_spine_types::Config,
     repo_root: &Path,
@@ -1069,7 +1069,7 @@ fn discover_specs(
         let Ok(raw) = fs::read_to_string(&spec_md) else {
             continue;
         };
-        // Declared-key awareness (spec 013): a nested value under a declared
+        // Declared-key awareness (spec 012): a nested value under a declared
         // extra key must not knock the spec out of the index.
         let Ok(fm) = parse_frontmatter_with(&raw, &cfg.frontmatter.extra_known_keys) else {
             continue; // compile reports the V-002/V-013; the index skips it
@@ -1094,7 +1094,7 @@ fn discover_specs(
         for c in &fm.constrains {
             // A spec-scoped constraint (`target_specs`, no unit) claims no code
             // path; only a path-scoped constraint contributes a resolved unit
-            // (spec 018).
+            // (spec 017).
             if let Some(u) = &c.unit {
                 units.push((SourceField::Constrains, u.clone(), true));
             }
@@ -1106,7 +1106,7 @@ fn discover_specs(
         }
         // A partial supersession transfers authority over a single unit to this
         // (superseding) spec, modeled as an owned resolved unit so the gate
-        // treats the superseder as an owner of that unit's paths (spec 019). A
+        // treats the superseder as an owner of that unit's paths (spec 018). A
         // full or unit-less supersedes contributes no resolved unit here.
         for s in &fm.supersedes {
             if let Some(u) = s.partial_unit() {
@@ -1125,7 +1125,7 @@ fn discover_specs(
     Ok(out)
 }
 
-/// Route an unresolved unit's diagnostic by severity tier (spec 025 §3.1).
+/// Route an unresolved unit's diagnostic by severity tier (spec 023 §3.1).
 /// `resolve_unit` always produces the natural `I-0xx` hard error; this
 /// reclassifies it, by first-match precedence, before it reaches the spec's
 /// diagnostics:
@@ -1147,10 +1147,10 @@ fn classify_unresolved(
     planned: bool,
 ) {
     for d in produced.errors {
-        // Spec 076 §3.2: an unresolved unit marked `planned` is not an
+        // Spec 063 §3.2: an unresolved unit marked `planned` is not an
         // unresolved claim; it is a claim whose subject is openly not yet
         // written, so it produces no diagnostic at all rather than a
-        // suppressed one. Everything else classifies exactly as spec 025
+        // suppressed one. Everything else classifies exactly as spec 023
         // requires, so a path that is simply wrong is still caught and still
         // refused by `--fail-on-unresolved`. That asymmetry is the whole
         // safety argument: nobody marks a typo planned.
@@ -1203,7 +1203,7 @@ fn resolve_unit(
         }
         // A directory subtree: resolve to the directory path itself (the gate
         // prefix-matches it against changed paths), requiring the directory to
-        // exist (spec 017; I-007 mirrors OAP's missing-directory hard error).
+        // exist (spec 016; I-007 mirrors OAP's missing-directory hard error).
         Unit::Directory { path, .. } => {
             if repo_root.join(path).is_dir() {
                 vec![ResolvedLocation {
@@ -1220,7 +1220,7 @@ fn resolve_unit(
             }
         }
         // A compilation unit by manifest name: resolve to the discovered
-        // package's directory subtree (spec 017; I-003 = unknown crate). Hyphen
+        // package's directory subtree (spec 016; I-003 = unknown crate). Hyphen
         // and underscore are interchangeable in the name (Rust crate convention).
         Unit::Crate { id, .. } => {
             let norm = id.replace('-', "_");
@@ -1244,7 +1244,7 @@ fn resolve_unit(
                 }
             }
         }
-        // A Rust module by `::`-qualified path (spec 017; I-008 = unresolved,
+        // A Rust module by `::`-qualified path (spec 016; I-008 = unresolved,
         // distinct from the symbol band's I-005).
         Unit::Module { id, .. } => {
             let locations = modules.resolve(id);
@@ -1294,15 +1294,16 @@ fn resolve_unit(
 }
 
 /// How many opening lines of a file a `// Spec:` comment header may claim from
-/// (spec 094 §3.1). The value shipped with spec 032 and is declared, not chosen:
+/// (spec 075 §3.1). The value shipped with spec 029 and is declared, not chosen:
 /// changing it would move ownership in every adopter corpus at once.
 pub const COMMENT_HEADER_CLAIM_WINDOW: usize = 16;
 
 /// The last line the near-miss scan reads for a header below the claim window
-/// (spec 094 §3.6). Measured: over this repository's tree, the scanner's own
-/// recognizer finds no resolving header in lines 17 to 64, and past 64 finds
-/// only embedded file content (`kit_embedded.rs`), which is not a misplaced
-/// header.
+/// (spec 075 §3.6). Measured on this repository's tree at the time: the
+/// scanner's own recognizer found no resolving header in lines 17 to 64, and
+/// past 64 found only embedded file content, in the generated module spec 092
+/// §3.4 has since removed. That was not a misplaced header either, which is the
+/// reason the window stops here.
 pub const COMMENT_HEADER_REPORT_WINDOW: usize = 64;
 
 /// Scan package source files for a `// Spec: <specs_dir>/NNN-slug/spec.md` header.
@@ -1313,7 +1314,7 @@ fn scan_comment_headers(
     all_ids: &BTreeSet<String>,
 ) -> Vec<(String, String)> {
     let mut links: Vec<(String, String)> = Vec::new();
-    // The extension list is shared with the coverage universe (spec 032) so
+    // The extension list is shared with the coverage universe (spec 029) so
     // the spec-binding scan and the coverage denominator agree on what a
     // source file is.
     for (file, content) in header_scan_files(cfg, repo_root, packages) {
@@ -1328,7 +1329,7 @@ fn scan_comment_headers(
 
 /// Every file the header scans read, as `(repo-relative path, content)`:
 /// `SOURCE_EXTS` inside a discovered package, `resolver_exclusions` pruned. One
-/// enumeration for the claim scan and the near-miss scan (spec 094 §3.3), so
+/// enumeration for the claim scan and the near-miss scan (spec 075 §3.3), so
 /// the two cannot disagree about which files were asked. A file that is not
 /// UTF-8 is skipped by both, as the claim scan always has.
 fn header_scan_files(
@@ -1354,7 +1355,7 @@ fn header_scan_files(
     out
 }
 
-/// §3.2 steps 1 to 3 (spec 094): the reference a line offers, when the line is
+/// §3.2 steps 1 to 3 (spec 075): the reference a line offers, when the line is
 /// a claim attempt. Leading whitespace is trimmed, **at most one** `//` or `#`
 /// marker is stripped (the marker is optional), and the rest must begin with
 /// `Spec:`. Declared as it shipped, looser than the documented form on purpose:
@@ -1369,7 +1370,7 @@ fn header_attempt(line: &str) -> Option<&str> {
 }
 
 /// The spec a file claims through its header: the first claim attempt inside
-/// the window decides, resolving or not (spec 094 §3.2). An unresolvable
+/// the window decides, resolving or not (spec 075 §3.2). An unresolvable
 /// attempt therefore shadows a valid header below it.
 fn claim_in_window(content: &str, all_ids: &BTreeSet<String>) -> Option<String> {
     content
@@ -1379,7 +1380,7 @@ fn claim_in_window(content: &str, all_ids: &BTreeSet<String>) -> Option<String> 
         .and_then(|reference| spec_id_from_path(reference, all_ids))
 }
 
-/// The near misses in one file's content (spec 094 §3.3), in line order.
+/// The near misses in one file's content (spec 075 §3.3), in line order.
 ///
 /// Inside the claim window, up to and including the first claim attempt: a
 /// `//! Spec:` line is a `doc-comment-marker` (it is not an attempt, so it does
@@ -1438,7 +1439,7 @@ pub fn near_miss_headers_in(
 }
 
 /// Every near miss across the header scan's file universe, sorted by path then
-/// line (spec 094 §3.3). Computed on read for the coverage report; no index
+/// line (spec 075 §3.3). Computed on read for the coverage report; no index
 /// shard records it (§2, D-2).
 ///
 /// The spec ids are discovered from the corpus exactly as [`index`] discovers
@@ -1463,7 +1464,7 @@ pub(crate) fn near_miss_headers(
 
 /// Extract the spec id from a `<specs_dir>/NNN-slug/spec.md` reference: every
 /// trailing `/spec.md` is trimmed and the final segment must be a corpus id
-/// (spec 094 §3.2 step 4). Not a path check, as shipped.
+/// (spec 075 §3.2 step 4). Not a path check, as shipped.
 fn spec_id_from_path(reference: &str, all_ids: &BTreeSet<String>) -> Option<String> {
     let trimmed = reference.trim_end_matches("/spec.md");
     let candidate = trimmed.rsplit('/').next().unwrap_or(trimmed);
@@ -1476,9 +1477,9 @@ fn spec_id_from_path(reference: &str, all_ids: &BTreeSet<String>) -> Option<Stri
 const GLOBAL_INPUTS_KEY: &str = "\u{0}global-inputs";
 
 /// Repo-relative POSIX path of a spec's `spec.md` (the dir name equals the id,
-/// enforced by compile's V-001), e.g. `specs/024-index-sharding/spec.md`.
+/// enforced by compile's V-001), e.g. `specs/022-index-sharding/spec.md`.
 ///
-/// `pub(crate)` since spec 036: the coupling gate parses this same shape back
+/// `pub(crate)` since spec 033: the coupling gate parses this same shape back
 /// into an id, and a builder and a parser that disagree about it is exactly the
 /// defect 036 fixes. A trailing slash on the configured `specs_dir` is trimmed,
 /// so `specs` and `specs/` name one file instead of the second producing
@@ -1547,7 +1548,7 @@ fn package_manifest_rel(package: &PackageRecord) -> String {
 
 /// The hash a per-package index shard self-describes: its manifest folded with
 /// the global-inputs scalar. npm and cargo manifests fold as their governance
-/// projection (spec 004 §3.5; cargo added by spec 030): a dependabot-class
+/// projection (spec 004 §3.5; cargo added by spec 027): a dependabot-class
 /// dependency bump leaves the shard fresh, while a change to a field the
 /// indexer reads (name / version / workspaces / spec-metadata / package kind)
 /// stales it.
@@ -1590,9 +1591,9 @@ fn glob_files(repo_root: &Path, pattern: &str) -> Vec<PathBuf> {
 
 /// Sorted source files under `dir` (by extension), pruning
 /// `index.resolver_exclusions` and the declared `layout.state_dir`. Shared with
-/// the coverage universe (spec 032).
+/// the coverage universe (spec 029).
 ///
-/// `layout` is passed whole rather than as an exclusion entry because spec 039
+/// `layout` is passed whole rather than as an exclusion entry because spec 036
 /// 3.5 makes the state root its own decision: no `resolver_exclusions` entry
 /// can express it (that list matches directory *names*, not path prefixes) and
 /// none may cancel it.
@@ -1639,7 +1640,7 @@ fn walk(
     }
 }
 
-/// One entry beneath a claimed directory (spec 083 3.2).
+/// One entry beneath a claimed directory (spec 066 3.2).
 ///
 /// A symlink is carried as its own target text rather than as the thing it
 /// points at, which is what keeps the walk from following it.
@@ -1651,23 +1652,23 @@ pub(crate) enum TerritoryEntry {
 }
 
 /// Everything beneath `dir`, at any depth, for hashing a claimed subtree
-/// (spec 083 3.2). Sorted by path.
+/// (spec 066 3.2). Sorted by path.
 ///
 /// Three differences from [`walk_source`], each required rather than incidental:
 ///
 /// - **No extension filter.** A unit that claims a directory claims what is in
 ///   it, not the subset that happens to compile; `SOURCE_EXTS` would find zero
-///   files under a markdown-only subtree and hash nothing at all (spec 083 D-3).
+///   files under a markdown-only subtree and hash nothing at all (spec 066 D-3).
 /// - **Symlinks are not followed.** Recursion is decided by `symlink_metadata`
 ///   (an `lstat`), never `is_dir`, which follows links: a cycle inside a claimed
 ///   subtree would otherwise make this walk diverge, and a link out of the tree
-///   would pull in content the repository does not own (spec 083 D-4).
+///   would pull in content the repository does not own (spec 066 D-4).
 /// - **It returns entries, not paths**, so the caller can tell a file it must
 ///   read from a link it must not.
 ///
 /// The pruning is deliberately identical to `walk_source`'s and lives here for
 /// that reason: `index.resolver_exclusions` plus the declared `layout.state_dir`
-/// (spec 039 3.5), which no exclusions entry can express or cancel. Spec 083 3.2
+/// (spec 036 3.5), which no exclusions entry can express or cancel. Spec 066 3.2
 /// makes the single-sourcing normative, because two walkers that drifted would
 /// silently change what an attestation covers and nothing would fail.
 pub(crate) fn walk_territory(
@@ -1727,7 +1728,7 @@ fn walk_territory_inner(
     }
 }
 
-/// Whether the territory walk skips `path` (spec 083 3.2): a resolver exclusion
+/// Whether the territory walk skips `path` (spec 066 3.2): a resolver exclusion
 /// or the declared state root. One predicate, so [`walk_territory`] and
 /// [`empty_territory_dirs`] cannot disagree about what a subtree contains.
 fn territory_pruned(
@@ -1736,12 +1737,25 @@ fn territory_pruned(
     exclusions: &[String],
     layout: &LayoutConfig,
 ) -> bool {
-    is_excluded(repo_root, path, exclusions) || layout.is_state_path(&rel_posix(repo_root, path))
+    if is_excluded(repo_root, path, exclusions) {
+        return true;
+    }
+    let rel = rel_posix(repo_root, path);
+    // Spec 036 §3.5: the declared state root, which no `resolver_exclusions`
+    // entry can express or cancel. Spec 092 §3.8: the configured derived root,
+    // for the same reason and with the same force. `resolver_exclusions`
+    // matches path COMPONENTS, so the default `.derived` was reachable as one
+    // and a nested `.statecraft/derived` is not: expressing it there would take
+    // the form `derived`, which excludes every directory of that name anywhere
+    // in the tree. Compiler output is compiler output wherever it is
+    // configured to sit, and the walks should not need a configuration key to
+    // know what the tool itself wrote.
+    layout.is_state_path(&rel) || layout.is_derived_path(&rel)
 }
 
 /// The directories at or beneath `dir` that the territory walk reaches and that
 /// hold nothing it does not prune: the empty and wholly pruned directories a
-/// snapshot records as `d` pieces (spec 087 §3.3.1). Sorted by path.
+/// snapshot records as `d` pieces (spec 070 §3.3.1). Sorted by path.
 ///
 /// Leaves only. A directory whose sole children are empty directories is not
 /// itself empty, so the pieces sit at the directories that are. `dir` is
@@ -1763,7 +1777,7 @@ pub(crate) fn empty_territory_dirs(
         // A directory that cannot be read is not known to be empty, and
         // `walk_territory` yields nothing for it either. Emitting a `d` piece
         // here would make the snapshot's piece set disagree with the file set
-        // `attest --spec` hashes, which spec 087 §3.3.1 requires them not to do.
+        // `attest --spec` hashes, which spec 070 §3.3.1 requires them not to do.
         let Ok(entries) = fs::read_dir(dir) else {
             return;
         };
@@ -1828,10 +1842,10 @@ fn status_str(status: spec_spine_types::Status) -> String {
     .to_string()
 }
 
-// ===== spec 057: which paths any content hash witnesses =====
+// ===== spec 050: which paths any content hash witnesses =====
 
 /// Every repo-relative path that contributes to some content hash the index
-/// computes (spec 057 §3.1).
+/// computes (spec 050 §3.1).
 ///
 /// Derived from the same code that builds the hashes rather than restated
 /// beside it: a second list of what is hashed would be wrong the first time the
@@ -1847,7 +1861,7 @@ fn status_str(status: spec_spine_types::Status) -> String {
 /// - `spec-spine.toml` and every `[index] extra_hashed_inputs` match
 ///   ([`crate::shard::global_inputs_hash`]).
 ///
-/// A path under `layout.state_dir` never appears: spec 039 excludes state from
+/// A path under `layout.state_dir` never appears: spec 036 excludes state from
 /// every content hash, and `global_inputs_hash` filters it out by the same rule.
 pub fn witnessed_paths(cfg: &Config, repo_root: &Path, index: &CodebaseIndex) -> BTreeSet<String> {
     let mut out: BTreeSet<String> = BTreeSet::new();
@@ -1875,7 +1889,7 @@ pub fn witnessed_paths(cfg: &Config, repo_root: &Path, index: &CodebaseIndex) ->
 }
 
 /// A claimed path that exists on disk and that no content hash covers
-/// (spec 057 §3.2).
+/// (spec 050 §3.2).
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UnwitnessedClaim {
@@ -1883,7 +1897,7 @@ pub struct UnwitnessedClaim {
     pub path: String,
     /// Covered by a `[lint] unwitnessed_allowed` pattern: this corpus has
     /// decided the gap is deliberate. Still counted and still reported by
-    /// `index check`; only `L-008` is suppressed (spec 057).
+    /// `index check`; only `L-008` is suppressed (spec 050).
     pub allowed: bool,
 }
 
@@ -1898,7 +1912,7 @@ fn is_allowed_unwitnessed(cfg: &Config, path: &str) -> bool {
 /// Every ownership-bearing claimed path that exists and is unwitnessed, sorted.
 ///
 /// A path that does **not** exist is excluded: it is already diagnosed as an
-/// unresolved unit (`W-001` / `W-002`, spec 025), and telling a specify-first
+/// unresolved unit (`W-001` / `W-002`, spec 023), and telling a specify-first
 /// corpus that a file it has not written yet is also not hashed would put a
 /// second warning on every pending claim.
 pub fn unwitnessed_claims(
@@ -1921,7 +1935,7 @@ pub fn unwitnessed_claims(
                 if witnessed.contains(&loc.file) {
                     continue;
                 }
-                // Spec 039 / `L-006`: a claim inside the ungoverned state root
+                // Spec 036 / `L-006`: a claim inside the ungoverned state root
                 // is already an error-tier diagnosis, and "and it is not
                 // hashed" is noise on a path that has to move regardless.
                 if cfg.layout.is_state_path(&loc.file) {
@@ -1941,16 +1955,16 @@ pub fn unwitnessed_claims(
     out.into_iter().collect()
 }
 
-// ===== spec 055: who owns this path =====
+// ===== spec 048: who owns this path =====
 
 /// How a spec comes to own a path.
 ///
 /// The kinds are separate because a consumer's next decision depends on which
 /// one it is: a `Unit` owner claimed the path deliberately, a `Floor` owner has
 /// it only through a package manifest (which counts for `C-001` and counts as
-/// debt for coverage, spec 032), and a `Header` owner is named by the file
+/// debt for coverage, spec 029), and a `Header` owner is named by the file
 /// itself. Collapsing them into a flat list of spec ids would reproduce exactly
-/// the ambiguity spec 032 was written to remove.
+/// the ambiguity spec 029 was written to remove.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum OwnerKind {
@@ -1976,7 +1990,7 @@ pub struct OwnerLink {
     pub claim: String,
 }
 
-/// Who owns one path (spec 055 §3.1).
+/// Who owns one path (spec 048 §3.1).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OwnerReport {

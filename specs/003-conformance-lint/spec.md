@@ -17,7 +17,6 @@ summary: >
   fails; warning-tier fails under --fail-on-warn; info-tier under --fail-on-info.
   Establishes the lint engine and the `spec-spine lint` CLI subcommand.
 ---
-
 # 003: Corpus conformance lint
 
 ## 1. Purpose

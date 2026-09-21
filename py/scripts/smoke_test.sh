@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Spec: specs/008-python-distribution/spec.md
+# Spec: specs/007-python-distribution/spec.md
 #
 # Local build + install smoke test: prove `spec-spine --version` resolves through
 # a generated platform wheel to a real prebuilt binary, end to end, no network.

@@ -10,7 +10,7 @@
 //! `core.quotepath=false` keeps unicode paths matchable, and `--end-of-options`
 //! stops a crafted ref from being parsed as a git flag. Git prints no `+++`
 //! header for a mode-only or binary change, so membership is completed from
-//! `git diff --name-status -z` over the same range (spec 092): the parser stays
+//! `git diff --name-status -z` over the same range (spec 073): the parser stays
 //! the authority for spans, the name list for which paths changed.
 
 use std::path::{Path, PathBuf};
@@ -32,12 +32,12 @@ pub struct CoupleArgs {
     pub head: String,
     pub pr_body: Option<PathBuf>,
     pub paths_from: Option<PathBuf>,
-    /// Spec 102 §3.1: union the committed range with `git diff HEAD`, so a
+    /// Spec 081 §3.1: union the committed range with `git diff HEAD`, so a
     /// pre-commit run judges the change being committed rather than an empty
     /// set. Off by default: CI runs over a pushed range where the working tree
     /// is irrelevant and must stay so (§3.4).
     pub include_uncommitted: bool,
-    /// Emit the verdict as a JSON envelope instead of prose (spec 037).
+    /// Emit the verdict as a JSON envelope instead of prose (spec 034).
     pub json: bool,
 }
 
@@ -113,7 +113,7 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
     Ok(report.exit_code())
 }
 
-/// The resolution footer a blocking report ends with (spec 052 §3.2, §3.3).
+/// The resolution footer a blocking report ends with (spec 045 §3.2, §3.3).
 ///
 /// A pure function of `(config, report, diff)`: no input is read and nothing is
 /// written, so the same three arguments always produce the same bytes.
@@ -123,7 +123,7 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
 /// offer, both are shut for the case that produces most `C-001` refusals: an
 /// author building their own spec who reached into a file another spec owns.
 /// Editing the other spec is the illegitimate mid-build edit
-/// `.claude/rules/adversarial-prompt-refusal.md` forbids, and the waiver is a
+/// `AGENTS.md` "Adversarial prompt refusal" forbids, and the waiver is a
 /// human instrument an unattended session may not grant itself. The third door,
 /// an `extends` edge in the author's own spec, is the corpus's actual answer,
 /// and this is where the gate finally says so.
@@ -180,7 +180,7 @@ fn resolution_footer(cfg: &Config, report: &CoupleReport, diff: &DiffInput) -> S
 }
 
 /// Door two's body: the concrete `extends` block when the diff makes it
-/// concrete, else the shape to fill in (spec 052 §3.3).
+/// concrete, else the shape to fill in (spec 045 §3.3).
 ///
 /// The specific form triggers on **exactly one** edited `spec.md`, and needs no
 /// further test: clearance is "any one owner's spec.md is in the diff", so a
@@ -246,7 +246,7 @@ fn spec_md_rel(specs_dir: &str, id: &str) -> String {
 /// hunks) or from `git diff --no-color -U0 base...head`.
 fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> {
     if let Some(path) = &args.paths_from {
-        // Spec 102 §3.3: `--paths-from` carries its own path list and no history
+        // Spec 081 §3.3: `--paths-from` carries its own path list and no history
         // to union a working tree with, so the combination names no coherent
         // question. Refused (exit 3) rather than silently ignoring one of them.
         if args.include_uncommitted {
@@ -275,18 +275,18 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> 
 
     let raw = run_git_diff(repo, &[&format!("{}...{}", args.base, args.head)])?;
     let mut diff = parse_unified_diff(&raw);
-    // Spec 092 §3.1: the parser is the authority for spans, the name list for
+    // Spec 073 §3.1: the parser is the authority for spans, the name list for
     // membership. The range is the same three-dot `base...head` the text diff
     // read, so both answers describe one set of changes.
     let range = format!("{}...{}", args.base, args.head);
     let statuses = changed_path_statuses(repo, &[range.as_str()])?;
     union_name_statuses(&mut diff, statuses);
 
-    // Spec 102 §3.1: the working tree, on request. `base...head` describes
+    // Spec 081 §3.1: the working tree, on request. `base...head` describes
     // history alone, so before the commit exists the gate reports
     // `0 path(s) checked, no drift` and exits 0, which reads as a pass.
     if args.include_uncommitted {
-        // Spec 102 §3.3: the comparison is against HEAD, so a `--head` naming
+        // Spec 081 §3.3: the comparison is against HEAD, so a `--head` naming
         // anything else would union a working tree against an unrelated commit
         // and describe a state that never existed. Refused, not guessed.
         let head_oid = rev_parse(repo, "HEAD")?;
@@ -309,7 +309,7 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> 
     Ok(diff)
 }
 
-/// `git rev-parse <rev>`, for the one comparison spec 102 §3.3 needs.
+/// `git rev-parse <rev>`, for the one comparison spec 081 §3.3 needs.
 fn rev_parse(repo: &Path, rev: &str) -> Result<String, Error> {
     let out = Command::new("git")
         .arg("-C")
@@ -328,7 +328,7 @@ fn rev_parse(repo: &Path, rev: &str) -> Result<String, Error> {
     Ok(String::from_utf8_lossy(&out.stdout).trim().to_string())
 }
 
-/// Fold a second parsed diff into the first (spec 102 §3.1).
+/// Fold a second parsed diff into the first (spec 081 §3.1).
 ///
 /// A path only the later view knows enters whole. A path both views know keeps
 /// the union of their hunks and takes the LATER view's deletion verdict: the
@@ -348,7 +348,7 @@ fn union_diff(diff: &mut DiffInput, later: DiffInput) {
 }
 
 /// Add every path git reports changed that the hunk parser did not register
-/// (spec 092 §3.1, §3.2).
+/// (spec 073 §3.1, §3.2).
 ///
 /// Git prints no `---`/`+++` header for a mode-only or a binary change, so
 /// [`parse_unified_diff`] never sees those paths. Each enters as a whole-file
@@ -377,7 +377,7 @@ fn union_name_statuses(diff: &mut DiffInput, statuses: Vec<(String, String)>) {
 }
 
 /// Attempt the spec 005 §3.5 mechanical auto-waiver (extended to cargo and
-/// workflow manifests by spec 030): every non-bypassed changed path must be a
+/// workflow manifests by spec 027): every non-bypassed changed path must be a
 /// recognized dependency manifest (`package.json` / `Cargo.toml` /
 /// `.github/workflows/*.yml`) whose base→head change is confined to dependency
 /// version pins. Contents come from `git show` at the **merge base** (the diff
@@ -385,7 +385,7 @@ fn union_name_statuses(diff: &mut DiffInput, statuses: Vec<(String, String)>) {
 /// branch tip) and at `head`. Any git failure refuses the auto-waiver
 /// fail-closed rather than erroring the gate.
 ///
-/// The bypass verdict is claim-aware (spec 009): it assembles the committed
+/// The bypass verdict is claim-aware (spec 008): it assembles the committed
 /// index from its shard set so a claim-overridden floor path counts as a
 /// candidate and refuses the waiver, matching exactly the path set the gate
 /// evaluates. An unreadable index refuses fail-closed (the gate itself will
@@ -436,7 +436,7 @@ fn git_merge_base(repo: &Path, base: &str, head: &str) -> Option<String> {
 
 /// `merge-base(base, head)`, the base side of a three-dot diff.
 ///
-/// Shared with `delta` (spec 088 §3.1), which classifies under that commit's
+/// Shared with `delta` (spec 071 §3.1), which classifies under that commit's
 /// rules and so needs the failure reason rather than the auto-waiver's
 /// fail-closed `None`.
 pub(crate) fn merge_base(repo: &Path, base: &str, head: &str) -> Result<String, Error> {
@@ -465,13 +465,13 @@ pub(crate) fn merge_base(repo: &Path, base: &str, head: &str) -> Result<String, 
     Ok(rev)
 }
 
-/// Every path `from..to` changes, with renames disabled (spec 088 §3.1).
+/// Every path `from..to` changes, with renames disabled (spec 071 §3.1).
 ///
 /// A name list rather than [`parse_unified_diff`]: that parser registers a path
 /// from its `+++`/`---` headers, and git prints none for a binary file or a
 /// mode-only change, so both would be absent from a report that claims to
 /// classify every changed path. Expressed through [`changed_path_statuses`]
-/// (spec 092 §3.3), so `couple` and `delta` cannot disagree about which paths
+/// (spec 073 §3.3), so `couple` and `delta` cannot disagree about which paths
 /// changed.
 pub(crate) fn changed_path_names(repo: &Path, from: &str, to: &str) -> Result<Vec<String>, Error> {
     Ok(changed_path_statuses(repo, &[from, to])?
@@ -481,7 +481,7 @@ pub(crate) fn changed_path_names(repo: &Path, from: &str, to: &str) -> Result<Ve
 }
 
 /// Every changed path with its status letter, `(status, path)`, in git's order
-/// (spec 092 §3.3). `revs` is the revision operand list: `[from, to]` for
+/// (spec 073 §3.3). `revs` is the revision operand list: `[from, to]` for
 /// `delta`, or the single `base...head` operand `couple`'s text diff reads.
 ///
 /// `-z` keeps a path containing a newline intact and unquoted,
@@ -599,7 +599,7 @@ fn run_git_diff(repo: &Path, revs: &[&str]) -> Result<String, Error> {
 /// Parse `git diff --no-color -U0` output into a [`DiffInput`]. New-side hunk
 /// ranges become inclusive [`LineSpan`]s; a deleted file (`+++ /dev/null`) is
 /// registered with no hunks (a whole-file change) and flagged `deleted` so the
-/// spec 032 ownership ratchet can leave it alone.
+/// spec 029 ownership ratchet can leave it alone.
 fn parse_unified_diff(diff_text: &str) -> DiffInput {
     use std::collections::BTreeMap;
     /// Per-path accumulator: new-side hunks and whether the path was deleted.
@@ -814,7 +814,7 @@ mod tests {
         assert!(!d.files[2].deleted && d.files[2].hunks.is_empty());
     }
 
-    /// Spec 092 §3.7 case 5, over a real repository: a text edit made together
+    /// Spec 073 §3.7 case 5, over a real repository: a text edit made together
     /// with a mode flip is reported by both sources, and the adapter keeps the
     /// hunk span the parser found rather than flattening it to whole-file. Here
     /// and not in `tests/couple.rs`, because no verdict the binary emits depends
@@ -861,7 +861,7 @@ mod tests {
             head: "HEAD".into(),
             pr_body: None,
             paths_from: None,
-            // Spec 102: this fixture asserts the committed range alone, which
+            // Spec 081: this fixture asserts the committed range alone, which
             // is the default and what CI runs.
             include_uncommitted: false,
             json: false,

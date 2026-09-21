@@ -1,0 +1,813 @@
+// Spec: specs/093-the-harness-this-repository-runs/spec.md
+//! Harness skill tests (spec 093, retargeted by spec 092 3.5): this
+//! repository's own `.claude/skills/` set for the governed loop. Four adopters
+//! had each rewritten the same five loop skills, and the copies had drifted (a
+//! renamed tool, a rule format Claude Code does not read, a "read-only" review
+//! that wrote). These tests pin the set, the frontmatter contract, the
+//! project-layer section every skill must end with, and the read-only forms the
+//! read skills use.
+//!
+//! Until spec 092 the same assertions ran twice, once over `kit/.claude/skills/`
+//! and once over this repository's copy, with a byte-equality test between them.
+//! The kit is gone and distributing a skill set is Statecraft's; what remains is
+//! the set a session here loads. Nothing about what a skill must contain was
+//! relaxed: the pair of runs became one run over the tree that survived.
+
+use std::collections::BTreeSet;
+use std::fs;
+use std::path::{Path, PathBuf};
+
+/// The ten skills, the loop first, in the order "Working the backlog" runs
+/// them, then the two the loop calls. Spec 093 removed the five support
+/// skills nothing in the kit invoked (`validate-and-fix`, `cleanup`,
+/// `implement-plan`, `research`, `refactor-claude-md`).
+const SKILLS: &[&str] = &[
+    // Spec 062 3.1: `prime`, not `init`. Claude Code ships its own `/init`,
+    // which generates a CLAUDE.md: a one-time, repository-level operation that
+    // WRITES, where this one is per-session and reports. The kit shadowed a
+    // built-in and inverted its meaning on both axes that matter. No alias was
+    // left behind: an alias keeps shadowing for the whole deprecation window,
+    // which is the defect, and skills are copied files, so an adopter who does
+    // not refresh keeps their old copy either way.
+    "prime",
+    "setup",
+    "next",
+    "build",
+    "verify",
+    "ship",
+    "shepherd",
+    "spec",
+    "commit",
+    "code-review",
+];
+
+/// Skills that read and must never run a writing `spec-spine` verb.
+const READ_ONLY: &[&str] = &["prime", "next", "verify", "code-review"];
+
+fn repo_root() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap()
+}
+
+/// The one skill tree this repository has. Kept as a labelled list, the shape
+/// it had when there were two, so a caller that adds a second tree (a future
+/// delivery target) adds a row rather than a loop.
+fn skill_dirs() -> [(&'static str, PathBuf); 1] {
+    [("self", repo_root().join(".claude/skills"))]
+}
+
+fn skill_names(dir: &Path) -> BTreeSet<String> {
+    fs::read_dir(dir)
+        .unwrap_or_else(|e| panic!("{}: {e}", dir.display()))
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().join("SKILL.md").is_file())
+        .map(|e| e.file_name().to_string_lossy().into_owned())
+        .collect()
+}
+
+fn read_skill(dir: &Path, name: &str) -> String {
+    let p = dir.join(name).join("SKILL.md");
+    fs::read_to_string(&p).unwrap_or_else(|e| panic!("{}: {e}", p.display()))
+}
+
+/// The YAML frontmatter block as `key: value` lines.
+fn frontmatter(body: &str) -> Vec<(String, String)> {
+    let mut lines = body.lines();
+    assert_eq!(lines.next(), Some("---"), "frontmatter must open the file");
+    lines
+        .take_while(|l| *l != "---")
+        .filter_map(|l| l.split_once(':'))
+        .map(|(k, v)| (k.trim().to_string(), v.trim().to_string()))
+        .collect()
+}
+
+fn field<'a>(fm: &'a [(String, String)], key: &str) -> Option<&'a str> {
+    fm.iter().find(|(k, _)| k == key).map(|(_, v)| v.as_str())
+}
+
+/// Every `spec-spine <verb...>` invocation in a body, as the verb words up
+/// to the first shell metacharacter or line end.
+fn spec_spine_verbs(body: &str) -> Vec<Vec<String>> {
+    let mut out = Vec::new();
+    for line in body.lines() {
+        let mut rest = line;
+        while let Some(i) = rest.find("spec-spine ") {
+            let after = &rest[i + "spec-spine ".len()..];
+            let words: Vec<String> = after
+                .split(|c: char| "|&;)`\"'".contains(c))
+                .next()
+                .unwrap_or("")
+                .split_whitespace()
+                .map(str::to_string)
+                .collect();
+            if !words.is_empty() && !words[0].starts_with('-') {
+                out.push(words);
+            }
+            rest = after;
+        }
+    }
+    out
+}
+
+fn is_write(verb: &[String]) -> bool {
+    match verb.first().map(String::as_str) {
+        Some("compile") => !verb.iter().any(|w| w == "--check"),
+        Some("index") => verb.get(1).is_none_or(|w| w.starts_with('-')),
+        Some("init") | Some("attest") => true,
+        _ => false,
+    }
+}
+
+#[test]
+fn the_loop_ships_the_same_ten_skills() {
+    let want: BTreeSet<String> = SKILLS.iter().map(|s| s.to_string()).collect();
+    for (label, dir) in skill_dirs() {
+        assert_eq!(
+            skill_names(&dir),
+            want,
+            "{label}: skill set differs from spec 093 3.1"
+        );
+    }
+}
+
+#[test]
+fn every_skill_declares_name_description_and_allowed_tools() {
+    let [(_, dir)] = skill_dirs();
+    for name in SKILLS {
+        let fm = frontmatter(&read_skill(&dir, name));
+        assert_eq!(field(&fm, "name"), Some(*name), "{name}: frontmatter name");
+        assert!(
+            field(&fm, "description").is_some_and(|d| d.len() > 20),
+            "{name}: needs a description"
+        );
+        assert!(
+            field(&fm, "allowed-tools").is_some_and(|t| !t.is_empty()),
+            "{name}: needs an allowed-tools list (spec 093 3.2)"
+        );
+    }
+}
+
+#[test]
+fn every_skill_ends_with_a_project_layer_section() {
+    let [(_, dir)] = skill_dirs();
+    for name in SKILLS {
+        let body = read_skill(&dir, name);
+        assert!(
+            body.contains("\n## Project layer\n"),
+            "{name}: missing the `## Project layer` section (spec 093 3.3)"
+        );
+    }
+}
+
+#[test]
+fn no_skill_carries_a_project_specific_or_stale_reference() {
+    let [(_, dir)] = skill_dirs();
+    let banned = [
+        ("\u{2014}", "an em dash"),
+        ("`Task`", "the renamed Task tool (it is Agent)"),
+        ("allowed-tools: Task", "the renamed Task tool"),
+        (
+            "globs:",
+            "a rule frontmatter key Claude Code does not read (use paths:)",
+        ),
+        (
+            "imports:",
+            "a rule frontmatter key Claude Code does not read",
+        ),
+        (
+            "/tmp/",
+            "a hardcoded temp directory (use the scratchpad or state_dir)",
+        ),
+        ("registry.json", "the pre-024 monolithic registry path"),
+        ("index.json", "the pre-024 monolithic index path"),
+        ("make spine", "one adopter's composite name"),
+        ("hqgit", "an adopter's name"),
+        ("aicortex", "an adopter's name"),
+        ("rahi", "an adopter's name"),
+        ("butler", "an adopter's name"),
+        ("claude-observatory", "an adopter's name"),
+        (
+            "<your build command>",
+            "a placeholder; skills read the gate from AGENTS.md",
+        ),
+    ];
+    for name in SKILLS {
+        let body = read_skill(&dir, name);
+        for (needle, why) in banned {
+            assert!(!body.contains(needle), "{name}: contains {needle:?}, {why}");
+        }
+    }
+}
+
+#[test]
+fn read_skills_never_run_a_writing_verb() {
+    let [(_, dir)] = skill_dirs();
+    for name in READ_ONLY {
+        let body = read_skill(&dir, name);
+        for verb in spec_spine_verbs(&body) {
+            assert!(
+                !is_write(&verb),
+                "{name}: read-only skill invokes `spec-spine {}` (spec 093 3.4)",
+                verb.join(" ")
+            );
+        }
+    }
+}
+
+#[test]
+fn the_loop_skills_wrap_the_tool_verbs_they_exist_for() {
+    let [(_, dir)] = skill_dirs();
+    let must = [
+        ("next", "registry plan --json"),
+        ("build", "registry plan --json"),
+        ("build", "implementation: in-progress"),
+        ("verify", "spec-spine verify"),
+        ("ship", "Spec-Drift-Waiver"),
+        ("shepherd", "headRefOid"),
+        ("spec", "registry list --ids-only"),
+        ("spec", "status: draft"),
+        // Spec 062 3.1 and 3.5: the session skill is `prime`, and the verb it
+        // wraps is the composed freshness read rather than either primitive.
+        ("prime", "spec-spine check"),
+        ("setup", "registry plan"),
+        ("code-review", "spec-spine check"),
+        ("commit", "session_"),
+        ("commit", "U+2014"),
+    ];
+    for (name, needle) in must {
+        assert!(
+            read_skill(&dir, name).contains(needle),
+            "{name}: must mention {needle:?} (spec 093 3.1)"
+        );
+    }
+}
+
+/// Spec 093 3.5: `/shepherd` classifies a red required check before it edits
+/// anything, and a CRITICAL finding consumes none of the two remediation
+/// rounds spec 093 3.1 bounds. Spec 093 4 recorded this triage as the one idea
+/// the five removed skills carried that no neighbour had, and deferred it
+/// rather than smuggle it in under a removal. The four CRITICAL rows are a
+/// closed list on purpose (082 D-2), so each is pinned by the phrase the
+/// shipped skill uses for it: an open list is a judgement call at the moment
+/// an agent is most motivated to judge generously.
+#[test]
+fn shepherd_classifies_before_it_spends_a_round() {
+    let must = [
+        // 082 3.1: the four classes are named.
+        "CRITICAL",
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        // 082 3.2: a CRITICAL costs no round, and the four rows that are one.
+        "consumes no round",
+        "Spec-Drift-Waiver:",
+        "path-scoped rule",
+        "dependency cycle",
+        "ambient input",
+        // 082 3.4: the report says which class it found, and a CRITICAL stop
+        // reports unfetched threads as unread rather than absent.
+        "Classification:",
+        "not read",
+    ];
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        for needle in must {
+            assert!(
+                body.contains(needle),
+                "{label}/shepherd: must mention {needle:?} (spec 093 3.5)"
+            );
+        }
+    }
+}
+
+/// Spec 093 3.2 kept the script in the kit while adopters were pinned below
+/// 0.15.0 and moved the harness onto `spec-spine verify`. Spec 061 3.6 removed
+/// it once they had upgraded (2026-09-09): the kit no longer ships it, no kit
+/// file lists it as shipped, and no skill may call it. This repository's own
+/// `scripts/verify-spec.sh` stays, established by spec 093.
+/// Spec 061 3.6, retained through spec 092: `spec-spine verify` absorbed the
+/// hand-written script, and no skill may call the deprecated copy. The halves
+/// of this test that read `kit/` are gone with the kit; the half that matters
+/// (a skill telling a session to run the script instead of the verb) is here.
+#[test]
+fn no_skill_calls_the_absorbed_verify_script() {
+    let root = repo_root();
+    let own = fs::read_to_string(root.join("scripts/verify-spec.sh")).unwrap();
+    assert!(own.starts_with("#!/usr/bin/env bash"));
+    assert!(own.contains("not-declared"), "an honest zero, not a pass");
+
+    for (label, dir) in skill_dirs() {
+        for name in SKILLS {
+            let body = read_skill(&dir, name);
+            for line in body.lines() {
+                assert!(
+                    !line.contains("scripts/verify-spec.sh") || line.contains("Do NOT"),
+                    "{label}/{name}: calls the deprecated script (spec 093 3.1)"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn the_agents_carry_the_legitimate_edit_rule_and_no_em_dash() {
+    let root = repo_root();
+    for agent in ["architect", "explorer", "implementer", "reviewer"] {
+        let p = root.join(format!(".claude/agents/{agent}.md"));
+        let body = fs::read_to_string(&p).unwrap();
+        assert!(!body.contains('\u{2014}'), "{agent}: em dash");
+    }
+    let reviewer = fs::read_to_string(root.join(".claude/agents/reviewer.md")).unwrap();
+    assert!(
+        reviewer.contains("legitimate mid-build edits"),
+        "reviewer polices spec 093 3.2"
+    );
+    assert!(
+        reviewer.contains("Gate Evidence"),
+        "reviewer runs the gate as evidence"
+    );
+    let implementer = fs::read_to_string(root.join(".claude/agents/implementer.md")).unwrap();
+    assert!(implementer.contains("`establishes` list in the same change"));
+}
+
+#[test]
+fn the_write_scanner_recognises_writes() {
+    let w = |s: &str| s.split_whitespace().map(str::to_string).collect::<Vec<_>>();
+    assert!(is_write(&w("compile")));
+    assert!(is_write(&w("index")));
+    assert!(is_write(&w("index --repo x")));
+    assert!(!is_write(&w("compile --check")));
+    assert!(!is_write(&w("index check")));
+    assert!(!is_write(&w("index coverage --fail-on-untraced")));
+    assert!(!is_write(&w("registry plan --json")));
+    assert!(!is_write(&w("lint --fail-on-warn")));
+    assert!(!is_write(&w("couple --base origin/main --head HEAD")));
+}
+
+// --- spec 093 3.3: one gate list ------------------------------------------
+
+/// The gate chain, as `standards/spec/contract.md` defines it. Both the CI
+/// scanner and the parse guard read this one list: two copies could drift, and
+/// a verb missing from either makes the subset assertion vacuous for that verb
+/// without failing. Adding a verb to the chain means adding it here.
+/// `check` (spec 062) is the composed freshness verb the protocol now calls;
+/// `compile` and `index` stay listed because they remain the single-tree reads
+/// and a repository may still gate on one alone.
+const GOVERNANCE_VERBS: &[&str] = &["check", "compile", "index", "lint", "couple"];
+
+/// The leading words of a command, up to the first flag: `index check
+/// --fail-on-unresolved` has the verb path `index check`.
+fn verb_path(cmd: &str) -> String {
+    cmd.split_whitespace()
+        .take_while(|w| !w.starts_with('-'))
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn fail_flags(cmd: &str) -> Vec<String> {
+    cmd.split_whitespace()
+        .filter(|w| w.starts_with("--fail-on-"))
+        .map(str::to_string)
+        .collect()
+}
+
+/// The `spec-spine ...` lines inside the fenced block under "Run the gate
+/// before every commit".
+fn agents_md_gate_commands(root: &Path) -> Vec<String> {
+    let text = fs::read_to_string(root.join("AGENTS.md")).unwrap();
+    // Anchoring on the first occurrence is only safe while there is exactly
+    // one. A usage example quoting the phrase would silently move the anchor,
+    // and a decoy fence of governance verbs would then pass the guard below.
+    assert_eq!(
+        text.matches("Run the gate before every commit").count(),
+        1,
+        "AGENTS.md must name the gate step exactly once, or this parse anchors on the wrong one"
+    );
+    let start = text
+        .find("Run the gate before every commit")
+        .expect("AGENTS.md names the gate step");
+    let tail = &text[start..];
+    let open = tail
+        .find("```sh")
+        .expect("the gate list is a fenced sh block");
+    let body = &tail[open + "```sh".len()..];
+    let close = body.find("```").expect("the fence closes");
+    body[..close]
+        .lines()
+        .filter_map(|l| l.trim().strip_prefix("spec-spine "))
+        .map(|c| c.trim().to_string())
+        .collect()
+}
+
+/// The governance verbs CI actually runs, however the binary is spelled there.
+fn ci_governance_commands(root: &Path) -> Vec<String> {
+    let text = fs::read_to_string(root.join(".github/workflows/ci.yml")).unwrap();
+    let mut out = Vec::new();
+    for line in text.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with('#') {
+            continue;
+        }
+        if let Some(i) = trimmed.find("spec-spine ") {
+            let cmd = trimmed[i + "spec-spine ".len()..].trim();
+            let head = cmd.split_whitespace().next().unwrap_or("");
+            if GOVERNANCE_VERBS.contains(&head) {
+                out.push(cmd.to_string());
+            }
+        }
+    }
+    out
+}
+
+/// Spec 093 3.3. Every skill tells its reader to run "the gate as `AGENTS.md`
+/// lists it", so a step CI enforces and that list omits is a step every session
+/// skips. That is the drift this spec was filed for: `index coverage
+/// --fail-on-untraced` was enforced in CI and absent from the list four skills
+/// defer to, leaving the skills more correct than their own authority.
+#[test]
+fn agents_md_gate_list_names_every_step_ci_enforces() {
+    let root = repo_root();
+    let listed = agents_md_gate_commands(&root);
+    assert!(
+        !listed.is_empty(),
+        "AGENTS.md must carry a fenced gate list"
+    );
+    // Guard the parse itself: `find` takes the first match, so a fence added
+    // above the gate list would be read as the gate list, and every assertion
+    // below would go vacuous without failing. Every line of the real block is
+    // a governance verb, so anything else means we read the wrong fence.
+    for cmd in &listed {
+        let head = cmd.split_whitespace().next().unwrap_or("");
+        assert!(
+            GOVERNANCE_VERBS.contains(&head),
+            "AGENTS.md gate-list parse read the wrong block: got `{cmd}`"
+        );
+    }
+
+    for ci in ci_governance_commands(&root) {
+        // CI runs `compile --check` where a local session runs `compile`: a
+        // gate must never repair the tree it is judging. Comparing verb paths
+        // makes the two the same step, which is what they are.
+        let path = verb_path(&ci);
+        let matching: Vec<&String> = listed.iter().filter(|l| verb_path(l) == path).collect();
+        assert!(
+            !matching.is_empty(),
+            "CI runs `spec-spine {ci}` but AGENTS.md's gate list names no `{path}` step"
+        );
+        for flag in fail_flags(&ci) {
+            assert!(
+                matching.iter().any(|l| l.contains(&flag)),
+                "CI runs `spec-spine {ci}` but AGENTS.md's `{path}` step omits {flag}"
+            );
+        }
+    }
+}
+
+/// The other direction of 3.3, as a subset relation: a skill may name fewer
+/// steps than the full gate, but never a gating flag its authority omits.
+#[test]
+fn no_skill_names_a_gate_flag_agents_md_omits() {
+    let root = repo_root();
+    let listed = agents_md_gate_commands(&root);
+    for (label, dir) in skill_dirs() {
+        for name in SKILLS {
+            let body = read_skill(&dir, name);
+            for verb in spec_spine_verbs(&body) {
+                let cmd = verb.join(" ");
+                for flag in fail_flags(&cmd) {
+                    assert!(
+                        listed.iter().any(|l| l.contains(&flag)),
+                        "{label}/{name}: names {flag}, which AGENTS.md's gate list omits"
+                    );
+                }
+            }
+        }
+    }
+}
+
+// ── spec 093 4.10: the four rules, as sections of the protocol ────────────
+
+/// The lines of `AGENTS.md` that belong to the `### ` section named `heading`.
+fn rule_section(body: &str, heading: &str) -> String {
+    let start = body
+        .find(&format!("### {heading}\n"))
+        .unwrap_or_else(|| panic!("AGENTS.md has no rule section `### {heading}`"));
+    let rest = &body[start..];
+    let end = rest[4..]
+        .find("\n## ")
+        .map(|i| i + 4 + 1)
+        .unwrap_or(rest.len());
+    rest[..end].to_string()
+}
+
+fn agents_md() -> String {
+    fs::read_to_string(repo_root().join("AGENTS.md")).unwrap()
+}
+
+/// 4.10 / D-4: the four rules are sections of the cross-agent protocol, and the
+/// directory they used to live in is gone. `.claude/` is one agent's harness; a
+/// rule that binds every agent is not scoped to it.
+#[test]
+fn the_four_rules_are_sections_of_the_protocol() {
+    let body = agents_md();
+    for heading in [
+        "Governed artifact reads",
+        "Adversarial prompt refusal (the coherence guard)",
+        "Orchestrator rules",
+        "Derived artifacts are compiler output",
+    ] {
+        assert!(
+            body.contains(&format!("### {heading}\n")),
+            "AGENTS.md must carry the rule section `### {heading}`"
+        );
+    }
+    assert!(
+        !repo_root().join(".claude/rules").exists(),
+        "the rule directory is folded into AGENTS.md, not kept alongside it"
+    );
+}
+
+/// 4.10: the derived-tree rule names the CONFIGURED derived root, not the
+/// product default (spec 092 3.7 moved it), and carries the clarification
+/// adopters most needed: parsing a subcommand's OUTPUT is a typed read.
+#[test]
+fn the_scoped_rule_covers_the_derived_tree_and_allows_reading_cli_output() {
+    let body = rule_section(&agents_md(), "Derived artifacts are compiler output");
+    let cfg = spec_spine_types::load_config(
+        &fs::read_to_string(repo_root().join("spec-spine.toml")).unwrap(),
+    )
+    .expect("spec-spine.toml parses");
+    let derived = cfg.layout.derived_dir.trim_end_matches('/');
+    assert!(body.contains(&format!("{derived}/**")), "{body}");
+    assert!(body.contains("Do not hand-edit"), "{body}");
+    assert!(body.contains("jq"), "{body}");
+    assert!(
+        body.contains("Parsing the output of a subcommand is fine"),
+        "the clarification spec 093 added: {body}"
+    );
+}
+
+/// 4.10: the scoped half says, in its own text, that it does not replace the
+/// unconditional one and cannot. A reader comparing the two sections will
+/// otherwise conclude one is redundant, and the redundant-looking one is the
+/// one that does the work.
+#[test]
+fn the_scoped_rule_says_it_does_not_replace_the_unconditional_one() {
+    let body = agents_md();
+    let scoped = rule_section(&body, "Derived artifacts are compiler output");
+    assert!(
+        scoped.contains("does not replace \"Governed artifact reads\""),
+        "{scoped}"
+    );
+    assert!(
+        scoped.contains("may never open a file under this directory"),
+        "the reason a scoped rule cannot prevent this mistake: {scoped}"
+    );
+
+    // And the unconditional rule keeps its full content.
+    let unconditional = rule_section(&body, "Governed artifact reads");
+    assert!(unconditional.contains("jq"), "{unconditional}");
+}
+
+/// The lines of a skill body that belong to the `## ` section whose heading
+/// starts with `heading`, the heading line included. Spec 093's assertions are
+/// about where an instruction sits as much as about its words: a pagination
+/// flag in the wrong step, or a merge precondition in a step the merge path
+/// never reads, satisfies a file-wide grep and changes nothing.
+fn skill_section<'a>(body: &'a str, heading: &str) -> &'a str {
+    let start = body
+        .find(&format!("## {heading}"))
+        .unwrap_or_else(|| panic!("no section `## {heading}`"));
+    let rest = &body[start..];
+    let end = rest[3..]
+        .find("\n## ")
+        .map(|i| i + 3 + 1)
+        .unwrap_or(rest.len());
+    &rest[..end]
+}
+
+/// Spec 093 3.1 / D-12: `/shepherd` reads all three places a reviewer can
+/// write, reads every page of each, and lands the pages in one document.
+/// Asserted per endpoint over the command line that names it, rather than by
+/// counting flags in the file: a file-wide count is green for three flags on
+/// one endpoint and for three flags in prose, neither of which reads a second
+/// endpoint (116 D-5), and green for `--slurp` mentioned only in the
+/// surrounding paragraph while a read drops it (116 D-13).
+#[test]
+fn shepherd_reads_all_three_endpoints_paginated_and_slurped() {
+    let endpoints = [
+        "pulls/<number>/comments",
+        "issues/<number>/comments",
+        "pulls/<number>/reviews",
+    ];
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        let threads = skill_section(&body, "Step 3b");
+        for endpoint in endpoints {
+            let cmd = threads
+                .lines()
+                .find(|l| l.contains(endpoint) && l.contains("gh api"))
+                .unwrap_or_else(|| {
+                    panic!("{label}/shepherd: Step 3b runs no `gh api` on {endpoint} (116 3.1)")
+                });
+            for flag in ["--paginate", "--slurp"] {
+                assert!(
+                    cmd.contains(flag),
+                    "{label}/shepherd: the read of {endpoint} does not pass {flag} \
+                     (116 3.1, D-5, D-12): {cmd}"
+                );
+            }
+        }
+    }
+}
+
+/// Spec 093 3.2: the green path reaches the merge checkpoint *through* the
+/// thread read. Asserted positively, on the routing bullet itself: the old
+/// literal's absence is satisfied by deleting the line, by renumbering it, and
+/// by a rewording that still routes past Step 3b.
+#[test]
+fn shepherd_green_path_routes_through_the_thread_read() {
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        let watch = skill_section(&body, "Step 1");
+        let bullet = watch
+            .split("\n- ")
+            .find(|b| b.contains("`SUCCESS`"))
+            .unwrap_or_else(|| panic!("{label}/shepherd: Step 1 has no all-green route (116 3.2)"));
+        assert!(
+            bullet.contains("Step 3b"),
+            "{label}/shepherd: the all-green route does not pass through the thread \
+             read (116 3.2): {bullet}"
+        );
+        // And the thread read is a precondition where the merge happens, not
+        // only a promise made in the step before it.
+        let merge = skill_section(&body, "Step 4");
+        assert!(
+            merge.contains("Step 3b"),
+            "{label}/shepherd: the merge checkpoint does not require the thread \
+             read (116 3.2): {merge}"
+        );
+    }
+}
+
+/// Spec 093 3.1 / 3.3 / D-8: a read that fails is retried once and then stops
+/// the run before the merge, with the endpoint named. The exit status belongs
+/// to the read itself: the obligation is to check that status before trusting
+/// the output, which is a property of how the read is judged and not of any one
+/// `gh api` option (116 D-13).
+#[test]
+fn shepherd_stops_on_a_read_it_could_not_complete() {
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        let threads = skill_section(&body, "Step 3b");
+        for (needle, why) in [
+            ("exit status", "the read's own status is checked (116 3.1)"),
+            (
+                "one retry",
+                "a failed read is retried exactly once (116 D-8)",
+            ),
+            (
+                "before Step 4",
+                "the second failure stops before the merge (116 D-8)",
+            ),
+            (
+                "partial",
+                "a partial read is never complete coverage (116 D-8)",
+            ),
+            (
+                "consume no remediation round",
+                "reading and retrying cost no round (116 3.4, D-9)",
+            ),
+        ] {
+            assert!(
+                threads.contains(needle),
+                "{label}/shepherd: Step 3b must say {needle:?}: {why}"
+            );
+        }
+    }
+}
+
+/// Spec 093 3.1 / D-12 / D-13: the shipped step says what the saved document
+/// looks like and how to read all of it. The earlier assertion here banned
+/// `--jq` on any `gh api` line, which pinned a false explanation (`--jq` is an
+/// option of `gh api`, not a downstream command, and does not itself hide the
+/// read's status) and witnessed nothing about coverage. These are the
+/// obligations that actually keep a thread from going unread: the output shape
+/// is documented, the document is parsed before it is believed, a parse failure
+/// blocks the coverage claim, and the count is of feedback items rather than of
+/// outer pages.
+#[test]
+fn shepherd_documents_how_to_read_the_saved_pages() {
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        let threads = skill_section(&body, "Step 3b");
+        for (needle, why) in [
+            (
+                "outer array of pages",
+                "the saved document's shape is documented (116 D-12)",
+            ),
+            (
+                "[.[][]]",
+                "the iteration that reaches every item of every page is shown (116 D-13)",
+            ),
+            (
+                "A parse that fails",
+                "a document that will not parse is an unread endpoint (116 D-13)",
+            ),
+            (
+                "not the feedback count",
+                "pages are not feedback items (116 D-13)",
+            ),
+            (
+                "every item of every page",
+                "the whole document is inspected, not its first page (116 D-13)",
+            ),
+        ] {
+            assert!(
+                threads.contains(needle),
+                "{label}/shepherd: Step 3b must say {needle:?}: {why}"
+            );
+        }
+    }
+}
+
+/// Spec 093 3.3 / D-10: three distinct report values. `none` is the claim that
+/// all three reads succeeded and found nothing; `could not read <endpoint>` is
+/// an endpoint that would not answer; spec 093's `not read: stopped at
+/// CRITICAL` is the path that never looked. The cheap way to satisfy 3.3 is to
+/// widen one value until it covers two cases and names neither, so each is
+/// pinned on the report template line where it has to appear.
+#[test]
+fn shepherd_report_keeps_three_distinct_thread_values() {
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        let line = body
+            .lines()
+            .find(|l| l.starts_with("Review threads:"))
+            .unwrap_or_else(|| panic!("{label}/shepherd: no `Review threads:` report line"));
+        for needle in [
+            "none",
+            "could not read <endpoint>",
+            "not read: stopped at CRITICAL",
+        ] {
+            assert!(
+                line.contains(needle),
+                "{label}/shepherd: the thread report line must offer {needle:?} \
+                 (116 3.3, D-10): {line}"
+            );
+        }
+        // Successful coverage is reported beside a failure, not folded into it.
+        assert!(
+            body.lines().any(|l| l.starts_with("Thread reads:")),
+            "{label}/shepherd: partial coverage has no line of its own (116 3.3)"
+        );
+        // And the CRITICAL stop still says which of the two unread reasons it is.
+        let classify = skill_section(&body, "Step 2");
+        assert!(
+            classify.contains("not read: stopped at CRITICAL"),
+            "{label}/shepherd: the CRITICAL stop lost spec 093's value (116 3.3)"
+        );
+    }
+}
+
+/// Spec 093 3.4: reading three endpoints instead of one buys no extra rounds.
+/// Spec 093 3.1 bounds remediation at two and spec 093 defines what one is;
+/// 116 only says which work is an edit. Pinned so a later widening of the input
+/// cannot arrive with a wider budget attached.
+#[test]
+fn shepherd_keeps_the_two_round_budget() {
+    for (label, dir) in skill_dirs() {
+        let body = read_skill(&dir, "shepherd");
+        assert!(
+            body.contains("at most two rounds"),
+            "{label}/shepherd: the two-round budget is gone (116 3.4)"
+        );
+        assert!(
+            body.contains("After two remediation rounds"),
+            "{label}/shepherd: the stop after two rounds is gone (116 3.4)"
+        );
+        for banned in ["three rounds", "at most three", "a third round"] {
+            assert!(
+                !body.contains(banned),
+                "{label}/shepherd: budget widened to {banned:?} (116 3.4)"
+            );
+        }
+        // A round is spent on an edit, not on a red check: the budget is
+        // unchanged, but what draws on it now includes a confirmed thread fix
+        // on a PR whose checks were green all along (116 D-9). `green` alone is
+        // already in this step at the parent, so the phrase asserted is the one
+        // that carries the ruling.
+        let remediate = skill_section(&body, "Step 3:");
+        assert!(
+            remediate.contains("even when every required check was"),
+            "{label}/shepherd: Step 3 must say a confirmed thread fix spends a \
+             round even on a green PR (116 3.4, D-9): {remediate}"
+        );
+        assert!(
+            remediate.contains("rejecting a finding as a false positive spend none"),
+            "{label}/shepherd: Step 3 must say triage spends no round (116 3.4, D-9)"
+        );
+    }
+}

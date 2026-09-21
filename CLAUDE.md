@@ -16,9 +16,10 @@ algorithm). Read **`AGENTS.md`** for how work is actually done here: it is the
 cross-agent authority (Claude Code, Codex CLI, Cursor, Copilot, via the
 AGENTS.md standard), it holds the session protocol `/prime` executes, and its
 "Working the backlog" section is the operating loop. **The gate chain is
-defined there, not here**, and `kit_skills.rs` asserts every skill's inlined
+defined there, not here**, and `harness_skills.rs` asserts every skill's inlined
 gate floor is a subset of that list, so a step added to `AGENTS.md` reaches
-every skill.
+every skill. The executable form of that list is the root `Makefile`'s `gate`
+target (spec 094); `.claude/` itself is spec 093's.
 
 ## Commands
 
@@ -38,7 +39,7 @@ cargo test -p spec-spine-core --test couple            # one integration test fi
 cargo test -p spec-spine-core compile::                # tests matching a path
 cargo test --workspace emitted_registry_conforms       # one test by name
 
-# tree-sitter sits behind the default-on `symbol-resolution` feature (spec 027).
+# tree-sitter sits behind the default-on `symbol-resolution` feature (spec 025).
 # CI builds and tests without it, and asserts the grammars are absent:
 cargo test -p spec-spine-core --no-default-features --locked
 ```
@@ -52,8 +53,10 @@ cargo build --release -p spec-spine-cli                # what the harness drives
 ```
 
 **Run the gate from `AGENTS.md`'s fenced list, not from here.** That block is
-the one spelling, flags included, and `kit_skills.rs` asserts CI's flags are a
-subset of it, so the two cannot drift. Nothing tests a copy in this file, which
+the one spelling, flags included, and `harness_skills.rs` asserts CI's flags are
+a subset of it, so the two cannot drift. The executable form of that list is the
+root `Makefile`'s `gate` target, which CI calls rather than restates (spec 092
+§3.6). Nothing tests a copy in this file, which
 is why there is no longer one: an earlier revision restated the chain and
 silently dropped `--fail-on-unresolved` and `--fail-on-warn` from `check` and
 `--fail-on-untraced` from `index coverage`, leaving three refusals off a list
@@ -62,15 +65,15 @@ that still read like the gate.
 What the individual verbs are, as a reference rather than a sequence:
 
 ```sh
-spec-spine compile          # -> .derived/spec-registry/by-spec/<id>.json shards
-spec-spine index            # -> .derived/codebase-index/{by-spec,by-package}/ shards
+spec-spine compile          # -> .statecraft/derived/spec-registry/by-spec/<id>.json shards
+spec-spine index            # -> .statecraft/derived/codebase-index/{by-spec,by-package}/ shards
 spec-spine check            # BOTH freshness reads in one verb; never writes
 spec-spine lint             # corpus conformance (L- codes)
 spec-spine index coverage   # which source files no spec specifically claims
 spec-spine couple           # the PR-time drift gate
 spec-spine registry plan    # the ready set: workable now vs blocked
 spec-spine index diagnostics  # unresolved-unit W-001 / W-002
-spec-spine index owner <path> # which specs own one path, and how (spec 055)
+spec-spine index owner <path> # which specs own one path, and how (spec 048)
 spec-spine verify <id>      # run a spec's `## Verification` block
 ```
 
@@ -83,7 +86,7 @@ refusals. Bare `index coverage` refuses nothing at all.
 Exit codes are a stable contract: `0` ok · `1` validation failure / not found /
 drift · `2` stale · `3` I/O / parse / schema / config / usage. They are mapped
 in exactly one place (`crates/spec-spine-cli/src/main.rs` via
-`Error::exit_code()`). Verdict-rendering verbs take `--json` (spec 037), which
+`Error::exit_code()`). Verdict-rendering verbs take `--json` (spec 034), which
 changes what is written and never what is decided.
 
 **Ask `spec-spine --version` before believing any exit code.** The binary in
@@ -121,8 +124,12 @@ the design doc):**
   CLI and excluded from determinism/golden tests.
 - **`unsafe` is `forbid`-en** workspace-wide (`Cargo.toml [workspace.lints]`).
 - Core is IO-light and panic-free on user input: malformed config/frontmatter
-  yields a clean `Error`, never a panic. `init` returns files-as-data
-  (`Scaffold`); the CLI writes them.
+  yields a clean `Error`, never a panic. The governance **scaffold** returns
+  files-as-data (`Scaffold`); the consumer writes them. Since spec 092 that
+  consumer is the Statecraft CLI, not a `spec-spine init` command: there is no
+  `init` verb, and `scaffold_init_json` is a pure producer of governance
+  starter content (config, constitution, contract, templates, bootstrap spec,
+  a `.gitignore` fragment) and nothing else.
 - The **JSON-in/JSON-out facade** in `core/src/lib.rs` (`compile_json`,
   `query_json`, `couple_json`, …) is the FFI seam. Keep it `&str → Result<String,
   Error>` and additive.
@@ -140,7 +147,7 @@ the only non-owning one (the coupling gate ignores it): `establishes`,
 resolve to code as `file` (bare string = file shorthand; trailing `/` =
 subtree), `section` (`{file, anchor}`), or `symbol` (`{id}`, resolved by
 tree-sitter, Rust + TS in v1; Python deferred). `directory`/`crate`/`module`
-kinds shipped in spec 017. A unit may carry `planned: true` (spec 076) to
+kinds shipped in spec 016. A unit may carry `planned: true` (spec 063) to
 declare territory before it is written.
 
 Two lifecycle axes, independent: `status` (draft / approved / superseded /
@@ -148,10 +155,10 @@ retired) and `implementation` (pending / in-progress / complete / n-a /
 deferred). The ratify PR flips only the first.
 
 Two views, joined by the gate: `compile` emits the spec-as-source registry;
-`index` emits the code-as-source index. Since spec 024 both are stored
+`index` emits the code-as-source index. Since spec 022 both are stored
 **sharded** (one committed file per authority unit); the aggregate view is
 recomputed from the shard set on read, never committed. `index coverage`
-(spec 032) reports, per source file, whether a spec specifically claims it, only
+(spec 029) reports, per source file, whether a spec specifically claims it, only
 a manifest floor covers it, or nothing does; `[coupling] require_ownership` is
 **on** in this repo, so an unclaimed changed source file is a `C-002` refusal,
 and CI runs `index coverage --fail-on-untraced`. The coupling clearance
@@ -177,7 +184,7 @@ preserve the cited semantics when editing `couple.rs`.
    one `//` or `#` marker and then requires `Spec:`, so `.py` and `.sh` claim
    with `#`, and `//!` does not claim at all (the `!` is left in the way). It
    claims exactly the file it sits in, never a subtree, and needs no
-   frontmatter edit anywhere. This is how spec 032's coverage debt was retired
+   frontmatter edit anywhere. This is how spec 029's coverage debt was retired
    without touching the tier-1 bootstrap spec.
 
 ## Determinism is the central claim
@@ -192,12 +199,12 @@ are **byte-identical across four release triples** (it folds every shard's path
 and content into one tree digest; incl. tree-sitter symbol line-spans), not just
 locally. If you change emission, expect that gate to be the real test.
 
-## Self-governance (dogfood): why `.derived/` is committed
+## Self-governance (dogfood): why `.statecraft/derived/` is committed
 
 This repo runs its own gates against its own corpus in CI (`.github/workflows/ci.yml`
 `self_governance` job). Consequences:
 
-- The `.derived/spec-registry/by-spec/` and `.derived/codebase-index/{by-spec,by-package}/`
+- The `.statecraft/derived/spec-registry/by-spec/` and `.statecraft/derived/codebase-index/{by-spec,by-package}/`
   shard trees are **committed** (only `build-meta.json` is gitignored). After any
   change that affects them, regenerate and commit: `spec-spine compile` then
   `spec-spine index`. CI runs `check` rather than `compile`/`index`, because a
@@ -205,7 +212,7 @@ This repo runs its own gates against its own corpus in CI (`.github/workflows/ci
   committed shard is stale.
 - **Editing a governance file restales every shard.** `[index] extra_hashed_inputs`
   in `spec-spine.toml` folds `AGENTS.md`, `CLAUDE.md`, `spec-spine.toml` itself,
-  `.claude/rules/*`, `kit/**`, the workflows and the embedded schemas into one
+  `Makefile`, the workflows and the embedded schemas into one
   global scalar. A one-line edit to any of them means regenerating and committing
   the whole index. Adding a pattern there is expensive and deliberate; the
   patterns are narrow on purpose (a bare `.claude/**/*` would fold in
@@ -213,12 +220,15 @@ This repo runs its own gates against its own corpus in CI (`.github/workflows/ci
 - Editing code under a path owned by a spec generally requires also editing that
   spec's `spec.md` (or adding a `Spec-Drift-Waiver:` line to the PR body, which
   is a human instrument an agent never self-approves). The bypass floor (docs,
-  lockfiles, `.derived/`, per `couple.rs::DEFAULT_BYPASS_PREFIXES`, extended by
-  `spec-spine.toml [coupling] bypass_prefixes`) exempts non-code paths. A
+  lockfiles, `.derived/`, per `couple.rs::DEFAULT_BYPASS_PREFIXES`, plus the
+  **configured** `[layout] derived_dir` which the gate adds to the floor itself
+  (spec 092 §3.8, which is why `.statecraft/derived/` needs no config entry),
+  extended by `spec-spine.toml [coupling] bypass_prefixes`) exempts non-code
+  paths. A
   dependency-only manifest bump self-clears via `auto_waive_dependency_only`
   (specs 005/030), which is why Dependabot PRs are mergeable.
 - **Merge conflicts on the committed artifacts** are rare since sharding (spec
-  024): two PRs touching different specs write disjoint files. The opt-in
+  022): two PRs touching different specs write disjoint files. The opt-in
   per-clone merge driver handles the same-shard case:
   `./.githooks/enable-merge-driver.sh` (build the binary first). It is inert
   until registered and never replaces the staleness gate.
@@ -231,22 +241,45 @@ non-overridable). New specs are filed as the next `NNN-slug` directory, born
 
 **Never edit an approved spec to make your code pass.** The sanctioned move is
 an `amends` edge declared in the *new* spec's frontmatter, which records the
-change without touching the amended file (spec 040). See
-`.claude/rules/adversarial-prompt-refusal.md`. Two edits are always legitimate
+change without touching the amended file (spec 037). See
+`AGENTS.md` "Adversarial prompt refusal". Two edits are always legitimate
 for the spec you are implementing: claiming a file you created, and recording a
 dated decision the spec was silent on.
 
-## The kit (`kit/`)
+## The boundary with Statecraft (spec 092)
 
-`kit/` is the copy-ready Claude Code kit adopters install (specs
-029/048/064/065/081): the ten skills, the agents, the rules, the hooks
-(`settings.json`), the kit's own `AGENTS.md` and `README.md`, `Makefile` and
-`govern.yml`. `crates/spec-spine-core/src/kit_embedded.rs` is **generated** from
-that tree by `scripts/gen-kit-embedded.py` so `init --with-kit` can write files
-the binary carries; `tests/scaffold.rs` asserts the two agree. Edit `kit/`, then
-regenerate. Never hand-edit `kit_embedded.rs`. This repo's own `.claude/skills/`
-is byte-identical to `kit/.claude/skills/` (specs 048 and 081 pin this); the
-project layer lives in `AGENTS.md`, not in the skills.
+This repository ships a **governance engine**, not a development environment.
+The Statecraft CLI is the sole distributor and initializer of the managed
+development environment: project onboarding, the agent harness, the reusable
+workflows and their per-agent delivery adapters are all its. spec-spine owns
+compile, index, classify, couple, lint, verify, attest, and the governance
+starter templates it produces **as data**.
+
+Consequences for working here:
+
+- There is **no `spec-spine init`** and no `--with-kit`. Do not add a verb that
+  recreates them.
+- The retained producer is `spec_spine_core::scaffold_init_json`, a pure
+  function of its argument. It writes nothing, reads no environment, launches
+  nothing, and emits no `AGENTS.md`, `CLAUDE.md`, `.claude/`, skills, agents,
+  hooks, MCP configuration, CI workflow or `Makefile`. Keep it that way; the
+  Statecraft CLI is implementing against it.
+- `kit/`, `kit_embedded.rs`, the kit generators and the `.agents/` / `.codex/`
+  projections are gone. `.claude/` is **this repository's own** development
+  instruction, not a distribution source: it is what a session here loads, and
+  it stays until Statecraft's global delivery concretely replaces it.
+- This repository is governed under the managed layout: `[layout] derived_dir`
+  is `.statecraft/derived` (committed) and `state_dir` is `.statecraft/state`
+  (ignored). `.statecraft/` as a whole is neither; a file under it that is in
+  neither root is ordinary governed territory.
+- `docs/design/07-statecraft-realignment-2026-09.md` holds the boundary, the
+  producer contract and the disposition of the earlier harness plans.
+- **Spec ids moved.** Spec 095 collapsed 27 specs into three and renumbered the
+  survivors so the ordinals are contiguous (000 through 095). A citation written
+  before that, in git history, a merged pull request or an adopter repository,
+  names an ordinal that has moved or a document that is gone.
+  **`docs/corpus-map.md` is the map**, both directions. Read it before trusting
+  a spec number you did not get from `registry list`.
 
 ## Schema & release versioning (two decoupled axes)
 
@@ -266,6 +299,6 @@ project layer lives in `AGENTS.md`, not in the skills.
   Maintainer release runbook: `docs/releasing.md`.
 
 The npm (`npm/`) and PyPI (`py/`) directories are binary-distribution shims (specs
-007/008): they ship the prebuilt binary per platform, assembled from release
+006/008): they ship the prebuilt binary per platform, assembled from release
 archives at publish time. The platform packages and binaries are never committed
 (`.gitignore`). Don't hand-edit generated platform packages.

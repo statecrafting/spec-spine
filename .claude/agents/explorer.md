@@ -35,9 +35,9 @@ spec-spine is a Rust library plus CLI over a markdown spec corpus.
 | CLI crate | `crates/spec-spine-cli/` | The `spec-spine` binary |
 | Standard | `standards/spec/{constitution.md,contract.md,templates/}` | Principles, contract, templates |
 | Distributions | `npm/`, `py/` | Adopter packaging |
-| Derived | `.derived/` | Compiler output (registry, index) |
+| Derived | `.statecraft/derived/` | Compiler output (registry, index) |
 
-Key files: `CLAUDE.md` (conventions), `AGENTS.md` (session protocol), `.claude/rules/` (behavioral rules).
+Key files: `CLAUDE.md` (conventions), `AGENTS.md` (session protocol, and the behavioral rules in its `## Rules` section).
 
 Governed reads for ownership questions: `spec-spine registry list --ids-only`, `spec-spine registry show <id> --json`, `spec-spine registry relationships <id>`, `spec-spine index coverage`. Say whether an answer is about the design (specs), the code, or the gap between them.
 
@@ -63,7 +63,7 @@ For the library crates:
 
 For specs:
 - Read frontmatter for relationship edges (`refines`, `establishes`, `amends`, `supersedes`, `depends-on`) and `status`
-- Cross-reference compiled state through `spec-spine registry show`/`relationships` (not by parsing `.derived/**`)
+- Cross-reference compiled state through `spec-spine registry show`/`relationships` (not by parsing `.statecraft/derived/**`)
 
 ### 4. Synthesize Findings
 

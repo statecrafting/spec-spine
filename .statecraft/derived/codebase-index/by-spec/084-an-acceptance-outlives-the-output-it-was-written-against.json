@@ -1,0 +1,34 @@
+{
+  "mapping": {
+    "amends": [
+      "044-index-diagnostics-reach-a-gate"
+    ],
+    "dependsOn": [
+      "044-index-diagnostics-reach-a-gate",
+      "050-claimed-but-unwitnessed",
+      "071-a-change-is-classified-under-the-bases-rules",
+      "074-a-governed-read-names-its-version",
+      "082-an-amended-acceptance-is-the-one-that-runs"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "084-an-acceptance-outlives-the-output-it-was-written-against",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "a8c2c1081355b2504a1a0f0ee8e577ed9e296c05ccb1e5ed2b29c48664348600"
+}

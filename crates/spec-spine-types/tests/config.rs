@@ -101,7 +101,7 @@ fn this_repos_spec_spine_toml_loads() {
     assert!(c.kind.is_disabled());
 }
 
-// ===== spec 039: layout.state_dir =====
+// ===== spec 036: layout.state_dir =====
 
 #[test]
 fn state_dir_is_unset_by_default_and_inert() {
@@ -213,7 +213,7 @@ fn the_overlap_check_reads_the_configured_roots() {
     );
 }
 
-// ── spec 062: a version pin the CLI can check ─────────────────────────────
+// ── spec 055: a version pin the CLI can check ─────────────────────────────
 
 use spec_spine_types::VersionReq;
 

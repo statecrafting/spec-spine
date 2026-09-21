@@ -1,5 +1,5 @@
 //! Mechanical dependency-only auto-waiver (spec 005 §3.5 amendment,
-//! 2026-06-11; extended to the cargo and workflow ecosystems by spec 030).
+//! 2026-06-11; extended to the cargo and workflow ecosystems by spec 027).
 //!
 //! Dependabot-class PRs change only version pins, but a manifest claimed by a
 //! spec fires the coupling gate, and a bot cannot edit specs or PR bodies.
@@ -342,16 +342,16 @@ fn uses_ref_only_differs(base: &serde_yaml::Value, head: &serde_yaml::Value) -> 
 mod tests {
     use super::*;
 
-    // ===== spec 073 3.2: the projection and this waiver state one rule =====
+    // ===== spec 060 3.2: the projection and this waiver state one rule =====
 
     /// The shared matrix. Each row is a base/head workflow pair and whether
-    /// spec 030's waiver clears it.
+    /// spec 027's waiver clears it.
     ///
-    /// Spec 073 3.2 requires the two mechanisms to agree, and requires it to
+    /// Spec 060 3.2 requires the two mechanisms to agree, and requires it to
     /// be asserted over a shared matrix rather than assumed from the two
     /// implementations looking similar. The failure it prevents is the one the
     /// gate is worst at surfacing: a bump that self-clears the coupling gate
-    /// while still staling the ledger is precisely the wall spec 073 removes,
+    /// while still staling the ledger is precisely the wall spec 060 removes,
     /// and it would return the moment the two rules drifted apart.
     const WF_BASE: &str = "name: CI\njobs:\n  b:\n    runs-on: ubuntu-latest\n    \
                            steps:\n      - uses: actions/checkout@v4\n      \
@@ -407,7 +407,7 @@ mod tests {
     }
 
     /// Both directions: a waived change leaves the projection alone, and a
-    /// change to the projection refuses the waiver. Spec 073 3.2 requires only
+    /// change to the projection refuses the waiver. Spec 060 3.2 requires only
     /// the first, but the two rules were written to agree case for case (the
     /// empty-action-path form `@v1` is preserved verbatim by the projection
     /// exactly because `uses_ref_only_differs` refuses it), so the stronger

@@ -1,5 +1,5 @@
 //! `spec-spine attest`: emit a reproducible corpus attestation under
-//! `<derived_dir>/attestation/`, and optionally seal it (spec 023).
+//! `<derived_dir>/attestation/`, and optionally seal it (spec 021).
 //!
 //! The attestation itself is pure (built in `spec-spine-core::attest`); this
 //! command is the IO + clock shell: it writes the artifact and, under `--sign`,
@@ -19,15 +19,15 @@ use crate::seal;
 
 /// Parsed `attest` arguments.
 pub struct AttestArgs {
-    /// Scope to one spec (spec 042); `None` attests the whole corpus (spec 023).
+    /// Scope to one spec (spec 039); `None` attests the whole corpus (spec 021).
     pub spec: Option<String>,
     pub with_coupling: bool,
-    /// Emit an authority snapshot (spec 087) instead of an attestation.
+    /// Emit an authority snapshot (spec 070) instead of an attestation.
     pub snapshot: bool,
     pub sign: bool,
     pub key: Option<PathBuf>,
     pub key_id: Option<String>,
-    /// Emit the verdict as a JSON envelope instead of prose (spec 037).
+    /// Emit the verdict as a JSON envelope instead of prose (spec 034).
     pub json: bool,
 }
 
@@ -35,7 +35,7 @@ pub struct AttestArgs {
 /// Exit `0` on success; a `--sign` with no `--key` is a visible config error
 /// (FR-006: a mode that cannot run fails, never skip-as-pass).
 pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
-    // Spec 087 §3.5: each flag names a different scope, so a snapshot combined
+    // Spec 070 §3.5: each flag names a different scope, so a snapshot combined
     // with either is refused rather than one silently winning.
     if args.snapshot {
         for (given, flag) in [
@@ -45,23 +45,23 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
             if given {
                 return Err(Error::Config(format!(
                     "attest --snapshot cannot combine with {flag}: each names a different \
-                     scope (spec 087 3.5); a snapshot already records every spec's territory \
+                     scope (spec 070 3.5); a snapshot already records every spec's territory \
                      and the resolution verdict"
                 )));
             }
         }
     }
-    // Spec 042 3.1: coupling is a property of a diff between two revisions, not
+    // Spec 039 3.1: coupling is a property of a diff between two revisions, not
     // of a spec at one revision, so a per-spec attestation carries no couple
     // verdict and `attest_spec` takes no such option. Accepting the flag and
     // doing nothing would hand back an exit 0 and a payload missing the verdict
     // the caller asked for, with nothing said. A mode that cannot run fails
-    // visibly (spec 023 FR-006).
+    // visibly (spec 021 FR-006).
     if args.spec.is_some() && args.with_coupling {
         return Err(Error::Config(
             "attest --with-coupling is corpus-scoped and cannot combine with --spec: \
              coupling is a property of a diff between two revisions, not of a spec at one \
-             (spec 042 3.1); run `spec-spine attest --with-coupling` for that verdict"
+             (spec 039 3.1); run `spec-spine attest --with-coupling` for that verdict"
                 .to_string(),
         ));
     }
@@ -89,7 +89,7 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
 
     // One payload, one hash, whichever scope: the two verbs differ only in what
     // they cover, so the seal, the write and the reporting below are shared.
-    // Spec 084 3.3: the attestation file is named by the **resolved** id, which
+    // Spec 067 3.3: the attestation file is named by the **resolved** id, which
     // the library hands back on the payload. Naming it after the argument would
     // write `by-spec/070.json` beside `by-spec/070-slug.json`: two files for one
     // spec, and `verify-attestation --spec <full id>` reads only one of them.
@@ -140,7 +140,7 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
     fs::write(&attestation_path, &json)
         .map_err(|e| Error::Io(format!("write {}: {e}", attestation_path.display())))?;
 
-    // Spec 084 3.3 again: the echoed scope is a value derived from the id, so
+    // Spec 067 3.3 again: the echoed scope is a value derived from the id, so
     // it is the resolved one. `attested 016 -> .../016-short.json` names two
     // different spellings of one spec on one line.
     let scope = match (&resolved_spec, args.with_coupling) {
@@ -175,7 +175,7 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
         // `{ attestation, attestationHash }`, the shape the matching facade
         // returns for whichever scope ran. The seal is deliberately absent:
         // signing is a CLI post-pass over the attestation hash, the facade does
-        // not model it, and spec 037 3.1 requires one payload shape per verb
+        // not model it, and spec 034 3.1 requires one payload shape per verb
         // rather than a CLI spelling that diverges from the library's. A
         // consumer that needs the seal reads the sibling `.sig`, whose path is
         // a function of the attestation's.

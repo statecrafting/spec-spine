@@ -6,11 +6,11 @@
 //!
 //! `establishes` is a bare `Vec<Unit>`; `supersedes` is `Vec<SupersedeItem>` (a
 //! bare predecessor id for full supersession, or a structured partial item,
-//! spec 019); `amends` is `Vec<String>` of spec ids; the remaining edges are
+//! spec 018); `amends` is `Vec<String>` of spec ids; the remaining edges are
 //! lists of the item structs below. Each
 //! item uses `deny_unknown_fields` so a misspelled key produces a clear error
 //! rather than silently overflowing. `extends`/`refines` items accept the
-//! predecessor dialect's `paths:` list as authoring sugar (spec 014): the
+//! predecessor dialect's `paths:` list as authoring sugar (spec 013): the
 //! parser expands it to N single-`unit` items, so the sugar never reaches
 //! `registry.json`.
 
@@ -19,7 +19,7 @@ use serde::{Deserialize, Serialize};
 use crate::unit::Unit;
 
 /// `extends: [{ spec, unit? | paths?, nature? }]`: adds surface to a
-/// predecessor. `paths:` is parse-time sugar for N file units (spec 014).
+/// predecessor. `paths:` is parse-time sugar for N file units (spec 013).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ExtendItem {
@@ -27,7 +27,7 @@ pub struct ExtendItem {
     pub spec: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub unit: Option<Unit>,
-    /// Authoring sugar only: always `None` after parse (spec 014 §3.2).
+    /// Authoring sugar only: always `None` after parse (spec 013 §3.2).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub paths: Option<Vec<String>>,
     /// Free-text nature hint (e.g. `additive`, `wrapping`); validated by lint.
@@ -36,7 +36,7 @@ pub struct ExtendItem {
 }
 
 /// `refines: [{ aspect, unit? | paths?, refines_specs? }]`: tightens a named
-/// aspect. `paths:` is parse-time sugar for N file units (spec 014).
+/// aspect. `paths:` is parse-time sugar for N file units (spec 013).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct RefineItem {
@@ -44,14 +44,14 @@ pub struct RefineItem {
     pub aspect: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub unit: Option<Unit>,
-    /// Authoring sugar only: always `None` after parse (spec 014 §3.2).
+    /// Authoring sugar only: always `None` after parse (spec 013 §3.2).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub paths: Option<Vec<String>>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub refines_specs: Vec<String>,
 }
 
-/// Expand the `paths:` sugar on `extends` items (spec 014 §3.2): one item per
+/// Expand the `paths:` sugar on `extends` items (spec 013 §3.2): one item per
 /// path, in authored order, every other field copied. `unit` + `paths`
 /// together, or an empty `paths` list, is a grammar error (the V-002 class).
 pub(crate) fn expand_extend_paths(items: Vec<ExtendItem>) -> Result<Vec<ExtendItem>, String> {
@@ -132,7 +132,7 @@ pub struct CoAuthorityItem {
 /// `constrains: [{ flavor? | kind?, unit?, note?, target_specs? }]`: asserts an
 /// invariant others must respect.
 ///
-/// Two shapes coexist (spec 018): a **path-scoped** constraint carries a `unit:`
+/// Two shapes coexist (spec 017): a **path-scoped** constraint carries a `unit:`
 /// (the canonical `invariant-freeze` over a file/schema); a **spec-scoped**
 /// constraint carries `target_specs:` and no unit (a sequencing/ordering plan
 /// over other specs). `flavor` and `kind` are interchangeable, documentary
@@ -158,7 +158,7 @@ pub struct ConstrainItem {
     pub target_specs: Vec<String>,
 }
 
-/// The scope of a `supersedes` edge (spec 019): a whole-spec transfer or a
+/// The scope of a `supersedes` edge (spec 018): a whole-spec transfer or a
 /// unit-scoped one.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -231,7 +231,7 @@ impl SupersedeItem {
     }
 
     /// Rewrite the predecessor id in place (used by compile-time short-id
-    /// resolution; spec 016/019).
+    /// resolution; spec 015/019).
     pub fn set_spec(&mut self, id: String) {
         match self {
             SupersedeItem::Full(s) => *s = id,
@@ -240,7 +240,7 @@ impl SupersedeItem {
     }
 }
 
-/// Normalize `supersedes` items (spec 019): a `Scoped` item with full scope
+/// Normalize `supersedes` items (spec 018): a `Scoped` item with full scope
 /// carries no information beyond its id, so it collapses to the bare-string
 /// [`SupersedeItem::Full`] form, keeping `{ scope: full }` (OAP spec 073) and a
 /// bare id byte-identical on the wire. Partial items pass through unchanged.
@@ -276,7 +276,7 @@ pub struct ReferenceItem {
 ///
 /// `kind` keys into `config.provenance.uri_schemes` to validate `ref`'s scheme.
 /// `derived_at` is a generic, optional ISO-8601 timestamp recording when the
-/// reference was derived (spec 028): additive and preserved verbatim, with no
+/// reference was derived (spec 026): additive and preserved verbatim, with no
 /// timestamp-format validation in the type (an adopter that wants format
 /// enforcement adds a lint). `deny_unknown_fields` is preserved: the field is
 /// now known, not a hole in the schema.
@@ -288,7 +288,7 @@ pub struct Provenance {
     #[serde(rename = "ref")]
     pub reference: String,
     /// Optional ISO-8601 timestamp recording when this reference was derived
-    /// (spec 028). Absent items do not serialize the field, so existing goldens
+    /// (spec 026). Absent items do not serialize the field, so existing goldens
     /// stay byte-identical.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub derived_at: Option<String>,

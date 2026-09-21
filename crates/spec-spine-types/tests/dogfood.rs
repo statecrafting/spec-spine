@@ -52,17 +52,17 @@ fn bootstrap_spec_000_parses() {
     );
 }
 
-/// Spec 111 §3.5: the authoring template must document every key the parser
+/// Spec 088 §3.5: the authoring template must document every key the parser
 /// accepts, checked against [`KNOWN_KEYS`] itself rather than a list
 /// transcribed here. A transcribed list is a third copy of the grammar and
-/// goes stale exactly the way the template did: spec 103 added
+/// goes stale exactly the way the template did: spec 082 added
 /// `amends_verification` to the parser and the template never gained it, which
 /// five specs recorded in their own §4 and none could close.
 ///
 /// Substring-anchored rather than parsed, because the template's frontmatter is
 /// mostly commented examples: `parse_frontmatter` would see only the six live
 /// keys and say nothing about the 23 commented ones, which are the subject
-/// (spec 111 D-5).
+/// (spec 088 D-5).
 #[test]
 fn authoring_template_documents_every_frontmatter_key() {
     let tpl = read_repo_file("standards/spec/templates/spec-template.md");
@@ -84,7 +84,7 @@ fn authoring_template_documents_every_frontmatter_key() {
     // `missing`, a green tripwire that checked nothing. Guarded by naming the
     // five keys §1.2 measured as absent rather than by pinning a count: a count
     // is a literal another spec can legitimately move, which is the
-    // over-assertion specs 107 to 110 were filed to repair (spec 111 D-6).
+    // over-assertion specs 085 to 110 were filed to repair (spec 088 D-6).
     for key in [
         "code_aliases",
         "feature_branch",
@@ -108,14 +108,14 @@ fn authoring_template_documents_every_frontmatter_key() {
         missing.is_empty(),
         "standards/spec/templates/spec-template.md documents {}/{} frontmatter \
          keys; missing: {missing:?}. A key the parser accepts and the template \
-         omits is a key no author can find (spec 111 §3.2).",
+         omits is a key no author can find (spec 088 §3.2).",
         KNOWN_KEYS.len() - missing.len(),
         KNOWN_KEYS.len()
     );
 
     // §3.2: the two keys nothing reads are named as such, so the check above
     // stays total instead of carrying an exception list a future key could hide
-    // in (spec 111 D-3).
+    // in (spec 088 D-3).
     assert!(
         tpl.contains("read by nothing today"),
         "`code_aliases` and `feature_branch` must be documented as inert"

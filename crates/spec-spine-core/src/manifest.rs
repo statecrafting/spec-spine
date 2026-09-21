@@ -93,7 +93,7 @@ fn discover_rust(
     for member in &members {
         // A standalone entry may name a directory or a `Cargo.toml` path; strip a
         // trailing manifest filename so glob_manifests appends it exactly once
-        // (spec 026 FR-005: a `.../Cargo.toml` entry must not double-join).
+        // (spec 024 FR-005: a `.../Cargo.toml` entry must not double-join).
         let member = member
             .strip_suffix("Cargo.toml")
             .map(|s| s.trim_end_matches('/'))
@@ -315,7 +315,7 @@ pub fn npm_hash_projection(content: &str, namespace: &str) -> Option<String> {
 /// `dep_only::CARGO_DEPENDENCY_TABLES`.
 const CARGO_DEP_TABLES: &[&str] = &["dependencies", "dev-dependencies", "build-dependencies"];
 
-/// The governance projection of a Cargo manifest (spec 030, extending the
+/// The governance projection of a Cargo manifest (spec 027, extending the
 /// 2026-06-11 npm projection to the cargo ecosystem). The manifest with its
 /// dependency tables removed, rendered as canonical JSON so the hash is
 /// deterministic (the same sorted-key path the npm projection folds through).
@@ -332,7 +332,7 @@ pub fn cargo_hash_projection(content: &str) -> Option<String> {
     serde_json::to_string(&toml_to_json(&doc)).ok()
 }
 
-/// The governance projection of a GitHub Actions workflow (spec 073, extending
+/// The governance projection of a GitHub Actions workflow (spec 060, extending
 /// the npm and cargo projections to the third ecosystem whose bumps arrive by
 /// bot). The parsed document with the pinned ref of every `uses:` reference
 /// removed and the action path kept, rendered as canonical JSON so the hash is
@@ -356,7 +356,7 @@ pub fn workflow_hash_projection(content: &str) -> Option<String> {
 ///
 /// A `uses:` whose value is not a string is left alone entirely, and not
 /// descended into: `dep_only::uses_ref_only_differs` requires exact equality
-/// there, and the two rules have to agree case for case (spec 073 3.2).
+/// there, and the two rules have to agree case for case (spec 060 3.2).
 fn strip_uses_refs(value: &mut serde_yaml::Value) {
     use serde_yaml::Value::{Mapping, Sequence};
     match value {
@@ -384,7 +384,7 @@ fn strip_uses_refs(value: &mut serde_yaml::Value) {
 /// **The action path is kept**, subpath included, because swapping which
 /// action runs is a governed change: dropping the whole `uses:` value would
 /// make replacing `actions/checkout` with a fork invisible to the ledger, and
-/// spec 030's waiver already draws the line in the same place.
+/// spec 027's waiver already draws the line in the same place.
 ///
 /// **The `@` is kept as a marker**, so a pinned reference never projects onto
 /// the unpinned spelling of the same action. `a/b@v4` folds to `a/b@` while
@@ -505,7 +505,7 @@ fn toml_to_json(value: &toml::Value) -> serde_json::Value {
 /// Rebase a workspace-member glob declared in `decl` (a repo-relative declaration
 /// file path) onto that file's parent directory, so a NON-root workspace file
 /// (e.g. `product/pnpm-workspace.yaml` declaring `apps/*`) resolves its members
-/// relative to itself, not the repo root (spec 026 D3). A root-level declaration
+/// relative to itself, not the repo root (spec 024 D3). A root-level declaration
 /// (no parent) returns the glob unchanged. `standalone_npm_packages` are
 /// repo-root-relative by contract and are deliberately NOT routed through here.
 fn rebase_glob(decl: &str, glob: &str) -> String {

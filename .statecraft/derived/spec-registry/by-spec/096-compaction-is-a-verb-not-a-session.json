@@ -1,0 +1,86 @@
+{
+  "record": {
+    "created": "2026-09-20",
+    "dependsOn": [
+      "001-compile-registry",
+      "015-short-id-resolution",
+      "089-nothing-reruns-a-merged-acceptance",
+      "095-the-corpus-describes-what-exists"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/compact.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/compact.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_compact.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      }
+    ],
+    "id": "096-compaction-is-a-verb-not-a-session",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/corpus-map.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "096: Compaction is a verb, not a session",
+      "1. Purpose",
+      "1.1 Five defects, one family",
+      "1.2 What caught them, and what that cost",
+      "1.3 What is, and is not, mechanizable",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A plan in, a corpus out as data",
+      "3.2 The map is computed, and an ordinal collision is a refusal",
+      "3.3 Three reference shapes, and what each excludes",
+      "3.4 Applying twice is applying once",
+      "3.5 A block is found by its fence, line by line",
+      "3.6 The report is the review",
+      "3.7 The map document",
+      "3.8 What it refuses",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/096-compaction-is-a-verb-not-a-session/spec.md",
+    "status": "draft",
+    "summary": "Spec 095 removed 27 specs and renumbered 93, which meant rewriting about six thousand references by hand. Five distinct defects were introduced doing it, every one a rewrite rule that matched more or less than its author meant, and every one silent: the corpus compiled, the gate passed, and the citations pointed at the wrong documents. Four were caught only because spec 089 built a sweep that runs every acceptance block, and the fifth was caught by the sweep finding a sixth. A corpus whose ids are the tool's own vocabulary should not need a session to renumber itself. This spec adds `spec-spine compact`: a plan in, a rewritten corpus out as data, idempotent, refusing every ambiguity the five defects came from, and reporting what it changed rather than leaving a six-thousand-line diff to read.\n",
+    "title": "Compaction is a verb, not a session"
+  },
+  "shardHash": "4073954c80bad312ae593404fcdf3a2888ffe1f95211bb3608958aec83144f58",
+  "specVersion": "1.3.0"
+}

@@ -11,18 +11,18 @@
 //! loaders reject an unknown MAJOR. Under `0.x`, MINOR may break (SemVer `0.x`).
 
 /// `specVersion` emitted in the registry, carried by each registry shard.
-/// `0.2.0`: declared extra-frontmatter values widen to arbitrary JSON (spec 013).
-/// `0.3.0`: structured/partial `supersedes` items (spec 019); full supersession
+/// `0.2.0`: declared extra-frontmatter values widen to arbitrary JSON (spec 012).
+/// `0.3.0`: structured/partial `supersedes` items (spec 018); full supersession
 /// stays a bare string, so a full-only corpus is byte-identical.
-/// `1.0.0`: **MAJOR** (spec 024). The committed registry is sharded per-spec
+/// `1.0.0`: **MAJOR** (spec 022). The committed registry is sharded per-spec
 /// under `by-spec/<id>.json`; the single `registry.json` is no longer emitted.
 /// The aggregate view (validation, content hash) is recomputed on read. Loaders
 /// reject an unknown MAJOR, so a 0.x reader cannot misread a 1.x shard tree.
-/// `1.1.0`: additive MINOR (spec 028). A `references` provenance item may carry
+/// `1.1.0`: additive MINOR (spec 026). A `references` provenance item may carry
 /// an optional `derived_at` ISO-8601 timestamp; the registry format gains an
 /// emittable field, so the minor bumps. The permissive shard schema is unchanged
 /// and a corpus that declares no `derived_at` emits byte-identical record bodies.
-/// `1.2.0`: additive MINOR (spec 076). A unit payload may carry an optional
+/// `1.2.0`: additive MINOR (spec 063). A unit payload may carry an optional
 /// `planned: true`, declaring territory a spec intends to own and has not
 /// written yet. Follows the precedent 028 set: additive, no MAJOR, loaders that
 /// know `1.x` keep working. `planned` is serialized only when true, and a
@@ -32,7 +32,7 @@
 /// predating this spec meets the key with a parse error and exits 3 rather than
 /// silently ignoring a claim about territory: the fail-closed direction, and the
 /// reason the flag is a typed field rather than a convention in a comment.
-/// `1.3.0`: additive `amendsVerification` (spec 103). A spec that amends
+/// `1.3.0`: additive `amendsVerification` (spec 082). A spec that amends
 /// another may declare that its own `## Verification` block replaces the
 /// amended spec's, so `verify <amended-id>` runs the replacement. Absent on
 /// every existing spec, so the field is omitted from every existing shard and
@@ -41,13 +41,13 @@
 pub const REGISTRY_SCHEMA_VERSION: &str = "1.3.0";
 
 /// `schemaVersion` emitted in the codebase index, carried by each index shard.
-/// `0.2.0`: additive `build.sliceHashes` (spec 012).
-/// `0.3.0`: additive `directory`/`crate`/`module` resolved-unit kinds (spec 017).
-/// `1.0.0`: **MAJOR** (spec 024). The committed index is sharded per-spec under
+/// `0.2.0`: additive `build.sliceHashes` (spec 011).
+/// `0.3.0`: additive `directory`/`crate`/`module` resolved-unit kinds (spec 016).
+/// `1.0.0`: **MAJOR** (spec 022). The committed index is sharded per-spec under
 /// `by-spec/<id>.json` and per-package under `by-package/<slug>.json`; the single
 /// `index.json` is no longer emitted. The aggregate view (orphans, untraced code,
 /// content hash) is recomputed on read; staleness is per-shard.
-/// `1.1.0`: additive (spec 025). The resolver downgrades an unresolved unit to a
+/// `1.1.0`: additive (spec 023). The resolver downgrades an unresolved unit to a
 /// non-blocking `W-001` (draft/pending owning) or `W-002` (non-owning reference)
 /// warning instead of a hard error; the `warnings` tier and free-form diagnostic
 /// `code` already exist, so no schema-file edit is needed.
@@ -56,7 +56,7 @@ pub const INDEX_SCHEMA_VERSION: &str = "1.1.0";
 /// `schemaVersion` emitted in `build-meta.json` (the non-deterministic artifact).
 pub const BUILD_META_SCHEMA_VERSION: &str = "0.1.0";
 
-/// `schemaVersion` carried by a per-spec attestation (spec 042).
+/// `schemaVersion` carried by a per-spec attestation (spec 039).
 ///
 /// Independent of the registry, index and corpus-attestation versions: an
 /// external consumer pins the shape of the evidence it verifies without pinning
@@ -64,7 +64,7 @@ pub const BUILD_META_SCHEMA_VERSION: &str = "0.1.0";
 /// crossing a trust boundary.
 pub const SPEC_ATTESTATION_SCHEMA_VERSION: &str = "0.1.0";
 
-/// `schemaVersion` carried by the `--json` verdict envelope (spec 037).
+/// `schemaVersion` carried by the `--json` verdict envelope (spec 034).
 ///
 /// Independent of the registry and index versions on purpose: a consumer pins
 /// the shape of the verdict it parses without pinning the ledger it reads.
@@ -72,20 +72,20 @@ pub const SPEC_ATTESTATION_SCHEMA_VERSION: &str = "0.1.0";
 /// token (a consumer's existing branches still match); MAJOR is breaking,
 /// which includes renaming or removing one (they stop matching).
 ///
-/// 0.2.0 added the `verify` verb (spec 049); 0.3.0 added `compile.spec`
-/// (spec 056); 0.4.0 added `delta` (spec 088). Each is the additive case this
+/// 0.2.0 added the `verify` verb (spec 043); 0.3.0 added `compile.spec`
+/// (spec 049); 0.4.0 added `delta` (spec 071). Each is the additive case this
 /// doc-comment names, and each followed the same reasoning rather than
 /// reopening it.
 pub const VERDICT_SCHEMA_VERSION: &str = "0.4.0";
 
-/// `schemaVersion` carried by a change-classification report (spec 088).
+/// `schemaVersion` carried by a change-classification report (spec 071).
 ///
 /// On its own axis, like the per-spec attestation: a consumer that stores what a
 /// change was classified as pins the shape of that record without pinning the
 /// envelope it arrived in or the ledger it was classified against.
 pub const DELTA_SCHEMA_VERSION: &str = "0.1.0";
 
-/// `schemaVersion` carried by every read document (spec 093): the JSON a read
+/// `schemaVersion` carried by every read document (spec 074): the JSON a read
 /// verb, or the facade function behind it, emits when it answers a question
 /// rather than rendering a verdict.
 ///
@@ -95,7 +95,7 @@ pub const DELTA_SCHEMA_VERSION: &str = "0.1.0";
 /// constant for every read document: per-verb axes would always move together.
 pub const READ_SCHEMA_VERSION: &str = "0.1.0";
 
-/// `schemaVersion` of an authority snapshot (spec 087): its own axis, defined
+/// `schemaVersion` of an authority snapshot (spec 070): its own axis, defined
 /// beside the DTO it versions and re-exported here with the others.
 pub use crate::snapshot::SNAPSHOT_SCHEMA_VERSION;
 

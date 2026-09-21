@@ -11,7 +11,7 @@ on:
   push:
     branches: [main]
   pull_request:
-  # Spec 020: GitHub merge queue. Each queued PR is tested against the
+  # Spec 094: GitHub merge queue. Each queued PR is tested against the
   # speculative merged tree, so a green PR cannot be silently invalidated by
   # the one ahead of it (e.g. a duplicate spec id introduced on two branches).
   # The coupling gate stays pull_request-only (it reads the PR-body waiver, which
@@ -42,7 +42,7 @@ jobs:
         run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - name: Format
         run: cargo fmt --all --check
-      # Spec 027: prove `spec-spine-core` compiles, tests, and lints with symbol
+      # Spec 025: prove `spec-spine-core` compiles, tests, and lints with symbol
       # resolution OFF, so a host workspace pinning a different tree-sitter can embed
       # the committed-shard readers without a `links = "tree-sitter"` clash. A
       # regression that re-couples the readers to tree-sitter fails here.
@@ -69,80 +69,57 @@ jobs:
           fetch-depth: 0
       - name: Build CLI
         run: cargo build --bin spec-spine --locked
-      # Validation AND registry-shard freshness in one self-contained gate
-      # (spec 031). `compile --check` compiles in memory and compares against
-      # the committed shards without writing, so it exits 1 on a frontmatter
-      # violation and 2 when a spec.md was edited without recompiling (which is
-      # what PR #61 did to specs 017 and 021, undetected).
+      # ONE gate definition (spec 094, moved to the root `Makefile` by spec
+      # 120 3.6): this job calls the target, it does not restate the chain.
+      # `SPEC_SPINE` points at the binary this job built, which is spec 093's
+      # resolution order: a repository that builds its own binary must be
+      # governed by the one it builds.
       #
-      # It must NOT be sequenced after a writing `compile`: that would compare
-      # the committed shards against files the same job just overwrote, and the
-      # gate would silently pass forever. Nothing here writes to .derived.
+      # Nothing here writes to the derived tree. `gate` runs `check` rather
+      # than `compile`/`index` precisely so a gate never repairs the tree it is
+      # judging: it exits 1 on a frontmatter violation or an unresolved claim
+      # and 2 when a spec.md was edited without recomputing the shards (which
+      # is what PR #61 did to specs 016 and 021, undetected).
       #
-      # Spec 064: the chain has ONE definition, `kit/Makefile`'s `gate` target,
-      # which is the file adopters copy. `SPEC_SPINE` points at the binary this
-      # job built, which is spec 051's resolution order: a repository that
-      # builds its own binary must be governed by the one it builds. Running the
-      # kit's own artifact here is what keeps it from shipping broken, the same
-      # reason this repository runs the kit's hooks and skills.
+      # Two legs, one definition, selected by explicit controls rather than by
+      # inference (spec 094 3.3):
       #
-      # `couple` is not reached by this target: it needs a base and a head and
-      # runs on pull_request only, in its own step below, with BASE unset here.
-      - name: Governed loop (kit/Makefile, the artifact adopters copy)
-        run: make -f kit/Makefile gate SPEC_SPINE=./target/debug/spec-spine BASE=HEAD
-      # The individual steps below stay as named steps so a failure names the
-      # verb that failed in the job log rather than only "make".
-      # Spec 075: one verb, both committed trees, and it never writes, which is
-      # what a gate judging a tree requires. The two primitives it composes
-      # remain available for a caller that regenerated only one tree.
+      #   push / merge_group   COUPLE=0. The change has already merged, so
+      #                        there is nothing left to refuse, and there is no
+      #                        PR body, so a `Spec-Drift-Waiver:` line is
+      #                        unrecoverable: it lives in the PR description,
+      #                        not in the squash commit message. A legitimately
+      #                        waived PR would otherwise resurface as a false
+      #                        drift failure on the post-merge push.
+      #   pull_request         COUPLE=1, with both diff endpoints passed as the
+      #                        event's FROZEN SHAs and the body written to a
+      #                        file for the waiver read.
       #
-      # `--fail-on-unresolved` (spec 050) turns the W-001/W-002 warning tier into
-      # a refusal. Opt-in by design, and opted into here (spec 051): this corpus
-      # builds what it claims within one PR, so an unresolved unit reaching the
-      # default branch is a claim nobody wrote, not work legitimately under way.
-      - name: Freshness (committed registry and index shards must be current)
-        run: ./target/debug/spec-spine check --fail-on-unresolved --fail-on-warn
-      # Enforced (spec 032): every source file must be specifically claimed by
-      # a spec, not merely covered by its package's manifest floor. This repo
-      # drove the floor-only list to empty by annotating the last five files
-      # with `// Spec:` headers, so the ratchet's final step now applies:
-      # `--fail-on-untraced` exits 1 on any new debt, defending 65/65 instead of
-      # reporting it. The PR-time half is `[coupling] require_ownership` in
-      # spec-spine.toml, which refuses a *changed* unclaimed file; this step is
-      # the whole-tree half, which also catches a file added with no diff
-      # context. Exit 2 remains staleness, already refused by the freshness step above.
-      - name: Ownership coverage (enforced)
-        run: ./target/debug/spec-spine index coverage --fail-on-untraced
-      - name: Conformance lint (fail on warn)
-        run: ./target/debug/spec-spine lint --fail-on-warn
-      # The coupling gate is a PR-time gate (spec 005 §1): it joins the spec and
-      # code views and refuses the *merge* when code drifts from its owning spec.
-      # It runs on pull_request only. A push to main has already merged (nothing
-      # left to refuse) and carries no PR body, so the Spec-Drift-Waiver line is
-      # unrecoverable: it lives in the PR description, not the squash commit
-      # message. A legitimately waived PR would otherwise resurface as a false
-      # drift failure on the post-merge main push.
-      # Diff both endpoints as frozen event SHAs (base.sha, head.sha), NOT the
-      # checked-out `refs/pull/N/merge` HEAD. The merge ref re-resolves against
-      # the current base every time the job runs, so `base.sha...HEAD` would fold
-      # in unrelated changes merged after this PR opened and report them as false
-      # drift (or silently widen a waiver's scope). `base.sha...head.sha` is a
-      # three-dot diff whose merge base is this PR's fork point, so it evaluates
-      # exactly the PR's own changes and is stable across re-runs.
-      - name: Coupling gate (spec/code drift)
+      # `base.sha...head.sha` is a three-dot diff whose merge base is this PR's
+      # fork point, so it evaluates exactly the PR's own changes and is stable
+      # across re-runs. The checked-out `refs/pull/N/merge` HEAD is NOT that:
+      # it re-resolves against the current base every time the job runs, so a
+      # gate diffing to it folds in unrelated changes merged after this PR
+      # opened and reports them as drift (or silently widens a waiver's scope).
+      - name: Governed loop (make gate, push leg)
+        if: github.event_name != 'pull_request'
+        run: make gate SPEC_SPINE=./target/debug/spec-spine OWNERSHIP=1 COUPLE=0
+      - name: Governed loop (make gate, pull-request leg)
         if: github.event_name == 'pull_request'
         env:
-          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_BODY_TEXT: ${{ github.event.pull_request.body }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          echo "coupling base: $BASE_SHA → head: $HEAD_SHA"
-          printf '%s' "${PR_BODY:-}" > /tmp/pr-body.txt
-          ./target/debug/spec-spine couple --base "$BASE_SHA" --head "$HEAD_SHA" --pr-body /tmp/pr-body.txt
+          echo "coupling base: $BASE_SHA -> head: $HEAD_SHA"
+          printf '%s' "${PR_BODY_TEXT:-}" > "$RUNNER_TEMP/pr-body.txt"
+          make gate SPEC_SPINE=./target/debug/spec-spine OWNERSHIP=1 COUPLE=1 \
+            BASE="$BASE_SHA" HEAD="$HEAD_SHA" PR_BODY="$RUNNER_TEMP/pr-body.txt"
+
 
   # Cross-triple determinism golden, run as a reusable workflow so a single
-  # `ci-gate` check below covers it too (spec 020).
+  # `ci-gate` check below covers it too (spec 094).
   determinism:
     name: determinism
     uses: ./.github/workflows/determinism.yml
@@ -165,7 +142,7 @@ jobs:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     uses: ./.github/workflows/ai-pr-review.yml
 
-  # Spec 020: the single required status check for branch protection and the
+  # Spec 094: the single required status check for branch protection and the
   # merge queue. It aggregates every CI job, so branch protection requires just
   # this one name instead of an enumerated, drift-prone list. A skipped job
   # (e.g. a future event-gated one) counts as a pass; a failed or cancelled job

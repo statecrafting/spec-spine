@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Spec: specs/007-distribution/spec.md
+# Spec: specs/006-distribution/spec.md
 #
 # Local pack + install smoke test: prove `spec-spine --version` resolves through
 # the npm launcher to a real prebuilt binary, end to end, with no network.

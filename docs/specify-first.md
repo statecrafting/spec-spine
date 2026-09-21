@@ -51,10 +51,19 @@ separates the specs that are genuinely orphaned from the ones merely in flight.
 
 ## The composite gate on a code-free tree
 
-`kit/Makefile` and `kit/govern.yml` are the gate and the CI workflow, and both
-are built for this mode: the language targets are guarded on a **manifest
-probe**, so `make test` on a tree with no `Cargo.toml` is a clean no-op rather
-than a failure. Install them with `spec-spine init --with-kit`.
+A composite gate built for this mode guards its language targets on a
+**manifest probe** rather than on a tool probe, so `make test` on a tree with no
+`Cargo.toml` is a clean no-op rather than a failure. Probing for the tool
+answers the wrong question: a machine with cargo installed and a repository with
+no manifest is exactly the specify-first case. Write the guard as an explicit
+`if`/`then`/`else`, never `test -f M && cmd || echo skipping`: `||` fires when
+either the probe is false or the command fails, so on a repository that HAS the
+manifest a failing command exits 0 having printed a false skip.
+
+spec-spine no longer ships that gate for you to copy: since the Statecraft
+realignment it distributes a governance engine, not a development environment
+(`docs/design/07-statecraft-realignment-2026-09.md`). This repository's own
+`Makefile` is a worked example of the shape.
 
 One finding from that workflow is worth carrying even if you write your own:
 **GitHub rejects `hashFiles` in a job-level `if`.** The expression is evaluated

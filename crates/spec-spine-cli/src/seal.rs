@@ -1,4 +1,4 @@
-//! The detached Ed25519 seal over a corpus attestation (spec 023, FR-003).
+//! The detached Ed25519 seal over a corpus attestation (spec 021, FR-003).
 //!
 //! Signing is a **post-pass over an already-emitted hash**: this module is the
 //! only place in spec-spine that handles a key, deliberately kept in the CLI so

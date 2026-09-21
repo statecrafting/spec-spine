@@ -1,8 +1,8 @@
-//! The authority snapshot (spec 087): the third attestation scope.
+//! The authority snapshot (spec 070): the third attestation scope.
 //!
 //! [`snapshot`] records, for one tree and one tool version, which inputs were
 //! read and what they came to, in one payload a consumer can store beside a
-//! revision: the configuration, spec 023's corpus hashes, the committed registry
+//! revision: the configuration, spec 021's corpus hashes, the committed registry
 //! and index trees with whether each equals the recompute, the governance inputs
 //! by path, the gate verdicts as counts, every spec's lifecycle with a framed
 //! digest of its territory, and the exclusions in force.
@@ -16,7 +16,7 @@
 //! and the next piece's path, so two different trees can share one hash; the
 //! framed construction length-prefixes both and tags each piece with its kind.
 //! It binds **normalized text** for a UTF-8 file and exact bytes for any other,
-//! which is a different contract from spec 085's exact-byte one, on purpose.
+//! which is a different contract from spec 068's exact-byte one, on purpose.
 
 use std::collections::BTreeMap;
 use std::fs;
@@ -43,7 +43,7 @@ use crate::shard;
 const FRAME_PREFIX: &[u8] = b"spec-spine/frame/1";
 
 /// Resolver diagnostics that block: the corpus attestation's own list, shared
-/// rather than copied, so the snapshot's `resolution.blocking` and spec 023's
+/// rather than copied, so the snapshot's `resolution.blocking` and spec 021's
 /// `couple.ok` can never count different codes.
 use crate::attest::BLOCKING_RESOLVER_CODES;
 
@@ -151,7 +151,7 @@ pub struct SnapshotOutcome {
     pub attestation_hash: String,
 }
 
-/// Build an [`AuthoritySnapshot`] over the tree under `repo_root` (spec 087).
+/// Build an [`AuthoritySnapshot`] over the tree under `repo_root` (spec 070).
 ///
 /// A record, not a gate: failing verdicts and a stale committed ledger are
 /// reported, never refused. An input that cannot be **read** is an error, as
@@ -252,7 +252,7 @@ fn add_shard_dir(repo_root: &Path, dir: &Path, set: &mut PieceSet) -> Result<(),
 }
 
 /// `committed.registry`: the committed `by-spec/` shards, and whether they are
-/// exactly what the corpus compiles to (spec 031 3.1's comparison).
+/// exactly what the corpus compiles to (spec 028 3.1's comparison).
 fn committed_registry(
     cfg: &spec_spine_types::Config,
     repo_root: &Path,
@@ -314,7 +314,7 @@ fn absent_tree() -> CommittedTree {
 }
 
 /// `governanceInputs`: `spec-spine.toml` and every `[index] extra_hashed_inputs`
-/// match outside the state root, as their own content rather than spec 073's
+/// match outside the state root, as their own content rather than spec 060's
 /// projection (D-4).
 fn governance_inputs(
     cfg: &spec_spine_types::Config,
@@ -466,7 +466,7 @@ fn spec_entry(
 /// The pieces a spec's owning units resolve to, under §3.3.1's rule.
 ///
 /// Whole files, never spans; one piece per path; a directory location is
-/// expanded with `index::walk_territory` (spec 083's walk), and every empty or
+/// expanded with `index::walk_territory` (spec 066's walk), and every empty or
 /// wholly pruned directory it reaches is a `d` piece at its own path; a symlink
 /// is an `l` piece and is never followed; a unit that resolves to nothing
 /// contributes nothing.
@@ -505,7 +505,7 @@ pub fn territory_pieces(
                     &cfg.index.resolver_exclusions,
                     &cfg.layout,
                 );
-                // Spec 087 §3.3.1, D-9: every empty or wholly pruned directory
+                // Spec 070 §3.3.1, D-9: every empty or wholly pruned directory
                 // the walk reaches is a `d` piece at its own path, the claimed
                 // directory included, so an emptied directory and a truncated
                 // file at one path never frame alike.
@@ -581,7 +581,7 @@ pub fn check_snapshot_major(schema_version: &str) -> Result<(), Error> {
     shard::check_major("snapshot", schema_version, SNAPSHOT_SCHEMA_VERSION)
 }
 
-/// Verify a snapshot by recompute (§3.5), under spec 085's rules: a
+/// Verify a snapshot by recompute (§3.5), under spec 068's rules: a
 /// `tool.version` mismatch is its own outcome, and a content mismatch names
 /// every member that moved.
 pub fn verify_snapshot_recompute(
@@ -670,7 +670,7 @@ pub fn verify_snapshot_recompute(
     Ok(VerifyOutcome::ContentMismatch { differences })
 }
 
-/// Fold spec 085 3.1's byte comparison into a snapshot recompute outcome.
+/// Fold spec 068 3.1's byte comparison into a snapshot recompute outcome.
 pub fn with_stored_bytes_snapshot(
     outcome: VerifyOutcome,
     attested: &AuthoritySnapshot,

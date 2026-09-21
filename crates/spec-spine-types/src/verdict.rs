@@ -1,8 +1,8 @@
-//! The machine-readable verdict envelope (spec 037).
+//! The machine-readable verdict envelope (spec 034).
 //!
-//! The read verbs have spoken JSON since spec 010; the verbs that render a
+//! The read verbs have spoken JSON since spec 009; the verbs that render a
 //! *verdict* (`compile --check`, `index check`, `lint`, `couple`, `attest`,
-//! `verify-attestation`, and `verify` since spec 049) spoke only prose, so a
+//! `verify-attestation`, and `verify` since spec 043) spoke only prose, so a
 //! programmatic consumer of the gate chain had to string-match sentences like `index is fresh` and infer a
 //! refusal's reasons from formatted text. That is the ad-hoc parsing
 //! constitution II forbids, and until this module there was no supported
@@ -30,7 +30,7 @@ pub mod verb {
     pub const COMPILE_CHECK: &str = "compile.check";
     /// `spec-spine index check` (including `--slice`).
     pub const INDEX_CHECK: &str = "index.check";
-    /// `spec-spine check` (spec 075): both freshness reads, one verdict. A verb
+    /// `spec-spine check` (spec 062): both freshness reads, one verdict. A verb
     /// of its own rather than a variant of either primitive, because it answers
     /// about both trees and a consumer branching on `compile.check` must not
     /// silently receive it.
@@ -43,16 +43,16 @@ pub mod verb {
     pub const ATTEST: &str = "attest";
     /// `spec-spine verify-attestation`.
     pub const VERIFY_ATTESTATION: &str = "verify-attestation";
-    /// `spec-spine verify <id>` (spec 049).
+    /// `spec-spine verify <id>` (spec 043).
     pub const VERIFY: &str = "verify";
-    /// `spec-spine compile --spec <id>` (spec 056).
+    /// `spec-spine compile --spec <id>` (spec 049).
     ///
     /// Distinct from [`COMPILE_CHECK`] because they answer different questions:
     /// is this one spec well-formed, versus do the committed shards match the
     /// corpus. A consumer that branched on `compile.check` must not silently
     /// receive the other.
     pub const COMPILE_SPEC: &str = "compile.spec";
-    /// `spec-spine delta` (spec 088): a change classified under the merge
+    /// `spec-spine delta` (spec 071): a change classified under the merge
     /// base's rules. A record rather than a gate, so its `exitCode` is 0
     /// whenever a report was produced, whatever the report says.
     pub const DELTA: &str = "delta";
@@ -153,7 +153,7 @@ impl Verdict {
     }
 }
 
-/// The stable token for an [`Error`]'s class (spec 037 3.3).
+/// The stable token for an [`Error`]'s class (spec 034 3.3).
 ///
 /// Spelled out rather than derived from the variant name. Deriving it would make
 /// an internal rename a silent breaking change to an external contract, with no

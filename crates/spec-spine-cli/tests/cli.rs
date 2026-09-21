@@ -34,7 +34,7 @@ fn index_slice_hashes_and_check() {
         let out = bin().arg("--repo").arg(tmp.path()).args(args).output();
         out.unwrap()
     };
-    // Slices live in their own sidecar since spec 024 (no monolithic index.json).
+    // Slices live in their own sidecar since spec 022 (no monolithic index.json).
     let slices_file = tmp.path().join(".derived/codebase-index/slices.json");
 
     // No slices configured: no sidecar; --slice is a config error (3).
@@ -158,7 +158,7 @@ fn compile_ok_then_queries() {
         .output()
         .unwrap();
     assert_eq!(code(&compile), 0, "clean compile exits 0");
-    // Sharded committed form (spec 024): one file per spec, no monolithic registry.json.
+    // Sharded committed form (spec 022): one file per spec, no monolithic registry.json.
     assert!(
         tmp.path()
             .join(".derived/spec-registry/by-spec/001-a.json")
@@ -188,7 +188,7 @@ fn compile_ok_then_queries() {
     assert_eq!(code(&show_missing), 1, "not found exits 1");
 }
 
-/// Lowercase hex SHA-256, computed here and not by the tool (spec 096 D-4).
+/// Lowercase hex SHA-256, computed here and not by the tool (spec 077 D-4).
 fn sha256_hex(bytes: &[u8]) -> String {
     use sha2::Digest;
     sha2::Sha256::digest(bytes)
@@ -197,7 +197,7 @@ fn sha256_hex(bytes: &[u8]) -> String {
         .collect()
 }
 
-/// Spec 096 §3.4: one spec's `contentHash` is the path-framed construction, is
+/// Spec 077 §3.4: one spec's `contentHash` is the path-framed construction, is
 /// not the digest of its bytes, and the prose line says so; `attest --spec`'s
 /// `specSourceHash` is the unframed one. The inequality separates the two
 /// constructions, and the prose assertion is the one that fails on the gloss
@@ -284,7 +284,7 @@ fn registry_list_ids_only_projection() {
     );
 
     // JSON form: the id strings, same order, under `items` in a versioned read
-    // document (spec 093 §3.6, amending 010 §3.1).
+    // document (spec 074 §3.6, amending 010 §3.1).
     let json = bin()
         .arg("--repo")
         .arg(tmp.path())
@@ -445,7 +445,7 @@ fn index_then_check_fresh_then_stale() {
         .output()
         .unwrap();
     assert_eq!(code(&built), 0, "index writes -> 0");
-    // Sharded committed form (spec 024): per-spec shard, no monolithic index.json.
+    // Sharded committed form (spec 022): per-spec shard, no monolithic index.json.
     assert!(
         tmp.path()
             .join(".derived/codebase-index/by-spec/001-a.json")
@@ -524,7 +524,7 @@ fn index_render_and_orphans_projections() {
         .output()
         .unwrap();
     assert_eq!(code(&orphans_text), 0, "orphans is a query, not a gate");
-    // Spec 059 §3.1: two named groups, not one flat list. This fixture indexes
+    // Spec 052 §3.1: two named groups, not one flat list. This fixture indexes
     // without compiling, so no registry is committed and every orphan reads as
     // in flight, which is the "cannot say otherwise" rule rather than a
     // failure: a read verb that answered from the index alone must not start
@@ -583,7 +583,7 @@ fn index_render_and_orphans_projections() {
         .output()
         .unwrap();
     assert_eq!(code(&none), 0);
-    // Spec 059 §3.1: with both groups empty the verb stays silent, as it did
+    // Spec 052 §3.1: with both groups empty the verb stays silent, as it did
     // before the partition.
     assert!(
         none.stdout.is_empty(),
@@ -617,7 +617,7 @@ fn lint_fail_on_warn_gating() {
 
 #[test]
 fn compile_check_exit_contract() {
-    // Spec 031 3.2: 0 fresh, 1 validation failed, 2 stale. Validation outranks
+    // Spec 028 3.2: 0 fresh, 1 validation failed, 2 stale. Validation outranks
     // staleness.
     let tmp = tempfile::tempdir().unwrap();
     write_spec(tmp.path(), "001-a", "001-a", "approved");
@@ -682,7 +682,7 @@ fn compile_check_exit_contract() {
 
 #[test]
 fn index_coverage_reports_and_gates() {
-    // Spec 032: `index coverage` is a freshness-guarded read verb over the
+    // Spec 029: `index coverage` is a freshness-guarded read verb over the
     // tree and the committed index; `--fail-on-untraced` is the whole-tree
     // "fully specified" assertion.
     let tmp = tempfile::tempdir().unwrap();
@@ -760,7 +760,7 @@ fn index_coverage_reports_and_gates() {
     );
 }
 
-// ===== spec 035: a reader that stops early is not an error =====
+// ===== spec 032: a reader that stops early is not an error =====
 
 /// `println!` unwraps its write, so a closed reader panicked the process:
 /// `spec-spine registry list --json | head` exited **101** with a backtrace,
@@ -849,7 +849,7 @@ fn panicking_stdout_macros(line: &str) -> Vec<usize> {
         let mut from = 0;
         while let Some(rel) = line[from..].find(mac) {
             let at = from + rel;
-            // Stderr keeps the panicking macros by design (spec 035 §3.3).
+            // Stderr keeps the panicking macros by design (spec 032 §3.3).
             let is_stderr = at > 0 && line.as_bytes()[at - 1] == b'e';
             if !is_stderr {
                 hits.push(at);
@@ -872,7 +872,7 @@ fn scanner_does_not_let_a_stderr_call_mask_a_stdout_one() {
     assert!(!panicking_stdout_macros(r#"eprint!("{}", x); print!("{}", y);"#).is_empty());
 }
 
-/// Spec 035 §3.5(3). The block path (`index render`, `index coverage`) cannot be
+/// Spec 032 §3.5(3). The block path (`index render`, `index coverage`) cannot be
 /// exercised by a pipe-breaking test: its output fits inside a pipe buffer on
 /// any corpus small enough to build in one, so such a test could never fail.
 /// The guarantee is asserted structurally instead. This is the check that would
@@ -916,12 +916,12 @@ fn no_panicking_stdout_macro_remains_in_the_cli() {
 
     assert!(
         offenders.is_empty(),
-        "CLI stdout must go through out.rs, not a panicking macro (spec 035):\n{}",
+        "CLI stdout must go through out.rs, not a panicking macro (spec 032):\n{}",
         offenders.join("\n")
     );
 }
 
-// ===== spec 037: machine-readable verdicts =====
+// ===== spec 034: machine-readable verdicts =====
 
 /// A minimal governed repo the six adjudicating verbs all have something to say
 /// about: one crate claimed by spec `001-a`, compiled and indexed.
@@ -975,7 +975,7 @@ fn envelope(out: &std::process::Output) -> serde_json::Value {
     })
 }
 
-/// Spec 037 3.1: one envelope shape across all six adjudicating verbs, with a
+/// Spec 034 3.1: one envelope shape across all six adjudicating verbs, with a
 /// `report` member and no `error` member on a corpus that passes.
 #[test]
 fn json_envelope_on_every_adjudicating_verb() {
@@ -1006,7 +1006,7 @@ fn json_envelope_on_every_adjudicating_verb() {
             String::from_utf8_lossy(&out.stderr)
         );
         let v = envelope(&out);
-        // Spec 049 took the envelope to 0.2.0 by adding the `verify` verb. The
+        // Spec 043 took the envelope to 0.2.0 by adding the `verify` verb. The
         // assertion tracks the constant rather than a literal so that a future
         // additive verb does not read as a change to these six verbs.
         assert_eq!(
@@ -1022,7 +1022,7 @@ fn json_envelope_on_every_adjudicating_verb() {
     }
 }
 
-/// Spec 037 3.2: `--json` changes what is written, never what is decided. Every
+/// Spec 034 3.2: `--json` changes what is written, never what is decided. Every
 /// failure mode returns the code the prose form returns, and `ok` agrees.
 #[test]
 fn json_exit_codes_match_the_prose_form() {
@@ -1071,7 +1071,7 @@ fn json_exit_codes_match_the_prose_form() {
     }
 }
 
-/// Spec 037 3.1: `report` is the facade's payload, not a second CLI spelling of
+/// Spec 034 3.1: `report` is the facade's payload, not a second CLI spelling of
 /// it. Compared as documents rather than as strings: the envelope is canonical
 /// (sorted, pretty) while the facade returns compact JSON, so the bytes of the
 /// two encodings differ by construction and the claim that can hold, and that
@@ -1133,7 +1133,7 @@ fn json_report_equals_the_facade_payload() {
 
     // verify-attestation: `--recompute` alone is the mode the facade models, so
     // its report is the facade's payload exactly. `--signature` has no facade
-    // counterpart and contributes an additive `signature` member (spec 037 3.2
+    // counterpart and contributes an additive `signature` member (spec 034 3.2
     // requires the envelope to report every verdict the prose reports).
     let attestation: serde_json::Value = serde_json::from_slice(
         &fs::read(root.join(".derived/attestation/attestation.json")).unwrap(),
@@ -1145,7 +1145,7 @@ fn json_report_equals_the_facade_payload() {
     assert_eq!(envelope(&out)["report"], expected, "verify-attestation");
 }
 
-/// Spec 037 3.3: a failure is an envelope on stdout with the mapped exit code,
+/// Spec 034 3.3: a failure is an envelope on stdout with the mapped exit code,
 /// a stable `kind`, and no `report`; stdout carries nothing else.
 #[test]
 fn json_error_path_is_an_envelope_on_stdout() {
@@ -1210,7 +1210,7 @@ fn json_error_path_is_an_envelope_on_stdout() {
     );
 }
 
-/// Spec 037 3.5: the envelope goes through the closed-reader write, on every
+/// Spec 034 3.5: the envelope goes through the closed-reader write, on every
 /// verb. `spec-spine <verb> --json | head` is a `0`, not a `101`.
 #[test]
 fn json_survives_a_closed_reader_on_every_verb() {
@@ -1255,7 +1255,7 @@ fn json_survives_a_closed_reader_on_every_verb() {
     }
 }
 
-/// Spec 037 3.3: without the flag nothing moves. The prose forms keep their
+/// Spec 034 3.3: without the flag nothing moves. The prose forms keep their
 /// stdout text, so no existing consumer is disturbed by this spec.
 #[test]
 fn prose_output_is_unchanged_without_the_flag() {
@@ -1270,7 +1270,7 @@ fn prose_output_is_unchanged_without_the_flag() {
         String::from_utf8_lossy(&compile.stdout)
     );
     let index = run_in(root, &["index", "check"]);
-    // Spec 057 §3.3 adds one line under the verdict when the ledger has a gap,
+    // Spec 050 §3.3 adds one line under the verdict when the ledger has a gap,
     // so the assertion is on the verdict line rather than on the whole stream.
     // The fixture has one claimed-but-unwitnessed path, which is what that line
     // reports; the verdict itself is untouched, which is what 037 §3.3 is about.
@@ -1308,11 +1308,11 @@ fn prose_output_is_unchanged_without_the_flag() {
     );
 }
 
-/// Spec 037 D-2: `--signature` is the mode the facade does not model, and the
+/// Spec 034 D-2: `--signature` is the mode the facade does not model, and the
 /// additive `signature` member is the only payload shape in this spec with no
 /// facade counterpart to pin it. Exercised end to end so a rename is caught.
 ///
-/// The public key is recovered from the seal's own `keyId`, which spec 023
+/// The public key is recovered from the seal's own `keyId`, which spec 021
 /// defines as the hex public key, so the test needs no key derivation of its
 /// own and stays a pure round-trip through the two commands.
 #[test]
@@ -1395,7 +1395,7 @@ fn json_verify_attestation_reports_the_signature_mode() {
     assert_eq!(v["report"]["signature"]["valid"], false);
 }
 
-/// Spec 037 3.3: a `verify-attestation` with no mode selected is a config
+/// Spec 034 3.3: a `verify-attestation` with no mode selected is a config
 /// error, not an affirmative `ok: true` over an empty report.
 #[test]
 fn json_verify_attestation_with_no_mode_is_an_error_envelope() {
@@ -1410,12 +1410,12 @@ fn json_verify_attestation_with_no_mode_is_an_error_envelope() {
     assert!(v.get("report").is_none());
 }
 
-// ===== spec 038: `registry plan` =====
+// ===== spec 035: `registry plan` =====
 
 /// The scheduling projection, end to end: prose lists the ready set and counts
 /// the rest, `--json` carries every blocker with the state that made it one.
 ///
-/// Emitted **bare**, like every other `registry` projection: spec 037's verdict
+/// Emitted **bare**, like every other `registry` projection: spec 034's verdict
 /// envelope wraps the adjudicating verbs, and 037 4 keeps it off the read verbs,
 /// so `plan` joins them rather than splitting the group into two output shapes.
 #[test]
@@ -1453,7 +1453,7 @@ fn registry_plan_partitions_the_corpus() {
         String::from_utf8_lossy(&prose.stderr)
     );
     let text = String::from_utf8_lossy(&prose.stdout);
-    // Spec 060 §3.1: the prose renders what the structure holds. Titles on both
+    // Spec 053 §3.1: the prose renders what the structure holds. Titles on both
     // sets, each blocked spec's reasons rather than a count, and the
     // not-schedulable remainder so the figures add up to the corpus.
     assert!(text.contains("ready (1):"), "{text}");
@@ -1472,15 +1472,15 @@ fn registry_plan_partitions_the_corpus() {
     let out = run_in(root, &["registry", "plan", "--json"]);
     assert_eq!(code(&out), 0);
     let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
-    // A read document, not a spec 037 envelope: the report's members at the top
-    // level, versioned on the read axis (spec 093), with no `ok` or `report`.
+    // A read document, not a spec 034 envelope: the report's members at the top
+    // level, versioned on the read axis (spec 074), with no `ok` or `report`.
     assert_eq!(
         v["schemaVersion"],
         spec_spine_types::READ_SCHEMA_VERSION,
         "{v}"
     );
     assert!(v.get("report").is_none() && v.get("ok").is_none(), "{v}");
-    // Spec 060 §3.3: ready entries are objects carrying the title, and blocked
+    // Spec 053 §3.3: ready entries are objects carrying the title, and blocked
     // entries gain one additively. The breaking half is deliberate: a parallel
     // titles array to be zipped by position is the shape that generates the
     // join code this spec exists to delete.
@@ -1500,7 +1500,7 @@ fn registry_plan_partitions_the_corpus() {
     );
     assert_eq!(v["notSchedulable"], 1);
 
-    // §3.2, as spec 093 §3.6 amends it: `--next` is the single pick, the object
+    // §3.2, as spec 074 §3.6 amends it: `--next` is the single pick, the object
     // rather than a one-element array, under a named `next` member.
     let next = run_in(root, &["registry", "plan", "--next", "--json"]);
     assert_eq!(code(&next), 0);
@@ -1531,12 +1531,12 @@ fn registry_plan_partitions_the_corpus() {
     assert_eq!(
         text.trim(),
         "(nothing ready), blocked: 0\n\n1 specs: 0 ready, 0 blocked, 1 not schedulable",
-        "the `(nothing ready)` line is unchanged (spec 060 §3.1) and the \
+        "the `(nothing ready)` line is unchanged (spec 053 §3.1) and the \
          remainder follows it: on a finished corpus that figure is the whole \
          answer, and without it `blocked: 0` reads as though the specs vanished"
     );
 }
-// ===== spec 042: per-spec attestation =====
+// ===== spec 039: per-spec attestation =====
 
 /// `attest --spec` writes `by-spec/<id>.json`, `--sign` seals it beside itself,
 /// and `verify-attestation --spec` checks both modes back.
@@ -1630,7 +1630,7 @@ fn attest_spec_writes_signs_and_verifies_one_spec() {
     );
 }
 
-/// Spec 042 3.1: **`attest`'s exit code is not a verdict.** `0` means an
+/// Spec 039 3.1: **`attest`'s exit code is not a verdict.** `0` means an
 /// attestation was written and nothing about what it says, for both scopes.
 ///
 /// This is the one verb in the tool where that is true, so it is tested rather
@@ -1694,7 +1694,7 @@ fn attest_spec_refuses_an_unknown_id() {
 }
 
 /// `attest --spec --json` carries the same `{ attestation, attestationHash }`
-/// payload the facade returns, inside spec 037's envelope.
+/// payload the facade returns, inside spec 034's envelope.
 #[test]
 fn attest_spec_json_rides_in_the_verdict_envelope() {
     let tmp = tempfile::tempdir().unwrap();
@@ -1725,11 +1725,11 @@ fn attest_spec_json_rides_in_the_verdict_envelope() {
     assert_eq!(v["report"], expected, "one payload shape per verb");
 }
 
-/// Spec 042 3.1: there is no per-spec coupling verdict, so `--with-coupling`
+/// Spec 039 3.1: there is no per-spec coupling verdict, so `--with-coupling`
 /// combined with `--spec` is refused rather than accepted and ignored.
 ///
 /// Accepting it would return exit 0 and a payload silently missing the verdict
-/// the caller asked for, which is the skip-as-pass shape spec 023 FR-006 rules
+/// the caller asked for, which is the skip-as-pass shape spec 021 FR-006 rules
 /// out for every mode in this verb.
 #[test]
 fn attest_refuses_with_coupling_scoped_to_one_spec() {
@@ -1783,10 +1783,10 @@ fn verify_attestation_refuses_a_traversing_spec_id() {
 
 /// The seal is derived from the attestation's own filename, not a fixed name.
 ///
-/// Spec 023 resolved a missing `--seal` to `attestation.sig` beside the payload.
+/// Spec 021 resolved a missing `--seal` to `attestation.sig` beside the payload.
 /// A per-spec attestation lives at `by-spec/<id>.json`, so a fixed name would
 /// give every spec in a corpus the same seal path and each signing would
-/// overwrite the last (spec 042 D-5).
+/// overwrite the last (spec 039 D-5).
 #[test]
 fn the_seal_path_follows_the_attestation_it_signs() {
     let tmp = tempfile::tempdir().unwrap();
@@ -1826,7 +1826,7 @@ fn the_seal_path_follows_the_attestation_it_signs() {
     }
 }
 
-// --- `verify` (spec 049) --------------------------------------------------
+// --- `verify` (spec 043) --------------------------------------------------
 
 /// Write a spec whose `## Verification` section holds `section` verbatim.
 fn write_verify_spec(root: &Path, dir: &str, section: &str) {
@@ -1866,7 +1866,7 @@ fn verify_runs_commands_and_reports_outcomes() {
         String::from_utf8_lossy(&out.stdout)
     );
 
-    // A failure is exit 1, NOT the command's own 7 (spec 049 3.3): the
+    // A failure is exit 1, NOT the command's own 7 (spec 043 3.3): the
     // documented exit contract has no entry for 7.
     let out = run(&["verify", "002-fail"]);
     assert_eq!(code(&out), 1, "a failing command is a drift-tier 1");
@@ -1881,8 +1881,8 @@ fn verify_runs_commands_and_reports_outcomes() {
 #[test]
 fn verify_json_is_a_verdict_envelope_that_agrees_with_the_exit_code() {
     let tmp = tempfile::tempdir().unwrap();
-    // The command writes to BOTH of its streams (spec 118 §3.5). With `true`
-    // here, as this fixture read until spec 118, the `expect` below could not
+    // The command writes to BOTH of its streams (spec 090 §3.5). With `true`
+    // here, as this fixture read until spec 090, the `expect` below could not
     // fail: nothing was ever in front of the envelope for it to trip on. The
     // markers are assembled by the child so they appear in its output and not in
     // the command text the envelope echoes.
@@ -1914,7 +1914,7 @@ fn verify_json_is_a_verdict_envelope_that_agrees_with_the_exit_code() {
     assert_eq!(c, 0);
     assert_eq!(v["verb"], "verify");
     // The constant, not a literal: an additive verb elsewhere is not a change
-    // to this one's envelope (spec 056 bumped it to 0.3.0 for `compile.spec`).
+    // to this one's envelope (spec 049 bumped it to 0.3.0 for `compile.spec`).
     assert_eq!(v["schemaVersion"], spec_spine_types::VERDICT_SCHEMA_VERSION);
     assert_eq!(v["ok"], true);
     assert_eq!(v["exitCode"], 0);
@@ -1996,7 +1996,7 @@ fn verify_plan_reads_without_running() {
 #[test]
 fn verify_refuses_to_re_enter_itself() {
     let tmp = tempfile::tempdir().unwrap();
-    // The spec's own block runs `verify` on itself: without the spec 049 3.7
+    // The spec's own block runs `verify` on itself: without the spec 043 3.7
     // guard this forks without bound.
     write_verify_spec(
         tmp.path(),
@@ -2046,7 +2046,7 @@ fn verify_refuses_to_re_enter_itself() {
     assert_eq!(code(&out), 0, "only a cycle is refused, not any depth");
 }
 
-// --- `index check` diagnostics + `index diagnostics` (spec 050) -----------
+// --- `index check` diagnostics + `index diagnostics` (spec 044) -----------
 
 /// A corpus whose only spec is in flight and claims one file that exists and
 /// one that does not, so the committed index records exactly one `W-001`.
@@ -2138,7 +2138,7 @@ fn a_clean_corpus_keeps_the_bare_verdict_line() {
     assert_eq!(
         String::from_utf8_lossy(&out.stdout).trim(),
         "index is fresh",
-        "no diagnostics -> the line reads exactly as it did before spec 050"
+        "no diagnostics -> the line reads exactly as it did before spec 044"
     );
     // And the strict flag passes, because there is nothing unresolved.
     assert_eq!(code(&run(&["index", "check", "--fail-on-unresolved"])), 0);
@@ -2170,7 +2170,7 @@ fn staleness_outranks_unresolution() {
         .replace("\"T\"", "\"T2\"");
     fs::write(&spec, body).unwrap();
 
-    // Spec 050 3.3: 2, not 1. A stale ledger's warnings describe a tree that no
+    // Spec 044 3.3: 2, not 1. A stale ledger's warnings describe a tree that no
     // longer exists, so refusing for them would name the wrong problem.
     assert_eq!(
         code(&run(&["index", "check", "--fail-on-unresolved"])),
@@ -2204,10 +2204,10 @@ fn index_check_json_carries_counts_without_disturbing_the_freshness_shape() {
     assert_eq!(v["report"]["diagnostics"]["errors"], 0);
     assert_eq!(v["report"]["diagnostics"]["byCode"]["W-001"], 1);
 
-    // Spec 050 3.6: a payload addition does not move the envelope version.
+    // Spec 044 3.6: a payload addition does not move the envelope version.
     assert_eq!(v["schemaVersion"], spec_spine_types::VERDICT_SCHEMA_VERSION);
 
-    // Spec 050 3.1: `compile --check` shares `freshness_report` and must not
+    // Spec 044 3.1: `compile --check` shares `freshness_report` and must not
     // have acquired a permanently-zero diagnostics member.
     let out = run(&["compile", "--check", "--json"]);
     let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
@@ -2236,7 +2236,7 @@ fn index_diagnostics_lists_them_and_never_refuses() {
     let out = run(&["index", "diagnostics", "--json"]);
     assert_eq!(code(&out), 0);
     let doc: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();
-    // Spec 093 §3.6: the listing sits under `items` in a versioned object.
+    // Spec 074 §3.6: the listing sits under `items` in a versioned object.
     let v = &doc["items"];
     assert_eq!(v.as_array().unwrap().len(), 1);
     assert_eq!(v[0]["code"], "W-001");
@@ -2249,7 +2249,7 @@ fn index_diagnostics_lists_them_and_never_refuses() {
     assert!(String::from_utf8_lossy(&out.stdout).contains("W-001"));
 }
 
-// ── spec 063: a stale binary is not a stale ledger ────────────────────────
+// ── spec 093: a stale binary is not a stale ledger ────────────────────────
 
 /// §3.1: a command line clap cannot parse is exit 3, never 2. Clap's default
 /// is 2, which this tool spends on staleness, so an unknown flag used to be
@@ -2322,7 +2322,7 @@ fn exit_two_still_means_a_stale_ledger() {
     );
 }
 
-// ── spec 075: `spec-spine check`, both freshness reads in one verb ──────────
+// ── spec 062: `spec-spine check`, both freshness reads in one verb ──────────
 
 /// A repository with one approved spec whose committed shards are current.
 fn fresh_repo() -> tempfile::TempDir {
@@ -2350,7 +2350,7 @@ fn check(root: &Path, args: &[&str]) -> std::process::Output {
         .unwrap()
 }
 
-/// Spec 075 3.2: the verb answers for both committed trees in one call, which
+/// Spec 062 3.2: the verb answers for both committed trees in one call, which
 /// is the whole point. Before it, the protocol had to know two spellings to ask
 /// one question: `compile --check` is a flag where `index check` is a
 /// subcommand.
@@ -2364,9 +2364,9 @@ fn check_reports_both_trees_and_exits_zero_when_both_are_fresh() {
     assert!(stdout.contains("codebase-index: fresh"), "{stdout}");
 }
 
-/// Spec 075 3.2: it MUST never write. A verb the protocol calls to read the
+/// Spec 062 3.2: it MUST never write. A verb the protocol calls to read the
 /// committed state cannot repair that state as a side effect of reading it,
-/// which is how the spec 017/021 drift reached the default branch looking like
+/// which is how the spec 016/021 drift reached the default branch looking like
 /// a local edit rather than a defect already on the branch.
 #[test]
 fn check_never_writes_even_when_the_tree_is_stale() {
@@ -2406,7 +2406,7 @@ fn check_never_writes_even_when_the_tree_is_stale() {
     );
 }
 
-/// Spec 075 3.4: each tree's report reaches stderr attributed to its tree. Spec
+/// Spec 062 3.4: each tree's report reaches stderr attributed to its tree. Spec
 /// 031 3.3 makes the registry stale report's structure contractual precisely
 /// because the session protocol reads the drifted shard names back, and exit 2
 /// alone cannot say which shard moved.
@@ -2424,7 +2424,7 @@ fn check_attributes_staleness_to_the_tree_it_belongs_to() {
     assert!(stderr.contains("codebase-index: STALE"), "{stderr}");
 }
 
-/// Spec 075 3.3: `1` outranks `2`, because staleness is not meaningful against
+/// Spec 062 3.3: `1` outranks `2`, because staleness is not meaningful against
 /// a corpus that does not validate. Observed here end to end rather than only
 /// in the fold's unit test, which cannot see that a real invalid corpus takes
 /// the intended branch.
@@ -2445,7 +2445,7 @@ fn check_reports_validation_failure_ahead_of_staleness() {
     assert!(stderr.contains("spec-registry: INVALID"), "{stderr}");
 }
 
-/// Spec 075 3.3: `--json` changes what is written, never what is decided, and
+/// Spec 062 3.3: `--json` changes what is written, never what is decided, and
 /// the envelope carries both trees under its own verb.
 #[test]
 fn check_json_carries_both_halves_and_decides_nothing_differently() {
@@ -2479,7 +2479,7 @@ fn check_json_carries_both_halves_and_decides_nothing_differently() {
     );
 }
 
-/// Spec 075 3.2: `--fail-on-unresolved` is forwarded to the index half.
+/// Spec 062 3.2: `--fail-on-unresolved` is forwarded to the index half.
 /// Without it the composite gate could not adopt the verb, and the protocol
 /// would still be spelling the primitive.
 #[test]
@@ -2511,7 +2511,7 @@ fn check_forwards_fail_on_unresolved_to_the_index_half() {
     );
 }
 
-/// Spec 077 §3.2 and §3.3: the flag turns a warning into exit 1 on every form
+/// Spec 064 §3.2 and §3.3: the flag turns a warning into exit 1 on every form
 /// of `compile`, and reaches the composed verb, which is the only form CI runs.
 ///
 /// The corpus carries one dangling `depends_on`, so it is valid (spec 001 §3.2)
@@ -2564,7 +2564,7 @@ fn fail_on_warn_refuses_a_warning_on_compile_and_check() {
     // Independent flags: --fail-on-unresolved alone must not refuse a warning.
     assert_eq!(code(&run(&["check", "--fail-on-unresolved"])), 0);
 
-    // §3.3 + spec 037: --json changes what is written, never what is decided.
+    // §3.3 + spec 034: --json changes what is written, never what is decided.
     let plain = run(&["check", "--fail-on-warn"]);
     let jsonic = run(&["check", "--fail-on-warn", "--json"]);
     assert_eq!(code(&plain), code(&jsonic));
@@ -2591,7 +2591,7 @@ fn fail_on_warn_refuses_a_warning_on_compile_and_check() {
     assert_eq!(code(&run_clean(&["check", "--fail-on-warn"])), 0);
 }
 
-/// Spec 083: `attest --spec` used to exit 3 for any spec whose unit resolved to
+/// Spec 066: `attest --spec` used to exit 3 for any spec whose unit resolved to
 /// a directory, which was fourteen of this corpus's eighty-three specs. The
 /// end-to-end guard is the exit code, since that is what an operator and a CI
 /// job actually see.
@@ -2630,7 +2630,7 @@ fn attest_spec_walks_a_claimed_subtree_instead_of_exiting_three() {
     );
 }
 
-// ===== spec 088: a change classified under the base's rules =====
+// ===== spec 071: a change classified under the base's rules =====
 
 /// `git` in `root`, with an identity and signing off, so the fixture commits
 /// whatever the running user's global configuration says.
@@ -2670,7 +2670,7 @@ fn delta_repo(root: &Path) {
     );
     w("src/a.rs", b"pub fn a() {}\n");
     // Claimed by nobody, so a bypass prefix decides it: `src/` is claimed, and
-    // a claim outranks a prefix (spec 009), so only this path can show whose
+    // a claim outranks a prefix (spec 008), so only this path can show whose
     // configuration classified.
     w("tools/x.sh", b"echo x\n");
     w(".gitignore", b".derived/**/build-meta.json\n");
@@ -2844,7 +2844,7 @@ fn delta_failures_keep_the_exit_code_contract() {
     assert_eq!(code(&out), 2, "{}", String::from_utf8_lossy(&out.stderr));
 }
 
-// ── spec 095: a stray shard is orphaned at the verbs ─────────────────────
+// ── spec 076: a stray shard is orphaned at the verbs ─────────────────────
 
 /// `verdict_fixture`'s index shard directory, `by-spec` or `by-package`.
 fn index_shard_dir(root: &Path, which: &str) -> std::path::PathBuf {
@@ -2893,7 +2893,7 @@ fn an_unparseable_stray_is_orphaned_at_the_verbs() {
         stderr.contains("orphaned by-spec/999-stray.json (unreadable"),
         "the prose names the skipped file on its drift line: {stderr}"
     );
-    // The facade half answers the same payload (§3.4, spec 057 §3.3's pairing).
+    // The facade half answers the same payload (§3.4, spec 050 §3.3's pairing).
     let facade: serde_json::Value = serde_json::from_str(
         &spec_spine_core::check_freshness_json("{}", root.to_str().unwrap()).unwrap(),
     )
@@ -3024,7 +3024,7 @@ fn the_consumer_verbs_still_refuse_an_unparseable_stray() {
     );
 }
 
-// ── spec 093: a governed read names its version ──────────────────────────
+// ── spec 074: a governed read names its version ──────────────────────────
 
 /// `document` parsed as an object whose top-level keys are sorted, returned for
 /// further assertions. Key order is read from the bytes, since a parsed map
@@ -3190,7 +3190,7 @@ fn plan_next_on_an_empty_ready_set_is_a_present_null() {
     );
 }
 
-// ── spec 087: the authority snapshot ─────────────────────────────────────
+// ── spec 070: the authority snapshot ─────────────────────────────────────
 
 /// §3.5: `attest --snapshot` writes `snapshot.json`, reports it in the same
 /// `{ attestation, attestationHash }` envelope as the other scopes (equal to the
@@ -3342,7 +3342,7 @@ fn the_snapshot_join_hash_is_what_attest_spec_emits() {
     );
 }
 
-// ── spec 097: governed scope, enumerated by the CLI ──────────────────────
+// ── spec 078: governed scope, enumerated by the CLI ──────────────────────
 
 /// A corpus with a declared scope over `scripts/*`, compiled and indexed, with
 /// `scripts/run.sh` present and unclaimed.
@@ -3489,8 +3489,14 @@ fn the_git_inventory_keeps_tracked_and_new_files_and_drops_ignored_and_missing()
 
 /// §3.1, §3.7: `config show` prints both keys, and a scaffolded
 /// `spec-spine.toml` carries them as a commented default.
+///
+/// The scaffold half used to run `spec-spine init` and read the file off disk.
+/// Spec 092 §3.1 removed that verb; the producer it called is still exported,
+/// so the half is asserted through the library instead of dropped. What is
+/// being tested here is the CONTENT of the scaffolded configuration, which is
+/// the same fact either way.
 #[test]
-fn config_show_and_init_carry_the_scope_keys() {
+fn config_show_and_the_scaffold_carry_the_scope_keys() {
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path();
     let show = run_in(root, &["config", "show"]);
@@ -3506,9 +3512,14 @@ fn config_show_and_init_carry_the_scope_keys() {
         "{json}"
     );
 
-    let init = run_in(root, &["init"]);
-    assert_eq!(code(&init), 0, "{}", String::from_utf8_lossy(&init.stderr));
-    let toml = fs::read_to_string(root.join("spec-spine.toml")).unwrap();
+    let scaffold = spec_spine_core::scaffold_init(&spec_spine_types::Config::default()).unwrap();
+    let toml = scaffold
+        .files
+        .iter()
+        .find(|f| f.rel_path == "spec-spine.toml")
+        .expect("the scaffold produces the config")
+        .contents
+        .clone();
     assert!(toml.contains("[coverage]"), "{toml}");
     assert!(toml.contains("# governed_scope = ["), "{toml}");
     assert!(toml.contains("dir/**/*"), "the glob trap is named: {toml}");
@@ -3517,14 +3528,14 @@ fn config_show_and_init_carry_the_scope_keys() {
     assert!(cfg.coverage.governed_scope.is_empty());
 }
 
-// --- spec 098: a blocking claim is not a stale shard, at the verbs -----------
+// --- spec 079: a blocking claim is not a stale shard, at the verbs -----------
 
 /// A corpus whose committed shards are byte-exact and whose spec claims a unit
 /// that does not exist.
 ///
-/// `status` and `implementation` decide the tier: spec 041's table makes
+/// `status` and `implementation` decide the tier: spec 038's table makes
 /// `approved` + `complete` blocking, and anything in flight a `W-001` warning
-/// (spec 098 D-5).
+/// (spec 079 D-5).
 fn blocking_corpus(root: &Path, status: &str, implementation: &str) {
     let dir = root.join("specs/001-missing");
     fs::create_dir_all(&dir).unwrap();
@@ -3547,7 +3558,7 @@ fn stderr(out: &std::process::Output) -> String {
 
 #[test]
 fn check_reports_an_unresolved_claim_as_itself() {
-    // Spec 098 AC-1 / FR-003 / FR-004 / FR-005. The refusal and the exit code
+    // Spec 079 AC-1 / FR-003 / FR-004 / FR-005. The refusal and the exit code
     // are unchanged (§3.1); what changes is that the verb no longer calls a
     // byte-exact tree stale and no longer prescribes a command that provably
     // does not work.
@@ -3556,15 +3567,15 @@ fn check_reports_an_unresolved_claim_as_itself() {
     blocking_corpus(root, "approved", "complete");
 
     let out = run_in(root, &["check"]);
-    // Spec 101 §3.1 moved this from 2 to 1: an unresolved claim is a validation
-    // failure, not staleness. Spec 098 held the code still deliberately and
+    // Spec 080 §3.1 moved this from 2 to 1: an unresolved claim is a validation
+    // failure, not staleness. Spec 079 held the code still deliberately and
     // filed the question forward as design note 05 R-4.
     assert_eq!(code(&out), 1, "{}", stderr(&out));
     let err = stderr(&out);
     let index_line = err
         .lines()
         .find(|l| l.starts_with("codebase-index:"))
-        .expect("the index half is attributed to its tree (spec 075 §3.4)");
+        .expect("the index half is attributed to its tree (spec 062 §3.4)");
     assert!(!index_line.contains("STALE"), "{index_line}");
     assert!(!index_line.contains("spec-spine index"), "{index_line}");
     assert!(err.contains("I-004"), "{err}");
@@ -3586,7 +3597,7 @@ fn check_reports_an_unresolved_claim_as_itself() {
     );
 
     // The same at the primitive verb, in its own words and with the same code
-    // (spec 101 §3.2: a caller must not have to know which verb it invoked to
+    // (spec 080 §3.2: a caller must not have to know which verb it invoked to
     // know what a code means).
     let idx = run_in(root, &["index", "check"]);
     assert_eq!(code(&idx), 1);
@@ -3597,7 +3608,7 @@ fn check_reports_an_unresolved_claim_as_itself() {
 
 #[test]
 fn regenerating_leaves_the_message_accurate() {
-    // Spec 098 AC-2, the regression. `index` exits 0 and repairs nothing, and
+    // Spec 079 AC-2, the regression. `index` exits 0 and repairs nothing, and
     // the verb still refuses without claiming the tree is stale or that
     // anything was fixed. This is the case the pre-098 output got wrong, so it
     // is asserted directly rather than inferred from AC-1.
@@ -3611,7 +3622,7 @@ fn regenerating_leaves_the_message_accurate() {
         "the named remedy exits 0"
     );
     let out = run_in(root, &["check"]);
-    assert_eq!(code(&out), 1, "and the refusal stands (spec 101 §3.1)");
+    assert_eq!(code(&out), 1, "and the refusal stands (spec 080 §3.1)");
     let err = stderr(&out);
     assert!(err.contains("I-004"), "{err}");
     assert!(
@@ -3623,7 +3634,7 @@ fn regenerating_leaves_the_message_accurate() {
 
 #[test]
 fn check_json_is_unchanged_by_the_message_fix() {
-    // Spec 098 FR-009 / AC-8 / D-1: the `--json` envelope keeps its version,
+    // Spec 079 FR-009 / AC-8 / D-1: the `--json` envelope keeps its version,
     // members and nesting. A JSON consumer could already separate the two
     // refusals through `report.index.diagnostics.byCode`, so the surface that
     // needed correcting was the text and this one is held still.
@@ -3632,8 +3643,8 @@ fn check_json_is_unchanged_by_the_message_fix() {
     blocking_corpus(root, "approved", "complete");
 
     let out = run_in(root, &["check", "--json"]);
-    // Spec 101 §3.3: `exitCode` carries the new code, which is the point. Every
-    // other member, the nesting and the version are what spec 098 left them.
+    // Spec 080 §3.3: `exitCode` carries the new code, which is the point. Every
+    // other member, the nesting and the version are what spec 079 left them.
     assert_eq!(code(&out), 1);
     let json = envelope(&out);
     assert_eq!(json["schemaVersion"], "0.4.0", "{json}");
@@ -3671,7 +3682,7 @@ fn check_json_is_unchanged_by_the_message_fix() {
 
 #[test]
 fn a_stale_shard_still_reads_as_staleness() {
-    // Spec 098 FR-008 / AC-3: unchanged, wording included, for a corpus with no
+    // Spec 079 FR-008 / AC-3: unchanged, wording included, for a corpus with no
     // blocking diagnostic. A caller that reads staleness today reads it after.
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path();
@@ -3701,7 +3712,7 @@ fn a_stale_shard_still_reads_as_staleness() {
 
 #[test]
 fn a_mixed_tree_names_both_halves_at_the_verbs() {
-    // Spec 098 AC-4 / FR-006: neither half elided, and regeneration attributed
+    // Spec 079 AC-4 / FR-006: neither half elided, and regeneration attributed
     // to the stale half alone.
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path();
@@ -3710,8 +3721,8 @@ fn a_mixed_tree_names_both_halves_at_the_verbs() {
     write_spec(root, "002-b", "002-b", "draft"); // 002-b's shard is now behind
 
     let out = run_in(root, &["check"]);
-    // Spec 101 §3.1: a tree holding both refusals exits 1, under spec 075
-    // §3.3's order. Both halves are still named below, which is spec 098's
+    // Spec 080 §3.1: a tree holding both refusals exits 1, under spec 062
+    // §3.3's order. Both halves are still named below, which is spec 079's
     // requirement and is what this test is really about.
     assert_eq!(code(&out), 1);
     let err = stderr(&out);
@@ -3740,7 +3751,7 @@ fn a_mixed_tree_names_both_halves_at_the_verbs() {
 
 #[test]
 fn a_spec_that_claims_no_completion_is_not_accused_of_one() {
-    // Spec 098 AC-6 / D-5. `approved` + `deferred` is not in flight (spec 041's
+    // Spec 079 AC-6 / D-5. `approved` + `deferred` is not in flight (spec 038's
     // table), so it blocks with the same code and declares no completion; the
     // in-flight pairing blocks nothing at all, which is why it cannot be the
     // negative.
@@ -3760,16 +3771,16 @@ fn a_spec_that_claims_no_completion_is_not_accused_of_one() {
 }
 
 // ---------------------------------------------------------------------------
-// Spec 101: an unresolved claim exits as a validation failure.
+// Spec 080: an unresolved claim exits as a validation failure.
 //
-// The rule these pin is spec 086 §3.1's closing sentence as spec 101 §3.1
+// The rule these pin is spec 069 §3.1's closing sentence as spec 080 §3.1
 // amends it: drift alone exits 2, a blocking diagnostic exits 1, and a tree
-// holding both exits 1 under spec 075 §3.3's order. Every message is spec
+// holding both exits 1 under spec 062 §3.3's order. Every message is spec
 // 098's and is asserted unchanged, because the value of this change is that it
 // moves one code and nothing else.
 // ---------------------------------------------------------------------------
 
-/// Spec 101 §3.1, §3.4: `check` spends the validation code on a blocking claim.
+/// Spec 080 §3.1, §3.4: `check` spends the validation code on a blocking claim.
 #[test]
 fn spec101_check_exits_1_on_an_unresolved_claim() {
     let tmp = tempfile::tempdir().unwrap();
@@ -3779,7 +3790,7 @@ fn spec101_check_exits_1_on_an_unresolved_claim() {
     let out = run_in(root, &["check"]);
     assert_eq!(code(&out), 1, "{}", stderr(&out));
     let err = stderr(&out);
-    // Spec 101 §3.3: the report is spec 098's, to the word.
+    // Spec 080 §3.3: the report is spec 079's, to the word.
     assert!(err.contains("UNRESOLVED CLAIM"), "{err}");
     let index_line = err
         .lines()
@@ -3789,7 +3800,7 @@ fn spec101_check_exits_1_on_an_unresolved_claim() {
     assert!(!index_line.contains("spec-spine index"), "{index_line}");
 }
 
-/// Spec 101 §3.2: the primitive spends the same code on the same fact.
+/// Spec 080 §3.2: the primitive spends the same code on the same fact.
 #[test]
 fn spec101_index_check_exits_1_on_an_unresolved_claim() {
     let tmp = tempfile::tempdir().unwrap();
@@ -3801,7 +3812,7 @@ fn spec101_index_check_exits_1_on_an_unresolved_claim() {
     assert!(stderr(&out).contains("I-004"), "{}", stderr(&out));
 }
 
-/// Spec 101 §3.1: validation dominates staleness, and both halves survive.
+/// Spec 080 §3.1: validation dominates staleness, and both halves survive.
 #[test]
 fn spec101_a_blocking_claim_and_a_stale_shard_exit_1() {
     let tmp = tempfile::tempdir().unwrap();
@@ -3813,7 +3824,7 @@ fn spec101_a_blocking_claim_and_a_stale_shard_exit_1() {
     let out = run_in(root, &["check"]);
     assert_eq!(code(&out), 1, "{}", stderr(&out));
     let err = stderr(&out);
-    // Spec 098 §3.3 / FR-006: neither half elided, regeneration attributed to
+    // Spec 079 §3.3 / FR-006: neither half elided, regeneration attributed to
     // the stale one alone. Moving the code must not cost the report.
     assert!(err.contains("STALE"), "{err}");
     assert!(err.contains("UNRESOLVED CLAIM"), "{err}");
@@ -3822,7 +3833,7 @@ fn spec101_a_blocking_claim_and_a_stale_shard_exit_1() {
         "{err}"
     );
 
-    // Spec 101 §3.2 at the primitive, on the SAME corpus: a caller must not
+    // Spec 080 §3.2 at the primitive, on the SAME corpus: a caller must not
     // have to know which verb it invoked to know what a code means, and the
     // mixed case is the one where the two folds could most easily disagree.
     let idx = run_in(root, &["index", "check"]);
@@ -3830,7 +3841,7 @@ fn spec101_a_blocking_claim_and_a_stale_shard_exit_1() {
     assert!(stderr(&idx).contains("I-004"), "{}", stderr(&idx));
 }
 
-/// Spec 101 §3.3: the regression. Drift alone is still staleness, still 2.
+/// Spec 080 §3.3: the regression. Drift alone is still staleness, still 2.
 #[test]
 fn spec101_a_stale_shard_alone_still_exits_2() {
     let tmp = tempfile::tempdir().unwrap();
@@ -3849,7 +3860,7 @@ fn spec101_a_stale_shard_alone_still_exits_2() {
     assert_eq!(code(&run_in(root, &["index", "check"])), 2);
 }
 
-/// Spec 101 §3.3: `--json` carries the new code and nothing else moves.
+/// Spec 080 §3.3: `--json` carries the new code and nothing else moves.
 #[test]
 fn spec101_json_carries_the_new_code_and_keeps_its_shape() {
     let tmp = tempfile::tempdir().unwrap();
@@ -3873,7 +3884,7 @@ fn spec101_json_carries_the_new_code_and_keeps_its_shape() {
         ["exitCode", "ok", "report", "schemaVersion", "verb"],
         "{json}"
     );
-    // Spec 101 §4: `actual` stays spec 098 FR-009's deliberate hold, and
+    // Spec 080 §4: `actual` stays spec 079 FR-009's deliberate hold, and
     // `byCode` remains the discriminator a JSON consumer already had.
     assert_eq!(
         json["report"]["index"]["diagnostics"]["byCode"]["I-004"], 1,
@@ -3882,13 +3893,13 @@ fn spec101_json_carries_the_new_code_and_keeps_its_shape() {
     assert_eq!(json["report"]["index"]["fresh"], false, "{json}");
 }
 
-/// Spec 101 §3.3: `--fail-on-unresolved` is a different axis and is untouched.
+/// Spec 080 §3.3: `--fail-on-unresolved` is a different axis and is untouched.
 #[test]
 fn spec101_the_unresolved_flag_axis_is_unchanged() {
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path();
     // A draft spec owning a unit that does not resolve is W-001, warning tier
-    // (specs 025, 044): work in flight, not a blocking claim.
+    // (specs 023, 044): work in flight, not a blocking claim.
     blocking_corpus(root, "draft", "in-progress");
 
     assert_eq!(
@@ -3900,7 +3911,7 @@ fn spec101_the_unresolved_flag_axis_is_unchanged() {
     assert_eq!(code(&run_in(root, &["check", "--fail-on-unresolved"])), 1);
 }
 
-// ===== spec 102: the coupling gate can see the change being committed =====
+// ===== spec 081: the coupling gate can see the change being committed =====
 
 /// The §1.1 scratch repository: `001-a` owns `src/`, committed on `main`, with
 /// a second spec `002-b` owning nothing so a later edit to `src/a.rs` has no
@@ -3940,7 +3951,7 @@ fn couple102(root: &Path, extra: &[&str]) -> std::process::Output {
     run_in(root, &args)
 }
 
-/// Spec 102 §1.1, §3.5: a staged edit is invisible to the committed range, and
+/// Spec 081 §1.1, §3.5: a staged edit is invisible to the committed range, and
 /// the unflagged verb reports a pass over an empty set.
 #[test]
 fn spec102_a_staged_edit_is_invisible_without_the_flag() {
@@ -3964,7 +3975,7 @@ fn spec102_a_staged_edit_is_invisible_without_the_flag() {
     assert!(stderr(&out).contains("src/a.rs"), "{}", stderr(&out));
 }
 
-/// Spec 102 §3.1: unstaged changes count too. `git diff HEAD` covers both.
+/// Spec 081 §3.1: unstaged changes count too. `git diff HEAD` covers both.
 #[test]
 fn spec102_an_unstaged_edit_is_judged_under_the_flag() {
     let tmp = tempfile::tempdir().unwrap();
@@ -3976,7 +3987,7 @@ fn spec102_an_unstaged_edit_is_judged_under_the_flag() {
     assert_eq!(code(&couple102(root, &["--include-uncommitted"])), 1);
 }
 
-/// Spec 102 §3.1, D-2: a path in both views is judged once, not twice.
+/// Spec 081 §3.1, D-2: a path in both views is judged once, not twice.
 #[test]
 fn spec102_a_path_in_both_views_is_checked_once() {
     let tmp = tempfile::tempdir().unwrap();
@@ -3998,7 +4009,7 @@ fn spec102_a_path_in_both_views_is_checked_once() {
     );
 }
 
-/// Spec 102 §3.3: the flag is meaningful only against `HEAD`.
+/// Spec 081 §3.3: the flag is meaningful only against `HEAD`.
 #[test]
 fn spec102_a_non_head_head_is_refused() {
     let tmp = tempfile::tempdir().unwrap();
@@ -4029,7 +4040,7 @@ fn spec102_a_non_head_head_is_refused() {
     );
 }
 
-/// Spec 102 §3.3: `--paths-from` carries no history to union with.
+/// Spec 081 §3.3: `--paths-from` carries no history to union with.
 #[test]
 fn spec102_paths_from_and_the_flag_are_refused_together() {
     let tmp = tempfile::tempdir().unwrap();
@@ -4054,7 +4065,7 @@ fn spec102_paths_from_and_the_flag_are_refused_together() {
     assert_eq!(code(&out), 3, "{}", stderr(&out));
 }
 
-/// Spec 102 §3.4: the default does not move. A dirty tree cannot change the
+/// Spec 081 §3.4: the default does not move. A dirty tree cannot change the
 /// verdict of an unflagged run, which is what keeps CI reproducible.
 #[test]
 fn spec102_the_unflagged_verdict_ignores_the_working_tree() {
@@ -4102,7 +4113,7 @@ fn spec102_the_unflagged_verdict_ignores_the_working_tree() {
     );
 }
 
-// ===== spec 103: an amended acceptance is the one that runs =====
+// ===== spec 082: an amended acceptance is the one that runs =====
 
 /// A spec document for the 103 fixtures.
 fn spec103_doc(id: &str, status: &str, extra: &str, command: &str) -> String {
@@ -4119,7 +4130,7 @@ fn spec103_write(root: &Path, id: &str, body: &str) {
     fs::write(dir.join("spec.md"), body).unwrap();
 }
 
-/// Spec 103 §3.1, `V-018`: an entry that is not also in `amends`.
+/// Spec 082 §3.1, `V-018`: an entry that is not also in `amends`.
 #[test]
 fn spec103_amends_verification_outside_amends_is_v018() {
     let tmp = tempfile::tempdir().unwrap();
@@ -4144,7 +4155,7 @@ fn spec103_amends_verification_outside_amends_is_v018() {
     assert!(err.contains("not in amends"), "{err}");
 }
 
-/// Spec 103 §3.3, `V-019`: two live specs claiming one acceptance.
+/// Spec 082 §3.3, `V-019`: two live specs claiming one acceptance.
 #[test]
 fn spec103_two_specs_claiming_one_acceptance_is_v019() {
     let tmp = tempfile::tempdir().unwrap();
@@ -4170,7 +4181,7 @@ fn spec103_two_specs_claiming_one_acceptance_is_v019() {
     assert_eq!(code(&out), 0, "{}", stderr(&out));
 }
 
-/// Spec 103 §3.3, `V-020`: a cycle resolves to no block.
+/// Spec 082 §3.3, `V-020`: a cycle resolves to no block.
 #[test]
 fn spec103_a_cycle_in_the_chain_is_v020() {
     let tmp = tempfile::tempdir().unwrap();
@@ -4209,10 +4220,10 @@ fn spec103_a_cycle_in_the_chain_is_v020() {
         "one cycle, one diagnostic: {err}"
     );
     // The refusal is 3.3's, and the message says so.
-    assert!(err.contains("spec 103 3.3"), "{err}");
+    assert!(err.contains("spec 082 3.3"), "{err}");
 }
 
-/// Spec 103 §3.4: `verify` says whose block it ran, and runs it.
+/// Spec 082 §3.4: `verify` says whose block it ran, and runs it.
 #[test]
 fn spec103_verify_states_the_substitution() {
     let tmp = tempfile::tempdir().unwrap();
@@ -4253,7 +4264,7 @@ fn spec103_verify_states_the_substitution() {
     );
 }
 
-/// Spec 103 §3.4: the fact is answerable from the ledger without running
+/// Spec 082 §3.4: the fact is answerable from the ledger without running
 /// anything.
 #[test]
 fn spec103_registry_show_carries_amends_verification() {
@@ -4281,7 +4292,7 @@ fn spec103_registry_show_carries_amends_verification() {
         serde_json::json!(["093-a"]),
         "{json}"
     );
-    // `registry show`'s `schemaVersion` is the READ axis (spec 093), not the
+    // `registry show`'s `schemaVersion` is the READ axis (spec 074), not the
     // registry's; the registry MINOR is asserted on the emitted shard instead.
     let shard: serde_json::Value = serde_json::from_str(
         &fs::read_to_string(root.join(".derived/spec-registry/by-spec/103-b.json")).unwrap(),
@@ -4292,5 +4303,114 @@ fn spec103_registry_show_carries_amends_verification() {
         shard["record"]["amendsVerification"],
         serde_json::json!(["093-a"]),
         "{shard}"
+    );
+}
+
+// ── spec 092 §3.7: the relocated derived tree, end to end ─────────────────
+
+/// A corpus whose derived tree is at the managed layout's path compiles,
+/// indexes, and is judged there: fresh, stale, missing and orphaned all get the
+/// answer they get at the default path.
+///
+/// Built from nothing on every run, so an empty or default corpus cannot
+/// produce the green: the first assertion is that the shards landed under
+/// `.statecraft/derived/` and that `.derived/` was never created.
+#[test]
+fn statecraft_derived_layout_compiles_indexes_and_is_judged() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    fs::write(
+        root.join("spec-spine.toml"),
+        "[layout]\nderived_dir = \".statecraft/derived\"\nstate_dir = \".statecraft/state\"\n",
+    )
+    .unwrap();
+    write_spec(root, "001-a", "001-a", "approved");
+    write_spec(root, "002-b", "002-b", "approved");
+    let run = |args: &[&str]| bin().arg("--repo").arg(root).args(args).output().unwrap();
+
+    assert_eq!(code(&run(&["compile"])), 0);
+    assert_eq!(code(&run(&["index"])), 0);
+
+    let shard = root.join(".statecraft/derived/spec-registry/by-spec/001-a.json");
+    assert!(
+        shard.is_file(),
+        "the registry shard landed at the configured path"
+    );
+    assert!(
+        root.join(".statecraft/derived/codebase-index/by-spec/001-a.json")
+            .is_file(),
+        "and so did the index shard"
+    );
+    assert!(
+        !root.join(".derived").exists(),
+        "nothing was written at the default path"
+    );
+
+    // Fresh.
+    assert_eq!(code(&run(&["check"])), 0, "both trees are current");
+
+    // Stale: edit a spec without recomputing.
+    let spec_md = root.join("specs/002-b/spec.md");
+    let body = fs::read_to_string(&spec_md).unwrap();
+    fs::write(
+        &spec_md,
+        body.replace("summary: \"s\"", "summary: \"changed\""),
+    )
+    .unwrap();
+    assert_eq!(code(&run(&["check"])), 2, "a stale relocated tree is stale");
+    assert_eq!(code(&run(&["compile"])), 0);
+    assert_eq!(code(&run(&["index"])), 0);
+    assert_eq!(code(&run(&["check"])), 0, "and recomputing clears it");
+
+    // Missing: delete a committed shard.
+    let missing = root.join(".statecraft/derived/spec-registry/by-spec/002-b.json");
+    fs::remove_file(&missing).unwrap();
+    assert_eq!(code(&run(&["check"])), 2, "a missing shard is staleness");
+    assert!(
+        !missing.exists(),
+        "the gate did not repair the tree it judged"
+    );
+    assert_eq!(code(&run(&["compile"])), 0);
+    assert!(missing.is_file(), "and a writing compile did");
+
+    // Orphaned: a committed shard whose spec the corpus no longer has (spec
+    // 095). Produced the way it happens in life, by removing the spec and
+    // leaving the shard, rather than by inventing a file: a hand-written stray
+    // is a content mismatch, which is staleness and a different answer.
+    write_spec(root, "003-c", "003-c", "approved");
+    assert_eq!(code(&run(&["compile"])), 0);
+    assert_eq!(code(&run(&["index"])), 0);
+    assert_eq!(code(&run(&["check"])), 0);
+    fs::remove_dir_all(root.join("specs/003-c")).unwrap();
+    let orphaned = run(&["check"]);
+    assert_eq!(
+        code(&orphaned),
+        2,
+        "a stray shard at the relocated path is refused, as it is at the default \
+         (spec 076: exit 2, named as orphaned)"
+    );
+    let report = format!(
+        "{}{}",
+        String::from_utf8_lossy(&orphaned.stdout),
+        String::from_utf8_lossy(&orphaned.stderr)
+    );
+    assert!(report.contains("003-c"), "the orphan is named: {report}");
+    fs::remove_file(root.join(".statecraft/derived/spec-registry/by-spec/003-c.json")).unwrap();
+    fs::remove_file(root.join(".statecraft/derived/codebase-index/by-spec/003-c.json")).unwrap();
+    assert_eq!(code(&run(&["check"])), 0);
+
+    // The effective configuration reports the relocated roots, and the gate's
+    // bypass floor carries the configured derived root (spec 092 §3.8).
+    let cfg = run(&["config", "show"]);
+    assert_eq!(code(&cfg), 0);
+    let text = String::from_utf8_lossy(&cfg.stdout);
+    assert!(
+        text.contains("derived_dir = \".statecraft/derived\""),
+        "{text}"
+    );
+    assert!(text.contains("state_dir = \".statecraft/state\""), "{text}");
+    assert!(
+        text.contains(".statecraft/derived/"),
+        "the bypass floor names the configured derived root: {text}"
     );
 }

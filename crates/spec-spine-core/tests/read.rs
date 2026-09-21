@@ -1,4 +1,4 @@
-//! The read-document emitter's properties (spec 093 §3.8): sorted keys whatever
+//! The read-document emitter's properties (spec 074 §3.8): sorted keys whatever
 //! the struct order, array wrapping, the canonical layout, and the three
 //! refusals. The per-document assertions live in `spec-spine-cli/tests/cli.rs`,
 //! because the defect was a set of call sites, not this function.

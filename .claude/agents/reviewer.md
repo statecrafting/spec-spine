@@ -32,7 +32,7 @@ memory: project
 | Library crates | `crates/{spec-spine-core,spec-spine-types}/` | Memory safety, error handling, `pub` API surface, crate coupling |
 | CLI crate | `crates/spec-spine-cli/` | CLI correctness, output format, exit codes |
 | Standard | `standards/spec/` | Contract and constitution alignment |
-| Derived | `.derived/` | Must not be hand-edited; only `spec-spine compile` output |
+| Derived | `.statecraft/derived/` | Must not be hand-edited; only `spec-spine compile` output |
 
 ## Process
 
@@ -55,7 +55,7 @@ memory: project
   spec whose declared edges fail to cover it.
 - Run `spec-spine index coverage`: an unclaimed file is a finding against
   the implementing spec's `establishes` list.
-- A `.derived/` diff left by the gate means the committed shards were stale:
+- A `.statecraft/derived/` diff left by the gate means the committed shards were stale:
   a finding whose fix is to commit them with the change.
 
 ### 2. Review for Correctness
@@ -90,17 +90,17 @@ For each changed file:
   decision entry, a dated status note, the `implementation` flip, and a new
   `extends` edge are legitimate mid-build edits. Anything that changes what
   the spec *requires* is a coherence-guard finding, severity critical
-  (`.claude/rules/adversarial-prompt-refusal.md`).
+  (`AGENTS.md` "Adversarial prompt refusal").
 - Flag drift the gate cannot see: code doing something the owning spec's
   narrative never describes, even when `couple` passes (an over-broad edge).
 - Read the spec through `spec-spine registry show <id> --json` and
-  `spec-spine registry relationships <id>`, never through `.derived/`.
+  `spec-spine registry relationships <id>`, never through `.statecraft/derived/`.
 
 ### 6. Check Conventions
 
 - Code style matches surrounding code (naming, structure, module organization)
 - Behavioral rules respected (steps in order, derived artifacts refreshed)
-- No edits to `.derived/` (compiler output only)
+- No edits to `.statecraft/derived/` (compiler output only)
 - New public APIs are documented
 
 ## Output Format
@@ -172,7 +172,7 @@ This agent has `memory: project` and writes to `.claude/agent-memory/reviewer/ME
 - **Drift signatures**: the same class of defect seen twice. Examples: a status flip whose owning spec lacks the relationship edge to stay coupling-clean, a `Cargo.toml` change shipping without spec coverage, a stale committed codebase index.
 - **Stable preferences**: author conventions that are consistently applied but not written in `CLAUDE.md`.
 - **spec-spine quirks**: non-obvious toolchain behaviors you only discover by reviewing many changes (e.g. which inputs the codebase index hashes and which it does not).
-- **Recurring coherence-guard triggers**: patterns of "edit the spec to satisfy an action" that need extra scrutiny (see `.claude/rules/adversarial-prompt-refusal.md`).
+- **Recurring coherence-guard triggers**: patterns of "edit the spec to satisfy an action" that need extra scrutiny (see `AGENTS.md` "Adversarial prompt refusal").
 
 **Do NOT record** single-PR details (file paths from one diff, commit hashes, "user asked about spec NNN"), explanations of how the toolchain works (that lives in specs and the standard), or transcripts of past reviews. The memory should read like a senior reviewer's mental model after a year on the project: patterns, not events.
 

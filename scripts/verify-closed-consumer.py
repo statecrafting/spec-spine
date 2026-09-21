@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-# Spec: specs/118-the-verdict-is-the-only-thing-on-stdout/spec.md
+# Spec: specs/090-the-verdict-is-the-only-thing-on-stdout/spec.md
 """Run a command under a stderr consumer that closes, within a deadline.
 
-Spec 118 D-4's acceptance lines need a consumer that reads the opening
-transcript line and then closes the parent's stderr, and spec 118 D-6's need a
+Spec 090 D-4's acceptance lines need a consumer that reads the opening
+transcript line and then closes the parent's stderr, and spec 090 D-6's need a
 watchdog whose cleanup actually reaches the whole process tree.  Both were
 written inline, three times over, in `## Verification`; this is the one copy,
 because a supervision bug written three times is fixed three times or not at

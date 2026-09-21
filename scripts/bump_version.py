@@ -14,7 +14,7 @@ all three (crates.io, npm, PyPI) under the same number. They MUST agree:
 
 History (why this script exists): v0.2.0 bumped Cargo + npm but missed
 pyproject, so the PyPI release failed on generate_wheels.py's version lock
-(spec 008 §3.5) while npm published fine -- the npm generator runs with
+(spec 007 §3.5) while npm published fine -- the npm generator runs with
 --write-main and silently rewrites a stale version to the tag, so only PyPI
 enforces. This script removes the chance to bump one and forget another.
 

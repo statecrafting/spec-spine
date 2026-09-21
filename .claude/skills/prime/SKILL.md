@@ -15,7 +15,7 @@ sessions alike.
 
 1. Read `AGENTS.md`: the section from `## New Sessions` inclusive to the
    next `## ` heading exclusive. That section is the step list.
-2. Load the standing rules it names first (`.claude/rules/`), then execute
+2. Load the standing rules it names first (its own `## Rules` section), then execute
    the protocol, using parallel tool calls wherever it says "dispatch
    simultaneously".
 3. Emit the structured summary the protocol prescribes: the
@@ -33,7 +33,7 @@ never this file, so every agent stays in sync.
 - The protocol's governed reads go through the `spec-spine` invocation
   `AGENTS.md` names. If `spec-spine --version` fails, run `/setup` first
   (an in-tree build if `AGENTS.md` says the binary is built from source);
-  never fall back to parsing `.derived/` by hand.
+  never fall back to parsing `.statecraft/derived/` by hand.
 - `/prime` reports, it does not mutate: `spec-spine check` is the freshness
   read, never a bare `compile` or `index`. It answers for both committed
   trees and writes nothing. A stale verdict is reported with the shards it

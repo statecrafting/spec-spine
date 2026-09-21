@@ -1,12 +1,12 @@
-//! Declared-acceptance tests (spec 049).
+//! Declared-acceptance tests (spec 043).
 //!
-//! Spec 049 §3.2's table is the contract these fixtures assert, one test per
+//! Spec 043 §3.2's table is the contract these fixtures assert, one test per
 //! row. The grammar is ported from `scripts/verify-spec.sh`, which carries no
 //! tests in any of the four repositories that hold a copy of it, so these are
 //! the first assertions the parse has ever had.
 //!
 //! Nothing here runs a command: the engine returns a plan and the CLI executes
-//! it (spec 049 §3.1), so the whole grammar is testable over strings.
+//! it (spec 043 §3.1), so the whole grammar is testable over strings.
 
 use std::fs;
 use std::path::Path;
@@ -218,7 +218,7 @@ fn the_full_id_resolves() {
 fn the_short_id_resolves_and_the_plan_names_the_full_one() {
     let t = corpus(&[("049-slug", &doc("```verify:cli\nalpha\n```"))]);
     let plan = plan_at(t.path(), "049").unwrap();
-    assert_eq!(plan.spec_id, "049-slug", "spec 016 short-id resolution");
+    assert_eq!(plan.spec_id, "049-slug", "spec 015 short-id resolution");
 }
 
 #[test]
@@ -226,7 +226,7 @@ fn a_missing_spec_is_not_found_never_stale() {
     let t = corpus(&[("049-slug", &doc("```verify:cli\nalpha\n```"))]);
     let err = plan_at(t.path(), "999").unwrap_err();
     assert!(matches!(err, Error::NotFound(_)), "got {err:?}");
-    // Spec 049 §3.3: exit 2 is reserved for staleness across every verb.
+    // Spec 043 §3.3: exit 2 is reserved for staleness across every verb.
     assert_eq!(err.exit_code(), 1);
 }
 
@@ -253,42 +253,76 @@ fn the_json_facade_returns_the_same_plan() {
 
 // --- this repository's own corpus ----------------------------------------
 
-/// The parse must agree with the corpus it governs. 048 was the first approved
-/// spec carrying `verify:cli` fences, so it is the real-world fixture, and its
-/// commands are the shape the ported script produced. Six until 2026-09-09;
-/// five since spec 074 3.6 removed the kit's copy of the script and the `sh -n`
-/// line that checked it (048 D-7).
+/// The parse must agree with the corpus it governs, so one real spec is pinned
+/// command for command rather than only fixtures.
+///
+/// It was 048 from spec 043 until spec 092: 048 was the first approved spec
+/// carrying `verify:cli` fences, and its block was five commands (six until
+/// spec 061 §3.6). Spec 092 §3.12 declared 048's acceptance replaced, so a plan
+/// built for `048` is no longer 048's block, and the pin moved to a spec that
+/// still holds its own. 091 is that spec: six commands, no fixture setup, and
+/// a mix of positive and negated forms, which is what exercises the parse.
 #[test]
-fn spec_048_parses_to_its_five_commands() {
+fn spec_072_parses_to_its_six_commands() {
     let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
         .parent()
         .unwrap();
-    let plan = verify_plan(&cfg(), repo, "048").unwrap();
-    assert_eq!(plan.spec_id, "048-kit-ships-the-governed-loop-skills");
-    assert_eq!(plan.commands.len(), 5, "{:?}", plan.commands);
+    let plan = verify_plan(&cfg(), repo, "072").unwrap();
+    assert_eq!(plan.spec_id, "072-two-ready-specs-can-collide");
+    assert_eq!(plan.commands.len(), 6, "{:?}", plan.commands);
     assert!(plan.commands[0].starts_with("cargo test"));
+    assert!(plan.commands.iter().any(|c| c.starts_with("! ")));
     assert!(plan.skipped.is_empty());
 }
 
-/// 044 declares acceptance in prose only, which is the majority shape in this
-/// corpus and the case spec 049 §1.2 says must stay distinguishable from a pass.
+/// Spec 082 §3.2's substitution, exercised against the real corpus rather than
+/// a fixture: a plan built for a spec whose acceptance another spec holds is
+/// the holder's block, under the holder's id.
+///
+/// 048 is the case spec 092 §3.12 created and the one the pin above used to
+/// read. The corpus always has such a pair while a spec holds another's block,
+/// so the case is exercised against whatever pair it currently has.
 #[test]
-fn spec_044_is_not_declared() {
+fn an_amended_acceptance_resolves_to_its_holder() {
     let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
         .parent()
         .unwrap();
-    let plan = verify_plan(&cfg(), repo, "044").unwrap();
+    let plan = verify_plan(&cfg(), repo, "054").unwrap();
+    // Spec 082 §3.4: the substitution is STATED, never silent. The plan keeps
+    // the id that was asked for and names the holder separately, so a caller
+    // reading a verdict can tell whose block ran.
+    assert_eq!(plan.spec_id, "054-the-scaffold-ships-what-adopters-wrote");
+    assert_eq!(
+        plan.acceptance_from.as_deref(),
+        Some("092-the-engine-ships-governance-not-an-environment"),
+        "054's block is held by 092 (amends_verification)"
+    );
+    // The holder's block, not 054's own, and not empty.
+    assert!(plan.commands.len() > 5, "{:?}", plan.commands);
+    assert!(plan.skipped.is_empty());
+}
+
+/// 041 declares acceptance in prose only, which is the majority shape in this
+/// corpus and the case spec 043 §1.2 says must stay distinguishable from a pass.
+#[test]
+fn spec_041_is_not_declared() {
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    let plan = verify_plan(&cfg(), repo, "041").unwrap();
     assert!(!plan.is_declared());
 }
 
-// --- spec 103: an amended acceptance is the one that runs -----------------
+// --- spec 082: an amended acceptance is the one that runs -----------------
 //
-// Spec 040 forbids editing an amended spec's file and `verify` executes that
-// file, so before spec 103 an amendment could say an acceptance line was wrong
+// Spec 037 forbids editing an amended spec's file and `verify` executes that
+// file, so before spec 082 an amendment could say an acceptance line was wrong
 // and change nothing about what ran. These pin the redirection.
 
 /// A spec document with a `## Verification` block and the given frontmatter
@@ -301,7 +335,7 @@ fn doc103(id: &str, status: &str, extra: &str, command: &str) -> String {
     )
 }
 
-/// Spec 103 §3.2: `verify <amended>` runs the amender's block, and the plan
+/// Spec 082 §3.2: `verify <amended>` runs the amender's block, and the plan
 /// names whose block it is holding.
 #[test]
 fn spec103_verify_runs_the_replacement_block() {
@@ -332,7 +366,7 @@ fn spec103_verify_runs_the_replacement_block() {
     assert_eq!(own.acceptance_from, None);
 }
 
-/// Spec 103 §3.2: resolution follows the chain to its end, so a later
+/// Spec 082 §3.2: resolution follows the chain to its end, so a later
 /// amendment attaches to whichever spec currently holds the acceptance.
 #[test]
 fn spec103_resolution_follows_the_chain() {
@@ -362,7 +396,7 @@ fn spec103_resolution_follows_the_chain() {
     assert_eq!(plan.acceptance_from.as_deref(), Some("110-c"));
 }
 
-/// Spec 103 §3.2, D-5: a superseded or retired amender is skipped, so a
+/// Spec 082 §3.2, D-5: a superseded or retired amender is skipped, so a
 /// retirement cannot silently change what a third spec asserts.
 #[test]
 fn spec103_a_withdrawn_amender_does_not_hold_the_acceptance() {
@@ -389,7 +423,7 @@ fn spec103_a_withdrawn_amender_does_not_hold_the_acceptance() {
     }
 }
 
-/// Spec 103 §3.2: a spec nobody amends is untouched, which is every spec in
+/// Spec 082 §3.2: a spec nobody amends is untouched, which is every spec in
 /// the corpus but one.
 #[test]
 fn spec103_a_spec_with_no_amender_runs_its_own_block() {
@@ -402,7 +436,7 @@ fn spec103_a_spec_with_no_amender_runs_its_own_block() {
     assert_eq!(plan.acceptance_from, None);
 }
 
-/// Spec 103 §3.2: a cycle resolves to no replacement rather than looping.
+/// Spec 082 §3.2: a cycle resolves to no replacement rather than looping.
 /// `compile` refuses it (`V-020`); `verify` runs against uncompiled trees too.
 #[test]
 fn spec103_a_cycle_does_not_hang_verify() {

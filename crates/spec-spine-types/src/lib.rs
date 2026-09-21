@@ -13,12 +13,12 @@
 //!
 //! ## Layout
 //! - [`config`]: the `spec-spine.toml` model ([`Config`]).
-//! - [`coverage`]: the ownership-coverage report DTOs (spec 032).
-//! - [`delta`]: the change-classification report (spec 088).
+//! - [`coverage`]: the ownership-coverage report DTOs (spec 029).
+//! - [`delta`]: the change-classification report (spec 071).
 //! - [`frontmatter`]: the authored grammar ([`Frontmatter`], [`parse_frontmatter`]).
 //! - [`unit`] / [`edges`]: the authority-unit and relationship vocabulary.
 //! - [`registry`]: the compiled spec-as-source DTOs ([`Registry`]).
-//! - [`verify`]: declared-acceptance plan and report shapes (spec 049).
+//! - [`verify`]: declared-acceptance plan and report shapes (spec 043).
 //! - [`version`]: schema-version constants.
 //! - [`error`]: the [`Error`] enum and its exit-code contract.
 

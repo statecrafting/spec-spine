@@ -347,7 +347,7 @@ fn script_edit_refuses_the_auto_waiver() {
 
 #[test]
 fn claimed_floor_path_refuses_the_auto_waiver() {
-    // Spec 009 x 005 §3.5 interplay: a dependency-only bump PLUS an edit to a
+    // Spec 008 x 005 §3.5 interplay: a dependency-only bump PLUS an edit to a
     // floor path that a spec explicitly claims must NOT be mechanically
     // waived. With a claim-unaware pre-filter the workflow edit would hide
     // behind the floor, every remaining candidate would be a manifest, and
@@ -401,7 +401,7 @@ fn claimed_floor_path_refuses_the_auto_waiver() {
     );
 }
 
-// ===== spec 030: cargo + workflow dependabot-class paths =====
+// ===== spec 027: cargo + workflow dependabot-class paths =====
 
 /// A minimal governed repo: one cargo crate discovered and floor-owned by spec
 /// 001-a via its manifest metadata, with one external dependency to bump.
@@ -452,7 +452,7 @@ fn cargo_dependency_bump_stays_fresh_and_auto_waives() {
     git_in(root, &["add", "-A"]);
     git_in(root, &["commit", "-q", "-m", "bump"]);
 
-    // (a) Still FRESH: the cargo governance projection (spec 004 §3.5, spec 030)
+    // (a) Still FRESH: the cargo governance projection (spec 004 §3.5, spec 027)
     // strips dependency tables, so a version bump is not a hashed input.
     let fresh = index_check(root);
     assert_eq!(
@@ -462,7 +462,7 @@ fn cargo_dependency_bump_stays_fresh_and_auto_waives() {
         String::from_utf8_lossy(&fresh.stderr)
     );
 
-    // (b) The coupling gate self-waives (spec 005 §3.5, extended by spec 030).
+    // (b) The coupling gate self-waives (spec 005 §3.5, extended by spec 027).
     let out = couple_git(root);
     assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
     assert!(
@@ -535,13 +535,13 @@ fn workflow_uses_bump_auto_waives() {
          steps:\n      - uses: actions/checkout@v5\n      - run: cargo test\n",
     );
 
-    // Spec 073 3.4: the bump leaves the index FRESH, with no re-index in
-    // between. `.github/workflows/**/*` is a hashed input (spec 069 fixed the
+    // Spec 060 3.4: the bump leaves the index FRESH, with no re-index in
+    // between. `.github/workflows/**/*` is a hashed input (spec 058 fixed the
     // default that had made it one in name only), so before 073 this same bump
     // moved the global-inputs scalar and staled every shard in the repository.
     // That is the wall a Dependabot PR met: the bot has no toolchain to
     // re-index, no write path to commit shards, and no way to put a waiver in
-    // a body it does not author. Spec 069 3.6 required this test to assert the
+    // a body it does not author. Spec 058 3.6 required this test to assert the
     // stale-then-reindex sequence; 073 amends that, and the projection is what
     // makes the assertion below true.
     let fresh = index_check(root);
@@ -564,10 +564,10 @@ fn workflow_uses_bump_auto_waives() {
     );
 }
 
-/// Spec 073 3.4's companion: the other direction, on the same fixture.
+/// Spec 060 3.4's companion: the other direction, on the same fixture.
 ///
 /// Without it the suite proves only that the projection is permissive, not
-/// that it is correct, which is the shape of assertion spec 069 3.6 was
+/// that it is correct, which is the shape of assertion spec 058 3.6 was
 /// written to end. A `run:` edit is a governed change to a claimed file: it
 /// stales the ledger and it refuses the waiver.
 #[test]
@@ -622,7 +622,7 @@ fn workflow_run_edit_stales_the_index_and_refuses_the_waiver() {
     );
 }
 
-// ===== spec 032: the ownership ratchet, end to end =====
+// ===== spec 029: the ownership ratchet, end to end =====
 
 /// A crate with no manifest floor: `src/lib.rs` is claimed by a file unit,
 /// anything else under it is unowned. `require_ownership` is on.
@@ -710,7 +710,7 @@ fn ratchet_refuses_new_unowned_source_and_allows_its_deletion() {
     assert_eq!(code(&full), 0, "{}", String::from_utf8_lossy(&full.stderr));
 }
 
-// ── spec 052: the refusal names the crossing ──────────────────────────────
+// ── spec 045: the refusal names the crossing ──────────────────────────────
 
 /// [`setup`] plus a second spec that owns a *different* file, so a diff can
 /// edit exactly one `spec.md` that owns none of the violating paths: the
@@ -868,14 +868,14 @@ fn json_envelope_carries_owners_not_prose() {
 
     let text = String::from_utf8_lossy(&out.stdout);
     assert!(!text.contains("Declare an `extends` edge"), "{text}");
-    // §3.4: a payload addition does not move the envelope's version (spec 050
+    // §3.4: a payload addition does not move the envelope's version (spec 044
     // §3.6). Asserted against the constant rather than a literal, because an
-    // additive verb elsewhere legitimately moves it (spec 056 did) and that is
+    // additive verb elsewhere legitimately moves it (spec 049 did) and that is
     // not a payload addition.
     assert_eq!(v["schemaVersion"], spec_spine_types::VERDICT_SCHEMA_VERSION);
 }
 
-// ── spec 092: a mode-only or binary change is a change ───────────────────
+// ── spec 073: a mode-only or binary change is a change ───────────────────
 
 /// Bytes git's content sniffing classifies as binary (a NUL in the first
 /// block), so `git diff` prints `Binary files ... differ` and no `+++` header.

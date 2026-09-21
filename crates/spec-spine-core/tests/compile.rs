@@ -132,7 +132,7 @@ fn v004_duplicate_prefix() {
 
 #[test]
 fn v004_reads_a_non_ascii_id_without_panicking() {
-    // Spec 070 §3.1: `a日本-spec` puts a three-byte character across byte 3, the
+    // Spec 059 §3.1: `a日本-spec` puts a three-byte character across byte 3, the
     // offset the old byte slice indexed at unconditionally. Reading the prefix
     // must diagnose the id, not abort the process on its way to doing so.
     let tmp = tempfile::tempdir().unwrap();
@@ -150,7 +150,7 @@ fn v004_reads_a_non_ascii_id_without_panicking() {
 
 #[test]
 fn v004_ignores_ids_with_no_numeric_prefix() {
-    // Spec 070 §3.2: these share three leading letters and no ordinal, so they
+    // Spec 059 §3.2: these share three leading letters and no ordinal, so they
     // collide on nothing. `aut` was never a numeric prefix. V-012 is the
     // finding, and V-004 used to be noise printed beside it.
     let tmp = tempfile::tempdir().unwrap();
@@ -169,7 +169,7 @@ fn v004_ignores_ids_with_no_numeric_prefix() {
 
 #[test]
 fn v004_ignores_a_multibyte_prefix_that_lands_on_a_boundary() {
-    // Spec 070 §3.2: `日本-x` is the case the old slice did not panic on, and
+    // Spec 059 §3.2: `日本-x` is the case the old slice did not panic on, and
     // got wrong anyway: three bytes is one character, so it reported the
     // "numeric prefix" `日` as shared. A non-ordinal is still not an ordinal.
     let tmp = tempfile::tempdir().unwrap();
@@ -190,7 +190,7 @@ fn v004_ignores_a_multibyte_prefix_that_lands_on_a_boundary() {
 
 #[test]
 fn supersedes_full_emits_bare_string_partial_emits_object() {
-    // Spec 019: a full supersedes (bare id or `{ scope: full }`) serializes as a
+    // Spec 018: a full supersedes (bare id or `{ scope: full }`) serializes as a
     // bare predecessor id, byte-stable wire; a partial item serializes as an
     // object carrying its scope and unit.
     let tmp = tempfile::tempdir().unwrap();
@@ -222,7 +222,7 @@ fn supersedes_full_emits_bare_string_partial_emits_object() {
 
 #[test]
 fn v011_constrains_item_must_scope_unit_or_target_specs() {
-    // Spec 018: a constrains item with neither a unit nor target_specs scopes
+    // Spec 017: a constrains item with neither a unit nor target_specs scopes
     // nothing: V-011.
     let tmp = tempfile::tempdir().unwrap();
     write_spec(
@@ -237,7 +237,7 @@ fn v011_constrains_item_must_scope_unit_or_target_specs() {
 
 #[test]
 fn constrains_scoped_forms_compile_clean() {
-    // Spec 018: path-scoped (flavor + unit) and spec-scoped (kind + target_specs)
+    // Spec 017: path-scoped (flavor + unit) and spec-scoped (kind + target_specs)
     // both clear V-011. File-unit existence is the indexer's concern, not compile.
     let tmp = tempfile::tempdir().unwrap();
     write_spec(
@@ -306,7 +306,7 @@ fn v007_extra_frontmatter_count_cap_with_exemption() {
 
 #[test]
 fn declared_nested_extra_roundtrips_deterministically() {
-    // Spec 013 §3.5: a compliance-shaped declared key survives compile ->
+    // Spec 012 §3.5: a compliance-shaped declared key survives compile ->
     // registry byte-identically across two runs.
     let tmp = tempfile::tempdir().unwrap();
     write_spec(
@@ -330,7 +330,7 @@ fn declared_nested_extra_roundtrips_deterministically() {
 
 #[test]
 fn declared_map_key_order_is_canonicalized() {
-    // Spec 013 §3.2/§3.5: two authoring orders, one registry value.
+    // Spec 012 §3.2/§3.5: two authoring orders, one registry value.
     let tmp = tempfile::tempdir().unwrap();
     let mut cfg = Config::default();
     cfg.frontmatter.extra_known_keys = vec!["compliance".into()];
@@ -358,7 +358,7 @@ fn declared_map_key_order_is_canonicalized() {
 
 #[test]
 fn undeclared_nested_extra_keeps_pre013_guard() {
-    // Guard regression (spec 013 §3.5): an UNDECLARED nested map is rejected
+    // Guard regression (spec 012 §3.5): an UNDECLARED nested map is rejected
     // exactly as pre-013 (V-002, spec skipped).
     let tmp = tempfile::tempdir().unwrap();
     write_spec(tmp.path(), "001-a", "001-a", "custom_obj:\n  nested: 1\n");
@@ -385,7 +385,7 @@ fn v013_unrepresentable_declared_value() {
 
 #[test]
 fn v007_cap_unchanged_in_presence_of_declared_keys() {
-    // Spec 013 §3.5: the undeclared cap is counted and enforced exactly as
+    // Spec 012 §3.5: the undeclared cap is counted and enforced exactly as
     // before, with declared keys present and exempt.
     let tmp = tempfile::tempdir().unwrap();
     let n = MAX_UNDECLARED_EXTRA_FRONTMATTER + 1;
@@ -442,7 +442,7 @@ fn v008_superseded_requires_resolvable_superseded_by() {
 
 #[test]
 fn paths_sugar_is_byte_equivalent_to_single_unit_items() {
-    // Spec 014 §3.3, the acceptance test: the same corpus authored with
+    // Spec 013 §3.3, the acceptance test: the same corpus authored with
     // `paths: [a, b]` and as N single-`unit` items compiles to identical
     // registries. Only `build.contentHash` may differ (it hashes the authored
     // spec bytes, which differ by construction); every emitted record and the
@@ -501,7 +501,7 @@ fn paths_sugar_grammar_violations_are_v002() {
 
 #[test]
 fn oap_dialect_refines_fixture_compiles_clean() {
-    // Spec 014 §3.4: a fixture modeled on the real OAP shape -- `refines`
+    // Spec 013 §3.4: a fixture modeled on the real OAP shape -- `refines`
     // with an aspect, refines_specs, and two paths -- compiles clean.
     let tmp = tempfile::tempdir().unwrap();
     write_spec(tmp.path(), "001-base", "001-base", "");
@@ -529,7 +529,7 @@ fn oap_dialect_refines_fixture_compiles_clean() {
 
 #[test]
 fn establishes_wrapper_and_na_alias_are_byte_equivalent() {
-    // Spec 015 §3.3, the acceptance test: a corpus authored in the predecessor
+    // Spec 014 §3.3, the acceptance test: a corpus authored in the predecessor
     // dialect -- each `establishes` item `{ unit: ... }`-wrapped, and
     // `implementation: n/a` -- compiles to a registry byte-identical to the
     // canonical spelling (bare/tagged units, `implementation: n-a`). Only
@@ -564,7 +564,7 @@ fn establishes_wrapper_and_na_alias_are_byte_equivalent() {
 
 #[test]
 fn short_id_depends_on_resolves_to_full_id() {
-    // Spec 016: a depends_on naming a spec by its leading number resolves to
+    // Spec 015: a depends_on naming a spec by its leading number resolves to
     // the full id; the record carries the resolved id and no V-010 fires.
     let tmp = tempfile::tempdir().unwrap();
     write_spec(tmp.path(), "001-base", "001-base", "");
@@ -585,7 +585,7 @@ fn short_id_depends_on_resolves_to_full_id() {
 
 #[test]
 fn short_id_superseded_by_resolves() {
-    // Spec 016: superseded_by accepts the short form; resolution clears V-008
+    // Spec 015: superseded_by accepts the short form; resolution clears V-008
     // and the record carries the full id.
     let tmp = tempfile::tempdir().unwrap();
     write_spec(tmp.path(), "002-new", "002-new", "");
@@ -612,7 +612,7 @@ fn short_id_superseded_by_resolves() {
 
 #[test]
 fn dangling_short_id_is_left_unchanged_and_still_warns() {
-    // Spec 016: a reference that matches no spec resolves to itself, so the
+    // Spec 015: a reference that matches no spec resolves to itself, so the
     // existing dangling-reference V-code still fires.
     let tmp = tempfile::tempdir().unwrap();
     write_spec(tmp.path(), "001-a", "001-a", "depends_on: [\"999\"]\n");
@@ -627,7 +627,7 @@ fn dangling_short_id_is_left_unchanged_and_still_warns() {
     assert_eq!(rec.depends_on, vec!["999".to_string()]);
 }
 
-// ===== V-014: depends_on cycles (spec 033) =====
+// ===== V-014: depends_on cycles (spec 030) =====
 
 fn cycle_violation(outcome: &spec_spine_core::CompileOutcome) -> spec_spine_types::Violation {
     outcome
@@ -699,7 +699,7 @@ fn cycle_reached_through_a_longer_chain_names_only_the_loop() {
 
 #[test]
 fn a_cycle_written_with_short_ids_is_still_a_cycle() {
-    // Spec 016 resolves `011` to `011-b` before the records are built, so the
+    // Spec 015 resolves `011` to `011-b` before the records are built, so the
     // detector must see the resolved graph, not the authored text.
     let tmp = tempfile::tempdir().unwrap();
     write_spec(tmp.path(), "010-a", "010-a", "depends_on: [\"011\"]\n");
@@ -802,7 +802,7 @@ fn the_cycle_is_not_stored_in_a_shard_but_is_recomputed_on_read() {
     );
 }
 
-// ===== registry freshness, `compile --check` (spec 031) =====
+// ===== registry freshness, `compile --check` (spec 028) =====
 
 /// Emit the shard tree the way the CLI does, so a freshness check has a
 /// committed artifact to compare against.
@@ -835,7 +835,7 @@ fn freshness_check_passes_on_a_just_compiled_tree_and_writes_nothing() {
     let verdict = spec_spine_core::check_registry_freshness(&cfg, tmp.path()).unwrap();
     assert_eq!(verdict, spec_spine_core::Freshness::Fresh);
 
-    // Spec 031 3.1: --check never writes. The shard bytes are untouched and no
+    // Spec 028 3.1: --check never writes. The shard bytes are untouched and no
     // build-meta.json appears.
     let after = spec_spine_core::shard::read_shard_files(&by_spec).unwrap();
     assert_eq!(before, after, "--check must not rewrite the shard tree");
@@ -907,7 +907,7 @@ fn removed_spec_leaves_an_orphaned_shard() {
 
 #[test]
 fn unbuilt_registry_is_stale_not_an_error() {
-    // Spec 031 3.2: a registry that was never built is not vouching for the
+    // Spec 028 3.2: a registry that was never built is not vouching for the
     // corpus. Stale (2), never Err (3).
     let tmp = tempfile::tempdir().unwrap();
     write_spec(tmp.path(), "001-alpha", "001-alpha", "");
@@ -923,7 +923,7 @@ fn unbuilt_registry_is_stale_not_an_error() {
 
 #[test]
 fn freshness_report_caps_the_named_shards() {
-    // A corpus-wide restamp must not flood a CI log (spec 031 3.3).
+    // A corpus-wide restamp must not flood a CI log (spec 028 3.3).
     let tmp = tempfile::tempdir().unwrap();
     let cfg = Config::default();
     for n in 1..=25 {
@@ -937,7 +937,7 @@ fn freshness_report_caps_the_named_shards() {
         detail.contains("and 5 more"),
         "expected a capped tail: {detail}"
     );
-    // Spec 031 3.3: one line per stale shard, so a CI log stays greppable.
+    // Spec 028 3.3: one line per stale shard, so a CI log stays greppable.
     // A count line + 20 capped entries + the "and N more" tail = 22 lines.
     let lines: Vec<&str> = detail.lines().collect();
     assert_eq!(lines.len(), 22, "one line per shard, capped: {detail}");
@@ -949,7 +949,7 @@ fn freshness_report_caps_the_named_shards() {
 
 #[test]
 fn registry_freshness_facade_reports_both_verdicts() {
-    // The FFI seam: one verdict shape for both committed trees (spec 031 3.1).
+    // The FFI seam: one verdict shape for both committed trees (spec 028 3.1).
     let tmp = tempfile::tempdir().unwrap();
     write_spec(tmp.path(), "001-alpha", "001-alpha", "");
     let cfg = Config::default();
@@ -969,7 +969,7 @@ fn registry_freshness_facade_reports_both_verdicts() {
     );
 }
 
-// ── spec 056: validate one spec, write nothing ────────────────────────────
+// ── spec 049: validate one spec, write nothing ────────────────────────────
 
 /// Commit the shard tree exactly as `spec-spine compile` does, so `compile_spec`
 /// has a committed registry to assemble the named spec against.
@@ -1024,16 +1024,16 @@ fn compile_spec_resolves_the_short_id_and_refuses_an_unknown_one() {
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path();
     let cfg = Config::default();
-    write_spec(root, "056-compile-one-spec", "056-compile-one-spec", "");
+    write_spec(root, "049-compile-one-spec", "049-compile-one-spec", "");
 
-    let report = spec_spine_core::compile_spec(&cfg, root, "056").unwrap();
-    assert_eq!(report.spec_id, "056-compile-one-spec", "short id resolves");
+    let report = spec_spine_core::compile_spec(&cfg, root, "049").unwrap();
+    assert_eq!(report.spec_id, "049-compile-one-spec", "short id resolves");
 
     match spec_spine_core::compile_spec(&cfg, root, "999") {
         Err(spec_spine_types::Error::NotFound(_)) => {}
         other => panic!("expected NotFound, got {other:?}"),
     }
-    // `05` is not a whole leading segment, so it resolves nothing (spec 016).
+    // `05` is not a whole leading segment, so it resolves nothing (spec 015).
     assert!(spec_spine_core::compile_spec(&cfg, root, "05").is_err());
 }
 
@@ -1131,9 +1131,9 @@ fn compile_spec_works_before_the_registry_exists() {
     assert!(report.passed, "{:?}", report.violations);
 }
 
-// --- spec 077: the warning tier is reachable from a gate -------------------
+// --- spec 064: the warning tier is reachable from a gate -------------------
 
-/// Spec 077 §3.1: `V-010` stays a warning. The tier is what makes forward
+/// Spec 064 §3.1: `V-010` stays a warning. The tier is what makes forward
 /// filing possible (a spec may name a `depends_on` target filed after it), so
 /// escalation must be the caller's decision and never the compiler's.
 #[test]
@@ -1164,7 +1164,7 @@ fn dangling_depends_on_stays_warning_tier() {
     assert!(warn_tiers, "V-010 must be warning tier");
 }
 
-/// Spec 077 §3.6, the assertion that matters: the flag decides an exit code
+/// Spec 064 §3.6, the assertion that matters: the flag decides an exit code
 /// and nothing else. A compile that would be refused under `--fail-on-warn`
 /// emits byte-identical shards to one that would not, so no committed artifact
 /// can ever depend on how the CLI was invoked.

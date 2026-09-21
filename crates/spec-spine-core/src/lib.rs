@@ -2,7 +2,8 @@
 //!
 //! The spec-spine engine. Phase 2 shipped **compile** + **query**; Phase 3 added
 //! **index** (code-as-source view, staleness, authorities) and **lint**; Phase 4
-//! adds **couple** (the PR-time drift gate) and **init** (the adopter scaffolder).
+//! adds **couple** (the PR-time drift gate) and the governance **scaffold**
+//! (starter corpus content as data; spec 092 §3.2).
 //!
 //! Every artifact-producing function is a pure function of `(config, file
 //! contents)`: no ambient clock or environment reads, and **no git** (the CLI
@@ -22,7 +23,6 @@ pub mod dep_only;
 pub mod diagnostics;
 mod hash;
 pub mod index;
-pub mod kit_embedded;
 pub mod lint;
 pub mod manifest;
 mod markdown;
@@ -94,12 +94,12 @@ pub use query::{
 };
 pub use read::{Versioning, read_document};
 pub use render::{OrphanReport, orphans, partition_orphans, render_markdown};
-pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init, scaffold_init_with};
+pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init};
 pub use snapshot::{
     SnapshotOutcome, check_snapshot_major, snapshot, snapshot_hash, verify_snapshot_recompute,
     with_stored_bytes_snapshot,
 };
-// Spec 084 3.4: the one spec-id policy, public because the CLI's two
+// Spec 067 3.4: the one spec-id policy, public because the CLI's two
 // non-library arguments (the attestation file name, and the attestation
 // directory `verify-attestation` resolves against) call it directly.
 pub use spec_id::{SpecIdMatch, match_spec_id, resolve_spec_id, resolve_spec_ref, spec_dir_ids};
@@ -122,10 +122,10 @@ pub fn compile_json(config_json: &str, repo_root: &str) -> Result<String, Error>
 ///
 /// Request shape: `{ "registry": "<registry.json text>", "op": "list" |
 /// "show" | "status-report" | "relationships", "id"?: string, "status"?: string,
-/// "idsOnly"?: bool, "nonzeroOnly"?: bool }`. The projection fields (spec 010)
+/// "idsOnly"?: bool, "nonzeroOnly"?: bool }`. The projection fields (spec 009)
 /// default to `false`, so pre-010 requests behave identically.
 ///
-/// Every answer is a read document (spec 093): sorted keys, `schemaVersion`,
+/// Every answer is a read document (spec 074): sorted keys, `schemaVersion`,
 /// and `list`'s array under `items`.
 pub fn query_json(request_json: &str) -> Result<String, Error> {
     #[derive(Deserialize)]
@@ -156,7 +156,7 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         .map_err(|e| Error::Parse(format!("invalid query request: {e}")))?;
     let registry = load_registry(request.registry.as_bytes())?;
 
-    // Spec 093 §3.3: every answer here is a read document, so it goes through
+    // Spec 074 §3.3: every answer here is a read document, so it goes through
     // the one emitter the CLI's read verbs use. The CLI and the facade cannot
     // then emit different shapes: `list` wraps under `items`, and every
     // document carries `schemaVersion` with its keys sorted.
@@ -191,8 +191,8 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
                 .ok_or_else(|| Error::NotFound("missing 'id' for relationships".into()))?;
             read_document(&relationships(&registry, &id)?, Versioning::Stamp)?
         }
-        // Spec 038. Not the spec 037 verdict envelope, which wraps the
-        // adjudicating verbs; a read document instead (spec 093).
+        // Spec 035. Not the spec 034 verdict envelope, which wraps the
+        // adjudicating verbs; a read document instead (spec 074).
         Op::Plan => read_document(&plan(&registry)?, Versioning::Stamp)?,
     };
     Ok(json)
@@ -211,7 +211,7 @@ pub fn lint_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
     to_json(&report.violations)
 }
 
-/// Both freshness reads, composed (spec 075 §3.2): the registry's and the
+/// Both freshness reads, composed (spec 062 §3.2): the registry's and the
 /// index's, each keeping the shape its own primitive emits.
 ///
 /// The session protocol asks one question, "is the committed state current",
@@ -223,7 +223,7 @@ pub fn lint_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
 ///
 /// It **never writes**. A verb the protocol calls to read the committed state
 /// cannot repair that state as a side effect of reading it: that is how the
-/// spec 017/021 drift reached the default branch, as an apparent local edit
+/// spec 016/021 drift reached the default branch, as an apparent local edit
 /// rather than a defect already on the branch.
 ///
 /// The exit code the CLI folds from this is not decided here; the report
@@ -238,12 +238,12 @@ pub fn check_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
 /// Both halves of the composed freshness read, as data.
 ///
 /// Shared by [`check_json`] and the CLI so the two payloads cannot drift, which
-/// is the arrangement spec 037 pins for every other verdict verb.
+/// is the arrangement spec 034 pins for every other verdict verb.
 pub fn check_report(config: &Config, repo_root: &std::path::Path) -> Result<CheckReport, Error> {
     Ok(check_report_full(config, repo_root)?.0)
 }
 
-/// [`check_report`], plus the index half's two refusals kept apart (spec 098
+/// [`check_report`], plus the index half's two refusals kept apart (spec 079
 /// §3.2).
 ///
 /// One index run answers both: the partition is a by-product of the read the
@@ -252,7 +252,7 @@ pub fn check_report(config: &Config, repo_root: &std::path::Path) -> Result<Chec
 /// not parse the text of the first answer.
 ///
 /// [`CheckReport`] itself is deliberately not widened. It is the `--json`
-/// payload verbatim, spec 098 FR-009 freezes that envelope at `schemaVersion`
+/// payload verbatim, spec 079 FR-009 freezes that envelope at `schemaVersion`
 /// `0.4.0` with its current members, and a JSON consumer can already separate
 /// the two refusals structurally through `report.index.diagnostics.byCode`. The
 /// surface that could not tell them apart was the rendered text, so that is the
@@ -265,7 +265,7 @@ pub fn check_report_full(
     // `check_registry_freshness` would compile a second time, and this verb
     // exists to make one question cost one ask.
     let outcome = compile(config, repo_root)?;
-    // Spec 077 §3.4: the registry half carries its own warning tally, so the
+    // Spec 064 §3.4: the registry half carries its own warning tally, so the
     // composed verb can refuse under `--fail-on-warn` and name the tree that
     // refused without a second compile.
     let warnings = outcome.warning_count();
@@ -313,7 +313,7 @@ pub fn check_report_full(
 /// Check index freshness, returning `{ "fresh": bool, "expected"?, "actual"?,
 /// "diagnostics": { "warnings", "errors", "byCode" } }`.
 ///
-/// The `diagnostics` member (spec 050) counts what the **committed** shards
+/// The `diagnostics` member (spec 044) counts what the **committed** shards
 /// record, so it is answered from the same ledger the freshness verdict is
 /// about. `check_registry_freshness_json` keeps the bare shape: index
 /// diagnostics say nothing about the registry.
@@ -322,7 +322,7 @@ pub fn check_freshness_json(config_json: &str, repo_root: &str) -> Result<String
     let root = std::path::Path::new(repo_root);
     let freshness = check_index_freshness(&config, root)?;
     let counts = verdict_tally(&config, root);
-    // Spec 057 §3.3: the facade and the CLI emit one shape. `cli.rs` pins them
+    // Spec 050 §3.3: the facade and the CLI emit one shape. `cli.rs` pins them
     // against each other, and it caught this: a payload member added on one
     // side only is exactly the drift that test exists to refuse.
     to_json(&IndexCheckReport::with_unwitnessed(
@@ -332,7 +332,7 @@ pub fn check_freshness_json(config_json: &str, repo_root: &str) -> Result<String
     ))
 }
 
-/// The diagnostics tally that accompanies an index freshness verdict (spec 095
+/// The diagnostics tally that accompanies an index freshness verdict (spec 076
 /// §3.1, §3.4).
 ///
 /// The one path `check_report`, `check_freshness_json`, `index check` and
@@ -346,7 +346,7 @@ pub fn verdict_tally(config: &Config, repo_root: &std::path::Path) -> Diagnostic
     diagnostics::committed_counts(config, repo_root).unwrap_or_default()
 }
 
-/// The distinct-path tally spec 057 §3.3 reports, shared by the facade and the
+/// The distinct-path tally spec 050 §3.3 reports, shared by the facade and the
 /// CLI so the two payloads cannot diverge.
 ///
 /// Distinct **paths**, not `(spec, path)` claims: several specs claiming one
@@ -373,7 +373,7 @@ pub fn unwitnessed_counts(config: &Config, repo_root: &std::path::Path) -> Unwit
     }
 }
 
-/// Check registry-shard freshness (spec 031), returning the same
+/// Check registry-shard freshness (spec 028), returning the same
 /// `{ "fresh": bool, "expected"?, "actual"? }` shape as
 /// [`check_freshness_json`] so a binding handles one verdict type for both
 /// committed trees. Staleness only: the validation verdict rides on
@@ -415,7 +415,7 @@ pub fn coverage_json(config_json: &str, repo_root: &str) -> Result<String, Error
 }
 
 /// [`coverage_json`] with the inventory a declared governed scope is matched
-/// against (spec 097 §3.6), the facade half of `index coverage --paths-from`.
+/// against (spec 078 §3.6), the facade half of `index coverage --paths-from`.
 /// Request: `{ "config"?: Config, "repoRoot": string, "inventory"?:
 /// { "provenance": "tracked" | "supplied", "paths": [string] } }`. An absent
 /// `inventory` walks the repository root; a present one with no paths matches
@@ -442,12 +442,12 @@ pub fn coverage_inventory_json(request_json: &str) -> Result<String, Error> {
     )
 }
 
-/// Read a spec's declared acceptance (spec 049), returning the [`VerifyPlan`]
+/// Read a spec's declared acceptance (spec 043), returning the [`VerifyPlan`]
 /// as JSON: the `verify:cli` commands its `## Verification` section holds, in
 /// document order, and the fence tags it declined.
 ///
 /// The plan is all the engine produces. **Running the commands is the caller's
-/// act**, never this library's: spec 049 §3.1 keeps process execution on the
+/// act**, never this library's: spec 043 §3.1 keeps process execution on the
 /// CLI side of the same seam that keeps `git` there, so the engine stays a pure
 /// function of `(config, file contents)` and stays callable from a binding with
 /// no shell. A caller that wants them run decides that for itself.
@@ -464,7 +464,7 @@ pub fn verify_plan_json(
     )?)
 }
 
-/// Render the committed index as markdown (spec 011). `index_json` is the
+/// Render the committed index as markdown (spec 010). `index_json` is the
 /// `index.json` text; the returned string is the markdown projection,
 /// JSON-encoded (a JSON string literal).
 pub fn render_json(config_json: &str, index_json: &str) -> Result<String, Error> {
@@ -473,12 +473,12 @@ pub fn render_json(config_json: &str, index_json: &str) -> Result<String, Error>
     to_json(&render::render_markdown(&config, &index))
 }
 
-/// List the committed index's orphaned specs (spec 011), as a read document
-/// carrying the id strings under `items` (spec 093). `index_json` is the
+/// List the committed index's orphaned specs (spec 010), as a read document
+/// carrying the id strings under `items` (spec 074). `index_json` is the
 /// `index.json` text.
 pub fn orphans_json(index_json: &str) -> Result<String, Error> {
     let index = load_index(index_json.as_bytes())?;
-    // Spec 093 §3.3: a read document, so the id array is wrapped under `items`.
+    // Spec 074 §3.3: a read document, so the id array is wrapped under `items`.
     read_document(&render::orphans(&index), Versioning::Stamp)
 }
 
@@ -516,7 +516,7 @@ pub fn couple_json(request_json: &str) -> Result<String, Error> {
     to_json(&report)
 }
 
-/// Classify a change under the base's rules (spec 088). `request_json`:
+/// Classify a change under the base's rules (spec 071). `request_json`:
 /// `{ "config"?: Config, "baseRoot": string, "headRoot": string, "changed":
 /// [string], "commits": { "base", "mergeBase", "head" } }`.
 ///
@@ -554,14 +554,24 @@ pub fn delta_json(request_json: &str) -> Result<String, Error> {
     )?)
 }
 
-/// Generate the adopter scaffold for `config_json` (`"{}"` ⇒ defaults), returning
-/// the [`Scaffold`] (files-as-data) as JSON. The caller writes the files.
+/// Generate the governance scaffold for `config_json` (`"{}"` ⇒ defaults),
+/// returning the [`Scaffold`] (files-as-data) as JSON. The caller writes the
+/// files.
+///
+/// **This is the producer boundary Statecraft consumes** (spec 092 §3.2), and
+/// it is pure: it writes nothing, reads no environment variable, discovers no
+/// installation, launches no process, opens no connection, reads no clock,
+/// registers nothing and activates nothing. It does not require the Statecraft
+/// CLI to be installed and behaves identically with an empty home directory.
+///
+/// It produces governance starter content only. §3.3 of that spec is the file
+/// list; everything an agent harness needs is deliberately not in it.
 pub fn scaffold_init_json(config_json: &str) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
     to_json(&scaffold_init(&config)?)
 }
 
-/// Build a corpus attestation (spec 023). Returns
+/// Build a corpus attestation (spec 021). Returns
 /// `{ "attestation": <CorpusAttestation>, "attestationHash": "<hex>" }`. Pure:
 /// no key (signing is a CLI post-pass), no clock. `with_coupling` records the
 /// in-sync coupling verdict as well (FR-002).
@@ -588,7 +598,7 @@ pub fn attest_json(
     })
 }
 
-/// Build a per-spec attestation (spec 042). Returns
+/// Build a per-spec attestation (spec 039). Returns
 /// `{ "attestation": <SpecAttestation>, "attestationHash": "<hex>" }`, the same
 /// envelope shape [`attest_json`] uses for the corpus scope. Pure: no key, no
 /// clock. A failing verdict still yields a payload; it is a record, not a gate.
@@ -611,7 +621,7 @@ pub fn attest_spec_json(
     })
 }
 
-/// Build an authority snapshot (spec 087 §3.5), returning
+/// Build an authority snapshot (spec 070 §3.5), returning
 /// `{ "attestation": <AuthoritySnapshot>, "attestationHash": "<hex>" }`, the
 /// shape the other two scopes' facades return. Pure: no key, no clock; signing
 /// is a CLI post-pass.
@@ -630,10 +640,10 @@ pub fn attest_snapshot_json(config_json: &str, repo_root: &str) -> Result<String
     })
 }
 
-/// Verify an authority snapshot by recompute (spec 087 §3.5), under spec 085's
+/// Verify an authority snapshot by recompute (spec 070 §3.5), under spec 068's
 /// rules. Request: `{ "config"?: Config, "repoRoot": string, "attestation":
 /// <AuthoritySnapshot> }`, or `"attestationText": string` in place of
-/// `attestation` (spec 085 3.4). Same outcome vocabulary as
+/// `attestation` (spec 068 3.4). Same outcome vocabulary as
 /// [`verify_attestation_json`].
 pub fn verify_snapshot_attestation_json(request_json: &str) -> Result<String, Error> {
     #[derive(Deserialize)]
@@ -688,9 +698,9 @@ pub fn verify_snapshot_attestation_json(request_json: &str) -> Result<String, Er
     Ok(value.to_string())
 }
 
-/// Verify a per-spec attestation by recompute (spec 042 3.5). Request:
+/// Verify a per-spec attestation by recompute (spec 039 3.5). Request:
 /// `{ "config"?: Config, "repoRoot": string, "attestation": <SpecAttestation> }`,
-/// or `"attestationText": string` in place of `attestation` (spec 085 3.4).
+/// or `"attestationText": string` in place of `attestation` (spec 068 3.4).
 /// Same outcome vocabulary as [`verify_attestation_json`].
 pub fn verify_spec_attestation_json(request_json: &str) -> Result<String, Error> {
     #[derive(Deserialize)]
@@ -745,14 +755,14 @@ pub fn verify_spec_attestation_json(request_json: &str) -> Result<String, Error>
     Ok(value.to_string())
 }
 
-/// Verify an attestation by recompute (spec 023 FR-004 `--recompute`). Request:
+/// Verify an attestation by recompute (spec 021 FR-004 `--recompute`). Request:
 /// `{ "config"?: Config, "repoRoot": string, "attestation": <CorpusAttestation> }`.
 /// Returns `{ "outcome": "match" }`, `{ "outcome": "versionMismatch", "expected",
 /// "actual" }`, or `{ "outcome": "contentMismatch", "differences": [...] }`. This
 /// mode needs no key and no signature: any third party can run it.
 ///
 /// `"attestationText": string`, the attestation's exact bytes, may be sent in
-/// place of `attestation` (spec 085 3.4). A facade receives a value inside a
+/// place of `attestation` (spec 068 3.4). A facade receives a value inside a
 /// larger request, so the stored bytes never reach it and 3.1's rule that a
 /// verifier decides on the bytes it was given would have no subject here
 /// otherwise. Sent that way, a payload whose values recompute but whose bytes
@@ -813,7 +823,7 @@ pub fn verify_attestation_json(request_json: &str) -> Result<String, Error> {
 
 // --- facade helpers ---
 
-/// Spec 085 3.4: `attestation` and `attestationText` are alternatives, and a
+/// Spec 068 3.4: `attestation` and `attestationText` are alternatives, and a
 /// request carrying both is refused rather than silently resolved.
 ///
 /// Picking one would make the answer depend on which the facade happened to

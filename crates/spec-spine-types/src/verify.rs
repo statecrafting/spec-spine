@@ -1,7 +1,7 @@
-//! Declared-acceptance DTOs (spec 049): what a spec's `## Verification`
+//! Declared-acceptance DTOs (spec 043): what a spec's `## Verification`
 //! section asks to be run, and what happened when it was.
 //!
-//! Two shapes, because spec 049 §3.1 splits the work across the library
+//! Two shapes, because spec 043 §3.1 splits the work across the library
 //! boundary. [`VerifyPlan`] is what the engine produces: a pure read of
 //! authored markdown, naming the commands and the fence tags it declined.
 //! [`VerifyReport`] is what the CLI produces after running them. The engine
@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct VerifyPlan {
     /// The resolved spec id (the full directory name, even when the caller
-    /// passed the short form spec 016 defines).
+    /// passed the short form spec 015 defines).
     pub spec_id: String,
     /// Every runnable line of every `verify:cli` fence, in document order.
     pub commands: Vec<String>,
@@ -30,7 +30,7 @@ pub struct VerifyPlan {
     /// sorted by tag. Reported rather than silently ignored: a caller is
     /// entitled to know work was declined.
     pub skipped: Vec<SkippedBlocks>,
-    /// Spec 103 §3.2, §3.4: the spec whose `## Verification` block these
+    /// Spec 082 §3.2, §3.4: the spec whose `## Verification` block these
     /// commands came from, when that is not `spec_id`.
     ///
     /// `None` is the ordinary case: the spec runs its own block. `Some(id)`
@@ -46,7 +46,7 @@ impl VerifyPlan {
     /// Whether the spec declares executable acceptance at all.
     ///
     /// False for both "no `## Verification` section" and "a section holding no
-    /// `verify:cli` command": spec 049 §3.2 makes those one outcome, because
+    /// `verify:cli` command": spec 043 §3.2 makes those one outcome, because
     /// the distinction is invisible to a caller deciding whether it has
     /// evidence.
     pub fn is_declared(&self) -> bool {
@@ -68,7 +68,7 @@ pub struct SkippedBlocks {
 ///
 /// Built by the CLI, never by the engine. Carries the failing command's own
 /// exit code in [`VerifyFailure::exit_code`] rather than in the process's exit
-/// status, which spec 049 §3.3 constrains to the documented `0`/`1`/`2`/`3`.
+/// status, which spec 043 §3.3 constrains to the documented `0`/`1`/`2`/`3`.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VerifyReport {
@@ -87,7 +87,7 @@ pub struct VerifyReport {
     pub failure: Option<VerifyFailure>,
 }
 
-/// The three ends a verification run can reach (spec 049 §3.3).
+/// The three ends a verification run can reach (spec 043 §3.3).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum VerifyOutcome {

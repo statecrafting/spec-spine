@@ -14,7 +14,6 @@ npx spec-spine --version
 ```
 
 ```sh
-npx spec-spine init                                  # scaffold a spec corpus
 npx spec-spine compile                               # specs/*/spec.md -> registry.json
 npx spec-spine index                                 # codebase index
 npx spec-spine lint --fail-on-warn                   # corpus conformance

@@ -1,0 +1,111 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "032-stdout-closed-reader",
+      "034-machine-readable-verdicts",
+      "043-verify-declared-acceptance"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-cli/src/cmd_verify.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/verify_streams.rs",
+        "source": "multiple"
+      },
+      {
+        "path": "scripts/verify-closed-consumer.py",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/verify_streams.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/verify_streams.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-closed-consumer.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-closed-consumer.py"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_verify.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_verify.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/cli.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/032-stdout-closed-reader/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/032-stdout-closed-reader/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/034-machine-readable-verdicts/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/034-machine-readable-verdicts/spec.md"
+        }
+      }
+    ],
+    "specId": "090-the-verdict-is-the-only-thing-on-stdout",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "1117d8c210c95c1920bbb623237615a37e8ea39b493cfb3708271b4b8d44646d"
+}

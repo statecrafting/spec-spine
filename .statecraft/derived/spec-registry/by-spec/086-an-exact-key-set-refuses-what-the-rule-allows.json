@@ -1,0 +1,57 @@
+{
+  "record": {
+    "amends": [
+      "052-read-verbs-on-a-code-free-corpus"
+    ],
+    "amendsVerification": [
+      "052-read-verbs-on-a-code-free-corpus"
+    ],
+    "created": "2026-09-17",
+    "dependsOn": [
+      "052-read-verbs-on-a-code-free-corpus",
+      "074-a-governed-read-names-its-version",
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "085-a-version-pin-is-not-a-contract"
+    ],
+    "id": "086-an-exact-key-set-refuses-what-the-rule-allows",
+    "implementation": "complete",
+    "kind": "core",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "108: An exact key set refuses what the rule allows",
+      "1. Purpose",
+      "1.1 One red assertion, no defect behind it",
+      "1.2 An equality over a key set asserts a closed document",
+      "1.3 The block is silent about the decisions 059 recorded",
+      "1.4 The crossing was silent",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 What spec 052's acceptance now is",
+      "3.2 The verb's exit status is the line's status",
+      "3.3 The key set becomes presence, type, order and version",
+      "3.4 The two recorded decisions are asserted, on the fixture that shows them",
+      "3.5 The acceptance",
+      "3.6 No `amends` edge was owed to 059 by spec 074, and none is claimed here",
+      "3.7 No code changes",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/086-an-exact-key-set-refuses-what-the-rule-allows/spec.md",
+    "status": "approved",
+    "summary": "Spec 052's `## Verification` block asserts that `index orphans --json` has exactly the keys `orphaned` and `inFlight`, and spec 074 legitimately added a `schemaVersion` member to every governed read, so `spec-spine verify 059` has been red since 093 merged. 059 3.1 requires the two named arrays to be present and always emitted; it never required them to be the only members, and an equality over the key set asserts a closed document the rule does not state. The same block is silent about the two decisions 059 actually recorded for that verb: that `--json` emits both arrays even when empty, and that the prose form stays silent on a corpus with nothing to report. This spec declares 059's acceptance replaced and carries the corrected block, without editing 059's file. It is the second of the four follow-ons spec 084 4 named.\n",
+    "title": "An exact key set refuses what the rule allows"
+  },
+  "shardHash": "ab240de93a8082172c11c84ebf09a6ba2c9da448c36f13731cf1d3d568577cc9",
+  "specVersion": "1.3.0"
+}

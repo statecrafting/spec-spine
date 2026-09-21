@@ -1,0 +1,98 @@
+{
+  "record": {
+    "created": "2026-09-14",
+    "dependsOn": [
+      "044-index-diagnostics-reach-a-gate",
+      "062-one-name-one-freshness-verb",
+      "069-the-committed-index-is-compared-not-trusted"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "044-index-diagnostics-reach-a-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/diagnostics.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "062-one-name-one-freshness-verb",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_check.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "069-the-committed-index-is-compared-not-trusted",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index_body.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      }
+    ],
+    "id": "076-a-stray-shard-is-orphaned-at-the-verbs",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "095: A stray shard is orphaned at the verbs",
+      "1. Purpose",
+      "1.1 The verdict is computed and then discarded",
+      "1.2 Measured, at the verbs",
+      "1.3 Why the library test did not catch it",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The verdict outranks the tally",
+      "3.2 An unparseable file in the shard directory is drift, not a parse error",
+      "3.3 The tally is best-effort and says what it skipped",
+      "3.4 One path, four entry points",
+      "3.5 What does not change",
+      "3.6 The acceptance runs the verbs",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/076-a-stray-shard-is-orphaned-at-the-verbs/spec.md",
+    "status": "approved",
+    "summary": "Spec 069 §3.1 says `orphaned` covers \"a stray file in either shard directory\", and `compare_shard_dir` classifies by name without parsing, so the library holds to it. The verbs do not. `check_report` and `check_freshness_json` compute the freshness verdict and then call `diagnostics::committed_counts(config, repo_root)?`, which parses every file in the shard directories; an unparseable stray makes that `?` throw the computed verdict away, and `index check` and `check` exit 3 with a parse error where `couple` and `index coverage` exit 2 and name the orphan. Measured at 0.19.0, and the same at 0.18.0, so it is not a regression and not a bypass. 086's acceptance asserted the classification on the library function only, which is exactly how it passed. This spec makes the tally best-effort and the verdict authoritative, and asserts it at the verbs.\n",
+    "title": "A stray shard is orphaned at the verbs"
+  },
+  "shardHash": "ac24fc66a4894fc478a5cfe9a58b72f2b56acaacc39f127d213050c2231e19ec",
+  "specVersion": "1.3.0"
+}

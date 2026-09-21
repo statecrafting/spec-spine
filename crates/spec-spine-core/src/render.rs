@@ -1,4 +1,4 @@
-//! The render capability (spec 011): deterministic, human-shaped projections
+//! The render capability (spec 010): deterministic, human-shaped projections
 //! of the **committed** `index.json`. Pure read-side: never recomputes the
 //! index, never consults the working tree, never signals staleness
 //! (recomputation is `index`, freshness is `index check`; three verbs, three
@@ -12,7 +12,7 @@ use spec_spine_types::{
     CodebaseIndex, Config, Diagnostic, Implementation, PackageKind, SpecRecord, Status,
 };
 
-/// The id-sorted `traceability.orphanedSpecs` list (spec 011 §3.3).
+/// The id-sorted `traceability.orphanedSpecs` list (spec 010 §3.3).
 pub fn orphans(index: &CodebaseIndex) -> Vec<&str> {
     let mut ids: Vec<&str> = index
         .traceability
@@ -24,7 +24,7 @@ pub fn orphans(index: &CodebaseIndex) -> Vec<&str> {
     ids
 }
 
-/// `orphans`, partitioned by whether the spec is in flight (spec 059 §3.1).
+/// `orphans`, partitioned by whether the spec is in flight (spec 052 §3.1).
 ///
 /// An orphan is a spec claiming nothing that resolves, and on a specify-first
 /// corpus a spec whose code is not written yet claims nothing that resolves. So
@@ -38,10 +38,10 @@ pub fn orphans(index: &CodebaseIndex) -> Vec<&str> {
 /// because suppressing it would replace a useless answer with an incomplete one
 /// and lose the verb that answers "what has no code yet".
 ///
-/// The predicate is spec 044's, read from the **registry** rather than the
+/// The predicate is spec 041's, read from the **registry** rather than the
 /// index: the index shard records `spec_status` but not `implementation`, and
 /// adding it would move `INDEX_SCHEMA_VERSION` and restamp every shard for a
-/// read verb's benefit (spec 059 §3.4 forbids that). A spec with no record is
+/// read verb's benefit (spec 052 §3.4 forbids that). A spec with no record is
 /// treated as in flight, since a corpus that cannot say otherwise should not be
 /// told its spec is abandoned. Taking the record slice rather than a `Registry`
 /// is what lets the caller pass an empty one when no registry is committed: a
@@ -62,7 +62,7 @@ pub fn partition_orphans<'a>(index: &'a CodebaseIndex, records: &[SpecRecord]) -
     }
 }
 
-/// Spec 044's in-flight predicate over a registry record: `complete` settles
+/// Spec 041's in-flight predicate over a registry record: `complete` settles
 /// it, else `draft` status or a `pending` / `in-progress` implementation.
 ///
 /// Kept beside the partition rather than shared with `index.rs`, which asks the
@@ -79,8 +79,8 @@ fn record_in_flight(rec: &SpecRecord) -> bool {
         )
 }
 
-/// The two groups `index orphans` reports (spec 059 §3.1). Both id-sorted, as
-/// spec 011 §3.3 requires.
+/// The two groups `index orphans` reports (spec 052 §3.1). Both id-sorted, as
+/// spec 010 §3.3 requires.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OrphanReport<'a> {
@@ -91,7 +91,7 @@ pub struct OrphanReport<'a> {
     pub in_flight: Vec<&'a str>,
 }
 
-/// The markdown projection of the committed index (spec 011 §3.2).
+/// The markdown projection of the committed index (spec 010 §3.2).
 ///
 /// Section inventory and order are the v1 contract: header, package
 /// inventory, traceability (orphans / untraced flat lists omitted when

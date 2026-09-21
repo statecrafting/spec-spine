@@ -5,7 +5,7 @@
 //! [`Unit::Symbol`], [`Unit::Directory`], [`Unit::Crate`], and [`Unit::Module`]
 //! (ported from OAP `spec-types::LogicalUnit`). All six are implemented:
 //! `file`/`section`/`symbol` shipped first, and `directory`/`crate`/`module`
-//! landed in spec 017 (originally reserved in `docs/design/00-architecture.md`
+//! landed in spec 016 (originally reserved in `docs/design/00-architecture.md`
 //! §2.2 Q5). They were a MINOR bump because the schema is permissive on the unit
 //! payload (no schema-file edit), and a bare string remains shorthand for a file
 //! unit (a trailing-slash path denotes a directory subtree).
@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Serializes internally-tagged on `kind` (e.g. `{ "kind": "file", "path": ... }`).
 /// Deserializes from that tagged map, a bare string (= a file unit), **or** a
-/// `{ unit: <unit> }` wrapper (spec 015 sugar), so authors can write
+/// `{ unit: <unit> }` wrapper (spec 014 sugar), so authors can write
 /// `establishes: ["src/lib.rs"]` or `establishes: [{ unit: "src/lib.rs" }]`
 /// interchangeably; all three normalize to the same unit.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -27,7 +27,7 @@ pub enum Unit {
     /// the directory subtree rooted at `path`.
     File {
         path: String,
-        /// Spec 076: the spec claims this territory and has not written it
+        /// Spec 063: the spec claims this territory and has not written it
         /// yet. A declared state, not a diagnostic: an unresolved unit marked
         /// `planned` produces no `W-001`, while one that is merely wrong still
         /// does, which is the distinction that makes the flag safe to add to a
@@ -47,7 +47,7 @@ pub enum Unit {
     Section {
         file: String,
         anchor: String,
-        /// Spec 076: the spec claims this territory and has not written it
+        /// Spec 063: the spec claims this territory and has not written it
         /// yet. A declared state, not a diagnostic: an unresolved unit marked
         /// `planned` produces no `W-001`, while one that is merely wrong still
         /// does, which is the distinction that makes the flag safe to add to a
@@ -66,7 +66,7 @@ pub enum Unit {
     /// tree-sitter (Rust `.rs` and TypeScript `.ts`/`.tsx`).
     Symbol {
         id: String,
-        /// Spec 076: the spec claims this territory and has not written it
+        /// Spec 063: the spec claims this territory and has not written it
         /// yet. A declared state, not a diagnostic: an unresolved unit marked
         /// `planned` produces no `W-001`, while one that is merely wrong still
         /// does, which is the distinction that makes the flag safe to add to a
@@ -87,7 +87,7 @@ pub enum Unit {
     /// 017). Resolves to the directory path; the gate prefix-matches it.
     Directory {
         path: String,
-        /// Spec 076: the spec claims this territory and has not written it
+        /// Spec 063: the spec claims this territory and has not written it
         /// yet. A declared state, not a diagnostic: an unresolved unit marked
         /// `planned` produces no `W-001`, while one that is merely wrong still
         /// does, which is the distinction that makes the flag safe to add to a
@@ -104,10 +104,10 @@ pub enum Unit {
     },
     /// A compilation unit by its manifest name (Cargo `[package].name` or npm
     /// `package.json:name`), resolved against the discovered package inventory to
-    /// the package directory subtree (spec 017).
+    /// the package directory subtree (spec 016).
     Crate {
         id: String,
-        /// Spec 076: the spec claims this territory and has not written it
+        /// Spec 063: the spec claims this territory and has not written it
         /// yet. A declared state, not a diagnostic: an unresolved unit marked
         /// `planned` produces no `W-001`, while one that is merely wrong still
         /// does, which is the distinction that makes the flag safe to add to a
@@ -124,10 +124,10 @@ pub enum Unit {
     },
     /// A module by its `::`-qualified path (e.g. `my_crate::serialization`),
     /// resolved by the indexer's Rust module index: file-modules (whole file)
-    /// and top-level inline `mod` blocks (line-span) (spec 017).
+    /// and top-level inline `mod` blocks (line-span) (spec 016).
     Module {
         id: String,
-        /// Spec 076: the spec claims this territory and has not written it
+        /// Spec 063: the spec claims this territory and has not written it
         /// yet. A declared state, not a diagnostic: an unresolved unit marked
         /// `planned` produces no `W-001`, while one that is merely wrong still
         /// does, which is the distinction that makes the flag safe to add to a
@@ -153,7 +153,7 @@ impl Unit {
         }
     }
 
-    /// Spec 076 §3.1: whether the claiming spec has declared this territory
+    /// Spec 063 §3.1: whether the claiming spec has declared this territory
     /// planned but not yet written.
     pub fn is_planned(&self) -> bool {
         match self {
@@ -172,7 +172,7 @@ impl Unit {
     /// `planned` annotates a claim's resolution state, not which territory the
     /// claim names, so two units differing only in the flag name one unit. The
     /// index stores subjects, so a planned claim that has resolved answers an
-    /// `authorities` lookup exactly as an unplanned one does (spec 076 §3.4),
+    /// `authorities` lookup exactly as an unplanned one does (spec 063 §3.4),
     /// and the collision checks in §3.5 compare subjects rather than payloads.
     pub fn subject(&self) -> Self {
         let mut out = self.clone();
@@ -188,7 +188,7 @@ impl Unit {
     }
 
     /// True if this unit resolves to a directory subtree: a file unit whose path
-    /// ends `/`, or an explicit [`Unit::Directory`] (spec 017).
+    /// ends `/`, or an explicit [`Unit::Directory`] (spec 016).
     pub fn is_directory_subtree(&self) -> bool {
         match self {
             Unit::File { path, .. } => path.ends_with('/'),
@@ -204,7 +204,7 @@ impl<'de> Deserialize<'de> for Unit {
         D: Deserializer<'de>,
     {
         // Accept a bare string (-> file unit), the tagged map form, or the
-        // `{ unit: <unit> }` wrapper (spec 015).
+        // `{ unit: <unit> }` wrapper (spec 014).
         #[derive(Deserialize)]
         #[serde(untagged)]
         enum Repr {
@@ -259,7 +259,7 @@ impl<'de> Deserialize<'de> for Unit {
                 if path.trim().is_empty() {
                     return Err(de::Error::custom("unit path must not be empty"));
                 }
-                // Spec 076 §3.1: the bare-string shorthand cannot carry the
+                // Spec 063 §3.1: the bare-string shorthand cannot carry the
                 // flag, and the grammar is deliberately not extended to let it.
                 // A second string grammar would be parsed in a second place,
                 // where a misspelling degrades silently into a path.

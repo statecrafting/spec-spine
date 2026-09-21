@@ -1,4 +1,4 @@
-//! Ledger-seal DTOs (spec 023): the `CorpusAttestation` payload and the detached
+//! Ledger-seal DTOs (spec 021): the `CorpusAttestation` payload and the detached
 //! `LedgerSeal` envelope.
 //!
 //! Plain data only: no crypto and no clock. The `CorpusAttestation` is a pure
@@ -9,7 +9,7 @@
 //! the act of attesting carries its own identity. Field names serialize
 //! `camelCase`, matching the registry and index wire.
 //!
-//! Every type here refuses a member it does not know (spec 085 3.2). An unknown
+//! Every type here refuses a member it does not know (spec 068 3.2). An unknown
 //! member is a claim this build cannot evaluate, and a verifier that drops it
 //! has verified a smaller object than the one it was handed: the consumer then
 //! reads, with its own parser, fields spec-spine never checked. The refusal is
@@ -28,7 +28,7 @@ use serde::{Deserialize, Serialize};
 pub const ATTESTATION_SCHEMA_VERSION: &str = "0.1.0";
 
 /// The tool identity recorded in an attestation: the reproducibility anchor
-/// (spec 023 FR-005). A `--recompute` verify is meaningful only under the same
+/// (spec 021 FR-005). A `--recompute` verify is meaningful only under the same
 /// `version`; a different version is a distinct, named outcome, never a false
 /// content mismatch.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -55,7 +55,7 @@ pub struct LintVerdict {
     pub findings_hash: String,
 }
 
-/// The coupling verdict, present only under `attest --with-coupling` (spec 023
+/// The coupling verdict, present only under `attest --with-coupling` (spec 021
 /// FR-002): specs and code are in sync (every claimed unit resolves, no blocking
 /// resolver diagnostic). `index_hash` is the code-as-source content hash;
 /// `join_hash` binds the registry and index hashes into one handle over the
@@ -100,7 +100,7 @@ pub struct CorpusAttestation {
 }
 
 /// One owning unit of a spec, with the content hash of what it resolved to
-/// (spec 042).
+/// (spec 039).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct AttestedUnit {
@@ -112,7 +112,7 @@ pub struct AttestedUnit {
     pub content_hash: Option<String>,
 }
 
-/// A spec's own lifecycle, as declared at attestation time (spec 042).
+/// A spec's own lifecycle, as declared at attestation time (spec 039).
 ///
 /// `implementation` is omitted **only** when the key is absent from the spec's
 /// frontmatter. Every declared value is carried, `n-a` included: an absent key
@@ -128,7 +128,7 @@ pub struct AttestedLifecycle {
 }
 
 /// The resolution verdict: does every owning unit this spec claims resolve to
-/// an existing location (spec 042).
+/// an existing location (spec 039).
 ///
 /// Records the **fact**, never the indexer's severity tier for it: an in-flight
 /// spec whose phantom unit is only a `W-001` still attests `ok: false`. Tying
@@ -145,7 +145,7 @@ pub struct ResolutionVerdict {
 /// The verdicts a [`SpecAttestation`] freezes.
 ///
 /// There is no `couple` verdict: coupling is a property of a diff between two
-/// revisions, not of a spec at one revision, and spec 023 already carries the
+/// revisions, not of a spec at one revision, and spec 021 already carries the
 /// corpus-scoped version for consumers that want it.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -155,9 +155,9 @@ pub struct SpecVerdicts {
     pub lint: LintVerdict,
 }
 
-/// A reproducible attestation scoped to one spec (spec 042).
+/// A reproducible attestation scoped to one spec (spec 039).
 ///
-/// Spec 023's `CorpusAttestation` answers "was the corpus sound at this
+/// Spec 021's `CorpusAttestation` answers "was the corpus sound at this
 /// revision". The unit of work in a governed build is one spec, and this answers
 /// the same question about one spec's territory: its own source hash, every
 /// owning unit it claims with the content hash of what that resolved to, and the
@@ -170,7 +170,7 @@ pub struct SpecVerdicts {
 ///
 /// **No lint rule may consume one of these.** The payload records `lint.ok`, so
 /// a rule conditioned on an attestation would be grading its own output. See
-/// spec 042 3.4.
+/// spec 039 3.4.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SpecAttestation {
@@ -182,14 +182,14 @@ pub struct SpecAttestation {
     pub lifecycle: AttestedLifecycle,
     /// The spec's **owning** units in the registry's canonical order.
     ///
-    /// Non-owning `references` units are excluded: spec 034 settled that a cited
+    /// Non-owning `references` units are excluded: spec 031 settled that a cited
     /// file is not a claimed one, and an attestation of territory must not
     /// assert authority the gate does not.
     pub units: Vec<AttestedUnit>,
     pub verdicts: SpecVerdicts,
 }
 
-/// The detached Ed25519 seal over an attestation (spec 023 FR-003). Produced
+/// The detached Ed25519 seal over an attestation (spec 021 FR-003). Produced
 /// only by `attest --sign`. It carries its own non-reproducible identity and
 /// time, kept OUT of the pure payload so the attested fact stays reproducible
 /// while the act of attesting is dated and attributed.

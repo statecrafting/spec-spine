@@ -1,6 +1,6 @@
-//! Committed-diagnostics reader tests (spec 050).
+//! Committed-diagnostics reader tests (spec 044).
 //!
-//! The tier split under test is spec 025's: `W-002` for a non-owning
+//! The tier split under test is spec 023's: `W-002` for a non-owning
 //! `references` edge, `W-001` for an owning edge on a spec in flight, and the
 //! `I-0xx` hard error otherwise. Nothing here changes that classification; these
 //! assert that what it recorded can be read back, counted, and attributed to the
@@ -98,7 +98,7 @@ fn an_error_tier_diagnostic_is_not_unresolved_for_the_flag() {
 /// A corpus with one of each warning tier and nothing else.
 ///
 /// `001-flight` is `draft` + `pending`, so its unresolved **owning** claim is a
-/// `W-001` (spec 025). `002-ref` is `approved` + `complete` but the unresolved
+/// `W-001` (spec 023). `002-ref` is `approved` + `complete` but the unresolved
 /// unit is a non-owning `references` edge, so it is a `W-002` at any lifecycle.
 fn fixture() -> tempfile::TempDir {
     let tmp = tempfile::tempdir().unwrap();

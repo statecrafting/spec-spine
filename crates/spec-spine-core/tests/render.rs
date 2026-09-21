@@ -1,4 +1,4 @@
-//! Golden tests for the spec 011 projections: the rendered markdown is a pure
+//! Golden tests for the spec 010 projections: the rendered markdown is a pure
 //! function of `(config, index.json bytes)`: byte-exact, LF endings, trailing
 //! newline. Fixtures go through `load_index` so the wire shapes are exercised
 //! end to end.
@@ -86,7 +86,7 @@ const FULL_EXPECTED: &str = "# spec-spine codebase index\n\
 - I-003 [error] unit resolved nowhere (crates/zeta/src/gone.rs)\n";
 
 /// No orphans, no untraced code, no diagnostics: those sections are omitted
-/// entirely (spec 011 §3.2 / §3.4).
+/// entirely (spec 010 §3.2 / §3.4).
 const EMPTY_SECTIONS_FIXTURE: &str = r#"{
   "schemaVersion": "1.0.0",
   "build": {
@@ -152,7 +152,7 @@ fn orphans_are_id_sorted() {
     assert!(orphans(&empty).is_empty());
 }
 
-// ── spec 059: orphans partitions by the in-flight predicate ───────────────
+// ── spec 052: orphans partitions by the in-flight predicate ───────────────
 
 /// A registry carrying just the lifecycle fields the partition reads.
 fn registry_with(specs: serde_json::Value) -> spec_spine_types::Registry {
@@ -207,13 +207,13 @@ fn orphans_partitions_by_the_in_flight_predicate() {
         vec!["009-zzz"],
         "draft + pending: normal, and still reported"
     );
-    // §3.1: id-sorted within each group, as spec 011 §3.3 requires.
+    // §3.1: id-sorted within each group, as spec 010 §3.3 requires.
     let mut sorted = report.orphaned.clone();
     sorted.sort_unstable();
     assert_eq!(report.orphaned, sorted);
 }
 
-/// §3.1: every arm of spec 044's predicate, so the two verbs cannot disagree
+/// §3.1: every arm of spec 041's predicate, so the two verbs cannot disagree
 /// about which specs are under way. `complete` settles it whatever the status.
 #[test]
 fn every_arm_of_the_in_flight_predicate_lands_where_044_puts_it() {

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Governed in the spec-spine repository by
-# specs/090-a-hook-bound-to-a-tool-route-misses-the-work/spec.md. Provenance
+# specs/094-one-gate-and-the-boundaries-it-holds/spec.md. Provenance
 # only, never a claim header: the claim syntax would name a spec id that
 # exists in no adopter's corpus, and would shadow one the adopter adds below
-# it (spec 115).
+# it (spec 095).
 #
 # One-command, idempotent enablement of this repository's committed git hooks
 # in THIS clone. Run once per clone: `core.hooksPath` lives in per-clone
@@ -16,7 +16,7 @@
 # Disable:
 #   git config --unset core.hooksPath
 #
-# What it turns on is `.githooks/pre-commit` (spec 090): a refusal, never a
+# What it turns on is `.githooks/pre-commit` (spec 094): a refusal, never a
 # repair, at the one boundary no tool route can bypass. Until this script is
 # run the hook is inert bytes in the tree.
 #

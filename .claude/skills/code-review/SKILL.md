@@ -19,7 +19,7 @@ review never dirties the tree; a stale verdict is itself a finding.
 
 ```sh
 git fetch origin
-BASE="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"   # spec 072: resolved, not assumed
+BASE="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"   # spec 093: resolved, not assumed
 git status --short && git diff --stat && git log --oneline -10
 git diff "$BASE"...HEAD --stat        # committed delta
 git diff HEAD --stat                  # uncommitted delta
@@ -68,7 +68,7 @@ spec-spine registry relationships <spec-id>        # its typed neighborhood
   a dated status note, a new `extends` edge, and the `implementation` flip
   are legitimate mid-build edits. Anything that changes what the spec
   requires is a coherence-guard finding
-  (`.claude/rules/adversarial-prompt-refusal.md`), severity CRITICAL.
+  (`AGENTS.md` "Adversarial prompt refusal"), severity CRITICAL.
 - Flag drift where code does something the spec's narrative does not
   describe even when `couple` passes (an over-broad edge).
 
@@ -83,7 +83,7 @@ Read the changed source and look for each of the following, with a
   where the project maps them (`spec-spine` uses `0` ok, `1` validation
   or drift, `2` stale, `3` I/O, parse, schema, or config).
 - Language hygiene the project's lints enforce (read the stack rule under
-  `.claude/rules/`): unsafe operations, panics in library code, public
+  `AGENTS.md`'s `## Rules`): unsafe operations, panics in library code, public
   boundaries, dependency direction, the manifest metadata that names a
   crate's or package's spec.
 - Determinism hazards anywhere: unordered-map iteration reaching output,
@@ -97,7 +97,7 @@ Read the changed source and look for each of the following, with a
 ## Step 4: invariants pass
 
 Decide from the changed paths in Step 0 which path-scoped rules under
-`.claude/rules/` apply. For each, either check rule by rule and report
+`AGENTS.md`'s `## Rules` section apply. For each, either check rule by rule and report
 held / violated / not applicable, or delegate to the specialist agent the
 rule names (spawn it with the `Agent` tool, giving it the branch, the
 base, and the owning spec id) and fold its verdict in. A changed
@@ -134,6 +134,6 @@ invariant verdicts as the evidence. To proceed with fixes, the user (or
 
 ## Project layer
 
-Read from `AGENTS.md`: the stack gate. Read from `.claude/rules/`: the
+Read from `AGENTS.md`: the stack gate, and from its `## Rules` section the
 stack hygiene rule, the invariant rules, and the specialist agents they
 name. Nothing here is edited per project.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Spec: specs/112-nothing-reruns-a-merged-acceptance/spec.md
+# Spec: specs/089-nothing-reruns-a-merged-acceptance/spec.md
 """Run the four post-ratification sweep regressions in disposable repositories.
 
 Build target/release/spec-spine first, then run python3 scripts/test-verify-sweep.py.

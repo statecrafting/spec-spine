@@ -18,7 +18,7 @@ spec = "001-compile-registry"
 
 [features]
 default = ["symbol-resolution"]
-# Tree-sitter symbol/module resolution (spec 027). Default-on, so the CLI and
+# Tree-sitter symbol/module resolution (spec 025). Default-on, so the CLI and
 # `spec-spine index` are behaviorally unchanged. Library consumers that read only
 # the committed shards (`load_committed_registry`/`load_committed_index`) can
 # disable it with `default-features = false` to drop the tree-sitter native
@@ -34,7 +34,7 @@ sha2 = { workspace = true }
 # Symbol resolution. Pinned EXACT (=): the resolver is a determinism input
 # across the 5-triple release matrix (Phase-3 watch-item 2): an unpinned grammar
 # would shift symbol line-spans and surface as flaky goldens. Cargo.lock is committed.
-# Gated behind the default `symbol-resolution` feature (spec 027).
+# Gated behind the default `symbol-resolution` feature (spec 025).
 tree-sitter = { version = "=0.27.0", optional = true }
 tree-sitter-rust = { version = "=0.24.2", optional = true }
 tree-sitter-typescript = { version = "=0.23.2", optional = true }
@@ -45,8 +45,8 @@ glob = "0.3"
 
 [dev-dependencies]
 jsonschema = "0.49"
-# Spec 114 3.4: `tests/kit_gate.rs` asserts over `kit/govern.yml`'s parsed steps
-# rather than over its text. Already a dependency of this crate above; an
+# Spec 094 3.4 (retargeted by spec 092 3.6): `tests/gate.rs` asserts over
+# `.github/workflows/ci.yml`'s parsed steps rather than over its text. Already a dependency of this crate above; an
 # integration test under `tests/` cannot see that one, so it is declared again
 # here. Nothing new enters Cargo.lock and no shipped artifact gains a dependency.
 serde_yaml = { workspace = true }

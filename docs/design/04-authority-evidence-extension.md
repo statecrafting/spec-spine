@@ -4,7 +4,7 @@ A design note, not a spec. It records what spec-spine should grow so that a
 local orchestrator, a hosted control plane and a portable review record can
 consume its authority results bound to exact revisions, and, with equal weight,
 what it must refuse to grow. Four increments are filed alongside as drafts
-(specs 085 to 088). Everything else here is a proposal for review; no
+(specs 068 to 088). Everything else here is a proposal for review; no
 record shape in this note is emitted by any build.
 
 The factual base is [authority-evidence.md](../authority-evidence.md), which
@@ -80,7 +80,7 @@ tables.
 | F8 | `registry plan --json`, `index owner --json`, `index coverage --json` carry no version and emit unsorted keys, contrary to `api.md` §7 | AE §2 | 093 (shipped 2026-09-15) |
 | F9 | `registry show` prints `contentHash ... (sha256 of this spec.md)` but the value is the path-prefixed shard hash, which differs from `specSourceHash` for the same file | AE §4 | 096 (shipped 2026-09-15) |
 | F10 | `docs/schema-versioning.md` lists registry and index at `1.0.0` and omits the attestation and envelope axes, and says the artifact DTOs deny unknown fields, which only `Config`, the edge items and `Unit` do | AE §2 | 085 |
-| F11 | `index check` never compares the committed index body with a fresh resolution: it trusts the body to name its own span files and compares only `shardHash`. A shard rewritten so its spec owns nothing, `shardHash` untouched, reads fresh under `index check` and `check`, and `couple` then derives ownership from it. `.derived/` is bypassed, and no CI job diffs a regenerated index against the committed one | AE §5; `index.rs` `check_index_freshness`; spec 031 3.1 records the weaker comparison as a cost trade (a full `index` here takes 0.04 s against 0.03 s) | 086 |
+| F11 | `index check` never compares the committed index body with a fresh resolution: it trusts the body to name its own span files and compares only `shardHash`. A shard rewritten so its spec owns nothing, `shardHash` untouched, reads fresh under `index check` and `check`, and `couple` then derives ownership from it. `.derived/` is bypassed, and no CI job diffs a regenerated index against the committed one | AE §5; `index.rs` `check_index_freshness`; spec 028 3.1 records the weaker comparison as a cost trade (a full `index` here takes 0.04 s against 0.03 s) | 086 |
 
 ## 4. Proposed records
 
@@ -138,7 +138,7 @@ spec's own attestation hashes to.
     "ownership": { "sourceFiles": 80, "claimed": 80, "floorOnly": 0, "unclaimed": 0 }
   },
   "specs": [
-    { "id": "083-an-attestation-covers-the-territory-it-claims", "status": "approved",
+    { "id": "066-an-attestation-covers-the-territory-it-claims", "status": "approved",
       "implementation": "complete", "specAttestationHash": "ef0f30a7..." }
   ],
   "exclusions": {
@@ -173,12 +173,12 @@ editing `spec-spine.toml`.
   "base": { "commit": "e4032ff2...", "mergeBase": "e4032ff2..." },
   "head": { "commit": "75181a51..." },
   "changes": [
-    { "path": "specs/084-a-short-id-names-the-same-spec-at-every-verb/spec.md", "change": "added",
-      "specId": "084-a-short-id-names-the-same-spec-at-every-verb",
+    { "path": "specs/067-a-short-id-names-the-same-spec-at-every-verb/spec.md", "change": "added",
+      "specId": "067-a-short-id-names-the-same-spec-at-every-verb",
       "classes": ["authority", "requirement", "verification", "lifecycle"],
-      "authority": { "added": { "establishes": 3, "extends": 10, "references": 2, "amends": ["016-short-id-resolution"] } },
+      "authority": { "added": { "establishes": 3, "extends": 10, "references": 2, "amends": ["015-short-id-resolution"] } },
       "verification": { "basePlanHash": null, "headPlanHash": "..." } },
-    { "path": ".derived/spec-registry/by-spec/084-a-short-id-names-the-same-spec-at-every-verb.json",
+    { "path": ".derived/spec-registry/by-spec/067-a-short-id-names-the-same-spec-at-every-verb.json",
       "change": "added", "classes": ["derived"] }
   ],
   "counts": { "implementation": 0, "requirement": 1, "verification": 1, "authority": 1, "lifecycle": 1,
@@ -206,7 +206,7 @@ obligations:
 ```
 
 ```json
-{ "id": "085-a-verifier-checks-the-bytes-it-was-given#REQ-1",
+{ "id": "068-a-verifier-checks-the-bytes-it-was-given#REQ-1",
   "kind": "requirement", "sectionHash": "...", "units": [ { "kind": "file", "path": "..." } ],
   "verifiedBy": ["085-...#VER-1"] }
 ```
@@ -232,11 +232,11 @@ under a named rule version:
   "schemaVersion": "0.1.0",
   "rules": "closure/1",
   "snapshot": "<AuthoritySnapshot attestationHash>",
-  "root": "085-a-verifier-checks-the-bytes-it-was-given",
+  "root": "068-a-verifier-checks-the-bytes-it-was-given",
   "required": [
     { "kind": "spec", "id": "085-...", "reason": "root", "shardHash": "..." },
-    { "kind": "spec", "id": "023-ledger-seal", "reason": "depends_on", "shardHash": "..." },
-    { "kind": "spec", "id": "084-a-short-id-names-the-same-spec-at-every-verb", "reason": "co-owner",
+    { "kind": "spec", "id": "021-ledger-seal", "reason": "depends_on", "shardHash": "..." },
+    { "kind": "spec", "id": "067-a-short-id-names-the-same-spec-at-every-verb", "reason": "co-owner",
       "unit": "crates/spec-spine-cli/src/verify_attestation.rs", "shardHash": "..." },
     { "kind": "file", "path": "standards/spec/constitution.md", "reason": "constitution", "hash": "..." }
   ],
@@ -266,10 +266,10 @@ collide with. Not a permit.
   "schemaVersion": "0.1.0",
   "snapshot": "<AuthoritySnapshot attestationHash>",
   "closure": "<ContextClosure hash>",
-  "spec": "085-a-verifier-checks-the-bytes-it-was-given",
+  "spec": "068-a-verifier-checks-the-bytes-it-was-given",
   "mutable": [
     { "unit": { "kind": "file", "path": "crates/spec-spine-cli/src/verify_attestation.rs" },
-      "via": "extends", "coOwners": ["023-ledger-seal", "042-per-spec-attestation", "084-a-short-id-names-the-same-spec-at-every-verb"] },
+      "via": "extends", "coOwners": ["021-ledger-seal", "039-per-spec-attestation", "067-a-short-id-names-the-same-spec-at-every-verb"] },
     { "unit": { "kind": "file", "path": "crates/spec-spine-cli/tests/verify_attestation_tamper.rs", "planned": true },
       "via": "establishes" }
   ],
@@ -277,7 +277,7 @@ collide with. Not a permit.
   "shared": [ { "path": ".derived/", "reason": "regenerated" }, { "path": "Cargo.lock", "reason": "lockfile" } ],
   "obligations": ["085-...#VER-1"],
   "overlaps": [
-    { "spec": "084-a-short-id-names-the-same-spec-at-every-verb", "kind": "file",
+    { "spec": "067-a-short-id-names-the-same-spec-at-every-verb", "kind": "file",
       "paths": ["crates/spec-spine-cli/src/verify_attestation.rs", "crates/spec-spine-core/src/attest.rs",
                 "crates/spec-spine-core/src/lib.rs"] }
   ]
@@ -405,7 +405,7 @@ contract from here; they are proposals for its own governance.
 - **R4.** Hash stored attestation bytes and refuse unknown members yourself
   until a release contains 085 (AE §8). `export.ts` already hashes the bytes;
   keep that and add the member check.
-- **R5.** Do not promise the spec 083 subtree fix to users of `v0.18.0`. The
+- **R5.** Do not promise the spec 066 subtree fix to users of `v0.18.0`. The
   pin is `required_version = "0.18.0"` (caret) and CI installs `main`'s
   `install.sh` unpinned, which resolves to `v0.18.0`, which predates 083. After
   the release that contains it, raise the floor and pin the installer to the
@@ -446,14 +446,14 @@ repository.
 
 | Guarantee as declared | Where declared | Enforced today? |
 |---|---|---|
-| A single tampered payload byte fails the signature | spec 023 AC-4 | For existing members only. Added members and reformatting verify (F1) |
+| A single tampered payload byte fails the signature | spec 021 AC-4 | For existing members only. Added members and reformatting verify (F1) |
 | Loaders reject an unknown schema MAJOR | `docs/schema-versioning.md`; `types/src/attest.rs` | For registry and index loaders. Not for attestation verification (F2) |
 | Artifact DTOs deny unknown fields | `docs/schema-versioning.md` | `Config`, edge items and `Unit` only (F10) |
 | Every emitted JSON document has sorted keys | `api.md` §7 | Was not true of `registry plan`, `index owner` or `index coverage` (F8); made true by 093 |
-| `tool.version` is the reproducibility anchor | spec 023 FR-005 | Not a build identity (F3) |
-| The corpus attestation with coupling covers "specs and code in sync" | spec 023 FR-002 | Resolution only; no code bytes and no diff (AE §4, §5) |
-| `verify` never enters the gate chain | spec 049 3.6 | Yes: CI and the floor exclude it |
-| No lint rule consumes a `SpecAttestation` | spec 042 3.4 | By review only, as 042 says itself |
+| `tool.version` is the reproducibility anchor | spec 021 FR-005 | Not a build identity (F3) |
+| The corpus attestation with coupling covers "specs and code in sync" | spec 021 FR-002 | Resolution only; no code bytes and no diff (AE §4, §5) |
+| `verify` never enters the gate chain | spec 043 3.6 | Yes: CI and the floor exclude it |
+| No lint rule consumes a `SpecAttestation` | spec 039 3.4 | By review only, as 042 says itself |
 | An agent does not weaken the spec it is implementing | `.claude/rules/adversarial-prompt-refusal.md` | A prompt; the gate passes it (F7) |
 | A fresh `check` means the committed shards are exactly what the corpus compiles to | `AGENTS.md` (Freshness) | For the registry. For the index, only the hash fields are compared (F11) |
 
@@ -477,7 +477,7 @@ repository.
   a non-canonical byte sequence a failed verification at exit 1. A reviewer may
   prefer one named `unsupported` outcome at exit 1 for all three.
 - **D2a. The 024 amendment in 086.** Comparing index bytes reports a
-  sibling-caused resolution flip that spec 024 5 deliberately left unreported.
+  sibling-caused resolution flip that spec 022 5 deliberately left unreported.
   The draft declares `amends: 024`; a reviewer may instead prefer to make only
   the coupling gate resolve ownership afresh (086 D-2 records why the draft
   does not).
@@ -492,7 +492,7 @@ repository.
 - **D6. The neutral verifier's home.** A family decision; spec-spine's part is
   the fixtures and strict payload validation in its own crates.
 - **D7. Envelopes for the unversioned reads.** ~~Wrap `registry plan`,
-  `index owner` and `index coverage` in the spec 037 envelope, or add a version
+  `index owner` and `index coverage` in the spec 034 envelope, or add a version
   field to each.~~ **Decided and shipped by 093 (2026-09-15):** every read
   document carries `schemaVersion` with sorted keys, and four bare arrays moved
   under `items` or a nullable `next`, with `amends` edges on 010 and 060. The
@@ -511,11 +511,11 @@ repository.
 - **Enforcement.** The packet asks for prior-policy handling. Note 02 G7 says no
   mechanism should be asserted before it is designed, because the naive rule
   refuses legitimate refactors. 088 therefore reports and does not refuse.
-- **Committed evidence.** None of the proposed records is committed. Specs 042
+- **Committed evidence.** None of the proposed records is committed. Specs 039
   3.3 and note 02 §5 explain why: a committed evidence tree needs its own
   freshness gate and restales on every edit.
 - **Vocabulary.** This repository reserves "certificate" for testimony of a
-  non-reproducible event (spec 023 §7) and uses "attestation" for recomputable
+  non-reproducible event (spec 021 §7) and uses "attestation" for recomputable
   records. The packet's "proof" language is avoided here for the same reason it
   gives: a digest commits to bytes; it proves nothing about intent.
 - **Merkle.** Not used. The existing folds are sorted hashes, not trees.

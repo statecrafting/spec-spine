@@ -1,7 +1,7 @@
 # Adopting spec-spine
 
-> Take any conventional repo from zero to spec-governed: **install →
-> `spec-spine init` → annotate manifests → wire CI.** No source edits to the
+> Take any conventional repo from zero to spec-governed: **install → create the
+> starter corpus → annotate manifests → wire CI.** No source edits to the
 > library; every project-specific assumption is a `spec-spine.toml` knob (see
 > §Config). For the design rationale see
 > [design/00-architecture.md](design/00-architecture.md); for the programmatic
@@ -47,16 +47,17 @@ spec-spine --help
 
 ---
 
-## 2. Scaffold the corpus: `spec-spine init`
+## 2. Create the starter corpus
 
-Run at your repo root:
+spec-spine has **no `init` command**. Initializing a project is the
+[Statecraft CLI's](design/07-statecraft-realignment-2026-09.md) job: it owns
+project onboarding and the managed development environment, and it calls
+spec-spine's library for the governance half. spec-spine produces that content
+as data and writes nothing.
 
-```sh
-spec-spine init            # skips files that already exist
-spec-spine init --force    # overwrite existing files
-```
-
-`init` writes a starter governance corpus:
+If you are using Statecraft, run its initializer and skip to §3. If you are
+adopting spec-spine on its own, create these six files by hand (or from your own
+tooling, through the library facade described below):
 
 | Path | What it is |
 |---|---|
@@ -66,9 +67,31 @@ spec-spine init --force    # overwrite existing files
 | `standards/spec/templates/spec-template.md` | template for new specs |
 | `standards/spec/templates/constitution-template.md` | template for the constitution |
 | `specs/000-bootstrap/spec.md` | the hand-authored bootstrap spec (tier 1) |
-| `.claude/rules/orchestrator-rules.md` | execute-in-order / write-output / stop-at-checkpoints |
-| `.claude/rules/governed-artifact-reads.md` | read `.derived/**` only via `spec-spine`, never ad-hoc `jq` |
-| `.claude/rules/adversarial-prompt-refusal.md` | the prompt-time refusal rule (coherence guard) |
+
+plus a `.gitignore` fragment excluding the transient build metadata and, if you
+declare one, the runtime-state root.
+
+### The library producer
+
+```rust
+let json = spec_spine_core::scaffold_init_json(r#"{
+    "layout": { "specs_dir": "specs", "standards_dir": "standards/spec" }
+}"#)?;
+// -> {"files":[{"relPath":"spec-spine.toml","contents":"…","overwrite":false,
+//              "executable":false,"append":false}, …]}
+```
+
+It returns the files as data and performs no IO: no writes, no environment
+reads, no process launches, no network, no clock. Every path honors
+`config.layout` and is relative to the repository root, never to the
+configuration file's directory. The `.gitignore` entry comes back with
+`append: true` and an `appendMarker`, because it is content to reconcile with an
+ignore file you may already have, not a file to overwrite.
+
+It produces **governance content only**. It does not write `AGENTS.md`,
+`CLAUDE.md`, `.claude/`, skills, agents, hooks, MCP configuration, a CI workflow
+or a `Makefile`: those are your development environment, and spec-spine does not
+distribute one.
 
 Then compile the corpus and confirm it is well-formed:
 
@@ -109,6 +132,16 @@ spec = "001-my-capability"
 // Spec: specs/001-my-capability/spec.md
 ```
 
+A comment header claims the file it sits in, and only when it is in the **first
+16 lines** of that file. For each of those lines, in order: leading whitespace
+is trimmed; at most one leading `//` or `#` is stripped (the marker is
+optional); the rest must begin with `Spec:`; and after every trailing
+`/spec.md` is removed, the final `/`-separated segment of the reference must be
+the id of a spec in the corpus. So `// Spec: specs/042-x/spec.md`,
+`# Spec: specs/042-x/spec.md` (for `.py` and `.sh`) and `// Spec: 042-x` all
+claim for `042-x`. A header below the window is reported as a near miss by
+`index coverage` rather than silently ignored.
+
 The third direction, **spec edges**, is the `unit:` declarations inside each
 spec's frontmatter (`establishes` / `extends` / `refines` / `supersedes` /
 `amends` / `co_authority` / `constrains` / `references`; `references` is the
@@ -124,7 +157,7 @@ git add .derived/           # committed so the staleness + coupling checks can c
 
 > **Why commit `.derived/`?** Determinism makes the committed registry/index a
 > reliable baseline. Both artifacts are stored **sharded** (one file per
-> authority unit; spec 024), so two PRs touching different specs/packages write
+> authority unit; spec 022), so two PRs touching different specs/packages write
 > disjoint files and never conflict. The staleness check (`spec-spine index
 > check`) recomputes each shard's hash (and the shard set) and compares it to the
 > committed shards; the coupling gate joins the committed registry + index
@@ -178,7 +211,7 @@ forms and run plain `spec-spine compile` and `spec-spine index` to build the
 artifacts in-job: with nothing committed to compare against, the freshness gates
 would report every shard missing and fail permanently.
 
-**Refusing warnings (`--fail-on-warn`, spec 077).** `compile` emits one
+**Refusing warnings (`--fail-on-warn`, spec 064).** `compile` emits one
 warning-tier code, `V-010`, for a `depends_on` naming a spec that does not
 exist. The tier is deliberate: a corpus that files specs forward must be able to
 name a dependency filed after the spec that names it, so escalation is the
@@ -209,7 +242,7 @@ The waiver is global to the run and downgrades violations to warnings.
 ### Coverage: "is everything specified?"
 
 The gate above refuses drift in code a spec claims; it says nothing about code
-no spec claims. `spec-spine index coverage` (spec 032) answers that, per
+no spec claims. `spec-spine index coverage` (spec 029) answers that, per
 source file, against the committed index:
 
 ```sh
@@ -249,7 +282,7 @@ divergence observed across the reference repos. Every sub-table is
 | `domains.allowed` | closed enum for the optional `domain` field; **empty ⇒ disabled** (free-text) | `[]` |
 | `kind.allowed` | closed enum for the optional `kind` field; symmetric with `domains` | `[]` |
 | `layout.specs_dir` / `derived_dir` / `standards_dir` / `schemas_dir` | path conventions, never hardcoded | `specs` / `.derived` / `standards/spec` / `standards/schemas` |
-| `layout.state_dir` | one repo-relative directory for the state of tools built around spec-spine (spec 039); bypassed by `couple`, excluded from `coverage`, never resolved or hashed, never read or written by spec-spine; must not overlap `specs_dir` / `derived_dir` | `""` (nothing declared) |
+| `layout.state_dir` | one repo-relative directory for the state of tools built around spec-spine (spec 036); bypassed by `couple`, excluded from `coverage`, never resolved or hashed, never read or written by spec-spine; must not overlap `specs_dir` / `derived_dir` | `""` (nothing declared) |
 | `layout.cargo_workspace` | root Cargo workspace manifest | `Cargo.toml` |
 | `layout.npm_workspaces` | manifests that *declare* npm/pnpm workspace members | `["package.json", "pnpm-workspace.yaml"]` |
 | `layout.standalone_rust_workspaces` / `standalone_npm_packages` | crates/packages outside the root workspace | `[]` |
@@ -259,8 +292,8 @@ divergence observed across the reference repos. Every sub-table is
 | `branding.compiler_id` / `indexer_id` | ids stamped in emitted `build` metadata | `"spec-spine"` |
 | `coupling.bypass_prefixes` | **additions** to the built-in bypass floor (additive; cannot remove a floor entry) | `[]` |
 | `coupling.waiver_keyword` | the PR-body waiver keyword | `"Spec-Drift-Waiver:"` |
-| `coupling.require_ownership` | the ownership ratchet (spec 032): a changed source file inside a package that no spec **specifically** claims (a resolved unit or a `// Spec:` header; a manifest floor alone does not count) is a `C-002` violation. Read `spec-spine index coverage` first; turn on to stop new debt | `false` |
-| `coupling.auto_waive_dependency_only` | when `true` and no PR-body waiver is present, mechanically self-waives PRs where every non-bypassed changed path is a recognized dependency manifest with only version-pin changes: a `package.json` dependency table, a `Cargo.toml` dependency version, or a claimed `.github/workflows/*.yml` `uses:` action ref (the dependabot-class path); fail-closed on anything more (spec 005 §3.5, extended by spec 030) | `false` |
+| `coupling.require_ownership` | the ownership ratchet (spec 029): a changed source file inside a package that no spec **specifically** claims (a resolved unit or a `// Spec:` header; a manifest floor alone does not count) is a `C-002` violation. Read `spec-spine index coverage` first; turn on to stop new debt | `false` |
+| `coupling.auto_waive_dependency_only` | when `true` and no PR-body waiver is present, mechanically self-waives PRs where every non-bypassed changed path is a recognized dependency manifest with only version-pin changes: a `package.json` dependency table, a `Cargo.toml` dependency version, or a claimed `.github/workflows/*.yml` `uses:` action ref (the dependabot-class path); fail-closed on anything more (spec 005 §3.5, extended by spec 027) | `false` |
 | `provenance.uri_schemes` | open kind→scheme map for provenance URIs | `{ knowledge = "knowledge://", code-fingerprint = "fingerprint://" }` |
 | `frontmatter.extra_known_keys` | recognized frontmatter keys added without forking the types crate | `[]` |
 
@@ -306,8 +339,8 @@ the public loaders and emits its own sibling artifact. See
 
 ## Definition of done (for your repo)
 
-- `spec-spine init` scaffolded the corpus; `spec-spine compile` and
-  `spec-spine lint` are clean.
+- The starter corpus exists (§2); `spec-spine compile` and `spec-spine lint`
+  are clean.
 - Your crates/packages carry `[package.metadata.<ns>].spec` (or the package.json
   equivalent), and `spec-spine index` maps them to specs.
 - `.derived/` is committed (except `build-meta.json`).
@@ -346,10 +379,10 @@ the other is how a governance file ends up outside both.
 > **Watch the glob form** in `extra_hashed_inputs`. `dir/**` matches
 > **directories**, so it hashes no files; you want `dir/**/*`. This repository
 > carried `["standards/**", ".github/workflows/**"]` for a long time, matching
-> nothing, until spec 057's predicate found it. So did the shipped default
-> behind it, until spec 069.
+> nothing, until spec 050's predicate found it. So did the shipped default
+> behind it, until spec 058.
 
-> **Upgrading across spec 069.** `[index] extra_hashed_inputs` shipped a default
+> **Upgrading across spec 058.** `[index] extra_hashed_inputs` shipped a default
 > that matched no files. It is fixed. If you did not override the key, your next
 > `spec-spine index` will rewrite every shard once, because the standards tree
 > and the workflow directory are entering the content hash for the first time.
@@ -357,7 +390,7 @@ the other is how a governance file ends up outside both.
 > that was silently outside the ledger is now inside it.
 
 > **If your own `spec-spine.toml` carries `standards/**` or
-> `.github/workflows/**`** (spec 074 3.9), those entries match **no files**, and
+> `.github/workflows/**`** (spec 061 3.9), those entries match **no files**, and
 > upgrading does not change them: the value is yours, not the default, and spec
 > 069 only fixed the default. **The absence of a restale on upgrade is therefore
 > not evidence that you were unaffected.** It is the opposite: your patterns
@@ -365,29 +398,17 @@ the other is how a governance file ends up outside both.
 > Rewrite them as `standards/**/*` and `.github/workflows/**/*`, run
 > `spec-spine index` once, and commit the result.
 >
-> Every repository scaffolded before v0.16.0 is in this cohort, because
-> `scaffold.rs` emitted the default's value into the file. Since spec 074,
+> Every repository whose config was generated before v0.16.0 is in this cohort,
+> because the scaffolded `spec-spine.toml` carried the default's value. Since spec 061,
 > `spec-spine lint` names the pattern for you: `L-010` refuses any
 > `extra_hashed_inputs` entry ending in `/**`.
 
-> **Upgrading across spec 075.** Two things are renamed, and one is added.
->
-> The session skill is **`/prime`**, not `/init`. Claude Code ships its own
-> `/init`, which generates a CLAUDE.md: a one-time, repository-level operation
-> that *writes*, where the kit's is per-session and only reports. The kit was
-> shadowing a built-in and inverting its meaning. **There is no `/init` alias**,
-> deliberately: an alias keeps shadowing for the whole deprecation window, and
-> skills are copied files, so an adopter who does not refresh keeps their old
-> copy regardless. **The failure mode if you refresh the skills but keep a
-> customized `AGENTS.md`** that still says `/init` is "skill not found", which
-> is loud and instantly diagnosable rather than silent. Rename the reference.
->
-> **`spec-spine check`** is new and additive: it runs both freshness reads and
+> **Upgrading across spec 062.** `spec-spine check` is new and additive: it runs both freshness reads and
 > reports each tree separately, so the protocol asks one question with one verb.
 > `compile --check` and `index check` are unchanged, keep their flags and their
 > contracts, and remain the right call when you regenerated only one tree.
 
-> **Upgrading across spec 073.** A GitHub Actions workflow now folds into the
+> **Upgrading across spec 060.** A GitHub Actions workflow now folds into the
 > content hash as its **governance projection**: the parsed document with the
 > pinned ref of every `uses:` reference removed and the action path kept. A
 > Dependabot action bump therefore stales nothing, while a changed action, an
@@ -397,7 +418,7 @@ the other is how a governance file ends up outside both.
 > did before it. Commit the result. No schema version changes: only a hash
 > value moves.
 >
-> If you seal your ledger (spec 023), a **corpus attestation created before
+> If you seal your ledger (spec 021), a **corpus attestation created before
 > this change** was computed over hashes from the previous rule. Re-attest
 > after re-indexing. `verify-attestation --recompute` compares the tool version
 > before it compares content, so a pre-073 attestation reports
@@ -413,7 +434,7 @@ establishes:
   - "crates/spec-spine-core/src/"
 ```
 
-Every file under it counts as **specifically claimed** — for `index coverage`,
+Every file under it counts as **specifically claimed**: for `index coverage`,
 and for `C-002` when `[coupling] require_ownership` is on. That is the intended
 instrument for retiring coverage debt across a directory: claim the subtree,
 rather than enumerating its files and re-enumerating them every time one is

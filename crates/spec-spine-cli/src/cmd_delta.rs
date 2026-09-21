@@ -1,4 +1,4 @@
-//! `spec-spine delta`: a change classified under the base's rules (spec 088).
+//! `spec-spine delta`: a change classified under the base's rules (spec 071).
 //!
 //! The git half of the verb, and nothing else. It resolves `merge-base(base,
 //! head)` and both refs to commits, lists the changed paths of
@@ -8,7 +8,7 @@
 //! pure core. The directories are removed afterwards, on the error path too.
 //!
 //! It is a record, not a gate: exit 0 whenever a report was produced, whatever
-//! it says (spec 088 §3.1, following spec 042 3.1 for `attest`).
+//! it says (spec 071 §3.1, following spec 039 3.1 for `attest`).
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -24,7 +24,7 @@ use crate::out;
 pub struct DeltaArgs {
     pub base: String,
     pub head: String,
-    /// Emit the report as a JSON envelope instead of prose (spec 037).
+    /// Emit the report as a JSON envelope instead of prose (spec 034).
     pub json: bool,
 }
 
@@ -49,7 +49,7 @@ pub fn run(repo: &Path, args: &DeltaArgs) -> Result<u8, Error> {
         &trees.root.join("head.index"),
         &trees.head,
     )?;
-    // The merge base's rules (spec 088 §3.2, D-1): the configuration is read
+    // The merge base's rules (spec 071 §3.2, D-1): the configuration is read
     // from the exported base tree, never from the working tree or the head.
     let cfg = load_repo_config(&trees.base)?;
     let report = delta(&cfg, &trees.base, &trees.head, &changed, &commits)?;

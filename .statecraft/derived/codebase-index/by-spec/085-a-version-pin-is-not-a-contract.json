@@ -1,0 +1,32 @@
+{
+  "mapping": {
+    "amends": [
+      "049-compile-one-spec"
+    ],
+    "dependsOn": [
+      "049-compile-one-spec",
+      "071-a-change-is-classified-under-the-bases-rules",
+      "082-an-amended-acceptance-is-the-one-that-runs"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "085-a-version-pin-is-not-a-contract",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "88f5233d5161fe3cd385089454cb8e12bf782153565c8026d16759cd40bfa076"
+}

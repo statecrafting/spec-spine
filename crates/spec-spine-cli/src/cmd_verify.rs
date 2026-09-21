@@ -1,16 +1,16 @@
-//! `spec-spine verify <id>`: run a spec's declared acceptance (spec 049).
+//! `spec-spine verify <id>`: run a spec's declared acceptance (spec 043).
 //!
-//! The engine parses; this module executes. That split is spec 049 §3.1 and it
+//! The engine parses; this module executes. That split is spec 043 §3.1 and it
 //! is the same seam spec 005 draws for `git`: everything that touches a
 //! process lives here, so `spec_spine_core` stays a pure function of
 //! `(config, file contents)`.
 //!
-//! Under `--json` stdout belongs to the one verdict envelope (spec 037 §3.1), so
+//! Under `--json` stdout belongs to the one verdict envelope (spec 034 §3.1), so
 //! an acceptance command's own output is forwarded to stderr rather than
-//! inherited, and the transcript spec 049 §3.5 requires goes there with it
-//! (spec 118). Without the flag every byte goes where it always has.
+//! inherited, and the transcript spec 043 §3.5 requires goes there with it
+//! (spec 090). Without the flag every byte goes where it always has.
 //!
-//! **This command runs code the corpus declares** (spec 049 §3.6). That is safe
+//! **This command runs code the corpus declares** (spec 043 §3.6). That is safe
 //! where the corpus and the operator share a trust domain, and it is why
 //! `verify` is not part of the gate chain, which runs on branches whose
 //! contents are in the general case a stranger's.
@@ -36,19 +36,19 @@ const STACK_VAR: &str = "SPEC_SPINE_VERIFY_STACK";
 
 /// A spec whose own `## Verification` section runs `verify` on itself.
 ///
-/// Found by building this verb: spec 049's first draft carried
+/// Found by building this verb: spec 043's first draft carried
 /// `spec-spine verify 049` in its own block, and one invocation forked 350
 /// processes before it was killed. Nothing in the grammar forbids the line, and
 /// the failure is unbounded rather than merely wrong, so the verb refuses it
-/// instead of executing it (spec 049 3.7).
+/// instead of executing it (spec 043 3.7).
 const RE_ENTRY_CODE: &str = "R-001";
 
-/// Write one transcript line to the channel the mode assigns it (spec 118 §3.3).
+/// Write one transcript line to the channel the mode assigns it (spec 090 §3.3).
 ///
-/// Spec 049 §3.5 requires the echo and names no channel. Without `--json` it is
+/// Spec 043 §3.5 requires the echo and names no channel. Without `--json` it is
 /// stdout, which is what `verify` has printed since 049 shipped. Under `--json`
-/// stdout carries the one verdict envelope and nothing else (spec 037 §3.1), so
-/// the transcript joins the child's own bytes on stderr, where spec 035 §3.3
+/// stdout carries the one verdict envelope and nothing else (spec 034 §3.1), so
+/// the transcript joins the child's own bytes on stderr, where spec 032 §3.3
 /// puts every CLI diagnostic. Reading it as a stdout requirement is what made
 /// it vanish under `--json` altogether, which is the mode a CI log is most
 /// likely to be produced in.
@@ -65,24 +65,24 @@ fn transcript(json: bool, args: std::fmt::Arguments<'_>) {
 /// `eprintln!` unwraps its write, so a consumer that read the opening
 /// transcript line and then closed the parent's stderr made `verify --json`
 /// exit **101** with an empty stdout: the next `[verify] exit 0` panicked
-/// before the envelope was written. That is spec 035 §3.2's argument about
-/// stdout, met again on the channel spec 118 §3.3 moved this mode's
+/// before the envelope was written. That is spec 032 §3.2's argument about
+/// stdout, met again on the channel spec 090 §3.3 moved this mode's
 /// diagnostics to, and it has the same answer. A diagnostic that cannot be
 /// delivered is dropped; it never decides the verdict and it never decides the
-/// exit code (spec 118 D-3).
+/// exit code (spec 090 D-3).
 fn diagnostic(args: std::fmt::Arguments<'_>) {
     let stderr = std::io::stderr();
     let mut handle = stderr.lock();
     let _ = writeln!(handle, "{args}");
 }
 
-/// The size of the drain buffer. Fixed, so spec 118 §3.2's bound holds: the
+/// The size of the drain buffer. Fixed, so spec 090 §3.2's bound holds: the
 /// verb does not grow with the child's output.
 const DRAIN_BUF: usize = 16 * 1024;
 
-/// How a drain of one child stream ended (spec 118 D-5).
+/// How a drain of one child stream ended (spec 090 D-5).
 ///
-/// The three are deliberately not one value. Spec 118 D-3 excuses exactly one
+/// The three are deliberately not one value. Spec 090 D-3 excuses exactly one
 /// of them, and reporting the other two as that one would assert something
 /// about the parent's stderr that was never observed.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -90,7 +90,7 @@ enum Drained {
     /// Read to EOF, every byte delivered to the parent's stderr.
     Delivered,
     /// Read to EOF, but the parent's stderr stopped accepting bytes partway and
-    /// the remainder was discarded. This is the condition spec 118 D-3 names.
+    /// the remainder was discarded. This is the condition spec 090 D-3 names.
     Discarded,
     /// The pipe could not be read to EOF. Nothing is known about what the child
     /// still had to say, and D-3 does not speak to this case.
@@ -105,7 +105,7 @@ enum Drained {
 }
 
 /// Read `src` to end-of-file, writing what it yields to the parent's stderr and
-/// discarding the rest once stderr stops accepting bytes (spec 118 D-3, D-4).
+/// discarding the rest once stderr stops accepting bytes (spec 090 D-3, D-4).
 ///
 /// Reading continues past a destination failure, and that is the whole point.
 /// An `io::copy` returns on the first failed write, which left the child's pipe
@@ -118,12 +118,12 @@ enum Drained {
 ///
 /// The pipe is not closed early either. Dropping it would hand the child an
 /// `EPIPE` on its next write and turn a failure to deliver logs into a change
-/// of the child's exit status, which is precisely the outcome spec 118 D-3
+/// of the child's exit status, which is precisely the outcome spec 090 D-3
 /// forbids: the verdict is computed from exit statuses, so it must not depend
 /// on whether the parent could write its logs anywhere.
 ///
 /// Memory stays bounded: one fixed buffer per stream, nothing accumulated,
-/// which is the same guarantee `io::copy` gave and spec 118 §3.2 requires.
+/// which is the same guarantee `io::copy` gave and spec 090 §3.2 requires.
 fn drain_to_stderr<R: Read>(src: &mut R) -> Drained {
     let mut buf = [0u8; DRAIN_BUF];
     let mut outcome = Drained::Delivered;
@@ -148,13 +148,13 @@ fn drain_to_stderr<R: Read>(src: &mut R) -> Drained {
 /// undeliverable actually was.
 ///
 /// `Discarded` is silent on purpose: it means the parent's stderr is gone, so
-/// there is no channel left to report it on, and spec 118 D-3 already rules it
+/// there is no channel left to report it on, and spec 090 D-3 already rules it
 /// out as a failure of the verb. The other two are different facts. A thread
 /// that panicked is a defect in this CLI, and a pipe that could not be read is
 /// an operating-system failure; neither is evidence that the parent's stderr
 /// stopped accepting bytes, and stderr is very likely still working, so the
 /// verb says so rather than filing all three under D-3. None of the three
-/// changes the verdict, which spec 118 D-3 computes from exit statuses alone.
+/// changes the verdict, which spec 090 D-3 computes from exit statuses alone.
 fn note_drain(stream: &str, command: &str, drained: &std::thread::Result<Drained>) {
     let what = match drained {
         Ok(Drained::Delivered | Drained::Discarded) => return,
@@ -169,27 +169,27 @@ fn note_drain(stream: &str, command: &str, drained: &std::thread::Result<Drained
 /// Run one acceptance command from the repository root and return its status.
 ///
 /// Without `--json` the child inherits both of the parent's streams, which is
-/// spec 049's shipped behaviour and stays byte for byte what it was. Under
+/// spec 043's shipped behaviour and stays byte for byte what it was. Under
 /// `--json` the parent's stdout is reserved for the verdict envelope, so the
 /// child is given pipes and both of its streams are forwarded to the parent's
-/// stderr (spec 118 §3.1). Diverting at the spawn rather than filtering at the
+/// stderr (spec 090 §3.1). Diverting at the spawn rather than filtering at the
 /// write is what makes that total: the report path and the error path are then
 /// covered by the same fact, that the child never holds the stdout descriptor.
 ///
-/// The forwarding is concurrent with the child and with itself (spec 118 §3.2).
+/// The forwarding is concurrent with the child and with itself (spec 090 §3.2).
 /// A pipe buffer is finite, so a forwarder that waited for the child to exit
 /// would deadlock on the first command verbose enough to fill one, and
 /// `cargo test` over a workspace is that command. Nothing is accumulated:
 /// `io::copy` streams through a fixed buffer, so a command's output may be
 /// megabytes without the verb growing with it. The price is that the two pipes
-/// are buffered independently, so their interleaving is not preserved; spec 118
+/// are buffered independently, so their interleaving is not preserved; spec 090
 /// §3.2 promises no ordering between them for exactly that reason.
 ///
 /// A failed write of the forwarded bytes discards the rest of that stream and
-/// is not a failure of the verb (spec 118 D-3, following spec 035 §3.3): a
+/// is not a failure of the verb (spec 090 D-3, following spec 032 §3.3): a
 /// process whose stderr has gone has no channel left to report the fact, and
 /// the verdict is computed from exit statuses, which are unaffected. Reading
-/// does not stop with delivery, and neither pipe is closed early: spec 118 D-4
+/// does not stop with delivery, and neither pipe is closed early: spec 090 D-4
 /// separates the obligation to deliver the bytes, which D-3 excuses, from the
 /// obligation to drain the pipe, which nothing excuses, because a child blocked
 /// on a pipe nobody is reading never reaches an exit status at all.
@@ -250,7 +250,7 @@ fn run_one(repo: &Path, command: &str, child_stack: &str, json: bool) -> Result<
 /// running anything.
 ///
 /// A failing command's own exit code goes into the report, never into the
-/// process's status: spec 049 §3.3 keeps `verify` inside the documented
+/// process's status: spec 043 §3.3 keeps `verify` inside the documented
 /// `0`/`1`/`2`/`3` contract, so a command killed by a signal cannot make the
 /// binary exit 137 the way the ported script did.
 pub fn run(repo: &Path, id: &str, json: bool, plan_only: bool) -> Result<u8, Error> {
@@ -285,7 +285,7 @@ pub fn run(repo: &Path, id: &str, json: bool, plan_only: bool) -> Result<u8, Err
     let child_stack = stack.join(",");
 
     // `--plan` answers "what would you run?" without running it. For the one
-    // verb that executes what the corpus declares (spec 049 3.6), being able
+    // verb that executes what the corpus declares (spec 043 3.6), being able
     // to read the plan first is a safety affordance, not a convenience.
     if plan_only {
         if json {
@@ -303,14 +303,14 @@ pub fn run(repo: &Path, id: &str, json: bool, plan_only: bool) -> Result<u8, Err
     let declared = plan.is_declared();
 
     if !json {
-        // Spec 103 §3.4: a block running under another spec's name, with no
-        // line saying so, is the laundering shape spec 040 §3.2 refuses. The
+        // Spec 082 §3.4: a block running under another spec's name, with no
+        // line saying so, is the laundering shape spec 037 §3.2 refuses. The
         // whole value of amending rather than editing is that both documents
         // stay readable, and that is worth nothing if the reader is not told to
         // look at the second one.
         if let Some(from) = &plan.acceptance_from {
             outln!("verify: {}", plan.spec_id);
-            outln!("  acceptance amended by {from} (spec 040); its block is the one that runs");
+            outln!("  acceptance amended by {from} (spec 037); its block is the one that runs");
         }
         for s in &plan.skipped {
             outln!(

@@ -1,6 +1,6 @@
-//! Spec 085: `verify-attestation` decides on the bytes it was given.
+//! Spec 068: `verify-attestation` decides on the bytes it was given.
 //!
-//! The tamper and version matrix of spec 085 1, end to end through the binary,
+//! The tamper and version matrix of spec 068 1, end to end through the binary,
 //! in both the corpus and the per-spec scope. Every case here verified as
 //! `match` and `valid` at exit 0 before this spec, which is why the guard is at
 //! the binary rather than at the library: the defect was in what the CLI handed
@@ -140,7 +140,7 @@ fn inject_top_level(original: &str, member: &str) -> String {
 /// A member this build does not know is a claim it cannot evaluate, so the file
 /// fails to load (exit 3) naming the member, before either mode runs.
 ///
-/// Before spec 085 serde dropped it and both modes reported on the smaller
+/// Before spec 068 serde dropped it and both modes reported on the smaller
 /// object that remained: `match` and `valid`, at exit 0, while a consumer using
 /// its own parser went on to read the member spec-spine never saw.
 #[test]
@@ -326,7 +326,7 @@ fn an_unknown_schema_major_is_refused_in_both_scopes() {
 /// A same-MAJOR version difference is readable, so it is a content mismatch, and
 /// the report names the field rather than saying "tool.name or schemaVersion".
 ///
-/// The corpus recompute skipped `schemaVersion` entirely before spec 085, so a
+/// The corpus recompute skipped `schemaVersion` entirely before spec 068, so a
 /// `0.2.0` payload recomputed as `match` at exit 0.
 #[test]
 fn the_recompute_compares_schema_version_and_names_it() {
@@ -379,7 +379,7 @@ fn the_recompute_compares_schema_version_and_names_it() {
 
 /// Values that parse equal and bytes that are not the canonical serialization:
 /// the signature is invalid and the recompute is a content mismatch naming the
-/// bytes. Both were `valid` and `match` at exit 0 before spec 085.
+/// bytes. Both were `valid` and `match` at exit 0 before spec 068.
 #[test]
 fn reformatted_bytes_fail_both_modes_in_both_scopes() {
     let f = Fixture::new();
@@ -444,7 +444,7 @@ fn reformatted_bytes_fail_both_modes_in_both_scopes() {
     }
 }
 
-/// 3.4 closing the loop with spec 037 3.1: handed the same bytes, the facade
+/// 3.4 closing the loop with spec 034 3.1: handed the same bytes, the facade
 /// and the CLI report the same thing.
 ///
 /// The existing parity test (`cli.rs::json_report_equals_the_facade_payload`)

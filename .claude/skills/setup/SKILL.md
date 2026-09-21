@@ -8,7 +8,7 @@ allowed-tools: Bash, Read
 
 Get a fresh clone operational. After this completes, `/prime` can report
 lifecycle and structural counts through `spec-spine`, never by ad-hoc
-parsing of `.derived/**/*.json` (`.claude/rules/governed-artifact-reads.md`).
+parsing of `.statecraft/derived/**/*.json` (`AGENTS.md` "Governed artifact reads").
 
 ## Process
 
@@ -62,7 +62,7 @@ spec-spine index coverage --fail-on-untraced   # when [coupling] require_ownersh
 
 then the stack's own build, tests, and lints. On a clean checkout
 `compile` and `index` are deterministic no-ops; if
-`git status --short -- .derived/` shows a diff afterwards, the committed
+`git status --short -- .statecraft/derived/` shows a diff afterwards, the committed
 shards were stale. Say so and leave the diff for the session to commit
 (`chore(derived): ...`); do not hide it. Halt on the first failing step
 and surface its output verbatim.
@@ -104,7 +104,7 @@ Do not invent counts. Only report values that came back from a
 
 - Halt on first failure. Do not silently continue past a missing
   prerequisite or a failing gate.
-- Never parse `.derived/**/*.json` directly; use the `spec-spine`
+- Never parse `.statecraft/derived/**/*.json` directly; use the `spec-spine`
   subcommands.
 - Idempotent: safe to re-run.
 

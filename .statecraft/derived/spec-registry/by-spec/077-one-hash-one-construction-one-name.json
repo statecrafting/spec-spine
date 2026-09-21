@@ -1,0 +1,82 @@
+{
+  "record": {
+    "amends": [
+      "048-the-ledger-answers-what-consumers-rebuild"
+    ],
+    "created": "2026-09-14",
+    "dependsOn": [
+      "039-per-spec-attestation",
+      "048-the-ledger-answers-what-consumers-rebuild"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "048-the-ledger-answers-what-consumers-rebuild",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "048-the-ledger-answers-what-consumers-rebuild",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/Cargo.toml"
+        }
+      }
+    ],
+    "id": "077-one-hash-one-construction-one-name",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/authority-evidence.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "096: One hash, one construction, one name",
+      "1. Purpose",
+      "1.1 The measurement",
+      "1.2 The approved prose says it too",
+      "1.3 Who the gloss is for, and what it costs them",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The construction, stated once and correctly",
+      "3.2 The printed line names the construction it prints",
+      "3.3 The unframed digest has a name already, and keeps it",
+      "3.4 The pin",
+      "3.5 Documentation",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/077-one-hash-one-construction-one-name/spec.md",
+    "status": "approved",
+    "summary": "`registry show` prints `contentHash: <h>  (sha256 of this spec.md)`, and approved spec 048 §3.4 says the same thing in prose: \"`contentHash` is SHA-256 over that spec's `spec.md` alone\". It is neither. The value is the shard hash, which is SHA-256 over the repo-relative POSIX path, a NUL, and the normalized bytes, so for `specs/086-.../spec.md` the printed value is `a4a0098235e9...` while the digest of the file's bytes is `ae0144ca7e4a...`, the value `attest --spec` reports as `specSourceHash`. 055 §3.3 exists for consumers who reimplement the normalization to pin against the ledger, and one adopter does exactly that, so a gloss naming the wrong construction is the whole defect. This spec amends 055 §3.4 to state the construction the code has always used, makes the printed line say it, and adds the test that pins both digests so the two cannot drift again.\n",
+    "title": "One hash, one construction, one name"
+  },
+  "shardHash": "b6487d65589ab2c2fae600109c84c387fd50e52080a7f4263ba7633f90597f15",
+  "specVersion": "1.3.0"
+}

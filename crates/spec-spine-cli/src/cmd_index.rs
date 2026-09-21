@@ -1,9 +1,9 @@
-//! `spec-spine index`: write the per-spec/per-package index shards (spec 024)
+//! `spec-spine index`: write the per-spec/per-package index shards (spec 022)
 //! under `<derived>/codebase-index/{by-spec,by-package}/`; `spec-spine index
 //! check`: per-shard staleness; `spec-spine index render` / `index orphans`:
-//! read-side projections of the committed shard set (spec 011; never recompute,
+//! read-side projections of the committed shard set (spec 010; never recompute,
 //! never check freshness); `spec-spine index coverage`: file-granular
-//! ownership coverage of the tree against the committed shards (spec 032;
+//! ownership coverage of the tree against the committed shards (spec 029;
 //! freshness-guarded like `couple`). The single monolithic `index.json` is no
 //! longer emitted, so PRs touching different specs/packages write disjoint files.
 
@@ -35,11 +35,11 @@ pub enum IndexAction {
         #[arg(long, value_name = "NAME")]
         slice: Option<String>,
         /// Fail (exit 1) if the committed index records any unresolved unit
-        /// (`W-001` / `W-002`). Opt-in: specs 025 and 044 exist to let a corpus
+        /// (`W-001` / `W-002`). Opt-in: specs 023 and 044 exist to let a corpus
         /// that ratifies before it builds carry these while work is under way.
         #[arg(long)]
         fail_on_unresolved: bool,
-        /// Emit the verdict as a JSON envelope on stdout (spec 037).
+        /// Emit the verdict as a JSON envelope on stdout (spec 034).
         #[arg(long)]
         json: bool,
     },
@@ -50,7 +50,7 @@ pub enum IndexAction {
         #[arg(long)]
         json: bool,
     },
-    /// List the diagnostics the committed index records (spec 050).
+    /// List the diagnostics the committed index records (spec 044).
     ///
     /// A read verb beside `orphans` and `coverage`: it recomputes nothing and
     /// never refuses, so a consumer reaches a structured fact without parsing
@@ -59,7 +59,7 @@ pub enum IndexAction {
         #[arg(long)]
         json: bool,
     },
-    /// Report which specs own one path, and how (spec 055).
+    /// Report which specs own one path, and how (spec 048).
     ///
     /// Calls the coupling gate's own owner derivation, so this answer and a
     /// `C-001` decision cannot disagree. The path need not exist on disk:
@@ -71,7 +71,7 @@ pub enum IndexAction {
         #[arg(long)]
         json: bool,
     },
-    /// Report which source files no spec specifically claims (spec 032).
+    /// Report which source files no spec specifically claims (spec 029).
     Coverage {
         #[arg(long)]
         json: bool,
@@ -79,7 +79,7 @@ pub enum IndexAction {
         #[arg(long)]
         fail_on_untraced: bool,
         /// The files `[coverage] governed_scope` may match, one repo-relative
-        /// path per line, instead of asking git (spec 097). The git-free route.
+        /// path per line, instead of asking git (spec 078). The git-free route.
         #[arg(long, value_name = "FILE")]
         paths_from: Option<std::path::PathBuf>,
     },
@@ -97,12 +97,12 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
         }
         Some(IndexAction::Orphans { json }) => {
             let idx = load_committed_index(&cfg, repo)?;
-            // Spec 059 3.1: the lifecycle half comes from the registry, since
+            // Spec 052 3.1: the lifecycle half comes from the registry, since
             // the index shard records `spec_status` but not `implementation`
             // and adding it would restamp every shard for a read verb.
             //
             // An absent registry is an empty one, not an error. This verb
-            // answered from the index alone before spec 059, and a read verb
+            // answered from the index alone before spec 052, and a read verb
             // that started failing because a *different* artifact is missing
             // would be a regression dressed as a feature. With no records
             // every orphan reads as in flight, which is the same "cannot say
@@ -117,7 +117,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 // Both groups are printed whenever either has members, so a
                 // reader always sees which side of the partition an id fell on.
                 // A corpus with no orphans at all stays silent, as it did
-                // before spec 059: two headers and two "(none)" lines would be
+                // before spec 052: two headers and two "(none)" lines would be
                 // noise on the answer "nothing to report".
                 outln!("orphaned (claims nothing that resolves, and is not in flight):");
                 if report.orphaned.is_empty() {
@@ -140,7 +140,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
         Some(IndexAction::Diagnostics { json }) => {
             let diags = committed_diagnostics(&cfg, repo)?;
             if *json {
-                // Spec 093 §3.6: the listing sits under `items` in a versioned
+                // Spec 074 §3.6: the listing sits under `items` in a versioned
                 // object; the emitter wraps the array.
                 out!("{}", read_document(&diags, Versioning::Stamp)?);
             } else {
@@ -188,7 +188,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             fail_on_untraced,
             paths_from,
         }) => {
-            // Spec 097 §3.6: a declared scope is matched against an inventory
+            // Spec 078 §3.6: a declared scope is matched against an inventory
             // the CLI supplies, because the core has no git. Nothing is
             // enumerated while the scope is empty, so a corpus that never sets
             // the key never needs git here.
@@ -208,7 +208,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             } else {
                 out!("{}", render_coverage(&report));
             }
-            // Spec 059 3.2: an assertion over an empty set is vacuously true,
+            // Spec 052 3.2: an assertion over an empty set is vacuously true,
             // which is the wrong answer for a CI step whose whole purpose is to
             // assert. Reporting is unaffected: without the flag an empty
             // universe is still a true and useful thing to say.
@@ -232,7 +232,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             fail_on_unresolved,
             json,
         }) => {
-            // Spec 098 §3.2: for the index subject the two refusals arrive
+            // Spec 079 §3.2: for the index subject the two refusals arrive
             // apart, from one read. A `--slice` check has only one (the sidecar
             // hashes it compares carry no diagnostics), so it carries `None` and
             // keeps every word it printed before.
@@ -247,17 +247,17 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                     (report.freshness(), Some(report), "index".to_string())
                 }
             };
-            // Spec 095 §3.1: the verdict above is already decided, and the tally
+            // Spec 076 §3.1: the verdict above is already decided, and the tally
             // only adorns it. The same function the facades call (§3.4).
             let counts = verdict_tally(&cfg, repo);
-            // Spec 057 3.3: the count of claimed paths no content hash covers.
+            // Spec 050 3.3: the count of claimed paths no content hash covers.
             // Reporting only, never an exit code: `index check` is where a
             // person reads the word "fresh", and "fresh" is the word this
             // qualifies. Computed by the same core function the JSON facade
             // uses, so the two payloads cannot diverge.
             let unwitnessed = spec_spine_core::unwitnessed_counts(&cfg, repo);
 
-            // Spec 050 3.3: staleness outranks unresolution. A stale index's
+            // Spec 044 3.3: staleness outranks unresolution. A stale index's
             // diagnostics describe a tree that no longer exists, so refusing
             // for them would name the wrong problem. The counts are still
             // reported either way; suppressing them would hide the number the
@@ -267,12 +267,12 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             // there is no blocking set for `is_some_and` to skip: the `false`
             // it yields there is the right answer and not a fall-through.
             let code = if partition.as_ref().is_some_and(|p| !p.blocking.is_empty()) {
-                // Spec 101 §3.2, amending spec 086 §3.1: an unresolved claim is
+                // Spec 080 §3.2, amending spec 069 §3.1: an unresolved claim is
                 // a validation failure, not staleness. `check` composes this
                 // verb, so the two must spend the same code on the same fact;
                 // a caller must not have to know which one it invoked to know
                 // what a code means. Checked first, so a tree holding a
-                // blocking claim AND drift exits 1 (spec 075 §3.3's order).
+                // blocking claim AND drift exits 1 (spec 062 §3.3's order).
                 1
             } else if matches!(freshness, Freshness::Fresh) {
                 if *fail_on_unresolved && counts.has_unresolved() {
@@ -286,7 +286,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
 
             if *json {
                 // One shape, built in core (`IndexCheckReport`), so the facade
-                // and this arm cannot drift; spec 037 pins them against each
+                // and this arm cannot drift; spec 034 pins them against each
                 // other. `compile --check` keeps the bare freshness object:
                 // index diagnostics are meaningless for the registry (3.1).
                 let report = serde_json::to_value(IndexCheckReport::with_unwitnessed(
@@ -303,7 +303,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 // Say the refusal on stdout too. `is fresh` is true on its own
                 // axis even when the run refuses, and a reader seeing only that
                 // line would take it for a pass. Prose is not the machine
-                // surface (that is the exit code and `--json`, spec 037), but a
+                // surface (that is the exit code and `--json`, spec 034), but a
                 // line that reads as a pass while the process exits 1 is worth
                 // one clause to avoid.
                 // One line for one fact. An earlier round printed this on
@@ -322,7 +322,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                     outln!("{subject} is fresh{}", counts_suffix(&counts));
                     report_unwitnessed(&unwitnessed);
                 }
-                // Spec 098 §3.3: an unresolved claim is reported as itself. The
+                // Spec 079 §3.3: an unresolved claim is reported as itself. The
                 // remedy `STALE` carries is regeneration, and regeneration
                 // provably does not clear a claim on a unit that does not
                 // exist: `index` exits 0, writes the same bytes, and the next
@@ -347,7 +347,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 }
                 Freshness::Stale { expected, actual } => {
                     eprintln!("{subject} is STALE (run `spec-spine index` to refresh)");
-                    // Spec 086 3.2: for the index, `actual` is already the count
+                    // Spec 069 3.2: for the index, `actual` is already the count
                     // line plus one line per drifted shard with its class, so it
                     // is printed as it stands, the way `compile --check` prints
                     // the registry's. The paired `expected` stays on the typed
@@ -355,7 +355,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                     // not depend on it.
                     //
                     // A `--slice` check is the other shape on this arm: its two
-                    // values are the sidecar hashes (spec 012 3.3), where the
+                    // values are the sidecar hashes (spec 011 3.3), where the
                     // expected/actual pair is the whole report and dropping half
                     // of it would say nothing.
                     if slice.is_some() {
@@ -394,7 +394,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                     .map_err(|e| Error::Io(format!("remove {}: {e}", legacy.display())))?;
             }
 
-            // Print both tiers. Spec 025 downgrades an unresolved unit on an
+            // Print both tiers. Spec 023 downgrades an unresolved unit on an
             // in-flight spec (or a `references` edge) to a counted `W-001` /
             // `W-002`; those land in the shard either way, but a warning the
             // operator never sees is a unit that quietly went unresolved.
@@ -425,7 +425,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
 /// committed index records nothing.
 ///
 /// A clean corpus keeps printing the bare `index is fresh`, so a tree with no
-/// diagnostics reads exactly as it did before spec 050 (3.1).
+/// diagnostics reads exactly as it did before spec 044 (3.1).
 fn counts_suffix(counts: &DiagnosticCounts) -> String {
     if counts.is_empty() {
         return String::new();
@@ -456,7 +456,7 @@ fn counts_summary(counts: &DiagnosticCounts) -> String {
     )
 }
 
-/// An explicit path list for `index coverage --paths-from` (spec 097 §3.6):
+/// An explicit path list for `index coverage --paths-from` (spec 078 §3.6):
 /// one path per line, blank lines ignored. Supplied as given, so a list that
 /// is empty is an answer ("nothing to govern"), not a request to enumerate.
 fn supplied_inventory(file: &Path) -> Result<Inventory, Error> {
@@ -473,7 +473,7 @@ fn supplied_inventory(file: &Path) -> Result<Inventory, Error> {
     })
 }
 
-/// The tracked-file inventory (spec 097 §3.6): `git ls-files -z --cached
+/// The tracked-file inventory (spec 078 §3.6): `git ls-files -z --cached
 /// --others --exclude-standard`, minus paths the working tree no longer holds.
 ///
 /// `--cached` lists every tracked file, whether or not an ignore rule matches
@@ -540,12 +540,12 @@ fn render_coverage(report: &CoverageReport) -> String {
         report.floor_only_files.len(),
         report.unclaimed_files.len()
     );
-    // Spec 076 §3.6: a file nothing claims and a file something has planned are
+    // Spec 063 §3.6: a file nothing claims and a file something has planned are
     // different states, and the report could not tell them apart before. Listed
     // beside the counts rather than inside them: these paths are not on disk,
     // so counting a declared intention as coverage would let a spec satisfy
     // `--fail-on-untraced` by promising.
-    // Spec 097 §3.5: the files only the declared scope brought in, on their own
+    // Spec 078 §3.5: the files only the declared scope brought in, on their own
     // line, because their denominator is not a package and a reader comparing
     // two runs must be able to see where the new files came from.
     if let (Some(declared), Some(enumeration)) = (&report.declared_scope_files, report.enumeration)
@@ -573,7 +573,7 @@ fn render_coverage(report: &CoverageReport) -> String {
             let _ = writeln!(out, "    {entry}");
         }
     }
-    // Spec 094 §3.4: a file that tried to claim itself and failed, told apart
+    // Spec 075 §3.4: a file that tried to claim itself and failed, told apart
     // from one that never tried. Explanation only; the counts above stand.
     if !report.near_miss_headers.is_empty() {
         let _ = writeln!(
@@ -622,7 +622,7 @@ fn render_coverage(report: &CoverageReport) -> String {
     out
 }
 
-/// Write (or remove) the per-slice sidecar `slices.json` (spec 012/024). The
+/// Write (or remove) the per-slice sidecar `slices.json` (spec 011/024). The
 /// slices live in their own small file emitted only when `[index.slices]` is
 /// configured, so a corpus with no slices commits no such file. Canonical
 /// (`BTreeMap` ⇒ sorted keys, 2-space, trailing LF).
@@ -646,7 +646,7 @@ fn write_slices(
     Ok(())
 }
 
-/// The token the prose form prints for a linkage kind (spec 055 §3.1).
+/// The token the prose form prints for a linkage kind (spec 048 §3.1).
 fn owner_kind_label(kind: spec_spine_core::OwnerKind) -> &'static str {
     match kind {
         spec_spine_core::OwnerKind::Unit => "unit",
@@ -656,7 +656,7 @@ fn owner_kind_label(kind: spec_spine_core::OwnerKind) -> &'static str {
     }
 }
 
-/// The spec 057 §3.3 line: how many claimed paths no content hash witnesses,
+/// The spec 050 §3.3 line: how many claimed paths no content hash witnesses,
 /// and how many of those this corpus has declared deliberate.
 ///
 /// Silent at zero. A corpus with no gap does not need to be told it has none,

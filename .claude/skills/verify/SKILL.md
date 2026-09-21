@@ -14,7 +14,7 @@ order, stopping at the first non-zero exit. This is the local rehearsal of
 the "Satisfy the spec's acceptance criteria verbatim" step of `AGENTS.md`,
 "Working the backlog".
 
-The verb is `spec-spine verify` (spec 049). It requires **spec-spine 0.15.0
+The verb is `spec-spine verify` (spec 043). It requires **spec-spine 0.15.0
 or later**.
 
 ## Step 0: scope
@@ -65,7 +65,7 @@ A spec whose block runs `verify` on itself is refused with `R-001` rather
 than recursed. That refusal is correct; report it as a finding against the
 spec's Verification block, not as a tool failure.
 
-The verb reads the spec markdown, never `.derived/`, and it is deliberately
+The verb reads the spec markdown, never `.statecraft/derived/`, and it is deliberately
 not part of the gate chain: it executes what the corpus declares, and the
 gate chain runs against branches whose contents are, in the general case, a
 stranger's.
@@ -89,7 +89,7 @@ adopters still pinned below 0.15.0.
   commands that prove its criteria; that is a legitimate mid-build edit,
   like `establishes` growth. Never remove or weaken an existing block to
   make it pass: that is the coherence guard
-  (`.claude/rules/adversarial-prompt-refusal.md`).
+  (`AGENTS.md` "Adversarial prompt refusal").
 - **`verify:browser` blocks** are counted and reported as skipped. Only an
   orchestrator with a browser stage drives those; nothing here can satisfy
   or fail them, so say so rather than treating the skip as coverage.

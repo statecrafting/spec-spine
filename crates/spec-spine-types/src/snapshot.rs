@@ -1,17 +1,17 @@
-//! Authority-snapshot DTOs (spec 087): the third attestation scope.
+//! Authority-snapshot DTOs (spec 070): the third attestation scope.
 //!
 //! An [`AuthoritySnapshot`] records, for one tree and one tool version, which
 //! inputs were read and what they came to: the configuration, the corpus hashes
-//! spec 023 already defines, the committed registry and index trees with a
+//! spec 021 already defines, the committed registry and index trees with a
 //! digest each and whether each matches the recompute, the governance inputs by
 //! path, the gate verdicts, the ownership counts, every spec's lifecycle with a
 //! framed digest of its resolved territory, and the exclusions in force.
 //!
-//! Plain data. Every type refuses a member it does not know (spec 085 3.2), for
+//! Plain data. Every type refuses a member it does not know (spec 068 3.2), for
 //! the reason `attest.rs` states: a verifier that drops an unknown member has
 //! verified a smaller object than the one it was handed.
 //!
-//! Every digest this record introduces is `frame/1` (spec 087 §3.3), a binding
+//! Every digest this record introduces is `frame/1` (spec 070 §3.3), a binding
 //! over **normalized text** for a UTF-8 file and exact bytes for any other. The
 //! members that exist in other payloads (`inputsManifestHash`, `registryHash`,
 //! `findingsHash`, `specAttestationHash`) keep their own constructions.
@@ -21,17 +21,17 @@ use serde::{Deserialize, Serialize};
 use crate::attest::ToolStamp;
 
 /// The `schemaVersion` of an [`AuthoritySnapshot`]: its own axis, starting at
-/// `0.1.0`, independent of every other record line (spec 087 §3.5).
+/// `0.1.0`, independent of every other record line (spec 070 §3.5).
 pub const SNAPSHOT_SCHEMA_VERSION: &str = "0.1.0";
 
-/// The digest construction named in every snapshot (spec 087 §3.3).
+/// The digest construction named in every snapshot (spec 070 §3.3).
 pub const FRAME_DIGEST: &str = "frame/1";
 
-/// The one reason a per-spec join hash may be absent (spec 087 §3.2.1). A closed
+/// The one reason a per-spec join hash may be absent (spec 070 §3.2.1). A closed
 /// vocabulary of one: a second reason is a spec change, not a build's call.
 pub const NON_UTF8_DIRECT_CLAIM: &str = "non-utf8-direct-claim";
 
-/// An authority snapshot (spec 087 §3.1).
+/// An authority snapshot (spec 070 §3.1).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct AuthoritySnapshot {
@@ -50,7 +50,7 @@ pub struct AuthoritySnapshot {
     pub exclusions: SnapshotExclusions,
 }
 
-/// `spec-spine.toml`, as read (spec 087 §3.2).
+/// `spec-spine.toml`, as read (spec 070 §3.2).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SnapshotConfig {
@@ -72,7 +72,7 @@ pub struct SnapshotSchemas {
     pub spec_attestation: String,
 }
 
-/// The spec count and spec 023's two corpus hashes, under 023's construction,
+/// The spec count and spec 021's two corpus hashes, under 023's construction,
 /// so a snapshot joins an existing corpus attestation by value.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -101,7 +101,7 @@ pub struct CommittedTree {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hash: Option<String>,
     /// True exactly when every committed shard file is byte-identical to what
-    /// the recompute emits and the two sets match (spec 087 D-5).
+    /// the recompute emits and the two sets match (spec 070 D-5).
     pub matches_recompute: bool,
 }
 
@@ -127,7 +127,7 @@ pub struct SnapshotVerdicts {
     pub unwitnessed: SnapshotUnwitnessed,
 }
 
-/// Spec 057's pair: claimed paths no content hash covers, and how many of them a
+/// Spec 050's pair: claimed paths no content hash covers, and how many of them a
 /// `[lint] unwitnessed_allowed` pattern allows.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -165,13 +165,13 @@ pub struct SnapshotOwnership {
     pub unclaimed: usize,
 }
 
-/// One spec's lifecycle and territory (spec 087 §3.2).
+/// One spec's lifecycle and territory (spec 070 §3.2).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct SnapshotSpec {
     pub id: String,
     pub status: String,
-    /// Omitted only when the frontmatter omits it (spec 042 3.1).
+    /// Omitted only when the frontmatter omits it (spec 039 3.1).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub implementation: Option<String>,
     /// The content binding: `frame/1` over the spec's resolved owning units

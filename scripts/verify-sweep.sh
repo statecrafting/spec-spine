@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Spec: specs/112-nothing-reruns-a-merged-acceptance/spec.md
+# Spec: specs/089-nothing-reruns-a-merged-acceptance/spec.md
 #
 # verify-sweep.sh: run the whole corpus's declared acceptance against one
 # trusted, already-merged revision, in an isolated checkout, and account for
 # every spec.
 #
-# The gap this closes is spec 105 §1.3: `verify` is the one verb that executes
+# The gap this closes is spec 083 §1.3: `verify` is the one verb that executes
 # what the corpus declares, so it sits outside the gate chain deliberately and
 # nothing in CI runs it. A `## Verification` block can therefore be red for
-# months while every gate stays green, which is exactly what specs 106-110 each
-# had to repair one spec at a time. Spec 105 §4 named the remedy ("a periodic
+# months while every gate stays green, which is exactly what specs 084-110 each
+# had to repair one spec at a time. Spec 083 §4 named the remedy ("a periodic
 # sweep a maintainer runs, not a gate step") and left naming its home as its
 # own work. This is that home.
 #
@@ -39,7 +39,7 @@
 #       3 the sweep refused to run (usage, untrusted revision, bad ledger, I/O)
 #
 # Reads the corpus only through `spec-spine` (registry list, verify), per
-# .claude/rules/governed-artifact-reads.md.
+# AGENTS.md "Governed artifact reads".
 
 set -u
 
@@ -47,12 +47,12 @@ readonly PROG="verify-sweep.sh"
 
 # --- the closed legacy ledger ---------------------------------------------
 #
-# Specs 000 through 047 were filed before `verify:cli` existed: spec 049 built
-# the verb, and spec 048, filed immediately before it, is the first spec in this
+# Specs 000 through 047 were filed before `verify:cli` existed: spec 043 built
+# the verb, and spec 093, filed immediately before it, is the first spec in this
 # corpus to carry a block. Those 48 specs are tracked debt, not a standing
 # exception, and this ledger is how the debt is tracked.
 #
-# The ledger is CLOSED AT ORDINAL 048 (`LEDGER_CLOSED_AT` below) and the sweep
+# The ledger is CLOSED AT ORDINAL 043 (`LEDGER_CLOSED_AT` below) and the sweep
 # refuses an entry at or above it. That is what keeps an exemption from silently
 # covering a future spec: there is no predicate here that a spec filed tomorrow
 # could satisfy. A post-048 spec with no acceptance is `not-declared`, the sweep
@@ -68,58 +68,54 @@ readonly PROG="verify-sweep.sh"
 #
 # One id per line, `#` comments and blank lines ignored. `--exempt-file` reads
 # the same grammar from a file instead.
-readonly LEDGER_CLOSED_AT=48
+readonly LEDGER_CLOSED_AT=43
 legacy_ledger() {
   cat <<'LEDGER'
-# Filed before spec 049 built `verify`; no acceptance was declarable.
+# Filed before spec 043 built `verify`; no acceptance was declarable. Five of
+# the original 48 were removed by spec 095's collapse and are gone from here.
 000-spec-spine-bootstrap
 001-compile-registry
 002-registry-query
 003-conformance-lint
 004-codebase-index
 005-coupling-gate
-006-init-scaffold
-007-distribution
-008-python-distribution
-009-coupling-floor-claim-precedence
-010-registry-query-projection-flags
-011-index-render-orphans
-012-index-hash-slices
-013-declared-extra-frontmatter-passthrough
-014-edge-paths-grammar-sugar
-015-establishes-wrapper-na-alias
-016-short-id-resolution
-017-directory-crate-module-units
-018-constrains-discriminator-optional-unit
-019-structured-partial-supersedes
-020-derived-artifact-merge-driver
-021-release-supply-chain-artifacts
-022-keypath-section-anchors
-023-ledger-seal
-024-index-sharding
-025-unresolved-unit-severity
-026-resolution-discovery-fixes
-027-symbol-resolution-feature-gate
-028-references-provenance-derived-at
-029-claude-code-skill-kit
-030-cargo-workflow-dependency-waiver
-031-registry-freshness-check
-032-ownership-coverage
-033-dependency-cycle-refusal
-034-references-non-owning-paths
-035-stdout-closed-reader
-036-configured-corpus-root
-037-machine-readable-verdicts
-038-registry-plan-ready-set
-039-declared-state-dir
-040-amendment-authoring
-041-completion-held-to-claims
-042-per-spec-attestation
-043-governance-document-gaps
-044-in-progress-is-in-flight
-045-absent-implementation-defers-to-status
-046-kit-hooks-read-never-write
-047-harness-rules-name-the-legitimate-edits
+006-distribution
+007-python-distribution
+008-coupling-floor-claim-precedence
+009-registry-query-projection-flags
+010-index-render-orphans
+011-index-hash-slices
+012-declared-extra-frontmatter-passthrough
+013-edge-paths-grammar-sugar
+014-establishes-wrapper-na-alias
+015-short-id-resolution
+016-directory-crate-module-units
+017-constrains-discriminator-optional-unit
+018-structured-partial-supersedes
+019-release-supply-chain-artifacts
+020-keypath-section-anchors
+021-ledger-seal
+022-index-sharding
+023-unresolved-unit-severity
+024-resolution-discovery-fixes
+025-symbol-resolution-feature-gate
+026-references-provenance-derived-at
+027-cargo-workflow-dependency-waiver
+028-registry-freshness-check
+029-ownership-coverage
+030-dependency-cycle-refusal
+031-references-non-owning-paths
+032-stdout-closed-reader
+033-configured-corpus-root
+034-machine-readable-verdicts
+035-registry-plan-ready-set
+036-declared-state-dir
+037-amendment-authoring
+038-completion-held-to-claims
+039-per-spec-attestation
+040-governance-document-gaps
+041-in-progress-is-in-flight
+042-absent-implementation-defers-to-status
 LEDGER
 }
 
@@ -188,7 +184,7 @@ root=$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null) || die "not a git r
 # guard comparing the two forms would wave through an --out inside the repo.
 root=$(cd "$root" && pwd -P)
 
-# --- the trust boundary (spec 105 4) --------------------------------------
+# --- the trust boundary (spec 083 4) --------------------------------------
 #
 # `verify` runs what the corpus declares. Sweeping the whole corpus runs what
 # every spec declares, so the revision has to be one the maintainer already
@@ -370,7 +366,7 @@ if [ -n "$only" ]; then
     done
     [ -n "$hit" ] || die "--only names no spec in the corpus at $short: $want
   Ids are a full \`NNN-slug\` or the 3-digit ordinal \`NNN\`, which is the short
-  form spec-spine resolves everywhere (spec 016): \`049\`, not \`49\`."
+  form spec-spine resolves everywhere (spec 015): \`049\`, not \`49\`."
     # A spec selected twice would be run twice and counted twice, so the report
     # would say the corpus is larger than it is. `--only 001,001` selects one.
     case "

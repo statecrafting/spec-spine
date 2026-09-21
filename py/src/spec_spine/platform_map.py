@@ -1,12 +1,12 @@
-"""Spec: specs/008-python-distribution/spec.md (extends 007-distribution).
+"""Spec: specs/007-python-distribution/spec.md (extends 006-distribution).
 
 The single (os, cpu) -> target table for the Python/uvx channel, plus host
 detection and the unsupported-host message. This is the Python-side mirror of
-npm/lib/platform.js's SUPPORTED map and the §3.2 table in spec 007: the five
+npm/lib/platform.js's SUPPORTED map and the §3.2 table in spec 006: the five
 triples, the in-archive binary name, and the per-target wheel platform tag are
 ONE FACT, and this module is its home on the Python side. A drift between this
 table, release.yml's matrix, install.sh's detection, and npm/lib/platform.js is
-a governed change (spec 007 §2, now four places).
+a governed change (spec 006 §2, now four places).
 
 Pure data + pure functions: no filesystem or network on the mapping path, so the
 table is unit-tested directly (test/test_platform_map.py). Used by three

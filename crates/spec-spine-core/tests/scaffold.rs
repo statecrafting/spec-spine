@@ -1,10 +1,17 @@
-//! Scaffold tests (spec 006): the generated corpus is well-formed; a scaffolded
-//! repo compiles and lints clean, proving the adoption loop works with zero
-//! library edits.
+//! Scaffold tests (spec 095, narrowed by spec 092 3.3): the generated corpus is
+//! well-formed; a scaffolded repo compiles and lints clean, proving the
+//! governance half of adoption works with zero library edits.
+//!
+//! Since spec 092 the scaffold is a producer Statecraft consumes rather than the
+//! output of a `spec-spine init` command, and it produces governance content
+//! only. The assertions that read `AGENTS.md`, `.claude/rules/` and the embedded
+//! kit went with the surface they were about; the ones that say a scaffolded
+//! corpus compiles, lints, round-trips its own config and schedules nothing are
+//! here, joined by the boundary assertions 3.2 and 3.3 require.
 
 use std::fs;
 
-use spec_spine_core::{compile, lint, plan, scaffold_init, scaffold_init_with};
+use spec_spine_core::{compile, lint, plan, scaffold_init};
 use spec_spine_types::{Config, load_config};
 
 /// Write a [`Scaffold`] to a temp dir as the CLI would.
@@ -48,7 +55,7 @@ fn scaffolded_corpus_compiles_and_lints_clean() {
     );
 }
 
-/// Spec 045 3.3: a freshly scaffolded corpus has nothing to schedule. The
+/// Spec 042 3.3: a freshly scaffolded corpus has nothing to schedule. The
 /// bootstrap spec used to carry no `implementation` key, which `plan` read as
 /// `pending`, so every `init` adopter's ready set was the bootstrap spec,
 /// forever. It now declares `n-a`, and the plan of a scaffold is empty.
@@ -74,52 +81,7 @@ fn scaffolded_corpus_has_nothing_ready_to_schedule() {
     );
 }
 
-/// Spec 047: the three scaffolded rules carry the clarifications every adopter
-/// that rewrote them added by hand, and the kit ships the same text.
-#[test]
-fn scaffolded_rules_carry_the_047_clarifications() {
-    let cfg = Config::default();
-    let repo = materialize(&cfg);
-    let read = |rel: &str| fs::read_to_string(repo.path().join(rel)).unwrap();
-
-    let reads = read(".claude/rules/governed-artifact-reads.md");
-    assert!(reads.contains("is a typed read and is allowed"), "{reads}");
-
-    let refusal = read(".claude/rules/adversarial-prompt-refusal.md");
-    assert!(
-        refusal.contains("Two edits are always legitimate"),
-        "{refusal}"
-    );
-    assert!(refusal.contains("`establishes` list"), "{refusal}");
-    assert!(refusal.contains("human instrument"), "{refusal}");
-    assert!(refusal.contains("`extends` edge"), "{refusal}");
-
-    let orch = read(".claude/rules/orchestrator-rules.md");
-    assert!(orch.contains("commit the regenerated shards"), "{orch}");
-    assert!(orch.contains("One session, one spec"), "{orch}");
-
-    // The kit's copies are byte-identical to what the scaffold writes, so an
-    // adopter who ran `init` and one who copied `kit/` read the same rule.
-    for name in [
-        "governed-artifact-reads",
-        "adversarial-prompt-refusal",
-        "orchestrator-rules",
-    ] {
-        let kit = fs::read_to_string(
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../kit/.claude/rules")
-                .join(format!("{name}.md")),
-        )
-        .unwrap();
-        assert_eq!(
-            kit,
-            read(&format!(".claude/rules/{name}.md")),
-            "kit/{name} drifted"
-        );
-    }
-}
-
-/// Spec 043 1.1: the scaffolded constitution shipped an amendment clause that
+/// Spec 040 1.1: the scaffolded constitution shipped an amendment clause that
 /// named an edge an adopter could not write. It now states the mechanism, and
 /// this asserts the defect cannot return silently.
 #[test]
@@ -160,7 +122,7 @@ fn non_default_namespace_scaffolds_coherently() {
     assert!(outcome.registry.validation.passed);
 }
 
-// ── spec 061: the scaffold ships what every adopter wrote by hand ─────────
+// ── spec 054: the scaffold ships what every adopter wrote by hand ─────────
 
 fn scaffolded(cfg: &Config, rel: &str) -> String {
     scaffold_init(cfg)
@@ -231,18 +193,6 @@ fn the_shard_trees_are_not_ignored_and_the_choice_is_explained() {
     assert!(ignore.contains("freshness gate"), "{ignore}");
 }
 
-/// §3.1: it does not clobber an existing file, like every other scaffolded one.
-#[test]
-fn the_gitignore_is_not_marked_overwrite() {
-    let f = scaffold_init(&Config::default())
-        .unwrap()
-        .files
-        .into_iter()
-        .find(|f| f.rel_path == ".gitignore")
-        .unwrap();
-    assert!(!f.overwrite);
-}
-
 /// §3.2: the emitted config parses back to the configuration it documents. A
 /// documented config that has drifted from its own defaults is worse than none,
 /// and this is the check that keeps the comments honest as `Config` grows.
@@ -271,7 +221,7 @@ fn the_scaffolded_config_round_trips_a_non_default_configuration() {
     assert_eq!(load_config(&toml).unwrap(), cfg);
 }
 
-/// Spec 069 §3.2: the emitted default is the working glob form. The round-trip
+/// Spec 058 §3.2: the emitted default is the working glob form. The round-trip
 /// assertion above cannot catch this: it compares the emitted file against
 /// `Config::default()`, so it holds just as well when both carry a pattern that
 /// matches nothing. This asserts the value itself, and the negative half is the
@@ -291,7 +241,7 @@ fn the_scaffolded_default_hashes_files_not_directories() {
         );
     }
     // The trap outlives the default: an adopter narrowing this list can still
-    // write it, so the warning stays (and spec 061's own acceptance greps it).
+    // write it, so the warning stays (and spec 054's own acceptance greps it).
     assert!(toml.contains("matches DIRECTORIES"), "{toml}");
 }
 
@@ -323,7 +273,7 @@ fn the_scaffolded_config_names_the_knobs_adopters_needed() {
     assert!(toml.contains("L-006"), "{toml}");
     assert!(toml.contains("L-007"), "{toml}");
     assert!(toml.contains("L-008"), "{toml}");
-    // And the glob trap spec 057 found is called out where it bites.
+    // And the glob trap spec 050 found is called out where it bites.
     assert!(toml.contains("`dir/**` matches DIRECTORIES"), "{toml}");
 }
 
@@ -341,7 +291,7 @@ fn the_constitution_template_is_the_real_one_and_cannot_drift() {
             .expect("the checked-in template");
     assert_eq!(emitted, checked_in, "the constant and the file must agree");
 
-    // The properties spec 043 asked for, mirrored from its assertion on the
+    // The properties spec 040 asked for, mirrored from its assertion on the
     // constitution itself.
     assert!(emitted.contains("Tier 2"), "{emitted}");
     assert!(emitted.contains("Normative hierarchy"), "{emitted}");
@@ -350,197 +300,10 @@ fn the_constitution_template_is_the_real_one_and_cannot_drift() {
     assert!(emitted.contains("<Principle name>"), "{emitted}");
 }
 
-// ── spec 065: init and the kit are one adoption ───────────────────────────
-
-/// §3.1: `AGENTS.md` is unconditional, not a kit extra. A scaffold that wrote
-/// three `.claude/rules/` files and no protocol has written the constraints
-/// without the procedure.
-#[test]
-fn plain_init_writes_an_agents_md_with_the_four_required_sections() {
-    let agents = scaffolded(&Config::default(), "AGENTS.md");
-    assert!(agents.contains("## New Sessions"), "{agents}");
-    assert!(agents.contains("## Working the backlog"), "{agents}");
-    assert!(agents.contains("## The gate"), "{agents}");
-    // §3.1: the reads are the non-writing forms. A read that repairs the tree
-    // hides that the committed copy was stale. Since spec 075 the composed
-    // read is `spec-spine check`, which is the rendering of 065 §3.1's
-    // requirement that the protocol name reads that do not write; the pair
-    // this line used to pin was that rendering in September (113 §3.5).
-    assert!(agents.contains("spec-spine check"), "{agents}");
-    // And the superseded spellings are gone, not merely joined: a generator
-    // emitting both would satisfy the line above while shipping two protocols
-    // that disagree.
-    assert!(!agents.contains("spec-spine compile --check"), "{agents}");
-    assert!(
-        !agents.contains("spec-spine index check --fail-on-unresolved"),
-        "{agents}"
-    );
-    // §3.1: and the spec 063 precondition.
-    assert!(
-        agents.contains("Ask `spec-spine --version` before believing any exit code"),
-        "{agents}"
-    );
-}
-
-/// §3.1: config-aware, like everything else in the scaffold.
-///
-/// Spec 113 §3.3 holds this: the gate block's verbs become the kit's and the
-/// paths stay the adopter's. A generator that hard-coded paths while rewriting
-/// the gate is the failure this spec's own change is the likeliest cause of, so
-/// the negative halves are asserted rather than assumed. Both configured
-/// directories are chosen so the default is not a substring of them (113 D-4):
-/// `governance/specs` contains `specs`, so a `contains("specs/")` search
-/// matches a correctly configured tree and proves nothing either way.
-#[test]
-fn the_scaffolded_agents_md_follows_the_configured_layout() {
-    let cfg =
-        load_config("[layout]\nspecs_dir = \"corpus\"\nderived_dir = \"build/derived\"\n").unwrap();
-    let agents = scaffolded(&cfg, "AGENTS.md");
-    assert!(agents.contains("corpus/"), "{agents}");
-    assert!(agents.contains("build/derived/"), "{agents}");
-    assert!(!agents.contains("specs/"), "{agents}");
-    assert!(!agents.contains(".derived/"), "{agents}");
-}
-
-/// §3.2: `--with-kit` writes the harness at the adopter's own paths. `kit/` is
-/// this repository's storage location; `.claude/skills/build/SKILL.md` is where
-/// the file has to be to work.
-#[test]
-fn with_kit_writes_the_harness_at_the_adopters_paths() {
-    let files = scaffold_init_with(&Config::default(), true).unwrap().files;
-    let paths: Vec<&str> = files.iter().map(|f| f.rel_path.as_str()).collect();
-
-    for expected in [
-        ".claude/settings.json",
-        ".claude/skills/build/SKILL.md",
-        ".claude/agents/architect.md",
-        ".mcp.json",
-        "Makefile",
-        ".github/workflows/govern.yml",
-    ] {
-        assert!(paths.contains(&expected), "missing {expected}: {paths:?}");
-    }
-    // Nothing is written under a `kit/` prefix.
-    assert!(
-        !paths.iter().any(|p| p.starts_with("kit/")),
-        "the kit prefix is storage, not a destination: {paths:?}"
-    );
-}
-
-/// §3.2: the three `.claude/rules/` files plain `init` already writes are not
-/// duplicated. They are the same three the kit carries (spec 047).
-#[test]
-fn with_kit_does_not_duplicate_the_rules_plain_init_writes() {
-    let files = scaffold_init_with(&Config::default(), true).unwrap().files;
-    for rule in [
-        ".claude/rules/orchestrator-rules.md",
-        ".claude/rules/governed-artifact-reads.md",
-        ".claude/rules/adversarial-prompt-refusal.md",
-    ] {
-        assert_eq!(
-            files.iter().filter(|f| f.rel_path == rule).count(),
-            1,
-            "{rule} appears more than once"
-        );
-    }
-    // And every path is unique, since two entries for one path would make the
-    // writer's behavior depend on iteration order.
-    let mut seen = std::collections::BTreeSet::new();
-    for f in &files {
-        assert!(seen.insert(f.rel_path.clone()), "duplicate {}", f.rel_path);
-    }
-}
-
-/// §3.3: nothing is marked for overwrite. This matters most for `AGENTS.md`:
-/// an adopter who has written their own is the common case in a repository
-/// that has been worked in.
-#[test]
-fn no_kit_file_is_marked_overwrite() {
-    for f in scaffold_init_with(&Config::default(), true).unwrap().files {
-        assert!(!f.overwrite, "{} is marked overwrite", f.rel_path);
-    }
-}
-
-/// §3.2: the embedded constants and the checked-in `kit/` tree agree, so an
-/// edit to one cannot silently diverge from the other. `kit/` stays the
-/// editable source; `kit_embedded.rs` is generated from it.
-#[test]
-fn the_embedded_kit_matches_the_checked_in_tree() {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
-    // Destinations map back to `kit/` by the two rules the generator applies.
-    let source_for = |dest: &str| -> String {
-        match dest {
-            ".claude/settings.json" => "kit/settings.json".to_string(),
-            ".github/workflows/govern.yml" => "kit/govern.yml".to_string(),
-            // Spec 074 3.3: the stanza spec 065 3.2 excluded, now written as
-            // the adopter's `.gitattributes` (appended when they have one).
-            ".gitattributes" => "kit/.gitattributes-stanza".to_string(),
-            other => format!("kit/{other}"),
-        }
-    };
-    for (dest, contents) in spec_spine_core::kit_embedded::KIT_FILES {
-        let src = root.join(source_for(dest));
-        let on_disk =
-            std::fs::read_to_string(&src).unwrap_or_else(|e| panic!("{}: {e}", src.display()));
-        assert_eq!(
-            *contents,
-            on_disk.as_str(),
-            "{} has drifted from {}; regenerate with `python3 scripts/gen-kit-embedded.py`",
-            dest,
-            src.display()
-        );
-    }
-    // The whole harness is embedded, not a subset: every file under `kit/`
-    // that the generator does not deliberately skip (its README and the
-    // AGENTS.md template, spec 065 3.1) is an entry. Counted from the tree
-    // rather than pinned to a number, which a kit that shrinks (spec 081
-    // removed five skills) or grows would otherwise have to chase.
-    let skipped = ["kit/README.md", "kit/AGENTS.md"];
-    let on_disk = walkdir_files(&root.join("kit"))
-        .into_iter()
-        .filter(|p| {
-            let rel = p
-                .strip_prefix(&root)
-                .unwrap()
-                .to_string_lossy()
-                .replace('\\', "/");
-            !skipped.contains(&rel.as_str())
-                && !p.components().any(|c| {
-                    matches!(
-                        c.as_os_str().to_str(),
-                        Some(".DS_Store" | "__pycache__" | ".git")
-                    )
-                })
-        })
-        .count();
-    assert_eq!(
-        spec_spine_core::kit_embedded::KIT_FILES.len(),
-        on_disk,
-        "the whole harness is embedded, not a subset; regenerate with `python3 scripts/gen-kit-embedded.py`"
-    );
-}
-
-/// Every regular file under `dir`, recursively.
-fn walkdir_files(dir: &std::path::Path) -> Vec<std::path::PathBuf> {
-    let mut out = Vec::new();
-    let mut stack = vec![dir.to_path_buf()];
-    while let Some(d) = stack.pop() {
-        for entry in std::fs::read_dir(&d).unwrap() {
-            let p = entry.unwrap().path();
-            if p.is_dir() {
-                stack.push(p);
-            } else if p.is_file() {
-                out.push(p);
-            }
-        }
-    }
-    out
-}
-
-// ── spec 066: the contract records the lifecycle table ────────────────────
+// ── spec 056: the contract records the lifecycle table ────────────────────
 
 /// §3.3: the scaffolded contract carries both sections, so a new adopter gets
-/// them rather than writing them. This is the pattern spec 043 §3.4
+/// them rather than writing them. This is the pattern spec 040 §3.4
 /// established when it added the amendment mechanism to the scaffolded
 /// constitution.
 #[test]
@@ -585,55 +348,252 @@ fn the_longer_contract_does_not_break_the_scaffolded_corpus() {
     }
 }
 
-// ── spec 074 3.3 and 3.4: the scaffold carries the facts the writer applies ──
+// ── spec 061 3.3 and 3.4: the scaffold carries the facts the writer applies ──
 
-/// §3.4: executability is DATA in the returned `Scaffold`, not an IO decision
-/// the writer takes, so the scaffold stays a pure function of
-/// `(Config, with_kit)` and is identical on every platform.
+// ── spec 092: the producer boundary Statecraft consumes ───────────────────
+
+/// The layout values Statecraft passes (spec 092 §3.3). Named once here so the
+/// assertions below read the same four values the contract names.
+fn statecraft_layout() -> Config {
+    let mut cfg = Config::default();
+    cfg.layout.specs_dir = "specs".to_string();
+    cfg.layout.standards_dir = "standards/spec".to_string();
+    cfg.layout.derived_dir = ".statecraft/derived".to_string();
+    cfg.layout.state_dir = ".statecraft/state".to_string();
+    cfg
+}
+
+/// §3.3: the file set is exactly the seven governance files, in a default
+/// layout. An exact set rather than a `contains` sweep, because the defect this
+/// spec removes is an EXTRA file (an `AGENTS.md`, three `.claude/rules/`), and
+/// no number of `contains` assertions can notice one.
 #[test]
-fn the_scaffold_marks_its_shell_scripts_executable() {
-    let files = scaffold_init_with(&Config::default(), true).unwrap().files;
-    let sh: Vec<_> = files
-        .iter()
-        .filter(|f| f.rel_path.ends_with(".sh"))
-        .collect();
-    assert!(!sh.is_empty(), "the kit ships shell scripts");
-    for f in &sh {
-        assert!(f.executable, "{} must be marked executable", f.rel_path);
-    }
-    // Nothing else is. The bit is a permission, so the safe value is the one
-    // you get by saying nothing.
-    for f in files.iter().filter(|f| !f.rel_path.ends_with(".sh")) {
-        assert!(!f.executable, "{} must not be executable", f.rel_path);
+fn the_producer_emits_exactly_the_governance_file_set() {
+    let files = scaffold_init(&Config::default()).unwrap().files;
+    let mut paths: Vec<&str> = files.iter().map(|f| f.rel_path.as_str()).collect();
+    paths.sort_unstable();
+    assert_eq!(
+        paths,
+        vec![
+            ".gitignore",
+            "spec-spine.toml",
+            "specs/000-bootstrap/spec.md",
+            "standards/spec/constitution.md",
+            "standards/spec/contract.md",
+            "standards/spec/templates/constitution-template.md",
+            "standards/spec/templates/spec-template.md",
+        ]
+    );
+}
+
+/// §3.3: and it emits no development environment, named path by path. The
+/// prefixes rather than only the exact names, so a file placed one level deeper
+/// (`.claude/skills/build/SKILL.md`) is caught by the same line.
+#[test]
+fn the_producer_emits_no_agent_or_environment_artifact() {
+    for cfg in [Config::default(), statecraft_layout()] {
+        let files = scaffold_init(&cfg).unwrap().files;
+        for f in &files {
+            let p = f.rel_path.as_str();
+            for forbidden in [
+                "AGENTS.md",
+                "CLAUDE.md",
+                ".claude/",
+                ".codex/",
+                ".agents/",
+                ".statecraft/",
+                ".mcp.json",
+                "Makefile",
+                "govern.yml",
+                ".github/",
+                ".githooks/",
+                ".gitattributes",
+                "settings.json",
+            ] {
+                assert!(
+                    p != forbidden && !p.starts_with(forbidden),
+                    "the scaffold emits `{p}`, which is environment and not governance"
+                );
+            }
+        }
     }
 }
 
-/// §3.3: the binding for the merge driver is part of what `--with-kit` writes,
-/// and it is marked to append rather than to clobber an adopter's own file.
+/// §3.3: the layout Statecraft passes scaffolds coherently, and every path is
+/// relative to the repository root rather than to the configuration file.
 #[test]
-fn the_scaffold_carries_the_merge_driver_binding_as_an_append() {
-    let files = scaffold_init_with(&Config::default(), true).unwrap().files;
-    let ga = files
+fn the_statecraft_layout_scaffolds_coherently() {
+    let cfg = statecraft_layout();
+    let files = scaffold_init(&cfg).unwrap().files;
+    let paths: Vec<&str> = files.iter().map(|f| f.rel_path.as_str()).collect();
+
+    assert!(paths.contains(&"specs/000-bootstrap/spec.md"));
+    assert!(paths.contains(&"standards/spec/constitution.md"));
+    assert!(paths.contains(&"spec-spine.toml"), "at the ROOT, always");
+    for p in &paths {
+        assert!(!p.starts_with('/'), "`{p}` is absolute");
+        assert!(!p.starts_with("./"), "`{p}` is not root-relative");
+        assert!(!p.contains(".."), "`{p}` escapes the repository root");
+    }
+
+    let toml = scaffolded(&cfg, "spec-spine.toml");
+    assert!(
+        toml.contains("derived_dir   = \".statecraft/derived\""),
+        "{toml}"
+    );
+    assert!(
+        toml.contains("state_dir     = \".statecraft/state\""),
+        "{toml}"
+    );
+
+    let ignore = scaffolded(&cfg, ".gitignore");
+    assert!(
+        ignore.contains(".statecraft/derived/**/build-meta.json"),
+        "the transient metadata is excluded: {ignore}"
+    );
+    assert!(
+        ignore.contains(".statecraft/state/"),
+        "the state root is excluded: {ignore}"
+    );
+    // And the governed half of `.statecraft/` is NOT excluded. A `.statecraft/`
+    // line would put the committed ledger outside version control, which is
+    // the failure spec 092 §3.9 exists to refuse.
+    assert!(
+        !ignore.lines().any(|l| l.trim() == ".statecraft/"),
+        "the whole directory must not be ignored: {ignore}"
+    );
+    assert!(
+        !ignore
+            .lines()
+            .any(|l| l.trim() == ".statecraft/derived/" || l.trim() == ".statecraft/derived"),
+        "the committed shard trees must not be ignored: {ignore}"
+    );
+}
+
+/// §3.3: the `.gitignore` is returned as something to reconcile, not something
+/// to write over. A consumer that replaced an existing ignore file would
+/// destroy exclusions the repository already had.
+#[test]
+fn the_gitignore_is_an_append_with_a_marker() {
+    let files = scaffold_init(&statecraft_layout()).unwrap().files;
+    let ignore = files.iter().find(|f| f.rel_path == ".gitignore").unwrap();
+    assert!(ignore.append, "it is appended, not written over");
+    assert!(!ignore.overwrite, "and never forced");
+    let marker = ignore
+        .append_marker
+        .as_deref()
+        .expect("an append carries the marker that makes it idempotent");
+    assert!(
+        ignore.contents.contains(marker),
+        "the marker must be present in what is appended, or the second run \
+         appends a second copy: {marker:?}"
+    );
+    // Every other file is a plain write, skipped when it already exists.
+    for f in files.iter().filter(|f| f.rel_path != ".gitignore") {
+        assert!(
+            !f.append,
+            "{}: only the ignore fragment appends",
+            f.rel_path
+        );
+        assert!(!f.overwrite, "{}: never forced", f.rel_path);
+    }
+}
+
+/// §3.2: the exported JSON facade is the boundary, and it answers the same
+/// thing the typed call does. Exercised through `scaffold_init_json` itself,
+/// with a JSON configuration, because that is the function the consumer calls.
+#[test]
+fn the_json_facade_is_the_boundary_statecraft_consumes() {
+    let request = r#"{
+        "layout": {
+            "specs_dir": "specs",
+            "standards_dir": "standards/spec",
+            "derived_dir": ".statecraft/derived",
+            "state_dir": ".statecraft/state"
+        }
+    }"#;
+    let out = spec_spine_core::scaffold_init_json(request).expect("the facade answers");
+    let v: serde_json::Value = serde_json::from_str(&out).expect("it answers JSON");
+    let files = v["files"].as_array().expect("files array");
+    assert_eq!(files.len(), 7, "the governance file set: {out}");
+
+    let paths: Vec<&str> = files
         .iter()
-        .find(|f| f.rel_path == ".gitattributes")
-        .expect("spec 074 3.3: --with-kit writes the binding");
+        .map(|f| f["relPath"].as_str().expect("relPath"))
+        .collect();
+    assert!(paths.contains(&"spec-spine.toml"), "{paths:?}");
+    assert!(paths.contains(&"specs/000-bootstrap/spec.md"), "{paths:?}");
+    assert!(!paths.iter().any(|p| p.starts_with(".claude")), "{paths:?}");
+    assert!(!paths.contains(&"AGENTS.md"), "{paths:?}");
+
+    // The response shape the consumer is implementing against, field by field.
+    let ignore = files
+        .iter()
+        .find(|f| f["relPath"] == ".gitignore")
+        .expect("the ignore fragment");
+    for key in ["relPath", "contents", "overwrite", "executable", "append"] {
+        assert!(
+            ignore.get(key).is_some(),
+            "`{key}` is part of the contract: {ignore}"
+        );
+    }
+    assert_eq!(ignore["append"], serde_json::Value::Bool(true));
+    assert!(ignore["appendMarker"].is_string(), "{ignore}");
+
+    // And `"{}"` means defaults, which is the documented degenerate request.
+    let defaults = spec_spine_core::scaffold_init_json("{}").expect("defaults");
+    let d: serde_json::Value = serde_json::from_str(&defaults).unwrap();
+    assert_eq!(d["files"].as_array().unwrap().len(), 7);
+}
+
+/// §3.2: the producer is pure, asserted two ways that can actually fail.
+///
+/// The first is behavioral: two calls with the same argument answer the same
+/// bytes, so nothing in it reads a clock, a random source or mutable state.
+/// The second reads the module's own source for the constructs a pure function
+/// may not contain. A source read rather than a claim in a doc comment, because
+/// the contract is what a consumer relies on and prose does not fail.
+#[test]
+fn the_producer_performs_no_io() {
+    let first = spec_spine_core::scaffold_init_json("{}").unwrap();
+    let second = spec_spine_core::scaffold_init_json("{}").unwrap();
+    assert_eq!(first, second, "the same request must answer the same bytes");
+
+    let src = fs::read_to_string(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/scaffold.rs"),
+    )
+    .unwrap();
+    let code: String = src
+        .lines()
+        .filter(|l| {
+            let t = l.trim_start();
+            !t.starts_with("//") && !t.starts_with("///") && !t.starts_with("//!")
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    for forbidden in [
+        "std::fs",
+        "fs::write",
+        "fs::read",
+        "std::env::var",
+        "std::process",
+        "Command::new",
+        "SystemTime",
+        "Instant::now",
+        "TcpStream",
+    ] {
+        assert!(
+            !code.contains(forbidden),
+            "scaffold.rs contains `{forbidden}`; the producer is a pure function \
+             of its argument (spec 092 §3.2)"
+        );
+    }
+    // The positive control: the reader above is the thing under test, so a run
+    // that found nothing has to be shown capable of finding something. `format!`
+    // is in every line of this module.
     assert!(
-        ga.append,
-        "an adopter's own .gitattributes must be preserved"
-    );
-    assert_eq!(
-        ga.append_marker.as_deref(),
-        Some("spec-spine-derived-regen"),
-        "idempotency keys on the driver name, so a reformatted stanza is not duplicated"
-    );
-    assert!(ga.contents.contains("merge=spec-spine-derived-regen"));
-    // Plain `init` does not install the driver, so it does not write the binding.
-    assert!(
-        !scaffold_init_with(&Config::default(), false)
-            .unwrap()
-            .files
-            .iter()
-            .any(|f| f.rel_path == ".gitattributes"),
-        "the binding belongs with the hooks it binds, which are a kit extra"
+        code.contains("format!"),
+        "the source read returned code the filter had emptied, so the assertions \
+         above could not have failed either"
     );
 }

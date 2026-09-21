@@ -49,6 +49,6 @@
     "@spec-spine/cli-win32-x64": "0.21.0"
   },
   "spec-spine": {
-    "spec": "007-distribution"
+    "spec": "006-distribution"
   }
 }

@@ -1,0 +1,38 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "096-compaction-is-a-verb-not-a-session",
+      "050-claimed-but-unwitnessed",
+      "093-the-harness-this-repository-runs"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/retire.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/08-remaining-cleanup-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/08-remaining-cleanup-2026-09.md"
+        }
+      }
+    ],
+    "specId": "097-a-path-leaves-the-corpus-the-way-a-spec-does",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "65105a943682cece3b0e14402415195fbda66eebbd7e80f633f4e5d9f988eb18"
+}

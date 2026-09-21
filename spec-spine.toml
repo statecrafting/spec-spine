@@ -5,7 +5,7 @@
 # explicitly to exercise the config parser and document the dogfood setup.
 # Every key here is optional; an absent file would behave identically.
 
-# Spec 074 3.8: this repository pins the version that governs it. Spec 062 built
+# Spec 061 3.8: this repository pins the version that governs it. Spec 055 built
 # the key for exactly the failure a dogfooding repository is most exposed to, an
 # in-tree `target/release/spec-spine` that predates the checkout, and this
 # repository was not using it.
@@ -16,7 +16,7 @@
 # inflicted exit 3 on every command. `>=` catches what 3.8 names and nothing
 # else.
 #
-# `Config` derives `deny_unknown_fields`, so a binary predating spec 062 fails
+# `Config` derives `deny_unknown_fields`, so a binary predating spec 055 fails
 # to deserialize this key and exits 3 with a config error, never 2. The signal
 # is unambiguous in both directions.
 [meta]
@@ -34,23 +34,33 @@ allowed = []        # disabled: `kind` is free-text here (symmetric with [domain
 
 [layout]
 specs_dir     = "specs"
-derived_dir   = ".derived"
+# Spec 092 3.7: the managed layout Statecraft initializes. The compiled
+# governance artifacts live under `.statecraft/derived/` and are COMMITTED (only
+# `build-meta.json` is ignored); `.statecraft/state/` is spec 036's ungoverned
+# state root and is not. `.statecraft/` as a whole is neither: a file under it
+# that is in neither of those two roots is ordinary governed territory and every
+# check sees it (spec 092 3.9).
+#
+# The product default is still `.derived`. This is one repository's
+# configuration, not a change to what a corpus that configures nothing gets.
+derived_dir   = ".statecraft/derived"
+state_dir     = ".statecraft/state"
 standards_dir = "standards/spec"
 schemas_dir   = "standards/schemas"
 cargo_workspace = "Cargo.toml"
 # No npm in this repo; the default still probes these at the root and finds none.
 npm_workspaces = ["package.json", "pnpm-workspace.yaml"]
 standalone_rust_workspaces = []
-# The npm binary-distribution shim (spec 007) is a tracked npm package outside any
+# The npm binary-distribution shim (spec 006) is a tracked npm package outside any
 # npm workspace (this repo has none), so it is declared as a standalone package.
 standalone_npm_packages    = ["npm"]
 
 [index]
 # Files folded into the global-inputs scalar, so a change to one stales every
-# shard. Spec 057 found the first two entries here matched ZERO files: in the
+# shard. Spec 050 found the first two entries here matched ZERO files: in the
 # `glob` crate `dir/**` matches directories only, and files need `dir/**/*`.
 # The constitution, the contract, the templates and every workflow had
-# therefore never contributed to any content hash, and spec 023 was signing an
+# therefore never contributed to any content hash, and spec 021 was signing an
 # attestation over a ledger that had not read them.
 #
 # Every pattern below is deliberately narrow. This list hashes whatever is on
@@ -63,58 +73,41 @@ standalone_npm_packages    = ["npm"]
 extra_hashed_inputs = [
   "standards/**/*.md",
   ".github/workflows/*.yml",
-  # Governance and harness files specs claim (spec 057).
+  # Spec 092 3.6: the one definition of the governed loop, repository-owned
+  # since the kit was removed. L-008 requires a claimed file to be in some
+  # content hash, and a gate whose bytes can change without staling the ledger
+  # is exactly the file that should not be.
+  "Makefile",
+  # Governance and harness files specs claim (spec 050).
   "AGENTS.md",
   "CLAUDE.md",
-  ".claude/rules/*.md",
   ".claude/settings.json",
   ".githooks/*.sh",
-  # Spec 090: a git hook must be named exactly, so the `*.sh` pattern above
+  # Spec 094: a git hook must be named exactly, so the `*.sh` pattern above
   # cannot reach it. The commit-boundary guard is a governance file; an edit
   # to it should stale the ledger like any other.
   ".githooks/pre-commit",
   "scripts/*.sh",
   "install.sh",
   "docs/adoption-guide.md",
+  # Spec 095 3.4: the map from every removed and renumbered spec id to the one
+  # that answers for it now. A claimed governance file, so L-008 requires it to
+  # be in some content hash, and a map whose bytes could change without staling
+  # the ledger is exactly the file that should not be.
+  "docs/corpus-map.md",
   "docs/releasing.md",
   "docs/schema-versioning.md",
   "docs/specify-first.md",
-  "kit/AGENTS.md",
-  "kit/README.md",
-  "kit/settings.json",
-  "kit/.claude/rules/*.md",
-  # Spec 064: the kit's build half. Claimed, so they are hashed rather than
-  # allowlisted; a change to the gate adopters copy should stale the ledger.
-  "kit/Makefile",
-  "kit/govern.yml",
-  "kit/.githooks/*.sh",
-  "kit/.githooks/pre-commit",
-  "kit/.gitattributes-stanza",
-  # Spec 065: the kit's own skills, agents and settings are the source the
-  # embedded module is generated from, so a change to one must stale the ledger.
-  "kit/.claude/agents/*.md",
-  "kit/.claude/skills/*/*.md",
-  "kit/.mcp.json",
-  # Spec 099: the third copy of the session hooks, shipped by spec 081 and
-  # claimed by 099 3.4. Its two siblings (`.claude/settings.json` and
-  # `kit/settings.json`) are hashed above; leaving this one out made it the
-  # one governance file whose bytes could change without staling a shard,
-  # which is what L-008 refuses.
-  ".codex/hooks.json",
-  # Spec 100 3.5: the three generated agent instruction trees. Two of them,
-  # `.agents/skills/` and `.codex/agents/`, were tracked and unowned
-  # since spec 081's own commit and claimed by 100. Governance files of exactly
-  # the kind spec 074 3.2 says the glob remedy is right for: a handful, rarely
-  # changed, and a change to one should stale the ledger. All three generated
-  # destinations are listed, including `.claude/skills/`: its bytes are also
-  # reachable by a direct edit that never goes through the kit, and such an edit
-  # matches no other glob here, so without this entry the one tree a Claude
-  # session actually reads would be the one whose corruption stales nothing.
-  # `C-002` does not cover it either, since `.md` is outside `SOURCE_EXTS`.
+  # Spec 095 3.5, narrowed by spec 092 3.5: the skill tree a session here loads.
+  # It used to be one of three generated destinations (`.agents/skills/` and
+  # `.codex/agents/` were the others); those were projections for a delivery
+  # this repository no longer performs, and they went with the kit. This one
+  # stays because its bytes are reachable by a direct edit, such an edit matches
+  # no other glob here, and `C-002` does not cover it either, since `.md` is
+  # outside `SOURCE_EXTS`: without this entry the one tree a Claude session
+  # actually reads would be the one whose corruption stales nothing.
   ".claude/skills/*/SKILL.md",
-  ".agents/skills/*/SKILL.md",
-  ".codex/agents/*.toml",
-  "kit/scripts/*.sh",
+  ".claude/agents/*.md",
   "scripts/*.py",
   "py/scripts/*.py",
   # The embedded JSON Schemas the conformance test validates against. Hashed
@@ -123,7 +116,13 @@ extra_hashed_inputs = [
   # the right price.
   "crates/spec-spine-types/schemas/*.json",
 ]
-resolver_exclusions = ["target", "node_modules", ".derived", "dist", "build", ".next"]
+# Spec 092 3.8: `.derived` is gone from this list, and not because the tree
+# stopped being excluded. This list matches path COMPONENTS, which cannot
+# express `.statecraft/derived` without also excluding every directory named
+# `derived` anywhere in the tree, so the engine now prunes the CONFIGURED
+# derived root the way it prunes the state root: not expressible here, and
+# not cancellable here either.
+resolver_exclusions = ["target", "node_modules", "dist", "build", ".next"]
 
 [branding]
 compiler_id = "spec-spine"
@@ -132,13 +131,15 @@ indexer_id  = "spec-spine"
 [coupling]
 # Additions to the built-in generic bypass floor (see couple.rs::DEFAULT_BYPASS_PREFIXES).
 # This list is ADDITIVE and cannot remove a floor entry. The floor already covers
-# the root README.md, docs/, .github/, lockfiles, .derived/, etc.; we extend it to
+# the root README.md, docs/, .github/, lockfiles, and the CONFIGURED derived
+# root (spec 092 3.8, which is why `.statecraft/derived/` is not listed below);
+# we extend it to
 # per-crate READMEs (e.g. crates/*/README.md): prose documentation lives inside
 # the crate dir, which manifest-metadata maps to the crate's spec, so without this
 # a README tweak would read as code drift. `**/README.md` = tail-suffix match.
 bypass_prefixes = ["**/README.md"]
 waiver_keyword = "Spec-Drift-Waiver:"
-# Spec 032: refuse a changed source file that no spec specifically claims
+# Spec 029: refuse a changed source file that no spec specifically claims
 # (C-002). ON here: the debt 032 §3.8 named is retired. Those five files are
 # claimed by `// Spec: specs/<id>/spec.md` headers in the files themselves
 # rather than by new frontmatter units, because a header is a file naming the
@@ -149,7 +150,7 @@ waiver_keyword = "Spec-Drift-Waiver:"
 # half: a changed source file no spec specifically claims is C-002.
 require_ownership = true
 
-# Spec 005 §3.5, extended to cargo and workflow manifests by spec 030: clear a
+# Spec 005 §3.5, extended to cargo and workflow manifests by spec 027: clear a
 # change whose every non-bypassed path is a dependency-only manifest edit, with
 # no other change in the diff. The waiver is mechanical, not a judgement: the
 # CLI re-reads each manifest at base and at head and refuses to waive unless the
@@ -171,16 +172,16 @@ code-fingerprint = "fingerprint://"
 extra_known_keys = []
 
 [lint]
-# Spec 057: claimed paths this corpus deliberately leaves out of every content
+# Spec 050: claimed paths this corpus deliberately leaves out of every content
 # hash. A `file` unit carries no span, and only span-backing files enter a
 # shard hash, so every source file claimed as a bare file unit is invisible to
 # the ledger. That is 74 files here, and folding them in is a different change
-# (it would alter what staleness means) that spec 057 4 puts out of scope.
+# (it would alter what staleness means) that spec 050 4 puts out of scope.
 #
 # They are not undefended: the coupling gate refuses a changed source file
 # whose owning spec did not change, which is the check that actually protects
 # them. What the gap costs is narrower and worth writing down: `index check`
-# will not call the index stale for an edit to one of these, and spec 023's
+# will not call the index stale for an edit to one of these, and spec 021's
 # attestation covers a ledger that never hashed their bytes.
 #
 # `index check` still reports the total on every run and says how many of it

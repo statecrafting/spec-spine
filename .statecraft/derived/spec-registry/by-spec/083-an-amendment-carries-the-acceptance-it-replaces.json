@@ -1,0 +1,53 @@
+{
+  "record": {
+    "amends": [
+      "079-a-blocking-claim-is-not-a-stale-shard"
+    ],
+    "amendsVerification": [
+      "079-a-blocking-claim-is-not-a-stale-shard"
+    ],
+    "created": "2026-09-16",
+    "dependsOn": [
+      "079-a-blocking-claim-is-not-a-stale-shard",
+      "080-an-unresolved-claim-is-not-stale",
+      "082-an-amended-acceptance-is-the-one-that-runs"
+    ],
+    "id": "083-an-amendment-carries-the-acceptance-it-replaces",
+    "implementation": "complete",
+    "kind": "core",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "105: An amendment carries the acceptance it replaces",
+      "1. Purpose",
+      "1.1 Two defects in one block, neither reachable by the gate",
+      "1.2 Why spec 080 did not fix this",
+      "1.3 Why this is 103's named follow-on",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 What spec 079's acceptance now is",
+      "3.2 The stale-only assertion is not migrated",
+      "3.3 AC-9 keeps the half that can still be true",
+      "3.4 No code changes",
+      "3.5 The acceptance",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/083-an-amendment-carries-the-acceptance-it-replaces/spec.md",
+    "status": "approved",
+    "summary": "Spec 080 amended spec 079 so that an unresolved claim exits 1 rather than 2, and migrated the four assertions that live in Rust. Spec 079's own `## Verification` block was left as it was ratified, and five of its assertions still require the pre-amendment code, so `spec-spine verify 098` has been red since 101 merged. A sixth line is red for an unrelated reason: 098's AC-9 compares two `settings.json` files against a fixed commit to prove 098 did not edit them, which specs 093 and 104 then legitimately did. Spec 082 built the route an amendment needs to reach an acceptance block and landed after 101, naming the audit of the remaining blocks as its own work. This is that work for 098: this spec declares 098's acceptance replaced and carries the corrected block, without editing 098's file.\n",
+    "title": "An amendment carries the acceptance it replaces"
+  },
+  "shardHash": "e544864b47fc2029c5b22c8320f2d5b9309dec6f8ea2391c2e1b79d7738fe53e",
+  "specVersion": "1.3.0"
+}

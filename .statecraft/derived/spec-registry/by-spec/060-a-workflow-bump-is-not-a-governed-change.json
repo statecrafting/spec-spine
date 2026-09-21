@@ -1,0 +1,107 @@
+{
+  "record": {
+    "amends": [
+      "004-codebase-index",
+      "058-the-shipped-default-hashes-what-it-names"
+    ],
+    "created": "2026-09-08",
+    "dependsOn": [
+      "004-codebase-index",
+      "005-coupling-gate",
+      "022-index-sharding",
+      "027-cargo-workflow-dependency-waiver",
+      "058-the-shipped-default-hashes-what-it-names"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/manifest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/shard.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/dep_only.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "027-cargo-workflow-dependency-waiver",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/adoption-guide.md"
+        }
+      }
+    ],
+    "id": "060-a-workflow-bump-is-not-a-governed-change",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-architecture.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionHeadings": [
+      "073: A workflow bump is not a governed change",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A workflow folds as its governance projection (amends 004 3.5)",
+      "3.2 The projection and the waiver state one rule",
+      "3.3 The upgrade restales every workflow-bearing repository once",
+      "3.4 The workflow auto-waive test asserts freshness again (amends 069 3.6)",
+      "3.5 Tests (minimum)",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/060-a-workflow-bump-is-not-a-governed-change/spec.md",
+    "status": "approved",
+    "summary": "A GitHub Actions workflow enters the index content hash as raw bytes, so a Dependabot `uses:` bump moves the global-inputs scalar and stales every shard in the repository. The bot can neither re-index nor add a waiver to its own PR body, so the PR walls on exit 2 and needs a maintainer to push a re-index commit. Spec 027 built the coupling half of this for workflows and read the freshness half as already fine; it was not, and spec 058 made that visible by fixing the default glob, then deferred the real fix as a hashing change with a migration of its own. This is that spec. A workflow folds as its governance projection, the parsed document with the pinned ref of each `uses:` reference removed and the action path kept, so a version or SHA bump is invisible to the ledger while a changed action, a `run:` or `with:` edit, an added step or an unpin all still stale it. The projection and 030's waiver classifier are required to state one rule, and the upgrade restales every workflow-bearing repository once.\n",
+    "title": "A workflow bump is not a governed change"
+  },
+  "shardHash": "29c13480e5d879b53b11aa22e2c4e933b81621ff121b190bcbb3370f804e630f",
+  "specVersion": "1.3.0"
+}

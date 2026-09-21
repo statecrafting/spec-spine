@@ -1,9 +1,9 @@
 'use strict';
 
-// Spec: specs/007-distribution/spec.md
+// Spec: specs/006-distribution/spec.md
 //
 // Network- and disk-free unit test of the (platform, arch) -> platform-package
-// mapping and the unsupported-host error (spec 007 sec 3.2 / 3.4). Runs under
+// mapping and the unsupported-host error (spec 006 sec 3.2 / 3.4). Runs under
 // the built-in node:test runner: `node --test test/`.
 
 const { test } = require('node:test');

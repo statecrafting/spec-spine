@@ -1,10 +1,10 @@
 //! `spec-spine compile`: write the per-spec registry shards (deterministic;
-//! spec 024) under `<derived_dir>/spec-registry/by-spec/`, plus the wall-clock
+//! spec 022) under `<derived_dir>/spec-registry/by-spec/`, plus the wall-clock
 //! `build-meta.json` sidecar. The single monolithic `registry.json` is no
 //! longer emitted, so two PRs that add or edit different specs write disjoint
 //! files and never conflict on a global content-hash line.
 //!
-//! `--check` (spec 031) is the non-writing form: it compiles in memory and
+//! `--check` (spec 028) is the non-writing form: it compiles in memory and
 //! compares against the committed shards, the registry counterpart of
 //! `index check`.
 
@@ -27,18 +27,18 @@ use crate::out;
 /// Returns the process exit code.
 ///
 /// Writing form: `0` if validation passed, `1` if it failed. `--check` form:
-/// `0` fresh, `1` validation failed, `2` stale (spec 031 §3.2). Validation
+/// `0` fresh, `1` validation failed, `2` stale (spec 028 §3.2). Validation
 /// outranks staleness, because a corpus that does not validate cannot vouch
 /// for its shards.
 ///
-/// `json` (spec 037) replaces the stdout prose with one verdict envelope and
-/// changes no exit code. It is rejected without `--check`, per spec 037 §4: the
+/// `json` (spec 034) replaces the stdout prose with one verdict envelope and
+/// changes no exit code. It is rejected without `--check`, per spec 034 §4: the
 /// writing form's purpose is to mutate `.derived`, and handing a driver a
 /// machine-readable verdict from the command that just regenerated the shards
 /// the next gate compares against invites exactly the mid-chain confusion the
 /// non-writing `--check` exists to avoid.
 ///
-/// `fail_on_warn` (spec 077 §3.2) turns any warning-tier violation into exit
+/// `fail_on_warn` (spec 064 §3.2) turns any warning-tier violation into exit
 /// `1`, on every form of the verb. It gates the **exit code only**: it never
 /// touches `validation.passed`, which spec 001 §3.2 fixes as "false iff any
 /// error-tier violation is present", and never changes an emitted byte, which
@@ -52,7 +52,7 @@ pub fn run(
     spec: Option<&str>,
     fail_on_warn: bool,
 ) -> Result<u8, Error> {
-    // Spec 056 §3.1: `--spec` and `--check` are different questions (is this
+    // Spec 049 §3.1: `--spec` and `--check` are different questions (is this
     // well-formed / do the committed shards match), and a combined form would
     // have to invent an answer for a spec with no shard.
     if let Some(id) = spec {
@@ -60,7 +60,7 @@ pub fn run(
             let err = Error::Config(
                 "compile --spec is incompatible with --check: --spec validates one spec \
                  against the committed registry, --check compares the whole shard tree \
-                 (spec 056 3.1)"
+                 (spec 049 3.1)"
                     .to_string(),
             );
             if json {
@@ -80,7 +80,7 @@ pub fn run(
         // command, and the message names the flag that reaches it).
         let err = Error::Config(
             "compile --json requires --check: the writing form has no machine-readable \
-             verdict (spec 037 4); use `compile --check --json`"
+             verdict (spec 034 4); use `compile --check --json`"
                 .to_string(),
         );
         crate::emit_error_envelope(verb::COMPILE_CHECK, &err);
@@ -93,7 +93,7 @@ pub fn run(
         if !outcome.validation_passed {
             if json {
                 // No stderr copy: the envelope `main` renders from this error
-                // carries the violations themselves (spec 037 D-4), so printing
+                // carries the violations themselves (spec 034 D-4), so printing
                 // them again would make this the one failure path in the chain
                 // that writes prose to a second channel under `--json`.
                 return Err(Error::Validation(
@@ -105,7 +105,7 @@ pub fn run(
         }
         let freshness = compare_committed_registry(&cfg, repo, &outcome.shards)?;
         // A refused warning is exit 1, the validation-failure rung, and it
-        // outranks staleness for the reason spec 075 §3.3 gives: staleness is
+        // outranks staleness for the reason spec 062 §3.3 gives: staleness is
         // not the more severe answer when the corpus itself was refused.
         let warn_refused = fail_on_warn && outcome.warning_count() > 0;
         if json {
@@ -222,7 +222,7 @@ pub(crate) fn freshness_report(freshness: &Freshness) -> serde_json::Value {
 }
 
 /// Print every warning-tier violation, then say the flag that refused them
-/// (spec 077 §3.2).
+/// (spec 064 §3.2).
 ///
 /// Always stderr, so the refusal surfaces in a CI log next to the errors that
 /// use the same channel. The codes are named because a bare exit `1` from a
@@ -273,7 +273,7 @@ fn now_rfc3339() -> String {
         .unwrap_or_else(|_| "unknown".to_string())
 }
 
-/// `compile --spec <id>`: validate one spec, write nothing (spec 056).
+/// `compile --spec <id>`: validate one spec, write nothing (spec 049).
 ///
 /// Exit `0` when the spec produces no error-tier violation, `1` when it does or
 /// when the id resolves to nothing, `3` for I/O, parse, schema or config
