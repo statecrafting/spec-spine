@@ -17,6 +17,12 @@ extends:
   - spec: "057-the-docs-name-what-adopters-derived"
     unit: { kind: file, path: "docs/api.md" }
     nature: additive
+  # 3.3: the claimed file has to be hashed, and the hashed-input list lives in
+  # the configuration, which specs 061 and 092 own. Crossing into their
+  # territory is declared here rather than waived.
+  - spec: "061-shipped-is-not-the-same-as-working"
+    unit: { kind: file, path: "spec-spine.toml" }
+    nature: additive
 references:
   - unit: { kind: file, path: "crates/spec-spine-core/src/query.rs" }
     role: "context"
@@ -108,10 +114,15 @@ Conflating the two would let a schema bump ride into the corpus as a bug fix.
 
 `docs/api.md` is claimed by this spec, so `L-008` requires it to be inside some
 content hash, and `lint --fail-on-warn` is in the gate. It is added to
-`[index] extra_hashed_inputs` in the same change. That restales every shard,
-which is a regeneration and not a problem; it is the cost the rule exists to
-impose, and a governed sentence whose bytes can change without staling the
-ledger is exactly the sentence that should not be.
+`[index] extra_hashed_inputs` in the same change, which means this spec also
+crosses into `spec-spine.toml`, owned by specs 061 and 092. That crossing is
+declared as an `extends` edge in this spec's own frontmatter, which is the
+route spec 005 offers and the one that needs no waiver.
+
+Adding the glob restales every shard, which is a regeneration and not a problem.
+It is the cost the rule exists to impose, and a governed sentence whose bytes
+can change without staling the ledger is exactly the sentence that should not
+be.
 
 ## 4. Out of scope
 

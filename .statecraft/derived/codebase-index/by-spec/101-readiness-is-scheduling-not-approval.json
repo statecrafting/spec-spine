@@ -7,6 +7,10 @@
       {
         "path": "docs/api.md",
         "source": "spec-edge"
+      },
+      {
+        "path": "spec-spine.toml",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
@@ -21,6 +25,19 @@
         "unit": {
           "kind": "file",
           "path": "docs/api.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
         }
       },
       {
@@ -54,5 +71,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "9f75e97f0d7c7c3f0925285815fa61d4e34ccbda24356395db881ecdf8db6423"
+  "shardHash": "db24127244e9816f76b35294c2ceb06283638ebdccca13be58fa579ca71a73d1"
 }
