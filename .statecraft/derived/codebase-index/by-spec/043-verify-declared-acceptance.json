@@ -210,19 +210,6 @@
       {
         "locations": [
           {
-            "file": "scripts/verify-spec.sh"
-          }
-        ],
-        "ownership": false,
-        "sourceField": "references",
-        "unit": {
-          "kind": "file",
-          "path": "scripts/verify-spec.sh"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "specs/040-governance-document-gaps/spec.md"
           }
         ],
@@ -238,5 +225,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "a0c63ade33c9a04ba63e5ac1c5bedf0c97528422411d44903e2facc27151b4f9"
+  "shardHash": "486d34a48fc875923fac2b89891734bb9cbe33eb5c0568f53c91fc4c4cf66af9"
 }

@@ -35,7 +35,6 @@ extends:
 references:
   - { unit: { kind: file, path: "crates/spec-spine-core/src/verify.rs" }, role: "context" }
   - { unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_verify.rs" }, role: "context" }
-  - { unit: { kind: file, path: "scripts/verify-spec.sh" }, role: "context" }
 ---
 # 089: Nothing reruns a merged acceptance
 

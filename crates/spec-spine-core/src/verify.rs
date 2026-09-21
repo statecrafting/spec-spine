@@ -2,9 +2,12 @@
 //! report the commands it declares.
 //!
 //! Ported from `scripts/verify-spec.sh`, the 78-line runner three adopters
-//! wrote independently and spec 093 vendored into `kit/`. The grammar is
-//! preserved (spec 043 §3.2 is the table this module is measured against); what
-//! changes is where it lives. A parse of authored markdown belongs to the
+//! wrote independently and this repository vendored into `kit/`. Both copies
+//! are gone: the kit's with the kit (spec 092), and this repository's on
+//! 2026-09-21 once it had begun answering differently from the verb (spec 043
+//! §3.9). They are in git history; nothing looks for them on disk. The grammar
+//! is preserved (spec 043 §3.2 is the table this module is measured against);
+//! what changed is where it lives. A parse of authored markdown belongs to the
 //! compiler, and constitution II says a consumer reads its typed answer rather
 //! than re-deriving it with `awk`.
 //!

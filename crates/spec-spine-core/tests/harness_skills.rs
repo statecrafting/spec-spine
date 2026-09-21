@@ -282,21 +282,23 @@ fn shepherd_classifies_before_it_spends_a_round() {
     }
 }
 
-/// Spec 093 3.2 kept the script in the kit while adopters were pinned below
-/// 0.15.0 and moved the harness onto `spec-spine verify`. Spec 061 3.6 removed
-/// it once they had upgraded (2026-09-09): the kit no longer ships it, no kit
-/// file lists it as shipped, and no skill may call it. This repository's own
-/// `scripts/verify-spec.sh` stays, established by spec 093.
-/// Spec 061 3.6, retained through spec 092: `spec-spine verify` absorbed the
-/// hand-written script, and no skill may call the deprecated copy. The halves
-/// of this test that read `kit/` are gone with the kit; the half that matters
-/// (a skill telling a session to run the script instead of the verb) is here.
+/// Spec 093 4.6: `spec-spine verify` absorbed the hand-written runner, and no
+/// skill may send a session to one instead of the verb.
+///
+/// The halves of this test that read `kit/` went with the kit (spec 092), and
+/// the two that read `scripts/verify-spec.sh` off disk went with the file
+/// (spec 043 3.9, 2026-09-21): they asserted that a retired second
+/// implementation still existed, on the authority of a clause the corpus no
+/// longer carries. What is left is the half that always mattered, and it is
+/// the half that survives the file: a skill must not name a fallback runner as
+/// something to run.
 #[test]
 fn no_skill_calls_the_absorbed_verify_script() {
-    let root = repo_root();
-    let own = fs::read_to_string(root.join("scripts/verify-spec.sh")).unwrap();
-    assert!(own.starts_with("#!/usr/bin/env bash"));
-    assert!(own.contains("not-declared"), "an honest zero, not a pass");
+    assert!(
+        !repo_root().join("scripts/verify-spec.sh").exists(),
+        "the absorbed runner is retired (spec 043 3.9); a copy on disk is a \
+         second implementation that does not resolve amends_verification"
+    );
 
     for (label, dir) in skill_dirs() {
         for name in SKILLS {
