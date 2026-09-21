@@ -1,0 +1,58 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "035-registry-plan-ready-set"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      }
+    ],
+    "id": "101-readiness-is-scheduling-not-approval",
+    "implementation": "pending",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      }
+    ],
+    "sectionHeadings": [
+      "101: Readiness is scheduling, not approval",
+      "1. Purpose",
+      "1.1 The layering is deliberate and is not reopened",
+      "1.2 What is wrong today, precisely",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The documentation states what membership means",
+      "3.2 It is a documentation requirement and nothing else",
+      "3.3 The claimed file is hashed",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/101-readiness-is-scheduling-not-approval/spec.md",
+    "status": "draft",
+    "summary": "`registry plan` partitions by `implementation` and `depends_on` and never by `status`, so a draft appears on the ready set by design. The layering is deliberate and stays; what is missing is a governed sentence saying so, which a consumer reading the document directly has no way to infer.\n",
+    "title": "Readiness is scheduling, not approval"
+  },
+  "shardHash": "3b1ffb98289b51b303cf1fb94bad68b69b41662656bedf00830e54bf6923fdae",
+  "specVersion": "1.3.0"
+}

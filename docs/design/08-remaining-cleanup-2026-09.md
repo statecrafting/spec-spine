@@ -12,6 +12,14 @@ to a different document.
 items this note scheduled are struck through where they are done, with what
 closed them. What remains open is §2.2, §2.4, §2.6, §2.7 and §2.8.
 
+> **Superseded as the backlog record, 2026-09-21.** This note stays the
+> realignment handoff and is not edited further.
+> [Note 09](09-disposition-2026-09-21.md) is where to look for what is open: it
+> dispositions every proposal in notes 00 to 08 against the corpus, corrects
+> three lifecycle statements that have gone stale here (its §2), and carries
+> the Statecraft retirement acceptance checklist §2.2 describes in prose.
+> §2.4 is filed as spec 100.
+
 ## 1. What is done
 
 The two handoff branches (`120-...` and `121-...`, the pre-renumber names) are

@@ -1,0 +1,59 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "035-registry-plan-ready-set",
+      "101-readiness-is-scheduling-not-approval"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "035-registry-plan-ready-set",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "035-registry-plan-ready-set",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/query.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      }
+    ],
+    "id": "102-a-ready-spec-carries-its-status",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "sectionHeadings": [
+      "102: A ready spec carries its status",
+      "1. Purpose",
+      "1.1 Why this is filed separately from 101",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One additive field",
+      "3.2 It changes no partition and no ordering",
+      "3.3 The version that moves, and the one that does not",
+      "3.4 `blocked` is left alone",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/102-a-ready-spec-carries-its-status/spec.md",
+    "status": "draft",
+    "summary": "`ReadySpec` carries `id` and `title`, so a consumer reading `registry plan` directly cannot apply an approval rule without a second query per entry. An additive `status` field is a read-schema MINOR that lets a direct consumer see what `/next` sees. An enhancement with a named cost, not a defect fix.\n",
+    "title": "A ready spec carries its status"
+  },
+  "shardHash": "db7e2af54e957519babc7424499dfdb66d4810798edaeb5c1c588e9d9dfe7f88",
+  "specVersion": "1.3.0"
+}
