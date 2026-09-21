@@ -54,6 +54,7 @@ fn plan() -> CompactPlan {
         }],
         renumber: Renumber::Contiguous,
         foreign_projects: vec!["OAP".into()],
+        ..Default::default()
     }
 }
 
@@ -142,9 +143,10 @@ fn a_removed_specs_full_id_becomes_the_spec_that_answers_for_it() {
     let tmp = fixture("Superseded by `001-beta`.\n");
     let c = compact(&cfg(), tmp.path(), &plan()).unwrap();
     assert!(rewritten(&c, "docs/note.md").contains("`000-alpha`"));
+    // The directory, not the document: a spec is its directory, and a consumer
+    // deleting only the `spec.md` would leave whatever else was in it behind.
     assert!(
-        c.removed_paths
-            .contains(&"specs/001-beta/spec.md".to_string()),
+        c.removed_paths.contains(&"specs/001-beta".to_string()),
         "{:?}",
         c.removed_paths
     );
@@ -293,7 +295,7 @@ fn applying_the_output_to_the_output_is_idempotent() {
     // plan that has nothing left to remove and a corpus already contiguous.
     let root = tmp.path();
     for p in &c.removed_paths {
-        fs::remove_dir_all(root.join(p).parent().unwrap()).unwrap();
+        fs::remove_dir_all(root.join(p)).unwrap();
     }
     for f in &c.files {
         if f.rel_path != f.from_rel_path {
@@ -308,6 +310,7 @@ fn applying_the_output_to_the_output_is_idempotent() {
             remove: vec![],
             renumber: Renumber::Contiguous,
             foreign_projects: vec!["OAP".into()],
+            ..Default::default()
         },
     )
     .unwrap();
@@ -363,7 +366,12 @@ fn the_report_names_the_form_behind_every_rewrite_and_counts_per_form() {
     }
     // Every form is counted, including the ones that fired zero times: a form
     // absent from the table cannot be noticed as absent (defect 2).
-    for form in [Form::FullId, Form::Citation, Form::ShortIdArg] {
+    for form in [
+        Form::FullId,
+        Form::Citation,
+        Form::ShortIdArg,
+        Form::RetiredPath,
+    ] {
         assert!(c.counts.contains_key(form.as_str()), "{:?}", c.counts);
     }
 }
@@ -378,11 +386,22 @@ fn the_report_of_a_plan_that_changes_nothing_is_empty_not_absent() {
             remove: vec![],
             renumber: Renumber::None,
             foreign_projects: vec![],
+            ..Default::default()
         },
     )
     .unwrap();
     assert_eq!(c.rewrite_count(), 0);
-    assert_eq!(c.counts.len(), 3, "{:?}", c.counts);
+    // Every form is present with a zero, not absent: a form absent from the
+    // table cannot be noticed as absent, which is defect 2. Asserted per form
+    // rather than by a count, so adding a form does not silently satisfy it.
+    for form in [
+        Form::FullId,
+        Form::Citation,
+        Form::ShortIdArg,
+        Form::RetiredPath,
+    ] {
+        assert_eq!(c.counts.get(form.as_str()), Some(&0), "{:?}", c.counts);
+    }
 }
 
 /// §3.7: a citation outlives the document it cites, and after a renumber a bare

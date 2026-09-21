@@ -78,6 +78,6 @@
     "summary": "Spec 095 removed 27 specs and renumbered 93, which meant rewriting about six thousand references by hand. Seven distinct defects were introduced doing it, every one a rewrite rule that matched more or less than its author meant, and every one silent: the corpus compiled, the gate passed, and the citations pointed at the wrong documents. Four were caught only because spec 089 built a sweep that runs every acceptance block, and the fifth was caught by the sweep finding a sixth. A corpus whose ids are the tool's own vocabulary should not need a session to renumber itself. This spec adds `spec-spine compact`: a plan in, a rewritten corpus out as data, idempotent, refusing every ambiguity the five defects came from, and reporting what it changed rather than leaving a six-thousand-line diff to read.\n",
     "title": "Compaction is a verb, not a session"
   },
-  "shardHash": "a5ab550e2650c6379b20763e1580d281c76ea202a4a4a2835a445304b50888d1",
+  "shardHash": "2ef544a4b89ca93acb71400cb11b852557f82b12aaaa51038b90fa24b5410110",
   "specVersion": "1.3.0"
 }

@@ -99,13 +99,20 @@ fn report(outcome: &Compaction, verbose: bool) {
     }
 }
 
+/// Write the rewritten corpus.
+///
+/// **Not atomic**, and deliberately not: the three phases (remove, write and
+/// rename, emit the map) run in order with no rollback, so a failure part way
+/// through leaves a partly rewritten tree. `refuse_dirty_tree` is what makes
+/// that recoverable rather than safe: the tree was clean when this started, so
+/// `git checkout .` restores it exactly. A transactional writer would need a
+/// staging copy of the whole repository to buy a property `git` already has.
 fn apply(repo: &Path, outcome: &Compaction, map_out: &Path) -> Result<(), Error> {
     let io = |e: std::io::Error, what: &str| Error::Io(format!("compact: {what}: {e}"));
+    // Each entry is a spec DIRECTORY, which is what the report lists and what
+    // leaves the tree.
     for rel in &outcome.removed_paths {
-        let p = repo.join(rel);
-        if let Some(dir) = p.parent() {
-            std::fs::remove_dir_all(dir).map_err(|e| io(e, &format!("removing {rel}")))?;
-        }
+        std::fs::remove_dir_all(repo.join(rel)).map_err(|e| io(e, &format!("removing {rel}")))?;
     }
     for f in &outcome.files {
         let to = repo.join(&f.rel_path);
@@ -158,7 +165,8 @@ fn refuse_dirty_tree(repo: &Path) -> Result<(), Error> {
         return Err(Error::Config(format!(
             "compact: the working tree is dirty, and a rewrite of the whole corpus \
              underneath an uncommitted edit is unreviewable. Commit or stash first, \
-             or pass --force.\n{}",
+             or pass --force. If a previous run failed part way through, \
+             `git checkout .` restores the tree it started from.\n{}",
             dirty.trim()
         )));
     }

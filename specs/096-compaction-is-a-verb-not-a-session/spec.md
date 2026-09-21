@@ -281,6 +281,19 @@ property is held by construction: every match is found against the original text
 and applied once, simultaneously, never key by key, which is how a renumber
 double-shifts.
 
+D-8 (2026-09-20, what leaves the tree is a directory, not a document). The
+report lists the removed spec's **directory**. A spec is its directory,
+auxiliary files included, and listing the `spec.md` while the consumer deletes
+the folder would hide whatever else was in it from the only list a consumer
+reads.
+
+D-9 (2026-09-20, the apply is not atomic and does not need to be). The three
+phases run in order with no rollback, so a failure part way through leaves a
+partly rewritten tree. §3.8's dirty-tree refusal is what makes that recoverable:
+the tree was clean when the run started, so `git checkout .` restores it exactly,
+and the refusal message says so. A transactional writer would need a staging
+copy of the whole repository to buy a property `git` already has.
+
 ## Verification
 
 Each line is one command, run independently.

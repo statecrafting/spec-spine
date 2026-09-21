@@ -55,7 +55,10 @@ pub use attest::{
     payload_schema_version, spec_attestation_hash, stored_bytes_hash, verify_recompute,
     verify_spec_recompute, with_stored_bytes, with_stored_bytes_spec,
 };
-pub use compact::{CompactPlan, Compaction, compact, parse_plan};
+pub use compact::{
+    CompactPlan, Compaction, RetireEntry, RetireKind, SkipClause, Skipped, UnitAction,
+    UnitActionKind, compact, parse_plan,
+};
 pub use compile::{
     CompileOutcome, MAX_UNDECLARED_EXTRA_FRONTMATTER, RegistryShardSet, SpecCheckReport,
     check_registry_freshness, compare_committed_registry, compile, compile_spec,
@@ -573,10 +576,6 @@ pub fn scaffold_init_json(config_json: &str) -> Result<String, Error> {
     to_json(&scaffold_init(&config)?)
 }
 
-/// Build a corpus attestation (spec 021). Returns
-/// `{ "attestation": <CorpusAttestation>, "attestationHash": "<hex>" }`. Pure:
-/// no key (signing is a CLI post-pass), no clock. `with_coupling` records the
-/// in-sync coupling verdict as well (FR-002).
 /// Compact the corpus under an authored plan (spec 096). `plan_yaml` is the
 /// plan document; the result is the `Compaction`, files included, for the
 /// caller to write. Pure with respect to the tree: reads, never writes.
@@ -586,6 +585,10 @@ pub fn compact_json(config_json: &str, repo_root: &str, plan_yaml: &str) -> Resu
     to_json(&compact(&config, std::path::Path::new(repo_root), &plan)?)
 }
 
+/// Build a corpus attestation (spec 021). Returns
+/// `{ "attestation": <CorpusAttestation>, "attestationHash": "<hex>" }`. Pure:
+/// no key (signing is a CLI post-pass), no clock. `with_coupling` records the
+/// in-sync coupling verdict as well (FR-002).
 pub fn attest_json(
     config_json: &str,
     repo_root: &str,

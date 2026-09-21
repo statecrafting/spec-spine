@@ -9,12 +9,29 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/retire.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/retire.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "096-compaction-is-a-verb-not-a-session",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compact.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "096-compaction-is-a-verb-not-a-session",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_compact.rs"
+        }
       }
     ],
     "id": "097-a-path-leaves-the-corpus-the-way-a-spec-does",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -51,6 +68,6 @@
     "summary": "Spec 096 mechanizes one retirement: a spec id leaving the corpus. On 2026-09-20 a different one was done by hand, `.claude/rules/` leaving this repository for a section of `AGENTS.md`, and it touched 81 references in 46 files, three frontmatter units, one hashed-input glob, one hook path pattern, six acceptance lines, three Rust tests and 122 derived shards. None of that is reachable by `compact`: its three reference forms are all spelled `NNN-slug`, and a path is spelled six other ways. This spec adds the second half of the same verb, a `retire` plan naming paths rather than specs, with the reference grammar a path actually has and, more importantly, the exclusions: eleven of those 81 occurrences had to survive, because a sentence recording that a path USED to exist is not a citation of it.\n",
     "title": "A path leaves the corpus the way a spec does"
   },
-  "shardHash": "52fef2ed7c1db816136d3437c317d3d4292fc53b02d793d36f0c37a6b3c8ee27",
+  "shardHash": "94e1be40ba702d8c39688fa9dfc1bc5617f568c06be905e6365afed63866a516",
   "specVersion": "1.3.0"
 }
