@@ -76,7 +76,7 @@ references:
   - { unit: { kind: file, path: "specs/094-one-gate-and-the-boundaries-it-holds/spec.md" }, role: context }
   - { unit: { kind: file, path: "specs/011-index-hash-slices/spec.md" }, role: context }
 ---
-# 024: Per-unit shard storage
+# 022: Per-unit shard storage
 
 **Input**: A downstream adopter (open-agentic-platform) hit the recurring
 multi-PR conflict on the committed index and de-committed it as an interim (OAP

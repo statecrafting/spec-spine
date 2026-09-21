@@ -226,7 +226,7 @@ This repo runs its own gates against its own corpus in CI (`.github/workflows/ci
   extended by `spec-spine.toml [coupling] bypass_prefixes`) exempts non-code
   paths. A
   dependency-only manifest bump self-clears via `auto_waive_dependency_only`
-  (specs 005/030), which is why Dependabot PRs are mergeable.
+  (specs 005/027), which is why Dependabot PRs are mergeable.
 - **Merge conflicts on the committed artifacts** are rare since sharding (spec
   022): two PRs touching different specs write disjoint files. The opt-in
   per-clone merge driver handles the same-shard case:

@@ -118,7 +118,7 @@
     ],
     "risk": "medium",
     "sectionHeadings": [
-      "052: The coupling gate names the crossing",
+      "045: The coupling gate names the crossing",
       "1. Purpose",
       "2. Territory",
       "2.1 Six more files the field's shape forces",
@@ -136,6 +136,6 @@
     "summary": "The coupling gate has always named the specs that own a drifted path, and has never named the mechanism for crossing into their territory. Its resolution footer offers two doors: edit an owning spec, or waive. For an author who has legitimately touched a unit somebody else owns, both are shut. Editing another spec to clear a refusal is the illegitimate edit the corpus rules forbid, and the waiver is a human instrument that no adopter has ever used and that an unattended session is forbidden on every path. The third door, an `extends` edge declared in the author's own spec, is the corpus's actual answer and the gate never mentions it. This spec makes the refusal name it: three doors in author order, and when the diff edits exactly one spec.md, the concrete `extends` block to paste into that file. It also promotes the owner set from prose into an optional `owners` field on the violation, so an orchestrator reading `couple --json` learns the owner as data instead of by regexing English. No committed artifact and no schema version moves.\n",
     "title": "The coupling gate names the crossing"
   },
-  "shardHash": "06a2b7390860943e927ff6b198b70a6bfefe08ab1e5be85c98453ca3e3cb39bb",
+  "shardHash": "12d12290f7d80d8049cd6346cdd6e3b67f7f025afbf16a30dd23e41636bb6f27",
   "specVersion": "1.3.0"
 }

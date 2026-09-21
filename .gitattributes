@@ -61,8 +61,8 @@ Dockerfile* text eol=lf
 *.tar       binary
 *.tgz       binary
 
-# --- Derived-artifact merge driver (spec 020, narrowed by spec 024) ---
-# Since spec 024 the committed artifacts are sharded per authority unit, so two
+# --- Derived-artifact merge driver (spec 094, narrowed by spec 022) ---
+# Since spec 022 the committed artifacts are sharded per authority unit, so two
 # PRs that touch DIFFERENT specs/packages write disjoint files and never
 # conflict (the driver is no longer needed for that common case). It remains
 # registered on the shard globs for the RARE same-shard conflict (two PRs that

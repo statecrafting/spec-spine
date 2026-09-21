@@ -475,3 +475,231 @@ fn a_plan_with_an_unknown_key_is_refused() {
     let err = parse_plan("renumber: contiguous\nrenumberr: none\n").unwrap_err();
     assert_eq!(err.exit_code(), 3, "{err}");
 }
+
+// ── form 4: the document's own title heading (spec 098 §3.1) ────────────────
+
+/// A spec document whose title heading is written `# NNN: Title` rather than
+/// `# NNN-slug`. Spec 095's renumber left 90 of 98 documents in this corpus
+/// titled with another spec's ordinal, because none of 096's three forms
+/// matches a heading.
+fn titled_spec_doc(id: &str, heading_ordinal: &str, body: &str) -> String {
+    format!(
+        "---\nid: \"{id}\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\nimplementation: complete\n---\n\n# {heading_ordinal}: Title\n\n{body}\n"
+    )
+}
+
+#[test]
+fn a_documents_title_heading_follows_its_new_ordinal() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "specs/002-gamma/spec.md",
+        &titled_spec_doc("002-gamma", "002", "Body."),
+    );
+    let c = compact(&cfg(), tmp.path(), &plan()).unwrap();
+    let out = rewritten(&c, "specs/002-gamma/spec.md");
+    assert!(out.contains("# 001: Title"), "{out}");
+    assert!(!out.contains("# 002: Title"), "{out}");
+    let forms: Vec<Form> = c
+        .rewrites
+        .iter()
+        .filter(|f| f.rel_path == "specs/002-gamma/spec.md")
+        .flat_map(|f| f.rewrites.iter().map(|r| r.form))
+        .collect();
+    assert!(forms.contains(&Form::TitleHeading), "{forms:?}");
+    assert_eq!(c.counts.get("title-heading"), Some(&1), "{:?}", c.counts);
+}
+
+/// The rule is "this document's own old ordinal", not "any heading". A spec
+/// quoting another spec's heading is citing it, and citing is form 2's
+/// business: rewriting it here would move a citation to the citing document's
+/// new ordinal, which is the wrong document twice over.
+#[test]
+fn a_heading_naming_another_spec_is_left_alone_by_form_4() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "specs/002-gamma/spec.md",
+        &titled_spec_doc("002-gamma", "003", "Body."),
+    );
+    let c = compact(&cfg(), tmp.path(), &plan()).unwrap();
+    let out = rewritten(&c, "specs/002-gamma/spec.md");
+    assert!(out.contains("# 003: Title"), "{out}");
+    assert_eq!(c.counts.get("title-heading"), Some(&0), "{:?}", c.counts);
+}
+
+/// A `#` comment inside YAML frontmatter is not a heading. This corpus has
+/// several that open with an ordinal, and reading one as the title would both
+/// miss the real title and rewrite a citation under the wrong form.
+#[test]
+fn a_frontmatter_comment_opening_with_an_ordinal_is_not_the_title() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "specs/002-gamma/spec.md",
+        "---\nid: \"002-gamma\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         # 002: an ordinal in a frontmatter comment\nsummary: \"s\"\n\
+         implementation: complete\n---\n\n# 002: Title\n\nBody.\n",
+    );
+    let c = compact(&cfg(), tmp.path(), &plan()).unwrap();
+    let out = rewritten(&c, "specs/002-gamma/spec.md");
+    assert!(
+        out.contains("# 002: an ordinal in a frontmatter comment"),
+        "{out}"
+    );
+    assert!(out.contains("# 001: Title"), "{out}");
+    assert_eq!(c.counts.get("title-heading"), Some(&1), "{:?}", c.counts);
+}
+
+// ── form 5: a bare ordinal in a citation's position (spec 098 §3.2) ─────────
+
+#[test]
+fn a_bare_ordinal_followed_by_a_reference_is_rewritten() {
+    let tmp = fixture(
+        "Section 002 \u{a7}3.1, decimal 002 3.6, decision 002 D-4, possessive 002's rule.\n",
+    );
+    let c = compact(&cfg(), tmp.path(), &plan()).unwrap();
+    let out = rewritten(&c, "docs/note.md");
+    assert_eq!(
+        out, "Section 001 \u{a7}3.1, decimal 001 3.6, decision 001 D-4, possessive 001's rule.\n",
+        "{out}"
+    );
+    assert_eq!(c.counts.get("bare-ordinal"), Some(&4), "{:?}", c.counts);
+}
+
+/// The exclusions are as normative as the form (096 §3.3). Every token here is
+/// three digits that a wider rule would have taken: a validation code, a
+/// version, a citation with no reference after it, and another project's.
+#[test]
+fn a_bare_ordinal_in_any_other_position_is_left_alone() {
+    let prose = "V-002 \u{a7}3.1, 0.002 \u{a7}3.1, before 002, (002, 002-gamma \u{a7}3.1, \
+                 OAP 002 \u{a7}3.1, exit 002.\n";
+    let tmp = fixture(prose);
+    let c = compact(&cfg(), tmp.path(), &plan()).unwrap();
+    let out = rewritten(&c, "docs/note.md");
+    // `002-gamma` is form 1's, and only form 1's: the ordinal inside a full id
+    // must not be touched twice (defect 3).
+    assert_eq!(
+        out,
+        "V-002 \u{a7}3.1, 0.002 \u{a7}3.1, before 002, (002, 001-gamma \u{a7}3.1, \
+         OAP 002 \u{a7}3.1, exit 002.\n",
+        "{out}"
+    );
+    assert_eq!(c.counts.get("bare-ordinal"), Some(&0), "{:?}", c.counts);
+}
+
+/// §3.4: applying the output to the output changes nothing, for the two forms
+/// this spec adds as well. Form 4 is the one with a real risk here: a heading
+/// rewritten to `001` in a corpus that also maps `001` would shift twice if the
+/// rule read the heading rather than the document's own old id.
+#[test]
+fn the_new_forms_are_idempotent() {
+    let tmp = fixture("Section 002 \u{a7}3.1 and 002's rule.\n");
+    write(
+        tmp.path(),
+        "specs/002-gamma/spec.md",
+        &titled_spec_doc("002-gamma", "002", "Body."),
+    );
+    let root = tmp.path();
+    let first = compact(&cfg(), root, &plan()).unwrap();
+    for p in &first.removed_paths {
+        fs::remove_dir_all(root.join(p)).unwrap();
+    }
+    for f in &first.files {
+        if f.rel_path != f.from_rel_path {
+            let _ = fs::remove_file(root.join(&f.from_rel_path));
+        }
+        write(root, &f.rel_path, &f.contents);
+    }
+    let again = compact(
+        &cfg(),
+        root,
+        &CompactPlan {
+            remove: vec![],
+            renumber: Renumber::Contiguous,
+            foreign_projects: vec!["OAP".into()],
+            ..Default::default()
+        },
+    )
+    .unwrap();
+    assert_eq!(
+        again.rewrite_count(),
+        0,
+        "second pass rewrote: {:?}",
+        again.rewrites
+    );
+}
+
+/// An elided full id: the slug replaced by an ellipsis, which the corpus writes
+/// when a path is too long for the sentence. Form 1 matches the map's keys and
+/// `002-...` is not one; form 2 needs the keyword; and the `-` is exactly what
+/// keeps the digits out of every other rule.
+#[test]
+fn an_elided_full_id_is_rewritten() {
+    let tmp = fixture("See `specs/002-.../spec.md` and `002-gamma`.\n");
+    let c = compact(&cfg(), tmp.path(), &plan()).unwrap();
+    let out = rewritten(&c, "docs/note.md");
+    assert_eq!(
+        out, "See `specs/001-.../spec.md` and `001-gamma`.\n",
+        "{out}"
+    );
+}
+
+/// The ellipsis is the whole of it: `002-` followed by anything else is a full
+/// id form 1 owns, or a token that is not a reference at all.
+#[test]
+fn a_hyphen_that_is_not_an_ellipsis_is_not_an_elided_id() {
+    let tmp = fixture("Range 002-003, and 002-unknown.\n");
+    let c = compact(&cfg(), tmp.path(), &plan()).unwrap();
+    // Not "rewritten to the same text": not rewritten at all, so the file is
+    // not in the output set. A rule that matched either token would put it
+    // there.
+    assert!(
+        !c.files.iter().any(|f| f.from_rel_path == "docs/note.md"),
+        "{:?}",
+        c.files
+    );
+    assert!(prose_rewrites(&c).is_empty(), "{:?}", prose_rewrites(&c));
+}
+
+// ── §3.3: the scan opens a file that carries no extension ───────────────────
+
+/// Defect 8. `.gitignore` reads as an empty stem with the extension
+/// `gitignore`, so it was on no list and was never opened; six plain citations
+/// survived spec 095's renumber in it and in `.gitattributes`.
+#[test]
+fn a_citation_in_an_extension_less_file_is_rewritten() {
+    let tmp = fixture("x");
+    write(tmp.path(), ".gitignore", "# generated by spec 002\nout/\n");
+    write(
+        tmp.path(),
+        "Makefile",
+        "# spec 002 \u{a7}3.6\nall:\n\t@true\n",
+    );
+    let c = compact(&cfg(), tmp.path(), &plan()).unwrap();
+    assert!(
+        rewritten(&c, ".gitignore").contains("spec 001"),
+        "{}",
+        rewritten(&c, ".gitignore")
+    );
+    assert!(
+        rewritten(&c, "Makefile").contains("spec 001 \u{a7}3.6"),
+        "{}",
+        rewritten(&c, "Makefile")
+    );
+}
+
+/// Decided by content, not by a name: an extension-less file holding NUL bytes
+/// is not prose and is never read as prose.
+#[test]
+fn an_extension_less_binary_file_is_not_scanned() {
+    let tmp = fixture("x");
+    fs::write(tmp.path().join("blob"), [0x00u8, 0xff, 0x00, 0xfe]).unwrap();
+    let c = compact(&cfg(), tmp.path(), &plan()).unwrap();
+    assert!(
+        !c.files.iter().any(|f| f.from_rel_path == "blob"),
+        "{:?}",
+        c.files
+    );
+}

@@ -173,7 +173,7 @@ pub enum SupersedeScope {
 
 /// One `supersedes` entry. A bare predecessor id and `{ spec, scope: full }`
 /// both mean full supersession; only a `partial` item carries a `unit` (spec
-/// 019). The full form normalizes to [`SupersedeItem::Full`] at parse time, so a
+/// 018). The full form normalizes to [`SupersedeItem::Full`] at parse time, so a
 /// corpus that uses only full supersession emits a byte-identical bare-string
 /// `supersedes` array: the registry wire is unchanged for every existing
 /// adopter; only a partial item serializes as an object.

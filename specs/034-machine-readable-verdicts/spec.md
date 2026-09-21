@@ -57,7 +57,7 @@ summary: >
   envelope rather than as bare prose on stderr, so the machine consumer's happy
   path and error path have the same shape.
 ---
-# 037: Machine-readable verdicts
+# 034: Machine-readable verdicts
 
 Wave 1 of `docs/design/02-agentic-builder-substrate.md`. An external driver
 (an autonomous builder, a CI job, a bindings consumer) runs the gate chain and

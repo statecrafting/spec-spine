@@ -121,7 +121,7 @@
     ],
     "risk": "medium",
     "sectionHeadings": [
-      "042: Per-spec attestation",
+      "039: Per-spec attestation",
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
@@ -138,9 +138,9 @@
     ],
     "specPath": "specs/039-per-spec-attestation/spec.md",
     "status": "approved",
-    "summary": "Spec 021 attests the corpus: one payload, one hash, one optional Ed25519 seal over the whole ledger. The unit of work in a governed build is one spec, and a corpus-scoped attestation cannot answer \"was this spec's territory sound when its work was declared done\" without being reduced by hand. This spec adds `attest --spec <id>`, emitting a `SpecAttestation` scoped to a single spec: its own source hash, the resolved location and content hash of every owning unit it claims, and the verdicts restricted to it. It reuses 023's split exactly, the payload pure and reproducible with the wall clock and the signer identity in the detached seal, so the attested fact stays a function of `(config, file contents)` while the act of attesting is dated and attributed. It stays on-demand and gitignored like 023's, deliberately: the design note wanted a committed per-spec bundle, and committing one would restale on every edit to any claimed unit and would need its own freshness gate, which buys churn rather than assurance. A consumer that wants durable evidence receives the bundle; it does not need the repository to store it. One constraint is load-bearing and stated normatively: no lint rule may consume a `SpecAttestation`, because the payload records the lint verdict and a lint that read it would grade itself.\n",
+    "summary": "Spec 021 attests the corpus: one payload, one hash, one optional Ed25519 seal over the whole ledger. The unit of work in a governed build is one spec, and a corpus-scoped attestation cannot answer \"was this spec's territory sound when its work was declared done\" without being reduced by hand. This spec adds `attest --spec <id>`, emitting a `SpecAttestation` scoped to a single spec: its own source hash, the resolved location and content hash of every owning unit it claims, and the verdicts restricted to it. It reuses 021's split exactly, the payload pure and reproducible with the wall clock and the signer identity in the detached seal, so the attested fact stays a function of `(config, file contents)` while the act of attesting is dated and attributed. It stays on-demand and gitignored like 021's, deliberately: the design note wanted a committed per-spec bundle, and committing one would restale on every edit to any claimed unit and would need its own freshness gate, which buys churn rather than assurance. A consumer that wants durable evidence receives the bundle; it does not need the repository to store it. One constraint is load-bearing and stated normatively: no lint rule may consume a `SpecAttestation`, because the payload records the lint verdict and a lint that read it would grade itself.\n",
     "title": "`attest --spec <id>`: a signed record scoped to one spec"
   },
-  "shardHash": "9d91fac1b9c32f7a79c4354a710f8a59497af7c87f2451914e48a8b664cfd322",
+  "shardHash": "0d0193658cf0c7b9a598c62583a943058437bb0289167039b7cfbc6ef48d4daa",
   "specVersion": "1.3.0"
 }

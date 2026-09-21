@@ -8,13 +8,13 @@ summary: >
   Spec 052's `## Verification` block asserts that `index orphans --json` has
   exactly the keys `orphaned` and `inFlight`, and spec 074 legitimately added a
   `schemaVersion` member to every governed read, so `spec-spine verify 059` has
-  been red since 093 merged. 059 3.1 requires the two named arrays to be present
+  been red since 093 merged. 052 3.1 requires the two named arrays to be present
   and always emitted; it never required them to be the only members, and an
   equality over the key set asserts a closed document the rule does not state.
   The same block is silent about the two decisions 059 actually recorded for
   that verb: that `--json` emits both arrays even when empty, and that the prose
-  form stays silent on a corpus with nothing to report. This spec declares 059's
-  acceptance replaced and carries the corrected block, without editing 059's
+  form stays silent on a corpus with nothing to report. This spec declares 052's
+  acceptance replaced and carries the corrected block, without editing 052's
   file. It is the second of the four follow-ons spec 084 4 named.
 implementation: complete
 owner: "The spec-spine Authors"
@@ -23,12 +23,12 @@ depends_on:
   - "052-read-verbs-on-a-code-free-corpus"
   - "074-a-governed-read-names-its-version"
   - "082-an-amended-acceptance-is-the-one-that-runs"
-  # D-7: not a behavioural dependency. This spec cites 107's decision record as
+  # D-7: not a behavioural dependency. This spec cites 085's decision record as
   # precedent and states its own position in the series, so the order those
   # claims assume is declared rather than left to the merge queue.
   - "085-a-version-pin-is-not-a-contract"
 amends: ["052-read-verbs-on-a-code-free-corpus"]
-# 3.1: this spec's `## Verification` block IS 059's acceptance from now on.
+# 3.1: this spec's `## Verification` block IS 052's acceptance from now on.
 # 059's own file is not edited (spec 037 3.1), and 093's is not either: 093
 # states a rule that is true and complete, and this spec changes none of it.
 # What changes is what 059 accepts.
@@ -36,7 +36,7 @@ amends_verification: ["052-read-verbs-on-a-code-free-corpus"]
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---
-# 108: An exact key set refuses what the rule allows
+# 086: An exact key set refuses what the rule allows
 
 ## 1. Purpose
 
@@ -64,7 +64,7 @@ and the verb answers
 Spec 074 routed every read document through one emitter that sorts keys and
 stamps a `READ_SCHEMA_VERSION`, `index orphans` among the ten verbs it names,
 and recorded the addition for this verb explicitly in its D-8. Every other
-assertion in 059's block is green. Run one line at a time to the end of the
+assertion in 052's block is green. Run one line at a time to the end of the
 block, this is the only red one:
 
 | Cmd | Assertion | Status |
@@ -82,11 +82,11 @@ block, this is the only red one:
 
 ### 1.2 An equality over a key set asserts a closed document
 
-059 3.1 says what `--json` must carry: "the flat array becomes an object with
+052 3.1 says what `--json` must carry: "the flat array becomes an object with
 the two arrays as named members", and the `--json` form "always emits both
 arrays, since a consumer parsing an object should not have to distinguish
 'absent' from 'empty'". Both sentences are about **presence**. Neither says the
-object is closed, and 059 3.1's own paragraph on schema versions is careful
+object is closed, and 052 3.1's own paragraph on schema versions is careful
 about the opposite question: it records that `INDEX_SCHEMA_VERSION` does not
 move because no committed artifact changes, leaving the document's own
 versioning unaddressed, which is the gap 093 later filled.
@@ -111,7 +111,7 @@ this. Spec 084 1.2 states the general form.
 
 ### 1.3 The block is silent about the decisions 059 recorded
 
-059 3.1 carries two dated decisions about this verb, and its block asserts
+052 3.1 carries two dated decisions about this verb, and its block asserts
 neither.
 
 The first is that the `--json` form emits both arrays whatever their contents,
@@ -121,7 +121,7 @@ decision is about is never exercised.
 
 The second is that a corpus with no orphans prints **nothing** in prose: "two
 headers and two `(none)` lines would be noise on the answer 'nothing to
-report', and an existing acceptance test pinned the silence." Nothing in 059's
+report', and an existing acceptance test pinned the silence." Nothing in 052's
 block reads the prose form of `orphans` at all.
 
 The block already builds an empty-universe fixture for 3.2 and 3.3, and that
@@ -144,7 +144,7 @@ right: what 093 invalidated here was an acceptance, not a rule.
 ## 2. Territory
 
 This spec establishes no code. It owns its own `spec.md` and one claim about
-another spec's file: that 059's `## Verification` block is no longer the one
+another spec's file: that 052's `## Verification` block is no longer the one
 that runs. Nothing under `crates/` changes, no schema constant moves, and no
 committed shard changes except the two this spec's own frontmatter produces.
 
@@ -154,7 +154,7 @@ committed shard changes except the two this spec's own frontmatter produces.
 
 This spec's `## Verification` block MUST replace spec 052's in full, through
 `amends_verification` (spec 082 3.1), and 059's file MUST NOT be edited. The
-block is 059's, with command 4 replaced per 3.3, with the two assertions of 3.4
+block is 052's, with command 4 replaced per 3.3, with the two assertions of 3.4
 added against the fixture the block already builds, and with this spec's own
 assertions (3.5) after them under a heading that says whose is whose.
 
@@ -178,15 +178,15 @@ for what is a not-found, naming the wrong defect to the first reviewer who runs
 the block. Spec 085 D-4 records the same correction, made under review on its own
 pull request.
 
-It does **not** reach a line whose verb is required to exit non-zero, and 059's
+It does **not** reach a line whose verb is required to exit non-zero, and 052's
 block has one: the `index coverage --fail-on-untraced 2>&1 | grep -q 'no package
-was discovered'` line, where exit 1 **is** the behaviour 059 3.2 requires and the
+was discovered'` line, where exit 1 **is** the behaviour 052 3.2 requires and the
 assertion is about the message the refusal carries. There the pipeline is
 load-bearing, because `grep`'s status is the one that should decide the line; a
 redirect would make the line fail on a correct refusal. That line is inherited
 unchanged for that reason, not by oversight. D-8.
 
-The fixture root inherited from 059's block stays at `${TMPDIR:-/tmp}/ss059`
+The fixture root inherited from 052's block stays at `${TMPDIR:-/tmp}/ss059`
 unchanged, and the live-corpus document is captured beside it rather than inside
 it, so the fixture the other assertions build is not disturbed.
 
@@ -196,11 +196,11 @@ The equality MUST be replaced by four claims about the document:
 
 - it is an object whose keys are **sorted**, which is spec 074 3.2's rule for
   every governed read and the half that fails against pre-093 output;
-- it carries a non-empty `schemaVersion`, which is 093's addition;
+- it carries a non-empty `schemaVersion`, which is 074's addition;
 - `orphaned` is present and is a **list**;
 - `inFlight` is present and is a **list**.
 
-Presence and type are what 059 3.1 requires. Nothing here forbids a further
+Presence and type are what 052 3.1 requires. Nothing here forbids a further
 member, because 059 forbids none and the schema policy permits them.
 
 Against pre-059 output, a bare array of ids, the member reads raise rather than
@@ -209,7 +209,7 @@ was built to draw is still what goes red if it is lost.
 
 ### 3.4 The two recorded decisions are asserted, on the fixture that shows them
 
-The replacement MUST assert, against the empty-universe fixture 059's block
+The replacement MUST assert, against the empty-universe fixture 052's block
 already builds:
 
 - that `--json` carries both arrays and both are **empty**, which is the decision
@@ -259,7 +259,7 @@ amendment of that spec. It does **not** assert that 093 owed 059 one.
 
 093 amended 010 and 060 because each states a document's shape as a contract and
 093 broke that stated shape. 059 states presence, and 093 preserved presence.
-What 093 invalidated was an assertion stricter than 059's rule, and an
+What 093 invalidated was an assertion stricter than 052's rule, and an
 over-strict assertion is not a rule anyone amended. The distinction matters
 because the opposite reading would make every additive change an amendment of
 every spec whose block happened to be written tightly, which is a governance
@@ -276,8 +276,8 @@ corpus change that uses it.
 
 - **Editing spec 052, or spec 074.** 1.2 and the frontmatter comment. 059 keeps
   the block it was ratified with, which is the record spec 037 3.2 protects, and
-  093's text is true as written.
-- **Asserting the id ordering inside each group.** 059 3.1 requires each group to
+  074's text is true as written.
+- **Asserting the id ordering inside each group.** 052 3.1 requires each group to
   stay id-sorted, per spec 010 3.3, and neither block asserts it. On this
   repository's corpus each group holds one or two entries, so the assertion would
   be very nearly vacuous, and the fixture's groups are empty, where it is
@@ -308,14 +308,14 @@ of every governed read, and because they are what fails against pre-093 output.
 
 D-2 (2026-09-17, why the fixture assertions are added rather than left out).
 Adding to a block being repaired is scope this spec had to justify, as spec 084
-D-3 did for its one added line. The reason is that 059 3.1's two dated decisions
+D-3 did for its one added line. The reason is that 052 3.1's two dated decisions
 are the parts of that verb a future change is most likely to break quietly:
 omitting an empty group reads as a tidier document, and printing two `(none)`
 headers reads as a friendlier one. Both were decided against, on the record, and
 neither was asserted. The fixture that shows both already exists in the block for
 another purpose, so the cost is two lines and no new machinery.
 
-D-3 (2026-09-17, why the id ordering is not asserted). 059 3.1 requires it and
+D-3 (2026-09-17, why the id ordering is not asserted). 052 3.1 requires it and
 nothing checks it, which looks like the same gap D-2 closes. It is not, because
 the corpus cannot show it: this repository's groups hold one or two entries and
 the fixture's hold none, so an ordering assertion would pass whatever the code
@@ -336,7 +336,7 @@ Redirecting to a file keeps the verb's status on its own line and leaves `test
 
 D-5 (2026-09-17, what the fail-first evidence is and is not). This spec changes
 no code, so the corrected lines pass at the parent commit `3173bb0` against the
-same binary whose output made 059's original red. That is correct rather than a
+same binary whose output made 052's original red. That is correct rather than a
 gap, and it is spec 084 D-5's finding restated at a third site.
 
 What an assertion owes instead is **failability against the condition it exists
@@ -362,7 +362,7 @@ document written into that directory before it would be deleted, and one written
 after it would sit at the root of a corpus the following lines pass to `--repo`.
 Neither is harmful today and both invite a later reader to move a line and break
 something quietly. A sibling path costs nothing and the fixture line is inherited
-unchanged, which keeps the diff against 059's block to what 3.1 says it is.
+unchanged, which keeps the diff against 052's block to what 3.1 says it is.
 
 D-7 (2026-09-17, why spec 085 is a declared dependency). This spec cites 107 in
 1.2 as one of the corrected sites, in 3.2 as the precedent for redirecting the
@@ -373,8 +373,8 @@ undeclared or the claims were false. The ordering is real: the four repairs were
 built in one sitting and each carries the previous one's findings. Declaring it
 in `depends_on` makes the order the corpus enforces rather than one a reader has
 to trust, at the cost of marking this spec blocked in `registry plan` until 107
-is complete, which is the truth of it. The dependency is on 107's **record**, not
-on anything it does: nothing here executes, reads or relies on 107's behaviour,
+is complete, which is the truth of it. The dependency is on 085's **record**, not
+on anything it does: nothing here executes, reads or relies on 085's behaviour,
 and the two blocks share no state.
 
 D-8 (2026-09-17, why one pipeline stays). Review of the pull request noted the
@@ -420,15 +420,15 @@ python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss059-live.json')); k
 rm -f "${TMPDIR:-/tmp}/ss059-live.json"
 # 3.2 + 3.3 of spec 052: the empty-universe fixture. Built once at a fixed path,
 # because each line here is its own shell and a `$(mktemp -d)` would not survive
-# to the next assertion. Inherited from 059's block unchanged.
+# to the next assertion. Inherited from 052's block unchanged.
 rm -rf "${TMPDIR:-/tmp}/ss059" && mkdir -p "${TMPDIR:-/tmp}/ss059/specs/001-x" && : > "${TMPDIR:-/tmp}/ss059/spec-spine.toml" && printf -- '---\nid: "001-x"\ntitle: "x"\nstatus: draft\ncreated: "2026-09-07"\nsummary: "x"\nestablishes:\n  - "specs/001-x/spec.md"\n---\n\n# x\n' > "${TMPDIR:-/tmp}/ss059/specs/001-x/spec.md" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss059" compile >/dev/null && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss059" index >/dev/null
-# 3.4: 059 3.1's first recorded decision, on the corpus where it can be seen.
+# 3.4: 052 3.1's first recorded decision, on the corpus where it can be seen.
 # Both arrays are emitted even though both are empty, so a consumer never has to
 # tell absent from empty. Omitting an empty group fails this line (D-2).
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss059" index orphans --json > "${TMPDIR:-/tmp}/ss059-empty.json"
 python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss059-empty.json')); assert d['orphaned']==[], d; assert d['inFlight']==[], d"
 rm -f "${TMPDIR:-/tmp}/ss059-empty.json"
-# 3.4: 059 3.1's second recorded decision. With nothing to report the prose form
+# 3.4: 052 3.1's second recorded decision. With nothing to report the prose form
 # prints nothing, rather than two headers and two `(none)` lines. The redirect
 # keeps the verb's status on its own line: `test -z "$(...)"` would pass for a
 # verb that failed and printed nothing (D-4). This line fails against this

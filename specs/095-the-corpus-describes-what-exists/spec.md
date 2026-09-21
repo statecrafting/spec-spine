@@ -39,7 +39,7 @@ references:
   - { unit: { kind: file, path: "docs/design/07-statecraft-realignment-2026-09.md" }, role: context }
 ---
 
-# 094: The corpus describes what exists
+# 095: The corpus describes what exists
 
 ## 1. Purpose
 

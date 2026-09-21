@@ -28,7 +28,7 @@ summary: >
   numeric prefix (`NNN`), using the character-safe leading-digit-run rule spec
   046 established in `lint.rs`.
 ---
-# 070: A malformed id is refused, not a panic
+# 059: A malformed id is refused, not a panic
 
 ## 1. Purpose
 

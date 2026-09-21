@@ -13,7 +13,7 @@ depends_on:
   - "038-completion-held-to-claims"
 amends:
   # 3.1 states a MUST NOT about `attest`'s exit code that covers the
-  # corpus-scoped verb too, which is 023's territory and a rule 023 never
+  # corpus-scoped verb too, which is 021's territory and a rule 023 never
   # carried. 023's own text is untouched (spec 037).
   - "021-ledger-seal"
 extends:
@@ -40,11 +40,11 @@ summary: >
   its work was declared done" without being reduced by hand. This spec adds
   `attest --spec <id>`, emitting a `SpecAttestation` scoped to a single spec: its
   own source hash, the resolved location and content hash of every owning unit it
-  claims, and the verdicts restricted to it. It reuses 023's split exactly, the
+  claims, and the verdicts restricted to it. It reuses 021's split exactly, the
   payload pure and reproducible with the wall clock and the signer identity in
   the detached seal, so the attested fact stays a function of `(config, file
   contents)` while the act of attesting is dated and attributed. It stays
-  on-demand and gitignored like 023's, deliberately: the design note wanted a
+  on-demand and gitignored like 021's, deliberately: the design note wanted a
   committed per-spec bundle, and committing one would restale on every edit to
   any claimed unit and would need its own freshness gate, which buys churn rather
   than assurance. A consumer that wants durable evidence receives the bundle; it
@@ -52,7 +52,7 @@ summary: >
   stated normatively: no lint rule may consume a `SpecAttestation`, because the
   payload records the lint verdict and a lint that read it would grade itself.
 ---
-# 042: Per-spec attestation
+# 039: Per-spec attestation
 
 Wave 2 of `docs/design/02-agentic-builder-substrate.md`, and the half of it that
 survives contact with `.gitignore`. See §5.
@@ -142,7 +142,7 @@ records why.
   also make the record depend on the subject's lifecycle rather than on the
   corpus.
 - `lint.ok` and `findingsHash` cover the findings attributed to this spec, using
-  023's existing findings-hash construction so a changed finding set is
+  021's existing findings-hash construction so a changed finding set is
   detectable even when `ok` is unchanged.
 
 A failing verdict never suppresses the payload. `attest --spec <id>` emits a
@@ -399,5 +399,5 @@ being checked.
   payload it signs rather than to the directory it sits in, but it is a change
   to behavior spec 021 shipped, so it is recorded here rather than left for
   someone to discover. This spec already `amends` 023 for the exit-code rule in
-  3.1; this is the second consequence of that edge, and 023's text is untouched
+  3.1; this is the second consequence of that edge, and 021's text is untouched
   either way (spec 037).

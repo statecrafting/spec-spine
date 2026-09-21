@@ -584,7 +584,7 @@ the rest of what governs the corpus.\n";
 /// The adopter-facing constitution template (spec 054 §3.3).
 ///
 /// The two-bullet stub spec 040 complained about survived that spec, because
-/// 043 §3.4 updated `CONSTITUTION` (the scaffolded document) and left the
+/// 040 §3.4 updated `CONSTITUTION` (the scaffolded document) and left the
 /// **template** behind. Two adopters deleted what they were given. This is the
 /// real thirty-four-line document: the tier statement, the normative hierarchy,
 /// the amendment clause 043 made writable, and the seam saying which principles

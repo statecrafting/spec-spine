@@ -54,7 +54,7 @@ summary: >
   written yet. Zero `V-010`s exist today: the gap is structural, and this spec
   closes it before it costs something.
 ---
-# 077: Compile warnings reach the gate
+# 064: Compile warnings reach the gate
 
 ## 1. Purpose
 
@@ -401,7 +401,7 @@ cargo test -p spec-spine-cli --test cli --locked
 cargo test -p spec-spine-core --test kit_skills --locked
 # 3.5 spec 094's in-order walk of kit/Makefile against the AGENTS.md list.
 cargo test -p spec-spine-core --test kit_gate --locked
-# 3.5 065's generator keeps the embedded copy in step with kit/.
+# 3.5 095's generator keeps the embedded copy in step with kit/.
 cargo test -p spec-spine-core --test scaffold --locked
 # 3.5 every written form of the chain names the composed flag.
 grep -qF 'check --fail-on-unresolved --fail-on-warn' AGENTS.md

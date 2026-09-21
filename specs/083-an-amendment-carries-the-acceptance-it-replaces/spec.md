@@ -10,12 +10,12 @@ summary: >
   `## Verification` block was left as it was ratified, and five of its
   assertions still require the pre-amendment code, so `spec-spine verify 098`
   has been red since 101 merged. A sixth line is red for an unrelated reason:
-  098's AC-9 compares two `settings.json` files against a fixed commit to prove
+  079's AC-9 compares two `settings.json` files against a fixed commit to prove
   098 did not edit them, which specs 093 and 104 then legitimately did. Spec 082
   built the route an amendment needs to reach an acceptance block and landed
   after 101, naming the audit of the remaining blocks as its own work. This is
-  that work for 098: this spec declares 098's acceptance replaced and carries
-  the corrected block, without editing 098's file.
+  that work for 098: this spec declares 079's acceptance replaced and carries
+  the corrected block, without editing 079's file.
 implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
@@ -24,14 +24,14 @@ depends_on:
   - "080-an-unresolved-claim-is-not-stale"
   - "082-an-amended-acceptance-is-the-one-that-runs"
 amends: ["079-a-blocking-claim-is-not-a-stale-shard"]
-# 3.1: this spec's `## Verification` block IS 098's acceptance from now on.
+# 3.1: this spec's `## Verification` block IS 079's acceptance from now on.
 # 098's own file is not edited (spec 037 3.1), and 101's is not either: 101
 # states a rule that is true and complete, and this spec changes none of it.
 amends_verification: ["079-a-blocking-claim-is-not-a-stale-shard"]
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---
-# 105: An amendment carries the acceptance it replaces
+# 083: An amendment carries the acceptance it replaces
 
 ## 1. Purpose
 
@@ -72,15 +72,15 @@ The last two rows are the reason this is a replacement and not a rewrite: exit
 would break the block in the other direction. Spec 080 D-2 decided that a
 blocking claim outranks a stale shard, which is what the fifth row shows.
 
-The sixth red line is a different defect with the same shape. 098's AC-9 is
+The sixth red line is a different defect with the same shape. 079's AC-9 is
 
 ```
 git diff --quiet 3bc004bf5f0fb30b9c2127c1d2269face10fb37b -- kit/settings.json .claude/settings.json
 ```
 
 and its comment explains the fixed base as protection against the assertion
-weakening as 098's branch aged. It does protect that, and past the merge it
-asserts something 098 never required: that **no commit after 098's branch
+weakening as 079's branch aged. It does protect that, and past the merge it
+asserts something 098 never required: that **no commit after 079's branch
 point** touches either file. Specs 093 and 104 both edited both files, and both
 were ratified. The line has been red since 099 merged and can never be green
 again.
@@ -89,17 +89,17 @@ again.
 
 Spec 080 amended 098 and said so, and it migrated every assertion it could
 reach: the four cases in `crates/spec-spine-cli/tests/cli.rs`, attributed to
-098 in 101's own `extends` comment. The one it could not reach was 098's
+098 in 080's own `extends` comment. The one it could not reach was 079's
 `## Verification` block, because spec 037 forbids editing the amended file and
 that block lives inside it. Spec 082 built the route (`amends_verification`)
 and merged two pull requests after 101. This is a gap in sequence, not in
 anyone's care.
 
-### 1.3 Why this is 103's named follow-on
+### 1.3 Why this is 082's named follow-on
 
 Spec 082 §4 puts it plainly: auditing the other blocks for the same defect is
 "worth doing and is its own work, with its own findings". This is that work,
-scoped to the one block now known to be red, and the finding is that 098's
+scoped to the one block now known to be red, and the finding is that 079's
 block is red for two unrelated reasons rather than one.
 
 Neither reason is reachable by the governance gate. `verify` is the one verb
@@ -110,7 +110,7 @@ months and every gate stays green, which is exactly what happened.
 ## 2. Territory
 
 This spec establishes no code. It owns its own `spec.md` and one claim about
-another spec's file: that 098's `## Verification` block is no longer the one
+another spec's file: that 079's `## Verification` block is no longer the one
 that runs. Nothing under `crates/` changes, no schema constant moves, and no
 committed shard changes except the two this spec's own frontmatter produces.
 
@@ -120,7 +120,7 @@ committed shard changes except the two this spec's own frontmatter produces.
 
 This spec's `## Verification` block MUST replace spec 079's in full, through
 `amends_verification` (spec 082 §3.1), and 098's file MUST NOT be edited. The
-block is 098's, with the five assertions of §1.1 migrated from 2 to 1, with
+block is 079's, with the five assertions of §1.1 migrated from 2 to 1, with
 AC-9 replaced per §3.3, and with this spec's own assertions (§3.5) ahead of
 them under a heading that says whose is whose.
 
@@ -147,7 +147,7 @@ grep -q 'freshness. STALE' kit/settings.json
 grep -q 'freshness. STALE' .claude/settings.json
 ```
 
-098's D-6 recorded a scope claim: that spec edited neither file. That claim was
+079's D-6 recorded a scope claim: that spec edited neither file. That claim was
 true and was settled when 098 merged; a diff against a fixed base re-litigates
 it on every future run, against a tree that has moved for reasons 098 has no
 authority over. What 098 actually depends on is the message shape those hooks
@@ -193,7 +193,7 @@ itself under test. It is what a reviewer runs, and what the release sweep runs.
 
 - **Editing spec 079, or spec 080.** §1.2 and the frontmatter comment. 098
   keeps the block it was ratified with, which is the record spec 037 §3.2
-  protects, and 101's text is true as written.
+  protects, and 080's text is true as written.
 - **The remaining blocks.** Eighteen specs were run for the v0.20.0 release and
   098 was the only one red for a reason of its own; the other eighty-seven were
   not run. Spec 082 §4 named the full audit and it stays named.
@@ -211,7 +211,7 @@ itself under test. It is what a reviewer runs, and what the release sweep runs.
 
 D-1 (2026-09-16, why a replacement rather than five corrections). Spec 082 §3.5
 settled that a block is the unit, and the reasons carry: a reader who finds
-098's block in 098's file and a patch in this one has to apply the patch in
+079's block in 079's file and a patch in this one has to apply the patch in
 their head to know what 098 accepts. A block that is read in one place is worth
 the duplication.
 
@@ -224,7 +224,7 @@ is not an assertion; the pattern checks beside it assert what 098 relied on and
 can still go red for a real reason.
 
 D-3 (2026-09-16, why this amends 098 and not 101). The edge records whose
-document is changed, not whose change caused it. 101's text states a rule that
+document is changed, not whose change caused it. 080's text states a rule that
 is true, complete and needs nothing added; what changes here is what 098
 accepts. Spec 082 §3.1 requires every `amends_verification` entry to appear in
 `amends`, so the two lists name 098 and stop there.
@@ -236,7 +236,7 @@ recurse. Running it disproved that: `cmd_verify::run` builds the plan, tests
 the spec id against `SPEC_SPINE_VERIFY_STACK` and returns a validation error
 **before** the `plan_only` branch, so the nested call is refused whichever flag
 it carries. The guard is right and the assertion was wrong. What replaces it
-reads the declaration out of the registry and the non-edit out of 098's file,
+reads the declaration out of the registry and the non-edit out of 079's file,
 and leaves the end-to-end run to a reviewer, where it was always going to have
 to live: a block cannot be its own witness.
 
@@ -260,7 +260,7 @@ spec's own, so it is read in two halves and labelled as such.
 **Fail-first evidence.** The five migrated lines fail at the parent commit,
 where the block they live in requires the exit code the verb stopped spending
 when spec 080 merged, and `registry show 105` is a not-found exit 1 there. The
-AC-9 pattern checks are not fail-first: they are the half of 098's AC-9 that
+AC-9 pattern checks are not fail-first: they are the half of 079's AC-9 that
 was already green and is kept (§3.3). Neither is `cargo test ... spec103_`,
 which asserts a mechanism this spec does not change.
 
@@ -319,7 +319,7 @@ target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" index >/dev/null
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep -q 'I-004'
 ! target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep 'codebase-index:' | grep -q 'STALE'
 # AC-6 in-flight arm (D-5): `draft` + `in-progress` is in flight under specs
-# 025/041/044, so the unit is a `W-001` warning, nothing blocks, and `check`
+# 023/038/041, so the unit is a `W-001` warning, nothing blocks, and `check`
 # exits 0. Asserted for what it shows, which is why it is not the negative.
 sed -i.bak 's/implementation: complete/implementation: in-progress/' "${TMPDIR:-/tmp}/ss098"/specs/001-missing-territory/spec.md && rm -f "${TMPDIR:-/tmp}/ss098"/specs/001-missing-territory/spec.md.bak
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" compile >/dev/null && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" index >/dev/null
@@ -344,7 +344,7 @@ target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" index >/dev/null
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep -q 'spec-registry: fresh'
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep -q 'codebase-index: fresh'
-# AC-9 (D-6, amended by 105 3.3): the durable half only. 098's fixed-base
+# AC-9 (D-6, amended by 083 3.3): the durable half only. 079's fixed-base
 # `git diff` asserted that no commit after its branch point touches either
 # settings.json, which specs 093 and 104 then legitimately did; the line could
 # only ever go red. What 098 relied on is the message shape, and that is what

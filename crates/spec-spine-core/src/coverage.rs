@@ -117,7 +117,7 @@ pub fn in_coverage_universe(cfg: &Config, index: &CodebaseIndex, path: &str) -> 
 /// [`in_coverage_universe`] widened by a declared governed scope (spec 078
 /// §3.3): a path the scope names bypasses the extension and package conjuncts,
 /// and still answers to `resolver_exclusions` and the bypass verdict, spec
-/// 009's claim precedence included. With an empty scope this is exactly the
+/// 008's claim precedence included. With an empty scope this is exactly the
 /// four-conjunct universe spec 029 built.
 pub fn in_coverage_universe_with(
     cfg: &Config,
@@ -204,7 +204,7 @@ impl GovernedScope {
 }
 
 /// Every file under `repo_root`, for a caller that supplied no inventory (spec
-/// 097 §3.6). Skips `.git/` (not corpus, and machine-specific), the declared
+/// 078 §3.6). Skips `.git/` (not corpus, and machine-specific), the declared
 /// state root (bypassed unconditionally by spec 036), the configured derived
 /// root (compiler output, spec 092 §3.8), and `resolver_exclusions`; never
 /// descends through a symlink, so it cannot leave the repository.

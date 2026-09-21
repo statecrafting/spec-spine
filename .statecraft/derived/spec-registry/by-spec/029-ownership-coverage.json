@@ -117,7 +117,7 @@
     ],
     "risk": "medium",
     "sectionHeadings": [
-      "032: Ownership coverage",
+      "029: Ownership coverage",
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
@@ -137,6 +137,6 @@
     "summary": "spec-spine refuses drift but has never required coverage. The coupling gate skips a changed path that no spec claims (\"not a coupling concern\"), and the only coverage-shaped signal, `traceability.untracedCode`, is package-granular and read by nothing, so a crate with one governed file and two hundred ungoverned ones reports as traced. \"This application is fully specified\" is therefore not a state the tool can assert. This spec adds two additive pieces that share one definition of ownership. `spec-spine index coverage` reports, per source file, whether a spec *specifically* claims it (a resolved unit or a comment header), whether only a package's manifest floor covers it, or whether nothing does; `--fail-on-untraced` turns that into the whole-tree assertion. `[coupling] require_ownership` (default false) makes the gate ask the same question of every changed source file and refuse a floor-only or unowned one as `C-002`, the PR-time ratchet. Coverage is a read verb over the tree and the committed ledger, like `index check`: nothing new is committed, no schema version moves, and the report predicts the gate exactly because both call one classifier over one universe.\n",
     "title": "Ownership coverage: `spec-spine index coverage` and the `C-002` ratchet"
   },
-  "shardHash": "e381cade6fa99db72bd7c63baf0922e50da74883dc0721919e6dc8cd768f724b",
+  "shardHash": "1ebeedae69b0888f1598e79f92ea2c326c59b02091a89b4f3f07f88556c954f4",
   "specVersion": "1.3.0"
 }

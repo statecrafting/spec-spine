@@ -48,8 +48,8 @@ Half the edge vocabulary is unused in the field: no adopter uses `refines`,
 
 Spec 035 reads an absent `implementation` as `pending` and offers the spec as
 ready. Spec 038's table reads `approved` + absent as settled, and `index.rs`
-agrees. The two verbs disagreed about the same key, and the prose in 041 §3.5
-and 044 §3.3 ("an absent key still behaves as `pending`") contradicted the
+agrees. The two verbs disagreed about the same key, and the prose in 038 §3.5
+and 041 §3.3 ("an absent key still behaves as `pending`") contradicted the
 tables one section above them. The concrete bite: the scaffold's bootstrap
 spec has no `implementation` key, so **every `spec-spine init` adopter's
 `registry plan` reports the bootstrap spec as the one ready item, forever**.
@@ -122,7 +122,7 @@ or sensor concepts into `Config`.
    `index check` says fresh. A count line on `index check` and an opt-in
    `--fail-on-unresolved` for corpora past the specify-first stage.
 3. **`couple` names the owning spec on `C-001` and points at `extends`.**
-   claude-observatory's 016 D-12: "four sessions and $17.44 were spent proving
+   claude-observatory's 015 D-12: "four sessions and $17.44 were spent proving
    a wall that one line of prompt would have avoided." The gate knows the
    owner; it should say so and name the corpus mechanism for crossing
    territory.
@@ -131,7 +131,7 @@ or sensor concepts into `Config`.
    for it; 033 shipped the cycle half.
 5. **A governed read for effective coupling config** (`config show --json`
    or `couple --explain-bypass`). claude-observatory hand-parses the target's
-   TOML and documents that the built-in floor is unknowable to it (036 D-3).
+   TOML and documents that the built-in floor is unknowable to it (033 D-3).
 6. **Owner-of-path query** (`registry owner <path>` or `index coverage
    --by-path --json`). Consumers rebuild path to spec maps from raw edges.
 7. **Per-spec content hash on `registry show --json`.** claude-observatory
@@ -181,7 +181,7 @@ or sensor concepts into `Config`.
 4. **A specify-first adoption page**: the lifecycle table, the guarded
    Makefile, the CI probe, `n-a` for record specs, why 248 warnings is fine.
 5. **`CONSTITUTION_TEMPLATE` in `scaffold.rs` is still the two-bullet stub**
-   043 §1.4 complained about, while `standards/spec/templates/
+   040 §1.4 complained about, while `standards/spec/templates/
    constitution-template.md` is the real 34-line version. Adopters get the
    stub; two of them deleted it.
 6. **The scaffolded `spec-spine.toml` hides every knob that matters.** Five
@@ -204,7 +204,7 @@ or sensor concepts into `Config`.
     refusal rule.
 12. **Dogfood the hooks.** This repository has no `.claude/settings.json`, so
     the kit's hooks are never exercised in-tree, which is how three of them
-    shipped writing when they should read. 046's test is the minimum.
+    shipped writing when they should read. 093's test is the minimum.
 13. **Migration note for 037**: "if you regex `attestationHash:` out of
     `attest` stdout, stop." claude-observatory does, in two places.
 14. **`state_dir` needs its `.gitignore` half** in the scaffold; the live

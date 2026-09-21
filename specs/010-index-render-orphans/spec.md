@@ -26,7 +26,7 @@ summary: >
   artifact; neither recomputes the index. Establishes the render module;
   extends the index CLI dispatch.
 ---
-# 011: `index render` and `index orphans`
+# 010: `index render` and `index orphans`
 
 ## 1. Purpose
 

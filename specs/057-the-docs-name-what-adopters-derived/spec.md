@@ -39,7 +39,7 @@ summary: >
   claude-observatory regexes in two places, with no migration note. This spec
   writes the page and the three paragraphs.
 ---
-# 067: The docs name what adopters derived by experiment
+# 057: The docs name what adopters derived by experiment
 
 ## 1. Purpose
 

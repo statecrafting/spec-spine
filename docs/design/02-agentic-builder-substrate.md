@@ -215,7 +215,7 @@ point of having checked.** Two findings from the code, not from this analysis:
   every spec as `draft` + `complete` when its code lands. Spec 038 is that fix,
   and needs no attestation.
 - **G2's committed bundle does not survive contact with the repo.**
-  `.derived/attestation/` is gitignored: 023's attestation is on-demand by
+  `.derived/attestation/` is gitignored: 021's attestation is on-demand by
   design. A committed per-spec bundle would restale on every edit to any claimed
   unit and would need a fourth committed tree with a fifth gate verb, which is
   this note's own constraint turned against the proposal. Spec 039 keeps the

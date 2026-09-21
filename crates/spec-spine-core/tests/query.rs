@@ -312,7 +312,7 @@ fn plan_reads_an_absent_implementation_key_on_a_draft_as_pending() {
 #[test]
 fn plan_reads_an_absent_implementation_key_on_a_ratified_spec_as_settled() {
     // Spec 042: `approved` + absent is what the gate already treats as settled
-    // (041 3.1), so `plan` neither offers it nor lets it block. This is the
+    // (038 3.1), so `plan` neither offers it nor lets it block. This is the
     // scaffold's bootstrap spec, which used to be offered as ready forever.
     let reg = registry_of(&[
         ("000-bootstrap", "approved", None, &[]),
@@ -401,7 +401,7 @@ fn plan_refuses_a_cycle_rather_than_looping() {
         panic!("expected Error::Validation, got {err:?}");
     };
     assert_eq!(violations.len(), 1);
-    assert_eq!(violations[0].code, "V-014", "033's classification, reused");
+    assert_eq!(violations[0].code, "V-014", "030's classification, reused");
     let message = &violations[0].message;
     for id in ["001-a", "002-b", "003-c"] {
         assert!(

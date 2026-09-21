@@ -34,7 +34,7 @@ summary: >
   and `registry relationships` reports `amended_by (incoming)` so the amendment
   is discoverable from the amended spec's side without that spec being touched.
 ---
-# 040: Amendment authoring
+# 037: Amendment authoring
 
 ## 1. Purpose
 

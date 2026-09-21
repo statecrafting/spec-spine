@@ -34,7 +34,7 @@ summary: >
   kinds across ~192 unit declarations (93 `directory`, 99 `crate`, 1 `module`)
   with no mass frontmatter migration.
 ---
-# 017: directory / crate / module authority units
+# 016: directory / crate / module authority units
 
 ## 1. Purpose
 

@@ -84,7 +84,7 @@
     ],
     "risk": "medium",
     "sectionHeadings": [
-      "023: Ledger Seal",
+      "021: Ledger Seal",
       "1. Purpose",
       "2. Territory",
       "3. Object shape",
@@ -99,6 +99,6 @@
     "summary": "spec-spine self-describes as a typed, hash-verifiable authority ledger over a markdown spec corpus. A hash-verifiable ledger is an attestation missing only two things: a signature and a verify. This spec completes that sentence. It adds a CorpusAttestation, a deterministic, pure-function payload over the inputs manifest, the registry hash, and the compile/lint (and optionally coupling) verdicts, plus a detached Ed25519 seal over its hash, and a two-mode verify-attestation (recompute, which any third party can run with no key, and signature, which is opt-in). The reproducible recompute mode is the property a run certificate can never have, because runs are side-effecting; this object is the signed, archival, independently-verifiable form of a verdict spec-spine already computes and then throws away into a CI log. It is deliberately NOT called a certificate: that word stays with run-provenance (signed testimony of a non-reproducible event). This is an attestation (recomputable truth).\n",
     "title": "Ledger Seal (signed, reproducible attestation over the spec corpus)"
   },
-  "shardHash": "db886594ca44da9a04dbfa18d80a2ef454d8053ce4bdabf86fc52c959f7b85f1",
+  "shardHash": "f2bc80e69cc1643035c6f9a186d0bead65edeca9ae0db1105c4f33e05b1f8ee2",
   "specVersion": "1.3.0"
 }

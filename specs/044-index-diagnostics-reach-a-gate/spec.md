@@ -42,7 +42,7 @@ summary: >
   three read the committed shards and recompute nothing, so the answer always
   describes the ledger the corpus compiled to.
 ---
-# 050: Index diagnostics reach a gate
+# 044: Index diagnostics reach a gate
 
 ## 1. Purpose
 
@@ -146,7 +146,7 @@ both the CLI's `--json` arm and the `check_freshness_json` facade serialize that
 one type. The composition has to live in core because spec 034 pins the two
 against each other, and a payload built twice is a payload that drifts. An
 earlier draft of this section had `index check` extending `freshness_report`'s
-output in the CLI; 037's parity test refused it, correctly.
+output in the CLI; 034's parity test refused it, correctly.
 
 ### 3.2 `--fail-on-unresolved` is opt-in
 
@@ -230,7 +230,7 @@ consumer of a different verb cannot observe.
 
 **Decision, 2026-09-06.** If per-payload versioning is ever wanted it needs its
 own axis, one per verb, and this spec does not open that. Recorded because the
-question is genuinely ambiguous in 037's text and the next spec to add a payload
+question is genuinely ambiguous in 034's text and the next spec to add a payload
 field should not have to re-derive the answer.
 
 ## 4. Out of scope

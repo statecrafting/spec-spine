@@ -103,7 +103,7 @@
     ],
     "risk": "low",
     "sectionHeadings": [
-      "056: Validate one draft without a temporary repository",
+      "049: Validate one draft without a temporary repository",
       "1. Purpose",
       "2. Territory",
       "2.1 The version bump reaches four more files",
@@ -121,6 +121,6 @@
     "summary": "Writing a spec means validating it before it lands, and the tool offers no way to do that. `compile` writes the whole shard tree, which an author with an unfinished draft must not do; `compile --check` refuses the whole corpus because the draft has no committed shard, reporting the author's work in progress as staleness. So two adopters wrote down a `mktemp -d` ritual: copy the corpus, copy the draft in, compile there, read the violations, delete the copy. It has a documented gotcha, because a `references` edge into `docs/` does not resolve in a corpus copy that has no `docs/`. This spec adds `compile --spec <id>`: validate one spec against the committed registry, report only that spec's violations, and write nothing.\n",
     "title": "Validate one draft without a temporary repository"
   },
-  "shardHash": "6f646293b4324254fb10131f23ea7bc660d1e504fef3bc8fe022ae7a53401efe",
+  "shardHash": "90d35b36fc24046f3a376f4bd774e5494d5430c6f230cc4d79e6f89b7f82437b",
   "specVersion": "1.3.0"
 }

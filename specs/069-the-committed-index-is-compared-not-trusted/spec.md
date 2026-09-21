@@ -55,7 +55,7 @@ summary: >
   projections) reads a body equal to the recompute. It amends 024 5, whose
   bounded trade let a sibling-caused resolution flip go unreported.
 ---
-# 086: The committed index is compared, not trusted
+# 069: The committed index is compared, not trusted
 
 ## 1. Purpose
 
@@ -195,7 +195,7 @@ fresh resolution establishes anything.
 **D-1 (2026-09-11): `amends` 024.** 024 5 is a deliberate statement of what
 index staleness does not catch, and this spec changes it. The amendment is
 declared here and 024's text is untouched (spec 037). 031 3.1's sentence about
-the index side is descriptive of 024's behavior, not a requirement of 031, so no
+the index side is descriptive of 022's behavior, not a requirement of 031, so no
 edge to 031 is needed beyond the reference.
 
 **D-2 (2026-09-11): fix the check, not only the gate.** The alternative was to
@@ -210,7 +210,7 @@ the default, and every gate chain already written against `check` would keep
 it.
 
 **D-4 (2026-09-12): an unbuilt index stays an I/O error, not staleness.** 3.1
-mirrors `compile --check`, and 031 3.2 makes an unbuilt *registry* stale rather
+mirrors `compile --check`, and 028 3.2 makes an unbuilt *registry* stale rather
 than an error, on the reasoning that a tree never built is by definition not
 vouching for the corpus. Read straight across, that would make an unbuilt index
 stale here too. It is not adopted. `check_index_freshness` is the freshness

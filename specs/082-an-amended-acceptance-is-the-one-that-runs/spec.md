@@ -9,7 +9,7 @@ summary: >
   plan --next`, which is a claim about the corpus rather than about the code: it
   holds only while something is ready to build. The corpus finished, `next`
   became `null`, and `spec-spine verify 093` has been red ever since, failing an
-  assertion that contradicts 093 §3.3's own requirement that an absent answer be
+  assertion that contradicts 074 §3.3's own requirement that an absent answer be
   a present `null` member. The line is wrong and 093 is approved, so correcting
   it is an amendment. Spec 037 forbids editing the amended file and `verify`
   executes that file, so until now an amendment could not reach an acceptance
@@ -24,7 +24,7 @@ depends_on:
   - "043-verify-declared-acceptance"
   - "074-a-governed-read-names-its-version"
 amends: ["074-a-governed-read-names-its-version"]
-# 3.5: this spec's `## Verification` block IS 093's acceptance from now on.
+# 3.5: this spec's `## Verification` block IS 074's acceptance from now on.
 # 093's own file is not edited (spec 037 3.1).
 amends_verification: ["074-a-governed-read-names-its-version"]
 extends:
@@ -48,7 +48,7 @@ references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "docs/schema-versioning.md" }, role: context }
 ---
-# 103: An amended acceptance is the one that runs
+# 082: An amended acceptance is the one that runs
 
 ## 1. Purpose
 
@@ -99,7 +99,7 @@ note 05 §9.4 records R-1 as "a one-line `amends` in a new spec; do not edit
 But `spec-spine verify <id>` (spec 043) reads the `## Verification` section out
 of `specs/<id>/spec.md` and runs it. `verify.rs` contains no reference to
 `amends` at all. So an amendment can say the line is wrong and change nothing:
-the block in 093's file is still the block that runs, and `verify 093` stays red
+the block in 074's file is still the block that runs, and `verify 093` stays red
 for as long as the corpus is finished.
 
 That is the gap. The amendment mechanism reaches prose, because prose is read by
@@ -215,13 +215,13 @@ the fact is answerable without running anything.
 ### 3.5 What spec 074's acceptance now is
 
 This spec's `## Verification` block replaces spec 074's in full, and 093's file
-is not edited. It is 093's block with command 13 corrected:
+is not edited. It is 074's block with command 13 corrected:
 
 ```
 target/release/spec-spine registry plan --next --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]; assert "next" in d; assert d["next"] is None or d["next"]["id"]'
 ```
 
-The corrected line asserts what 093 §3.3 actually requires and nothing about
+The corrected line asserts what 074 §3.3 actually requires and nothing about
 the calendar: the document is an object with sorted keys, it is versioned,
 `next` is **present** (which is the member-presence rule, and the half that
 fails against pre-093 code), and when it is populated it carries an `id`. It
@@ -315,12 +315,12 @@ Each line is one command (spec 043 §3.2).
 
 **This block is spec 074's acceptance as well as this spec's** (§3.5). Spec 074's
 own file is not edited, so a reader comparing the two sees exactly what changed:
-one assertion, on `registry plan --next`. Everything else is 093's block
+one assertion, on `registry plan --next`. Everything else is 074's block
 verbatim, and running it here is what makes `verify 093` mean something again.
 
 The corrected line is the fail-first evidence for §3.5 in both directions. It
 fails against pre-093 code, which emits a bare `null` carrying no `next` member
-at all, and it fails against the pre-103 corpus, where `verify 093` runs 093's
+at all, and it fails against the pre-103 corpus, where `verify 093` runs 074's
 own block and dies on `d["next"]["id"]`.
 
 The `spec103_` lines are the fail-first evidence for the mechanism. Their filter
@@ -364,9 +364,9 @@ target/release/spec-spine registry list --ids-only --json | python3 -c 'import j
 target/release/spec-spine index diagnostics --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d["items"], list); assert d["schemaVersion"]'
 # 3.3, 3.6: the pick is a named member, present whether or not it is
 # populated. Spec 082 3.5 corrected this line: it asserted the corpus had
-# something ready, which 093 3.3 never required and a finished corpus denies.
+# something ready, which 074 3.3 never required and a finished corpus denies.
 target/release/spec-spine registry plan --next --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]; assert "next" in d; assert d["next"] is None or d["next"]["id"]'
-# 3.7: `config show` is sorted and keeps 054's version member, with no second one.
+# 3.7: `config show` is sorted and keeps 047's version member, with no second one.
 target/release/spec-spine config show --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert "config_version" in d; assert "schemaVersion" not in d'
 # 3.8: the emitter's own properties, and the per-document assertions.
 cargo test -p spec-spine-core --test read --locked

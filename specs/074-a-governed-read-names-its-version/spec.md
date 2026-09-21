@@ -30,10 +30,10 @@ depends_on:
   - "048-the-ledger-answers-what-consumers-rebuild"
   - "053-plan-answers-the-whole-question"
 amends:
-  # 010 3.1: `registry list --ids-only --json` is "a JSON array of id strings".
+  # 009 3.1: `registry list --ids-only --json` is "a JSON array of id strings".
   # 3.5 below wraps it so it can carry a version. Replacement text in 3.5.
   - "009-registry-query-projection-flags"
-  # 060 3.2: `plan --next --json` is "the single spec object rather than an
+  # 053 3.2: `plan --next --json` is "the single spec object rather than an
   # array". 3.5 below moves the pick under a nullable member, so that an empty
   # ready set is a value rather than a missing key. Replacement text in 3.5.
   - "053-plan-answers-the-whole-question"
@@ -50,7 +50,7 @@ extends:
   - { spec: "034-machine-readable-verdicts", unit: "crates/spec-spine-types/src/version.rs", nature: additive }
   - { spec: "034-machine-readable-verdicts", unit: "crates/spec-spine-types/src/lib.rs", nature: additive }
   # 3.6: `config show` is sorted through the same emitter; its version member
-  # is 054's and is not renamed.
+  # is 047's and is not renamed.
   - { spec: "047-effective-config-is-a-governed-read", unit: "crates/spec-spine-cli/src/cmd_config.rs", nature: corrective }
   # 3.4: the axis is documented beside the others (a hashed input, so this
   # edit restales every shard, paid once here).
@@ -68,7 +68,7 @@ references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "docs/design/04-authority-evidence-extension.md" }, role: context }
 ---
-# 093: A governed read names its version
+# 074: A governed read names its version
 
 ## 1. Purpose
 
@@ -510,7 +510,7 @@ target/release/spec-spine registry list --ids-only --json | python3 -c 'import j
 target/release/spec-spine index diagnostics --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert isinstance(d["items"], list); assert d["schemaVersion"]'
 # 3.3, 3.6: the pick is a named member, and it is populated on this corpus.
 target/release/spec-spine registry plan --next --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]; assert d["next"]["id"]'
-# 3.7: `config show` is sorted and keeps 054's version member, with no second one.
+# 3.7: `config show` is sorted and keeps 047's version member, with no second one.
 target/release/spec-spine config show --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert "config_version" in d; assert "schemaVersion" not in d'
 # 3.8: the emitter's own properties, and the per-document assertions.
 cargo test -p spec-spine-core --test read --locked

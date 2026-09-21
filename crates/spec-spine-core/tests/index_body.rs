@@ -434,7 +434,7 @@ fn the_facade_keeps_the_verdict_when_a_shard_will_not_parse() {
 // --- spec 079: a blocking claim is not a stale shard -------------------------
 //
 // Spec 069 made this file the place the committed index is interrogated, and
-// 098's subject is the verdict that interrogation produces: `check_index_
+// 079's subject is the verdict that interrogation produces: `check_index_
 // freshness` folded two independent refusals into one `Stale`, which carries
 // exactly one remedy. The cases below are the four states of that partition,
 // asserted as data. The regeneration case (AC-2) is the one the old output got

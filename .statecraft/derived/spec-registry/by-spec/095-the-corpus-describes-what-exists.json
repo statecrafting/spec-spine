@@ -41,7 +41,7 @@
     ],
     "risk": "high",
     "sectionHeadings": [
-      "094: The corpus describes what exists",
+      "095: The corpus describes what exists",
       "1. Purpose",
       "1.1 What obeying the rules cost",
       "1.2 The exception, and its shape",
@@ -64,6 +64,6 @@
     "summary": "Spec 092 removed the kit and obeyed every standing rule while doing it: it withdrew claims, declared amendments, replaced acceptance, and edited no predecessor's prose. The result is a corpus where 102 unit claims were withdrawn from 29 specs, 29 specs no longer run their own acceptance because one block stands for all of them, two blocks pass only because the files they assert about are gone, and 41 documents describe artifacts that no longer exist while reading as live instruction. That is the cost of the rules, paid once, and the owner authorized a one-time exception to settle it. This spec is the record of that exception: what was deleted, what was merged into what, how the ordinals were made contiguous again, and what the rules go back to being the moment it is done.\n",
     "title": "The corpus describes what exists"
   },
-  "shardHash": "d8b1801597f0431c16cef4b401613cd477201bf92ec8bef74974905d1146b88f",
+  "shardHash": "7139405fa74eee7fffe4a956418697263d1ebf307286c61065e10c87b3148e0d",
   "specVersion": "1.3.0"
 }

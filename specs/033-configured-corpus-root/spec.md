@@ -33,7 +33,7 @@ summary: >
   name one corpus root instead of the second yielding `specs//<id>/spec.md`. No
   DTO, schema, or config shape changes; a default-layout repo is byte-identical.
 ---
-# 036: The coupling gate honors `layout.specs_dir`
+# 033: The coupling gate honors `layout.specs_dir`
 
 ## 1. Purpose
 

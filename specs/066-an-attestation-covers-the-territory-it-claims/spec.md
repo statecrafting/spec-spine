@@ -47,7 +47,7 @@ summary: >
   share. No previously emitted payload changes value, because every spec this
   reaches could not produce one.
 ---
-# 083: An attestation covers the territory it claims
+# 066: An attestation covers the territory it claims
 
 ## 1. Purpose
 
@@ -99,7 +99,7 @@ still specified below, since the code reaches it and an adopter's corpus will
 exercise it; it is simply not exercised here.
 
 Spec 093 is on the list, which is how the defect surfaced. A reviewer asked for
-a per-spec attestation as evidence on 082's ratify PR, and the verb could not
+a per-spec attestation as evidence on 093's ratify PR, and the verb could not
 produce one for that spec.
 
 Two properties break, and the second is the worse of the two.

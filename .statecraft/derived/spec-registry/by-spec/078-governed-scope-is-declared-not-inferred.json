@@ -146,7 +146,7 @@
     ],
     "risk": "medium",
     "sectionHeadings": [
-      "097: Governed scope is declared, not inferred",
+      "078: Governed scope is declared, not inferred",
       "1. Purpose",
       "1.1 Four conjuncts, and only one of them is about code",
       "1.2 What the conjuncts exclude here",
@@ -174,6 +174,6 @@
     "summary": "The ownership ratchet sees a file only if all four conjuncts of `coverage.rs::in_coverage_universe` hold: the extension is in `SOURCE_EXTS`, no path component is a resolver exclusion, the file lies inside a discovered package, and no bypass prefix matches. Measured on 2026-09-15: this repository tracks 572 files and the ratchet can see 89. Nineteen tracked files carry a `SOURCE_EXTS` extension and are invisible on the package conjunct alone, and eleven of those nineteen are files `[index] extra_hashed_inputs` already names, so a change to one restales all 101 shards while `C-002` cannot ask who owns it. Seven of the nineteen already carry a valid `// Spec:` claim header that nothing ever reads. The two lists disagree about what this repository governs. This spec adds an opt-in declared scope: named path patterns that join the coverage universe whatever their extension and wherever they sit, with the tracked-file enumeration done by the CLI and passed in, because the core has no git. Empty by default, so no adopter's verdict changes on upgrade. The claim scanner is untouched: a scoped file is claimed from spec frontmatter, so those seven headers stay inert and this spec says so rather than implying otherwise.\n",
     "title": "Governed scope is declared, not inferred"
   },
-  "shardHash": "ed19dae61d0cf7a3c3c1fb5aac1fa33453001471979d64256688e933749c12f6",
+  "shardHash": "67ee9f21cd00a524e5e605a69e2a1cf35710df3219b3f2a6568e0463eab99ee8",
   "specVersion": "1.3.0"
 }

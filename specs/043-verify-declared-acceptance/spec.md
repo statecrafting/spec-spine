@@ -50,7 +50,7 @@ summary: >
   define. `not-declared` stays an honest zero and is distinguishable from a pass
   in the payload, never by parsing prose.
 ---
-# 049: `spec-spine verify <id>`
+# 043: `spec-spine verify <id>`
 
 ## 1. Purpose
 
@@ -92,7 +92,7 @@ string, and 3.2's table becomes acceptance fixtures.
 machine-readable verdict precisely so that a programmatic consumer stops
 string-matching sentences. `verify` is the verb an orchestrator most needs to
 read programmatically, since it gates a merge, and it is the one still emitting
-`verify: 044-...: passed (6 command(s))` for a caller to parse.
+`verify: 041-...: passed (6 command(s))` for a caller to parse.
 
 **`not-declared` stops being ambiguous.** The script prints a distinct sentence
 and exits 0, so a caller that reads only the exit code cannot tell "every

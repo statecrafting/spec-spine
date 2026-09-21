@@ -10,12 +10,12 @@ summary: >
   object under a `next` member so the empty ready set could be a value rather
   than a missing document, so `spec-spine verify 060` has been red since 093
   merged. 093 declared an `amends` edge to 060 for exactly this change and
-  carried the replacement text for 060's rule; what it could not reach was 060's
+  carried the replacement text for 053's rule; what it could not reach was 053's
   acceptance, because spec 037 forbids editing the amended file and the block
-  lives inside it. The same block leaves 060 3.2's strongest requirement
+  lives inside it. The same block leaves 053 3.2's strongest requirement
   unasserted: that `--next` is a projection of `plan` and does not reimplement
-  selection, which a one-element fixture cannot show. This spec declares 060's
-  acceptance replaced and carries the corrected block, without editing 060's
+  selection, which a one-element fixture cannot show. This spec declares 053's
+  acceptance replaced and carries the corrected block, without editing 053's
   file. It is the third of the four follow-ons spec 084 4 named.
 implementation: complete
 owner: "The spec-spine Authors"
@@ -24,21 +24,21 @@ depends_on:
   - "053-plan-answers-the-whole-question"
   - "074-a-governed-read-names-its-version"
   - "082-an-amended-acceptance-is-the-one-that-runs"
-  # D-7: not behavioural dependencies. This spec cites 107's and 108's decision
+  # D-7: not behavioural dependencies. This spec cites 085's and 086's decision
   # records and states its own position in the series, so the order those claims
   # assume is declared rather than left to the merge queue.
   - "085-a-version-pin-is-not-a-contract"
   - "086-an-exact-key-set-refuses-what-the-rule-allows"
 amends: ["053-plan-answers-the-whole-question"]
-# 3.1: this spec's `## Verification` block IS 060's acceptance from now on.
+# 3.1: this spec's `## Verification` block IS 053's acceptance from now on.
 # 060's own file is not edited (spec 037 3.1), and 093's is not either: 093
-# already amended 060's rule and carried the replacement text, and this spec
+# already amended 053's rule and carried the replacement text, and this spec
 # changes none of it. What changes is what 060 accepts.
 amends_verification: ["053-plan-answers-the-whole-question"]
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---
-# 109: The answer is a member, not the document
+# 087: The answer is a member, not the document
 
 ## 1. Purpose
 
@@ -84,16 +84,16 @@ The three red blocks beside this one are all assertions stricter than the rule
 they stood for. This one is different, and the difference is worth stating,
 because the repair looks identical and the reasoning is not.
 
-060 3.2 states the shape as a contract: under `--json`, "the single spec object
+053 3.2 states the shape as a contract: under `--json`, "the single spec object
 rather than an array, so a consumer does not index into a one-element list to
 reach the thing it asked for." The block asserted exactly that, and it was
 right to. Spec 074 then **changed the contract**, deliberately and with its
 reasons recorded: `plan --next`'s empty case emitted the bare literal `null`,
 which cannot carry a version member, so the pick moved under a nullable `next`
-and the document became an object in both cases. 093 3.5 carries the
-replacement text and 093's frontmatter carries the `amends` edge naming 060.
+and the document became an object in both cases. 074 3.5 carries the
+replacement text and 074's frontmatter carries the `amends` edge naming 060.
 
-So 060's rule was amended by the book, and the failure here is narrower than in
+So 053's rule was amended by the book, and the failure here is narrower than in
 specs 049, 059 and 071: 093 amended the rule and could not reach the acceptance,
 because spec 037 forbids editing the amended file and the block lives inside it.
 That is spec 083 1.2's finding, which was about spec 080 and spec 079, restated
@@ -101,22 +101,22 @@ at a second site. Spec 082 built `amends_verification` after 093 shipped, so the
 route did not exist when 093 needed it.
 
 The consequence for this spec is that the corrected line asserts the **amended**
-contract, with 093's document shape and 060's pick, rather than a loosened
-version of 060's original.
+contract, with 074's document shape and 053's pick, rather than a loosened
+version of 053's original.
 
-### 1.3 The block never asserted 060's strongest requirement
+### 1.3 The block never asserted 053's strongest requirement
 
-060 3.2 asks for more than a shape:
+053 3.2 asks for more than a shape:
 
 > `--next` MUST be a projection of `plan` and MUST NOT reimplement selection.
 > The first element of the topological order is already the defined pick; this
 > flag names it so that callers stop re-deriving what "first" means.
 
-The fixture 060's block builds has **one** ready spec. Against a one-element
+The fixture 053's block builds has **one** ready spec. Against a one-element
 ready set, "the first element" is the only element: an implementation that
 reimplemented selection, or that returned the last element, or the
 alphabetically greatest, passes command 8 and command 4 unchanged. The rule that
-`--next` is a projection is the one 060 3.2 argues hardest for and the one its
+`--next` is a projection is the one 053 3.2 argues hardest for and the one its
 acceptance cannot see.
 
 One more spec in the fixture fixes it. With two ready specs the block can assert
@@ -127,7 +127,7 @@ claim about order.
 ### 1.4 The crossing was silent
 
 Spec 074 changed a document shape another approved spec's acceptance pinned,
-declared the `amends` edge, and nothing told 060's block. `verify` is the one
+declared the `amends` edge, and nothing told 053's block. `verify` is the one
 verb that executes what the corpus declares, so it sits outside the gate chain
 deliberately (`AGENTS.md`); CI never runs it. Spec 084 1.3 records the identical
 mechanism and names this spec's target among the four remaining.
@@ -135,7 +135,7 @@ mechanism and names this spec's target among the four remaining.
 ## 2. Territory
 
 This spec establishes no code. It owns its own `spec.md` and one claim about
-another spec's file: that 060's `## Verification` block is no longer the one
+another spec's file: that 053's `## Verification` block is no longer the one
 that runs. Nothing under `crates/` changes, no schema constant moves, and no
 committed shard changes except the two this spec's own frontmatter produces.
 
@@ -145,7 +145,7 @@ committed shard changes except the two this spec's own frontmatter produces.
 
 This spec's `## Verification` block MUST replace spec 053's in full, through
 `amends_verification` (spec 082 3.1), and 060's file MUST NOT be edited. The
-block is 060's, with command 8 replaced per 3.3, with the fixture extended and
+block is 053's, with command 8 replaced per 3.3, with the fixture extended and
 the projection asserted per 3.4, and with this spec's own assertions (3.5) after
 them under a heading that says whose is whose.
 
@@ -153,7 +153,7 @@ Replacing the block in full rather than the one line follows spec 082 3.5 and
 spec 083 D-1: a reader asking what 060 accepts today should find one block that
 answers, not a base document plus a patch to apply in their head.
 
-060's own dated decision of 2026-09-08, that the shape assertions run against a
+053's own dated decision of 2026-09-08, that the shape assertions run against a
 scratch corpus because "the live corpus is an input, not a contract", MUST be
 carried across unchanged. It is the reason the fixture exists, it is correct,
 and 3.4's extension is a change to that fixture's contents, never a move back to
@@ -188,20 +188,20 @@ The whole-document equality MUST be replaced by three claims:
 
 - the document's keys are **sorted**, which is spec 074 3.2's rule for every
   governed read;
-- it carries a non-empty `schemaVersion`, which is 093's addition and the half
+- it carries a non-empty `schemaVersion`, which is 074's addition and the half
   that fails against pre-093 output;
 - `next` equals the pick, `{"id": "001-alpha", "title": "First thing"}`, which is
-  060 3.2's requirement that the pick is the single spec object carrying both
-  members, read through 093's envelope.
+  053 3.2's requirement that the pick is the single spec object carrying both
+  members, read through 074's envelope.
 
-The pick is compared by value rather than by `id` alone, because 060 3.3's
+The pick is compared by value rather than by `id` alone, because 053 3.3's
 reason for putting titles in the structure is that "no consumer needs a second
 call", and an assertion that reads only the id would pass a `--next` that
 dropped the title.
 
 These are fixture values, not corpus state: the same block creates the corpus
 three lines above, so naming `001-alpha` here is not the calendar-shaped
-assertion 060's own 2026-09-08 decision rejected.
+assertion 053's own 2026-09-08 decision rejected.
 
 ### 3.4 The fixture gains a second ready spec, so "first" can fail
 
@@ -209,7 +209,7 @@ The fixture MUST carry a third spec, `003-gamma`, approved and pending with no
 dependencies, so that `ready` holds two entries.
 
 The replacement MUST then assert that `--next`'s `next` equals `ready[0]` of
-`plan --json` **on the same corpus**, which is 060 3.2's projection requirement.
+`plan --json` **on the same corpus**, which is 053 3.2's projection requirement.
 Measured: with two ready specs, a `--next` answering `003-gamma` fails both that
 line and the pick assertion of 3.3, and with one ready spec it fails neither.
 
@@ -249,18 +249,18 @@ merged tree, is what a reviewer runs and what the release sweep runs.
 
 ### 3.6 The empty ready set stays where spec 074 put it
 
-The block MUST keep 060's `registry plan --next` line against this repository,
+The block MUST keep 053's `registry plan --next` line against this repository,
 which asserts that an empty ready set is exit 0 rather than a failure, and MUST
 NOT grow an assertion on that document's contents.
 
-093 3.8 requires `registry plan --next --json` on a corpus with an empty ready
+074 3.8 requires `registry plan --next --json` on a corpus with an empty ready
 set to emit `next: null` at exit 0, asserted in
 `crates/spec-spine-cli/tests/cli.rs`, and records that constructing that corpus
 is the test's work because "without it the `null` path is unexercised". That case
 is covered, in a test that owns a fixture for it. Duplicating it here would need
 a second scratch corpus for a path another spec already guards, and asserting it
 against **this** repository instead would pin corpus state, which is the defect
-060's own 2026-09-08 decision was written to avoid.
+053's own 2026-09-08 decision was written to avoid.
 
 ### 3.7 No code changes
 
@@ -273,8 +273,8 @@ corpus change that uses it.
 
 - **Editing spec 053, or spec 074.** 1.2 and the frontmatter comment. 060 keeps
   the block it was ratified with, which is the record spec 037 3.2 protects, and
-  093 already amended 060's rule by the book and carried the replacement text.
-- **The empty-ready-set document.** 3.6. Guarded by 093 3.8 in
+  093 already amended 053's rule by the book and carried the replacement text.
+- **The empty-ready-set document.** 3.6. Guarded by 074 3.8 in
   `crates/spec-spine-cli/tests/cli.rs`, which owns a fixture for it.
 - **The last red block.** Spec 093 is red for the same family of reason and needs
   its own amendment, because `amends_verification` replaces a target's whole
@@ -293,18 +293,18 @@ corpus change that uses it.
 
 D-1 (2026-09-17, why the pick is compared by value and not by id). The narrow
 repair is `d["next"]["id"] == "001-alpha"`, which fixes the redness. It also
-drops the half of 060 3.3 that the fixture exists to show: titles are in the
+drops the half of 053 3.3 that the fixture exists to show: titles are in the
 structure so that "no consumer needs a second call", and an id-only assertion
 passes a `--next` that returns the id alone. Comparing the object by value costs
 the same line and asserts both members. Spec 082's block, which is 093's
-acceptance, reads only `d["next"]["id"]`, and that is right for 093: 093's rule
+acceptance, reads only `d["next"]["id"]`, and that is right for 093: 074's rule
 is about the envelope, not about what the pick carries.
 
 D-2 (2026-09-17, why this spec does not read as a loosening). Specs 085 and 108
 correct assertions that were stricter than their rules, and a reader meeting
 three of these in a row could take the family to mean that acceptance blocks
 should assert less. This one does not fit that shape, and 1.2 says so explicitly:
-060's assertion matched 060's rule exactly, and 093 changed the rule with an
+053's assertion matched 053's rule exactly, and 093 changed the rule with an
 `amends` edge and replacement text. The corrected line is not looser than the
 original, it is the same strength against the amended contract, and 3.4 makes
 the block strictly stronger than it was. Recorded because the distinction is the
@@ -313,28 +313,28 @@ in either.
 
 D-3 (2026-09-17, why the fixture gains a spec). Editing an inherited fixture is
 scope this spec had to justify, and the justification is that the fixture as
-built cannot show the rule 060 3.2 argues hardest for. With one ready spec,
+built cannot show the rule 053 3.2 argues hardest for. With one ready spec,
 "`--next` is the first element of `ready`" has no failing case: first, last,
 greatest and any reimplementation all return the same object. Measured, adding
 `003-gamma` makes a `--next` that answers `003-gamma` fail two lines, and the
 inherited `ready[0]` assertion becomes a claim about order. The alternative,
 leaving the projection rule unasserted and noting the gap in 4, is what spec 086
-D-3 chose for 059's id-ordering rule; the difference is that there no fixture
+D-3 chose for 052's id-ordering rule; the difference is that there no fixture
 change could avoid a vacuous assertion on a corpus with at most two entries,
 while here one `printf` chained into a line that already has three does it.
 
 D-4 (2026-09-17, why the empty ready set is not asserted here). See 3.6. It is
-covered by 093 3.8 in `crates/spec-spine-cli/tests/cli.rs` with a fixture built
+covered by 074 3.8 in `crates/spec-spine-cli/tests/cli.rs` with a fixture built
 for it. The tempting cheap version, asserting the text of `registry plan --next`
 against **this** repository because its ready set happens to be empty today, is
-the exact defect 060's own 2026-09-08 decision entry was written about, one line
+the exact defect 053's own 2026-09-08 decision entry was written about, one line
 below where it would go. The inherited line stays as 060 wrote it: a bare
 invocation that asserts exit 0 and nothing about the contents.
 
 D-5 (2026-09-17, why the pipelines become redirects). `cmd --json | python3 -c
 ...` reports `python3`'s status, so a verb that failed and printed nothing feeds
 `json.load` an empty document and the line fails for the wrong reason with a
-message naming the wrong defect. Three of 060's lines have the form and 3.4's
+message naming the wrong defect. Three of 053's lines have the form and 3.4's
 new assertion needs two documents at once, which is where spec 084 D-4 records
 the hazard turning silent: two failures can compare equal. The `registry show`
 line is included for the reason spec 085 D-4 gives, which review established on
@@ -342,7 +342,7 @@ that spec's pull request rather than in drafting.
 
 D-6 (2026-09-17, what the fail-first evidence is and is not). This spec changes
 no code, so the corrected lines pass at the parent commit `3173bb0` against the
-same binary whose output made 060's original red. That is correct rather than a
+same binary whose output made 053's original red. That is correct rather than a
 gap, and it is spec 084 D-5's finding restated at a fourth site.
 
 What an assertion owes instead is **failability against the condition it exists
@@ -386,11 +386,11 @@ ever moved, the assertion would **fail**, loudly and by value: `p['ready'][0]` i
 compared against the whole object, so a reordered plan reports
 `{'id': '003-gamma', ...}` and the line goes red. It does not go vacuous. The
 projection line beside it would keep passing, correctly, because what it asserts
-is that `--next` follows `ready` wherever `ready` points, which is 060 3.2's
+is that `--next` follows `ready` wherever `ready` points, which is 053 3.2's
 actual rule.
 
 The two prose greps depend on `registry plan` rendering the `not schedulable`
-label at a count of zero. 060's block established that it does, and this spec
+label at a count of zero. 053's block established that it does, and this spec
 measured it again on the extended fixture. If the CLI ever suppressed the section
 at zero those lines fail, again visibly, and a reader is sent here.
 
@@ -410,7 +410,7 @@ width. Review read the elision as the line itself and concluded that command 8
 had been failing on `NameError: name 'json' is not defined` rather than on the
 shape, and that 1.1's whole account of the redness was therefore wrong.
 
-It is not: the imports are in 060's file at line 238, and the measured failure at
+It is not: the imports are in 053's file at line 238, and the measured failure at
 `e4d7d28` is an `AssertionError` on the comparison, which is what 1.1 says. But
 the objection is the right shape even though its conclusion is not, and the
 defect it lands on is this spec's: a quotation that changes what a command does
@@ -450,34 +450,34 @@ rm -rf "${TMPDIR:-/tmp}/ss060" && mkdir -p "${TMPDIR:-/tmp}/ss060/specs/001-alph
 # line's status, which a pipeline into `python3` would not be (3.2, D-5).
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan --json > "${TMPDIR:-/tmp}/ss060/plan.json"
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan --next --json > "${TMPDIR:-/tmp}/ss060/next.json"
-# 060 3.3: the ready array carries titles, so no consumer needs a second call.
+# 053 3.3: the ready array carries titles, so no consumer needs a second call.
 # With two ready specs this is also a claim about order (3.4).
 python3 -c "import json; p=json.load(open('${TMPDIR:-/tmp}/ss060/plan.json')); assert p['ready'][0]=={'id':'001-alpha','title':'First thing'}, p"
-# 060 3.1: and each blocked entry carries its title and the state of every
+# 053 3.1: and each blocked entry carries its title and the state of every
 # blocker, rather than a count of them.
 python3 -c "import json; b=json.load(open('${TMPDIR:-/tmp}/ss060/plan.json'))['blocked'][0]; assert b['title']=='Second thing', b; assert b['blockedBy'][0]['id']=='001-alpha', b; assert b['blockedBy'][0]['state'], b"
-# 060 3.1: the prose form renders what the structure holds, remainder included.
+# 053 3.1: the prose form renders what the structure holds, remainder included.
 # Captured once rather than piped twice, so the verb's own exit status is a
 # line's status and the two assertions read the same rendering (3.2).
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan > "${TMPDIR:-/tmp}/ss060/plan.txt"
 grep -q 'not schedulable' "${TMPDIR:-/tmp}/ss060/plan.txt"
 grep -q 'blocked by 001-alpha' "${TMPDIR:-/tmp}/ss060/plan.txt"
 # 3.3: 060 3.2's pick, read from the member spec 074 moved it into. Sorted keys
-# and the version member are 093 3.2's rule for every governed read, and the
+# and the version member are 074 3.2's rule for every governed read, and the
 # pick is compared by value so a `--next` that dropped the title fails (D-1).
 python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss060/next.json')); k=list(d); assert k==sorted(k), k; assert d['schemaVersion'], d; assert d['next']=={'id':'001-alpha','title':'First thing'}, d"
-# 3.4: 060 3.2's projection requirement, which a one-element ready set cannot
+# 3.4: 053 3.2's projection requirement, which a one-element ready set cannot
 # show. `--next` names the first element of `ready` rather than reimplementing
 # selection; with two ready specs, answering `003-gamma` fails this line.
 python3 -c "import json; n=json.load(open('${TMPDIR:-/tmp}/ss060/next.json'))['next']; p=json.load(open('${TMPDIR:-/tmp}/ss060/plan.json')); assert p['ready'][0]==n, (p['ready'], n)"
-# 060 3.2: and an empty ready set is a true answer at exit 0, not a failure.
+# 053 3.2: and an empty ready set is a true answer at exit 0, not a failure.
 # This repository is that case now. Nothing is asserted about the contents:
 # that document's `next: null` path is guarded by spec 074 3.8 in
 # crates/spec-spine-cli/tests/cli.rs, and asserting it here would pin corpus
-# state, which 060's own decision of 2026-09-08 rejects (3.6, D-4).
+# state, which 053's own decision of 2026-09-08 rejects (3.6, D-4).
 target/release/spec-spine registry plan --next
 rm -rf "${TMPDIR:-/tmp}/ss060"
-# 060 3.3: the ledger is untouched by a read verb.
+# 053 3.3: the ledger is untouched by a read verb.
 target/release/spec-spine compile --check
 # --- spec 087's own mechanism (3.5) ---
 # The replacement is declared, read through the CLI rather than off the shard.

@@ -23,7 +23,7 @@ summary: >
   /setup read exactly these projections); neither changes any existing output
   shape when absent.
 ---
-# 010: Query projection flags
+# 009: Query projection flags
 
 ## 1. Purpose
 

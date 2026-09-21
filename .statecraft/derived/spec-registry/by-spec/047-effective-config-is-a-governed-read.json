@@ -80,7 +80,7 @@
     ],
     "risk": "low",
     "sectionHeadings": [
-      "054: The effective configuration is a governed read",
+      "047: The effective configuration is a governed read",
       "1. Purpose",
       "2. Territory",
       "2.1 Two crate roots",
@@ -98,6 +98,6 @@
     "summary": "`spec-spine.toml` is only half the configuration a coupling decision is made from. The other half is `DEFAULT_BYPASS_PREFIXES`, a thirteen-entry constant compiled into the binary, additive to the adopter's list and impossible to read from outside the process. claude-observatory, which judges other repositories, hand-parses each target's TOML and documents in its spec 015 D-3 that the built-in floor is simply unknowable to it. That is a consumer reimplementing half a contract and knowing it has the other half wrong. This spec adds `spec-spine config show [--json]`: the effective configuration, every default resolved, with the bypass floor rendered as the merged list the gate actually matches against and each entry attributed to the built-in floor or to the adopter's file. It reads and reports; it decides nothing.\n",
     "title": "The effective configuration is a governed read"
   },
-  "shardHash": "d14d362311391bfc648c976112cdca608674ff1a3a51cc1ea87042b13fddb2f9",
+  "shardHash": "aa139e351a0201055036fd00ff07027b84869861851bcf9caafd72812264eea2",
   "specVersion": "1.3.0"
 }

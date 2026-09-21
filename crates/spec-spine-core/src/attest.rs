@@ -71,7 +71,7 @@ pub enum VerifyOutcome {
 
 /// The difference reported when a payload's values are exactly what the corpus
 /// recomputes and its stored bytes are not the ones that were attested (spec
-/// 085 3.1).
+/// 068 3.1).
 pub const NON_CANONICAL_BYTES: &str = "bytes are not the canonical serialization";
 
 /// Build a [`CorpusAttestation`] over the corpus under `repo_root`.
@@ -171,7 +171,7 @@ pub fn attest_spec(
     // from it. The argument selects the record, selects the index mapping whose
     // units are hashed, and is written as the payload's `specId`; resolving
     // only the first produces a confident attestation over zero units at exit
-    // 0, which 084 1.3 names as the shape a partial fix takes.
+    // 0, which 067 1.3 names as the shape a partial fix takes.
     let spec_id =
         &crate::spec_id::resolve_spec_id(spec_id, compiled.registry.specs.iter().map(|s| &s.id))?;
     // The `Err` arm is unreachable by construction: `resolve_spec_id` matched
@@ -380,7 +380,7 @@ pub(crate) fn build_spec_attestation(
 ) -> Result<SpecAttestOutcome, Error> {
     let spec_id = &record.id;
     // Verdicts restricted to this spec. `lint.ok` and `findingsHash` cover the
-    // findings attributed to it, using 023's findings-hash construction so a
+    // findings attributed to it, using 021's findings-hash construction so a
     // changed finding set is detectable even when `ok` is unchanged.
     //
     // Attribution is by `path`, so a violation carrying none would belong to no

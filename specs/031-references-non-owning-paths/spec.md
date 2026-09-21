@@ -33,7 +33,7 @@ summary: >
   `resolvedUnits` with `ownership: false`, so provenance is preserved and only
   the ownership view changes. No DTO or schema shape changes.
 ---
-# 034: `references` seeds no implementing path
+# 031: `references` seeds no implementing path
 
 ## 1. Purpose
 

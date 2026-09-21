@@ -355,7 +355,7 @@ fn the_pr_body_reaches_the_gate_as_a_file() {
     //
     // Since spec 094 §3.4 the workflow reaches `--pr-body` by handing the file
     // to the one gate definition, which names the flag; asserting the flag's
-    // spelling in the workflow would now refuse the consolidation 064's own
+    // spelling in the workflow would now refuse the consolidation 094's own
     // header comment asks for. The property is unchanged and is asserted in
     // both halves: the workflow writes the file and passes its path, and the
     // target turns that path into `--pr-body`.
@@ -528,7 +528,7 @@ fn a_guarded_recipe_skips_when_absent_and_fails_when_the_command_fails() {
 /// run and a text search cannot tell a command from a sentence about one.
 /// `.github/workflows/ci.yml` names `make gate` twice and only one of
 /// those is a step; the other is the header comment saying the workflow has one
-/// gate definition while the pull-request leg restated it (114 D-5).
+/// gate definition while the pull-request leg restated it (094 D-5).
 #[derive(Debug)]
 struct WorkflowStep {
     name: Option<String>,
@@ -569,7 +569,7 @@ enum Leg {
 }
 
 /// Which event leg a step runs on, read from its `if:` expression and from
-/// nothing else (114 §3.4). A step *named* "Governed loop (pull request)" that
+/// nothing else (094 §3.4). A step *named* "Governed loop (pull request)" that
 /// carries a push condition is a push step, and a leg identified by its name
 /// would be identified by the half of the file a maintainer forgets to update.
 fn leg(cond: Option<&str>) -> Option<Leg> {
@@ -640,7 +640,7 @@ enum Pending {
 /// `script_commands` turns that refusal into a panic. A test helper that cannot
 /// read a script must fail the test, not guess at it: guessing is exactly how
 /// `echo 'text; make gate COUPLE=0 ; more text'` came to be read as an
-/// invocation of the gate target (114 D-17).
+/// invocation of the gate target (094 D-17).
 struct ScriptReader {
     src: Vec<char>,
     i: usize,
@@ -744,7 +744,7 @@ impl ScriptReader {
     /// command. Consuming a run of zero descriptor characters as if it were
     /// `>&2` is what let `make gate COUPLE=0 >&`, a syntax error to every shell
     /// the kit runs under, read as a clean invocation of the gate target
-    /// (114 D-18).
+    /// (094 D-18).
     fn output_duplication(&mut self) -> Result<(), String> {
         let mut operand = String::new();
         while let Some(c) = self.at(0) {
@@ -866,7 +866,7 @@ impl ScriptReader {
                 // `/bin/sh` and `dash` both call `echo a;; echo b` a syntax
                 // error. A `case` is already refused, because its arms carry
                 // `)`; refusing the terminator too means the reader never
-                // accepts a construct it has not modelled (114 D-17).
+                // accepts a construct it has not modelled (094 D-17).
                 ';' if self.at(1) == Some(';') => {
                     return Err("a `case` arm terminator (`;;`) is not supported".to_string());
                 }
@@ -904,7 +904,7 @@ impl ScriptReader {
                     }
                     // `>&2` duplicates a descriptor; it names no file. Its
                     // operand decides that, so the operand is read and checked
-                    // rather than assumed (114 D-18).
+                    // rather than assumed (094 D-18).
                     if self.at(0) == Some('&') {
                         if appending {
                             return Err(
@@ -981,7 +981,7 @@ fn redirect_targets(run: &str) -> BTreeSet<String> {
 ///
 /// A target named in a comment, echoed as text, or written into the step's
 /// `name:` is not an invocation: only the words of a command whose head is
-/// `make` count. That distinction is the whole of §3.4, and 114 D-10 is why it
+/// `make` count. That distinction is the whole of §3.4, and 094 D-10 is why it
 /// is exercised on fixtures rather than assumed.
 fn make_invocations(run: &str) -> Vec<(Vec<String>, BTreeMap<String, String>)> {
     let mut out = Vec::new();
@@ -1173,7 +1173,7 @@ fn the_one_gate_definition_serves_both_legs_through_explicit_controls() {
     // Read off the parsed commands rather than searched for in the text. `> "x"`,
     // `>"x"` and `1> "x"` all write the same file and all reduce to the same
     // target here, while a `>` inside a quoted string writes nothing and is not
-    // one (114 D-17).
+    // one (094 D-17).
     let run = legs_of(&steps, Leg::PullRequest)
         .into_iter()
         .find(|s| gate_invocation(s).is_some())
@@ -1189,7 +1189,7 @@ fn the_one_gate_definition_serves_both_legs_through_explicit_controls() {
 /// §3.2: the ownership guard reads the effective configuration, and reads it in
 /// a form whose failure is a failure. `config show | grep -q` would report
 /// grep's status and discard the read's, so every way the read can fail would
-/// produce an honest-sounding skip and a green gate (114 D-12).
+/// produce an honest-sounding skip and a green gate (094 D-12).
 #[test]
 fn the_gate_reads_the_effective_config_before_asserting_ownership() {
     let gate = target_body(&read("Makefile"), "gate");

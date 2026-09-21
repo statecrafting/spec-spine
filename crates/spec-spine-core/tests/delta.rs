@@ -426,7 +426,7 @@ fn prose_inside_the_verification_section_is_unknown() {
 
 /// D-11: `policy` is what the hash folds, found with the hash's own matcher. A
 /// pattern ending in a bare `**` walks to directories and folds no file (spec
-/// 069), so a file under it is not policy, while `dir/**/*` folds every file,
+/// 058), so a file under it is not policy, while `dir/**/*` folds every file,
 /// including one added or deleted at head. The last block holds the report to
 /// the ledger: an edit the report calls policy restales the index, and one it
 /// does not leaves it fresh.

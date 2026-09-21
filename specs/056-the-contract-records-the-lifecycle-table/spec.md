@@ -33,7 +33,7 @@ summary: >
   that section and an "Extra keys" section telling adopters to document their
   `extra_known_keys`, and claims both as section units of the contract.
 ---
-# 066: The contract records the lifecycle table and the extra keys
+# 056: The contract records the lifecycle table and the extra keys
 
 ## 1. Purpose
 
@@ -158,7 +158,7 @@ constitution are authoritative, and where this summary is terser, they govern.
 The new section MUST carry the same disclaimer inline, because a table is
 exactly the shape of thing a reader will treat as the definition.
 
-The risk is concrete. If 045's rule for an absent key were ever revised, a table
+The risk is concrete. If 042's rule for an absent key were ever revised, a table
 in a summary document would be the last place anyone looked, and a stale table is
 worse than no table because it is confidently wrong. Naming the owning spec per
 row is the mitigation and it is why §3.1 requires it.

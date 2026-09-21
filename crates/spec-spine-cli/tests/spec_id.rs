@@ -1,7 +1,7 @@
 // Spec: specs/067-a-short-id-names-the-same-spec-at-every-verb/spec.md
 //! Spec 067 §3.5: the six-argument matrix.
 //!
-//! 049 §3.2 and 056 §3.1 each asserted the cross-verb rule in prose, and
+//! 043 §3.2 and 049 §3.1 each asserted the cross-verb rule in prose, and
 //! nothing held it: four of the six arguments refused the short form through
 //! two ratifications. This file drives all six against one fixture corpus and
 //! is the behavioural half of §3.4, since a private copy of the policy would
@@ -9,7 +9,7 @@
 //!
 //! The census in `crates/spec-spine-cli/src/main.rs` is the structural half:
 //! the two lists are kept equal by its failure message rather than by linkage,
-//! because an integration test cannot import from a binary crate (084 D-5).
+//! because an integration test cannot import from a binary crate (067 D-5).
 
 use std::fs;
 use std::path::Path;

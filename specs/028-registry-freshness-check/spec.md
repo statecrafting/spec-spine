@@ -34,7 +34,7 @@ summary: >
   git tree check, so every adopter that commits its registry gets the same
   guarantee spec-spine gets.
 ---
-# 031: Registry freshness check
+# 028: Registry freshness check
 
 ## 1. Purpose
 

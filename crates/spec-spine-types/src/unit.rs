@@ -84,7 +84,7 @@ pub enum Unit {
     /// A directory subtree, named explicitly (`{ kind: directory, path }`). The
     /// subtree-prefix resolution is identical to a trailing-slash file unit; the
     /// distinct kind preserves the author's intent across the round-trip (spec
-    /// 017). Resolves to the directory path; the gate prefix-matches it.
+    /// 016). Resolves to the directory path; the gate prefix-matches it.
     Directory {
         path: String,
         /// Spec 063: the spec claims this territory and has not written it

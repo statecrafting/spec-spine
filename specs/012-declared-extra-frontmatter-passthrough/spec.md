@@ -35,7 +35,7 @@ summary: >
   This is the load-bearing half of the overlay contract: overlays cannot
   consume domain frontmatter the compiler drops.
 ---
-# 013: Declared extra-frontmatter passthrough
+# 012: Declared extra-frontmatter passthrough
 
 ## 1. Purpose
 

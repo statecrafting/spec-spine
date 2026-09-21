@@ -42,7 +42,7 @@ summary: >
   does not fold claimed files into the hash: that would change what staleness
   means, and the honest first move is to say how large the gap is.
 ---
-# 057: A claim no hash witnesses
+# 050: A claim no hash witnesses
 
 ## 1. Purpose
 

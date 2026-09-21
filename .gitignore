@@ -2,7 +2,7 @@
 /target
 **/*.rs.bk
 
-# npm binary-distribution shim (spec 007): generated platform packages (and the
+# npm binary-distribution shim (spec 006): generated platform packages (and the
 # prebuilt binaries they carry) are assembled from release artifacts at publish
 # time, never committed; ditto local install artifacts and the publish-time
 # LICENSE copy.
@@ -11,7 +11,7 @@
 /npm/LICENSE
 node_modules/
 
-# Python binary-distribution shim (spec 008): wheels/sdist are assembled from
+# Python binary-distribution shim (spec 007): wheels/sdist are assembled from
 # release artifacts at publish time, never committed; ditto the publish-time
 # LICENSE copy and local build/test residue.
 /py/dist/
@@ -19,7 +19,7 @@ node_modules/
 /py/src/spec_spine.egg-info/
 __pycache__/
 
-# The managed layout (spec 120 3.7, 3.9). `.statecraft/` as a whole is NOT
+# The managed layout (spec 092 3.7, 3.9). `.statecraft/` as a whole is NOT
 # ignored and must not be: `.statecraft/derived/` (compiler/indexer output) is
 # committed, so the coupling gate and the content-hash staleness check can
 # compare the committed registry and index against current inputs. Determinism
@@ -29,10 +29,10 @@ __pycache__/
 # build-meta.json carries a wall-clock `builtAt` (the sole non-deterministic
 # artifact), so it would churn on every compile.
 .statecraft/derived/**/build-meta.json
-# The ledger-seal attestation (spec 023) is an on-demand artifact (and the seal
+# The ledger-seal attestation (spec 021) is an on-demand artifact (and the seal
 # carries a wall-clock `signedAt`); it is not part of the committed dogfood set.
 .statecraft/derived/attestation/
-# `[layout] state_dir` (spec 039): a tool's own working files, ungoverned and
+# `[layout] state_dir` (spec 036): a tool's own working files, ungoverned and
 # outside every content hash.
 .statecraft/state/
 

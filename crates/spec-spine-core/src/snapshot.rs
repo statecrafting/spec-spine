@@ -277,7 +277,7 @@ fn committed_registry(
 
 /// `committed.index`: both shard directories and the slices sidecar when it
 /// exists, and whether the shard set is byte-identical to the recompute (spec
-/// 086's comparison, without the blocking-diagnostic policy; D-5).
+/// 069's comparison, without the blocking-diagnostic policy; D-5).
 fn committed_index(
     cfg: &spec_spine_types::Config,
     repo_root: &Path,
@@ -576,7 +576,7 @@ pub fn snapshot_hash(snapshot: &AuthoritySnapshot) -> Result<String, Error> {
 }
 
 /// Refuse a snapshot whose schema MAJOR this build does not understand (spec
-/// 085 3.3).
+/// 068 3.3).
 pub fn check_snapshot_major(schema_version: &str) -> Result<(), Error> {
     shard::check_major("snapshot", schema_version, SNAPSHOT_SCHEMA_VERSION)
 }

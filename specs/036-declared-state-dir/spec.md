@@ -48,7 +48,7 @@ summary: >
   resolved silently in either direction.
   Unset by default, so no existing repo changes behavior.
 ---
-# 039: `layout.state_dir`
+# 036: `layout.state_dir`
 
 Wave 1 of `docs/design/02-agentic-builder-substrate.md`.
 

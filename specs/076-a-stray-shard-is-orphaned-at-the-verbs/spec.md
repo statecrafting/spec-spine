@@ -14,7 +14,7 @@ summary: >
   computed verdict away, and `index check` and `check` exit 3 with a parse
   error where `couple` and `index coverage` exit 2 and name the orphan.
   Measured at 0.19.0, and the same at 0.18.0, so it is not a regression and
-  not a bypass. 086's acceptance asserted the classification on the library
+  not a bypass. 069's acceptance asserted the classification on the library
   function only, which is exactly how it passed. This spec makes the tally
   best-effort and the verdict authoritative, and asserts it at the verbs.
 implementation: complete
@@ -32,13 +32,13 @@ extends:
   # 3.4: the CLI arms of `index check` and `check`.
   - { spec: "004-codebase-index", unit: "crates/spec-spine-cli/src/cmd_index.rs", nature: corrective }
   - { spec: "062-one-name-one-freshness-verb", unit: "crates/spec-spine-cli/src/cmd_check.rs", nature: corrective }
-  # 3.6: the acceptance, at the verbs and in 086's own suite.
+  # 3.6: the acceptance, at the verbs and in 069's own suite.
   - { spec: "069-the-committed-index-is-compared-not-trusted", unit: "crates/spec-spine-core/tests/index_body.rs", nature: additive }
   - { spec: "034-machine-readable-verdicts", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---
-# 095: A stray shard is orphaned at the verbs
+# 076: A stray shard is orphaned at the verbs
 
 ## 1. Purpose
 
@@ -88,7 +88,7 @@ about. §3.6 is written to refuse it here.
 This spec changes how the diagnostics tally handles a file it cannot parse
 (`diagnostics.rs`), the two facade halves and two CLI arms that call it
 (`lib.rs`, `cmd_index.rs`, `cmd_check.rs`), and adds acceptance at the verbs
-(`tests/cli.rs`) beside the library case in 086's suite
+(`tests/cli.rs`) beside the library case in 069's suite
 (`tests/index_body.rs`). It changes no emitted artifact and moves no schema
 version: the one new report member is additive with a `default`, which spec 044
 §3.6 settled for exactly this payload and spec 050 followed.
@@ -169,7 +169,7 @@ Every case MUST be asserted by invoking `index check`, `check` and
 `check --json` on a repository with the stray file present, and MUST assert the
 exit code and the named orphan. A library-level assertion on
 `check_index_freshness` MUST NOT be the only evidence for any case in this spec,
-because that is how the defect shipped (§1.3). 086's library case stays where it
+because that is how the defect shipped (§1.3). 069's library case stays where it
 is: it is still true, and it is not sufficient.
 
 The cases:
@@ -288,7 +288,7 @@ grep -qE 'unreadable|skipped' crates/spec-spine-core/src/diagnostics.rs
 # 3.2, 3.4: the verdict is not thrown away by the tally call.
 ! grep -qF 'committed_counts(config, repo_root)?' crates/spec-spine-core/src/lib.rs
 ! grep -qF 'committed_counts(&config, root)?' crates/spec-spine-core/src/lib.rs
-# 3.6: the cases, asserted at the verbs and in 086's suite.
+# 3.6: the cases, asserted at the verbs and in 069's suite.
 cargo test -p spec-spine-cli --test cli --locked
 cargo test -p spec-spine-core --test index_body --locked
 # 3.5: this tree is fresh and stays fresh, at both verbs.

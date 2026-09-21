@@ -34,7 +34,7 @@ summary: >
   pick that the one-spec-per-session loop actually asks for. The JSON shape
   gains title fields and is otherwise unchanged.
 ---
-# 060: The plan answers the whole question, and names one pick
+# 053: The plan answers the whole question, and names one pick
 
 ## 1. Purpose
 

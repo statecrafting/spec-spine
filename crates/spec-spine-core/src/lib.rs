@@ -408,7 +408,7 @@ fn freshness_to_json(freshness: Freshness) -> serde_json::Value {
 }
 
 /// Report file-granular ownership coverage against the committed index (spec
-/// 032), returning the [`CoverageReport`] as JSON. Freshness-guarded like
+/// 029), returning the [`CoverageReport`] as JSON. Freshness-guarded like
 /// `couple`: a stale committed index is [`Error::Stale`] (exit 2), never a
 /// report over the wrong ledger.
 pub fn coverage_json(config_json: &str, repo_root: &str) -> Result<String, Error> {

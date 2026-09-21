@@ -54,7 +54,7 @@ summary: >
   reading `couple --json` learns the owner as data instead of by regexing
   English. No committed artifact and no schema version moves.
 ---
-# 052: The coupling gate names the crossing
+# 045: The coupling gate names the crossing
 
 ## 1. Purpose
 
@@ -222,7 +222,7 @@ narrower `section` or `symbol` unit is available to an author who wants the
 claim tighter, any other owner clears the path as well as the first, and
 `nature` is a free-text hint whose other values describe a crossing that
 replaces behavior rather than adding to it (`superseding`, as spec 093 uses on
-two of 029's units). The footer MUST NOT present the block as the only correct
+two of 095's units). The footer MUST NOT present the block as the only correct
 form, and MUST NOT imply that `additive` is a judgement the gate reached about
 the author's intent.
 

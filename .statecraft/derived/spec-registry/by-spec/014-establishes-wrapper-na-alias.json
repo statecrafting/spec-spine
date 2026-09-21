@@ -43,7 +43,7 @@
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "sectionHeadings": [
-      "015: `unit:`-wrapped establishes items and the `n/a` implementation alias",
+      "014: `unit:`-wrapped establishes items and the `n/a` implementation alias",
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
@@ -58,6 +58,6 @@
     "summary": "Two pieces of authoring sugar for the predecessor dialect, both normalized away at parse so nothing new reaches registry.json. (1) An authority unit may be written as a single-key `{ unit: <unit> }` wrapper -- a third 1:1 representation alongside the existing bare-string and tagged-map forms -- which the Unit deserializer unwraps to its inner unit. The corpus uses this on `establishes` items (one wrapper per item, `unit` the only field). (2) `implementation: n/a` is accepted as a deserialize-only alias for the canonical `n-a`, which stays the only spelling ever emitted. Neither changes the registry schema or any consumer; both unblock adopting a corpus authored in the OAP dialect (389 wrapped establishes items across ~97 specs; 5 specs using `n/a`) without a mass frontmatter migration.\n",
     "title": "Frontmatter sugar: `unit:`-wrapped establishes items and the `n/a` implementation alias"
   },
-  "shardHash": "a3a5627ea890f07e99f94e9982296f1e865f2984a3374426315af0b44e014a17",
+  "shardHash": "f5524e28b68ba7606746a6d615e7d057be097539e6fbb21ea3cbb2e8915283f0",
   "specVersion": "1.3.0"
 }

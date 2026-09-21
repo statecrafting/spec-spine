@@ -34,10 +34,10 @@ summary: >
   references. Every non-version edit (a new or removed dependency, a feature /
   git / path change, a `run:` / `with:` edit, an added step or table, an
   unpinned action, a spec-metadata edit) still refuses the waiver, fail-closed.
-  A claimed workflow file (007/008/021's release.yml) and a crate whose direct
+  A claimed workflow file (007/008/019's release.yml) and a crate whose direct
   dependencies dependabot bumps are the live acceptance tests.
 ---
-# 030: Cargo and workflow dependabot bumps self-clear
+# 027: Cargo and workflow dependabot bumps self-clear
 
 ## 1. Purpose
 

@@ -91,7 +91,7 @@
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "sectionHeadings": [
-      "013: Declared extra-frontmatter passthrough",
+      "012: Declared extra-frontmatter passthrough",
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
@@ -107,6 +107,6 @@
     "summary": "Widens the value domain of DECLARED extra-frontmatter keys (`config.frontmatter.extra_known_keys`) from scalars + string-lists to any JSON-representable YAML value (nested maps, mixed lists), carried verbatim into SpecRecord.extra_frontmatter under canonical-JSON normalization. Undeclared keys keep the existing scalar/string-list restriction and the V-007 cap -- the anti-bulk-YAML guard is untouched. Registry schema MINOR. This is the load-bearing half of the overlay contract: overlays cannot consume domain frontmatter the compiler drops.\n",
     "title": "Frontmatter: declared extra keys carry arbitrary YAML, verbatim"
   },
-  "shardHash": "2ff35ae3aeb5f5bcc984966e6121a9676a8ce42dd2f6f3f1d37645fcd028b119",
+  "shardHash": "7c972f54a702744cb1418701e67ab301f9f5d005f834ad959f9ef6c4c3b95449",
   "specVersion": "1.3.0"
 }

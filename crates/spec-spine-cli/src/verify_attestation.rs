@@ -72,7 +72,7 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     // Spec 067 3.2: the short form resolves here too, against the set this verb
     // already reads, which is the attestation files rather than the corpus. A
     // `--signature` check is legitimate on an attestation whose spec has since
-    // left the corpus, and a corpus-wide set would refuse it (084 D-3).
+    // left the corpus, and a corpus-wide set would refuse it (067 D-3).
     //
     // Resolution runs **before** any read, so an ambiguous argument is refused
     // without the file being opened, and it happens with `--attestation` too:
@@ -257,11 +257,11 @@ fn default_attestation_path(repo: &Path, cfg: &Config, spec: Option<&str>) -> Pa
 
 /// Resolve `--spec` against the per-spec attestation files (spec 067 3.2).
 ///
-/// Step 4 of 084 3.1 does **not** refuse here. The argument falls through as
+/// Step 4 of 067 3.1 does **not** refuse here. The argument falls through as
 /// given and the read fails exactly as it does today: exit 3, with the hint to
 /// run `attest --spec` first. A missing attestation file is I/O, which spec 039
 /// 3.5 assigns to exit 3, and refusing at exit 1 to match the other five would
-/// change that verb's code for a missing file (084 D-4). Only an argument that
+/// change that verb's code for a missing file (067 D-4). Only an argument that
 /// resolves is newly accepted, and only an ambiguous one is newly refused.
 ///
 /// A `by-spec/` that does not exist is an empty set, not an error: that is the

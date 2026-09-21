@@ -12,8 +12,8 @@ summary: >
   `verb` token distinguishing it from `compile --check`, and records the bump it
   performed as a fact about that bump, not as a standing ceiling. A literal pin
   cannot assert either half, because it goes red for every move the rule permits
-  and stays green for a verb token that collides. This spec declares 056's
-  acceptance replaced and carries the corrected block, without editing 056's
+  and stays green for a verb token that collides. This spec declares 049's
+  acceptance replaced and carries the corrected block, without editing 049's
   file. It is the first of the four follow-ons spec 084 4 named.
 implementation: complete
 owner: "The spec-spine Authors"
@@ -23,7 +23,7 @@ depends_on:
   - "071-a-change-is-classified-under-the-bases-rules"
   - "082-an-amended-acceptance-is-the-one-that-runs"
 amends: ["049-compile-one-spec"]
-# 3.1: this spec's `## Verification` block IS 056's acceptance from now on.
+# 3.1: this spec's `## Verification` block IS 049's acceptance from now on.
 # 056's own file is not edited (spec 037 3.1), and 088's is not either: 088
 # states a rule that is true and complete, and this spec changes none of it.
 # What changes is what 056 accepts.
@@ -31,7 +31,7 @@ amends_verification: ["049-compile-one-spec"]
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---
-# 107: A version pin is not a contract
+# 085: A version pin is not a contract
 
 ## 1. Purpose
 
@@ -52,7 +52,7 @@ compile --spec 022 --json | python3 -c '... assert v["schemaVersion"]=="0.3.0"'
 
 and the envelope answers `0.4.0`. Spec 071 moved `VERDICT_SCHEMA_VERSION` from
 `0.3.0` to `0.4.0` when `delta` was added, which is the additive case that
-constant's own documentation names, and every other assertion in 056's block is
+constant's own documentation names, and every other assertion in 049's block is
 green. Run one line at a time to the end of the block, this is the only red one:
 
 | Cmd | Assertion | Status |
@@ -67,7 +67,7 @@ green. Run one line at a time to the end of the block, this is the only red one:
 
 ### 1.2 The pin asserted neither half of the rule it stood for
 
-056 3.4 is two requirements and one record. The requirements are that `--spec`
+049 3.4 is two requirements and one record. The requirements are that `--spec`
 accepts `--json` and emits the spec 034 verdict envelope, and that the envelope
 carries a `verb` token **distinguishing it from `compile --check`**. The record
 is that `VERDICT_SCHEMA_VERSION` moved from `0.2.0` to `0.3.0` for that
@@ -75,7 +75,7 @@ addition, with the reasoning for a MINOR bump spelled out.
 
 A literal pin at `0.3.0` asserts neither requirement and misreads the record:
 
-- It is **too strong** for the version. 056 3.4 states what that one bump was,
+- It is **too strong** for the version. 049 3.4 states what that one bump was,
   in the past tense, and gives the rule that governs future ones: additive is
   MINOR. An assertion that refuses every subsequent MINOR bump forbids what the
   rule it is standing for explicitly permits, and 088 then performed exactly the
@@ -83,14 +83,14 @@ A literal pin at `0.3.0` asserts neither requirement and misreads the record:
   eventually fail for a legitimate reason is not an assertion.
 - It is **too weak** for the verb. The line does assert `verb == "compile.spec"`,
   which is half of the distinguishing requirement. The other half is the
-  distinction itself, and nothing in 056's block ever ran `compile --check
+  distinction itself, and nothing in 049's block ever ran `compile --check
   --json` to see what it answers. Give both verbs the token `compile.spec` and
-  056's block stays green while the requirement it exists for is broken.
+  049's block stays green while the requirement it exists for is broken.
 
 This is the third site in this corpus with the same defect and the second
 consecutive spec to correct one: spec 074's calendar assertion (corrected by
 103), spec 044's `VERDICT_SCHEMA_VERSION` pin at `0.2.0` (corrected by 106), and
-this. 106 1.2 states the general form; this spec is one instance of it, and the
+this. 084 1.2 states the general form; this spec is one instance of it, and the
 instance where the pin sits beside the requirement it should have been asserting.
 
 ### 1.3 The crossing was silent
@@ -98,7 +98,7 @@ instance where the pin sits beside the requirement it should have been asserting
 Spec 071 changed a constant that another approved spec's acceptance pinned, and
 nothing told it so. `verify` is the one verb that executes what the corpus
 declares, so it sits outside the gate chain deliberately (`AGENTS.md`); CI never
-runs it. 088's own gate was green, its own block was green, and 056's went red
+runs it. 071's own gate was green, its own block was green, and 049's went red
 in the same merge without a line of output anywhere.
 
 Spec 084 1.3 records the identical mechanism for 050 and names this spec's
@@ -108,7 +108,7 @@ is what this spec adds.
 ## 2. Territory
 
 This spec establishes no code. It owns its own `spec.md` and one claim about
-another spec's file: that 056's `## Verification` block is no longer the one
+another spec's file: that 049's `## Verification` block is no longer the one
 that runs. Nothing under `crates/` changes, no schema constant moves, and no
 committed shard changes except the two this spec's own frontmatter produces.
 
@@ -118,7 +118,7 @@ committed shard changes except the two this spec's own frontmatter produces.
 
 This spec's `## Verification` block MUST replace spec 049's in full, through
 `amends_verification` (spec 082 3.1), and 056's file MUST NOT be edited. The
-block is 056's, with command 5 replaced per 3.3, with the payload assertions of
+block is 049's, with command 5 replaced per 3.3, with the payload assertions of
 3.4 added, and with this spec's own assertions (3.5) after them under a heading
 that says whose is whose.
 
@@ -135,7 +135,7 @@ fails takes the line down at the redirect.
 
 The scratch directory is named for **spec 049**, whose acceptance this block is,
 not for this spec, which merely holds it. Spec 083 carries 098's block under
-`ss098` for the same reason, and 3.1 makes the block 056's from the moment this
+`ss098` for the same reason, and 3.1 makes the block 049's from the moment this
 spec merges.
 
 ### 3.3 The version is compared across the pair the rule names
@@ -144,18 +144,18 @@ The literal pin MUST be replaced by a comparison across `compile --spec --json`
 and `compile --check --json`, asserting three things:
 
 - each verb's token, `compile.spec` and `compile.check`, which is the
-  distinguishing requirement of 056 3.4 asserted on both sides rather than one;
+  distinguishing requirement of 049 3.4 asserted on both sides rather than one;
 - that the envelope carries a non-empty `schemaVersion` at all, which is the
   spec 034 envelope requirement;
 - that the two are **equal**, which is the property a single
   `VERDICT_SCHEMA_VERSION` constant has and per-verb versioning would not.
 
-The counter-verb is not chosen for convenience. 056 3.4 names `compile --check`
+The counter-verb is not chosen for convenience. 049 3.4 names `compile --check`
 as the thing `--spec` must be distinguishable from, so the comparison runs
 against the verb the rule itself names, and there is no anchor to justify
 (contrast spec 084 D-8, which had to pick one).
 
-What this comparison does **not** prove is that 088's bump was legitimate, or
+What this comparison does **not** prove is that 071's bump was legitimate, or
 that any future bump will be. No command run against one tree can observe
 causation in the past. It proves the standing structural property and says so
 here, rather than leaving a reader to infer that the line proves more than it
@@ -163,10 +163,10 @@ does.
 
 ### 3.4 The payload is asserted, because short-id resolution lives in it
 
-056 3.1 requires `--spec` to resolve a short id, and 056's block asserts that
+049 3.1 requires `--spec` to resolve a short id, and 049's block asserts that
 only as an exit code: `compile --spec 022` exits 0. An exit code cannot say
 **which** spec was judged, so a `--spec` that resolved `024` to the wrong spec,
-or that validated the whole corpus and returned 0, passes 056's block unchanged.
+or that validated the whole corpus and returned 0, passes 049's block unchanged.
 
 The replacement MUST assert that the `--spec` payload names the resolved full
 id, its path, and an empty `violations` list, and that the `compile --check`
@@ -217,7 +217,7 @@ corpus change that uses it.
 
 - **Editing spec 049, or spec 071.** 1.2 and the frontmatter comment. 056 keeps
   the block it was ratified with, which is the record spec 037 3.2 protects, and
-  088's text is true as written: it moved a constant the rule permits it to move.
+  071's text is true as written: it moved a constant the rule permits it to move.
 - **The other three red blocks.** Specs 052, 060 and 071 are red for the same
   family of reason and each needs its own amendment, because
   `amends_verification` replaces a target's whole block with the amender's
@@ -242,7 +242,7 @@ corpus change that uses it.
 D-1 (2026-09-17, why the counter-verb needed no anchor argument). Spec 084 D-8
 had to justify picking spec 000 as the id its comparison ran against, because
 `compile --spec` needs an id that exists and any id can be deleted. This spec's
-comparison is between two **verbs**, and the second verb is the one 056 3.4
+comparison is between two **verbs**, and the second verb is the one 049 3.4
 names in the sentence the line is asserting. There is no arbitrary choice left
 to defend. The `--spec 022` lines inherited from 056's block do depend on 024
 existing, and they already did before this spec; adding the `specId` assertion
@@ -250,7 +250,7 @@ of 3.4 to the same lines adds no dependency that was not already there.
 
 D-2 (2026-09-17, why the payload assertions are added rather than left out).
 Adding to a block being repaired is scope this spec had to justify, as spec 084
-D-3 did for its one added line. The reason is that 056 3.1's short-id resolution
+D-3 did for its one added line. The reason is that 049 3.1's short-id resolution
 was asserted only as an exit code, and an exit code cannot distinguish "resolved
 024 and found it valid" from "resolved something else and found that valid".
 Measured: with `report.specId` rewritten to `000-spec-spine-bootstrap` the
@@ -285,9 +285,9 @@ they are named in 4 rather than edited here.
 
 D-5 (2026-09-17, what the fail-first evidence is and is not). This spec changes
 no code, so the corrected lines pass at the parent commit `e4d7d28` against the
-same binary whose output made 056's original red. That is correct rather than a
+same binary whose output made 049's original red. That is correct rather than a
 gap, and it is spec 084 D-5's finding restated at a second site: what was red at
-the parent was 056's block, and this spec makes nothing go green that was
+the parent was 049's block, and this spec makes nothing go green that was
 legitimately red.
 
 What an assertion owes instead is **failability against the condition it exists
@@ -309,7 +309,7 @@ D-6 (2026-09-17, why the scratch directory is named `ss056`). The block is spec
 049's acceptance from the moment this spec merges (3.1), and the state it
 carries between lines is that block's state. Spec 083 carries 098's block under
 `ss098` on the same reading. The alternative reading, that the directory names
-whichever spec holds the block, would rename 056's scratch state every time the
+whichever spec holds the block, would rename 049's scratch state every time the
 acceptance moves again, which is the outcome the first reading avoids. Recorded
 because the question has been asked of this family three times.
 
@@ -339,14 +339,14 @@ target/release/spec-spine compile --spec 022-index-sharding --json
 rm -rf "${TMPDIR:-/tmp}/ss056" && mkdir -p "${TMPDIR:-/tmp}/ss056"
 target/release/spec-spine compile --spec 022 --json > "${TMPDIR:-/tmp}/ss056/spec.json"
 target/release/spec-spine compile --check --json > "${TMPDIR:-/tmp}/ss056/check.json"
-# 3.3: 056 3.4 requires a verb token that distinguishes `--spec` from
+# 3.3: 049 3.4 requires a verb token that distinguishes `--spec` from
 # `compile --check`, so both tokens are read and the envelope version is
 # compared across the pair rather than pinned to a literal. The equality
 # witnesses one VERDICT_SCHEMA_VERSION constant rather than per-verb
 # versioning; it does NOT prove that any past bump was legitimate, which no
 # command run against one tree can observe.
 python3 -c "import json; a=json.load(open('${TMPDIR:-/tmp}/ss056/spec.json')); b=json.load(open('${TMPDIR:-/tmp}/ss056/check.json')); assert a['verb']=='compile.spec', a; assert b['verb']=='compile.check', b; assert a['schemaVersion'], a; assert a['schemaVersion']==b['schemaVersion'], (a['schemaVersion'], b['schemaVersion'])"
-# 3.4: the payload names which spec was judged, which is where 056 3.1's
+# 3.4: the payload names which spec was judged, which is where 049 3.1's
 # short-id resolution actually shows. The exit-code line above passes whatever
 # `024` resolved to; this one does not.
 python3 -c "import json; r=json.load(open('${TMPDIR:-/tmp}/ss056/spec.json'))['report']; assert r['specId']=='022-index-sharding', r; assert r['specPath']=='specs/022-index-sharding/spec.md', r; assert r['violations']==[], r"
@@ -356,9 +356,9 @@ python3 -c "import json; r=json.load(open('${TMPDIR:-/tmp}/ss056/check.json'))['
 rm -rf "${TMPDIR:-/tmp}/ss056"
 # 3.5 of spec 049: it wrote nothing. The committed shards are exactly as they were.
 target/release/spec-spine compile --check
-# 056 3.1: an unknown id is exit 1 (not found), never exit 2.
+# 049 3.1: an unknown id is exit 1 (not found), never exit 2.
 target/release/spec-spine compile --spec 999 ; test $? -eq 1
-# 056 3.1: `--spec` and `--check` are different questions, and the pair is refused.
+# 049 3.1: `--spec` and `--check` are different questions, and the pair is refused.
 target/release/spec-spine compile --spec 022 --check ; test $? -eq 3
 # --- spec 085's own mechanism (3.5) ---
 # The replacement is declared, read through the CLI rather than off the shard.

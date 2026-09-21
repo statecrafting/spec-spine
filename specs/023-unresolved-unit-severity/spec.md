@@ -42,7 +42,7 @@ summary: >
   free-form diagnostic `code` already exist, so this is an `INDEX_SCHEMA_VERSION`
   MINOR (1.0.0 -> 1.1.0) with no schema-file edit and no registry change.
 ---
-# 025: Severity tiers for unresolved units
+# 023: Severity tiers for unresolved units
 
 Filed off the OAP spec-217 Phase-0 dry run of the published 0.5.0 library
 against its 220-spec corpus. `index` emitted 116 error diagnostics; after the

@@ -35,7 +35,7 @@ references:
   - { unit: { kind: file, path: "crates/spec-spine-types/src/frontmatter.rs" }, role: "context" }
   - { unit: { kind: file, path: "docs/design/02-agentic-builder-substrate.md" }, role: "context" }
 ---
-# 111: The template teaches the whole grammar
+# 088: The template teaches the whole grammar
 
 ## 1. Purpose
 
@@ -45,7 +45,7 @@ Specs 084, 107, 108, 109 and 110 each carry, in their own `## 4. Out of scope`,
 the same sentence:
 
 > `standards/spec/templates/spec-template.md` does not carry the key spec 082
-> added. 106 §4 names it as a real gap in territory neither spec owns.
+> added. 084 §4 names it as a real gap in territory neither spec owns.
 
 Spec 093 §4 adds that with the acceptance repairs done, this is "the one item of
 the audit left standing". Five specs saw the gap, and each correctly declined to

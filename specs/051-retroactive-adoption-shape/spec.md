@@ -39,7 +39,7 @@ summary: >
   declines to lint `origin.retroactive` into implying the heading, because spec
   040 established that the two are orthogonal.
 ---
-# 058: The defects heading has one spelling
+# 051: The defects heading has one spelling
 
 ## 1. Purpose
 
@@ -87,7 +87,7 @@ The constitution edit is a `refines` claim, with the named aspect
 spec ids and the constitution is not a spec. That is the mechanism spec 040
 itself defined, and this spec is its second use. The file is on the coupling gate's built-in bypass
 floor, so the claim is a ledger fact rather than a `C-001` refusal, exactly as
-043 §3 describes.
+040 §3 describes.
 
 ## 3. Behavior
 

@@ -11,12 +11,12 @@ summary: >
   line to; it takes `len()` of `index diagnostics --json` as a bare array, which
   spec 074 legitimately wrapped in an `items` envelope; and it pins
   `VERDICT_SCHEMA_VERSION` at the literal `0.2.0`, which spec 071 legitimately
-  moved to `0.4.0`. The third is the sharpest: 050 3.6 rules that the envelope
+  moved to `0.4.0`. The third is the sharpest: 044 3.6 rules that the envelope
   version MUST NOT move for a payload addition, and a literal pin cannot assert
   that, because it also fails for every move the rule permits. None of the three
   amending specs declared `amends_verification`, and all three predate the spec
-  that built it. This spec declares 050's acceptance replaced and carries the
-  corrected block, without editing 050's file.
+  that built it. This spec declares 044's acceptance replaced and carries the
+  corrected block, without editing 044's file.
 implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
@@ -27,7 +27,7 @@ depends_on:
   - "074-a-governed-read-names-its-version"
   - "082-an-amended-acceptance-is-the-one-that-runs"
 amends: ["044-index-diagnostics-reach-a-gate"]
-# 3.1: this spec's `## Verification` block IS 050's acceptance from now on.
+# 3.1: this spec's `## Verification` block IS 044's acceptance from now on.
 # 050's own file is not edited (spec 037 3.1), and neither are 057, 088 or 093:
 # each states a rule that is true and complete, and this spec changes none of
 # them. What changes is what 050 accepts.
@@ -35,7 +35,7 @@ amends_verification: ["044-index-diagnostics-reach-a-gate"]
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---
-# 106: An acceptance outlives the output it was written against
+# 084: An acceptance outlives the output it was written against
 
 ## 1. Purpose
 
@@ -99,7 +99,7 @@ entry, and four more blocks are red for the same family of reason.
 ## 2. Territory
 
 This spec establishes no code. It owns its own `spec.md` and one claim about
-another spec's file: that 050's `## Verification` block is no longer the one that
+another spec's file: that 044's `## Verification` block is no longer the one that
 runs. Nothing under `crates/` changes, no schema constant moves, no CLI surface
 is added or removed, and no committed shard changes except the two this spec's
 own frontmatter produces.
@@ -110,7 +110,7 @@ own frontmatter produces.
 
 This spec's `## Verification` block MUST replace spec 044's in full, through
 `amends_verification` (spec 082 3.1), and 050's file MUST NOT be edited. The
-block is 050's, with commands 5, 7 and 8 corrected per 3.2 to 3.4, with one
+block is 044's, with commands 5, 7 and 8 corrected per 3.2 to 3.4, with one
 assertion added per 3.4, and with this spec's own assertions (3.5) after them
 under a heading that says whose is whose.
 
@@ -121,7 +121,7 @@ base document plus a patch to apply in their head.
 ### 3.2 The verdict line is read as a line, and the verb's exit status is kept
 
 The bare-verdict assertion MUST read the first line of `index check`'s stdout
-rather than the whole of it, because 050 3.1 governs the verdict line and spec
+rather than the whole of it, because 044 3.1 governs the verdict line and spec
 050's line is a second line about unwitnessed claims.
 
 It MUST be split across two commands: one that runs the verb with its stdout
@@ -146,7 +146,7 @@ different axis (D-6).
 
 This is a consistency check and MUST be described as one. It witnesses that the
 two verbs are versioned by one envelope constant rather than per payload, which
-is the shape 050 3.6 reasons from. It does **not** prove that a payload addition
+is the shape 044 3.6 reasons from. It does **not** prove that a payload addition
 left the version unchanged: both verbs read the same constant, so a bump made for
 a payload reason would move both together and the comparison would still pass.
 The full rule is a statement about cause over time and is not decidable from one
@@ -167,8 +167,8 @@ a green line.
 The block MUST assert that `index check --json` carries the `report.diagnostics`
 member that spec 044 added, with its three keys.
 
-This is an addition, not a correction. 050 3.6's rule has an antecedent, "adding
-a member to one verb's `report` payload", and 050's block asserted the consequent
+This is an addition, not a correction. 044 3.6's rule has an antecedent, "adding
+a member to one verb's `report` payload", and 044's block asserted the consequent
 alone. The pin therefore hung on nothing: it would have kept passing had the
 member been dropped entirely, which is the one change that would make 3.6
 vacuous. Asserting the antecedent is what gives the consistency check of 3.3
@@ -231,7 +231,7 @@ spec 082 in v0.20.0; this spec is a corpus change that uses it.
 
 D-1 (2026-09-17, why a replacement rather than three corrections). Spec 082 3.5
 settled that a block is the unit, and spec 083 D-1 carried it: a reader who finds
-050's block in 050's file and a patch in this one has to apply the patch in their
+044's block in 044's file and a patch in this one has to apply the patch in their
 head to know what 050 accepts. A block read in one place is worth the
 duplication.
 
@@ -247,7 +247,7 @@ a reader to infer that the line proves more than it does.
 D-3 (2026-09-17, why the payload assertion is added rather than left out). Adding
 to a block being repaired is scope this spec had to justify. The reason it is in
 is that without it the block asserts a consequent whose antecedent nothing
-checks: drop `report.diagnostics` entirely and 050's original command 8 and the
+checks: drop `report.diagnostics` entirely and 044's original command 8 and the
 replacement's consistency check both still pass, while 3.6 has nothing left to
 govern. One line closes that, and it is an assertion about spec 044's own
 territory, not new territory.
@@ -265,8 +265,8 @@ D-5 (2026-09-17, what the fail-first evidence is and is not). This spec has
 almost none, and that is correct rather than a gap. A correction to an acceptance
 changes no code, so the corrected lines pass at the parent commit: measured at
 `4ce7085`, the verdict line, the `items` count and the version comparison all
-exit 0 against the same binary whose output made 050's originals red. What was
-red at the parent was 050's block, and this spec does not make anything go green
+exit 0 against the same binary whose output made 044's originals red. What was
+red at the parent was 044's block, and this spec does not make anything go green
 that was legitimately red.
 
 The first draft of this entry claimed the three corrected lines were fail-first
@@ -280,7 +280,7 @@ the defect.
 
 What was measured instead is failability: each corrected line was run against the
 state it exists to catch, and each failed. The verdict line fails when the
-`(N warning(s), ...)` suffix 050 3.1 forbids is present. The `items` count fails
+`(N warning(s), ...)` suffix 044 3.1 forbids is present. The `items` count fails
 against the pre-093 bare array, with a `TypeError` rather than a false pass, and
 against a non-empty `items`. The version comparison fails when the two values
 diverge, and the payload assertion of 3.4 fails when `report.diagnostics` is
@@ -388,7 +388,7 @@ target/release/spec-spine index check --json > "${TMPDIR:-/tmp}/ss106/check.json
 target/release/spec-spine compile --spec 000 --json > "${TMPDIR:-/tmp}/ss106/compile.json"
 python3 -c "import json; a=json.load(open('${TMPDIR:-/tmp}/ss106/check.json')); b=json.load(open('${TMPDIR:-/tmp}/ss106/compile.json')); assert a['schemaVersion'], a; assert a['schemaVersion']==b['schemaVersion'], (a['schemaVersion'], b['schemaVersion']); assert a['verb'] != b['verb'], (a['verb'], b['verb']); assert 'diagnostics' in a['report'] and 'diagnostics' not in b['report'], (sorted(a['report']), sorted(b['report']))"
 # 3.4: the member spec 044 added to `index check`'s payload is present. This is
-# the antecedent 050 3.6's rule is about, and 050's block never asserted it.
+# the antecedent 044 3.6's rule is about, and 044's block never asserted it.
 python3 -c "import json; r=json.load(open('${TMPDIR:-/tmp}/ss106/check.json'))['report']; assert sorted(r['diagnostics'])==['byCode','errors','warnings'], r"
 # --- spec 084's own mechanism (3.5) ---
 # The replacement is declared, read through the CLI rather than off the shard.

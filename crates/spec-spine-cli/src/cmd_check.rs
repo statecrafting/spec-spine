@@ -23,7 +23,7 @@ use crate::out;
 /// repair that state as a side effect of reading it: doing so hides that the
 /// *committed* copy was stale, so the drift reads as an uncommitted local edit
 /// instead of a defect already on the branch, which is exactly how the spec
-/// 017/021 drift reached the default branch.
+/// 016/019 drift reached the default branch.
 pub fn run(
     repo: &Path,
     fail_on_unresolved: bool,

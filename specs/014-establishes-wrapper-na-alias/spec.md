@@ -30,7 +30,7 @@ summary: >
   in the OAP dialect (389 wrapped establishes items across ~97 specs; 5 specs
   using `n/a`) without a mass frontmatter migration.
 ---
-# 015: `unit:`-wrapped establishes items and the `n/a` implementation alias
+# 014: `unit:`-wrapped establishes items and the `n/a` implementation alias
 
 ## 1. Purpose
 
@@ -89,7 +89,7 @@ establishes:
   in any accepted form (bare or tagged). The deserializer recurses through the
   same impl, so the inner unit inherits its own validation -- e.g. an empty
   wrapped path (`{ unit: "" }`) is rejected exactly as a bare `""` is.
-- The wrapper is 1:1 (one wrapper -> one unit), unlike 014's `paths:` list
+- The wrapper is 1:1 (one wrapper -> one unit), unlike 013's `paths:` list
   (1:N), which is why it lives in the `Unit` deserializer beside the bare/tagged
   forms rather than as a frontmatter normalize step.
 

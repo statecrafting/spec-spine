@@ -35,7 +35,7 @@ extends:
   # 3.4: the rule's own acceptance, on a fixture rather than this corpus.
   - { spec: "046-depends-on-ordinal-monotonicity", unit: "crates/spec-spine-core/tests/lint.rs", nature: additive }
 ---
-# 079: A dead glob is dead in both tables
+# 065: A dead glob is dead in both tables
 
 ## 1. Purpose
 
@@ -99,7 +99,7 @@ arranged around it.
 `[index] extra_hashed_inputs`: a pattern ending in `/**` is refused.
 
 The check stays on the **pattern**, not on whether it currently matches, for
-the reason 074 §3.1 already gave: a pattern matching nothing today is a
+the reason 061 §3.1 already gave: a pattern matching nothing today is a
 legitimate forward-looking entry in a specify-first corpus, while a pattern
 ending `/**` is inert under every tree and so is decidable from the config
 alone. That reasoning is if anything stronger here, since the adopter evidence
@@ -187,7 +187,7 @@ As of filing that edit is **not** on `main`: line 62 still reads
 can be built with 012 unchanged.
 
 What the gap is, precisely. `lint` reads `spec-spine.toml`, not spec markdown,
-so 012's fenced example changes no verdict for anyone and nothing regresses in
+so 011's fenced example changes no verdict for anyone and nothing regresses in
 the tool. The cost is entirely on the reading side: an adopter who copies the
 example writes a pattern the tool then refuses, which is how at least one
 adopter's dead slice table got there. That makes it a documentation defect with

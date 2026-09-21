@@ -121,7 +121,7 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 outln!("path:    {}", spec.spec_path);
                 outln!("summary: {}", spec.summary.trim());
                 if let Some(h) = &content_hash {
-                    // 055 §3.4: say which hash this is in the same breath as
+                    // 048 §3.4: say which hash this is in the same breath as
                     // reporting it. The registry's and the index's per-spec
                     // hashes are the same shape, and a consumer that confuses
                     // them gets a pin that fires on unrelated edits. Spec 077:

@@ -39,7 +39,7 @@ summary: >
   both rejected by the unit-required, discriminator-less v1 grammar.
 
 ---
-# 018: constrains discriminator and optional unit
+# 017: constrains discriminator and optional unit
 
 ## 1. Purpose
 

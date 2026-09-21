@@ -56,7 +56,7 @@
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "sectionHeadings": [
-      "030: Cargo and workflow dependabot bumps self-clear",
+      "027: Cargo and workflow dependabot bumps self-clear",
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
@@ -70,9 +70,9 @@
     ],
     "specPath": "specs/027-cargo-workflow-dependency-waiver/spec.md",
     "status": "approved",
-    "summary": "Amends 004 §3.5 and 005 §3.5, extending the paired 2026-06-11 npm dependency-only mechanism to the cargo and GitHub Actions ecosystems so a dependabot-class bump self-clears without a human waiver. Freshness half: Cargo.toml folds into the index content hash as a governance projection (its dependency tables stripped), mirroring npm, so a version bump leaves the committed shards fresh. Coupling half: the mechanical auto-waiver recognizes a Cargo.toml whose only change is dependency version specifiers, and a `.github/workflows/*.yml` whose only change is the `@ref` of `uses:` action references. Every non-version edit (a new or removed dependency, a feature / git / path change, a `run:` / `with:` edit, an added step or table, an unpinned action, a spec-metadata edit) still refuses the waiver, fail-closed. A claimed workflow file (007/008/021's release.yml) and a crate whose direct dependencies dependabot bumps are the live acceptance tests.\n",
+    "summary": "Amends 004 §3.5 and 005 §3.5, extending the paired 2026-06-11 npm dependency-only mechanism to the cargo and GitHub Actions ecosystems so a dependabot-class bump self-clears without a human waiver. Freshness half: Cargo.toml folds into the index content hash as a governance projection (its dependency tables stripped), mirroring npm, so a version bump leaves the committed shards fresh. Coupling half: the mechanical auto-waiver recognizes a Cargo.toml whose only change is dependency version specifiers, and a `.github/workflows/*.yml` whose only change is the `@ref` of `uses:` action references. Every non-version edit (a new or removed dependency, a feature / git / path change, a `run:` / `with:` edit, an added step or table, an unpinned action, a spec-metadata edit) still refuses the waiver, fail-closed. A claimed workflow file (007/008/019's release.yml) and a crate whose direct dependencies dependabot bumps are the live acceptance tests.\n",
     "title": "Cargo and workflow dependabot bumps self-clear: freshness projection + auto-waiver"
   },
-  "shardHash": "728e22dee8aec5724fa2f553618a5e2d51109a3387660fea740a710016421bd4",
+  "shardHash": "b794b882553d299f9a0e8dee593f0d6048294e914abd8f5857c41a79b96a7f06",
   "specVersion": "1.3.0"
 }

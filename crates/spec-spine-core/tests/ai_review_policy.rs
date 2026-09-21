@@ -8,14 +8,14 @@
 //! merged with no review. Spec 091 inverts the default and this file is what
 //! holds the inversion in place.
 //!
-//! The rule of this suite (119 3.8): it runs **the workflow's own `run:`
+//! The rule of this suite (091 3.8): it runs **the workflow's own `run:`
 //! scalars**, never a copy of their patterns. A test that rebuilt the
 //! classifier would assert a property of its own copy, drift from the file
 //! that actually runs in CI, and could not observe the three things this
 //! defect lives in: the step's exit status, its outputs, and whether
 //! publication happened.
 //!
-//! It is deliberately **not** a GitHub Actions emulator (119 3.8 rule 5,
+//! It is deliberately **not** a GitHub Actions emulator (091 3.8 rule 5,
 //! D-11). It supports the `${{ }}` and `if:` forms this one job contains and
 //! panics, naming the step and the expression, on anything else. A silent
 //! default here would let a new condition go unevaluated while the suite
@@ -139,7 +139,7 @@ fn publication_steps(job: &Job) -> Vec<Step> {
 }
 
 // ---------------------------------------------------------------------------
-// Expression resolution (119 3.8 rules 4 and 5): bounded, and loud past the bound
+// Expression resolution (091 3.8 rules 4 and 5): bounded, and loud past the bound
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Default, Clone)]
@@ -285,7 +285,7 @@ fn eval_conjunct(c: &str, ctx: &Ctx, whence: &str) -> bool {
 }
 
 // ---------------------------------------------------------------------------
-// Execution under the runner's own shell semantics (119 3.8 rule 3)
+// Execution under the runner's own shell semantics (091 3.8 rule 3)
 // ---------------------------------------------------------------------------
 
 struct Ran {
@@ -343,7 +343,7 @@ fn run_script(step: &Step, script: &str, dir: &Path, env: &BTreeMap<String, Stri
         }
     }
     let out = cmd.output().expect("bash runs");
-    // 119 3.8 rule 5: this harness models `GITHUB_OUTPUT` and not `GITHUB_ENV`,
+    // 091 3.8 rule 5: this harness models `GITHUB_OUTPUT` and not `GITHUB_ENV`,
     // because no step of this job writes one. A step that started to would have
     // its value silently dropped and the suite would stay green, which is the
     // failure mode rule 5 exists to prevent, so the unsupported form refuses
@@ -412,7 +412,7 @@ fn install_stubs(bin: &Path) {
 }
 
 // ---------------------------------------------------------------------------
-// Fixtures (119 3.8.1)
+// Fixtures (091 3.8.1)
 // ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -876,7 +876,7 @@ fn assert_case(job: &Job, case: &Case) {
 // Tests
 // ---------------------------------------------------------------------------
 
-/// 119 3.8.1: the whole fixture matrix, against the workflow's own scripts.
+/// 091 3.8.1: the whole fixture matrix, against the workflow's own scripts.
 #[test]
 fn policy_matrix_holds_against_the_workflows_own_scripts() {
     let job = parse_job();
@@ -897,7 +897,7 @@ fn policy_matrix_holds_against_the_workflows_own_scripts() {
     }
 }
 
-/// 119 3.8.1 rows 25 and 26, named so the acceptance block can run them alone:
+/// 091 3.8.1 rows 25 and 26, named so the acceptance block can run them alone:
 /// classification succeeded and the job still fails, because publication did
 /// not happen. This is the distinction the old single-column matrix hid.
 #[test]
@@ -919,7 +919,7 @@ fn publication_failure_fails_the_job_even_when_classification_succeeded() {
     }
 }
 
-/// 119 3.8.2: a passing verdict substituted into the class 4 branch is
+/// 091 3.8.2: a passing verdict substituted into the class 4 branch is
 /// detected even though every regex byte is untouched.
 #[test]
 fn inversion_of_the_refusal_branch_is_detected() {
@@ -977,7 +977,7 @@ fn inversion_of_the_refusal_branch_is_detected() {
     );
 }
 
-/// 119 3.8 rule 5: every `if:` a case can reach is evaluated by the harness,
+/// 091 3.8 rule 5: every `if:` a case can reach is evaluated by the harness,
 /// and an unsupported form panics rather than silently going unevaluated.
 #[test]
 fn every_reachable_condition_and_env_expression_is_evaluated() {
@@ -1003,7 +1003,7 @@ fn every_reachable_condition_and_env_expression_is_evaluated() {
     );
 }
 
-/// 119 3.2 and D-8: the structural skips keep their annotation fallbacks, and
+/// 091 3.2 and D-8: the structural skips keep their annotation fallbacks, and
 /// 3.6 removes the one on the transient notice. AC-4 and AC-5, asserted from
 /// the parsed steps rather than from a grep over the whole file.
 #[test]
@@ -1030,7 +1030,7 @@ fn structural_skip_fallbacks_are_preserved_and_the_transient_swallow_is_gone() {
     }
 }
 
-/// 119 3.6.1 and D-10: no per-invocation timeout wrapper is introduced, and
+/// 091 3.6.1 and D-10: no per-invocation timeout wrapper is introduced, and
 /// the job-level bound that already existed is preserved.
 #[test]
 fn no_timeout_wrapper_is_introduced_and_the_job_bound_is_preserved() {
@@ -1045,7 +1045,7 @@ fn no_timeout_wrapper_is_introduced_and_the_job_bound_is_preserved() {
     );
 }
 
-/// 119 3.4 and D-16: the post step's `review_nonempty` conjunct is the second
+/// 091 3.4 and D-16: the post step's `review_nonempty` conjunct is the second
 /// half of the empty-review guard, and no fixture can reach it while the
 /// classifier's own guard holds. This case reconstructs the pre-119 classifier
 /// in memory (`review_status=ok` from exit status alone, no `review_nonempty`)

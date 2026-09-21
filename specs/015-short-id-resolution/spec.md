@@ -24,7 +24,7 @@ summary: >
   dry-run) without a mass frontmatter migration; a no-op on any corpus that
   already uses full ids (such as this repo's own).
 ---
-# 016: resolve short spec ids on `depends_on` and `superseded_by`
+# 015: resolve short spec ids on `depends_on` and `superseded_by`
 
 ## 1. Purpose
 

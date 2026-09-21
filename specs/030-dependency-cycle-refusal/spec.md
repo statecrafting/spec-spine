@@ -32,7 +32,7 @@ summary: >
   invalidation depend on merge history and a run journal, which are not a pure
   function of the corpus and therefore not spec-spine's to compute.
 ---
-# 033: Dependency cycle refusal
+# 030: Dependency cycle refusal
 
 ## 1. Purpose
 

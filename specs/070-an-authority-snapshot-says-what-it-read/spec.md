@@ -73,7 +73,7 @@ summary: >
   payload is pure, on demand, gitignored, sealable and verified under spec
   068's rules. It commits to no git revision: the consumer binds the tree.
 ---
-# 087: An authority snapshot says what it read
+# 070: An authority snapshot says what it read
 
 ## 1. Purpose
 
@@ -434,7 +434,7 @@ the spec would have made a self-contradiction governing. The ruling was to name
 two contracts rather than pick a winner, since 085 and 087 answer different
 questions and only one of them is a byte identity. What changed, and nothing
 else did: 3.3 now states the normalized-text contract and contrasts it with
-085's; D-4 withdraws the "bytes as written" claim and names what the trade
+068's; D-4 withdraws the "bytes as written" claim and names what the trade
 costs; D-3 adds the framed `territoryDigest` and demotes `specAttestationHash`
 to historical evidence explicitly not a content binding; and the framing
 acceptance line, which moved several things at once, is now two lines that move

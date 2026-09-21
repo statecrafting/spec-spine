@@ -9,12 +9,12 @@ summary: >
   approved spec 048 §3.4 says the same thing in prose: "`contentHash` is
   SHA-256 over that spec's `spec.md` alone". It is neither. The value is the
   shard hash, which is SHA-256 over the repo-relative POSIX path, a NUL, and
-  the normalized bytes, so for `specs/086-.../spec.md` the printed value is
+  the normalized bytes, so for `specs/069-.../spec.md` the printed value is
   `a4a0098235e9...` while the digest of the file's bytes is `ae0144ca7e4a...`,
-  the value `attest --spec` reports as `specSourceHash`. 055 §3.3 exists for
+  the value `attest --spec` reports as `specSourceHash`. 048 §3.3 exists for
   consumers who reimplement the normalization to pin against the ledger, and
   one adopter does exactly that, so a gloss naming the wrong construction is
-  the whole defect. This spec amends 055 §3.4 to state the construction the
+  the whole defect. This spec amends 048 §3.4 to state the construction the
   code has always used, makes the printed line say it, and adds the test that
   pins both digests so the two cannot drift again.
 implementation: complete
@@ -36,7 +36,7 @@ references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "docs/authority-evidence.md" }, role: context }
 ---
-# 096: One hash, one construction, one name
+# 077: One hash, one construction, one name
 
 ## 1. Purpose
 
@@ -72,7 +72,7 @@ algorithm.
 
 ### 1.3 Who the gloss is for, and what it costs them
 
-055 §3.3's stated reason for adding `contentHash` was that a consumer was
+048 §3.3's stated reason for adding `contentHash` was that a consumer was
 reimplementing `hash.rs`'s normalization in TypeScript in order to pin against
 the ledger. That consumer reads the gloss, hashes the file's bytes, gets a
 different 64 hex characters, and concludes either that the tool is wrong or that
@@ -103,7 +103,7 @@ SHA-256( <repo-relative POSIX path> 0x00 <normalized bytes of spec.md> )
 ```
 
 where normalization strips a BOM and converts CRLF and CR to LF. It is read
-from the committed shard and never recomputed (055 §3.2, unchanged).
+from the committed shard and never recomputed (048 §3.2, unchanged).
 
 This replaces spec 048 §3.4's first sentence. Under spec 037 the replacement
 text lives here, and 055 is not edited:
@@ -115,7 +115,7 @@ text lives here, and 055 is not edited:
 > by the path like every other content hash this tool computes, so it is not
 > equal to the digest of the file's bytes alone.
 
-The rest of 055 §3.4 stands: a consumer asking "has this spec's text changed"
+The rest of 048 §3.4 stands: a consumer asking "has this spec's text changed"
 still wants the registry value, and a consumer asking "has anything this spec
 depends on changed" still wants the index value.
 
@@ -123,7 +123,7 @@ depends on changed" still wants the index value.
 
 The prose form of `registry show` MUST NOT describe the value as the digest of
 the file's bytes. It MUST name the framing, briefly, in the same breath as
-reporting the value, which is what 055 §3.4 already requires of this line for a
+reporting the value, which is what 048 §3.4 already requires of this line for a
 different distinction. A consumer that wants the exact algorithm reads this
 spec or `docs/api.md`; the line's job is to stop a reader reproducing the wrong
 thing.
@@ -134,7 +134,7 @@ thing.
 bytes, unframed. That is the value a consumer reproduces with an ordinary
 digest of the file, and it is the one to document as such.
 
-`registry show` MUST NOT gain it. 055 §3.2 forbids exactly this: `registry` is
+`registry show` MUST NOT gain it. 048 §3.2 forbids exactly this: `registry` is
 the read-side view of what was committed, and a `show` that computed a digest
 from `spec.md` would report a value the ledger does not hold, which silently
 repairs the staleness `compile --check` exists to reveal. Two names, two

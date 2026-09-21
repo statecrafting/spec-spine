@@ -571,7 +571,7 @@ struct SchemaProbe {
 /// Reading a committed body is otherwise not this comparison's business, so the
 /// probe is deliberately narrow: one field, only on a file that already
 /// differs, and a body that will not parse stays `modified` rather than
-/// becoming an error. See 086 D-5.
+/// becoming an error. See 069 D-5.
 fn reject_foreign_major(bytes: &[u8]) -> Result<(), Error> {
     if let Ok(probe) = serde_json::from_slice::<SchemaProbe>(bytes) {
         shard::check_major("index", &probe.schema_version, INDEX_SCHEMA_VERSION)?;
@@ -650,7 +650,7 @@ pub(crate) fn committed_index_drift(
     // instead (spec 028 §3.2), but that choice belongs to the verb that reads a
     // registry: adopting it here would move an exit code from 3 to 2 on
     // `couple`, `coverage` and `index owner`, none of which spec 069 touches.
-    // See 086 D-4.
+    // See 069 D-4.
     if !dir.exists() {
         return Err(Error::Io(format!(
             "read {} (run `spec-spine index` first?): not found",
@@ -711,7 +711,7 @@ fn drift_verdict(mut drift: Vec<String>, emitted: usize) -> Freshness {
 /// deleted would otherwise answer for itself.
 ///
 /// This replaces the per-shard hash recompute of spec 022 FR-003, whose
-/// bounded trade (024 §5) let a resolution flip caused purely by a sibling
+/// bounded trade (022 §5) let a resolution flip caused purely by a sibling
 /// change go unreported until the next full `index` run. A byte comparison
 /// catches it; spec 069 amends that section.
 pub fn check_index_freshness(
@@ -925,7 +925,7 @@ pub(crate) fn read_committed_index_shards(
 }
 
 /// Assemble the aggregate [`CodebaseIndex`] from the committed shard set (spec
-/// 024). The global view (orphaned specs, untraced code, the aggregate content
+/// 022). The global view (orphaned specs, untraced code, the aggregate content
 /// hash) is recomputed from the shards on read, never read from a committed
 /// global file. This is the single committed-index reader: `render`, `orphans`,
 /// and the coupling gate all route through it, so they keep their
@@ -1006,7 +1006,7 @@ pub fn load_committed_index(
 }
 
 /// Read the committed per-slice hashes from the `slices.json` sidecar (spec
-/// 012/024). Absent file ⇒ empty map (no slices configured, or pre-slice index).
+/// 011/022). Absent file ⇒ empty map (no slices configured, or pre-slice index).
 fn read_committed_slice_hashes(
     cfg: &spec_spine_types::Config,
     repo_root: &Path,

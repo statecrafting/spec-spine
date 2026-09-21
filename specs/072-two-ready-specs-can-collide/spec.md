@@ -33,7 +33,7 @@ extends:
 references:
   - { unit: { kind: file, path: "docs/design/04-authority-evidence-extension.md" }, role: context }
 ---
-# 091: Two ready specs can collide
+# 072: Two ready specs can collide
 
 ## 1. Purpose
 

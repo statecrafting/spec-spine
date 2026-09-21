@@ -41,7 +41,7 @@ summary: >
   second small, broadly-useful additive concession from the 217 swap (the first
   was the spec-027 symbol-resolution feature gate, shipped as 0.7.0).
 ---
-# 028: References provenance, optional `derived_at`
+# 026: References provenance, optional `derived_at`
 
 Filed off the OAP spec-217 engine-swap, which repoints OAP's decomposition
 pipeline promotion step at the published `spec-spine-core::compile`. That compile

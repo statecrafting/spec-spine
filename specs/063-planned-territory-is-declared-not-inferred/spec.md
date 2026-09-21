@@ -90,7 +90,7 @@ summary: >
   a spec at `implementation: complete` carrying one is refused, and a planned
   unit that has resolved is reported so the flag cannot be left on.
 ---
-# 076: Planned territory is declared, not inferred
+# 063: Planned territory is declared, not inferred
 
 ## 1. Purpose
 

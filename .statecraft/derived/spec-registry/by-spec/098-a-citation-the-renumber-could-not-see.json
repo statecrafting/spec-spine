@@ -1,0 +1,82 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "003-conformance-lint",
+      "095-the-corpus-describes-what-exists",
+      "096-compaction-is-a-verb-not-a-session"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "096-compaction-is-a-verb-not-a-session",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compact.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "096-compaction-is-a-verb-not-a-session",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/compact.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "046-depends-on-ordinal-monotonicity",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/lint.rs"
+        }
+      }
+    ],
+    "id": "098-a-citation-the-renumber-could-not-see",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/corpus-map.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "098: A citation the renumber could not see",
+      "1. Purpose",
+      "1.1 What the map could not repair",
+      "1.2 Three mechanism gaps, not one mistake",
+      "1.3 What is decidable, and what is left",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A fourth form: the document's own title heading",
+      "3.2 A fifth form: a bare ordinal in a position only a citation occupies",
+      "3.3 The scan selects a file by content when it has no extension",
+      "3.4 `L-013`: a title heading names its own spec",
+      "3.5 The repair",
+      "3.6 The repair is not a verb",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/098-a-citation-the-renumber-could-not-see/spec.md",
+    "status": "draft",
+    "summary": "Spec 096 made compaction a verb and recorded seven defects the hand renumber produced. Two of them, the wrapped citation and the multi-ordinal citation, were measured after 096 was filed and were never repaired: `compact` refuses a plan naming a spec the corpus no longer has, so it prevents the next renumber and not the last one. Re-measuring on 2026-09-21 against the collapse commit found the debt is not 41 occurrences but 630, in two further classes nobody had looked for: 90 spec documents are still titled with another spec's ordinal, and 474 citations are written as a bare ordinal (`084 §3.1`, `050's`) which none of 096's three forms matches. This spec repairs all 630, adds the two forms and the file-selection fix that would have prevented them, and makes a title heading self-checking with a new lint code so this class cannot come back silently.\n",
+    "title": "A citation the renumber could not see"
+  },
+  "shardHash": "685c94a0fb03b61f08ef33bb392c6afcb44ffd5f362848e972c759005bf49d99",
+  "specVersion": "1.3.0"
+}

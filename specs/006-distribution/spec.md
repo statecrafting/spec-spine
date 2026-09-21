@@ -26,7 +26,7 @@ summary: >
   extraction; it works under `npm ci --ignore-scripts` and offline. Version-locked
   to the binary release tag (npm 0.1.0 ships the v0.1.0 assets).
 ---
-# 007: Distribution
+# 006: Distribution
 
 ## 1. Purpose
 

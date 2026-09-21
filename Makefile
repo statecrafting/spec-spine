@@ -65,7 +65,7 @@ HEAD       ?= HEAD
 #
 # `auto` and `0` both ANNOUNCE the skip and say whole-tree ownership was not
 # verified. A silent skip would put back, one layer out, the vacuous pass spec
-# 059 took out of the verb: `--fail-on-untraced` on a tree with no discovered
+# 052 took out of the verb: `--fail-on-untraced` on a tree with no discovered
 # package used to enumerate nothing and exit 0 from a step named for the
 # assertion. A gate that did not run its check does not get to look green.
 #

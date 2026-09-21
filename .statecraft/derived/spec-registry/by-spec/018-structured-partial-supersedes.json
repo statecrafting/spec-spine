@@ -124,7 +124,7 @@
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "sectionHeadings": [
-      "019: structured and partial supersedes",
+      "018: structured and partial supersedes",
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
@@ -140,6 +140,6 @@
     "summary": "Implements Option A from `docs/design/01-partial-supersession.md`: a `supersedes` item may be a bare predecessor id (full) or a structured `{ spec, scope, unit?, note?, rationale? }`. A full item (bare id or `scope: full`) normalizes to the bare-string form, so a full-only corpus emits a byte-identical registry; the wire is unchanged for every existing adopter; only a partial item serializes as an object. `scope: partial` with a `unit` transfers authority over that unit alone (additive, the predecessor keeps it and everything else), threaded through the index as a `supersedes` resolved unit so the gate already treats the successor as an owner of that unit's paths; `build_superseders` therefore contributes only **full** supersession to the whole-spec transfer. A partial item with no unit (a documentary lifecycle marker) transfers nothing. Short ids on the predecessor resolve like `depends_on` (spec 015). Unblocks the OAP corpus shapes 073 (`scope: full`), 108 (bare short id), 114 (`partial` + unit), and 199 (`partial` + note).\n",
     "title": "Supersedes grammar: structured items and partial (unit-scoped) transfer"
   },
-  "shardHash": "bd55f89819b030416170b0b740bd41ee5d3b363d4eb502ced47573f934fa1de9",
+  "shardHash": "7b1508b9432cbbe4a1d1864e89fd14d05f0cc8ce5d26f14d7d0e6e0cf83275b2",
   "specVersion": "1.3.0"
 }

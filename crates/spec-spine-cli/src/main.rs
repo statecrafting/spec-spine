@@ -544,7 +544,7 @@ mod tests {
 
     /// Spec 067 §3.5: the six arguments that take a spec id, and no seventh.
     ///
-    /// 049 §3.2 and 056 §3.1 each asserted the cross-verb rule in prose and
+    /// 043 §3.2 and 049 §3.1 each asserted the cross-verb rule in prose and
     /// nothing held it, which is how `registry show`, `registry relationships`,
     /// `attest --spec` and `verify-attestation --spec` kept refusing the short
     /// form through two ratifications. This census is the structural half of
@@ -556,7 +556,7 @@ mod tests {
     /// evade it; keying on `value_name = "ID"` instead would catch
     /// `attest --key-id`, which takes a key id, and renaming value names to
     /// tell the two apart was rejected as help-text churn to close a gap a
-    /// reviewer can see (084 D-5).
+    /// reviewer can see (067 D-5).
     ///
     /// The census and the matrix in `tests/spec_id.rs` are two lists, kept
     /// equal by the failure message below rather than by linkage: an
@@ -598,7 +598,7 @@ mod tests {
         assert_eq!(
             found, expected,
             "the set of spec-id arguments moved (spec 067 §3.5). Every one of \
-             them must resolve through `spec_spine_core::spec_id` (084 §3.4), \
+             them must resolve through `spec_spine_core::spec_id` (067 §3.4), \
              and must be driven by the matrix in \
              `crates/spec-spine-cli/tests/spec_id.rs`. Add it to both lists, or \
              to neither."

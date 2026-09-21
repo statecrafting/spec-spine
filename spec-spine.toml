@@ -140,7 +140,7 @@ indexer_id  = "spec-spine"
 bypass_prefixes = ["**/README.md"]
 waiver_keyword = "Spec-Drift-Waiver:"
 # Spec 029: refuse a changed source file that no spec specifically claims
-# (C-002). ON here: the debt 032 §3.8 named is retired. Those five files are
+# (C-002). ON here: the debt 029 §3.8 named is retired. Those five files are
 # claimed by `// Spec: specs/<id>/spec.md` headers in the files themselves
 # rather than by new frontmatter units, because a header is a file naming the
 # spec that already governs it, which is exactly what was true and never

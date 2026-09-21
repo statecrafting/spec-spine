@@ -7,7 +7,7 @@ created: "2026-09-16"
 summary: >
   Spec 079 stopped `check` calling an unresolved claim "stale" and stopped it
   prescribing `spec-spine index`, a remedy that provably does not work. It
-  deliberately left the exit code alone, because 086 3.1 pins "the exit code is
+  deliberately left the exit code alone, because 069 3.1 pins "the exit code is
   unchanged: 2 when anything drifted" and adopters branch on it. The result is
   a verb whose prose says "this is not staleness" while its exit code says
   staleness, and exit 2 is the code an adopter's CLAUDE.md maps to "run
@@ -24,7 +24,7 @@ depends_on:
   - "069-the-committed-index-is-compared-not-trusted"
   - "079-a-blocking-claim-is-not-a-stale-shard"
 amends:
-  # 086 3.1's closing sentence, and 098 3.1's own MUST. Both are approved and
+  # 069 3.1's closing sentence, and 079 3.1's own MUST. Both are approved and
   # both state the rule normatively, so both are amended (spec 037). 098 3.1
   # names only 086 as needing the edge; that sentence undercounts itself.
   - "069-the-committed-index-is-compared-not-trusted"
@@ -35,14 +35,14 @@ extends:
   # 3.2: the same fold at the primitive.
   - { spec: "004-codebase-index", unit: "crates/spec-spine-cli/src/cmd_index.rs", nature: corrective }
   # 3.4: the acceptance, alongside spec 079's own cases. Attributed to 098
-  # rather than to any other owner of this file: these tests sit beside 098's
+  # rather than to any other owner of this file: these tests sit beside 079's
   # blocking-claim cases and amend four of its assertions, so 098 is the
   # crossing a reader is actually making.
   - { spec: "079-a-blocking-claim-is-not-a-stale-shard", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---
-# 101: An unresolved claim exits as a validation failure
+# 080: An unresolved claim exits as a validation failure
 
 ## 1. Purpose
 
@@ -138,7 +138,7 @@ it now reads:
 > and regenerating cannot clear it. A tree holding both exits 1, under spec 062
 > §3.3's order.
 
-The rest of 086 §3.1 stands: the three drift classes, the `--slice` sidecar
+The rest of 069 §3.1 stands: the three drift classes, the `--slice` sidecar
 comparison and the byte comparison itself are untouched, and this spec changes
 nothing about **what** `index check` detects, only which code it spends.
 
@@ -157,7 +157,7 @@ it now reads:
 > produce exit `2`. A blocking resolution diagnostic exits `1`, and the two
 > together exit `1`, which spec 080 decided and this spec deliberately did not.
 
-The rest of 098 §3.1 stands, including the `--fail-on-unresolved` sentence and
+The rest of 079 §3.1 stands, including the `--fail-on-unresolved` sentence and
 spec 044 §3.3's precedence, both of which this spec leaves alone. 098's closing
 paragraph, which forecasts the decision and names the `amends` edge it would
 need, is left as the accurate record it is: it names 086 and not itself, which
@@ -238,12 +238,12 @@ spec 079 removed from the prose.
 
 D-4 (2026-09-16, why spec 079 is amended as well as spec 069). Added during
 the build, from a review finding. Spec 079 §3.1 is titled "The exit codes do
-not move" and states the rule as its own MUST rather than merely citing 086's,
+not move" and states the rule as its own MUST rather than merely citing 069's,
 so it is a second approved document carrying the behavior this spec changes,
 and spec 037 requires the edge to name every such document. 098's own forecast
 of this decision says it "would be a contract change needing an `amends` edge
 on 086", naming one spec where two were needed: an amendment that landed on 086
-alone would have left 098's MUST standing unamended against the code.
+alone would have left 079's MUST standing unamended against the code.
 
 D-3 (2026-09-16, why both verbs move together). A caller that runs `check`
 composes two trees; one that runs `index check` reads one. Neither difference

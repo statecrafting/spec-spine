@@ -44,7 +44,7 @@ references:
   # The (config, file contents) pure-function claim this capability rests on.
   - { unit: { kind: file, path: "docs/design/00-architecture.md" }, role: context }
 ---
-# 023: Ledger Seal
+# 021: Ledger Seal
 
 Filed off the OAP ADR 0002 boundary analysis. ADR 0002 confirmed the run
 certificate is run-provenance (OAP's factory-engine domain), not spec-spine's
