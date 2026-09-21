@@ -176,6 +176,13 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
     // The rewrite is a single simultaneous pass per file: a sequential
     // replace-per-key would apply one key's output to the next key's input,
     // which is how a renumber double-shifts (defect 3's shape, one level up).
+    // A renamed spec directory moves file by file, and only the files this
+    // rewrite can carry. Anything else in it would be left behind at the old
+    // path while the `spec.md` moved, splitting one spec across two
+    // directories; the refusal names the file rather than letting that happen
+    // quietly.
+    refuse_uncarryable_in_renamed_dirs(cfg, repo_root, &map)?;
+
     let keys = sorted_keys(&map);
     let mut files = Vec::new();
     let mut rewrites = Vec::new();
@@ -397,6 +404,11 @@ fn build_map(corpus: &[String], plan: &CompactPlan) -> Result<BTreeMap<String, T
     let mut new_id: BTreeMap<&str, String> = BTreeMap::new();
     for (i, id) in survivors.iter().enumerate() {
         let id = id.as_str();
+        // `{:03}` pads to at LEAST three digits, so `i >= 1000` would emit a
+        // four-digit ordinal. It cannot: `refuse_ordinal_collision` demands a
+        // distinct three-digit ordinal per spec, there are exactly 1000 of
+        // those, so a corpus reaching this line has at most 1000 specs and `i`
+        // at most 999. The guard is that refusal, not a clamp here.
         let renamed = match plan.renumber {
             Renumber::None => id.to_string(),
             Renumber::Contiguous => format!("{:03}{}", i, &id[3..]),
@@ -431,6 +443,44 @@ fn build_map(corpus: &[String], plan: &CompactPlan) -> Result<BTreeMap<String, T
         );
     }
     Ok(map)
+}
+
+/// Refuse a renamed spec directory holding a file the rewrite cannot carry.
+///
+/// `scannable_files` is an extension filter, so a binary or an image inside a
+/// spec directory is invisible to the walk: the `spec.md` would move and it
+/// would not. A removed spec is unaffected, because its whole directory goes.
+fn refuse_uncarryable_in_renamed_dirs(
+    cfg: &Config,
+    repo_root: &Path,
+    map: &BTreeMap<String, Target>,
+) -> Result<(), Error> {
+    let specs = cfg.layout.specs_dir.trim_end_matches('/');
+    let carried: BTreeSet<String> = scannable_files(cfg, repo_root).into_iter().collect();
+    for (id, target) in map {
+        if target.removed || &target.id == id {
+            continue;
+        }
+        let dir = repo_root.join(specs).join(id);
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            if entry.path().is_dir() {
+                continue;
+            }
+            let rel = format!("{specs}/{id}/{}", entry.file_name().to_string_lossy());
+            if !carried.contains(&rel) {
+                return Err(Error::Config(format!(
+                    "compact: `{id}` is renumbered to `{}`, and `{rel}` is a file this rewrite \
+                     cannot carry, so the spec would be split across two directories. Move or \
+                     remove it first.",
+                    target.id
+                )));
+            }
+        }
+    }
+    Ok(())
 }
 
 /// Keys longest first, so no key shadows a longer one (spec 096 §3.3 form 1).
@@ -542,6 +592,11 @@ const CONTINUATIONS: &[&str] = &["///", "//!", "//", "#", "*", ">"];
 /// Skip inter-token space, including **one** line break with an optional
 /// comment continuation prefix. Returns `None` when more than one line break is
 /// crossed: two blank lines is a new paragraph, not a wrapped sentence.
+///
+/// Every byte this steps over is ASCII (space, tab, CR, LF) and the caller
+/// enters on a character boundary, so the index returned is always one too: a
+/// multi-byte character ends the walk at its LEADING byte, which is a boundary.
+/// That is why the `src[i..]` below cannot split a character.
 fn skip_gap(src: &str, mut i: usize) -> Option<usize> {
     let b = src.as_bytes();
     let mut newlines = 0;
@@ -632,7 +687,10 @@ fn scan_citations(
         let Some(mut pos) = skip_gap(src, after) else {
             continue;
         };
-        let mut matched_any = false;
+        // Each ordinal in a list is decided on its own: an unmapped one is left
+        // alone and the walk CONTINUES, so `spec 777/002` rewrites `002` and
+        // leaves `777`. A list is a list of citations, not one citation whose
+        // first member speaks for the rest.
         loop {
             let Some(ord) = ordinal_at(src, pos) else {
                 break;
@@ -640,14 +698,12 @@ fn scan_citations(
             if let Some(t) = by_ordinal.get(ord) {
                 hits.push((pos, pos + 3, t.ordinal.clone(), Form::Citation));
             }
-            matched_any = true;
             let next = pos + 3;
             let Some(sep_end) = citation_separator(src, next) else {
                 break;
             };
             pos = sep_end;
         }
-        let _ = matched_any;
     }
 }
 

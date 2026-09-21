@@ -294,6 +294,12 @@ the tree was clean when the run started, so `git checkout .` restores it exactly
 and the refusal message says so. A transactional writer would need a staging
 copy of the whole repository to buy a property `git` already has.
 
+D-10 (2026-09-20, a renamed spec directory refuses what it cannot carry). The
+rewrite moves a spec directory file by file, and §3.3's file set is extension
+bounded (D-6), so a binary beside the `spec.md` would stay at the old path while
+the document moved, splitting one spec across two directories. `compact` refuses
+and names the file. A removed spec is unaffected: its whole directory goes.
+
 ## Verification
 
 Each line is one command, run independently.

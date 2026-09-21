@@ -249,6 +249,38 @@ fn an_unmapped_ordinal_is_left_alone() {
     assert!(prose_rewrites(&c).is_empty(), "{:?}", c.rewrites);
 }
 
+/// An unmapped ordinal in a list does not stop the walk: each member of a list
+/// is its own citation. Asserted because the loop's shape made it look like the
+/// first member spoke for the rest.
+#[test]
+fn a_list_rewrites_its_mapped_ordinals_and_leaves_the_unmapped_one() {
+    let tmp = fixture("the spec 777/002 pair, and specs 003 and 888.\n");
+    let c = compact(&cfg(), tmp.path(), &plan()).unwrap();
+    let out = rewritten(&c, "docs/note.md");
+    assert!(out.contains("spec 777/001 pair"), "{out}");
+    assert!(out.contains("specs 002 and 888."), "{out}");
+}
+
+/// A renamed spec directory moves file by file, and the walk only sees files the
+/// rewrite can carry. A binary beside the `spec.md` would stay at the old path
+/// while the document moved, splitting one spec across two directories.
+#[test]
+fn a_renamed_spec_directory_holding_an_uncarryable_file_is_refused() {
+    let tmp = fixture("x");
+    fs::write(
+        tmp.path().join("specs/002-gamma/diagram.png"),
+        [0x89u8, 0x50],
+    )
+    .unwrap();
+    let err = compact(&cfg(), tmp.path(), &plan()).unwrap_err();
+    assert_eq!(err.exit_code(), 3, "{err}");
+    let msg = format!("{err}");
+    assert!(
+        msg.contains("diagram.png") && msg.contains("002-gamma"),
+        "{msg}"
+    );
+}
+
 // ── form 3: the bare short id ────────────────────────────────────────────────
 
 /// §1.1 defect 2: a bare short id in a command carries no slug and no `spec`
