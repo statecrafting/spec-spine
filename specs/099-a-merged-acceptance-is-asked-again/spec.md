@@ -1,7 +1,7 @@
 ---
 id: "099-a-merged-acceptance-is-asked-again"
 title: "A merged acceptance is asked again"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-21"
 summary: >

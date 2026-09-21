@@ -71,10 +71,10 @@
       "Verification"
     ],
     "specPath": "specs/099-a-merged-acceptance-is-asked-again/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`verify` is outside the gate chain because it executes what a spec declares and a pull request is a stranger's code. Spec 089 built the sweep that re-asks the corpus's acceptance and made it maintainer-invoked, which leaves the window it was built to close open between runs: spec 092's block was red on `main` from #277 until #278 with every required check green, and no light turned. This spec runs the sweep where the trust boundary already allows it, on the default branch after a merge and nightly, scoped after a merge to the specs that own a changed path. It amends spec 089's \"never CI\" to \"never on untrusted input\", which is the rule that clause was written to hold.\n",
     "title": "A merged acceptance is asked again"
   },
-  "shardHash": "96151e932a3e70d0036306288b14c204cf8a61fd8c4a9ec45d123d58e75d7b71",
+  "shardHash": "eaf5a8eecdc9aa4bb444a37902ba989eb3d316903af99e81bf2e61df51a91103",
   "specVersion": "1.3.0"
 }
