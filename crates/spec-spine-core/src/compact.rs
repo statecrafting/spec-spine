@@ -1407,6 +1407,9 @@ fn retire_file(
         // subject nor anything a reader could have predicted, and sparing it
         // under the first entry's clause reports a reason that was never true.
         let present: Vec<bool> = entries.iter().map(|e| names_path(line, &e.path)).collect();
+        // Reads `line`, like `present` does. The two were equal here and the
+        // comment claimed the source line, so a later reordering could have
+        // broken D-22 without touching a word of it.
         let own: Vec<Option<SkipClause>> = entries
             .iter()
             .map(|e| {
@@ -1415,7 +1418,7 @@ fn retire_file(
                 // occurrence produced a spurious skip record. Worse, that record
                 // made §3.7 treat the whole line as accounted for, so a real
                 // unaccounted occurrence beside it went unreported.
-                if !names_path(current.as_str(), &e.path) {
+                if !names_path(line, &e.path) {
                     None
                 } else if e.historical_files.iter().any(|f| f == rel) {
                     Some(SkipClause::HistoricalFile)
@@ -1504,7 +1507,7 @@ fn apply_forms(line: &str, e: &RetireEntry) -> String {
     }
     if let Some(Some(text)) = e.forms.get("citation") {
         s = s.replace(&format!("`{}`", e.path), text);
-        s = replace_bare(&s, &e.path, text);
+        s = replace_path_in(&s, &e.path, text, PathContext::Prose);
     }
     if let Some(Some(text)) = e.forms.get("path") {
         // Through the one replacement function, like every other form (D-19).
@@ -1572,28 +1575,6 @@ fn replace_path_in(line: &str, path: &str, to: &str, ctx: PathContext) -> String
         from = at + path.len();
     }
     out.push_str(&line[cursor..]);
-    out
-}
-
-/// A bare occurrence, bounded by whitespace or by sentence punctuation, and
-/// never a substring of a longer path (§3.2 form 2).
-fn replace_bare(line: &str, path: &str, text: &str) -> String {
-    let mut out = String::with_capacity(line.len());
-    let mut rest = line;
-    while let Some(at) = rest.find(path) {
-        // A path character before the match means this is a DIFFERENT path:
-        // `kit/rules/one.md` and `_rules/one.md` are not the retired one.
-        let ok = occurs_as_path(rest.as_bytes(), at, path.len(), PathContext::Prose);
-        let after = at + path.len();
-        out.push_str(&rest[..at]);
-        if ok {
-            out.push_str(text);
-        } else {
-            out.push_str(path);
-        }
-        rest = &rest[after..];
-    }
-    out.push_str(rest);
     out
 }
 

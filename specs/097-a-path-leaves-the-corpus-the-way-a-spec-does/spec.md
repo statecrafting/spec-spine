@@ -457,6 +457,23 @@ standing, and returning early stranded a citation sharing it for §3.7 to refuse
 on a corpus the rules could repair. Same shape as D-23: the tool refusing
 something it was capable of handling.
 
+D-28 (2026-09-21, the convergence is literal: one replacement function). The
+prose replacer walked a shrinking slice and passed a RELATIVE offset, so a match
+beginning exactly where the previous one ended took `occurs_as_path`'s `at == 0`
+short-circuit and never read its real left neighbour. It was
+`replace_path_in` with that bug, so it is deleted rather than repaired: D-16
+said every reader goes through one function, and a second copy of a function is
+a reader.
+
+The test for it was written three times, and each earlier version asserted
+nothing. `git stash` removed the test along with the fix, so the filter matched
+no tests and reported a pass. The second fixture put a separator between the two
+occurrences, so the walk never reached offset zero. The third had only invalid
+occurrences, so the line was rejected before the replacer ran and the test
+passed identically with and without the bug, hidden behind an `is_empty() ||`
+clause. A test that cannot fail is the failure mode this corpus has met most
+often; it is worth the three attempts to know which one it is.
+
 ## Verification
 
 Each line is one command, run independently.

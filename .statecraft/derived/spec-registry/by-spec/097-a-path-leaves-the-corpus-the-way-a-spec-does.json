@@ -92,6 +92,6 @@
     "summary": "Spec 096 mechanizes one retirement: a spec id leaving the corpus. On 2026-09-20 a different one was done by hand, `.claude/rules/` leaving this repository for a section of `AGENTS.md`, and it touched 81 references in 46 files, three frontmatter units, one hashed-input glob, one hook path pattern, six acceptance lines, three Rust tests and 122 derived shards. None of that is reachable by `compact`: its three reference forms are all spelled `NNN-slug`, and a path is spelled six other ways. This spec adds the second half of the same verb, a `retire` plan naming paths rather than specs, with the reference grammar a path actually has and, more importantly, the exclusions: eleven of those 81 occurrences had to survive, because a sentence recording that a path USED to exist is not a citation of it.\n",
     "title": "A path leaves the corpus the way a spec does"
   },
-  "shardHash": "731e02f76a235249c9d5ec223ed058176297c9dc49bcb8d393948d9587b0b283",
+  "shardHash": "5f0acb25488b1e5943f666f3ddcf785631a4c50e530bc2e0a190124e253fca70",
   "specVersion": "1.3.0"
 }

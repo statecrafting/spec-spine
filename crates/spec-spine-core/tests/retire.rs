@@ -1128,6 +1128,34 @@ fn a_glob_replacement_does_not_strand_a_citation_on_the_same_line() {
     );
 }
 
+/// §3.2: the left boundary is read against the ORIGINAL line. The prose
+/// replacer walked a shrinking slice and passed a relative offset, so a match
+/// starting exactly where the previous one ended took the `at == 0`
+/// short-circuit and skipped the boundary test entirely.
+#[test]
+fn a_second_occurrence_abutting_the_first_still_reads_its_left_boundary() {
+    // One valid occurrence, so the line is processed at all, then an ADJACENT
+    // pair. The first of the pair is refused on its right boundary (a letter
+    // follows) and the walk resumes exactly at the second, which therefore
+    // begins at offset 0 of the remaining slice. Its real left neighbour is
+    // `d`, a path character, so it is part of a longer token and must not be
+    // replaced either.
+    let tmp = fixture("See rules/one.md and rules/one.mdrules/one.md here.\n");
+    let c = compact(&cfg(), tmp.path(), &plan_with(retire_rules())).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/note.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    // The genuine citation is rewritten; the adjacent pair is left whole.
+    assert!(out.contains("`AGENTS.md` \"Rules\" and"), "{out:?}");
+    assert!(
+        out.contains("rules/one.mdrules/one.md"),
+        "an abutting occurrence was rewritten: {out:?}"
+    );
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]
