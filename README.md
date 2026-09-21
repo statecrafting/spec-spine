@@ -1,4 +1,4 @@
-# [spec-spine](https://statecrafting.github.io/spec-spine/) [![CI](https://github.com/statecrafting/spec-spine/actions/workflows/ci.yml/badge.svg)](https://github.com/statecrafting/spec-spine/actions/workflows/ci.yml)
+# spec-spine [![CI](https://github.com/statecrafting/spec-spine/actions/workflows/ci.yml/badge.svg)](https://github.com/statecrafting/spec-spine/actions/workflows/ci.yml)
 ![Spec Spine Intent Evolution](.github/img/spec-spine-github-banner.jpg)
 
 **A typed, hash-verifiable authority ledger over a markdown spec corpus.**

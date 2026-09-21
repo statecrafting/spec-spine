@@ -265,7 +265,7 @@ rather than as a list to triage.
 ### 3.7 Documentation
 
 The window and the recognizer MUST be stated in
-`website/docs/cli/index.md`, where the comment-header claim is already
+`docs/adoption-guide.md`, where the comment-header claim is already
 described for adopters. `CLAUDE.md` already states the window and needs no
 edit.
 
@@ -374,7 +374,7 @@ grep -qE 'COMMENT_HEADER_(CLAIM_)?WINDOW' crates/spec-spine-core/src/index.rs
 # 3.4: the report DTO carries the member.
 grep -qE 'near_miss' crates/spec-spine-types/src/coverage.rs
 # 3.7: the adopter documentation states the bound.
-grep -qE '16 lines|first 16' website/docs/cli/index.md
+grep -qE '16 lines|first 16' docs/adoption-guide.md
 # 3.3, 3.4: the report parses and this corpus shows no near miss (3.6).
 target/release/spec-spine index coverage --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d.get("nearMissHeaders", []) == [], d["nearMissHeaders"]'
 # 3.5: the untraced verdict is unchanged on this corpus.

@@ -111,6 +111,10 @@ amends:
   - "067-a-short-id-names-the-same-spec-at-every-verb"
   - "068-a-verifier-checks-the-bytes-it-was-given"
   - "070-an-authority-snapshot-says-what-it-read"
+  # 3.14: each asserted a sentence in the documentation site this spec removes.
+  # The sentence moved rather than went, so the correction is a path.
+  - "075-a-claim-below-the-header-window-is-not-silent"
+  - "077-one-hash-one-construction-one-name"
   - "083-an-amendment-carries-the-acceptance-it-replaces"
   - "089-nothing-reruns-a-merged-acceptance"
 # 3.12: the acceptance this spec replaces, derived from the sweep of the
@@ -574,6 +578,35 @@ the retained `.claude/settings.json` PR gate still asks a question blind to a
 staged shard and to an untracked one. It is not fixed here because this spec's
 subject is the boundary, and a hook whose owner is about to change is not the
 place to land a behavior change. 4 records it.
+
+### 3.14 The documentation site goes with the environment
+
+`website/` is a Docusaurus site of 43 tracked files, built and published by
+`.github/workflows/deploy-docs.yml`. It ships in no released artifact: the
+crate, the npm shim and the wheel carry none of it, which is why its lockfile
+was unmonitored until an advisory turned up in it.
+
+It is documentation of the product for the people adopting the product, and
+after §1.2 that audience arrives through Statecraft. `website/`, its deploy
+workflow, its Dependabot group and its ignore rules MUST be removed, and the
+documentation MUST live with the CLI or the platform that now presents the
+product. This repository keeps `docs/`, which is documentation **of the
+engine** for the people working on it.
+
+Two facts the site documented and the repository did not MUST move before it
+goes, because removing a document is not a licence to lose what it said:
+
+| Fact | Was | Now |
+|---|---|---|
+| the comment-header claim window, and its per-line grammar | `website/docs/cli/index.md` | `docs/adoption-guide.md` |
+| the `contentHash` path framing (`path` NUL `bytes`) | `website/docs/cli/registry.md` | `docs/api.md`, which already stated it |
+
+Two acceptance blocks asserted those sentences and are corrected in place to
+read the surviving document, which is §3.12's "only a path spelling changed"
+case: specs 075 and 077. Nothing about what either requires changes, and the
+assertion is as strong as it was, over a file this repository still has.
+
+The README MUST stop linking a site that is not published.
 
 ## 4. Out of scope
 

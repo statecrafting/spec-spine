@@ -13,6 +13,8 @@
       "067-a-short-id-names-the-same-spec-at-every-verb",
       "068-a-verifier-checks-the-bytes-it-was-given",
       "070-an-authority-snapshot-says-what-it-read",
+      "075-a-claim-below-the-header-window-is-not-silent",
+      "077-one-hash-one-construction-one-name",
       "083-an-amendment-carries-the-acceptance-it-replaces",
       "089-nothing-reruns-a-merged-acceptance"
     ],
@@ -570,5 +572,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f080f9fad6c110547b763b0c0644b3f1b5686b5b630a719e74ef821365a2a2ef"
+  "shardHash": "e682f3491f8b8dfa8a52d401a601c6737adf67e67f9857ffa716b325ad0083f8"
 }

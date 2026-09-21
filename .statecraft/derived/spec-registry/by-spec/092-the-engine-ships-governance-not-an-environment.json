@@ -13,6 +13,8 @@
       "067-a-short-id-names-the-same-spec-at-every-verb",
       "068-a-verifier-checks-the-bytes-it-was-given",
       "070-an-authority-snapshot-says-what-it-read",
+      "075-a-claim-below-the-header-window-is-not-silent",
+      "077-one-hash-one-construction-one-name",
       "083-an-amendment-carries-the-acceptance-it-replaces",
       "089-nothing-reruns-a-merged-acceptance"
     ],
@@ -320,6 +322,7 @@
       "3.11.1 What the coupling gate says about the removal, measured",
       "3.12 Acceptance replacement",
       "3.13 The unmerged spec 117 proposal is withdrawn",
+      "3.14 The documentation site goes with the environment",
       "4. Out of scope",
       "5. Resolved decisions",
       "Verification"
@@ -329,6 +332,6 @@
     "summary": "spec-spine has been shipping two products. One is a governance engine: a compiler, an indexer, a classifier, a coupling gate, a verifier. The other is a development environment: twenty-nine files of skills, agents, rules, hooks, a Makefile and a CI workflow, embedded into the binary as a 2,707-line generated module and written out by a public `init --with-kit`, plus two further generated projections of the same instructions for other agent runtimes. The second product is now Statecraft's: the Statecraft CLI is the sole distributor and initializer of the managed development environment, and it places the compiled governance artifacts at `.statecraft/derived/`. This spec removes the public initialization command, the kit, the embedded kit, the agent-tree projections and the parity machinery that held them equal; narrows the retained library scaffold to governance starter content and nothing else; relocates this repository's own committed derived trees; and records, per predecessor, what the removal does to the claims and the acceptance those specs left behind.\n",
     "title": "The engine ships governance, not an environment"
   },
-  "shardHash": "2bc070e63aba6f2b7ee6f233e7a348b9f6e0796f7142606948ac9f70326d956c",
+  "shardHash": "fb3147edc2d17110a9babcf8a7396a1b408dd0ed550a0b167b3f15e700207a4a",
   "specVersion": "1.3.0"
 }

@@ -132,6 +132,16 @@ spec = "001-my-capability"
 // Spec: specs/001-my-capability/spec.md
 ```
 
+A comment header claims the file it sits in, and only when it is in the **first
+16 lines** of that file. For each of those lines, in order: leading whitespace
+is trimmed; at most one leading `//` or `#` is stripped (the marker is
+optional); the rest must begin with `Spec:`; and after every trailing
+`/spec.md` is removed, the final `/`-separated segment of the reference must be
+the id of a spec in the corpus. So `// Spec: specs/042-x/spec.md`,
+`# Spec: specs/042-x/spec.md` (for `.py` and `.sh`) and `// Spec: 042-x` all
+claim for `042-x`. A header below the window is reported as a near miss by
+`index coverage` rather than silently ignored.
+
 The third direction, **spec edges**, is the `unit:` declarations inside each
 spec's frontmatter (`establishes` / `extends` / `refines` / `supersedes` /
 `amends` / `co_authority` / `constrains` / `references`; `references` is the

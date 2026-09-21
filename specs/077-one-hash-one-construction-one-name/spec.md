@@ -170,7 +170,7 @@ the wrong explanation.
 
 ### 3.5 Documentation
 
-`website/docs/cli/registry.md`, the adopter-facing reference for
+`docs/api.md`, the adopter-facing reference for
 `registry show`, MUST state the construction beside the field. `docs/api.md`
 MUST name `specSourceHash` as the unframed digest and the verb that reports it,
 so the two names are distinguishable from the document a binding author reads.
@@ -250,7 +250,7 @@ the assertions in §3.4 do not exist at the parent commit.
 target/release/spec-spine registry show 077 --json | python3 -c 'import json,sys,hashlib; p="specs/077-one-hash-one-construction-one-name/spec.md"; b=open(p,"rb").read().replace(b"\r\n",b"\n").replace(b"\r",b"\n").lstrip(b"\xef\xbb\xbf"); d=json.load(sys.stdin)["contentHash"]; assert d==hashlib.sha256(p.encode()+b"\x00"+b).hexdigest(), d; assert d!=hashlib.sha256(b).hexdigest()'
 # 3.5: the construction is documented where the field is, for both names.
 grep -qF 'specSourceHash' docs/api.md
-grep -qE 'NUL|0x00|path-framed' website/docs/cli/registry.md
+grep -qE 'NUL|0x00|path-framed' docs/api.md
 # 3.2: the prose form names the framing rather than the file's bytes.
 target/release/spec-spine registry show 077 | grep -i contentHash | grep -qvF 'sha256 of this spec.md'
 target/release/spec-spine registry show 077 | grep -i contentHash | grep -qE 'path|framed|NUL'
