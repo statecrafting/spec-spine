@@ -13,8 +13,13 @@
 # sweep a maintainer runs, not a gate step") and left naming its home as its
 # own work. This is that home.
 #
-#   WHO RUNS IT   a maintainer, by hand. Never CI, never a driven session's
-#                 gate, never a hook. It executes what the corpus declares.
+#   WHO RUNS IT   a maintainer by hand, and since spec 099 the acceptance
+#                 workflow: on the default branch after a merge, and nightly.
+#                 Never a pull request, never a driven session's gate, never a
+#                 hook. It executes what the corpus declares, so it runs only
+#                 against a revision already merged into the trusted ref, and
+#                 spec 099 3.1 keeps it off every event that could carry one
+#                 that is not.
 #   WHEN          before cutting a release, and after merging any spec that
 #                 carries `amends` or `amends_verification` (the crossing that
 #                 silently staled the five blocks 106-110 repaired).

@@ -1,0 +1,80 @@
+{
+  "record": {
+    "amends": [
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "created": "2026-09-21",
+    "dependsOn": [
+      "043-verify-declared-acceptance",
+      "089-nothing-reruns-a-merged-acceptance",
+      "094-one-gate-and-the-boundaries-it-holds"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": ".github/workflows/acceptance.yml"
+      },
+      {
+        "kind": "file",
+        "path": "scripts/acceptance-scope.sh"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "089-nothing-reruns-a-merged-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      }
+    ],
+    "id": "099-a-merged-acceptance-is-asked-again",
+    "implementation": "complete",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "099: A merged acceptance is asked again",
+      "1. Purpose",
+      "1.1 The window spec 089 left open",
+      "1.2 The boundary the \"never CI\" clause was protecting",
+      "1.3 Why this spec is its own witness",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Where it runs, and where it MUST NOT",
+      "3.2 The scope after a merge",
+      "3.3 The nightly leg sweeps the whole corpus",
+      "3.4 The decision about the token",
+      "3.5 The trusted ref is named, not inherited",
+      "3.6 Spec 089's acceptance line, corrected in place",
+      "3.7 What it does not do",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/099-a-merged-acceptance-is-asked-again/spec.md",
+    "status": "draft",
+    "summary": "`verify` is outside the gate chain because it executes what a spec declares and a pull request is a stranger's code. Spec 089 built the sweep that re-asks the corpus's acceptance and made it maintainer-invoked, which leaves the window it was built to close open between runs: spec 092's block was red on `main` from #277 until #278 with every required check green, and no light turned. This spec runs the sweep where the trust boundary already allows it, on the default branch after a merge and nightly, scoped after a merge to the specs that own a changed path. It amends spec 089's \"never CI\" to \"never on untrusted input\", which is the rule that clause was written to hold.\n",
+    "title": "A merged acceptance is asked again"
+  },
+  "shardHash": "96151e932a3e70d0036306288b14c204cf8a61fd8c4a9ec45d123d58e75d7b71",
+  "specVersion": "1.3.0"
+}

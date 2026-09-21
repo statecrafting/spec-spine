@@ -1840,3 +1840,136 @@ fn the_enabler_registers_the_hooks_path_and_says_how_to_undo_it() {
     assert!(sh.contains("git config core.hooksPath"), "{sh}");
     assert!(sh.contains("--unset core.hooksPath"), "{sh}");
 }
+
+// ── spec 099: the acceptance workflow, and the two boundaries it holds ───────
+
+/// The triggers `.github/workflows/acceptance.yml` declares. `on` is a plain
+/// string key under YAML 1.2, and a boolean under 1.1; both are read, and the
+/// lookup failing is a failure rather than an empty set, because a test that
+/// reads no triggers would pass on a workflow that declares any.
+fn acceptance_triggers() -> BTreeSet<String> {
+    let doc: serde_yaml::Value = serde_yaml::from_str(&read(".github/workflows/acceptance.yml"))
+        .unwrap_or_else(|e| panic!("acceptance.yml parses as YAML: {e}"));
+    let on = doc
+        .get("on")
+        .or_else(|| doc.get(serde_yaml::Value::Bool(true)))
+        .unwrap_or_else(|| panic!("acceptance.yml declares no triggers at all"));
+    let map = on
+        .as_mapping()
+        .unwrap_or_else(|| panic!("acceptance.yml's triggers are not a mapping: {on:?}"));
+    map.keys()
+        .filter_map(|k| k.as_str().map(str::to_string))
+        .collect()
+}
+
+/// §3.1: the sweep executes what every spec declares, so the workflow that runs
+/// it must never be reachable from a pull request. This is the first of the two
+/// halves; it is about what the workflow can READ.
+#[test]
+fn the_acceptance_workflow_is_reachable_from_no_pull_request() {
+    let triggers = acceptance_triggers();
+    assert!(
+        !triggers.is_empty(),
+        "no triggers parsed, so this asserts nothing"
+    );
+    for forbidden in ["pull_request", "pull_request_target", "merge_group"] {
+        assert!(
+            !triggers.contains(forbidden),
+            "acceptance.yml must not run on '{forbidden}' (spec 099 §3.1): {triggers:?}"
+        );
+    }
+    assert_eq!(
+        triggers,
+        ["push", "schedule", "workflow_dispatch"]
+            .iter()
+            .map(|s| (*s).to_string())
+            .collect::<BTreeSet<String>>(),
+        "spec 099 §3.1 fixes the trigger set"
+    );
+}
+
+/// §3.1, the second half: it must never be able to BLOCK a pull request. The
+/// single required check aggregates the jobs of `ci.yml` (spec 094), so a
+/// separate workflow is outside it by construction; what could undo that is
+/// `ci.yml` growing a reference to it.
+#[test]
+fn the_acceptance_workflow_is_outside_the_required_check() {
+    let ci = read(".github/workflows/ci.yml");
+    assert!(
+        !ci.contains("acceptance"),
+        "ci.yml names the acceptance workflow, which would fold it into ci-gate (spec 099 §3.1)"
+    );
+}
+
+/// §3.4: the decision about the token, stated as a requirement so that adding
+/// a secret is a change to a spec and not a line in a YAML file.
+#[test]
+fn the_acceptance_workflow_carries_a_read_only_token_and_no_secret() {
+    let wf = read(".github/workflows/acceptance.yml");
+    let doc: serde_yaml::Value = serde_yaml::from_str(&wf).unwrap();
+    let perms = doc
+        .get("permissions")
+        .and_then(|p| p.as_mapping())
+        .unwrap_or_else(|| panic!("acceptance.yml declares no workflow-level permissions"));
+    assert_eq!(perms.len(), 1, "exactly one permission: {perms:?}");
+    assert_eq!(
+        perms.get(serde_yaml::Value::String("contents".into())),
+        Some(&serde_yaml::Value::String("read".into())),
+        "spec 099 §3.4: contents: read and nothing else"
+    );
+    // Comment lines are skipped, exactly as `invocations` skips them: this
+    // workflow explains at length why it has no secret, and prose naming one is
+    // not a declaration of it. The first draft of this assertion read the
+    // sentence above and failed on it.
+    assert!(
+        !wf.lines()
+            .map(str::trim)
+            .filter(|l| !l.starts_with('#'))
+            .any(|l| l.starts_with("secrets:") || l.contains("secrets.")),
+        "spec 099 §3.4: the sweep is given no secret"
+    );
+}
+
+/// §3.2 and §3.5: the workflow calls the definitions rather than restating
+/// them, and names the trusted ref rather than inheriting whatever a CI
+/// checkout left behind.
+#[test]
+fn the_acceptance_workflow_calls_the_scripts_and_names_the_trusted_ref() {
+    let wf = read(".github/workflows/acceptance.yml");
+    assert!(
+        wf.contains("scripts/acceptance-scope.sh"),
+        "spec 099 §3.2: the scope comes from the script"
+    );
+    assert!(
+        wf.contains("scripts/verify-sweep.sh"),
+        "spec 099 §3.1: the sweep is spec 089's, called not reimplemented"
+    );
+    assert!(
+        wf.contains("--trusted-ref origin/main"),
+        "spec 099 §3.5: the trusted ref is named"
+    );
+    // D-4: the step's status is the sweep's. A run block whose last command is
+    // an `echo` reports a red sweep as a green job, which is what the first
+    // draft of this workflow did.
+    assert!(
+        wf.contains("exit $rc"),
+        "spec 099 D-4: the sweep's exit code must be the step's"
+    );
+}
+
+/// §3.7: the instrument reports; it does not repair.
+#[test]
+fn the_acceptance_workflow_writes_nothing_back() {
+    let wf = read(".github/workflows/acceptance.yml");
+    let body: Vec<&str> = wf
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.starts_with('#'))
+        .collect();
+    for forbidden in ["git push", "git commit", "gh pr create", "gh issue create"] {
+        assert!(
+            !body.iter().any(|l| l.contains(forbidden)),
+            "spec 099 §3.7: the workflow must not '{forbidden}'"
+        );
+    }
+}
