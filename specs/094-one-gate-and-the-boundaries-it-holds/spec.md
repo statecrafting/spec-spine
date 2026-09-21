@@ -318,6 +318,18 @@ draws the line at the actor. A pre-commit hook and a merge driver are run by
 whoever commits and whoever merges, not by a session reading instructions, and
 both exist to enforce the same chain this spec defines.
 
+D-4 (2026-09-20, an assertion over a message does not read the path inside it).
+The hook messages interpolate the repository they judged, and the PR gate's
+exit-3 assertion is that the word `stale` is **absent**. The sweep names its
+per-spec temporary directory after the spec id, and this corpus holds
+`...-is-not-a-stale-shard`, so the word arrived in the path and the assertion
+failed for a reason that has nothing to do with the hook. It passed everywhere
+else, which is the whole character of the defect: an absence assertion over a
+string the test only partly chooses is green until the part it does not choose
+changes. The path is replaced by a token before the message is returned, so what
+is asserted is what the hook wrote. The same shape is worth watching wherever a
+test asserts that something is missing from output it did not fully author.
+
 D-3 (2026-09-20, the workflow's two legs are asserted over parsed steps). Spec
 094 D-1 and D-17 are carried forward whole: a text-level count of `make gate`
 passes against a file whose header comment claims one definition while the

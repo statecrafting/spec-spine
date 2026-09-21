@@ -673,10 +673,18 @@ fn run_pr_gate_with_stand_in_help(check_exit: i32, help_exit: i32, version: &str
         .write_all(payload.as_bytes())
         .expect("payload written");
     let out = child.wait_with_output().expect("hook exits");
-    (
-        out.status.code().unwrap_or(-1),
-        String::from_utf8_lossy(&out.stderr).into_owned(),
-    )
+    // Spec 094 D-4: the message carries the repository path twice, and an
+    // assertion that a word is ABSENT from the message must not be reading a
+    // path the test did not choose. The sweep names its per-spec temporary
+    // directory after the spec id, and one of this corpus's ids is
+    // `...-is-not-a-stale-shard`, which put the word `stale` into the path and
+    // made the "an old binary is not a stale tree" assertion fail for a reason
+    // that has nothing to do with the hook. The path is replaced by a token
+    // before the message is returned, so what is asserted is what the hook
+    // wrote.
+    let err =
+        String::from_utf8_lossy(&out.stderr).replace(&root.to_string_lossy().to_string(), "<repo>");
+    (out.status.code().unwrap_or(-1), err)
 }
 
 /// Spec 093 3.1 and 3.2: exit 3 is a read that was not performed. The gate
