@@ -1434,11 +1434,21 @@ fn retire_file(
     let mut rewrites = Vec::new();
     let mut skipped = Vec::new();
     let mut leftover = Vec::new();
-    let mut heading = String::new();
+    // The heading STACK, not the last heading seen. A sub-heading replaced its
+    // parent, so `historical_sections: ["History"]` stopped matching the moment
+    // a `###` appeared under `## History`, and the occurrences below it were
+    // refused as unaccounted for. A section contains everything nested in it.
+    let mut headings: Vec<(usize, String)> = Vec::new();
 
     for (n, line) in src.split_inclusive('\n').enumerate() {
-        if line.trim_start().starts_with('#') && line.contains(' ') {
-            heading = line.trim().trim_start_matches('#').trim().to_string();
+        let trimmed_line = line.trim_start();
+        if trimmed_line.starts_with('#') && line.contains(' ') {
+            let level = trimmed_line.chars().take_while(|c| *c == '#').count();
+            headings.retain(|(l, _)| *l < level);
+            headings.push((
+                level,
+                trimmed_line.trim_start_matches('#').trim().to_string(),
+            ));
         }
         let mut current = line.to_string();
         // Each entry's own clause is decided first, so a line spared by one
@@ -1457,20 +1467,21 @@ fn retire_file(
         // broken D-22 without touching a word of it.
         let own: Vec<Option<SkipClause>> = entries
             .iter()
-            .map(|e| {
+            .enumerate()
+            .map(|(i, e)| {
                 // `names_path`, not `contains`: `! test -e kit/rules/one.md`
                 // contains `rules/one.md` as a substring, and reading it as an
                 // occurrence produced a spurious skip record. Worse, that record
                 // made §3.7 treat the whole line as accounted for, so a real
                 // unaccounted occurrence beside it went unreported.
-                if !names_path(line, &e.path) {
+                if !present[i] {
                     None
                 } else if e.historical_files.iter().any(|f| f == rel) {
                     Some(SkipClause::HistoricalFile)
                 } else if e
                     .historical_sections
                     .iter()
-                    .any(|h| heading.contains(h.as_str()))
+                    .any(|h| headings.iter().any(|(_, head)| head.contains(h.as_str())))
                 {
                     Some(SkipClause::HistoricalSection)
                 } else if NEGATIONS.iter().any(|m| current.contains(m)) {
@@ -1545,15 +1556,24 @@ fn apply_forms(line: &str, e: &RetireEntry) -> String {
     // A glob: the path followed by a wildcard segment. A deletion takes the
     // whole line, because a pattern matching nothing reads like a claim being
     // hashed and hashes nothing.
-    if let Some(rule) = e.forms.get("glob")
-        && let Some(at) = glob_at(line, &e.path)
-    {
-        match rule {
-            None => return String::new(),
-            // A replacement does not take the line: it can carry a glob AND a
-            // citation of the same path, and returning here left the citation
-            // behind for §3.7 to refuse, on a corpus the rules could repair.
-            Some(text) => spans.push((at, at + e.path.len(), text.clone())),
+    if let Some(rule) = e.forms.get("glob") {
+        // EVERY glob occurrence on the line. One array can carry the same
+        // pattern twice, and rewriting only the first left the second for §3.7
+        // to refuse, on a corpus the rules could repair. This was the last
+        // reader still answering "the first one" where the others answer "all
+        // of them".
+        let globs = glob_spans(line, &e.path);
+        if !globs.is_empty() {
+            match rule {
+                None => return String::new(),
+                // A replacement does not take the line: it can carry a glob AND
+                // a citation of the same path.
+                Some(text) => spans.extend(
+                    globs
+                        .into_iter()
+                        .map(|at| (at, at + e.path.len(), text.clone())),
+                ),
+            }
         }
     }
     if let Some(Some(text)) = e.forms.get("citation") {
@@ -1615,30 +1635,34 @@ fn apply_spans(line: &str, mut spans: Vec<(usize, usize, String)>) -> String {
     out
 }
 
-/// Where `path` opens a glob in `line`, if it does.
+/// Every position at which `path` opens a glob in `line`.
 ///
 /// Boundary-aware, like every other reader (D-16): a raw `contains` matched
 /// `rules/*` inside `extra-rules/*.md`, and because the glob branch returns
 /// early the citation rule that would have handled the line correctly was never
 /// reached. This was the one reader the convergence missed.
-fn glob_at(line: &str, path: &str) -> Option<usize> {
+fn glob_spans(line: &str, path: &str) -> Vec<usize> {
     let trimmed = path.trim_end_matches('/');
     let mut patterns = vec![format!("{path}*")];
     let slashed = format!("{trimmed}/*");
     if slashed != patterns[0] {
         patterns.push(slashed);
     }
+    let mut out = Vec::new();
     for pattern in patterns {
         let mut from = 0usize;
         while let Some(rel) = line[from..].find(&pattern) {
             let at = from + rel;
-            if occurs_as_path(line.as_bytes(), at, path.len(), PathContext::Value) {
-                return Some(at);
+            if occurs_as_path(line.as_bytes(), at, path.len(), PathContext::Value)
+                && !out.contains(&at)
+            {
+                out.push(at);
             }
             from = at + pattern.len();
         }
     }
-    None
+    out.sort_unstable();
+    out
 }
 
 /// Replace every occurrence of `path` that `ctx` recognises, and no others.

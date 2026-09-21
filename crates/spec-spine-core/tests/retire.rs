@@ -1384,6 +1384,76 @@ fn an_entry_with_no_clause_of_its_own_takes_the_lines() {
     );
 }
 
+/// §3.5: a section contains everything nested in it. Tracking only the last
+/// heading seen meant a sub-heading replaced its parent, so a keyword naming the
+/// parent stopped matching the moment a deeper heading appeared and the
+/// occurrences below it were refused as unaccounted for.
+#[test]
+fn a_historical_section_covers_its_sub_headings() {
+    let tmp = fixture(
+        "## History\n\n### Prior paths\n\n`rules/one.md` was removed here.\n\n## Live\n\nSee `rules/one.md`.\n",
+    );
+    let mut e = retire_rules();
+    e.historical_sections = vec!["History".into()];
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    assert!(
+        c.skipped
+            .iter()
+            .any(|s| s.rel_path == "docs/note.md" && s.clause == SkipClause::HistoricalSection),
+        "the nested occurrence is spared: {:?}",
+        c.skipped
+    );
+    assert!(
+        c.leftover.iter().all(|l| l.rel_path != "docs/note.md"),
+        "a nested occurrence was refused: {:?}",
+        c.leftover
+    );
+    // And the section ENDS: the occurrence under `## Live` is rewritten.
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/note.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(out.contains("See `AGENTS.md` \"Rules\"."), "{out}");
+}
+
+/// Every glob occurrence on a line is replaced. One array can carry the same
+/// pattern twice, and rewriting only the first left the second for §3.7 to
+/// refuse, on a corpus the rules could repair.
+#[test]
+fn every_glob_occurrence_on_a_line_is_replaced() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "docs/list.toml",
+        "patterns = [\"rules/*.md\", \"rules/*.toml\"]\n",
+    );
+    let mut e = retire_rules();
+    e.path = "rules/".into();
+    e.kind = RetireKind::Directory;
+    e.forms = [
+        ("citation".to_string(), Some("`AGENTS.md`".to_string())),
+        ("glob".to_string(), Some("kept/".to_string())),
+    ]
+    .into_iter()
+    .collect();
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/list.toml")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(out.contains("kept/*.md"), "{out}");
+    assert!(out.contains("kept/*.toml"), "the second glob: {out}");
+    assert!(
+        c.leftover.iter().all(|l| l.rel_path != "docs/list.toml"),
+        "{:?}",
+        c.leftover
+    );
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]

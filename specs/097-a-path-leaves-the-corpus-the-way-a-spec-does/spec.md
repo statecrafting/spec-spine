@@ -521,6 +521,20 @@ the reverse, so today the sequential form happens to be safe by coincidence of
 the boundary rules rather than by construction. A property that holds by
 coincidence is one nobody can rely on while editing either rule.
 
+D-34 (2026-09-21, the glob reader answers "all of them"). Every other reader
+returns every occurrence; the glob returned the first. One array can carry the
+same pattern twice, so the second survived the rewrite and §3.7 refused a corpus
+the rules could repair. Named against a function this build had already deleted,
+and true of the one that replaced it: the finding was about the answer, not the
+function.
+
+D-35 (2026-09-21, a section contains what is nested in it). The tracker kept the
+last heading seen, so a sub-heading replaced its parent and
+`historical_sections: ["History"]` stopped matching the moment a `###` appeared
+under `## History`. Everything below it was refused. The tracker keeps the
+heading STACK, a keyword matches any ancestor, and the section still ends at the
+next sibling.
+
 ## Verification
 
 Each line is one command, run independently.
