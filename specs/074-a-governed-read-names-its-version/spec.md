@@ -496,10 +496,10 @@ corpus this repository is not, and `verify` runs against this tree; it lives in
 grep -qF 'READ_SCHEMA_VERSION' crates/spec-spine-types/src/version.rs
 # 3.2, 3.5: every object read is sorted and versioned.
 target/release/spec-spine registry plan --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
-target/release/spec-spine registry show 061 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
+target/release/spec-spine registry show 074 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine registry status-report --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine registry status-report --nonzero-only --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
-target/release/spec-spine registry relationships 061 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
+target/release/spec-spine registry relationships 074 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine index owner Cargo.toml --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine index coverage --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine index orphans --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'

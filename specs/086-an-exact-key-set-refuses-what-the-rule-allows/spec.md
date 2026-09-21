@@ -455,7 +455,7 @@ target/release/spec-spine compile --check
 # verb exits 1 and prints nothing, and a pipeline would report that as a JSON
 # decode error naming the wrong defect. The file is named for this spec, whose
 # mechanism it is, not for 059, whose acceptance the half above is (D-6).
-target/release/spec-spine registry show 069 --json > "${TMPDIR:-/tmp}/ss108-show.json"
+target/release/spec-spine registry show 086 --json > "${TMPDIR:-/tmp}/ss108-show.json"
 python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss108-show.json')); assert d['amendsVerification'] == ['052-read-verbs-on-a-code-free-corpus'], d; assert d['amends'] == ['052-read-verbs-on-a-code-free-corpus'], d"
 rm -f "${TMPDIR:-/tmp}/ss108-show.json"
 # Spec 052's file is not edited (spec 037 3.1): its own block still carries the

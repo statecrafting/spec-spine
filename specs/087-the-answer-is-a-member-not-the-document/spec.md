@@ -484,7 +484,7 @@ target/release/spec-spine compile --check
 # Redirected, not piped, for the reason D-5 gives: at the parent commit this
 # verb exits 1 and prints nothing. The file is named for this spec, whose
 # mechanism it is, not for 060, whose acceptance the half above is (3.2).
-target/release/spec-spine registry show 070 --json > "${TMPDIR:-/tmp}/ss109-show.json"
+target/release/spec-spine registry show 087 --json > "${TMPDIR:-/tmp}/ss109-show.json"
 python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss109-show.json')); assert d['amendsVerification'] == ['053-plan-answers-the-whole-question'], d; assert d['amends'] == ['053-plan-answers-the-whole-question'], d"
 rm -f "${TMPDIR:-/tmp}/ss109-show.json"
 # Spec 053's file is not edited (spec 037 3.1): its own block still carries the

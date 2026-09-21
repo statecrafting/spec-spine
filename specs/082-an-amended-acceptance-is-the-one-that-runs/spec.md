@@ -344,16 +344,16 @@ sh -c 'n=$(cargo test -p spec-spine-core --test verify --locked spec103_ 2>&1 | 
 cargo test -p spec-spine-core --test verify --locked spec103_
 cargo test -p spec-spine-cli --test cli --locked spec103_
 # 3.1: the compiled field is a governed read.
-target/release/spec-spine registry show 093 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["074-a-governed-read-names-its-version"], d'
+target/release/spec-spine registry show 082 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["074-a-governed-read-names-its-version"], d'
 # --- spec 074's acceptance, which this block now holds (3.5) ---
 # 3.4: the axis exists and starts where the note says.
 grep -qF 'READ_SCHEMA_VERSION' crates/spec-spine-types/src/version.rs
 # 3.2, 3.5: every object read is sorted and versioned.
 target/release/spec-spine registry plan --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
-target/release/spec-spine registry show 061 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
+target/release/spec-spine registry show 074 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine registry status-report --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine registry status-report --nonzero-only --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
-target/release/spec-spine registry relationships 061 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
+target/release/spec-spine registry relationships 074 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine index owner Cargo.toml --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine index coverage --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'
 target/release/spec-spine index orphans --json | python3 -c 'import json,sys; d=json.load(sys.stdin); k=list(d); assert k==sorted(k), k; assert d["schemaVersion"]'

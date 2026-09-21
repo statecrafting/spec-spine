@@ -314,12 +314,12 @@ cargo test -p spec-spine-types --test dtos --locked
 cargo test -p spec-spine-cli --locked
 # not-declared is an honest zero: 044 declares acceptance in prose only.
 target/release/spec-spine verify 041-in-progress-is-in-flight
-test "$(target/release/spec-spine verify 038 --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["report"]["outcome"])')" = "not-declared"
+test "$(target/release/spec-spine verify 041 --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["report"]["outcome"])')" = "not-declared"
 # The short id resolves, and the envelope names this verb (spec 034).
-test "$(target/release/spec-spine verify 038 --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["verb"])')" = "verify"
+test "$(target/release/spec-spine verify 041 --json | python3 -c 'import json,sys; print(json.load(sys.stdin)["verb"])')" = "verify"
 # A missing spec is 1 (not found), never 2 (stale).
 target/release/spec-spine verify 999-no-such-spec; test $? -eq 1
 # 3.7, demonstrated on this very block: re-entry is refused, so this line
 # terminates instead of forking without bound.
-target/release/spec-spine verify 040; test $? -eq 1
+target/release/spec-spine verify 043; test $? -eq 1
 ```

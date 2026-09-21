@@ -392,7 +392,7 @@ python3 -c "import json; a=json.load(open('${TMPDIR:-/tmp}/ss106/check.json')); 
 python3 -c "import json; r=json.load(open('${TMPDIR:-/tmp}/ss106/check.json'))['report']; assert sorted(r['diagnostics'])==['byCode','errors','warnings'], r"
 # --- spec 084's own mechanism (3.5) ---
 # The replacement is declared, read through the CLI rather than off the shard.
-target/release/spec-spine registry show 067 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["044-index-diagnostics-reach-a-gate"], d; assert d["amends"] == ["044-index-diagnostics-reach-a-gate"], d'
+target/release/spec-spine registry show 084 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["044-index-diagnostics-reach-a-gate"], d; assert d["amends"] == ["044-index-diagnostics-reach-a-gate"], d'
 # Spec 044's file is not edited (spec 037 3.1): its own block still carries all
 # three superseded assertion forms. These go red the moment someone resolves
 # this by editing 050 instead.

@@ -354,7 +354,7 @@ grep -q 'freshness. STALE' .claude/settings.json
 rm -rf "${TMPDIR:-/tmp}/ss098"
 # --- spec 083's own mechanism (3.5) ---
 # The replacement is declared, read through the CLI rather than off the shard.
-target/release/spec-spine registry show 066 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["079-a-blocking-claim-is-not-a-stale-shard"], d; assert d["amends"] == ["079-a-blocking-claim-is-not-a-stale-shard"], d'
+target/release/spec-spine registry show 083 --json | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["amendsVerification"] == ["079-a-blocking-claim-is-not-a-stale-shard"], d; assert d["amends"] == ["079-a-blocking-claim-is-not-a-stale-shard"], d'
 # Spec 079's file is not edited (spec 037 3.1): its own block still carries the
 # superseded form of the primitive-verb assertion, which is the half a reader
 # compares against. This goes red the moment someone edits 098 to make it pass.
