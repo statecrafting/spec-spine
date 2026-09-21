@@ -948,6 +948,14 @@ fn an_occurrence_another_entrys_replacement_created_is_not_spared() {
         "a synthetic occurrence was reported as spared: {:?}",
         c.skipped
     );
+    // Nor reported as unaccounted for. The first version of this test asserted
+    // only the two lines above, and the run would have exited 1 on a corpus it
+    // had handled exactly as the plan asked.
+    assert!(
+        c.leftover.iter().all(|l| l.rel_path != "docs/note.md"),
+        "a synthetic occurrence was reported as leftover: {:?}",
+        c.leftover
+    );
 }
 
 /// §3.2 and §3.7 have to agree about what an occurrence IS. A markdown link
@@ -1049,9 +1057,7 @@ fn a_glob_deletion_does_not_shift_a_later_skip_out_of_alignment() {
     // and this plan declares neither a `path` form nor a unit action for it, so
     // that IS an unaccounted occurrence and §3.7 is right to report it.
     assert!(
-        c.leftover
-            .iter()
-            .all(|l| l.rel_path != "docs/list.toml"),
+        c.leftover.iter().all(|l| l.rel_path != "docs/list.toml"),
         "a spared line was reported as unaccounted for: {:?}",
         c.leftover
     );

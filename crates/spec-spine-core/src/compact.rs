@@ -248,7 +248,7 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
         .collect();
     let mut removed_paths = Vec::new();
     let mut skipped: Vec<Skipped> = Vec::new();
-    let mut examined: Vec<(String, String)> = Vec::new();
+    let mut leftover: Vec<Leftover> = Vec::new();
 
     for rel in scannable_files(cfg, repo_root) {
         let Ok(contents) = std::fs::read_to_string(repo_root.join(&rel)) else {
@@ -283,19 +283,13 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
                 }
                 None => new_contents,
             };
-            let (after, retired, mut skips) = retire_file(&rel, &staged, &plan.retire);
+            let (after, retired, mut skips, mut lefts) = retire_file(&rel, &staged, &plan.retire);
             file_rewrites.extend(retired);
             skipped.append(&mut skips);
+            leftover.append(&mut lefts);
             after
         };
         let to = target_path(cfg, &rel, &map);
-        // Every file the rewrite READ, with its final contents. §3.7's leftover
-        // scan reads this rather than the emitted set: a file no rule touched is
-        // precisely where an unaccounted occurrence hides, and it is not in the
-        // emitted set at all.
-        if !plan.retire.is_empty() {
-            examined.push((rel.clone(), new_contents.clone()));
-        }
         if file_rewrites.is_empty() && to == rel {
             continue;
         }
@@ -315,7 +309,6 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
         });
     }
 
-    let leftover = unaccounted(&examined, &skipped, &plan.retire);
     let entries = map_entries(&map);
     let map_document = render_map(&entries);
     Ok(Compaction {
@@ -328,55 +321,6 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
         leftover,
         skipped,
     })
-}
-
-/// Every occurrence of a retired path still in the rewritten files that no skip
-/// clause accounts for (spec 097 §3.7).
-///
-/// A form the rules do not cover leaves the path in place, and the first build
-/// left it there in silence: the plan looked applied, the gate was green, and
-/// the corpus still named a path that was gone. Read from the OUTPUT, so it
-/// cannot be fooled by a rule that fired and then missed.
-fn unaccounted(
-    examined: &[(String, String)],
-    skipped: &[Skipped],
-    entries: &[RetireEntry],
-) -> Vec<Leftover> {
-    let mut out = Vec::new();
-    for (rel, contents) in examined {
-        for (n, line) in contents.split_inclusive('\n').enumerate() {
-            for e in entries {
-                // The same boundary test the rewrite uses. A raw `contains`
-                // read `kit/rules/one.md` as an unaccounted occurrence of
-                // `rules/one.md`, which the rewrite had correctly left alone,
-                // and refused the whole run over it.
-                if !names_path(line, &e.path) {
-                    continue;
-                }
-                // Matched on the line's TEXT, not its number. A glob deletion
-                // removes a line from the output, so every later skip record's
-                // source line number is ahead of the same line's position here,
-                // and a coordinate match reported a correctly spared occurrence
-                // as unaccounted for. A spared line is emitted unchanged, so
-                // its text is the same in both, and the report keeps source
-                // numbers, which is what a reader of the original file needs.
-                let text = line.trim_end();
-                let spared = skipped
-                    .iter()
-                    .any(|s| &s.rel_path == rel && s.path == e.path && s.text == text);
-                if spared {
-                    continue;
-                }
-                out.push(Leftover {
-                    rel_path: rel.clone(),
-                    line: n + 1,
-                    text: line.trim_end().to_string(),
-                    path: e.path.clone(),
-                });
-            }
-        }
-    }
-    out
 }
 
 /// Every spec id in the corpus, and the subset that is `approved`, from ONE
@@ -1423,10 +1367,11 @@ fn retire_file(
     rel: &str,
     src: &str,
     entries: &[RetireEntry],
-) -> (String, Vec<Rewrite>, Vec<Skipped>) {
+) -> (String, Vec<Rewrite>, Vec<Skipped>, Vec<Leftover>) {
     let mut out = String::with_capacity(src.len());
     let mut rewrites = Vec::new();
     let mut skipped = Vec::new();
+    let mut leftover = Vec::new();
     let mut heading = String::new();
 
     for (n, line) in src.split_inclusive('\n').enumerate() {
@@ -1496,9 +1441,28 @@ fn retire_file(
                 });
             }
         }
+        // §3.7, decided HERE, where the source line and its result are both in
+        // hand. A scan of the emitted file afterwards cannot tell an occurrence
+        // the line arrived with from one a replacement text created, and cannot
+        // match a spare once a deletion has shifted the lines. Both were bugs;
+        // neither is expressible from this position.
+        for (i, e) in entries.iter().enumerate() {
+            if present[i]
+                && own[i].is_none()
+                && line_clause.is_none()
+                && names_path(current.as_str(), &e.path)
+            {
+                leftover.push(Leftover {
+                    rel_path: rel.to_string(),
+                    line: n + 1,
+                    text: current.trim_end().to_string(),
+                    path: e.path.clone(),
+                });
+            }
+        }
         out.push_str(&current);
     }
-    (out, rewrites, skipped)
+    (out, rewrites, skipped, leftover)
 }
 
 /// The six spellings of §3.2, reduced to the three that take a replacement

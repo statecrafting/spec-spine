@@ -427,7 +427,17 @@ passes every guard and matches nothing, because the literal carries the prefix
 and the corpus spells the path bare: the run would rewrite nothing and then
 report every bare occurrence as unaccounted for. Refused, naming the prefix.
 
-D-25 (2026-09-21, a spare is matched by its text, not by its coordinate). A
+D-25 (2026-09-21, §3.7 is decided where the line is rewritten, not by a scan
+afterwards). Two bugs came from deciding it afterwards, and both are unreachable
+from the rewrite's own position: a scan of the emitted file cannot tell an
+occurrence the line arrived with from one another entry's replacement text
+created, and it cannot match a spare once a deletion has shifted the lines. The
+decision is made per line, with the source and the result both in hand. The
+text-matching this decision replaced is recorded below because the reasoning is
+still the argument against coordinates.
+
+D-25a (2026-09-21, the superseded form: a spare is matched by its text, not by
+its coordinate). A
 glob deletion removes a line from the output, so every later skip record's
 source line number runs ahead of that line's position in the emitted file, and
 §3.7 reported a correctly spared occurrence as unaccounted for. A spared line is
