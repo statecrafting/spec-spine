@@ -10,10 +10,10 @@ summary: >
   were measured after 096 was filed and were never repaired: `compact` refuses a
   plan naming a spec the corpus no longer has, so it prevents the next renumber
   and not the last one. Re-measuring on 2026-09-21 against the collapse commit
-  found the debt is not 41 occurrences but 630, in two further classes nobody
+  found the debt is not 41 occurrences but 637, in two further classes nobody
   had looked for: 90 spec documents are still titled with another spec's
   ordinal, and 474 citations are written as a bare ordinal (`084 §3.1`, `050's`)
-  which none of 096's three forms matches. This spec repairs all 630, adds the
+  which none of 096's three forms matches. This spec repairs all 637, adds the
   two forms and the file-selection fix that would have prevented them, and makes
   a title heading self-checking with a new lint code so this class cannot come
   back silently.
@@ -48,21 +48,21 @@ that spec.
 
 The debt was re-measured on 2026-09-21, and the earlier figure of 41 was low
 because it was counted with a weaker method. The method that settles it is a
-comparison against **the tree before the collapse**: a line whose content is
-still the pre-collapse line, naming an ordinal the map moved, was never
-rewritten. A grep of the working tree cannot answer this, because after a
-contiguous renumber every old ordinal is also a *current* ordinal: `spec 050` in
-`index.rs` is correct where the line is new and wrong where the line is old, and
-only the history distinguishes them. D-8 records why the comparison is against
-the line's content and not against `git blame`.
+comparison against **the tree before the collapse**: a citation whose
+surrounding sentence, with line breaks and comment markers normalized away, is
+still the pre-collapse sentence was never rewritten. A grep of the working tree
+cannot answer this, because after a contiguous renumber every old ordinal is
+also a *current* ordinal: `spec 050` in `index.rs` is correct where the sentence
+is new and wrong where it is old, and only the history distinguishes them. D-8
+and D-9 record the two weaker tests this one replaced and what each missed.
 
-Measured that way, 630 occurrences in 146 files still name a document that moved:
+Measured that way, 637 occurrences in 148 files still name a document that moved:
 
 | Class | What it is | Count | Files |
 |---|---|---|---|
 | A | A spec document's own **title heading** names another spec's ordinal | 90 | 90 |
-| B | A **prose citation** (`spec NNN`), 096 §3.3 form 2, wrapped or multi-ordinal | 57 | 37 |
-| C/D | A **bare ordinal** used as a citation: `084 §3.1`, `050 3.6`, `092 D-3`, `056's`, `086-...` | 483 | 79 |
+| B | A **prose citation** (`spec NNN`), 096 §3.3 form 2, wrapped or multi-ordinal | 59 | 38 |
+| C/D | A **bare ordinal** used as a citation: `084 §3.1`, `050 3.6`, `092 D-3`, `056's`, `086-...` | 488 | 80 |
 
 Class A is the loudest: 90 of the 98 documents in this corpus open with a line
 naming a spec that is not them. `specs/006-distribution/spec.md` is titled
@@ -98,7 +98,7 @@ The repair covers what a rule can decide without reading the sentence. It stops
 there deliberately: 096 §3.8 refuses "a reference it cannot classify", and
 guessing is the failure mode that produced the seven defects in the first place.
 
-After the 630 are repaired, roughly 930 three-digit tokens on pre-collapse lines
+After the 637 are repaired, roughly 930 three-digit tokens on pre-collapse lines
 still name a moved ordinal, and most of them are not citations at all:
 `V-001/005/006` in a code list, `exit 101`, `feat(017): ...` as an example
 commit message, a fixture named `"016-short"`. The genuine citations left among
@@ -116,7 +116,7 @@ letting a wide rule repair nine citations and corrupt one exit code.
 | `crates/spec-spine-core/tests/compact.rs` | the forms, and the exclusions that keep them narrow |
 | `crates/spec-spine-core/tests/lint.rs` | `L-013` fires, and is silent where it must be |
 
-The repair of §3.5 touches 146 further files and claims none of them: it changes
+The repair of §3.5 touches 148 further files and claims none of them: it changes
 no requirement and no behavior, only which document a sentence points at.
 
 ## 3. Behavior
@@ -217,7 +217,7 @@ no acceptance command and no test expectation; a rewritten citation in an
 approved spec is a correction of where a sentence points, which is why it is not
 an amendment under spec 034 and needs none.
 
-That is measured, not assumed. 35 of the 630 fall inside a `verify:cli` block,
+That is measured, not assumed. 35 of the 637 fall inside a `verify:cli` block,
 and all 35 are comment lines: no command, argument or grep pattern in any
 acceptance block is touched. Had one been, rewriting it would have moved an
 assertion's expectation without moving what it asserts about, which is the
@@ -242,9 +242,12 @@ made once.
 - **The ~930 remaining tokens.** §1.3. Measured, and left, because separating a
   citation from a count in `before 084`, `pre-096` or `(101,` is reading. The
   measurement is reproducible: for every tracked file, take each three-digit
-  token whose value `docs/corpus-map.md` moved, keep it when its line is still
-  byte-identical to the same file's line in `c9f5376^`, and subtract the classes
-  of §1.1.
+  token whose value `docs/corpus-map.md` moved, keep it when the sentence around
+  it, normalized as D-9 describes, is still that file's pre-collapse sentence,
+  and subtract the classes of §1.1.
+- **The 155 citations carried by hand into rewritten sentences.** D-9. The only
+  test that finds them also returns correct citations in bulk, so the answer is
+  a read of each and not a rule.
 - **Requiring citations to carry the full id.** `spec 096-compaction-is-a-verb`
   is self-verifying where `spec 096` is not, and a corpus that cited that way
   would need no history at all. It would also rewrite about three thousand
@@ -256,12 +259,12 @@ made once.
 ## 5. Resolved decisions
 
 **D-1 (2026-09-21): the debt is measured against history, not with a grep.**
-The figure this spec inherited was 41; the figure it repairs is 630. The
+The figure this spec inherited was 41; the figure it repairs is 637. The
 difference is not that more debt accrued, it is that the earlier count asked
 whether the same citation *text* survived anywhere in the same file, which
 counts a correct new citation as stale and misses a stale one in a file that was
-edited. The comparison against the pre-collapse tree asks the only question that
-decides it: is this line still the line that was there before the collapse. A
+edited. The comparison against the pre-collapse tree asks the question that
+decides it: is this still the sentence that was there before the collapse. A
 measurement that cannot distinguish the two answers is not a measurement, which
 is the same family as an assertion that cannot fail.
 
@@ -299,7 +302,7 @@ it. §4 records the whole residue so the next reader measures instead of
 guessing.
 
 **D-6 (2026-09-21): a section number does not survive a removal, and the
-repair carries it anyway.** 81 of the 630 name a spec spec 095 removed, so
+repair carries it anyway.** 81 of the 637 name a spec spec 095 removed, so
 `(116 D-13)` becomes `(093 D-13)` and 093's D-13 is a different decision. Both
 available answers are wrong in some way: left alone, `082 D-2` resolves today to
 a spec that has nothing to do with it, because after a contiguous renumber every
@@ -332,10 +335,10 @@ commit is not an ancestor of `main`: every line the collapse's own pull request
 wrote is attributed to the squash commit and reads as post-collapse. A blame
 test therefore misses exactly the lines that pull request touched without
 renumbering, and it missed five, including `spec\n# 120 3.6` in `ci.yml` and two
-in `.gitignore`. The measurement that holds compares the line's **content**
-against the pre-collapse tree: a line still byte-identical to its pre-collapse
-self was never rewritten, whatever commit claims it. Four of the five are
-renumbered survivors and are repaired.
+in `.gitignore`. Comparing the line's **content** against the pre-collapse tree
+finds them: a line still byte-identical to its pre-collapse self was never
+rewritten, whatever commit claims it. Four of the five are renumbered survivors
+and are repaired. D-9 is where that test in turn ran out.
 
 The fifth is not, and it is the one place a human overrode the rule.
 `tests/verify.rs` narrates a history: "It was 048 from spec 043 until spec 092:
@@ -346,6 +349,33 @@ held that block. Spec 097 §3.5 already draws this line: a sentence recording
 what a document used to be is not a citation of the document that answers for it
 now. That distinction is a read, not a rule, which is §3.6's whole argument for
 why the repair is a reviewed edit and not a verb.
+
+**D-9 (2026-09-21): three tests, and the mode none of them decides.** The
+comparison of §1.1 got stronger twice while this spec was being built, and each
+step found more:
+
+1. **the line's commit** (`git blame`) — misses everything the collapse's own
+   squashed pull request wrote (D-8);
+2. **the line's content** — misses a line that was *reflowed* since, which is
+   how `ci.yml` and five lines of `docs/design/05-...` kept a stale ordinal
+   through a prose rewrap;
+3. **the sentence's normalized context**, comment markers and line breaks
+   removed — what the final figure is measured with.
+
+The mode none of them decides is a citation an author **carried by hand into a
+sentence they rewrote**. `standards/spec/contract.md` and
+`standards/spec/constitution.md` each say "spec 040" in a paragraph that spec
+092's pull request rewrote, and 040 is now a different document. Both are
+repaired here because both were read and both are unambiguous: the sentence is
+about declaring an amendment, which is spec 037.
+
+The other 155 candidates for that mode are **not** repaired, and the reason is
+the measurement rather than the effort. The test that finds them is "this file
+also said `spec NNN` before the collapse", which is the weak test D-1 rejects:
+`index.rs` says `// ===== spec 050: which paths any content hash witnesses
+=====` and that is *correct*, because the current 050 is exactly that spec. The
+candidate set is mostly right citations. Separating them is a read of each, and
+§4 records it as the debt it is rather than letting a rule guess 157 times.
 
 ## Verification
 

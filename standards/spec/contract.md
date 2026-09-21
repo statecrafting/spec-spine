@@ -53,7 +53,7 @@ a named `aspect`, `co_authority` on one genuinely shared) and by contradicting
 no `specs/000` `unamendable` anchor. The constitution is a standing statement,
 so unlike an amended `spec.md` it is edited in place. The file is on the gate's
 bypass floor, so the claim is a ledger fact rather than a `C-001` refusal. See
-spec 040.
+spec 037.
 
 ## Authority units
 
