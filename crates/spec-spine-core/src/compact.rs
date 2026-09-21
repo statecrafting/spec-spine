@@ -657,7 +657,8 @@ fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (Str
     let mut in_frontmatter = false;
     let mut delimiters = 0usize;
 
-    for (n, raw) in src.split_inclusive('\n').enumerate() {
+    let all: Vec<&str> = src.split_inclusive('\n').collect();
+    for (n, raw) in all.iter().copied().enumerate() {
         let line = raw.trim_end_matches(['\n', '\r']);
         if line == "---" {
             delimiters += 1;
@@ -676,9 +677,22 @@ fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (Str
         // was never entered. Benign only because no plan targets `id`.
         if !line.starts_with(' ') && !line.starts_with('-') {
             let trimmed = line.trim_end();
+            // A key opens a list only if a list ITEM follows it. `summary:`
+            // with an indented sentence under it is an implicit multi-line
+            // scalar, not a list, and reading it as one let a unit action
+            // naming `summary` delete the sentence. This is the same rule
+            // `drop_empty_edge_keys` uses at the other end.
+            let opens_list = all[n + 1..]
+                .iter()
+                .map(|l| l.trim_end_matches(['\n', '\r']))
+                .find(|l| !l.trim().is_empty())
+                .is_some_and(|l| {
+                    l != "---" && l.starts_with(' ') && l.trim_start().starts_with('-')
+                });
             if let Some(key) = trimmed.strip_suffix(':')
                 && !key.is_empty()
                 && !key.contains(' ')
+                && opens_list
             {
                 edge = Some(key.to_string());
                 out.push(raw.to_string());
@@ -1720,15 +1734,14 @@ fn glob_spans(line: &str, path: &str) -> Vec<usize> {
         let mut from = 0usize;
         while let Some(rel) = line[from..].find(&pattern) {
             let at = from + rel;
-            if occurs_as_path(line.as_bytes(), at, path.len(), PathContext::Value)
-                && !out.contains(&at)
-            {
+            if occurs_as_path(line.as_bytes(), at, path.len(), PathContext::Value) {
                 out.push(at);
             }
             from = at + pattern.len();
         }
     }
     out.sort_unstable();
+    out.dedup();
     out
 }
 

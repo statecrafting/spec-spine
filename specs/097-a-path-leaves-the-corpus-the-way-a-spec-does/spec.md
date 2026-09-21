@@ -586,6 +586,21 @@ is a glob (D-37). That is the fourth time these two contexts have needed to
 differ in a named way rather than share a rule, which is the argument for
 keeping the contexts explicit rather than collapsing them.
 
+D-41 (2026-09-21, an edge opens a list only when a list item follows). D-29
+fixed `summary: >` and left `summary:` with an indented sentence under it, which
+is an implicit multi-line scalar and was still read as a list: a unit action
+naming `summary` deleted the sentence out of the frontmatter. The look-ahead is
+the rule `drop_empty_edge_keys` already used at the other end, so both ends of
+the frontmatter walk now agree about what a list is.
+
+D-42 (2026-09-21, the per-form count is asserted to move). A review reasoned
+from the diff that `retired-path` might never be incremented. It is, and the
+inference was wrong; the coverage gap behind it was real. Every test asserted
+the key EXISTS, or that it is zero on an empty plan, so the counter could have
+stayed at zero through a live rewrite without a test failing. It is now asserted
+non-zero and equal to the number of records, which is the assertion those tests
+only looked like they were making.
+
 ## Verification
 
 Each line is one command, run independently.

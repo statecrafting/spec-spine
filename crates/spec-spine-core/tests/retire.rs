@@ -1606,6 +1606,61 @@ fn a_path_only_plan_does_not_reach_inside_a_backtick_citation() {
     );
 }
 
+/// §3.3: an implicit multi-line scalar is not a list. `summary:` with an
+/// indented sentence under it opens no list, and reading it as one let a unit
+/// action naming `summary` delete the sentence out of the frontmatter. The
+/// explicit `summary: >` form was covered; the bare one was not.
+#[test]
+fn an_implicit_multiline_scalar_does_not_open_an_edge_list() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "specs/001-beta/spec.md",
+        "---\nid: \"001-beta\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         implementation: complete\nsummary:\n  A sentence mentioning rules/one.md in it.\n\
+         ---\n\n# 001-beta\n\nBody.\n",
+    );
+    let mut e = retire_rules();
+    e.units = vec![UnitAction {
+        spec: "001-beta".into(),
+        edge: "summary".into(),
+        action: UnitActionKind::Withdraw,
+        to: None,
+        acknowledge_approved: true,
+    }];
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let beta = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "specs/001-beta/spec.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(
+        beta.is_empty() || beta.contains("A sentence mentioning"),
+        "a scalar continuation was withdrawn as a unit: {beta:?}"
+    );
+}
+
+/// §3.6: the per-form count moves. Every earlier test asserted the key EXISTS
+/// or is zero on an empty plan, so the counter could have stayed at zero
+/// through a live rewrite without a test failing.
+#[test]
+fn a_retirement_counts_its_rewrites() {
+    let tmp = fixture("See `rules/one.md` and rules/one.md again.\n");
+    let c = compact(&cfg(), tmp.path(), &plan_with(retire_rules())).unwrap();
+    assert!(c.counts[Form::RetiredPath.as_str()] >= 1, "{:?}", c.counts);
+    assert_eq!(
+        c.counts[Form::RetiredPath.as_str()],
+        c.rewrites
+            .iter()
+            .flat_map(|f| f.rewrites.iter())
+            .filter(|r| r.form == Form::RetiredPath)
+            .count(),
+        "the count is the number of records: {:?}",
+        c.counts
+    );
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]
