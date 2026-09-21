@@ -1304,6 +1304,17 @@ fn validate_retire(
                 e.path
             )));
         }
+        // A directory path without its trailing slash is a WORD, and the
+        // boundary rule is happy to find it: `rules` matches the English word
+        // in any sentence, which §3.7 then reports as an unaccounted occurrence
+        // and refuses the run over.
+        if matches!(e.kind, RetireKind::Directory) && !e.path.ends_with('/') {
+            return Err(Error::Config(format!(
+                "compact: `{}` is `kind: directory` and does not end with `/`; without the slash \
+                 it is a word, and every sentence containing it is an occurrence",
+                e.path
+            )));
+        }
         if !repo_root.join(&e.path).exists() {
             return Err(Error::Config(format!(
                 "compact: the plan retires `{}`, which the tree does not have",
@@ -1398,6 +1409,12 @@ fn retire_file(
         // that is emitted) while each occurrence still carries the clause that
         // actually applies to IT. Labelling entry B's occurrence with entry A's
         // clause is accurate about the outcome and wrong about the reason.
+        // Which entries the SOURCE line names. An entry acts on occurrences the
+        // line arrived with, never on one another entry's replacement text
+        // happened to create: a synthetic occurrence was neither the plan's
+        // subject nor anything a reader could have predicted, and sparing it
+        // under the first entry's clause reports a reason that was never true.
+        let present: Vec<bool> = entries.iter().map(|e| names_path(line, &e.path)).collect();
         let own: Vec<Option<SkipClause>> = entries
             .iter()
             .map(|e| {
@@ -1425,7 +1442,7 @@ fn retire_file(
             .collect();
         let line_clause = own.iter().flatten().next().copied();
         for (i, e) in entries.iter().enumerate() {
-            if !names_path(current.as_str(), &e.path) {
+            if !present[i] || !names_path(current.as_str(), &e.path) {
                 continue;
             }
             if let Some(clause) = own[i].or(line_clause) {
@@ -1489,7 +1506,12 @@ fn apply_forms(line: &str, e: &RetireEntry) -> String {
 /// reached. This was the one reader the convergence missed.
 fn glob_at(line: &str, path: &str) -> Option<usize> {
     let trimmed = path.trim_end_matches('/');
-    for pattern in [format!("{path}*"), format!("{trimmed}/*")] {
+    let mut patterns = vec![format!("{path}*")];
+    let slashed = format!("{trimmed}/*");
+    if slashed != patterns[0] {
+        patterns.push(slashed);
+    }
+    for pattern in patterns {
         let mut from = 0usize;
         while let Some(rel) = line[from..].find(&pattern) {
             let at = from + rel;

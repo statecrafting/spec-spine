@@ -403,6 +403,18 @@ but the string would then be matched across every scanned file. An absolute path
 and a `..` component are refused. An empty `to` is refused with the absent one,
 because both write a unit no corpus can resolve.
 
+D-21 (2026-09-21, a directory entry ends in a slash, and it is enforced). Without
+the trailing slash a directory path is a WORD, and §3.2's boundary rule finds it
+in any sentence: `rules` matches the English word, §3.7 reports every such line
+as an unaccounted occurrence, and the run is refused over prose. Every plan
+written so far spelled the slash by convention; convention is not a rule.
+
+D-22 (2026-09-21, an entry acts on the source line, not on what another entry
+wrote). One entry's replacement text can contain another entry's retired path.
+Acting on that occurrence rewrites something no plan named, and sparing it
+records a clause that was never true of the file. Participation is decided
+against the line as it arrived.
+
 ## Verification
 
 Each line is one command, run independently.

@@ -894,6 +894,62 @@ fn a_retarget_with_an_empty_target_is_refused() {
     assert!(format!("{err}").contains("no `to`"), "{err}");
 }
 
+/// §3.1: a directory path without its trailing slash is a WORD. `rules` matches
+/// the English word in any sentence, which §3.7 then reports as an unaccounted
+/// occurrence and refuses the run over.
+#[test]
+fn a_directory_entry_without_a_trailing_slash_is_refused() {
+    let tmp = fixture("x");
+    let mut e = retire_rules();
+    e.path = "rules".into();
+    e.kind = RetireKind::Directory;
+    let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
+    assert_eq!(err.exit_code(), 3, "{err}");
+    assert!(format!("{err}").contains("does not end with"), "{err}");
+}
+
+/// §3.5: an entry acts on occurrences the SOURCE line had. One entry's
+/// replacement text can contain another entry's retired path, and sparing that
+/// synthetic occurrence reports a reason that was never true of the file.
+#[test]
+fn an_occurrence_another_entrys_replacement_created_is_not_spared() {
+    // The first entry rewrites `rules/one.md` to text naming `rules/two.md`.
+    let tmp = fixture("See rules/one.md.\n");
+    let mut first = retire_rules();
+    first.forms = [(
+        "citation".to_string(),
+        Some("`rules/two.md` now".to_string()),
+    )]
+    .into_iter()
+    .collect();
+    let mut second = retire_rules();
+    second.path = "rules/two.md".into();
+    second.forms = [(
+        "citation".to_string(),
+        Some("`AGENTS.md` \"Two\"".to_string()),
+    )]
+    .into_iter()
+    .collect();
+    let plan = CompactPlan {
+        retire: vec![first, second],
+        ..Default::default()
+    };
+    let c = compact(&cfg(), tmp.path(), &plan).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/note.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    // The synthetic occurrence is left exactly as the first entry wrote it.
+    assert!(out.contains("`rules/two.md` now"), "{out}");
+    assert!(
+        c.skipped.iter().all(|s| s.rel_path != "docs/note.md"),
+        "a synthetic occurrence was reported as spared: {:?}",
+        c.skipped
+    );
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]
