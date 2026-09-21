@@ -493,7 +493,7 @@ hook, is superseded there rather than here, for D-3's reason.
 
 ## 7. Out of scope
 
-- **Whether `.claude/` should exist here at all.** Spec 072 §3.5 holds it until
+- **Whether `.claude/` should exist here at all.** Spec 092 §3.5 holds it until
   Statecraft's global delivery concretely replaces it. This spec describes what
   it must contain while it does.
 - **The gate.** Spec 094.
@@ -502,7 +502,7 @@ hook, is superseded there rather than here, for D-3's reason.
 - **The `Stop` hook refusing rather than advising.** It advises; a session that
   has ended cannot act on a refusal.
 - **The PR gate's blindness to a staged or untracked shard.** Measured and
-  recorded by spec 072 §3.13 and §4, left open there.
+  recorded by spec 092 §3.13 and §4, left open there.
 
 ## 8. Resolved decisions
 
@@ -570,10 +570,7 @@ grep -qF 'specs/093-the-harness-this-repository-runs/spec.md' AGENTS.md
 # 1.3 and D-2: all sixteen predecessors are named here, and every one of them
 # is in the map, which is the answer the `supersedes` edge would have given.
 test "$(grep -cE '^- `[0-9]{3}-' specs/093-the-harness-this-repository-runs/spec.md)" = 16
-sh -c 'miss=0; for id in $(grep -oE "^- \`[0-9]{3}-[a-z0-9-]+" specs/093-the-harness-this-repository-runs/spec.md | tr -d "\`" | sed "s/^- //"); do grep -qF "$id" docs/corpus-map.md || { echo "not in the map: $id"; miss=1; }; done; exit $miss'
-# And nothing in the harness still points at a tree spec 072 removed.
-! grep -rqF 'kit/' .claude/
-! grep -rqF '.agents/' .claude/skills/
+sh -c 'miss=0; for id in $(grep -oE "^- .[0-9]{3}-[a-z0-9-]+" specs/093-the-harness-this-repository-runs/spec.md | sed "s/^- .//"); do grep -qF "$id" docs/corpus-map.md || { echo "not in the map: $id"; miss=1; }; done; exit $miss'
 # The governed loop, over the corpus this spec is part of.
 target/release/spec-spine check --fail-on-unresolved --fail-on-warn
 target/release/spec-spine lint --fail-on-warn

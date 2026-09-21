@@ -287,7 +287,7 @@ as an invocation.
 | 089 §3.3 | the embedded copy in `kit_embedded.rs` |
 | 090 §3.6 | `kit/.githooks/pre-commit` |
 | 114 §3.4's `govern.yml` clauses | the shipped workflow; the requirements move to `ci.yml` unchanged |
-| 114 §3.5, §3.6 | spec 064's acceptance replacement, which spec 072 §3.12 now holds |
+| 114 §3.5, §3.6 | spec 064's acceptance replacement, which spec 092 §3.12 now holds |
 | 020's merge-queue enablement prose | an administrative act, done once, not a requirement on a file |
 
 Nothing about the gate's strength is relaxed. Every `MUST` above is one of the
@@ -368,12 +368,14 @@ grep -qF 'merge=spec-spine-derived-regen' .gitattributes
 ! grep -qE '^\.derived/.*merge=' .gitattributes
 test -x .githooks/enable-merge-driver.sh
 test -x .githooks/enable-hooks.sh
-# 6 and D-2: the five are superseded by name.
-target/release/spec-spine registry show 093 --json > "${TMPDIR:-/tmp}/ss093.json"
-python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss093.json'));s=d.get('supersedes',[]);assert len(s)==5,s"
-rm -f "${TMPDIR:-/tmp}/ss093.json"
-# And no part of the gate still names the tree spec 072 removed.
-! grep -qF 'kit/' Makefile
-! grep -rqF 'kit/' .githooks/
-! grep -qF 'kit/' .github/workflows/ci.yml
+# 1.3 and D-2: all five predecessors are named here, and every one of them is
+# in the map, which is the answer a `supersedes` edge would have given.
+test "$(grep -cE '^- `[0-9]{3}-' specs/094-one-gate-and-the-boundaries-it-holds/spec.md)" = 5
+sh -c 'miss=0; for id in $(grep -oE "^- .[0-9]{3}-[a-z0-9-]+" specs/094-one-gate-and-the-boundaries-it-holds/spec.md | sed "s/^- .//"); do grep -qF "$id" docs/corpus-map.md || { echo "not in the map: $id"; miss=1; }; done; exit $miss'
+# And no part of the gate still RUNS anything from the tree spec 092 removed.
+# Read over executable lines only: the `Makefile` header says where this file
+# used to live, and a history sentence is not an invocation (1.1).
+! grep -qE '^[^#]*kit/' Makefile
+! grep -rqE '^[^#]*kit/' .githooks/
+! grep -qE '^[^#]*kit/' .github/workflows/ci.yml
 ```

@@ -833,20 +833,21 @@ cargo test -p spec-spine-core --test harness_skills --locked
 target/release/spec-spine index diagnostics > "${TMPDIR:-/tmp}/ss120-diag.txt" 2>&1
 test ! -s "${TMPDIR:-/tmp}/ss120-diag.txt"
 rm -f "${TMPDIR:-/tmp}/ss120-diag.txt"
-# 3.11 rule 3: the one spec left owning nothing is superseded by name, not
-# retitled, deleted or quietly left claiming a directory that is gone.
-target/release/spec-spine registry show 029 --json > "${TMPDIR:-/tmp}/ss120-029.json"
-python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss120-029.json')); assert d['status'] == 'superseded', d['status']; assert d['supersededBy'] == '092-the-engine-ships-governance-not-an-environment', d"
-rm -f "${TMPDIR:-/tmp}/ss120-029.json"
+# 3.11 rule 3: the spec left owning nothing after the withdrawal was 029, whose
+# whole territory was `kit/`. Spec 095's collapse removed it outright rather
+# than leaving it `superseded` and empty, and `docs/corpus-map.md` is where it
+# is accounted for now.
+grep -qF '029-claude-code-skill-kit' docs/corpus-map.md
+! test -e specs/029-claude-code-skill-kit
 # 3.13: the ordinal stays reserved and the branch that holds the proposal is
 # still here.
 ! test -e specs/117-the-derived-tree-question-asked-honestly
 git rev-parse --verify 113-the-harness-delivers-what-it-documents > /dev/null
 git cat-file -e 487bbd9:specs/117-the-derived-tree-question-asked-honestly/spec.md
 # Declared and read through the CLI, redirected rather than piped (spec 085 D-4).
-target/release/spec-spine registry show 120 --json > "${TMPDIR:-/tmp}/ss120-show.json"
-python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss120-show.json')); assert d['id'] == '092-the-engine-ships-governance-not-an-environment', d"
-rm -f "${TMPDIR:-/tmp}/ss120-show.json"
+target/release/spec-spine registry show 092 --json > "${TMPDIR:-/tmp}/ss092-show.json"
+python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss092-show.json')); assert d['id'] == '092-the-engine-ships-governance-not-an-environment', d"
+rm -f "${TMPDIR:-/tmp}/ss092-show.json"
 # The stack's own gate, last, because a green governance loop over code that
 # does not compile asserts nothing.
 cargo test --workspace --locked

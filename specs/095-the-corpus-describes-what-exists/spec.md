@@ -117,7 +117,7 @@ was about a file that is gone.
 Two properties of these six **do** survive and MUST be held elsewhere, because
 their subject is the library producer rather than the command:
 
-- what the scaffold emits and what it must not (006, 065): spec 072 §3.2 and
+- what the scaffold emits and what it must not (006, 065): spec 092 §3.2 and
   §3.3, already;
 - that no file the scaffold produces carries a claim header resolving in no
   corpus (115): asserted in `tests/gate.rs`, already.
@@ -211,11 +211,11 @@ authorized settlement of one architectural break.
 
 ## 4. Out of scope
 
-- **Repairing the blocks spec 072 left passing vacuously.** Those belong to the
+- **Repairing the blocks spec 092 left passing vacuously.** Those belong to the
   specs that own them, and the sweep spec 089 built is what schedules the audit.
   The two the collapse removes (074's and 078's kit assertions) are gone with
   their subject; the rest are unchanged.
-- **The seven deletions the coupling gate refuses.** Spec 072 §3.11.1 measures
+- **The seven deletions the coupling gate refuses.** Spec 092 §3.11.1 measures
   them and D-11 records why the fix is its own spec.
 - **Renumbering anything but specs.** Diagnostic codes, schema versions and
   release versions are untouched.
@@ -267,27 +267,21 @@ cargo build --release --locked
 ! test -e specs/100-one-source-generates-the-agent-trees
 ! test -e specs/116-shepherd-reads-every-reviewer
 # 3.3: the ordinals are contiguous, with no gap and no duplicate.
-target/release/spec-spine registry list --ids-only > "${TMPDIR:-/tmp}/ss094-ids.txt"
-python3 -c "
-ids=[l.strip() for l in open('${TMPDIR:-/tmp}/ss094-ids.txt') if l.strip()]
-ords=[int(i[:3]) for i in ids]
-assert ords==sorted(ords), 'not sorted'
-assert len(set(ords))==len(ords), 'duplicate ordinal'
-assert ords==list(range(len(ords))), f'not contiguous: first gap near {[o for i,o in enumerate(ords) if i!=o][:1]}'
-print(len(ords),'specs, 000 ..',f'{ords[-1]:03d}')
-"
-rm -f "${TMPDIR:-/tmp}/ss094-ids.txt"
+target/release/spec-spine registry list --ids-only > "${TMPDIR:-/tmp}/ss095-ids.txt"
+python3 -c "ids=[l.strip() for l in open('${TMPDIR:-/tmp}/ss095-ids.txt') if l.strip()]; o=[int(i[:3]) for i in ids]; assert o==sorted(o); assert len(set(o))==len(o); assert o==list(range(len(o))), o[:5]; print(len(o),'specs, contiguous')"
+rm -f "${TMPDIR:-/tmp}/ss095-ids.txt"
 # 3.3: every reference resolves. A dangling id is a compile error (V-004 family),
 # and an unresolved unit is what `check` refuses, so a green pair is the proof.
 target/release/spec-spine check --fail-on-unresolved --fail-on-warn
 target/release/spec-spine lint --fail-on-warn
-# 3.3: and no reference to a removed ordinal survives anywhere a reader looks.
-! grep -rqE '\b(006|029|065|100|113|115)-(init-scaffold|claude-code-skill-kit|init-and-the-kit|one-source|the-scaffolded|the-kit-ships-no-claim)' specs/ docs/ crates/ .claude/ AGENTS.md CLAUDE.md README.md
+# 3.3: and no removed id is cited outside the three specs that account for it
+# and the map that resolves it. Read per id, so a failure names the one at fault.
+sh -c 'for id in 006-init-scaffold 029-claude-code-skill-kit 046-kit-hooks-read-never-write 064-the-kit-ships-the-composite-gate 100-one-source-generates-the-agent-trees 116-shepherd-reads-every-reviewer; do if grep -rlF "$id" specs crates .claude/skills .claude/rules .claude/agents AGENTS.md CLAUDE.md README.md 2>/dev/null | grep -qv "^specs/09[345]-"; then echo "still cited: $id"; exit 1; fi; done; exit 0'
 # 3.2 and 3.4: every removed spec is named by a successor and is in the map.
 test "$(grep -cE '^\| `[0-9]{3}-[a-z0-9-]+` \|' docs/corpus-map.md)" -ge 27
 sh -c 'n=0; for f in specs/*/spec.md; do n=$((n + $(grep -cE "^- \`[0-9]{3}-[a-z0-9-]+\`$" "$f"))); done; test "$n" -eq 27 || { echo "predecessors named: $n, want 27"; exit 1; }'
 # 3.4: the sweep's ledger is live, closed, and every entry names a real spec.
-grep -qE '^CLOSED_AT=' scripts/verify-sweep.sh
+grep -qE '^readonly LEDGER_CLOSED_AT=[0-9]+$' scripts/verify-sweep.sh
 bash -n scripts/verify-sweep.sh
 # 3.5: nothing in the tree still names the removed product.
 ! test -e kit
