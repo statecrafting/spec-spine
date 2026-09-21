@@ -81,6 +81,25 @@ fn report(outcome: &Compaction, verbose: bool) {
     for (form, n) in &outcome.counts {
         out::line(format_args!("  {form:<14} {n}"));
     }
+    // Spec 097 §3.5: an occurrence left alone is reported with the clause that
+    // spared it. Printed on every run, not only the verbose one: the exclusions
+    // are where a retirement goes quietly wrong, and a reader who has to ask
+    // for them is the reader who will not.
+    if !outcome.skipped.is_empty() {
+        out::line(format_args!(
+            "\nleft alone ({}), with the clause that spared each:",
+            outcome.skipped.len()
+        ));
+        for s in &outcome.skipped {
+            out::line(format_args!(
+                "  {}:{} [{}] {}",
+                s.rel_path,
+                s.line,
+                s.clause.as_str(),
+                s.text
+            ));
+        }
+    }
     if verbose {
         out::line(format_args!("\nrewrites by file:"));
         for file in &outcome.rewrites {

@@ -248,7 +248,18 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
             let (after, retired, mut skips) = retire_file(&rel, &new_contents, &plan.retire);
             file_rewrites.extend(retired);
             skipped.append(&mut skips);
-            after
+            // §3.3: the frontmatter edit itself. Validation established the plan
+            // may make it; this is where it is made, and nowhere else can: no
+            // edge withdraws a claim, so the owning spec's own file is the only
+            // door.
+            match spec_id_of_path(cfg, &rel) {
+                Some(id) => {
+                    let (edited, unit_rewrites) = apply_unit_actions(&id, &after, &plan.retire);
+                    file_rewrites.extend(unit_rewrites);
+                    edited
+                }
+                None => after,
+            }
         };
         let to = target_path(cfg, &rel, &map);
         if file_rewrites.is_empty() && to == rel {
@@ -491,6 +502,123 @@ fn build_map(corpus: &[String], plan: &CompactPlan) -> Result<BTreeMap<String, T
         );
     }
     Ok(map)
+}
+
+/// Apply the plan's unit actions to one spec's frontmatter (spec 097 §3.3).
+///
+/// Line-scoped inside the frontmatter block and inside the named edge's list: a
+/// unit is a list entry, and the entry is either dropped (`withdraw`) or has its
+/// path rewritten (`retarget`). Where dropping the last entry would leave a key
+/// with no list, the key goes too: `establishes:` followed by nothing is not the
+/// same document minus a claim, it is a document that no longer parses the way
+/// the corpus expects.
+fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (String, Vec<Rewrite>) {
+    let actions: Vec<(&RetireEntry, &UnitAction)> = entries
+        .iter()
+        .flat_map(|e| e.units.iter().map(move |u| (e, u)))
+        .filter(|(_, u)| u.spec == spec_id)
+        .collect();
+    if actions.is_empty() {
+        return (src.to_string(), Vec::new());
+    }
+
+    let mut out: Vec<String> = Vec::new();
+    let mut rewrites = Vec::new();
+    let mut edge: Option<String> = None;
+    let mut in_frontmatter = false;
+    let mut delimiters = 0usize;
+
+    for (n, raw) in src.split_inclusive('\n').enumerate() {
+        let line = raw.trim_end_matches(['\n', '\r']);
+        if line == "---" {
+            delimiters += 1;
+            in_frontmatter = delimiters == 1;
+            out.push(raw.to_string());
+            continue;
+        }
+        if !in_frontmatter {
+            out.push(raw.to_string());
+            continue;
+        }
+        // A key at column zero opens (or closes) an edge list.
+        if !line.starts_with(' ') && !line.starts_with('-') && line.contains(':') {
+            edge = Some(line.split(':').next().unwrap_or("").to_string());
+            out.push(raw.to_string());
+            continue;
+        }
+        let Some(current) = edge.as_deref() else {
+            out.push(raw.to_string());
+            continue;
+        };
+        let mut emitted = false;
+        for (entry, action) in &actions {
+            if action.edge != current || !line.contains(&entry.path) {
+                continue;
+            }
+            match action.action {
+                UnitActionKind::Withdraw => {
+                    rewrites.push(Rewrite {
+                        line: n + 1,
+                        old: line.to_string(),
+                        new: String::new(),
+                        form: Form::RetiredPath,
+                    });
+                }
+                UnitActionKind::Retarget => {
+                    let to = action.to.as_deref().unwrap_or_default();
+                    let replaced = line.replace(&entry.path, to);
+                    rewrites.push(Rewrite {
+                        line: n + 1,
+                        old: line.to_string(),
+                        new: replaced.clone(),
+                        form: Form::RetiredPath,
+                    });
+                    out.push(format!("{replaced}\n"));
+                }
+            }
+            emitted = true;
+            break;
+        }
+        if !emitted {
+            out.push(raw.to_string());
+        }
+    }
+
+    (drop_empty_edge_keys(&out.concat()), rewrites)
+}
+
+/// Remove an edge key whose list a withdrawal emptied.
+fn drop_empty_edge_keys(src: &str) -> String {
+    let lines: Vec<&str> = src.split_inclusive('\n').collect();
+    let mut out = String::with_capacity(src.len());
+    let mut i = 0usize;
+    let mut delimiters = 0usize;
+    while i < lines.len() {
+        let line = lines[i].trim_end_matches(['\n', '\r']);
+        if line == "---" {
+            delimiters += 1;
+        }
+        let in_frontmatter = delimiters == 1 && line != "---";
+        let is_key = in_frontmatter
+            && !line.starts_with(' ')
+            && !line.starts_with('-')
+            && line.ends_with(':');
+        if is_key {
+            let next = lines.get(i + 1).map(|l| l.trim_end_matches(['\n', '\r']));
+            // An INDENTED `-` is a list item. The closing `---` also starts
+            // with one, and reading it as an item kept every emptied key.
+            let has_items = next.is_some_and(|l| {
+                l != "---" && l.starts_with(' ') && l.trim_start().starts_with('-')
+            });
+            if !has_items {
+                i += 1;
+                continue;
+            }
+        }
+        out.push_str(lines[i]);
+        i += 1;
+    }
+    out
 }
 
 /// Refuse a renamed spec directory holding a file the rewrite cannot carry.
@@ -1114,9 +1242,22 @@ fn replace_bare(line: &str, path: &str, text: &str) -> String {
     let mut out = String::with_capacity(line.len());
     let mut rest = line;
     while let Some(at) = rest.find(path) {
-        let before_ok = at == 0
-            || !matches!(rest.as_bytes()[at - 1], b'/' | b'.' | b'`' | b'"' | b'\'')
-                && !rest.as_bytes()[at - 1].is_ascii_alphanumeric();
+        // A path character before the match means this is a DIFFERENT path:
+        // `kit/rules/one.md` and `_rules/one.md` are not the retired one. `_`
+        // and `-` are path characters and are not alphanumeric, so they are
+        // named here rather than left to `is_ascii_alphanumeric`.
+        let before = if at == 0 {
+            None
+        } else {
+            Some(rest.as_bytes()[at - 1])
+        };
+        let before_ok = match before {
+            None => true,
+            Some(b) => {
+                !matches!(b, b'/' | b'.' | b'`' | b'"' | b'\'' | b'_' | b'-')
+                    && !b.is_ascii_alphanumeric()
+            }
+        };
         let after = at + path.len();
         let after_ok = after >= rest.len()
             || matches!(

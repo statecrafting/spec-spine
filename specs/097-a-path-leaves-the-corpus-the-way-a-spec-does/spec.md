@@ -266,6 +266,20 @@ guaranteed by anything: a path with a shorter name, or a corpus with more
 occurrences than a person will read, gives the same operation both defect
 families at once.
 
+D-2 (2026-09-20, the frontmatter edit is the verb's, not the caller's). §3.3
+says a withdrawal is named rather than inferred, and the first build validated
+the naming and then made no edit: the plan passed, the acknowledgement was
+recorded, and the spec went on claiming a path that was gone. The edit is made
+here, line-scoped inside the frontmatter and inside the named edge's list, and a
+withdrawal that empties a list takes the key with it. The acceptance asserts the
+resulting bytes, not that the call returned `Ok`: permission to make an edit is
+worth nothing if nothing checks the edit happened.
+
+D-3 (2026-09-20, `_` and `-` are path characters). §3.2 form 2 excludes a bare
+occurrence that is part of a longer path. The first boundary test asked only
+`is_ascii_alphanumeric`, which let `_rules/one.md` through as a citation of
+`rules/one.md`. Both characters are named explicitly now.
+
 ## Verification
 
 Each line is one command, run independently.

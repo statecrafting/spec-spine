@@ -230,7 +230,14 @@ fn a_form_with_no_rule_is_refused_rather_than_skipped() {
 #[test]
 fn a_unit_on_an_approved_spec_needs_the_human_acknowledgement() {
     let tmp = fixture("x");
+    // The unit `000-alpha` claims is the DIRECTORY, so the entry has to name it:
+    // an action whose path matches no frontmatter line would assert nothing.
     let mut e = retire_rules();
+    e.path = "rules/".into();
+    e.kind = RetireKind::Directory;
+    e.forms = [("citation".to_string(), Some("`AGENTS.md`".to_string()))]
+        .into_iter()
+        .collect();
     e.units = vec![UnitAction {
         spec: "000-alpha".into(),
         edge: "establishes".into(),
@@ -243,7 +250,106 @@ fn a_unit_on_an_approved_spec_needs_the_human_acknowledgement() {
     assert!(format!("{err}").contains("approved"), "{err}");
 
     e.units[0].acknowledge_approved = true;
-    assert!(compact(&cfg(), tmp.path(), &plan_with(e)).is_ok());
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    // The acknowledgement is permission to make the edit, so the edit has to be
+    // made: a plan that passes validation and changes no frontmatter leaves the
+    // corpus claiming a path that is gone.
+    let alpha = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "specs/000-alpha/spec.md")
+        .expect("the owning spec is rewritten");
+    assert!(
+        !alpha.contents.contains("rules/"),
+        "the withdrawn unit is still claimed:\n{}",
+        alpha.contents
+    );
+}
+
+/// §3.3: a withdrawal that empties an edge list takes the key with it. A bare
+/// `establishes:` with no items is not the same document minus a claim.
+#[test]
+fn a_withdrawal_that_empties_an_edge_removes_the_key() {
+    let tmp = fixture("x");
+    let mut e = retire_rules();
+    e.path = "rules/".into();
+    e.kind = RetireKind::Directory;
+    e.forms = [("citation".to_string(), Some("`AGENTS.md`".to_string()))]
+        .into_iter()
+        .collect();
+    e.units = vec![UnitAction {
+        spec: "000-alpha".into(),
+        edge: "establishes".into(),
+        action: UnitActionKind::Withdraw,
+        to: None,
+        acknowledge_approved: true,
+    }];
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let alpha = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "specs/000-alpha/spec.md")
+        .expect("the owning spec is rewritten");
+    assert!(
+        !alpha.contents.contains("establishes:"),
+        "{}",
+        alpha.contents
+    );
+    assert!(
+        alpha.contents.contains("id: \"000-alpha\""),
+        "{}",
+        alpha.contents
+    );
+}
+
+/// §3.3: a retarget rewrites the unit's path in place and leaves the edge.
+#[test]
+fn a_retarget_rewrites_the_unit_and_keeps_the_edge() {
+    let tmp = fixture("x");
+    let mut e = retire_rules();
+    e.path = "rules/".into();
+    e.kind = RetireKind::Directory;
+    e.forms = [("citation".to_string(), Some("`AGENTS.md`".to_string()))]
+        .into_iter()
+        .collect();
+    e.units = vec![UnitAction {
+        spec: "000-alpha".into(),
+        edge: "establishes".into(),
+        action: UnitActionKind::Retarget,
+        to: Some("AGENTS.md".into()),
+        acknowledge_approved: true,
+    }];
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let alpha = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "specs/000-alpha/spec.md")
+        .expect("the owning spec is rewritten");
+    assert!(
+        alpha.contents.contains("establishes:"),
+        "{}",
+        alpha.contents
+    );
+    assert!(
+        alpha.contents.contains("path: \"AGENTS.md\""),
+        "{}",
+        alpha.contents
+    );
+    assert!(!alpha.contents.contains("rules/"), "{}", alpha.contents);
+}
+
+/// §3.2 form 2: a path character before the match means a DIFFERENT path. `_`
+/// and `-` are path characters and are not alphanumeric, so a boundary test
+/// that only asked `is_ascii_alphanumeric` let `_rules/one.md` through.
+#[test]
+fn an_underscore_prefixed_path_is_not_the_retired_one() {
+    let tmp = fixture("_rules/one.md is a different file, and so is x-rules/one.md.\n");
+    let c = compact(&cfg(), tmp.path(), &plan_with(retire_rules())).unwrap();
+    assert!(
+        c.rewrites.iter().all(|f| f.rel_path != "docs/note.md"),
+        "{:?}",
+        c.rewrites
+    );
 }
 
 #[test]
