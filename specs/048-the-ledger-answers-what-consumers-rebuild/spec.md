@@ -41,7 +41,7 @@ summary: >
   --json`'s output object. Neither touches a committed artifact, a DTO, or a
   schema version: both facts already exist and are merely unreachable.
 ---
-# 055: The ledger answers what consumers rebuild by hand
+# 048: The ledger answers what consumers rebuild by hand
 
 ## 1. Purpose
 
@@ -223,7 +223,7 @@ shape. Not needed by any evidence the audit collected.
 
 **Changing any ownership rule.** Subtree matching, supersession transfer,
 comment headers, the floor, the strict-expansion guard: all exactly as specs
-004, 005, 009, 019 and 032 left them. This spec makes a decision readable; it
+004, 005, 008, 018 and 029 left them. This spec makes a decision readable; it
 does not revisit it.
 
 **The index's per-spec shard hash as a read verb.** A real gap and a different

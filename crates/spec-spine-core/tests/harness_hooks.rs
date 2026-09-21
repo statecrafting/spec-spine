@@ -75,7 +75,7 @@ fn spec_spine_invocations(body: &str) -> Vec<Vec<String>> {
                 // above, so the guard `[ -n "$sc" ]` reads here as
                 // `[ -n spec-spine ]`. At runtime `$sc` holds a resolved path,
                 // and either way the line is a shell test, not a call. A real
-                // invocation's first word is a subcommand or a flag (051 3.5).
+                // invocation's first word is a subcommand or a flag (093 3.5).
                 let is_call = words.first().is_some_and(|w| {
                     w.starts_with('-') || w.starts_with(|c: char| c.is_ascii_alphabetic())
                 });
@@ -235,7 +235,7 @@ fn pre_tool_use_refuses_a_push_to_the_default_branch() {
     }
     assert!(
         body.contains("update $def"),
-        "the refusal message must name the branch it resolved (072 3.2)"
+        "the refusal message must name the branch it resolved (093 3.2)"
     );
     // Spec 093 3.1: anchored on the command that invokes the push verb. A
     // substring match over the whole command refused any command merely

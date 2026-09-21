@@ -67,7 +67,7 @@ extends:
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---
-# 097: Governed scope is declared, not inferred
+# 078: Governed scope is declared, not inferred
 
 ## 1. Purpose
 
@@ -120,10 +120,10 @@ The seven are sharper still. These files already **claim themselves**, in the
 documented way, and the claim is inert:
 
 ```
-.githooks/enable-hooks.sh             # Spec: specs/090-.../spec.md
+.githooks/enable-hooks.sh             # Spec: specs/094-.../spec.md
 .githooks/enable-merge-driver.sh      # Spec: 094-one-gate-and-the-boundaries-it-holds
 .githooks/merge-derived-index.sh      # Spec: 094-one-gate-and-the-boundaries-it-holds
-kit/.githooks/enable-hooks.sh         # Spec: specs/090-.../spec.md
+kit/.githooks/enable-hooks.sh         # Spec: specs/094-.../spec.md
 kit/.githooks/enable-merge-driver.sh  # Spec: 094-one-gate-and-the-boundaries-it-holds
 kit/.githooks/merge-derived-index.sh  # Spec: 094-one-gate-and-the-boundaries-it-holds
 py/scripts/smoke_test.sh              # Spec: specs/007-python-distribution/spec.md

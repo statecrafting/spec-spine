@@ -38,7 +38,7 @@
     "owner": "The spec-spine Authors",
     "risk": "high",
     "sectionHeadings": [
-      "092: The harness this repository runs",
+      "093: The harness this repository runs",
       "1. Purpose",
       "1.1 One tree, sixteen owners",
       "1.2 What this spec is",
@@ -81,6 +81,6 @@
     "summary": "Sixteen specs governed one tree. `.claude/` is four hooks, ten skills, four agents and four rules, and the requirements on them were spread over specs 093, 047, 048, 051, 063, 068, 071, 072, 078, 080, 081, 082, 099, 104, 110 and 116, each written when that tree was a product this repository distributed. Spec 092 removed the distribution; what is left is one tree that one repository reads, described in sixteen places, most of them half about copies that no longer exist. This spec is that description, in one place: what the hooks may do, what the push gate refuses, how every hook reads a verdict, what the ten skills are and what each must contain, what the four rules say, and who owns the protocol. Every surviving requirement of the seventeen is carried here; what is dropped is named in §6 with the reason, and in every case the reason is that its subject was a copy spec 092 deleted.\n",
     "title": "The harness this repository runs"
   },
-  "shardHash": "315f062adf6e0799ca5ab2b2a8a18689b45f59a2acf063521843a7ddd8cd31f0",
+  "shardHash": "157f947d78d4ebd9c09577181eb1ce6bb1e2eea8b940c33b358d50c6389bdcb4",
   "specVersion": "1.3.0"
 }

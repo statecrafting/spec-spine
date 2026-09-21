@@ -11,7 +11,7 @@ depends_on:
   - "023-unresolved-unit-severity"
   - "038-completion-held-to-claims"
 amends:
-  # 041 3.1's table states the current behavior for `approved` + `in-progress`
+  # 038 3.1's table states the current behavior for `approved` + `in-progress`
   # and 4 argues it is very likely a defect while deliberately not fixing it.
   # This is the fix it deferred. 041's text is unchanged (spec 037).
   - "038-completion-held-to-claims"
@@ -38,7 +38,7 @@ summary: >
   it, which lives in `approved` + `in-progress` for the whole build; the rahi
   corpus is in that state today.
 ---
-# 044: `in-progress` is in flight
+# 041: `in-progress` is in flight
 
 ## 1. Purpose
 
@@ -65,7 +65,7 @@ not yet written is a hard error.
 
 `pending` says the work has not started. `in-progress` says it has started and
 has not finished. Both are statements that the claimed territory is incomplete,
-which is precisely the condition 025's leniency exists to accommodate. Granting
+which is precisely the condition 023's leniency exists to accommodate. Granting
 it to one and refusing it to the other requires an argument, and 025 does not
 make one: it names `draft` and `pending` and never discusses `in-progress` at
 all. That silence is what distinguishes this from a deliberate asymmetry.
@@ -113,7 +113,7 @@ fields, exactly as spec 038 did for a different combination.
 A spec MUST be treated as in flight when its `implementation` is `in-progress`,
 unless it also asserts completion, which cannot both hold.
 
-The table is exhaustive over both enums, as 041 3.1's is, so that the one cell
+The table is exhaustive over both enums, as 038 3.1's is, so that the one cell
 this spec moves is legible against every cell it does not:
 
 | `status` | `implementation` | in flight | change |
@@ -148,7 +148,7 @@ report, not a pass.
 There is no time limit, no staleness on the flag, and no gate that refuses a
 spec for sitting at `in-progress` too long. A lifecycle value that expired on
 its own would be a clock in a system contracted to be a pure function of
-`(config, file contents)`, and 023 3.2's split is explicit about where the only
+`(config, file contents)`, and 021 3.2's split is explicit about where the only
 wall clock lives.
 
 Nor does this make `implementation` mandatory. An absent key still behaves as

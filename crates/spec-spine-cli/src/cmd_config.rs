@@ -53,7 +53,7 @@ pub fn run(repo: &Path, action: &ConfigAction) -> Result<u8, Error> {
         // object itself.
         //
         // Spec 074 §3.7: sorted through the read-document emitter like every
-        // other read, but not stamped. It already names a version, 054's
+        // other read, but not stamped. It already names a version, 047's
         // `config_version`, and a second version member would leave a consumer
         // no rule for which one to dispatch on.
         let s = spec_spine_core::read_document(

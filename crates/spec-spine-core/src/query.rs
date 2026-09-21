@@ -24,7 +24,7 @@ pub fn load_registry(bytes: &[u8]) -> Result<Registry, Error> {
 }
 
 /// The content hash the committed registry shard records for one spec (spec
-/// 055 §3.3): SHA-256 over that spec's `spec.md` under the corpus's
+/// 048 §3.3): SHA-256 over that spec's `spec.md` under the corpus's
 /// normalization, which is the registry's only hashed input.
 ///
 /// **Read, never recomputed.** `registry` is the read-side view of what was
@@ -108,7 +108,7 @@ pub fn show<'a>(registry: &'a Registry, id: &str) -> Result<&'a SpecRecord, Erro
     // Spec 067 3.1: the short form resolves here as it does at every other
     // argument, against the set this verb already reads. The registry answers
     // from the ledger and `query_json` is handed registry text and nothing
-    // else, so no other set is available to it (084 3.2, D-3).
+    // else, so no other set is available to it (067 3.2, D-3).
     let resolved = crate::spec_id::resolve_spec_id(id, registry.specs.iter().map(|s| &s.id))?;
     registry
         .specs
@@ -200,7 +200,7 @@ pub fn relationships(registry: &Registry, id: &str) -> Result<RelationshipView, 
     let spec = show(registry, id)?;
     // Spec 067 3.3: every value derived from the id after resolution comes from
     // the **resolved** id. `show` already resolved; comparing the raw argument
-    // here is the partial fix 084 1.3 describes, which prints a spec's outgoing
+    // here is the partial fix 067 1.3 describes, which prints a spec's outgoing
     // edges and an empty `depended_on_by` at exit 0. A wrong answer at exit 0
     // is worse than the refusal it replaced.
     let id = spec.id.as_str();
@@ -332,7 +332,7 @@ pub struct Plan {
 /// A **report, never a clearance**. The pair is evidence that two specs land in
 /// the same place; an absent pair is not evidence that they do not. Disjoint
 /// frontmatter still shares a lockfile, a regenerated shard tree and any API
-/// one of them consumes, and none of those is declared anywhere (091 §1.3).
+/// one of them consumes, and none of those is declared anywhere (072 §1.3).
 /// There is deliberately no `safe` field, because there is nothing to put in
 /// it.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -342,7 +342,7 @@ pub struct Overlap {
     /// subject and the report suggests no order between them.
     pub specs: [String; 2],
     /// Every unit identity string taking part in the collision, from either
-    /// side, sorted (091 §3.3, §3.5). A subtree claim and the file it covers
+    /// side, sorted (072 §3.3, §3.5). A subtree claim and the file it covers
     /// intersect without being the same string, so both appear.
     pub units: Vec<String>,
 }
@@ -386,7 +386,7 @@ impl Plan {
 /// (spec 042): on a `draft` it reads as `pending`, because an unstated
 /// intention is the same input to a scheduler as a stated intention to start;
 /// on anything ratified it reads as settled, which is what the gate already
-/// concludes about the same key (041 3.1, 044 3.1) and what keeps a bootstrap
+/// concludes about the same key (038 3.1, 041 3.1) and what keeps a bootstrap
 /// spec that owns no code from being offered as ready forever.
 ///
 /// Returns [`Error::Validation`] naming the path if `depends_on` contains a

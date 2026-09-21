@@ -476,7 +476,7 @@ fn any_owner_in_diff(
 /// [`owners_for_path`] is given inside the gate.
 ///
 /// Only **full** supersession contributes a whole-spec authority transfer (spec
-/// 019). A **partial** item transfers authority over a single unit only: that
+/// 018). A **partial** item transfers authority over a single unit only: that
 /// is threaded through the index instead, as a `SourceField::Supersedes`
 /// resolved unit owned by the superseder, so it is already an owner of that
 /// unit's paths via `owners_for_path` step 1 and must NOT also inherit the

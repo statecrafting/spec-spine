@@ -41,7 +41,7 @@ summary: >
   panic hook, which would match on a message string the standard library is
   free to change.
 ---
-# 035: A closed reader is not an error
+# 032: A closed reader is not an error
 
 ## 1. Purpose
 

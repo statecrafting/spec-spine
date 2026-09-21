@@ -56,7 +56,7 @@
     ],
     "risk": "medium",
     "sectionHeadings": [
-      "118: The verdict is the only thing on stdout",
+      "090: The verdict is the only thing on stdout",
       "1. Purpose",
       "1.1 Measured, on the default branch",
       "1.2 Why the existing tests could not see it",
@@ -77,6 +77,6 @@
     "summary": "Spec 034 3.1 requires that under `--json` a verb write exactly one JSON object to stdout, and `verify --json` does not: it spawns each acceptance command with stdout inherited, so every byte the command prints lands on the parent's stdout ahead of the envelope. The failure is quiet in the worst way, because the envelope is still emitted and still correct and the exit code is still right, so a consumer sees a successful run whose document will not parse. Measured on `5f95613`, a one-command block printing a single line makes `json.load` of the whole stdout fail at character 0 while the process exits 0. `verify` is the verb an orchestrator most needs to read programmatically, which is the third argument spec 043 1.2 used to justify building it, so the one verb that had to be machine-readable is the one that is not. The correction keeps the child's bytes and moves them: under `--json` both child streams are streamed to the parent's stderr as they arrive, and the command and exit transcript spec 043 3.5 requires joins them there, so stdout carries the envelope and nothing else on the report path and on the error path alike. Nothing is captured in memory, no field joins the verdict schema, and without the flag every byte goes where it goes today.\n",
     "title": "The verdict is the only thing on stdout"
   },
-  "shardHash": "6faf21be8b8a7f1c5672747cdf4d7b1658f65824b720366498fa0543cf17ceb0",
+  "shardHash": "01a6c552e5d07e33ee95bb256ebfd002229f5d9023d815a25232e5abc13ebbf6",
   "specVersion": "1.3.0"
 }

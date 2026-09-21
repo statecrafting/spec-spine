@@ -13,21 +13,21 @@ depends_on:
   - "054-the-scaffold-ships-what-adopters-wrote"
   - "057-the-docs-name-what-adopters-derived"
 amends:
-  # 061 §4 emitted the key at its real (broken) value with a comment saying it
+  # 054 §4 emitted the key at its real (broken) value with a comment saying it
   # is left as-is because fixing it would restale every adopter. Both halves of
   # that sentence stop being true here, so the comment it mandates changes.
   - "054-the-scaffold-ships-what-adopters-wrote"
 extends:
   # §3.1 The default value itself.
   - { spec: "055-a-version-pin-the-cli-can-check", unit: "crates/spec-spine-types/src/config.rs", nature: additive }
-  # §3.2 The scaffold comment 061 §3.2 mandates, and the assertion beside it.
+  # §3.2 The scaffold comment 054 §3.2 mandates, and the assertion beside it.
   - { spec: "054-the-scaffold-ships-what-adopters-wrote", unit: "crates/spec-spine-core/src/scaffold.rs", nature: additive }
   - { spec: "054-the-scaffold-ships-what-adopters-wrote", unit: "crates/spec-spine-core/tests/scaffold.rs", nature: additive }
   # §3.3 The regression guard: the default must match files, not directories.
   - { spec: "048-the-ledger-answers-what-consumers-rebuild", unit: "crates/spec-spine-core/tests/index.rs", nature: additive }
   # §3.4 The adopter-facing default table and the bypassed-vs-hashed example.
   - { spec: "057-the-docs-name-what-adopters-derived", unit: "docs/adoption-guide.md", nature: additive }
-  # §3.6 030's workflow auto-waive test asserted a freshness premise that the
+  # §3.6 027's workflow auto-waive test asserted a freshness premise that the
   # broken default was the only thing making true.
   - { spec: "027-cargo-workflow-dependency-waiver", unit: "crates/spec-spine-cli/tests/couple.rs", nature: additive }
 references:
@@ -43,13 +43,13 @@ summary: >
   comment naming the trap, and deferred the fix to its own spec on the grounds
   that changing it restales every adopter's committed index. This is that spec.
   The default becomes `["standards/**/*", ".github/workflows/**/*"]`, the
-  working form 061's comment already tells adopters to write, so an adopter who
+  working form 054's comment already tells adopters to write, so an adopter who
   followed that advice sees no change and one who did not gets a one-time
   restale and a governance surface that is finally in the ledger. A regression
   test pins the property that was never asserted: that the shipped default
   matches files.
 ---
-# 069: The shipped default hashes what it names
+# 058: The shipped default hashes what it names
 
 ## 1. Purpose
 
@@ -103,7 +103,7 @@ declared as an `extends` edge in the frontmatter:
 | Unit | Owner crossed | What changes |
 |---|---|---|
 | `crates/spec-spine-types/src/config.rs` | 062 (latest claimant) | the default value (§3.1) |
-| `crates/spec-spine-core/src/scaffold.rs` | 061 | the comment 061 §3.2 mandates (§3.2) |
+| `crates/spec-spine-core/src/scaffold.rs` | 061 | the comment 054 §3.2 mandates (§3.2) |
 | `crates/spec-spine-core/tests/scaffold.rs` | 061 | the assertion that the emitted default works (§3.2) |
 | `crates/spec-spine-core/tests/index.rs` | 055 (latest claimant) | the regression guard (§3.3) |
 | `docs/adoption-guide.md` | 067 | the default column and the worked example (§3.4) |
@@ -253,7 +253,7 @@ specs' territory with no behavior change, and doing it here would bury the
 one-line fix this spec exists to make.
 
 **A workflow freshness projection.** `Cargo.toml` and `package.json` fold into
-the hash as governance *projections* (spec 004 §3.5, extended by 030 §3.1): the
+the hash as governance *projections* (spec 004 §3.5, extended by 027 §3.1): the
 manifest with its dependency tables stripped, so a version bump moves no hash.
 No such projection exists for a workflow, so a `uses:` action bump moves the
 global scalar and stales every shard, and a bot that can neither re-index nor
@@ -285,7 +285,7 @@ what a correct ledger costs.
 finding an adopter derived by experiment, that `standards/**` is in the default
 `extra_hashed_inputs` and that editing a standards file therefore stales every
 shard. The second half of that sentence is false today and true after this spec.
-069 is not contradicting 067's stated behavior; it is making 067's description
+069 is not contradicting 057's stated behavior; it is making 057's description
 of the world accurate. The doc file 067 owns is edited under an `extends` edge,
 and 067's own `spec.md` is not touched (spec 037).
 
@@ -295,7 +295,7 @@ freshness is already fine". The first clause is true and is about the unit; the
 conclusion is false whenever an `extra_hashed_inputs` glob covers the same file,
 which in this repository it has since spec 050. So 069 does not change 030's
 stated behavior: 030 implements a coupling waiver, that waiver is untouched, and
-its test still asserts it. What 069 falsifies is a premise in 030's problem
+its test still asserts it. What 069 falsifies is a premise in 027's problem
 statement that was already false when written. A premise is corrected by the
 record, not by an `amends` edge, so this entry is the record and the test is
 edited under an `extends` edge on the file.
@@ -334,7 +334,7 @@ cargo build --release --locked
 # 3.3 the regression guard, and 3.2's assertion beside the round-trip.
 cargo test -p spec-spine-core --test index --locked
 cargo test -p spec-spine-core --test scaffold --locked
-# 3.6 030's workflow auto-waive test, corrected to the real sequence.
+# 3.6 027's workflow auto-waive test, corrected to the real sequence.
 cargo test -p spec-spine-cli --test couple --locked
 # 3.4 the guide keeps the trap warning and 3.5 puts the migration note beside it.
 grep -q 'Watch the glob form' docs/adoption-guide.md
@@ -345,7 +345,7 @@ rm -rf "${TMPDIR:-/tmp}/ss069" && mkdir -p "${TMPDIR:-/tmp}/ss069" && target/rel
 grep -q 'extra_hashed_inputs = \["standards/\*\*/\*", ".github/workflows/\*\*/\*"\]' "${TMPDIR:-/tmp}/ss069/spec-spine.toml"
 # ...and the bare directory form is gone from the file.
 ! grep -q '"standards/\*\*"' "${TMPDIR:-/tmp}/ss069/spec-spine.toml"
-# 3.2: the trap is still named, in the phrase 061's own verification greps for.
+# 3.2: the trap is still named, in the phrase 054's own verification greps for.
 grep -q 'matches DIRECTORIES' "${TMPDIR:-/tmp}/ss069/spec-spine.toml"
 # 3.2: the emitted config still round-trips through the real loader.
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss069" config show >/dev/null

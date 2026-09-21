@@ -12,7 +12,7 @@
 #   SPEC_SPINE_SKIP_ATTESTATION=1     skip the provenance check entirely (checksum still enforced)
 #
 # The .sha256 sidecar proves integrity; provenance verification (via `gh`, spec
-# 021) proves authenticity. musl-based Linux (e.g. Alpine) is refused with a
+# 019) proves authenticity. musl-based Linux (e.g. Alpine) is refused with a
 # pointer to `cargo install`, since the prebuilt Linux binaries are glibc-only.
 #
 # Windows: use the .zip from the Releases page (this script targets macOS/Linux).

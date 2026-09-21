@@ -392,7 +392,7 @@ the other is how a governance file ends up outside both.
 > **If your own `spec-spine.toml` carries `standards/**` or
 > `.github/workflows/**`** (spec 061 3.9), those entries match **no files**, and
 > upgrading does not change them: the value is yours, not the default, and spec
-> 069 only fixed the default. **The absence of a restale on upgrade is therefore
+> 058 only fixed the default. **The absence of a restale on upgrade is therefore
 > not evidence that you were unaffected.** It is the opposite: your patterns
 > never contributed a byte to any content hash, so there was nothing to move.
 > Rewrite them as `standards/**/*` and `.github/workflows/**/*`, run

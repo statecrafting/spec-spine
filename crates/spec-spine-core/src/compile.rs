@@ -831,7 +831,7 @@ pub fn compile_spec(cfg: &Config, repo_root: &Path, id: &str) -> Result<SpecChec
     let specs_dir = repo_root.join(&cfg.layout.specs_dir);
     // Spec 067 3.4: the one policy, over the ids this verb already reads. A
     // string comparison against the listing, never `specs_dir.join(id)`, so a
-    // path-shaped argument is refused rather than walked to (084 3.2, D-6).
+    // path-shaped argument is refused rather than walked to (067 3.2, D-6).
     let dirname = crate::spec_id::resolve_spec_id(id, crate::spec_id::spec_dir_ids(&specs_dir)?)?;
     let spec_md = specs_dir.join(&dirname).join("spec.md");
     let raw = fs::read_to_string(&spec_md)

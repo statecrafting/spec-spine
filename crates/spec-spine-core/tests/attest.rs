@@ -517,7 +517,7 @@ fn lint_and_compile_verdicts_go_false_for_the_attested_spec() {
 
 // ===== spec 066: an attestation covers the territory it claims =====
 //
-// Every guard 083 3.5 names. The first is the one the corpus actually
+// Every guard 066 3.5 names. The first is the one the corpus actually
 // exercises: thirteen of the fourteen specs the defect reached claim a subtree
 // with a trailing-slash `file` unit rather than an explicit `directory` unit,
 // so a fix keyed to `Unit::Directory` would have left them broken. It must not

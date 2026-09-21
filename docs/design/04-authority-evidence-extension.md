@@ -76,7 +76,7 @@ tables.
 | F4 | `hash::content_hash` frames the path but not the content, so two trees can fold to one digest; a binary file and a text file holding `sha256:<its digest>` attest identically | AE §4 | 087 (new records only) |
 | F5 | No attestation records committed-shard freshness, a config digest, or which governance files were read; `check --json` reports freshness as booleans without the digests compared | AE §4 | 087 |
 | F6 | `couple` diffs from a merge base it never reports, and a corpus attestation's `couple` block is a different question (resolution, not diff) | AE §5 | 088, request R2 |
-| F7 | C-001 clears on **any** owner's `spec.md` in the diff, and owners are read from the candidate's own index, so a candidate can weaken its own `## Verification` block, or claim territory with a new `extends`, and pass | AE §5; `couple.rs` "primary-owner heuristic"; reproduced in 088's `## Verification` | 088 (report only; note 02 G7 stands) |
+| F7 | C-001 clears on **any** owner's `spec.md` in the diff, and owners are read from the candidate's own index, so a candidate can weaken its own `## Verification` block, or claim territory with a new `extends`, and pass | AE §5; `couple.rs` "primary-owner heuristic"; reproduced in 071's `## Verification` | 088 (report only; note 02 G7 stands) |
 | F8 | `registry plan --json`, `index owner --json`, `index coverage --json` carry no version and emit unsorted keys, contrary to `api.md` §7 | AE §2 | 093 (shipped 2026-09-15) |
 | F9 | `registry show` prints `contentHash ... (sha256 of this spec.md)` but the value is the path-prefixed shard hash, which differs from `specSourceHash` for the same file | AE §4 | 096 (shipped 2026-09-15) |
 | F10 | `docs/schema-versioning.md` lists registry and index at `1.0.0` and omits the attestation and envelope axes, and says the artifact DTOs deny unknown fields, which only `Config`, the edge items and `Unit` do | AE §2 | 085 |
@@ -208,7 +208,7 @@ obligations:
 ```json
 { "id": "068-a-verifier-checks-the-bytes-it-was-given#REQ-1",
   "kind": "requirement", "sectionHash": "...", "units": [ { "kind": "file", "path": "..." } ],
-  "verifiedBy": ["085-...#VER-1"] }
+  "verifiedBy": ["068-...#VER-1"] }
 ```
 
 Rules a compile would enforce: an id is unique within its spec; a `verifies`
@@ -234,7 +234,7 @@ under a named rule version:
   "snapshot": "<AuthoritySnapshot attestationHash>",
   "root": "068-a-verifier-checks-the-bytes-it-was-given",
   "required": [
-    { "kind": "spec", "id": "085-...", "reason": "root", "shardHash": "..." },
+    { "kind": "spec", "id": "068-...", "reason": "root", "shardHash": "..." },
     { "kind": "spec", "id": "021-ledger-seal", "reason": "depends_on", "shardHash": "..." },
     { "kind": "spec", "id": "067-a-short-id-names-the-same-spec-at-every-verb", "reason": "co-owner",
       "unit": "crates/spec-spine-cli/src/verify_attestation.rs", "shardHash": "..." },
@@ -273,9 +273,9 @@ collide with. Not a permit.
     { "unit": { "kind": "file", "path": "crates/spec-spine-cli/tests/verify_attestation_tamper.rs", "planned": true },
       "via": "establishes" }
   ],
-  "ownSpec": { "path": "specs/085-.../spec.md", "permittedEdits": ["claim-created-file", "dated-decision", "implementation-field"] },
+  "ownSpec": { "path": "specs/068-.../spec.md", "permittedEdits": ["claim-created-file", "dated-decision", "implementation-field"] },
   "shared": [ { "path": ".derived/", "reason": "regenerated" }, { "path": "Cargo.lock", "reason": "lockfile" } ],
-  "obligations": ["085-...#VER-1"],
+  "obligations": ["068-...#VER-1"],
   "overlaps": [
     { "spec": "067-a-short-id-names-the-same-spec-at-every-verb", "kind": "file",
       "paths": ["crates/spec-spine-cli/src/verify_attestation.rs", "crates/spec-spine-core/src/attest.rs",
@@ -424,7 +424,7 @@ contract from here; they are proposals for its own governance.
   trusted worker under the recorded tool version.
 - **S2.** Store `{repo, commit, tree}` beside every spec-spine digest; treat a
   `versionMismatch` or an unavailable tree as `unknown`.
-- **S3.** Evaluate 088's `priorPolicy.required` classes under the base's policy
+- **S3.** Evaluate 071's `priorPolicy.required` classes under the base's policy
   and record the approval reference in the permit; spec-spine only classifies.
 - **S4.** Lead the composition envelope (payload type names, media types, any
   in-toto predicate type). spec-spine will supply stable type names and
@@ -438,7 +438,7 @@ contract from here; they are proposals for its own governance.
   reference with explicit algorithm ids; do not re-derive spec-spine digests.
 
 **Fixtures offered to all three:** the tamper and cross-version cases of AE §8,
-as runnable commands in 085's `## Verification` block, and AE §6's worked
+as runnable commands in 068's `## Verification` block, and AE §6's worked
 binding, which a verifier can reproduce from the public history of this
 repository.
 
@@ -479,7 +479,7 @@ repository.
 - **D2a. The 024 amendment in 086.** Comparing index bytes reports a
   sibling-caused resolution flip that spec 022 5 deliberately left unreported.
   The draft declares `amends: 024`; a reviewer may instead prefer to make only
-  the coupling gate resolve ownership afresh (086 D-2 records why the draft
+  the coupling gate resolve ownership afresh (069 D-2 records why the draft
   does not).
 - **D3. What 087 embeds per spec.** The draft embeds each `SpecAttestation`
   hash, which inherits F4 for unit bytes. The alternative is a framed territory

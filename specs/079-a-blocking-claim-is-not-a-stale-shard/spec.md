@@ -47,7 +47,7 @@ references:
   # to a file that does not exist raises W-002 on every gate run.
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---
-# 098: A blocking claim is not a stale shard
+# 079: A blocking claim is not a stale shard
 
 ## 1. Purpose
 
@@ -323,7 +323,7 @@ limitation buried in prose.
 ## 6. Out of scope
 
 **The exit code.** Whether an `I-004` refusal belongs under exit 1 rather than
-2 is R-4, needs an `amends` on 086 §3.1, and is a separate decision. 3.1 holds
+2 is R-4, needs an `amends` on 069 §3.1, and is a separate decision. 3.1 holds
 the current codes.
 
 **The `Stop` hook, and the `SessionStart` hook.** 3.5 and 3.5.1, carried
@@ -500,7 +500,7 @@ target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" index >/dev/null
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep -q 'I-004'
 ! target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" check 2>&1 | grep 'codebase-index:' | grep -q 'STALE'
 # AC-6 in-flight arm (D-5): `draft` + `in-progress` is in flight under specs
-# 025/041/044, so the unit is a `W-001` warning, nothing blocks, and `check`
+# 023/038/041, so the unit is a `W-001` warning, nothing blocks, and `check`
 # exits 0. Asserted for what it shows, which is why it is not the negative.
 sed -i.bak 's/implementation: complete/implementation: in-progress/' "${TMPDIR:-/tmp}/ss098"/specs/001-missing-territory/spec.md && rm -f "${TMPDIR:-/tmp}/ss098"/specs/001-missing-territory/spec.md.bak
 target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" compile >/dev/null && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss098" index >/dev/null

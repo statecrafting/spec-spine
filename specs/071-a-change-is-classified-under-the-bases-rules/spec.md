@@ -26,7 +26,7 @@ establishes:
   # 3.1: the verb: git, the two exports, and the envelope.
   - { kind: file, path: "crates/spec-spine-cli/src/cmd_delta.rs" }
 extends:
-  # 3.3: the body outside `## Verification`, split by 049's own heading grammar.
+  # 3.3: the body outside `## Verification`, split by 043's own heading grammar.
   - { spec: "043-verify-declared-acceptance", unit: "crates/spec-spine-core/src/verify.rs", nature: additive }
   # 3.6: `VERDICT_SCHEMA_VERSION` and `DELTA_SCHEMA_VERSION` pinned, the class tokens pinned.
   - { spec: "000-spec-spine-bootstrap", unit: "crates/spec-spine-types/tests/dtos.rs", nature: additive }
@@ -68,7 +68,7 @@ summary: >
   classes a consumer must judge under the base's policy. It interprets no
   prose, infers no moves, and decides nothing.
 ---
-# 088: A change is classified under the base's rules
+# 071: A change is classified under the base's rules
 
 ## 1. Purpose
 

@@ -11,9 +11,9 @@ depends_on:
   - "035-registry-plan-ready-set"
   - "038-completion-held-to-claims"
 amends:
-  # 038 3.1 reads an absent key as `pending` for every `status`. This narrows
+  # 035 3.1 reads an absent key as `pending` for every `status`. This narrows
   # that to drafts and reads it as settled on a ratified spec, which is what
-  # 041 3.1's table already says the gate does. 038's text is unchanged
+  # 038 3.1's table already says the gate does. 035's text is unchanged
   # (spec 037).
   - "035-registry-plan-ready-set"
 extends:
@@ -30,7 +30,7 @@ summary: >
   `implementation` is optional, and two verbs read its absence in opposite
   directions. `registry plan` (spec 035) reads an absent key as `pending` and
   offers the spec as ready; the index's in-flight predicate (specs 038 and
-  044) reads `approved` + absent as settled and holds the spec to its claims.
+  041) reads `approved` + absent as settled and holds the spec to its claims.
   The one spec that routinely lacks the key is the bootstrap spec `spec-spine
   init` scaffolds, so every scaffolded corpus reports its bootstrap spec as the
   single ready item in an otherwise finished corpus, forever; one adopter does
@@ -42,7 +42,7 @@ summary: >
   template states the key instead of commenting it out, so the absent case
   becomes rare as well as consistent.
 ---
-# 045: An absent `implementation` key takes its answer from `status`
+# 042: An absent `implementation` key takes its answer from `status`
 
 ## 1. Purpose
 
@@ -65,8 +65,8 @@ says "settled, every claim must resolve" and the scheduler says "not started,
 offer it". Both readings are defensible alone. Together they mean a corpus can
 be fully built, fully green, and still have `registry plan` hand out work.
 
-The prose beneath each table adds a second, smaller inconsistency: 041 3.5 and
-044 3.3 both say "an absent key still behaves as `pending` for this purpose",
+The prose beneath each table adds a second, smaller inconsistency: 038 3.5 and
+041 3.3 both say "an absent key still behaves as `pending` for this purpose",
 which contradicts the row directly above them. The tables and the code are
 right; the sentences are slips. Under spec 037 this spec does not edit 041 or
 044 to fix them; it records the correct reading here and the tables stay the
@@ -114,9 +114,9 @@ it, not as a fixed value:
 |---|---|---|---|
 | draft | `pending` | yes (unless blocked) | blocks, reported as `pending` |
 | approved | settled | no | finished |
-| superseded / retired | excluded (unchanged, 038 3.1) | no | finished |
+| superseded / retired | excluded (unchanged, 035 3.1) | no | finished |
 
-"Settled" means what 041 3.1 means by it for the same row: the spec makes no
+"Settled" means what 038 3.1 means by it for the same row: the spec makes no
 claim that work remains, so it is not scheduled and does not block. It is not
 `complete`, and nothing here says so; `blocker_state` reports no state for it
 because there is no state to report.
@@ -127,12 +127,12 @@ far it has got has told a scheduler the same thing `pending` would.
 
 ### 3.2 Why `status` is the right fallback
 
-The two fields are orthogonal axes (041 3.2), and reading an absent value on
+The two fields are orthogonal axes (038 3.2), and reading an absent value on
 one axis off the other is exactly what 041 and 044 already do for `n-a` and
 `deferred`: "they keep taking their answer from `status`, as does an absent
 key." This spec makes `plan` do what the index does, so that the verb that
 schedules and the verb that adjudicates agree about which specs have anything
-left to say about their code. They remain different mechanisms (038 3.4 still
+left to say about their code. They remain different mechanisms (035 3.4 still
 holds: `implementation` is a hint, never evidence); they merely stop reading
 the same input in opposite directions.
 
@@ -160,11 +160,11 @@ nothing blocked.
 
 ### 3.4 What this does not change
 
-- Every cell of 041 3.1 and 044 3.1. The index's predicate is not touched;
+- Every cell of 038 3.1 and 041 3.1. The index's predicate is not touched;
   this spec brings `plan` to it.
 - `approved` + `pending`, which stays schedulable and stays in flight. The
   specify-first corpora live there for months and rely on it.
-- The `deferred` reading (038 3.1's argument that deferral is a decision, not
+- The `deferred` reading (035 3.1's argument that deferral is a decision, not
   a report).
 - The V-014 cycle refusal and the topological order.
 

@@ -86,6 +86,11 @@ pub enum Form {
     ShortIdArg,
     /// An occurrence of a path leaving the corpus (spec 097).
     RetiredPath,
+    /// A spec document's own title heading, `# NNN: Title` (spec 098 §3.1).
+    TitleHeading,
+    /// A bare ordinal in a position only a citation occupies: `084 §3.1`,
+    /// `092 D-3`, `056's` (spec 098 §3.2).
+    BareOrdinal,
 }
 
 impl Form {
@@ -95,6 +100,8 @@ impl Form {
             Form::Citation => "citation",
             Form::ShortIdArg => "short-id-arg",
             Form::RetiredPath => "retired-path",
+            Form::TitleHeading => "title-heading",
+            Form::BareOrdinal => "bare-ordinal",
         }
     }
 }
@@ -237,6 +244,8 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
         Form::Citation,
         Form::ShortIdArg,
         Form::RetiredPath,
+        Form::TitleHeading,
+        Form::BareOrdinal,
     ] {
         counts.insert(form.as_str().to_string(), 0);
     }
@@ -266,6 +275,17 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
             continue;
         }
         let (new_contents, mut file_rewrites) = rewrite_file(&contents, &map, &keys, plan);
+        // Spec 098 §3.1: the document's own title heading. It needs the id of
+        // the spec the file belongs to, which the byte-level forms above do not
+        // have, so it is applied here rather than inside `rewrite_file`.
+        let new_contents = match spec_id_of_path(cfg, &rel) {
+            Some(id) => {
+                let (edited, heading) = rewrite_title_heading(&id, &new_contents, &map);
+                file_rewrites.extend(heading);
+                edited
+            }
+            None => new_contents,
+        };
         let new_contents = if plan.retire.is_empty() {
             new_contents
         } else {
@@ -447,7 +467,6 @@ fn scannable_files(cfg: &Config, repo_root: &Path) -> Vec<String> {
     const EXTS: &[&str] = &[
         "md", "rs", "toml", "yml", "yaml", "sh", "py", "js", "ts", "tsx", "json", "txt",
     ];
-    const NAMES: &[&str] = &["Makefile", "AGENTS.md", "CLAUDE.md"];
     crate::coverage::walk_repository(cfg, repo_root)
         .into_iter()
         .filter(|rel| {
@@ -455,12 +474,42 @@ fn scannable_files(cfg: &Config, repo_root: &Path) -> Vec<String> {
                 return false;
             }
             let name = rel.rsplit('/').next().unwrap_or(rel);
-            NAMES.contains(&name)
-                || rel
-                    .rsplit_once('.')
-                    .is_some_and(|(_, ext)| EXTS.contains(&ext))
+            match extension_of(name) {
+                Some(ext) => EXTS.contains(&ext),
+                // Spec 098 §3.3: an extension-less file is decided by its
+                // bytes, not by a name allowlist. `.gitignore` and
+                // `.gitattributes` carry citations and were on no list, which
+                // is why six of them survived spec 095's renumber.
+                None => is_scannable_text(&repo_root.join(rel)),
+            }
         })
         .collect()
+}
+
+/// The extension of a file name, or `None` when it carries none.
+///
+/// A leading dot opens a name rather than separating an extension: in
+/// `.gitignore` the whole token is the name, and reading `gitignore` as an
+/// extension is what put that file outside every rewrite (spec 098 §1.2).
+fn extension_of(name: &str) -> Option<&str> {
+    let (stem, ext) = name.rsplit_once('.')?;
+    if stem.is_empty() || ext.is_empty() {
+        return None;
+    }
+    Some(ext)
+}
+
+/// Is this extension-less file prose a rewrite may touch?
+///
+/// Valid UTF-8 with no NUL. There is no third thing an extension-less text file
+/// under a walked, pruned tree can be that a rewrite would damage: the walk has
+/// already dropped the derived root, the state root, `.git` and
+/// `resolver_exclusions` (spec 098 D-4).
+fn is_scannable_text(path: &Path) -> bool {
+    match std::fs::read(path) {
+        Ok(bytes) => !bytes.contains(&0) && std::str::from_utf8(&bytes).is_ok(),
+        Err(_) => false,
+    }
 }
 
 // ── the map ──────────────────────────────────────────────────────────────────
@@ -909,6 +958,7 @@ fn rewrite_file(
     scan_full_ids(src, map, keys, &mut hits);
     scan_citations(src, map, plan, &mut hits);
     scan_short_id_args(src, map, &mut hits);
+    scan_bare_ordinals(src, map, plan, &mut hits);
 
     // Earlier first; where two rules reach the same bytes, the longer match
     // wins, which is form 1 over form 2 inside a full id (defect 3).
@@ -1088,6 +1138,186 @@ fn scan_citations(
             pos = sep_end;
         }
     }
+}
+
+/// Form 4: the document's own title heading (spec 098 §3.1).
+///
+/// `old_id` is the id of the spec the file belongs to, before the renumber. The
+/// heading is the first line AFTER the frontmatter matching `#{1,6} NNN: `, and
+/// it is rewritten only when `NNN` is this document's own old ordinal: a
+/// heading naming another spec is a citation of that spec, and a `#` comment
+/// inside the frontmatter is prose the other forms answer for.
+fn rewrite_title_heading(
+    old_id: &str,
+    src: &str,
+    map: &BTreeMap<String, Target>,
+) -> (String, Vec<Rewrite>) {
+    let Some(target) = map.get(old_id) else {
+        return (src.to_string(), Vec::new());
+    };
+    if old_id.len() < 3 {
+        return (src.to_string(), Vec::new());
+    }
+    let old_ordinal = &old_id[..3];
+    if !old_ordinal.as_bytes().iter().all(u8::is_ascii_digit) || old_ordinal == target.ordinal {
+        return (src.to_string(), Vec::new());
+    }
+
+    let mut out = String::with_capacity(src.len());
+    let mut rewrites = Vec::new();
+    let mut in_frontmatter = false;
+    let mut frontmatter_done = false;
+    let mut done = false;
+    for (i, line) in src.split_inclusive('\n').enumerate() {
+        let body = line.trim_end_matches(['\n', '\r']);
+        if !frontmatter_done && body == "---" {
+            if in_frontmatter {
+                frontmatter_done = true;
+            } else if i == 0 {
+                in_frontmatter = true;
+            } else {
+                frontmatter_done = true;
+            }
+            out.push_str(line);
+            continue;
+        }
+        if done || (in_frontmatter && !frontmatter_done) {
+            out.push_str(line);
+            continue;
+        }
+        match heading_ordinal(body) {
+            Some((at, ord)) => {
+                done = true;
+                if ord == old_ordinal {
+                    out.push_str(&body[..at]);
+                    out.push_str(&target.ordinal);
+                    out.push_str(&body[at + 3..]);
+                    out.push_str(&line[body.len()..]);
+                    rewrites.push(Rewrite {
+                        line: i + 1,
+                        old: ord.to_string(),
+                        new: target.ordinal.clone(),
+                        form: Form::TitleHeading,
+                    });
+                } else {
+                    out.push_str(line);
+                }
+            }
+            None => out.push_str(line),
+        }
+    }
+    (out, rewrites)
+}
+
+/// `#{1,6} NNN: ` at the start of a line: the byte offset of the ordinal and
+/// the ordinal itself.
+fn heading_ordinal(line: &str) -> Option<(usize, &str)> {
+    let hashes = line.len() - line.trim_start_matches('#').len();
+    if !(1..=6).contains(&hashes) {
+        return None;
+    }
+    let rest = line.get(hashes..)?;
+    if !rest.starts_with(' ') {
+        return None;
+    }
+    let at = hashes + 1;
+    let ord = line.get(at..at + 3)?;
+    if !ord.as_bytes().iter().all(u8::is_ascii_digit) {
+        return None;
+    }
+    if !line.get(at + 3..)?.starts_with(':') {
+        return None;
+    }
+    Some((at, ord))
+}
+
+/// Form 5: a bare ordinal in a position only a citation occupies (spec 098
+/// §3.2): followed by a section reference (`§`, `N.N`), a decision reference
+/// (`D-N`) or a possessive (`'s`).
+///
+/// Every exclusion of form 2 applies. The digits must be word-bounded on both
+/// sides and must not be preceded by `.` (a decimal is not a citation), and a
+/// foreign project's name before them takes the token out of this corpus.
+fn scan_bare_ordinals(
+    src: &str,
+    map: &BTreeMap<String, Target>,
+    plan: &CompactPlan,
+    hits: &mut Vec<(usize, usize, String, Form)>,
+) {
+    let by_ordinal: BTreeMap<&str, &Target> = map.iter().map(|(k, t)| (&k[..3], t)).collect();
+    let b = src.as_bytes();
+    let mut i = 0usize;
+    while i + 3 <= b.len() {
+        if !b[i].is_ascii_digit() {
+            i += 1;
+            continue;
+        }
+        if i > 0 && (is_id_char(b[i - 1]) || b[i - 1] == b'.') {
+            i += 1;
+            continue;
+        }
+        let ord = &src[i..i + 3];
+        if !ord.as_bytes().iter().all(u8::is_ascii_digit) {
+            i += 1;
+            continue;
+        }
+        let end = i + 3;
+        // An elided full id: `086-...`, where the ellipsis stands for the slug.
+        // Form 1 cannot see it (it matches the map's keys, and `086-...` is not
+        // one) and neither can form 2 (the `-` is what tells those digits apart
+        // from a citation). It is still an unambiguous reference to one spec.
+        let elided = src[end..].starts_with("-...");
+        if !elided && ((end < b.len() && is_id_char(b[end])) || !is_citation_position(&src[end..]))
+        {
+            i = end;
+            continue;
+        }
+        let before = src[..i].trim_end();
+        let prev = before
+            .rsplit(|c: char| c.is_whitespace())
+            .next()
+            .unwrap_or("");
+        let prev = prev.trim_matches(|c: char| !c.is_ascii_alphanumeric());
+        if plan
+            .foreign_projects
+            .iter()
+            .any(|p| p.eq_ignore_ascii_case(prev))
+        {
+            i = end;
+            continue;
+        }
+        if let Some(t) = by_ordinal.get(ord) {
+            hits.push((i, end, t.ordinal.clone(), Form::BareOrdinal));
+        }
+        i = end;
+    }
+}
+
+/// Does the text immediately after a bare ordinal put it in a citation's
+/// position? Spec 098 §3.2's three right-hand shapes, and nothing else.
+fn is_citation_position(after: &str) -> bool {
+    // A possessive binds tight: no space is permitted before it.
+    for apostrophe in ["'s", "\u{2019}s"] {
+        if let Some(rest) = after.strip_prefix(apostrophe)
+            && !rest.starts_with(|c: char| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+        {
+            return true;
+        }
+    }
+    let rest = after.strip_prefix(' ').unwrap_or(after);
+    if rest.starts_with('\u{a7}') {
+        return true;
+    }
+    if let Some(tail) = rest.strip_prefix("D-")
+        && tail.starts_with(|c: char| c.is_ascii_digit())
+    {
+        return true;
+    }
+    let mut chars = rest.chars();
+    matches!(
+        (chars.next(), chars.next(), chars.next()),
+        (Some(a), Some('.'), Some(c)) if a.is_ascii_digit() && c.is_ascii_digit()
+    )
 }
 
 /// A separator that continues a citation onto a further ordinal: `/`, `,`,

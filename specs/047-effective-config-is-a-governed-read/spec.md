@@ -44,7 +44,7 @@ summary: >
   gate actually matches against and each entry attributed to the built-in floor
   or to the adopter's file. It reads and reports; it decides nothing.
 ---
-# 054: The effective configuration is a governed read
+# 047: The effective configuration is a governed read
 
 ## 1. Purpose
 

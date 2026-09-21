@@ -538,7 +538,7 @@ fn a_claim_inside_the_state_root_is_an_l006_error() {
 /// Every ownership-bearing edge is checked, `supersedes` included.
 ///
 /// A partial `supersedes` item carries the unit whose authority transfers (spec
-/// 019), so it claims a path exactly as `establishes` does. Missing it would let
+/// 018), so it claims a path exactly as `establishes` does. Missing it would let
 /// a superseding spec hold a claim inside the ungoverned root that the gate
 /// bypasses unconditionally and no diagnostic ever names, which is precisely the
 /// contradiction `L-006` exists to surface.

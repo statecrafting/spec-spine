@@ -34,7 +34,7 @@ note, this one is the later measurement.
 
 So note 04 is the only note with an unfiled forward plan, and the unfiled pool
 splits into two waves that need no new record vocabulary (A and B) and two that
-build on 087's framed digest (C and D).
+build on 070's framed digest (C and D).
 
 **Corrected 2026-09-15.** That sentence was true of the *authority* backlog and
 false of the whole one. A third area had no forward plan in any note: the
@@ -128,7 +128,7 @@ still refuses in CI), so it is a small spec, not a hotfix.
 
 ### 2.5 One value, two constructions, one name (096)
 
-For `specs/086-.../spec.md`:
+For `specs/069-.../spec.md`:
 
 ```
 registry show 086 --json .contentHash   a4a0098235e9...  = sha256("<path>\0<normalized bytes>")
@@ -138,7 +138,7 @@ attest --spec 069      .specSourceHash  ae0144ca7e4a...  = sha256(<normalized by
 `cmd_registry.rs` line 128 prints the first as `(sha256 of this spec.md)`, and
 approved spec 048 §3.4 says the same thing in prose: "`contentHash` is SHA-256
 over that spec's `spec.md` alone". It is not; it is the path-framed
-construction every content hash in this repository uses. 055 §3.3 was written
+construction every content hash in this repository uses. 048 §3.3 was written
 for consumers who reimplement the normalization to pin against the value, and
 one adopter does exactly that, so the wrong gloss is the whole defect. This is
 F9, and it is the one item in wave A that carries an `amends` edge, because an
@@ -170,7 +170,7 @@ coverage universe whatever their extension, empty by default so no adopter's
 verdict changes on upgrade. What remains here is not the mechanism but the
 adoption: **this repository has not enabled it**, so the nineteen tracked files
 097 measured are still outside `C-002`, and the seven that already carry a
-valid `// Spec:` header are still inert (097 §3.4 leaves the claim scanner
+valid `// Spec:` header are still inert (078 §3.4 leaves the claim scanner
 untouched by design). Turning it on is a separate change with its own
 consequences, and it belongs in §9.2, not in wave B.
 
@@ -178,7 +178,7 @@ consequences, and it belongs in §9.2, not in wave B.
 
 Note 04 §5 already states the ordering rule: obligations, closures and scopes
 all reference a snapshot digest. The concrete dependency is narrower than that
-sentence and worth naming: **`frame/1` is defined by 087 §3.3 and implemented in
+sentence and worth naming: **`frame/1` is defined by 070 §3.3 and implemented in
 the file 087 claims** (`crates/spec-spine-core/src/snapshot.rs`). An obligation's
 `sectionHash` and a closure's item digests are framed digests, so filing them
 before 087 is approved would mean specifying a construction that no approved
@@ -199,7 +199,7 @@ treat "newly buildable" as "next". §9.2 carries the row.
 
 | Item | Note 04 | What changed since the note was written |
 |---|---|---|
-| Obligation records | §4.4 | Unchanged. The payoff worth restating: a `verification` obligation's declared `inputs` are what let 088's delta see a candidate editing the tests that judge it, which today classify as `implementation`. |
+| Obligation records | §4.4 | Unchanged. The payoff worth restating: a `verification` obligation's declared `inputs` are what let 071's delta see a candidate editing the tests that judge it, which today classify as `implementation`. |
 | ContextClosure | §4.5 | Unchanged. |
 | WorkScope | §4.6 | **Narrower.** Spec 072 shipped overlap reporting on `registry plan`, which was §4.6's motivating example. What remains is the mutable-territory set, the `permittedEdits` list for the spec's own file, declared shared outputs, and the snapshot and closure digest references. |
 | Verifier fixtures | §7 | 085 shipped the tamper cases in its `## Verification`. What remains is packaging them as a fixture set a consumer can run, with the neutral verifier itself staying consumer-owned (D6). |
@@ -217,11 +217,11 @@ lifecycle evaluated purely from caller-supplied time, ancestry and usage (B17).
 
 - **A refusing coherence gate** (note 02 G7, note 04 D-4). Design first.
 - **Build identity** (note 04 D1). Decided at v0.19.0: document the limit.
-- **Committed evidence trees** (042 §3.3, note 02 §5). A committed evidence
+- **Committed evidence trees** (039 §3.3, note 02 §5). A committed evidence
   class needs its own freshness gate and restales on every edit.
 - **Merkle membership proofs** (B11). Deferred until a consumer needs selective
   verification; the existing folds are sorted hashes, not trees.
-- **Changing the 16-line claim window's value** (094 §4). Raising or lowering it
+- **Changing the 16-line claim window's value** (075 §4). Raising or lowering it
   reclassifies files in every adopter corpus. 094 declares the bound it has.
 
 ## 7. Decisions, and how they were taken
@@ -234,8 +234,8 @@ draft records.
 | # | Decision | Ruling (2026-09-15) |
 |---|---|---|
 | 1 | Authorize 087 for build | **Proceed**, after §3.3's piece-selection rules are made explicit. It stays `draft` through the build PR and is ratified in a separate PR after merge, per `AGENTS.md` "Working the backlog" step 6; this row said "approve then build" in error, which inverts the cadence this repository runs. **Done: built #208, ratified #212, 2026-09-15** |
-| 2 | Accept 092's refusal widening: after it lands, an owned binary or a mode flip needs its spec edited like any other change | **Accepted** as filed. Governance must not depend on whether git prints a textual hunk. The bypass floor and the clearance rules are unchanged, so the widening reaches only paths a spec already claims |
-| 3 | Accept 093's one breaking output change | **Direction accepted, draft revised first.** The compatibility surface is wider than the draft stated: `--ids-only --json` is also an array and approved spec 009 §3.1 requires it, so 093 now carries an `amends` edge; `plan --next --json` emits `null` on an empty ready set, which the proposed emitter would have refused; and two read verbs were missing from the inventory |
+| 2 | Accept 073's refusal widening: after it lands, an owned binary or a mode flip needs its spec edited like any other change | **Accepted** as filed. Governance must not depend on whether git prints a textual hunk. The bypass floor and the clearance rules are unchanged, so the widening reaches only paths a spec already claims |
+| 3 | Accept 074's one breaking output change | **Direction accepted, draft revised first.** The compatibility surface is wider than the draft stated: `--ids-only --json` is also an array and approved spec 009 §3.1 requires it, so 093 now carries an `amends` edge; `plan --next --json` emits `null` on an empty ready set, which the proposed emitter would have refused; and two read verbs were missing from the inventory |
 | 4 | Whether the ownership ratchet should reach tracked files outside `SOURCE_EXTS` | **Not by extending the list.** The extension is not the binding constraint: the coverage universe is a conjunction of four tests, and discovered-package membership is the one that excludes most governance files, so a longer extension list still would not reach `AGENTS.md`, `.github/workflows/` or `scripts/`. Measured 2026-09-15: 19 tracked files have a `SOURCE_EXTS` extension and are invisible on the package test alone, 11 of them are already `[index] extra_hashed_inputs` entries, and **7 already carry a valid `// Spec:` claim header that nothing reads**. Filed as 097: an explicit opt-in governed scope, empty by default so no adopter's verdict changes on upgrade |
 
 The five drafts the same pass revised (087, 093, 094, 095, 096) carry their
@@ -252,9 +252,9 @@ its own text, and none of them reopened a design.
 
 | # | Question | Ruling (2026-09-15) |
 |---|---|---|
-| 5 | 093's compatibility surface grew from one breaking document to four across three verbs, and from one `amends` edge to two | **Accepted in full.** A consumer gets a predictable, versioned answer including when nothing is ready, which is worth the cost. All four transitions stand: `registry list`, `registry list --ids-only` and `index diagnostics` move under `items`; `plan --next` moves under a nullable `next`. The shared read axis, the `config_version` exception, the unchanged text forms and the amendments to 010 and 060 are unchanged |
-| 6 | Whether 097's opt-in direction is build-ready as drafted | **Direction right, text not ready; corrected before its build.** Four contradictions: it implied the seven inert headers would arrive owned while §3.4 leaves the scanner untouched; it offered an escape hatch (removing `.github/` from `[coupling] bypass_prefixes`) that does not exist, since the configured list only adds to the built-in floor; its enumeration left an absent inventory and an empty one indistinguishable and allowed a silent fallback after a git failure; and it promised "byte-for-byte" unchanged output while adding config keys and scaffold text |
-| 7 | 087's remaining details | **Two, both settled.** An empty directory needs its own piece kind (`d`), or it frames identically to an empty file at the same path; and a spec directly claiming a non-UTF-8 file, which makes `attest --spec` exit 3 (reproduced), must not take the snapshot down with it: the join hash is omitted with a stated reason while `territoryDigest` is still produced. Existing attestation behaviour is preserved, and a genuinely unreadable input remains an error |
+| 5 | 074's compatibility surface grew from one breaking document to four across three verbs, and from one `amends` edge to two | **Accepted in full.** A consumer gets a predictable, versioned answer including when nothing is ready, which is worth the cost. All four transitions stand: `registry list`, `registry list --ids-only` and `index diagnostics` move under `items`; `plan --next` moves under a nullable `next`. The shared read axis, the `config_version` exception, the unchanged text forms and the amendments to 010 and 060 are unchanged |
+| 6 | Whether 078's opt-in direction is build-ready as drafted | **Direction right, text not ready; corrected before its build.** Four contradictions: it implied the seven inert headers would arrive owned while §3.4 leaves the scanner untouched; it offered an escape hatch (removing `.github/` from `[coupling] bypass_prefixes`) that does not exist, since the configured list only adds to the built-in floor; its enumeration left an absent inventory and an empty one indistinguishable and allowed a silent fallback after a git failure; and it promised "byte-for-byte" unchanged output while adding config keys and scaffold text |
+| 7 | 070's remaining details | **Two, both settled.** An empty directory needs its own piece kind (`d`), or it frames identically to an empty file at the same path; and a spec directly claiming a non-UTF-8 file, which makes `attest --spec` exit 3 (reproduced), must not take the snapshot down with it: the join hash is omitted with a stated reason while `territoryDigest` is still produced. Existing attestation behaviour is preserved, and a genuinely unreadable input remains an error |
 | 8 | Where 097 sits in the build order | **Last.** 092 → 095 → 096 → 094 → 093 → 087 → 097, one spec per build PR, `draft` through the build and ratified separately. 097 depends on 094, and enabling the scope in this repository is a separate adoption change after the mechanism ships |
 
 What the corrections changed, precisely, is what each draft promises about
@@ -351,7 +351,7 @@ Anything that closes this drift touches at least:
 | `kit/README.md`, `docs/adoption-guide.md` | Only if either describes the gate an adopter is given. Checked 2026-09-15: `adoption-guide.md` already says `spec-spine check`, so the guide is ahead of the scaffold, not behind it |
 
 **Whether it is `extends` or `amends` is not decidable in advance, and one
-measurement says it is probably `amends`.** 065's own `## Verification` block
+measurement says it is probably `amends`.** 095's own `## Verification` block
 runs `grep -q 'spec-spine compile --check' .../AGENTS.md` against a freshly
 scaffolded tree. Aligning the scaffolded protocol to the kit's `spec-spine
 check` would make that line fail, which means the change falsifies acceptance
@@ -362,7 +362,7 @@ now, and it is never an edit to 065.
 
 The other two constraints stand: the adopter's **custom paths** (the scaffold
 is config-aware precisely so an adopter's corpus and derived directories are
-right) and **destination conflicts** (065 §3.3 keeps `overwrite: false` on
+right) and **destination conflicts** (095 §3.3 keeps `overwrite: false` on
 every kit file, so a rewrite must not clobber).
 
 **The rider prose predated its own filing.** §3's rider paragraph still read as
@@ -380,20 +380,20 @@ released.
 | Source item | Owner | Decision status | Spec or design reference | Remaining action |
 |---|---|---|---|---|
 | Mode-only and binary changes reach the gate | spec-spine | implemented; released in no tag yet | 092 | Ships with the next release |
-| Versioned, sorted read documents (note 04 F8, D7) | spec-spine | implemented | 093, amended by 103 | Its `## Verification` line 13 failed on an empty ready set. Spec 082 built the route an acceptance amendment needed (`amends_verification`, resolved by `verify`) and holds 093's corrected block; 093's file is untouched and `verify 093` is green |
+| Versioned, sorted read documents (note 04 F8, D7) | spec-spine | implemented | 093, amended by 103 | Its `## Verification` line 13 failed on an empty ready set. Spec 082 built the route an acceptance amendment needed (`amends_verification`, resolved by `verify`) and holds 074's corrected block; 074's file is untouched and `verify 093` is green |
 | Claim window declared, near misses reported | spec-spine | implemented | 094 | None |
 | Stray shard orphaned at the verbs | spec-spine | implemented | 095 | None |
 | One hash, one construction, one name (note 04 F9) | spec-spine | implemented | 096 | None |
 | AuthoritySnapshot, `frame/1` | spec-spine | implemented | 087, note 04 §4.2 | None |
 | AuthorityDelta | spec-spine | implemented | 088, note 04 §4.3 | None |
 | Governed scope, declared not inferred | spec-spine | implemented, **not enabled here** | 097 | Enabling `[coverage] governed_scope` in this repository is separate adoption work with its own blast radius |
-| Markdown blind spot in `C-002` | spec-spine | answered by 097's opt-in | 097 §3.4 | The seven inert `// Spec:` headers stay inert by design; if that should change it is a new spec |
-| B1 generated protocol drift | spec-spine | proposed | §9.1, 065 §3.1 to §3.3 | Candidate next spec, §9.4. Territory is hand-maintained `scaffold.rs` plus two test files; likely `amends` 065, whose `## Verification` pins the current text |
+| Markdown blind spot in `C-002` | spec-spine | answered by 078's opt-in | 078 §3.4 | The seven inert `// Spec:` headers stay inert by design; if that should change it is a new spec |
+| B1 generated protocol drift | spec-spine | proposed | §9.1, 095 §3.1 to §3.3 | Candidate next spec, §9.4. Territory is hand-maintained `scaffold.rs` plus two test files; likely `amends` 065, whose `## Verification` pins the current text |
 | B2 `kit/govern.yml` holds two gate definitions | spec-spine | proposed | §3 B2 | Unfiled |
 | B3 kit install trips the ratchet | spec-spine | proposed | §3 B3 | Unfiled |
 | B4 `/shepherd` misses `issues/<n>/comments` | spec-spine | proposed | §3 B4 | Unfiled; one edit in two byte-identical places |
 | B5 one source generates the agent trees | spec-spine | proposed | §3 B5, note 06 §3.4 | Unfiled. Parity only; not distribution |
-| Staged coupling (`couple --head HEAD` reads `base...head`) | spec-spine | **implemented** | 102, amending 090 §4 | H-7 decided 2026-09-16: fixed in `couple`. `--include-uncommitted` unions the committed range with `git diff HEAD`; the default is unchanged so CI stays reproducible. 090 §4's "is filed separately" is amended; 092 §4's sentence was accurate and is untouched |
+| Staged coupling (`couple --head HEAD` reads `base...head`) | spec-spine | **implemented** | 102, amending 094 §4 | H-7 decided 2026-09-16: fixed in `couple`. `--include-uncommitted` unions the committed range with `git diff HEAD`; the default is unchanged so CI stays reproducible. 094 §4's "is filed separately" is amended; 073 §4's sentence was accurate and is untouched |
 | Obligation records | spec-spine | proposed here, **proposed for deferral** by SP-03 | note 04 §4.4, revision 4 SP-03 | Neither adopted; needs a named consumer or an owner decision |
 | ContextClosure | spec-spine | proposed here, proposed for deferral by SP-03 | note 04 §4.5 | As above |
 | WorkScope | spec-spine | proposed here, proposed for deferral by SP-03 | note 04 §4.6, narrowed by 091 | As above |
@@ -411,11 +411,11 @@ released.
 | Validation boundaries and evidence reuse | spec-spine skills | proposed | note 06 §3.8 | Unfiled |
 | `Stop` hook calls every nonzero `check` "STALE" | spec-spine | proposed | note 06 §3.9 | Decision H-6 |
 | PR hook's `git diff --quiet -- .derived/` misses staged and untracked shards | spec-spine | proposed | note 06 §3.9 | Unfiled |
-| Commit-boundary freshness | spec-spine | implemented | 090 | 090 §4 explicitly excludes staged coupling; see the unowned row above |
+| Commit-boundary freshness | spec-spine | implemented | 090 | 094 §4 explicitly excludes staged coupling; see the unowned row above |
 | Exit-code-aware PR gate | spec-spine | **implemented** | 080, 099, 104 | 099 gave the session hooks the treatment; 104 closed the last two gaps: the gate now probes `check --help` on its exit-2 arm (spec 093) and `SessionStart` reports exit 3 as a read that was not performed |
 | Measurement plan | spec-spine and Statecraft | proposed | note 06 §3.10 | Precedes filing note 06's cost-justified items |
-| N2 draft in the ready set | spec-spine | see §9.3 | 038 §3.1, 048 D-2 | Consumer guidance owed |
-| N6 `I-004` refusal exits 2 | spec-spine | **implemented** | 101, amending 086 §3.1 and 098 §3.1 | Part 1 (the message) shipped with 098. Part 2 decided 2026-09-16: an unresolved claim exits 1, the validation code. Both approved specs stating the old rule are amended |
+| N2 draft in the ready set | spec-spine | see §9.3 | 035 §3.1, 093 D-2 | Consumer guidance owed |
+| N6 `I-004` refusal exits 2 | spec-spine | **implemented** | 101, amending 069 §3.1 and 079 §3.1 | Part 1 (the message) shipped with 098. Part 2 decided 2026-09-16: an unresolved claim exits 1, the validation code. Both approved specs stating the old rule are amended |
 | Personal settings inventory, Statecraft execution profiles, Aicortex retrieval | their owners | out of scope here | note 06 §4 | Boundaries recorded; nothing imported |
 
 ### 9.3 The two findings routed from aicortex
@@ -431,10 +431,10 @@ consumer guidance owed.**
 
 Reproduced: a `status: draft`, `implementation: pending` spec is listed under
 `ready` and the entry is `{"id": ..., "title": ...}` with nothing else.
-`ReadySpec` in `query.rs` carries exactly those two fields, so 093's versioning
+`ReadySpec` in `query.rs` carries exactly those two fields, so 074's versioning
 did not touch this. The layering is deliberate and documented in two approved
-places: 038 §3.1 partitions by `status: superseded | retired` and by
-`implementation`, not by approval, and 048 D-2 puts the approval rule in the
+places: 035 §3.1 partitions by `status: superseded | retired` and by
+`implementation`, not by approval, and 093 D-2 puts the approval rule in the
 kit's `/next` on top of `plan`. aicortex relies on that layering and asserts no
 answer.
 
@@ -482,7 +482,7 @@ preference.** Two parts, separable:
    diagnostic. This is a message fix and carries no exit-code compatibility
    question.
 2. Whether an `I-004` refusal belongs under exit 1 (validation) rather than 2
-   (stale) is a contract change: 086 §3.1 states "the exit code is unchanged:
+   (stale) is a contract change: 069 §3.1 states "the exit code is unchanged:
    2 when anything drifted", and adopters branch on it. It needs an `amends`
    edge on 086 and a decision, not a build's judgment.
 
@@ -499,8 +499,8 @@ ratify-then-build may want it; that is a configurable lint, not a default.
 |---|---|---|
 | ~~R-1~~ | **Answered 2026-09-16, shipped as spec 082.** The one-line amendment needed a mechanism first: `verify` executes the amended file, so an acceptance amendment that did not redirect the executor changed nothing. 103 adds `amends_verification`, resolved through a chain and past a withdrawn holder, stated on every run. 093 is not edited | Decided |
 | R-2 | What goes next. Wave B's numbering is not an ordering: rank by impact and dependency. The three live candidates are the generated-protocol drift (§9.1), the `I-004` remedy line (§9.3), and R-1's acceptance amendment | Human |
-| ~~R-3~~ | **Answered 2026-09-16, shipped as spec 081.** Fixed in `couple`, not the harness: an adopter running it by hand pre-commit needed the same answer. `--include-uncommitted`, off by default. Only 090 §4's "is filed separately" was untrue and only it is amended | Decided |
-| ~~R-4~~ | **Answered 2026-09-16, shipped as spec 080.** It moves. Both 086 §3.1 and 098 §3.1 state the old rule normatively, so both are amended; 098's own forecast named only 086 | Decided |
+| ~~R-3~~ | **Answered 2026-09-16, shipped as spec 081.** Fixed in `couple`, not the harness: an adopter running it by hand pre-commit needed the same answer. `--include-uncommitted`, off by default. Only 094 §4's "is filed separately" was untrue and only it is amended | Decided |
+| ~~R-4~~ | **Answered 2026-09-16, shipped as spec 080.** It moves. Both 086 §3.1 and 098 §3.1 state the old rule normatively, so both are amended; 079's own forecast named only 086 | Decided |
 | R-5 | Whether SP-03's proposed deferral of obligations, WorkScope, ContextClosure, A10 and B23 is adopted. Until it is, wave C is neither scheduled nor withdrawn | Human, recorded in grand-refactor's adoption record, not here |
 | R-6 | Note 06's H-1 to H-6: package shape, revision declaration, the adopter's governed revision and resolved-package evidence, startup-path shape, how eligibility policy is expressed, and what the `Stop` hook does with exit 1 and 3. **Open questions, not gates**: none of them blocks an independent correctness fix | Human |
 | R-7 | Whether this repository enables `[coverage] governed_scope` | Human |

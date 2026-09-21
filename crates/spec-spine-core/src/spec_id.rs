@@ -5,21 +5,21 @@
 //! resolves `070-a-slug`; `70` resolves nothing; `070-typo` resolves nothing
 //! rather than snapping to a neighbour.
 //!
-//! Before 084 that rule existed in four private copies (084 §1.1) which
+//! Before 084 that rule existed in four private copies (067 §1.1) which
 //! disagreed about their refusal messages, and the two strict ones tested the
 //! exact case by joining the argument onto a path, so `verify ../specs/<id>`
 //! resolved through the filesystem and `compile --spec ./<id>` reported a false
-//! `V-001` on a valid spec (084 §1.2). Everything here is **string comparison
+//! `V-001` on a valid spec (067 §1.2). Everything here is **string comparison
 //! over a set of ids**: an argument is never joined onto a path before it has
-//! resolved, which is what closes that (084 §3.2, D-6).
+//! resolved, which is what closes that (067 §3.2, D-6).
 //!
 //! The module belongs to neither 001 nor 004. Spec 015 §2 used a mirror rather
 //! than a shared call to keep the compile gate from taking a code dependency on
 //! the indexer's file; that reason survives here, because both now depend on a
-//! third file instead of on each other (084 D-1).
+//! third file instead of on each other (067 D-1).
 //!
 //! The **set** the policy runs over is per verb, and is whatever that verb
-//! reads anyway (084 §3.2, D-3). This module supplies only the one every
+//! reads anyway (067 §3.2, D-3). This module supplies only the one every
 //! filesystem caller needs, [`spec_dir_ids`]; a verb reading the committed
 //! registry, an in-memory compile or a directory of attestations passes its own.
 
@@ -46,7 +46,7 @@ pub enum SpecIdMatch {
 /// a corpus holding both `070` and `070-slug` resolves `070` to itself rather
 /// than calling it ambiguous. Candidates are sorted and deduplicated, so
 /// [`SpecIdMatch::Ambiguous`] carries the same list whatever order the caller's
-/// set iterates in: the refusal is part of the contract (084 §3.1) and cannot
+/// set iterates in: the refusal is part of the contract (067 §3.1) and cannot
 /// depend on a `read_dir` order.
 pub fn match_spec_id<I, S>(arg: &str, ids: I) -> SpecIdMatch
 where
@@ -136,7 +136,7 @@ pub fn no_match(arg: &str) -> Error {
 /// The set for `compile --spec` and `verify`, which resolve against the
 /// filesystem because a draft that has never compiled has no shard and spec 049
 /// §3.1 exists for exactly that draft. It lives here so the two callers stop
-/// carrying a `read_dir` loop each (084 §3.4).
+/// carrying a `read_dir` loop each (067 §3.4).
 pub fn spec_dir_ids(specs_dir: &Path) -> Result<Vec<String>, Error> {
     let entries = std::fs::read_dir(specs_dir).map_err(|e| {
         Error::Io(format!(

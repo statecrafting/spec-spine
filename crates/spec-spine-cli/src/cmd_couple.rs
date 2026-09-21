@@ -818,7 +818,7 @@ mod tests {
     /// with a mode flip is reported by both sources, and the adapter keeps the
     /// hunk span the parser found rather than flattening it to whole-file. Here
     /// and not in `tests/couple.rs`, because no verdict the binary emits depends
-    /// on spans for an index-resolved unit (092 D-3).
+    /// on spans for an index-resolved unit (073 D-3).
     #[test]
     fn real_git_text_change_keeps_spans_through_the_union() {
         let tmp = tempfile::tempdir().unwrap();

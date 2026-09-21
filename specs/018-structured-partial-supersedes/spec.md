@@ -59,7 +59,7 @@ summary: >
   108 (bare short id), 114 (`partial` + unit), and 199 (`partial` + note).
 
 ---
-# 019: structured and partial supersedes
+# 018: structured and partial supersedes
 
 ## 1. Purpose
 

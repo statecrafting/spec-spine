@@ -100,7 +100,7 @@ file, not the `amends` edge:
 
 The anchor is the heading slug the indexer computes, so `## V. Legacy as
 evidence` is `v-legacy-as-evidence`. `amends` is not the instrument: its targets
-are spec ids, and this file is not a spec. Spec 040 states the rule and is its
+are spec ids, and this file is not a spec. Spec 037 states the rule and is its
 own worked example.
 
 Unlike an amended `spec.md`, which is a record of what the corpus held when it

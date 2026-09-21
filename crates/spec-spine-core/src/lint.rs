@@ -76,6 +76,34 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
                 at(),
             ));
         }
+        // L-013: the title heading names another spec (spec 098 §3.4).
+        //
+        // The only citation class a lint can decide. A document states its own
+        // ordinal twice, in its directory and in its title, and two statements
+        // of one fact can be compared; nothing states the answer for `spec 050`
+        // in a comment, which is why the other two classes spec 098 repairs get
+        // a form in `compact` instead of a code here.
+        //
+        // Silent when either side carries no ordinal. The corpus does not
+        // require numeric ids (`V-001` requires only that the directory equal
+        // the id), and holding a corpus to a convention it never claimed is
+        // spec 046 §3.3's mistake.
+        if let Some(own) = spec_ordinal_str(&spec.id)
+            && let Ok(text) = std::fs::read_to_string(repo_root.join(&spec.spec_path))
+            && let Some(heading) = title_heading_ordinal(&text)
+            && heading != own
+        {
+            violations.push(warn(
+                "L-013",
+                format!(
+                    "spec '{}' is titled '{heading}': its title heading names another \
+                     spec's ordinal. The directory and the heading state the same fact, \
+                     and they disagree",
+                    spec.id
+                ),
+                at(),
+            ));
+        }
         // L-004: dangling edge target.
         for target in edge_targets(spec) {
             if !ids.contains(target.as_str()) {
@@ -305,17 +333,17 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
     //
     // Second table (spec 065 3.1): `[index.slices]` carries pattern lists with
     // `extra_hashed_inputs` semantics and the slice walk keeps only files, so
-    // `dir/**` is equally inert there. One code, not `L-011` (079 D-2): the
+    // `dir/**` is equally inert there. One code, not `L-011` (065 D-2): the
     // defect and the remedy are identical, only the sentence about what is
     // lost differs. An adopter audited on 2026-09-09 carried eight of these in
     // slices after a fix pass had cleaned the table this lint already read.
     //
     // Each message names its table, and for a slice the slice, on one line
-    // (079 3.2). The slice message speaks about the slice's own hash, the one
+    // (065 3.2). The slice message speaks about the slice's own hash, the one
     // `index check --slice <name>` gates, and never about a content hash:
     // slices are independent of `contentHash` by spec 011's design, so the
     // `extra_hashed_inputs` sentence would be a false statement under a true
-    // code (079 3.3). One emission site for both tables, so the code stays
+    // code (065 3.3). One emission site for both tables, so the code stays
     // unique by construction.
     let global_dead = cfg
         .index
@@ -372,6 +400,54 @@ fn ordinal_pair(declaring: &str, target: &str) -> Option<(u64, u64)> {
 fn ordinal(id: &str) -> Option<u64> {
     let digits: String = id.chars().take_while(char::is_ascii_digit).collect();
     digits.parse().ok()
+}
+
+/// The leading three-digit ordinal of an id, as written. `None` when the id
+/// does not open with exactly three digits (spec 098 §3.4).
+fn spec_ordinal_str(id: &str) -> Option<&str> {
+    let head = id.get(..3)?;
+    if head.as_bytes().iter().all(u8::is_ascii_digit)
+        && !id[3..].starts_with(|c: char| c.is_ascii_digit())
+    {
+        Some(head)
+    } else {
+        None
+    }
+}
+
+/// The ordinal of the first `#{1,6} NNN: ` heading AFTER the frontmatter.
+///
+/// After, because a `#` comment inside YAML frontmatter is prose and several in
+/// this corpus open with an ordinal: reading one as a title would report a
+/// citation as a wrong title.
+fn title_heading_ordinal(src: &str) -> Option<&str> {
+    let mut lines = src.lines();
+    let mut body: Box<dyn Iterator<Item = &str>> = if src.starts_with("---") {
+        let _ = lines.next();
+        let mut seen_close = false;
+        Box::new(lines.by_ref().skip_while(move |l| {
+            if seen_close {
+                false
+            } else {
+                seen_close = l.trim_end() == "---";
+                true
+            }
+        }))
+    } else {
+        Box::new(lines)
+    };
+    body.find_map(|line| {
+        let hashes = line.len() - line.trim_start_matches('#').len();
+        if !(1..=6).contains(&hashes) || !line[hashes..].starts_with(' ') {
+            return None;
+        }
+        let ord = line.get(hashes + 1..hashes + 4)?;
+        if ord.as_bytes().iter().all(u8::is_ascii_digit) && line[hashes + 4..].starts_with(':') {
+            Some(ord)
+        } else {
+            None
+        }
+    })
 }
 
 fn has_ownership_edge(spec: &SpecRecord) -> bool {
@@ -473,7 +549,7 @@ fn info(code: &str, message: String, path: Option<String>) -> Violation {
 }
 
 /// A unit's identity as a comparable key, ignoring the `planned` flag (spec
-/// 076 §3.4: the flag is not part of a unit's identity).
+/// 063 §3.4: the flag is not part of a unit's identity).
 fn unit_key(unit: &Unit) -> String {
     match unit.subject() {
         Unit::File { path, .. } => format!("file:{path}"),

@@ -46,7 +46,7 @@ summary: >
   own script rather than a copy of its patterns, so inverting a blocking branch
   is caught even when its regexes are untouched.
 ---
-# 119: An unclassified review failure blocks the merge
+# 091: An unclassified review failure blocks the merge
 
 ## 1. Purpose
 

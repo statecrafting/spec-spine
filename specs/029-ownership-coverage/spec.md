@@ -53,7 +53,7 @@ summary: >
   no schema version moves, and the report predicts the gate exactly because
   both call one classifier over one universe.
 ---
-# 032: Ownership coverage
+# 029: Ownership coverage
 
 ## 1. Purpose
 

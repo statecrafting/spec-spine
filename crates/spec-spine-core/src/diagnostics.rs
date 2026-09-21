@@ -147,7 +147,7 @@ pub fn committed_diagnostics(
 /// `Error::Parse`. The callers are the judging verbs (`index check`, `check` and
 /// their facades), which compute the freshness verdict first; spec 069 already
 /// reads such a file as `orphaned` or `modified`, and a tally that threw would
-/// discard that verdict for exit 3 (095 §1.1). The consumers that must refuse a
+/// discard that verdict for exit 3 (076 §1.1). The consumers that must refuse a
 /// corrupt ledger read it through `read_committed_index_shards`, which is
 /// unchanged. The one remaining error is an index that was never built, the
 /// state `check_index_freshness` refuses before any caller gets here.

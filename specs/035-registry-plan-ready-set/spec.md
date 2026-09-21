@@ -11,8 +11,8 @@ depends_on:
   - "002-registry-query"
   - "030-dependency-cycle-refusal"
 amends:
-  # Narrows 033 §4's "readiness ... belongs to the consumer" exclusion to the
-  # part of it that is genuinely impure. See §4. 033's own text is untouched.
+  # Narrows 030 §4's "readiness ... belongs to the consumer" exclusion to the
+  # part of it that is genuinely impure. See §4. 030's own text is untouched.
   - "030-dependency-cycle-refusal"
 extends:
   - { spec: "002-registry-query", unit: "crates/spec-spine-core/src/query.rs", nature: additive }
@@ -41,7 +41,7 @@ summary: >
   hint about intent and never as evidence about code, and this spec deliberately
   does not let a scheduling answer imply that anything is done.
 ---
-# 038: `registry plan`
+# 035: `registry plan`
 
 Wave 1 of `docs/design/02-agentic-builder-substrate.md`.
 
@@ -132,7 +132,7 @@ by a different tool version), `plan` MUST report the offending set as an error
 rather than loop or truncate. That error is `Error::Validation` carrying the
 cycle path, which is exit `1` under the standing exit-code contract and is
 reported the way every other `registry` subcommand reports an error (§3.3). It
-reuses 033's existing classification rather than inventing a second vocabulary
+reuses 030's existing classification rather than inventing a second vocabulary
 for the same defect, and it means the error branch has a specified shape rather
 than being left to the implementer.
 
@@ -170,7 +170,7 @@ not that one" is not "wait" but "someone decided not to".
 
 `plan` emits this report **bare**, exactly as `registry list`, `show`,
 `status_report` and `relationships` do. It does not ride inside spec 034's
-verdict envelope: that envelope wraps the adjudicating verbs, and 037 §4 keeps it
+verdict envelope: that envelope wraps the adjudicating verbs, and 034 §4 keeps it
 off the read verbs deliberately, since wrapping a shipped read surface would
 break its consumers. `plan` is a read verb and joins them rather than splitting
 the `registry` group into two output shapes.
@@ -236,7 +236,7 @@ arises, and §3.4 keeps them apart in the only way that matters: this answer is 
 the consumer's, exactly as 033 said. Readiness-as-declared becomes a projection
 like `registry relationships`.
 
-The `amends` edge records that narrowing in place. 033's text is unchanged, and
+The `amends` edge records that narrowing in place. 030's text is unchanged, and
 its exclusion still governs everything except the pure partition named here.
 
 **Inferring order from any edge other than `depends_on`.** A spec commonly

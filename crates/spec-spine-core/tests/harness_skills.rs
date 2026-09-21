@@ -249,24 +249,24 @@ fn the_loop_skills_wrap_the_tool_verbs_they_exist_for() {
 /// rounds spec 093 3.1 bounds. Spec 093 4 recorded this triage as the one idea
 /// the five removed skills carried that no neighbour had, and deferred it
 /// rather than smuggle it in under a removal. The four CRITICAL rows are a
-/// closed list on purpose (082 D-2), so each is pinned by the phrase the
+/// closed list on purpose (093 D-2), so each is pinned by the phrase the
 /// shipped skill uses for it: an open list is a judgement call at the moment
 /// an agent is most motivated to judge generously.
 #[test]
 fn shepherd_classifies_before_it_spends_a_round() {
     let must = [
-        // 082 3.1: the four classes are named.
+        // 093 3.1: the four classes are named.
         "CRITICAL",
         "HIGH",
         "MEDIUM",
         "LOW",
-        // 082 3.2: a CRITICAL costs no round, and the four rows that are one.
+        // 093 3.2: a CRITICAL costs no round, and the four rows that are one.
         "consumes no round",
         "Spec-Drift-Waiver:",
         "path-scoped rule",
         "dependency cycle",
         "ambient input",
-        // 082 3.4: the report says which class it found, and a CRITICAL stop
+        // 093 3.4: the report says which class it found, and a CRITICAL stop
         // reports unfetched threads as unread rather than absent.
         "Classification:",
         "not read",
@@ -593,8 +593,8 @@ fn skill_section<'a>(body: &'a str, heading: &str) -> &'a str {
 /// Asserted per endpoint over the command line that names it, rather than by
 /// counting flags in the file: a file-wide count is green for three flags on
 /// one endpoint and for three flags in prose, neither of which reads a second
-/// endpoint (116 D-5), and green for `--slurp` mentioned only in the
-/// surrounding paragraph while a read drops it (116 D-13).
+/// endpoint (093 D-5), and green for `--slurp` mentioned only in the
+/// surrounding paragraph while a read drops it (093 D-13).
 #[test]
 fn shepherd_reads_all_three_endpoints_paginated_and_slurped() {
     let endpoints = [
@@ -610,13 +610,13 @@ fn shepherd_reads_all_three_endpoints_paginated_and_slurped() {
                 .lines()
                 .find(|l| l.contains(endpoint) && l.contains("gh api"))
                 .unwrap_or_else(|| {
-                    panic!("{label}/shepherd: Step 3b runs no `gh api` on {endpoint} (116 3.1)")
+                    panic!("{label}/shepherd: Step 3b runs no `gh api` on {endpoint} (093 3.1)")
                 });
             for flag in ["--paginate", "--slurp"] {
                 assert!(
                     cmd.contains(flag),
                     "{label}/shepherd: the read of {endpoint} does not pass {flag} \
-                     (116 3.1, D-5, D-12): {cmd}"
+                     (093 3.1, D-5, D-12): {cmd}"
                 );
             }
         }
@@ -635,11 +635,11 @@ fn shepherd_green_path_routes_through_the_thread_read() {
         let bullet = watch
             .split("\n- ")
             .find(|b| b.contains("`SUCCESS`"))
-            .unwrap_or_else(|| panic!("{label}/shepherd: Step 1 has no all-green route (116 3.2)"));
+            .unwrap_or_else(|| panic!("{label}/shepherd: Step 1 has no all-green route (093 3.2)"));
         assert!(
             bullet.contains("Step 3b"),
             "{label}/shepherd: the all-green route does not pass through the thread \
-             read (116 3.2): {bullet}"
+             read (093 3.2): {bullet}"
         );
         // And the thread read is a precondition where the merge happens, not
         // only a promise made in the step before it.
@@ -647,7 +647,7 @@ fn shepherd_green_path_routes_through_the_thread_read() {
         assert!(
             merge.contains("Step 3b"),
             "{label}/shepherd: the merge checkpoint does not require the thread \
-             read (116 3.2): {merge}"
+             read (093 3.2): {merge}"
         );
     }
 }
@@ -656,29 +656,29 @@ fn shepherd_green_path_routes_through_the_thread_read() {
 /// the run before the merge, with the endpoint named. The exit status belongs
 /// to the read itself: the obligation is to check that status before trusting
 /// the output, which is a property of how the read is judged and not of any one
-/// `gh api` option (116 D-13).
+/// `gh api` option (093 D-13).
 #[test]
 fn shepherd_stops_on_a_read_it_could_not_complete() {
     for (label, dir) in skill_dirs() {
         let body = read_skill(&dir, "shepherd");
         let threads = skill_section(&body, "Step 3b");
         for (needle, why) in [
-            ("exit status", "the read's own status is checked (116 3.1)"),
+            ("exit status", "the read's own status is checked (093 3.1)"),
             (
                 "one retry",
-                "a failed read is retried exactly once (116 D-8)",
+                "a failed read is retried exactly once (093 D-8)",
             ),
             (
                 "before Step 4",
-                "the second failure stops before the merge (116 D-8)",
+                "the second failure stops before the merge (093 D-8)",
             ),
             (
                 "partial",
-                "a partial read is never complete coverage (116 D-8)",
+                "a partial read is never complete coverage (093 D-8)",
             ),
             (
                 "consume no remediation round",
-                "reading and retrying cost no round (116 3.4, D-9)",
+                "reading and retrying cost no round (093 3.4, D-9)",
             ),
         ] {
             assert!(
@@ -706,23 +706,23 @@ fn shepherd_documents_how_to_read_the_saved_pages() {
         for (needle, why) in [
             (
                 "outer array of pages",
-                "the saved document's shape is documented (116 D-12)",
+                "the saved document's shape is documented (093 D-12)",
             ),
             (
                 "[.[][]]",
-                "the iteration that reaches every item of every page is shown (116 D-13)",
+                "the iteration that reaches every item of every page is shown (093 D-13)",
             ),
             (
                 "A parse that fails",
-                "a document that will not parse is an unread endpoint (116 D-13)",
+                "a document that will not parse is an unread endpoint (093 D-13)",
             ),
             (
                 "not the feedback count",
-                "pages are not feedback items (116 D-13)",
+                "pages are not feedback items (093 D-13)",
             ),
             (
                 "every item of every page",
-                "the whole document is inspected, not its first page (116 D-13)",
+                "the whole document is inspected, not its first page (093 D-13)",
             ),
         ] {
             assert!(
@@ -755,13 +755,13 @@ fn shepherd_report_keeps_three_distinct_thread_values() {
             assert!(
                 line.contains(needle),
                 "{label}/shepherd: the thread report line must offer {needle:?} \
-                 (116 3.3, D-10): {line}"
+                 (093 3.3, D-10): {line}"
             );
         }
         // Successful coverage is reported beside a failure, not folded into it.
         assert!(
             body.lines().any(|l| l.starts_with("Thread reads:")),
-            "{label}/shepherd: partial coverage has no line of its own (116 3.3)"
+            "{label}/shepherd: partial coverage has no line of its own (093 3.3)"
         );
         // And the CRITICAL stop still says which of the two unread reasons it is.
         let classify = skill_section(&body, "Step 2");
@@ -782,32 +782,32 @@ fn shepherd_keeps_the_two_round_budget() {
         let body = read_skill(&dir, "shepherd");
         assert!(
             body.contains("at most two rounds"),
-            "{label}/shepherd: the two-round budget is gone (116 3.4)"
+            "{label}/shepherd: the two-round budget is gone (093 3.4)"
         );
         assert!(
             body.contains("After two remediation rounds"),
-            "{label}/shepherd: the stop after two rounds is gone (116 3.4)"
+            "{label}/shepherd: the stop after two rounds is gone (093 3.4)"
         );
         for banned in ["three rounds", "at most three", "a third round"] {
             assert!(
                 !body.contains(banned),
-                "{label}/shepherd: budget widened to {banned:?} (116 3.4)"
+                "{label}/shepherd: budget widened to {banned:?} (093 3.4)"
             );
         }
         // A round is spent on an edit, not on a red check: the budget is
         // unchanged, but what draws on it now includes a confirmed thread fix
-        // on a PR whose checks were green all along (116 D-9). `green` alone is
+        // on a PR whose checks were green all along (093 D-9). `green` alone is
         // already in this step at the parent, so the phrase asserted is the one
         // that carries the ruling.
         let remediate = skill_section(&body, "Step 3:");
         assert!(
             remediate.contains("even when every required check was"),
             "{label}/shepherd: Step 3 must say a confirmed thread fix spends a \
-             round even on a green PR (116 3.4, D-9): {remediate}"
+             round even on a green PR (093 3.4, D-9): {remediate}"
         );
         assert!(
             remediate.contains("rejecting a finding as a false positive spend none"),
-            "{label}/shepherd: Step 3 must say triage spends no round (116 3.4, D-9)"
+            "{label}/shepherd: Step 3 must say triage spends no round (093 3.4, D-9)"
         );
     }
 }

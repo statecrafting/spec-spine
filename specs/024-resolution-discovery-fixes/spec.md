@@ -40,7 +40,7 @@ summary: >
   ends in `Cargo.toml`. Pairs with spec 023 (the severity policy); these are the
   mechanical half of the 0.6.0 indexer work.
 ---
-# 026: Indexer resolution + discovery fixes
+# 024: Indexer resolution + discovery fixes
 
 Filed off the OAP spec-217 Phase-0 dry run of the published 0.5.0 library against
 its 220-spec corpus. After separating the adopter's own config and corpus issues,
@@ -172,7 +172,7 @@ clear diagnostic rather than silently discovering nothing.
 - **AC-5 (self-corpus determinism).** spec-spine's own committed shards are
   unchanged by these fixes (its corpus has no foreign-YAML region units, no
   multi-`## tag:` Makefile, no nested workspace), so the only committed-artifact
-  delta is 026's own two new shards.
+  delta is 024's own two new shards.
 
 ## 6. Out of scope
 

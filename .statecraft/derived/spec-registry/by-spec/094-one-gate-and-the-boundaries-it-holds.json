@@ -32,7 +32,7 @@
     "owner": "The spec-spine Authors",
     "risk": "high",
     "sectionHeadings": [
-      "093: One gate, and the boundaries it holds",
+      "094: One gate, and the boundaries it holds",
       "1. Purpose",
       "1.1 One chain, five documents, and a copy in each",
       "1.2 Three boundaries, one definition",
@@ -59,6 +59,6 @@
     "summary": "The governed loop has one definition and three boundaries where it is enforced: the commit, the pull request, and the merge. Five specs described that, each written against a copy the repository distributed. 020 put the merge driver in `.githooks/`; 064 wrote the composite gate as `kit/Makefile` and the workflow as `kit/govern.yml`; 089 fixed the guard that conflated a skip with a failure; 090 added the commit-boundary hook; 114 gave the target its controls and made the workflow call it instead of restating it. Spec 092 removed the copies and moved the gate to the repository root. This spec is the gate, in one place: the target and its controls, the two CI legs that call it, the commit-boundary hook that refuses without repairing, and the merge driver that resolves a same-shard conflict by regenerating rather than by leaving markers.\n",
     "title": "One gate, and the boundaries it holds"
   },
-  "shardHash": "ddc7712dad8b95447d69f5e8fb96fc771e8cd7dd1c07f5c88b6c709049cf31ff",
+  "shardHash": "59a10f98a550810994c295ab4cd698f624b988166150bbb317704e2fa5ecbc71",
   "specVersion": "1.3.0"
 }

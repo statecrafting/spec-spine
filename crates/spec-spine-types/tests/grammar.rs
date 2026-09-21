@@ -462,7 +462,7 @@ fn planned_round_trips_on_every_unit_kind_in_object_form() {
 }
 
 /// §3.1: the bare-string shorthand is never planned, and neither is the spec
-/// 015 `{ unit: ... }` wrapper around one.
+/// 014 `{ unit: ... }` wrapper around one.
 #[test]
 fn the_bare_string_shorthand_cannot_be_planned() {
     let bare: Unit = serde_json::from_str(r#""src/a.rs""#).unwrap();

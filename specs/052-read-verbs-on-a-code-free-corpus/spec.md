@@ -38,7 +38,7 @@ summary: >
   predicate the index already computes, and makes the second refuse an empty
   universe instead of passing it.
 ---
-# 059: Two read verbs that mislead a specify-first corpus
+# 052: Two read verbs that mislead a specify-first corpus
 
 ## 1. Purpose
 

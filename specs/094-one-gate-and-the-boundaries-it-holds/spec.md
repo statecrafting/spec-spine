@@ -33,7 +33,7 @@ establishes:
   - "crates/spec-spine-core/tests/gate.rs"
 ---
 
-# 093: One gate, and the boundaries it holds
+# 094: One gate, and the boundaries it holds
 
 ## 1. Purpose
 

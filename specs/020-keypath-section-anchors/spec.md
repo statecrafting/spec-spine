@@ -34,7 +34,7 @@ summary: >
   structural keypath is computed from the document tree and cannot silently
   drift from the block it claims, the way a hand-placed region marker can.
 ---
-# 022: bounded keypath section anchors for first-party structured config
+# 020: bounded keypath section anchors for first-party structured config
 
 ## 1. Purpose
 

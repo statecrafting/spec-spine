@@ -37,7 +37,7 @@ summary: >
   `compile --spec <id>`: validate one spec against the committed registry,
   report only that spec's violations, and write nothing.
 ---
-# 056: Validate one draft without a temporary repository
+# 049: Validate one draft without a temporary repository
 
 ## 1. Purpose
 

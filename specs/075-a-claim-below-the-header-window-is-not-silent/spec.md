@@ -43,7 +43,7 @@ extends:
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---
-# 094: A claim below the header window is not silent
+# 075: A claim below the header window is not silent
 
 ## 1. Purpose
 

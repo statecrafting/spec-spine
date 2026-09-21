@@ -37,7 +37,7 @@ references:
   - { unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_verify.rs" }, role: "context" }
   - { unit: { kind: file, path: "scripts/verify-spec.sh" }, role: "context" }
 ---
-# 112: Nothing reruns a merged acceptance
+# 089: Nothing reruns a merged acceptance
 
 ## 1. Purpose
 

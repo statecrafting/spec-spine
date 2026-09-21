@@ -42,7 +42,7 @@ summary: >
   adopter may reasonably not hold, not a structural defect that makes the
   registry unreadable.
 ---
-# 053: A dependency points backward, and the corpus can say so
+# 046: A dependency points backward, and the corpus can say so
 
 ## 1. Purpose
 

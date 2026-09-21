@@ -27,7 +27,7 @@ summary: >
   the OAP dialect (140+ extends-bearing specs) without a mass frontmatter
   migration.
 ---
-# 014: `paths:` list sugar on extends/refines items
+# 013: `paths:` list sugar on extends/refines items
 
 ## 1. Purpose
 

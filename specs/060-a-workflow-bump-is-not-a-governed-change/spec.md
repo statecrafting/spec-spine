@@ -18,7 +18,7 @@ amends:
   # `extra_hashed_inputs` match, with projections named only for npm and cargo
   # manifests. 3.1 below adds a third, which changes what enters the hash.
   - "004-codebase-index"
-  # 069 3.6 requires the corrected test to assert that a workflow `uses:` bump
+  # 058 3.6 requires the corrected test to assert that a workflow `uses:` bump
   # STALES the index, a re-index restores it, and only then does couple waive.
   # 3.4 below requires the bump to leave the index fresh, which contradicts it.
   - "058-the-shipped-default-hashes-what-it-names"
@@ -29,7 +29,7 @@ extends:
   - { spec: "022-index-sharding", unit: "crates/spec-spine-core/src/shard.rs", nature: additive }
   # 3.2 the waiver classifier the projection must agree with.
   - { spec: "005-coupling-gate", unit: "crates/spec-spine-core/src/dep_only.rs", nature: additive }
-  # 3.4 030's workflow auto-waive test, whose premise 069 corrected and this
+  # 3.4 027's workflow auto-waive test, whose premise 069 corrected and this
   # spec restores on a different footing.
   - { spec: "027-cargo-workflow-dependency-waiver", unit: "crates/spec-spine-cli/tests/couple.rs", nature: additive }
   # 3.5 the freshness guard.
@@ -53,11 +53,11 @@ summary: >
   its governance projection, the parsed document with the pinned ref of each
   `uses:` reference removed and the action path kept, so a version or SHA bump
   is invisible to the ledger while a changed action, a `run:` or `with:` edit,
-  an added step or an unpin all still stale it. The projection and 030's
+  an added step or an unpin all still stale it. The projection and 027's
   waiver classifier are required to state one rule, and the upgrade restales
   every workflow-bearing repository once.
 ---
-# 073: A workflow bump is not a governed change
+# 060: A workflow bump is not a governed change
 
 ## 1. Purpose
 
@@ -223,9 +223,9 @@ general point is the one 3.2 already makes about the projection and the waiver:
 a claim that two mechanisms interact badly is worth checking against the
 mechanism rather than reasoned about from its consequences.
 
-### 3.4 The workflow auto-waive test asserts freshness again (amends 069 3.6)
+### 3.4 The workflow auto-waive test asserts freshness again (amends 058 3.6)
 
-`crates/spec-spine-cli/tests/couple.rs` currently asserts, per 069 3.6, that a
+`crates/spec-spine-cli/tests/couple.rs` currently asserts, per 058 3.6, that a
 `uses:` bump stales the index, that a re-index restores it, and that `couple`
 then auto-waives. The corrected sequence MUST be: the bump leaves the index
 **fresh**, and `couple` auto-waives with no re-index in between. The test MUST
@@ -234,7 +234,7 @@ keep its actual subject, which is that the bump self-clears the coupling gate.
 A companion case MUST assert the other direction on the same fixture: a `run:`
 edit in the same workflow stales the index and refuses the waiver. Without it
 the suite proves only that the projection is permissive, not that it is
-correct, which is the shape of assertion 069 3.6 was written to end.
+correct, which is the shape of assertion 058 3.6 was written to end.
 
 ### 3.5 Tests (minimum)
 
@@ -312,11 +312,11 @@ back to raw bytes means such a file stales on every edit, which is noisier and
 correct. This matches npm and cargo, and the consistency is worth more than the
 noise.
 
-**2026-09-08: `amends` on both 004 and 069, following 030's precedent.** Spec
+**2026-09-08: `amends` on both 004 and 069, following 027's precedent.** Spec
 027 amended 004 when it added the cargo projection, for the same reason this
 spec does: the content-hash definition names its projections, and adding one
 changes it. The 069 edge is the less obvious of the two and is the reason the
-frontmatter carries a comment: 069 3.6 does not merely observe that a bump
+frontmatter carries a comment: 058 3.6 does not merely observe that a bump
 stales the index, it requires the test to assert it, so making the bump
 harmless contradicts a requirement rather than correcting an implementation.
 
@@ -344,7 +344,7 @@ catch the two rules drifting apart. The matrix asserts it in both directions.
 edge for it was declared here.** Section 3.3 requires the note and names no
 file. Spec 058's note is in that document, the two address the same reader, and
 splitting them would leave an adopter reading one without the other. The
-`extends` edge on 067's unit is declared in this change rather than in the
+`extends` edge on 057's unit is declared in this change rather than in the
 draft, which is the ownership claim arriving with the work that needs it.
 
 **2026-09-08: sequenced by building serially, which is 3.3's first safe
@@ -371,7 +371,7 @@ grep -qF 'workflow_hash_projection' crates/spec-spine-core/src/manifest.rs
 grep -qF 'workflow_hash_projection' crates/spec-spine-core/src/shard.rs
 # 3.5 the projection's own matrix, including the preserved action path.
 cargo test -p spec-spine-core --test index --locked
-# 3.2 the projection and 030's waiver classifier agree.
+# 3.2 the projection and 027's waiver classifier agree.
 cargo test -p spec-spine-core dep_only --locked
 # 3.4 the corrected auto-waive sequence, with no re-index in between.
 cargo test -p spec-spine-cli --test couple --locked

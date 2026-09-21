@@ -11,7 +11,7 @@ summary: >
   branch whose work is not yet committed it reports `0 path(s) checked, no
   drift` and exits 0, which reads as a pass. Spec 094 §4 placed the defect out
   of scope and said it "is filed separately"; spec 073 §4 placed it out of scope
-  and pointed back at 090. Nothing filed it, and the phrase in 090 §4 has been
+  and pointed back at 090. Nothing filed it, and the phrase in 094 §4 has been
   untrue since it was written. This spec files it: `--include-uncommitted`
   unions the committed range with `git diff HEAD`, so the gate judges what a
   commit would contain. The library stays pure and still shells out to nothing;
@@ -36,7 +36,7 @@ references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "docs/design/06-harness-and-distribution-2026-09.md" }, role: context }
 ---
-# 102: The coupling gate can see the change being committed
+# 081: The coupling gate can see the change being committed
 
 ## 1. Purpose
 
@@ -80,8 +80,8 @@ Spec 073 §4:
 
 Design note 06 §3.9 checked the corpus at `3bc004b` and found no spec filing
 it. Re-checked on 2026-09-16 at `a6ef6e3`, across all 100 specs: still none.
-090's "is filed separately" was untrue on the day it was written and stayed
-untrue for six specs. 092's sentence is accurate as written, which §4 records.
+094's "is filed separately" was untrue on the day it was written and stayed
+untrue for six specs. 073's sentence is accurate as written, which §4 records.
 
 ### 1.3 Why the fix belongs in `couple` and not in the harness
 
@@ -205,7 +205,7 @@ refusal. The last is the regression guard for §3.4.
 ## 4. Out of scope
 
 - **Amending spec 073 §4.** Its sentence says spec 094 "named this separately",
-  which is true: 090 did name it. The false claim is 090's "is filed
+  which is true: 090 did name it. The false claim is 094's "is filed
   separately", and that is the only one amended here. Correcting a sentence
   that is accurate would be noise in the amendment record, and design note 05
   R-3's phrasing ("both say the other filed it") is looser than note 06 §3.9's,

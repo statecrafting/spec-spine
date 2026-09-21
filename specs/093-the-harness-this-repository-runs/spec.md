@@ -35,7 +35,7 @@ establishes:
   - "crates/spec-spine-core/tests/harness_skills.rs"
 ---
 
-# 092: The harness this repository runs
+# 093: The harness this repository runs
 
 ## 1. Purpose
 

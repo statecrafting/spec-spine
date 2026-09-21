@@ -64,7 +64,7 @@ fn validation_passed_follows_error_tier() {
 #[test]
 fn schema_versions_are_pinned() {
     // 1.0.0: MAJOR, sharded registry (spec 022); 1.1.0: additive MINOR (spec
-    // 028), optional `references` provenance `derived_at` timestamp; 1.2.0:
+    // 026), optional `references` provenance `derived_at` timestamp; 1.2.0:
     // additive MINOR (spec 063), optional `planned` on a unit payload; 1.3.0:
     // additive MINOR (spec 082), optional `amendsVerification` naming the
     // amended specs whose `## Verification` block this one replaces. A

@@ -140,7 +140,7 @@ amends_verification:
 references:
   - { unit: { kind: file, path: "docs/design/06-harness-and-distribution-2026-09.md" }, role: context }
 ---
-# 120: The engine ships governance, not an environment
+# 092: The engine ships governance, not an environment
 
 ## 1. Purpose
 

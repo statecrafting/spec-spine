@@ -161,7 +161,7 @@ Those two clauses are what makes the adopter's substitution honest. Neither
 requires this repository to stop hashing its own source.
 
 **`init --with-kit` is not this.** It scaffolds local files and refuses to
-clobber (065 §3.3). It has no notion of a version, an upgrade, a cache, or a
+clobber (095 §3.3). It has no notion of a version, an upgrade, a cache, or a
 compatibility floor. A global distribution mode is new work, not a flag.
 
 Open decisions: whether the package is a Claude Code plugin (which gives
@@ -177,7 +177,7 @@ and what a compatibility failure does (refuse, warn, or report).
 What stays local, in the proposal: lifecycle policy, architecture, acceptance
 criteria, gate commands, domain rules, and hook activation. This repository
 already puts the project layer in `AGENTS.md` rather than in the skills, which
-is 048's ruling and 081's shape.
+is 093's ruling and 093's shape.
 
 The item that is **not** already true is lifecycle policy as a *queryable*
 thing rather than prose. See 3.6.
@@ -366,12 +366,12 @@ diff, so the documented pre-commit coupling check cannot see the change being
 committed. Spec 094 §4 placed it out of scope and said it "is filed
 separately"; spec 073 §4 placed it out of scope and pointed back at 090.
 Checked at `3bc004b` and again at `a6ef6e3`: no spec in the corpus filed it, and
-the phrase in 090 §4 was untrue from the day it was written.
+the phrase in 094 §4 was untrue from the day it was written.
 
 **Spec 081 files it** (2026-09-16, H-7 decided: fix it in `couple`).
 `--include-uncommitted` unions the committed range with `git diff HEAD`, off by
-default so a dirty runner cannot move a CI verdict. 090 §4's phrase is amended
-there; 092 §4's sentence says only that 090 "named" it, which was accurate, and
+default so a dirty runner cannot move a CI verdict. 094 §4's phrase is amended
+there; 073 §4's sentence says only that 090 "named" it, which was accurate, and
 is left alone.
 
 ### 3.10 A measurement plan
@@ -442,7 +442,7 @@ the generated-protocol drift are all filable while every row below stays open.
 | H-4 | Do the startup paths become separate skills, one skill with a mode, or a caller-selected protocol section, and which reads does each carry? | 3.5. The second half wants 3.10's numbers; the first half does not |
 | H-5 | How is repository eligibility policy expressed: a governed schema key, a documented `AGENTS.md` convention, or an explicit human-named id? | 3.6. Open **after** the skill respects policy and handles new, resumed and repair work, which does not wait on it |
 | H-6 | Does the `Stop` hook refuse, or advise? Its verdict is wrong either way; what it should do when `check` exits 1 or 3 is a policy choice | 3.9 |
-| H-7 | Is the staged-coupling defect fixed in `couple` (a new mode), in the harness (commit then check before push), or declared permanently out of scope with the two cross-references corrected? | 3.9, and the accuracy of 090 §4 |
+| H-7 | Is the staged-coupling defect fixed in `couple` (a new mode), in the harness (commit then check before push), or declared permanently out of scope with the two cross-references corrected? | 3.9, and the accuracy of 094 §4 |
 
 ## 6. Relationship to the other notes
 

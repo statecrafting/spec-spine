@@ -37,7 +37,7 @@ extends:
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---
-# 092: A mode-only or binary change is a change
+# 073: A mode-only or binary change is a change
 
 ## 1. Purpose
 
@@ -152,7 +152,7 @@ granularity, so:
   the library already treats a whole-file change to that file, which is how
   `--paths-from` input has always been judged;
 - the bypass floor, `[coupling] bypass_prefixes`, the dependency-only waiver
-  (specs 005 and 030) and the `Spec-Drift-Waiver:` path all apply unchanged. A
+  (specs 005 and 027) and the `Spec-Drift-Waiver:` path all apply unchanged. A
   binary under a bypassed prefix stays bypassed.
 
 ### 3.5 `--paths-from` is unaffected

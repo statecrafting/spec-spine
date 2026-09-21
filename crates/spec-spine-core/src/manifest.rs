@@ -389,7 +389,7 @@ fn strip_uses_refs(value: &mut serde_yaml::Value) {
 /// **The `@` is kept as a marker**, so a pinned reference never projects onto
 /// the unpinned spelling of the same action. `a/b@v4` folds to `a/b@` while
 /// `a/b` stays `a/b`, so an unpin moves the hash. Projecting to a bare
-/// `owner/action`, which is how 073 3.1 words the rule, would collide the two
+/// `owner/action`, which is how 060 3.1 words the rule, would collide the two
 /// and make unpinning invisible, contradicting the same spec's 3.5 and its
 /// summary; the marker is the reading that satisfies all three.
 fn projected_uses(value: &serde_yaml::Value) -> Option<String> {

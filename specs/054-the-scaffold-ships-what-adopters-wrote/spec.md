@@ -31,7 +31,7 @@ summary: >
   get the stub, and two of them deleted it. This spec fixes all four in
   `scaffold_init`, which stays a pure function of `Config` performing no IO.
 ---
-# 061: The scaffold ships what every adopter wrote by hand
+# 054: The scaffold ships what every adopter wrote by hand
 
 ## 1. Purpose
 
@@ -85,7 +85,7 @@ and scaffold backlog. They are one change because they are one function.
 Spec 095 owns the scaffold and requires that `init` return files as data
 (`Scaffold`) which the CLI writes, and that the generator be pure. Both hold
 after this change: one more `ScaffoldFile` in the vector, two constants
-rewritten. 006's `spec.md` is not edited.
+rewritten. 095's `spec.md` is not edited.
 
 ## 3. Behavior
 

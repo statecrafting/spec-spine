@@ -70,7 +70,7 @@ jobs:
       - name: Build CLI
         run: cargo build --bin spec-spine --locked
       # ONE gate definition (spec 094, moved to the root `Makefile` by spec
-      # 120 3.6): this job calls the target, it does not restate the chain.
+      # 092 3.6): this job calls the target, it does not restate the chain.
       # `SPEC_SPINE` points at the binary this job built, which is spec 093's
       # resolution order: a repository that builds its own binary must be
       # governed by the one it builds.

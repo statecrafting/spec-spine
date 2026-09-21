@@ -18,7 +18,7 @@ amends:
   # 016 2 records the compile-time resolver as "a local mirror of
   # `index.rs::resolve_id` rather than a shared call", pinned equal "by behavior
   # and a citing comment, not by linkage". 3.4 below makes both a shared call
-  # into a module neither 001 nor 004 owns. 016 3.1, the policy, is unchanged.
+  # into a module neither 001 nor 004 owns. 015 3.1, the policy, is unchanged.
   # See 5, D-1.
   - "015-short-id-resolution"
 establishes:
@@ -72,7 +72,7 @@ summary: >
   amends 016 2, whose mirror becomes a shared call. The implementation changes
   no committed shard: the lenient adapters return what the mirrors returned.
 ---
-# 084: A short id names the same spec at every verb
+# 067: A short id names the same spec at every verb
 
 ## 1. Purpose
 
@@ -93,9 +93,9 @@ spec-spine: io error: read attestation .../by-spec/070.json
 
 The last one's advice is to run a command that refuses the same argument.
 
-Two approved specs describe this as solved. 049 3.2 says `spec-spine verify 049`
+Two approved specs describe this as solved. 043 3.2 says `spec-spine verify 049`
 "resolves as `registry show 049` does", naming as its model a verb that refuses
-the input. 056 3.1 says an unmatched id is `NotFound` "as everywhere else the
+the input. 049 3.1 says an unmatched id is `NotFound` "as everywhere else the
 short form is accepted". Each sentence was true of the verb its own spec built
 and assumed of the rest. Nothing checks either, which is how the claim survived
 two ratifications. 083 4 met the `attest` case, recognized it as corpus-wide,
@@ -103,7 +103,7 @@ and handed it here.
 
 ### 1.1 Four copies of one policy
 
-The rule is 016 3.1: an exact id first, otherwise the one id whose whole leading
+The rule is 015 3.1: an exact id first, otherwise the one id whose whole leading
 dash-segment equals the reference. Core implements it four times:
 
 | copy | serves | resolves against | on no match or several |
@@ -113,7 +113,7 @@ dash-segment equals the reference. Core implements it four times:
 | `compile.rs::resolve_spec_dir` | `compile --spec` (056) | `specs/` on disk | `NotFound` |
 | `verify.rs::resolve_spec_id` | `verify` (049) | `specs/` on disk | `NotFound` |
 
-083 3.2 counted three; the first row is the fourth. The two strict copies already
+066 3.2 counted three; the first row is the fourth. The two strict copies already
 disagree about what they print on an ambiguous ordinal, and only one names the
 candidates:
 
@@ -150,7 +150,7 @@ Resolving inside `query::show` alone fixes `registry show` and silently breaks
 `registry relationships`. `relationships` calls `show` for the outgoing edges,
 then compares the **raw argument** against every other spec's `depends_on`,
 `amends` and `supersedes` to compute the incoming ones. `registry relationships
-016` would print 016's outgoing edges and an empty `depended_on_by`, where the
+016` would print 015's outgoing edges and an empty `depended_on_by`, where the
 full id prints `030-dependency-cycle-refusal, 043-verify-declared-acceptance`.
 That is a wrong answer at exit 0, which is worse than today's refusal.
 
@@ -214,16 +214,16 @@ outcomes:
 2. Otherwise, exactly one id's whole leading dash-segment equals the argument:
    that id. `070` resolves `059-a-malformed-id-is-refused-not-a-panic`; `70`
    resolves nothing; `070-typo` resolves nothing rather than snapping to a
-   neighbour (016 3.1).
+   neighbour (015 3.1).
 3. Several ids share that segment: **ambiguous**. Refused as `Error::NotFound`,
    exit 1, with a message that contains the word `ambiguous` and names every
    candidate in sorted order. Never guessed.
 4. None: **no match**. `Error::NotFound`, exit 1, except at `verify-attestation`
    (3.2).
 
-Steps 1 and 2 are 016 3.1 unchanged. Step 3 is reachable at the argument surface
+Steps 1 and 2 are 015 3.1 unchanged. Step 3 is reachable at the argument surface
 even though `V-004` forbids a shared ordinal: `compile --spec` exists for a
-draft that has not yet been judged (056 3.1), and a duplicate ordinal is the
+draft that has not yet been judged (049 3.1), and a duplicate ordinal is the
 mistake a new draft makes.
 
 For the same argument and the same candidates, the refusal of step 3 MUST be the
@@ -241,7 +241,7 @@ verb reads anyway:
 
 - **`compile --spec` and `verify`**: the names of the directories under
   `layout.specs_dir` that contain a `spec.md`. A draft that has never compiled
-  has no shard, and 056 3.1 exists for exactly that draft.
+  has no shard, and 049 3.1 exists for exactly that draft.
 - **`registry show` and `registry relationships`**: the ids in the committed
   registry. These verbs answer from the ledger, and the facade's `query_json` is
   handed registry text and nothing else, so no other set is available to it.
@@ -253,7 +253,7 @@ verb reads anyway:
 
 At `verify-attestation`, step 4 does not refuse. The argument is used as given,
 and the read fails exactly as it does today: exit 3, with the hint to run
-`attest --spec` first. A missing attestation file is I/O, which 042 3.5 assigns
+`attest --spec` first. A missing attestation file is I/O, which 039 3.5 assigns
 to exit 3 (5, D-4). An ambiguous argument is refused at exit 1, as it is
 everywhere else. With `--attestation <path>` the id locates nothing, so it is not
 resolved, and nothing about that form changes.
@@ -322,7 +322,7 @@ The four copies of 1.1 go:
   their contract, and become the lenient mapping of the shared match: a line
   each, not a mirror. No match and ambiguous still return the raw string, so
   `V-008` and `V-010` still name a dangling reference. The names stay because
-  016 3.1 and 019 3.4 cite them.
+  015 3.1 and 018 3.4 cite them.
 
 The module is owned by neither 001 nor 004. 016 2 used a mirror to keep the
 compile gate from taking a code dependency on the indexer's file, and that is
@@ -376,11 +376,11 @@ different spec is a real question about that verb, not about id spelling.
 miss stay out, as 016 4 left them. An argument that matches nothing is refused,
 not corrected.
 
-**Which frontmatter fields resolve a short id.** That is 016 3.2's and 019 3.4's
+**Which frontmatter fields resolve a short id.** That is 015 3.2's and 018 3.4's
 decision. This spec moves where the policy lives; it does not widen where the
 policy is applied.
 
-**Editing 049 3.2 and 056 3.1.** Both sentences become true when this lands.
+**Editing 043 3.2 and 049 3.1.** Both sentences become true when this lands.
 They are left as written (spec 037), and this spec is where a reader finds out
 they were not true before it.
 
@@ -399,9 +399,9 @@ shared call", pinned equal "by behavior and a citing comment, not by linkage".
 3.4 makes it a shared call. That changes what 016 says about its own territory,
 so it is recorded as an amendment rather than done quietly under an `extends`.
 The maintainer chose on 2026-09-11 to fold the reference family in here rather
-than leave it for a follow-up, accepting this edge as the cost. 016's reason for
+than leave it for a follow-up, accepting this edge as the cost. 015's reason for
 the mirror survives by a different mechanism, since the shared module belongs to
-neither 001 nor 004. 016 3.1, the policy, is unchanged, and 016's text is not
+neither 001 nor 004. 015 3.1, the policy, is unchanged, and 015's text is not
 edited: an `amends` edge is declared once, in the amending spec, and the inbound
 view is the compiled read `registry relationships 016`, which reports it as
 `amended_by (incoming)` (spec 037).
@@ -409,14 +409,14 @@ view is the compiled read `registry relationships 016`, which reports it as
 **D-2 (2026-09-11): no `amends` on 002, 042, 049 or 056.** 002 says `show`
 returns one spec or `NotFound`: a short id naming exactly one spec now returns
 it, and an id naming none is still `NotFound`. 042 names the output
-`by-spec/<id>.json`, and the resolved id is the spec's id. 049 3.2 and 056 3.1
+`by-spec/<id>.json`, and the resolved id is the spec's id. 043 3.2 and 049 3.1
 require the short form at their own verbs, which keep it, and describe the other
 verbs as already accepting it, which this spec makes true. An `amends` on any of
 them would record a contradiction that does not exist.
 
 **D-3 (2026-09-11): a set per verb, not one set for all.** One corpus-wide set
 was the first design, and it fails three ways. `compile --spec` could not resolve
-a draft that has no shard, which is 056's reason for existing. `query_json`
+a draft that has no shard, which is 049's reason for existing. `query_json`
 would need a filesystem it is never given. And `verify-attestation` would refuse
 a signature check on an attestation whose spec was removed, a regression for the
 one verb meant to work across a trust boundary. The policy is what must be one;
@@ -465,7 +465,7 @@ have changed all six.
 ## Verification
 
 Each line below is one command: spec 043 3.2 makes each fenced body line a
-command, and 049 3.5 runs each one in its own `sh -c`, so no line may depend on a
+command, and 043 3.5 runs each one in its own `sh -c`, so no line may depend on a
 variable another line set. The scratch
 corpus is materialized at a fixed path for that reason, and the multi-step
 comparisons run inside one `sh -c` each.
@@ -564,7 +564,7 @@ sh -c 'for c in "registry show 015-short-id-resolution" "registry relationships 
 # 3.6 an unknown id keeps its exit code, and a partial ordinal is not an ordinal (guards).
 sh -c 'target/release/spec-spine registry show 999 >/dev/null 2>&1; test $? -eq 1'
 sh -c 'target/release/spec-spine registry show 16 >/dev/null 2>&1; test $? -eq 1'
-# 3.2 and D-4 step 4 at verify-attestation, whose set is the attestation files: with 016's removed, 016 matches none and falls through to exit 3.
+# 3.2 and D-4 step 4 at verify-attestation, whose set is the attestation files: with 015's removed, 016 matches none and falls through to exit 3.
 sh -c 'rm -f .statecraft/derived/attestation/by-spec/015-short-id-resolution.json; target/release/spec-spine verify-attestation --spec 015 --recompute >/dev/null 2>&1; test $? -eq 3'
 # 3.2 validate_spec_id still refuses a path-shaped argument at verify-attestation, at exit 3 (a guard).
 sh -c 'target/release/spec-spine verify-attestation --spec ../x --recompute >/dev/null 2>&1; test $? -eq 3'

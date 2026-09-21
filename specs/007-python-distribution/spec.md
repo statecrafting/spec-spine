@@ -20,7 +20,7 @@ extends:
     unit: { kind: file, path: ".github/workflows/release.yml" }
     nature: additive
 summary: >
-  The Python parallel of 007's npm shim: a uvx/PyPI channel so a Python or
+  The Python parallel of 006's npm shim: a uvx/PyPI channel so a Python or
   polyglot team can `uvx spec-spine ...` (or `uv tool install spec-spine`) and
   get the CLI with no Rust toolchain. Where npm uses a main launcher package +
   five os/cpu-gated platform packages, Python collapses the same idea into one
@@ -31,11 +31,11 @@ summary: >
   works offline and under --no-build-isolation. Unsupported hosts (musl/Alpine,
   win-arm64, 32-bit) match no wheel and fall to the sdist, whose only artifact is
   a `spec-spine` console entry point that names the host and points at
-  `cargo install spec-spine-cli` -- exact parity with 007 §3.4. Wheels are
+  `cargo install spec-spine-cli` -- exact parity with 006 §3.4. Wheels are
   assembled from the same release archives the build job already produces (no
   second Rust build), are byte-reproducible, and are version-locked to the tag.
 ---
-# 008: Distribution, uvx/PyPI wheel shim
+# 007: Distribution, uvx/PyPI wheel shim
 
 ## 1. Purpose
 
@@ -43,15 +43,15 @@ summary: >
 Python and polyglot audience has the same reflex spelled `uvx` / `pipx` /
 `uv tool install`, and the same refusal to install a Rust toolchain to lint a
 spec corpus. This spec gives that audience the same first-class path, reusing
-007's machinery rather than duplicating it: the release archives, the platform
+006's machinery rather than duplicating it: the release archives, the platform
 map, the version-lock discipline, and the "absent setup = clean no-op" publish
 posture all carry over. It adds one channel (`py/` + a `publish-pypi` job); it
-does not change how the binary is built or how 007's channels behave.
+does not change how the binary is built or how 006's channels behave.
 
 ## 2. Territory
 
 This spec establishes `py/` (the Python distribution channel) and extends
-007 §3.6 additively with a `publish-pypi` job in `release.yml`. The `py/`
+006 §3.6 additively with a `publish-pypi` job in `release.yml`. The `py/`
 subtree deliberately mirrors `npm/`:
 
     py/
@@ -81,16 +81,16 @@ false`, and carries exactly one prebuilt binary in its
 the environment's scripts dir as the `spec-spine` executable. `uvx spec-spine`
 then runs the native binary directly.
 
-This is a faithful translation of 007 §3.1's non-goals, not the download-shim
+This is a faithful translation of 006 §3.1's non-goals, not the download-shim
 pattern: **no network at install, no archive extraction at install, no
 postinstall, no Python interpreter on the run path**. It works offline, under
 `uv tool install --offline`, and the run path is the binary itself (faster and
 more robust than a Python launcher that fetches from GitHub on first use, which
-would reintroduce every failure mode 007 §3.1 exists to avoid).
+would reintroduce every failure mode 006 §3.1 exists to avoid).
 
 ### 3.2 Platform map (the same five triples)
 
-The wheel selector is the same five triples 007 §3.2 governs, each paired with
+The wheel selector is the same five triples 006 §3.2 governs, each paired with
 its wheel platform tag:
 
 | target        | rust triple                    | wheel platform tag        |
@@ -114,7 +114,7 @@ npm needs a launcher because npm cannot itself put a native binary on PATH; the
 JS `bin` resolves the platform package and exec's the binary. A Python wheel can
 put a binary on PATH directly (the `*.data/scripts/` convention), so the launcher
 disappears: the binary IS the installed `spec-spine` command. The launcher
-contract from 007 §3.3 (forward argv, forward exit code, surface signals, nothing
+contract from 006 §3.3 (forward argv, forward exit code, surface signals, nothing
 on the success path) is satisfied trivially because nothing intermediates: the
 process the user invokes is the binary.
 
@@ -128,7 +128,7 @@ prebuilt binary for it, and points at the source build:
 
     cargo install spec-spine-cli
 
-This is the exact posture of 007 §3.4 / npm's unsupported-host message. The
+This is the exact posture of 006 §3.4 / npm's unsupported-host message. The
 sdist is reached two ways (no matching wheel, or an explicit `--no-binary`) and
 the message covers both (musl gets an extra Alpine hint; an explicit `--no-binary`
 on a supported host gets a "reinstall allowing wheels" hint). It exits non-zero.
@@ -144,7 +144,7 @@ installed metadata, and the sdist's pyproject is the only declared copy.
 
 ### 3.6 Release integration
 
-`release.yml` gains a `publish-pypi` job parallel to `publish-npm` (007 §3.6):
+`release.yml` gains a `publish-pypi` job parallel to `publish-npm` (006 §3.6):
 
 - It **reuses the build job's archives** (`download-artifact` of `archive-*`),
   exactly like publish-npm; there is no second Rust build for Python.
@@ -172,7 +172,7 @@ installed metadata, and the sdist's pyproject is the only declared copy.
 - **win-arm64, 32-bit.** Off the five triples; sdist refusal.
 - **A pure-Python reimplementation or a download-on-first-use shim.** Explicitly
   rejected: it reintroduces the install/run-time network dependency and the loss
-  of offline + `--ignore-scripts`-equivalent behavior that 007 §3.1 forbids.
+  of offline + `--ignore-scripts`-equivalent behavior that 006 §3.1 forbids.
 - **maturin-built wheels.** A valid alternative (maturin can emit `bin` wheels),
   but it adds a second cargo build per target and diverges from the repo's
   build -> archives -> packagers shape; the archive-reuse generator is preferred
@@ -182,6 +182,6 @@ installed metadata, and the sdist's pyproject is the only declared copy.
 
 ## Release log
 
-- **0.3.0 (2026-06-12).** Version-lock bump in step with 007's 0.3.0
+- **0.3.0 (2026-06-12).** Version-lock bump in step with 006's 0.3.0
   grammar-completion release (specs 016–019). The wheels and sdist track the
   0.3.0 tag per §3.5; no PyPI-shim mechanics change.

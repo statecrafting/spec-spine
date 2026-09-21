@@ -226,7 +226,7 @@ fn the_reader_reads_the_committed_shards_not_a_fresh_run() {
     let t = fixture();
     // Create the missing file *without* re-emitting. A fresh index run would
     // now resolve it; the committed shards still record the warning, and spec
-    // 050 3.5 says the reader must describe the committed ledger.
+    // 044 3.5 says the reader must describe the committed ledger.
     write(t.path(), "crates/a/src/not_yet.rs", "pub fn b() {}\n");
     let counts = committed_counts(&cfg(), t.path()).unwrap();
     assert!(

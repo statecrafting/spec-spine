@@ -11,7 +11,7 @@ depends_on:
   - "004-codebase-index"
   - "023-unresolved-unit-severity"
 amends:
-  # Narrows 025 3.1 arm 2: the lifecycle tier stops applying to a spec that
+  # Narrows 023 3.1 arm 2: the lifecycle tier stops applying to a spec that
   # asserts its own completion. 025's text is unchanged (spec 037).
   - "023-unresolved-unit-severity"
 extends:
@@ -38,7 +38,7 @@ summary: >
   code wins. It verifies existence, not behavior, and 3.3 is explicit that no
   gate can do more than that.
 ---
-# 041: Completion is held to its claims
+# 038: Completion is held to its claims
 
 Wave 2 of `docs/design/02-agentic-builder-substrate.md`, and a narrower thing
 than that note anticipated. See §5.

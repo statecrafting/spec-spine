@@ -21,7 +21,7 @@ pub const BUILD_META_SCHEMA: &str = include_str!("../schemas/build-meta.schema.j
 
 /// JSON Schema for the aggregate codebase index, i.e. the in-memory
 /// `CodebaseIndex` shape (matches [`crate::INDEX_SCHEMA_VERSION`]). Since spec
-/// 024 the committed form is sharded; this validates the assembled view and the
+/// 022 the committed form is sharded; this validates the assembled view and the
 /// indexer's in-memory output.
 pub const INDEX_SCHEMA: &str = include_str!("../schemas/codebase-index.schema.json");
 

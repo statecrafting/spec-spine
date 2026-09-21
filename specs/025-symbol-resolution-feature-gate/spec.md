@@ -42,7 +42,7 @@ summary: >
   OAP spec-217 engine-swap work, which is blocked workspace-wide by exactly this
   `links` clash across its eight planned read-path consumers.
 ---
-# 027: Feature-gate symbol/module resolution
+# 025: Feature-gate symbol/module resolution
 
 Filed off the OAP spec-217 engine-swap, which replaces an in-tree spec-spine
 engine with the published library. The read-path repoint is type-correct, but the
@@ -110,7 +110,7 @@ unpinned.
 Behavior is byte-for-byte identical to 0.6.0. `spec-spine-cli` keeps default
 features, so `spec-spine compile | index | lint | couple` and the committed
 shards are unchanged. Symbol units resolve to `(file, line-span)` and module units
-to file/inline-block spans exactly as specs 004 and 017 define.
+to file/inline-block spans exactly as specs 004 and 016 define.
 
 ### 3.3 Feature off (`default-features = false`)
 
@@ -176,7 +176,7 @@ commit a divergent artifact through the normal flow.
 - **Any schema or `INDEX_SCHEMA_VERSION` change** (FR-006): the index shape is
   identical with the feature on or off.
 - **Removing or unpinning tree-sitter**, or changing what symbol/module resolution
-  produces when it *is* enabled (specs 004 and 017 are unchanged in substance).
+  produces when it *is* enabled (specs 004 and 016 are unchanged in substance).
 - **A Python grammar or any new resolved language**: still deferred.
 - **Splitting the readers into a separate crate.** A feature gate is sufficient and
   keeps one published crate; a `spec-spine-read` crate is a heavier change not

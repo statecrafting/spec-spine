@@ -982,3 +982,91 @@ fn the_planned_refusals_are_silent_on_a_corpus_that_plans_nothing() {
         assert!(!codes.iter().any(|c| c == code), "{code} fired: {codes:?}");
     }
 }
+
+// ── L-013: the title heading names its own spec (spec 098 §3.4) ─────────────
+
+/// A spec document titled `# NNN: Title`. The corpus writes its titles this
+/// way, and spec 095's renumber left 90 of 98 documents naming another spec.
+fn titled(id: &str, heading_ordinal: &str) -> String {
+    format!(
+        "---\nid: \"{id}\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-21\"\n\
+         summary: \"s\"\nestablishes:\n  - \"src/{id}.rs\"\n---\n\n\
+         # {heading_ordinal}: Title\n\n## body\n"
+    )
+}
+
+fn l013(root: &Path) -> Vec<spec_spine_types::Violation> {
+    spec_spine_core::lint(&load_config("").unwrap(), root)
+        .unwrap()
+        .violations
+        .into_iter()
+        .filter(|v| v.code == "L-013")
+        .collect()
+}
+
+#[test]
+fn a_title_heading_naming_another_spec_is_reported() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(
+        tmp.path(),
+        "specs/006-distribution/spec.md",
+        &titled("006-distribution", "007"),
+    );
+    let found = l013(tmp.path());
+    assert_eq!(found.len(), 1, "{found:?}");
+    assert_eq!(found[0].severity, Severity::Warning, "{found:?}");
+    assert!(found[0].message.contains("007"), "{}", found[0].message);
+    assert_eq!(
+        found[0].path.as_deref(),
+        Some("specs/006-distribution/spec.md"),
+        "{found:?}"
+    );
+}
+
+#[test]
+fn a_title_heading_naming_its_own_spec_is_silent() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(
+        tmp.path(),
+        "specs/006-distribution/spec.md",
+        &titled("006-distribution", "006"),
+    );
+    assert!(l013(tmp.path()).is_empty());
+}
+
+/// The corpus does not require numeric ids: `V-001` requires only that the
+/// directory equal the id. Holding a corpus to a convention it never claimed is
+/// the mistake spec 046 §3.3 records, so both halves stay silent.
+#[test]
+fn an_id_or_a_heading_without_an_ordinal_is_silent() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(
+        tmp.path(),
+        "specs/auth-login/spec.md",
+        "---\nid: \"auth-login\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-21\"\n\
+         summary: \"s\"\nestablishes:\n  - \"src/a.rs\"\n---\n\n# 007: Title\n",
+    );
+    write(
+        tmp.path(),
+        "specs/006-distribution/spec.md",
+        "---\nid: \"006-distribution\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-21\"\n\
+         summary: \"s\"\nestablishes:\n  - \"src/b.rs\"\n---\n\n# Distribution\n",
+    );
+    assert!(l013(tmp.path()).is_empty(), "{:?}", l013(tmp.path()));
+}
+
+/// A `#` comment inside the frontmatter is prose, not a title. Reading one as
+/// the heading would report a citation as a wrong title, and this corpus has
+/// several frontmatter comments that open with an ordinal.
+#[test]
+fn a_frontmatter_comment_is_not_the_title_heading() {
+    let tmp = tempfile::tempdir().unwrap();
+    write(
+        tmp.path(),
+        "specs/006-distribution/spec.md",
+        "---\nid: \"006-distribution\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-21\"\n\
+         # 033: an ordinal in a frontmatter comment\n\
+         summary: \"s\"\nestablishes:\n  - \"src/b.rs\"\n---\n\n# 006: Title\n",
+    );
+    assert!(l013(tmp.path()).is_empty(), "{:?}", l013(tmp.path()));
+}

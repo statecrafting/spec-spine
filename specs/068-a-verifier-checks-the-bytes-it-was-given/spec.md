@@ -51,7 +51,7 @@ summary: >
   `attest` emits changes, and every attestation and seal it has ever written
   still verifies, provided the bytes were kept.
 ---
-# 085: A verifier checks the bytes it was given
+# 068: A verifier checks the bytes it was given
 
 ## 1. Purpose
 

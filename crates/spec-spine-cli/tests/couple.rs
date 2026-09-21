@@ -1029,7 +1029,7 @@ fn mode_only_change_with_its_owning_spec_clears() {
 /// `cmd_couple.rs`'s `real_git_text_change_keeps_spans_through_the_union`: no
 /// verdict the binary emits depends on spans for an index-resolved unit, because
 /// the indexer seeds a whole-file implementing path for every owning unit's
-/// file (092 D-3).
+/// file (073 D-3).
 #[test]
 fn text_and_mode_change_to_one_path_is_judged_once() {
     let tmp = tempfile::tempdir().unwrap();

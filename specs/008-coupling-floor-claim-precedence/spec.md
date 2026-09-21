@@ -28,7 +28,7 @@ summary: >
   by explicit claim would have those claims ignored because `.github/` and
   `docs/` sit on the immutable floor.
 ---
-# 009: Explicit unit claims take precedence over the bypass floor
+# 008: Explicit unit claims take precedence over the bypass floor
 
 ## 1. Purpose
 

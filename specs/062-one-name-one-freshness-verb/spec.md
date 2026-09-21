@@ -45,7 +45,7 @@ extends:
   - { spec: "093-the-harness-this-repository-runs", unit: "crates/spec-spine-core/tests/harness_skills.rs", nature: additive }
   - { spec: "093-the-harness-this-repository-runs", unit: "crates/spec-spine-core/tests/harness_hooks.rs", nature: additive }
   # 3.5 this repository's own CI, the local analogue of `kit/govern.yml`. Spec
-  # 051's parity test compares CI's governance commands against AGENTS.md's gate
+  # 093's parity test compares CI's governance commands against AGENTS.md's gate
   # list, so the two change together or that test goes red.
   - { spec: "094-one-gate-and-the-boundaries-it-holds", unit: ".github/workflows/ci.yml", nature: additive }
   # 3.5 the reviewer agent's gate list, in both trees. Claimed as the directory
@@ -71,7 +71,7 @@ summary: >
   keep their flags, their tests and their contracts, and CI may still call one
   when it regenerated only one tree.
 ---
-# 075: One name for the protocol, one verb for freshness
+# 062: One name for the protocol, one verb for freshness
 
 ## 1. Purpose
 
@@ -122,7 +122,7 @@ candidates:
   makes that report's *structure* contractual: "each stale shard occupies its
   own stderr line and carries its drift class." It does not require the
   protocol to invoke `compile --check`. Section 3.4 below requires the composed
-  verb to pass each tree's report through unchanged, so 031's contract is
+  verb to pass each tree's report through unchanged, so 028's contract is
   satisfied rather than contradicted. Reformatting those lines would have
   required the amendment; passing them through does not.
 - **004** owns `index check`, which this spec does not touch.
@@ -375,7 +375,7 @@ cargo test -p spec-spine-cli --test cli --locked
 cargo test -p spec-spine-cli check_exit_order --locked
 # 3.5 spec 093's subset assertion still holds after the gate list changed.
 cargo test -p spec-spine-core --test kit_skills --locked
-# 065's generator keeps the embedded copy in step with the tree.
+# 095's generator keeps the embedded copy in step with the tree.
 cargo test -p spec-spine-core --test scaffold --locked
 # 3.1 the skill moved in both trees, and no alias was left behind.
 test -f .claude/skills/prime/SKILL.md

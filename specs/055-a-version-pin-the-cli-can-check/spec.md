@@ -37,7 +37,7 @@ summary: >
   running the tool the corpus was governed by, which is a different question and
   currently has no answer at all.
 ---
-# 062: A version pin the CLI can check
+# 055: A version pin the CLI can check
 
 ## 1. Purpose
 

@@ -30,7 +30,7 @@ summary: >
   runs over its agent-config files (settings/MCP JSON) without hardcoding any
   adopter's file list into the core.
 ---
-# 012: Named hash slices
+# 011: Named hash slices
 
 ## 1. Purpose
 

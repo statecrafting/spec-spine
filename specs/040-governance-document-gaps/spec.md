@@ -11,7 +11,7 @@ depends_on:
   - "037-amendment-authoring"
 amends:
   # 000 3 classifies `depends_on` and `implementation` as descriptive. Specs
-  # 033, 038 and 041 give them mechanical consequences. See 3.2. 000's own
+  # 030, 035 and 038 give them mechanical consequences. See 3.2. 000's own
   # text is untouched (spec 037).
   - "000-spec-spine-bootstrap"
 establishes:
@@ -51,7 +51,7 @@ summary: >
   statement, no normative hierarchy and no amendment clause, and the evidence
   is that the first adopter did not use it.
 ---
-# 043: Three governance statements the first adopter could not act on
+# 040: Three governance statements the first adopter could not act on
 
 ## 1. Purpose
 
@@ -253,7 +253,7 @@ once declared. Declaring either one submits the spec to whatever mechanical
 consequences the corpus's ordinary specs attach to it.
 
 The consequences themselves stay where they are specified. This spec deliberately
-does not restate 033's cycle refusal, 038's partition or 041's severity rule;
+does not restate 030's cycle refusal, 035's partition or 038's severity rule;
 tier 1 says the fields are operational, and the ordinary specs say what the
 operations are. Tier 1 restating an ordinary spec's rule would create exactly the
 duplicated-fact rot that spec 037 3.2 argues against.

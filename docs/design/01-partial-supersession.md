@@ -36,7 +36,7 @@ Read in English: *"this spec takes over spec 039's authority over
 the full form this library accepts today:
 
 ```yaml
-supersedes: ["042-old-thing"]   # takes over ALL of 042's authority
+supersedes: ["042-old-thing"]   # takes over ALL of 039's authority
 ```
 
 `scope: partial` with a `unit:` is a **scoped authority transfer**. `scope:
@@ -112,8 +112,8 @@ transfers authority only for its `unit`.
 - **Registry/schema.** A union entry (string | object). Critically, keeping the
   bare-string form for full supersession means **every existing registry stays
   byte-identical** -- only specs that actually use the partial form emit the
-  object. This is an additive MINOR schema bump (like 012's `sliceHashes` and
-  013's value widening), and preserves determinism for all current corpora.
+  object. This is an additive MINOR schema bump (like 011's `sliceHashes` and
+  012's value widening), and preserves determinism for all current corpora.
 - **Algorithm.** `build_superseders` gains a per-edge optional unit; step 2's
   transfer becomes conditional on the candidate path matching that unit. This is
   a change to the most-tested function in the gate, so it needs fresh

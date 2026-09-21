@@ -81,7 +81,7 @@ pub struct Verdicts {
 }
 
 /// A reproducible, pure-function attestation over the spec corpus state (spec
-/// 023). No clock, no env, no key: re-running `attest` on an unchanged corpus at
+/// 021). No clock, no env, no key: re-running `attest` on an unchanged corpus at
 /// the same `tool.version` yields a byte-identical payload. It is the signed,
 /// archival form of a verdict spec-spine already computes (`compile`, `lint`,
 /// optionally `couple`) and otherwise discards into a CI log.

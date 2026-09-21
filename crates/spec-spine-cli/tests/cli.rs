@@ -1273,7 +1273,7 @@ fn prose_output_is_unchanged_without_the_flag() {
     // Spec 050 §3.3 adds one line under the verdict when the ledger has a gap,
     // so the assertion is on the verdict line rather than on the whole stream.
     // The fixture has one claimed-but-unwitnessed path, which is what that line
-    // reports; the verdict itself is untouched, which is what 037 §3.3 is about.
+    // reports; the verdict itself is untouched, which is what 034 §3.3 is about.
     let index_out = String::from_utf8_lossy(&index.stdout);
     assert_eq!(
         index_out.lines().next(),
@@ -1670,7 +1670,7 @@ fn attest_exits_zero_on_a_false_verdict_in_both_scopes() {
         "the false verdict is recorded, not suppressed"
     );
 
-    // The corpus scope too, which is 023's territory and reaches this rule by
+    // The corpus scope too, which is 021's territory and reaches this rule by
     // amendment: it exits 0 even with a failing verdict inside.
     let corpus = run_in(root, &["attest"]);
     assert_eq!(
@@ -2407,7 +2407,7 @@ fn check_never_writes_even_when_the_tree_is_stale() {
 }
 
 /// Spec 062 3.4: each tree's report reaches stderr attributed to its tree. Spec
-/// 031 3.3 makes the registry stale report's structure contractual precisely
+/// 028 3.3 makes the registry stale report's structure contractual precisely
 /// because the session protocol reads the drifted shard names back, and exit 2
 /// alone cannot say which shard moved.
 #[test]
@@ -2934,7 +2934,7 @@ fn an_unparseable_stray_in_by_package_is_orphaned_at_the_verbs() {
     assert_eq!(index["skippedShards"], 1, "{index}");
 }
 
-/// §3.6 case 4: an **expected** shard corrupted in place is stale by 086's byte
+/// §3.6 case 4: an **expected** shard corrupted in place is stale by 069's byte
 /// comparison, named `modified` rather than `orphaned`. A fix that caught the
 /// parse error only where strays are enumerated would leave exit 3 here.
 #[test]
@@ -2991,7 +2991,7 @@ fn a_fresh_tree_payload_gains_no_member() {
 /// §3.6 case 6: the consumer half is not loosened. On case 1's tree the reads
 /// that consume the ledger still refuse to proceed: `index owner` at its
 /// freshness guard (exit 2, as before this spec), and `index render`, which
-/// reads the shards with no guard in front, still at exit 3 (095 D-5).
+/// reads the shards with no guard in front, still at exit 3 (076 D-5).
 #[test]
 fn the_consumer_verbs_still_refuse_an_unparseable_stray() {
     let tmp = tempfile::tempdir().unwrap();
@@ -3107,7 +3107,7 @@ fn every_read_document_is_a_sorted_versioned_object() {
         );
     }
 
-    // §3.7: `config show` is sorted, keeps 054's member, and gains no second one.
+    // §3.7: `config show` is sorted, keeps 047's member, and gains no second one.
     let v = sorted_object("config show", &run_in(root, &["config", "show", "--json"]));
     assert!(v.get("config_version").is_some(), "{v}");
     assert!(v.get("schemaVersion").is_none(), "{v}");
@@ -3776,7 +3776,7 @@ fn a_spec_that_claims_no_completion_is_not_accused_of_one() {
 // The rule these pin is spec 069 §3.1's closing sentence as spec 080 §3.1
 // amends it: drift alone exits 2, a blocking diagnostic exits 1, and a tree
 // holding both exits 1 under spec 062 §3.3's order. Every message is spec
-// 098's and is asserted unchanged, because the value of this change is that it
+// 079's and is asserted unchanged, because the value of this change is that it
 // moves one code and nothing else.
 // ---------------------------------------------------------------------------
 
@@ -4374,7 +4374,7 @@ fn statecraft_derived_layout_compiles_indexes_and_is_judged() {
     assert!(missing.is_file(), "and a writing compile did");
 
     // Orphaned: a committed shard whose spec the corpus no longer has (spec
-    // 095). Produced the way it happens in life, by removing the spec and
+    // 076). Produced the way it happens in life, by removing the spec and
     // leaving the shard, rather than by inventing a file: a hand-written stray
     // is a content mismatch, which is staleness and a different answer.
     write_spec(root, "003-c", "003-c", "approved");

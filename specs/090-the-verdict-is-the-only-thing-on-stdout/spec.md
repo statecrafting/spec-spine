@@ -30,7 +30,7 @@ extends:
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
 references:
   # The envelope contract this brings `verify` back under, and the channel
-  # discipline 035 3.3 set for diagnostics.
+  # discipline 032 3.3 set for diagnostics.
   - { unit: { kind: file, path: "specs/034-machine-readable-verdicts/spec.md" }, role: context }
   - { unit: { kind: file, path: "specs/032-stdout-closed-reader/spec.md" }, role: context }
 summary: >
@@ -52,7 +52,7 @@ summary: >
   no field joins the verdict schema, and without the flag every byte goes where
   it goes today.
 ---
-# 118: The verdict is the only thing on stdout
+# 090: The verdict is the only thing on stdout
 
 ## 1. Purpose
 

@@ -60,7 +60,7 @@
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "sectionHeadings": [
-      "018: constrains discriminator and optional unit",
+      "017: constrains discriminator and optional unit",
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
@@ -75,6 +75,6 @@
     "summary": "Widens the `constrains` item grammar to the two shapes the predecessor dialect authors: a **path-scoped** constraint (`unit:`, the canonical `invariant-freeze` over a file or schema) and a **spec-scoped** constraint (`target_specs:`, a sequencing/ordering plan over other specs with no code unit). Two changes: `unit` becomes optional, and an optional documentary discriminator is accepted under either spelling `flavor:` or `kind:` (synonyms, not gate-load-bearing). A new V-011 requires every item to scope at least one of `unit` / `target_specs`. A spec-scoped item contributes no resolved unit to the index. Unblocks the OAP corpus, which authors `{ flavor: invariant-freeze, unit }` (spec 130) and `{ kind: <plan>, target_specs }` (specs 093, 089), both rejected by the unit-required, discriminator-less v1 grammar.\n",
     "title": "Constrains grammar: classification discriminator and optional unit"
   },
-  "shardHash": "bb826633c4c0192c0654cf05fd8784fa0007ced0aff44fd89dd4044c712e3648",
+  "shardHash": "55899a97b18b11a61ec11f93193cea6311d084c937380ae9dfaafd2cc51ae3b6",
   "specVersion": "1.3.0"
 }

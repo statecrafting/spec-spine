@@ -27,7 +27,7 @@
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "sectionHeadings": [
-      "007: Distribution",
+      "006: Distribution",
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
@@ -45,6 +45,6 @@
     "summary": "How the spec-spine CLI reaches users who do not have a Rust toolchain. Two channels already existed but were unspecced: the tag-gated GitHub release pipeline (release.yml) that builds the five per-triple archives, and install.sh (curl | sh) that consumes them. This spec adopts both as governed territory and adds a third channel: an npm binary-distribution shim under npm/ so a TS/JS repo can `npm i -D spec-spine` and get the CLI with no Rust. The shim is a launcher, not a native addon: the main package's bin resolves a per-triple platform package (optionalDependencies, os/cpu-gated) and exec's the prebuilt binary, forwarding argv and exit code. No postinstall, no network at install, no archive extraction; it works under `npm ci --ignore-scripts` and offline. Version-locked to the binary release tag (npm 0.1.0 ships the v0.1.0 assets).\n",
     "title": "Distribution: npm binary shim + the release pipeline"
   },
-  "shardHash": "99b937b717f434888a591123669bd75611a57173665260c2c7619e37e865a039",
+  "shardHash": "5de1056c4207d934466ce6f08a911b251c52acb4ef53dbbb7e8bb5ee2eb12b84",
   "specVersion": "1.3.0"
 }
