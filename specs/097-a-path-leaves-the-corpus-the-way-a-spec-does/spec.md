@@ -28,6 +28,9 @@ establishes:
 extends:
   - { spec: "096-compaction-is-a-verb-not-a-session", unit: { kind: file, path: "crates/spec-spine-core/src/compact.rs" }, nature: additive }
   - { spec: "096-compaction-is-a-verb-not-a-session", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_compact.rs" }, nature: additive }
+  - { spec: "096-compaction-is-a-verb-not-a-session", unit: { kind: file, path: "crates/spec-spine-core/tests/compact.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-cli/src/main.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/08-remaining-cleanup-2026-09.md" }, role: context }
 ---
@@ -104,8 +107,11 @@ interpolated into it, and it is why §3.5 below is normative rather than advisor
 
 The plan type, the rewrite and the report are spec 096's: `compact.rs` gains the
 `retire` section, `cmd_compact.rs` reads it, and the `Compaction` report carries
-its rewrites in the shape §3.6 there already defines. The two `extends` edges naming those
-files were added by this build rather than by the filing: `V-017` refuses an
+its rewrites in the shape §3.6 there already defines. Five `extends` edges name files this build
+writes into and does not own: 096's `compact.rs` and `cmd_compact.rs`, its
+`tests/compact.rs` (the plan type gained a field, so every literal that built
+one changed), and 001's `lib.rs` and `main.rs` for the widened re-export and the
+help text. They were added by this build rather than by the filing: `V-017` refuses an
 `extends` onto a unit its owner has only `planned`, and 096 held them as planned
 until it was built, so the edges could not be declared before the spec they
 extend existed. This spec adds a second
