@@ -82,6 +82,6 @@
     "summary": "A `## Verification` block is run once, by the session that writes it, and then never again. `verify` is outside the gate chain on purpose, so a block that a later approved spec legitimately invalidates goes red silently and stays red: specs 084 through 110 each exist to repair one such block, and each was found by hand. Spec 083 §4 named the remedy, \"a periodic sweep a maintainer runs, not a gate step\", and left naming its home as its own work. This spec is that home. It establishes `scripts/verify-sweep.sh`, a maintainer-invoked sweep that runs the whole corpus's declared acceptance against one already-merged revision in an isolated worktree, accounts for every spec under five outcomes of which only two are success, and closes the 000-047 population as a ledger that can only shrink and that no future spec can enter.\n",
     "title": "Nothing reruns a merged acceptance"
   },
-  "shardHash": "d2f2c5c70142a6ad74d375fc3e263b9a0572cfbbdedbe7854595b8b4f422a50c",
+  "shardHash": "cec5815169874c3de30fb36c5cb23693e520bfa68ae87d121359a6d530dd2567",
   "specVersion": "1.3.0"
 }

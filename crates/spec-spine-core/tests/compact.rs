@@ -663,6 +663,36 @@ fn a_hyphen_that_is_not_an_ellipsis_is_not_an_elided_id() {
     assert!(prose_rewrites(&c).is_empty(), "{:?}", prose_rewrites(&c));
 }
 
+/// Spec 098 §3.2: the sweep's `--only` takes a spec id too, and spec 096's
+/// command list named `spec-spine` subcommands only. The consequence was live:
+/// `scripts/verify-sweep.sh ... --only 012` in spec 089's acceptance kept a
+/// pre-collapse ordinal while `012-index-hash-slices` beside it was rewritten,
+/// so the block asked for one spec and asserted another, and stayed red on the
+/// default branch until it was swept by hand.
+#[test]
+fn the_sweeps_only_argument_is_a_short_id() {
+    let tmp = fixture("Run `scripts/verify-sweep.sh --rev main --only 002`.\n");
+    let c = compact(&cfg(), tmp.path(), &plan()).unwrap();
+    assert!(
+        rewritten(&c, "docs/note.md").contains("--only 001"),
+        "{}",
+        rewritten(&c, "docs/note.md")
+    );
+}
+
+/// And the `--repo` exclusion still decides it: the same flag on a line
+/// addressing a fixture corpus names that corpus's ids, not this one's.
+#[test]
+fn an_only_argument_behind_repo_addresses_a_fixture_corpus() {
+    let tmp = fixture("Run `scripts/verify-sweep.sh --repo /tmp/fx --only 002`.\n");
+    let c = compact(&cfg(), tmp.path(), &plan()).unwrap();
+    assert!(
+        !c.files.iter().any(|f| f.from_rel_path == "docs/note.md"),
+        "{:?}",
+        c.files
+    );
+}
+
 // ── §3.3: the scan opens a file that carries no extension ───────────────────
 
 /// Defect 8. `.gitignore` reads as an empty stem with the extension
