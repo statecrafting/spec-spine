@@ -1306,6 +1306,84 @@ fn a_historical_file_outside_the_corpus_is_refused() {
     }
 }
 
+/// Every form reads the ORIGINAL line, so no form re-reads what another wrote.
+///
+/// This asserts the rule; it does not reproduce a defect. The sequential form
+/// the rule replaced could in principle re-read a glob replacement that names
+/// the retired path, and no replacement text was found that actually does: any
+/// prefix ending in a path character blocks the prose boundary, and a suffix
+/// does the same on the right. The structure is what guarantees it rather than
+/// that coincidence, which is why the rule is worth having anyway.
+#[test]
+fn a_glob_replacement_naming_the_path_is_not_rewritten_again() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "docs/list.toml",
+        "patterns = [\"rules/*.md\"]\n",
+    );
+    let mut e = retire_rules();
+    e.path = "rules/".into();
+    e.kind = RetireKind::Directory;
+    e.forms = [
+        ("citation".to_string(), Some("AGENTS/".to_string())),
+        // The replacement text itself names the retired path.
+        ("glob".to_string(), Some("old-rules/".to_string())),
+    ]
+    .into_iter()
+    .collect();
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/list.toml")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(
+        out.contains("old-rules/*.md"),
+        "the glob replacement was rewritten again: {out:?}"
+    );
+}
+
+/// §3.5 and D-5: where an entry has no clause of its own, the line's clause is
+/// the label. It is the best available one rather than a claim about which
+/// marker applies to which path, and the fallback was documented but never
+/// exercised.
+#[test]
+fn an_entry_with_no_clause_of_its_own_takes_the_lines() {
+    let tmp = fixture("A line naming rules/one.md and rules/two.md.\n");
+    let mut first = retire_rules();
+    first.historical_files = vec!["docs/note.md".into()];
+    let mut second = retire_rules();
+    second.path = "rules/two.md".into();
+    second.historical_files = vec![];
+    second.forms = [(
+        "citation".to_string(),
+        Some("`AGENTS.md` \"Two\"".to_string()),
+    )]
+    .into_iter()
+    .collect();
+    let plan = CompactPlan {
+        retire: vec![first, second],
+        ..Default::default()
+    };
+    let c = compact(&cfg(), tmp.path(), &plan).unwrap();
+    let on_note: Vec<_> = c
+        .skipped
+        .iter()
+        .filter(|s| s.rel_path == "docs/note.md")
+        .collect();
+    assert_eq!(on_note.len(), 2, "both occurrences reported: {on_note:?}");
+    // The second entry has no historical marker of its own and takes the
+    // line's, which is the documented fallback.
+    assert!(
+        on_note
+            .iter()
+            .all(|s| s.clause == SkipClause::HistoricalFile),
+        "{on_note:?}"
+    );
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]

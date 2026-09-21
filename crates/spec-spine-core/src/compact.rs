@@ -1534,34 +1534,85 @@ fn retire_file(
 /// (D-2): a glob line, a backticked or bare prose citation, and a path in a
 /// YAML value, a shell word or a Rust string literal.
 fn apply_forms(line: &str, e: &RetireEntry) -> String {
-    let mut s = line.to_string();
-    // A glob: the path followed by a wildcard segment. Removing it removes the
-    // whole list entry, because a pattern matching nothing reads like a claim
-    // being hashed and hashes nothing.
+    // Every form reads the ORIGINAL line and contributes spans; the spans are
+    // applied once, together. Applying them in sequence let one form's
+    // replacement text be re-read by the next: a glob replacement naming the
+    // retired path was then rewritten again by the citation rule. That is D-22
+    // inside a single call, and the answer is the same one spec 096 §3.4 gives
+    // for ids: find every match against the source, then substitute once.
+    let mut spans: Vec<(usize, usize, String)> = Vec::new();
+
+    // A glob: the path followed by a wildcard segment. A deletion takes the
+    // whole line, because a pattern matching nothing reads like a claim being
+    // hashed and hashes nothing.
     if let Some(rule) = e.forms.get("glob")
-        && glob_at(&s, &e.path).is_some()
+        && let Some(at) = glob_at(line, &e.path)
     {
         match rule {
-            // A deletion takes the whole line, so nothing else can apply to it.
             None => return String::new(),
-            // A replacement does not: a line can carry a glob AND a citation of
-            // the same path, and returning here left the citation behind for
-            // §3.7 to refuse, on a corpus the rules could in fact repair.
-            Some(text) => s = replace_glob(&s, &e.path, text),
+            // A replacement does not take the line: it can carry a glob AND a
+            // citation of the same path, and returning here left the citation
+            // behind for §3.7 to refuse, on a corpus the rules could repair.
+            Some(text) => spans.push((at, at + e.path.len(), text.clone())),
         }
     }
     if let Some(Some(text)) = e.forms.get("citation") {
-        s = s.replace(&format!("`{}`", e.path), text);
-        s = replace_path_in(&s, &e.path, text, PathContext::Prose);
+        let quoted = format!("`{}`", e.path);
+        let mut from = 0usize;
+        while let Some(rel) = line[from..].find(&quoted) {
+            let at = from + rel;
+            spans.push((at, at + quoted.len(), text.clone()));
+            from = at + quoted.len();
+        }
+        spans.extend(occurrence_spans(line, &e.path, text, PathContext::Prose));
     }
     if let Some(Some(text)) = e.forms.get("path") {
-        // Through the one replacement function, like every other form (D-19).
-        // The quote-delimited `str::replace` this replaced was safe only
-        // because quotes bind tightly; it would fire twice on a pass where the
-        // replacement text itself contained the quoted path.
-        s = replace_path_in(&s, &e.path, text, PathContext::Value);
+        spans.extend(occurrence_spans(line, &e.path, text, PathContext::Value));
     }
-    s
+    apply_spans(line, spans)
+}
+
+/// Every occurrence of `path` in `line` that `ctx` recognises, as a span.
+fn occurrence_spans(
+    line: &str,
+    path: &str,
+    text: &str,
+    ctx: PathContext,
+) -> Vec<(usize, usize, String)> {
+    let bytes = line.as_bytes();
+    let mut out = Vec::new();
+    let mut from = 0usize;
+    while let Some(rel) = line[from..].find(path) {
+        let at = from + rel;
+        if occurs_as_path(bytes, at, path.len(), ctx) {
+            out.push((at, at + path.len(), text.to_string()));
+        }
+        from = at + path.len();
+    }
+    out
+}
+
+/// Substitute every span once, earliest first, dropping any that overlaps one
+/// already taken. Two forms can name the same bytes (a backticked citation and
+/// the bare occurrence inside it); the first to claim them wins, and neither is
+/// applied to the other's output.
+fn apply_spans(line: &str, mut spans: Vec<(usize, usize, String)>) -> String {
+    if spans.is_empty() {
+        return line.to_string();
+    }
+    spans.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| (b.1 - b.0).cmp(&(a.1 - a.0))));
+    let mut out = String::with_capacity(line.len());
+    let mut cursor = 0usize;
+    for (start, end, text) in spans {
+        if start < cursor {
+            continue;
+        }
+        out.push_str(&line[cursor..start]);
+        out.push_str(&text);
+        cursor = end;
+    }
+    out.push_str(&line[cursor..]);
+    out
 }
 
 /// Where `path` opens a glob in `line`, if it does.
@@ -1588,16 +1639,6 @@ fn glob_at(line: &str, path: &str) -> Option<usize> {
         }
     }
     None
-}
-
-/// Replace the path PREFIX of the glob, leaving the wildcard. Only the
-/// occurrence `glob_at` found: a raw `line.replace` rewrote a longer path
-/// sharing the suffix as well.
-fn replace_glob(line: &str, path: &str, text: &str) -> String {
-    match glob_at(line, path) {
-        Some(at) => format!("{}{text}{}", &line[..at], &line[at + path.len()..]),
-        None => line.to_string(),
-    }
 }
 
 /// Replace every occurrence of `path` that `ctx` recognises, and no others.

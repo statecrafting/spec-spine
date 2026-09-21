@@ -508,6 +508,19 @@ the predicate. The scan uses the walk's key rule now because an undeclared
 assumption is worth removing, and the test says it asserts the rule rather than
 reproducing a defect. A test that cannot fail should at least admit it.
 
+D-33 (2026-09-21, every form reads the source line, and the spans apply once).
+The forms ran in sequence, so each read what the one before it wrote: a glob
+replacement naming the retired path could be rewritten again by the citation
+rule in the same call. That is D-22 inside a single `apply_forms`, and the
+answer is the one spec 096 §3.4 gives for ids: find every match against the
+source, then substitute once, earliest first, dropping what overlaps.
+
+No reproduction was found, and the rule is kept anyway. Every replacement text
+that embeds the retired path with a clean left boundary fails the right one, and
+the reverse, so today the sequential form happens to be safe by coincidence of
+the boundary rules rather than by construction. A property that holds by
+coincidence is one nobody can rely on while editing either rule.
+
 ## Verification
 
 Each line is one command, run independently.
