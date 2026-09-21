@@ -1,0 +1,113 @@
+name: Acceptance
+
+# Spec 099: re-ask the corpus's declared acceptance where asking is safe.
+#
+# `verify` executes what a spec declares, so it is outside the gate chain on
+# purpose (spec 043 §3.6, spec 083 §4): a pull request is, in the general case,
+# a stranger's code. That leaves a gap this workflow closes. Between two
+# maintainer sweeps a merged spec's acceptance can be red with every required
+# check green, which is what happened to spec 092 between #277 and #278.
+#
+# The trust boundary is not weakened, it is where the boundary already allows:
+# this workflow runs ONLY on the default branch after a merge, on a schedule,
+# or by hand. There is no `pull_request` leg and there never may be, and it is
+# in no `needs:` list, so it is outside `ci-gate` and cannot block a pull
+# request even when it is red. Spec 089's sweep refuses a revision that is not
+# an ancestor of the trusted ref, which is the mechanical half of the same rule.
+#
+# `contents: read` and no secrets: the sweep runs arbitrary declared shell, and
+# the credentials it can reach are the ones this block grants it.
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    # 06:17 UTC daily. The full corpus, as the backstop for a break in a spec
+    # that owns none of the changed paths, which the push leg cannot select.
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Comma-separated spec ids to sweep (empty = the whole corpus)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: acceptance-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  sweep:
+    name: declared acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The sweep tests ancestry against the trusted ref and checks out the
+          # revision into a worktree; both need the history, not a shallow tip.
+          fetch-depth: 0
+
+      - name: Build the binary under test
+        run: cargo build --release --locked -p spec-spine-cli
+
+      - name: Compute the scope
+        id: scope
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "push" ]; then
+            before='${{ github.event.before }}'
+            case "$before" in
+              ''|0000000000000000000000000000000000000000) before=$(git rev-parse HEAD~1) ;;
+            esac
+            ids=$(scripts/acceptance-scope.sh --base "$before" --head "${{ github.sha }}" \
+                    --bin "$PWD/target/release/spec-spine" | paste -sd, -)
+            echo "only=$ids" >> "$GITHUB_OUTPUT"
+            echo "scope: the specs owning a path in $before..${{ github.sha }}"
+          else
+            echo "only=${{ github.event.inputs.only }}" >> "$GITHUB_OUTPUT"
+            echo "scope: ${{ github.event.inputs.only || 'the whole corpus' }}"
+          fi
+
+      - name: Nothing to sweep
+        if: ${{ github.event_name == 'push' && steps.scope.outputs.only == '' }}
+        run: echo "No spec owns a path this push changed; the nightly leg covers the rest."
+
+      - name: Sweep
+        if: ${{ github.event_name != 'push' || steps.scope.outputs.only != '' }}
+        env:
+          SPEC_SPINE_BIN: ${{ github.workspace }}/target/release/spec-spine
+        run: |
+          set -uo pipefail
+          # The sweep refuses a revision that is not an ancestor of the trusted
+          # ref (spec 089 §3.7). Name the default branch explicitly rather than
+          # relying on the remote-tracking refs a CI checkout happens to leave
+          # behind, and fetch it so the name resolves.
+          git fetch --no-tags --quiet origin +refs/heads/main:refs/remotes/origin/main
+          rc=0
+          if [ -n "${{ steps.scope.outputs.only }}" ]; then
+            scripts/verify-sweep.sh --rev "${{ github.sha }}" --trusted-ref origin/main \
+              --out "${{ runner.temp }}/sweep" --only "${{ steps.scope.outputs.only }}" || rc=$?
+          else
+            scripts/verify-sweep.sh --rev "${{ github.sha }}" --trusted-ref origin/main \
+              --out "${{ runner.temp }}/sweep" || rc=$?
+          fi
+          echo "sweep exit: $rc"
+          # The step's status is the sweep's. Letting the last command decide it
+          # is how a red sweep becomes a green job.
+          exit $rc
+
+      - name: Upload the report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-${{ github.sha }}
+          path: ${{ runner.temp }}/sweep
+          if-no-files-found: ignore
+          retention-days: 30

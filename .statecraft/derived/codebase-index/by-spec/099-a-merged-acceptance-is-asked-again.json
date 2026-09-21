@@ -1,27 +1,28 @@
 {
   "mapping": {
+    "amends": [
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
     "dependsOn": [
-      "004-codebase-index"
+      "043-verify-declared-acceptance",
+      "089-nothing-reruns-a-merged-acceptance",
+      "094-one-gate-and-the-boundaries-it-holds"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/cmd_index.rs",
+        "path": ".github/workflows/acceptance.yml",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "path": "crates/spec-spine-core/tests/gate.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/lib.rs",
+        "path": "scripts/acceptance-scope.sh",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/render.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/tests/render.rs",
+        "path": "scripts/verify-sweep.sh",
         "source": "spec-edge"
       }
     ],
@@ -29,72 +30,72 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/render.rs"
+            "file": ".github/workflows/acceptance.yml"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/render.rs"
+          "path": ".github/workflows/acceptance.yml"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/render.rs"
+            "file": "scripts/acceptance-scope.sh"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/render.rs"
+          "path": "scripts/acceptance-scope.sh"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_index.rs"
+            "file": "crates/spec-spine-core/tests/gate.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+          "path": "crates/spec-spine-core/tests/gate.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/cli.rs"
+            "file": "scripts/verify-sweep.sh"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/cli.rs"
+          "path": "scripts/verify-sweep.sh"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/lib.rs"
+            "file": ".github/workflows/ci.yml"
           }
         ],
-        "ownership": true,
-        "sourceField": "extends",
+        "ownership": false,
+        "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/lib.rs"
+          "path": ".github/workflows/ci.yml"
         }
       }
     ],
-    "specId": "010-index-render-orphans",
-    "specStatus": "approved"
+    "specId": "099-a-merged-acceptance-is-asked-again",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "040f6148269b2973a4175f2b9ad8e819a59e780ba9e95eb83370ac33e563ff5f"
+  "shardHash": "22c4c1236a1072ab191d5478f698e72244ebdcd350e95d91af3d6c32f53b268f"
 }

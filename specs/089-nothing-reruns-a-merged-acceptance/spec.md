@@ -583,9 +583,16 @@ mkdir -p "${TMPDIR:-/tmp}/ss112/precious" && touch "${TMPDIR:-/tmp}/ss112/precio
 SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/exempt.txt" --out "${TMPDIR:-/tmp}/ss112/precious" >/dev/null 2>&1; test $? -eq 3
 test -f "${TMPDIR:-/tmp}/ss112/precious/keepme"
 # --- 3.1, 3.2: the sweep is a caller; it changes nothing about the tool ---
-# It is not a subcommand, and it is in no skill's gate floor or CI job.
+# It is not a subcommand, it is in no skill's gate floor, and it is on no
+# pull-request leg. Spec 099 3.6 corrected the last assertion in place: since
+# that spec the sweep runs from `.github/workflows/acceptance.yml`, on the
+# default branch after a merge and on a schedule, and never on a pull request.
+# The `test -f` guard is load-bearing: a bare `! grep` on a file that is not
+# there passes, and would assert nothing if the workflow were deleted.
 ! target/release/spec-spine --help 2>&1 | grep -qE '^[[:space:]]+sweep'
-! grep -rqF 'verify-sweep' .github/workflows/ .claude/skills/
+! grep -rqF 'verify-sweep' .claude/skills/
+! grep -qF 'verify-sweep' .github/workflows/ci.yml
+test -f .github/workflows/acceptance.yml && ! grep -qE '^[[:space:]]*(pull_request|pull_request_target|merge_group):' .github/workflows/acceptance.yml
 # It reads the corpus through the governed verbs only.
 grep -qF 'registry list --ids-only' scripts/verify-sweep.sh
 grep -qF 'verify "$1" --plan' scripts/verify-sweep.sh
