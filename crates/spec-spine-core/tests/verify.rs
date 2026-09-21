@@ -464,3 +464,80 @@ fn spec103_a_cycle_does_not_hang_verify() {
     assert_eq!(plan.commands, ["a"], "falls back to the spec's own block");
     assert_eq!(plan.acceptance_from, None);
 }
+
+/// Spec 082 §3.4, the document half: a spec whose acceptance another spec
+/// holds says so above its own fence, and a spec that still holds its own does
+/// not say it.
+///
+/// Quantified over the real corpus, because the corpus is the set the rule is
+/// about. A fixture would assert the marker's spelling and nothing about the
+/// documents a reader opens, and the failure this closes is exactly a reader
+/// opening one: `verify` prints the substitution, which is not where that
+/// reader is, so thirteen `## Verification` sections read as live instruction
+/// while nothing ran any of them.
+#[test]
+fn every_superseded_verification_block_says_so_in_its_own_document() {
+    const MARK: &str = "> **Superseded acceptance";
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    let mut held = 0usize;
+    let mut own = 0usize;
+    for entry in fs::read_dir(repo.join("specs")).expect("specs/ is readable") {
+        let dir = entry.expect("dir entry").path();
+        let md = dir.join("spec.md");
+        if !md.is_file() {
+            continue;
+        }
+        let id = dir
+            .file_name()
+            .expect("named directory")
+            .to_string_lossy()
+            .to_string();
+        let text = fs::read_to_string(&md).expect("spec.md is readable");
+        let plan = verify_plan(&cfg(), repo, &id).expect("the corpus plans");
+        let fence = text.find("```verify:cli");
+        match (plan.acceptance_from.as_deref(), fence) {
+            // A block that no longer runs, in a document that has one.
+            (Some(holder), Some(at)) => {
+                held += 1;
+                let head = &text[..at];
+                let note = head.rfind(MARK).unwrap_or_else(|| {
+                    panic!(
+                        "{id}: its acceptance is {holder}'s and its own \
+                         `## Verification` section does not say so"
+                    )
+                });
+                assert!(
+                    head[note..].contains(holder),
+                    "{id}: the note must name the spec that holds the \
+                     acceptance ({holder}), so a reader can follow it"
+                );
+            }
+            // A spec that still holds its own block must not claim otherwise,
+            // or the note stops meaning anything wherever it appears.
+            //
+            // Judged over the SAME region as the positive direction, the text
+            // before the fence, and for the same reason: that is where the note
+            // is defined to live and the only place it can mislead a reader.
+            // A whole-file test reads this spec's own acceptance, which names
+            // the marker in a command, and fails on the sentence that specifies
+            // the rule. That is spec 071's pattern assertion matching itself.
+            (None, Some(at)) => {
+                own += 1;
+                assert!(
+                    !text[..at].contains(MARK),
+                    "{id}: it runs its own block and must not be marked superseded"
+                );
+            }
+            (_, None) => {}
+        }
+    }
+    // Not a pinned count: the corpus always has such a pair while any spec
+    // holds another's block (spec 082 §3.5), and pinning the number would make
+    // every future amendment edit this line.
+    assert!(held > 0, "no spec's acceptance is held by another");
+    assert!(own > 0, "no spec runs its own block");
+}

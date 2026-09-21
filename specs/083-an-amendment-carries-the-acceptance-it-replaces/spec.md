@@ -252,6 +252,17 @@ measured against the tree.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-21).** This block no longer runs.
+> `092-the-engine-ships-governance-not-an-environment` declares this spec in
+> `amends_verification`, so `spec-spine verify 083` builds its plan from that
+> spec's block and names the substitution in `acceptanceFrom` (spec 082 3.2
+> and 3.4).
+>
+> The commands below are kept **verbatim** and are not corrected, even where a
+> path in one no longer exists. A predecessor is amended, never edited (spec
+> 037 3.1): this block is the record of what was asserted when this spec was
+> ratified, and the amending spec is where the assertion lives now.
+
 Each line is one command, run independently: no shell variable survives to the
 next line, so the fixture corpus under `${TMPDIR:-/tmp}/ss098` carries the
 state instead. This block is spec 079's acceptance (§3.1) as well as this

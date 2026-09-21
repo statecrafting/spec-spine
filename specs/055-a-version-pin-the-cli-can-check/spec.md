@@ -226,6 +226,17 @@ inputs. That property is worth more than the notification.
 
 ## 5. Verification
 
+> **Superseded acceptance (2026-09-21).** This block no longer runs.
+> `092-the-engine-ships-governance-not-an-environment` declares this spec in
+> `amends_verification`, so `spec-spine verify 055` builds its plan from that
+> spec's block and names the substitution in `acceptanceFrom` (spec 082 3.2
+> and 3.4).
+>
+> The commands below are kept **verbatim** and are not corrected, even where a
+> path in one no longer exists. A predecessor is amended, never edited (spec
+> 037 3.1): this block is the record of what was asserted when this spec was
+> ratified, and the amending spec is where the assertion lives now.
+
 Each line is one command (spec 043 §3.2), so the fixture lives at a fixed path
 rather than in a `$(mktemp -d)` that would not survive to the next line.
 

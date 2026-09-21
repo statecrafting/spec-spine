@@ -206,6 +206,18 @@ the corpus.
 
 ## 5. Verification
 
+> **Superseded acceptance (2026-09-21).** This block no longer runs.
+> `087-the-answer-is-a-member-not-the-document` declares this spec in
+> `amends_verification`, so `spec-spine verify 053` builds its plan from that
+> spec's block and names the substitution in `acceptanceFrom` (spec 082 3.2
+> and 3.4).
+>
+> The commands below are kept **verbatim** and are not corrected, even where a
+> path in one no longer exists: the amending spec's own acceptance asserts
+> that these exact lines are still here, which is how the corpus proves this
+> spec was amended rather than edited (spec 037 3.1). Editing them here is the
+> laundering move amendment exists to refuse, and it goes red.
+
 Each line is one command (spec 043 §3.2). The shape assertions run against a
 **scratch corpus** rather than against this repository's plan, because this
 repository's plan is corpus state and corpus state moves.

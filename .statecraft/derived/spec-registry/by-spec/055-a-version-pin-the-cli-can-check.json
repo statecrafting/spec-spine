@@ -102,6 +102,6 @@
     "summary": "A repository is governed by whichever spec-spine binary happens to be on the path, and nothing anywhere says which one it should be. rahi states 0.11.0 in three files that must agree by hand. All four governed repositories are two to four releases behind the fixes their own experience motivated, and rahi cannot see spec 041, which was written for rahi's exact state, because it is pinned below it. This spec adds `[meta] required_version`, a semver requirement the CLI checks on every run, refusing with a message that names both the requirement and the running version. The schema versions already tell a loader whether it can read an artifact; this tells an operator whether they are running the tool the corpus was governed by, which is a different question and currently has no answer at all.\n",
     "title": "A version pin the CLI can check"
   },
-  "shardHash": "4de329cbcc7f9941adc83b049a717924deea699c2d09215a5a0329bde2006297",
+  "shardHash": "d00ce22550552b51b0d58caf268608f1bd203300ef3eda9a8919cc91328398ba",
   "specVersion": "1.3.0"
 }
