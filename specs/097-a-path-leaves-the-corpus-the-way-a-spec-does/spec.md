@@ -308,6 +308,13 @@ string). The first build compared `format!("{:?}", status)` to `"approved"`.
 direction: a rename would make every approved spec editable without the human
 acknowledgement, which is the one thing §3.3 exists to demand.
 
+D-8 (2026-09-20, a period is punctuation or an extension, and the rule has to
+say which). §3.2 form 2 ends a bare citation at whitespace or sentence
+punctuation, and `.` is both: `rules/one.md.` closes a sentence while
+`rules/one.md.bak` is a different file. A period terminates a citation only when
+nothing but space follows it. The first rule listed `.` unconditionally, which
+contradicted the path-character test three lines above it.
+
 ## Verification
 
 Each line is one command, run independently.

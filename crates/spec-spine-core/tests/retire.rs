@@ -533,6 +533,56 @@ fn a_withdrawal_that_also_names_a_target_is_refused() {
     assert!(format!("{err}").contains("withdrawal"), "{err}");
 }
 
+/// §3.2 form 2: `.` is both sentence punctuation and an extension separator.
+/// `rules/one.md.` ends a sentence; `rules/one.md.bak` is a different file, and
+/// a terminator list carrying a bare `.` rewrote it.
+#[test]
+fn a_period_terminates_a_citation_only_at_the_end_of_a_sentence() {
+    let tmp = fixture("See rules/one.md. But rules/one.md.bak is another file.\n");
+    let c = compact(&cfg(), tmp.path(), &plan_with(retire_rules())).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/note.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(out.contains("See `AGENTS.md` \"Rules\"."), "{out}");
+    assert!(out.contains("rules/one.md.bak"), "{out}");
+}
+
+/// A duplicated unit line is withdrawn every time it appears: the `break` ends
+/// the search for THIS line's action, and the next occurrence is the next
+/// iteration of the line loop. Asserted rather than argued.
+#[test]
+fn every_occurrence_of_a_duplicated_unit_line_is_withdrawn() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "specs/001-beta/spec.md",
+        &spec_doc(
+            "001-beta",
+            "establishes:\n  - { kind: file, path: \"rules/one.md\" }\n  - { kind: file, path: \"rules/one.md\" }\n  - \"keep.md\"\n",
+            "Body.",
+        ),
+    );
+    let mut e = retire_rules();
+    e.units = vec![UnitAction {
+        spec: "001-beta".into(),
+        edge: "establishes".into(),
+        action: UnitActionKind::Withdraw,
+        to: None,
+        acknowledge_approved: true,
+    }];
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let beta = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "specs/001-beta/spec.md")
+        .expect("the owning spec is rewritten");
+    assert!(!beta.contents.contains("rules/one.md"), "{}", beta.contents);
+    assert!(beta.contents.contains("keep.md"), "{}", beta.contents);
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]

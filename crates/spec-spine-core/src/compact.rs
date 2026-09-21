@@ -192,12 +192,8 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
     // Spec 097 §3.1 and §3.7: every retirement is validated before anything is
     // rewritten, including the human acknowledgement an approved spec needs.
     if !plan.retire.is_empty() {
-        validate_retire(
-            &plan.retire,
-            repo_root,
-            &corpus_ids(cfg, repo_root)?,
-            &approved_specs(cfg, repo_root)?,
-        )?;
+        let (corpus_ids, approved) = corpus_and_approved(cfg, repo_root)?;
+        validate_retire(&plan.retire, repo_root, &corpus_ids, &approved)?;
     }
 
     // The rewrite is a single simultaneous pass per file: a sequential
@@ -302,34 +298,30 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
     })
 }
 
-/// Which specs are `approved`, for the acknowledgement rule of spec 097 §3.3.
+/// Every spec id in the corpus, and the subset that is `approved`, from ONE
+/// compile. Spec 097 §3.3 asks two questions of a named unit, "is the spec
+/// there" and "does changing it need a human", and asking them separately cost
+/// two compiles of the whole corpus for one validation.
 ///
-/// Matched on the enum, never on a formatted string. The first build compared
-/// `format!("{:?}", status)` to `"approved"`, and `Debug` is not a stability
-/// contract: a rename or a variant with data would silently make every approved
-/// spec editable without the human acknowledgement, which is the one thing this
-/// rule exists to demand.
-fn approved_specs(cfg: &Config, repo_root: &Path) -> Result<BTreeSet<String>, Error> {
+/// `approved` is matched on the enum, never on a formatted string. The first
+/// build compared `format!("{:?}", status)` to `"approved"`, and `Debug` is not
+/// a stability contract: a rename or a variant with data would silently make
+/// every approved spec editable without the acknowledgement, which is the one
+/// thing this rule exists to demand.
+fn corpus_and_approved(
+    cfg: &Config,
+    repo_root: &Path,
+) -> Result<(BTreeSet<String>, BTreeSet<String>), Error> {
     let outcome = crate::compile::compile(cfg, repo_root)?;
-    Ok(outcome
-        .registry
-        .specs
-        .iter()
-        .filter(|s| matches!(s.status, spec_spine_types::Status::Approved))
-        .map(|s| s.id.clone())
-        .collect())
-}
-
-/// Every spec id in the corpus, so a unit naming a spec that is not there is
-/// refused rather than read as "not approved".
-fn corpus_ids(cfg: &Config, repo_root: &Path) -> Result<BTreeSet<String>, Error> {
-    let outcome = crate::compile::compile(cfg, repo_root)?;
-    Ok(outcome
-        .registry
-        .specs
-        .iter()
-        .map(|s| s.id.clone())
-        .collect())
+    let mut all = BTreeSet::new();
+    let mut approved = BTreeSet::new();
+    for s in &outcome.registry.specs {
+        all.insert(s.id.clone());
+        if matches!(s.status, spec_spine_types::Status::Approved) {
+            approved.insert(s.id.clone());
+        }
+    }
+    Ok((all, approved))
 }
 
 // ── the corpus ───────────────────────────────────────────────────────────────
@@ -1332,11 +1324,17 @@ fn replace_bare(line: &str, path: &str, text: &str) -> String {
         // `kit/rules/one.md` and `_rules/one.md` are not the retired one.
         let before_ok = !preceded_by_path_char(rest.as_bytes(), at);
         let after = at + path.len();
-        let after_ok = after >= rest.len()
-            || matches!(
-                rest.as_bytes()[after],
-                b' ' | b',' | b';' | b':' | b')' | b'\n' | b'.'
-            );
+        // `.` is both sentence punctuation and an extension separator, and the
+        // two need different answers: `rules/one.md.` ends a sentence while
+        // `rules/one.md.bak` is a different file. A period terminates a citation
+        // only when nothing but space follows it.
+        let after_ok = match rest.as_bytes().get(after) {
+            None => true,
+            Some(b'.') => rest.as_bytes()[after + 1..]
+                .first()
+                .is_none_or(|n| n.is_ascii_whitespace()),
+            Some(b) => matches!(b, b' ' | b',' | b';' | b':' | b')' | b'\n'),
+        };
         out.push_str(&rest[..at]);
         if before_ok && after_ok {
             out.push_str(text);
