@@ -741,7 +741,7 @@ fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (Str
                 }
                 UnitActionKind::Retarget => {
                     let to = action.to.as_deref().unwrap_or_default();
-                    let replaced = subject.replace(&entry.path, to);
+                    let replaced = replace_path_in(subject, &entry.path, to, PathContext::Value);
                     rewrites.push(Rewrite {
                         line: n + 1,
                         old: subject.to_string(),
@@ -1287,6 +1287,23 @@ fn validate_retire(
                     .into(),
             ));
         }
+        // `join` with an absolute component replaces the base, so
+        // `repo_root.join("/etc/passwd")` is `/etc/passwd` and the existence
+        // check below would pass it. `..` leaves the corpus the same way. No
+        // file outside the tree is ever written, but a path the plan should
+        // never have named would be matched as a string across every scanned
+        // file.
+        let candidate = Path::new(&e.path);
+        if candidate.is_absolute()
+            || candidate
+                .components()
+                .any(|c| matches!(c, std::path::Component::ParentDir))
+        {
+            return Err(Error::Config(format!(
+                "compact: the plan retires `{}`, which is not a path inside the corpus",
+                e.path
+            )));
+        }
         if !repo_root.join(&e.path).exists() {
             return Err(Error::Config(format!(
                 "compact: the plan retires `{}`, which the tree does not have",
@@ -1321,7 +1338,11 @@ fn validate_retire(
             }
         }
         for u in &e.units {
-            if u.action == UnitActionKind::Retarget && u.to.is_none() {
+            // An absent `to` and an empty one are the same mistake: a retarget
+            // writes `path: ""`, which is a unit no corpus can resolve.
+            if u.action == UnitActionKind::Retarget
+                && u.to.as_deref().unwrap_or_default().trim().is_empty()
+            {
                 return Err(Error::Config(format!(
                     "compact: `{}` retargets `{}`'s {} unit with no `to`",
                     e.path, u.spec, u.edge
@@ -1489,6 +1510,29 @@ fn replace_glob(line: &str, path: &str, text: &str) -> String {
         Some(at) => format!("{}{text}{}", &line[..at], &line[at + path.len()..]),
         None => line.to_string(),
     }
+}
+
+/// Replace every occurrence of `path` that `ctx` recognises, and no others.
+///
+/// The sixth reader to reach this rule. `String::replace` rewrote `rules/`
+/// inside `rules/one.md` when both sat on one frontmatter line, producing
+/// `NEW/one.md` from a plan that named neither.
+fn replace_path_in(line: &str, path: &str, to: &str, ctx: PathContext) -> String {
+    let bytes = line.as_bytes();
+    let mut out = String::with_capacity(line.len());
+    let mut cursor = 0usize;
+    let mut from = 0usize;
+    while let Some(rel) = line[from..].find(path) {
+        let at = from + rel;
+        if occurs_as_path(bytes, at, path.len(), ctx) {
+            out.push_str(&line[cursor..at]);
+            out.push_str(to);
+            cursor = at + path.len();
+        }
+        from = at + path.len();
+    }
+    out.push_str(&line[cursor..]);
+    out
 }
 
 /// A bare occurrence, bounded by whitespace or by sentence punctuation, and

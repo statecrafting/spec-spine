@@ -816,6 +816,84 @@ fn a_glob_rule_does_not_fire_on_a_longer_paths_glob() {
     );
 }
 
+/// §3.3: a retarget replaces the unit it names, not a sibling that starts with
+/// it. `String::replace` rewrote `rules/` inside `rules/one.md` when both sat on
+/// one line, producing a path the plan named nowhere.
+#[test]
+fn a_retarget_does_not_rewrite_a_sibling_sharing_the_prefix() {
+    let tmp = fixture("x");
+    write(
+        tmp.path(),
+        "specs/001-beta/spec.md",
+        &spec_doc(
+            "001-beta",
+            "extends:\n  - { spec: \"000-alpha\", paths: [\"rules/\", \"rules/one.md\"] }\n",
+            "Body.",
+        ),
+    );
+    let mut e = retire_rules();
+    e.path = "rules/".into();
+    e.kind = RetireKind::Directory;
+    e.forms = [("citation".to_string(), Some("`AGENTS.md`".to_string()))]
+        .into_iter()
+        .collect();
+    e.units = vec![UnitAction {
+        spec: "001-beta".into(),
+        edge: "extends".into(),
+        action: UnitActionKind::Retarget,
+        to: Some("AGENTS.md".into()),
+        acknowledge_approved: true,
+    }];
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let beta = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "specs/001-beta/spec.md")
+        .expect("the owning spec is rewritten");
+    assert!(
+        beta.contents.contains("rules/one.md"),
+        "the sibling was rewritten:\n{}",
+        beta.contents
+    );
+    assert!(beta.contents.contains("AGENTS.md"), "{}", beta.contents);
+}
+
+/// §3.1: a path that leaves the corpus is not a path this plan may name.
+/// `repo_root.join("/etc/passwd")` is `/etc/passwd`, so the existence check
+/// passed it and the string was then matched across every scanned file.
+#[test]
+fn a_retired_path_outside_the_corpus_is_refused() {
+    let tmp = fixture("x");
+    for outside in ["/etc/passwd", "../elsewhere.md"] {
+        let mut e = retire_rules();
+        e.path = outside.into();
+        let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
+        assert_eq!(err.exit_code(), 3, "{outside}: {err}");
+        assert!(
+            format!("{err}").contains("inside the corpus"),
+            "{outside}: {err}"
+        );
+    }
+}
+
+/// §3.3: an empty `to` is the same mistake as an absent one; it writes a unit
+/// no corpus can resolve.
+#[test]
+fn a_retarget_with_an_empty_target_is_refused() {
+    let tmp = fixture("x");
+    let mut e = retire_rules();
+    e.units = vec![UnitAction {
+        spec: "000-alpha".into(),
+        edge: "establishes".into(),
+        action: UnitActionKind::Retarget,
+        to: Some("   ".into()),
+        acknowledge_approved: true,
+    }];
+    let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
+    assert_eq!(err.exit_code(), 3, "{err}");
+    assert!(format!("{err}").contains("no `to`"), "{err}");
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]

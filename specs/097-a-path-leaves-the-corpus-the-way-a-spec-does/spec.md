@@ -387,6 +387,22 @@ correctly was never reached. The glob is located with the same rule as
 everything else, and the replacement rewrites the occurrence found rather than
 every substring match.
 
+D-19 (2026-09-21, the sixth reader). D-16 named four readers of §3.2's
+boundary rule and D-18 found a fifth; the retarget's `String::replace` was the
+sixth, and it rewrote `rules/` inside `rules/one.md` when both sat on one
+frontmatter line. Every replacement of a retired path now goes through one
+function that takes the context and replaces only what that context recognises.
+Six rounds of the same finding is the argument for the shared function, not an
+argument that each reader was individually careless.
+
+D-20 (2026-09-21, a retired path is inside the corpus, and a retarget names
+something). `repo_root.join("/etc/passwd")` is `/etc/passwd` and
+`repo_root.join("../x")` leaves the tree, so the existence check passed both:
+nothing outside the corpus is ever written, because the walk is corpus-bounded,
+but the string would then be matched across every scanned file. An absolute path
+and a `..` component are refused. An empty `to` is refused with the absent one,
+because both write a unit no corpus can resolve.
+
 ## Verification
 
 Each line is one command, run independently.
