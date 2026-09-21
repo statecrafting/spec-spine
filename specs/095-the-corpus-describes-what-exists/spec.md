@@ -1,7 +1,7 @@
 ---
 id: "095-the-corpus-describes-what-exists"
 title: "The corpus describes what exists"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-20"
 summary: >
@@ -16,7 +16,7 @@ summary: >
   the record of that exception: what was deleted, what was merged into what, how
   the ordinals were made contiguous again, and what the rules go back to being
   the moment it is done.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: high
 depends_on:

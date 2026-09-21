@@ -1,7 +1,7 @@
 ---
 id: "093-the-harness-this-repository-runs"
 title: "The harness this repository runs"
-status: draft
+status: approved
 kind: "harness"
 created: "2026-09-20"
 summary: >
@@ -17,7 +17,7 @@ summary: >
   the protocol. Every surviving requirement of the seventeen is carried here;
   what is dropped is named in §6 with the reason, and in every case the reason is
   that its subject was a copy spec 092 deleted.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: high
 depends_on:
