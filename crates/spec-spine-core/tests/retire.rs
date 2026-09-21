@@ -787,6 +787,35 @@ fn every_unit_action_matching_a_line_fires() {
     );
 }
 
+/// A glob rule must read the same boundary as everything else: `rules/*` is a
+/// substring of `extra-rules/*.md`, and because the glob branch returns early
+/// the citation rule that would have handled the line correctly is never
+/// reached.
+#[test]
+fn a_glob_rule_does_not_fire_on_a_longer_paths_glob() {
+    let tmp = fixture("Patterns: `extra-rules/*.md` stays.\n");
+    let mut e = retire_rules();
+    e.path = "rules/".into();
+    e.kind = RetireKind::Directory;
+    e.forms = [
+        ("citation".to_string(), Some("`AGENTS.md`".to_string())),
+        ("glob".to_string(), Some("AGENTS/".to_string())),
+    ]
+    .into_iter()
+    .collect();
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/note.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(
+        out.is_empty() || out.contains("extra-rules/*.md"),
+        "a longer path's glob was rewritten: {out}"
+    );
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]

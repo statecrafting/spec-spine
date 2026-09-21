@@ -289,7 +289,15 @@ the difference between them is stated where each is defined. Sharing a single
 predicate was tried first and withdrew every unit in the corpus, because
 `path: "rules/"` reads as disqualified.
 
-D-5 (2026-09-20, a line one entry spares is spared). The skip loop advanced to
+D-5 (2026-09-20, a line one entry spares is spared, and what that costs).
+A consequence worth stating rather than leaving to a reader of the tests: a
+negation is a LINE-level marker, so on `! test -e rules/one.md && test -e
+rules/two.md` the second path is spared and labelled `negation` even though the
+`!` does not negate it. Sparing is per line because the report must describe the
+file that is emitted, and the emitted line is whole. The clause is the best
+available label rather than a claim about which marker applies to which path.
+
+D-5a (2026-09-20, the original form). The skip loop advanced to
 the next plan entry after recording a skip, so a line called left alone in the
 report could still be rewritten by a later entry, and the report then described
 a file that was not the one emitted. §3.5's "reported, never silent" is a claim
@@ -370,6 +378,14 @@ D-17 (2026-09-21, a skip record names its path). Two retired paths can share a
 line, so a record carrying only the coordinate cannot say which occurrence it
 spared, and §3.7 matching on the coordinate alone let one path's record account
 for another path's occurrence.
+
+D-18 (2026-09-21, the glob reader joins the convergence). D-16 converged four
+readers on one boundary rule and missed a fifth: the glob branch tested a raw
+substring, so `rules/*` matched inside `extra-rules/*.md`, and because that
+branch returns early the citation rule that would have handled the line
+correctly was never reached. The glob is located with the same rule as
+everything else, and the replacement rewrites the occurrence found rather than
+every substring match.
 
 ## Verification
 

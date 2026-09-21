@@ -670,7 +670,7 @@ fn names_path(line: &str, path: &str) -> bool {
     names_path_in(line, path, PathContext::Prose) || names_path_in(line, path, PathContext::Value)
 }
 
-/// Apply the plan's unit actions/// Apply the plan's unit actions to one spec's frontmatter (spec 097 §3.3).
+/// Apply the plan's unit actions to one spec's frontmatter (spec 097 §3.3).
 ///
 /// Line-scoped inside the frontmatter block and inside the named edge's list: a
 /// unit is a list entry, and the entry is either dropped (`withdraw`) or has its
@@ -1441,15 +1441,13 @@ fn apply_forms(line: &str, e: &RetireEntry) -> String {
     // A glob: the path followed by a wildcard segment. Removing it removes the
     // whole list entry, because a pattern matching nothing reads like a claim
     // being hashed and hashes nothing.
-    if let Some(rule) = e.forms.get("glob") {
-        let is_glob = s.contains(&format!("{}*", e.path))
-            || s.contains(&format!("{}/*", e.path.trim_end_matches('/')));
-        if is_glob {
-            return match rule {
-                None => String::new(),
-                Some(text) => replace_glob(&s, &e.path, text),
-            };
-        }
+    if let Some(rule) = e.forms.get("glob")
+        && glob_at(&s, &e.path).is_some()
+    {
+        return match rule {
+            None => String::new(),
+            Some(text) => replace_glob(&s, &e.path, text),
+        };
     }
     if let Some(Some(text)) = e.forms.get("citation") {
         s = s.replace(&format!("`{}`", e.path), text);
@@ -1462,8 +1460,35 @@ fn apply_forms(line: &str, e: &RetireEntry) -> String {
     s
 }
 
+/// Where `path` opens a glob in `line`, if it does.
+///
+/// Boundary-aware, like every other reader (D-16): a raw `contains` matched
+/// `rules/*` inside `extra-rules/*.md`, and because the glob branch returns
+/// early the citation rule that would have handled the line correctly was never
+/// reached. This was the one reader the convergence missed.
+fn glob_at(line: &str, path: &str) -> Option<usize> {
+    let trimmed = path.trim_end_matches('/');
+    for pattern in [format!("{path}*"), format!("{trimmed}/*")] {
+        let mut from = 0usize;
+        while let Some(rel) = line[from..].find(&pattern) {
+            let at = from + rel;
+            if occurs_as_path(line.as_bytes(), at, path.len(), PathContext::Value) {
+                return Some(at);
+            }
+            from = at + pattern.len();
+        }
+    }
+    None
+}
+
+/// Replace the path PREFIX of the glob, leaving the wildcard. Only the
+/// occurrence `glob_at` found: a raw `line.replace` rewrote a longer path
+/// sharing the suffix as well.
 fn replace_glob(line: &str, path: &str, text: &str) -> String {
-    line.replace(path, text)
+    match glob_at(line, path) {
+        Some(at) => format!("{}{text}{}", &line[..at], &line[at + path.len()..]),
+        None => line.to_string(),
+    }
 }
 
 /// A bare occurrence, bounded by whitespace or by sentence punctuation, and

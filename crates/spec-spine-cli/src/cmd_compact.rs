@@ -114,10 +114,14 @@ fn report(outcome: &Compaction, verbose: bool) {
             outcome.skipped.len()
         ));
         for s in &outcome.skipped {
+            // The path is printed, not only the clause: two retired paths can
+            // be spared on one line, and two records differing only in a field
+            // the report omits are two lines a reader cannot tell apart.
             out::line(format_args!(
-                "  {}:{} [{}] {}",
+                "  {}:{} [{} {}] {}",
                 s.rel_path,
                 s.line,
+                s.path,
                 s.clause.as_str(),
                 s.text
             ));
