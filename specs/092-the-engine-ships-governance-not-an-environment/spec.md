@@ -1,7 +1,7 @@
 ---
 id: "092-the-engine-ships-governance-not-an-environment"
 title: "The engine ships governance, not an environment"
-status: draft
+status: approved
 kind: "architecture"
 created: "2026-09-20"
 summary: >
@@ -20,7 +20,7 @@ summary: >
   nothing else; relocates this repository's own committed derived trees; and
   records, per predecessor, what the removal does to the claims and the
   acceptance those specs left behind.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: high
 depends_on:

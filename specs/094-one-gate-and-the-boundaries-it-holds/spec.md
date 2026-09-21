@@ -1,7 +1,7 @@
 ---
 id: "094-one-gate-and-the-boundaries-it-holds"
 title: "One gate, and the boundaries it holds"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-20"
 summary: >
@@ -17,7 +17,7 @@ summary: >
   the commit-boundary hook that refuses without repairing, and the merge driver
   that resolves a same-shard conflict by regenerating rather than by leaving
   markers.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: high
 depends_on:

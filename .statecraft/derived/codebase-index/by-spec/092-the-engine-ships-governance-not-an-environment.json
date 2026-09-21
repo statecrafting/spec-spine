@@ -565,8 +565,8 @@
       }
     ],
     "specId": "092-the-engine-ships-governance-not-an-environment",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "15423153b869bd3233f2a5d4a1d2858dcc6cf81061335e073fe76389732c4325"
+  "shardHash": "850195ffc414aa907b51e43a43a927cd688dd7c497c08da243b1e2d375d2da22"
 }
