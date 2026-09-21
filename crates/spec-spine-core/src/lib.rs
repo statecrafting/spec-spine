@@ -55,7 +55,10 @@ pub use attest::{
     payload_schema_version, spec_attestation_hash, stored_bytes_hash, verify_recompute,
     verify_spec_recompute, with_stored_bytes, with_stored_bytes_spec,
 };
-pub use compact::{CompactPlan, Compaction, compact, parse_plan};
+pub use compact::{
+    CompactPlan, Compaction, Leftover, RetireEntry, RetireKind, SkipClause, Skipped, UnitAction,
+    UnitActionKind, compact, parse_plan,
+};
 pub use compile::{
     CompileOutcome, MAX_UNDECLARED_EXTRA_FRONTMATTER, RegistryShardSet, SpecCheckReport,
     check_registry_freshness, compare_committed_registry, compile, compile_spec,

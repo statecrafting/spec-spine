@@ -44,6 +44,45 @@ pub fn run(repo: &Path, args: &CompactArgs) -> Result<u8, Error> {
 
     let cfg = load_repo_config(repo)?;
     let outcome = compact(&cfg, repo, &plan)?;
+
+    // Spec 097 §3.7: an occurrence the rules could not account for means the
+    // tool has met a spelling it has no rule for. Reported and refused, whether
+    // or not anything was written: a rewrite that silently left the path in
+    // place is the failure this verb exists to prevent.
+    // The refusal comes FIRST, and the summary does not print at all. Printing
+    // the rewrite summary and then "nothing was written" gave a reader two
+    // contradictory accounts of the same run and made them decide which one was
+    // true.
+    if !outcome.leftover.is_empty() {
+        out::line(format_args!(
+            "\ncompact: REFUSED, {} occurrence(s) of a retired path survived the rewrite and no \
+             clause spared them:",
+            outcome.leftover.len()
+        ));
+        for l in &outcome.leftover {
+            out::line(format_args!(
+                "  {}:{} [{}] {}",
+                l.rel_path, l.line, l.path, l.text
+            ));
+        }
+        // The remedy is the same either way; what differs is what the reader
+        // just asked for. Under `--plan` nothing was going to be written, so
+        // saying "nothing was written" would answer a question nobody asked and
+        // read as a refusal of their command rather than of their plan.
+        if args.plan {
+            out::line(format_args!(
+                "compact: declare a form rule that covers them, name the file or section \
+                 historical, or fix the occurrence. The plan is not ready to apply."
+            ));
+        } else {
+            out::line(format_args!(
+                "compact: declare a form rule that covers them, name the file or section \
+                 historical, or fix the occurrence. Nothing was written."
+            ));
+        }
+        return Ok(1);
+    }
+
     report(&outcome, args.plan);
 
     if args.plan {
@@ -80,6 +119,29 @@ fn report(outcome: &Compaction, verbose: bool) {
     out::line(format_args!("\nrewrites by form:"));
     for (form, n) in &outcome.counts {
         out::line(format_args!("  {form:<14} {n}"));
+    }
+    // Spec 097 §3.5: an occurrence left alone is reported with the clause that
+    // spared it. Printed on every run, not only the verbose one: the exclusions
+    // are where a retirement goes quietly wrong, and a reader who has to ask
+    // for them is the reader who will not.
+    if !outcome.skipped.is_empty() {
+        out::line(format_args!(
+            "\nleft alone ({}), with the clause that spared each:",
+            outcome.skipped.len()
+        ));
+        for s in &outcome.skipped {
+            // The path is printed, not only the clause: two retired paths can
+            // be spared on one line, and two records differing only in a field
+            // the report omits are two lines a reader cannot tell apart.
+            out::line(format_args!(
+                "  {}:{} [{} {}] {}",
+                s.rel_path,
+                s.line,
+                s.path,
+                s.clause.as_str(),
+                s.text
+            ));
+        }
     }
     if verbose {
         out::line(format_args!("\nrewrites by file:"));

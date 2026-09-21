@@ -39,6 +39,11 @@ pub enum Renumber {
 }
 
 /// The authored plan (spec 096 §3.1).
+///
+/// `Default` is load-bearing, as it is on `ScaffoldFile`: spec 097 added a
+/// field and every struct literal that built one broke. Construct with
+/// `..Default::default()` so the next field added here breaks nothing, and
+/// `serde(default)` on each field does the same for a plan written before it.
 #[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CompactPlan {
@@ -55,6 +60,11 @@ pub struct CompactPlan {
     /// project's ordinal happens to collide with one of ours.
     #[serde(default = "default_foreign_projects")]
     pub foreign_projects: Vec<String>,
+    /// Paths leaving the corpus (spec 097 §3.1). A spec id and a path are two
+    /// spellings of the same retirement, so they share this plan, the refusal
+    /// set, the idempotence requirement and the per-form report.
+    #[serde(default)]
+    pub retire: Vec<RetireEntry>,
 }
 
 fn default_foreign_projects() -> Vec<String> {
@@ -74,6 +84,8 @@ pub enum Form {
     Citation,
     /// A bare short id as an argument to a command that takes a spec id.
     ShortIdArg,
+    /// An occurrence of a path leaving the corpus (spec 097).
+    RetiredPath,
 }
 
 impl Form {
@@ -82,6 +94,7 @@ impl Form {
             Form::FullId => "full-id",
             Form::Citation => "citation",
             Form::ShortIdArg => "short-id-arg",
+            Form::RetiredPath => "retired-path",
         }
     }
 }
@@ -143,6 +156,26 @@ pub struct Compaction {
     pub counts: BTreeMap<String, usize>,
     /// The map document's contents (spec 096 §3.7).
     pub map_document: String,
+    /// Occurrences of a retired path deliberately left alone, with the clause
+    /// that spared each (spec 097 §3.5). Reported, never silent.
+    #[serde(default)]
+    pub skipped: Vec<Skipped>,
+    /// Occurrences of a retired path that survived the rewrite and were spared
+    /// by no clause (spec 097 §3.7). The tool has found a spelling it has no
+    /// rule for, and the consumer refuses on it: exit 1, with this list.
+    #[serde(default)]
+    pub leftover: Vec<Leftover>,
+}
+
+/// An occurrence §3.7 cannot account for.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Leftover {
+    pub rel_path: String,
+    pub line: usize,
+    pub text: String,
+    /// The retired path still present in `text`.
+    pub path: String,
 }
 
 impl Compaction {
@@ -172,6 +205,18 @@ pub fn parse_plan(src: &str) -> Result<CompactPlan, Error> {
 pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Compaction, Error> {
     let corpus = read_corpus(cfg, repo_root)?;
     let map = build_map(&corpus, plan)?;
+    // Spec 097 §3.1 and §3.7: every retirement is validated before anything is
+    // rewritten, including the human acknowledgement an approved spec needs.
+    if !plan.retire.is_empty() {
+        // The compile answers a question only the unit actions ask. A plan that
+        // retires paths and names no frontmatter unit pays nothing for it.
+        let (corpus_ids, approved) = if plan.retire.iter().any(|e| !e.units.is_empty()) {
+            corpus_and_approved(cfg, repo_root)?
+        } else {
+            (BTreeSet::new(), BTreeSet::new())
+        };
+        validate_retire(&plan.retire, repo_root, &corpus_ids, &approved)?;
+    }
 
     // The rewrite is a single simultaneous pass per file: a sequential
     // replace-per-key would apply one key's output to the next key's input,
@@ -187,7 +232,12 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
     let mut files = Vec::new();
     let mut rewrites = Vec::new();
     let mut counts: BTreeMap<String, usize> = BTreeMap::new();
-    for form in [Form::FullId, Form::Citation, Form::ShortIdArg] {
+    for form in [
+        Form::FullId,
+        Form::Citation,
+        Form::ShortIdArg,
+        Form::RetiredPath,
+    ] {
         counts.insert(form.as_str().to_string(), 0);
     }
 
@@ -197,6 +247,8 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
         .map(|(k, _)| k.as_str())
         .collect();
     let mut removed_paths = Vec::new();
+    let mut skipped: Vec<Skipped> = Vec::new();
+    let mut leftover: Vec<Leftover> = Vec::new();
 
     for rel in scannable_files(cfg, repo_root) {
         let Ok(contents) = std::fs::read_to_string(repo_root.join(&rel)) else {
@@ -213,7 +265,30 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
             }
             continue;
         }
-        let (new_contents, file_rewrites) = rewrite_file(&contents, &map, &keys, plan);
+        let (new_contents, mut file_rewrites) = rewrite_file(&contents, &map, &keys, plan);
+        let new_contents = if plan.retire.is_empty() {
+            new_contents
+        } else {
+            // §3.3 FIRST: the frontmatter edit, then the form rewrite. In the
+            // other order the `path` form rewrites `path: "rules/"` in place,
+            // the unit matcher then finds nothing, and the action silently does
+            // not fire: a withdrawal leaves the claim standing and a retarget
+            // writes a path the `to` never named.
+            let staged = match spec_id_of_path(cfg, &rel) {
+                Some(id) => {
+                    let (edited, unit_rewrites) =
+                        apply_unit_actions(&id, &new_contents, &plan.retire);
+                    file_rewrites.extend(unit_rewrites);
+                    edited
+                }
+                None => new_contents,
+            };
+            let (after, retired, mut skips, mut lefts) = retire_file(&rel, &staged, &plan.retire);
+            file_rewrites.extend(retired);
+            skipped.append(&mut skips);
+            leftover.append(&mut lefts);
+            after
+        };
         let to = target_path(cfg, &rel, &map);
         if file_rewrites.is_empty() && to == rel {
             continue;
@@ -243,7 +318,35 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
         rewrites,
         counts,
         map_document,
+        leftover,
+        skipped,
     })
+}
+
+/// Every spec id in the corpus, and the subset that is `approved`, from ONE
+/// compile. Spec 097 §3.3 asks two questions of a named unit, "is the spec
+/// there" and "does changing it need a human", and asking them separately cost
+/// two compiles of the whole corpus for one validation.
+///
+/// `approved` is matched on the enum, never on a formatted string. The first
+/// build compared `format!("{:?}", status)` to `"approved"`, and `Debug` is not
+/// a stability contract: a rename or a variant with data would silently make
+/// every approved spec editable without the acknowledgement, which is the one
+/// thing this rule exists to demand.
+fn corpus_and_approved(
+    cfg: &Config,
+    repo_root: &Path,
+) -> Result<(BTreeSet<String>, BTreeSet<String>), Error> {
+    let outcome = crate::compile::compile(cfg, repo_root)?;
+    let mut all = BTreeSet::new();
+    let mut approved = BTreeSet::new();
+    for s in &outcome.registry.specs {
+        all.insert(s.id.clone());
+        if matches!(s.status, spec_spine_types::Status::Approved) {
+            approved.insert(s.id.clone());
+        }
+    }
+    Ok((all, approved))
 }
 
 // ── the corpus ───────────────────────────────────────────────────────────────
@@ -443,6 +546,286 @@ fn build_map(corpus: &[String], plan: &CompactPlan) -> Result<BTreeMap<String, T
         );
     }
     Ok(map)
+}
+
+/// A character that can be part of a path segment. `_` and `-` are in it and are
+/// not alphanumeric, which is why they are named: a test that asked only
+/// `is_ascii_alphanumeric` read `_rules/one.md` as a citation of `rules/one.md`.
+fn is_path_char(b: u8) -> bool {
+    matches!(b, b'/' | b'.' | b'_' | b'-') || b.is_ascii_alphanumeric()
+}
+
+/// Where a path occurrence is being read. The two contexts disagree about
+/// delimiters and there is no single rule that serves both, which is the lesson
+/// of three rounds of review: every earlier attempt fixed one side of one
+/// reader and left another reader on a different grammar.
+///
+/// - `Prose`: a bare citation in text. A quote or backtick on the left means
+///   another form owns the occurrence (the backticked and quoted forms are
+///   replaced first), and the right side ends at whitespace or sentence
+///   punctuation.
+/// - `Value`: a quoted YAML or shell value, where a quote IS the delimiter.
+///   Both sides are simply "not a path character".
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PathContext {
+    Prose,
+    Value,
+}
+
+/// Does `path` occur at `at` in `bytes` as ITSELF, under `ctx`'s delimiters?
+///
+/// One function, both boundaries, both contexts. Every reader of a retired path
+/// goes through it: the rewrite, the clause computation, the unit matcher and
+/// §3.7's leftover scan. Three separate defects came from three readers each
+/// carrying a slightly different copy of this rule.
+fn occurs_as_path(bytes: &[u8], at: usize, len: usize, ctx: PathContext) -> bool {
+    // `[` opens a markdown link label; it delimits rather than disqualifies.
+    let left_ok = at == 0
+        || matches!(bytes[at - 1], b'[')
+        || match ctx {
+            PathContext::Prose => {
+                !is_path_char(bytes[at - 1]) && !matches!(bytes[at - 1], b'`' | b'"' | b'\'')
+            }
+            PathContext::Value => !is_path_char(bytes[at - 1]),
+        };
+    if !left_ok {
+        return false;
+    }
+    let after = at + len;
+    match ctx {
+        PathContext::Value => after >= bytes.len() || !is_path_char(bytes[after]),
+        PathContext::Prose => match bytes.get(after) {
+            None => true,
+            // `.` is both sentence punctuation and an extension separator:
+            // `rules/one.md.` ends a sentence, `rules/one.md.bak` is a
+            // different file.
+            Some(b'.') => bytes[after + 1..]
+                .first()
+                .is_none_or(|n| n.is_ascii_whitespace()),
+            // `]` closes a markdown link label, which IS a citation: without it
+            // `[rules/one.md]` was detected by §3.7 and rewritten by no form,
+            // so the scan refused a corpus no rule could have repaired.
+            Some(b) => matches!(b, b' ' | b',' | b';' | b':' | b')' | b']' | b'\n' | b'\r'),
+        },
+    }
+}
+
+/// Does `line` name `path` as itself in `ctx`?
+fn names_path_in(line: &str, path: &str, ctx: PathContext) -> bool {
+    let bytes = line.as_bytes();
+    let mut from = 0usize;
+    while let Some(rel) = line[from..].find(path) {
+        let at = from + rel;
+        if occurs_as_path(bytes, at, path.len(), ctx) {
+            return true;
+        }
+        from = at + path.len();
+    }
+    false
+}
+
+/// Does `line` name `path` in EITHER context?
+///
+/// The question §3.7 asks: an occurrence any rule could have rewritten and none
+/// did is unaccounted for, and a scan narrower than the rules refuses a corpus
+/// the rules were right to leave alone.
+fn names_path(line: &str, path: &str) -> bool {
+    names_path_in(line, path, PathContext::Prose) || names_path_in(line, path, PathContext::Value)
+}
+
+/// Apply the plan's unit actions to one spec's frontmatter (spec 097 §3.3).
+///
+/// Line-scoped inside the frontmatter block and inside the named edge's list: a
+/// unit is a list entry, and the entry is either dropped (`withdraw`) or has its
+/// path rewritten (`retarget`). Where dropping the last entry would leave a key
+/// with no list, the key goes too: `establishes:` followed by nothing is not the
+/// same document minus a claim, it is a document that no longer parses the way
+/// the corpus expects.
+fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (String, Vec<Rewrite>) {
+    let actions: Vec<(&RetireEntry, &UnitAction)> = entries
+        .iter()
+        .flat_map(|e| e.units.iter().map(move |u| (e, u)))
+        .filter(|(_, u)| u.spec == spec_id)
+        .collect();
+    if actions.is_empty() {
+        return (src.to_string(), Vec::new());
+    }
+
+    let mut out: Vec<String> = Vec::new();
+    let mut rewrites = Vec::new();
+    let mut edge: Option<String> = None;
+    let mut in_frontmatter = false;
+    let mut delimiters = 0usize;
+
+    let all: Vec<&str> = src.split_inclusive('\n').collect();
+    for (n, raw) in all.iter().copied().enumerate() {
+        let line = raw.trim_end_matches(['\n', '\r']);
+        if line == "---" {
+            delimiters += 1;
+            in_frontmatter = delimiters == 1;
+            out.push(raw.to_string());
+            continue;
+        }
+        if !in_frontmatter {
+            out.push(raw.to_string());
+            continue;
+        }
+        // A key at column zero that opens a LIST: the line is exactly `key:`
+        // with nothing after it. `id: "000-alpha"` is a scalar and opens
+        // nothing, and reading it as an edge set `edge` to `id`, so the next
+        // indented line was matched against unit actions naming a list that
+        // was never entered. Benign only because no plan targets `id`.
+        if !line.starts_with(' ') && !line.starts_with('-') {
+            let trimmed = line.trim_end();
+            // A key opens a list only if a list ITEM follows it. `summary:`
+            // with an indented sentence under it is an implicit multi-line
+            // scalar, not a list, and reading it as one let a unit action
+            // naming `summary` delete the sentence. This is the same rule
+            // `drop_empty_edge_keys` uses at the other end.
+            let opens_list = all[n + 1..]
+                .iter()
+                .map(|l| l.trim_end_matches(['\n', '\r']))
+                .find(|l| !l.trim().is_empty())
+                .is_some_and(|l| {
+                    l != "---" && l.starts_with(' ') && l.trim_start().starts_with('-')
+                });
+            if let Some(key) = trimmed.strip_suffix(':')
+                && !key.is_empty()
+                && !key.contains(' ')
+                && opens_list
+            {
+                edge = Some(key.to_string());
+                out.push(raw.to_string());
+                continue;
+            }
+            // Any column-zero line WITH CONTENT ends the list it followed,
+            // whether or not it carries a colon. The earlier form required one,
+            // so a column-zero line without a colon left `edge` set and the
+            // comment claimed otherwise. A blank line does not end a list: YAML
+            // allows one between items.
+            if !trimmed.is_empty() {
+                edge = None;
+            }
+            out.push(raw.to_string());
+            continue;
+        }
+        let Some(current) = edge.as_deref() else {
+            out.push(raw.to_string());
+            continue;
+        };
+        // EVERY matching action fires, not just the first. One line can name
+        // two retired paths (an inline sequence does), and stopping at the
+        // first dropped the second in silence. A withdrawal wins over a
+        // retarget on the same line: the line is leaving, so there is nothing
+        // left to point elsewhere.
+        // A withdrawal on this line wins, so it is looked for FIRST. Recording
+        // a retarget and then discovering a withdrawal left a rewrite record
+        // for a line that never reached the output, and the per-form count
+        // included it.
+        let withdrawn = actions.iter().any(|(entry, action)| {
+            action.action == UnitActionKind::Withdraw
+                && action.edge == current
+                && names_path_in(line, &entry.path, PathContext::Value)
+        });
+        if withdrawn {
+            rewrites.push(Rewrite {
+                line: n + 1,
+                old: line.to_string(),
+                new: String::new(),
+                form: Form::RetiredPath,
+            });
+            continue;
+        }
+        let mut retargeted: Option<String> = None;
+        for (entry, action) in &actions {
+            let subject = retargeted.as_deref().unwrap_or(line);
+            if action.edge != current || !names_path_in(subject, &entry.path, PathContext::Value) {
+                continue;
+            }
+            match action.action {
+                // Handled above, before any record was written.
+                UnitActionKind::Withdraw => continue,
+                UnitActionKind::Retarget => {
+                    let to = action.to.as_deref().unwrap_or_default();
+                    let replaced = replace_path_in(subject, &entry.path, to, PathContext::Value);
+                    rewrites.push(Rewrite {
+                        line: n + 1,
+                        old: subject.to_string(),
+                        new: replaced.clone(),
+                        form: Form::RetiredPath,
+                    });
+                    retargeted = Some(replaced);
+                }
+            }
+        }
+        {
+            match retargeted {
+                // The line keeps the ending it arrived with: rewriting a CRLF
+                // file's retargeted lines to LF changes bytes the plan never
+                // named, in exactly the files it did name.
+                Some(replaced) => out.push(format!("{replaced}{}", &raw[line.len()..])),
+                None => out.push(raw.to_string()),
+            }
+        }
+    }
+
+    (drop_empty_edge_keys(&out.concat()), rewrites)
+}
+
+/// Remove an edge key whose list a withdrawal emptied.
+fn drop_empty_edge_keys(src: &str) -> String {
+    let lines: Vec<&str> = src.split_inclusive('\n').collect();
+    let mut out = String::with_capacity(src.len());
+    let mut i = 0usize;
+    let mut delimiters = 0usize;
+    while i < lines.len() {
+        let line = lines[i].trim_end_matches(['\n', '\r']);
+        if line == "---" {
+            delimiters += 1;
+        }
+        let in_frontmatter = delimiters == 1 && line != "---";
+        // The same rule the walk uses: a key line is exactly `key:`. Testing
+        // only `ends_with(':')` read a scalar whose VALUE ends in a colon
+        // (`summary: "See rule:"`) as a key, and would have dropped it.
+        let trimmed_key = line.trim_end();
+        let is_key = in_frontmatter
+            && !line.starts_with(' ')
+            && !line.starts_with('-')
+            && trimmed_key
+                .strip_suffix(':')
+                .is_some_and(|k| !k.is_empty() && !k.contains(' '));
+        if is_key {
+            // Look past blank lines: a key separated from its first item by
+            // one is still a key with items, and dropping it would delete a
+            // live claim.
+            let next = lines[i + 1..]
+                .iter()
+                .map(|l| l.trim_end_matches(['\n', '\r']))
+                .find(|l| !l.trim().is_empty());
+            // An INDENTED `-` is a list item. The closing `---` also starts
+            // with one, and reading it as an item kept every emptied key.
+            let has_items = next.is_some_and(|l| {
+                l != "---" && l.starts_with(' ') && l.trim_start().starts_with('-')
+            });
+            if !has_items {
+                i += 1;
+                continue;
+            }
+        }
+        out.push_str(lines[i]);
+        i += 1;
+    }
+    out
+}
+
+/// Does `path` carry a `.` component, as a STRING?
+///
+/// `Path::components()` normalises an interior `.` away, so `rules/./one.md`
+/// yields only `Normal` components and a `CurDir` arm never fires. What is
+/// compared against the corpus is the literal string, so that is what is
+/// tested.
+fn has_dot_component(path: &str) -> bool {
+    path == "." || path.starts_with("./") || path.contains("/./") || path.ends_with("/.")
 }
 
 /// Refuse a renamed spec directory holding a file the rewrite cannot carry.
@@ -790,6 +1173,622 @@ fn scan_short_id_args(
             }
         }
     }
+}
+
+// ── spec 097: a path leaves the corpus the way a spec does ───────────────────
+
+/// Whether a retired path names a file or a subtree (spec 097 §3.1).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RetireKind {
+    #[default]
+    File,
+    Directory,
+}
+
+/// What happens to a frontmatter unit naming a retired path (spec 097 §3.3).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum UnitActionKind {
+    /// The unit leaves the spec's frontmatter.
+    Withdraw,
+    /// The unit points at `to` instead.
+    Retarget,
+}
+
+/// A named change to one spec's frontmatter (spec 097 §3.3). Named per spec and
+/// per edge, never inferred: there is no grammar in this corpus for withdrawing
+/// a claim, and the only route is an edit to the owning spec's own frontmatter.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct UnitAction {
+    pub spec: String,
+    pub edge: String,
+    pub action: UnitActionKind,
+    #[serde(default)]
+    pub to: Option<String>,
+    /// A human's acknowledgement that this changes an `approved` spec. The flag
+    /// is a human's to write, the way a `Spec-Drift-Waiver` is.
+    #[serde(default)]
+    pub acknowledge_approved: bool,
+}
+
+/// One path leaving the corpus (spec 097 §3.1).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RetireEntry {
+    pub path: String,
+    #[serde(default)]
+    pub kind: RetireKind,
+    /// A replacement per FORM, not per path: in the retirement this was
+    /// measured on, four files became one section each of another document,
+    /// the directory became a phrase, and the glob became nothing at all.
+    ///
+    /// Keys are `citation`, `glob` and `path` (§3.2 and D-2). A `null` value is
+    /// a deletion the plan states; an absent key is a form with no rule, which
+    /// §3.1 refuses rather than silently skipping.
+    #[serde(default)]
+    pub forms: BTreeMap<String, Option<String>>,
+    #[serde(default)]
+    pub units: Vec<UnitAction>,
+    /// Files whose occurrences are history rather than citations (§3.5).
+    #[serde(default)]
+    pub historical_files: Vec<String>,
+    /// Headings under which an occurrence is history rather than a citation.
+    #[serde(default)]
+    pub historical_sections: Vec<String>,
+}
+
+/// Why an occurrence was left alone (spec 097 §3.5). Reported, never silent:
+/// the eleven survivors of the retirement this was measured on were found by
+/// reading a `grep`, and a tool that keeps them without saying so has only
+/// moved the reading.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum SkipClause {
+    /// The line negates the path: `! test -e`, `! grep`, `assert!(!`, `MUST NOT`.
+    Negation,
+    /// The occurrence sits under a heading the plan calls historical.
+    HistoricalSection,
+    /// The occurrence sits in a file the plan calls historical.
+    HistoricalFile,
+}
+
+impl SkipClause {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            SkipClause::Negation => "negation",
+            SkipClause::HistoricalSection => "historical-section",
+            SkipClause::HistoricalFile => "historical-file",
+        }
+    }
+}
+
+/// One occurrence the rewrite deliberately did not touch.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Skipped {
+    pub rel_path: String,
+    pub line: usize,
+    pub text: String,
+    pub clause: SkipClause,
+    /// The retired path this record is about. Two retired paths can share a
+    /// line, so a record without it cannot say which occurrence it spared, and
+    /// §3.7 matching on the coordinate alone would let one path's record
+    /// account for another path's occurrence.
+    pub path: String,
+}
+
+/// The forms a path is spelled in (spec 097 §3.2).
+const RETIRE_FORMS: &[&str] = &["citation", "glob", "path"];
+
+/// Markers that turn an occurrence into a statement about an absence (§3.5).
+const NEGATIONS: &[&str] = &[
+    "! test ",
+    "! grep",
+    "!test ",
+    "assert!(!",
+    "MUST NOT",
+    "! [ -",
+];
+
+/// Refuse a `retire` entry the rules cannot serve, before anything is rewritten
+/// (spec 097 §3.1, §3.7).
+fn validate_retire(
+    entries: &[RetireEntry],
+    repo_root: &Path,
+    corpus: &BTreeSet<String>,
+    approved: &BTreeSet<String>,
+) -> Result<(), Error> {
+    for e in entries {
+        // An empty path is `find` returning Some(0) forever, and the presence
+        // check would pass it: `repo_root.join("")` is the repository root.
+        if e.path.trim().is_empty() {
+            return Err(Error::Config(
+                "compact: a `retire` entry has an empty `path`; every line in the tree contains it"
+                    .into(),
+            ));
+        }
+        // `join` with an absolute component replaces the base, so
+        // `repo_root.join("/etc/passwd")` is `/etc/passwd` and the existence
+        // check below would pass it. `..` leaves the corpus the same way. No
+        // file outside the tree is ever written, but a path the plan should
+        // never have named would be matched as a string across every scanned
+        // file.
+        let candidate = Path::new(&e.path);
+        // `..` leaves the corpus. A `.` does not, and is worse for it:
+        // `rules/./one.md` resolves, the existence check succeeds, and then the
+        // LITERAL string is searched and matches nothing, so the run rewrites
+        // nothing, reports nothing and exits 0.
+        //
+        // The `.` test is on the string rather than on `components()`, which
+        // normalises an interior `.` away and would never yield `CurDir` for it.
+        if candidate.is_absolute()
+            || candidate
+                .components()
+                .any(|c| matches!(c, std::path::Component::ParentDir))
+            || has_dot_component(&e.path)
+        {
+            return Err(Error::Config(format!(
+                "compact: the plan retires `{}`; write it as the corpus spells it, with no `.` or \
+                 `..` component and no leading slash",
+                e.path
+            )));
+        }
+        // A directory path without its trailing slash is a WORD, and the
+        // boundary rule is happy to find it: `rules` matches the English word
+        // in any sentence, which §3.7 then reports as an unaccounted occurrence
+        // and refuses the run over.
+        // `./rules/one.md` passes every guard and then matches nothing: the
+        // literal string carries the prefix and the corpus writes the path
+        // bare, so the run rewrites nothing and reports every bare occurrence
+        // as unaccounted for.
+        if e.path.starts_with("./") {
+            return Err(Error::Config(format!(
+                "compact: the plan retires `{}`; write the path as the corpus spells it, without \
+                 the `./` prefix",
+                e.path
+            )));
+        }
+        // `"any heading".contains("")` is true, so an empty keyword spares
+        // every occurrence in every file and disables the retirement without
+        // saying anything. A plan that spares everything has stopped being a
+        // plan.
+        if e.historical_sections.iter().any(|h| h.trim().is_empty()) {
+            return Err(Error::Config(format!(
+                "compact: `{}` lists an empty `historical_sections` entry; it matches every \
+                 heading, so every occurrence in every file would be spared",
+                e.path
+            )));
+        }
+        for f in &e.historical_files {
+            let p = Path::new(f);
+            if p.is_absolute()
+                || p.components()
+                    .any(|c| matches!(c, std::path::Component::ParentDir))
+                || has_dot_component(f)
+            {
+                return Err(Error::Config(format!(
+                    "compact: `{}` lists `{f}` as historical; a corpus-relative path is compared \
+                     literally, so this one would exclude nothing and say nothing",
+                    e.path
+                )));
+            }
+        }
+        if e.historical_files.iter().any(|f| f.trim().is_empty()) {
+            return Err(Error::Config(format!(
+                "compact: `{}` lists an empty `historical_files` entry",
+                e.path
+            )));
+        }
+        if matches!(e.kind, RetireKind::Directory) && !e.path.ends_with('/') {
+            return Err(Error::Config(format!(
+                "compact: `{}` is `kind: directory` and does not end with `/`; without the slash \
+                 it is a word, and every sentence containing it is an occurrence",
+                e.path
+            )));
+        }
+        if !repo_root.join(&e.path).exists() {
+            return Err(Error::Config(format!(
+                "compact: the plan retires `{}`, which the tree does not have",
+                e.path
+            )));
+        }
+        for (form, replacement) in &e.forms {
+            if !RETIRE_FORMS.contains(&form.as_str()) {
+                return Err(Error::Config(format!(
+                    "compact: `{}` declares the form `{form}`, which has no rule; the forms are {}",
+                    e.path,
+                    RETIRE_FORMS.join(", ")
+                )));
+            }
+            if form == "glob"
+                && let Some(text) = replacement
+                && !text.ends_with('/')
+            {
+                return Err(Error::Config(format!(
+                    "compact: `{}` replaces the glob form with `{text}`, which is not a directory \
+                     prefix. A glob rule substitutes the path PREFIX and leaves the wildcard, so \
+                     `rules/*.md` with `{text}` would read `{text}*.md`. End it with `/`, or use \
+                     `~` to remove the pattern.",
+                    e.path
+                )));
+            }
+            if replacement.is_none() && form != "glob" {
+                return Err(Error::Config(format!(
+                    "compact: `{}` gives the form `{form}` no replacement; only `glob` may be removed outright",
+                    e.path
+                )));
+            }
+        }
+        for u in &e.units {
+            // An absent `to` and an empty one are the same mistake: a retarget
+            // writes `path: ""`, which is a unit no corpus can resolve.
+            if u.action == UnitActionKind::Retarget
+                && u.to.as_deref().unwrap_or_default().trim().is_empty()
+            {
+                return Err(Error::Config(format!(
+                    "compact: `{}` retargets `{}`'s {} unit with no `to`",
+                    e.path, u.spec, u.edge
+                )));
+            }
+            if !corpus.contains(&u.spec) {
+                return Err(Error::Config(format!(
+                    "compact: `{}` names a unit on `{}`, which the corpus does not have",
+                    e.path, u.spec
+                )));
+            }
+            // A `to` on a withdrawal is discarded, and a plan whose author wrote
+            // one meant something the tool will not do.
+            if u.action == UnitActionKind::Withdraw && u.to.is_some() {
+                return Err(Error::Config(format!(
+                    "compact: `{}` withdraws `{}`'s {} unit and also names a `to`; a withdrawal \
+                     has no target. Drop the `to`, or make it a retarget.",
+                    e.path, u.spec, u.edge
+                )));
+            }
+            if approved.contains(&u.spec) && !u.acknowledge_approved {
+                return Err(Error::Config(format!(
+                    "compact: `{}` changes the frontmatter of `{}`, which is approved. \
+                     Withdrawing or retargeting a unit on an approved spec is a human's \
+                     decision: add `acknowledge_approved: true` to that entry, or remove it.",
+                    e.path, u.spec
+                )));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Apply every retirement to one file's text, returning the rewrites and the
+/// occurrences deliberately left alone.
+fn retire_file(
+    rel: &str,
+    src: &str,
+    entries: &[RetireEntry],
+) -> (String, Vec<Rewrite>, Vec<Skipped>, Vec<Leftover>) {
+    let mut out = String::with_capacity(src.len());
+    let mut rewrites = Vec::new();
+    let mut skipped = Vec::new();
+    let mut leftover = Vec::new();
+    // The heading STACK, not the last heading seen. A sub-heading replaced its
+    // parent, so `historical_sections: ["History"]` stopped matching the moment
+    // a `###` appeared under `## History`, and the occurrences below it were
+    // refused as unaccounted for. A section contains everything nested in it.
+    let mut headings: Vec<(usize, String)> = Vec::new();
+
+    let mut fence: Option<String> = None;
+    for (n, line) in src.split_inclusive('\n').enumerate() {
+        let trimmed_line = line.trim_start();
+        // A fenced block's contents are not prose. Every spec here carries
+        // `verify:cli` blocks full of `# comment` lines, and reading one as a
+        // heading replaced the real section: a `historical_sections` keyword
+        // that happened to match such a comment then spared every citation
+        // after the block, and one that named the real section stopped
+        // matching inside it.
+        let opens_or_closes = trimmed_line.starts_with("```") || trimmed_line.starts_with("~~~");
+        match (&fence, opens_or_closes) {
+            (Some(open), true) if trimmed_line.trim_end().starts_with(open.as_str()) => {
+                fence = None;
+            }
+            (None, true) => {
+                fence = Some(
+                    trimmed_line
+                        .chars()
+                        .take_while(|c| *c == '`' || *c == '~')
+                        .collect(),
+                );
+            }
+            _ => {}
+        }
+        // Only the HEADING update is suppressed inside a fence. The line itself
+        // is still rewritten, spared and accounted for: skipping it outright
+        // would hide every occurrence in a `verify:cli` block from §3.7, which
+        // is the silence this spec exists to refuse.
+        if fence.is_none() && trimmed_line.starts_with('#') && line.contains(' ') {
+            let level = trimmed_line.chars().take_while(|c| *c == '#').count();
+            headings.retain(|(l, _)| *l < level);
+            headings.push((
+                level,
+                trimmed_line.trim_start_matches('#').trim().to_string(),
+            ));
+        }
+        let mut current = line.to_string();
+        let mut spans: Vec<(usize, usize, String)> = Vec::new();
+        // Each entry's own clause is decided first, so a line spared by one
+        // entry is spared for all of them (the report must describe the file
+        // that is emitted) while each occurrence still carries the clause that
+        // actually applies to IT. Labelling entry B's occurrence with entry A's
+        // clause is accurate about the outcome and wrong about the reason.
+        // Which entries the SOURCE line names. An entry acts on occurrences the
+        // line arrived with, never on one another entry's replacement text
+        // happened to create: a synthetic occurrence was neither the plan's
+        // subject nor anything a reader could have predicted, and sparing it
+        // under the first entry's clause reports a reason that was never true.
+        let present: Vec<bool> = entries.iter().map(|e| names_path(line, &e.path)).collect();
+        // Reads `line`, like `present` does. The two were equal here and the
+        // comment claimed the source line, so a later reordering could have
+        // broken D-22 without touching a word of it.
+        let own: Vec<Option<SkipClause>> = entries
+            .iter()
+            .enumerate()
+            .map(|(i, e)| {
+                // `names_path`, not `contains`: `! test -e kit/rules/one.md`
+                // contains `rules/one.md` as a substring, and reading it as an
+                // occurrence produced a spurious skip record. Worse, that record
+                // made §3.7 treat the whole line as accounted for, so a real
+                // unaccounted occurrence beside it went unreported.
+                if !present[i] {
+                    None
+                } else if e.historical_files.iter().any(|f| f == rel) {
+                    Some(SkipClause::HistoricalFile)
+                } else if e
+                    .historical_sections
+                    .iter()
+                    .any(|h| headings.iter().any(|(_, head)| head.contains(h.as_str())))
+                {
+                    Some(SkipClause::HistoricalSection)
+                } else if NEGATIONS.iter().any(|m| line.contains(m)) {
+                    Some(SkipClause::Negation)
+                } else {
+                    None
+                }
+            })
+            .collect();
+        let line_clause = own.iter().flatten().next().copied();
+        for (i, e) in entries.iter().enumerate() {
+            if !present[i] || !names_path(current.as_str(), &e.path) {
+                continue;
+            }
+            if let Some(clause) = own[i].or(line_clause) {
+                skipped.push(Skipped {
+                    rel_path: rel.to_string(),
+                    line: n + 1,
+                    text: current.trim_end().to_string(),
+                    clause,
+                    path: e.path.clone(),
+                });
+                continue;
+            }
+            // Spans against the SOURCE line, collected across every entry and
+            // applied once below. Rewriting entry by entry let entry B act on an
+            // occurrence entry A's replacement text created, even where B's path
+            // was in the source too, which the `present` gate cannot see (D-39).
+            spans.extend(form_spans(line, e));
+        }
+        if !spans.is_empty() {
+            let rewritten = apply_spans(line, std::mem::take(&mut spans));
+            if rewritten != current {
+                rewrites.push(Rewrite {
+                    line: n + 1,
+                    old: current.trim_end().to_string(),
+                    new: rewritten.trim_end().to_string(),
+                    form: Form::RetiredPath,
+                });
+                current = rewritten;
+            }
+        }
+        // §3.7, decided HERE, where the source line and its result are both in
+        // hand. A scan of the emitted file afterwards cannot tell an occurrence
+        // the line arrived with from one a replacement text created, and cannot
+        // match a spare once a deletion has shifted the lines. Both were bugs;
+        // neither is expressible from this position.
+        for (i, e) in entries.iter().enumerate() {
+            // `own[i].is_none()` is implied by `line_clause.is_none()` today,
+            // and is kept: it states the condition this loop actually means,
+            // and a later `line_clause` that does not cover every entry would
+            // otherwise silently start reporting spared occurrences.
+            if present[i]
+                && own[i].is_none()
+                && line_clause.is_none()
+                && names_path(current.as_str(), &e.path)
+            {
+                leftover.push(Leftover {
+                    rel_path: rel.to_string(),
+                    line: n + 1,
+                    text: current.trim_end().to_string(),
+                    path: e.path.clone(),
+                });
+            }
+        }
+        out.push_str(&current);
+    }
+    (out, rewrites, skipped, leftover)
+}
+
+/// The six spellings of §3.2, reduced to the three that take a replacement
+/// (D-2): a glob line, a backticked or bare prose citation, and a path in a
+/// YAML value, a shell word or a Rust string literal.
+fn form_spans(line: &str, e: &RetireEntry) -> Vec<(usize, usize, String)> {
+    // Every form reads the ORIGINAL line and contributes spans; the spans are
+    // applied once, together. Applying them in sequence let one form's
+    // replacement text be re-read by the next: a glob replacement naming the
+    // retired path was then rewritten again by the citation rule. That is D-22
+    // inside a single call, and the answer is the same one spec 096 §3.4 gives
+    // for ids: find every match against the source, then substitute once.
+    let mut spans: Vec<(usize, usize, String)> = Vec::new();
+
+    // A glob: the path followed by a wildcard segment. A deletion takes the
+    // whole line, because a pattern matching nothing reads like a claim being
+    // hashed and hashes nothing.
+    if let Some(rule) = e.forms.get("glob") {
+        // EVERY glob occurrence on the line. One array can carry the same
+        // pattern twice, and rewriting only the first left the second for §3.7
+        // to refuse, on a corpus the rules could repair. This was the last
+        // reader still answering "the first one" where the others answer "all
+        // of them".
+        let globs = glob_spans(line, &e.path);
+        if !globs.is_empty() {
+            match rule {
+                // A deletion takes the whole line: one span over all of it.
+                None => return vec![(0, line.len(), String::new())],
+                // A replacement does not take the line: it can carry a glob AND
+                // a citation of the same path.
+                Some(text) => spans.extend(
+                    globs
+                        .into_iter()
+                        .map(|at| (at, at + e.path.len(), text.clone())),
+                ),
+            }
+        }
+    }
+    if let Some(Some(text)) = e.forms.get("citation") {
+        // The backticked form. The backticks ARE the delimiters, so the test is
+        // not `is_path_char`: a `.` legitimately follows a closing backtick as
+        // sentence punctuation, and the first version of this check refused
+        // every citation that ended a sentence. What must not abut the span is
+        // another backtick, which would mean this is the inside of a longer
+        // code span, or an identifier character, which would mean the backtick
+        // is part of a longer token.
+        let quoted = format!("`{}`", e.path);
+        let bytes = line.as_bytes();
+        let delimits = |b: u8| !matches!(b, b'`') && !b.is_ascii_alphanumeric() && b != b'_';
+        let mut from = 0usize;
+        while let Some(rel) = line[from..].find(&quoted) {
+            let at = from + rel;
+            let end = at + quoted.len();
+            let left_ok = at == 0 || delimits(bytes[at - 1]);
+            let right_ok = end >= bytes.len() || delimits(bytes[end]);
+            if left_ok && right_ok {
+                spans.push((at, end, text.clone()));
+            }
+            from = end;
+        }
+        spans.extend(occurrence_spans(line, &e.path, text, PathContext::Prose));
+    }
+    if let Some(Some(text)) = e.forms.get("path") {
+        // A quoted value, and the quotes are required. The value context alone
+        // accepts a backtick on the left, so `` `rules/one.md` `` in prose
+        // matched here and a `path`-only plan replaced the path inside the
+        // backticks, leaving them around prose. The glob keeps the wider rule,
+        // because a backticked glob IS a glob (D-37).
+        let bytes = line.as_bytes();
+        for (at, end, _) in occurrence_spans(line, &e.path, text, PathContext::Value) {
+            let quoted = at > 0
+                && end < bytes.len()
+                && matches!(bytes[at - 1], b'"' | b'\'')
+                && bytes[end] == bytes[at - 1];
+            if quoted {
+                spans.push((at, end, text.clone()));
+            }
+        }
+    }
+    spans
+}
+
+/// Every occurrence of `path` in `line` that `ctx` recognises, as a span.
+fn occurrence_spans(
+    line: &str,
+    path: &str,
+    text: &str,
+    ctx: PathContext,
+) -> Vec<(usize, usize, String)> {
+    let bytes = line.as_bytes();
+    let mut out = Vec::new();
+    let mut from = 0usize;
+    while let Some(rel) = line[from..].find(path) {
+        let at = from + rel;
+        if occurs_as_path(bytes, at, path.len(), ctx) {
+            out.push((at, at + path.len(), text.to_string()));
+        }
+        from = at + path.len();
+    }
+    out
+}
+
+/// Substitute every span once, earliest first, dropping any that overlaps one
+/// already taken. Two forms can name the same bytes (a backticked citation and
+/// the bare occurrence inside it); the first to claim them wins, and neither is
+/// applied to the other's output.
+fn apply_spans(line: &str, mut spans: Vec<(usize, usize, String)>) -> String {
+    if spans.is_empty() {
+        return line.to_string();
+    }
+    spans.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| (b.1 - b.0).cmp(&(a.1 - a.0))));
+    let mut out = String::with_capacity(line.len());
+    let mut cursor = 0usize;
+    for (start, end, text) in spans {
+        if start < cursor {
+            continue;
+        }
+        out.push_str(&line[cursor..start]);
+        out.push_str(&text);
+        cursor = end;
+    }
+    out.push_str(&line[cursor..]);
+    out
+}
+
+/// Every position at which `path` opens a glob in `line`.
+///
+/// Boundary-aware, like every other reader (D-16): a raw `contains` matched
+/// `rules/*` inside `extra-rules/*.md`, and because the glob branch returns
+/// early the citation rule that would have handled the line correctly was never
+/// reached. This was the one reader the convergence missed.
+fn glob_spans(line: &str, path: &str) -> Vec<usize> {
+    let trimmed = path.trim_end_matches('/');
+    let mut patterns = vec![format!("{path}*")];
+    let slashed = format!("{trimmed}/*");
+    if slashed != patterns[0] {
+        patterns.push(slashed);
+    }
+    let mut out = Vec::new();
+    for pattern in patterns {
+        let mut from = 0usize;
+        while let Some(rel) = line[from..].find(&pattern) {
+            let at = from + rel;
+            if occurs_as_path(line.as_bytes(), at, path.len(), PathContext::Value) {
+                out.push(at);
+            }
+            from = at + pattern.len();
+        }
+    }
+    out.sort_unstable();
+    out.dedup();
+    out
+}
+
+/// Replace every occurrence of `path` that `ctx` recognises, and no others.
+///
+/// The sixth reader to reach this rule. `String::replace` rewrote `rules/`
+/// inside `rules/one.md` when both sat on one frontmatter line, producing
+/// `NEW/one.md` from a plan that named neither.
+fn replace_path_in(line: &str, path: &str, to: &str, ctx: PathContext) -> String {
+    let bytes = line.as_bytes();
+    let mut out = String::with_capacity(line.len());
+    let mut cursor = 0usize;
+    let mut from = 0usize;
+    while let Some(rel) = line[from..].find(path) {
+        let at = from + rel;
+        if occurs_as_path(bytes, at, path.len(), ctx) {
+            out.push_str(&line[cursor..at]);
+            out.push_str(to);
+            cursor = at + path.len();
+        }
+        from = at + path.len();
+    }
+    out.push_str(&line[cursor..]);
+    out
 }
 
 // ── fenced blocks (spec 096 §3.5) ────────────────────────────────────────────
