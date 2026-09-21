@@ -355,6 +355,22 @@ retired paths, which is what the `paths:` sugar writes, and stopping at the
 first match dropped the second in silence. A withdrawal wins over a retarget on
 the same line: the line is leaving, so there is nothing left to point elsewhere.
 
+D-16 (2026-09-21, one boundary rule, two contexts, every reader through it).
+Three rounds of review found the same defect three times: the rewrite, the
+leftover scan and the clause computation each carried their own copy of §3.2's
+boundary rule, and each fix repaired one copy. D-4, D-12 and the round that
+bounded the clause computation are all the same finding. The rule is one
+function now, taking the context that decides its delimiters: in prose a quote
+means another form owns the occurrence, in a quoted value a quote IS the
+delimiter, and both sides of the match are tested in both. §3.7 asks whether
+EITHER context would have matched, because a scan narrower than the rules
+refuses a corpus the rules were right to leave alone.
+
+D-17 (2026-09-21, a skip record names its path). Two retired paths can share a
+line, so a record carrying only the coordinate cannot say which occurrence it
+spared, and §3.7 matching on the coordinate alone let one path's record account
+for another path's occurrence.
+
 ## Verification
 
 Each line is one command, run independently.

@@ -349,7 +349,7 @@ fn unaccounted(
                 }
                 let spared = skipped
                     .iter()
-                    .any(|s| &s.rel_path == rel && s.line == n + 1);
+                    .any(|s| &s.rel_path == rel && s.line == n + 1 && s.path == e.path);
                 if spared {
                     continue;
                 }
@@ -597,29 +597,63 @@ fn is_path_char(b: u8) -> bool {
     matches!(b, b'/' | b'.' | b'_' | b'-') || b.is_ascii_alphanumeric()
 }
 
-/// Is the byte before a BARE prose occurrence one that disqualifies it?
+/// Where a path occurrence is being read. The two contexts disagree about
+/// delimiters and there is no single rule that serves both, which is the lesson
+/// of three rounds of review: every earlier attempt fixed one side of one
+/// reader and left another reader on a different grammar.
 ///
-/// A path character means this is a longer path. A quote or a backtick means
-/// another form already owns the occurrence: the backticked citation and the
-/// quoted `path` form are both replaced before this runs, so matching them
-/// again would rewrite one occurrence twice.
-fn preceded_by_path_char(bytes: &[u8], at: usize) -> bool {
-    at > 0 && (is_path_char(bytes[at - 1]) || matches!(bytes[at - 1], b'`' | b'"' | b'\''))
+/// - `Prose`: a bare citation in text. A quote or backtick on the left means
+///   another form owns the occurrence (the backticked and quoted forms are
+///   replaced first), and the right side ends at whitespace or sentence
+///   punctuation.
+/// - `Value`: a quoted YAML or shell value, where a quote IS the delimiter.
+///   Both sides are simply "not a path character".
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PathContext {
+    Prose,
+    Value,
 }
 
-/// Does `line` name `path` as itself, rather than as the head of a longer path?
+/// Does `path` occur at `at` in `bytes` as ITSELF, under `ctx`'s delimiters?
 ///
-/// Used for a frontmatter unit, where the value IS quoted (`path: "rules/"`), so
-/// a quote is a delimiter rather than a disqualifier. `apply_unit_actions` used
-/// a bare `contains` and would edit a unit claiming `kit/rules/sub/` when
-/// `rules/` retires; this is that test, with the quote rule the other call site
-/// needs deliberately left out.
-fn names_path(line: &str, path: &str) -> bool {
+/// One function, both boundaries, both contexts. Every reader of a retired path
+/// goes through it: the rewrite, the clause computation, the unit matcher and
+/// §3.7's leftover scan. Three separate defects came from three readers each
+/// carrying a slightly different copy of this rule.
+fn occurs_as_path(bytes: &[u8], at: usize, len: usize, ctx: PathContext) -> bool {
+    let left_ok = at == 0
+        || match ctx {
+            PathContext::Prose => {
+                !is_path_char(bytes[at - 1]) && !matches!(bytes[at - 1], b'`' | b'"' | b'\'')
+            }
+            PathContext::Value => !is_path_char(bytes[at - 1]),
+        };
+    if !left_ok {
+        return false;
+    }
+    let after = at + len;
+    match ctx {
+        PathContext::Value => after >= bytes.len() || !is_path_char(bytes[after]),
+        PathContext::Prose => match bytes.get(after) {
+            None => true,
+            // `.` is both sentence punctuation and an extension separator:
+            // `rules/one.md.` ends a sentence, `rules/one.md.bak` is a
+            // different file.
+            Some(b'.') => bytes[after + 1..]
+                .first()
+                .is_none_or(|n| n.is_ascii_whitespace()),
+            Some(b) => matches!(b, b' ' | b',' | b';' | b':' | b')' | b'\n' | b'\r'),
+        },
+    }
+}
+
+/// Does `line` name `path` as itself in `ctx`?
+fn names_path_in(line: &str, path: &str, ctx: PathContext) -> bool {
     let bytes = line.as_bytes();
     let mut from = 0usize;
     while let Some(rel) = line[from..].find(path) {
         let at = from + rel;
-        if at == 0 || !is_path_char(bytes[at - 1]) {
+        if occurs_as_path(bytes, at, path.len(), ctx) {
             return true;
         }
         from = at + path.len();
@@ -627,7 +661,16 @@ fn names_path(line: &str, path: &str) -> bool {
     false
 }
 
-/// Apply the plan's unit actions to one spec's frontmatter (spec 097 §3.3).
+/// Does `line` name `path` in EITHER context?
+///
+/// The question §3.7 asks: an occurrence any rule could have rewritten and none
+/// did is unaccounted for, and a scan narrower than the rules refuses a corpus
+/// the rules were right to leave alone.
+fn names_path(line: &str, path: &str) -> bool {
+    names_path_in(line, path, PathContext::Prose) || names_path_in(line, path, PathContext::Value)
+}
+
+/// Apply the plan's unit actions/// Apply the plan's unit actions to one spec's frontmatter (spec 097 §3.3).
 ///
 /// Line-scoped inside the frontmatter block and inside the named edge's list: a
 /// unit is a list entry, and the entry is either dropped (`withdraw`) or has its
@@ -682,7 +725,7 @@ fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (Str
         let mut retargeted: Option<String> = None;
         for (entry, action) in &actions {
             let subject = retargeted.as_deref().unwrap_or(line);
-            if action.edge != current || !names_path(subject, &entry.path) {
+            if action.edge != current || !names_path_in(subject, &entry.path, PathContext::Value) {
                 continue;
             }
             match action.action {
@@ -1207,6 +1250,11 @@ pub struct Skipped {
     pub line: usize,
     pub text: String,
     pub clause: SkipClause,
+    /// The retired path this record is about. Two retired paths can share a
+    /// line, so a record without it cannot say which occurrence it spared, and
+    /// §3.7 matching on the coordinate alone would let one path's record
+    /// account for another path's occurrence.
+    pub path: String,
 }
 
 /// The forms a path is spelled in (spec 097 §3.2).
@@ -1365,6 +1413,7 @@ fn retire_file(
                     line: n + 1,
                     text: current.trim_end().to_string(),
                     clause,
+                    path: e.path.clone(),
                 });
                 continue;
             }
@@ -1425,23 +1474,10 @@ fn replace_bare(line: &str, path: &str, text: &str) -> String {
     while let Some(at) = rest.find(path) {
         // A path character before the match means this is a DIFFERENT path:
         // `kit/rules/one.md` and `_rules/one.md` are not the retired one.
-        let before_ok = !preceded_by_path_char(rest.as_bytes(), at);
+        let ok = occurs_as_path(rest.as_bytes(), at, path.len(), PathContext::Prose);
         let after = at + path.len();
-        // `.` is both sentence punctuation and an extension separator, and the
-        // two need different answers: `rules/one.md.` ends a sentence while
-        // `rules/one.md.bak` is a different file. A period terminates a citation
-        // only when nothing but space follows it.
-        let after_ok = match rest.as_bytes().get(after) {
-            None => true,
-            Some(b'.') => rest.as_bytes()[after + 1..]
-                .first()
-                .is_none_or(|n| n.is_ascii_whitespace()),
-            // `\r` is in the set for a CRLF line: without it a path at the end
-            // of one reads as unterminated and is left alone.
-            Some(b) => matches!(b, b' ' | b',' | b';' | b':' | b')' | b'\n' | b'\r'),
-        };
         out.push_str(&rest[..at]);
-        if before_ok && after_ok {
+        if ok {
             out.push_str(text);
         } else {
             out.push_str(path);

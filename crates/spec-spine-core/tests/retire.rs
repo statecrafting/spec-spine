@@ -552,6 +552,10 @@ fn a_period_terminates_a_citation_only_at_the_end_of_a_sentence() {
         .unwrap_or_default();
     assert!(out.contains("See `AGENTS.md` \"Rules\"."), "{out}");
     assert!(out.contains("rules/one.md.bak"), "{out}");
+    // And §3.7 agrees: the rewrite was right to leave `.bak` alone, so it is not
+    // an unaccounted occurrence. The scan checked the LEFT boundary only, so it
+    // refused a corpus the rewrite had handled correctly.
+    assert!(c.leftover.is_empty(), "{:?}", c.leftover);
 }
 
 /// A duplicated unit line is withdrawn every time it appears: the `break` ends
