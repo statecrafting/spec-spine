@@ -1,5 +1,8 @@
 {
   "mapping": {
+    "amends": [
+      "096-compaction-is-a-verb-not-a-session"
+    ],
     "dependsOn": [
       "003-conformance-lint",
       "095-the-corpus-describes-what-exists",
@@ -94,5 +97,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "e1eac2b97bfe93213cdfb573441072bd0df2c61f737a4ca7618c41f0db4e1de1"
+  "shardHash": "8920232d62ab27cb5241056d1ffe702e0b0dfe6398e655fb0206b8f08096a05f"
 }

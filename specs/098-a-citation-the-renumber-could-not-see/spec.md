@@ -10,10 +10,10 @@ summary: >
   were measured after 096 was filed and were never repaired: `compact` refuses a
   plan naming a spec the corpus no longer has, so it prevents the next renumber
   and not the last one. Re-measuring on 2026-09-21 against the collapse commit
-  found the debt is not 41 occurrences but 637, in two further classes nobody
+  found the debt is not 41 occurrences but 638, in three further classes nobody
   had looked for: 90 spec documents are still titled with another spec's
   ordinal, and 474 citations are written as a bare ordinal (`084 §3.1`, `050's`)
-  which none of 096's three forms matches. This spec repairs all 637, adds the
+  which none of 096's three forms matches. This spec repairs all 638, adds the
   two forms and the file-selection fix that would have prevented them, and makes
   a title heading self-checking with a new lint code so this class cannot come
   back silently.
@@ -23,6 +23,12 @@ risk: medium
 depends_on:
   - "003-conformance-lint"
   - "095-the-corpus-describes-what-exists"
+  - "096-compaction-is-a-verb-not-a-session"
+# 096 §3.3 closes the rewritable set at three forms and says "nothing else is
+# rewritten". §3.1, §3.2 and §3.3 of this spec add two forms, one command and a
+# file-selection rule to that closed list, which is a change to 096's stated
+# behaviour and so is declared here rather than edited into 096 (spec 037).
+amends:
   - "096-compaction-is-a-verb-not-a-session"
 extends:
   - { spec: "096-compaction-is-a-verb-not-a-session", unit: { kind: file, path: "crates/spec-spine-core/src/compact.rs" }, nature: additive }
@@ -56,12 +62,13 @@ also a *current* ordinal: `spec 050` in `index.rs` is correct where the sentence
 is new and wrong where it is old, and only the history distinguishes them. D-8
 and D-9 record the two weaker tests this one replaced and what each missed.
 
-Measured that way, 637 occurrences in 148 files still name a document that moved:
+Measured that way, 638 occurrences in 148 files still name a document that moved:
 
 | Class | What it is | Count | Files |
 |---|---|---|---|
 | A | A spec document's own **title heading** names another spec's ordinal | 90 | 90 |
 | B | A **prose citation** (`spec NNN`), 096 §3.3 form 2, wrapped or multi-ordinal | 59 | 38 |
+| E | A **short id as the sweep's argument**, `--only 012`, which 096 §3.3 form 3's list does not reach | 1 | 1 |
 | C/D | A **bare ordinal** used as a citation: `084 §3.1`, `050 3.6`, `092 D-3`, `056's`, `086-...` | 488 | 80 |
 
 Class A is the loudest: 90 of the 98 documents in this corpus open with a line
@@ -98,7 +105,7 @@ The repair covers what a rule can decide without reading the sentence. It stops
 there deliberately: 096 §3.8 refuses "a reference it cannot classify", and
 guessing is the failure mode that produced the seven defects in the first place.
 
-After the 637 are repaired, roughly 930 three-digit tokens on pre-collapse lines
+After the 638 are repaired, roughly 930 three-digit tokens on pre-collapse lines
 still name a moved ordinal, and most of them are not citations at all:
 `V-001/005/006` in a code list, `exit 101`, `feat(017): ...` as an example
 commit message, a fixture named `"016-short"`. The genuine citations left among
@@ -217,11 +224,15 @@ no acceptance command and no test expectation; a rewritten citation in an
 approved spec is a correction of where a sentence points, which is why it is not
 an amendment under spec 034 and needs none.
 
-That is measured, not assumed. 35 of the 637 fall inside a `verify:cli` block,
-and all 35 are comment lines: no command, argument or grep pattern in any
-acceptance block is touched. Had one been, rewriting it would have moved an
-assertion's expectation without moving what it asserts about, which is the
-family of defect spec 083 exists for.
+That is measured, not assumed. 36 of the 638 fall inside a `verify:cli` block.
+Thirty-five are comment lines. The thirty-sixth is the class E occurrence, and
+it is a command: `--only 012` in spec 089's block (§3.7), which this change corrects to
+`--only 011` so the command and the assertion beside it name the same spec
+again. Every other command, argument and grep pattern in every acceptance block
+is untouched, which matters because rewriting one would move an assertion's
+expectation without moving what it asserts about: the family of defect spec 083
+exists for. Here the assertion was **already** broken and the repair is what
+makes it able to pass.
 
 ### 3.6 The repair is not a verb
 
@@ -236,6 +247,29 @@ A `--repair` mode without that evidence would have to guess, and 096 §3.8
 already refuses to guess between a typo and a citation. The forms of §3.1 and
 §3.2 are what `compact` gains; the repair itself is a measured, reviewed edit
 made once.
+
+### 3.7 The sweep's `--only` takes a spec id
+
+`--only`, the argument `scripts/verify-sweep.sh` selects specs with, MUST be
+read as a short-id command argument under 096 §3.3 form 3, with that form's
+`--repo` exclusion unchanged.
+
+Form 3's list named `spec-spine` subcommands, and a script that takes a spec id
+is not one. The consequence was live and is §1.1's class E: spec 089's own
+acceptance runs `verify-sweep.sh --rev origin/main --only 012` and then asserts
+the result is `011-index-hash-slices`, because the full id beside the flag was
+rewritten by form 1 and the bare ordinal was rewritten by nothing. The block has
+asked for one spec and asserted another since the collapse, and was red on the
+default branch until this spec swept it by hand.
+
+The `--repo` exclusion is what makes the rule safe rather than merely wider: the
+same block has two more `--only` lines, and both address a fixture corpus whose
+`001` is its own.
+
+**Measured, 2026-09-21.** `spec-spine verify 089` at this spec's parent:
+`FAILED at command 47`. With the argument corrected: `passed (66 command(s))`.
+Nothing in the gate chain distinguishes those two states, which is the subject
+of the spec filed next.
 
 ## 4. Out of scope
 
@@ -259,7 +293,7 @@ made once.
 ## 5. Resolved decisions
 
 **D-1 (2026-09-21): the debt is measured against history, not with a grep.**
-The figure this spec inherited was 41; the figure it repairs is 637. The
+The figure this spec inherited was 41; the figure it repairs is 638. The
 difference is not that more debt accrued, it is that the earlier count asked
 whether the same citation *text* survived anywhere in the same file, which
 counts a correct new citation as stale and misses a stale one in a file that was
@@ -302,7 +336,7 @@ it. §4 records the whole residue so the next reader measures instead of
 guessing.
 
 **D-6 (2026-09-21): a section number does not survive a removal, and the
-repair carries it anyway.** 81 of the 637 name a spec spec 095 removed, so
+repair carries it anyway.** 81 of the 638 name a spec spec 095 removed, so
 `(116 D-13)` becomes `(093 D-13)` and 093's D-13 is a different decision. Both
 available answers are wrong in some way: left alone, `082 D-2` resolves today to
 a spec that has nothing to do with it, because after a contiguous renumber every
@@ -416,6 +450,12 @@ grep -qF 'specs/069-.../spec.md' specs/077-one-hash-one-construction-one-name/sp
 # D-8: the five a blame test could not see, four repaired and one deliberately not.
 grep -qF 'spec 092 3.7, 3.9' .gitignore
 grep -qF "048's block" crates/spec-spine-core/tests/verify.rs
+# 3.7 (class E): the sweep's argument and the assertion beside it name the same
+# spec again, and the two fixture-corpus lines behind `--repo` still say 001.
+grep -qF -- '--only 011 --out' specs/089-nothing-reruns-a-merged-acceptance/spec.md
+! grep -qF -- '--only 012' specs/089-nothing-reruns-a-merged-acceptance/spec.md
+grep -qF -- '--only 001,001,001' specs/089-nothing-reruns-a-merged-acceptance/spec.md
+grep -qF -- '"--only"' crates/spec-spine-core/src/compact.rs
 # The tests that pin the forms and their exclusions.
 cargo test -p spec-spine-core --test compact --locked > "${TMPDIR:-/tmp}/ss098-c.txt" 2>&1
 grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss098-c.txt"

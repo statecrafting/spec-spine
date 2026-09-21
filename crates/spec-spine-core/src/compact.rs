@@ -1338,7 +1338,14 @@ fn citation_separator(src: &str, i: usize) -> Option<usize> {
     None
 }
 
-/// The commands that take a spec id positionally or after `--spec`.
+/// The commands that take a spec id positionally or after a flag.
+///
+/// `--only` is the sweep's, not a verb's (spec 098 §3.2): spec 096's list named
+/// `spec-spine` subcommands only, and `scripts/verify-sweep.sh --only 012` in
+/// spec 089's acceptance therefore kept a pre-collapse ordinal through the
+/// renumber while the full id beside it was rewritten. The `--repo` exclusion
+/// below is what tells that line apart from the two in the same block that
+/// address a fixture corpus whose ids are its own.
 const ID_COMMANDS: &[&str] = &[
     "registry show",
     "registry relationships",
@@ -1348,6 +1355,7 @@ const ID_COMMANDS: &[&str] = &[
     "compile --spec",
     "verify",
     "delta",
+    "--only",
 ];
 
 /// Form 3: a bare short id as a command argument (defect 2). Line-scoped, and
