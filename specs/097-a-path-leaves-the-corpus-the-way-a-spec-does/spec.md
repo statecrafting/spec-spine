@@ -332,6 +332,19 @@ substitutes the path prefix and leaves the wildcard, so `rules/*.md` with
 `AGENTS.md` reads `AGENTS.md*.md`. A replacement that does not end in `/` is
 refused; `~` still removes the pattern outright.
 
+D-12 (2026-09-20, §3.7 reads the same boundary the rewrite reads). The leftover
+scan used a raw substring test while the rewrite used §3.2's boundary rule, so
+`kit/rules/one.md` was correctly left alone and then reported as an occurrence
+no clause accounted for, refusing the whole run. Two readers of the same grammar
+have to be the same reader.
+
+D-13 (2026-09-20, an occurrence carries the clause that applies to it). A line
+spared by one entry is spared for all of them, because the report has to
+describe the file that is emitted. Labelling every occurrence on it with the
+first entry's clause is accurate about the outcome and wrong about the reason,
+so each entry's own clause is decided first and the line-level one is the
+fallback.
+
 ## Verification
 
 Each line is one command, run independently.

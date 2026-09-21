@@ -340,7 +340,11 @@ fn unaccounted(
     for (rel, contents) in examined {
         for (n, line) in contents.split_inclusive('\n').enumerate() {
             for e in entries {
-                if !line.contains(&e.path) {
+                // The same boundary test the rewrite uses. A raw `contains`
+                // read `kit/rules/one.md` as an unaccounted occurrence of
+                // `rules/one.md`, which the rewrite had correctly left alone,
+                // and refused the whole run over it.
+                if !names_path(line, &e.path) {
                     continue;
                 }
                 let spared = skipped
@@ -686,13 +690,17 @@ fn apply_unit_actions(spec_id: &str, src: &str, entries: &[RetireEntry]) -> (Str
                 UnitActionKind::Retarget => {
                     let to = action.to.as_deref().unwrap_or_default();
                     let replaced = line.replace(&entry.path, to);
+                    // The line keeps the ending it arrived with: rewriting a
+                    // CRLF file's retargeted lines to LF changes bytes the plan
+                    // never named, in exactly the files it did name.
+                    let ending = &raw[line.len()..];
                     rewrites.push(Rewrite {
                         line: n + 1,
                         old: line.to_string(),
                         new: replaced.clone(),
                         form: Form::RetiredPath,
                     });
-                    out.push(format!("{replaced}\n"));
+                    out.push(format!("{replaced}{ending}"));
                 }
             }
             emitted = true;
@@ -1299,59 +1307,43 @@ fn retire_file(
             heading = line.trim().trim_start_matches('#').trim().to_string();
         }
         let mut current = line.to_string();
-        // A line spared by one entry is spared, full stop. Advancing to the
-        // next entry let it rewrite a line the report had already called left
-        // alone, so the report described a file that was not the one emitted.
-        let mut spared: Option<SkipClause> = None;
-        for e in entries {
+        // Each entry's own clause is decided first, so a line spared by one
+        // entry is spared for all of them (the report must describe the file
+        // that is emitted) while each occurrence still carries the clause that
+        // actually applies to IT. Labelling entry B's occurrence with entry A's
+        // clause is accurate about the outcome and wrong about the reason.
+        let own: Vec<Option<SkipClause>> = entries
+            .iter()
+            .map(|e| {
+                if !current.contains(&e.path) {
+                    None
+                } else if e.historical_files.iter().any(|f| f == rel) {
+                    Some(SkipClause::HistoricalFile)
+                } else if e
+                    .historical_sections
+                    .iter()
+                    .any(|h| heading.contains(h.as_str()))
+                {
+                    Some(SkipClause::HistoricalSection)
+                } else if NEGATIONS.iter().any(|m| current.contains(m)) {
+                    Some(SkipClause::Negation)
+                } else {
+                    None
+                }
+            })
+            .collect();
+        let line_clause = own.iter().flatten().next().copied();
+        for (i, e) in entries.iter().enumerate() {
             if !current.contains(&e.path) {
                 continue;
             }
-            // The line is already spared by an earlier entry. This entry's
-            // occurrence on it is spared too, and is RECORDED: "reported, never
-            // silent" is a claim about occurrences, and a second path sharing a
-            // line with a negation was previously left out of the report
-            // entirely.
-            if let Some(clause) = spared {
+            if let Some(clause) = own[i].or(line_clause) {
                 skipped.push(Skipped {
                     rel_path: rel.to_string(),
                     line: n + 1,
                     text: current.trim_end().to_string(),
                     clause,
                 });
-                continue;
-            }
-            if e.historical_files.iter().any(|f| f == rel) {
-                skipped.push(Skipped {
-                    rel_path: rel.to_string(),
-                    line: n + 1,
-                    text: current.trim_end().to_string(),
-                    clause: SkipClause::HistoricalFile,
-                });
-                spared = Some(SkipClause::HistoricalFile);
-                continue;
-            }
-            if e.historical_sections
-                .iter()
-                .any(|h| heading.contains(h.as_str()))
-            {
-                skipped.push(Skipped {
-                    rel_path: rel.to_string(),
-                    line: n + 1,
-                    text: current.trim_end().to_string(),
-                    clause: SkipClause::HistoricalSection,
-                });
-                spared = Some(SkipClause::HistoricalSection);
-                continue;
-            }
-            if NEGATIONS.iter().any(|m| current.contains(m)) {
-                skipped.push(Skipped {
-                    rel_path: rel.to_string(),
-                    line: n + 1,
-                    text: current.trim_end().to_string(),
-                    clause: SkipClause::Negation,
-                });
-                spared = Some(SkipClause::Negation);
                 continue;
             }
             let before = current.clone();

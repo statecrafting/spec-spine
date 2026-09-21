@@ -129,6 +129,10 @@ fn a_longer_path_is_not_a_retired_one() {
         c.rewrites
     );
     assert!(c.skipped.is_empty(), "{:?}", c.skipped);
+    // And §3.7 agrees with the rewrite: a longer path is not an unaccounted
+    // occurrence, so it must not refuse the run. The leftover scan used a raw
+    // `contains` while the rewrite used a boundary test, and the two disagreed.
+    assert!(c.leftover.is_empty(), "{:?}", c.leftover);
 }
 
 // ── §3.5 the exclusions ──────────────────────────────────────────────────────
@@ -653,6 +657,45 @@ fn a_glob_replacement_that_is_not_a_prefix_is_refused() {
     let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
     assert_eq!(err.exit_code(), 3, "{err}");
     assert!(format!("{err}").contains("directory prefix"), "{err}");
+}
+
+/// §3.5: each occurrence carries the clause that applies to IT. A line spared
+/// by one entry's `historical_files` used to label every other entry's
+/// occurrence on it with that clause, which is accurate about the outcome and
+/// wrong about the reason.
+#[test]
+fn each_occurrence_on_a_spared_line_carries_its_own_clause() {
+    let tmp = fixture("! test -e rules/one.md && test -e rules/two.md\n");
+    let mut first = retire_rules();
+    first.historical_files = vec!["docs/note.md".into()];
+    let mut second = retire_rules();
+    second.path = "rules/two.md".into();
+    second.historical_files = vec![];
+    second.forms = [(
+        "citation".to_string(),
+        Some("`AGENTS.md` \"Two\"".to_string()),
+    )]
+    .into_iter()
+    .collect();
+    let plan = CompactPlan {
+        retire: vec![first, second],
+        ..Default::default()
+    };
+    let c = compact(&cfg(), tmp.path(), &plan).unwrap();
+    let clauses: Vec<SkipClause> = c
+        .skipped
+        .iter()
+        .filter(|s| s.rel_path == "docs/note.md")
+        .map(|s| s.clause)
+        .collect();
+    assert!(
+        clauses.contains(&SkipClause::HistoricalFile),
+        "the first entry's own clause: {clauses:?}"
+    );
+    assert!(
+        clauses.contains(&SkipClause::Negation),
+        "the second entry's own clause, not the first's: {clauses:?}"
+    );
 }
 
 // ── the plan file ────────────────────────────────────────────────────────────
