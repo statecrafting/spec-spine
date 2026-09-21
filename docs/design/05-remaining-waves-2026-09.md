@@ -1,5 +1,11 @@
 # 05: The remaining waves (2026-09-14)
 
+> **Status (2026-09-21): historical.** Superseded by note 07 4, which
+> dispositions this note item by item, and by note 08, which is the current
+> backlog. Wave B is superseded in the parts concerning kit distribution: the
+> kit is gone and delivery is Statecraft's. Read this for the reasoning behind
+> what was filed, not as a list of work to do.
+
 A design note, not a spec. Every backlog this repository keeps in
 `docs/design/` has now been filed out except note 04's forward plan, and four
 findings live only in an agent's memory or in a review thread. This note is one
