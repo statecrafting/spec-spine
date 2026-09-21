@@ -480,6 +480,59 @@ fn a_retarget_with_no_target_is_refused() {
     assert_eq!(err.exit_code(), 3, "{err}");
 }
 
+/// §3.3: a `path` form rule and a unit action on the same frontmatter line. In
+/// the wrong order the form rewrites the value, the unit matcher then finds
+/// nothing, and the withdrawal silently does not happen.
+#[test]
+fn a_path_form_does_not_preempt_a_unit_action_on_the_same_line() {
+    let tmp = fixture("x");
+    let mut e = retire_rules();
+    e.path = "rules/".into();
+    e.kind = RetireKind::Directory;
+    e.forms = [
+        ("citation".to_string(), Some("`AGENTS.md`".to_string())),
+        ("path".to_string(), Some("AGENTS.md".to_string())),
+    ]
+    .into_iter()
+    .collect();
+    e.units = vec![UnitAction {
+        spec: "000-alpha".into(),
+        edge: "establishes".into(),
+        action: UnitActionKind::Withdraw,
+        to: None,
+        acknowledge_approved: true,
+    }];
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let alpha = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "specs/000-alpha/spec.md")
+        .expect("the owning spec is rewritten");
+    assert!(
+        !alpha.contents.contains("establishes:"),
+        "the withdrawal did not fire:\n{}",
+        alpha.contents
+    );
+}
+
+/// §3.3: a withdrawal has no target, so a `to` beside one is a plan that means
+/// something the tool will not do.
+#[test]
+fn a_withdrawal_that_also_names_a_target_is_refused() {
+    let tmp = fixture("x");
+    let mut e = retire_rules();
+    e.units = vec![UnitAction {
+        spec: "000-alpha".into(),
+        edge: "establishes".into(),
+        action: UnitActionKind::Withdraw,
+        to: Some("AGENTS.md".into()),
+        acknowledge_approved: true,
+    }];
+    let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
+    assert_eq!(err.exit_code(), 3, "{err}");
+    assert!(format!("{err}").contains("withdrawal"), "{err}");
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]

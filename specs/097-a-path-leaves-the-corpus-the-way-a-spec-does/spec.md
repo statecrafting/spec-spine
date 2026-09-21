@@ -295,6 +295,19 @@ report could still be rewritten by a later entry, and the report then described
 a file that was not the one emitted. §3.5's "reported, never silent" is a claim
 about the output, not about one entry's view of it.
 
+D-6 (2026-09-20, the frontmatter edit runs before the form rewrite). A `path`
+form rule and a unit action can name the same line. With the rewrite first, the
+form replaces the value, the unit matcher then finds nothing, and the action
+silently does not fire: a withdrawal leaves the claim standing and a retarget
+writes a path the `to` never named. The order is fixed, and the acceptance
+exercises a plan carrying both.
+
+D-7 (2026-09-20, the acknowledgement rule reads the enum, not a formatted
+string). The first build compared `format!("{:?}", status)` to `"approved"`.
+`Debug` is not a stability contract, and the failure is silent in the permissive
+direction: a rename would make every approved spec editable without the human
+acknowledgement, which is the one thing §3.3 exists to demand.
+
 ## Verification
 
 Each line is one command, run independently.

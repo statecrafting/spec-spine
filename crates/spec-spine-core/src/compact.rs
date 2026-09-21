@@ -192,7 +192,12 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
     // Spec 097 §3.1 and §3.7: every retirement is validated before anything is
     // rewritten, including the human acknowledgement an approved spec needs.
     if !plan.retire.is_empty() {
-        validate_retire(&plan.retire, repo_root, &spec_statuses(cfg, repo_root)?)?;
+        validate_retire(
+            &plan.retire,
+            repo_root,
+            &corpus_ids(cfg, repo_root)?,
+            &approved_specs(cfg, repo_root)?,
+        )?;
     }
 
     // The rewrite is a single simultaneous pass per file: a sequential
@@ -245,21 +250,24 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
         let new_contents = if plan.retire.is_empty() {
             new_contents
         } else {
-            let (after, retired, mut skips) = retire_file(&rel, &new_contents, &plan.retire);
-            file_rewrites.extend(retired);
-            skipped.append(&mut skips);
-            // §3.3: the frontmatter edit itself. Validation established the plan
-            // may make it; this is where it is made, and nowhere else can: no
-            // edge withdraws a claim, so the owning spec's own file is the only
-            // door.
-            match spec_id_of_path(cfg, &rel) {
+            // §3.3 FIRST: the frontmatter edit, then the form rewrite. In the
+            // other order the `path` form rewrites `path: "rules/"` in place,
+            // the unit matcher then finds nothing, and the action silently does
+            // not fire: a withdrawal leaves the claim standing and a retarget
+            // writes a path the `to` never named.
+            let staged = match spec_id_of_path(cfg, &rel) {
                 Some(id) => {
-                    let (edited, unit_rewrites) = apply_unit_actions(&id, &after, &plan.retire);
+                    let (edited, unit_rewrites) =
+                        apply_unit_actions(&id, &new_contents, &plan.retire);
                     file_rewrites.extend(unit_rewrites);
                     edited
                 }
-                None => after,
-            }
+                None => new_contents,
+            };
+            let (after, retired, mut skips) = retire_file(&rel, &staged, &plan.retire);
+            file_rewrites.extend(retired);
+            skipped.append(&mut skips);
+            after
         };
         let to = target_path(cfg, &rel, &map);
         if file_rewrites.is_empty() && to == rel {
@@ -294,14 +302,33 @@ pub fn compact(cfg: &Config, repo_root: &Path, plan: &CompactPlan) -> Result<Com
     })
 }
 
-/// Every spec's `status`, for the acknowledgement rule of spec 097 §3.3.
-fn spec_statuses(cfg: &Config, repo_root: &Path) -> Result<BTreeMap<String, String>, Error> {
+/// Which specs are `approved`, for the acknowledgement rule of spec 097 §3.3.
+///
+/// Matched on the enum, never on a formatted string. The first build compared
+/// `format!("{:?}", status)` to `"approved"`, and `Debug` is not a stability
+/// contract: a rename or a variant with data would silently make every approved
+/// spec editable without the human acknowledgement, which is the one thing this
+/// rule exists to demand.
+fn approved_specs(cfg: &Config, repo_root: &Path) -> Result<BTreeSet<String>, Error> {
     let outcome = crate::compile::compile(cfg, repo_root)?;
     Ok(outcome
         .registry
         .specs
         .iter()
-        .map(|s| (s.id.clone(), format!("{:?}", s.status).to_ascii_lowercase()))
+        .filter(|s| matches!(s.status, spec_spine_types::Status::Approved))
+        .map(|s| s.id.clone())
+        .collect())
+}
+
+/// Every spec id in the corpus, so a unit naming a spec that is not there is
+/// refused rather than read as "not approved".
+fn corpus_ids(cfg: &Config, repo_root: &Path) -> Result<BTreeSet<String>, Error> {
+    let outcome = crate::compile::compile(cfg, repo_root)?;
+    Ok(outcome
+        .registry
+        .specs
+        .iter()
+        .map(|s| s.id.clone())
         .collect())
 }
 
@@ -1128,7 +1155,8 @@ const NEGATIONS: &[&str] = &[
 fn validate_retire(
     entries: &[RetireEntry],
     repo_root: &Path,
-    statuses: &BTreeMap<String, String>,
+    corpus: &BTreeSet<String>,
+    approved: &BTreeSet<String>,
 ) -> Result<(), Error> {
     for e in entries {
         if !repo_root.join(&e.path).exists() {
@@ -1159,14 +1187,22 @@ fn validate_retire(
                     e.path, u.spec, u.edge
                 )));
             }
-            let status = statuses.get(&u.spec).map(String::as_str).unwrap_or("");
-            if status.is_empty() {
+            if !corpus.contains(&u.spec) {
                 return Err(Error::Config(format!(
                     "compact: `{}` names a unit on `{}`, which the corpus does not have",
                     e.path, u.spec
                 )));
             }
-            if status == "approved" && !u.acknowledge_approved {
+            // A `to` on a withdrawal is discarded, and a plan whose author wrote
+            // one meant something the tool will not do.
+            if u.action == UnitActionKind::Withdraw && u.to.is_some() {
+                return Err(Error::Config(format!(
+                    "compact: `{}` withdraws `{}`'s {} unit and also names a `to`; a withdrawal \
+                     has no target. Drop the `to`, or make it a retarget.",
+                    e.path, u.spec, u.edge
+                )));
+            }
+            if approved.contains(&u.spec) && !u.acknowledge_approved {
                 return Err(Error::Config(format!(
                     "compact: `{}` changes the frontmatter of `{}`, which is approved. \
                      Withdrawing or retargeting a unit on an approved spec is a human's \
