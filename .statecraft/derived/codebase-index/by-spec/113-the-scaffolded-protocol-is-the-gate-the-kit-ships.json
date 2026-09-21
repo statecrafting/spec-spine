@@ -1,0 +1,87 @@
+{
+  "mapping": {
+    "amends": [
+      "065-init-and-the-kit-are-one-adoption"
+    ],
+    "dependsOn": [
+      "006-init-scaffold",
+      "064-the-kit-ships-the-composite-gate",
+      "065-init-and-the-kit-are-one-adoption",
+      "072-the-default-branch-is-configured-not-assumed",
+      "075-one-name-one-freshness-verb",
+      "103-an-amended-acceptance-is-the-one-that-runs"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/src/scaffold.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/gate.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/scaffold.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/scaffold.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/gate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/scaffold.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scaffold.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "113-the-scaffolded-protocol-is-the-gate-the-kit-ships",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "c87f7c1b796a99cf11db318c34011f1a7bc804c51fba7efab6609f5f24bddef1"
+}

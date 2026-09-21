@@ -10,9 +10,7 @@ depends_on:
   - "001-compile-registry"
 establishes:
   - "crates/spec-spine-core/src/scaffold.rs"
-  - "crates/spec-spine-cli/src/cmd_init.rs"
   - "crates/spec-spine-core/tests/scaffold.rs"
-  - "crates/spec-spine-cli/tests/init.rs"
 extends:
   - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }

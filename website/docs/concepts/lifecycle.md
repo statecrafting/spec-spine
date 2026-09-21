@@ -99,7 +99,8 @@ not blessed; it is the reason a later spec can be written against it.
 `origin.retroactive: true` still marks *when* the authority began, and is
 orthogonal.
 
-The scaffold `spec-spine init` writes carries all of this: the constitution it
-generates states the amendment mechanism and principle V in this form, and the
-contract points at it, so an adopter's first corpus does not inherit the gaps the
-first adopter hit.
+The governance starter content the library produces carries all of this: the
+constitution it emits states the amendment mechanism and principle V in this
+form, and the contract points at it, so an adopter's first corpus does not
+inherit the gaps the first adopter hit. See
+[the producer contract](../statecraft.md#the-producer-contract).

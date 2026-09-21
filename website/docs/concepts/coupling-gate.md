@@ -32,4 +32,6 @@ A path is **cleared** if *any one* owner's `spec.md` is in the diff.
 
 The coupling gate is sandwiched by a prompt-time defense: a refusal rule.
 
-A refusal rule (shipped as a rules file for agents) prevents an agent from "resolving" a coupling-gate failure by quietly editing the contract to match the code it just wrote. The agent must surface the contradiction and let a human (or another agent with explicit authority) decide. Without this, the long-running failure mode is an agent erasing the contract to keep going.
+A refusal rule prevents an agent from "resolving" a coupling-gate failure by quietly editing the contract to match the code it just wrote. The agent must surface the contradiction and let a human (or another agent with explicit authority) decide. Without this, the long-running failure mode is an agent erasing the contract to keep going.
+
+spec-spine does not ship that rule: it is an instruction to a harness, and the harness belongs to the [Statecraft CLI](../statecraft.md) or to your own repository's agent configuration. What spec-spine supplies is the mechanical half, the refusal itself.

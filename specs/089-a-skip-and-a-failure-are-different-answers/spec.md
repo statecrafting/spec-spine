@@ -25,11 +25,9 @@ depends_on:
   - "065-init-and-the-kit-are-one-adoption"
 extends:
   # 3.1: the five guarded recipe lines.
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/Makefile", nature: corrective }
   # 3.2: the acceptance that runs the shipped lines in both states.
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/kit_gate.rs", nature: additive }
+  - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/gate.rs", nature: additive }
   # 3.3: the embedded copy `init --with-kit` writes.
-  - { spec: "065-init-and-the-kit-are-one-adoption", unit: "crates/spec-spine-core/src/kit_embedded.rs", nature: corrective }
 ---
 
 # 089: A skip and a failure are different answers

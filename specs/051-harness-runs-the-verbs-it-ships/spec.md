@@ -26,13 +26,9 @@ establishes:
   - ".claude/settings.json"
 extends:
   - { spec: "029-claude-code-skill-kit", unit: "AGENTS.md", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/AGENTS.md", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/README.md", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/settings.json", nature: superseding }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/.claude/skills/", nature: superseding }
   - { spec: "048-kit-ships-the-governed-loop-skills", unit: ".claude/skills/", nature: superseding }
-  - { spec: "048-kit-ships-the-governed-loop-skills", unit: "crates/spec-spine-core/tests/kit_skills.rs", nature: additive }
-  - { spec: "046-kit-hooks-read-never-write", unit: "crates/spec-spine-core/tests/kit_hooks.rs", nature: additive }
+  - { spec: "048-kit-ships-the-governed-loop-skills", unit: "crates/spec-spine-core/tests/harness_skills.rs", nature: additive }
+  - { spec: "046-kit-hooks-read-never-write", unit: "crates/spec-spine-core/tests/harness_hooks.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "specs/049-verify-declared-acceptance/spec.md" }, role: context }

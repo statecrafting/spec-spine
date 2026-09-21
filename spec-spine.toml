@@ -34,7 +34,17 @@ allowed = []        # disabled: `kind` is free-text here (symmetric with [domain
 
 [layout]
 specs_dir     = "specs"
-derived_dir   = ".derived"
+# Spec 120 3.7: the managed layout Statecraft initializes. The compiled
+# governance artifacts live under `.statecraft/derived/` and are COMMITTED (only
+# `build-meta.json` is ignored); `.statecraft/state/` is spec 039's ungoverned
+# state root and is not. `.statecraft/` as a whole is neither: a file under it
+# that is in neither of those two roots is ordinary governed territory and every
+# check sees it (spec 120 3.9).
+#
+# The product default is still `.derived`. This is one repository's
+# configuration, not a change to what a corpus that configures nothing gets.
+derived_dir   = ".statecraft/derived"
+state_dir     = ".statecraft/state"
 standards_dir = "standards/spec"
 schemas_dir   = "standards/schemas"
 cargo_workspace = "Cargo.toml"
@@ -63,6 +73,11 @@ standalone_npm_packages    = ["npm"]
 extra_hashed_inputs = [
   "standards/**/*.md",
   ".github/workflows/*.yml",
+  # Spec 120 3.6: the one definition of the governed loop, repository-owned
+  # since the kit was removed. L-008 requires a claimed file to be in some
+  # content hash, and a gate whose bytes can change without staling the ledger
+  # is exactly the file that should not be.
+  "Makefile",
   # Governance and harness files specs claim (spec 057).
   "AGENTS.md",
   "CLAUDE.md",
@@ -79,42 +94,16 @@ extra_hashed_inputs = [
   "docs/releasing.md",
   "docs/schema-versioning.md",
   "docs/specify-first.md",
-  "kit/AGENTS.md",
-  "kit/README.md",
-  "kit/settings.json",
-  "kit/.claude/rules/*.md",
-  # Spec 064: the kit's build half. Claimed, so they are hashed rather than
-  # allowlisted; a change to the gate adopters copy should stale the ledger.
-  "kit/Makefile",
-  "kit/govern.yml",
-  "kit/.githooks/*.sh",
-  "kit/.githooks/pre-commit",
-  "kit/.gitattributes-stanza",
-  # Spec 065: the kit's own skills, agents and settings are the source the
-  # embedded module is generated from, so a change to one must stale the ledger.
-  "kit/.claude/agents/*.md",
-  "kit/.claude/skills/*/*.md",
-  "kit/.mcp.json",
-  # Spec 099: the third copy of the session hooks, shipped by spec 081 and
-  # claimed by 099 3.4. Its two siblings (`.claude/settings.json` and
-  # `kit/settings.json`) are hashed above; leaving this one out made it the
-  # one governance file whose bytes could change without staling a shard,
-  # which is what L-008 refuses.
-  ".codex/hooks.json",
-  # Spec 100 3.5: the three generated agent instruction trees. Two of them,
-  # `.agents/skills/` and `.codex/agents/`, were tracked and unowned
-  # since spec 081's own commit and claimed by 100. Governance files of exactly
-  # the kind spec 074 3.2 says the glob remedy is right for: a handful, rarely
-  # changed, and a change to one should stale the ledger. All three generated
-  # destinations are listed, including `.claude/skills/`: its bytes are also
-  # reachable by a direct edit that never goes through the kit, and such an edit
-  # matches no other glob here, so without this entry the one tree a Claude
-  # session actually reads would be the one whose corruption stales nothing.
-  # `C-002` does not cover it either, since `.md` is outside `SOURCE_EXTS`.
+  # Spec 100 3.5, narrowed by spec 120 3.5: the skill tree a session here loads.
+  # It used to be one of three generated destinations (`.agents/skills/` and
+  # `.codex/agents/` were the others); those were projections for a delivery
+  # this repository no longer performs, and they went with the kit. This one
+  # stays because its bytes are reachable by a direct edit, such an edit matches
+  # no other glob here, and `C-002` does not cover it either, since `.md` is
+  # outside `SOURCE_EXTS`: without this entry the one tree a Claude session
+  # actually reads would be the one whose corruption stales nothing.
   ".claude/skills/*/SKILL.md",
-  ".agents/skills/*/SKILL.md",
-  ".codex/agents/*.toml",
-  "kit/scripts/*.sh",
+  ".claude/agents/*.md",
   "scripts/*.py",
   "py/scripts/*.py",
   # The embedded JSON Schemas the conformance test validates against. Hashed
@@ -123,7 +112,13 @@ extra_hashed_inputs = [
   # the right price.
   "crates/spec-spine-types/schemas/*.json",
 ]
-resolver_exclusions = ["target", "node_modules", ".derived", "dist", "build", ".next"]
+# Spec 120 3.8: `.derived` is gone from this list, and not because the tree
+# stopped being excluded. This list matches path COMPONENTS, which cannot
+# express `.statecraft/derived` without also excluding every directory named
+# `derived` anywhere in the tree, so the engine now prunes the CONFIGURED
+# derived root the way it prunes the state root: not expressible here, and
+# not cancellable here either.
+resolver_exclusions = ["target", "node_modules", "dist", "build", ".next"]
 
 [branding]
 compiler_id = "spec-spine"
@@ -132,7 +127,9 @@ indexer_id  = "spec-spine"
 [coupling]
 # Additions to the built-in generic bypass floor (see couple.rs::DEFAULT_BYPASS_PREFIXES).
 # This list is ADDITIVE and cannot remove a floor entry. The floor already covers
-# the root README.md, docs/, .github/, lockfiles, .derived/, etc.; we extend it to
+# the root README.md, docs/, .github/, lockfiles, and the CONFIGURED derived
+# root (spec 120 3.8, which is why `.statecraft/derived/` is not listed below);
+# we extend it to
 # per-crate READMEs (e.g. crates/*/README.md): prose documentation lives inside
 # the crate dir, which manifest-metadata maps to the crate's spec, so without this
 # a README tweak would read as code drift. `**/README.md` = tail-suffix match.

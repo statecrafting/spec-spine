@@ -35,7 +35,7 @@ spec-spine is a Rust library plus CLI: a typed, hash-verifiable authority ledger
 | CLI crate | `crates/spec-spine-cli/` | The `spec-spine` binary, a thin wrapper over the core |
 | Standard | `standards/spec/{constitution.md,contract.md,templates/}` | Durable principles, normative contract, spec template |
 | Distributions | `npm/`, `py/` | Adopter-facing packaging, not used by the self-governance loop |
-| Derived | `.derived/` | Compiler output (registry, index), read only through the binary |
+| Derived | `.statecraft/derived/` | Compiler output (registry, index), read only through the binary |
 
 Specs are the source of truth: every feature starts as a spec under `specs/`, following `standards/spec/templates/spec-template.md`. The behavioral rules are in `.claude/rules/` (orchestrator, governed artifact reads, adversarial prompt refusal).
 
@@ -51,7 +51,7 @@ Read the request or task document. Identify which surfaces and crates are affect
 - `standards/spec/contract.md` and `standards/spec/constitution.md`: the normative contract and durable principles
 - Relevant specs in `specs/NNN-slug/spec.md`: the authoritative design record
 - Existing code in affected crates: understand current patterns
-- Compiled state, read through `spec-spine registry list`/`show`/`relationships` (never by parsing `.derived/**` directly)
+- Compiled state, read through `spec-spine registry list`/`show`/`relationships` (never by parsing `.statecraft/derived/**` directly)
 
 ### 3. Validate Against the Spec Corpus
 

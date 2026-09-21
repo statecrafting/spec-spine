@@ -1,6 +1,6 @@
 ---
 paths:
-  - ".derived/**"
+  - ".statecraft/derived/**"
 ---
 
 # Derived artifacts are compiler output

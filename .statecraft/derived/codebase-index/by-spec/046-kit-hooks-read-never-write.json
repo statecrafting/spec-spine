@@ -1,0 +1,49 @@
+{
+  "mapping": {
+    "amends": [
+      "029-claude-code-skill-kit"
+    ],
+    "dependsOn": [
+      "029-claude-code-skill-kit",
+      "031-registry-freshness-check"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/tests/harness_hooks.rs",
+        "source": "multiple"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/harness_hooks.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/harness_hooks.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/03-adopter-audit-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      }
+    ],
+    "specId": "046-kit-hooks-read-never-write",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "8ccd02492d5e5e6bb2578aa7592a5826d48c2a8771830699bd298fe45601b67e"
+}

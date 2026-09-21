@@ -205,8 +205,9 @@ impl GovernedScope {
 
 /// Every file under `repo_root`, for a caller that supplied no inventory (spec
 /// 097 §3.6). Skips `.git/` (not corpus, and machine-specific), the declared
-/// state root (bypassed unconditionally by spec 039), and `resolver_exclusions`;
-/// never descends through a symlink, so it cannot leave the repository.
+/// state root (bypassed unconditionally by spec 039), the configured derived
+/// root (compiler output, spec 120 §3.8), and `resolver_exclusions`; never
+/// descends through a symlink, so it cannot leave the repository.
 /// Repo-relative POSIX, sorted.
 pub fn walk_repository(cfg: &Config, repo_root: &Path) -> BTreeSet<String> {
     fn visit(cfg: &Config, repo_root: &Path, dir: &Path, out: &mut BTreeSet<String>) {
@@ -219,6 +220,7 @@ pub fn walk_repository(cfg: &Config, repo_root: &Path) -> BTreeSet<String> {
             if rel == ".git"
                 || rel.starts_with(".git/")
                 || cfg.layout.is_state_path(&rel)
+                || cfg.layout.is_derived_path(&rel)
                 || crate::pathutil::is_excluded(repo_root, &path, &cfg.index.resolver_exclusions)
             {
                 continue;

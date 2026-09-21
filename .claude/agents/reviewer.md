@@ -32,7 +32,7 @@ memory: project
 | Library crates | `crates/{spec-spine-core,spec-spine-types}/` | Memory safety, error handling, `pub` API surface, crate coupling |
 | CLI crate | `crates/spec-spine-cli/` | CLI correctness, output format, exit codes |
 | Standard | `standards/spec/` | Contract and constitution alignment |
-| Derived | `.derived/` | Must not be hand-edited; only `spec-spine compile` output |
+| Derived | `.statecraft/derived/` | Must not be hand-edited; only `spec-spine compile` output |
 
 ## Process
 
@@ -55,7 +55,7 @@ memory: project
   spec whose declared edges fail to cover it.
 - Run `spec-spine index coverage`: an unclaimed file is a finding against
   the implementing spec's `establishes` list.
-- A `.derived/` diff left by the gate means the committed shards were stale:
+- A `.statecraft/derived/` diff left by the gate means the committed shards were stale:
   a finding whose fix is to commit them with the change.
 
 ### 2. Review for Correctness
@@ -94,13 +94,13 @@ For each changed file:
 - Flag drift the gate cannot see: code doing something the owning spec's
   narrative never describes, even when `couple` passes (an over-broad edge).
 - Read the spec through `spec-spine registry show <id> --json` and
-  `spec-spine registry relationships <id>`, never through `.derived/`.
+  `spec-spine registry relationships <id>`, never through `.statecraft/derived/`.
 
 ### 6. Check Conventions
 
 - Code style matches surrounding code (naming, structure, module organization)
 - Behavioral rules respected (steps in order, derived artifacts refreshed)
-- No edits to `.derived/` (compiler output only)
+- No edits to `.statecraft/derived/` (compiler output only)
 - New public APIs are documented
 
 ## Output Format

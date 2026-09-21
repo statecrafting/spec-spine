@@ -34,13 +34,15 @@ depends_on:
   - "112-nothing-reruns-a-merged-acceptance"
 establishes:
   # 3.6: the gate's one definition, repository-owned, no longer the kit's.
-  - { kind: file, path: "Makefile", planned: true }
-  # 3.5 and 3.6: what the three `kit_*` suites keep asserting about the files
-  # this repository still has. Split, not deleted (3.11).
-  - { kind: file, path: "crates/spec-spine-core/tests/gate.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/harness_hooks.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/harness_skills.rs", planned: true }
+  - "Makefile"
 extends:
+  # 3.5 and 3.6: the three `kit_*` suites are RENAMED, not replaced. Their
+  # subject survives the kit (the files this repository still has), so the
+  # claim follows the file rather than being withdrawn and re-established:
+  # 046, 048 and 064 keep owning the suites they wrote, at their new paths.
+  - { spec: "046-kit-hooks-read-never-write", unit: "crates/spec-spine-core/tests/harness_hooks.rs", nature: reductive }
+  - { spec: "048-kit-ships-the-governed-loop-skills", unit: "crates/spec-spine-core/tests/harness_skills.rs", nature: reductive }
+  - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/gate.rs", nature: reductive }
   # 3.1: the verb and its dispatch leave the CLI.
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: reductive }
   # 3.2 and 3.3: the retained producer and its exported facade.
@@ -54,6 +56,13 @@ extends:
   - { spec: "005-coupling-gate", unit: "crates/spec-spine-core/tests/couple.rs", nature: additive }
   - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/index.rs", nature: additive }
   - { spec: "004-codebase-index", unit: "crates/spec-spine-core/tests/index.rs", nature: additive }
+  # 3.12: the real-corpus parse pin read spec 048's own block, which this spec
+  # replaces, so the pin moves to a spec that still holds one and the
+  # substitution itself becomes the assertion.
+  - { spec: "049-verify-declared-acceptance", unit: "crates/spec-spine-core/tests/verify.rs", nature: corrective }
+  # 3.6: the dev-dependency comment names the suite that reads the workflow,
+  # which is `tests/gate.rs` now.
+  - { spec: "114-one-gate-definition-that-holds-on-a-code-free-corpus", unit: "crates/spec-spine-core/Cargo.toml", nature: corrective }
   # 3.7: the layout this repository is governed under, and everything that
   # spells the old path.
   - { spec: "064-the-kit-ships-the-composite-gate", unit: "spec-spine.toml", nature: additive }
@@ -64,6 +73,19 @@ extends:
   # told an adopter to install a kit.
   - { spec: "078-the-protocol-has-an-owner", unit: "AGENTS.md", nature: additive }
   - { spec: "067-the-docs-name-what-adopters-derived", unit: "docs/adoption-guide.md", nature: additive }
+  # 3.8: the governed-scope walk skips the configured derived root too, for
+  # the reason 3.8 gives about the other two walks.
+  - { spec: "097-governed-scope-is-declared-not-inferred", unit: "crates/spec-spine-core/src/coverage.rs", nature: additive }
+  # 3.4: the specify-first note told a reader to install the kit's gate.
+  - { spec: "067-the-docs-name-what-adopters-derived", unit: "docs/specify-first.md", nature: reductive }
+  # 3.1: the npm shim's README told a reader to run `npx spec-spine init`.
+  # `npm/` is 007's subtree and an explicit claim outranks the `**/README.md`
+  # bypass (spec 009), so the one line removed is declared here. Named as the
+  # SUBTREE 007 establishes rather than as the file: a file unit carries no
+  # span, so claiming `npm/README.md` directly would add an `L-008`
+  # unwitnessed claim to a file nothing hashes, which is a worse record than
+  # the one line being fixed.
+  - { spec: "007-distribution", unit: "npm/", nature: reductive }
   # 3.5: this repository's own harness is repository-owned development
   # instruction from here, not a distribution source.
   - { spec: "048-kit-ships-the-governed-loop-skills", unit: ".claude/skills/", nature: additive }
@@ -74,6 +96,11 @@ extends:
 # in the amending spec, so no predecessor's prose is edited to mention its
 # successor (spec 040 3.1). The frontmatter withdrawals 3.11 requires are a
 # different act, recorded there and taken under this spec's authority.
+# 3.11: spec 029's entire territory was `kit/`. With the subtree removed it
+# owns nothing at all, which for that document is the correct statement and not
+# an omission, so the transfer is declared rather than left implicit.
+supersedes:
+  - "029-claude-code-skill-kit"
 amends:
   - "006-init-scaffold"
   - "024-index-sharding"
@@ -83,10 +110,14 @@ amends:
   - "047-harness-rules-name-the-legitimate-edits"
   - "048-kit-ships-the-governed-loop-skills"
   - "051-harness-runs-the-verbs-it-ships"
+  - "061-the-scaffold-ships-what-adopters-wrote"
+  - "062-a-version-pin-the-cli-can-check"
   - "063-a-stale-binary-is-not-a-stale-ledger"
   - "064-the-kit-ships-the-composite-gate"
   - "065-init-and-the-kit-are-one-adoption"
+  - "066-the-contract-records-the-lifecycle-table"
   - "068-a-path-scoped-rule-example"
+  - "069-the-shipped-default-hashes-what-it-names"
   - "071-a-tag-push-is-not-a-push-to-main"
   - "072-the-default-branch-is-configured-not-assumed"
   - "074-shipped-is-not-the-same-as-working"
@@ -95,11 +126,53 @@ amends:
   - "080-a-gate-that-cannot-ask-says-so"
   - "081-the-kit-ships-what-the-loop-calls"
   - "082-a-refusal-is-not-a-remediation-round"
+  - "084-a-short-id-names-the-same-spec-at-every-verb"
+  - "085-a-verifier-checks-the-bytes-it-was-given"
+  - "087-an-authority-snapshot-says-what-it-read"
   - "089-a-skip-and-a-failure-are-different-answers"
   - "090-a-hook-bound-to-a-tool-route-misses-the-work"
   - "099-the-session-hooks-report-the-verdict"
   - "100-one-source-generates-the-agent-trees"
   - "104-every-hook-reads-the-code-the-same-way"
+  - "105-an-amendment-carries-the-acceptance-it-replaces"
+  - "110-a-refusal-names-the-branch-it-resolved"
+  - "112-nothing-reruns-a-merged-acceptance"
+  - "113-the-scaffolded-protocol-is-the-gate-the-kit-ships"
+  - "114-one-gate-definition-that-holds-on-a-code-free-corpus"
+  - "115-the-kit-ships-no-claim-an-adopter-cannot-resolve"
+  - "116-shepherd-reads-every-reviewer"
+# 3.12: the acceptance this spec replaces, derived from the sweep of the
+# implemented tree (`scripts/verify-sweep.sh`), not from a prediction. Each of
+# these blocks reads a path this change removed, so `## Verification` below is
+# their acceptance from here.
+#
+# Four are deliberately absent because another spec already holds them and 103
+# 3.2 resolves the chain to whoever holds it now: 098's is 105's, 065's is
+# 113's, 071's is 110's, and 077's is 114's. Each of those four holders IS
+# listed, so the chain lands here. Listing the held spec as well is `V-019`,
+# which is the corpus refusing to guess which of two amenders is the authority.
+amends_verification:
+  - "048-kit-ships-the-governed-loop-skills"
+  - "051-harness-runs-the-verbs-it-ships"
+  - "061-the-scaffold-ships-what-adopters-wrote"
+  - "062-a-version-pin-the-cli-can-check"
+  - "063-a-stale-binary-is-not-a-stale-ledger"
+  - "064-the-kit-ships-the-composite-gate"
+  - "066-the-contract-records-the-lifecycle-table"
+  - "068-a-path-scoped-rule-example"
+  - "069-the-shipped-default-hashes-what-it-names"
+  - "072-the-default-branch-is-configured-not-assumed"
+  - "075-one-name-one-freshness-verb"
+  - "080-a-gate-that-cannot-ask-says-so"
+  - "081-the-kit-ships-what-the-loop-calls"
+  - "082-a-refusal-is-not-a-remediation-round"
+  - "089-a-skip-and-a-failure-are-different-answers"
+  - "090-a-hook-bound-to-a-tool-route-misses-the-work"
+  - "099-the-session-hooks-report-the-verdict"
+  - "100-one-source-generates-the-agent-trees"
+  - "104-every-hook-reads-the-code-the-same-way"
+  - "105-an-amendment-carries-the-acceptance-it-replaces"
+  - "110-a-refusal-names-the-branch-it-resolved"
   - "113-the-scaffolded-protocol-is-the-gate-the-kit-ships"
   - "114-one-gate-definition-that-holds-on-a-code-free-corpus"
   - "115-the-kit-ships-no-claim-an-adopter-cannot-resolve"
@@ -184,10 +257,12 @@ rather than as an implementation detail.
 
 ## 2. Territory
 
-This spec establishes the repository-owned gate definition and the three test
-files that keep asserting what the removed suites asserted about the files that
-remain. It extends the engine modules the relocation and the narrowing touch,
-this repository's configuration, its CI workflow and its protocol.
+This spec establishes the repository-owned gate definition. It extends the
+engine modules the relocation and the narrowing touch, this repository's
+configuration, its CI workflow and its protocol, and the three renamed test
+suites, whose owners keep them: a suite whose subject survives the kit follows
+its file rather than being withdrawn and re-established under a new owner
+(3.11).
 
 It also removes paths that 29 approved specs claim. 3.11 states how that is
 resolved, and it is the only part of this document that edits another spec's
@@ -196,9 +271,9 @@ file.
 | Path | What happens |
 |---|---|
 | `Makefile` | new: the gate, repository-owned |
-| `crates/spec-spine-core/tests/gate.rs` | new: from `kit_gate.rs`, the half about this repository |
-| `crates/spec-spine-core/tests/harness_hooks.rs` | new: from `kit_hooks.rs`, the half about `.claude/settings.json` |
-| `crates/spec-spine-core/tests/harness_skills.rs` | new: from `kit_skills.rs`, the half about `.claude/skills/` |
+| `crates/spec-spine-core/tests/gate.rs` | renamed from `kit_gate.rs`, narrowed to this repository's own gate |
+| `crates/spec-spine-core/tests/harness_hooks.rs` | renamed from `kit_hooks.rs`, narrowed to `.claude/settings.json` |
+| `crates/spec-spine-core/tests/harness_skills.rs` | renamed from `kit_skills.rs`, narrowed to `.claude/skills/` |
 | `kit/` | removed, 29 files |
 | `crates/spec-spine-core/src/kit_embedded.rs` | removed |
 | `scripts/gen-kit-embedded.py` | removed |
@@ -206,7 +281,7 @@ file.
 | `.agents/`, `.codex/` | removed |
 | `crates/spec-spine-cli/src/cmd_init.rs` | removed |
 | `crates/spec-spine-cli/tests/init.rs` | removed |
-| `crates/spec-spine-core/tests/{kit_gate,kit_hooks,kit_skills,agent_trees}.rs` | removed, three of them split first |
+| `crates/spec-spine-core/tests/agent_trees.rs` | removed with the trees it asserted |
 | `.derived/` | moved to `.statecraft/derived/` |
 
 ## 3. Behavior
@@ -304,8 +379,21 @@ unrecognized value and their announced skips, and spec 072's base-ref
 resolution. Nothing about the gate's enforcement strength changes; only who
 owns the file does.
 
+One control is added: `HEAD`, the ref the coupling gate compares **to**,
+defaulting to `HEAD`. A pull-request CI leg must diff `base.sha...head.sha`,
+both frozen event SHAs, because the checked-out `refs/pull/N/merge` HEAD
+re-resolves against the current base on every run and a gate diffing to it folds
+in changes merged after the pull request opened. One definition can serve both
+callers only if the caller can say which ref it means, which is spec 114 §3.3's
+own argument for `COUPLE` applied to the other endpoint. D-10.
+
 `.github/workflows/ci.yml` MUST invoke `make gate` against that file and MUST
-NOT reference `kit/Makefile`. `AGENTS.md` MUST NOT tell a session to run a gate
+NOT reference `kit/Makefile`. It MUST call the target on both event legs rather
+than restating the chain beside it: the push and merge-queue leg with
+`COUPLE=0`, the pull-request leg with `COUPLE=1` and the frozen SHAs. The named
+steps that re-ran `check`, `index coverage` and `lint` after `make gate` are
+removed with the restatement they were: they ran the same verbs a second time,
+and a chain with two spellings is the defect spec 064 exists to prevent. `AGENTS.md` MUST NOT tell a session to run a gate
 from a directory that no longer exists. The required check set MUST be
 unchanged: `test`, `self_governance`, `determinism`, `ai-review`, aggregated by
 `ci-gate`.
@@ -408,7 +496,41 @@ Three rules MUST hold for every such edit:
 
 A spec left with no ownership edge at all after the withdrawal MUST NOT be
 deleted or hidden; it keeps its `## Verification` disposition under 3.12 and
-its document stands.
+its document stands. One such spec exists: 029, whose whole territory was
+`kit/`. It is marked `superseded` with `superseded_by` naming this spec, and
+this spec carries the `supersedes` edge. That is the corpus's own vocabulary
+for an authority that moved, and it is not a way of dodging a diagnostic: the
+only diagnostic it changes is `L-001`, which asks whether an **ordinary** spec
+forgot to declare its territory. A withdrawn document claiming nothing is
+making a correct statement, so `L-001` MUST skip a `superseded` or `retired`
+spec. It MUST NOT skip anything else: a withdrawn spec that still names a unit
+is still held to every diagnostic about that unit.
+
+### 3.11.1 What the coupling gate says about the removal, measured
+
+The gate refuses seven of the removed paths, and the refusal is a property of
+the gate rather than of this change. Measured on 2026-09-20 against this
+branch:
+
+```
+C-001 'crates/spec-spine-cli/src/cmd_init.rs' changed without an authoring
+      edit to any owning spec (001-compile-registry)
+```
+
+`couple` resolves a path's owners from the **head** index. At head the file
+does not exist, so no specific claim covers it and the answer falls through to
+its package's manifest floor, spec 001. The specs that actually owned it, 006
+and 065, **are** edited in this same change: that is what 3.11 required of
+them. The gate cannot see that, because by the time it looks the claim it
+would have matched is the one the change withdrew.
+
+This spec does not fix it. Reading a deleted path's ownership at the base needs
+the gate to hold two indexes, which `couple_with` does not take and which is a
+seam through the CLI layer of its own, and a realignment is not the place to
+open it. 4 names it as the follow-up, and D-11 records the two dispositions
+available at PR time: the base-side read as its own spec, or a human
+`Spec-Drift-Waiver:` line citing this section. An agent writes neither on its
+own authority.
 
 ### 3.12 Acceptance replacement
 
@@ -433,6 +555,49 @@ failing. Every entry MUST also appear in `amends` (`V-018`).
 Correction in place MUST NOT be used to make a failing assertion pass by
 weakening it. If a block asserts something the realignment made false, the
 answer is replacement, which says so, not an edited assertion that hides it.
+
+**The measurement.** `scripts/verify-sweep.sh --rev <implementation commit>`,
+run on 2026-09-20 against the implemented tree before any acceptance was
+touched: **38 passed, 34 failed, 48 exempt, 0 not-declared, 0 not-run**. The 34
+are dispositioned as follows, and nothing else in the corpus is touched:
+
+| Disposition | Count | Which |
+|---|---|---|
+| Replaced (`amends_verification`) | 25 | the blocks whose subject is the removed surface |
+| Resolved by an existing chain | 4 | 065 through 113, 071 through 110, 077 through 114, 098 through 105: each holder is replaced, so the chain lands here. Listing a held spec as well is `V-019` |
+| Corrected in place | 3 | 084, 085, 087, each naming this repository's own `.derived/attestation/` path. Re-run green afterwards |
+| Left failing, deliberately | 1 | 102, whose block runs the coupling gate against the default branch. It fails for 3.11.1's reason and for no other, and it is a pre-merge artifact: on the default branch the diff it takes is empty |
+| This spec's own | 1 | 120 |
+
+25 + 4 + 3 + 1 + 1 = 34: every failure is accounted for exactly once.
+
+One correction in place is made to a block the sweep reported as **passed**:
+spec 112's `! grep -rqF 'verify-sweep' … kit/` passed only because `grep -r`
+over a directory that no longer exists errors and the `!` inverts the error into
+a success. Removing the dead path is the difference between a line that passes
+and a line that asserts, and the rule against rewriting a passing block is about
+not weakening assertions, which this strengthens.
+
+**One test read a replaced block.** `core/tests/verify.rs` pinned this
+repository's own spec 048, command for command, as the real-world fixture for
+the parser: "the parse must agree with the corpus it governs". Replacing 048's
+acceptance made that plan 120's block, so the pin moved to spec 091, which still
+holds its own, and the case it left behind became its own assertion: a plan
+built for 048 keeps 048's id and names 120 as `acceptanceFrom`, which is spec
+103 3.4's rule that the substitution is stated and never silent, exercised
+against the real corpus instead of a fixture.
+
+**A third state exists and is recorded rather than repaired.** Some blocks now
+pass *vacuously*: spec 074's, for instance, holds `test ! -e
+kit/scripts/verify-spec.sh` and two `! grep` lines over files under `kit/`, and
+every one of those is trivially true once the tree is gone. The sweep reports
+them as `passed`, which is honest about the exit code and says nothing about the
+assertion. They are **not** rewritten here. Replacing the acceptance of a spec
+whose block passes is precisely what the rule above forbids, and repairing
+vacuity across the blocks this change emptied is an audit of its own, of the
+shape specs 106 to 110 each were. What this spec owes is to say so, which is
+this paragraph, so the next reader of a green sweep row knows which kind of
+green it is.
 
 ### 3.13 The unmerged spec 117 proposal is withdrawn
 
@@ -475,6 +640,15 @@ place to land a behavior change. 4 records it.
   a `withdraws` edge it is its own spec, with its own diagnostics and its own
   answer for what an amended acceptance does. D-3.
 - **Retiring or deleting any historical spec.** 3.11 rule 3.
+- **Repairing the blocks this change left passing vacuously.** 3.12's third
+  state. An audit of the same shape as specs 106 to 110, and the sweep spec 112
+  built is what schedules it; what it cannot do is tell a vacuous green from a
+  real one, which is why the paragraph exists.
+- **Teaching `couple` to read a deleted path's ownership at the base.**
+  3.11.1 measures the gap and D-11 records why it is not closed here. It is a
+  behavior change to the gate, needing a second index at the library boundary
+  and its own acceptance; this spec would be the first caller, not the right
+  author.
 - **Releasing.** No version is bumped and nothing is published. The npm, PyPI
   and `install.sh` distributions of the engine are untouched.
 
@@ -548,6 +722,27 @@ ungoverned root and keeps its meaning. The two live under one parent and are
 classified separately, which is why 3.9 requires the distinction to be provable
 by measurement rather than asserted.
 
+D-11 (2026-09-20, the seven C-001 refusals are reported, not engineered away).
+3.11.1 measures them. Three ways to make them disappear were available and each
+is worse than the report. Claiming the removed paths in this spec's frontmatter
+turns every one into a `W-001` unresolved claim, which CI refuses with
+`--fail-on-unresolved`, so the gate's refusal would simply move. Claiming the
+surviving container (`crates/spec-spine-core/tests/`, or the crate) makes this
+spec the specific owner of every file under it and rewrites `index coverage`'s
+attribution for about forty files, to clear seven deletions. Editing spec 001's
+`spec.md` so the floor owner appears in the diff is a cosmetic edit to an
+approved spec made solely to satisfy a mechanical refresh, which
+`.claude/rules/adversarial-prompt-refusal.md` forbids by name. What is left is
+to say what the gate says and let a human decide, which is what a waiver is for.
+
+D-10 (2026-09-20, `HEAD` is a gate variable, not a workflow-side `couple`
+call). The alternative was to leave `make gate` with `--head HEAD` and keep a
+separate `couple` step in CI for the pull-request leg, which is what the
+workflow did before. That is two spellings of the chain again, and the second
+one is the one that carries the waiver read and the frozen SHAs, so the half
+most likely to be wrong is the half nothing tests. A variable with a default
+that is right for every local caller costs one line and keeps the count at one.
+
 D-9 (2026-09-20, acceptance replacement is measured, not predicted). 3.12. A
 prediction of which blocks break would be a list written by the person who
 broke them, checked by nobody. The sweep spec 112 established runs the corpus's
@@ -592,8 +787,7 @@ cargo build --release --locked
 target/release/spec-spine --help > "${TMPDIR:-/tmp}/ss120-help.txt" 2>&1
 ! grep -qF 'with-kit' "${TMPDIR:-/tmp}/ss120-help.txt"
 ! grep -qE '^[[:space:]]+init([[:space:]]|$)' "${TMPDIR:-/tmp}/ss120-help.txt"
-target/release/spec-spine compile --help > "${TMPDIR:-/tmp}/ss120-compile.txt" 2>&1
-rm -f "${TMPDIR:-/tmp}/ss120-help.txt" "${TMPDIR:-/tmp}/ss120-compile.txt"
+rm -f "${TMPDIR:-/tmp}/ss120-help.txt"
 # 3.4 and 3.5: the removed product surface, path by path.
 ! test -e kit
 ! test -e crates/spec-spine-core/src/kit_embedded.rs
@@ -629,8 +823,12 @@ test -f Makefile
 ! grep -rqF 'kit/Makefile' .github/workflows/
 ! grep -qF 'kit/Makefile' AGENTS.md
 ! grep -qF 'kit/Makefile' CLAUDE.md
-! grep -qF '.derived' Makefile
-! grep -qF '.derived/' .github/workflows/ci.yml
+# 3.7: and nothing still points at the old path. Asserted through git rather
+# than by grepping prose: a tracked file under `.derived/` is the failure, and
+# a sentence mentioning the old path in a design note is not.
+test "$(git ls-files .derived | wc -l | tr -d ' ')" = 0
+! grep -qF ' .derived/' .gitattributes
+! grep -qE '^\.derived/' .gitignore
 make gate SPEC_SPINE=target/release/spec-spine COUPLE=0
 # 3.6: an unrecognised control word is still refused rather than read as a
 # default, which is spec 114's rule and the reason the file moved intact.
@@ -672,12 +870,19 @@ rm -f "${TMPDIR:-/tmp}/ss120-cli.txt"
 cargo test -p spec-spine-core --test gate --locked
 cargo test -p spec-spine-core --test harness_hooks --locked
 cargo test -p spec-spine-core --test harness_skills --locked
-# 3.11: the withdrawn claims are withdrawn, and nothing claims a removed path.
-! grep -rqE '^\s*-\s*"?kit/' specs/
-! grep -rq 'unit: "kit/' specs/
-! grep -rq 'unit: "\.agents/' specs/
-! grep -rq 'unit: "\.codex/' specs/
-! grep -rq 'kit_embedded\.rs"' specs/
+# 3.11: nothing claims a removed path. Asserted through the governed read
+# rather than by grepping frontmatter: a claim on a path that does not exist is
+# an unresolved claim, and `--fail-on-unresolved` above is exactly the refusal
+# for it. A grep would also match its own line in this block, which is how spec
+# 071's first attempt at a pattern assertion passed against itself.
+target/release/spec-spine index diagnostics > "${TMPDIR:-/tmp}/ss120-diag.txt" 2>&1
+test ! -s "${TMPDIR:-/tmp}/ss120-diag.txt"
+rm -f "${TMPDIR:-/tmp}/ss120-diag.txt"
+# 3.11 rule 3: the one spec left owning nothing is superseded by name, not
+# retitled, deleted or quietly left claiming a directory that is gone.
+target/release/spec-spine registry show 029 --json > "${TMPDIR:-/tmp}/ss120-029.json"
+python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss120-029.json')); assert d['status'] == 'superseded', d['status']; assert d['supersededBy'] == '120-the-engine-ships-governance-not-an-environment', d"
+rm -f "${TMPDIR:-/tmp}/ss120-029.json"
 # 3.13: the ordinal stays reserved and the branch that holds the proposal is
 # still here.
 ! test -e specs/117-the-derived-tree-question-asked-honestly

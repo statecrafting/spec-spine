@@ -450,8 +450,12 @@ spec-spine index   [check | render | orphans]       # check = per-shard stalenes
 spec-spine registry list|show|status-report|relationships
 spec-spine lint    [--fail-on-warn] [--fail-on-info]
 spec-spine couple  [--base origin/main] [--head HEAD] [--pr-body FILE] [--paths-from FILE]
-spec-spine init    [--force]
 ```
+
+There is no `init` verb. It existed until spec 120, which moved project
+initialization to the Statecraft CLI and left `scaffold_init` as a library
+producer of governance starter content: see
+`design/07-statecraft-realignment-2026-09.md`.
 
 The CLI is a pure translation of API result → stdout/stderr + exit code. It owns:
 `git diff --no-color -U0 base...head` parsing into `DiffInput`, the

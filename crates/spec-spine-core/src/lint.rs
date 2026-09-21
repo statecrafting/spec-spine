@@ -6,7 +6,7 @@
 use std::collections::BTreeSet;
 use std::path::Path;
 
-use spec_spine_types::{Config, Error, Severity, SpecRecord, Unit, Violation};
+use spec_spine_types::{Config, Error, Severity, SpecRecord, Status, Unit, Violation};
 
 use crate::compile::compile;
 
@@ -37,8 +37,21 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         let at = || Some(spec.spec_path.clone());
 
         // L-001: ordinary spec claims no territory.
+        //
+        // Spec 120 §3.11: a `superseded` or `retired` spec is not an ordinary
+        // spec. L-001 exists to catch an author who wrote a spec and forgot to
+        // say what it governs; a document whose authority has been transferred
+        // by an explicit `supersedes` edge, or withdrawn, is making a correct
+        // statement when it claims nothing, and holding it to L-001 would leave
+        // a corpus with exactly two ways to answer: delete the history, or
+        // invent a claim for it. Neither is the lint's business.
+        //
+        // This exempts the DECLARATION, never a claim: a superseded spec that
+        // still names a unit is still held to every diagnostic about that unit,
+        // because the unit is still written down.
+        let withdrawn = matches!(spec.status, Status::Superseded | Status::Retired);
         let retroactive = spec.origin.as_ref().is_some_and(|o| o.retroactive);
-        if !retroactive && !has_ownership_edge(spec) {
+        if !retroactive && !withdrawn && !has_ownership_edge(spec) {
             violations.push(warn(
                 "L-001",
                 format!(

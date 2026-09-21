@@ -1,0 +1,66 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "007-distribution"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".github/workflows/release.yml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "py/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "py/scripts/generate_wheels.py",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "py/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "py/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "py/scripts/generate_wheels.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "py/scripts/generate_wheels.py"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/release.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/release.yml"
+        }
+      }
+    ],
+    "specId": "008-python-distribution",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "e3268aad335c83231ca6b958cb54fbab995515ff53845f3b5dc3cd7da269dc55"
+}

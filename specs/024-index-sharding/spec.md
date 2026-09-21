@@ -67,7 +67,6 @@ extends:
   # The render/orphans projection tests (spec 011).
   - { spec: "011-index-render-orphans", unit: "crates/spec-spine-core/tests/render.rs" }
   # The adopter-loop test (spec 006) asserts the package shard, not index.json.
-  - { spec: "006-init-scaffold", unit: "crates/spec-spine-cli/tests/init.rs" }
   # The merge driver (spec 020): narrowed to the rare same-shard conflict; its
   # registration moves to the shard globs.
   - { spec: "020-derived-artifact-merge-driver", unit: ".githooks/merge-derived-index.sh" }

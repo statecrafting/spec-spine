@@ -6,7 +6,6 @@ and `git`/clock side effects live here; the engine ([`spec-spine-core`]) stays
 pure.
 
 ```
-spec-spine init [--force]                  # scaffold a new adopter (config, standards, specs/000, rules)
 spec-spine compile                         # specs/*/spec.md -> .derived/spec-registry/registry.json
 spec-spine index                           # scan manifests + specs -> .derived/codebase-index/index.json
 spec-spine index check [--slice NAME]      # staleness gate (exit 2 if stale)
@@ -26,8 +25,11 @@ spec-spine couple --base origin/main --head HEAD [--pr-body FILE] [--paths-from 
 Exit codes: `0` ok · `1` validation failure / not found / coupling drift ·
 `2` stale · `3` I/O / parse / schema / config.
 
-See [docs/adoption-guide.md] for the full install → init → annotate → wire-CI
-walkthrough. License: Apache-2.0.
+There is no `init` verb: creating a project is the Statecraft CLI's job, and
+`spec-spine-core` exposes `scaffold_init_json`, a pure producer of governance
+starter content, for a consumer that writes the files itself.
+
+See [docs/adoption-guide.md] for the full walkthrough. License: Apache-2.0.
 
 [`spec-spine-core`]: https://crates.io/crates/spec-spine-core
 [docs/adoption-guide.md]: https://github.com/statecrafting/spec-spine/blob/main/docs/adoption-guide.md

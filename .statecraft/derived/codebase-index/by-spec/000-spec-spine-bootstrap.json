@@ -1,0 +1,30 @@
+{
+  "mapping": {
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-types",
+        "source": "manifest-metadata"
+      },
+      {
+        "path": "crates/spec-spine-types/src/error.rs",
+        "source": "comment-header"
+      },
+      {
+        "path": "crates/spec-spine-types/tests/config.rs",
+        "source": "comment-header"
+      },
+      {
+        "path": "crates/spec-spine-types/tests/dogfood.rs",
+        "source": "comment-header"
+      },
+      {
+        "path": "crates/spec-spine-types/tests/schema.rs",
+        "source": "comment-header"
+      }
+    ],
+    "specId": "000-spec-spine-bootstrap",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "917fd4e08d5ecbfb47b818f18af9c48e0a682d871318ea0a7009da03650f39fd"
+}

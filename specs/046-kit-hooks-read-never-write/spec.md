@@ -17,11 +17,9 @@ amends:
   # text is unchanged (spec 040).
   - "029-claude-code-skill-kit"
 establishes:
-  - "crates/spec-spine-core/tests/kit_hooks.rs"
+  - "crates/spec-spine-core/tests/harness_hooks.rs"
 extends:
-  - { spec: "029-claude-code-skill-kit", unit: "kit/settings.json", nature: superseding }
 references:
-  - { unit: { kind: file, path: "kit/AGENTS.md" }, role: context }
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
 summary: >
   Three of the four Claude Code hooks the kit ships write into the tree they

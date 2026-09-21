@@ -35,16 +35,13 @@ extends:
   - { spec: "020-derived-artifact-merge-driver", unit: ".githooks/pre-commit", nature: additive }
   - { spec: "020-derived-artifact-merge-driver", unit: ".githooks/enable-hooks.sh", nature: additive }
   # 3.2, 3.4: the kit's copy, which is the source of both.
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/.githooks/pre-commit", nature: additive }
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/.githooks/enable-hooks.sh", nature: additive }
   # 3.5: the read-never-write property, asserted over a hook 046 did not have.
-  - { spec: "046-kit-hooks-read-never-write", unit: "crates/spec-spine-core/tests/kit_hooks.rs", nature: additive }
+  - { spec: "046-kit-hooks-read-never-write", unit: "crates/spec-spine-core/tests/harness_hooks.rs", nature: additive }
   # 3.5: the kit/`.githooks/` parity list gains the two new names.
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/kit_gate.rs", nature: additive }
+  - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/gate.rs", nature: additive }
   # 3.6: both new files are governance files, so they join the hashed set.
   - { spec: "064-the-kit-ships-the-composite-gate", unit: "spec-spine.toml", nature: additive }
   # 3.6: the embedded copy `init --with-kit` writes, regenerated.
-  - { spec: "065-init-and-the-kit-are-one-adoption", unit: "crates/spec-spine-core/src/kit_embedded.rs", nature: corrective }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
 ---

@@ -6,22 +6,30 @@ sidebar_position: 2
 
 # Quickstart
 
-This guide walks you through scaffolding a new spec-spine corpus, compiling the registry, indexing your codebase, and running the coupling gate. It assumes you have already [installed spec-spine](installation.md).
+This guide walks you through setting up a spec-spine corpus by hand, compiling the registry, indexing your codebase, and running the coupling gate. It assumes you have already [installed spec-spine](installation.md).
 
 You can run this end-to-end in an empty repository to see the mechanics in action.
 
-## 1. Scaffold the corpus
+## 1. Create the corpus
 
-Run `spec-spine init` at the root of your repository. This command generates the required directory structure, the configuration file, the tier-1 bootstrap spec, and the constitutional templates.
+spec-spine has no initialization command: it governs a repository, it does not set one up. The [Statecraft CLI](../statecraft.md) is what initializes a managed project, and it calls spec-spine's library to produce the governance starter files. For this walkthrough you only need a configuration file and a specs directory, both of which you can write yourself.
 
-```bash
-spec-spine init
+Create `spec-spine.toml` at the root of your repository:
+
+```toml
+[layout]
+specs_dir = "specs"
+standards_dir = "standards/spec"
+derived_dir = ".derived"
 ```
 
-This creates several files, including:
-- `spec-spine.toml`: The configuration file with all knobs defaulted.
-- `standards/spec/constitution.md`: The tier-2 durable principles.
-- `specs/000-bootstrap/spec.md`: The hand-authored bootstrap spec that defines what a spec is.
+Those are the defaults, so an empty file works too. See [Configuration](../configuration.md) for the full set of knobs.
+
+```bash
+mkdir -p specs standards/spec
+```
+
+A production corpus also carries `standards/spec/constitution.md` (the tier-2 durable principles) and a tier-1 bootstrap spec at `specs/000-bootstrap/spec.md`. Both are part of what the library producer emits, and neither is needed to follow the steps below.
 
 ## 2. Author a spec
 

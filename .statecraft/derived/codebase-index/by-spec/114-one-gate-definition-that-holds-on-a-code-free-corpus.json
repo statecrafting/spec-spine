@@ -1,0 +1,70 @@
+{
+  "mapping": {
+    "amends": [
+      "077-compile-warnings-reach-the-gate"
+    ],
+    "dependsOn": [
+      "054-effective-config-is-a-governed-read",
+      "059-read-verbs-on-a-code-free-corpus",
+      "064-the-kit-ships-the-composite-gate",
+      "077-compile-warnings-reach-the-gate",
+      "089-a-skip-and-a-failure-are-different-answers",
+      "103-an-amended-acceptance-is-the-one-that-runs"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/gate.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/gate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "114-one-gate-definition-that-holds-on-a-code-free-corpus",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "d8351c1975fb519fbb9128d2de39e7a4bdb24c167756310985f75dfcec46c6be"
+}

@@ -20,9 +20,9 @@ optional.
   list in `AGENTS.md` "Working the backlog", "Run the gate before every
   commit"). If it has not, run it now; a commit on a red gate is a commit
   that will be amended.
-- `git diff --stat -- .derived/`: shards the gate regenerated belong in
+- `git diff --stat -- .statecraft/derived/`: shards the gate regenerated belong in
   this commit with the change they describe. `build-meta.json` is
-  gitignored, so `git add .derived/` is safe. Never stage the tool-state
+  gitignored, so `git add .statecraft/derived/` is safe. Never stage the tool-state
   directory `spec-spine.toml [layout] state_dir` names.
 
 ## 1. Survey the changes

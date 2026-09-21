@@ -2,7 +2,8 @@
 //!
 //! The spec-spine engine. Phase 2 shipped **compile** + **query**; Phase 3 added
 //! **index** (code-as-source view, staleness, authorities) and **lint**; Phase 4
-//! adds **couple** (the PR-time drift gate) and **init** (the adopter scaffolder).
+//! adds **couple** (the PR-time drift gate) and the governance **scaffold**
+//! (starter corpus content as data; spec 120 §3.2).
 //!
 //! Every artifact-producing function is a pure function of `(config, file
 //! contents)`: no ambient clock or environment reads, and **no git** (the CLI
@@ -22,7 +23,6 @@ pub mod dep_only;
 pub mod diagnostics;
 mod hash;
 pub mod index;
-pub mod kit_embedded;
 pub mod lint;
 pub mod manifest;
 mod markdown;
@@ -94,7 +94,7 @@ pub use query::{
 };
 pub use read::{Versioning, read_document};
 pub use render::{OrphanReport, orphans, partition_orphans, render_markdown};
-pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init, scaffold_init_with};
+pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init};
 pub use snapshot::{
     SnapshotOutcome, check_snapshot_major, snapshot, snapshot_hash, verify_snapshot_recompute,
     with_stored_bytes_snapshot,
@@ -554,8 +554,18 @@ pub fn delta_json(request_json: &str) -> Result<String, Error> {
     )?)
 }
 
-/// Generate the adopter scaffold for `config_json` (`"{}"` ⇒ defaults), returning
-/// the [`Scaffold`] (files-as-data) as JSON. The caller writes the files.
+/// Generate the governance scaffold for `config_json` (`"{}"` ⇒ defaults),
+/// returning the [`Scaffold`] (files-as-data) as JSON. The caller writes the
+/// files.
+///
+/// **This is the producer boundary Statecraft consumes** (spec 120 §3.2), and
+/// it is pure: it writes nothing, reads no environment variable, discovers no
+/// installation, launches no process, opens no connection, reads no clock,
+/// registers nothing and activates nothing. It does not require the Statecraft
+/// CLI to be installed and behaves identically with an empty home directory.
+///
+/// It produces governance starter content only. §3.3 of that spec is the file
+/// list; everything an agent harness needs is deliberately not in it.
 pub fn scaffold_init_json(config_json: &str) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
     to_json(&scaffold_init(&config)?)

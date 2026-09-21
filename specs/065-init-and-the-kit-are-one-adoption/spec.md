@@ -14,10 +14,7 @@ depends_on:
   - "061-the-scaffold-ships-what-adopters-wrote"
 extends:
   - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/src/scaffold.rs", nature: additive }
-  - { spec: "006-init-scaffold", unit: "crates/spec-spine-cli/src/cmd_init.rs", nature: additive }
   - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/tests/scaffold.rs", nature: additive }
-  - { spec: "006-init-scaffold", unit: "crates/spec-spine-cli/tests/init.rs", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/README.md", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
   # The kit's skills, agents and settings are the source the embedded module is
@@ -26,8 +23,6 @@ extends:
   - { spec: "064-the-kit-ships-the-composite-gate", unit: "spec-spine.toml", nature: additive }
 establishes:
   # Created by this spec (3.2): the generated module and its generator.
-  - "crates/spec-spine-core/src/kit_embedded.rs"
-  - "scripts/gen-kit-embedded.py"
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: "docs/adoption-guide.md" }, role: context }

@@ -21,7 +21,6 @@ extends:
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/cmd_compile.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/cmd_couple.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/cmd_index.rs", nature: additive }
-  - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/cmd_init.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/cmd_lint.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/cmd_registry.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/verify_attestation.rs", nature: additive }

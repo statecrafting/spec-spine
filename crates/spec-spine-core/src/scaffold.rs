@@ -1,11 +1,21 @@
-//! The `init` scaffolder (spec 006): generate a new adopter's starter corpus as
-//! **files-as-data**. Pure function of `(config)`: no filesystem writes happen
-//! here; the CLI ([`cmd_init`]) writes the returned [`ScaffoldFile`]s. This keeps
-//! core IO-light, unit-testable, and FFI-friendly (`scaffold_init_json`).
+//! The governance scaffolder (spec 006, narrowed by spec 120 §3.3): generate a
+//! new corpus's starter governance content as **files-as-data**. Pure function
+//! of `(config)`: no filesystem writes happen here, no environment is read, no
+//! process is launched and no clock is consulted. The consumer writes the
+//! returned [`ScaffoldFile`]s.
+//!
+//! Since spec 120 the consumer is the Statecraft CLI rather than a
+//! `spec-spine init` command: initialization of a managed project belongs to
+//! Statecraft, and this module produces only the governance half of it. It
+//! emits no `AGENTS.md`, no `CLAUDE.md`, no `.claude/`, `.codex/` or
+//! `.agents/`, no skills, agents, hooks or MCP configuration, no CI workflow
+//! and no `Makefile`. Those are the development environment, and the
+//! environment has another owner.
 //!
 //! Generated paths honor `config.layout` (`specs_dir`, `standards_dir`) and
 //! `config.manifest.metadata_namespace`, so a non-default config scaffolds a
-//! coherent non-default layout (the adoption definition-of-done, prompt §8).
+//! coherent non-default layout. Every path is relative to the repository root,
+//! never to the configuration file's directory.
 
 use serde::{Deserialize, Serialize};
 use spec_spine_types::{Config, Error};
@@ -25,14 +35,15 @@ pub struct ScaffoldFile {
     pub rel_path: String,
     pub contents: String,
     pub overwrite: bool,
-    /// Spec 074 3.4: the file must arrive executable. Every file landed at 644,
-    /// including two shell scripts whose own documentation invokes them by path
-    /// (`./.githooks/enable-merge-driver.sh`), so `--with-kit` shipped a merge
-    /// driver an adopter could not run.
+    /// Spec 074 3.4: the file must arrive executable. It was written for the
+    /// shell scripts the kit shipped, which landed at 644 while their own
+    /// documentation invoked them by path; spec 120 3.3 removed those, so
+    /// nothing the scaffold returns sets this today.
     ///
-    /// The bit is **data in the returned `Scaffold`**, not an IO decision taken
-    /// by the writer, so the scaffold stays a pure function of
-    /// `(Config, with_kit)`. On a platform with no executable bit it is inert.
+    /// Retained as part of the response shape a consumer implements against
+    /// (spec 120 D-2). The bit is **data in the returned `Scaffold`**, not an
+    /// IO decision taken by the writer, so the scaffold stays a pure function
+    /// of its configuration. On a platform with no executable bit it is inert.
     #[serde(default)]
     pub executable: bool,
     /// Spec 074 3.3: append the contents to an existing file rather than
@@ -44,7 +55,10 @@ pub struct ScaffoldFile {
     ///
     /// Appending is idempotent (see `append_marker`), and an existing file is
     /// preserved. The writer decides only whether the file exists; what to do
-    /// about it is declared here.
+    /// about it is declared here. Since spec 120 3.3 the `.gitignore` fragment
+    /// is the one file that carries it, for the same reason: a consumer must
+    /// reconcile with an ignore file the repository may already have, never
+    /// replace it.
     #[serde(default)]
     pub append: bool,
     /// The substring whose presence means an `append` file already carries this
@@ -57,52 +71,22 @@ pub struct ScaffoldFile {
     pub append_marker: Option<String>,
 }
 
-/// The full set of files `spec-spine init` writes.
+/// The full set of governance files the scaffold produces. The consumer
+/// writes them; spec 120 §3.3 is the list.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Scaffold {
     pub files: Vec<ScaffoldFile>,
 }
 
-/// The merge-driver name the `.gitattributes` stanza binds (spec 020). Its
-/// presence in an existing `.gitattributes` is what makes appending idempotent.
-const MERGE_DRIVER_NAME: &str = "spec-spine-derived-regen";
-
-/// Generate the adopter scaffold for `cfg`. Pure; performs no IO.
+/// The marker whose presence in an existing `.gitignore` means the scaffold's
+/// exclusion block is already there (spec 120 §3.3).
 ///
-/// `with_kit` (spec 065) adds the session harness at the adopter's own paths.
-/// Every file keeps `overwrite: false`, so `init` in a repository that already
-/// has one is told rather than silently clobbering it. That matters most for
-/// `AGENTS.md`: an adopter who has written their own is the common case in a
-/// repository that has been worked in, and overwriting a cross-agent authority
-/// document would destroy project protocol no backup makes obvious.
-pub fn scaffold_init_with(cfg: &Config, with_kit: bool) -> Result<Scaffold, Error> {
-    let mut scaffold = scaffold_init(cfg)?;
-    if with_kit {
-        for (rel_path, contents) in crate::kit_embedded::KIT_FILES {
-            // The three `.claude/rules/` files plain `init` already writes are
-            // the same three the kit carries (spec 047 keeps them in sync), so
-            // they are not duplicated here.
-            if scaffold.files.iter().any(|f| f.rel_path == *rel_path) {
-                continue;
-            }
-            scaffold.files.push(ScaffoldFile {
-                rel_path: (*rel_path).to_string(),
-                contents: (*contents).to_string(),
-                // Spec 074 3.4: every `.sh` the scaffold writes is executable.
-                // Set from the destination path rather than listed, so a script
-                // added to the kit later cannot be forgotten here.
-                executable: rel_path.ends_with(".sh"),
-                // Spec 074 3.3: the binding for the driver the hooks register.
-                append: *rel_path == ".gitattributes",
-                append_marker: (*rel_path == ".gitattributes")
-                    .then(|| MERGE_DRIVER_NAME.to_string()),
-                ..Default::default()
-            });
-        }
-    }
-    Ok(scaffold)
-}
+/// A marker rather than a whole-block comparison, because a consumer's
+/// repository may reformat or comment the block and must not receive a second
+/// copy on the next run. It is the block's own first line, so it is present in
+/// anything the scaffold wrote and absent from anything it did not.
+const GITIGNORE_MARKER: &str = "# spec-spine: transient metadata and runtime state";
 
 /// Generate the adopter scaffold for `cfg`. Pure; performs no IO.
 pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
@@ -132,24 +116,17 @@ pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
             CONSTITUTION_TEMPLATE.to_string(),
         ),
         file(format!("{specs}/000-bootstrap/spec.md"), bootstrap_spec(ns)),
-        file(
-            ".claude/rules/orchestrator-rules.md".to_string(),
-            ORCHESTRATOR_RULES.to_string(),
-        ),
-        file(
-            ".claude/rules/governed-artifact-reads.md".to_string(),
-            GOVERNED_READS.to_string(),
-        ),
-        file(
-            ".claude/rules/adversarial-prompt-refusal.md".to_string(),
-            REFUSAL_RULE.to_string(),
-        ),
-        file(".gitignore".to_string(), gitignore(cfg)),
-        // Spec 065 §3.1: unconditional, not a kit extra. It is the cross-agent
-        // authority every governed repository needs, and a scaffold that wrote
-        // three `.claude/rules/` files and no protocol would have written the
-        // constraints without the procedure.
-        file("AGENTS.md".to_string(), agents_md(cfg)),
+        // Spec 120 §3.3: the `.gitignore` fragment is content for the consumer
+        // to RECONCILE, not permission to replace an ignore file the repository
+        // already has. It is returned as an append with a marker, and the
+        // writer decides only whether the file exists.
+        ScaffoldFile {
+            rel_path: ".gitignore".to_string(),
+            contents: gitignore(cfg),
+            append: true,
+            append_marker: Some(GITIGNORE_MARKER.to_string()),
+            ..Default::default()
+        },
     ];
 
     Ok(Scaffold { files })
@@ -325,113 +302,6 @@ fn quoted(values: &[String]) -> String {
         .join(", ")
 }
 
-/// The scaffolded `AGENTS.md` (spec 065 §3.1).
-///
-/// Config-aware like everything else in the scaffold: the corpus root, the
-/// derived directory and the binary invocation come from `Config`, so a
-/// non-default layout scaffolds coherently.
-fn agents_md(cfg: &Config) -> String {
-    let specs = cfg.layout.specs_dir.trim_end_matches('/');
-    let derived = cfg.layout.derived_dir.trim_end_matches('/');
-    format!(
-        "# AGENTS.md\n\
-         \n\
-         The cross-agent authority for this repository, read by Claude Code,\n\
-         Codex CLI, Cursor, Copilot and any other agent via the AAIF/Linux\n\
-         Foundation `AGENTS.md` standard. Edit this file to evolve the protocol;\n\
-         the skills defer to it rather than restating it.\n\
-         \n\
-         ## New Sessions\n\
-         \n\
-         Run these reads before doing any work. Nothing here mutates the tree,\n\
-         so there is no required ordering.\n\
-         \n\
-         - `spec-spine check`: the freshness read for **both** committed trees,\n\
-         \x20 the spec registry and the codebase index, in one verb (spec 075).\n\
-         \x20 `0` both fresh, `2` stale (report which tree it named and\n\
-         \x20 continue; repairing the tree is later, committed work, not a side\n\
-         \x20 effect of reading it), `1` the corpus fails validation, which is\n\
-         \x20 the first task of the session rather than an aside, `3` a read\n\
-         \x20 that could not be performed, so freshness is unknown for both.\n\
-         - `spec-spine registry status-report --nonzero-only`: lifecycle counts.\n\
-         - `spec-spine registry plan`: what can be worked on now, and what blocks\n\
-         \x20 the rest.\n\
-         - `spec-spine index coverage`: which source files no spec claims.\n\
-         - `git log --oneline -10`: recent history.\n\
-         \n\
-         Do **not** substitute a writing `compile` or `index` for `check`. A\n\
-         read that repairs the tree hides the fact that the *committed* copy was\n\
-         stale, so the drift then reads as an uncommitted local edit rather than\n\
-         as a defect on the branch. `check` carries the never-writes contract of\n\
-         both primitives it composes, which is what lets a read call it.\n\
-         \n\
-         **Ask `spec-spine --version` before believing any exit code.** Every\n\
-         binary ever released answers it, and it exits 0. If the version predates\n\
-         the flag you are about to pass, upgrade; do not interpret the exit code\n\
-         of a flag the binary does not have. Where `[meta] required_version` is\n\
-         set in `spec-spine.toml`, the CLI checks this on every run and the\n\
-         manual step is unnecessary.\n\
-         \n\
-         ## Working the backlog\n\
-         \n\
-         One spec per pull request, then stop.\n\
-         \n\
-         1. **Pick the spec.** `spec-spine registry plan --next` names it.\n\
-         2. **Branch.** A feature branch named after the spec id. Never commit to\n\
-         \x20  the default branch.\n\
-         3. **Re-read the design before coding.** If the design is imprecise,\n\
-         \x20  record the choice in the spec. If it is wrong, stop and report;\n\
-         \x20  never rewrite an approved spec to match code you just wrote.\n\
-         4. **Implement within the territory.** Claim every new file in the\n\
-         \x20  spec's ownership edges. Touching a unit another spec owns is an\n\
-         \x20  `extends` edge naming that spec and unit; that amends nobody.\n\
-         \x20  Never edit `{derived}/` by hand.\n\
-         5. **Run the gate before every commit** (below), and commit the\n\
-         \x20  regenerated shards with the code they describe.\n\
-         6. **Verify, then ship.** `spec-spine verify <id>` runs the spec's\n\
-         \x20  declared acceptance. A `Spec-Drift-Waiver:` line needs explicit\n\
-         \x20  human approval and is cited in the pull request body; an agent\n\
-         \x20  never writes one on its own authority.\n\
-         \n\
-         ## The gate\n\
-         \n\
-         This list is the definition. Every skill that says \"the gate as\n\
-         `AGENTS.md` lists it\" means exactly this, in this order:\n\
-         \n\
-         ```sh\n\
-         spec-spine compile\n\
-         spec-spine index\n\
-         spec-spine lint --fail-on-warn\n\
-         spec-spine check\n\
-         spec-spine couple --base \"$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)\" --head HEAD\n\
-         # spec-spine index coverage --fail-on-untraced  # if [coupling] require_ownership is on\n\
-         # spec-spine check --fail-on-unresolved --fail-on-warn  # opt in once the corpus builds what it claims\n\
-         ```\n\
-         \n\
-         The base ref is resolved from the repository rather than assumed to be\n\
-         `origin/main` (spec 072). Set `$SPEC_SPINE_DEFAULT_BRANCH` to override\n\
-         the branch the push gate protects and `Makefile` compares against.\n\
-         \n\
-         Uncomment the two optional lines to match your CI, and keep this list\n\
-         and your CI job identical: the skills tell their reader to run \"the\n\
-         gate as `AGENTS.md` lists it\", so a step CI enforces and this list\n\
-         omits is a step every session skips. The second is opt-in by design: a\n\
-         corpus that ratifies before it builds legitimately carries unresolved\n\
-         units while work is under way.\n\
-         \n\
-         In CI, `compile --check` replaces `compile` and the writing `index` is\n\
-         dropped: a gate must never repair the tree it is judging. `make gate`\n\
-         runs exactly that read-only form if you installed the kit's `Makefile`.\n\
-         \n\
-         ## Project layer\n\
-         \n\
-         Everything above is repository-invariant. Put what is specific to this\n\
-         project here: the corpus lives in `{specs}/`, the derived artifacts in\n\
-         `{derived}/`, and anything else an agent needs to know (how to build,\n\
-         how to test, which paths are generated, who ratifies a spec).\n"
-    )
-}
-
 /// The scaffolded `.gitignore` (spec 061 §3.1).
 ///
 /// Every adopter independently learned that `build-meta.json` carries a wall
@@ -448,7 +318,9 @@ fn agents_md(cfg: &Config) -> String {
 fn gitignore(cfg: &Config) -> String {
     let derived = cfg.layout.derived_dir.trim_end_matches('/');
     let mut out = format!(
-        "# spec-spine writes wall-clock metadata here. It is the one\n\
+        "{GITIGNORE_MARKER}\n\
+         #\n\
+         # spec-spine writes wall-clock metadata here. It is the one\n\
          # non-deterministic artifact and is excluded from every determinism and\n\
          # golden check, so it must never be committed.\n\
          {derived}/**/build-meta.json\n"
@@ -757,49 +629,6 @@ This constitution may be amended by an ordinary spec that `amends` it and is\n\
 approved, provided the amendment does not contradict a `specs/000` `unamendable`\n\
 anchor.\n";
 
-const ORCHESTRATOR_RULES: &str = "# Orchestrator rules\n\
-\n\
-- Execute phased work in order; stop at human checkpoints.\n\
-- Write output files where the spec says; do not invent locations.\n\
-- Keep the working tree green; never leave the coupling gate red.\n\
-- Recompute derived artifacts (`spec-spine compile`, `spec-spine index`)\n\
-\u{20}\u{20}before opening a PR, and commit the regenerated shards with the change that\n\
-\u{20}\u{20}made them stale. A shard left uncommitted dirties the tree for whoever comes\n\
-\u{20}\u{20}next.\n\
-- One session, one spec: follow `AGENTS.md` \"Working the backlog\", then stop.\n";
-
-const GOVERNED_READS: &str = "# Governed artifact reads\n\
-\n\
-The compiled artifacts under the derived directory are read **only** through\n\
-`spec-spine` subcommands (`registry`, `index`), never via ad-hoc `jq`, `grep`,\n\
-`python`, `awk`, or `sed` over the JSON. Typed reads make schema drift fail at\n\
-the deserializer with a clean error instead of silently encoding stale\n\
-assumptions.\n\
-\n\
-Parsing the *output* of a `spec-spine` subcommand (for example\n\
-`spec-spine registry plan --json`, or the `--json` verdict envelope any gate\n\
-verb emits) is a typed read and is allowed: the tool has already deserialized\n\
-the shards and is answering in a contract it versions. The rule is about the\n\
-shard files, not about the CLI's answers.\n";
-
-const REFUSAL_RULE: &str = "# Adversarial prompt refusal (the coherence guard)\n\
-\n\
-If the coupling gate fails because code and its owning spec disagree, do **not**\n\
-resolve it by editing the spec to match the code you just wrote. Surface the\n\
-contradiction and let a human (or an agent with explicit authority recorded in\n\
-the spec) decide. Never amend an owning spec purely to satisfy a mechanical\n\
-refresh; waive instead, with a cited `Spec-Drift-Waiver:` line. A waiver is a\n\
-human instrument: it needs explicit human approval, and an agent never writes\n\
-one on its own authority.\n\
-\n\
-Two edits are always legitimate for the spec you are implementing: adding a\n\
-file you created to its `establishes` list (the ownership ratchet refuses an\n\
-unclaimed file, and the claim belongs in the same change), and recording a\n\
-dated decision entry for a choice the spec was silent on. Changing what the\n\
-spec *requires* is never yours to do mid-build. If the code needs to touch a\n\
-unit another spec owns, declare an `extends` edge naming that spec and unit;\n\
-that amends nobody.\n";
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -811,7 +640,10 @@ mod tests {
         assert!(paths.contains(&"spec-spine.toml"));
         assert!(paths.contains(&"standards/spec/constitution.md"));
         assert!(paths.contains(&"specs/000-bootstrap/spec.md"));
-        assert!(paths.contains(&".claude/rules/adversarial-prompt-refusal.md"));
+        // Spec 120 3.3: governance only. The three `.claude/rules/` files this
+        // used to assert are a development environment, and the environment has
+        // another owner; `tests/scaffold.rs` holds the exact set.
+        assert!(!paths.iter().any(|p| p.starts_with(".claude/")));
         // Default generator never forces an overwrite.
         assert!(s.files.iter().all(|f| !f.overwrite));
     }

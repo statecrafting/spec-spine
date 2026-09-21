@@ -65,7 +65,7 @@ A spec whose block runs `verify` on itself is refused with `R-001` rather
 than recursed. That refusal is correct; report it as a finding against the
 spec's Verification block, not as a tool failure.
 
-The verb reads the spec markdown, never `.derived/`, and it is deliberately
+The verb reads the spec markdown, never `.statecraft/derived/`, and it is deliberately
 not part of the gate chain: it executes what the corpus declares, and the
 gate chain runs against branches whose contents are, in the general case, a
 stranger's.

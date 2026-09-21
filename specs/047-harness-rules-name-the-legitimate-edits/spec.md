@@ -19,10 +19,6 @@ amends:
 extends:
   - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/src/scaffold.rs", nature: additive }
   - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/tests/scaffold.rs", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/.claude/rules/orchestrator-rules.md", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/.claude/rules/governed-artifact-reads.md", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/.claude/rules/adversarial-prompt-refusal.md", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/AGENTS.md", nature: additive }
   - { spec: "029-claude-code-skill-kit", unit: "AGENTS.md", nature: additive }
 establishes:
   - ".claude/rules/orchestrator-rules.md"

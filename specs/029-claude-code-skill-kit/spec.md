@@ -1,7 +1,8 @@
 ---
 id: "029-claude-code-skill-kit"
 title: "Claude Code skill kit: a vendored, governed adoption bundle"
-status: approved
+status: superseded
+superseded_by: "120-the-engine-ships-governance-not-an-environment"
 kind: "tooling"
 created: "2026-06-24"
 implementation: complete
@@ -9,8 +10,12 @@ owner: "The spec-spine Authors"
 risk: low
 depends_on:
   - "006-init-scaffold"
-establishes:
-  - "kit/"
+# Spec 120 §3.4 removed `kit/`, this spec's whole territory, and §3.11 records
+# why the claim is withdrawn here rather than in a grammar this corpus does not
+# have. The document is left exactly as it was ratified: it is an accurate
+# record of what was true between 2026-06 and 2026-09-20, and nothing below
+# this line is edited. The status says the authority moved; spec 120 declares
+# the `supersedes` edge that says where.
 summary: >
   spec-spine ships a copy-ready Claude Code skill kit under kit/: a substrate-
   agnostic bundle of skills, agents, rules, and config templates that layers a

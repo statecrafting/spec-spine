@@ -1,7 +1,7 @@
 ---
 id: api-reference
 title: API Reference
-sidebar_position: 6
+sidebar_position: 7
 ---
 
 # API Reference
@@ -48,15 +48,25 @@ pub struct Waiver    { pub reason: String }
 
 Coupling returns a `CoupleReport` even if drift is detected. Drift is data, not an `Error` variant. The CLI maps `report.has_blocking_drift()` to exit code 1.
 
-## Config Load and Init
+## Config Load and Scaffold
 
 ```rust
 // Parse and validate spec-spine.toml
 pub fn load_config(toml_src: &str) -> Result<Config, Error>;
 
-// Returns files-as-data for the CLI to write
+// Returns governance starter files as data; the caller decides what to write
 pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error>;
 ```
+
+`scaffold_init` (and its JSON facade `scaffold_init_json`) is the only
+initialization-adjacent surface spec-spine has. It is a pure function of its
+argument: it writes nothing, reads no environment, spawns no process and opens
+no connection. It emits the configuration, the constitution, the contract, the
+two templates, the bootstrap spec and a `.gitignore` fragment, and nothing
+else: no `AGENTS.md`, no agent configuration, no CI workflow, no `Makefile`.
+There is no `spec-spine init` command. See
+[Statecraft and spec-spine](statecraft.md#the-producer-contract) for the full
+contract and the layout values a consumer passes.
 
 ## The Overlay Seam
 

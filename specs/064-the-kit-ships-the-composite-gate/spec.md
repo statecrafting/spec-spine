@@ -13,8 +13,6 @@ depends_on:
   - "024-index-sharding"
   - "051-harness-runs-the-verbs-it-ships"
 extends:
-  - { spec: "029-claude-code-skill-kit", unit: "kit/", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/README.md", nature: additive }
   - { spec: "020-derived-artifact-merge-driver", unit: ".githooks/", nature: additive }
   # This repository adopts the kit's Makefile as its own CI entry point (3.4),
   # and the new artifacts join the hashed-input set so a change to the gate
@@ -23,12 +21,7 @@ extends:
   - { spec: "057-claimed-but-unwitnessed", unit: "spec-spine.toml", nature: additive }
 establishes:
   # Created by this spec (2), so claimed by it.
-  - "kit/Makefile"
-  - "kit/govern.yml"
-  - "kit/.gitattributes-stanza"
-  - "kit/.githooks/enable-merge-driver.sh"
-  - "kit/.githooks/merge-derived-index.sh"
-  - "crates/spec-spine-core/tests/kit_gate.rs"
+  - "crates/spec-spine-core/tests/gate.rs"
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
   - { unit: { kind: file, path: ".github/workflows/ci.yml" }, role: exemplar }

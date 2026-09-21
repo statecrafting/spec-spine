@@ -3489,8 +3489,14 @@ fn the_git_inventory_keeps_tracked_and_new_files_and_drops_ignored_and_missing()
 
 /// §3.1, §3.7: `config show` prints both keys, and a scaffolded
 /// `spec-spine.toml` carries them as a commented default.
+///
+/// The scaffold half used to run `spec-spine init` and read the file off disk.
+/// Spec 120 §3.1 removed that verb; the producer it called is still exported,
+/// so the half is asserted through the library instead of dropped. What is
+/// being tested here is the CONTENT of the scaffolded configuration, which is
+/// the same fact either way.
 #[test]
-fn config_show_and_init_carry_the_scope_keys() {
+fn config_show_and_the_scaffold_carry_the_scope_keys() {
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path();
     let show = run_in(root, &["config", "show"]);
@@ -3506,9 +3512,14 @@ fn config_show_and_init_carry_the_scope_keys() {
         "{json}"
     );
 
-    let init = run_in(root, &["init"]);
-    assert_eq!(code(&init), 0, "{}", String::from_utf8_lossy(&init.stderr));
-    let toml = fs::read_to_string(root.join("spec-spine.toml")).unwrap();
+    let scaffold = spec_spine_core::scaffold_init(&spec_spine_types::Config::default()).unwrap();
+    let toml = scaffold
+        .files
+        .iter()
+        .find(|f| f.rel_path == "spec-spine.toml")
+        .expect("the scaffold produces the config")
+        .contents
+        .clone();
     assert!(toml.contains("[coverage]"), "{toml}");
     assert!(toml.contains("# governed_scope = ["), "{toml}");
     assert!(toml.contains("dir/**/*"), "the glob trap is named: {toml}");
@@ -4292,5 +4303,114 @@ fn spec103_registry_show_carries_amends_verification() {
         shard["record"]["amendsVerification"],
         serde_json::json!(["093-a"]),
         "{shard}"
+    );
+}
+
+// ── spec 120 §3.7: the relocated derived tree, end to end ─────────────────
+
+/// A corpus whose derived tree is at the managed layout's path compiles,
+/// indexes, and is judged there: fresh, stale, missing and orphaned all get the
+/// answer they get at the default path.
+///
+/// Built from nothing on every run, so an empty or default corpus cannot
+/// produce the green: the first assertion is that the shards landed under
+/// `.statecraft/derived/` and that `.derived/` was never created.
+#[test]
+fn statecraft_derived_layout_compiles_indexes_and_is_judged() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    fs::write(
+        root.join("spec-spine.toml"),
+        "[layout]\nderived_dir = \".statecraft/derived\"\nstate_dir = \".statecraft/state\"\n",
+    )
+    .unwrap();
+    write_spec(root, "001-a", "001-a", "approved");
+    write_spec(root, "002-b", "002-b", "approved");
+    let run = |args: &[&str]| bin().arg("--repo").arg(root).args(args).output().unwrap();
+
+    assert_eq!(code(&run(&["compile"])), 0);
+    assert_eq!(code(&run(&["index"])), 0);
+
+    let shard = root.join(".statecraft/derived/spec-registry/by-spec/001-a.json");
+    assert!(
+        shard.is_file(),
+        "the registry shard landed at the configured path"
+    );
+    assert!(
+        root.join(".statecraft/derived/codebase-index/by-spec/001-a.json")
+            .is_file(),
+        "and so did the index shard"
+    );
+    assert!(
+        !root.join(".derived").exists(),
+        "nothing was written at the default path"
+    );
+
+    // Fresh.
+    assert_eq!(code(&run(&["check"])), 0, "both trees are current");
+
+    // Stale: edit a spec without recomputing.
+    let spec_md = root.join("specs/002-b/spec.md");
+    let body = fs::read_to_string(&spec_md).unwrap();
+    fs::write(
+        &spec_md,
+        body.replace("summary: \"s\"", "summary: \"changed\""),
+    )
+    .unwrap();
+    assert_eq!(code(&run(&["check"])), 2, "a stale relocated tree is stale");
+    assert_eq!(code(&run(&["compile"])), 0);
+    assert_eq!(code(&run(&["index"])), 0);
+    assert_eq!(code(&run(&["check"])), 0, "and recomputing clears it");
+
+    // Missing: delete a committed shard.
+    let missing = root.join(".statecraft/derived/spec-registry/by-spec/002-b.json");
+    fs::remove_file(&missing).unwrap();
+    assert_eq!(code(&run(&["check"])), 2, "a missing shard is staleness");
+    assert!(
+        !missing.exists(),
+        "the gate did not repair the tree it judged"
+    );
+    assert_eq!(code(&run(&["compile"])), 0);
+    assert!(missing.is_file(), "and a writing compile did");
+
+    // Orphaned: a committed shard whose spec the corpus no longer has (spec
+    // 095). Produced the way it happens in life, by removing the spec and
+    // leaving the shard, rather than by inventing a file: a hand-written stray
+    // is a content mismatch, which is staleness and a different answer.
+    write_spec(root, "003-c", "003-c", "approved");
+    assert_eq!(code(&run(&["compile"])), 0);
+    assert_eq!(code(&run(&["index"])), 0);
+    assert_eq!(code(&run(&["check"])), 0);
+    fs::remove_dir_all(root.join("specs/003-c")).unwrap();
+    let orphaned = run(&["check"]);
+    assert_eq!(
+        code(&orphaned),
+        2,
+        "a stray shard at the relocated path is refused, as it is at the default \
+         (spec 095: exit 2, named as orphaned)"
+    );
+    let report = format!(
+        "{}{}",
+        String::from_utf8_lossy(&orphaned.stdout),
+        String::from_utf8_lossy(&orphaned.stderr)
+    );
+    assert!(report.contains("003-c"), "the orphan is named: {report}");
+    fs::remove_file(root.join(".statecraft/derived/spec-registry/by-spec/003-c.json")).unwrap();
+    fs::remove_file(root.join(".statecraft/derived/codebase-index/by-spec/003-c.json")).unwrap();
+    assert_eq!(code(&run(&["check"])), 0);
+
+    // The effective configuration reports the relocated roots, and the gate's
+    // bypass floor carries the configured derived root (spec 120 §3.8).
+    let cfg = run(&["config", "show"]);
+    assert_eq!(code(&cfg), 0);
+    let text = String::from_utf8_lossy(&cfg.stdout);
+    assert!(
+        text.contains("derived_dir = \".statecraft/derived\""),
+        "{text}"
+    );
+    assert!(text.contains("state_dir = \".statecraft/state\""), "{text}");
+    assert!(
+        text.contains(".statecraft/derived/"),
+        "the bypass floor names the configured derived root: {text}"
     );
 }

@@ -1,7 +1,7 @@
 ---
 id: schema-and-versioning
 title: Schema and Versioning
-sidebar_position: 8
+sidebar_position: 9
 ---
 
 # Schema and Versioning

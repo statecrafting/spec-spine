@@ -46,7 +46,7 @@ Edit `specs/<spec-id>/spec.md`: `implementation: pending` becomes
 
 ```sh
 spec-spine compile && spec-spine index
-git add specs/<spec-id>/spec.md .derived/
+git add specs/<spec-id>/spec.md .statecraft/derived/
 git commit -m "chore(<NNN>): start <spec-id>"
 ```
 

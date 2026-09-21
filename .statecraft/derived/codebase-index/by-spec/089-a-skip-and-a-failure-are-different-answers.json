@@ -1,0 +1,33 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "064-the-kit-ships-the-composite-gate",
+      "065-init-and-the-kit-are-one-adoption"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/tests/gate.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/gate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      }
+    ],
+    "specId": "089-a-skip-and-a-failure-are-different-answers",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "169e439f679f48219a7cf2c3359652c8a583d95bf586a8c5772e74ba93464abe"
+}

@@ -1,7 +1,7 @@
 ---
 id: extending-and-overlays
 title: Extending and Overlays
-sidebar_position: 7
+sidebar_position: 8
 ---
 
 # Extending and Overlays

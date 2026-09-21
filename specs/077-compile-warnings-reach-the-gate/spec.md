@@ -32,18 +32,13 @@ extends:
   # 3.4 the registry half carries its own warning tally, beside the index half's.
   - { spec: "050-index-diagnostics-reach-a-gate", unit: "crates/spec-spine-core/src/diagnostics.rs", nature: additive }
   # 3.5 the gate chain, in every place it is written down.
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/Makefile", nature: additive }
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/govern.yml", nature: additive }
   - { spec: "064-the-kit-ships-the-composite-gate", unit: ".github/workflows/ci.yml", nature: additive }
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/kit_gate.rs", nature: additive }
+  - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/gate.rs", nature: additive }
   # 3.5 the protocol. The root-AGENTS.md attribution is inherited, not endorsed:
   # see the 2026-09-08 decision in section 5.
   - { spec: "029-claude-code-skill-kit", unit: "AGENTS.md", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/AGENTS.md", nature: additive }
   - { spec: "048-kit-ships-the-governed-loop-skills", unit: ".claude/skills/", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/.claude/skills/", nature: additive }
-  - { spec: "051-harness-runs-the-verbs-it-ships", unit: "crates/spec-spine-core/tests/kit_skills.rs", nature: additive }
-  - { spec: "065-init-and-the-kit-are-one-adoption", unit: "crates/spec-spine-core/src/kit_embedded.rs", nature: additive }
+  - { spec: "051-harness-runs-the-verbs-it-ships", unit: "crates/spec-spine-core/tests/harness_skills.rs", nature: additive }
   - { spec: "067-the-docs-name-what-adopters-derived", unit: "docs/adoption-guide.md", nature: additive }
 summary: >
   `V-010`, a `depends_on` naming a spec that does not exist, is the only

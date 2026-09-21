@@ -29,13 +29,14 @@ Exit codes are a stable contract across the entire CLI surface:
 
 | Command | Capability |
 |---|---|
-| [`spec-spine init`](init.md) | Scaffold a new adopter (config, standards, specs/000, rules). |
 | [`spec-spine compile`](compile.md) | Validate frontmatter and emit the deterministic registry. |
 | [`spec-spine index`](index.md) | Scan manifests and specs to emit the codebase index. Includes `check`, `render`, and `orphans` subcommands. |
 | [`spec-spine registry`](registry.md) | Typed read-only queries against the compiled registry. Includes `list`, `show`, `status-report`, `relationships`, and `plan` (the ready set). |
 | [`spec-spine lint`](lint.md) | Check corpus conformance. |
 | [`spec-spine couple`](couple.md) | The PR-time drift gate. |
 | [`spec-spine attest` / `verify-attestation`](attest.md) | A signed, reproducible record of the gate verdicts over the corpus or one spec (`--spec`), and its verification. |
+
+There is no initialization command. `spec-spine init` was removed, along with its `--force` and `--with-kit` flags, and nothing replaces it under another name: it now fails as an unknown subcommand (exit 3). Setting a project up is the [Statecraft CLI's](../statecraft.md) job, and the only piece spec-spine retains is a library function that returns governance starter files as data.
 
 ## Machine-readable verdicts (`--json`)
 

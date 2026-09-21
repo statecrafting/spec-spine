@@ -71,7 +71,7 @@ Dockerfile* text eol=lf
 # conflict markers. Opt-in: register the driver per-clone with
 # `./.githooks/enable-merge-driver.sh` (see CLAUDE.md). If unregistered, git
 # falls back to the default text merge; no behavior change.
-.derived/spec-registry/by-spec/*.json merge=spec-spine-derived-regen
-.derived/codebase-index/by-spec/*.json merge=spec-spine-derived-regen
-.derived/codebase-index/by-package/*.json merge=spec-spine-derived-regen
-.derived/codebase-index/slices.json merge=spec-spine-derived-regen
+.statecraft/derived/spec-registry/by-spec/*.json merge=spec-spine-derived-regen
+.statecraft/derived/codebase-index/by-spec/*.json merge=spec-spine-derived-regen
+.statecraft/derived/codebase-index/by-package/*.json merge=spec-spine-derived-regen
+.statecraft/derived/codebase-index/slices.json merge=spec-spine-derived-regen

@@ -1,0 +1,10 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "spec-spine-types",
+    "path": "crates/spec-spine-types",
+    "specRef": "000-spec-spine-bootstrap"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "97e00893b09b6654d57820811472daa2f9996b6c211606f2b2e03b9cd0e7b256"
+}

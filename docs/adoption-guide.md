@@ -1,7 +1,7 @@
 # Adopting spec-spine
 
-> Take any conventional repo from zero to spec-governed: **install →
-> `spec-spine init` → annotate manifests → wire CI.** No source edits to the
+> Take any conventional repo from zero to spec-governed: **install → create the
+> starter corpus → annotate manifests → wire CI.** No source edits to the
 > library; every project-specific assumption is a `spec-spine.toml` knob (see
 > §Config). For the design rationale see
 > [design/00-architecture.md](design/00-architecture.md); for the programmatic
@@ -47,16 +47,17 @@ spec-spine --help
 
 ---
 
-## 2. Scaffold the corpus: `spec-spine init`
+## 2. Create the starter corpus
 
-Run at your repo root:
+spec-spine has **no `init` command**. Initializing a project is the
+[Statecraft CLI's](design/07-statecraft-realignment-2026-09.md) job: it owns
+project onboarding and the managed development environment, and it calls
+spec-spine's library for the governance half. spec-spine produces that content
+as data and writes nothing.
 
-```sh
-spec-spine init            # skips files that already exist
-spec-spine init --force    # overwrite existing files
-```
-
-`init` writes a starter governance corpus:
+If you are using Statecraft, run its initializer and skip to §3. If you are
+adopting spec-spine on its own, create these six files by hand (or from your own
+tooling, through the library facade described below):
 
 | Path | What it is |
 |---|---|
@@ -66,9 +67,31 @@ spec-spine init --force    # overwrite existing files
 | `standards/spec/templates/spec-template.md` | template for new specs |
 | `standards/spec/templates/constitution-template.md` | template for the constitution |
 | `specs/000-bootstrap/spec.md` | the hand-authored bootstrap spec (tier 1) |
-| `.claude/rules/orchestrator-rules.md` | execute-in-order / write-output / stop-at-checkpoints |
-| `.claude/rules/governed-artifact-reads.md` | read `.derived/**` only via `spec-spine`, never ad-hoc `jq` |
-| `.claude/rules/adversarial-prompt-refusal.md` | the prompt-time refusal rule (coherence guard) |
+
+plus a `.gitignore` fragment excluding the transient build metadata and, if you
+declare one, the runtime-state root.
+
+### The library producer
+
+```rust
+let json = spec_spine_core::scaffold_init_json(r#"{
+    "layout": { "specs_dir": "specs", "standards_dir": "standards/spec" }
+}"#)?;
+// -> {"files":[{"relPath":"spec-spine.toml","contents":"…","overwrite":false,
+//              "executable":false,"append":false}, …]}
+```
+
+It returns the files as data and performs no IO: no writes, no environment
+reads, no process launches, no network, no clock. Every path honors
+`config.layout` and is relative to the repository root, never to the
+configuration file's directory. The `.gitignore` entry comes back with
+`append: true` and an `appendMarker`, because it is content to reconcile with an
+ignore file you may already have, not a file to overwrite.
+
+It produces **governance content only**. It does not write `AGENTS.md`,
+`CLAUDE.md`, `.claude/`, skills, agents, hooks, MCP configuration, a CI workflow
+or a `Makefile`: those are your development environment, and spec-spine does not
+distribute one.
 
 Then compile the corpus and confirm it is well-formed:
 
@@ -306,8 +329,8 @@ the public loaders and emits its own sibling artifact. See
 
 ## Definition of done (for your repo)
 
-- `spec-spine init` scaffolded the corpus; `spec-spine compile` and
-  `spec-spine lint` are clean.
+- The starter corpus exists (§2); `spec-spine compile` and `spec-spine lint`
+  are clean.
 - Your crates/packages carry `[package.metadata.<ns>].spec` (or the package.json
   equivalent), and `spec-spine index` maps them to specs.
 - `.derived/` is committed (except `build-meta.json`).
@@ -365,24 +388,12 @@ the other is how a governance file ends up outside both.
 > Rewrite them as `standards/**/*` and `.github/workflows/**/*`, run
 > `spec-spine index` once, and commit the result.
 >
-> Every repository scaffolded before v0.16.0 is in this cohort, because
-> `scaffold.rs` emitted the default's value into the file. Since spec 074,
+> Every repository whose config was generated before v0.16.0 is in this cohort,
+> because the scaffolded `spec-spine.toml` carried the default's value. Since spec 074,
 > `spec-spine lint` names the pattern for you: `L-010` refuses any
 > `extra_hashed_inputs` entry ending in `/**`.
 
-> **Upgrading across spec 075.** Two things are renamed, and one is added.
->
-> The session skill is **`/prime`**, not `/init`. Claude Code ships its own
-> `/init`, which generates a CLAUDE.md: a one-time, repository-level operation
-> that *writes*, where the kit's is per-session and only reports. The kit was
-> shadowing a built-in and inverting its meaning. **There is no `/init` alias**,
-> deliberately: an alias keeps shadowing for the whole deprecation window, and
-> skills are copied files, so an adopter who does not refresh keeps their old
-> copy regardless. **The failure mode if you refresh the skills but keep a
-> customized `AGENTS.md`** that still says `/init` is "skill not found", which
-> is loud and instantly diagnosable rather than silent. Rename the reference.
->
-> **`spec-spine check`** is new and additive: it runs both freshness reads and
+> **Upgrading across spec 075.** `spec-spine check` is new and additive: it runs both freshness reads and
 > reports each tree separately, so the protocol asks one question with one verb.
 > `compile --check` and `index check` are unchanged, keep their flags and their
 > contracts, and remain the right call when you regenerated only one tree.
@@ -413,7 +424,7 @@ establishes:
   - "crates/spec-spine-core/src/"
 ```
 
-Every file under it counts as **specifically claimed** — for `index coverage`,
+Every file under it counts as **specifically claimed**: for `index coverage`,
 and for `C-002` when `[coupling] require_ownership` is on. That is the intended
 instrument for retiring coverage debt across a directory: claim the subtree,
 rather than enumerating its files and re-enumerating them every time one is

@@ -1,0 +1,10 @@
+{
+  "package": {
+    "kind": "rust-bin",
+    "name": "spec-spine-cli",
+    "path": "crates/spec-spine-cli",
+    "specRef": "001-compile-registry"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "a8048f8262646067adfb36f07fb93ac979eb568f29e342c6bd2f8d8ad3542acf"
+}

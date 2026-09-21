@@ -553,7 +553,7 @@ sh -c 'A=$(target/release/spec-spine registry relationships 016-short-id-resolut
 # 3.3 attest: the same payload bytes, which a short-form attestation over zero units would not be.
 sh -c 'A=$(target/release/spec-spine attest --spec 070-a-malformed-id-is-refused-not-a-panic --json); B=$(target/release/spec-spine attest --spec 070 --json); echo "$A" | grep -q "\"contentHash\": \"" && test "$A" = "$B"'
 # 3.3 attest: the file is named by the resolved id, and nothing is named after the argument.
-sh -c 'D=.derived/attestation/by-spec; rm -f "$D/070.json" "$D/070-a-malformed-id-is-refused-not-a-panic.json"; target/release/spec-spine attest --spec 070 >/dev/null || exit 1; test -f "$D/070-a-malformed-id-is-refused-not-a-panic.json" && test ! -e "$D/070.json"'
+sh -c 'D=.statecraft/derived/attestation/by-spec; rm -f "$D/070.json" "$D/070-a-malformed-id-is-refused-not-a-panic.json"; target/release/spec-spine attest --spec 070 >/dev/null || exit 1; test -f "$D/070-a-malformed-id-is-refused-not-a-panic.json" && test ! -e "$D/070.json"'
 # 3.2 and D-6 a path is not an id: each of these resolved through the filesystem before 084.
 sh -c 'for a in ../specs/070-a-malformed-id-is-refused-not-a-panic 070-a-malformed-id-is-refused-not-a-panic/; do target/release/spec-spine verify "$a" --plan >/dev/null 2>&1; test $? -eq 1 || { echo "resolved a path: $a" >&2; exit 1; }; done; E=$(target/release/spec-spine compile --spec ./070-a-malformed-id-is-refused-not-a-panic 2>&1); echo "$E" | grep -q "not found" && ! echo "$E" | grep -q V-001'
 # 3.4 no source file outside spec_id.rs carries the ordinal-segment match.
@@ -566,7 +566,7 @@ sh -c 'for c in "registry show 016-short-id-resolution" "registry relationships 
 sh -c 'target/release/spec-spine registry show 999 >/dev/null 2>&1; test $? -eq 1'
 sh -c 'target/release/spec-spine registry show 16 >/dev/null 2>&1; test $? -eq 1'
 # 3.2 and D-4 step 4 at verify-attestation, whose set is the attestation files: with 016's removed, 016 matches none and falls through to exit 3.
-sh -c 'rm -f .derived/attestation/by-spec/016-short-id-resolution.json; target/release/spec-spine verify-attestation --spec 016 --recompute >/dev/null 2>&1; test $? -eq 3'
+sh -c 'rm -f .statecraft/derived/attestation/by-spec/016-short-id-resolution.json; target/release/spec-spine verify-attestation --spec 016 --recompute >/dev/null 2>&1; test $? -eq 3'
 # 3.2 validate_spec_id still refuses a path-shaped argument at verify-attestation, at exit 3 (a guard).
 sh -c 'target/release/spec-spine verify-attestation --spec ../x --recompute >/dev/null 2>&1; test $? -eq 3'
 # A scratch corpus whose two specs share an ordinal, the mistake a new draft makes.

@@ -12,17 +12,12 @@ depends_on:
   - "047-harness-rules-name-the-legitimate-edits"
   - "048-kit-ships-the-governed-loop-skills"
 extends:
-  - { spec: "029-claude-code-skill-kit", unit: "kit/.claude/rules/", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/README.md", nature: additive }
   # The kit's rule set is embedded for `init --with-kit` (spec 065) and its
   # agreement with this repository's copy is asserted beside the skills.
-  - { spec: "048-kit-ships-the-governed-loop-skills", unit: "crates/spec-spine-core/tests/kit_skills.rs", nature: additive }
-  - { spec: "065-init-and-the-kit-are-one-adoption", unit: "crates/spec-spine-core/src/kit_embedded.rs", nature: additive }
-  - { spec: "065-init-and-the-kit-are-one-adoption", unit: "scripts/gen-kit-embedded.py", nature: additive }
+  - { spec: "048-kit-ships-the-governed-loop-skills", unit: "crates/spec-spine-core/tests/harness_skills.rs", nature: additive }
   - { spec: "064-the-kit-ships-the-composite-gate", unit: "spec-spine.toml", nature: additive }
 establishes:
   # Created by this spec (3.1), shipped to adopters and carried here (3.4).
-  - "kit/.claude/rules/derived-artifacts-are-compiler-output.md"
   - ".claude/rules/derived-artifacts-are-compiler-output.md"
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }

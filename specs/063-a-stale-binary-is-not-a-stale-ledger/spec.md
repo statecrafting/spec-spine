@@ -13,14 +13,12 @@ depends_on:
   - "062-a-version-pin-the-cli-can-check"
 extends:
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/settings.json", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/AGENTS.md", nature: additive }
   - { spec: "029-claude-code-skill-kit", unit: "AGENTS.md", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
   # This repository runs the hooks it ships (spec 051), so the kit change is
   # mirrored here, and the read-only predicate learns `--version` (3.3).
   - { spec: "051-harness-runs-the-verbs-it-ships", unit: ".claude/settings.json", nature: additive }
-  - { spec: "046-kit-hooks-read-never-write", unit: "crates/spec-spine-core/tests/kit_hooks.rs", nature: additive }
+  - { spec: "046-kit-hooks-read-never-write", unit: "crates/spec-spine-core/tests/harness_hooks.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }
 summary: >

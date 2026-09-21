@@ -1,0 +1,83 @@
+{
+  "record": {
+    "created": "2026-09-16",
+    "dependsOn": [
+      "046-kit-hooks-read-never-write",
+      "051-harness-runs-the-verbs-it-ships",
+      "063-a-stale-binary-is-not-a-stale-ledger",
+      "080-a-gate-that-cannot-ask-says-so",
+      "098-a-blocking-claim-is-not-a-stale-shard"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "051-harness-runs-the-verbs-it-ships",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-claimed-but-unwitnessed",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "046-kit-hooks-read-never-write",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/harness_hooks.rs"
+        }
+      }
+    ],
+    "id": "099-the-session-hooks-report-the-verdict",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/06-harness-and-distribution-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "099: The session hooks report the verdict, not a guess",
+      "1. Purpose",
+      "1.1 One hook learned to read the exit code; two did not",
+      "1.2 What each hook says today, reproduced",
+      "1.3 Why the remedy is the expensive part",
+      "1.4 What this spec does not decide",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The `Stop` hook reads the exit code and the report",
+      "3.2 The binary is asked whether it has the verb, before its code is believed",
+      "3.3 The `SessionStart` hook reports the unresolved-claim verdict",
+      "3.4 One change, three copies",
+      "3.5 The acceptance runs the shipped bodies against a stand-in binary",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/099-the-session-hooks-report-the-verdict/spec.md",
+    "status": "approved",
+    "summary": "Spec 080 taught the PR gate to read `spec-spine check`'s exit code; the two session hooks never got the same treatment. The `Stop` hook discards the verb's output and prints `[freshness] STALE: run spec-spine compile and index` on every non-zero exit, so a corpus that fails validation (1), a config error (3) and a spec claiming a unit that does not exist (2) all arrive as staleness with a remedy that provably does not clear any of them. The `SessionStart` hook matches only `codebase-index: STALE`, so after spec 098 an unresolved claim falls to `unknown (check exit 2)` and the mixed verdict reports the stale half while dropping the unresolved one. All four cases were reproduced at 0.19.0 against a scratch corpus. This spec makes both hooks read the verdict the verb reached, across all three shipped copies. It changes no hook's posture: both still advise and neither refuses, so design note 06's open question H-6 is untouched.\n",
+    "title": "The session hooks report the verdict, not a guess"
+  },
+  "shardHash": "2d026fc37cb81d8556f1273dc7c44e12c5e1ea7b0ca2e6aaf4b1ebaee4e04073",
+  "specVersion": "1.3.0"
+}

@@ -27,11 +27,8 @@ depends_on:
 extends:
   # The skill body. 048 pins the repository copy to the kit's, and 100
   # generates both trees from the kit source, so the edit is made once.
-  - { spec: "048-kit-ships-the-governed-loop-skills", unit: "kit/.claude/skills/", nature: additive }
   - { spec: "048-kit-ships-the-governed-loop-skills", unit: ".claude/skills/", nature: additive }
-  - { spec: "100-one-source-generates-the-agent-trees", unit: ".agents/skills/", nature: additive }
-  - { spec: "065-init-and-the-kit-are-one-adoption", unit: "crates/spec-spine-core/src/kit_embedded.rs", nature: additive }
-  - { spec: "048-kit-ships-the-governed-loop-skills", unit: "crates/spec-spine-core/tests/kit_skills.rs", nature: additive }
+  - { spec: "048-kit-ships-the-governed-loop-skills", unit: "crates/spec-spine-core/tests/harness_skills.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---

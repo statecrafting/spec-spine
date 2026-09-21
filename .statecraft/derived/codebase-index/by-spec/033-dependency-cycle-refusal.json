@@ -1,0 +1,50 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "001-compile-registry",
+      "016-short-id-resolution"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/src/compile.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/compile.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/compile.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/compile.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/compile.rs"
+        }
+      }
+    ],
+    "specId": "033-dependency-cycle-refusal",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "96ce86e424af4e84a1d3634c1c452062a7c8d7b9db4fe871ade1715714d47335"
+}

@@ -28,12 +28,9 @@ depends_on:
   - "089-a-skip-and-a-failure-are-different-answers"
   - "103-an-amended-acceptance-is-the-one-that-runs"
 extends:
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/Makefile", nature: additive }
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/govern.yml", nature: additive }
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/kit_gate.rs", nature: additive }
+  - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/gate.rs", nature: additive }
   # The kit files are embedded verbatim, so a kit edit restamps the generated
   # copy (spec 065 3.6).
-  - { spec: "065-init-and-the-kit-are-one-adoption", unit: "crates/spec-spine-core/src/kit_embedded.rs", nature: additive }
   # 3.4's assertion parses the workflow rather than searching its text, and the
   # parser is a dev-dependency of the crate the test lives in. D-11.
   - { spec: "001-compile-registry", unit: "crates/spec-spine-core/Cargo.toml", nature: additive }

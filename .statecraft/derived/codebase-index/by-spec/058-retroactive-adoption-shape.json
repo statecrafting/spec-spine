@@ -1,0 +1,103 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "003-conformance-lint",
+      "022-keypath-section-anchors",
+      "043-governance-document-gaps"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/src/lint.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/sections.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/lint.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "standards/spec/constitution.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/lint.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/sections.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/sections.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/lint.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/lint.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "standards/spec/constitution.md",
+            "span": {
+              "endLine": 83,
+              "startLine": 53
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "refines",
+        "unit": {
+          "anchor": "v-legacy-as-evidence",
+          "file": "standards/spec/constitution.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/03-adopter-audit-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/03-adopter-audit-2026-09.md"
+        }
+      }
+    ],
+    "specId": "058-retroactive-adoption-shape",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "f8cbf5be19514a6e7c2216c09088a6ed0071cd5977805a41921b30eb0ce113a6"
+}

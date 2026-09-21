@@ -1,0 +1,10 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "spec-spine-core",
+    "path": "crates/spec-spine-core",
+    "specRef": "001-compile-registry"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "857dcefaab4980b3cc5ef220dc53aaeec460fa4d1e142fda300f27a225f26ceb"
+}

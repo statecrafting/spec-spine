@@ -30,11 +30,10 @@ extends:
   # The hand-maintained string literal, and the two suites that assert it.
   - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/src/scaffold.rs", nature: additive }
   - { spec: "006-init-scaffold", unit: "crates/spec-spine-core/tests/scaffold.rs", nature: additive }
-  - { spec: "006-init-scaffold", unit: "crates/spec-spine-cli/tests/init.rs", nature: additive }
   # 3.2's parity test lands beside the gate-chain assertions it reuses, in a
   # file spec 064 established. Without this edge the test the spec requires is
   # an unclaimed edit and the coupling gate refuses the build that writes it.
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/kit_gate.rs", nature: additive }
+  - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/gate.rs", nature: additive }
 amends: ["065-init-and-the-kit-are-one-adoption"]
 # 3.5: this spec's `## Verification` block IS 065's acceptance from now on.
 # 065's file is not edited (spec 040 3.1). What changes is one assertion in it,

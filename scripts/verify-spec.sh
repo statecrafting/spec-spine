@@ -15,7 +15,7 @@
 #
 # `verify:browser` blocks are counted and skipped: only an orchestrator with a
 # browser stage drives those. The script reads the spec markdown, never
-# `.derived/`, and runs commands through `sh -c` from the repo root, so a
+# `.statecraft/derived/`, and runs commands through `sh -c` from the repo root, so a
 # command may reference `spec-spine`, `make`, `cargo`, or anything on PATH.
 set -u
 

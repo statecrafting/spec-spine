@@ -30,16 +30,11 @@ depends_on:
   # dependency on the gate this spec's measurement runs, not on a behavior.
   - "114-one-gate-definition-that-holds-on-a-code-free-corpus"
 extends:
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/.githooks/enable-hooks.sh", nature: additive }
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/.githooks/enable-merge-driver.sh", nature: additive }
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/.githooks/merge-derived-index.sh", nature: additive }
   # 2 puts the commit-boundary hook and its kit original in the territory: a
   # header is left in place only because nothing reads it today (D-5).
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "kit/.githooks/pre-commit", nature: additive }
   # Spec 064 3.3 asserts the two trees are equal, so the edit lands in both.
   - { spec: "020-derived-artifact-merge-driver", paths: [".githooks/enable-hooks.sh", ".githooks/enable-merge-driver.sh", ".githooks/merge-derived-index.sh", ".githooks/pre-commit"] }
-  - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/kit_gate.rs", nature: additive }
-  - { spec: "065-init-and-the-kit-are-one-adoption", unit: "crates/spec-spine-core/src/kit_embedded.rs", nature: additive }
+  - { spec: "064-the-kit-ships-the-composite-gate", unit: "crates/spec-spine-core/tests/gate.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/05-remaining-waves-2026-09.md" }, role: context }
 ---

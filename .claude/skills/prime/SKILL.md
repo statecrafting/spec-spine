@@ -33,7 +33,7 @@ never this file, so every agent stays in sync.
 - The protocol's governed reads go through the `spec-spine` invocation
   `AGENTS.md` names. If `spec-spine --version` fails, run `/setup` first
   (an in-tree build if `AGENTS.md` says the binary is built from source);
-  never fall back to parsing `.derived/` by hand.
+  never fall back to parsing `.statecraft/derived/` by hand.
 - `/prime` reports, it does not mutate: `spec-spine check` is the freshness
   read, never a bare `compile` or `index`. It answers for both committed
   trees and writes nothing. A stale verdict is reported with the shards it

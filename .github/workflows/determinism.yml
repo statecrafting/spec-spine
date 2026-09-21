@@ -89,8 +89,8 @@ jobs:
           }
           mkdir -p digests
           {
-            echo "${{ matrix.triple }} registry $(digest_tree .derived/spec-registry)"
-            echo "${{ matrix.triple }} index    $(digest_tree .derived/codebase-index)"
+            echo "${{ matrix.triple }} registry $(digest_tree .statecraft/derived/spec-registry)"
+            echo "${{ matrix.triple }} index    $(digest_tree .statecraft/derived/codebase-index)"
           } | tee "digests/${{ matrix.triple }}.txt"
       - uses: actions/upload-artifact@v7
         with:

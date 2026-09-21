@@ -72,7 +72,7 @@ function Feature({title, description}: FeatureItem) {
   );
 }
 
-function AdoptionKitCard() {
+function AdoptionCard() {
   return (
     <div className={styles.adoptionCard}>
       <div className="container">
@@ -81,13 +81,13 @@ function AdoptionKitCard() {
             <div className={styles.adoptionCardInner}>
               <h2>Adopt the governed workflow</h2>
               <p>
-                spec-spine + the Claude Code skill kit: a complete governed
-                development workflow for agentic software engineering.
+                Take a conventional repository from zero to spec-governed:
+                create the corpus, annotate the code, wire the gate into CI.
               </p>
               <Link
                 className="button button--primary button--lg"
-                to="/docs/claude-code/overview">
-                View the Adoption Kit
+                to="/docs/adoption-guide">
+                Read the Adoption Guide
               </Link>
             </div>
           </div>
@@ -114,7 +114,7 @@ export default function Home(): React.JSX.Element {
             </div>
           </div>
         </section>
-        <AdoptionKitCard />
+        <AdoptionCard />
       </main>
     </Layout>
   );

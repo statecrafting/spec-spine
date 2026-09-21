@@ -139,13 +139,37 @@ impl LayoutConfig {
     /// `stateful/x`: a prefix test on the raw string would silently ungovern a
     /// sibling directory that merely shares a name.
     pub fn is_state_path(&self, path: &str) -> bool {
-        let root = trim_root(&self.state_dir);
-        if root.is_empty() {
-            return false;
-        }
-        let path = trim_root(path);
-        path == root || path.strip_prefix(root).is_some_and(|r| r.starts_with('/'))
+        under(&self.state_dir, path)
     }
+
+    /// Whether `path` (repo-relative, POSIX) lies under the **configured**
+    /// derived root (spec 120 §3.8).
+    ///
+    /// The derived tree is compiler output wherever it is configured to sit,
+    /// and two places in the engine used to answer that question by spelling
+    /// the default: the coupling gate's built-in bypass floor, and the source
+    /// and territory walks (which prune by path *component*, a form that cannot
+    /// express a nested root like `.statecraft/derived` without also excluding
+    /// every directory named `derived` anywhere in the tree).
+    ///
+    /// Same separator-aware matching as [`Self::is_state_path`], and for the
+    /// same reason: a raw prefix test would swallow a sibling `.derived-old/`.
+    /// Unlike the state root this is never empty in a valid configuration, so
+    /// there is no "not declared" answer.
+    pub fn is_derived_path(&self, path: &str) -> bool {
+        under(&self.derived_dir, path)
+    }
+}
+
+/// Whether `path` is `root` or lies beneath it, both reduced by [`trim_root`].
+/// An empty root matches nothing.
+fn under(root: &str, path: &str) -> bool {
+    let root = trim_root(root);
+    if root.is_empty() {
+        return false;
+    }
+    let path = trim_root(path);
+    path == root || path.strip_prefix(root).is_some_and(|r| r.starts_with('/'))
 }
 
 /// A layout root reduced to its comparable form: no trailing slash, and no

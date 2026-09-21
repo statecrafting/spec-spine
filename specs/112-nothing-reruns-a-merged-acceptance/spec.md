@@ -586,7 +586,7 @@ test -f "${TMPDIR:-/tmp}/ss112/precious/keepme"
 # --- 3.1, 3.2: the sweep is a caller; it changes nothing about the tool ---
 # It is not a subcommand, and it is in no skill's gate floor or CI job.
 ! target/release/spec-spine --help 2>&1 | grep -qE '^[[:space:]]+sweep'
-! grep -rqF 'verify-sweep' .github/workflows/ .claude/skills/ kit/
+! grep -rqF 'verify-sweep' .github/workflows/ .claude/skills/
 # It reads the corpus through the governed verbs only.
 grep -qF 'registry list --ids-only' scripts/verify-sweep.sh
 grep -qF 'verify "$1" --plan' scripts/verify-sweep.sh

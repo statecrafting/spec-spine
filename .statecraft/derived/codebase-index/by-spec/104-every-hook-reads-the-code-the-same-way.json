@@ -1,0 +1,67 @@
+{
+  "mapping": {
+    "amends": [
+      "080-a-gate-that-cannot-ask-says-so"
+    ],
+    "dependsOn": [
+      "063-a-stale-binary-is-not-a-stale-ledger",
+      "080-a-gate-that-cannot-ask-says-so",
+      "099-the-session-hooks-report-the-verdict"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".claude/settings.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/harness_hooks.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".claude/settings.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/harness_hooks.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/harness_hooks.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/06-harness-and-distribution-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/06-harness-and-distribution-2026-09.md"
+        }
+      }
+    ],
+    "specId": "104-every-hook-reads-the-code-the-same-way",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "1bb25a0132e450262476d9c57641666247980d0ae2f208d75aac6a7f7dd0189b"
+}

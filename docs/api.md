@@ -28,7 +28,7 @@ CLI and excluded from determinism/golden checks.
 | Crate | Role | Depend on it when… |
 |---|---|---|
 | `spec-spine-types` | DTOs, frontmatter grammar, `Config`, schema-version constants, embedded JSON Schemas, the `Error` enum | you only need the data shapes (e.g. an overlay reading the registry) |
-| `spec-spine-core` | the engine: `compile` / `index` / `lint` / `couple` / query + `scaffold_init` + the JSON facade | you are embedding the engine or building over the artifacts |
+| `spec-spine-core` | the engine: `compile` / `index` / `lint` / `couple` / query + the governance `scaffold_init` producer + the JSON facade | you are embedding the engine, building over the artifacts, or initializing a corpus from your own tooling |
 | `spec-spine-cli` | the thin `spec-spine` multi-call binary | you want the command-line tool (`cargo install spec-spine-cli`) |
 
 `spec-spine-core` re-exports the whole type substrate, so a Rust caller can
@@ -143,10 +143,17 @@ use spec_spine_types::{Config, load_config};
 // workspace default with specs/ at the root).
 pub fn load_config(toml_src: &str) -> Result<Config, Error>;
 
-// init returns files-as-data; the CLI writes them. Keeps core IO-light & testable.
+// The governance scaffold returns files-as-data; the CONSUMER writes them
+// (spec 120: the Statecraft CLI, since there is no `spec-spine init`). Pure:
+// no writes, no environment reads, no process launches, no clock. It produces
+// spec-spine.toml, the constitution, the contract, the two templates, the
+// bootstrap spec and a .gitignore fragment, and no agent or environment
+// artifact of any kind.
 pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error>;
 pub struct Scaffold     { pub files: Vec<ScaffoldFile> }
-pub struct ScaffoldFile { pub rel_path: String, pub contents: String, pub overwrite: bool }
+pub struct ScaffoldFile { pub rel_path: String, pub contents: String, pub overwrite: bool,
+                          pub executable: bool, pub append: bool,
+                          pub append_marker: Option<String> }
 ```
 
 Every `Config` sub-struct is `#[serde(default, deny_unknown_fields)]`: a

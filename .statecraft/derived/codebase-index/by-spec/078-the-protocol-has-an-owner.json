@@ -1,0 +1,36 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "029-claude-code-skill-kit",
+      "048-kit-ships-the-governed-loop-skills",
+      "051-harness-runs-the-verbs-it-ships",
+      "057-claimed-but-unwitnessed",
+      "075-one-name-one-freshness-verb"
+    ],
+    "implementingPaths": [
+      {
+        "path": "AGENTS.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "AGENTS.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      }
+    ],
+    "specId": "078-the-protocol-has-an-owner",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "90c0a9147296cc3426a7f5f4823a3f11cf7c960d7eb9a07cc58481549096271b"
+}

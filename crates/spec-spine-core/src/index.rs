@@ -1299,10 +1299,11 @@ fn resolve_unit(
 pub const COMMENT_HEADER_CLAIM_WINDOW: usize = 16;
 
 /// The last line the near-miss scan reads for a header below the claim window
-/// (spec 094 §3.6). Measured: over this repository's tree, the scanner's own
-/// recognizer finds no resolving header in lines 17 to 64, and past 64 finds
-/// only embedded file content (`kit_embedded.rs`), which is not a misplaced
-/// header.
+/// (spec 094 §3.6). Measured on this repository's tree at the time: the
+/// scanner's own recognizer found no resolving header in lines 17 to 64, and
+/// past 64 found only embedded file content, in the generated module spec 120
+/// §3.4 has since removed. That was not a misplaced header either, which is the
+/// reason the window stops here.
 pub const COMMENT_HEADER_REPORT_WINDOW: usize = 64;
 
 /// Scan package source files for a `// Spec: <specs_dir>/NNN-slug/spec.md` header.
@@ -1736,7 +1737,20 @@ fn territory_pruned(
     exclusions: &[String],
     layout: &LayoutConfig,
 ) -> bool {
-    is_excluded(repo_root, path, exclusions) || layout.is_state_path(&rel_posix(repo_root, path))
+    if is_excluded(repo_root, path, exclusions) {
+        return true;
+    }
+    let rel = rel_posix(repo_root, path);
+    // Spec 039 §3.5: the declared state root, which no `resolver_exclusions`
+    // entry can express or cancel. Spec 120 §3.8: the configured derived root,
+    // for the same reason and with the same force. `resolver_exclusions`
+    // matches path COMPONENTS, so the default `.derived` was reachable as one
+    // and a nested `.statecraft/derived` is not: expressing it there would take
+    // the form `derived`, which excludes every directory of that name anywhere
+    // in the tree. Compiler output is compiler output wherever it is
+    // configured to sit, and the walks should not need a configuration key to
+    // know what the tool itself wrote.
+    layout.is_state_path(&rel) || layout.is_derived_path(&rel)
 }
 
 /// The directories at or beneath `dir` that the territory walk reaches and that

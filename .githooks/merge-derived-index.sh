@@ -7,9 +7,9 @@
 #
 # Git merge driver `spec-spine-derived-regen` for the committed derived
 # artifacts, which since spec 024 are sharded per authority unit:
-#   .derived/spec-registry/by-spec/<id>.json        (compiler output)
-#   .derived/codebase-index/by-spec/<id>.json        (indexer output)
-#   .derived/codebase-index/by-package/<slug>.json   (indexer output)
+#   .statecraft/derived/spec-registry/by-spec/<id>.json        (compiler output)
+#   .statecraft/derived/codebase-index/by-spec/<id>.json        (indexer output)
+#   .statecraft/derived/codebase-index/by-package/<slug>.json   (indexer output)
 #
 # Sharding means two PRs that touch DIFFERENT specs/packages write disjoint
 # files and no longer conflict at all. This driver covers the residual RARE
@@ -30,9 +30,9 @@
 #   git config --unset merge.spec-spine-derived-regen.name
 #
 # Path assignment lives in committed .gitattributes (the shard globs):
-#   .derived/spec-registry/by-spec/*.json    merge=spec-spine-derived-regen
-#   .derived/codebase-index/by-spec/*.json    merge=spec-spine-derived-regen
-#   .derived/codebase-index/by-package/*.json merge=spec-spine-derived-regen
+#   .statecraft/derived/spec-registry/by-spec/*.json    merge=spec-spine-derived-regen
+#   .statecraft/derived/codebase-index/by-spec/*.json    merge=spec-spine-derived-regen
+#   .statecraft/derived/codebase-index/by-package/*.json merge=spec-spine-derived-regen
 #
 # Git invokes:  <driver> %O %A %B %P
 #   $1 = %O  ancestor version  (unused: both artifacts are fully derived)
@@ -87,7 +87,7 @@ if [ -z "$BIN" ]; then
 [merge-derived-index] no spec-spine binary found; cannot auto-resolve $PATHNAME.
             Build it (\`cargo build --bin spec-spine\`), then re-run the rebase/merge,
             or resolve manually:
-                spec-spine compile && spec-spine index && git add .derived/
+                spec-spine compile && spec-spine index && git add .statecraft/derived/
 EOF
   exit 1
 fi
@@ -99,7 +99,7 @@ if ! "$BIN" compile >/dev/null 2>&1 || ! "$BIN" index >/dev/null 2>&1; then
   cat >&2 <<EOF
 [merge-derived-index] \`spec-spine compile && index\` failed; leaving conflict in
             $PATHNAME for manual resolution
-            (\`spec-spine compile && spec-spine index && git add .derived/\`).
+            (\`spec-spine compile && spec-spine index && git add .statecraft/derived/\`).
 EOF
   exit 1
 fi

@@ -8,11 +8,11 @@ sidebar_position: 5
 
 This guide explains how to take a conventional repository from zero to spec-governed. There are no source edits to the library required; every project-specific assumption is a configurable knob.
 
-:::tip Driving spec-spine with Claude Code
-To run the governed workflow with an AI agent, see [Use with Claude Code](claude-code/overview.md): a ready-to-copy kit of skills, agents, and rules that chains the gate into everyday development.
+:::tip Driving spec-spine with an agent
+spec-spine does not ship an agent harness. The skills, agents, rules and hooks that chain the gate into everyday development are the [Statecraft CLI's](statecraft.md), which is also what initializes a managed project.
 :::
 
-The process involves four steps: **install**, **init**, **annotate**, and **wire CI**.
+The process below is what an adopter does by hand: **install**, **create the corpus**, **annotate**, and **wire CI**.
 
 ## 1. Install
 
@@ -23,17 +23,17 @@ Choose the distribution channel that fits your stack. See the [Installation](get
 cargo install spec-spine-cli --version 0.8.0 --locked
 ```
 
-## 2. Scaffold the corpus
+## 2. Create the corpus
 
-Run the initialization command at your repository root:
+spec-spine has no initialization command. Either let the [Statecraft CLI](statecraft.md) initialize the project, or write the starter files yourself:
 
-```bash
-spec-spine init
-```
+- `spec-spine.toml` at the repository root. Every knob has a default, so it can start nearly empty; see [Configuration](configuration.md).
+- `standards/spec/constitution.md` and `standards/spec/contract.md`, the tier-2 durable principles and their normative summary.
+- `specs/000-bootstrap/spec.md`, the tier-1 spec that defines what a spec is.
 
-This creates your `spec-spine.toml` configuration, the `standards/` directory containing constitutional templates, and your first tier-1 spec at `specs/000-bootstrap/spec.md`.
+A consumer embedding the library gets the same set as data from `scaffold_init_json`; see [the producer contract](statecraft.md#the-producer-contract).
 
-Compile and lint the empty corpus to ensure everything is well-formed:
+Compile and lint the corpus to ensure everything is well-formed:
 
 ```bash
 spec-spine compile
@@ -85,7 +85,7 @@ extends:
 ---
 ```
 
-After annotating, build the codebase index and commit the `.derived/` directory (excluding `build-meta.json`):
+After annotating, build the codebase index and commit the derived directory (`.derived/` by default, excluding `build-meta.json`):
 
 ```bash
 spec-spine index

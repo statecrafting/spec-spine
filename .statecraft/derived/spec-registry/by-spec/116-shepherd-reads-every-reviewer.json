@@ -1,0 +1,66 @@
+{
+  "record": {
+    "created": "2026-09-17",
+    "dependsOn": [
+      "048-kit-ships-the-governed-loop-skills",
+      "081-the-kit-ships-what-the-loop-calls",
+      "082-a-refusal-is-not-a-remediation-round",
+      "100-one-source-generates-the-agent-trees"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "048-kit-ships-the-governed-loop-skills",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "048-kit-ships-the-governed-loop-skills",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/harness_skills.rs"
+        }
+      }
+    ],
+    "id": "116-shepherd-reads-every-reviewer",
+    "implementation": "complete",
+    "kind": "harness",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "116: Shepherd reads every reviewer",
+      "1. Purpose",
+      "1.1 One endpoint, three places a reviewer writes",
+      "1.2 The green path never reaches Step 3b",
+      "1.3 The report then states an absence it never measured",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The thread read covers every place a reviewer can write",
+      "3.2 The threads are read before the merge checkpoint, on every path",
+      "3.3 An unread absence is never reported as an absence",
+      "3.4 What a thread can and cannot cause",
+      "3.5 The copies stay equal",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/116-shepherd-reads-every-reviewer/spec.md",
+    "status": "approved",
+    "summary": "`/shepherd` reads review threads from one GitHub endpoint, `pulls/<n>/comments`, which returns only comments anchored to a line of the diff. This repository's AI review pass posts with `gh pr comment`, which writes to `issues/<n>/comments`, and a review's own body goes to `pulls/<n>/reviews`; neither is ever fetched. The second blindness is structural and larger: Step 1 routes an all-green PR straight to Step 4, so on the path where a reviewer's comment is the only thing standing between a PR and a merge, Step 3b does not run at all. The skill then reports `Review threads: none`, which is a claim it did not check. This spec makes the thread read cover every place a reviewer can write, makes it happen before the merge checkpoint on every path, and forbids reporting an absence that was never looked for.\n",
+    "title": "Shepherd reads every reviewer"
+  },
+  "shardHash": "fe2a323bfca7b97aa64ce90bac9e064cdf871675b654d07cfa932d8cb0250c7d",
+  "specVersion": "1.3.0"
+}

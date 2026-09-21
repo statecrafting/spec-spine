@@ -103,8 +103,12 @@ const config: Config = {
           title: 'More',
           items: [
             {
-              label: 'Use with Claude Code',
-              to: '/docs/claude-code/overview',
+              label: 'Adoption Guide',
+              to: '/docs/adoption-guide',
+            },
+            {
+              label: 'Statecraft and spec-spine',
+              to: '/docs/statecraft',
             },
           ],
         },

@@ -1545,3 +1545,134 @@ mod governed_scope {
         assert!(codes(&cfg, fx.path(), &["scripts/run.sh"]).is_empty());
     }
 }
+
+// ── spec 120 §3.8: the CONFIGURED derived root is bypassed ────────────────
+
+/// A configuration whose derived tree is not at the default path.
+fn relocated_derived() -> Config {
+    let mut cfg = Config::default();
+    cfg.layout.derived_dir = ".statecraft/derived".to_string();
+    cfg
+}
+
+/// The built-in floor spells `.derived/`. A repository that configures another
+/// derived root has every regenerated shard judged as source: `C-001` drift
+/// against a spec that says nothing about shard bytes, and `C-002` on top of it
+/// where the ratchet is on. The gate reads the configuration instead.
+///
+/// Both directions in one test, because the interesting half is the contrast:
+/// under the default configuration the relocated path is NOT bypassed (it is
+/// just an ordinary unclaimed file), and under the relocated configuration it
+/// is. A single-configuration assertion would pass against a gate that bypassed
+/// `.statecraft/derived/` unconditionally.
+#[test]
+fn the_configured_derived_root_is_bypassed_and_the_default_is_not_a_synonym() {
+    let index = index_from(json!([{
+        "specId": "001-a",
+        "implementingPaths": [],
+        "resolvedUnits": [{
+            "unit": { "kind": "file", "path": "src/lib.rs" },
+            "sourceField": "establishes",
+            "ownership": true,
+            "locations": [{ "file": "src/lib.rs" }]
+        }]
+    }]));
+
+    let shard = ".statecraft/derived/spec-registry/by-spec/001-a.json";
+    let old_shard = ".derived/spec-registry/by-spec/001-a.json";
+
+    assert!(
+        spec_spine_core::couple::is_bypassed_path(&relocated_derived(), &index, shard),
+        "the configured derived root must be bypassed"
+    );
+    assert!(
+        !spec_spine_core::couple::is_bypassed_path(&Config::default(), &index, shard),
+        "and it is bypassed BECAUSE it is configured, not because of its name"
+    );
+    // The default keeps working, unchanged, and keeps working in a repository
+    // that has moved: a tree mid-migration has both paths answered.
+    assert!(spec_spine_core::couple::is_bypassed_path(
+        &Config::default(),
+        &index,
+        old_shard
+    ));
+    assert!(spec_spine_core::couple::is_bypassed_path(
+        &relocated_derived(),
+        &index,
+        old_shard
+    ));
+    // Separator-aware: a sibling that merely shares the prefix is not derived.
+    assert!(!spec_spine_core::couple::is_bypassed_path(
+        &relocated_derived(),
+        &index,
+        ".statecraft/derived-backup/x.json"
+    ));
+    // And the rest of `.statecraft/` is ordinary governed territory.
+    assert!(!spec_spine_core::couple::is_bypassed_path(
+        &relocated_derived(),
+        &index,
+        ".statecraft/AGENTS.md"
+    ));
+}
+
+/// End to end through the gate: a change that touches only the relocated shard
+/// tree clears, and the same change under a configuration that does not declare
+/// that root does not.
+#[test]
+fn a_regenerated_shard_at_the_configured_derived_root_is_not_drift() {
+    let index = index_from(json!([{
+        "specId": "001-a",
+        "implementingPaths": [],
+        "resolvedUnits": [{
+            "unit": { "kind": "file", "path": "src/lib.rs" },
+            "sourceField": "establishes",
+            "ownership": true,
+            "locations": [{ "file": "src/lib.rs" }]
+        }]
+    }]));
+    let reg = empty_registry();
+    let changed = diff(vec![file(
+        ".statecraft/derived/spec-registry/by-spec/001-a.json",
+        &[LineSpan::new(1, 3)],
+    )]);
+
+    let cleared = couple_with(&relocated_derived(), &reg, &index, &changed, None).unwrap();
+    assert!(
+        !cleared.has_blocking_drift(),
+        "compiler output is not drift: {:?}",
+        cleared.violations
+    );
+    assert_eq!(
+        cleared.checked_paths, 0,
+        "a bypassed path is not even checked: {cleared:?}"
+    );
+
+    let unconfigured = couple_with(&Config::default(), &reg, &index, &changed, None).unwrap();
+    assert_eq!(
+        unconfigured.checked_paths, 1,
+        "without the configuration the same path is an ordinary changed file, \
+         so this test's green is not a property of the path's name"
+    );
+}
+
+/// The effective-bypass read (spec 016 D-3's consumer contract) reports the
+/// configured root too, so a tool judging another repository sees the same set
+/// the gate applies rather than a floor that is half a contract.
+#[test]
+fn the_effective_bypass_list_reports_the_configured_derived_root() {
+    let entries = spec_spine_core::couple::effective_bypass_prefixes(&relocated_derived());
+    let prefixes: Vec<&str> = entries.iter().map(|e| e.prefix.as_str()).collect();
+    assert!(prefixes.contains(&".statecraft/derived/"), "{prefixes:?}");
+    assert!(
+        prefixes.contains(&".derived/"),
+        "the floor is intact: {prefixes:?}"
+    );
+
+    // And the default configuration does not list it twice.
+    let default = spec_spine_core::couple::effective_bypass_prefixes(&Config::default());
+    assert_eq!(
+        default.iter().filter(|e| e.prefix == ".derived/").count(),
+        1,
+        "{default:?}"
+    );
+}

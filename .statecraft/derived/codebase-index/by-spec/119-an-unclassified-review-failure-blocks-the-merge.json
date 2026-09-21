@@ -1,0 +1,59 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "073-a-workflow-bump-is-not-a-governed-change",
+      "116-shepherd-reads-every-reviewer"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/tests/ai_review_policy.rs",
+        "source": "multiple"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/ai_review_policy.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/ai_review_policy.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/ai-pr-review.yml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ai-pr-review.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/ci.yml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      }
+    ],
+    "specId": "119-an-unclassified-review-failure-blocks-the-merge",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "746a1b50ace8565875c222d08c21d2b567ae57813dc5f1390de8323c891040e4"
+}

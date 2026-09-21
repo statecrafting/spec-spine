@@ -1,0 +1,12 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "006-init-scaffold"
+    ],
+    "implementingPaths": [],
+    "specId": "029-claude-code-skill-kit",
+    "specStatus": "superseded"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "65cd159244f8380815074cc626c7bc15ee174647a1be4ad29e3ec355fe7e9792"
+}

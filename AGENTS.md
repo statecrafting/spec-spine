@@ -16,9 +16,9 @@ The protocol drives the library through its own built binary, `target/release/sp
 
 0. **Load rules.** Read `.claude/rules/orchestrator-rules.md`,
    `.claude/rules/governed-artifact-reads.md`, AND
-   `.claude/rules/adversarial-prompt-refusal.md` (the three the library
-   scaffolds for every adopter via `spec-spine init`, and which it
-   carries for itself).
+   `.claude/rules/adversarial-prompt-refusal.md` (this repository's own
+   standing rules; since spec 120 the library scaffolds governance content
+   only, and the harness these belong to is Statecraft's).
 1. **Parallel reads.** Dispatch the following simultaneously (nothing here
    mutates the working tree, so there is no required ordering):
    - `CLAUDE.md`: project overview and conventions
@@ -52,11 +52,11 @@ The protocol drives the library through its own built binary, `target/release/sp
    unresolved-unit count from `index diagnostics`, recent activity, and a
    "ready to help with" line.
 
-**Read discipline:** the init protocol MUST NOT parse `.derived/**/*.json` directly (no `python`, `jq`, `awk`, `sed` against compiled artifacts). All structural and lifecycle data comes from the `spec-spine` subcommands (`registry`, `index`) and the rendered markdown view. See `.claude/rules/governed-artifact-reads.md`.
+**Read discipline:** the init protocol MUST NOT parse `.statecraft/derived/**/*.json` directly (no `python`, `jq`, `awk`, `sed` against compiled artifacts). All structural and lifecycle data comes from the `spec-spine` subcommands (`registry`, `index`) and the rendered markdown view. See `.claude/rules/governed-artifact-reads.md`.
 
 **Unresolved units:** `spec-spine index diagnostics` (spec 050) lists the `W-001` / `W-002` diagnostics the committed index records: a unit an owning spec claims that does not resolve yet. Empty output means none, which is the state a finished corpus is in. Report the count, and name the specs when there are any: a spec under way legitimately claims territory it has not written yet (specs 025 and 044), so these are work in flight, not defects. The gate half is `check --fail-on-unresolved`, which this repository's CI runs.
 
-**Freshness:** spec-spine **commits** its compiled artifacts. Since spec 024 both views are committed as per-unit shard trees: `.derived/spec-registry/by-spec/<id>.json` and `.derived/codebase-index/{by-spec,by-package}/*.json` are tracked (only `.derived/**/build-meta.json` is gitignored; no monolithic `registry.json`/`index.json` is committed). The committed shard set is the reference for lifecycle queries, so `/prime` has to know whether it is current.
+**Freshness:** spec-spine **commits** its compiled artifacts. Since spec 024 both views are committed as per-unit shard trees: `.statecraft/derived/spec-registry/by-spec/<id>.json` and `.statecraft/derived/codebase-index/{by-spec,by-package}/*.json` are tracked (only `.statecraft/derived/**/build-meta.json` is gitignored; no monolithic `registry.json`/`index.json` is committed). The committed shard set is the reference for lifecycle queries, so `/prime` has to know whether it is current.
 
 `spec-spine check` (spec 075) asks about both trees in one call. It compiles in memory and compares against the committed shards **without writing**, and it reports each tree separately: the registry half and the index half each keep the structure their own primitive emits, so the drifted shard names are still there to read back. Its exit code is the more severe of the two, in this order: **`3` then `1` then `2` then `0`**. Read it, and read the two report lines under it, because one code covers two trees:
 
@@ -77,7 +77,7 @@ That precondition replaces an older ritual of matching clap's English on stderr,
 
 Do **not** substitute a plain `spec-spine compile` or `spec-spine index` here. Writing would repair the tree as a side effect of reading it, which hides the fact that the *committed* copy was stale: the drift then looks like an uncommitted local edit instead of a defect on the branch (this is exactly how the spec 017/021 drift reached the default branch unnoticed). `/prime` reports; it does not silently mutate. `spec-spine check` carries the same never-writes contract, which is why the protocol can call it.
 
-**Binary missing or stale:** if the `spec-spine` binary is not built, or predates the commits in this checkout, run `cargo build --release -p spec-spine-cli` and continue (see **Stale binary** above for why a stale one misreports freshness). Do NOT fall back to ad-hoc parsing of `.derived/**`.
+**Binary missing or stale:** if the `spec-spine` binary is not built, or predates the commits in this checkout, run `cargo build --release -p spec-spine-cli` and continue (see **Stale binary** above for why a stale one misreports freshness). Do NOT fall back to ad-hoc parsing of `.statecraft/derived/**`.
 
 If any file is missing: log "not found" and continue.
 
@@ -104,7 +104,7 @@ corpus in step 1 and step 6. One spec per PR, then stop.
 4. **Implement within the territory.** Claim every new file in the new spec's
    `establishes` (or a `// Spec:` header when the file already has an
    owner). Touching a unit another spec owns is an `extends` edge on that
-   unit. Never edit `.derived/` by hand.
+   unit. Never edit `.statecraft/derived/` by hand.
 5. **Run the gate before every commit.** The governance floor, in this
    order (`compile` and `index` write; the checks follow):
 
@@ -119,13 +119,15 @@ corpus in step 1 and step 6. One spec per PR, then stop.
 
    The base ref is resolved from the repository rather than assumed to be
    `origin/main` (spec 072). Set `$SPEC_SPINE_DEFAULT_BRANCH` to override
-   the branch the push gate protects and `kit/Makefile` compares against.
+   the branch the push gate protects and the root `Makefile` compares against.
+   `make gate` runs exactly this list, read-only, and CI calls that target
+   rather than restating the chain (spec 120 3.6).
 
    then the stack's own gate: `cargo test --workspace --locked`,
    `cargo clippy --workspace --all-targets --locked -- -D warnings`,
    `cargo fmt --all --check`. Commit the regenerated shards with the code
    they describe. The skills call this list "the gate as `AGENTS.md` lists
-   it", and `kit_skills.rs` asserts each skill's inlined floor is a subset
+   it", and `harness_skills.rs` asserts each skill's inlined floor is a subset
    of it (spec 051), so a step added here reaches every skill. The binary
    is `target/release/spec-spine` (or `cargo run -p spec-spine-cli --`),
    never `npx spec-spine`.
@@ -152,9 +154,11 @@ Agents live in `.claude/agents/`. Four pipeline agents handle the plan/explore/i
 
 ## Available Commands
 
-Commands live in `.claude/skills/` (one `SKILL.md` per folder). They are the
-kit's ten, byte-identical to `kit/.claude/skills/` (specs 048 and 081 pin this):
-the project layer lives in this file, not in the skills.
+Commands live in `.claude/skills/` (one `SKILL.md` per folder): the ten specs
+048 and 081 settled on. Since spec 120 they are **this repository's own**
+development instruction rather than a set it distributes, and they stay until
+Statecraft's global delivery concretely replaces them. The project layer lives
+in this file, not in the skills.
 
 The governed loop, in the order "Working the backlog" runs it:
 
@@ -176,5 +180,5 @@ The skills the loop calls:
 
 - Items added to the "New Sessions" session protocol are auto-loaded by `/prime`.
 - Agents must be self-contained within `.claude/agents/`: no cross-project dependencies.
-- Orchestrated workflows must read compiled artifacts (`.derived/**`) through the `spec-spine` binary, never via ad-hoc parsers: see `.claude/rules/governed-artifact-reads.md`.
+- Orchestrated workflows must read compiled artifacts (`.statecraft/derived/**`) through the `spec-spine` binary, never via ad-hoc parsers: see `.claude/rules/governed-artifact-reads.md`.
 - Self-governance runs through the in-tree binary (`target/release/spec-spine`), not the published npm/py distributions.

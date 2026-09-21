@@ -47,17 +47,21 @@ their Linux binaries are glibc (Alpine/musl use `cargo install`). See
 ## Quickstart
 
 ```sh
-spec-spine init             # scaffold spec-spine.toml, standards/, specs/000, agent rules
 spec-spine compile          # specs/*/spec.md -> .derived/spec-registry/by-spec/<id>.json shards
 spec-spine index            # scan manifests + specs -> .derived/codebase-index/{by-spec,by-package}/ shards
 spec-spine lint             # corpus conformance
 spec-spine couple --base origin/main --head HEAD   # the PR-time drift gate
 ```
 
-See **[docs/adoption-guide.md](docs/adoption-guide.md)** for the full
-install → init → annotate → wire-CI walkthrough.
+A new corpus needs `spec-spine.toml`, `standards/spec/` and a bootstrap spec
+before those verbs have anything to read. spec-spine produces that starter
+content as **data**, through the library
+(`spec_spine_core::scaffold_init_json`); writing it into a repository is the
+**Statecraft CLI's** job, not this tool's. There is no `spec-spine init`
+command. See **[docs/adoption-guide.md](docs/adoption-guide.md)** and
+**[docs/design/07-statecraft-realignment-2026-09.md](docs/design/07-statecraft-realignment-2026-09.md)**.
 
-## The five capabilities + init
+## The capabilities
 
 | Command | Capability |
 |---|---|
@@ -69,7 +73,6 @@ install → init → annotate → wire-CI walkthrough.
 | `spec-spine couple` | the PR-time coupling gate (refuses drift; with `[coupling] require_ownership` also refuses a changed source file no spec claims) |
 | `spec-spine delta --base B --head H` | classify every path a change touches (implementation, requirement, verification, authority, lifecycle, constitutional, policy, derived, bypassed, unowned, unknown) under the **merge base's** configuration and index, and name the classes to judge under the base's policy (spec 088). A report, not a gate: `priorPolicy.required: false` does not mean the change is safe, correct or approved |
 | `spec-spine verify <id>` / `verify <id> --plan` | run a spec's declared acceptance: the `verify:cli` commands under its `## Verification` heading, in order, stopping at the first failure / print what would run without running it. **Executes code the corpus declares**, so it is deliberately not part of the gate chain (spec 049) |
-| `spec-spine init [--force]` | scaffold a new adopter |
 
 Exit codes: `0` ok · `1` validation failure / not found / drift · `2` stale ·
 `3` I/O / parse / schema / config.

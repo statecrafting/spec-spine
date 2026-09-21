@@ -22,13 +22,8 @@ establishes:
   - "scripts/verify-spec.sh"
   - { kind: directory, path: ".claude/skills/" }
   - { kind: directory, path: ".claude/agents/" }
-  - "crates/spec-spine-core/tests/kit_skills.rs"
+  - "crates/spec-spine-core/tests/harness_skills.rs"
 extends:
-  - { spec: "029-claude-code-skill-kit", unit: "kit/.claude/skills/", nature: superseding }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/.claude/agents/", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/AGENTS.md", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/README.md", nature: additive }
-  - { spec: "029-claude-code-skill-kit", unit: "kit/settings.json", nature: additive }
   - { spec: "029-claude-code-skill-kit", unit: "AGENTS.md", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/03-adopter-audit-2026-09.md" }, role: context }

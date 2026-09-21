@@ -253,22 +253,56 @@ fn the_json_facade_returns_the_same_plan() {
 
 // --- this repository's own corpus ----------------------------------------
 
-/// The parse must agree with the corpus it governs. 048 was the first approved
-/// spec carrying `verify:cli` fences, so it is the real-world fixture, and its
-/// commands are the shape the ported script produced. Six until 2026-09-09;
-/// five since spec 074 3.6 removed the kit's copy of the script and the `sh -n`
-/// line that checked it (048 D-7).
+/// The parse must agree with the corpus it governs, so one real spec is pinned
+/// command for command rather than only fixtures.
+///
+/// It was 048 from spec 049 until spec 120: 048 was the first approved spec
+/// carrying `verify:cli` fences, and its block was five commands (six until
+/// spec 074 §3.6). Spec 120 §3.12 declared 048's acceptance replaced, so a plan
+/// built for `048` is no longer 048's block, and the pin moved to a spec that
+/// still holds its own. 091 is that spec: six commands, no fixture setup, and
+/// a mix of positive and negated forms, which is what exercises the parse.
 #[test]
-fn spec_048_parses_to_its_five_commands() {
+fn spec_091_parses_to_its_six_commands() {
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    let plan = verify_plan(&cfg(), repo, "091").unwrap();
+    assert_eq!(plan.spec_id, "091-two-ready-specs-can-collide");
+    assert_eq!(plan.commands.len(), 6, "{:?}", plan.commands);
+    assert!(plan.commands[0].starts_with("cargo test"));
+    assert!(plan.commands.iter().any(|c| c.starts_with("! ")));
+    assert!(plan.skipped.is_empty());
+}
+
+/// Spec 103 §3.2's substitution, exercised against the real corpus rather than
+/// a fixture: a plan built for a spec whose acceptance another spec holds is
+/// the holder's block, under the holder's id.
+///
+/// 048 is the case spec 120 §3.12 created and the one the pin above used to
+/// read, so this is where its absence is accounted for rather than simply
+/// dropped.
+#[test]
+fn spec_048s_acceptance_resolves_to_its_holder() {
     let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
         .parent()
         .unwrap();
     let plan = verify_plan(&cfg(), repo, "048").unwrap();
+    // Spec 103 §3.4: the substitution is STATED, never silent. The plan keeps
+    // the id that was asked for and names the holder separately, so a caller
+    // reading a verdict can tell whose block ran.
     assert_eq!(plan.spec_id, "048-kit-ships-the-governed-loop-skills");
-    assert_eq!(plan.commands.len(), 5, "{:?}", plan.commands);
-    assert!(plan.commands[0].starts_with("cargo test"));
+    assert_eq!(
+        plan.acceptance_from.as_deref(),
+        Some("120-the-engine-ships-governance-not-an-environment"),
+        "048's block is held by 120 (amends_verification)"
+    );
+    // The holder's block, not 048's five commands, and not empty.
+    assert!(plan.commands.len() > 5, "{:?}", plan.commands);
     assert!(plan.skipped.is_empty());
 }
 

@@ -1,0 +1,107 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "049-verify-declared-acceptance",
+      "103-an-amended-acceptance-is-the-one-that-runs",
+      "105-an-amendment-carries-the-acceptance-it-replaces"
+    ],
+    "implementingPaths": [
+      {
+        "path": "docs/releasing.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/test-verify-sweep.py",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/verify-sweep.sh",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "scripts/test-verify-sweep.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/test-verify-sweep.py"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-sweep.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/releasing.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/releasing.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_verify.rs"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_verify.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/verify.rs"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/verify.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-spec.sh"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-spec.sh"
+        }
+      }
+    ],
+    "specId": "112-nothing-reruns-a-merged-acceptance",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "2720e5d572a6da4505660d0c30c942244d3069629989bb148703dc2c12fbfdb3"
+}

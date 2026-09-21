@@ -28,14 +28,10 @@ depends_on:
   - "081-the-kit-ships-what-the-loop-calls"
 establishes:
   # 3.1: the one generator. `scripts/*.py` is already a hashed glob.
-  - "scripts/gen-agent-trees.py"
   # 3.2, 3.5: the two trees, tracked and unowned since f5efb23. `index owner`
   # answered "(no spec owns this path)" for both when this spec was filed.
-  - ".agents/skills/"
-  - ".codex/agents/"
   # 3.6: the parity acceptance, in its own file rather than inside the test
   # spec 048 establishes.
-  - "crates/spec-spine-core/tests/agent_trees.rs"
 extends:
   # 3.1: the generator becomes the sanctioned writer of this repository's skill
   # tree, which spec 048 3.3 established and pins byte-identical to the kit's.

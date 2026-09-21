@@ -1696,3 +1696,103 @@ fn every_loose_form_in_the_recognizer_table_still_claims() {
         );
     }
 }
+
+// ── spec 120 §3.8, §3.9: `.statecraft/` is a parent, not a classification ──
+
+/// The managed layout: the derived tree and the state root under one parent,
+/// classified separately.
+fn statecraft_layout_config() -> Config {
+    let mut cfg = Config::default();
+    cfg.layout.derived_dir = ".statecraft/derived".to_string();
+    cfg.layout.state_dir = ".statecraft/state".to_string();
+    cfg
+}
+
+/// §3.9: three answers, one parent directory, and they must be distinguishable
+/// by measurement rather than by inspection.
+///
+/// A source file under `.statecraft/` is governed territory and the walk sees
+/// it. One under `.statecraft/state/` is spec 039's ungoverned root and the
+/// walk does not. One under `.statecraft/derived/` is compiler output and the
+/// walk does not, which is the half spec 120 §3.8 added: `resolver_exclusions`
+/// matches path COMPONENTS, so the default `.derived` was reachable as one and
+/// a nested root is not.
+///
+/// The control is the same tree read under the DEFAULT configuration, where
+/// none of the three is special and all three are enumerated. Without it a
+/// green here is also what a walk that had stopped descending into
+/// `.statecraft/` altogether would produce, which is the failure §3.9 refuses.
+#[test]
+fn statecraft_derived_and_state_are_pruned_and_the_rest_is_governed() {
+    let tmp = tempfile::tempdir().unwrap();
+    let r = tmp.path();
+    write(r, "Cargo.toml", "[workspace]\nmembers = []\n");
+    write(r, ".statecraft/tools/thing.sh", "#!/bin/sh\necho hi\n");
+    write(r, ".statecraft/AGENTS.md", "# project instructions\n");
+    write(r, ".statecraft/state/scratch.sh", "#!/bin/sh\n");
+    write(
+        r,
+        ".statecraft/derived/spec-registry/by-spec/000-a.json",
+        "{}\n",
+    );
+    write(r, ".statecraft/derived/gen.sh", "#!/bin/sh\n");
+
+    let managed = spec_spine_core::walk_repository(&statecraft_layout_config(), r);
+    assert!(
+        managed.contains(".statecraft/tools/thing.sh"),
+        "a governed file under the parent stays visible: {managed:?}"
+    );
+    assert!(
+        managed.contains(".statecraft/AGENTS.md"),
+        "so does the project instruction file: {managed:?}"
+    );
+    assert!(
+        !managed.iter().any(|p| p.starts_with(".statecraft/state/")),
+        "runtime state is excluded: {managed:?}"
+    );
+    assert!(
+        !managed
+            .iter()
+            .any(|p| p.starts_with(".statecraft/derived/")),
+        "compiler output is excluded: {managed:?}"
+    );
+
+    // The control: under the default configuration these are ordinary paths,
+    // so the exclusions above are the configuration's doing and not the
+    // directory name's.
+    let default = spec_spine_core::walk_repository(&Config::default(), r);
+    for p in [
+        ".statecraft/tools/thing.sh",
+        ".statecraft/state/scratch.sh",
+        ".statecraft/derived/gen.sh",
+    ] {
+        assert!(
+            default.contains(p),
+            "`{p}` must be enumerated under the default configuration, or this \
+             test's exclusions prove nothing: {default:?}"
+        );
+    }
+}
+
+/// §3.8: the same rule at the unit level, since `is_derived_path` is what both
+/// the walks and the coupling gate ask. Separator-aware, so a sibling that
+/// merely shares the prefix is not the derived tree.
+#[test]
+fn statecraft_derived_matching_is_separator_aware() {
+    let cfg = statecraft_layout_config();
+    assert!(cfg.layout.is_derived_path(".statecraft/derived"));
+    assert!(cfg.layout.is_derived_path(".statecraft/derived/a/b.json"));
+    assert!(
+        !cfg.layout
+            .is_derived_path(".statecraft/derived-backup/a.json")
+    );
+    assert!(!cfg.layout.is_derived_path(".statecraft"));
+    assert!(!cfg.layout.is_derived_path(".statecraft/AGENTS.md"));
+    // The default keeps answering for the default.
+    assert!(Config::default().layout.is_derived_path(".derived/x.json"));
+    assert!(
+        !Config::default()
+            .layout
+            .is_derived_path(".statecraft/derived/x.json")
+    );
+}

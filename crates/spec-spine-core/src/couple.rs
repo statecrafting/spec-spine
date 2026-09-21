@@ -273,6 +273,19 @@ pub fn effective_bypass_prefixes(cfg: &Config) -> Vec<BypassEntry> {
             sources: vec![BypassSource::BuiltIn],
         })
         .collect();
+    // Spec 120 §3.8: the configured derived root is a built-in floor entry, so
+    // a reader of this list sees the same set the gate applies. Reported as
+    // built-in rather than as config: the adopter did not ask for a bypass,
+    // they named where the compiler writes, and the gate derived the rest.
+    // Skipped when it is already the default `.derived`, which is on the
+    // constant above and would otherwise be listed twice.
+    let derived = format!("{}/", cfg.layout.derived_dir.trim_end_matches('/'));
+    if derived != "/" && !entries.iter().any(|e| e.prefix == derived) {
+        entries.push(BypassEntry {
+            prefix: derived,
+            sources: vec![BypassSource::BuiltIn],
+        });
+    }
     for declared in &cfg.coupling.bypass_prefixes {
         match entries.iter_mut().find(|e| &e.prefix == declared) {
             Some(existing) => {
@@ -305,6 +318,23 @@ pub fn is_bypassed_path(cfg: &Config, index: &CodebaseIndex, path: &str) -> bool
     // whole purpose is to be ungoverned; letting the bypass win silently would
     // discard a unit an author wrote deliberately.
     if cfg.layout.is_state_path(path) {
+        return true;
+    }
+    // Spec 120 §3.8: the CONFIGURED derived root, on the same terms. The floor
+    // below spells `.derived/`, which is the default and not the answer: a
+    // repository whose `derived_dir` is elsewhere has every regenerated shard
+    // judged as source, so the change that recomputes the ledger becomes a
+    // `C-001` drift refusal against a spec that says nothing about shard bytes
+    // and, under `require_ownership`, a `C-002` unclaimed file as well. The
+    // gate should not need a configuration key to recognise its own output.
+    //
+    // Placed with the state root, before the spec 009 claim override, for the
+    // same reason: a unit claiming a compiled artifact is a contradiction
+    // (`lint` reports the derived tree as the compiler's), not a precedence
+    // question. The literal `.derived/` stays on the floor below, so a
+    // repository that configures nothing keeps exactly the behavior it has and
+    // one mid-migration has both paths answered.
+    if cfg.layout.is_derived_path(path) {
         return true;
     }
     !explicitly_claimed(path, index)

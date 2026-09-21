@@ -25,7 +25,6 @@ mod cmd_config;
 mod cmd_couple;
 mod cmd_delta;
 mod cmd_index;
-mod cmd_init;
 mod cmd_lint;
 mod cmd_registry;
 mod cmd_verify;
@@ -202,16 +201,6 @@ enum Command {
         #[arg(long)]
         json: bool,
     },
-    /// Scaffold a new adopter: config, standards, a bootstrap spec, agent rules.
-    Init {
-        /// Overwrite existing files instead of skipping them.
-        #[arg(long)]
-        force: bool,
-        /// Also install the session harness: settings, agents, skills, the
-        /// Makefile and a CI workflow, at the adopter's own paths (spec 065).
-        #[arg(long)]
-        with_kit: bool,
-    },
     /// Emit a reproducible corpus attestation; optionally seal it (spec 023).
     Attest {
         /// Scope the attestation to one spec (spec 042), writing
@@ -346,7 +335,6 @@ fn main() -> ExitCode {
                 json: *json,
             },
         ),
-        Command::Init { force, with_kit } => cmd_init::run(&repo, *force, *with_kit),
         Command::Attest {
             spec,
             with_coupling,
@@ -470,19 +458,17 @@ pub(crate) fn load_repo_config(repo: &Path) -> Result<Config, Error> {
     }
 }
 
-/// Enforce `[meta] required_version` (spec 062 §3.2), except for the verbs that
-/// must stay available when the pin is unsatisfiable.
+/// Enforce `[meta] required_version` (spec 062 §3.2).
 ///
-/// `--version` and `--help` are clap's, and never reach here. `init` is exempt
-/// because it scaffolds a repository that has no configuration yet, and in one
-/// that does it is the verb an operator reaches for when things are wrong.
+/// `--version` and `--help` are clap's, and never reach here. Spec 062 exempted
+/// `init`, the one verb that ran in a repository with no configuration yet;
+/// spec 120 §3.1 removed it, so every remaining verb reads a corpus that
+/// already has a `spec-spine.toml` and the exemption has nothing left to name.
 ///
 /// A configuration that cannot be read at all is left to the verb: this returns
 /// `Ok` rather than pre-empting the real error with a worse one.
 fn check_version_pin(repo: &Path, command: &Command) -> Result<(), Error> {
-    if matches!(command, Command::Init { .. }) {
-        return Ok(());
-    }
+    let _ = command;
     match load_repo_config(repo) {
         Ok(cfg) => cfg.check_required_version(env!("CARGO_PKG_VERSION")),
         Err(_) => Ok(()),

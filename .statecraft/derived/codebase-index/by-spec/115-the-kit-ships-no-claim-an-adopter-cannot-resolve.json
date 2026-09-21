@@ -1,0 +1,118 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "032-ownership-coverage",
+      "064-the-kit-ships-the-composite-gate",
+      "065-init-and-the-kit-are-one-adoption",
+      "094-a-claim-below-the-header-window-is-not-silent",
+      "097-governed-scope-is-declared-not-inferred",
+      "114-one-gate-definition-that-holds-on-a-code-free-corpus"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".githooks/enable-hooks.sh",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".githooks/enable-merge-driver.sh",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".githooks/merge-derived-index.sh",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".githooks/pre-commit",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/gate.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".githooks/enable-hooks.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/enable-hooks.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".githooks/enable-merge-driver.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/enable-merge-driver.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".githooks/merge-derived-index.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/merge-derived-index.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".githooks/pre-commit"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/pre-commit"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/gate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "115-the-kit-ships-no-claim-an-adopter-cannot-resolve",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "ad849a8141e4301c95a336b9f243b91fa220a6be87b6d9e8312399017b59da36"
+}

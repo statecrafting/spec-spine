@@ -29,7 +29,6 @@ const sidebars: SidebarsConfig = {
       label: 'CLI Reference',
       items: [
         'cli/overview',
-        'cli/init',
         'cli/compile',
         'cli/index',
         'cli/registry',
@@ -47,6 +46,11 @@ const sidebars: SidebarsConfig = {
       type: 'doc',
       id: 'adoption-guide',
       label: 'Adoption Guide',
+    },
+    {
+      type: 'doc',
+      id: 'statecraft',
+      label: 'Statecraft and spec-spine',
     },
     {
       type: 'doc',
@@ -72,22 +76,6 @@ const sidebars: SidebarsConfig = {
       type: 'doc',
       id: 'faq',
       label: 'FAQ and Troubleshooting',
-    },
-    {
-      type: 'category',
-      label: 'Use with Claude Code',
-      items: [
-        'claude-code/overview',
-        'claude-code/install',
-        'claude-code/session-init',
-        'claude-code/governed-loop',
-        'claude-code/skills',
-        'claude-code/agents',
-        'claude-code/rules',
-        'claude-code/configuration',
-        'claude-code/adopt-in-your-repo',
-        'claude-code/troubleshooting',
-      ],
     },
   ],
 };
