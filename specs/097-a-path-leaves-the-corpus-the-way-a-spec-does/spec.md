@@ -569,6 +569,23 @@ refuses, arrived at while repairing a different defect. Only the heading update
 is suppressed; the line is rewritten, spared and accounted for exactly as any
 other.
 
+D-39 (2026-09-21, D-22 completed: the spans are collected across every entry).
+The `present` gate stops an entry acting when its path was absent from the
+source line. It cannot see the other half: where the path WAS present and a
+previous entry's replacement text created a second occurrence, the entry
+rewrote both. Spans are collected from the source line across all entries and
+applied once, which is D-33's discipline extended from within one entry to
+across them. The rule is now the same at every level: find every match against
+the source, then substitute once.
+
+D-40 (2026-09-21, the `path` form replaces a quoted value, and the quotes are
+required). The value context accepts a backtick on the left, so a `path`-only
+plan replaced the path inside `` `rules/one.md` `` and left the backticks
+wrapped around prose. The glob keeps the wider rule, because a backticked glob
+is a glob (D-37). That is the fourth time these two contexts have needed to
+differ in a named way rather than share a rule, which is the argument for
+keeping the contexts explicit rather than collapsing them.
+
 ## Verification
 
 Each line is one command, run independently.

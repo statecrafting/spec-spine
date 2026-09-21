@@ -1544,6 +1544,68 @@ fn a_comment_inside_a_fence_is_not_a_heading() {
     );
 }
 
+/// D-22, completed: an entry acts on the occurrences the SOURCE line had, even
+/// when its own path was in the source too. The `present` gate cannot see this:
+/// entry B's path IS present, and entry A's replacement text then created a
+/// second occurrence of it that B also rewrote.
+#[test]
+fn an_entry_does_not_act_on_an_occurrence_another_entry_created() {
+    let tmp = fixture("See rules/one.md and rules/two.md.\n");
+    let mut first = retire_rules();
+    first.forms = [("citation".to_string(), Some("rules/two.md now".to_string()))]
+        .into_iter()
+        .collect();
+    let mut second = retire_rules();
+    second.path = "rules/two.md".into();
+    second.forms = [("citation".to_string(), Some("AGENTS.md".to_string()))]
+        .into_iter()
+        .collect();
+    let plan = CompactPlan {
+        retire: vec![first, second],
+        ..Default::default()
+    };
+    let c = compact(&cfg(), tmp.path(), &plan).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/note.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    // The first entry's replacement stands as written; only the SOURCE
+    // occurrence of the second entry's path is rewritten.
+    assert!(out.contains("rules/two.md now"), "{out:?}");
+    assert!(out.contains("and AGENTS.md."), "{out:?}");
+}
+
+/// The `path` form replaces a QUOTED value. The value context alone accepts a
+/// backtick on the left, so a `path`-only plan replaced the path inside a
+/// backtick citation and left the backticks around prose.
+#[test]
+fn a_path_only_plan_does_not_reach_inside_a_backtick_citation() {
+    let tmp = fixture("See `rules/one.md` here.\n");
+    let mut e = retire_rules();
+    e.forms = [("path".to_string(), Some("AGENTS.md".to_string()))]
+        .into_iter()
+        .collect();
+    let c = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap();
+    let out = c
+        .files
+        .iter()
+        .find(|f| f.from_rel_path == "docs/note.md")
+        .map(|f| f.contents.clone())
+        .unwrap_or_default();
+    assert!(
+        out.is_empty() || out.contains("`rules/one.md`"),
+        "the path form reached inside the backticks: {out:?}"
+    );
+    // And it is reported rather than silently left: no form covered it.
+    assert!(
+        c.leftover.iter().any(|l| l.rel_path == "docs/note.md"),
+        "{:?}",
+        c.leftover
+    );
+}
+
 // ── the plan file ────────────────────────────────────────────────────────────
 
 #[test]

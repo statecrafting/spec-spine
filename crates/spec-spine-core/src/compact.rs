@@ -1477,6 +1477,7 @@ fn retire_file(
             ));
         }
         let mut current = line.to_string();
+        let mut spans: Vec<(usize, usize, String)> = Vec::new();
         // Each entry's own clause is decided first, so a line spared by one
         // entry is spared for all of them (the report must describe the file
         // that is emitted) while each occurrence still carries the clause that
@@ -1532,15 +1533,22 @@ fn retire_file(
                 });
                 continue;
             }
-            let before = current.clone();
-            current = apply_forms(&current, e);
-            if current != before {
+            // Spans against the SOURCE line, collected across every entry and
+            // applied once below. Rewriting entry by entry let entry B act on an
+            // occurrence entry A's replacement text created, even where B's path
+            // was in the source too, which the `present` gate cannot see (D-39).
+            spans.extend(form_spans(line, e));
+        }
+        if !spans.is_empty() {
+            let rewritten = apply_spans(line, std::mem::take(&mut spans));
+            if rewritten != current {
                 rewrites.push(Rewrite {
                     line: n + 1,
-                    old: before.trim_end().to_string(),
-                    new: current.trim_end().to_string(),
+                    old: current.trim_end().to_string(),
+                    new: rewritten.trim_end().to_string(),
                     form: Form::RetiredPath,
                 });
+                current = rewritten;
             }
         }
         // §3.7, decided HERE, where the source line and its result are both in
@@ -1574,7 +1582,7 @@ fn retire_file(
 /// The six spellings of §3.2, reduced to the three that take a replacement
 /// (D-2): a glob line, a backticked or bare prose citation, and a path in a
 /// YAML value, a shell word or a Rust string literal.
-fn apply_forms(line: &str, e: &RetireEntry) -> String {
+fn form_spans(line: &str, e: &RetireEntry) -> Vec<(usize, usize, String)> {
     // Every form reads the ORIGINAL line and contributes spans; the spans are
     // applied once, together. Applying them in sequence let one form's
     // replacement text be re-read by the next: a glob replacement naming the
@@ -1595,7 +1603,8 @@ fn apply_forms(line: &str, e: &RetireEntry) -> String {
         let globs = glob_spans(line, &e.path);
         if !globs.is_empty() {
             match rule {
-                None => return String::new(),
+                // A deletion takes the whole line: one span over all of it.
+                None => return vec![(0, line.len(), String::new())],
                 // A replacement does not take the line: it can carry a glob AND
                 // a citation of the same path.
                 Some(text) => spans.extend(
@@ -1631,9 +1640,23 @@ fn apply_forms(line: &str, e: &RetireEntry) -> String {
         spans.extend(occurrence_spans(line, &e.path, text, PathContext::Prose));
     }
     if let Some(Some(text)) = e.forms.get("path") {
-        spans.extend(occurrence_spans(line, &e.path, text, PathContext::Value));
+        // A quoted value, and the quotes are required. The value context alone
+        // accepts a backtick on the left, so `` `rules/one.md` `` in prose
+        // matched here and a `path`-only plan replaced the path inside the
+        // backticks, leaving them around prose. The glob keeps the wider rule,
+        // because a backticked glob IS a glob (D-37).
+        let bytes = line.as_bytes();
+        for (at, end, _) in occurrence_spans(line, &e.path, text, PathContext::Value) {
+            let quoted = at > 0
+                && end < bytes.len()
+                && matches!(bytes[at - 1], b'"' | b'\'')
+                && bytes[end] == bytes[at - 1];
+            if quoted {
+                spans.push((at, end, text.clone()));
+            }
+        }
     }
-    apply_spans(line, spans)
+    spans
 }
 
 /// Every occurrence of `path` in `line` that `ctx` recognises, as a span.
