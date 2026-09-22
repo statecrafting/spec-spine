@@ -18,6 +18,10 @@
         "source": "multiple"
       },
       {
+        "path": "crates/spec-spine-core/fixtures/verifier/",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/compile.rs",
         "source": "spec-edge"
       },
@@ -120,6 +124,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/obligation.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/fixtures/verifier/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
         }
       },
       {
@@ -361,5 +378,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "15fcdb8533a3facab3e2ccedc7ddc15eaadaede3efeb2bf750a85916be29fd03"
+  "shardHash": "2ebf2994b48b0b8f04af68d5559c0cd07134ad5a07fe503951f74dac8a908e0c"
 }

@@ -6,6 +6,10 @@
     ],
     "implementingPaths": [
       {
+        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/query.rs",
         "source": "spec-edge"
       },
@@ -14,11 +18,36 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/read.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/version.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "docs/api.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/schema-versioning.md",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/cli.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
       {
         "locations": [
           {
@@ -48,6 +77,32 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/read.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/version.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/api.md"
           }
         ],
@@ -57,11 +112,24 @@
           "kind": "file",
           "path": "docs/api.md"
         }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/schema-versioning.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
       }
     ],
     "specId": "102-a-ready-spec-carries-its-status",
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "08ab93f3778f95f39b5c09bff4ada0242557d7ef9603ae96b4a2aa98c9857f6f"
+  "shardHash": "6f20662af8188bddf3ddca9e11e1a681a6844f1e58ab5067c838ced004f07ebe"
 }

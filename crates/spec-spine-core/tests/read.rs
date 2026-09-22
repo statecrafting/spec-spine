@@ -61,9 +61,12 @@ fn a_stamped_document_carries_the_read_axis_version() {
     let doc = read_document(&Inner { yak: 1, bee: 2 }, Versioning::Stamp).unwrap();
     let v: serde_json::Value = serde_json::from_str(&doc).unwrap();
     assert_eq!(v["schemaVersion"], READ_SCHEMA_VERSION);
+    // The axis started at 0.1.0 (§3.4) and has moved once, additively: spec
+    // 102 added `status` to a `plan` ready entry. Pinned, so the next move is
+    // a decision someone writes down rather than a constant that drifts.
     assert_eq!(
-        READ_SCHEMA_VERSION, "0.1.0",
-        "the axis starts at 0.1.0 (§3.4)"
+        READ_SCHEMA_VERSION, "0.2.0",
+        "0.1.0 at spec 074, 0.2.0 at spec 102"
     );
 }
 

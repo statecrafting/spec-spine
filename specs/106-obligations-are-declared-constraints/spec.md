@@ -42,6 +42,9 @@ extends:
   # 3.10: the documentation an author and a consumer read.
   - { spec: "088-the-template-teaches-the-whole-grammar", unit: { kind: file, path: "standards/spec/templates/spec-template.md" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
+  # D-10: this spec changes what the producer emits for the fixture corpus, so
+  # it regenerates spec 103's set, on 103 §3.9's authority path.
+  - { spec: "103-a-verifier-fixture-is-a-published-artifact", unit: { kind: directory, path: "crates/spec-spine-core/fixtures/verifier/" }, nature: corrective }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
   # 3.9: the pin every registry MINOR moves (026, 063 and 082 did the same).
   - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-types/tests/dtos.rs" }, nature: additive }
@@ -413,6 +416,16 @@ With a section digest taken over the whole body instead of the section, the
 two digest tests fail. Both restored, all thirteen core tests pass. This spec
 declares its own nine obligations, so every compile of this repository
 exercises the grammar, the anchors and the digests on real prose.
+
+**D-10 (2026-09-22, integration with spec 103: the verifier fixtures are
+regenerated).** Merged with spec 103, the fixture harness failed as `STALE
+FIXTURES`: every registry record now carries `sectionDigests`, so the
+attested `registryHash` of the fixture corpus moved, and so did every case's
+`attestationHash`. That is the harness doing its job, not noise to adapt away.
+The set was regenerated with 103 §3.9's documented command against this
+build; the diff is those two digests in each case and nothing else, and a
+second run rewrites nothing. The directory is declared as a `corrective`
+`extends` edge on spec 103, the authority path 103 §3.9 names.
 
 ## Verification
 

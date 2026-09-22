@@ -17,7 +17,7 @@
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.5.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.1.0` | library |
-| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.1.0` | library |
+| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.2.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
 
@@ -255,6 +255,14 @@ Every other read document gains `schemaVersion` and keeps its members, now in
 sorted order. That is additive when reading by key; a strict decoder that
 rejects unknown members, or a consumer that hashes or golden-files the bytes,
 sees a change. The text forms are unchanged.
+
+**`0.2.0` (spec 102), additive.** Each `registry plan` ready entry gains
+`status`, the spec's `status` as the registry records it:
+`{ "id", "status", "title" }`, and so does `plan --next`'s `next` object,
+which is a ready entry. `blocked` entries do not gain it. Ready-set
+membership and order are unchanged; `status` is reported, never consulted. The
+registry schema does not move, and no `shardHash` changes. Every read document
+carries the new `schemaVersion`, because the axis is one constant (spec 074).
 
 ## Migration note: spec 034, the verdict envelope
 

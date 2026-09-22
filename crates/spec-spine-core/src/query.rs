@@ -326,6 +326,10 @@ pub struct BlockedSpec {
 pub struct ReadySpec {
     pub id: String,
     pub title: String,
+    /// The spec's `status` as the registry records it, verbatim (spec 102).
+    /// Reported, never consulted: membership and order are decided before it
+    /// is read, and a consumer's approval rule stays the consumer's (spec 101).
+    pub status: String,
 }
 
 /// The scheduling projection: what can be worked on now, and what cannot.
@@ -421,6 +425,20 @@ impl Plan {
     }
 }
 
+/// A status spelled exactly as the registry serializes it (spec 102), so the
+/// plan document and a registry shard can never disagree about the word. The
+/// match is exhaustive on purpose: a new `Status` variant fails to compile here
+/// rather than reaching a consumer as an empty string, and
+/// `status_str_matches_the_registry_spelling` pins each arm to serde's.
+fn status_str(status: Status) -> &'static str {
+    match status {
+        Status::Draft => "draft",
+        Status::Approved => "approved",
+        Status::Superseded => "superseded",
+        Status::Retired => "retired",
+    }
+}
+
 /// Partition the corpus into the ready set and the blocked set (spec 035).
 ///
 /// **This answers what is *claimed*, never what is done.** `implementation` is
@@ -505,12 +523,15 @@ pub fn plan(registry: &Registry) -> Result<Plan, Error> {
         // adopters kept writing.
         ready: topological(&ready, &by_id)
             .into_iter()
-            .map(|id| ReadySpec {
-                title: by_id
-                    .get(id.as_str())
-                    .map(|s| s.title.clone())
-                    .unwrap_or_default(),
-                id,
+            .map(|id| {
+                let spec = by_id.get(id.as_str());
+                ReadySpec {
+                    title: spec.map(|s| s.title.clone()).unwrap_or_default(),
+                    status: spec
+                        .map(|s| status_str(s.status).to_string())
+                        .unwrap_or_default(),
+                    id,
+                }
             })
             .collect(),
         blocked,
@@ -931,4 +952,24 @@ fn find_cycle(by_id: &BTreeMap<&str, &SpecRecord>) -> Option<Vec<String>> {
         }
     }
     None
+}
+
+#[cfg(test)]
+mod status_spelling {
+    use super::*;
+
+    #[test]
+    fn status_str_matches_the_registry_spelling() {
+        for status in [
+            Status::Draft,
+            Status::Approved,
+            Status::Superseded,
+            Status::Retired,
+        ] {
+            assert_eq!(
+                serde_json::to_value(status).unwrap(),
+                serde_json::Value::String(status_str(status).to_string())
+            );
+        }
+    }
 }

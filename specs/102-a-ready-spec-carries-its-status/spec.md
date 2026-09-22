@@ -4,7 +4,7 @@ title: "A ready spec carries its status"
 status: draft
 kind: "tooling"
 created: "2026-09-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 depends_on:
   - "035-registry-plan-ready-set"
@@ -22,6 +22,21 @@ extends:
     nature: additive
   - spec: "057-the-docs-name-what-adopters-derived"
     unit: { kind: file, path: "docs/api.md" }
+    nature: additive
+  # 3.3: the read-schema MINOR moves the one constant every read document
+  # carries, and the table that documents it (D-3).
+  - spec: "074-a-governed-read-names-its-version"
+    unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }
+    nature: additive
+  - spec: "057-the-docs-name-what-adopters-derived"
+    unit: { kind: file, path: "docs/schema-versioning.md" }
+    nature: additive
+  # D-5: the two existing tests that pinned the old shape and the old version.
+  - spec: "074-a-governed-read-names-its-version"
+    unit: { kind: file, path: "crates/spec-spine-core/tests/read.rs" }
+    nature: additive
+  - spec: "053-plan-answers-the-whole-question"
+    unit: { kind: file, path: "crates/spec-spine-cli/tests/cli.rs" }
     nature: additive
 ---
 
@@ -57,7 +72,9 @@ Two consequences, both deliberate:
 
 `ReadySpec` in `crates/spec-spine-core/src/query.rs`, its acceptance in
 `crates/spec-spine-core/tests/query.rs`, and the `plan` paragraph of
-`docs/api.md` that spec 101 rewrote.
+`docs/api.md` that spec 101 rewrote. The read-schema MINOR in §3.3 also moves
+`READ_SCHEMA_VERSION` in `crates/spec-spine-types/src/version.rs` and its row
+in `docs/schema-versioning.md` (D-3).
 
 ## 3. Behavior
 
@@ -135,6 +152,51 @@ verbatim value, the untouched partition and ordering, the read-schema MINOR,
 and `blocked` left alone all stand. What changed is only that the build is
 authorized. No consumer has asked for the field, and this spec does not claim
 one has.
+
+**D-3 (2026-09-22, territory corrected before the build).** §3.3 requires a
+read-schema MINOR, and the filed territory did not include the constant that
+carries it or the document that tables it. Both are added as `extends` edges:
+`version.rs` on spec 074, which introduced `READ_SCHEMA_VERSION`, and
+`docs/schema-versioning.md` on spec 057, which established the table. No
+behavior in section 3 changes. The version moves once, for every read
+document, because spec 074 made it one axis ("per-verb axes would always move
+together"); that is the precedent this spec follows rather than a choice it
+makes.
+
+**D-4 (2026-09-22, build: "never consulted" is about this field, and a
+sentence in `docs/api.md` was wrong).** The first draft of the §3.2 test
+flipped every status between `draft` and `approved` and expected an identical
+ready set. It was not identical: a spec with no `implementation` key is
+scheduled when `draft` and settled when `approved`, which is spec 042's
+absent-key rule. That rule predates this field and is unchanged by it; §3.2's
+guarantee is that the new member is never read, not that `status` never is.
+The test now flips statuses only for specs that declare `implementation`, and
+a second test asserts the 042 case and that its ready entry reports the status
+that scheduled it. The same measurement showed `docs/api.md` saying `status` is
+consulted "only" to exclude `superseded` and `retired`; the sentence now names
+the 042 case too. It sits in the `plan` paragraph this spec extends.
+
+**D-5 (2026-09-22, build: two existing pins moved with the contract).** The
+workspace tests found two assertions of the old shape. `cli.rs`'s
+`registry_plan_partitions_the_corpus` compared a ready entry to
+`{ id, title }`; it now expects `status` too, and still checks that blocked
+entries are unchanged. The same test's `plan --next --json` case gains `status`
+as well, because the pick is a `ReadySpec`: one type, one shape, and no second
+member added anywhere. `read.rs` pinned `READ_SCHEMA_VERSION` to `0.1.0` as
+"the axis starts at 0.1.0"; it now pins `0.2.0` and says where each value came
+from. Both files are other specs' territory, so both are declared here as
+`extends` edges rather than edited silently. Neither assertion was loosened:
+each still pins an exact value. Spec 074's own acceptance greps for the
+constant's name, not its value, and is unaffected.
+
+**D-6 (2026-09-22, review: the spelling helper).** The helper that spells a
+`Status` fell back to an empty string on any non-string serialization, and it
+had been inserted between `plan`'s rustdoc and `pub fn plan`, so the public
+function lost its documentation. It is now an exhaustive `match` above that
+block, returning the four spellings; a new `Status` variant fails to compile
+rather than reaching a consumer as `""`, and a unit test pins every arm to
+serde's spelling so the plan document and a registry shard cannot disagree.
+The member stays `status: String`, as §3.1 states.
 
 ## Verification
 

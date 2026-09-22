@@ -104,7 +104,10 @@ pub const DELTA_SCHEMA_VERSION: &str = "0.1.0";
 /// the shape of the answer, not the artifacts the answer is about, so it does
 /// not move when `REGISTRY_SCHEMA_VERSION` or `INDEX_SCHEMA_VERSION` does. One
 /// constant for every read document: per-verb axes would always move together.
-pub const READ_SCHEMA_VERSION: &str = "0.1.0";
+///
+/// `0.2.0` (spec 102): additive. Each `registry plan` ready entry carries the
+/// spec's `status`, verbatim. No member moved and none was removed.
+pub const READ_SCHEMA_VERSION: &str = "0.2.0";
 
 /// `schemaVersion` of an authority snapshot (spec 070): its own axis, defined
 /// beside the DTO it versions and re-exported here with the others.
