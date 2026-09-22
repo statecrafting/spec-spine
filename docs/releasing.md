@@ -49,6 +49,11 @@
       sources. This proves it *behaves* from them, which is the question that
       was not being asked when `0.21.0` shipped a producer emitting `AGENTS.md`
       and `.claude/rules/` while a green workspace suite asserted it did not.
+      It needs a reachable crates.io index or a warm Cargo cache: the consumer
+      it builds is outside the workspace and off its lockfile, and it depends
+      on `serde_json` to read the producer's output. The two crates under test
+      come from local archives, so nothing about spec-spine is fetched; on an
+      air-gapped runner the step still fails, for a reason about the runner.
 - [ ] **Verification sweep green** (spec 089): `./scripts/verify-sweep.sh` from
       a clean checkout, against the merged revision being released
       (`--rev origin/main`). It runs every spec's `## Verification` block in an

@@ -15,6 +15,14 @@
 # Usage: ./scripts/verify-packaged-producer.sh [--keep]
 #   --keep  leave the scratch directory in place for inspection
 #
+# Precondition: a reachable crates.io index, or a Cargo cache already holding
+# serde_json. The consumer crate is built outside the workspace and off the
+# workspace lockfile, and it needs serde_json to read the producer's output.
+# The two crates UNDER test are unpacked from local archives and patched in by
+# path, so nothing about spec-spine itself is fetched; the dependency is the
+# harness, not the subject. On an air-gapped runner with a cold cache the
+# `cargo run` step fails here, and that failure is about the environment.
+#
 # Exit 0 only if every assertion passed.
 
 set -euo pipefail
@@ -32,7 +40,11 @@ if [ -z "$VERSION" ]; then
 fi
 COMMIT="$(git rev-parse HEAD 2>/dev/null || echo '(not a git repository)')"
 DIRTY=""
-if ! git diff --quiet HEAD 2>/dev/null; then
+# `git diff HEAD` sees tracked files only, and `cargo package` refuses an
+# untracked file just as loudly. `status --porcelain` is the read that covers
+# both, so a tree dirty only in untracked files still gets `--allow-dirty` and
+# still gets told the digests describe the tree rather than the commit.
+if [ -n "$(git status --porcelain 2>/dev/null)" ]; then
   DIRTY=" (working tree dirty; the digests below describe the tree, not the commit)"
 fi
 
@@ -109,12 +121,17 @@ cat > "$WORK/consumer/src/main.rs" <<'RS'
 
 use std::collections::BTreeSet;
 
-static mut FAILED: u32 = 0;
+use std::sync::atomic::{AtomicU32, Ordering};
+
+/// A counter, not a `static mut`: this file is the executable statement of a
+/// contract the engine forbids `unsafe` to express, so the acceptance should
+/// not need `unsafe` to count its own failures either.
+static FAILED: AtomicU32 = AtomicU32::new(0);
 
 fn check(name: &str, cond: bool) {
     println!("{} {name}", if cond { "PASS" } else { "FAIL" });
     if !cond {
-        unsafe { FAILED += 1 };
+        FAILED.fetch_add(1, Ordering::Relaxed);
     }
 }
 
@@ -276,7 +293,7 @@ fn main() {
         rel_paths(&managed) == want,
     );
 
-    let failed = unsafe { FAILED };
+    let failed = FAILED.load(Ordering::Relaxed);
     println!();
     if failed == 0 {
         println!("ALL PACKAGED-PRODUCER ACCEPTANCE CHECKS PASSED");
