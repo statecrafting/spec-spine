@@ -37,7 +37,7 @@ refuse() {
 # stages without looking at what was added, so this is the weaker half; 0b is
 # the one that catches a resolved-by-staging conflict.
 if [ -n "$(git -C "$root" ls-files -u 2>/dev/null)" ]; then
-  git -C "$root" diff --name-only --diff-filter=U | sed 's/^/  /'
+  git -C "$root" ls-files -u | cut -f2 | sort -u | sed 's/^/  /'
   refuse 'the index holds unmerged entries' 'resolve each path listed above, then stage it'
 fi
 

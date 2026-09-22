@@ -173,6 +173,14 @@ stood at the parent of this build, cases 1, 2, 3 and 5 of §3.5 fail and cases
 exist, and the two over-refusal guards describe behavior the old hook already
 had. With this build all six pass.
 
+**D-4 (2026-09-22, review).** The unmerged-entry refusal listed paths with
+`git diff --diff-filter=U`, a different source from the `git ls-files -u` that
+decides it; the listing now comes from `ls-files -u` too, so what is named is
+what was found. The acceptance's `conflict-marker-size` grep matched only a
+comment and asserted nothing about §3.3's MUST NOT; it is replaced by two
+negative greps (no pathspec on the detector, no filter on its findings) beside
+the behavioral case that refuses an undeclared file under `fixtures/`.
+
 ## Verification
 
 Written to fail against the tree this spec is filed on: the test file does
@@ -184,8 +192,11 @@ grep -qF 'ls-files -u' .githooks/pre-commit
 grep -qF 'diff --cached --check' .githooks/pre-commit
 grep -qF 'leftover conflict marker' .githooks/pre-commit
 grep -qF 'cargo fmt --all --check' .githooks/pre-commit
-# 3.3: no exemption of the hook's own; the attribute is the only opt-out.
-grep -qF 'conflict-marker-size' .githooks/pre-commit
+# 3.3: no exemption of the hook's own. The detector takes no pathspec, and
+# nothing filters its findings but the class selector; the behavioral case
+# with an undeclared `fixtures/` file (3.5 case 3) is the positive half.
+! grep -qE 'diff --cached --check[^|]*( -- |:!|:\(exclude)' .githooks/pre-commit
+! grep -qE "leftover conflict marker'[^|]*\| *grep -v" .githooks/pre-commit
 # 3.5: behavioral, through git commit, every case.
 cargo test -p spec-spine-core --test commit_boundary --locked > "${TMPDIR:-/tmp}/ss122.txt" 2>&1
 grep -qE 'test result: ok\. 6 passed' "${TMPDIR:-/tmp}/ss122.txt"
