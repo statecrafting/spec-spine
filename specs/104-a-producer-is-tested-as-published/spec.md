@@ -1,7 +1,7 @@
 ---
 id: "104-a-producer-is-tested-as-published"
 title: "A producer is tested as published"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-21"
 implementation: complete

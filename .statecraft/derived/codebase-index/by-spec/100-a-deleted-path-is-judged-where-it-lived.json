@@ -213,8 +213,8 @@
       }
     ],
     "specId": "100-a-deleted-path-is-judged-where-it-lived",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "6ac74a9c59bc4c6abbec931f7429d77b3d1aaf38197093d63237f582f532652e"
+  "shardHash": "caa26dc2ad8f4378c3c2ac1c0da9b309af02a8be897643ccbe38299486411969"
 }

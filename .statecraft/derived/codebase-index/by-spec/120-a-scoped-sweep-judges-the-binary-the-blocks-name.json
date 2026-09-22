@@ -1,0 +1,59 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "089-nothing-reruns-a-merged-acceptance",
+      "099-a-merged-acceptance-is-asked-again"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".github/workflows/acceptance.yml",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/acceptance.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/acceptance.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/release-candidate-0.22.0.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/release-candidate-0.22.0.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-sweep.sh"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      }
+    ],
+    "specId": "120-a-scoped-sweep-judges-the-binary-the-blocks-name",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "e1aab78a09f56a6e6e829290fc5a6f1bc0a725b30b20afad681c381330ae10dc"
+}

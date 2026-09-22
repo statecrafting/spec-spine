@@ -68,8 +68,8 @@
       }
     ],
     "specId": "104-a-producer-is-tested-as-published",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "28ff65973cdcf9e43987f2a5f7a4530ca4eace23be718866d72696b3b6e72495"
+  "shardHash": "23e70efe0c788779346bfc35b2c74698bfdffab8c73a2f72b57a368bf87a10f3"
 }

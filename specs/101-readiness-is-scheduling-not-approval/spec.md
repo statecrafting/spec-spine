@@ -1,7 +1,7 @@
 ---
 id: "101-readiness-is-scheduling-not-approval"
 title: "Readiness is scheduling, not approval"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-21"
 implementation: complete
