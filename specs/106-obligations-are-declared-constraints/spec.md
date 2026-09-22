@@ -270,7 +270,10 @@ a short form that resolves to exactly one spec.
 - otherwise the answer is a read document (spec 074) with the spec's `id` and
   `specPath`, the `obligation` as compiled, the `sectionDigest` of its anchor,
   and the spec's `contentHash` read from its committed shard, never recomputed
-  (spec 048 §3.3).
+  (spec 048 §3.3). As with `registry show`, a spec whose shard cannot be found
+  is reported without `contentHash` rather than refused; spec 048 §3.3 chose
+  that degrade so the rest of the record stays readable, and this read keeps
+  the same boundary.
 
 A withdrawn obligation resolves, with `withdrawn: true`, so a citation of it
 still says what it cited and that it no longer holds.
