@@ -48,8 +48,10 @@ Two consequences, both deliberate:
 
 - **101 does not depend on this spec landing.** The documentation is the fix;
   this is an ergonomic improvement on top of it.
-- **This spec is buildable only for a named consumer.** Filing it records the
-  contract so nobody re-derives it; it does not schedule it. See §5 D-1.
+- ~~**This spec is buildable only for a named consumer.**~~ Superseded
+  2026-09-22 by D-2: it is buildable on the owner's opportunity evaluation
+  (design note 09 section 10). Filing it recorded the contract; D-2 schedules
+  it.
 
 ## 2. Territory
 
@@ -97,15 +99,15 @@ precedent for both the shape and the version handling.
 
 A blocked entry is not a candidate to approve, so carrying `status` on
 `BlockedSpec` would add a field no consumer has asked for. This spec MUST NOT
-add it. If a consumer later needs it, that is a second MINOR and it should be
-asked for by the consumer that needs it, which is the rule D-1 states.
+add it. If it is later wanted, that is a second MINOR in its own spec, justified
+on its own evaluation (D-2), not folded into this one.
 
 ## 4. Out of scope
 
 - **Filtering by approval inside `plan`.** That would move the consumer's rule
   into the engine and undo the layering spec 101 §1.1 preserves.
 - **`implementation` on `ReadySpec`.** The planner consults it, so reporting it
-  is defensible, and no consumer has asked. Same rule as §3.4.
+  is defensible. Same rule as §3.4: its own spec, its own evaluation.
 - **Any change to `/next`.** It resolves `status` per entry today and would
   simply stop needing to.
 
@@ -113,7 +115,8 @@ asked for by the consumer that needs it, which is the rule D-1 states.
 
 *(Filed as a draft. Decisions taken during the build are appended here.)*
 
-**D-1 (2026-09-21, specified now, built for a named consumer).** This spec is
+**D-1 (2026-09-21, specified now, built for a named consumer).** *Superseded
+2026-09-22 by D-2; preserved as the record of the earlier condition.* This spec is
 filed so the contract exists and is reviewable, not so it is scheduled. It
 should be built when a consumer names the need: an adopter's `/next`
 equivalent, an orchestrator's scheduling stage, or a dashboard that renders the
@@ -122,6 +125,16 @@ plan. That is the disposition
 grand-refactor's SP-03, and it is recorded here as this spec's own build
 condition rather than as an adoption of SP-03, which is not this corpus's to
 make.
+
+**D-2 (2026-09-22, the named-consumer condition is withdrawn by the owner).**
+The owner replaced "specify now; implement only for a named consumer need"
+with an opportunity-led evaluation and named this spec in the ruling (design
+note 09 section 10, D-7). A consumer request is evidence, not a prerequisite.
+The contract in section 3 is unchanged by this decision: the field, its
+verbatim value, the untouched partition and ordering, the read-schema MINOR,
+and `blocked` left alone all stand. What changed is only that the build is
+authorized. No consumer has asked for the field, and this spec does not claim
+one has.
 
 ## Verification
 
