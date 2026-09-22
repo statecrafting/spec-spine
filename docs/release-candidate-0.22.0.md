@@ -738,6 +738,12 @@ whole-corpus run keeps reporting what it observed; and execution stays off
 every untrusted event. It is to be carried by **spec 119**, in its own pull
 request after 118.
 
+This is the ruling on §9.4's other two failures, `102` and `103` ("Kind 2").
+Neither is built, exempted or reclassified. Both stay failed in the
+whole-corpus count and are reported as pending, with their real outcomes, in the
+release verdict spec 119 adds. Spec 102 still waits on a named consumer (note 09
+§5). Spec 103's build is next-wave work, kept off this release path.
+
 ### 10.3 What these rulings do not authorize
 
 No ratification (the four flips in #295 and any later ones stay separate human
