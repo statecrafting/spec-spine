@@ -7,11 +7,19 @@
       {
         "path": ".githooks/",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/commit_boundary.rs",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/commit_boundary.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -50,5 +58,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "b34c290e2794c9b37ef7324563bef5d571beb1699a9e412d8d95081182cc0f74"
+  "shardHash": "8c9482adc55c0992a3543b1f11e1800b4e861207e22ec06eae8dd58945a713b4"
 }

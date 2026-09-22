@@ -13,7 +13,7 @@ summary: >
   entries, conflict markers on the lines a commit adds (git's own detector,
   with git's own attribute as the only opt-out), and a staged Rust change that
   fails `cargo fmt --all --check`. It still writes and stages nothing.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -23,7 +23,7 @@ extends:
   - { spec: "094-one-gate-and-the-boundaries-it-holds", unit: { kind: directory, path: ".githooks/" }, nature: additive }
 establishes:
   # 3.5: the hook run for real, in a throwaway repository.
-  - { kind: file, path: "crates/spec-spine-core/tests/commit_boundary.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/tests/commit_boundary.rs" }
 references:
   - { unit: { kind: file, path: ".gitattributes" }, role: context }
 ---
@@ -166,6 +166,12 @@ reviewer can read.
 formatting runs here. It takes about a second, and it is the one whose failure
 in a command chain produced a commit. Clippy and tests take minutes and stay
 at the gate.
+
+**D-3 (2026-09-22, build: fail-first measured).** Against the hook as it
+stood at the parent of this build, cases 1, 2, 3 and 5 of §3.5 fail and cases
+4 and 6 pass, which is the split §3.5 requires: the four refusals did not
+exist, and the two over-refusal guards describe behavior the old hook already
+had. With this build all six pass.
 
 ## Verification
 
