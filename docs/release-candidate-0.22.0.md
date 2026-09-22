@@ -5,7 +5,7 @@ not published.** Sections 0.1 to 8 are the pre-integration record and §9 the
 integration record, both preserved as written. **§11 is the state that is true
 now**: it supersedes §9.3's checks, §9.4's blocker, §9.6's digests and §9.7's
 procedure wherever they disagree. §10 holds the owner rulings that resolved
-§9.4.
+§9.4. **§12 corrects §10.5's account** of the first sweep run's failure.
 
 **Original status line, as written before integration:**
 
@@ -793,6 +793,11 @@ passed immediately before on already-compiled artifacts.
 
 ### 10.5 The cause: the operating system's temporary-file cleaner
 
+> **[corrected 2026-09-22, §12]** This heading and the phrase "the evidence
+> points elsewhere" read as an established cause. It is not established: the
+> deletion was not observed. §12 separates what was observed, reproduced and
+> inferred. The text below is preserved as written.
+
 The earlier reading, "the first `cargo clippy` poisoned the shared target
 directory", is **not supported**: the release-profile output directory that
 `094` found empty is one `clippy` never writes. The evidence points elsewhere:
@@ -841,7 +846,7 @@ never clear an earlier run's evidence, is part of spec 119.
 
 | # | Pull request | Squash commit (full) | What |
 |---|---|---|---|
-| 1 | #296 | `b04a138b623e0ec4a08b47aceae30f0f4d531b04` | §10: the owner rulings, the preserved first sweep run, its cause |
+| 1 | #296 | `b04a138b623e0ec4a08b47aceae30f0f4d531b04` | §10: the owner rulings, the preserved first sweep run, its inferred cause (§12) |
 | 2 | #297 | `bf910840941d79ff1cbe9be4242c017289fb0443` | **spec 118**: 095's acceptance corrected through `amends_verification` |
 | 3 | #298 | `8d091f915be37782bcc479a0600cb269dafb527b` | **spec 119**: the sweep's release verdict and its run directory |
 | 4 | #295 | `da47632b8ac413fccd2518dbd7326f44328712d6` | ratification of 100, 101, 104 and 117, on the owner's approval |
@@ -996,3 +1001,57 @@ Not performed. Each numbered step is a human action.
    `gh release edit --notes-file` once the run completes.
 6. **Tell Statecraft** the producer version (0.22.0), and that 0.21.0's output
    is the pre-092 shape.
+
+## 12. The first run's failure: what is observed, reproduced and inferred (corrected 2026-09-22)
+
+An earlier report of this candidate said the failure's "cause [was]
+established" while also saying the deletion was inferred and the per-spec logs
+were lost. Both cannot be true, and the second is. This section replaces §10.5
+as the current account; §10.5 stays as written, marked. Nothing was re-run to
+produce it: it restates the evidence already recorded, with its limits.
+
+**Observed.**
+
+- The first run at `835dd2e4` started 09:30:07Z and finished 09:41:11Z on
+  2026-09-22 and reported `passed=37 failed=26` (its console log, §10.4, digest
+  `03b48024...`).
+- Its run directory, and so the sweep's worktree and `target/`, was under
+  `$TMPDIR`.
+- macOS's `com.apple.bsd.dirhelper` is scheduled daily at 03:35 local time with
+  `CLEAN_FILES_OLDER_THAN_DAYS=3`, and the unified log records it "cleaning
+  directories" at 03:35:04 -0600 (09:35:04Z), inside that window.
+- The console log shows `055` as the last spec finishing at about that minute
+  and `079` as the first failure. Two error excerpts, read from the per-spec
+  logs before they were cleared, show `stdlib-symbols.txt` missing from
+  `tree-sitter`'s `OUT_DIR` in the debug and in the release profile.
+- Every `stdlib-symbols.txt` in this machine's build directories carries an
+  mtime and birth time of 2006-07-23, the crate archive's normalized
+  timestamp, because the build script copies the file with its timestamps.
+- The second run, started 03:42 local, after the cleaner, reported
+  `passed=60 failed=3`.
+
+**Reproduced**, with the pinned cargo 1.92.0 in a fresh target directory
+outside the temporary tree: build `tree-sitter@0.27.0`, delete
+`debug/build/tree-sitter-*/out/stdlib-symbols.txt`, build again. The build
+script is not rerun, the recompile fails with the first run's message
+verbatim, and a rerun fails the same way. So **if** that file disappears
+mid-sweep, every later `tree-sitter` compilation in that worktree fails with
+exactly the observed error.
+
+**Inferred, and not observed.** That the cleaner deleted `stdlib-symbols.txt`
+from the sweep's target directory during the first run. The inference rests on
+the timing, the file's old timestamps meeting the cleaner's age rule, and the
+exact error text. Nothing observed the deletion: the cleaner logs that it ran,
+not what it removed; the first run's per-spec logs, which would show the order
+of events, were cleared by the second run; and the cleaner was not run
+deliberately, which needs privileges this work does not use. The earlier
+reading, a `cargo clippy` corrupting the shared target, is not supported,
+because the release-profile directory it would have to corrupt is one clippy
+does not write. That rules out one explanation; it does not prove this one.
+
+**The practical remedy does not depend on the inference.** Spec 119 §3.5 makes
+the default run directory new per run under the user cache directory, outside
+the purged temporary tree. That removes the exposure whether or not the purge
+was the cause, and it keeps each run's report, so a later failure of this kind
+leaves its own evidence instead of being overwritten.
+

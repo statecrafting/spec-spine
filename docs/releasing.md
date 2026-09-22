@@ -67,9 +67,9 @@
       from the same report next to the release verdict, so a pending spec's red
       block stays visible in the release record. The default run directory is
       new per run under `${XDG_CACHE_HOME:-$HOME/.cache}/spec-spine/sweeps/`,
-      outside the macOS temporary tree whose daily purge once emptied a
-      build-script `OUT_DIR` mid-sweep, and a rerun no longer clears an earlier
-      run's report. This is the only thing that reruns a merged acceptance:
+      outside the macOS temporary tree, whose daily purge is the inferred
+      cause of a mid-sweep build failure (candidate record 0.22.0 §12), and a
+      rerun no longer clears an earlier run's report. This is the only thing that reruns a merged acceptance:
       `verify` is outside the gate chain on purpose, so a block invalidated by
       a later approved spec is red silently until this runs. Run it here, and
       again after merging any spec that carries `amends` or
