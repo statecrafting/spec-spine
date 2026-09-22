@@ -4,21 +4,17 @@
       "089-nothing-reruns-a-merged-acceptance"
     ],
     "dependsOn": [
-      "043-verify-declared-acceptance",
+      "042-absent-implementation-defers-to-status",
       "089-nothing-reruns-a-merged-acceptance",
-      "094-one-gate-and-the-boundaries-it-holds"
+      "099-a-merged-acceptance-is-asked-again"
     ],
     "implementingPaths": [
       {
-        "path": ".github/workflows/acceptance.yml",
+        "path": "docs/releasing.md",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/gate.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "scripts/acceptance-scope.sh",
+        "path": "scripts/test-verify-sweep.py",
         "source": "spec-edge"
       },
       {
@@ -30,40 +26,27 @@
       {
         "locations": [
           {
-            "file": ".github/workflows/acceptance.yml"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": ".github/workflows/acceptance.yml"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "scripts/acceptance-scope.sh"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "scripts/acceptance-scope.sh"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/tests/gate.rs"
+            "file": "docs/releasing.md"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/gate.rs"
+          "path": "docs/releasing.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/test-verify-sweep.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/test-verify-sweep.py"
         }
       },
       {
@@ -82,20 +65,33 @@
       {
         "locations": [
           {
-            "file": ".github/workflows/ci.yml"
+            "file": ".github/workflows/acceptance.yml"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": ".github/workflows/ci.yml"
+          "path": ".github/workflows/acceptance.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/release-candidate-0.22.0.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/release-candidate-0.22.0.md"
         }
       }
     ],
-    "specId": "099-a-merged-acceptance-is-asked-again",
-    "specStatus": "approved"
+    "specId": "119-a-release-verdict-judges-what-was-built",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "42d3aa98576487227d3b12fe3bc3eca9e29d96271937bafa8f770220f356d989"
+  "shardHash": "d4d984100ef0aa0f72f6bee2111e24abd1d69706bc10bdde362a2a6b6fd5052d"
 }
