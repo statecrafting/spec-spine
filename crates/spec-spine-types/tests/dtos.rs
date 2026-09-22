@@ -79,8 +79,10 @@ fn schema_versions_are_pinned() {
     // than acquiring a version after the first consumer breaks. Spec 043 took
     // it to 0.2.0, spec 049 to 0.3.0 and spec 071 to 0.4.0: a new `verb` token
     // is additive, so a consumer's existing match arms still hold, which is
-    // exactly the MINOR rule version.rs states.
-    assert_eq!(VERDICT_SCHEMA_VERSION, "0.4.0");
+    // exactly the MINOR rule version.rs states. Spec 100 took it to 0.5.0 by
+    // adding `couple`'s `deletions` block, which is omitted when empty and so
+    // additive in the same sense.
+    assert_eq!(VERDICT_SCHEMA_VERSION, "0.5.0");
     // Spec 039: the per-spec attestation, independent of the ledger versions so
     // a consumer pins the evidence shape it verifies without pinning the ledger
     // it was derived from.

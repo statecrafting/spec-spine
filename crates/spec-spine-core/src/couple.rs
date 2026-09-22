@@ -84,6 +84,124 @@ pub struct Waiver {
     pub reason: String,
 }
 
+/// Ownership as of a commit that is **not** the tree under judgment (spec 100
+/// §3.2).
+///
+/// Reconstructed from that commit's own source bytes by compiling and indexing
+/// its exported tree, never read from its committed derived shards: the
+/// historical ledger is evidence somebody wrote and can be stale, absent or
+/// wrong, while the corpus source at that commit is immutable and is what the
+/// ledger was a function of. Removing the read removes the whole class of
+/// "the base index is stale" states the gate would otherwise have to rule on.
+#[derive(Clone, Debug)]
+pub struct PriorOwnership {
+    index: CodebaseIndex,
+    superseders: BTreeMap<String, BTreeSet<String>>,
+    /// The snapshot's tracked path inventory, when the caller has one.
+    ///
+    /// Only used to tell "the snapshot says nobody owned this path" from "the
+    /// path was not in the snapshot at all" (spec 100 §3.5). Both answers give
+    /// an empty owner set and the same verdict; the distinction is reported,
+    /// never acted on. `None` means the caller did not supply an inventory, in
+    /// which case no absence is claimed.
+    paths: Option<BTreeSet<String>>,
+}
+
+impl PriorOwnership {
+    /// Build a snapshot from a registry and index already compiled for the
+    /// commit it describes.
+    pub fn new(registry: &Registry, index: CodebaseIndex) -> Self {
+        PriorOwnership {
+            superseders: build_superseders(registry),
+            index,
+            paths: None,
+        }
+    }
+
+    /// Declare the snapshot's tracked path inventory (spec 100 §3.5).
+    pub fn with_paths(mut self, paths: BTreeSet<String>) -> Self {
+        self.paths = Some(paths);
+        self
+    }
+
+    /// The snapshot's index, for callers that need the claim-aware bypass
+    /// predicate against it.
+    pub fn index(&self) -> &CodebaseIndex {
+        &self.index
+    }
+
+    /// True only when an inventory was supplied and does not list `path`.
+    fn is_absent(&self, path: &str) -> bool {
+        self.paths.as_ref().is_some_and(|p| !p.contains(path))
+    }
+}
+
+/// Which prior snapshots a run holds, and which deletions belong to the
+/// working-tree segment (spec 100 §3.1).
+///
+/// A deleted path is judged at the snapshot immediately preceding the segment
+/// that recorded its deletion: the merge base for the committed range, HEAD for
+/// the working-tree diff. The segment is carried here rather than on
+/// [`DiffFile`] so the diff's serialized shape does not move, and because the
+/// caller that computes the segments is the same one that builds the snapshots.
+#[derive(Clone, Debug, Default)]
+pub struct PriorSnapshots<'a> {
+    /// Answers for deletions recorded in `merge-base...head`.
+    pub merge_base: Option<&'a PriorOwnership>,
+    /// Answers for deletions recorded in `git diff HEAD` (spec 081).
+    pub head_commit: Option<&'a PriorOwnership>,
+    /// The paths whose deletion the working-tree segment recorded.
+    pub worktree_deletions: BTreeSet<String>,
+}
+
+impl PriorSnapshots<'_> {
+    /// The snapshot that answers for a deleted `path`, and its report token.
+    fn resolve(&self, path: &str) -> (Option<&PriorOwnership>, &'static str) {
+        if self.worktree_deletions.contains(path) {
+            match self.head_commit {
+                Some(s) => (Some(s), SNAPSHOT_HEAD_COMMIT),
+                None => (None, SNAPSHOT_HEAD_TREE),
+            }
+        } else {
+            match self.merge_base {
+                Some(s) => (Some(s), SNAPSHOT_MERGE_BASE),
+                None => (None, SNAPSHOT_HEAD_TREE),
+            }
+        }
+    }
+}
+
+/// The committed range's prior snapshot answered (spec 100 §3.7).
+pub const SNAPSHOT_MERGE_BASE: &str = "merge-base";
+/// The working-tree segment's prior snapshot, HEAD, answered (spec 100 §3.7).
+pub const SNAPSHOT_HEAD_COMMIT: &str = "head-commit";
+/// No prior snapshot was supplied, so the tree under judgment answered. This is
+/// the compatibility path of spec 100 §3.8 and carries none of its guarantee.
+pub const SNAPSHOT_HEAD_TREE: &str = "head-tree";
+
+/// Which snapshot resolved one deleted path's owners (spec 100 §3.7).
+///
+/// Recorded for every deleted path the gate examined, so a reader of the report
+/// can tell a path judged at a prior snapshot from one judged at head. A
+/// verdict whose provenance is invisible is a verdict whose correctness cannot
+/// be reviewed.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeletionProvenance {
+    pub path: String,
+    /// One of [`SNAPSHOT_MERGE_BASE`], [`SNAPSHOT_HEAD_COMMIT`],
+    /// [`SNAPSHOT_HEAD_TREE`].
+    pub snapshot: String,
+    /// The snapshot was read and does not contain the path (spec 100 §3.5).
+    /// A computed answer, not a fallback: nobody owned it there.
+    #[serde(skip_serializing_if = "is_false")]
+    pub absent_at_snapshot: bool,
+}
+
+fn is_false(b: &bool) -> bool {
+    !*b
+}
+
 /// The coupling outcome. Returned `Ok` for any completed analysis (clean, drift,
 /// or waived); the CLI maps it to an exit code. A blocking drift is
 /// `!violations.is_empty() && waiver.is_none()`.
@@ -95,6 +213,13 @@ pub struct CoupleReport {
     pub waiver: Option<String>,
     /// Non-bypassed diff paths that were examined.
     pub checked_paths: usize,
+    /// Which snapshot answered for each deleted path examined (spec 100 §3.7).
+    ///
+    /// **Omitted when empty**, which is every run that examines no deletion.
+    /// That is what lets a new report member coexist with preserving the exact
+    /// bytes every pre-spec-100 input produced.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub deletions: Vec<DeletionProvenance>,
 }
 
 impl CoupleReport {
@@ -109,6 +234,33 @@ impl CoupleReport {
     }
 }
 
+/// Reconstruct a prior snapshot from an exported tree (spec 100 §3.2).
+///
+/// `cfg` is the **snapshot's own** configuration, read from the exported tree,
+/// not the run's: a change must not be able to re-own a path it is deleting by
+/// editing `spec-spine.toml` in the same commit (the position spec 071 §3.2
+/// takes for `delta`).
+///
+/// This compiles and indexes the tree rather than reading its committed
+/// shards, which is what makes the answer trustworthy: the shards are evidence
+/// somebody wrote, and the corpus source is immutable. A tree whose corpus does
+/// not compile is an `Err`, never an empty snapshot, because a snapshot that
+/// could not be built has not answered (spec 100 §3.5).
+pub fn prior_ownership_from_root(cfg: &Config, root: &Path) -> Result<PriorOwnership, Error> {
+    let registry = crate::compile::compile(cfg, root)?.registry;
+    // `compile` reports a malformed spec as a validation violation rather than
+    // an `Err`, so a corrupt historical corpus would otherwise produce a
+    // snapshot missing exactly the specs that failed to parse: a confident
+    // "nobody owned this path" derived from evidence that did not load. Spec
+    // 100 §3.5 says such a snapshot has not answered, so it is refused here
+    // rather than silently narrowed.
+    if !registry.validation.passed {
+        return Err(Error::Validation(registry.validation.violations.clone()));
+    }
+    let index = crate::index::index(cfg, root)?.index;
+    Ok(PriorOwnership::new(&registry, index))
+}
+
 /// Freshness-guarded coupling. Refuses a stale index (exit 2, recompute first),
 /// then loads the committed `registry.json` + `index.json` from `derived_dir`
 /// and delegates to [`couple_with`].
@@ -117,6 +269,22 @@ pub fn couple(
     repo_root: &Path,
     diff: &DiffInput,
     waiver: Option<&Waiver>,
+) -> Result<CoupleReport, Error> {
+    couple_snapshots(cfg, repo_root, diff, waiver, &PriorSnapshots::default())
+}
+
+/// [`couple`] with the prior snapshots a deletion is judged against (spec 100).
+///
+/// The freshness guard, the committed-artifact load and the governed-scope
+/// resolution are exactly [`couple`]'s; only the deletion resolution differs.
+/// The CLI calls this form, and it is the one that carries spec 100's
+/// two-snapshot guarantee.
+pub fn couple_snapshots(
+    cfg: &Config,
+    repo_root: &Path,
+    diff: &DiffInput,
+    waiver: Option<&Waiver>,
+    prior: &PriorSnapshots<'_>,
 ) -> Result<CoupleReport, Error> {
     match check_index_freshness(cfg, repo_root)? {
         Freshness::Stale { expected, actual } => return Err(Error::Stale { expected, actual }),
@@ -133,10 +301,18 @@ pub fn couple(
     } else {
         crate::coverage::GovernedScope::from_globs(cfg, repo_root)
     };
-    couple_with_scope(cfg, &registry, &index, &scope, diff, waiver)
+    couple_with_prior(cfg, &registry, &index, &scope, prior, diff, waiver)
 }
 
 /// Pure coupling over already-loaded artifacts (overlays, tests). No IO.
+///
+/// **Compatibility entry point.** It holds one snapshot, the tree under
+/// judgment, so a deleted path's owners are resolved at head: the claim the
+/// change withdrew is already gone, which is the defect spec 100 §1 describes.
+/// The behavior is retained deliberately and unchanged, and the report labels
+/// every deletion it judged this way [`SNAPSHOT_HEAD_TREE`]. A caller that
+/// wants spec 100's guarantee calls [`couple_with_prior`] (or [`couple_snapshots`],
+/// or the CLI) and supplies the snapshots.
 pub fn couple_with(
     cfg: &Config,
     registry: &Registry,
@@ -156,11 +332,44 @@ pub fn couple_with(
 
 /// [`couple_with`] with a resolved governed scope (spec 078 §3.3), which widens
 /// the universe the `C-002` arm asks about. No IO.
+///
+/// **Compatibility entry point**, on exactly [`couple_with`]'s terms: it holds
+/// one snapshot and resolves deletions at head. See that function.
 pub fn couple_with_scope(
     cfg: &Config,
     registry: &Registry,
     index: &CodebaseIndex,
     scope: &crate::coverage::GovernedScope,
+    diff: &DiffInput,
+    waiver: Option<&Waiver>,
+) -> Result<CoupleReport, Error> {
+    couple_with_prior(
+        cfg,
+        registry,
+        index,
+        scope,
+        &PriorSnapshots::default(),
+        diff,
+        waiver,
+    )
+}
+
+/// The gate, with the prior snapshots a deletion is judged against (spec 100).
+///
+/// The one entry point that carries spec 100's two-snapshot guarantee. Pure:
+/// the snapshots are supplied already compiled, so no git and no IO happen
+/// here, exactly as spec 005 §3.1 requires.
+///
+/// A deleted path resolves its owners, and its claim-aware bypass verdict,
+/// against the snapshot preceding the segment that recorded the deletion. Every
+/// other path resolves at head, unchanged. With no snapshots supplied this is
+/// [`couple_with_scope`] byte for byte.
+pub fn couple_with_prior(
+    cfg: &Config,
+    registry: &Registry,
+    index: &CodebaseIndex,
+    scope: &crate::coverage::GovernedScope,
+    prior: &PriorSnapshots<'_>,
     diff: &DiffInput,
     waiver: Option<&Waiver>,
 ) -> Result<CoupleReport, Error> {
@@ -172,18 +381,38 @@ pub fn couple_with_scope(
 
     let mut violations: Vec<Violation> = Vec::new();
     let mut checked_paths = 0usize;
+    let mut deletions: Vec<DeletionProvenance> = Vec::new();
 
     for file in &diff.files {
         let path = &file.path;
+        // Spec 100 §3.1: a deleted path is judged at the snapshot preceding the
+        // segment that recorded its deletion. Both questions below (is this
+        // path governed at all, and who owns it) read that one snapshot, so
+        // there is no state in which the gate decides a path is governed under
+        // one snapshot and resolves its owners under another (§3.3).
+        let (snapshot, snapshot_token) = if file.deleted {
+            prior.resolve(path)
+        } else {
+            (None, SNAPSHOT_HEAD_TREE)
+        };
+        let owning_index = snapshot.map_or(index, PriorOwnership::index);
+        let owning_superseders = snapshot.map_or(&superseders, |s| &s.superseders);
         // Effective bypass = declared state root (spec 036), else the
         // hardcoded floor ∪ adopter list (additive) UNLESS an explicit,
         // resolved unit claim covers the path (spec 008). One predicate,
         // shared with `index coverage`, so the report and the gate cannot
         // disagree about which paths are even looked at.
-        if is_bypassed_path(cfg, index, path) {
+        if is_bypassed_path(cfg, owning_index, path) {
             continue;
         }
         checked_paths += 1;
+        if file.deleted {
+            deletions.push(DeletionProvenance {
+                path: path.clone(),
+                snapshot: snapshot_token.to_string(),
+                absent_at_snapshot: snapshot.is_some_and(|s| s.is_absent(path)),
+            });
+        }
 
         // Spec 029: the ownership ratchet. Asked before the drift question,
         // over exactly the universe `index coverage` reports on, so the report
@@ -214,7 +443,13 @@ pub fn couple_with_scope(
             }
         }
 
-        let owners = owners_for_path(specs_dir, path, &file.hunks, index, &superseders);
+        let owners = owners_for_path(
+            specs_dir,
+            path,
+            &file.hunks,
+            owning_index,
+            owning_superseders,
+        );
         if owners.is_empty() {
             continue; // unclaimed path: not a drift concern (see the ratchet above)
         }
@@ -243,10 +478,13 @@ pub fn couple_with_scope(
 
     violations.sort_by(|a, b| a.path.cmp(&b.path));
 
+    deletions.sort_by(|a, b| a.path.cmp(&b.path));
+
     Ok(CoupleReport {
         violations,
         waiver: waiver.map(|w| w.reason.clone()),
         checked_paths,
+        deletions,
     })
 }
 

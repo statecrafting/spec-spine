@@ -1676,3 +1676,425 @@ fn the_effective_bypass_list_reports_the_configured_derived_root() {
         "{default:?}"
     );
 }
+
+// ── spec 100: a deleted path is judged where it lived ─────────────────────
+//
+// Behavioral assertions, not string searches. Each case builds the two
+// snapshots explicitly and asserts the verdict the gate reaches, so a change
+// that keeps the reason tokens and breaks the decision fails here.
+
+/// The reproduced shape of spec 100 §1.1: spec `001-a` owns two files inside a
+/// package whose manifest floor is `002-floor`.
+fn prior_index_with_claim() -> CodebaseIndex {
+    index_with_packages(
+        json!([{ "name": "pkg", "path": "pkg", "kind": "rust-lib", "specRef": "002-floor" }]),
+        json!([
+            {
+                "specId": "001-a",
+                "implementingPaths": [],
+                "resolvedUnits": [
+                    {
+                        "unit": { "kind": "file", "path": "pkg/src/doomed.rs" },
+                        "sourceField": "establishes",
+                        "ownership": true,
+                        "locations": [{ "file": "pkg/src/doomed.rs" }]
+                    },
+                    {
+                        "unit": { "kind": "file", "path": "pkg/src/kept.rs" },
+                        "sourceField": "establishes",
+                        "ownership": true,
+                        "locations": [{ "file": "pkg/src/kept.rs" }]
+                    }
+                ]
+            },
+            {
+                "specId": "002-floor",
+                "implementingPaths": [{ "path": "pkg", "source": "manifest-metadata" }],
+                "resolvedUnits": []
+            }
+        ]),
+    )
+}
+
+/// The same corpus after the withdrawal: `001-a` no longer claims the file, so
+/// only the package floor spells the vanished path.
+fn head_index_without_claim() -> CodebaseIndex {
+    index_with_packages(
+        json!([{ "name": "pkg", "path": "pkg", "kind": "rust-lib", "specRef": "002-floor" }]),
+        json!([
+            {
+                "specId": "001-a",
+                "implementingPaths": [],
+                "resolvedUnits": [{
+                    "unit": { "kind": "file", "path": "pkg/src/kept.rs" },
+                    "sourceField": "establishes",
+                    "ownership": true,
+                    "locations": [{ "file": "pkg/src/kept.rs" }]
+                }]
+            },
+            {
+                "specId": "002-floor",
+                "implementingPaths": [{ "path": "pkg", "source": "manifest-metadata" }],
+                "resolvedUnits": []
+            }
+        ]),
+    )
+}
+
+fn with_prior(
+    head: &CodebaseIndex,
+    reg: &Registry,
+    prior: &spec_spine_core::PriorSnapshots<'_>,
+    d: &DiffInput,
+) -> spec_spine_core::CoupleReport {
+    spec_spine_core::couple_with_prior(
+        &Config::default(),
+        reg,
+        head,
+        &spec_spine_core::GovernedScope::empty(),
+        prior,
+        d,
+        None,
+    )
+    .unwrap()
+}
+
+#[test]
+fn deleted_path_resolves_owners_at_the_merge_base() {
+    let reg = empty_registry();
+    let head = head_index_without_claim();
+    let change = diff(vec![
+        deleted("pkg/src/doomed.rs"),
+        file("specs/001-a/spec.md", &[]),
+    ]);
+
+    // Today's behavior, kept by the compatibility entry point: the head index
+    // answers, the floor is the only spec left spelling the path, and the
+    // correct removal is refused. This is the defect, asserted as present.
+    let legacy = run(&head, &reg, &change);
+    assert!(
+        legacy.has_blocking_drift(),
+        "the defect must still reproduce"
+    );
+    assert_eq!(legacy.violations[0].owners, vec!["002-floor".to_string()]);
+
+    // Spec 100 §3.2: the merge base's snapshot answers, `001-a` is still an
+    // owner there, and its spec.md is in the diff, so the removal clears.
+    let snap = spec_spine_core::PriorOwnership::new(&reg, prior_index_with_claim());
+    let prior = spec_spine_core::PriorSnapshots {
+        merge_base: Some(&snap),
+        ..Default::default()
+    };
+    let fixed = with_prior(&head, &reg, &prior, &change);
+    assert!(
+        !fixed.has_blocking_drift(),
+        "a withdrawn claim must clear its own removal: {:?}",
+        fixed.violations
+    );
+}
+
+#[test]
+fn deleted_path_with_surviving_co_owner_still_refuses() {
+    // Two owners at the prior snapshot; the change edits neither spec.md. The
+    // refusal must survive, and must name both.
+    let reg = empty_registry();
+    let prior_index = index_with_packages(
+        json!([]),
+        json!([
+            {
+                "specId": "001-a",
+                "implementingPaths": [],
+                "resolvedUnits": [{
+                    "unit": { "kind": "file", "path": "src/shared.rs" },
+                    "sourceField": "establishes",
+                    "ownership": true,
+                    "locations": [{ "file": "src/shared.rs" }]
+                }]
+            },
+            {
+                "specId": "003-b",
+                "implementingPaths": [],
+                "resolvedUnits": [{
+                    "unit": { "kind": "file", "path": "src/shared.rs" },
+                    "sourceField": "extends",
+                    "ownership": true,
+                    "locations": [{ "file": "src/shared.rs" }]
+                }]
+            }
+        ]),
+    );
+    let snap = spec_spine_core::PriorOwnership::new(&reg, prior_index);
+    let prior = spec_spine_core::PriorSnapshots {
+        merge_base: Some(&snap),
+        ..Default::default()
+    };
+    let head = index_from(json!([]));
+    let r = with_prior(&head, &reg, &prior, &diff(vec![deleted("src/shared.rs")]));
+    assert!(r.has_blocking_drift(), "a legitimate refusal must survive");
+    assert_eq!(
+        r.violations[0].owners,
+        vec!["001-a".to_string(), "003-b".to_string()]
+    );
+
+    // One owner's spec.md clears it, exactly as spec 005 says.
+    let cleared = with_prior(
+        &head,
+        &reg,
+        &prior,
+        &diff(vec![
+            deleted("src/shared.rs"),
+            file("specs/003-b/spec.md", &[]),
+        ]),
+    );
+    assert!(!cleared.has_blocking_drift(), "{:?}", cleared.violations);
+}
+
+#[test]
+fn deleted_path_floor_only_still_refuses() {
+    // No spec specifically owned it at the prior snapshot; the manifest floor
+    // did. Spec 100 §3.3 keeps that refusal.
+    let reg = empty_registry();
+    let prior_index = index_with_packages(
+        json!([{ "name": "pkg", "path": "pkg", "kind": "rust-lib", "specRef": "002-floor" }]),
+        json!([{
+            "specId": "002-floor",
+            "implementingPaths": [{ "path": "pkg", "source": "manifest-metadata" }],
+            "resolvedUnits": []
+        }]),
+    );
+    let snap = spec_spine_core::PriorOwnership::new(&reg, prior_index);
+    let prior = spec_spine_core::PriorSnapshots {
+        merge_base: Some(&snap),
+        ..Default::default()
+    };
+    let head = index_from(json!([]));
+    let r = with_prior(
+        &head,
+        &reg,
+        &prior,
+        &diff(vec![deleted("pkg/src/orphan.rs")]),
+    );
+    assert!(r.has_blocking_drift());
+    assert_eq!(r.violations[0].owners, vec!["002-floor".to_string()]);
+}
+
+#[test]
+fn deleted_path_explicit_claim_overrides_bypass_at_the_prior_snapshot() {
+    // `docs/` is on the built-in bypass floor. A resolved unit claim lifts a
+    // path out of it (spec 008). Spec 100 §3.3: for a deleted path that
+    // override is read from the prior snapshot, so a removal of a claimed
+    // doc is still examined even though the claim is gone at head.
+    let reg = empty_registry();
+    let claimed = index_from(json!([{
+        "specId": "001-a",
+        "implementingPaths": [],
+        "resolvedUnits": [{
+            "unit": { "kind": "file", "path": "docs/governed.md" },
+            "sourceField": "establishes",
+            "ownership": true,
+            "locations": [{ "file": "docs/governed.md" }]
+        }]
+    }]));
+    let head = index_from(json!([]));
+    let change = diff(vec![deleted("docs/governed.md")]);
+
+    // At head the claim is gone, so the bypass floor swallows the path and the
+    // gate examines nothing. That is the state spec 100 corrects.
+    let legacy = run(&head, &reg, &change);
+    assert_eq!(legacy.checked_paths, 0, "bypassed at head");
+
+    let snap = spec_spine_core::PriorOwnership::new(&reg, claimed);
+    let prior = spec_spine_core::PriorSnapshots {
+        merge_base: Some(&snap),
+        ..Default::default()
+    };
+    let r = with_prior(&head, &reg, &prior, &change);
+    assert_eq!(r.checked_paths, 1, "the prior claim lifts it out of bypass");
+    assert!(r.has_blocking_drift());
+    assert_eq!(r.violations[0].owners, vec!["001-a".to_string()]);
+}
+
+#[test]
+fn deleted_path_supersedes_transfer_applies_at_the_prior_snapshot() {
+    // `004-successor` supersedes `001-a`, so it inherits authority over the
+    // deleted path and its spec.md clears the removal. The transfer is
+    // computed from the PRIOR snapshot's registry, not the run's.
+    let prior_registry = registry_from(json!([
+        { "id": "001-a", "title": "a", "status": "approved",
+          "created": "d", "summary": "s", "specPath": "specs/001-a/spec.md" },
+        { "id": "004-successor", "title": "s", "status": "approved",
+          "created": "d", "summary": "s", "specPath": "specs/004-successor/spec.md",
+          "supersedes": ["001-a"] }
+    ]));
+    let snap = spec_spine_core::PriorOwnership::new(&prior_registry, prior_index_with_claim());
+    let prior = spec_spine_core::PriorSnapshots {
+        merge_base: Some(&snap),
+        ..Default::default()
+    };
+    let head = head_index_without_claim();
+    // The run's own registry knows nothing of the transfer: if the gate read
+    // it instead of the snapshot's, this would refuse.
+    let run_registry = empty_registry();
+    let r = with_prior(
+        &head,
+        &run_registry,
+        &prior,
+        &diff(vec![
+            deleted("pkg/src/doomed.rs"),
+            file("specs/004-successor/spec.md", &[]),
+        ]),
+    );
+    assert!(
+        !r.has_blocking_drift(),
+        "the successor inherited authority at the prior snapshot: {:?}",
+        r.violations
+    );
+}
+
+#[test]
+fn deleted_path_absent_from_a_read_snapshot_has_no_owner() {
+    // Spec 100 §3.5: a snapshot that WAS read and simply does not contain the
+    // path answers "nobody owned it here". That is a computed answer, not a
+    // fallback: the gate must not reach for head, and must record the absence.
+    let reg = empty_registry();
+    let snap = spec_spine_core::PriorOwnership::new(&reg, index_from(json!([])))
+        .with_paths(["src/other.rs".to_string()].into_iter().collect());
+    let prior = spec_spine_core::PriorSnapshots {
+        merge_base: Some(&snap),
+        ..Default::default()
+    };
+    // Head DOES claim the path. If the gate fell back to head, this would
+    // refuse; the snapshot's answer is that nobody owned it there.
+    let head = index_from(json!([{
+        "specId": "009-late",
+        "implementingPaths": [],
+        "resolvedUnits": [{
+            "unit": { "kind": "file", "path": "src/gone.rs" },
+            "sourceField": "establishes",
+            "ownership": true,
+            "locations": [{ "file": "src/gone.rs" }]
+        }]
+    }]));
+    let r = with_prior(&head, &reg, &prior, &diff(vec![deleted("src/gone.rs")]));
+    assert!(!r.has_blocking_drift(), "{:?}", r.violations);
+    assert_eq!(r.deletions.len(), 1);
+    assert_eq!(
+        r.deletions[0].snapshot,
+        spec_spine_core::SNAPSHOT_MERGE_BASE
+    );
+    assert!(r.deletions[0].absent_at_snapshot);
+}
+
+#[test]
+fn deletion_reports_which_snapshot_answered() {
+    // Spec 100 §3.7: every deleted path the gate examined carries the snapshot
+    // that resolved it, from the closed set.
+    let reg = empty_registry();
+    let base_snap = spec_spine_core::PriorOwnership::new(&reg, prior_index_with_claim());
+    let head_snap = spec_spine_core::PriorOwnership::new(&reg, prior_index_with_claim());
+    let prior = spec_spine_core::PriorSnapshots {
+        merge_base: Some(&base_snap),
+        head_commit: Some(&head_snap),
+        worktree_deletions: ["pkg/src/kept.rs".to_string()].into_iter().collect(),
+    };
+    let head = head_index_without_claim();
+    let r = with_prior(
+        &head,
+        &reg,
+        &prior,
+        &diff(vec![
+            deleted("pkg/src/doomed.rs"),
+            deleted("pkg/src/kept.rs"),
+            file("specs/001-a/spec.md", &[]),
+        ]),
+    );
+    let seen: Vec<(&str, &str)> = r
+        .deletions
+        .iter()
+        .map(|d| (d.path.as_str(), d.snapshot.as_str()))
+        .collect();
+    assert_eq!(
+        seen,
+        vec![
+            ("pkg/src/doomed.rs", spec_spine_core::SNAPSHOT_MERGE_BASE),
+            ("pkg/src/kept.rs", spec_spine_core::SNAPSHOT_HEAD_COMMIT),
+        ]
+    );
+}
+
+#[test]
+fn legacy_couple_with_is_byte_identical_and_reports_head_tree() {
+    // Spec 100 §3.8: the compatibility entry points keep their behavior, and
+    // the report says so rather than implying the two-snapshot guarantee.
+    let reg = empty_registry();
+    let head = head_index_without_claim();
+
+    // No deletions: the new member is omitted, so the emitted bytes of every
+    // input that produced a report before spec 100 are unmoved.
+    let clean = run(&head, &reg, &diff(vec![file("pkg/src/kept.rs", &[])]));
+    let json = serde_json::to_string(&clean).unwrap();
+    assert!(!json.contains("deletions"), "{json}");
+
+    // A deletion through the compatibility path is labelled honestly.
+    let legacy = run(&head, &reg, &diff(vec![deleted("pkg/src/doomed.rs")]));
+    assert_eq!(legacy.deletions.len(), 1);
+    assert_eq!(
+        legacy.deletions[0].snapshot,
+        spec_spine_core::SNAPSHOT_HEAD_TREE
+    );
+    assert!(!legacy.deletions[0].absent_at_snapshot);
+
+    // And it is exactly what `couple_with_prior` with no snapshots produces.
+    let same = with_prior(
+        &head,
+        &reg,
+        &spec_spine_core::PriorSnapshots::default(),
+        &diff(vec![deleted("pkg/src/doomed.rs")]),
+    );
+    assert_eq!(legacy, same);
+}
+
+#[test]
+fn modifications_and_additions_are_unaffected_by_a_prior_snapshot() {
+    // Spec 100 §3.1: only deletions move. With a prior snapshot present that
+    // would give a different answer, a modification and an addition must still
+    // resolve at head.
+    let reg = empty_registry();
+    let base_snap = spec_spine_core::PriorOwnership::new(&reg, prior_index_with_claim());
+    let prior = spec_spine_core::PriorSnapshots {
+        merge_base: Some(&base_snap),
+        ..Default::default()
+    };
+    let head = head_index_without_claim();
+
+    // `pkg/src/doomed.rs` is owned by `001-a` at the prior snapshot and by the
+    // floor at head. Modified, not deleted: the head answer must decide, so
+    // editing `001-a`'s spec.md must NOT clear it.
+    let modified = with_prior(
+        &head,
+        &reg,
+        &prior,
+        &diff(vec![
+            file("pkg/src/doomed.rs", &[LineSpan::new(1, 1)]),
+            file("specs/001-a/spec.md", &[]),
+        ]),
+    );
+    assert!(
+        modified.has_blocking_drift(),
+        "a modification must resolve at head"
+    );
+    assert_eq!(modified.violations[0].owners, vec!["002-floor".to_string()]);
+    assert!(modified.deletions.is_empty(), "no deletion, no provenance");
+
+    // And the head answer clears when the head owner is edited.
+    let cleared = with_prior(
+        &head,
+        &reg,
+        &prior,
+        &diff(vec![
+            file("pkg/src/doomed.rs", &[LineSpan::new(1, 1)]),
+            file("specs/002-floor/spec.md", &[]),
+        ]),
+    );
+    assert!(!cleared.has_blocking_drift(), "{:?}", cleared.violations);
+}
