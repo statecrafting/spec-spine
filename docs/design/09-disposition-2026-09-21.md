@@ -512,12 +512,13 @@ each item separately reviewable and each spec its own pull request:
 5. **The governed-scope spec** (D-2), filed at the next free ordinal.
 6. **The section 1.3 drafts**, under D-5's baseline.
 
+> **[superseded 2026-09-22 by D-7]** The paragraph below no longer governs.
+> Spec 102 is authorized for implementation under section 10's evaluation; the
+> absence of a consumer request is no longer a reason to leave it unbuilt. The
+> paragraph is preserved as the record of what was decided on 2026-09-21.
+
 Spec 102 stays deferred until a consumer requires it. It is small, and that is
 not a reason to build it.
-
-> **[superseded 2026-09-22 by D-7]** Spec 102 is authorized for implementation
-> under section 10's evaluation; the absence of a consumer request is no longer
-> a reason to leave it unbuilt.
 
 ## 8. The deleted site, audited (D-3)
 
