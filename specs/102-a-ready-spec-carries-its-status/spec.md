@@ -153,7 +153,6 @@ and `blocked` left alone all stand. What changed is only that the build is
 authorized. No consumer has asked for the field, and this spec does not claim
 one has.
 
-<<<<<<< HEAD
 **D-3 (2026-09-22, territory corrected before the build).** §3.3 requires a
 read-schema MINOR, and the filed territory did not include the constant that
 carries it or the document that tables it. Both are added as `extends` edges:
@@ -190,8 +189,6 @@ from. Both files are other specs' territory, so both are declared here as
 each still pins an exact value. Spec 074's own acceptance greps for the
 constant's name, not its value, and is unaffected.
 
-=======
->>>>>>> origin/main
 ## Verification
 
 Written to fail against the tree this spec is filed on: the field does not
