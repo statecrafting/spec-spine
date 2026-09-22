@@ -1,0 +1,83 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "078-governed-scope-is-declared-not-inferred",
+      "100-a-deleted-path-is-judged-where-it-lived"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "CLAUDE.md"
+      },
+      {
+        "kind": "file",
+        "path": "scripts/bump_version.py"
+      },
+      {
+        "kind": "file",
+        "path": "standards/spec/templates/constitution-template.md"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "011-index-hash-slices",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/build-meta.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "061-shipped-is-not-the-same-as-working",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      }
+    ],
+    "id": "105-governed-scope-is-enabled-here",
+    "implementation": "complete",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/coverage.rs"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      }
+    ],
+    "sectionHeadings": [
+      "105: Governed scope is enabled here",
+      "1. Purpose",
+      "1.1 The measured cost, re-measured",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The scope is declared over what is already hashed",
+      "3.2 The four gaps are closed before the switch is thrown",
+      "3.3 Bypass semantics are not weakened",
+      "3.4 What stays exempt, stated plainly",
+      "3.5 `.claude/` is included, and leaves with the harness",
+      "3.6 Nothing about the mechanism changes",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/105-governed-scope-is-enabled-here/spec.md",
+    "status": "draft",
+    "summary": "Spec 078 added `[coverage] governed_scope` so a repository can bring its governance files under the ownership ratchet, and the repository that wrote it never turned it on. The measured cost is four unclaimed paths. They are claimed, the scope is declared over exactly the files this repository already folds into its content hash, and what stays exempt is stated rather than implied.\n",
+    "title": "Governed scope is enabled here"
+  },
+  "shardHash": "c36109ad6490469a6729576041727d8346c88e752151b04aa006b82577669840",
+  "specVersion": "1.3.0"
+}
