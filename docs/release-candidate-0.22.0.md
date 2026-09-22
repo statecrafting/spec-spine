@@ -695,3 +695,140 @@ reason §3 gives: the packaged CLI's own `Cargo.lock` pins the two sibling
 
 Steps 0 and 3 are decisions. Steps 4 to 8 are the maintainer's, and none of
 them has been performed.
+
+## 10. Owner rulings, and the first sweep run preserved (2026-09-22)
+
+Recorded before any change they govern is built. §9 stands as written; this
+section adds the decisions §9.4 asked for and the evidence §9.3 summarized
+without keeping.
+
+### 10.1 Spec 095's acceptance: the owner's ruling
+
+The repository owner ruled on §9.4, in these terms:
+
+- Spec 095's renumbering requirement describes the **historical** corpus
+  transformation. It does not impose perpetual contiguity on every future
+  corpus. Legitimately reserved later ordinals are permitted.
+- The acceptance comparing every current ordinal with `range(len(ids))` is to
+  be corrected. Spec 117 keeps its identity. Specs 105 to 116 are not merged and
+  no published identity is renumbered to satisfy the assertion.
+- The correction uses the supported verification-amendment mechanism where
+  appropriate (route 1 of §9.4); a direct corrective edit is authorized only
+  where needed to remove a contradictory executable contract.
+- The replacement must keep meaningful verification of the historical renumber
+  and its map, unique and valid identifiers and ordering, reference and
+  ownership integrity, and the removal of the surfaces 095 governed, and must
+  not hard-code today's corpus size.
+
+It is to be carried by **spec 118**, a new spec declaring `amends` and
+`amends_verification` on 095, filed and built in its own pull request after
+this record merges. 095's requirements and commands are not edited.
+
+### 10.2 The sweep: the owner's ruling
+
+The owner authorized a narrowly scoped correction of the sweep contract (spec
+089, as amended by 095 and 099) that distinguishes **implemented-release
+acceptance** from **pending-feature acceptance**, subject to: every selected
+implemented obligation is judged; pending and in-progress work stays visible
+with its actual lifecycle; nothing unimplemented becomes `passed` or `exempt`;
+missing plans, unknown lifecycle, parse errors, interrupted commands and
+unavailable evidence are never success; an implemented draft's failure is not
+hidden by its `status`; the closed exemption ledger is not expanded; the
+whole-corpus run keeps reporting what it observed; and execution stays off
+every untrusted event. It is to be carried by **spec 119**, in its own pull
+request after 118.
+
+This is the ruling on §9.4's other two failures, `102` and `103` ("Kind 2").
+Neither is built, exempted or reclassified. Both stay failed in the
+whole-corpus count and are reported as pending, with their real outcomes, in the
+release verdict spec 119 adds. Spec 102 still waits on a named consumer (note 09
+§5). Spec 103's build is next-wave work, kept off this release path.
+
+### 10.3 What these rulings do not authorize
+
+No ratification (the four flips in #295 and any later ones stay separate human
+decisions), no tag, no publication to any registry, no deployment, and no
+Statecraft activation. #291's waiver covered the two manifest version lines
+and nothing else; it is not reused by anything after it.
+
+### 10.4 The first whole-corpus run at `835dd2e4`, preserved
+
+§9.3 reports the second run (60 / 3 / 43). The **first** run, started
+09:30:07Z and finished 09:41:11Z on 2026-09-22 against the same revision with
+the same command, reported:
+
+```
+verify-sweep.sh: 835dd2e4  passed=37 failed=26 not-declared=0 exempt=43 not-run=0
+```
+
+Its report directory no longer exists: the second run used the same default
+`--out`, and spec 089 §3.6 clears a marked run directory before use. What
+survives is each run's console log, committed with this record so the digests
+can be checked from the repository:
+
+| Run | File | SHA-256 | Bytes |
+|---|---|---|---|
+| first (37 / 26 / 43) | `docs/evidence/sweep-835dd2e4-run1.console.log` | `03b48024d5f34456fc2620fa306e84c060116f5b9e71bdf38b1757b520e1f3c9` | 8475 |
+| second (60 / 3 / 43) | `docs/evidence/sweep-835dd2e4-run2.console.log` | `bd7698e33cde2187edeacecdf9e3ec6a35cfd2c9d401a7978c1ebb2e186b707b` | 6547 |
+
+The first run's per-spec logs are gone; the two excerpts below were read from
+them before they were cleared. The 26 failures were
+`079` to `100`, `102`, `103`, `104` and `117`; every spec before `079` passed
+or was exempt. The first failure, in `079`'s log:
+
+```
+[verify] $ cargo clippy --workspace --all-targets --locked -- -D warnings
+    Checking tree-sitter v0.27.0
+error: couldn't read `.../spec-spine-sweep-835dd2e4/tree/target/debug/build/tree-sitter-413b4d7f936d18f0/out/stdlib-symbols.txt`: No such file or directory (os error 2)
+[verify] exit 101
+verify: 079-a-blocking-claim-is-not-a-stale-shard: FAILED at command 74 (exit 101)
+```
+
+and, in `094`'s, the same error against the **release** profile's output
+directory (`target/release/build/tree-sitter-c45c6c9252d2c28d/out/`) at
+`cargo build --release --locked`. `079`'s command 73, `cargo test`, had
+passed immediately before on already-compiled artifacts.
+
+### 10.5 The cause: the operating system's temporary-file cleaner
+
+The earlier reading, "the first `cargo clippy` poisoned the shared target
+directory", is **not supported**: the release-profile output directory that
+`094` found empty is one `clippy` never writes. The evidence points elsewhere:
+
+- The default run directory, and so the worktree and its `target/`, is under
+  `$TMPDIR` (`/var/folders/.../T/`). macOS's `com.apple.bsd.dirhelper` runs
+  daily at 03:35 local time with `CLEAN_FILES_OLDER_THAN_DAYS=3` and removes
+  older files there (`/System/Library/LaunchDaemons/com.apple.bsd.dirhelper.plist`).
+- The unified log shows it ran at **03:35:04 -0600 on 2026-09-22** ("cleaning
+  directories"), which is 09:35:04Z, inside the first run's window. The
+  console log shows `055` as the last spec finished at about that minute and
+  the first failure at `079`. The 23 specs between them passed, which is
+  consistent with Cargo reusing artifacts compiled before the deletion; that
+  was not verified spec by spec.
+- `tree-sitter`'s build script copies `src/wasm-stdlib/imports.txt` into
+  `OUT_DIR/stdlib-symbols.txt` with `std::fs::copy`, which on macOS clones the
+  file and keeps its timestamps. Crate archives carry normalized timestamps:
+  every `stdlib-symbols.txt` in this machine's build directories has an mtime
+  and birth time of **2006-07-23**. A file born seconds earlier therefore looks
+  twenty years old to the cleaner.
+- Cargo does not re-check a build script's output files once the script has
+  run, so nothing rebuilt the missing file and every later compilation of
+  `tree-sitter` failed. **Reproduced**, with cargo 1.92.0 (the pinned
+  toolchain) in a fresh target directory outside the temporary tree:
+  `cargo build -p tree-sitter@0.27.0 --locked`, then delete
+  `debug/build/tree-sitter-*/out/stdlib-symbols.txt`, then build again. The
+  other files in that `out/` survive, the build script is not rerun, and the
+  recompile fails with the first run's message verbatim:
+  `error: couldn't read .../out/stdlib-symbols.txt: No such file or directory
+  (os error 2)`, then `could not compile tree-sitter (lib)`. A rerun fails the
+  same way, so the state does not repair itself.
+
+The second run started at 03:42, after the cleaner, and was not affected; it is
+a run after an identified environment change, not a retry of an unchanged one.
+So the Cargo half is reproduced. The deletion half is inferred from the
+cleaner's schedule, its logged run inside the window, and the files'
+timestamps: the per-spec logs that would show the order of events are gone.
+Not done: running the cleaner deliberately to reproduce the deletion, which
+needs privileges this session does not use. The bounded remedy, a default run
+directory outside the purged temporary tree and unique per run so a rerun can
+never clear an earlier run's evidence, is part of spec 119.
