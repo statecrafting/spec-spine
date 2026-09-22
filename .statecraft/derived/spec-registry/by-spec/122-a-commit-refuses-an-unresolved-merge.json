@@ -1,0 +1,62 @@
+{
+  "record": {
+    "created": "2026-09-22",
+    "dependsOn": [
+      "094-one-gate-and-the-boundaries-it-holds"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/commit_boundary.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "directory",
+          "path": ".githooks/"
+        }
+      }
+    ],
+    "id": "122-a-commit-refuses-an-unresolved-merge",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": ".gitattributes"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "122: A commit refuses an unresolved merge",
+      "1. Purpose",
+      "1.1 Two commits the boundary let through",
+      "1.2 What the boundary can see and what it cannot",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Placement",
+      "3.2 Unmerged index entries",
+      "3.3 Conflict markers on added lines",
+      "3.4 Formatting, when the change is Rust",
+      "3.5 Evidence is behavioral",
+      "3.6 Unchanged",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/122-a-commit-refuses-an-unresolved-merge/spec.md",
+    "status": "draft",
+    "summary": "The commit-boundary hook (spec 094) refuses a stale or invalid derived tree and nothing else, so a merge whose conflict was \"resolved\" by staging the markers committed cleanly, and so did a Rust change whose formatting check had failed earlier in the same command chain. Both happened on this repository's expansion branches. The hook now also refuses unmerged index entries, conflict markers on the lines a commit adds (git's own detector, with git's own attribute as the only opt-out), and a staged Rust change that fails `cargo fmt --all --check`. It still writes and stages nothing.\n",
+    "title": "A commit refuses an unresolved merge"
+  },
+  "shardHash": "e1d61fd7fdc2828a731ed565ae5dd34eea80d822c43de27476a0cec32161becb",
+  "specVersion": "1.3.0"
+}
