@@ -4,7 +4,7 @@ title: "Readiness is scheduling, not approval"
 status: draft
 kind: "governance"
 created: "2026-09-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 depends_on:
   - "035-registry-plan-ready-set"
@@ -143,24 +143,49 @@ be.
 
 ## 5. Resolved decisions
 
-*(Filed as a draft. Decisions taken during the build are appended here.)*
+**D-1 (2026-09-21, build: 3.3 was already satisfied when this spec was filed).**
+`docs/api.md` was added to `[index] extra_hashed_inputs` in the commit that
+filed this spec, so the requirement and the `extends` edge on `spec-spine.toml`
+were discharged before the build began. The assertion is kept and relabelled a
+standing guard rather than deleted: it still refuses a later change that
+removes the glob, which is what §3.3 exists to prevent. What it is not is
+evidence that this build did anything, and an acceptance line that cannot fail
+against the tree it is written on must say so rather than look like a test.
+
+**D-2 (2026-09-21, build: the content assertions are anchored to the block).**
+A file-wide `grep` for `scheduling` in a 350-line API reference passes on an
+unrelated sentence. The three tests run against a `sed` slice of the `plan`
+description, with a preceding non-empty check on the slice so an anchor that
+stops matching fails loudly instead of making all three vacuous.
 
 ## Verification
 
 Written to fail against the tree this spec is filed on: none of the three
-sentences is present today, and `docs/api.md` is not a hashed input.
+sentences is present today.
+
+Each content assertion is anchored to the paragraph that introduces the
+`plan` document, not matched file-wide: a `grep` for `scheduling` anywhere in
+a 350-line API reference would pass on an unrelated sentence and assert
+nothing. `sed` slices the block that begins with `` `plan` (spec 035) returns ``
+and the three tests run against that slice alone.
 
 ```verify:cli
-# 3.1.1: membership is named as a scheduling fact.
-grep -qi 'scheduling' docs/api.md
-# 3.1.2: the document says approval is not a partition key.
-grep -qi 'not an approval' docs/api.md
+# The slice under test: from the `plan` description to the next facade bullet.
+sed -n '/`plan` (spec 035) returns/,/^- `check_freshness_json`/p' docs/api.md > /tmp/spec101-plan-block.txt
+# The slice must be non-empty, or the three tests below are vacuous.
+test -s /tmp/spec101-plan-block.txt
+# 3.1.1: membership is named as a scheduling fact, in this block.
+grep -q 'scheduling' /tmp/spec101-plan-block.txt
+# 3.1.2: the document says membership is not an approval, in this block.
+grep -q 'not an approval' /tmp/spec101-plan-block.txt
 # 3.1.3: the consumer-side rule is named, with the skill that applies it.
-grep -qi 'on top of' docs/api.md
-# 3.3: the claimed file is inside a content hash.
+grep -q 'on top of' /tmp/spec101-plan-block.txt
+grep -q '/next' /tmp/spec101-plan-block.txt
+# 3.3: a standing guard, already true when this spec was filed. It asserts the
+# claimed file stays inside a content hash, not that this build put it there.
 grep -q '"docs/api.md"' spec-spine.toml
-# 3.2: nothing about the emitted document moved. `plan` still carries exactly
-# the two members it carried, and `ReadySpec` still has exactly its two fields.
+# 3.2: nothing about the emitted document moved. `ReadySpec` still has exactly
+# its two fields, and the read document still validates and answers.
 grep -q 'pub struct ReadySpec' crates/spec-spine-core/src/query.rs
 ./target/release/spec-spine registry plan --json
 # The governed loop, including the L-008 tier this spec's claim would otherwise

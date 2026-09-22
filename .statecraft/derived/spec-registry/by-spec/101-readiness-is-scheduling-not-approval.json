@@ -23,7 +23,7 @@
       }
     ],
     "id": "101-readiness-is-scheduling-not-approval",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "governance",
     "owner": "The spec-spine Authors",
     "references": [
@@ -61,6 +61,6 @@
     "summary": "`registry plan` partitions by `implementation` and `depends_on` and never by `status`, so a draft appears on the ready set by design. The layering is deliberate and stays; what is missing is a governed sentence saying so, which a consumer reading the document directly has no way to infer.\n",
     "title": "Readiness is scheduling, not approval"
   },
-  "shardHash": "550d6c3adec186501ac42acedd782c299aad3b3c2622db3327d15c1f5e15b1c9",
+  "shardHash": "2a29ccded2ddfff3e133e09f747b3e74d3e91e2af437d1785b1896d135fbd1cc",
   "specVersion": "1.3.0"
 }
