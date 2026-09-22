@@ -90,6 +90,11 @@ extra_hashed_inputs = [
   "scripts/*.sh",
   "install.sh",
   "docs/adoption-guide.md",
+  # Spec 101 3.3: the governed description of the `plan` read document. L-008
+  # requires a claimed file to be in some content hash, and a sentence about
+  # what a read document means is exactly the one that should not be able to
+  # change without staling the ledger.
+  "docs/api.md",
   # Spec 095 3.4: the map from every removed and renumbered spec id to the one
   # that answers for it now. A claimed governance file, so L-008 requires it to
   # be in some content hash, and a map whose bytes could change without staling

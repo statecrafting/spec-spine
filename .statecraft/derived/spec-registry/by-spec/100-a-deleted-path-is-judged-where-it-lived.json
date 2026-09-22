@@ -1,0 +1,89 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "005-coupling-gate",
+      "081-coupling-sees-the-change-being-committed"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      }
+    ],
+    "id": "100-a-deleted-path-is-judged-where-it-lived",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      }
+    ],
+    "sectionHeadings": [
+      "100: A deleted path is judged where it lived",
+      "1. Purpose",
+      "1.1 Reproduced, not predicted",
+      "1.2 The refusal's own advice does not work here",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The base snapshot is the merge base, and the spec says so",
+      "3.2 A deleted path is judged at the base snapshot",
+      "3.3 What the base-side read does not change",
+      "3.4 The base snapshot is resolved lazily",
+      "3.5 Base metadata that cannot be read is reported, never fatal",
+      "3.6 Renames stay two facts",
+      "3.7 Committed and working-tree operation",
+      "3.8 The library contract is additive",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/100-a-deleted-path-is-judged-where-it-lived/spec.md",
+    "status": "draft",
+    "summary": "The coupling gate resolves a deleted path's owners from the head index, where the claim the same change withdrew no longer exists, so a correct removal is refused as C-001 against a package floor that has nothing to say about it. A path the change deletes is judged against the base snapshot of the diff the gate already reads, which is the merge base and not the supplied base ref.\n",
+    "title": "A deleted path is judged where it lived"
+  },
+  "shardHash": "82a05a13a3d055cd252fc96c933f76911bd09ae5272da0468f94d50a5b59d95d",
+  "specVersion": "1.3.0"
+}

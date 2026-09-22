@@ -1,0 +1,148 @@
+---
+id: "102-a-ready-spec-carries-its-status"
+title: "A ready spec carries its status"
+status: draft
+kind: "tooling"
+created: "2026-09-21"
+implementation: pending
+owner: "The spec-spine Authors"
+depends_on:
+  - "035-registry-plan-ready-set"
+  - "101-readiness-is-scheduling-not-approval"
+summary: >
+  `ReadySpec` carries `id` and `title`, so a consumer reading `registry plan`
+  directly cannot apply an approval rule without a second query per entry. An
+  additive `status` field is a read-schema MINOR that lets a direct consumer
+  see what `/next` sees. An enhancement with a named cost, not a defect fix.
+extends:
+  - spec: "035-registry-plan-ready-set"
+    paths:
+      - "crates/spec-spine-core/src/query.rs"
+      - "crates/spec-spine-core/tests/query.rs"
+    nature: additive
+  - spec: "057-the-docs-name-what-adopters-derived"
+    unit: { kind: file, path: "docs/api.md" }
+    nature: additive
+---
+
+# 102: A ready spec carries its status
+
+## 1. Purpose
+
+Spec 101 makes the contract truthful in prose: readiness is scheduling and the
+approval rule belongs to the consumer. This spec makes it **cheap to apply**.
+
+`ReadySpec` is `{ id, title }`. A consumer holding the plan document and
+wanting to drop unapproved specs, which is what this repository's own `/next`
+does and what spec 101 tells every consumer to do, must issue one
+`registry show <id>` per ready entry to learn a field the planner already had
+in hand when it built the set.
+
+## 1.1 Why this is filed separately from 101
+
+Note 05 §9.3 says it in one sentence and this spec exists to honor it: the field
+"is a reasonable spec but it is not required to make the contract truthful, and
+it should not be filed as a defect fix."
+
+Two consequences, both deliberate:
+
+- **101 does not depend on this spec landing.** The documentation is the fix;
+  this is an ergonomic improvement on top of it.
+- **This spec is buildable only for a named consumer.** Filing it records the
+  contract so nobody re-derives it; it does not schedule it. See §5 D-1.
+
+## 2. Territory
+
+`ReadySpec` in `crates/spec-spine-core/src/query.rs`, its acceptance in
+`crates/spec-spine-core/tests/query.rs`, and the `plan` paragraph of
+`docs/api.md` that spec 101 rewrote.
+
+## 3. Behavior
+
+### 3.1 One additive field
+
+`ReadySpec` gains exactly one member:
+
+```json
+{ "id": "100-a-deleted-path-is-judged-where-it-lived",
+  "title": "A deleted path is judged where it lived",
+  "status": "draft" }
+```
+
+`status` MUST be the spec's `status` frontmatter value as the registry records
+it, verbatim and unmapped. It MUST NOT be a derived boolean such as `approved:
+true`: the corpus has four statuses, two of which (`superseded`, `retired`) the
+planner excludes, and a boolean would answer a question this spec is not
+entitled to answer on the consumer's behalf.
+
+### 3.2 It changes no partition and no ordering
+
+The ready set's membership MUST be identical before and after. `status` is
+reported, never consulted. Spec 035 §3.1's partition rules and spec 053's
+ordering contract are untouched, and the acceptance MUST assert that the id
+sequence of `ready` is unchanged across the field's introduction.
+
+### 3.3 The version that moves, and the one that does not
+
+Adding a member to a read document is **additive**, so the read schema takes a
+MINOR bump under `docs/schema-versioning.md`, and a loader rejecting an unknown
+MAJOR is unaffected. The registry schema does **not** move: no registry shard
+gains a field and no `shardHash` changes, because the hash is over `spec.md`
+source bytes.
+
+`BlockedSpec` gained `title` the same way under spec 053, which is the
+precedent for both the shape and the version handling.
+
+### 3.4 `blocked` is left alone
+
+A blocked entry is not a candidate to approve, so carrying `status` on
+`BlockedSpec` would add a field no consumer has asked for. This spec MUST NOT
+add it. If a consumer later needs it, that is a second MINOR and it should be
+asked for by the consumer that needs it, which is the rule D-1 states.
+
+## 4. Out of scope
+
+- **Filtering by approval inside `plan`.** That would move the consumer's rule
+  into the engine and undo the layering spec 101 §1.1 preserves.
+- **`implementation` on `ReadySpec`.** The planner consults it, so reporting it
+  is defensible, and no consumer has asked. Same rule as §3.4.
+- **Any change to `/next`.** It resolves `status` per entry today and would
+  simply stop needing to.
+
+## 5. Resolved decisions
+
+*(Filed as a draft. Decisions taken during the build are appended here.)*
+
+**D-1 (2026-09-21, specified now, built for a named consumer).** This spec is
+filed so the contract exists and is reviewable, not so it is scheduled. It
+should be built when a consumer names the need: an adopter's `/next`
+equivalent, an orchestrator's scheduling stage, or a dashboard that renders the
+plan. That is the disposition
+`docs/design/09-disposition-2026-09-21.md` §5 proposes as a clarification of
+grand-refactor's SP-03, and it is recorded here as this spec's own build
+condition rather than as an adoption of SP-03, which is not this corpus's to
+make.
+
+## Verification
+
+Written to fail against the tree this spec is filed on: the field does not
+exist.
+
+```verify:cli
+# 3.1: the field exists, and is the verbatim status string.
+grep -q 'pub struct ReadySpec' crates/spec-spine-core/src/query.rs
+grep -A6 'pub struct ReadySpec' crates/spec-spine-core/src/query.rs | grep -q 'pub status: String'
+# 3.1: and is not a derived boolean.
+test -z "$(grep -A6 'pub struct ReadySpec' crates/spec-spine-core/src/query.rs | grep 'approved: bool')"
+# 3.4: blocked entries did not gain it.
+test -z "$(grep -A8 'pub struct BlockedSpec' crates/spec-spine-core/src/query.rs | grep 'pub status')"
+# 3.2: membership and order are unchanged, asserted by name.
+grep -q 'ready_order_is_unchanged_by_status' crates/spec-spine-core/tests/query.rs
+cargo test -p spec-spine-core --test query --locked
+# 3.3: the read schema version moved and the registry schema did not.
+grep -q 'READ_SCHEMA_VERSION' crates/spec-spine-types/src/version.rs
+cargo test --workspace emitted_registry_conforms --locked
+# The document actually carries it.
+./target/release/spec-spine registry plan --json
+./target/release/spec-spine check --fail-on-unresolved --fail-on-warn
+```
