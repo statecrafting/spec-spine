@@ -198,10 +198,16 @@ The cases it MUST cover:
 | in-tree missing | in-tree absent, PATH present | unset | the PATH stub runs |
 | older PATH binary | in-tree present, PATH stub reports an older version | unset | the in-tree stub runs, and the announced version is the in-tree one |
 | invalid override | in-tree present, PATH present | a path that is not executable | refused; the message names the value, and neither the in-tree nor the PATH stub runs |
+| override naming a directory | in-tree present, PATH present | an existing directory | refused as not executable, on every shell; neither stub runs |
 | empty override | in-tree present, PATH present | `` (empty) | refused |
 | nothing anywhere | in-tree absent, PATH absent | unset | refused, naming both places looked in |
 
-The "invalid override" and "empty override" rows MUST assert the **negative**:
+The directory row is the one that pins the mechanism rather than a fixture: a
+directory carries the executable bit and is not a program, so a guard built on
+`command -v` admits it wherever `command -v` answers for paths at all. See D-9.
+
+The "invalid override", "override naming a directory" and "empty override"
+rows MUST assert the **negative**:
 that no other stub ran. An exit 3 alone is compatible with the gate having run
 the wrong binary and that binary having failed.
 
@@ -243,7 +249,8 @@ consumer reading a verdict, which is the defect spec 090 removed from the verb
 and there is no reason to reintroduce one layer out. stderr is where an
 announcement about the run belongs, and the tests read it there.
 
-**D-4 (2026-09-21, build: eight cases, and all eight failed first).** Run
+**D-4 (2026-09-21, build: eight cases, and all eight failed first; a ninth was
+added later by D-9).** Run
 against the `Makefile` this spec is filed on, every case in §3.5 fails. They do
 not all fail for the same reason, and the difference is worth recording:
 
@@ -270,13 +277,6 @@ copy that can drift from it -- the failure mode spec 094 exists to remove from
 this file. Announcement gives a reader the fact without creating a second
 authority. §3.3.
 
-**D-7 (2026-09-21, build: the read-only assertion reads the target, not the
-file).** The acceptance block first asserted no writing verb anywhere in the
-`Makefile`. It failed, correctly: `refresh` is the writing half and runs
-`compile` and `index` by design (spec 094 §3.1). A file-wide grep for a writing
-verb refuses the correct file. The assertion now runs spec 094's own detector,
-which reads the `gate` target.
-
 **D-6 (2026-09-21, build: the announcement goes through a shell variable).**
 `tests/gate.rs` reads `$(SPEC_SPINE) <word>` in this file as an invocation and
 checks `<word>` against the verb list; it is the detector that stops a second
@@ -285,6 +285,37 @@ messages said `spec-spine binary` and `governing with $(SPEC_SPINE) [`. Both
 are prose, neither is an invocation, and the honest fix was to stop feeding the
 detector false positives rather than to teach it to ignore a line. The resolved
 path is copied into a shell variable once and the messages interpolate that.
+
+**D-7 (2026-09-21, build: the read-only assertion reads the target, not the
+file).** The acceptance block first asserted no writing verb anywhere in the
+`Makefile`. It failed, correctly: `refresh` is the writing half and runs
+`compile` and `index` by design (spec 094 §3.1). A file-wide grep for a writing
+verb refuses the correct file. The assertion now runs spec 094's own detector,
+which reads the `gate` target.
+
+**D-8 (2026-09-22, review: the value crosses into the shell through the
+environment).** Raised on the pull request. The recipe opened with
+`b='$(SPEC_SPINE)'`, so a path containing a single quote closes the literal and
+the caller meets a `/bin/sh` syntax error instead of this target's own refusal.
+Double-quoting only trades that for `$` expansion. A target-specific
+`export SPEC_SPINE_VALUE = $(SPEC_SPINE)` hands the bytes to the recipe
+verbatim, where neither character is special. It costs one line and removes the
+class rather than one member of it.
+
+**D-9 (2026-09-22, CI: usability is `test -x`, not `command -v`, for a value
+naming a path).** Found by this spec's own acceptance failing on the Linux
+runner while passing locally. `command -v` does not agree across shells on a
+value containing a slash: bash checks the executable bit, dash returns the
+string unchanged. A non-executable absolute path therefore cleared the guard
+under dash and refused one step later with "the resolved binary does not run
+here" rather than §3.2's "names nothing executable" -- the right verdict with
+the wrong reason, which for a spec whose subject is *which binary answered* is
+the wrong verdict. The guard now uses `test -f && test -x` for a value
+containing a slash and `command -v` only for a bare name, so the refusal a
+caller sees does not depend on the runner's `/bin/sh`. A directory-valued
+override is added to the table as the row that pins the mechanism: it carries
+the executable bit and is not a program, so it is the case a `command -v` guard
+admits on any shell that answers for paths at all.
 
 ## Verification
 

@@ -175,13 +175,31 @@ PR_BODY    ?=
 ## that keeps this file from growing a second chain; an announcement reading
 ## "governing with $(SPEC_SPINE) [..." would be a false invocation fed to it.
 ## Spec 117 D-6.
+## The value reaches the shell through the ENVIRONMENT rather than through a
+## quoted expansion. `b='$(SPEC_SPINE)'` breaks on a value containing a single
+## quote, producing a shell syntax error instead of this target's own refusal,
+## and double-quoting trades that for `$` expansion. A target-specific export
+## hands the bytes over verbatim and neither character is special. Spec 117 D-8.
+##
+## Usability is tested with `test -x` for a value naming a PATH, and with
+## `command -v` only for a bare name. `command -v` does not agree across shells
+## on a value containing a slash: bash checks the executable bit, dash returns
+## the string unchanged, so a non-executable absolute path passed this guard on
+## Linux and failed one step later with the wrong message. The refusal a caller
+## sees must not depend on which `/bin/sh` the runner has. Spec 117 D-9.
+spec-spine-binary: export SPEC_SPINE_VALUE = $(SPEC_SPINE)
 spec-spine-binary:
-	@b='$(SPEC_SPINE)'; \
+	@b="$$SPEC_SPINE_VALUE"; \
 	if test -z "$$b"; then \
 		echo "gate: SPEC_SPINE is set and empty, so no binary was named. An empty value would drop the binary from the command line and run the verb name as a command; refusing instead (spec 117 3.2)." >&2; \
 		exit 3; \
 	fi; \
-	if ! command -v "$$b" >/dev/null 2>&1; then \
+	usable=no; \
+	case "$$b" in \
+		*/*) test -f "$$b" && test -x "$$b" && usable=yes ;; \
+		*) command -v "$$b" >/dev/null 2>&1 && usable=yes ;; \
+	esac; \
+	if test "$$usable" = no; then \
 		if test "$(SPEC_SPINE_ORIGIN)" = "an explicit SPEC_SPINE override"; then \
 			echo "gate: SPEC_SPINE=$$b names nothing executable. Refusing rather than falling back to ./target/release/spec-spine or PATH: an explicit override is the caller naming the binary that must answer (spec 117 3.2)." >&2; \
 		else \

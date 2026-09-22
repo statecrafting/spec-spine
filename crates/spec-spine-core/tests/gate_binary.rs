@@ -232,6 +232,31 @@ fn an_unusable_explicit_override_refuses_and_runs_nothing() {
     );
 }
 
+// --- §3.5 row 5b: an override naming a directory is the same refusal ------
+
+#[test]
+fn an_override_naming_a_directory_refuses_and_runs_nothing() {
+    // The sibling of row 5, and the one that pins the mechanism rather than
+    // the fixture. `command -v` disagrees across shells on a value containing
+    // a slash: bash checks the executable bit, dash hands the string back. A
+    // directory is executable-bit-set and is not a program, so a guard built
+    // on `command -v` alone admits it under dash and the caller then meets a
+    // message about the binary not running instead of one about the value.
+    let t = Tree::new(true);
+    let o = t.make(&[
+        "verify",
+        "SPEC=probe",
+        &format!("SPEC_SPINE={}", t.path("broken")),
+    ]);
+    assert!(!o.status.success(), "stdout={}", out(&o));
+    let e = err(&o);
+    assert!(
+        e.contains("names nothing executable"),
+        "a directory is not a binary, whatever the shell says: {e}"
+    );
+    assert_eq!(ran(&o), None, "no substitute may run. stderr={e}");
+}
+
 // --- §3.5 row 6: an empty explicit override is the same refusal -----------
 
 #[test]
