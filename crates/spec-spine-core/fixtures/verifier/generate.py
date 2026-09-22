@@ -31,26 +31,37 @@ def sh(args, cwd):
         raise SystemExit(f"{args} exited {r.returncode}: {r.stderr}")
     return r.stdout
 
+def write_text(path, text):
+    # newline="\n": the committed bytes are LF on every platform.
+    with io.open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(text)
+
+def write_bytes(path, data):
+    with io.open(path, "wb") as f:
+        f.write(data)
+
+def read_bytes(path):
+    with io.open(path, "rb") as f:
+        return f.read()
+
 def build_producer():
     tmp = tempfile.mkdtemp(prefix="spec103-")
     os.makedirs(os.path.join(tmp, "specs/000-bootstrap"))
-    io.open(os.path.join(tmp, "specs/000-bootstrap/spec.md"), "w").write(CORPUS_SPEC)
+    write_text(os.path.join(tmp, "specs/000-bootstrap/spec.md"), CORPUS_SPEC)
     sh([BIN, "compile"], tmp)
     sh([BIN, "attest"], tmp)
-    payload = io.open(os.path.join(tmp, ".derived/attestation/attestation.json"), "rb").read()
+    payload = read_bytes(os.path.join(tmp, ".derived/attestation/attestation.json"))
     return tmp, payload
 
 def write_case(cid, payload_bytes, case, corpus_src=None):
     d = os.path.join(OUT, cid)
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d)
-    io.open(os.path.join(d, "payload.json"), "wb").write(payload_bytes)
-    io.open(os.path.join(d, "case.json"), "w").write(
-        json.dumps(case, indent=2, sort_keys=True) + "\n"
-    )
+    write_bytes(os.path.join(d, "payload.json"), payload_bytes)
+    write_text(os.path.join(d, "case.json"), json.dumps(case, indent=2, sort_keys=True) + "\n")
     if corpus_src:
         os.makedirs(os.path.join(d, "corpus/specs/000-bootstrap"))
-        io.open(os.path.join(d, "corpus/specs/000-bootstrap/spec.md"), "w").write(CORPUS_SPEC)
+        write_text(os.path.join(d, "corpus/specs/000-bootstrap/spec.md"), CORPUS_SPEC)
 
 def reserialize(obj):
     # A mutated payload is re-serialized after the change; 3.2 permits that and
@@ -166,8 +177,7 @@ def main():
                     "content-mismatch", "version-mismatch"],
         "cases": cases,
     }
-    io.open(os.path.join(OUT, "index.json"), "w").write(
-        json.dumps(index, indent=2, sort_keys=True) + "\n")
+    write_text(os.path.join(OUT, "index.json"), json.dumps(index, indent=2, sort_keys=True) + "\n")
     shutil.rmtree(tmp, ignore_errors=True)
     print(f"wrote {len(cases)} case(s) to {OUT}")
 

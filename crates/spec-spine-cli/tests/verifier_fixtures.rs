@@ -205,7 +205,12 @@ fn the_fixture_set_describes_the_shipped_verifier() {
 
     let build_version = tool_version();
     let mut executed = 0usize;
+    // §3.8.5 counts what the shipped verifier produced, never what a case.json
+    // expected: a version-bound recompute case observes `version-mismatch`,
+    // so its declared reason is not exercised until the set is regenerated
+    // against this build (D-11).
     let mut reasons_seen: BTreeSet<String> = BTreeSet::new();
+    let mut accepted_seen = false;
 
     for id in &listed {
         let case_dir = dir.join(id);
@@ -274,7 +279,6 @@ fn the_fixture_set_describes_the_shipped_verifier() {
                 closed_reasons.contains(r),
                 "{ctx}: reason {r:?} is not in the index's closed set"
             );
-            reasons_seen.insert(r.to_string());
         }
         assert_eq!(
             want_outcome == "refused",
@@ -310,6 +314,9 @@ fn the_fixture_set_describes_the_shipped_verifier() {
             assert_eq!(report["expected"], case_tool, "{ctx}: {json}");
             assert_eq!(report["actual"], build_version, "{ctx}: {json}");
             assert_eq!(code, 1, "{ctx}: {json}");
+            // What the verifier produced, not what case.json expected: only an
+            // observed outcome counts toward §3.8.5.
+            reasons_seen.insert(observed.clone());
         } else {
             let want = want_reason.unwrap_or("accepted");
             assert_eq!(
@@ -317,6 +324,11 @@ fn the_fixture_set_describes_the_shipped_verifier() {
                 "{ctx}: expected {want}, observed {observed}. {json}"
             );
             assert_eq!(code, want_exit, "{ctx}: exit code. {json}");
+            if observed == "accepted" {
+                accepted_seen = true;
+            } else {
+                reasons_seen.insert(observed.clone());
+            }
         }
     }
 
@@ -324,8 +336,17 @@ fn the_fixture_set_describes_the_shipped_verifier() {
     let unexercised: Vec<&String> = closed_reasons.difference(&reasons_seen).collect();
     assert!(
         unexercised.is_empty(),
-        "the index declares reasons no case exercises: {unexercised:?}. A closed \
-         set with an unreachable member is a vocabulary nobody tested."
+        "the shipped verifier ({build_version}) produced no case with these declared \
+         reasons: {unexercised:?}. A closed set with an unexercised member is a \
+         vocabulary nobody tested. If the recompute cases were attested under \
+         another build, they all observed version-mismatch: regenerate the set with \
+         crates/spec-spine-core/fixtures/verifier/generate.py (D-11)."
+    );
+    assert!(
+        accepted_seen,
+        "no case was observed as accepted under {build_version}: the control did \
+         not run on §3.7's first branch, so the suite of refusals asserts nothing \
+         about what a valid payload does. Regenerate the set (D-11)."
     );
 
     // ---- §3.8.6: the loop actually ran ------------------------------------
