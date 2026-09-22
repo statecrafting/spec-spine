@@ -169,6 +169,14 @@ so the slice spanned `couple_json` and `delta_json` and the prose claiming it
 was cut to the `plan` paragraph overstated it. It now ends at `couple_json`,
 the bullet that immediately follows.
 
+**D-4 (2026-09-21, review: the end anchor is guarded too).** Also raised on the
+pull request, and the sharper of the two. The emptiness guard covers only the
+start anchor. A missing end anchor is silent: `sed` runs to EOF, the widened
+slice still contains every searched string, and the block goes vacuous without
+failing. The negative assertion on `delta_json`, the bullet immediately outside
+the slice, is what fires in that case, and it was checked by deleting the end
+anchor and watching the block fail.
+
 ## Verification
 
 Written to fail against the tree this spec is filed on: none of the three
@@ -183,6 +191,18 @@ slice alone. The end anchor is the **next** bullet deliberately: an anchor
 further down would widen the slice to cover facade entries the assertions have
 nothing to do with, and a wider slice is a weaker test.
 
+Both anchors are guarded, because they fail in opposite directions. A start
+anchor that stops matching empties the slice and every assertion fails, which
+is loud. An **end** anchor that stops matching is the quiet one: `sed` runs to
+the end of the file, the widened slice still contains every string the
+assertions look for, and they all keep passing while pinning nothing. A
+negative assertion covers it, naming a bullet that lies just outside the slice.
+
+The matches are case-sensitive on purpose. These assertions pin the wording
+the section committed to, not the presence of a keyword, so a reformulation
+that changes the words should fail and be re-read rather than pass on a
+case-insensitive near-miss.
+
 ```verify:cli
 # The slice under test: the `plan` description, ending at the bullet that
 # immediately follows it. Re-cut on every line instead of stashed in a file:
@@ -191,6 +211,12 @@ nothing to do with, and a wider slice is a weaker test.
 # concurrent runs. A slice that stops matching emits nothing and every
 # assertion below fails, which is the guard a separate emptiness test was.
 sed -n '/`plan` (spec 035) returns/,/^- `couple_json`/p' docs/api.md | grep -q .
+# And it must be BOUNDED. A missing start anchor empties the slice and the
+# line above fails; a missing END anchor makes sed run to EOF, and a slice
+# widened to the whole document still matches every assertion below. This is
+# the half that catches that: `delta_json` is the bullet after the end anchor,
+# so it is outside a correctly cut slice and inside a runaway one.
+! sed -n '/`plan` (spec 035) returns/,/^- `couple_json`/p' docs/api.md | grep -q 'delta_json'
 # 3.1.1: membership is named as a scheduling fact, in this block.
 sed -n '/`plan` (spec 035) returns/,/^- `couple_json`/p' docs/api.md | grep -q 'scheduling'
 # 3.1.2: the document says membership is not an approval, in this block.
