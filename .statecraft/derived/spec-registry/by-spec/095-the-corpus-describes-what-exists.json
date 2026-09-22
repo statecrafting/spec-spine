@@ -40,6 +40,25 @@
       }
     ],
     "risk": "high",
+    "sectionDigests": {
+      "095-the-corpus-describes-what-exists": "4db6747b1cb580f6c1038c9596e79345f52cec71a59f8e998b4e087f06ad7b11",
+      "1-1-what-obeying-the-rules-cost": "9455b97b2408a2221d7c757b7fd605e06257148338d24170668ca1bc5ca7417e",
+      "1-2-the-exception-and-its-shape": "83b563659e6ed0ab56461aaa3c1aa603341144b15d9ce14e3c5eb740a2ad79ec",
+      "1-3-the-six-this-removes-outright": "c1d2c7da0b638896ef1dc2e370737c8b87e77ec7d0837f5fcd6da224259eba29",
+      "1-purpose": "3544b3ff764d5ccab6e64651192e34082bafb30cab2a1c582ca160ff28239db8",
+      "2-territory": "c4dc69edc34f70826eea329f16f71bc509e7fcd6024e6234a0c875fa1c7370dd",
+      "3-1-the-deletion-set-six-specs-with-no-successor-requirement": "5cad738953cff2fe52ac9c2a7660adeb6e69fcef343603b566384d7db7f0a656",
+      "3-2-the-merge-map-twenty-one-specs-into-two": "3a05195474461435b5a18270b6c737a57eddc48cf72083fbb15d5969cdb94266",
+      "3-3-the-renumber-ordinals-become-contiguous": "812284ffa087ec90b9372aa63730cfb23b75f5c95ee9c1ee9c9a477824d5ee60",
+      "3-4-the-map-outlives-the-documents": "b4fabe1d822451cb61c5c632456be47a38f6cf7f927dc534a76a9ddcadfb9ce7",
+      "3-5-the-ledger-s-boundary-moves-with-the-ordinals": "526038e82d6bb09d6167955e9acc6c9fc515454350d8ffbfde77d0e35d89dd3e",
+      "3-6-what-the-exception-does-not-permit": "256ecbb7d1ede654d870037e4a7f169b2ed0221314c145f8afa11fe96f8396e7",
+      "3-7-the-rules-resume": "528d435f52ef63cccf7a63fd456d6d8bff214350f111b4242dc1867776a2c194",
+      "3-behavior": "91014a11cace4e6e7030d87869a64aadcd73afbd3febbc77fd669df199dd0985",
+      "4-out-of-scope": "0e00ecb436f2868c5ccdcc55f9174f58173b697d82098223f4b97d508b77d0d4",
+      "5-resolved-decisions": "49b75b77a0eb110bd2208dfd8589094bb940eef3e0510c2f23a5a851a4c4999b",
+      "verification": "746ef58a70ebfaefafeb187aebdfd99f88744e5dbeb82b3b48fa074f96687a1f"
+    },
     "sectionHeadings": [
       "095: The corpus describes what exists",
       "1. Purpose",
@@ -65,5 +84,5 @@
     "title": "The corpus describes what exists"
   },
   "shardHash": "4cdbd9f8a5fd23183fce81b9b62dddb50596478676056129cd60f4a70ed1d2c6",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

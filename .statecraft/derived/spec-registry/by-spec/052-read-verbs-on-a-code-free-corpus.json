@@ -78,6 +78,18 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "052-two-read-verbs-that-mislead-a-specify-first-corpus": "47afcdfe5ce78245cb6b77ac2afef241c83fe4503d56d40391462ea3b98f7d7e",
+      "1-purpose": "b5d134d837ed8d4237b3482a19995cbe27270d7d4a5fe38287d09d0c75bba2ba",
+      "2-territory": "abb2bce97151899c258b43ed837cc5dffd390c74f78f524bac63beb5df9f4f37",
+      "3-1-orphans-partitions-by-the-in-flight-predicate": "adf32f306f2b4a5de1a4cdfe40dba56d0c4771775bf1d80f880c657dd39e1241",
+      "3-2-an-empty-coverage-universe-is-a-refusal-not-a-pass": "50dcf8a16b9c8913fd3a693c603696b9ef5afad541da2c6cb6786630e66b96fe",
+      "3-3-the-message-says-which-of-two-things-happened": "7beff51165c1087a0333a2162dcf2fa01f46e06e96c8627a0258d0f180a74c5a",
+      "3-4-nothing-committed-moves": "7be334362ce7a5b4682081ce3ae5b4548c0305f352d1917ceae8ac57c82c7b8b",
+      "3-behavior": "c5e5bd11f886c2015c51d7e0884bd1210e6b73ef66a14b0cdef516ad3ed3106e",
+      "4-out-of-scope": "dd9a8145766732e4cefaadc94fd624670ff86341012fd6edb410a8cd205e88f6",
+      "5-verification": "8b7711c0f0f7a7e0cc2ce666f74eb575ab32c92454443d4ec178b50d6f867949"
+    },
     "sectionHeadings": [
       "052: Two read verbs that mislead a specify-first corpus",
       "1. Purpose",
@@ -96,5 +108,5 @@
     "title": "Two read verbs that mislead a specify-first corpus"
   },
   "shardHash": "6679febbbaa768e6753a7446c739534ec624e37282083661ca458b28b8ee3f81",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

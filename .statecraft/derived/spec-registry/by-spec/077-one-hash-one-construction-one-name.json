@@ -55,6 +55,23 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "077-one-hash-one-construction-one-name": "db3ea6654d84c80a15790b9a6df4c2cd1450e5c62d8dee2574902b5759cccaa5",
+      "1-1-the-measurement": "28aa2883307ebd42b82b93f0d56a58b1cd408931d530eeb725e22a8046ae1dc7",
+      "1-2-the-approved-prose-says-it-too": "43ee24d4955346602ea29e268f980f567c420b51862cc890564e2f49387d1852",
+      "1-3-who-the-gloss-is-for-and-what-it-costs-them": "ba0502eb9509766649c882ea9d3ec7291aad7c56c26d2e4618e1527fd9300d57",
+      "1-purpose": "6cad72f0e9e24f43c46c7a22f785b28e1b1b775715b1bb6ff103f83dffa05b8c",
+      "2-territory": "4b6bcb4e38b2606a698ed4b128531ca6940619a4dfc7061a8d6ec34f853f3543",
+      "3-1-the-construction-stated-once-and-correctly": "6377e53def585226cdd98f12b7b2317094b0ba3e5ca7840ed57967b1f8a05f26",
+      "3-2-the-printed-line-names-the-construction-it-prints": "765f8a67c33b7fb272c14959d0f037edbfe7a8e228d05a532a31c85e6be66471",
+      "3-3-the-unframed-digest-has-a-name-already-and-keeps-it": "41378219378a5fe5283bc303e32f8e31d64dcf06cc8282d18da76e72d37a9f31",
+      "3-4-the-pin": "15dd05695774c6eda710b855cc1e49627659b26f33e410dd6c3f1b8c199b9aa2",
+      "3-5-documentation": "308466bb7d1b2ad0a2402cb43737bc84e28c92a463deca475f092817c4e3bb0b",
+      "3-behavior": "a55eeb1e016fe7355b0266ab4a5aff027d3bf050038075ffbcbb11ebe8a78e5b",
+      "4-out-of-scope": "f8a62a3f884f1576b24b744260c5a732e5426af710f48162b3d0007b489ef84b",
+      "5-resolved-decisions": "9cb79a3642124938c1611f28b6d788e41fb5e81cd148c6e35842b26964ac35d4",
+      "verification": "178366dd28b32ca7a6929d6369899b67de1eb164ccadc68d0a9ca9b4ffe35baf"
+    },
     "sectionHeadings": [
       "077: One hash, one construction, one name",
       "1. Purpose",
@@ -78,5 +95,5 @@
     "title": "One hash, one construction, one name"
   },
   "shardHash": "c6bb5136412e5330c0e3b262a66a10f036a2b4da18f2c9c906e569995be01c5e",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

@@ -4,7 +4,7 @@ title: "Obligations are declared constraints"
 status: draft
 kind: "governance"
 created: "2026-09-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -20,9 +20,9 @@ summary: >
   full content hash, and a read resolves a qualified `<spec-id>#<obligation-id>`
   reference. No gate reads any of it.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/obligation.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/obligations.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/obligations.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/obligation.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/obligations.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/obligations.rs" }
 extends:
   # 3.1 - 3.3: the frontmatter grammar and the registry record.
   - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/src/frontmatter.rs" }, nature: additive }
@@ -43,9 +43,53 @@ extends:
   - { spec: "088-the-template-teaches-the-whole-grammar", unit: { kind: file, path: "standards/spec/templates/spec-template.md" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
+  # 3.9: the pin every registry MINOR moves (026, 063 and 082 did the same).
+  - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-types/tests/dtos.rs" }, nature: additive }
+  # D-8: one existing test pinned the head registry version.
+  - { spec: "082-an-amended-acceptance-is-the-one-that-runs", unit: { kind: file, path: "crates/spec-spine-cli/tests/cli.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/04-authority-evidence-extension.md" }, role: context }
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: context }
+obligations:
+  - id: "R-1"
+    kind: requirement
+    text: "Obligations are declared under one frontmatter key, `obligations`, and nowhere else."
+    anchor: "3-1-declarations-live-in-frontmatter"
+  - id: "R-2"
+    kind: requirement
+    text: "An obligation's kind is exactly one of requirement, invariant or verification."
+    anchor: "3-2-three-kinds-and-no-fourth"
+  - id: "R-3"
+    kind: requirement
+    text: "An obligation id is unique within its spec, and an obligation is withdrawn in place, keeping its id, never deleted."
+    anchor: "3-3-ids-are-stable-within-a-spec-and-withdrawal-is-in-place"
+  - id: "R-4"
+    kind: requirement
+    text: "An obligation's anchor resolves to exactly one heading in its own spec's body, or compile refuses it."
+    anchor: "3-4-an-anchor-is-validated-not-asserted"
+  - id: "R-5"
+    kind: requirement
+    text: "The registry carries a digest for every section of every spec, beside and never instead of the spec's full content hash."
+    anchor: "3-5-every-section-has-a-digest-beside-the-spec-s-identity"
+  - id: "R-6"
+    kind: requirement
+    text: "A reference to an obligation is qualified as `<spec-id>#<obligation-id>`, and an unqualified one is refused, never resolved locally."
+    anchor: "3-6-a-reference-is-qualified-and-a-read-resolves-it"
+  - id: "R-7"
+    kind: requirement
+    text: "A verification obligation declares its inputs explicitly, and no other kind declares any."
+    anchor: "3-7-a-verification-declares-its-inputs"
+  - id: "I-1"
+    kind: invariant
+    text: "No gate verdict reads an obligation or a section digest."
+    anchor: "3-9-compatibility"
+  - id: "V-1"
+    kind: verification
+    text: "Each obligation rule is refused at compile with its code, section digests move only with their section, and a corpus without the key keeps every shardHash."
+    anchor: "verification"
+    inputs:
+      - "crates/spec-spine-core/tests/obligations.rs"
+      - "crates/spec-spine-cli/tests/obligations.rs"
 ---
 
 # 106: Obligations are declared constraints
@@ -342,6 +386,30 @@ its parser.
 
 **D-6 (2026-09-22, correction: the draft's "a fourth kind is a MINOR later").**
 Kept, and bounded: 3.2 fixes the closed set, and a later kind is additive to it.
+
+**D-7 (2026-09-22, build: the read axis does not move).** `registry list` and
+`show` now carry `obligations` and `sectionDigests`, because they emit the
+registry record. `docs/schema-versioning.md` already says the read axis
+"does not move when `REGISTRY_SCHEMA_VERSION` ... does": a record's members are
+versioned by the registry schema, which takes the MINOR here. The
+`obligation` answer is a new document, not a member added to an existing one,
+so it does not move the read axis either. Spec 102 moves that axis separately
+and for its own reason.
+
+**D-8 (2026-09-22, build: a pin on the head registry version).**
+`cli.rs`'s `spec103_registry_show_carries_amends_verification` asserted a
+shard's `specVersion` equals `1.3.0`. That is spec 082's MINOR, and every later
+MINOR would break it without 082's contract changing. It now asserts MAJOR 1
+and at least MINOR 3, which is what 082's test was about. Spec 082's own
+acceptance does not pin the value and is unaffected. `cli.rs` is 082's
+territory, declared here as an `extends` edge.
+
+**D-9 (2026-09-22, build: the guards were made to fire).** With the ambiguous
+arm of the anchor check folded into the valid one, the ambiguity test fails.
+With a section digest taken over the whole body instead of the section, the
+two digest tests fail. Both restored, all thirteen core tests pass. This spec
+declares its own nine obligations, so every compile of this repository
+exercises the grammar, the anchors and the digests on real prose.
 
 ## Verification
 

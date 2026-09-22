@@ -145,6 +145,30 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "078-governed-scope-is-declared-not-inferred": "0e1a3b83dc2e01f2aedeec5be590f9d3c5994f85bca87dfb2069d3309bf0d032",
+      "1-1-four-conjuncts-and-only-one-of-them-is-about-code": "70d40cab9c58e6eca123853e7374a0c632c2ac4c3ef247de85317b0f2048667a",
+      "1-2-what-the-conjuncts-exclude-here": "6b65226efdd23212d637be027f064def33155138758c2591aaaf4299a2b9c4d7",
+      "1-3-why-a-longer-extension-list-does-not-fix-it": "95af0ae04945eb14c44838cb300bc31677044907aad9bafe0d6cb40252c78db1",
+      "1-purpose": "4aaccac2c275d276a0213c693d417f9d5d1a6947c3d20e1959c65c12f557366b",
+      "2-territory": "d066c441fc60019720384dd460a918ea7f3a4c7a55f7b5092a3540b3b42dabc0",
+      "3-1-opt-in-and-silent-when-unset": "db447cd200304b6181f583e4276ff601641d9925b6c7b76211571d214a740ce3",
+      "3-2-the-declaration": "7285db58d3503fc316fae765d44ea47d9bd8889e0b8cd080c9c34de079f7c66e",
+      "3-3-what-the-declaration-changes": "8c97dd78f9bf60eae9f14912338cab648d6af329164121b3f6ef81b145a19341",
+      "3-4-how-a-governed-scope-file-is-claimed": "d6d540c20cd9f327683ce0b18fb8abbfa3252cc0b4e996caac46a4be57a62b7e",
+      "3-5-the-report-says-which-files-entered-this-way": "00472abc52851b982bcac2f07b63ecfdf2932cf8f51a41712ba5a93062ae2154",
+      "3-6-the-enumeration-is-the-cli-s-not-the-core-s-and-it-names-itself": "aaf9efded0a135407b41dc2e0c77f304acc04838bd9e76612f539a4b4fcf0bb3",
+      "3-7-config-show-prints-it": "d12cb12d32e57712baeedbdc09a15feafc516248b37bb65f0dde193be618d339",
+      "3-8-the-tests": "d2c28c055cee54027ffb9881bda6085fd7bb4a4e60893a2a12e19ddccbdad85d",
+      "3-behavior": "6fd8c7a0fe7eaedffea9e7dbf1075493d1614a08413fd3de4e74c99ade81aec3",
+      "4-out-of-scope": "81286ced40f3269a24255deee1a81520698ae41924448107738b4add775af5be",
+      "5-resolved-decisions": "35371420921df477365926f119841b66103e7cbde1cb4252c677e77c9b1e9da3",
+      "a-git-failure-is-an-error-not-a-fallback": "2c258f6da030df099e95a5f25fd6f34b233318ef70e13f94a31c8f87edc52c9b",
+      "the-walk": "0561adec691f290bdd46d083415cb16aa5d02ab2ca9810fba9bbd663d2dd0b0d",
+      "three-cases-not-two": "c97cff6b86669dacd651f477fd1c257a8f4e3566d1cc3307339989904a5365f4",
+      "tracked-added-deleted": "9f6fa5c2c2505e127b3e2cc81a734d23a513327a87cc2a7c662c9bf8f87f2107",
+      "verification": "c430006bba985f1374ab071abf6b1efaadedf0dfe8da875678efa4d73edab433"
+    },
     "sectionHeadings": [
       "078: Governed scope is declared, not inferred",
       "1. Purpose",
@@ -175,5 +199,5 @@
     "title": "Governed scope is declared, not inferred"
   },
   "shardHash": "67ee9f21cd00a524e5e605a69e2a1cf35710df3219b3f2a6568e0463eab99ee8",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

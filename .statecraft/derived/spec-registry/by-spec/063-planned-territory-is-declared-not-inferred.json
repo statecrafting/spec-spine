@@ -166,6 +166,22 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "063-planned-territory-is-declared-not-inferred": "15aeeeacfe659c72ab6a369e51fefbc7e10f605189f408178ba12aaa1a8fd872",
+      "1-purpose": "6ec5835e59fc90e05e905bcbea64128c72e679db9bd9730e9e6ff88ca95391c8",
+      "2-territory": "1cb46c9c8a7ba9da6e04b3d359acb37e4d7662cdc442ef29a389a5e0985e81b0",
+      "3-1-the-flag": "19f94d162de672d549029bd317da13aaa6c8c678a3410b87d72a67a066d400a2",
+      "3-2-a-planned-unit-is-a-declared-state-not-a-diagnostic-amends-025": "4396105afe5719901e76c84f74e6cd9d6de0e29cf37312abb108442f5eb5182a",
+      "3-3-the-flag-cannot-outlive-the-work": "5effc390134a0deebc22c6ed23ac589a3c870f3887dd4c2698634fe42837bf41",
+      "3-4-a-planned-unit-that-has-resolved-is-reported": "90ad5db6169de64580bc19d25832de230b6e66a20ccc97fd36e3feaf3f11e15f",
+      "3-5-collisions-reuse-the-ownership-rules": "0664a42a1d27c2aec831a4a43881e592b1a5393edbb42e22710f43a6906780a0",
+      "3-6-the-ledger-records-planned-territory-as-a-state": "4afa13e902575e126ec285f3436750e7046d84f7c425af859c875b8288790832",
+      "3-7-schema-and-version": "0452a9af404dcda7093731e055aaf5727b56a6ec7dfb496d26263f8b991d61dd",
+      "3-behavior": "2a279b18ba5f2bd4cb124381cdea41480ae1f1e32182fab245e1feb9c9213d9e",
+      "4-out-of-scope": "001906908deab4702355438f3c6529dd8e342cdfb18c0b87a696be33d9a57be0",
+      "5-resolved-decisions": "6dab17604405bdfdc2a4d8bd781ad57bdbca5c17ab5d02605790c5b2f2317aad",
+      "verification": "b58958f68d4cdfe9091dd18e3ed3114813060bad7653f1a3268ac720b3ba5902"
+    },
     "sectionHeadings": [
       "063: Planned territory is declared, not inferred",
       "1. Purpose",
@@ -188,5 +204,5 @@
     "title": "Planned territory is declared, not inferred"
   },
   "shardHash": "12149b11eb89f226a2835a3e44cde88d4346502f990e40728cf954d6bf5e6446",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

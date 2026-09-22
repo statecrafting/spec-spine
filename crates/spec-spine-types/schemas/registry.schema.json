@@ -57,6 +57,28 @@
         "extraFrontmatter": {
           "type": "object",
           "description": "Adopter frontmatter transported by the compiler. Declared keys (frontmatter.extra_known_keys) carry any JSON value (spec 012; first shipped in specVersion 0.2.0); undeclared keys are scalars or string arrays."
+        },
+        "obligations": {
+          "type": "array",
+          "description": "Declared constraints (spec 106; first shipped in specVersion 1.4.0).",
+          "items": {
+            "type": "object",
+            "required": ["id", "kind", "text", "anchor"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9]+)*$" },
+              "kind": { "enum": ["requirement", "invariant", "verification"] },
+              "text": { "type": "string", "minLength": 1 },
+              "anchor": { "type": "string", "minLength": 1 },
+              "inputs": { "type": "array", "items": { "type": "string" } },
+              "withdrawn": { "const": true }
+            }
+          }
+        },
+        "sectionDigests": {
+          "type": "object",
+          "description": "Every body section's anchor mapped to its digest (spec 106; first shipped in specVersion 1.4.0).",
+          "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
         }
       }
     },

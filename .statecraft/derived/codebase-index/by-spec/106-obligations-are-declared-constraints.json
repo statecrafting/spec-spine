@@ -10,6 +10,14 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/obligations.rs",
+        "source": "multiple"
+      },
+      {
         "path": "crates/spec-spine-core/src/compile.rs",
         "source": "spec-edge"
       },
@@ -24,6 +32,10 @@
       {
         "path": "crates/spec-spine-core/src/sections.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/obligations.rs",
+        "source": "multiple"
       },
       {
         "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json",
@@ -42,11 +54,19 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-types/src/obligation.rs",
+        "source": "multiple"
+      },
+      {
         "path": "crates/spec-spine-types/src/registry.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/spec-spine-types/src/version.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/tests/dtos.rs",
         "source": "spec-edge"
       },
       {
@@ -64,7 +84,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/obligations.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -73,7 +97,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/obligations.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -82,7 +110,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/obligation.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -101,6 +133,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/cli.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
         }
       },
       {
@@ -236,6 +281,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-types/tests/dtos.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/api.md"
           }
         ],
@@ -303,5 +361,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "03b4515a8b537a8e8d122b5ed9154289a94e25ee48679c2095d1c02a707e5b62"
+  "shardHash": "30eac9290becd57e15c11f7268b9fb0f44f3691989fce55150d8a993ce83e300"
 }

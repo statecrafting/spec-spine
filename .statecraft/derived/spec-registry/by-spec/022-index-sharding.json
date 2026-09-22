@@ -201,6 +201,18 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "022-per-unit-shard-storage": "c1f9c91bd9ed758177fde56533adea1604446d3919aba0f60cfc0a5b55273e4f",
+      "1-purpose": "c1d0281041ef4786c6d4a841b637a66164640b7cbe83c52b48ce1ea70b51843d",
+      "2-territory": "1ce269b37d0069e9e901d1273a63860e2820e036040987dfd66b933e6aeb4a95",
+      "3-the-shard-model": "14f7408d8f31cc29bb4a45acfe91347151ad2b4cb00614ad957677c1fdddf341",
+      "4-behavior-must-should": "aba1f95828ed1de09ccc7a8aa3270e9b39f86e286f4644771510eaa9b37da50d",
+      "5-staleness-fidelity-a-deliberate-bounded-trade": "bd682663e348ebfdbce3e7852282428cc8be76d91c385ddc1d1f2e7e268d7c2e",
+      "6-migration": "82e7d427a189b2057fdc9b79f9313ff2c82ef0886ea21a0bcc980df0993f930e",
+      "7-relationship-to-the-merge-queue-complement-not-replacement": "69875f77228acbf5cfc3a51c4d468c1880ddec9851667331d8214b4140514500",
+      "8-out-of-scope": "bfcfb5949b244a39681a1d2c4468dee4e6f5b1b9cb5a9414fd6db6120ba50bfe",
+      "9-acceptance-criteria": "2b94eeb142e4517a1790b2629970ea05227a73599e6aa406c93c9778d5d8b4d9"
+    },
     "sectionHeadings": [
       "022: Per-unit shard storage",
       "1. Purpose",
@@ -219,5 +231,5 @@
     "title": "Per-unit shard storage (conflict-free committed registry + index)"
   },
   "shardHash": "d9655e746f56bbf247226671fe2113c994b8ddbe4135f05555cf9634b7bb8610",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

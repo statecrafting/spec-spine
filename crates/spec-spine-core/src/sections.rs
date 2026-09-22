@@ -113,6 +113,26 @@ fn markdown_sections(content: &str) -> Vec<(String, LineSpan)> {
     out
 }
 
+/// Every markdown section of `body` as `(anchor, text)`, in source order,
+/// duplicates included (spec 106 §3.5). A section's text is its lines, from
+/// the heading to the line before the next heading of the same or a shallower
+/// level, joined with LF and ending in LF: the same span `resolve_section`
+/// answers, so a digest and a section unit can never disagree about where a
+/// section ends.
+pub fn markdown_section_texts(body: &str) -> Vec<(String, String)> {
+    let lines: Vec<&str> = body.lines().collect();
+    markdown_sections(body)
+        .into_iter()
+        .map(|(anchor, span)| {
+            let from = span.start_line.saturating_sub(1).min(lines.len());
+            let to = span.end_line.min(lines.len()).max(from);
+            let mut text = lines[from..to].join("\n");
+            text.push('\n');
+            (anchor, text)
+        })
+        .collect()
+}
+
 /// Kebab-case slug of a heading: lowercase, alnum kept, runs of other chars
 /// collapse to a single `-`, trimmed.
 /// The anchor the indexer computes for a heading (spec 051 §3.1 names this as

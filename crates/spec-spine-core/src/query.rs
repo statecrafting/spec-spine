@@ -117,6 +117,57 @@ pub fn show<'a>(registry: &'a Registry, id: &str) -> Result<&'a SpecRecord, Erro
         .ok_or_else(|| crate::spec_id::no_match(id))
 }
 
+/// One resolved obligation (spec 106 §3.6): the spec it belongs to, the
+/// obligation as compiled, and the digest of the section its anchor names.
+///
+/// No `contentHash` here: this is computed from registry text alone, which
+/// does not carry one. The CLI adds it from the committed shard, as `show`
+/// does (spec 048 §3.3).
+#[derive(Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ObligationView<'a> {
+    pub spec: &'a str,
+    pub spec_path: &'a str,
+    pub obligation: &'a spec_spine_types::Obligation,
+    pub section_digest: Option<&'a str>,
+}
+
+/// Resolve a qualified `<spec-id>#<obligation-id>` reference (spec 106 §3.6).
+///
+/// An unqualified reference is refused as a parse failure (exit 3) and is
+/// never resolved against any spec. The spec half follows the one spec-id
+/// policy (spec 084); an unknown spec or obligation is [`Error::NotFound`].
+pub fn obligation<'a>(
+    registry: &'a Registry,
+    reference: &str,
+) -> Result<ObligationView<'a>, Error> {
+    let (spec_part, ob_id) =
+        spec_spine_types::split_obligation_ref(reference).ok_or_else(|| {
+            Error::Parse(format!(
+                "'{reference}' is not a qualified obligation reference: a qualified form \
+             <spec-id>#<obligation-id> is required, and an unqualified id is never \
+             resolved against a spec"
+            ))
+        })?;
+    let spec = show(registry, spec_part)?;
+    let ob = spec
+        .obligations
+        .iter()
+        .find(|o| o.id == ob_id)
+        .ok_or_else(|| {
+            Error::NotFound(format!(
+                "spec '{}' declares no obligation '{ob_id}'",
+                spec.id
+            ))
+        })?;
+    Ok(ObligationView {
+        spec: &spec.id,
+        spec_path: &spec.spec_path,
+        obligation: ob,
+        section_digest: spec.section_digests.get(&ob.anchor).map(String::as_str),
+    })
+}
+
 /// Counts of specs by status.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]

@@ -117,6 +117,26 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "074-a-governed-read-names-its-version": "f61ab08009d6e46bf3e9429bd96ced27df5bb35fba3ef4519d6230c6ca005158",
+      "1-1-two-guarantees-that-stop-at-the-verdict-verbs": "eacf6d0c80486ed0a0cada4dd6eeac8c53d6afc568996a57615b0492fdd93c1f",
+      "1-2-what-an-unversioned-read-costs-a-consumer": "60808c7f1d0277b983ec1982e683af323c18248f7ca89ede77b46bc03a6a74c7",
+      "1-3-a-read-is-not-a-verdict": "92acc99667ac5851a8c46ec5794ffc11ca89b1333c8a182fa85452264aadbe79",
+      "1-purpose": "4cf17f91bef4c8686c5da203de4682ff09a1782d93690611525d2cf50b7fae8a",
+      "2-territory": "ffac32cd0655b68de977e43c9bdd19854f205ce0ad331993ec8f00301d084d6e",
+      "3-1-what-a-read-document-is": "ef8c0978d2a57d71db26530b01ed4bb33a5012a816e7ab22db2bb7d13ac8b5e1",
+      "3-2-one-emitter": "9dba93737ac8b0ee329cc91ed904ba6affb1e4f630c1724a166bbc806a166f23",
+      "3-3-every-read-document-is-an-object": "2c5c9f832a526bac98942b7956db2e55c28dd81405515ff2575074339abff7ad",
+      "3-4-the-version-axis": "916772692c882cd0218f235b91ac11e81147eb3da88cf6e181b808a441a2ab17",
+      "3-5-sorted-keys-stated-once-and-true": "d54d4a7fb798e1532d19fd061a3e07d66b7bc3d346e8f3c78a85d8e18976db5c",
+      "3-6-the-breaking-changes-named": "a94615194be3c415d7064cfdb2521825ccb8e449179d77d64fb9e9f074a525ca",
+      "3-7-config-show-keeps-its-own-version-member": "4f650cd8e9f864d053dffb155faec3cd3f6fc272afeca2eef21d94b80dcc2310",
+      "3-8-the-tests": "68797bf7534c57e849a5585fbd4dd143153ccbbbaa3c817189050c473fbc837e",
+      "3-behavior": "229c68d317b8073294d4998adf09dff5f7996ed1de2dd84e6b999ea0b6163a69",
+      "4-out-of-scope": "4c8b4b04ffbe7eb38d56f942d66dc0b4bc59c4df66e52833289eeca7846ca78e",
+      "5-resolved-decisions": "9b9d0221b76cefb947cf5d0945e82b5c11a6fa4c93afaa6886c491aa6f1dd0c1",
+      "verification": "df1f5418cb009e48714e09bbe46112101c715e75db43c0798eac08f7c0413b58"
+    },
     "sectionHeadings": [
       "074: A governed read names its version",
       "1. Purpose",
@@ -143,5 +163,5 @@
     "title": "A governed read names its version"
   },
   "shardHash": "49af0d8bc3269bb1c884c273be7d127a2b222ace1cfa05d8d5721d847d7470d0",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

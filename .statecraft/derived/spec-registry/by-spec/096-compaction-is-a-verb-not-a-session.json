@@ -53,6 +53,26 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "096-compaction-is-a-verb-not-a-session": "b3b68216d0f5b5b1c15e38f47c63bcdc6b8569300883e45c78d496c4a8d79922",
+      "1-1-five-defects-one-family": "921368a7fda4c5cd4c8350a8ed45394286e1ef5cc1c322b12954657ba5256930",
+      "1-2-what-caught-them-and-what-that-cost": "844d163c2ab1fc07b20aca9d08d1ef7999ac8004d2bb087584c5b8ad6d310701",
+      "1-3-what-is-and-is-not-mechanizable": "881e3e2cda06f53041fc595d34e28eb18b8977abebea480de1847e95632fa327",
+      "1-purpose": "7ce5b21a76749c54bda194b84d59d746449817c560ce9a6a93c21cd79ebaf052",
+      "2-territory": "e00b88ae8f6e217d9da17114bf183a74e6cf7ff4a2737d67ec6248c4c73bb47f",
+      "3-1-a-plan-in-a-corpus-out-as-data": "30ec480dbb980fde8618dff5417f9ef462a3b07ebfd83d15d16c12c212c368ff",
+      "3-2-the-map-is-computed-and-an-ordinal-collision-is-a-refusal": "07b91a2bee351d442f218530b9fa8275bcee4248b02f9140aa7077d6fc639e82",
+      "3-3-three-reference-shapes-and-what-each-excludes": "aaa87cae44e74acb8b64184816de98e52e02db3771548a371c5cc318f29dbf73",
+      "3-4-applying-twice-is-applying-once": "1227b2b4d1a2b2d5f24e7e82ad75edbd3e10a70b71ae530331fa0627466d7f32",
+      "3-5-a-block-is-found-by-its-fence-line-by-line": "471f79918517b5fb6c791968abdd481ba1d355cbc1cb36739a9acfd07b4d438c",
+      "3-6-the-report-is-the-review": "06e5cce33fc62465435e8f457b8067e44e74f0f1d65133ba6c7d339c48f61b80",
+      "3-7-the-map-document": "a4bfce893dfa4700aefb5d32de7df70736620a7536df7eaeb587fb1383ca6678",
+      "3-8-what-it-refuses": "a1a23b84088128865c465df296f9da5eca20efa5134b4f217acf650ab79a3724",
+      "3-behavior": "4edb2178643851b15e054267532bad2068fda3fed71e4d819566ba09550a35b7",
+      "4-out-of-scope": "bea7f25620082ddcacadd4da13c6896c556e8f54c416f856f7d5b1e24d9b9c90",
+      "5-resolved-decisions": "31bcbd4de3dc9434de2cabcf65a4b2de381c7f2c9103326cabd3c6bb4f8531c4",
+      "verification": "4b5dfac4b47b2f782ea101b79871be64693c250ede9920f028aee67bf159eb8f"
+    },
     "sectionHeadings": [
       "096: Compaction is a verb, not a session",
       "1. Purpose",
@@ -79,5 +99,5 @@
     "title": "Compaction is a verb, not a session"
   },
   "shardHash": "4b150b64d577b0ee825dc3aaff8802dc9ca933a6159d19b6d1f0c15a07051915",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

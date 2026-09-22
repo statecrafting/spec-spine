@@ -10,7 +10,7 @@
 
 | Artifact | Field | Current | Owner |
 |---|---|---|---|
-| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.2.0` | library |
+| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.4.0` | library |
 | index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`) | `schemaVersion` | `1.1.0` | library |
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
@@ -53,6 +53,13 @@ MINOR history:
   still emits a bare string, so a full-only corpus is byte-identical; only a
   `partial` item emits an object. Readers that assumed `supersedes: string[]`
   must accept `string | object` entries.
+- registry `1.4.0` (spec 106): additive `obligations` (a spec's declared
+  requirements, invariants and verifications) and `sectionDigests` (every body
+  section's anchor mapped to a SHA-256 over `<specPath>#<anchor>`, NUL, and the
+  section's normalized lines). `sectionDigests` appears on **every** shard,
+  because every spec has headings, so every shard's bytes change once; no
+  `shardHash` moves, because it is over `spec.md`. (This table read `1.2.0`
+  before this change; `1.3.0` was spec 082's `amendsVerification`.)
 
 MAJOR history:
 

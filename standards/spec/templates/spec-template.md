@@ -91,6 +91,27 @@ implementation: pending        # pending | in-progress | complete | n-a | deferr
 #
 # amends: ["NNN-predecessor"]
 # amends_verification: ["NNN-predecessor"]
+# --- declared constraints (spec 106) ---
+# `obligations` names this spec's requirements so they can be cited as
+# `<spec-id>#<id>` instead of by a section number that moves. Optional; a spec
+# may declare none. Each entry has exactly these members:
+#   - `id`: unique within this spec, `^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9]+)*$`
+#     (so never a `#`). A bad or duplicate id is `V-021`.
+#   - `kind`: `requirement`, `invariant` or `verification`. There is no fourth.
+#   - `text`: the one sentence the obligation asserts. Empty text is `V-024`.
+#   - `anchor`: the slug of a heading in THIS spec's body (the anchor
+#     `index owner` computes for a section). It must name exactly one heading;
+#     a dangling or ambiguous anchor is `V-022`.
+#   - `inputs`: required on a `verification` (test files or commands), and
+#     forbidden on every other kind (`V-023`). Declared, never inferred.
+#   - `withdrawn: true`: retire an obligation IN PLACE, keeping its id, rather
+#     than deleting it, so the id can never be reused for something else.
+# An obligation declares; it does not prove its verification passes, and the
+# list is what the author wrote, not a proof nothing else is required. No gate
+# reads it. `spec-spine registry obligation <spec-id>#<id>` resolves one.
+# obligations:
+#   - { id: "R-1", kind: requirement, text: "The rule holds.", anchor: "3-1-the-rule" }
+#   - { id: "V-1", kind: verification, text: "It is checked.", anchor: "verification", inputs: ["tests/rule.rs"] }
 # --- bootstrap marker (NOT an edge) ---
 # `origin.retroactive` declares authority held since before the graph existed:
 # code that predates its governing spec is evidence, not a violation, and a

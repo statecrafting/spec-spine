@@ -4300,7 +4300,13 @@ fn spec103_registry_show_carries_amends_verification() {
         &fs::read_to_string(root.join(".derived/spec-registry/by-spec/103-b.json")).unwrap(),
     )
     .unwrap();
-    assert_eq!(shard["specVersion"], "1.3.0", "{shard}");
+    // Spec 082's MINOR is `1.3.0`; a later additive MINOR (spec 106's `1.4.0`)
+    // keeps it in effect, so the pin is "MAJOR 1, at least MINOR 3", not the
+    // head's exact value, which is a literal every later MINOR would move.
+    let version = shard["specVersion"].as_str().unwrap_or_default();
+    let (major, minor, _) = spec_spine_types::parse_semver(version)
+        .unwrap_or_else(|| panic!("specVersion {version:?} is not MAJOR.MINOR.PATCH"));
+    assert!(major == 1 && minor >= 3, "{shard}");
     assert_eq!(
         shard["record"]["amendsVerification"],
         serde_json::json!(["093-a"]),

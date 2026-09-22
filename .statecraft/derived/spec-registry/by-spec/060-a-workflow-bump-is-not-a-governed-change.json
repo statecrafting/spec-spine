@@ -83,6 +83,20 @@
       }
     ],
     "risk": "high",
+    "sectionDigests": {
+      "060-a-workflow-bump-is-not-a-governed-change": "a8862af1f980567d4831dee2b6763b104c1d27697b04df4ccd2d9db3f4c067c0",
+      "1-purpose": "be14aa974567b2dc014bfc2bb89c4b35dff291b22379a738e396fc72269bb304",
+      "2-territory": "b7ac1b0e7627356337605d863ca237694d2a1880044a56e5a93fde948c4024e6",
+      "3-1-a-workflow-folds-as-its-governance-projection-amends-004-3-5": "7d04cb749abc141d3d99b01f0348aec5c485b3f9bc8b15e39ba62cb61ad8512c",
+      "3-2-the-projection-and-the-waiver-state-one-rule": "6dffa881dbf83343b46e233abf02a64e0d3b1d9440678977397baeb1ae15ceac",
+      "3-3-the-upgrade-restales-every-workflow-bearing-repository-once": "5812dd69318b180f63567ecd67f527c4226e118201c8c4463582526d00e1a91d",
+      "3-4-the-workflow-auto-waive-test-asserts-freshness-again-amends-058-3-6": "6a27cc4da232ce503065c2aa96fd6a95b65516562a6e475844988a4bafee0c48",
+      "3-5-tests-minimum": "f3c754c247fd92835d7336bc4a0af667e1cc27fea10733ec06730308399e2552",
+      "3-behavior": "a52a9770442fc57e061fecff1803126ad2567d4e599210055a19543c943eb57a",
+      "4-out-of-scope": "af2e3448172b05209e8632d0639011fd7a00b2a6a74615606c3ecfb44e676065",
+      "5-resolved-decisions": "5204f7c1256f59eff90327240157a236bba74c013331721781c97cad95b44a0c",
+      "verification": "2716fd8822e1bb5c49936d364ae44f30e5cda40a1128cf551635e5b3bd938292"
+    },
     "sectionHeadings": [
       "060: A workflow bump is not a governed change",
       "1. Purpose",
@@ -103,5 +117,5 @@
     "title": "A workflow bump is not a governed change"
   },
   "shardHash": "fea9b59a987552699418f5d6f5fe3dd0fc9f0affd1cf4f47850bfdf948fe969f",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

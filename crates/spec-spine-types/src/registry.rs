@@ -16,6 +16,7 @@ use crate::edges::{
     CoAuthorityItem, ConstrainItem, ExtendItem, Origin, ReferenceItem, RefineItem, SupersedeItem,
 };
 use crate::frontmatter::{Implementation, Risk, Status};
+use crate::obligation::Obligation;
 use crate::unit::Unit;
 
 /// The compiled registry: `registry.json`.
@@ -117,6 +118,16 @@ pub struct SpecRecord {
     // --- bootstrap marker ---
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub origin: Option<Origin>,
+
+    // --- declared constraints and section identity (spec 106) ---
+    /// The spec's obligations, verbatim as declared (spec 106 §3.1).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub obligations: Vec<Obligation>,
+    /// Every body section's anchor mapped to its digest (spec 106 §3.5):
+    /// SHA-256 over `<specPath>#<anchor>`, NUL, and the section's normalized
+    /// lines. Beside the spec's full content hash, never instead of it.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub section_digests: BTreeMap<String, String>,
 
     // --- overflow ---
     /// Declared keys carry any JSON value (spec 012); undeclared keys are

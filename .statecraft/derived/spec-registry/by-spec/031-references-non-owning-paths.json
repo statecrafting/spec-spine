@@ -31,6 +31,18 @@
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "risk": "medium",
+    "sectionDigests": {
+      "031-references-seeds-no-implementing-path": "ffa64c88c9d915d03bba93e093d7b875ca3ee8825480233955d9b95670a71d10",
+      "1-purpose": "bbf04c19bcee9343a85c994a8bebd56cdc7cdcdd882de7e7424f6f66ee73235c",
+      "2-territory": "a4f0c9e0a8dba4a052d25f3f6666f0163efca0a33b450cb583eb0ad8ee06bc6c",
+      "3-1-the-rule": "9b3598fd3321db1294c565b4be98d6267a667aa0429637cfd6f536b488e155eb",
+      "3-2-fix-at-the-source-not-at-the-consumers": "fdfc781f15ab978c5176678239819f5eb098bc3bb3e1282efadf5c3d3765a66f",
+      "3-3-provenance-is-preserved": "681287346a7bf0282ccf9ddf8ed2bd33988e21026aede5216bb777476d693cb5",
+      "3-4-shape-and-compatibility": "1422ba9a82efe30fcc5c05bc74ff3dd2268f68700be18896122198d233247bd5",
+      "3-5-tests-minimum": "3701316a470ceeed86ea90ab6d59f5216ec9a04bdb14a716d2b874aec2567b98",
+      "3-behavior": "a05f819d2421ccc86fd22574b38427a41c8a95e2665221494af18d3339d3b9a2",
+      "4-out-of-scope": "9aa757f12a6064ca86d5bf8e1a2c0bb96a342d89e5f72811ad9c2f49944a30d2"
+    },
     "sectionHeadings": [
       "031: `references` seeds no implementing path",
       "1. Purpose",
@@ -49,5 +61,5 @@
     "title": "`references` seeds no implementing path: closing the C-001 ownership leak"
   },
   "shardHash": "0357ff750e5d2cc08ca1304c7dae75fbb5217f6fbeae2e7556a9e4d92ed41062",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

@@ -56,6 +56,26 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "1-1-sweep-green-was-unreachable-measured": "3de867a3e8a078ccec5f015a536781a30e2c9e57b9c3a38589f0e12a19ba83b1",
+      "1-2-a-run-that-failed-for-a-reason-outside-the-corpus": "0bcec226e3db9a98c7737961f7eac95d164925ef7fbd419336b3ed3b7a7d6241",
+      "1-3-the-owner-s-ruling": "0cef5957ffed0b02aa4039c7d37b507bf61e6e768adfac2e1e9f577028475ebf",
+      "1-purpose": "1908aa5518945686fb919a76813dacf9b96eac10fa0126a22617fae8005e4350",
+      "119-a-release-verdict-judges-what-was-built": "29567197e8d3e9f1de2b6356bc111f1f840acc1b4459f9a667ed89994c1f6f8c",
+      "2-territory": "bbe04dd5c1f9eb1d0865377957442e80fd5af23e5dc5832c9f9038e8a21b28bf",
+      "3-1-the-lifecycle-is-a-governed-read": "4a09a58513026a0c469dec4a99f7908f4d16a5a0c539cd84f7aade16c64336b1",
+      "3-2-the-release-outcome": "8a5bd13324bec217d759c660e89b2b9b0175622cb1219964d8b6cc5f61ab3648",
+      "3-3-two-verdicts-one-exit-code": "c44b6769928e2c1cc9663a5d931b213efe411e5e238815c793b9a153a47eba20",
+      "3-4-the-report-is-versioned-and-the-change-is-additive": "73b64cad2d08807d91c35c327227db287059a6fed4d3a417e20b200441225aaa",
+      "3-5-the-default-run-directory": "4fb119c6bce925106dc0a428bbb536cd29b2b5e671c38f0a94fb234a8120b8f6",
+      "3-6-the-regressions-run-and-they-cannot-rot-silently-again": "1070cf45c29d9abfac21f27d04a5d58857ae6d768899401244d7bb81a8d413da",
+      "3-7-the-runbook-reads-the-release-verdict": "62131d0d32b21dd84eb9ce5ccca42319089afe760326cd4cc0db39f94af59f07",
+      "3-8-what-does-not-change": "f7195f9827f4949d54e8853d0d278a0e75db87ebc002e2f31c6e682f791e5852",
+      "3-behavior": "cf398795d9efceeb1ff792df24e8811e8389e6e19997ff74d29fe363978e4faa",
+      "4-out-of-scope": "568ac97488682e944a0e1e88354d3879d716548b0cb8b5bbb3035a9d32675767",
+      "5-resolved-decisions": "20c216da6ed686c75cfd7cb454216f71167d5eb5378f6e41d1629febd1ce617d",
+      "verification": "a40bc701d24637c8bc476e1f00f2ed9cc3cf9748746bb9c9de82c5de8e60fb91"
+    },
     "sectionHeadings": [
       "119: A release verdict judges what was built",
       "1. Purpose",
@@ -82,5 +102,5 @@
     "title": "A release verdict judges what was built"
   },
   "shardHash": "333b44cb5707259b1923925aab71836b14d88769daaf6c2f1d71bf3e606f092b",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

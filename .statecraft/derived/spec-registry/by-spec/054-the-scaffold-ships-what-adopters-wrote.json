@@ -51,6 +51,18 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "054-the-scaffold-ships-what-every-adopter-wrote-by-hand": "f81bacc96b627698e3c728e53e06203383aa185f78ca91f1b6cbf9112c88feeb",
+      "1-purpose": "eec6c6ccb35ce307b2c2ae3a777a4c51c6e733f11e19acc9add8d475c7444d51",
+      "2-territory": "65f307d8558676a16a82b7cd3a9f0699db99baf16f804eda68fd48d08468668b",
+      "3-1-the-scaffold-writes-a-gitignore": "019b7f30a29bb244ae41a10dd8446064eb363f19974e3167c2406cdc9882de09",
+      "3-2-the-scaffolded-config-shows-every-knob": "b2c6e367d4a8cdeffc72f8974f6b6fedb6d689b4291291ff8adf0a26fcdeea62",
+      "3-3-the-real-constitution-template": "85b2008559a87317ce15b4be2357f2d4a20d29d856d57eaa85ac041c0db9d554",
+      "3-4-purity-and-determinism": "c6fc94f8cc50d4c28410d61e06f428bcfa7ffc484a791c1799d5668fef6d3f35",
+      "3-behavior": "1095946ecaa9614e822eabf56f95fd2d0487fce458bd061d367c19bac23ce08d",
+      "4-out-of-scope": "5498a6a13de0ee1d80da907c4de2816cf9ed1a403c5966fef0c96cc45fb2d2b4",
+      "5-verification": "941d9821f6087731ef9df42642a790efa459826ea5ae44dae3e009b95b7ca856"
+    },
     "sectionHeadings": [
       "054: The scaffold ships what every adopter wrote by hand",
       "1. Purpose",
@@ -69,5 +81,5 @@
     "title": "The scaffold ships what every adopter wrote by hand"
   },
   "shardHash": "344dc825f5eea764628372f8c3e0bbb14272b6e762a65ed783e37b09a096fe25",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

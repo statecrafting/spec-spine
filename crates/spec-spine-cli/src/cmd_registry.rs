@@ -48,6 +48,14 @@ pub enum RegistryQuery {
         #[arg(long)]
         json: bool,
     },
+    /// Resolve a qualified obligation reference, `<spec-id>#<obligation-id>`
+    /// (spec 106). An unqualified id is refused, never resolved locally.
+    Obligation {
+        /// `<spec-id>#<obligation-id>`; the spec half may be short (`106`).
+        reference: String,
+        #[arg(long)]
+        json: bool,
+    },
     /// Which specs can be worked on now, and what blocks the rest (spec 035).
     Plan {
         #[arg(long)]
@@ -181,6 +189,44 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 print_json(&plan)?;
             } else {
                 print_plan(&plan);
+            }
+        }
+        RegistryQuery::Obligation { reference, json } => {
+            let view = spec_spine_core::obligation(&registry, reference)?;
+            // Spec 106 §3.6: the spec's full identity beside the section's,
+            // read from the committed shard and never recomputed (048 §3.3).
+            let content_hash = shard_content_hash(&cfg, repo, view.spec)?;
+            if *json {
+                let mut value =
+                    serde_json::to_value(&view).map_err(|e| Error::Schema(e.to_string()))?;
+                if let (Some(obj), Some(h)) = (value.as_object_mut(), content_hash.as_ref()) {
+                    obj.insert("contentHash".to_string(), serde_json::json!(h));
+                }
+                print_json(&value)?;
+            } else {
+                let ob = view.obligation;
+                let kind = serde_json::to_value(ob.kind)
+                    .ok()
+                    .and_then(|v| v.as_str().map(str::to_string))
+                    .unwrap_or_default();
+                outln!(
+                    "{}#{}{}",
+                    view.spec,
+                    ob.id,
+                    if ob.withdrawn { "  (withdrawn)" } else { "" }
+                );
+                outln!("kind:    {kind}");
+                outln!("text:    {}", ob.text);
+                outln!("anchor:  {}#{}", view.spec_path, ob.anchor);
+                if let Some(d) = view.section_digest {
+                    outln!("sectionDigest: {d}");
+                }
+                if let Some(h) = &content_hash {
+                    outln!("contentHash:   {h}");
+                }
+                for input in &ob.inputs {
+                    outln!("input:   {input}");
+                }
             }
         }
         RegistryQuery::Relationships { id, json } => {

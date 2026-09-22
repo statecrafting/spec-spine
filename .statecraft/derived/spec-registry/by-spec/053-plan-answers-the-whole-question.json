@@ -69,6 +69,18 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "053-the-plan-answers-the-whole-question-and-names-one-pick": "516cae37e387e8fcd5ba6245baf5655a6a3655bd495a87f3bd902e78d9907159",
+      "1-purpose": "8cae9386d2e483e43b3950bc2a7fee1b4b1581ca9fc860f081a7f59c17216999",
+      "2-territory": "63eb4984ec61ec6f0998da15170c36f7b71fb3c6ede88c9d0954f82ef185de89",
+      "3-1-the-prose-form-renders-what-the-structure-holds": "04f815d7f9fe08cb3553cea0bc735000c766194373fcb624b88ebe1aa3ac6c4d",
+      "3-2-next": "0145c729f38704b9ef8fd481883970fc748b1bf9a47712a76eb0294940bee73a",
+      "3-3-the-json-shape-gains-titles-and-nothing-else": "317bd8bc44bd96770169896e6a62b8a626391c140218693389fdb5980d9a034a",
+      "3-4-it-still-answers-what-is-claimed-not-what-is-done": "24d2bdb6fe00528a1280b14a41dda8f0123c990992c0c5714b24141122809332",
+      "3-behavior": "b6540ad4200250d41dab290cf9635523475ca43a06c5556d362735a04051b839",
+      "4-out-of-scope": "c359f449c2a5b3c2cbb9014aaa368ed24937b1385473250728d41d290803f5c8",
+      "5-verification": "5832eefef03ff0b5b017e2ea484600e93d0e665c850912a8740a05ee8ff4a3aa"
+    },
     "sectionHeadings": [
       "053: The plan answers the whole question, and names one pick",
       "1. Purpose",
@@ -87,5 +99,5 @@
     "title": "The plan answers the whole question, and names one pick"
   },
   "shardHash": "9b65bf3d31c3f6fb19186202b3470e5cd9df75c9bbb80ce9ded403b7a566f8e0",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

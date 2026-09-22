@@ -192,6 +192,7 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
             &all_ids,
             &mut violations,
         );
+        validate_obligations(&p.spec_path, &p.fm, &p.body, &mut violations);
         records.push(build_record(p.fm, p.spec_path, &p.body));
     }
     records.sort_by(|a, b| a.id.cmp(&b.id));
@@ -759,6 +760,7 @@ fn detect_dependency_cycle(records: &[SpecRecord], out: &mut Vec<Violation>) {
 /// Build a `SpecRecord` from parsed frontmatter, copying `extra_frontmatter`
 /// verbatim so downstream-specific keys reach `registry.json` (the overlay seam).
 fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
+    let spec_path_for_digests = spec_path.clone();
     SpecRecord {
         id: fm.id,
         title: fm.title,
@@ -791,7 +793,107 @@ fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
         unamendable: fm.unamendable,
         amendment_record: fm.amendment_record,
         origin: fm.origin,
+        section_digests: section_digests(&spec_path_for_digests, body),
+        obligations: fm.obligations,
         extra_frontmatter: fm.extra_frontmatter,
+    }
+}
+
+/// Every body section's digest (spec 106 §3.5), keyed by anchor. The first
+/// heading with a given anchor wins, which is the section `resolve_section`
+/// answers for that anchor. One hash construction (spec 077): the name is
+/// `<specPath>#<anchor>`, so equal text in two specs is two identities.
+fn section_digests(spec_path: &str, body: &str) -> BTreeMap<String, String> {
+    let mut out = BTreeMap::new();
+    for (anchor, text) in crate::sections::markdown_section_texts(body) {
+        if anchor.is_empty() || out.contains_key(&anchor) {
+            continue;
+        }
+        let digest = hash::content_hash(vec![(format!("{spec_path}#{anchor}"), text)]);
+        out.insert(anchor, digest);
+    }
+    out
+}
+
+/// Spec 106 §3.3, 3.4, 3.7: the obligation rules that are a pure function of
+/// one spec. Malformed members were already refused at parse (`V-002`).
+fn validate_obligations(spec_path: &str, fm: &Frontmatter, body: &str, out: &mut Vec<Violation>) {
+    if fm.obligations.is_empty() {
+        return;
+    }
+    let at = || Some(spec_path.to_string());
+    let mut anchor_counts: BTreeMap<String, usize> = BTreeMap::new();
+    for (anchor, _) in crate::sections::markdown_section_texts(body) {
+        *anchor_counts.entry(anchor).or_default() += 1;
+    }
+    let mut seen: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
+    for ob in &fm.obligations {
+        if !spec_spine_types::valid_obligation_id(&ob.id) {
+            out.push(error(
+                "V-021",
+                format!(
+                    "obligation id '{}' does not match ^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9]+)*$",
+                    ob.id
+                ),
+                at(),
+            ));
+        } else if !seen.insert(ob.id.as_str()) {
+            out.push(error(
+                "V-021",
+                format!(
+                    "obligation id '{}' is declared twice; an id is unique within its spec, \
+                     and a withdrawn obligation keeps its id (withdrawn: true), so it cannot be reused",
+                    ob.id
+                ),
+                at(),
+            ));
+        }
+        match anchor_counts.get(ob.anchor.as_str()).copied().unwrap_or(0) {
+            1 => {}
+            0 => out.push(error(
+                "V-022",
+                format!(
+                    "obligation '{}' anchor '{}' names no heading in this spec's body",
+                    ob.id, ob.anchor
+                ),
+                at(),
+            )),
+            n => out.push(error(
+                "V-022",
+                format!(
+                    "obligation '{}' anchor '{}' is ambiguous: {n} headings in this spec's body share it",
+                    ob.id, ob.anchor
+                ),
+                at(),
+            )),
+        }
+        let is_verification = ob.kind == spec_spine_types::ObligationKind::Verification;
+        if is_verification && ob.inputs.is_empty() {
+            out.push(error(
+                "V-023",
+                format!(
+                    "verification obligation '{}' declares no inputs; its evidence is declared, never inferred",
+                    ob.id
+                ),
+                at(),
+            ));
+        } else if !is_verification && !ob.inputs.is_empty() {
+            out.push(error(
+                "V-023",
+                format!(
+                    "obligation '{}' declares inputs, and only a verification obligation may",
+                    ob.id
+                ),
+                at(),
+            ));
+        }
+        if ob.text.trim().is_empty() {
+            out.push(error(
+                "V-024",
+                format!("obligation '{}' has empty text", ob.id),
+                at(),
+            ));
+        }
     }
 }
 

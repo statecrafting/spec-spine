@@ -57,6 +57,25 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "098-a-citation-the-renumber-could-not-see": "5a7a47877fe65b61bf0977b9ce2a7c781268912ec9911ff0a51b1943d5be98e3",
+      "1-1-what-the-map-could-not-repair": "62a50d999d3e8e5c7433eadab1d0f1fcbe717cd8361ddddf0ad5ed2d24621353",
+      "1-2-three-mechanism-gaps-not-one-mistake": "92b519c1eebbd3454fdc90d0fc1999af2f2c2317860b2ea3f926a8425d56f8cf",
+      "1-3-what-is-decidable-and-what-is-left": "7fc55d39f6ff4cee957118d11c02e6e03711f2a3f58b1f196be77a2d6d8e7a8d",
+      "1-purpose": "0080fd40a4b3ba3b1b456b69eee8d294744b00d661a3e0d463168ca6a3477df8",
+      "2-territory": "9cf29fc0b63d74c172f2147aa403082bb91ec5951a6d4ae7000f34d75224fe9e",
+      "3-1-a-fourth-form-the-document-s-own-title-heading": "540d1f07e3d6f171feba5f32524847b93372b152f5f0b528a731330c04778da6",
+      "3-2-a-fifth-form-a-bare-ordinal-in-a-position-only-a-citation-occupies": "6ee93fcd666baca9be53d3c816b47c5d62de7d85e5ca958d4f310fcf32f37306",
+      "3-3-the-scan-selects-a-file-by-content-when-it-has-no-extension": "c8128e1ee0fff0f07a78b3ded48662282cbfde66aabd7d6ddc7a65cf8282293f",
+      "3-4-l-013-a-title-heading-names-its-own-spec": "c09f1baa0564fd9d806e3e7f111f6cf4654be7e94ce9c05ed0885b0c162d14c8",
+      "3-5-the-repair": "435e69dd904cca6fd14ac53b511a6d1ee9ac15e9ee13e131495ed53f8e8e8afc",
+      "3-6-the-repair-is-not-a-verb": "511c300c5ca9633a5d8e38aa6f5f13da738385e36c91e317023b8bbf7cf020c7",
+      "3-7-the-sweep-s-only-takes-a-spec-id": "0217c131cabe6466bb11027a153db7dc859a3213e61c7c4e40511832f361585b",
+      "3-behavior": "defb74cb4467428f3894ab26febec89e2f56e28bc07e79594d6d80a6c621a5ac",
+      "4-out-of-scope": "d8f08c7f9f0a62cea9abaa0bb6e0664c01ce254825d21bc15e1ececd8dd7afd2",
+      "5-resolved-decisions": "0ef882f583e3612ccaa61838366f7b87499f773869e06d32c3a34e73b18f843e",
+      "verification": "4aea6cf3df8210d8e518bdc827624075f575342837e526e91a9ab7870fa3547f"
+    },
     "sectionHeadings": [
       "098: A citation the renumber could not see",
       "1. Purpose",
@@ -82,5 +101,5 @@
     "title": "A citation the renumber could not see"
   },
   "shardHash": "ea597a684a8ffb9d89e33debaf63deb8abc89a6198ca9478fd9708476caab0f2",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

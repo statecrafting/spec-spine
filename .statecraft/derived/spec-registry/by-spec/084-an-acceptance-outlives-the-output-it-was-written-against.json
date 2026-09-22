@@ -28,6 +28,24 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "084-an-acceptance-outlives-the-output-it-was-written-against": "94fece6706707f057393adf86494353d707e4cfb9056020b1ec45b26675b4fb9",
+      "1-1-three-red-assertions-no-defect-behind-any-of-them": "205b3fe213d13523d1bf30e97a61c58e254d1530697237674a79b437c86bd648",
+      "1-2-a-literal-pin-cannot-assert-that-a-literal-does-not-move": "381da9928f394e2223c3466c6d8a073e52439f62b7dc62c5397fbc3c34b2adc2",
+      "1-3-the-crossings-were-silent-and-nothing-reruns-a-merged-block": "ebd27f67377f0e38ecf75c76cb030af85798f57d7cfc049ba45a08b5f63754c4",
+      "1-purpose": "bc89523975f94b2c361aedd9a11c3a91461871939ea5ce15a78991381cde6aa2",
+      "2-territory": "a6bb4b62a4a56e28a1d96b309c2910e4207819c42e0872f251f278404b3ead8c",
+      "3-1-what-spec-044-s-acceptance-now-is": "94b9136ebf6f9f09085394556661831594059d64987f784fb34c78eb22081acb",
+      "3-2-the-verdict-line-is-read-as-a-line-and-the-verb-s-exit-status-is-kept": "f48afccdb83584a89b014e91c9b1dbbe1d768a4a43e60908c4d9aa20fa834115",
+      "3-3-the-envelope-comparison-is-a-consistency-check-and-says-so": "460eb3dce63967749f75f5c91b73b2a353ab92a9c19e3a13f3999e0b678f57f5",
+      "3-4-the-payload-member-is-asserted-because-the-rule-is-about-it": "06c73e204fd0991e4f7b550cf1e8cd720bb8df0ed291718b7c6e9c63f247b104",
+      "3-5-the-acceptance": "d1609361a85419d396669bd5dbef3d55d486fe94639ddfab7f15fdbc0007d931",
+      "3-6-no-code-changes": "aa25142028c11888b26bb2c7f754fae6a23b646a9ba7d2ba3fad468819f2cc10",
+      "3-behavior": "3f281ad342702b0bc149feabe38d0c66d21cf82df78fe877e8def08cfec3e2c9",
+      "4-out-of-scope": "076f19199a23301c5058ebed452cde31ea25a8eafce3d805f80e36eb382fb59f",
+      "5-resolved-decisions": "69cc320dab60c4186b7ec4c2fe00329ba9d445affaefc9ec681fae390933eada",
+      "verification": "23786df87e8ed1f9cfec01ea81d842a38118d3e890945bf24c5214ebdaa97078"
+    },
     "sectionHeadings": [
       "084: An acceptance outlives the output it was written against",
       "1. Purpose",
@@ -52,5 +70,5 @@
     "title": "An acceptance outlives the output it was written against"
   },
   "shardHash": "010c2893bf242b20c507c1cb33c36912ca810de07d4066da79edd407a74097eb",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

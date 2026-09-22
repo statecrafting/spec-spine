@@ -299,6 +299,34 @@
       }
     ],
     "risk": "high",
+    "sectionDigests": {
+      "092-the-engine-ships-governance-not-an-environment": "8871c68a603cf8bdbc9081a02446b85624922490eb7c09504c9d5201f996c0c5",
+      "1-1-two-products-one-repository": "7dba1080a62f0f8f1a6555973176d49043542b18f37a76e68a46d9f05611a732",
+      "1-2-the-owner-has-moved": "9eebd17e1c93f2638347e5b29c59f2c65d9b6599555c5c13c1ee86af81d3dda7",
+      "1-3-what-the-managed-layout-is": "6f6e3d073487bf0bff944d2ab5fad8d034d7a1c6b33165b0b0b2a948386db61d",
+      "1-4-why-there-is-no-compatibility-path": "1892514fdc9e91f3ece7f902ef587e22c811d2ae119602d1bfb65c6eb09c5123",
+      "1-purpose": "77199e9453224a63f1fa419428f0a3246c026d319d1c2671be4ec356f968cc06",
+      "2-territory": "00edfcc250106e7c930750674fb801f5939c93a450eb88856a56f23c9662502b",
+      "3-1-the-public-initialization-command-is-removed": "2edbbc0f51b0d693c53be7d22ada3057851f1c6caf1546ef5cec7cafb18ac93b",
+      "3-10-the-instruction-bridge-is-statecraft-s-to-insert": "82d727f65ef8b760a68d4f8fdf6b0bf9b669ea91b8ef54b50b041351ea8bcfd7",
+      "3-11-1-what-the-coupling-gate-says-about-the-removal-measured": "b124b5f1380b85e530f7f5d68db0db0d0f2382aa48d9296a98e083987bd922bc",
+      "3-11-removed-paths-and-the-claims-they-leave-behind": "5221a3d2a86ea44ed2e8602d00df2966afb16b9a87fd7d7cb37d6f41e5a2c43f",
+      "3-12-acceptance-replacement": "c6efa5e786cde98d0ba22dcceb3bac6a478d8ee623052acb93bb1575b341a1da",
+      "3-13-the-unmerged-spec-117-proposal-is-withdrawn": "1be710b95f32a829570cfbf4b1069110a3909f8a1911a9e794d062b19e5b8981",
+      "3-14-the-documentation-site-goes-with-the-environment": "7681c4e2325d7a7440793cc6d8faecca13026a41c0c89d15af2b57e9be12c266",
+      "3-2-one-retained-producer-and-it-stays-pure": "68fb8725472bcea4bf7838883bd6a26af125c2effae53a0b7e789e9cbc488738",
+      "3-3-what-the-scaffold-produces-and-what-it-must-not": "e94844485e54a70bda2a0abc6b7e704d8088ead2b2be370750eb225b51fec5be",
+      "3-4-the-kit-and-its-embedding-are-removed": "e2916922275a838ccfd6cf9dc8a0ff3c27b9825bf459699621147e0b40c91fcb",
+      "3-5-the-projections-go-this-repository-s-own-harness-stays": "591f432828903d6e3362b15965a7d047a0b408bf131e1c9502a191b638752043",
+      "3-6-the-gate-has-one-definition-and-this-repository-owns-it": "39f6f75b7d1ab41c798a680f577a0b855ec43b1065a1e6232b3843d5c986b963",
+      "3-7-this-repository-s-derived-trees-move-to-statecraft-derived": "0c93c22ce22ca94a2f682fe40c01b09352db708803bc365ceef1d80369117cc8",
+      "3-8-the-configured-derived-directory-is-derived-everywhere": "faec71c13e45a39f22b00b4231271393eaeb00c7a585c270a00d44851b3e6959",
+      "3-9-statecraft-is-not-runtime-state": "2d9a8e4f62449536ffea9d02a86d7802e8629aeb4b8fe81334d02ee4dc7c6c43",
+      "3-behavior": "ece0672e746f1acdec4f158c2e2b91d8bb0a4673c81b81cd17bd85a6abba4100",
+      "4-out-of-scope": "f47d531f8eaa22f80e81346d32f3e34c290917264a414bf9980b065c84dc4e6d",
+      "5-resolved-decisions": "cb94b95816b569a7709b54662055b2f9d365e4f1ccd7ed65ecfb4283a53bc75a",
+      "verification": "780a682e6f0c2aa2238713e4256d235cd5cf914f7a9e6b39097245c3d457cf5a"
+    },
     "sectionHeadings": [
       "092: The engine ships governance, not an environment",
       "1. Purpose",
@@ -333,5 +361,5 @@
     "title": "The engine ships governance, not an environment"
   },
   "shardHash": "ade18bf100cab021ee15a096d3135f3275b1d7aaf963743b40de56aa6bbec139",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

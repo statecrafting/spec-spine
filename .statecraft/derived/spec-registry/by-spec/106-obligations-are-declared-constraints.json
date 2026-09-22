@@ -8,18 +8,15 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-types/src/obligation.rs",
-        "planned": true
+        "path": "crates/spec-spine-types/src/obligation.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/obligations.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/obligations.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/obligations.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/obligations.rs"
       }
     ],
     "extends": [
@@ -134,11 +131,87 @@
           "kind": "file",
           "path": "docs/api.md"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "082-an-amended-acceptance-is-the-one-that-runs",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
       }
     ],
     "id": "106-obligations-are-declared-constraints",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-1-declarations-live-in-frontmatter",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Obligations are declared under one frontmatter key, `obligations`, and nowhere else."
+      },
+      {
+        "anchor": "3-2-three-kinds-and-no-fourth",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "An obligation's kind is exactly one of requirement, invariant or verification."
+      },
+      {
+        "anchor": "3-3-ids-are-stable-within-a-spec-and-withdrawal-is-in-place",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "An obligation id is unique within its spec, and an obligation is withdrawn in place, keeping its id, never deleted."
+      },
+      {
+        "anchor": "3-4-an-anchor-is-validated-not-asserted",
+        "id": "R-4",
+        "kind": "requirement",
+        "text": "An obligation's anchor resolves to exactly one heading in its own spec's body, or compile refuses it."
+      },
+      {
+        "anchor": "3-5-every-section-has-a-digest-beside-the-spec-s-identity",
+        "id": "R-5",
+        "kind": "requirement",
+        "text": "The registry carries a digest for every section of every spec, beside and never instead of the spec's full content hash."
+      },
+      {
+        "anchor": "3-6-a-reference-is-qualified-and-a-read-resolves-it",
+        "id": "R-6",
+        "kind": "requirement",
+        "text": "A reference to an obligation is qualified as `<spec-id>#<obligation-id>`, and an unqualified one is refused, never resolved locally."
+      },
+      {
+        "anchor": "3-7-a-verification-declares-its-inputs",
+        "id": "R-7",
+        "kind": "requirement",
+        "text": "A verification obligation declares its inputs explicitly, and no other kind declares any."
+      },
+      {
+        "anchor": "3-9-compatibility",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "No gate verdict reads an obligation or a section digest."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/obligations.rs",
+          "crates/spec-spine-cli/tests/obligations.rs"
+        ],
+        "kind": "verification",
+        "text": "Each obligation rule is refused at compile with its code, section digests move only with their section, and a corpus without the key keeps every shardHash."
+      }
+    ],
     "owner": "The spec-spine Authors",
     "references": [
       {
@@ -157,6 +230,26 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "1-1-why-it-is-built-now-design-note-09-d-7": "c28d60f58bcdbd246795eb8f5e4e0378007adbc866640e7ae621e9f0321623a2",
+      "1-purpose": "12ca3c8b44e12362e623a1fb072a89a3c3e0518df6d2d8096335267c0cdb737a",
+      "106-obligations-are-declared-constraints": "8707952417223db3e204d9f895931563d2391492437bb548b6b587870b7743e7",
+      "2-territory": "2396e055b93fc6c6f12911082f809805e3dd21e12d70d35300baf6be01281ce6",
+      "3-1-declarations-live-in-frontmatter": "84478b4ff8c41c5898a2520157729374cc33244cee5d4e72cbe00d6e5479b80f",
+      "3-10-documentation": "25ecbcef9d9ba6e6050c23f6765a9028c728e3102d08d05cb078dd862495265c",
+      "3-2-three-kinds-and-no-fourth": "4e6e8580a2ac0d70c3be0d1206b12caf18fa4343f9c557aeb2ac0fdfed59f498",
+      "3-3-ids-are-stable-within-a-spec-and-withdrawal-is-in-place": "f3b072734bcb59f4ffad3acca3121134d7c704ce1df818265b3078c2cba8de81",
+      "3-4-an-anchor-is-validated-not-asserted": "076f56fcc3bbe8ab084913452b0cb7036bfaa7855ca36af7b217d4f03f522bec",
+      "3-5-every-section-has-a-digest-beside-the-spec-s-identity": "31b9e8fd6268e8d87c8070bbcc472fbeed0cd2c1891a157a1c0a05c5b1faf56d",
+      "3-6-a-reference-is-qualified-and-a-read-resolves-it": "7017e16b1f3d1e91d0df23c6555e9da5111efb6544f08d958cc5c7d40fb66550",
+      "3-7-a-verification-declares-its-inputs": "a45c1cda965aac1aeb244b034a19b367db48f80db5d36f102fa6eace09e75390",
+      "3-8-what-an-obligation-establishes-and-what-it-does-not": "6b23b0f29f68e898ab59c6e781bd421f9c269da08531dc8e68f934103d1fcf3e",
+      "3-9-compatibility": "a5df471fafe7dfc8b3bae2b8fa0d575dea9a5c32944c113a29a64f1ee523117e",
+      "3-behavior": "add32685bb44b98ca3511f59a0409f1a9277fc3eb7175eaa4484c828523224c4",
+      "4-out-of-scope": "c1f292744ac1ca783302c4d4478ff169382a9c2199f0101a25299dc66750c7ed",
+      "5-resolved-decisions": "7a6480096de7249f2db489f42c9c4de14040d4505ac1a18281c319e2f4fd9d0f",
+      "verification": "6fefc549e59e114ce01d5bc53abb575c5404b34e149df8830559c05abd29fc73"
+    },
     "sectionHeadings": [
       "106: Obligations are declared constraints",
       "1. Purpose",
@@ -182,6 +275,6 @@
     "summary": "A spec's normative content is prose, so nothing downstream can name a single requirement, cite it, or tell whether the sentence it cited has changed. This adds an optional `obligations` frontmatter key: three kinds, ids stable within a spec, an anchor validated against the spec's own headings, explicit inputs for a verification, and withdrawal in place rather than deletion. The registry gains a digest for every section of every spec, beside the spec's full content hash, and a read resolves a qualified `<spec-id>#<obligation-id>` reference. No gate reads any of it.\n",
     "title": "Obligations are declared constraints"
   },
-  "shardHash": "3e361deba816b98be7959944f7abcc55ef6154fd87af7b6bd72a7065471b08b9",
-  "specVersion": "1.3.0"
+  "shardHash": "3e88fa45967fef8cc759a44a2cca6b26c7025bc3c928bc6f5e5596e827ef652f",
+  "specVersion": "1.4.0"
 }

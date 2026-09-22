@@ -30,6 +30,7 @@ pub mod delta;
 pub mod edges;
 pub mod error;
 pub mod frontmatter;
+pub mod obligation;
 pub mod registry;
 pub mod schema;
 pub mod snapshot;
@@ -73,6 +74,7 @@ pub use frontmatter::{
     Frontmatter, FrontmatterIssue, Implementation, KNOWN_KEYS, Risk, Status, parse_frontmatter,
     parse_frontmatter_with, split_frontmatter,
 };
+pub use obligation::{Obligation, ObligationKind, split_obligation_ref, valid_obligation_id};
 pub use registry::{
     Build, BuildMeta, Registry, RegistrySpecShard, Severity, SpecRecord, ValidationReport,
     Violation,
