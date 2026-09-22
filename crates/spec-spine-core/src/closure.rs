@@ -172,8 +172,17 @@ pub fn resolve_closure(
             missing.push(format!("obligation '{reference}': no spec '{id}'"));
             continue;
         };
-        match rec.obligations.iter().find(|o| o.id == ob_id) {
-            Some(ob) => add(ClosureMember::Obligation {
+        let found = rec.obligations.iter().find(|o| o.id == ob_id);
+        // Spec 106 R-4 makes an obligation's anchor resolve at compile, so its
+        // digest is always present in a valid ledger. If it is not, the ledger
+        // broke that invariant, and an empty digest would hide it.
+        let digest = found.and_then(|ob| rec.section_digests.get(&ob.anchor).cloned());
+        match (found, digest) {
+            (Some(ob), None) => missing.push(format!(
+                "obligation '{reference}': its anchor '{}' has no section digest in the ledger",
+                ob.anchor
+            )),
+            (Some(ob), Some(section_digest)) => add(ClosureMember::Obligation {
                 spec: id.clone(),
                 id: ob.id.clone(),
                 obligation_kind: ob.kind,
@@ -181,13 +190,9 @@ pub fn resolve_closure(
                 anchor: ob.anchor.clone(),
                 inputs: ob.inputs.clone(),
                 withdrawn: ob.withdrawn,
-                section_digest: rec
-                    .section_digests
-                    .get(&ob.anchor)
-                    .cloned()
-                    .unwrap_or_default(),
+                section_digest,
             }),
-            None => missing.push(format!(
+            (None, _) => missing.push(format!(
                 "obligation '{reference}': '{id}' declares no '{ob_id}'"
             )),
         }
