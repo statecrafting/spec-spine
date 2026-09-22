@@ -1,34 +1,43 @@
 {
   "mapping": {
     "dependsOn": [
-      "021-ledger-seal",
-      "039-per-spec-attestation",
-      "057-the-docs-name-what-adopters-derived",
-      "066-an-attestation-covers-the-territory-it-claims"
+      "106-obligations-are-declared-constraints"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/verify_attestation.rs",
+        "path": "crates/spec-spine-cli/src/cmd_registry.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/verify_attestation_bytes.rs",
-        "source": "spec-edge"
+        "path": "crates/spec-spine-cli/tests/closure.rs",
+        "source": "multiple"
       },
       {
-        "path": "crates/spec-spine-core/src/attest.rs",
-        "source": "spec-edge"
+        "path": "crates/spec-spine-cli/tests/closure_composed.rs",
+        "source": "multiple"
+      },
+      {
+        "path": "crates/spec-spine-core/src/closure.rs",
+        "source": "multiple"
       },
       {
         "path": "crates/spec-spine-core/src/lib.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/attest.rs",
+        "path": "crates/spec-spine-core/tests/closure.rs",
+        "source": "multiple"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/read.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/attest.rs",
+        "path": "crates/spec-spine-types/src/version.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/api.md",
         "source": "spec-edge"
       },
       {
@@ -40,40 +49,66 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/verify_attestation_bytes.rs"
+            "file": "crates/spec-spine-cli/tests/closure.rs"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/verify_attestation_bytes.rs"
+          "path": "crates/spec-spine-cli/tests/closure.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/verify_attestation.rs"
+            "file": "crates/spec-spine-cli/tests/closure_composed.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/closure_composed.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/closure.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/closure.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/closure.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/closure.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_registry.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/verify_attestation.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/src/attest.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/attest.rs"
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
         }
       },
       {
@@ -92,27 +127,40 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/attest.rs"
+            "file": "crates/spec-spine-core/tests/read.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/attest.rs"
+          "path": "crates/spec-spine-core/tests/read.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/attest.rs"
+            "file": "crates/spec-spine-types/src/version.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/attest.rs"
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/api.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
         }
       },
       {
@@ -131,19 +179,6 @@
       {
         "locations": [
           {
-            "file": "docs/authority-evidence.md"
-          }
-        ],
-        "ownership": false,
-        "sourceField": "references",
-        "unit": {
-          "kind": "file",
-          "path": "docs/authority-evidence.md"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "docs/design/04-authority-evidence-extension.md"
           }
         ],
@@ -157,20 +192,20 @@
       {
         "locations": [
           {
-            "file": "specs/067-a-short-id-names-the-same-spec-at-every-verb/spec.md"
+            "file": "docs/design/09-disposition-2026-09-21.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "specs/067-a-short-id-names-the-same-spec-at-every-verb/spec.md"
+          "path": "docs/design/09-disposition-2026-09-21.md"
         }
       }
     ],
-    "specId": "068-a-verifier-checks-the-bytes-it-was-given",
-    "specStatus": "approved"
+    "specId": "107-a-context-closure-is-declared",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "c4a817fe0e6223b2ab96c9f380090c05896d64ad8dcc38d3cf45d6cd4fc788f2"
+  "shardHash": "7e5874c6bc387d0f50d466481aa2372df632ef8ad8b5ddab03f3ce4f0276be0d"
 }

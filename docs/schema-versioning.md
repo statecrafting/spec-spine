@@ -270,6 +270,11 @@ carries the new `schemaVersion`, because the axis is one constant (spec 074).
 `contentHash` from the CLI when the committed shard is present. No member of
 an existing document moved.
 
+**`0.4.0` (spec 107), additive.** A new read document: the resolved closure
+(`registry closure --request <file> --json`, `closure_json`),
+`{ "digest", "members", "rationale"?, "schemaVersion" }`. No member of an
+existing document moved.
+
 ## Migration note: spec 034, the verdict envelope
 
 **If you regex a field out of a verdict verb's stdout, stop, and parse the
