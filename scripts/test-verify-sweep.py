@@ -362,13 +362,13 @@ class SweepRegressions(unittest.TestCase):
         stub = self.root / "stub-spec-spine"
         stub.write_text(
             "#!/usr/bin/env bash\n"
-            'if [ "${3:-} ${4:-} ${5:-}" = "registry list --json" ]; then\n'
+            'case " $* " in *" registry list --json "*)\n'
             f'  {shlex.quote(str(BIN))} "$@" | python3 -c \''
             "import json,sys; d=json.load(sys.stdin); "
             'd[\"items\"]=[i for i in d[\"items\"] if i[\"id\"]!=\"001-green\"]; '
             "json.dump(d,sys.stdout)'\n"
-            "  exit\n"
-            "fi\n"
+            "  exit ;;\n"
+            "esac\n"
             f'exec {shlex.quote(str(BIN))} "$@"\n',
             encoding="utf-8",
         )

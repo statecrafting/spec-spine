@@ -420,6 +420,8 @@ for s in json.load(sys.stdin)["items"]:
 ' > "$out/lifecycle.tsv" || die "cannot parse the corpus lifecycle at $short (registry list --json)"
 
 # Sets lc_status, lc_impl and lc_class (implemented | pending | unknown).
+# Returned through globals: the one caller, emit_row, reads all three right
+# after the call and before anything else could call this again.
 lifecycle_of() {
   local _line
   _line=$(awk -F'\t' -v id="$1" '$1 == id { print; exit }' "$out/lifecycle.tsv")
@@ -458,8 +460,12 @@ emit_row() { # id outcome commands exit failure dirty secs plan-read
     failed|not-declared|not-run) n_rel_bad=$((n_rel_bad + 1)) ;;
     pending) n_rel_pending=$((n_rel_pending + 1)) ;;
   esac
+  # A row that is not written is refused rather than lost: the exit code is
+  # counted here and the report is written from the file, and the two must
+  # describe the same run.
   printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-    "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$lc_status" "$lc_impl" "$lc_class" "$_rel" >> "$rows"
+    "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$lc_status" "$lc_impl" "$lc_class" "$_rel" >> "$rows" \
+    || die "cannot record the result for $1 in $rows"
 }
 
 selected="$corpus"
