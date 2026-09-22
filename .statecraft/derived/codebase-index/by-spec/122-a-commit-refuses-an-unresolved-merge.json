@@ -1,21 +1,15 @@
 {
   "mapping": {
-    "amends": [
-      "089-nothing-reruns-a-merged-acceptance"
-    ],
     "dependsOn": [
-      "037-amendment-authoring",
-      "092-the-engine-ships-governance-not-an-environment",
-      "093-the-harness-this-repository-runs",
       "094-one-gate-and-the-boundaries-it-holds"
     ],
     "implementingPaths": [
       {
-        "path": "docs/corpus-map.md",
+        "path": ".githooks/",
         "source": "spec-edge"
       },
       {
-        "path": "scripts/verify-sweep.sh",
+        "path": "crates/spec-spine-core/tests/commit_boundary.rs",
         "source": "spec-edge"
       }
     ],
@@ -23,46 +17,46 @@
       {
         "locations": [
           {
-            "file": "docs/corpus-map.md"
+            "file": "crates/spec-spine-core/tests/commit_boundary.rs"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "docs/corpus-map.md"
+          "path": "crates/spec-spine-core/tests/commit_boundary.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "scripts/verify-sweep.sh"
+            "file": ".githooks/"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
-          "kind": "file",
-          "path": "scripts/verify-sweep.sh"
+          "kind": "directory",
+          "path": ".githooks/"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/design/07-statecraft-realignment-2026-09.md"
+            "file": ".gitattributes"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/07-statecraft-realignment-2026-09.md"
+          "path": ".gitattributes"
         }
       }
     ],
-    "specId": "095-the-corpus-describes-what-exists",
-    "specStatus": "approved"
+    "specId": "122-a-commit-refuses-an-unresolved-merge",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "b4a4db63e2acc92e2eb3e0cd559d9177ada48208f32ed699eff899f19bb94eb5"
+  "shardHash": "35ac97ccef3fefc769b59f05451f986346f749c4f2235d54889d3ff28839e182"
 }
