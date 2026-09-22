@@ -7,6 +7,12 @@ their disposition against the Statecraft boundary, and note 08 is the handoff
 from the realignment. This note supersedes none of them as a record; it
 supersedes all of them as the place to look for what is open.
 
+**Delivery against this note is recorded in
+[`10-handoff-2026-09-21.md`](10-handoff-2026-09-21.md)**: exact branches and
+commits, what was verified and what was not, the release candidate, and the
+contradictions the work surfaced. This note stays the backlog record; note 10
+is the delivery record for the part of it that closed.
+
 Measured against `4ab1b31e` with the in-tree binary, `spec-spine 0.21.0`. Corpus
 state at that commit: 100 specs, `000` to `099`, every one `approved` and
 `complete`; `registry plan` reports nothing ready and nothing blocked; `check`
