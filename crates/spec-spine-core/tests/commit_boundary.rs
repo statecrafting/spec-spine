@@ -152,6 +152,9 @@ fn unmerged_index_entries_are_refused_by_the_hook_itself() {
         .arg(hooks_dir().join("pre-commit"))
         .current_dir(&repo.root)
         .env("PATH", format!("{}:/usr/bin:/bin", repo.shims.display()))
+        .env_remove("SPEC_SPINE_BIN")
+        .env_remove("GIT_DIR")
+        .env_remove("GIT_INDEX_FILE")
         .output()
         .unwrap();
     let said = text(&out);

@@ -1,6 +1,6 @@
 ---
 id: "122-a-commit-refuses-an-unresolved-merge"
-title: "A commit refuses an unresolved merge"
+title: "A commit refuses an unresolved merge or an unformatted Rust change"
 status: draft
 kind: "tooling"
 created: "2026-09-22"
@@ -28,7 +28,7 @@ references:
   - { unit: { kind: file, path: ".gitattributes" }, role: context }
 ---
 
-# 122: A commit refuses an unresolved merge
+# 122: A commit refuses an unresolved merge or an unformatted Rust change
 
 ## 1. Purpose
 
@@ -180,6 +180,11 @@ what was found. The acceptance's `conflict-marker-size` grep matched only a
 comment and asserted nothing about §3.3's MUST NOT; it is replaced by two
 negative greps (no pathspec on the detector, no filter on its findings) beside
 the behavioral case that refuses an undeclared file under `fixtures/`.
+
+**D-5 (2026-09-22, review).** The test that runs the hook directly now
+clears `GIT_DIR`, `GIT_INDEX_FILE` and `SPEC_SPINE_BIN` as the `git` helper
+does, so an inherited git environment cannot point the hook at another
+repository. The title names both refusals the spec adds; the id is unchanged.
 
 ## Verification
 

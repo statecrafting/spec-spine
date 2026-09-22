@@ -38,7 +38,7 @@
       "1-1-two-commits-the-boundary-let-through": "bdb5120bb3f90e583c2cae618c73a78b365ce1110e9abdebc45038739bfe6e1b",
       "1-2-what-the-boundary-can-see-and-what-it-cannot": "79572793152efbb7dc21d20df2af9c9bfded8a6bbc0018fa1124f4d861596bb2",
       "1-purpose": "7c69366ca735280297e4a5746499ff43c4fb81fced243e68c5be25e46414f8ea",
-      "122-a-commit-refuses-an-unresolved-merge": "5055329977944e896bcf8a46abc7e404678e89ae6a40e656eb23a415db2d83f7",
+      "122-a-commit-refuses-an-unresolved-merge-or-an-unformatted-rust-change": "224a468139d2a108b3441dab2b539b30116e99a48a3a06da70f89230a14d8e72",
       "2-territory": "fcfd66df3f51f5061ff4a05945002c3bec0105cedd70296e0c62158b11ca1382",
       "3-1-placement": "4acbaddea43d45bc16b7be4cb2ad8f59c88b3739bf57e57e01075c39a0276541",
       "3-2-unmerged-index-entries": "88cb84387cca947be00f0b7deacd2c432a6800ec79e9db78c2027cbb66051413",
@@ -48,11 +48,11 @@
       "3-6-unchanged": "63c12b3082854136d410a626704d2452c6491d8f43a04b01b03db11fb791b0c2",
       "3-behavior": "fcad621da2a90cb382988220c9d96209f187aafec3d55b8657427191fcc46faf",
       "4-out-of-scope": "262bb34ee90cadb61521d45b29a89ec2530def21302874e3473f008fc1f7cacb",
-      "5-resolved-decisions": "82e815b94e4589e1d61504dd343018e76f8a6c8395838fa2618300761cdf2631",
+      "5-resolved-decisions": "deb6c4545068801acfca7646a5cd8bfa8bebd8ed1548f40c188d0a42472481f3",
       "verification": "d046c8ba803cd9c215a30946d8cfd847d2181a541fc6bce22694278c914aa6e1"
     },
     "sectionHeadings": [
-      "122: A commit refuses an unresolved merge",
+      "122: A commit refuses an unresolved merge or an unformatted Rust change",
       "1. Purpose",
       "1.1 Two commits the boundary let through",
       "1.2 What the boundary can see and what it cannot",
@@ -71,8 +71,8 @@
     "specPath": "specs/122-a-commit-refuses-an-unresolved-merge/spec.md",
     "status": "draft",
     "summary": "The commit-boundary hook (spec 094) refuses a stale or invalid derived tree and nothing else, so a merge whose conflict was \"resolved\" by staging the markers committed cleanly, and so did a Rust change whose formatting check had failed earlier in the same command chain. Both happened on this repository's expansion branches. The hook now also refuses unmerged index entries, conflict markers on the lines a commit adds (git's own detector, with git's own attribute as the only opt-out), and a staged Rust change that fails `cargo fmt --all --check`. It still writes and stages nothing.\n",
-    "title": "A commit refuses an unresolved merge"
+    "title": "A commit refuses an unresolved merge or an unformatted Rust change"
   },
-  "shardHash": "3b26179b44884c0b236ef2f8ae5c14003f781c2689b1e37bebf31bb70c1ed9c9",
+  "shardHash": "f40733ab805ad624310b4715979d71f95c71d6326bba037879571d41d0413210",
   "specVersion": "1.4.0"
 }
