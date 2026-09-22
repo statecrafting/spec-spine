@@ -36,6 +36,19 @@
 - [ ] `cargo package --workspace --locked` succeeds (it cross-verifies every
       crate from its packaged sources, in dependency order: the same check CI can
       run).
+- [ ] **Packaged producer green** (spec 104): `./scripts/verify-packaged-producer.sh`.
+      It packages the producer crates, unpacks them **outside** the workspace,
+      builds a consumer against the unpacked sources, and asserts the spec 092
+      producer contract through the public facade: the exact governance file
+      set, the absence of any harness / root-instruction / hook / CI / Makefile
+      output by name and by content, the `.gitignore` append marker,
+      determinism and purity, and Statecraft's managed layout. It prints the
+      source commit and each package's SHA-256; copy those into the release
+      record.
+      `cargo package` above proves the crate *builds* from its packaged
+      sources. This proves it *behaves* from them, which is the question that
+      was not being asked when `0.21.0` shipped a producer emitting `AGENTS.md`
+      and `.claude/rules/` while a green workspace suite asserted it did not.
 - [ ] **Verification sweep green** (spec 089): `./scripts/verify-sweep.sh` from
       a clean checkout, against the merged revision being released
       (`--rev origin/main`). It runs every spec's `## Verification` block in an

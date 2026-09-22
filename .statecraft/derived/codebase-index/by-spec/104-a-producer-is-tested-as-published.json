@@ -1,19 +1,15 @@
 {
   "mapping": {
-    "amends": [
-      "038-completion-held-to-claims"
-    ],
     "dependsOn": [
-      "023-unresolved-unit-severity",
-      "038-completion-held-to-claims"
+      "092-the-engine-ships-governance-not-an-environment"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-core/src/index.rs",
+        "path": "docs/releasing.md",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/index.rs",
+        "path": "scripts/verify-packaged-producer.sh",
         "source": "spec-edge"
       }
     ],
@@ -21,59 +17,59 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/index.rs"
+            "file": "scripts/verify-packaged-producer.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-packaged-producer.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/releasing.md"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/index.rs"
+          "path": "docs/releasing.md"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/index.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/index.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "specs/023-unresolved-unit-severity/spec.md"
+            "file": "crates/spec-spine-core/tests/scaffold.rs"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "specs/023-unresolved-unit-severity/spec.md"
+          "path": "crates/spec-spine-core/tests/scaffold.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "specs/038-completion-held-to-claims/spec.md"
+            "file": "docs/design/09-disposition-2026-09-21.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "specs/038-completion-held-to-claims/spec.md"
+          "path": "docs/design/09-disposition-2026-09-21.md"
         }
       }
     ],
-    "specId": "041-in-progress-is-in-flight",
-    "specStatus": "approved"
+    "specId": "104-a-producer-is-tested-as-published",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "bf89938e47dc85d6d5d4794e33c465b4280bf31c4758aee27eb80cf6214552f5"
+  "shardHash": "8dc45fb6b472441d777730c3d7e440de36e81ed00b0e5bf45997053bf40fdb95"
 }
