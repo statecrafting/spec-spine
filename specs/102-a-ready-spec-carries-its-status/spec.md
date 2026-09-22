@@ -72,7 +72,7 @@ Two consequences, both deliberate:
 
 `ReadySpec` in `crates/spec-spine-core/src/query.rs`, its acceptance in
 `crates/spec-spine-core/tests/query.rs`, and the `plan` paragraph of
-`docs/api.md` that spec 101 rewrote The read-schema MINOR in §3.3 also moves
+`docs/api.md` that spec 101 rewrote. The read-schema MINOR in §3.3 also moves
 `READ_SCHEMA_VERSION` in `crates/spec-spine-types/src/version.rs` and its row
 in `docs/schema-versioning.md` (D-3).
 
@@ -188,6 +188,15 @@ from. Both files are other specs' territory, so both are declared here as
 `extends` edges rather than edited silently. Neither assertion was loosened:
 each still pins an exact value. Spec 074's own acceptance greps for the
 constant's name, not its value, and is unaffected.
+
+**D-6 (2026-09-22, review: the spelling helper).** The helper that spells a
+`Status` fell back to an empty string on any non-string serialization, and it
+had been inserted between `plan`'s rustdoc and `pub fn plan`, so the public
+function lost its documentation. It is now an exhaustive `match` above that
+block, returning the four spellings; a new `Status` variant fails to compile
+rather than reaching a consumer as `""`, and a unit test pins every arm to
+serde's spelling so the plan document and a registry shard cannot disagree.
+The member stays `status: String`, as §3.1 states.
 
 ## Verification
 

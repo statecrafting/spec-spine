@@ -339,8 +339,9 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   document.
 
   The approval rule therefore belongs to the consumer, applied **on top of**
-  `plan`, and the ready entry's `status` is what it applies it to. This repository's own `/next` does exactly that: it drops a draft
-  from the ready set and reports it as awaiting approval (spec 093). A consumer
+  `plan`; a ready entry's `status` is the value that rule reads. This
+  repository's own `/next` does exactly that: it drops a draft from the ready
+  set and reports it as awaiting approval (spec 093). A consumer
   that treats `ready` as a work queue without adding such a rule is reading the
   document correctly and reaching a conclusion the document does not support.
 - `couple_json` request: `{ "config"?: Config, "repoRoot": string, "diff":

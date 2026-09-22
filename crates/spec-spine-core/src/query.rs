@@ -374,6 +374,20 @@ impl Plan {
     }
 }
 
+/// A status spelled exactly as the registry serializes it (spec 102), so the
+/// plan document and a registry shard can never disagree about the word. The
+/// match is exhaustive on purpose: a new `Status` variant fails to compile here
+/// rather than reaching a consumer as an empty string, and
+/// `status_str_matches_the_registry_spelling` pins each arm to serde's.
+fn status_str(status: Status) -> &'static str {
+    match status {
+        Status::Draft => "draft",
+        Status::Approved => "approved",
+        Status::Superseded => "superseded",
+        Status::Retired => "retired",
+    }
+}
+
 /// Partition the corpus into the ready set and the blocked set (spec 035).
 ///
 /// **This answers what is *claimed*, never what is done.** `implementation` is
@@ -405,15 +419,6 @@ impl Plan {
 /// `plan_and_compile_agree_on_a_cycle_among_retired_specs` asserts it. If
 /// `compile`'s check were ever scoped to active specs, `plan` would begin
 /// refusing corpora `compile` accepts, and that test is what would catch it.
-/// A status spelled exactly as the registry serializes it, so the plan
-/// document and a registry shard can never disagree about the word.
-fn status_str(status: Status) -> String {
-    match serde_json::to_value(status) {
-        Ok(serde_json::Value::String(s)) => s,
-        _ => String::new(),
-    }
-}
-
 pub fn plan(registry: &Registry) -> Result<Plan, Error> {
     let by_id: BTreeMap<&str, &SpecRecord> =
         registry.specs.iter().map(|s| (s.id.as_str(), s)).collect();
@@ -471,7 +476,9 @@ pub fn plan(registry: &Registry) -> Result<Plan, Error> {
                 let spec = by_id.get(id.as_str());
                 ReadySpec {
                     title: spec.map(|s| s.title.clone()).unwrap_or_default(),
-                    status: spec.map(|s| status_str(s.status)).unwrap_or_default(),
+                    status: spec
+                        .map(|s| status_str(s.status).to_string())
+                        .unwrap_or_default(),
                     id,
                 }
             })
@@ -894,4 +901,24 @@ fn find_cycle(by_id: &BTreeMap<&str, &SpecRecord>) -> Option<Vec<String>> {
         }
     }
     None
+}
+
+#[cfg(test)]
+mod status_spelling {
+    use super::*;
+
+    #[test]
+    fn status_str_matches_the_registry_spelling() {
+        for status in [
+            Status::Draft,
+            Status::Approved,
+            Status::Superseded,
+            Status::Retired,
+        ] {
+            assert_eq!(
+                serde_json::to_value(status).unwrap(),
+                serde_json::Value::String(status_str(status).to_string())
+            );
+        }
+    }
 }
