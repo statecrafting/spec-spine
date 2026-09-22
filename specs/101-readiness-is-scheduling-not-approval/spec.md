@@ -154,9 +154,20 @@ against the tree it is written on must say so rather than look like a test.
 
 **D-2 (2026-09-21, build: the content assertions are anchored to the block).**
 A file-wide `grep` for `scheduling` in a 350-line API reference passes on an
-unrelated sentence. The three tests run against a `sed` slice of the `plan`
-description, with a preceding non-empty check on the slice so an anchor that
-stops matching fails loudly instead of making all three vacuous.
+unrelated sentence. The tests run against a `sed` slice of the `plan`
+description, and a slice that stops matching emits nothing, so every assertion
+fails loudly instead of going vacuous.
+
+**D-3 (2026-09-21, review: the slice is re-cut per line, and ends at the next
+bullet).** Two corrections raised on the pull request. The slice was stashed in
+a fixed path under `/tmp`, which two concurrent runs share: one run's write can
+satisfy another run's assertions. Each line of a `verify:cli` block is its own
+command, so there is no variable to carry a `mktemp` name in; the slice is
+re-cut on each line instead, which costs a few `sed` invocations and removes
+the shared path entirely. The end anchor was also three bullets too far down,
+so the slice spanned `couple_json` and `delta_json` and the prose claiming it
+was cut to the `plan` paragraph overstated it. It now ends at `couple_json`,
+the bullet that immediately follows.
 
 ## Verification
 
@@ -166,21 +177,27 @@ sentences is present today.
 Each content assertion is anchored to the paragraph that introduces the
 `plan` document, not matched file-wide: a `grep` for `scheduling` anywhere in
 a 350-line API reference would pass on an unrelated sentence and assert
-nothing. `sed` slices the block that begins with `` `plan` (spec 035) returns ``
-and the three tests run against that slice alone.
+nothing. `sed` slices from `` `plan` (spec 035) returns `` to the bullet that
+immediately follows it, `` - `couple_json` ``, and the tests run against that
+slice alone. The end anchor is the **next** bullet deliberately: an anchor
+further down would widen the slice to cover facade entries the assertions have
+nothing to do with, and a wider slice is a weaker test.
 
 ```verify:cli
-# The slice under test: from the `plan` description to the next facade bullet.
-sed -n '/`plan` (spec 035) returns/,/^- `check_freshness_json`/p' docs/api.md > /tmp/spec101-plan-block.txt
-# The slice must be non-empty, or the three tests below are vacuous.
-test -s /tmp/spec101-plan-block.txt
+# The slice under test: the `plan` description, ending at the bullet that
+# immediately follows it. Re-cut on every line instead of stashed in a file:
+# each line of a verify:cli block is its own command, so carrying the slice
+# means a shared path, and a fixed one under /tmp is a collision between two
+# concurrent runs. A slice that stops matching emits nothing and every
+# assertion below fails, which is the guard a separate emptiness test was.
+sed -n '/`plan` (spec 035) returns/,/^- `couple_json`/p' docs/api.md | grep -q .
 # 3.1.1: membership is named as a scheduling fact, in this block.
-grep -q 'scheduling' /tmp/spec101-plan-block.txt
+sed -n '/`plan` (spec 035) returns/,/^- `couple_json`/p' docs/api.md | grep -q 'scheduling'
 # 3.1.2: the document says membership is not an approval, in this block.
-grep -q 'not an approval' /tmp/spec101-plan-block.txt
+sed -n '/`plan` (spec 035) returns/,/^- `couple_json`/p' docs/api.md | grep -q 'not an approval'
 # 3.1.3: the consumer-side rule is named, with the skill that applies it.
-grep -q 'on top of' /tmp/spec101-plan-block.txt
-grep -q '/next' /tmp/spec101-plan-block.txt
+sed -n '/`plan` (spec 035) returns/,/^- `couple_json`/p' docs/api.md | grep -q 'on top of'
+sed -n '/`plan` (spec 035) returns/,/^- `couple_json`/p' docs/api.md | grep -q '/next'
 # 3.3: a standing guard, already true when this spec was filed. It asserts the
 # claimed file stays inside a content hash, not that this build put it there.
 grep -q '"docs/api.md"' spec-spine.toml

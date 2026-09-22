@@ -61,6 +61,6 @@
     "summary": "`registry plan` partitions by `implementation` and `depends_on` and never by `status`, so a draft appears on the ready set by design. The layering is deliberate and stays; what is missing is a governed sentence saying so, which a consumer reading the document directly has no way to infer.\n",
     "title": "Readiness is scheduling, not approval"
   },
-  "shardHash": "2a29ccded2ddfff3e133e09f747b3e74d3e91e2af437d1785b1896d135fbd1cc",
+  "shardHash": "3842d54b3de574277050b190a1a14e22b9a58aa206936f98fe01d0746353266d",
   "specVersion": "1.3.0"
 }
