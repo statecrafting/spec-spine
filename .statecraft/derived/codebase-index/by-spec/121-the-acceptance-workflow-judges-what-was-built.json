@@ -11,13 +11,21 @@
         "source": "spec-edge"
       },
       {
+        "path": "scripts/acceptance-report.py",
+        "source": "spec-edge"
+      },
+      {
         "path": "scripts/test-verify-sweep.py",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "scripts/acceptance-report.py"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -82,5 +90,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "1a4379cce265c3933e068dc638959592f6124d7ed9348fbc05f7e4b100b74024"
+  "shardHash": "c0ef9ec432c46906029ad533f39d18a7f96cd949b361e9d4a6ecfb6c0cdece4c"
 }

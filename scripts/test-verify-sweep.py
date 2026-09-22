@@ -2,9 +2,10 @@
 # Spec: specs/089-nothing-reruns-a-merged-acceptance/spec.md
 """Run the sweep regressions in disposable repositories.
 
-The first four are spec 089's post-ratification review regressions. The rest
-are spec 119's: the release verdict, the lifecycle it reads, and the default
-run directory.
+The first four are spec 089's post-ratification review regressions. Then spec
+119's: the release verdict, the lifecycle it reads, and the default run
+directory. The last are spec 121's: the Acceptance workflow's report step,
+driven by real release-mode sweeps.
 
 Build target/release/spec-spine first, then run python3 scripts/test-verify-sweep.py.
 Use --sweep-script PATH to test an exported historical script as a negative
@@ -19,6 +20,7 @@ from pathlib import Path
 import platform
 import re
 import shlex
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -27,6 +29,7 @@ import unittest
 SOURCE = Path(__file__).resolve().parents[1]
 BIN = Path(os.environ.get("SPEC_SPINE_BIN", SOURCE / "target/release/spec-spine")).resolve()
 SCRIPT = SOURCE / "scripts/verify-sweep.sh"
+REPORTER = SOURCE / "scripts/acceptance-report.py"
 
 
 def ledger_closed_at(script):
@@ -419,6 +422,139 @@ class SweepRegressions(unittest.TestCase):
         under_tmp = str(self.out.resolve()).startswith(str(tmp) + os.sep)
         warned = "which macOS purges of files older" in result.stderr
         self.assertEqual(warned, platform.system() == "Darwin" and under_tmp, result.stderr)
+
+
+    # --- spec 121: the Acceptance workflow's report step ---------------------
+
+    def render(self, code, report=None):
+        # The report step exactly as the workflow calls it, with the summary
+        # sent to a file. Returns (exit, annotations by level, summary text).
+        summary = self.root / "summary.md"
+        if summary.exists():
+            summary.unlink()
+        report = report or self.out / "sweep.json"
+        result = run(["python3", REPORTER, "--report", report, "--sweep-exit", str(code),
+                      "--summary", summary])
+        notes = {"error": [], "warning": [], "notice": []}
+        for line in result.stdout.splitlines():
+            for level in notes:
+                if line.startswith(f"::{level} "):
+                    notes[level].append(line)
+        text = summary.read_text(encoding="utf-8") if summary.exists() else ""
+        return result, notes, text
+
+    def test_a_pending_draft_conceals_no_implemented_failure_and_no_unreadable_result(self):
+        self.fixture(
+            {
+                "001-pending-red": ["false"],
+                "002-built-red": ["false"],
+                "003-ghost-built": ["true"],
+                "004-built-green": ["true"],
+            },
+            {
+                "001-pending-red": ("draft", "pending"),
+                "002-built-red": ("approved", "complete"),
+                "003-ghost-built": ("approved", "complete"),
+                "004-built-green": ("approved", "complete"),
+            },
+        )
+        # The registry keeps 003's member; its document, and so its plan, is gone.
+        (self.repo / "specs/003-ghost-built/spec.md").unlink()
+        self.commit()
+        result = self.sweep(extra=("--release",))
+        self.assertEqual(result.returncode, 1, result.stderr)
+        rendered, notes, text = self.render(result.returncode)
+        self.assertEqual(rendered.returncode, 0, rendered.stdout + rendered.stderr)
+        errors = "\n".join(notes["error"])
+        self.assertEqual(len(notes["error"]), 2, notes)
+        self.assertIn("acceptance 002-built-red::failed for the release", errors)
+        self.assertIn("acceptance 003-ghost-built::not-run for the release", errors)
+        self.assertEqual(len(notes["warning"]), 1, notes)
+        self.assertIn("pending acceptance 001-pending-red::block failed", notes["warning"][0])
+        self.assertIn("**Release verdict: NOT CLEAN**", text)
+        self.assertIn("Corpus verdict (raw, every selected block): **NOT CLEAN**", text)
+        # The sweep's own report follows, unmodified.
+        self.assertIn((self.out / "sweep.md").read_text(encoding="utf-8"), text)
+
+    def test_a_pending_draft_alone_leaves_the_release_clean_and_the_corpus_visible(self):
+        self.fixture(
+            {"001-pending-red": ["false"], "002-built-green": ["true"],
+             "003-pending-green": ["true"]},
+            {"001-pending-red": ("draft", "pending"),
+             "002-built-green": ("approved", "complete"),
+             "003-pending-green": ("draft", "in-progress")},
+        )
+        self.commit()
+        result = self.sweep(extra=("--release",))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report, _ = self.release_report()
+        self.assertEqual(report["verdicts"], {"corpus": "not-clean", "release": "clean"})
+        rendered, notes, text = self.render(result.returncode)
+        self.assertEqual(rendered.returncode, 0, rendered.stdout + rendered.stderr)
+        self.assertEqual(notes["error"], [])
+        self.assertEqual(len(notes["warning"]), 1, notes)
+        self.assertIn("001-pending-red", notes["warning"][0])
+        # A fail-first block passing before its build is a finding, not silence.
+        self.assertEqual(len(notes["notice"]), 1, notes)
+        self.assertIn("003-pending-green", notes["notice"][0])
+        self.assertIn("**Release verdict: CLEAN**", text)
+        self.assertIn("Corpus verdict (raw, every selected block): **NOT CLEAN**", text)
+        self.assertIn("failed 1", text)
+
+    def test_the_report_step_refuses_evidence_it_cannot_vouch_for(self):
+        self.fixture({"001-built-green": ["true"], "002-pending-red": ["false"]},
+                     {"001-built-green": ("approved", "complete")})
+        self.commit()
+        # A corpus-mode report: the workflow must have asked for --release.
+        corpus = self.sweep()
+        self.assertEqual(corpus.returncode, 1, corpus.stderr)
+        rendered, notes, _ = self.render(1)
+        self.assertEqual(rendered.returncode, 1)
+        self.assertIn("not 'release'", notes["error"][0])
+        release = self.sweep(extra=("--release",))
+        self.assertEqual(release.returncode, 0, release.stderr)
+        # Agreement passes; both directions of disagreement refuse.
+        self.assertEqual(self.render(0)[0].returncode, 0)
+        rendered, notes, _ = self.render(1)
+        self.assertEqual(rendered.returncode, 1)
+        self.assertIn("exited 1 but its report's release verdict is 'clean'", notes["error"][0])
+        # No exit code recorded, a refusal and an interruption, report or not.
+        for code, words in (("", "recorded no exit code"), ("3", "refused (exit 3)"),
+                            ("130", "was interrupted (exit 130)")):
+            rendered, notes, text = self.render(code)
+            self.assertEqual(rendered.returncode, 1, code)
+            self.assertIn(words, notes["error"][0])
+            self.assertIn("no verdict this run can vouch for", text)
+        # Missing, unparseable, and older than 1.1.0.
+        rendered, notes, _ = self.render(0, self.root / "absent.json")
+        self.assertEqual(rendered.returncode, 1)
+        self.assertIn("wrote no report", notes["error"][0])
+        garbled = self.root / "garbled.json"
+        garbled.write_text("{not json", encoding="utf-8")
+        rendered, notes, _ = self.render(0, garbled)
+        self.assertEqual(rendered.returncode, 1)
+        self.assertIn("unreadable", notes["error"][0])
+        old = json.loads((self.out / "sweep.json").read_text(encoding="utf-8"))
+        for key in ("mode", "verdicts", "releaseCounts"):
+            old.pop(key)
+        old["schemaVersion"] = "1.0.0"
+        legacy = self.root / "legacy.json"
+        legacy.write_text(json.dumps(old), encoding="utf-8")
+        rendered, notes, _ = self.render(0, legacy)
+        self.assertEqual(rendered.returncode, 1)
+        self.assertIn("(1.0.0) is not a 1.x report carrying both verdicts", notes["error"][0])
+        # And the other direction of disagreement, on a real not-clean report.
+        self.fixture_reset()
+        self.fixture({"001-built-red": ["false"]}, {"001-built-red": ("approved", "complete")})
+        self.commit()
+        red = self.sweep(extra=("--release",))
+        self.assertEqual(red.returncode, 1, red.stderr)
+        rendered, notes, _ = self.render(0)
+        self.assertEqual(rendered.returncode, 1)
+        self.assertIn("exited 0 but its report's release verdict is 'not-clean'", notes["error"][0])
+
+    def fixture_reset(self):
+        shutil.rmtree(self.repo)
 
 
 if __name__ == "__main__":

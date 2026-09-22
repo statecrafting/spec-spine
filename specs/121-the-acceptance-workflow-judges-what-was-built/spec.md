@@ -14,7 +14,7 @@ summary: >
   report step puts both verdicts, every release failure and every pending
   block's real outcome into the run's summary and annotations. A missing,
   unreadable or inconsistent report fails the job on its own.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -28,7 +28,7 @@ extends:
   - { spec: "089-nothing-reruns-a-merged-acceptance", unit: { kind: file, path: "scripts/test-verify-sweep.py" }, nature: additive }
 establishes:
   # 3.3, 3.4: the report step's reader.
-  - { kind: file, path: "scripts/acceptance-report.py", planned: true }
+  - { kind: file, path: "scripts/acceptance-report.py" }
 references:
   - { unit: { kind: file, path: "scripts/verify-sweep.sh" }, role: context }
   - { unit: { kind: file, path: "docs/release-candidate-0.22.0.md" }, role: context }
@@ -186,8 +186,6 @@ are unchanged. The uploaded report artifact is unchanged.
 
 ## 5. Resolved decisions
 
-*(Filed as a draft. Decisions taken during the build are appended here.)*
-
 D-1 (2026-09-22, the release verdict decides the job; the corpus verdict is
 reported, not dropped). The alternative, keeping the corpus exit and adding a
 second job that exits on the release verdict, leaves one of the two jobs red
@@ -201,10 +199,25 @@ are GitHub's. Keeping them out of `verify-sweep.sh` keeps the sweep's contract
 the one spec 089 and 119 wrote, and keeps the workflow calling a definition
 rather than restating one (099 3.2's rule).
 
+D-3 (2026-09-22, the report step's `if` reads the sweep step's conclusion).
+`always()` alone would run the reader after a failed build step, where no
+sweep ran and no code was recorded; that would add a second red step saying
+"no exit code" to a job whose real failure is the build. Skipping it when the
+sweep step was skipped keeps 3.2's rule literal: it runs whenever the sweep
+ran, and the push leg's empty scope skips both.
+
+D-4 (2026-09-22, `--release` sits on the same line as the script name). The
+acceptance asserts that no `scripts/verify-sweep.sh` line lacks the flag. A
+flag on a continuation line would satisfy the workflow and defeat the check,
+so the invocation is written to be checkable by the line it starts on.
+
 ## Verification
 
 Written to fail against the tree it is filed on: the report script does not
-exist and the workflow does not pass `--release`.
+exist and the workflow does not pass `--release`. Measured at the build: with
+`not-run` removed from the reporter's error set, the concealment test fails
+(one error where two are required); with the exit-code agreement check
+removed, the refusal test fails. Both restored, all fifteen tests pass.
 
 ```verify:cli
 cargo build --release --locked
