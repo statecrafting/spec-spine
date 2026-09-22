@@ -1,9 +1,11 @@
 # Release candidate `v0.22.0`
 
-**Status: integrated, not published, and carrying one blocker.** Sections 0.1
-to 8 are the pre-integration record, preserved as written. **§9 is the state
-that is true now** and supersedes §3, §4 and §5 wherever they disagree.
-Everything §9 does not contradict still stands.
+**Status: corrected, ratified, candidate frozen at `da47632b`, not tagged and
+not published.** Sections 0.1 to 8 are the pre-integration record and §9 the
+integration record, both preserved as written. **§11 is the state that is true
+now**: it supersedes §9.3's checks, §9.4's blocker, §9.6's digests and §9.7's
+procedure wherever they disagree. §10 holds the owner rulings that resolved
+§9.4.
 
 **Original status line, as written before integration:**
 
@@ -832,3 +834,165 @@ Not done: running the cleaner deliberately to reproduce the deletion, which
 needs privileges this session does not use. The bounded remedy, a default run
 directory outside the purged temporary tree and unique per run so a rerun can
 never clear an earlier run's evidence, is part of spec 119.
+
+## 11. The candidate, frozen (2026-09-22)
+
+### 11.1 What landed after §9, one pull request each
+
+| # | Pull request | Squash commit (full) | What |
+|---|---|---|---|
+| 1 | #296 | `b04a138b623e0ec4a08b47aceae30f0f4d531b04` | §10: the owner rulings, the preserved first sweep run, its cause |
+| 2 | #297 | `bf910840941d79ff1cbe9be4242c017289fb0443` | **spec 118**: 095's acceptance corrected through `amends_verification` |
+| 3 | #298 | `8d091f915be37782bcc479a0600cb269dafb527b` | **spec 119**: the sweep's release verdict and its run directory |
+| 4 | #295 | `da47632b8ac413fccd2518dbd7326f44328712d6` | ratification of 100, 101, 104 and 117, on the owner's approval |
+
+Each merged with `ci-gate` green on its own head, with its branch brought up to
+date with `main` by an ordinary merge (no force-push), `couple` clean at its
+own base and head, and no waiver. #291's waiver was not reused.
+
+### 11.2 The proposed tag revision
+
+**`da47632b8ac413fccd2518dbd7326f44328712d6`**, the tip of `main` after #295.
+The commit that adds this section comes after it and changes documentation only.
+It is deliberately **not** the tag revision: a record cannot carry the digests
+of the commit that contains it.
+
+The candidate was first cut at `8d091f91`, the tip after #298. #295 merged
+after that, so every check whose result depends on the source identity was run
+again at `da47632b`. Both sets are kept below, and the `8d091f91` digests are
+void.
+
+### 11.3 Checks, by where they ran
+
+| Check | Where | Revision | Result |
+|---|---|---|---|
+| `ci-gate`, `build · test · clippy`, `self-governance`, determinism across the four release triples (byte-identical) | CI, run `35770599303` (push to `main`) | `da47632b` | **passed** |
+| the same | CI, run `35768189973` | `8d091f91` | passed |
+| `make gate` (check, lint, coverage, couple) | local, clean detached worktree | `da47632b` | **passed** |
+| `cargo fmt --all --check`, `cargo clippy --workspace --all-targets --locked -- -D warnings` | local | `da47632b` | **passed** |
+| `cargo test --workspace --locked`; `cargo test -p spec-spine-core --no-default-features --locked` | local | `da47632b` | **passed** |
+| `scripts/bump_version.py --check` (distribution parity: Cargo, npm, PyPI agree on 0.22.0) | local | `da47632b` | **passed** |
+| `./scripts/verify-packaged-producer.sh` | local, packaged archives | `da47632b` | **passed**, 37 assertions |
+| `cargo package --workspace --locked`, verification enabled | local, twice, independent target directories | `da47632b` | **passed** both times, identical digests (§11.5) |
+| whole-corpus sweep, `--release` | local, isolated worktree, binary built from the revision | `da47632b` | **release verdict clean**; corpus verdict not clean (§11.4) |
+| `Acceptance`, push leg | CI, run `35770598972` | `da47632b` | **failed**, not an acceptance failure (§11.6) |
+| registry-backed consumer verification | nowhere | none | **not performed**: nothing is published |
+
+Four kinds of evidence, kept apart: **CI** at the merged revision; **local
+checks** in a clean worktree at the same revision; **local packaging**, which
+proves the archives build, verify against each other and behave as a
+producer; and **registry-backed verification**, which cannot exist before a
+publish.
+
+### 11.4 The sweep, both verdicts
+
+`./scripts/verify-sweep.sh --rev da47632b8ac413fccd2518dbd7326f44328712d6 --release`,
+binary `spec-spine 0.22.0` built from `da47632b` inside the sweep's worktree,
+report `sweep.json` schema 1.1.0 (SHA-256
+`180a633df3f3d8062fd31040da318da0ce30bdac971f3b45d8eded1cae51d295`), console log
+committed as `docs/evidence/sweep-da47632b-release.console.log`:
+
+```
+verify-sweep.sh: da47632b  passed=63 failed=2 not-declared=0 exempt=43 not-run=0
+verify-sweep.sh: release verdict: clean  (not passing=0 pending=2)
+```
+
+| | passed | failed | not-declared | exempt | not-run | pending |
+|---|---|---|---|---|---|---|
+| corpus verdict (not clean) | 63 | 2 | 0 | 43 | 0 | n/a |
+| release verdict (**clean**) | 63 | 0 | 0 | 43 | 0 | 2 |
+
+All 108 specs are accounted for. The two corpus failures are the two pending
+drafts, shown with the lifecycle the report read:
+
+- `102-a-ready-spec-carries-its-status`: draft, `implementation: pending`;
+  block failed at command 2, fail-first as filed. Deferred until a consumer
+  names the need (note 09 §5, 102's D-1); none has.
+- `103-a-verifier-fixture-is-a-published-artifact`: draft,
+  `implementation: pending`; block failed at command 1, fail-first as filed.
+  Its build is next-wave work on its own branch, not in this candidate.
+
+`095` passes, now running 118's block. No block left the worktree dirty.
+`--release` exited 0. The same run at `8d091f91` gave identical counts.
+
+### 11.5 Package identities at `da47632b`
+
+| Package | File | SHA-256 |
+|---|---|---|
+| `spec-spine-types` | `spec-spine-types-0.22.0.crate` | `db56db128f091abd838db6051ffef6e056f71fa51a767affffb0ef0d17a44b74` |
+| `spec-spine-core` | `spec-spine-core-0.22.0.crate` | `9f4e5e1426c21fcde00a3a411d04d1b7161f0c908d23d721b983e2608779065b` |
+| `spec-spine-cli` | `spec-spine-cli-0.22.0.crate` | `836ffdd243a18235a881fe2101ef72b727b0b6b381427bc11a32efde2ff9ee06` |
+
+- **One revision.** All three archives' `.cargo_vcs_info.json` name
+  `sha1 da47632b8ac413fccd2518dbd7326f44328712d6`, with no dirty flag.
+- **Sibling checksums agree.** The CLI archive's `Cargo.lock` pins
+  `spec-spine-types` at `db56db12...` and `spec-spine-core` at `9f4e5e14...`,
+  and the core archive's pins `spec-spine-types` at `db56db12...`, exactly the
+  digests above.
+- **Reproduced.** A second `cargo package --workspace --locked` in an
+  independent target directory produced the same three digests.
+  `verify-packaged-producer.sh` re-cuts types and core as well, and those
+  matched too.
+- **The package-resolution limitation does not recur.** §4.1's `no hash listed
+  for spec-spine-core` did not appear. The CLI's verify step compiled both
+  siblings from cargo's local package registry, with verification enabled and
+  without `--no-verify`, at `da47632b`, as §9.5 found at `835dd2e4`.
+- **Void:** §9.6's digests (`835dd2e4`), and the ones cut at `8d091f91`
+  (types `82d734db...`, core `2d9f9e0b...`, cli `d0ff5499...`).
+- **Not established:** that the archives `release.yml` cuts on its runner
+  from the tag are byte-identical to these. Compare the checksums crates.io
+  serves after publication against this table and record either result.
+
+### 11.6 Outstanding: the `Acceptance` push leg is red at `da47632b`
+
+The push leg swept the four specs #295 touched and reported all four `failed`
+at exit 127: `./target/release/spec-spine: not found`. The acceptance is not
+failing. The workflow hands the sweep a binary built outside the sweep's
+worktree (`SPEC_SPINE_BIN`), and these four blocks call
+`./target/release/spec-spine` without building it first. In a whole-corpus run
+an earlier block's `cargo build --release` creates that file, which is why the
+local and nightly runs pass them. A scoped run of exactly these four specs has
+nothing to create it. The same failure is in the push leg at `ff79c68a` (#290)
+and went undiagnosed there.
+
+`Acceptance` is outside `ci-gate` by design (spec 099) and gates nothing, and
+the workflow is not in any published artifact. The fix, which is to let the
+sweep build the binary from the revision as spec 089 §3.8's default does, is
+filed as its own spec after this record and does not change the tag revision.
+
+### 11.7 The ordered publication procedure
+
+Not performed. Each numbered step is a human action.
+
+0. **Decide the tag revision.** Proposed: `da47632b` (§11.2). Specs 118 and
+   119 are `draft` / `complete`. If the owner wants them ratified before the
+   tag, that merge moves the proposed revision and everything in §11.3 and
+   §11.5 that depends on source identity must be cut again.
+1. **Tag** `v0.22.0` on the chosen revision, signed and annotated:
+   `git tag -s -m "spec-spine 0.22.0" v0.22.0 <sha>`. `-s` is what signs.
+   `-m` supplies the message; without it, a non-interactive run fails with
+   `fatal: no tag message?` (this repository's v0.11.0 release). §9.7's note
+   that a missing `-m` skips the signature silently is wrong and is corrected
+   here. Confirm with `git tag -v v0.22.0`, then push the tag only.
+2. **The tag drives `release.yml`:** `build` (prebuilt binaries per triple),
+   then in parallel `publish` (the GitHub Release), `publish-crates`,
+   `publish-npm` and `publish-pypi`. `publish-crates` publishes
+   `spec-spine-types`, `spec-spine-core` and `spec-spine-cli` in that order
+   with `cargo publish --locked`. Each publish verifies against the index and
+   waits for the previous crate to be visible.
+3. **Registry visibility, per stage.** crates.io's API (send a `User-Agent`)
+   serves each of the three at 0.22.0. Record the served checksums against
+   §11.5. The npm `spec-spine@0.22.0` and its platform packages resolve; npm
+   view can lag a publish and is not a failure. PyPI `spec-spine==0.22.0`
+   resolves, and its `info.version` can lag too.
+4. **Consumer checks, registry-backed**, in clean directories:
+   `cargo install spec-spine-cli --version 0.22.0 --locked` then
+   `spec-spine --version`; `npx spec-spine@0.22.0 --version`;
+   `uvx --refresh spec-spine==0.22.0 --version` (without `--refresh`, a stale
+   cache gives a false negative); and the spec 104 producer checks against the
+   **published** `spec-spine-core`.
+5. **Release notes** lead with `docs/adopter-migration.md` §9.2 (the
+   clone-depth change) and are prepended to the generated body with
+   `gh release edit --notes-file` once the run completes.
+6. **Tell Statecraft** the producer version (0.22.0), and that 0.21.0's output
+   is the pre-092 shape.
