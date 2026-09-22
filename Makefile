@@ -13,8 +13,11 @@
 #
 #   SPEC_SPINE  the binary to govern with. A repository that builds its own
 #               must point at the one it builds, which is the resolution order
-#               spec 093 established: $SPEC_SPINE, then ./target/release, then
-#               PATH. Set it once here rather than in every caller.
+#               spec 093 established for the hooks and spec 117 3.1 implements
+#               here: $SPEC_SPINE, then ./target/release, then PATH. Set it
+#               once here rather than in every caller. An explicit value that
+#               names nothing executable is REFUSED, never replaced (spec 117
+#               3.2): the gate's whole question is which binary answered.
 #   BASE        the ref the coupling gate compares against. Resolved from
 #               the repository rather than assumed to be origin/main
 #               (spec 093); override it here or on the command line.
@@ -42,7 +45,32 @@
 # `govern.yml`'s `make build test fmt clippy` job unfailable, which is the worst
 # shape a gate can have: the repository looks defended and is not.
 
-SPEC_SPINE ?= spec-spine
+# Spec 117 3.1: the documented order, actually implemented. `SPEC_SPINE ?=
+# spec-spine` was step three written as if it were the whole answer: `?=`
+# honours an override, so step one was real, step two did not exist, and on any
+# machine with an installed CLI the gate governed with that one. Measured here
+# at 0.20.0 against a 0.22.0 checkout, and found only because a built lint
+# exemption disagreed loudly across the two.
+#
+# `$(origin ...)`, not `?=`: the fallback has to be able to tell "the caller
+# said nothing" from "the caller said something unusable", because those get
+# different answers (3.2). Resolved once, with `:=`, so every recipe in this
+# file uses the same binary; a gate whose steps could disagree about which
+# binary they ran is worse than the one this replaces.
+#
+# `test -f` as well as `test -x`: a DIRECTORY named target/release/spec-spine
+# answers `test -x` and is not a binary.
+ifeq ($(origin SPEC_SPINE),undefined)
+  ifeq ($(shell test -f ./target/release/spec-spine && test -x ./target/release/spec-spine && echo yes),yes)
+    SPEC_SPINE := ./target/release/spec-spine
+    SPEC_SPINE_ORIGIN := the binary this checkout builds
+  else
+    SPEC_SPINE := spec-spine
+    SPEC_SPINE_ORIGIN := the PATH fallback -- this repository builds its own binary, so an installed CLI may predate this corpus
+  endif
+else
+  SPEC_SPINE_ORIGIN := an explicit SPEC_SPINE override
+endif
 # Spec 093 3.3: the coupling base follows the branch this repository
 # actually has. The same three steps the push gate resolves with, in the
 # same order: $SPEC_SPINE_DEFAULT_BRANCH (make imports the environment, so
@@ -104,7 +132,7 @@ COUPLE     ?= 1
 # a directory with a space in its name stays one argument.
 PR_BODY    ?=
 
-.PHONY: gate refresh verify test build fmt clippy help
+.PHONY: gate refresh verify test build fmt clippy help spec-spine-binary
 
 ## The governed loop, read-only throughout. A gate that writes repairs what it
 ## is meant to judge (spec 093), so this uses `compile --check` and never
@@ -124,7 +152,47 @@ PR_BODY    ?=
 ##
 ## Both guards are an explicit `if`/`then`/`else` and both announce their skip,
 ## for the reason spec 094 gives about the language targets below.
-gate:
+## Spec 117 3.2 and 3.3: resolve, refuse, announce. A prerequisite of every
+## target that runs the binary, so no verb runs before the question "which
+## binary is this" has an answer on the record.
+##
+## The refusal is deliberately NOT the fall-through `.githooks/pre-commit`
+## performs (spec 093 3.12). A hook that must exit 0 whatever happens is right
+## to advise with some other binary; a gate asked whether a tree is governed and
+## answering with a binary the caller did not name has substituted the subject
+## of the question. Spec 117 D-2.
+##
+## Announced on STDERR: `make verify SPEC=<id>` hands its stdout to the verb,
+## and spec 090 made that channel the verdict's. Spec 117 D-3.
+##
+## The announcement is not a version check and must not become one. The floor is
+## `[meta] required_version`, the binary enforces it on every verb, and a second
+## comparison here would be a copy that can drift from it. Spec 117 D-5.
+##
+## The resolved path is copied into a SHELL variable rather than expanded inline
+## into each message. `tests/gate.rs` reads `$(SPEC_SPINE) <word>` as an
+## invocation and checks `<word>` against the verb list, which is the detector
+## that keeps this file from growing a second chain; an announcement reading
+## "governing with $(SPEC_SPINE) [..." would be a false invocation fed to it.
+## Spec 117 D-6.
+spec-spine-binary:
+	@b='$(SPEC_SPINE)'; \
+	if test -z "$$b"; then \
+		echo "gate: SPEC_SPINE is set and empty, so no binary was named. An empty value would drop the binary from the command line and run the verb name as a command; refusing instead (spec 117 3.2)." >&2; \
+		exit 3; \
+	fi; \
+	if ! command -v "$$b" >/dev/null 2>&1; then \
+		if test "$(SPEC_SPINE_ORIGIN)" = "an explicit SPEC_SPINE override"; then \
+			echo "gate: SPEC_SPINE=$$b names nothing executable. Refusing rather than falling back to ./target/release/spec-spine or PATH: an explicit override is the caller naming the binary that must answer (spec 117 3.2)." >&2; \
+		else \
+			echo "gate: could not resolve a binary to govern with. Looked for ./target/release/spec-spine (build it with \`cargo build --release -p spec-spine-cli\`), then \`spec-spine\` on PATH (spec 117 3.1)." >&2; \
+		fi; \
+		exit 3; \
+	fi; \
+	v=$$("$$b" --version 2>&1) || { echo "gate: $$b --version failed; the resolved binary does not run here." >&2; exit 3; }; \
+	echo "gate: governing with $$b [$(SPEC_SPINE_ORIGIN)] -- $$v" >&2
+
+gate: spec-spine-binary
 	$(SPEC_SPINE) check --fail-on-unresolved --fail-on-warn
 	$(SPEC_SPINE) lint --fail-on-warn
 	@run=no; why="[coupling] require_ownership is off"; \
@@ -162,13 +230,13 @@ gate:
 
 ## The writing half, for a live session that has edited a spec and can commit
 ## the regenerated shards with the change that made them stale.
-refresh:
+refresh: spec-spine-binary
 	$(SPEC_SPINE) compile
 	$(SPEC_SPINE) index
 
 ## One spec's declared acceptance. Runs code the corpus declares (spec 043),
 ## which is why it is deliberately not part of `gate`.
-verify:
+verify: spec-spine-binary
 	@test -n "$(SPEC)" || { echo "usage: make verify SPEC=<id>"; exit 3; }
 	$(SPEC_SPINE) verify $(SPEC)
 
@@ -187,6 +255,8 @@ clippy:
 
 help:
 	@echo "gate     the governed loop, read-only"
+	@echo "         SPEC_SPINE=<path>   the binary to govern with; default"
+	@echo "                             ./target/release/spec-spine, else PATH"
 	@echo "         OWNERSHIP=auto|1|0  run the whole-tree ownership assertion"
 	@echo "         COUPLE=1|0          run the coupling gate"
 	@echo "         PR_BODY=<file>      PR body for the waiver line couple reads"

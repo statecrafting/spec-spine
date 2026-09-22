@@ -1,21 +1,16 @@
 {
   "mapping": {
-    "amends": [
-      "089-nothing-reruns-a-merged-acceptance"
-    ],
     "dependsOn": [
-      "037-amendment-authoring",
-      "092-the-engine-ships-governance-not-an-environment",
       "093-the-harness-this-repository-runs",
       "094-one-gate-and-the-boundaries-it-holds"
     ],
     "implementingPaths": [
       {
-        "path": "docs/corpus-map.md",
+        "path": "Makefile",
         "source": "spec-edge"
       },
       {
-        "path": "scripts/verify-sweep.sh",
+        "path": "crates/spec-spine-core/tests/gate_binary.rs",
         "source": "spec-edge"
       }
     ],
@@ -23,46 +18,46 @@
       {
         "locations": [
           {
-            "file": "docs/corpus-map.md"
+            "file": "crates/spec-spine-core/tests/gate_binary.rs"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "docs/corpus-map.md"
+          "path": "crates/spec-spine-core/tests/gate_binary.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "scripts/verify-sweep.sh"
+            "file": "Makefile"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "scripts/verify-sweep.sh"
+          "path": "Makefile"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/design/07-statecraft-realignment-2026-09.md"
+            "file": ".githooks/pre-commit"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/07-statecraft-realignment-2026-09.md"
+          "path": ".githooks/pre-commit"
         }
       }
     ],
-    "specId": "095-the-corpus-describes-what-exists",
-    "specStatus": "approved"
+    "specId": "117-the-gate-resolves-the-binary-it-documents",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "fd8fd55ac3a074d56ae7c9322343f30d45e663c89a27c068f5d25db4a5f19042"
+  "shardHash": "2749ad655467c2f26e9f9009c99544676d7faaa95554b955be938f2ff70dd99f"
 }
