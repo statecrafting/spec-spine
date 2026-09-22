@@ -1,15 +1,15 @@
 {
   "mapping": {
     "dependsOn": [
-      "035-registry-plan-ready-set"
+      "092-the-engine-ships-governance-not-an-environment"
     ],
     "implementingPaths": [
       {
-        "path": "docs/api.md",
+        "path": "docs/releasing.md",
         "source": "spec-edge"
       },
       {
-        "path": "spec-spine.toml",
+        "path": "scripts/verify-packaged-producer.sh",
         "source": "spec-edge"
       }
     ],
@@ -17,40 +17,40 @@
       {
         "locations": [
           {
-            "file": "docs/api.md"
+            "file": "scripts/verify-packaged-producer.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-packaged-producer.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/releasing.md"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "docs/api.md"
+          "path": "docs/releasing.md"
         }
       },
       {
         "locations": [
           {
-            "file": "spec-spine.toml"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "spec-spine.toml"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/src/query.rs"
+            "file": "crates/spec-spine-core/tests/scaffold.rs"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/query.rs"
+          "path": "crates/spec-spine-core/tests/scaffold.rs"
         }
       },
       {
@@ -67,9 +67,9 @@
         }
       }
     ],
-    "specId": "101-readiness-is-scheduling-not-approval",
+    "specId": "104-a-producer-is-tested-as-published",
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "cc1d7e8ee591df625c12b048e36ff871922fb9f78449c6c36a504f8701d485cb"
+  "shardHash": "17458bb257f3e79d80dbad8dbf36e63425ca0525429da57b4ad7258307865284"
 }
