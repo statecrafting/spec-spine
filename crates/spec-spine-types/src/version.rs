@@ -73,10 +73,15 @@ pub const SPEC_ATTESTATION_SCHEMA_VERSION: &str = "0.1.0";
 /// which includes renaming or removing one (they stop matching).
 ///
 /// 0.2.0 added the `verify` verb (spec 043); 0.3.0 added `compile.spec`
-/// (spec 049); 0.4.0 added `delta` (spec 071). Each is the additive case this
-/// doc-comment names, and each followed the same reasoning rather than
-/// reopening it.
-pub const VERDICT_SCHEMA_VERSION: &str = "0.4.0";
+/// (spec 049); 0.4.0 added `delta` (spec 071); 0.5.0 added `couple`'s
+/// `deletions` block, which names the snapshot that answered for each deleted
+/// path (spec 100 §3.7). Each is the additive case this doc-comment names, and
+/// each followed the same reasoning rather than reopening it.
+///
+/// 0.5.0 is additive in the strict sense the policy requires: the block is
+/// omitted when empty, so every input that produced a verdict before spec 100
+/// still produces the same payload bytes.
+pub const VERDICT_SCHEMA_VERSION: &str = "0.5.0";
 
 /// `schemaVersion` carried by a change-classification report (spec 071).
 ///

@@ -64,9 +64,24 @@ pub fn lint   (cfg: &Config, repo_root: &Path) -> Result<LintReport,     Error>;
 pub fn couple(cfg: &Config, repo_root: &Path,
               diff: &DiffInput, waiver: Option<&Waiver>) -> Result<CoupleReport, Error>;
 
-// Lower-level form for callers that already hold the artifacts (overlays, tests):
+// Lower-level form for callers that already hold the artifacts (overlays, tests).
+// COMPATIBILITY: it holds one snapshot, so a deleted path's owners resolve at
+// head. See "Deletions and the prior snapshot" below.
 pub fn couple_with(cfg: &Config, registry: &Registry, index: &CodebaseIndex,
                    diff: &DiffInput, waiver: Option<&Waiver>) -> Result<CoupleReport, Error>;
+
+// Spec 100: the forms that judge a deleted path where it lived. `couple_snapshots`
+// is the IO form the CLI calls; `couple_with_prior` is its pure counterpart.
+pub fn couple_snapshots(cfg: &Config, repo_root: &Path, diff: &DiffInput,
+                        waiver: Option<&Waiver>,
+                        prior: &PriorSnapshots<'_>) -> Result<CoupleReport, Error>;
+pub fn couple_with_prior(cfg: &Config, registry: &Registry, index: &CodebaseIndex,
+                         scope: &GovernedScope, prior: &PriorSnapshots<'_>,
+                         diff: &DiffInput, waiver: Option<&Waiver>) -> Result<CoupleReport, Error>;
+
+// Reconstruct a prior snapshot from an exported tree's own source bytes.
+// `cfg` is that tree's configuration, not the run's.
+pub fn prior_ownership_from_root(cfg: &Config, root: &Path) -> Result<PriorOwnership, Error>;
 
 // Cheap staleness check: does the aggregate index's contentHash (folded from
 // the committed by-spec / by-package shards) match the current inputs?
@@ -132,6 +147,42 @@ code with `report.has_blocking_drift()` (the CLI does exactly this → exit 1).
 bypass floor that `coupling.bypass_prefixes` adds to.
 
 ---
+
+### Deletions and the prior snapshot (spec 100)
+
+A deleted path is judged against the snapshot it lived in, not against the tree
+the deletion produced: the claim that authorizes a removal is the one the
+removal withdraws, and at head it is already gone. There are two prior
+snapshots and the segment decides which answers.
+
+| Deletion recorded in | Answered by |
+|---|---|
+| the committed range `merge-base...head` | the merge base |
+| the working-tree diff `git diff HEAD` (`--include-uncommitted`) | HEAD |
+
+A snapshot is **reconstructed** by compiling and indexing that commit's
+exported tree, never read from its committed derived shards: the shards are
+evidence somebody wrote and can be stale, and the corpus source is immutable.
+It is built only when a deletion needs one, so a change with no deletion pays
+nothing and works in a shallow clone.
+
+**A required snapshot that cannot be obtained is a refusal**, exit `3`, naming
+the cause and the remedy. The gate does not substitute another revision, does
+not ignore corrupt evidence, and does not treat a history it could not read as
+an empty diff. A path that is simply **absent** from a snapshot that *was* read
+is a different fact: the answer is that nobody owned it there, the owner set is
+empty, and the report records the absence.
+
+The report carries, for each deleted path examined, which snapshot answered:
+`merge-base`, `head-commit`, or `head-tree`. The block is omitted when empty.
+
+**Which entry points carry this.** `couple` (through `couple_snapshots`), the
+CLI, and `couple_json` with `priorRoots` judge deletions at the prior snapshot.
+`couple_with` and `couple_with_scope` are **compatibility** entry points: they
+hold one snapshot, resolve deletions at head, and label every such deletion
+`head-tree` in the report. Their behavior is unchanged and preserved
+deliberately; preserving it is not the same as providing the guarantee, and
+they should not be described as if it were.
 
 ## 3. Config load + init scaffolding
 
@@ -270,7 +321,12 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   under `items`. `plan` (spec 035) returns `{ "ready": [...], "blocked":
   [{ "id", "blockedBy": [{ "id", "state" }] }], ..., "schemaVersion" }`.
 - `couple_json` request: `{ "config"?: Config, "repoRoot": string, "diff":
-  DiffInput, "waiver"?: { "reason": string } }`.
+  DiffInput, "waiver"?: { "reason": string }, "priorRoots"?: { "mergeBase"?:
+  string, "headCommit"?: string, "worktreeDeletions"?: [string] } }`.
+  `priorRoots` (spec 100) names exported trees in exactly the sense
+  `delta_json` takes `baseRoot` and `headRoot`; each is compiled and indexed
+  under **its own** `spec-spine.toml`. Absent, deletions resolve at head, which
+  is the compatibility behavior and not the correction.
 - `delta_json` (spec 071) request: `{ "config"?: Config, "baseRoot": string,
   "headRoot": string, "changed": [string], "commits": { "base", "mergeBase",
   "head" } }`. The two roots are exported trees; `config` is the merge base's

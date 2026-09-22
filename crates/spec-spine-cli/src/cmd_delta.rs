@@ -141,7 +141,16 @@ fn resolve_commit(repo: &Path, rev: &str) -> Result<String, Error> {
 /// repository's own index, working tree and worktree list are never touched.
 /// `git archive` is not used: it honors `export-ignore`, and a candidate could
 /// then hide a path from the tree its change is classified against.
-fn export_tree(repo: &Path, commit: &str, index_file: &Path, dest: &Path) -> Result<(), Error> {
+///
+/// `pub(crate)` since spec 100: the coupling gate reconstructs a deleted path's
+/// prior ownership from the same kind of exported tree, and a second exporter
+/// that agreed today and drifted next quarter would be worse than sharing one.
+pub(crate) fn export_tree(
+    repo: &Path,
+    commit: &str,
+    index_file: &Path,
+    dest: &Path,
+) -> Result<(), Error> {
     let git = |args: &[&str]| -> Result<(), Error> {
         let out = Command::new("git")
             .arg("-C")

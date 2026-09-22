@@ -3644,10 +3644,12 @@ fn check_json_is_unchanged_by_the_message_fix() {
 
     let out = run_in(root, &["check", "--json"]);
     // Spec 080 §3.3: `exitCode` carries the new code, which is the point. Every
-    // other member, the nesting and the version are what spec 079 left them.
+    // other member and the nesting are what spec 079 left them. The version is
+    // pinned by literal so an unintended bump fails here; spec 100 §3.7 moved
+    // it to 0.5.0 deliberately, by adding `couple`'s `deletions` block.
     assert_eq!(code(&out), 1);
     let json = envelope(&out);
-    assert_eq!(json["schemaVersion"], "0.4.0", "{json}");
+    assert_eq!(json["schemaVersion"], "0.5.0", "{json}");
     assert_eq!(json["exitCode"], 1, "{json}");
     assert_eq!(json["ok"], false, "{json}");
     let members: Vec<&str> = json
@@ -3872,7 +3874,7 @@ fn spec101_json_carries_the_new_code_and_keeps_its_shape() {
     let json = envelope(&out);
     assert_eq!(json["exitCode"], 1, "{json}");
     assert_eq!(json["ok"], false, "{json}");
-    assert_eq!(json["schemaVersion"], "0.4.0", "{json}");
+    assert_eq!(json["schemaVersion"], "0.5.0", "{json}");
     let members: Vec<&str> = json
         .as_object()
         .unwrap()
