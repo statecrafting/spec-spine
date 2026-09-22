@@ -71,6 +71,21 @@
       }
     ],
     "risk": "high",
+    "sectionDigests": {
+      "069-the-committed-index-is-compared-not-trusted": "fe84d4b2a12708d85eebddd11b20f663630c417f8dbd7785508907e1223433fe",
+      "1-purpose": "8612835489a34d17ceeaa32ed273d6341aa9f4c9eadfa759614cec96326e7966",
+      "2-territory": "0f18c14daa0ca1b58b0f91d36aaad93cf80971cbef69c9d82b2ef62deb943eac",
+      "3-1-index-check-compares-bytes-and-sets": "6ec4bba8a6f918da60d5e5433f918524561e51642f771466e49a56fcff3ec506",
+      "3-2-every-reader-inherits-it": "86f35171f216ad15c1b6d05b776972882788df642b9c12ce1fc6767f3aea22b6",
+      "3-3-what-the-gate-s-ownership-now-means": "e8c3e01142aaff2394b899d929dc09afe95aa1c0c7ea3b977d0578891cad1944",
+      "3-4-cost": "65ae6f18c02b24133e2868503eca76cdb2f50b0e8921f5d24a5b003982c3ff13",
+      "3-5-what-must-keep-working": "9c7c6bf47eb3461479daaa1f2b0bee5bc4f784cabf2983ff36dfd3b28230a5a0",
+      "3-6-the-trade-in-024-5-changes": "a49d154376f0b162697848844553ec640e1b2b3a0e3d9a64904edd466e7cc0c5",
+      "3-behavior": "764bd191d2d0f6a2f7050bbfa24f286266f0b9cccf051f1152d4f5bac4e2299c",
+      "4-out-of-scope": "f1efae041021137b339772303d7a12dae77a0f6cee8603f24e85d29c90303494",
+      "5-resolved-decisions": "19abda6886eee32193824813f417888ac460b0747eae5d1992377bf7c0ba9dec",
+      "verification": "f538acfecf55462f49eca6b2fd9b3df67ac880638fdccc910c2f5189e0821e7a"
+    },
     "sectionHeadings": [
       "069: The committed index is compared, not trusted",
       "1. Purpose",
@@ -92,5 +107,5 @@
     "title": "The committed index is compared, not trusted"
   },
   "shardHash": "e834fd45b6b7305d9ab359aad4358ff32a7cdadac1741cebd7c462a01f8ca67f",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

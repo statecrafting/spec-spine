@@ -95,9 +95,9 @@ pub use index::{
 };
 pub use lint::{LintReport, lint};
 pub use query::{
-    BlockedSpec, Blocker, ListFilter, Plan, ReadySpec, RelationshipView, StatusReport,
-    StatusReportNonzero, list, list_ids, load_index, load_registry, plan, relationships,
-    shard_content_hash, show, status_report,
+    BlockedSpec, Blocker, ListFilter, ObligationView, Plan, ReadySpec, RelationshipView,
+    StatusReport, StatusReportNonzero, list, list_ids, load_index, load_registry, obligation, plan,
+    relationships, shard_content_hash, show, status_report,
 };
 pub use read::{Versioning, read_document};
 pub use render::{OrphanReport, orphans, partition_orphans, render_markdown};
@@ -128,7 +128,9 @@ pub fn compile_json(config_json: &str, repo_root: &str) -> Result<String, Error>
 /// Run a read-only query described by `request_json`.
 ///
 /// Request shape: `{ "registry": "<registry.json text>", "op": "list" |
-/// "show" | "status-report" | "relationships", "id"?: string, "status"?: string,
+/// "show" | "status-report" | "relationships" | "plan" | "obligation", "id"?:
+/// string (for `obligation`, a qualified `<spec-id>#<obligation-id>`, spec
+/// 106), "status"?: string,
 /// "idsOnly"?: bool, "nonzeroOnly"?: bool }`. The projection fields (spec 009)
 /// default to `false`, so pre-010 requests behave identically.
 ///
@@ -157,6 +159,8 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         StatusReport,
         Relationships,
         Plan,
+        /// Spec 106 §3.6: `id` is a qualified `<spec-id>#<obligation-id>`.
+        Obligation,
     }
 
     let request: Request = serde_json::from_str(request_json)
@@ -197,6 +201,15 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
                 .id
                 .ok_or_else(|| Error::NotFound("missing 'id' for relationships".into()))?;
             read_document(&relationships(&registry, &id)?, Versioning::Stamp)?
+        }
+        Op::Obligation => {
+            let reference = request
+                .id
+                .ok_or_else(|| Error::NotFound("missing 'id' for obligation".into()))?;
+            read_document(
+                &query::obligation(&registry, &reference)?,
+                Versioning::Stamp,
+            )?
         }
         // Spec 035. Not the spec 034 verdict envelope, which wraps the
         // adjudicating verbs; a read document instead (spec 074).

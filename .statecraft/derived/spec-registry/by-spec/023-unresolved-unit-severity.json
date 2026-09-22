@@ -57,6 +57,22 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "023-severity-tiers-for-unresolved-units": "c2d847e4be797fed41b502fa568db855bab4ef456d0e64b02ecab4a8f5fd4bee",
+      "1-purpose": "99753f897cce4ac0c8fe2d1940fa932293a21dab59c5a19158abcd198b69673e",
+      "2-territory": "ee2696cb737fec615cc22817f0f04ae2343fc9f746827644889444803f671bab",
+      "3-1-the-severity-decision": "efe8f62e81811ee141f5fe8871888cc259077dae3f9e19dc4476b430a61a6034",
+      "3-2-the-two-warning-codes": "99f206b784c2d62ae65cd2eb5a3c589c0c2e063f8aef2bbc346d194f1ecbd450",
+      "3-3-surface-never-skip": "b244ed1bf1570ed2719f20a7aec04d49fb1a9862f3ce84d12405b67845ddabdb",
+      "3-4-no-fabricated-mapping-the-index-s-boundary": "364e961648073bc855422c6f5d395e3e53e49a7646c4249a2057bf18d1eadf7a",
+      "3-5-authority-is-a-registry-property-the-consumer-boundary": "202468815748850d9ea35bc976d5309ca20ae6c142362a04e7aa4decae2961f2",
+      "3-6-schema": "31125f2902c5fb598b23a9f5800a3afe492be65a137c19254cdaeb02c323e493",
+      "3-behavior": "d70c418d3ae13099183949cab659f4ba5aae7bca46425c776979e8df45004a1a",
+      "4-functional-requirements": "26f0f6fbfcd1df6f4308c3d822f4d026b1cd6d29e049911c6311f4e0d56ebe62",
+      "5-acceptance-criteria": "a0356af44cfa34d1de2325289b6cbf52b846e275d42088dec39b92114d8d98aa",
+      "6-out-of-scope": "e7746e289ed8b67c01f511bb9f5d7dda2a1a74de19cbcacb3b47dfc554307219",
+      "7-security-rationale": "62bf54873407ed32c407ea2af408daa9627528831146e7bb850243fd351c6444"
+    },
     "sectionHeadings": [
       "023: Severity tiers for unresolved units",
       "1. Purpose",
@@ -79,5 +95,5 @@
     "title": "Severity tiers for unresolved units: lifecycle- and edge-aware (warn, count, never skip)"
   },
   "shardHash": "7ae6a5d1565f246ce69bc4e96a7cb778c0e55a23387f7562ab5f79a0b8fda31d",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

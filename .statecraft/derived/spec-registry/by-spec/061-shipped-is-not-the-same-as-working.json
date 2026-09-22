@@ -103,6 +103,25 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "061-shipped-is-not-the-same-as-working": "c8ebc9ad6708879548f4c315779b533683beb3f75f8ceb73d55268c5b4b66104",
+      "1-purpose": "f1f7ec2c8cd7e92763f3639dcd8eaaed5b55327b5e3630b1dd82dc92cd910e48",
+      "2-territory": "7644058cc4456ed25323e967d165c9867094543857d26231a032df272acb3abd",
+      "3-1-a-hashed-input-pattern-that-can-match-no-file-is-refused": "649fd793ab1116c829bbebe03d12841fa53893416af7025e69c9c07ca4ecc68f",
+      "3-10-the-guards-run-what-was-written": "c5b4b46fac4dd8f0431339fe1cd66d7e4858930531f6e689f13c444cb5e4633d",
+      "3-2-the-l-008-message-explains-the-choice-it-offers-conformance-with-057": "0b7df2ffaf65391c2a9e99028bcc4c083e21ded2a541a7affaa27d5136f0a7c5",
+      "3-3-with-kit-writes-the-binding-for-the-driver-it-installs-amends-065": "cc7a61519d866e0c4678b7d5c8142c6d4adfd53dba23e132efb58211895241da",
+      "3-4-a-scaffolded-executable-arrives-executable": "12115d56ace31ffd831bc7046ae03a48da5c1008adda789d0e548bb9a5f5d06b",
+      "3-5-init-does-not-create-a-corpus-its-own-compiler-refuses": "3e6bc402fe718390898693ece0196c2e02c80835b238dd7691b7e61a6bb33448",
+      "3-6-the-kit-stops-shipping-what-the-tool-absorbed": "e40940b37e792919bd7772651662bfe3e64fa5ae083a8de37c5ce0c690a2a741",
+      "3-7-the-protocol-schedules-the-read-it-calls-a-precondition": "930ea1ed25e42c732b58994e4ff5f455c90198e686b064415368ebf865f444d7",
+      "3-8-this-repository-pins-itself": "97ee0f57fd7865182a695870b57a40622d6b7c552cb343cf94c93a7768658385",
+      "3-9-the-migration-note-reaches-the-cohort-that-cannot-be-fixed-by-upgrading": "c7683e91a056518b7c9102072e747673595b4616bc3cade0cac712dcbde6ff42",
+      "3-behavior": "59d87d8568c28e369bb3ef481c2c48f3bc01c44921d802922d65eed88c568707",
+      "4-out-of-scope": "913c03a32cb9e07c79a5bea2063b70e0e3dbd35d2947ee401239bd918988f43c",
+      "5-resolved-decisions": "18a456358a7ae77b6db3cd9f7360056ef9bf94e76cf77dca2df7484b776cf477",
+      "verification": "9bc211faa84379df3c9afd3570857b7c6a4534a2902f3238f5d058893cf353eb"
+    },
     "sectionHeadings": [
       "061: Shipped is not the same as working",
       "1. Purpose",
@@ -128,5 +147,5 @@
     "title": "Shipped is not the same as working"
   },
   "shardHash": "f42830c83acea69f23d8178f2ca5802b70abf7d1219bb89614c2d2451b013e24",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

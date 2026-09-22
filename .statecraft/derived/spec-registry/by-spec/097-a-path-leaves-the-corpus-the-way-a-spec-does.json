@@ -68,6 +68,25 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "097-a-path-leaves-the-corpus-the-way-a-spec-does": "e7826786c0e064631a75661dc1f022db93fba9478e37596df680eb78487a4c36",
+      "1-1-the-same-operation-a-different-spelling": "4753c9d9f1097ede8e579ffe007063c35d8f4e03691194474fdceafefcfe85a5",
+      "1-2-why-this-is-not-simply-a-rename": "4015eb4373720007984e7034b054087410576fdfc6d61cd9270445dccd7a0083",
+      "1-3-the-exclusions-are-the-hard-part": "93ada4d573849bc64286ad36a35170cf4787a06369bbcdfd327001d8a14ef51c",
+      "1-purpose": "d9f1d076edbfc828792b1748d1faf7e1a1aa668851104b38098f3365d143fc29",
+      "2-territory": "52cb5c81037ee37b59dc1a21561d2f2bf0e461eb1f99d8656e3c73fc052cc69c",
+      "3-1-the-plan-gains-retire": "5e861f4255b4ad7b94c5526453202f0a43d804419e523f3572edc9041eb11115",
+      "3-2-the-six-forms": "e9c1705642940631ba88c50ccae0cb2e185db5cf3fd72172b4e16efaf6ce11aa",
+      "3-3-a-withdrawn-unit-is-named-never-inferred": "d8930fb605a8d5f3fc027076b8d695434df682eff2362bc96187771ec172c95f",
+      "3-4-the-hashed-inputs-follow-the-claim": "7601fd51feb2183dbbda67d8fbe35f8e6a8fbcfb5b5daa29459fef0c8cb04c58",
+      "3-5-an-absence-is-not-a-citation": "f76343de686d66ef6ae2c5d9367d206f7c39fe26fec2bdc0e6a43a31fed1820a",
+      "3-6-idempotent-and-green-is-not-enough": "520639b6001af1a2a69cc8fc86a47916c0452ec3efc704ca63029d3368877ebf",
+      "3-7-what-it-refuses": "d21e3c8d4e317f11b32179d258bb4decf493de20419da92f7e86d528550fe9f7",
+      "3-behavior": "d4c6e5297c7887429f512a9ba43b061983b319a8a787991de47aff054c96ebe9",
+      "4-out-of-scope": "cb5cf5685b387bb9abcfcceb01fc9817163c7c3f0aead24b53473c234f154447",
+      "5-resolved-decisions": "511a65107b8421bd22b0e202cf4a2c08fe66b52004707fbe8a85e4bdc0545016",
+      "verification": "b4665472592f57b7704677c2d4d641b68d6c08d864d61bf9d41bf5cf1556bbb6"
+    },
     "sectionHeadings": [
       "097: A path leaves the corpus the way a spec does",
       "1. Purpose",
@@ -93,5 +112,5 @@
     "title": "A path leaves the corpus the way a spec does"
   },
   "shardHash": "c947eff6e8990030861cc5a183832084824a4b030b4c87b2dcb2040cdcc7ca98",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

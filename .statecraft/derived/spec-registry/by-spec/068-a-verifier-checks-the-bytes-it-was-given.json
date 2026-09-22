@@ -91,6 +91,21 @@
       }
     ],
     "risk": "high",
+    "sectionDigests": {
+      "068-a-verifier-checks-the-bytes-it-was-given": "7d16a1edaeb7b9f426a7c462461cfefffae016208a7c713d657a15c85a3125b8",
+      "1-purpose": "031bf9419cfdc9bf3258322f85ee0da8cf6b920c01d922fc78812f6fc14e2dc6",
+      "2-territory": "1cd8409b0f7abc29f9c687a49dad59bd99b6c0bbeca78064517599b92988fda2",
+      "3-1-the-bytes-are-read-once-and-both-modes-decide-on-them": "e1f73a467808160f5fce146d46623904960d85f9980226e97fc79ec261a5e3ad",
+      "3-2-an-unknown-member-is-refused": "e74ea751a218e041d5ef165c272bd744532dbcdadd145b3ecc051973140114b3",
+      "3-3-an-unknown-schema-major-is-refused-and-the-corpus-recompute-compares-the-version": "d55347335efcad3e9174703fa45945333c570d7f1ca6c1b1e40b2d157d6bf77a",
+      "3-4-the-facade-holds-the-same-rules": "0dc8ed20827db4e797f04ed317e06b1536286fa70d8a0538f1f793e41728e007",
+      "3-5-the-documentation-says-what-is-true": "25711703f995f3abce42e659684581f4224b9d14d4d8c588ab37350bfef6d1bc",
+      "3-6-what-must-keep-working": "41b5a9ecaf5e00adff39bdfaaeda5ff1eb078ae3b21204d25e74db786f7064a5",
+      "3-behavior": "1c69b77d56042792e0ed4ddac876809d0943dfd6b0e6d9e2167149fe3127fe19",
+      "4-out-of-scope": "2a7dbfc389c19cd8bd43ac2ce80c33c8def0e2d84e45529fbe5a8214d44ecb98",
+      "5-resolved-decisions": "be48d78f560272b24c5d7ed2ec30e3e14d707bcbb7081bb7f104e7ffd35a23f1",
+      "verification": "1c06a9015e6c3f63d16e5a947623ce102e33d7bb79942756197aa812fb0204eb"
+    },
     "sectionHeadings": [
       "068: A verifier checks the bytes it was given",
       "1. Purpose",
@@ -112,5 +127,5 @@
     "title": "A verifier checks the bytes it was given"
   },
   "shardHash": "e9b2836005c628fed1f1f6b10c73e3fa3b5207f80156f9a3bad4e45c8c803530",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

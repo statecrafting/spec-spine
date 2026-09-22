@@ -4,7 +4,7 @@ title: "A ready spec carries its status"
 status: draft
 kind: "tooling"
 created: "2026-09-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 depends_on:
   - "035-registry-plan-ready-set"
@@ -22,6 +22,21 @@ extends:
     nature: additive
   - spec: "057-the-docs-name-what-adopters-derived"
     unit: { kind: file, path: "docs/api.md" }
+    nature: additive
+  # 3.3: the read-schema MINOR moves the one constant every read document
+  # carries, and the table that documents it (D-3).
+  - spec: "074-a-governed-read-names-its-version"
+    unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }
+    nature: additive
+  - spec: "057-the-docs-name-what-adopters-derived"
+    unit: { kind: file, path: "docs/schema-versioning.md" }
+    nature: additive
+  # D-5: the two existing tests that pinned the old shape and the old version.
+  - spec: "074-a-governed-read-names-its-version"
+    unit: { kind: file, path: "crates/spec-spine-core/tests/read.rs" }
+    nature: additive
+  - spec: "053-plan-answers-the-whole-question"
+    unit: { kind: file, path: "crates/spec-spine-cli/tests/cli.rs" }
     nature: additive
 ---
 
@@ -48,14 +63,18 @@ Two consequences, both deliberate:
 
 - **101 does not depend on this spec landing.** The documentation is the fix;
   this is an ergonomic improvement on top of it.
-- **This spec is buildable only for a named consumer.** Filing it records the
-  contract so nobody re-derives it; it does not schedule it. See §5 D-1.
+- ~~**This spec is buildable only for a named consumer.**~~ Superseded
+  2026-09-22 by D-2: it is buildable on the owner's opportunity evaluation
+  (design note 09 section 10). Filing it recorded the contract; D-2 schedules
+  it.
 
 ## 2. Territory
 
 `ReadySpec` in `crates/spec-spine-core/src/query.rs`, its acceptance in
 `crates/spec-spine-core/tests/query.rs`, and the `plan` paragraph of
-`docs/api.md` that spec 101 rewrote.
+`docs/api.md` that spec 101 rewrote. The read-schema MINOR in §3.3 also moves
+`READ_SCHEMA_VERSION` in `crates/spec-spine-types/src/version.rs` and its row
+in `docs/schema-versioning.md` (D-3).
 
 ## 3. Behavior
 
@@ -97,15 +116,15 @@ precedent for both the shape and the version handling.
 
 A blocked entry is not a candidate to approve, so carrying `status` on
 `BlockedSpec` would add a field no consumer has asked for. This spec MUST NOT
-add it. If a consumer later needs it, that is a second MINOR and it should be
-asked for by the consumer that needs it, which is the rule D-1 states.
+add it. If it is later wanted, that is a second MINOR in its own spec, justified
+on its own evaluation (D-2), not folded into this one.
 
 ## 4. Out of scope
 
 - **Filtering by approval inside `plan`.** That would move the consumer's rule
   into the engine and undo the layering spec 101 §1.1 preserves.
 - **`implementation` on `ReadySpec`.** The planner consults it, so reporting it
-  is defensible, and no consumer has asked. Same rule as §3.4.
+  is defensible. Same rule as §3.4: its own spec, its own evaluation.
 - **Any change to `/next`.** It resolves `status` per entry today and would
   simply stop needing to.
 
@@ -113,7 +132,8 @@ asked for by the consumer that needs it, which is the rule D-1 states.
 
 *(Filed as a draft. Decisions taken during the build are appended here.)*
 
-**D-1 (2026-09-21, specified now, built for a named consumer).** This spec is
+**D-1 (2026-09-21, specified now, built for a named consumer).** *Superseded
+2026-09-22 by D-2; preserved as the record of the earlier condition.* This spec is
 filed so the contract exists and is reviewable, not so it is scheduled. It
 should be built when a consumer names the need: an adopter's `/next`
 equivalent, an orchestrator's scheduling stage, or a dashboard that renders the
@@ -122,6 +142,61 @@ plan. That is the disposition
 grand-refactor's SP-03, and it is recorded here as this spec's own build
 condition rather than as an adoption of SP-03, which is not this corpus's to
 make.
+
+**D-2 (2026-09-22, the named-consumer condition is withdrawn by the owner).**
+The owner replaced "specify now; implement only for a named consumer need"
+with an opportunity-led evaluation and named this spec in the ruling (design
+note 09 section 10, D-7). A consumer request is evidence, not a prerequisite.
+The contract in section 3 is unchanged by this decision: the field, its
+verbatim value, the untouched partition and ordering, the read-schema MINOR,
+and `blocked` left alone all stand. What changed is only that the build is
+authorized. No consumer has asked for the field, and this spec does not claim
+one has.
+
+**D-3 (2026-09-22, territory corrected before the build).** §3.3 requires a
+read-schema MINOR, and the filed territory did not include the constant that
+carries it or the document that tables it. Both are added as `extends` edges:
+`version.rs` on spec 074, which introduced `READ_SCHEMA_VERSION`, and
+`docs/schema-versioning.md` on spec 057, which established the table. No
+behavior in section 3 changes. The version moves once, for every read
+document, because spec 074 made it one axis ("per-verb axes would always move
+together"); that is the precedent this spec follows rather than a choice it
+makes.
+
+**D-4 (2026-09-22, build: "never consulted" is about this field, and a
+sentence in `docs/api.md` was wrong).** The first draft of the §3.2 test
+flipped every status between `draft` and `approved` and expected an identical
+ready set. It was not identical: a spec with no `implementation` key is
+scheduled when `draft` and settled when `approved`, which is spec 042's
+absent-key rule. That rule predates this field and is unchanged by it; §3.2's
+guarantee is that the new member is never read, not that `status` never is.
+The test now flips statuses only for specs that declare `implementation`, and
+a second test asserts the 042 case and that its ready entry reports the status
+that scheduled it. The same measurement showed `docs/api.md` saying `status` is
+consulted "only" to exclude `superseded` and `retired`; the sentence now names
+the 042 case too. It sits in the `plan` paragraph this spec extends.
+
+**D-5 (2026-09-22, build: two existing pins moved with the contract).** The
+workspace tests found two assertions of the old shape. `cli.rs`'s
+`registry_plan_partitions_the_corpus` compared a ready entry to
+`{ id, title }`; it now expects `status` too, and still checks that blocked
+entries are unchanged. The same test's `plan --next --json` case gains `status`
+as well, because the pick is a `ReadySpec`: one type, one shape, and no second
+member added anywhere. `read.rs` pinned `READ_SCHEMA_VERSION` to `0.1.0` as
+"the axis starts at 0.1.0"; it now pins `0.2.0` and says where each value came
+from. Both files are other specs' territory, so both are declared here as
+`extends` edges rather than edited silently. Neither assertion was loosened:
+each still pins an exact value. Spec 074's own acceptance greps for the
+constant's name, not its value, and is unaffected.
+
+**D-6 (2026-09-22, review: the spelling helper).** The helper that spells a
+`Status` fell back to an empty string on any non-string serialization, and it
+had been inserted between `plan`'s rustdoc and `pub fn plan`, so the public
+function lost its documentation. It is now an exhaustive `match` above that
+block, returning the four spellings; a new `Status` variant fails to compile
+rather than reaching a consumer as `""`, and a unit test pins every arm to
+serde's spelling so the plan document and a registry shard cannot disagree.
+The member stays `status: String`, as §3.1 states.
 
 ## Verification
 

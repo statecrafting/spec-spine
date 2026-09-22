@@ -77,6 +77,20 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "042-an-absent-implementation-key-takes-its-answer-from-status": "7f47c58fca8726b47744f0c77aebfc505c24ccef54af2149c52e12efd93216df",
+      "1-1-two-verbs-one-key-two-answers": "a6b061123f307762b37c32916cdfc77a338ba9216836e0e2afed449506b45800",
+      "1-2-the-instance-that-made-it-visible": "b5d4c6b488667e68dc3ae69ea4d5ab929168b592cc8ef8b80484ed0d9a4ad24f",
+      "1-purpose": "9a1a6e9f24f6c1821c726acfd03743477339968b921067c7887d19c2deabdca9",
+      "2-territory": "354f784c6b47aa32db10b060fc2a25066b7901d7c4ddb9d1e4616290d987a3c3",
+      "3-1-the-rule": "228c36d7577c3ed94304750f13270a17115034fd0aa3abe27a04a87bdd33034a",
+      "3-2-why-status-is-the-right-fallback": "f1c2a6293b634f7b918b7c5ea253cc17f255b4476cdab2997be7132187cc0e17",
+      "3-3-the-scaffold": "02b684c0f2845e0f6dd2d54e5c92597509759537b6c4fb801c0f9c5a1e17eb91",
+      "3-4-what-this-does-not-change": "ff53bbe90ee890bc736dd04b5fd103c656dce19e81a4f61b0c7dbe8a82c4b6a7",
+      "3-behavior": "6ddfa42bfc25c61fc2206b4870714958311f1f924acd0517e13b102300db42f3",
+      "4-out-of-scope": "854d413402345b1af99adfd30e692db5771339f6834472ead77d8c331b34d9d0",
+      "5-verification": "805ac219f8659ff5a7713bc31652ef8091976c8b63b65decc3006c35d6e10ad5"
+    },
     "sectionHeadings": [
       "042: An absent `implementation` key takes its answer from `status`",
       "1. Purpose",
@@ -97,5 +111,5 @@
     "title": "An absent `implementation` key takes its answer from `status`"
   },
   "shardHash": "00a8a67cb7bacb9f8c7bd99002dbe03b809e7b01433af6026eedddd822e17b8c",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

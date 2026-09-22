@@ -110,6 +110,20 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "036-layout-state-dir": "f0643f318b663ca22e28379b9365faf9e61d40b191322a4045a9cb1ad32170d8",
+      "1-purpose": "fb1015ea33276758124df3eab0bccf608de7badcb88b1acc12c4bc2ab32ecf88",
+      "2-territory": "ac71e6f4b3c7d7515a7c83730202e7f77cad2a3176afdd420f1859833f6134c5",
+      "3-1-unset-by-default": "db6053264487d7dab00fcf8eba73a1cfbddf3531f36834f7a57350ac7ece3b82",
+      "3-2-declared-the-gates-recognize-it": "d268ac51516ba7c65b194a02b47afb97363fdea8c18ab983bf9efa142e7b1c5a",
+      "3-3-ungoverned-spec-spine-never-reads-or-writes-it": "ab1c8c046595c2ea3f07b9aa345d430863bf2f5187716954aee88c89564fe9ca",
+      "3-4-a-claim-inside-state-dir-is-a-contradiction-and-lint-says-so": "9e9c92f57d78802f13dc66f40e655cae735f52b43732fbacf47efad2c8c7d26d",
+      "3-5-relationship-to-the-existing-lists": "83454ece7ecec66b19dd46d639df928d1018e5082df105308649432da5c454c4",
+      "3-6-tests-minimum": "7f30dbebc4615af1b5c605ed2e7be2e911d09b8bcac1b74f1f72d0ae993089fd",
+      "3-behavior": "a9bff40517fbcf3d963ecebcdd12fa742153924e965aff778039b442ceb0ab8a",
+      "4-out-of-scope": "e4ca7c983ad6fbd7af7bec36121a49174d5dbe2aaf3cfdc33912d09a7398a9f6",
+      "5-resolved-decisions": "5288f19dce9f1758dec98c8077809a9db68129810b92405e35658507cb32bada"
+    },
     "sectionHeadings": [
       "036: `layout.state_dir`",
       "1. Purpose",
@@ -130,5 +144,5 @@
     "title": "`layout.state_dir`: a declared, ungoverned tool-state root"
   },
   "shardHash": "a6d2bc7d953abd96b18e41997a446bffe3020d5fb32cf17b085efb28cfb00aca",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

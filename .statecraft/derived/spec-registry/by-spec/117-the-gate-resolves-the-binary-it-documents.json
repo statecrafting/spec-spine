@@ -34,6 +34,22 @@
         }
       }
     ],
+    "sectionDigests": {
+      "1-1-what-it-cost-measured": "3f76e74c75eb88095f5bedd31b72145ed37fe9d79eae83b8d4576b10259b11b8",
+      "1-2-why-this-is-its-own-spec": "45e1accf894d541acb9035cc5c8bac48e0e372da4941be558ca33f64106af4d5",
+      "1-purpose": "e9fd26ad3cc724ba9b8d8d9bc6838d640703f4effd6a8f5789fea702377afa41",
+      "117-the-gate-resolves-the-binary-it-documents": "d07bd74502cffdd48704d9a5e51dc8786a369d77c57afb9444b5944ee4c86b72",
+      "2-territory": "39af3131382e5dca4dfad687b47e5e267e31921681ec71c4cade44489c02c50c",
+      "3-1-the-documented-order-is-the-implemented-order": "6291e69daab9924fe2b378a8127ad023bb384b414edb3152e3482f8562d74080",
+      "3-2-an-unusable-explicit-override-is-refused-never-substituted": "c3cc791b1f0504c7e2a415bc97ec9d9d40805fe56b0fa49ba28a75f99d73ea52",
+      "3-3-the-gate-announces-the-binary-it-resolved-and-its-version": "f686331d165d6d9f652bba8febad73c83f462a0c276e1dfb70ccdeea46f340c6",
+      "3-4-what-does-not-change": "83522d105dd7fadde223005e9240aeb1be8ac9236b37044d18c3f48c6b50c158",
+      "3-5-the-selection-is-tested-by-executing-distinguishable-binaries": "040673ff8b3f4423c0c4999d7bda9a9052d6208583e2e89c0aa48b1cc6548b75",
+      "3-behavior": "bf93b4c6301adaa82a998a372a0b185065f1456f7f8a403b9630806bf011229f",
+      "4-out-of-scope": "30dc4dca237b3b97a967f11be13eaea2302b9b67751e2d7d5d05b6c5e7465482",
+      "5-resolved-decisions": "ec4a3b2c547e1f270cf8c120f6993837feb342a3b902605a2523c00cc36d2f07",
+      "verification": "0d3c624181ebef5d24f62e62c0902dec349682222578613f1f270940cb8e6cf7"
+    },
     "sectionHeadings": [
       "117: The gate resolves the binary it documents",
       "1. Purpose",
@@ -56,5 +72,5 @@
     "title": "The gate resolves the binary it documents"
   },
   "shardHash": "39ac2fcf188689ed912e8eda4bd19f9238cee18487b112d405cebba1b8feb9d5",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

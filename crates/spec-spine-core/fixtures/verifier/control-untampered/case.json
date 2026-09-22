@@ -1,0 +1,18 @@
+{
+  "bytes": "producer",
+  "expect": {
+    "exit": 0,
+    "outcome": "accepted"
+  },
+  "id": "control-untampered",
+  "needsCorpus": true,
+  "payloadSchemaVersion": "0.1.0",
+  "payloadType": "spec-spine/corpus-attestation",
+  "producedBy": "spec-spine attest, over this case's corpus/",
+  "schemaVersion": "0.1.0",
+  "subject": {
+    "attestationHash": "sha256:01bec6900716df21d9e531d396840ecad6b61ec16ae9173b86412cccf2d8d0c8",
+    "kind": "corpus"
+  },
+  "toolVersion": "0.22.0"
+}

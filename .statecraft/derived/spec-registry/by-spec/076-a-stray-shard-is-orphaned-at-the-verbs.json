@@ -70,6 +70,24 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "076-a-stray-shard-is-orphaned-at-the-verbs": "47fa4cfe4bcd3f8b81a84ff5d8413e47b2502c8a9ed1ec9ab263f69cf01150f1",
+      "1-1-the-verdict-is-computed-and-then-discarded": "a1ad2e6558df27cabc19f75160f7187c1faa3035aaaf6c2f33e080a42ccd9b70",
+      "1-2-measured-at-the-verbs": "d43618dd6b4ed556bf8cc717e2dd400d675e40f83d003f4577a7a41dde6a54d1",
+      "1-3-why-the-library-test-did-not-catch-it": "a9f7a237ae8c6d1b9d224325fdbe0f19e0ccaa4d14610bf35246ab08df48aa99",
+      "1-purpose": "10e39d4bff75bdb7e780ac7c8c106948f8a7d66dd7c216a6a43a25f0d318c734",
+      "2-territory": "86e327032c2c55641f4a0fe330974f6302ec6d749a4e6f12cedd272ec785e1f1",
+      "3-1-the-verdict-outranks-the-tally": "81be328a9981f9fc74e3fc9fe7131f737640342265ddd31382331824c99d5893",
+      "3-2-an-unparseable-file-in-the-shard-directory-is-drift-not-a-parse-error": "c4f55f1a9de5081db6edf98c9de41563c064ae80f5a165daec22085dd648bcfa",
+      "3-3-the-tally-is-best-effort-and-says-what-it-skipped": "b5b60717008e929383feae92d2c52bf4748440387f76dfbc190b56086695f5b6",
+      "3-4-one-path-four-entry-points": "f967185dc78a4fcf84a067bbbce40c9a794b30b626ecc9a32a2eb0c8823e6cd7",
+      "3-5-what-does-not-change": "7047b98062fe2ee6dd4be899e4ca9f3a1572ad0dfd34d0a4730ccb8f0d1ea689",
+      "3-6-the-acceptance-runs-the-verbs": "9e157538aecd272234051a4b40c788128e01725c104e958908e748efaa1e5898",
+      "3-behavior": "a00357a5376f0f507d0b80710d140ed56a6928ed14631f717ac979d9eac95dbe",
+      "4-out-of-scope": "2383f81d6f001b9bdafe8594fd44001c728a068226a68790b05a85b6d1540fea",
+      "5-resolved-decisions": "ffa1c1ee8e6454825151ff2572ddc9aeb2ef1d7a86dc57457818c8173d5b32a3",
+      "verification": "39c9d684adccd919f213d318bda132c7e93adfa481c4961d72edd36b487178f4"
+    },
     "sectionHeadings": [
       "076: A stray shard is orphaned at the verbs",
       "1. Purpose",
@@ -94,5 +112,5 @@
     "title": "A stray shard is orphaned at the verbs"
   },
   "shardHash": "769dfafaff08b3dfe9fcfcf40b4d06f089a30f294befa3388d7e2974f1552674",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

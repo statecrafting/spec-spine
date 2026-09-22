@@ -38,7 +38,13 @@
 /// every existing spec, so the field is omitted from every existing shard and
 /// only `specVersion` is restamped; `shardHash` is over `spec.md`'s bytes and
 /// does not move.
-pub const REGISTRY_SCHEMA_VERSION: &str = "1.3.0";
+/// `1.4.0`: additive `obligations` and `sectionDigests` (spec 106). A spec may
+/// declare obligations; every spec's record carries a digest per body section.
+/// Unlike 1.3.0, every existing shard gains `sectionDigests` (every spec has
+/// headings), so every shard's bytes change; `shardHash` still does not, since
+/// it is over `spec.md`. A binary predating this spec meets the member with a
+/// parse error and exits 3, the fail-closed direction 1.2.0 chose.
+pub const REGISTRY_SCHEMA_VERSION: &str = "1.4.0";
 
 /// `schemaVersion` emitted in the codebase index, carried by each index shard.
 /// `0.2.0`: additive `build.sliceHashes` (spec 011).
@@ -98,7 +104,14 @@ pub const DELTA_SCHEMA_VERSION: &str = "0.1.0";
 /// the shape of the answer, not the artifacts the answer is about, so it does
 /// not move when `REGISTRY_SCHEMA_VERSION` or `INDEX_SCHEMA_VERSION` does. One
 /// constant for every read document: per-verb axes would always move together.
-pub const READ_SCHEMA_VERSION: &str = "0.1.0";
+///
+/// `0.2.0` (spec 102): additive. Each `registry plan` ready entry carries the
+/// spec's `status`, verbatim. No member moved and none was removed.
+///
+/// `0.3.0` (spec 106): additive. A new read document, the `obligation` answer
+/// (`registry obligation --json`, `query_json` `op: "obligation"`). No member
+/// of an existing document moved.
+pub const READ_SCHEMA_VERSION: &str = "0.3.0";
 
 /// `schemaVersion` of an authority snapshot (spec 070): its own axis, defined
 /// beside the DTO it versions and re-exported here with the others.

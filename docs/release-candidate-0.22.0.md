@@ -1,11 +1,17 @@
 # Release candidate `v0.22.0`
 
-**Status: corrected, ratified, candidate frozen at `da47632b`, not tagged and
-not published.** Sections 0.1 to 8 are the pre-integration record and §9 the
-integration record, both preserved as written. **§11 is the state that is true
-now**: it supersedes §9.3's checks, §9.4's blocker, §9.6's digests and §9.7's
-procedure wherever they disagree. §10 holds the owner rulings that resolved
-§9.4. **§12 corrects §10.5's account** of the first sweep run's failure.
+**Status: candidate re-frozen at `f9fa6a8f56b82c8d97cf2803bc31838a0b455a21`,
+not tagged and not published.** **§13 is the state that is true now**: it
+supersedes §11's proposed tag revision (`da47632b`), its checks, its digests
+and its procedure, because `da47632b` lacks the `Acceptance` corrections of
+specs 120 and 121 (§13.1). Sections 0.1 to 8 are the pre-integration record,
+§9 the integration record, §10 the owner rulings and §11 the first freeze, all
+preserved as written. §12 corrects §10.5's account of the first sweep run's
+failure.
+
+**Superseded status line (first freeze):** corrected, ratified, candidate
+frozen at `da47632b`, not tagged and not published. §11 was then the state
+that was true.
 
 **Original status line, as written before integration:**
 
@@ -1054,4 +1060,202 @@ the default run directory new per run under the user cache directory, outside
 the purged temporary tree. That removes the exposure whether or not the purge
 was the cause, and it keeps each run's report, so a later failure of this kind
 leaves its own evidence instead of being overwritten.
+
+## 13. The candidate, re-frozen at `f9fa6a8f` (2026-09-22)
+
+### 13.1 Why `da47632b` is not the candidate
+
+§11.6 recorded that the `Acceptance` push leg was red at `da47632b` for a
+reason outside the corpus (the binary's location). That correction, spec 120,
+merged after §11 was written, so `da47632b` does not contain it. The nightly
+leg had a second, independent problem: it exited on the corpus verdict, so it
+was red whenever a draft was filed ahead of its build, which is this
+repository's normal state. Spec 121 corrects that. Both are operational
+corrections to the release's own acceptance signal and are in the candidate.
+Tagging `da47632b` would ship a revision whose `Acceptance` workflow is known
+to be wrong in two ways.
+
+### 13.2 What landed after `da47632b`, one pull request each
+
+| # | Pull request | Squash commit (full) | What |
+|---|---|---|---|
+| 1 | #299 | `1cff0431efa0db1bf4f2eb5c5710c83be237e167` | §11: the first freeze's record |
+| 2 | #300 | `737c1c89d7771bd03ef4db224fc71148cb57b8d1` | **spec 120**: the push leg builds the binary its blocks name |
+| 3 | #303 | `481f3f1e8268012f3a6b2cad99e77232642ee5c2` | spec 119's and §10.5's account of the first run's failure, corrected (§12); wording only |
+| 4 | #302 | `f9fa6a8f56b82c8d97cf2803bc31838a0b455a21` | **spec 121**: `Acceptance` exits on the release verdict and reports both |
+
+Each merged with `ci-gate` green on its own head, `couple` clean, and no
+waiver.
+
+### 13.3 The proposed tag revision, and its difference from `da47632b`
+
+**`f9fa6a8f56b82c8d97cf2803bc31838a0b455a21`**, the tip of `main` after #302.
+Everything merged after it (this record, the owner-decision record #304, and
+any expansion work) is not in the tag.
+
+`git diff --name-only da47632b f9fa6a8f`, outside the derived shard trees, is
+exactly ten files:
+
+- `.github/workflows/acceptance.yml` (specs 120, 121)
+- `scripts/acceptance-report.py` (new, spec 121)
+- `scripts/test-verify-sweep.py` (spec 121's regressions)
+- `scripts/verify-sweep.sh` (a comment, §12)
+- `specs/119-.../spec.md` (wording, D-6), `specs/120-.../spec.md` and
+  `specs/121-.../spec.md` (new, both `draft` / `complete`)
+- `docs/release-candidate-0.22.0.md`, `docs/releasing.md` (one sentence) and
+  `docs/evidence/sweep-da47632b-release.console.log`
+
+**Nothing under `crates/`, `Cargo.toml`, `Cargo.lock`, `npm/` or `py/`
+changed** (the same diff restricted to those paths is empty). The engine, the
+CLI and both shims are byte-identical in source to `da47632b`; the packages
+differ from §11.5's only in VCS metadata and in what follows from it (13.6).
+
+### 13.4 Checks at `f9fa6a8f`, by where they ran
+
+| Check | Where | Result |
+|---|---|---|
+| `ci-gate`, `build · test · clippy`, `self-governance`, determinism across the four release triples (byte-identical) | CI, run `35786274180` (push to `main`) | **passed** |
+| `Acceptance`, push leg: scope 5 specs, `--release`, report step | CI, run `35786273449` | **passed**: `passed=5`, release verdict clean; the new "Report both verdicts" step succeeded |
+| `Acceptance`, whole corpus, `--release`, dispatched on `main` at `f9fa6a8f` | CI, run `35787507923` | **passed**: release verdict clean; corpus not clean (13.10) |
+| `make gate` (check, lint, coverage, couple), binary built from the revision | local, clean detached worktree | **passed** |
+| `cargo fmt --all --check`; `cargo clippy --workspace --all-targets --locked -- -D warnings` | local | **passed** |
+| `cargo test --workspace --locked`; `cargo test -p spec-spine-core --no-default-features --locked` | local | **passed** |
+| `python3 scripts/test-verify-sweep.py` (15 tests) | local | **passed** |
+| `scripts/bump_version.py --check 0.22.0` (distribution parity: Cargo, npm, PyPI) | local | **passed** |
+| `./scripts/verify-packaged-producer.sh` | local, packaged archives | **passed**, 37 assertions |
+| `cargo package --workspace --locked`, verification enabled | local, twice, independent target directories | **passed** both times, identical digests (13.6) |
+| whole-corpus sweep, `--release` | local, isolated worktree, binary built from the revision | release verdict **clean**, exit 0 (13.5) |
+| registry-backed consumer verification | nowhere | **not performed**: nothing is published |
+
+### 13.5 The sweep, both verdicts
+
+`./scripts/verify-sweep.sh --rev f9fa6a8f56b82c8d97cf2803bc31838a0b455a21 --release`,
+binary `spec-spine 0.22.0 built from f9fa6a8f` inside the sweep's worktree,
+report `sweep.json` schema 1.1.0 (SHA-256
+`6b521df9178ad0092827e2895a0207019e0b17512d095cec4ca4e1dc855ad0f5`), console
+log committed as `docs/evidence/sweep-f9fa6a8f-release.console.log` (SHA-256
+`661608f75667500b66d8edc137a9aae59550d608840cfeb2d72091d536d9088c`, 6790
+bytes):
+
+```
+verify-sweep.sh: f9fa6a8f  passed=65 failed=2 not-declared=0 exempt=43 not-run=0
+verify-sweep.sh: release verdict: clean  (not passing=0 pending=2)
+```
+
+| | passed | failed | not-declared | exempt | not-run | pending |
+|---|---|---|---|---|---|---|
+| corpus verdict (**not clean**) | 65 | 2 | 0 | 43 | 0 | n/a |
+| release verdict (**clean**) | 65 | 0 | 0 | 43 | 0 | 2 |
+
+All 110 specs are accounted for. The two corpus failures are the two pending
+drafts, run and reported with their real outcomes:
+
+- `102-a-ready-spec-carries-its-status`: `draft` / `pending`; failed at
+  command 2, fail-first as filed. Its build is next-wave work (PR, not in the
+  tag).
+- `103-a-verifier-fixture-is-a-published-artifact`: `draft` / `pending`;
+  failed at command 1, fail-first as filed. Its build is #301, not in the tag.
+
+No block left the worktree dirty. The run directory was
+`~/.cache/spec-spine/sweeps/f9fa6a8f-20260922T212305Z-8591`, outside the
+purged temporary tree (§12).
+
+The whole-corpus CI run (`35787507923`) is the first nightly-shaped run under
+spec 121, recorded in 13.10. It is the CI counterpart of this local run, not a
+substitute for it, and neither is reported as the other.
+
+### 13.6 Package identities at `f9fa6a8f`
+
+| Package | File | SHA-256 |
+|---|---|---|
+| `spec-spine-types` | `spec-spine-types-0.22.0.crate` | `6b1a2cb685d72d7032ebf647c427af6cec5217269d9626ce13c7e10eec011eb8` |
+| `spec-spine-core` | `spec-spine-core-0.22.0.crate` | `8db10dd0b5552f429e90b96446278e385235069316942b9551d0101f179d2c23` |
+| `spec-spine-cli` | `spec-spine-cli-0.22.0.crate` | `ffeea42520d7d78adb0023729201ed4f62631e64aa4df7024473d1012719a370` |
+
+- **One revision.** All three archives' `.cargo_vcs_info.json` name `sha1
+  f9fa6a8f56b82c8d97cf2803bc31838a0b455a21`, with no dirty flag.
+- **Sibling checksums agree.** The core archive's `Cargo.lock` pins
+  `spec-spine-types` at `6b1a2cb6...`; the CLI archive's pins
+  `spec-spine-core` at `8db10dd0...` and `spec-spine-types` at `6b1a2cb6...`:
+  exactly the digests above.
+- **Verification ran.** `cargo package --workspace --locked` verified all three
+  crates (the `Verifying` step compiled each from the packaged sources),
+  without `--no-verify`.
+- **Void:** §11.5's digests (`da47632b`).
+
+What has and has not been measured, kept apart:
+
+| Identity | Measured? |
+|---|---|
+| Local reproducibility | **Yes.** Two `cargo package` runs in independent target directories produced the three digests above, byte-identical. |
+| CI artifact identity | **No.** `release.yml` packages and builds only on a `v*` tag, so no CI run has produced these archives. |
+| Registry-served identity | **No.** Nothing is published. After publication, compare the checksums crates.io serves with this table and record either result. |
+
+### 13.7 Ratification decisions still open
+
+Prepared, not merged, and not required for the tag unless the owner wants them
+in it:
+
+- **#305**: `118`, `119` and `120`, `draft` to `approved`, status-only.
+- **Spec 121**, `draft` / `complete` at `f9fa6a8f`: not in #305 because its
+  ratification was not requested; it can be added on the same terms.
+
+If either merges **before** the tag, the proposed tag revision moves to that
+merge commit, and 13.4's source-identity-dependent rows and 13.6's digests must
+be cut again. If they merge after, the release carries these specs as
+`draft` / `complete`.
+
+### 13.8 What is deliberately not in this candidate
+
+- Specs **102**, **103** (#301), **106** and **107**, and the owner-decision
+  record **#304**: next-wave work and the decision that authorized it, merged
+  after the freeze or still under review.
+- Any ratification (13.7).
+
+### 13.9 The ordered publication procedure
+
+Not performed. Each numbered step is a human action. **Pushing the tag starts
+publication**: `release.yml` runs on the tag push and publishes to crates.io,
+npm and PyPI and creates the GitHub Release without a further approval step.
+
+0. **Decide the tag revision.** Proposed: `f9fa6a8f` (13.3). Decide 13.7 first:
+   a ratification merge before the tag moves it.
+1. **Tag, signed and annotated:**
+   `git tag -s -m "spec-spine 0.22.0" v0.22.0 f9fa6a8f56b82c8d97cf2803bc31838a0b455a21`,
+   then `git tag -v v0.22.0`. Push the tag only:
+   `git push origin refs/tags/v0.22.0`. This is the step that publishes.
+2. **`release.yml`**: `build` (prebuilt binaries per triple), then in parallel
+   `publish` (the GitHub Release), `publish-crates` (types, core, cli, in that
+   order, `cargo publish --locked`, each waiting for the previous to be
+   visible), `publish-npm` and `publish-pypi`.
+3. **Registry visibility, per stage.** crates.io's API (send a `User-Agent`)
+   serves each crate at 0.22.0; record the served checksums against 13.6. npm
+   `spec-spine@0.22.0` and its platform packages resolve (`npm view` can lag).
+   PyPI `spec-spine==0.22.0` resolves (`info.version` can lag).
+4. **Consumer checks, registry-backed**, in clean directories:
+   `cargo install spec-spine-cli --version 0.22.0 --locked` then
+   `spec-spine --version`; `npx spec-spine@0.22.0 --version`;
+   `uvx --refresh spec-spine==0.22.0 --version`; and the spec 104 producer
+   checks against the **published** `spec-spine-core`.
+5. **Release notes** lead with `docs/adopter-migration.md` §9.2 and are
+   prepended with `gh release edit --notes-file` once the run completes.
+6. **Tell Statecraft** the producer version (0.22.0).
+
+### 13.10 The first nightly-shaped CI run under spec 121
+
+`Acceptance`, `workflow_dispatch` with an empty scope (the whole corpus, the
+nightly's selection), run `35787507923`, at `f9fa6a8f`, binary built from the
+revision inside the sweep's worktree:
+
+```
+verify-sweep.sh: f9fa6a8  passed=65 failed=2 not-declared=0 exempt=43 not-run=0
+verify-sweep.sh: release verdict: clean  (not passing=0 pending=2)
+```
+
+The job **passed**. The report step published two `warning` annotations, one
+per pending draft, each with its lifecycle and the block's real outcome
+("block failed ... pending work, not a release obligation"), and no `error`.
+Under the pre-121 workflow the same corpus made the nightly red (run
+`35723398403` at `3d4f3902`). The counts equal the local run's in 13.5; they
+were measured independently, on a GitHub-hosted runner and on this machine.
 

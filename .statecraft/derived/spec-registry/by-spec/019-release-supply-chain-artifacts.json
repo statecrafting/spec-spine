@@ -26,6 +26,13 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "019-release-supply-chain-artifacts-per-target-sbom-and-build-provenance": "525bc3b2c3fdb60efa8e68513d4db336e5fad6321f3702758ee3e70544dceb04",
+      "1-purpose": "2547c96faeca2df4a6acd35e1b651a8cb35e4698e72e5fe7d6f942dab61fb284",
+      "2-territory": "6d73530ae6ffa5fe77dbaa938ac8fa032572da6afda20b2dbd67c42f228bf429",
+      "3-behavior": "81cd8924ed9e189b21345d706927b03bc7e5d9a92e860286eaea6df440374997",
+      "4-out-of-scope": "2d9b6c10d9af8fd24062bb2fefcd8f013492ce106bd6eb1ebf9d199c1a5d9e78"
+    },
     "sectionHeadings": [
       "019: Release supply-chain artifacts (per-target SBOM and build provenance)",
       "1. Purpose",
@@ -39,5 +46,5 @@
     "title": "Release supply-chain artifacts: per-target SBOM and build provenance"
   },
   "shardHash": "071506c57cf34e757b7335b45dc48ee115b7ad67f3d73c77590a959a8b676c7d",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

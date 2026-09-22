@@ -39,6 +39,20 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "004-codebase-index-and-the-unit-grammar": "1d20d3b02c99477d6ea8bbc7b737d23c5d2f4ce2001ccbe8ad6098340d7a3119",
+      "1-purpose": "d696380867ca3eae40ef8dd681acaefc25ccf99ca385b7701869722070f72102",
+      "2-territory": "fb5279547feb1092ba8f6bc127599bd3769b35799bc38c0e305d60e1510be35f",
+      "3-1-package-discovery-manifest-scan": "40bb3e119ada0cd2a8b145b81f02290b190712ab83bdf6b7b70dd12576597345",
+      "3-2-linkage-code-spec-three-sources": "c590e3bc33fbdcaca05a9a6f7fcaf91c25d736b5aac1cdf1aff08b1fffbeb3ba",
+      "3-3-unit-resolution-the-grammar-physical-locations": "e3ebcd28a01c9c33dc5490de0c0ff95049c1a0913fee05bc4ca80dbdb6b3b367",
+      "3-4-determinism": "ce3d814cbefc1334d23165d6438466cb64c2356e4f15fa3fa62baf73bf50ac13",
+      "3-5-content-hash-staleness": "991682a110728716a9c546b7acd66a90d1327c4358a28e530bd9e70bb3cacac7",
+      "3-6-traceability-and-diagnostics": "e9ce269c22fafe917c4e664f30a268e8f13ec2183eb2e44347ea89504e4821f8",
+      "3-7-authorities-unit": "765588b5384cad7cb5f6059f7221af0a148a76fdb8d2d6c8370126bac4187f37",
+      "3-behavior": "60c6ff46f21875140f212931ea4964aaac5f024fc54895d7c72e2f9fb61ff479",
+      "4-out-of-scope": "b7fa73df8e6dd350ddbdbf04880db8f7be53999d171c12584a210dcf05c5eb9f"
+    },
     "sectionHeadings": [
       "004: Codebase index and the unit grammar",
       "1. Purpose",
@@ -59,5 +73,5 @@
     "title": "Codebase index and the file/section/symbol unit grammar"
   },
   "shardHash": "4b9fd975eaf162fdced0f54ec81030948607f7fd2db7734633e2f75b16cf71c1",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

@@ -40,6 +40,21 @@
         }
       }
     ],
+    "sectionDigests": {
+      "1-1-what-the-defect-actually-is": "9ef41830ebfc5c327b5bf5ea5a5f3bae45ccbf324226371ccb35fa2cb1ca25ca",
+      "1-purpose": "13676bd7c0db065dca084f52522bdfc15e6b0ff635a3ec6ef7355ddfa3caec24",
+      "104-a-producer-is-tested-as-published": "4d81c8907b8e49785422bd9b7b21ee6172d6d92d5f70dcdf7841c30841a6dcd5",
+      "2-territory": "b7ef74a98f1e7d9ca10b51852db7c12fcd5cc2619868aaec2bc6e9773c52d9d9",
+      "3-1-the-check-runs-against-the-packaged-crate-not-the-workspace": "104377a3b45e17fd59aa704374dd49e9a95bce27e6765f1114cdbbf76a6c58be",
+      "3-2-what-the-packaged-producer-must-satisfy": "9417f164e6fd44c6553f94465cd3722c3f96b37a3f647122b1d3566aa0f0c69e",
+      "3-3-the-configuration-argument-is-snake-case-and-that-is-asserted": "6ac158e2711b79c5b156661b6fd0fae76a5d6c69055f76459e6b95d3e3e2b054",
+      "3-4-the-check-gates-a-release": "e637ceba900116ca70b74fc07a141345e4e7e98096cd90fc7fa77ff4f0ca388a",
+      "3-5-evidence-is-recorded-and-is-not-a-publication-claim": "d0f3605f6e493c8d4d42a933524e9d40b57f4bcba3fb6504bb7318d30a7a5e2e",
+      "3-behavior": "0ea09964ca9caa6387f1a7238ba80ec77cbbd5f8c71ad74c9c55f5f6bc17dc27",
+      "4-out-of-scope": "1454d3c8b65a02b25cf15e6b717036d2804f919d82b3bef6b15445bac524b0f0",
+      "5-resolved-decisions": "abde4df2488dcc919f1fe14801c6afa3a19d0db806cbdb4e8a86fb64721b1ca2",
+      "verification": "823408258185bebc39fc81b2fdf73b7c4db4cb85dfd8e89454257a61b1ceea0f"
+    },
     "sectionHeadings": [
       "104: A producer is tested as published",
       "1. Purpose",
@@ -61,5 +76,5 @@
     "title": "A producer is tested as published"
   },
   "shardHash": "43eb97061393eeba64f8e0ee87d3087cd9101174777ebe5ad9efc0759e208729",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

@@ -129,6 +129,24 @@
       }
     ],
     "risk": "high",
+    "sectionDigests": {
+      "067-a-short-id-names-the-same-spec-at-every-verb": "6d339b375e53a06e5fe4df1e0cd5af923b69fe22f2ecd885906785455feb17c8",
+      "1-1-four-copies-of-one-policy": "772ce40c487c6f7b97b48f9e72f519dec3cce6d44522167fde599f74cf56e6e6",
+      "1-2-the-exact-case-joins-the-argument-onto-a-path": "552971ce037aeaa5d9837d6804be508c38423a74c521c81d3478a084452fac4c",
+      "1-3-the-obvious-fix-is-wrong-twice": "b09930a24dffdd499c6e776889b53f87e9714fe9bb2cac1df055b5882702db1a",
+      "1-purpose": "ac076cd8e715a89e91bb64f8180dfee6dbab120ee41b5f0bd4a7e758231ed153",
+      "2-territory": "5bb025916f77ee0b10fd626f9436d45446d99ca3188e56a82d453a8ccbc9c3f9",
+      "3-1-the-six-arguments-accept-the-short-form-under-one-policy": "4e7726fae5b6ff35152ad1fb255fb424f87a8996e5bd743280c7efcf5cecd1c4",
+      "3-2-each-verb-resolves-against-the-ids-it-already-reads": "c83e54093d7c72ba36f7c18211007b10f0ec7112f5f6f878d2c1320f044a7b99",
+      "3-3-resolve-once-then-use-only-the-resolved-id": "55ae2e1fcb9cc2db9e845737badd54df603903be65b05b6563bf3ce95fd8c1ab",
+      "3-4-one-implementation": "1b14a24bf0c5bca41fc5000e82fee1e83d3777855a4937c99461a3f7450db027",
+      "3-5-the-rule-is-enforced-not-asserted": "07d8a869e735cc2a53a48ead2f75b455b55c775ae94b496bcbd3d1802730dcdf",
+      "3-6-what-must-keep-working": "ae5c5654c36611e0562b5491ed6c158c9f82421dfce5a913d689cc05f1eced6d",
+      "3-behavior": "3a75544d1ac05cbcc82f7d26845afb35eaae3242a28b23a9a369e4458add9980",
+      "4-out-of-scope": "9876494bf973558568e395430909dd9b48a2d20392b460b6cdf13dc16449ebea",
+      "5-resolved-decisions": "82845baf2669f61a2e5760d67a3e322f726be359ba30f80d860092843cb5b593",
+      "verification": "8348bfaf7e24f308f73cc1d4eac398f38dcea374d0a7012558193655cbbe97ac"
+    },
     "sectionHeadings": [
       "067: A short id names the same spec at every verb",
       "1. Purpose",
@@ -153,5 +171,5 @@
     "title": "A short id names the same spec at every verb"
   },
   "shardHash": "8745cca6631a265e4b52c3d90784cf80b984532fb06bc9e863d973f2e32917bb",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

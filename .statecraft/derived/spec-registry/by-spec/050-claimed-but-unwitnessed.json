@@ -94,6 +94,19 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "050-a-claim-no-hash-witnesses": "2f8ab2123007d677b7c905eca5de0395d061eea217e64ec498671c3489cd014f",
+      "1-purpose": "1048cc6be90cdde3d55fb938f7b88ff58caaf241050d8ab28f506270fa03d0dd",
+      "2-territory": "5ea87eb6f8d4e5af23c9cd322fe7ecf4f500a4fe6996e6cb9cd850ee76e1d189",
+      "3-1-one-predicate-in-the-indexer": "8eeecc944747e98f5a98729df243e4b49cdfbad261f55433021ca99939a9e14b",
+      "3-2-l-008": "572a303d105ebc2f52bdd967d25289aee1f9696e190f213bae49d2978c92747b",
+      "3-3-index-check-reports-the-count": "e22a5c60cac5f5dfe959c895f0d56b2cf0f3f8d254c8b11a27a24c591ba439fe",
+      "3-4-nothing-is-folded-into-a-hash": "09f1a551700eefcb62f2f0371030cb4e548dceb5b1a82fd653d10eeec8dc35be",
+      "3-5-a-corpus-may-declare-a-gap-deliberate": "2cc705a98e3a5000b45ce0cc91448ea25313ac61ea8439a85fd03abccae336e4",
+      "3-behavior": "e0716f0541b3b9db25f4e2aa577f3af30a5fa22e69441fb9a9b6df53fd0405d5",
+      "4-out-of-scope": "cc75099d1a4ae38e2d2e6dacc98d9aae6eff9a305d601433f1946229eaa42e8a",
+      "5-verification": "cecd6dfd2e163d74079e14b52baf17a72f6d3b6409d7a1df88260232968fcef1"
+    },
     "sectionHeadings": [
       "050: A claim no hash witnesses",
       "1. Purpose",
@@ -113,5 +126,5 @@
     "title": "A claim no hash witnesses"
   },
   "shardHash": "4c26b5f13a3b2e120d86916351a93e613370525298f75f74e078124d472f5d20",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

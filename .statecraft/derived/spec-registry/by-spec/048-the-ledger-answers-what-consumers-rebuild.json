@@ -87,6 +87,18 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "048-the-ledger-answers-what-consumers-rebuild-by-hand": "5c86417f63d5906ca3f0ed18ae0bc9d70a79de5949b312a0facc9c38a7b7d3ec",
+      "1-purpose": "e7ec9c2f36608e1391e9521b82fc70a110e75653d979127e76b8f99f040d559b",
+      "2-territory": "6cae5d563e27daf14e35629664877be7b0a6c48a2ed3cb3bd923c85c8cc5cc0a",
+      "3-1-spec-spine-index-owner-path": "1b47c4fead8cd32a326087804984c100135f99817cb192a16c0de156afbae83f",
+      "3-2-the-owner-query-is-the-gate-s-own-function": "a868774dd9fc6856095ff92d3d8a3e6fc4d81df6ab859806a3f4b02cca057faa",
+      "3-3-contenthash-on-registry-show-json": "76c7c4443780b41c68be137be29e081227b7c9cce58b1860d56caf24d3ad1653",
+      "3-4-what-the-hash-means-said-once": "4ada1d3af076d88f74eda13252ad76a39d54b76f823c7c430067db1a3dd6919f",
+      "3-behavior": "a295cf0fee018ae485038330629869d1adaceb06f3143dfb59fae83097dbb49d",
+      "4-out-of-scope": "7555d042fc90f98b08a15cfda1488f1caa7107b69b24b337538906162e07cae1",
+      "5-verification": "1a909210a92affe2ac72521aaf1f200dd71d7d168b8117a93bb377639176ae6f"
+    },
     "sectionHeadings": [
       "048: The ledger answers what consumers rebuild by hand",
       "1. Purpose",
@@ -105,5 +117,5 @@
     "title": "The ledger answers what consumers rebuild by hand"
   },
   "shardHash": "32fb73c78191fb85a38fb90ced32c4cd0da36cef21bc8e056118dbfad1987130",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }
