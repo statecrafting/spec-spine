@@ -14,7 +14,15 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-types/src/version.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "docs/api.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/schema-versioning.md",
         "source": "spec-edge"
       }
     ],
@@ -48,6 +56,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-types/src/version.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/api.md"
           }
         ],
@@ -57,11 +78,24 @@
           "kind": "file",
           "path": "docs/api.md"
         }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/schema-versioning.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
       }
     ],
     "specId": "102-a-ready-spec-carries-its-status",
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "a33e4fe56f54141ff126cff69d7e5518d21cedb3af489db036189fa5abc3897c"
+  "shardHash": "423a861aca399a726c903fd735ed87c56ec303db8f198895337c4b207386fd7f"
 }

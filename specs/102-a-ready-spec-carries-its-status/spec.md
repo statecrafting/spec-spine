@@ -23,6 +23,14 @@ extends:
   - spec: "057-the-docs-name-what-adopters-derived"
     unit: { kind: file, path: "docs/api.md" }
     nature: additive
+  # 3.3: the read-schema MINOR moves the one constant every read document
+  # carries, and the table that documents it (D-3).
+  - spec: "074-a-governed-read-names-its-version"
+    unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }
+    nature: additive
+  - spec: "057-the-docs-name-what-adopters-derived"
+    unit: { kind: file, path: "docs/schema-versioning.md" }
+    nature: additive
 ---
 
 # 102: A ready spec carries its status
@@ -57,7 +65,9 @@ Two consequences, both deliberate:
 
 `ReadySpec` in `crates/spec-spine-core/src/query.rs`, its acceptance in
 `crates/spec-spine-core/tests/query.rs`, and the `plan` paragraph of
-`docs/api.md` that spec 101 rewrote.
+`docs/api.md` that spec 101 rewrote The read-schema MINOR in §3.3 also moves
+`READ_SCHEMA_VERSION` in `crates/spec-spine-types/src/version.rs` and its row
+in `docs/schema-versioning.md` (D-3).
 
 ## 3. Behavior
 
@@ -135,6 +145,16 @@ verbatim value, the untouched partition and ordering, the read-schema MINOR,
 and `blocked` left alone all stand. What changed is only that the build is
 authorized. No consumer has asked for the field, and this spec does not claim
 one has.
+
+**D-3 (2026-09-22, territory corrected before the build).** §3.3 requires a
+read-schema MINOR, and the filed territory did not include the constant that
+carries it or the document that tables it. Both are added as `extends` edges:
+`version.rs` on spec 074, which introduced `READ_SCHEMA_VERSION`, and
+`docs/schema-versioning.md` on spec 057, which established the table. No
+behavior in section 3 changes. The version moves once, for every read
+document, because spec 074 made it one axis ("per-verb axes would always move
+together"); that is the precedent this spec follows rather than a choice it
+makes.
 
 ## Verification
 
