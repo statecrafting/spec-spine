@@ -720,8 +720,9 @@ The repository owner ruled on §9.4, in these terms:
   ownership integrity, and the removal of the surfaces 095 governed, and must
   not hard-code today's corpus size.
 
-It is carried by **spec 118**, a new spec declaring `amends` and
-`amends_verification` on 095. Spec 095's file is not edited.
+It is to be carried by **spec 118**, a new spec declaring `amends` and
+`amends_verification` on 095, filed and built in its own pull request after
+this record merges. 095's requirements and commands are not edited.
 
 ### 10.2 The sweep: the owner's ruling
 
@@ -734,7 +735,8 @@ missing plans, unknown lifecycle, parse errors, interrupted commands and
 unavailable evidence are never success; an implemented draft's failure is not
 hidden by its `status`; the closed exemption ledger is not expanded; the
 whole-corpus run keeps reporting what it observed; and execution stays off
-every untrusted event. It is carried by **spec 119**.
+every untrusted event. It is to be carried by **spec 119**, in its own pull
+request after 118.
 
 ### 10.3 What these rulings do not authorize
 
@@ -755,9 +757,16 @@ verify-sweep.sh: 835dd2e4  passed=37 failed=26 not-declared=0 exempt=43 not-run=
 
 Its report directory no longer exists: the second run used the same default
 `--out`, and spec 089 §3.6 clears a marked run directory before use. What
-survives is the console log (SHA-256
-`03b48024d5f34456fc2620fa306e84c060116f5b9e71bdf38b1757b520e1f3c9`, 8475 bytes)
-and the two log excerpts read before it was cleared. The 26 failures were
+survives is each run's console log, committed with this record so the digests
+can be checked from the repository:
+
+| Run | File | SHA-256 | Bytes |
+|---|---|---|---|
+| first (37 / 26 / 43) | `docs/evidence/sweep-835dd2e4-run1.console.log` | `03b48024d5f34456fc2620fa306e84c060116f5b9e71bdf38b1757b520e1f3c9` | 8475 |
+| second (60 / 3 / 43) | `docs/evidence/sweep-835dd2e4-run2.console.log` | `bd7698e33cde2187edeacecdf9e3ec6a35cfd2c9d401a7978c1ebb2e186b707b` | 6547 |
+
+The first run's per-spec logs are gone; the two excerpts below were read from
+them before they were cleared. The 26 failures were
 `079` to `100`, `102`, `103`, `104` and `117`; every spec before `079` passed
 or was exempt. The first failure, in `079`'s log:
 
