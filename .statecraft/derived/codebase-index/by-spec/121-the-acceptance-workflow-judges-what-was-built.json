@@ -1,21 +1,21 @@
 {
   "mapping": {
     "dependsOn": [
-      "043-verify-declared-acceptance",
-      "082-an-amended-acceptance-is-the-one-that-runs",
-      "083-an-amendment-carries-the-acceptance-it-replaces"
+      "099-a-merged-acceptance-is-asked-again",
+      "119-a-release-verdict-judges-what-was-built",
+      "120-a-scoped-sweep-judges-the-binary-the-blocks-name"
     ],
     "implementingPaths": [
       {
-        "path": "docs/releasing.md",
+        "path": ".github/workflows/acceptance.yml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/acceptance-report.py",
         "source": "spec-edge"
       },
       {
         "path": "scripts/test-verify-sweep.py",
-        "source": "spec-edge"
-      },
-      {
-        "path": "scripts/verify-sweep.sh",
         "source": "spec-edge"
       }
     ],
@@ -23,11 +23,37 @@
       {
         "locations": [
           {
-            "file": "scripts/test-verify-sweep.py"
+            "file": "scripts/acceptance-report.py"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/acceptance-report.py"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/acceptance.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/acceptance.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/test-verify-sweep.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
         "unit": {
           "kind": "file",
           "path": "scripts/test-verify-sweep.py"
@@ -36,59 +62,33 @@
       {
         "locations": [
           {
+            "file": "docs/release-candidate-0.22.0.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/release-candidate-0.22.0.md"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "scripts/verify-sweep.sh"
           }
         ],
-        "ownership": true,
-        "sourceField": "establishes",
+        "ownership": false,
+        "sourceField": "references",
         "unit": {
           "kind": "file",
           "path": "scripts/verify-sweep.sh"
         }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/releasing.md"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "docs/releasing.md"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-cli/src/cmd_verify.rs"
-          }
-        ],
-        "ownership": false,
-        "sourceField": "references",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_verify.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/src/verify.rs"
-          }
-        ],
-        "ownership": false,
-        "sourceField": "references",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/verify.rs"
-        }
       }
     ],
-    "specId": "089-nothing-reruns-a-merged-acceptance",
-    "specStatus": "approved"
+    "specId": "121-the-acceptance-workflow-judges-what-was-built",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "609acbaaa1e393c7599509a868baf3a3440071d84d2277b69626b7ef2c29e8fc"
+  "shardHash": "9a79857a4d90eca1733f3c58de75cd3f49e7361ca804c3fcc130e87e4725dc11"
 }
