@@ -422,6 +422,21 @@ happens at every release: until the set is regenerated, the version rule keeps
 the harness honest, and regenerating puts the recompute cases back on the
 first branch.
 
+**D-11 (2026-09-22, review: "exercised" means observed).** The first harness
+put a reason into §3.8.5's coverage set as soon as a `case.json` expected it,
+before the verifier ran. With a set attested under another build, every
+recompute case takes §3.7's second branch and observes `version-mismatch`, so
+`content-mismatch`, `non-canonical-bytes` and the control's `accepted` were
+counted as exercised without ever being produced. Measured: the 0.21.0 set
+passed that harness on a 0.22.0 build. The harness now counts only what the
+shipped verifier produced, and it also requires an observed `accepted`, so the
+control has run on the first branch (§3.8.4's reason for having a control). The
+0.21.0 set now fails with a message naming the generator. Consequence, for the
+owner and the release runbook: after a version bump, `cargo test` fails until
+the set is regenerated. Regenerating writes under this spec's fixture
+directory, so the bump change touches territory this spec owns. The alternative
+was to keep a coverage check that passes while three outcomes go untested.
+
 ## Verification
 
 Behavioral. The test executes every fixture against the shipped verifier under
