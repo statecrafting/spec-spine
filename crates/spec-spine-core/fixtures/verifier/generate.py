@@ -136,7 +136,7 @@ def main():
                corpus_src=True)
 
     # Duplicate key: authored, because no JSON serializer emits one.
-    dup = producer.decode().replace('"schemaVersion"', '"schemaVersion": "0.1.0",\n  "schemaVersion"', 1)
+    dup = producer.decode().replace('"schemaVersion"', '"schemaVersion": %s,\n  "schemaVersion"' % json.dumps(json.loads(producer)["schemaVersion"]), 1)
     write_case("duplicate-key", dup.encode(),
                dict(base("duplicate-key", "authored", "duplicate-key", 3, False),
                     authoredBecause="no JSON serializer emits a duplicate key, so this cannot be "
