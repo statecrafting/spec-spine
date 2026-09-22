@@ -4,7 +4,7 @@
 Documented generator (spec 103 3.9). Run from the repository root with a built
 binary; it writes crates/spec-spine-core/fixtures/verifier/ and nothing else.
 """
-import io, json, os, shutil, subprocess, sys, tempfile, hashlib
+import io, json, os, re, shutil, subprocess, sys, tempfile, hashlib
 
 ROOT = os.getcwd()
 BIN = os.path.join(ROOT, "target/release/spec-spine")
@@ -136,7 +136,14 @@ def main():
                corpus_src=True)
 
     # Duplicate key: authored, because no JSON serializer emits one.
-    dup = producer.decode().replace('"schemaVersion"', '"schemaVersion": %s,\n  "schemaVersion"' % json.dumps(json.loads(producer)["schemaVersion"]), 1)
+    # The repeated member copies the producer's own line, indentation and value
+    # included, so the splice follows the serializer rather than assuming it.
+    text = producer.decode()
+    line = re.search(r'(?m)^[ \t]*"schemaVersion": "[^"]*",?$', text)
+    if line is None:
+        raise SystemExit("the producer's payload has no top-level schemaVersion line to repeat")
+    repeated = line.group(0) if line.group(0).endswith(",") else line.group(0) + ","
+    dup = text[:line.start()] + repeated + "\n" + text[line.start():]
     write_case("duplicate-key", dup.encode(),
                dict(base("duplicate-key", "authored", "duplicate-key", 3, False),
                     authoredBecause="no JSON serializer emits a duplicate key, so this cannot be "

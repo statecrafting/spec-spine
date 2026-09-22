@@ -13,7 +13,7 @@
 //! the exit code each produces) is assembled in the CLI. Reassembling it from
 //! library calls here would assert a reimplementation.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -49,28 +49,77 @@ fn tool_version() -> String {
         .to_string()
 }
 
-/// Run one case's payload through the shipped verifier, in a scratch copy of
-/// the case's own corpus so nothing reaches this repository's tree.
-fn verify(case_dir: &Path, needs_corpus: bool) -> (i32, serde_json::Value) {
+/// Copy a case's corpus into `root` and compile it, exactly as a consumer
+/// reproducing the case would: the recompute reads the registry's inputs.
+fn compiled_corpus(case_dir: &Path, root: &Path) {
+    copy_tree(&case_dir.join("corpus"), root);
+    let out = Command::new(env!("CARGO_BIN_EXE_spec-spine"))
+        .arg("--repo")
+        .arg(root)
+        .arg("compile")
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "compiling {}'s corpus: {}",
+        case_dir.display(),
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
+
+/// What this build's producer emits for a case's corpus, byte for byte.
+fn attest_now(case_dir: &Path) -> Vec<u8> {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    compiled_corpus(case_dir, root);
+    let out = Command::new(env!("CARGO_BIN_EXE_spec-spine"))
+        .arg("--repo")
+        .arg(root)
+        .arg("attest")
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "attesting {}'s corpus: {}",
+        case_dir.display(),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    std::fs::read(root.join(".derived/attestation/attestation.json"))
+        .expect("attest wrote .derived/attestation/attestation.json")
+}
+
+/// The committed bytes with the one `tool.version` literal the set was
+/// generated under replaced by this build's (§3.7, D-12). Exactly one
+/// occurrence, or the substitution would be a guess.
+fn at_version(bytes: &[u8], from: &str, to: &str, ctx: &str) -> Vec<u8> {
+    let text = std::str::from_utf8(bytes).unwrap_or_else(|e| panic!("{ctx}: not UTF-8: {e}"));
+    let needle = format!("\"version\": \"{from}\"");
+    let n = text.matches(&needle).count();
+    assert_eq!(
+        n, 1,
+        "{ctx}: expected exactly one `{needle}` to carry to {to}, found {n}"
+    );
+    text.replacen(&needle, &format!("\"version\": \"{to}\""), 1)
+        .into_bytes()
+}
+
+/// Run a payload through the shipped verifier, in a scratch copy of the
+/// case's own corpus so nothing reaches this repository's tree. `payload`
+/// overrides the committed bytes (the version-carried form, D-12).
+fn verify(case_dir: &Path, needs_corpus: bool, payload: Option<&[u8]>) -> (i32, serde_json::Value) {
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path();
     if needs_corpus {
-        copy_tree(&case_dir.join("corpus"), root);
-        // The recompute reads the committed registry's inputs, so the corpus
-        // is compiled here exactly as a consumer reproducing the case would.
-        let out = Command::new(env!("CARGO_BIN_EXE_spec-spine"))
-            .arg("--repo")
-            .arg(root)
-            .arg("compile")
-            .output()
-            .unwrap();
-        assert!(
-            out.status.success(),
-            "compiling {}'s corpus: {}",
-            case_dir.display(),
-            String::from_utf8_lossy(&out.stderr)
-        );
+        compiled_corpus(case_dir, root);
     }
+    let payload_path = match payload {
+        Some(bytes) => {
+            let path = tmp.path().join("carried-payload.json");
+            std::fs::write(&path, bytes).unwrap();
+            path
+        }
+        None => case_dir.join("payload.json"),
+    };
     let out = Command::new(env!("CARGO_BIN_EXE_spec-spine"))
         .arg("--repo")
         .arg(root)
@@ -80,7 +129,7 @@ fn verify(case_dir: &Path, needs_corpus: bool) -> (i32, serde_json::Value) {
             "--json",
             "--attestation",
         ])
-        .arg(case_dir.join("payload.json"))
+        .arg(&payload_path)
         .output()
         .unwrap();
     let code = out.status.code().unwrap_or(-1);
@@ -204,13 +253,49 @@ fn the_fixture_set_describes_the_shipped_verifier() {
     );
 
     let build_version = tool_version();
-    let mut executed = 0usize;
-    // §3.8.5 counts what the shipped verifier produced, never what a case.json
-    // expected: a version-bound recompute case observes `version-mismatch`,
-    // so its declared reason is not exercised until the set is regenerated
-    // against this build (D-11).
-    let mut reasons_seen: BTreeSet<String> = BTreeSet::new();
-    let mut accepted_seen = false;
+
+    // ---- §3.7 / D-12: the set's version, and whether it is still current ----
+    // The control is verbatim producer output, so its `toolVersion` is the
+    // build the whole set was generated under.
+    let control_dir = dir.join("control-untampered");
+    let control = read_json(&control_dir.join("case.json"));
+    let set_version = str_at(&control, "toolVersion", "case control-untampered").to_string();
+    // The set is current when this build's producer emits the control's
+    // bytes exactly, once the one version literal is carried across. A
+    // difference anywhere else is content the set no longer describes.
+    let committed_control = std::fs::read(control_dir.join("payload.json")).unwrap();
+    let expected_now = if set_version == build_version {
+        committed_control.clone()
+    } else {
+        at_version(
+            &committed_control,
+            &set_version,
+            &build_version,
+            "control-untampered",
+        )
+    };
+    let produced_now = attest_now(&control_dir);
+    assert!(
+        produced_now == expected_now,
+        "STALE FIXTURES: the producer at {build_version} no longer emits the control's \
+         committed bytes (generated at {set_version}) apart from the version literal. \
+         Regenerate the set: cargo build --release --locked -p spec-spine-cli && \
+         python3 crates/spec-spine-core/fixtures/verifier/generate.py (spec 103 §3.9, D-12). \
+         Produced now:\n{}\nCommitted, carried to {build_version}:\n{}",
+        String::from_utf8_lossy(&produced_now),
+        String::from_utf8_lossy(&expected_now)
+    );
+
+    // Every outcome the shipped verifier actually produced, per case. §3.8.5
+    // and §3.8.6 are judged over this map, never over what a case.json
+    // expected or how many ids the index listed.
+    let mut observed_by_case: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    let mut record = |id: &str, reason: &str| {
+        observed_by_case
+            .entry(id.to_string())
+            .or_default()
+            .push(reason.to_string());
+    };
 
     for id in &listed {
         let case_dir = dir.join(id);
@@ -296,64 +381,111 @@ fn the_fixture_set_describes_the_shipped_verifier() {
             "{ctx}: corpus/ is present exactly when needsCorpus is true (§3.3)"
         );
 
-        let (code, json) = verify(&case_dir, needs_corpus);
-        let observed = observed_reason(&json);
-        executed += 1;
-
-        // §3.7: the version rule. Both branches assert; neither skips.
-        let case_tool = str_at(&case, "toolVersion", &ctx);
-        let version_bound = needs_corpus && case_tool != build_version;
-        if version_bound {
+        let case_tool = str_at(&case, "toolVersion", &ctx).to_string();
+        // A case attested under a version other than the set's is a deliberate
+        // version case, and the only outcome it may declare is version-mismatch.
+        if case_tool != set_version {
             assert_eq!(
-                observed, "version-mismatch",
-                "{ctx}: attested under {case_tool}, verified by {build_version}; \
-                 FR-005 requires a named version outcome, never a false content \
-                 mismatch and never a skip-as-pass. Got {json}"
+                want_reason,
+                Some("version-mismatch"),
+                "{ctx}: attested under {case_tool}, not the set's {set_version}, so it \
+                 must declare version-mismatch"
             );
-            let report = &json["report"];
-            assert_eq!(report["expected"], case_tool, "{ctx}: {json}");
-            assert_eq!(report["actual"], build_version, "{ctx}: {json}");
-            assert_eq!(code, 1, "{ctx}: {json}");
-            // What the verifier produced, not what case.json expected: only an
-            // observed outcome counts toward §3.8.5.
-            reasons_seen.insert(observed.clone());
+        }
+
+        // §3.7's first branch: the case's own expectation, observed. A
+        // recompute case generated under the set's version is carried to this
+        // build (D-12), so every declared outcome is observed at every version.
+        let first_branch_payload =
+            (needs_corpus && case_tool == set_version && set_version != build_version).then(|| {
+                at_version(
+                    &std::fs::read(case_dir.join("payload.json")).unwrap(),
+                    &set_version,
+                    &build_version,
+                    &ctx,
+                )
+            });
+        let deliberate_version_case = needs_corpus && case_tool != set_version;
+        if deliberate_version_case {
+            // The version-mismatch case keeps its committed version: that
+            // difference is the case.
+            let (code, json) = verify(&case_dir, needs_corpus, None);
+            let observed = observed_reason(&json);
+            assert_eq!(observed, "version-mismatch", "{ctx}: {json}");
+            assert_eq!(
+                json["report"]["expected"],
+                case_tool.as_str(),
+                "{ctx}: {json}"
+            );
+            assert_eq!(
+                json["report"]["actual"],
+                build_version.as_str(),
+                "{ctx}: {json}"
+            );
+            assert_eq!(code, want_exit, "{ctx}: exit code. {json}");
+            record(id, &observed);
         } else {
+            let (code, json) = verify(&case_dir, needs_corpus, first_branch_payload.as_deref());
+            let observed = observed_reason(&json);
             let want = want_reason.unwrap_or("accepted");
             assert_eq!(
                 observed, want,
                 "{ctx}: expected {want}, observed {observed}. {json}"
             );
             assert_eq!(code, want_exit, "{ctx}: exit code. {json}");
-            if observed == "accepted" {
-                accepted_seen = true;
-            } else {
-                reasons_seen.insert(observed.clone());
-            }
+            record(id, &observed);
+        }
+
+        // §3.7's second branch: the committed bytes, attested under another
+        // build, are a named version outcome, never a content mismatch and
+        // never a skip.
+        if first_branch_payload.is_some() {
+            let (code, json) = verify(&case_dir, needs_corpus, None);
+            let observed = observed_reason(&json);
+            assert_eq!(
+                observed, "version-mismatch",
+                "{ctx}: attested under {set_version}, verified by {build_version}; \
+                 FR-005 requires a named version outcome, never a false content \
+                 mismatch and never a skip-as-pass. Got {json}"
+            );
+            assert_eq!(
+                json["report"]["expected"],
+                set_version.as_str(),
+                "{ctx}: {json}"
+            );
+            assert_eq!(
+                json["report"]["actual"],
+                build_version.as_str(),
+                "{ctx}: {json}"
+            );
+            assert_eq!(code, 1, "{ctx}: {json}");
+            record(id, &observed);
         }
     }
 
-    // ---- §3.8.5: every declared reason is exercised ------------------------
-    let unexercised: Vec<&String> = closed_reasons.difference(&reasons_seen).collect();
+    // ---- §3.8.6: every listed case produced a verifier outcome -------------
+    let observed_ids: BTreeSet<String> = observed_by_case.keys().cloned().collect();
+    assert_eq!(
+        observed_ids, listed_set,
+        "cases with no observed verifier outcome, or outcomes for unlisted cases"
+    );
+
+    // ---- §3.8.5: every declared reason was produced by the shipped verifier -
+    let reasons_seen: BTreeSet<String> = observed_by_case.values().flatten().cloned().collect();
+    let unexercised: Vec<&String> = closed_reasons
+        .iter()
+        .filter(|r| !reasons_seen.contains(*r))
+        .collect();
     assert!(
         unexercised.is_empty(),
         "the shipped verifier ({build_version}) produced no case with these declared \
          reasons: {unexercised:?}. A closed set with an unexercised member is a \
-         vocabulary nobody tested. If the recompute cases were attested under \
-         another build, they all observed version-mismatch: regenerate the set with \
-         crates/spec-spine-core/fixtures/verifier/generate.py (D-11)."
+         vocabulary nobody tested."
     );
     assert!(
-        accepted_seen,
+        reasons_seen.contains("accepted"),
         "no case was observed as accepted under {build_version}: the control did \
          not run on §3.7's first branch, so the suite of refusals asserts nothing \
-         about what a valid payload does. Regenerate the set (D-11)."
-    );
-
-    // ---- §3.8.6: the loop actually ran ------------------------------------
-    assert_eq!(
-        executed,
-        listed.len(),
-        "executed {executed} of {} listed cases",
-        listed.len()
+         about what a valid payload does."
     );
 }

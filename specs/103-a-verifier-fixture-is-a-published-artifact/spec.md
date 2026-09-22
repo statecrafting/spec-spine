@@ -268,20 +268,41 @@ build and returns `version-mismatch` when they differ, before any content
 comparison (spec 021 FR-005). A committed positive control therefore stops
 producing `accepted` the moment this repository releases again.
 
-The harness MUST resolve this by asserting, never by skipping:
+The set's **generation version** is the control's `toolVersion`: the control is
+verbatim producer output, so it names the build that generated the set. A case
+whose `toolVersion` differs from it is a deliberate version case and MUST
+declare `version-mismatch`.
 
-- when `case.toolVersion` equals the verifying build, the recorded
-  `expect` MUST hold;
-- when it differs, the outcome MUST be exactly `version-mismatch`, with
-  `expected` equal to `case.toolVersion` and `actual` equal to the verifying
-  build.
+The harness MUST resolve a difference between the generation version and the
+verifying build by asserting, never by skipping, on both of these branches:
 
-Both branches assert. The second is not a weakened form of the first: it is
-FR-005's own contract, that a version difference is a named outcome and never a
-false content mismatch and never a skip-as-pass.
+- **the first branch, the case's own expectation.** When the generation
+  version equals the verifying build, the committed bytes are verified and the
+  recorded `expect` MUST hold. When it differs, each recompute case generated
+  under it is **carried** to the verifying build: its one `"version": "<g>"`
+  literal is replaced by the build's (exactly one occurrence, or the harness
+  fails), and the recorded `expect` MUST hold for the carried bytes. Every
+  declared outcome is therefore observed at every version.
+- **the second branch, FR-005.** When the generation version differs, the
+  committed bytes of each such case MUST also be verified as they are, and the
+  outcome MUST be exactly `version-mismatch`, with `expected` equal to the
+  generation version and `actual` equal to the verifying build.
+
+The second branch is not a weakened form of the first: it is FR-005's own
+contract, that a version difference is a named outcome and never a false
+content mismatch and never a skip-as-pass.
 
 Cases whose refusal happens before the recompute (`needsCorpus: false`) are
-version-independent and take the first branch always.
+version-independent and take the first branch as committed.
+
+**The set must still describe this producer (D-12).** Before any case runs, the
+harness MUST attest the control's corpus with the shipped producer and compare
+the result, byte for byte, to the committed control with its version literal
+carried to the build. Any other difference means the producer's output has
+changed and the set no longer describes it: the harness MUST fail, and its
+message MUST say `STALE FIXTURES` and name the generator command. A version
+bump alone changes only the literal, so it needs no regeneration; a change to
+what the producer emits needs one, in the change that made it (§3.9).
 
 ### 3.8 The set describes the shipped verifier, and is proven to
 
@@ -299,9 +320,13 @@ shipped verifier fails the build.
    added without being listed, or listed without existing, is a failure rather
    than a silent omission;
 4. the control case is present and is a `producer` case;
-5. every reason in the index's closed set is exercised by at least one case,
-   and every case's reason is in the closed set;
-6. the number of cases actually executed equals the number listed.
+5. every reason in the index's closed set was **produced by the shipped
+   verifier** for at least one case, and an `accepted` was produced too, and
+   every case's declared reason is in the closed set. What a `case.json`
+   expects never counts toward this; only an observed outcome does (D-11);
+6. every listed case produced at least one observed verifier outcome, judged
+   over the map of observed outcomes by case id and not over a loop counter
+   (D-13).
 
 An empty or partial walk that asserts nothing is the failure mode this
 repository has already met more than once, and clauses 2, 3 and 6 are there
@@ -331,6 +356,23 @@ is a deterministic extraction route with a digest (the `.crate` SHA-256).
 read as a publication claim: the archive above exists locally until a release
 uploads it, and spec 104's record is where a packaged artifact's digest is
 written down.
+
+**Regeneration, and the coupling it implies.** The generator is deterministic:
+re-running it over an unchanged producer rewrites the same bytes. It is needed
+only when §3.7's currency check fails, which is when a change alters what the
+producer emits for the control's corpus (for example, a registry-schema MINOR
+that restamps shards). That change regenerates the set in the same pull
+request, and because the set is this spec's territory, it declares so: an
+`extends` edge on `crates/spec-spine-core/fixtures/verifier/` naming this spec,
+nature `corrective`, in the spec that changed the producer. That is an
+ordinary authority path, not a waiver. A version bump does not regenerate the
+set and does not touch it (D-12).
+
+**The set's version is not the crate's version.** The set declares the
+producer version that generated it (the control's `toolVersion`). A crate
+published at a later version may carry a set generated earlier; the harness
+proves, at that crate's own build, that the producer still emits the committed
+bytes apart from the version literal.
 
 Nothing here promises that a consumer's verifier is correct. It promises that a
 consumer's verifier can be **tested against the same bytes, the same corpora
@@ -422,7 +464,8 @@ happens at every release: until the set is regenerated, the version rule keeps
 the harness honest, and regenerating puts the recompute cases back on the
 first branch.
 
-**D-11 (2026-09-22, review: "exercised" means observed).** The first harness
+**D-11 (2026-09-22, review: "exercised" means observed).** *Its consequence
+for version bumps is superseded by D-12; the observed-coverage rule stands.* The first harness
 put a reason into §3.8.5's coverage set as soon as a `case.json` expected it,
 before the verifier ran. With a set attested under another build, every
 recompute case takes §3.7's second branch and observes `version-mismatch`, so
@@ -436,6 +479,45 @@ owner and the release runbook: after a version bump, `cargo test` fails until
 the set is regenerated. Regenerating writes under this spec's fixture
 directory, so the bump change touches territory this spec owns. The alternative
 was to keep a coverage check that passes while three outcomes go untested.
+
+**D-12 (2026-09-22, owner review: a version bump does not regenerate the
+set).** D-11 left a release consequence: after every version bump `cargo test`
+failed until the set was regenerated, and regenerating wrote under this spec's
+territory, so every bump pull request would have crossed it. The only ways
+through were an edit to this spec or a waiver, at every release, which is a
+standing requirement for a blanket waiver in all but name. The payload's only
+member that depends on the tool version is `tool.version`: `registryHash`,
+`inputsManifestHash` and `findingsHash` are over the corpus, and no registry
+shard carries the tool version (checked by search). So between two builds
+whose producers are otherwise identical, the committed bytes differ only in
+that literal and in each case's `attestationHash` over them. The 0.21.0 to
+0.22.0 set also moved `registryHash`, which is exactly the content drift the
+currency check exists to catch. So the harness now carries that one literal to
+the build under test (§3.7's first branch), keeps FR-005's assertion on the
+committed bytes (the second branch), and adds a currency check that fails as
+`STALE FIXTURES` when anything else differs. Evidence, at this build
+(0.22.0):
+
+- the current set passes;
+- the same set with its version literal rewritten to `0.21.99` (a simulated
+  pure bump) passes, with every declared reason and `accepted` observed on the
+  carried bytes;
+- the 0.21.0 set from `13c3ccd8`, whose `registryHash` also differs, fails
+  with `STALE FIXTURES` and the generator command;
+- removing `duplicate-key` from the index only fails the same-set guard, and
+  removing it from both the index and the disk fails §3.8.5 naming
+  `duplicate-key`.
+
+The generator's duplicate-key splice now copies the producer's own line,
+indentation included, rather than assuming two spaces; its output is
+byte-identical today.
+
+**D-13 (2026-09-22, review: §3.8.6 judged over observations).** The harness
+counted loop iterations, which in Rust can only differ from the listed count
+by panicking first, so the assertion could not fail. It now builds a map from
+case id to the outcomes the shipped verifier produced, and §3.8.5 and §3.8.6
+are both judged over that map: every listed id must have an observed outcome,
+and the declared reasons must appear among the observed ones.
 
 ## Verification
 
@@ -460,9 +542,14 @@ test -d crates/spec-spine-core/fixtures/verifier/minor-ahead-content-mismatch
 test -d crates/spec-spine-core/fixtures/verifier/duplicate-key
 # 3.4: the payload type name is owned here and is not a path or a verb.
 grep -q 'spec-spine/corpus-attestation' crates/spec-spine-core/fixtures/verifier/index.json
-# 3.8: the whole set is executed against the shipped verifier, with the
-# non-empty, same-set, closed-reason and executed-count guards.
+# 3.7, 3.8: the whole set is executed against the shipped verifier, with the
+# currency check, both version branches, and the non-empty, same-set,
+# observed-reason and observed-case guards.
 cargo test -p spec-spine-cli --test verifier_fixtures --locked
+# 3.7, D-12: the currency check exists and names the generator.
+grep -qF 'STALE FIXTURES' crates/spec-spine-cli/tests/verifier_fixtures.rs
+# 3.9: the set ships in the producer crate's package (29 files today).
+test "$(cargo package -p spec-spine-core --list --locked --allow-dirty | grep -c '^fixtures/verifier/')" -ge 29
 # The governed loop over the corpus this spec is part of.
 ./target/release/spec-spine check --fail-on-unresolved --fail-on-warn
 ./target/release/spec-spine lint --fail-on-warn
