@@ -18,8 +18,10 @@ extends:
     unit: { kind: file, path: "docs/api.md" }
     nature: additive
   # 3.3: the claimed file has to be hashed, and the hashed-input list lives in
-  # the configuration, which specs 061 and 092 own. Crossing into their
-  # territory is declared here rather than waived.
+  # the configuration. `spec-spine.toml` is owned by specs 061 and 092; one
+  # declared crossing is what the gate asks for, because it makes this spec a
+  # co-owner of the unit. The edge below names 061 and is declared rather than
+  # waived. A second edge naming 092 would add no authority and no clearance.
   - spec: "061-shipped-is-not-the-same-as-working"
     unit: { kind: file, path: "spec-spine.toml" }
     nature: additive
@@ -116,8 +118,12 @@ Conflating the two would let a schema bump ride into the corpus as a bug fix.
 content hash, and `lint --fail-on-warn` is in the gate. It is added to
 `[index] extra_hashed_inputs` in the same change, which means this spec also
 crosses into `spec-spine.toml`, owned by specs 061 and 092. That crossing is
-declared as an `extends` edge in this spec's own frontmatter, which is the
-route spec 005 offers and the one that needs no waiver.
+declared as an `extends` edge on 061 in this spec's own frontmatter, which is
+the route spec 005 offers and the one that needs no waiver. One edge is the
+whole declaration: an `extends`-carried unit is a first-class claim, so it
+makes this spec a co-owner of `spec-spine.toml`, and `C-001` clears on an
+authoring edit to any owner rather than to every owner. A second edge naming
+092 would add no authority and no clearance.
 
 Adding the glob restales every shard, which is a regeneration and not a problem.
 It is the cost the rule exists to impose, and a governed sentence whose bytes
