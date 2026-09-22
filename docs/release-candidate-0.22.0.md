@@ -811,12 +811,24 @@ directory", is **not supported**: the release-profile output directory that
   every `stdlib-symbols.txt` in this machine's build directories has an mtime
   and birth time of **2006-07-23**. A file born seconds earlier therefore looks
   twenty years old to the cleaner.
-- Cargo does not fingerprint a build script's outputs, so nothing rebuilt the
-  missing file and every later compilation of `tree-sitter` failed.
+- Cargo does not re-check a build script's output files once the script has
+  run, so nothing rebuilt the missing file and every later compilation of
+  `tree-sitter` failed. **Reproduced**, with cargo 1.92.0 (the pinned
+  toolchain) in a fresh target directory outside the temporary tree:
+  `cargo build -p tree-sitter@0.27.0 --locked`, then delete
+  `debug/build/tree-sitter-*/out/stdlib-symbols.txt`, then build again. The
+  other files in that `out/` survive, the build script is not rerun, and the
+  recompile fails with the first run's message verbatim:
+  `error: couldn't read .../out/stdlib-symbols.txt: No such file or directory
+  (os error 2)`, then `could not compile tree-sitter (lib)`. A rerun fails the
+  same way, so the state does not repair itself.
 
 The second run started at 03:42, after the cleaner, and was not affected; it is
 a run after an identified environment change, not a retry of an unchanged one.
-Not done: invoking the cleaner deliberately to reproduce the deletion, which
+So the Cargo half is reproduced. The deletion half is inferred from the
+cleaner's schedule, its logged run inside the window, and the files'
+timestamps: the per-spec logs that would show the order of events are gone.
+Not done: running the cleaner deliberately to reproduce the deletion, which
 needs privileges this session does not use. The bounded remedy, a default run
 directory outside the purged temporary tree and unique per run so a rerun can
 never clear an earlier run's evidence, is part of spec 119.
