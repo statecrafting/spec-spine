@@ -1,16 +1,16 @@
 {
   "mapping": {
     "dependsOn": [
-      "001-compile-registry",
-      "046-depends-on-ordinal-monotonicity"
+      "093-the-harness-this-repository-runs",
+      "094-one-gate-and-the-boundaries-it-holds"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-core/src/compile.rs",
+        "path": "Makefile",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/compile.rs",
+        "path": "crates/spec-spine-core/tests/gate_binary.rs",
         "source": "spec-edge"
       }
     ],
@@ -18,46 +18,46 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/compile.rs"
+            "file": "crates/spec-spine-core/tests/gate_binary.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate_binary.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Makefile"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/compile.rs"
+          "path": "Makefile"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/compile.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/compile.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/design/00-architecture.md"
+            "file": ".githooks/pre-commit"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/00-architecture.md"
+          "path": ".githooks/pre-commit"
         }
       }
     ],
-    "specId": "059-a-malformed-id-is-refused-not-a-panic",
-    "specStatus": "approved"
+    "specId": "117-the-gate-resolves-the-binary-it-documents",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "c9ad8bae03349d4874a2f9fec694a428bd01a92147e766b4cc64d2bc08c49413"
+  "shardHash": "fabcff4080d428a70bfe2191ec601c20273de781dd39c08e1ba22b37d8f2d9d8"
 }

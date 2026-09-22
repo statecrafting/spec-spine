@@ -1,0 +1,60 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "093-the-harness-this-repository-runs",
+      "094-one-gate-and-the-boundaries-it-holds"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/gate_binary.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": "Makefile"
+        }
+      }
+    ],
+    "id": "117-the-gate-resolves-the-binary-it-documents",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/pre-commit"
+        }
+      }
+    ],
+    "sectionHeadings": [
+      "117: The gate resolves the binary it documents",
+      "1. Purpose",
+      "1.1 What it cost, measured",
+      "1.2 Why this is its own spec",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The documented order is the implemented order",
+      "3.2 An unusable explicit override is refused, never substituted",
+      "3.3 The gate announces the binary it resolved, and its version",
+      "3.4 What does not change",
+      "3.5 The selection is tested by executing distinguishable binaries",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/117-the-gate-resolves-the-binary-it-documents/spec.md",
+    "status": "draft",
+    "summary": "The root Makefile's header documents a binary-resolution order preferring the binary this checkout builds, and its assignment implements none of it: `SPEC_SPINE ?= spec-spine` is the PATH fallback and nothing else, so `make gate` on a machine with an installed CLI governs with whatever that CLI is. Measured here at three releases behind the checkout. The assignment is corrected to the order the header states, an unusable explicit override is refused rather than silently replaced, and the resolved binary and its version are announced before the chain runs.\n",
+    "title": "The gate resolves the binary it documents"
+  },
+  "shardHash": "33d235464c55bb042e63525b6dfced8fd18132115f75570e194937906aa5f01e",
+  "specVersion": "1.3.0"
+}
