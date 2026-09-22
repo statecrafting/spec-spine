@@ -39,6 +39,17 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "037-amendment-authoring": "9bfbb4da4029037ba10750569a2ca5949e102fc485848399ab78718d58026259",
+      "1-purpose": "adf42b689a77ad49008cc1ac75fab455348b7b13f3403e080fc53391a98c1586",
+      "2-territory": "df92007b76d9976341ff75fd83ade78271b3c936cad05b94377a0e3ca5d3c70b",
+      "3-1-the-rule": "c9027c28ed788ebb2503b3df8198a26e1d0022bf2d319d9803f9a311ea5a9991",
+      "3-2-why-the-predecessor-is-not-edited": "a740c2e6196c878dafe514ddab52648e9fa9f5d426329cdfe7f7ab11bbffd798",
+      "3-3-discovery-is-a-compiled-read-not-a-prose-pointer": "18fb688655786e8481d0a34b295bf4339e581a9da6fc55104543026376f8c600",
+      "3-4-the-gate-half-is-unchanged": "cd8add85b27a998497444da42d70ca3811d8e6506bce5418fee99826c59db02f",
+      "3-behavior": "12ee965711441d858841d17a4f3e3f3ea42451670aab820ebf356241fdb2a628",
+      "4-out-of-scope": "61829c96bc9c31a2b8a87e10c7477b2654e4d9f3d000a8ea19470afcc22c8bb9"
+    },
     "sectionHeadings": [
       "037: Amendment authoring",
       "1. Purpose",
@@ -56,5 +67,5 @@
     "title": "An amendment is declared once, in the amending spec"
   },
   "shardHash": "9bfc477c5de753615e47f6c3d2f585eb18bd68ac4fd5f63c24ed3e7440295018",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

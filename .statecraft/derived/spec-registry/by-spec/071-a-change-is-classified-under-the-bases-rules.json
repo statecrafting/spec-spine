@@ -139,6 +139,23 @@
       }
     ],
     "risk": "high",
+    "sectionDigests": {
+      "071-a-change-is-classified-under-the-base-s-rules": "e0e5e93fcc73da043d0a0eef7b469721baf6888391fb99f86c2f841fd59dfff8",
+      "1-purpose": "2e6d63a0665c486f8e7b69a5b9ff3e1f1193a59f0a4c99299589dbc623919358",
+      "2-territory": "ea694189228d97a9c7f9bc26bc656dc24d6fdd01807cbe88f310fb45824843ad",
+      "3-1-the-verb-and-the-seam": "cf1bd40895a2f19a28af924bbd845404d7b23504171fdf40a096f37b26e28a79",
+      "3-2-the-base-s-rules-classify": "e5b3ff4a6177b369b4491d770939d0ae317e7fe6f407877ee8d7bf8df2475f1e",
+      "3-3-classes": "75e33c3f1c80a494126b023856a468c0a1f7c093d4face6a192cacf82f2730fe",
+      "3-4-detail-carried-per-class": "df09310f1ed17d53ead5f2409c7b68e12d3fc2d0109f04997e7fa7c56508dd63",
+      "3-5-prior-policy": "1040bb9a6043d7d0c4a601935d901b69ec918e7db232efc427000406d3a25666",
+      "3-6-report-and-versioning": "8f89fab6a861789c986d6a7eb18b4949276e44b68b983d5dfdaab259d20a77f5",
+      "3-7-what-it-does-not-claim": "18ddaea7490c1bd14a2f18863b53d751d2ab7e07b13bb609342e1003b564e683",
+      "3-8-tests-minimum": "1ff133716f946640709d238a86fbf102a4c503849aec8cf71c8942d1ac106644",
+      "3-behavior": "3dd8ada7344d9b3e335a137f9ecccc1d8743b6d5a759df3f7086f5efc9c1a694",
+      "4-out-of-scope": "19ac446cace0e9d0493494a2d2ea5f99f9f74a2a1adf162b8edd81d7a9b999dc",
+      "5-resolved-decisions": "7a48ca2970b5a1d40a24efeb62633f1347b6155095b4f3faed0d2b335afd1e44",
+      "verification": "187b5c99c801e20d7eefb638b1b67bf17c83a2e29332dee6c894c16a319b298c"
+    },
     "sectionHeadings": [
       "071: A change is classified under the base's rules",
       "1. Purpose",
@@ -162,5 +179,5 @@
     "title": "A change is classified under the base's rules"
   },
   "shardHash": "cd5644d6b43c0d523c2ea36fb03445ee1664ae9bb985581c891c787b8986088b",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

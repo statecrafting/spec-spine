@@ -50,6 +50,22 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "080-an-unresolved-claim-exits-as-a-validation-failure": "4323b1ff32cab7d4fcc375be6c5e0e90e6320274e2ffbcf3f5906c0e9caba6a2",
+      "1-1-the-verb-contradicts-itself": "f2a1bb798bbcd264ceefcc4fa88590deaf762f55ec6e1bfdd3f8cc33ec058bc7",
+      "1-2-why-the-code-matters-more-than-it-looks": "9dcda60fa7330fa04c04b9b3ef8915fec06ecc70b4025a24fbd85482cf539809",
+      "1-3-why-this-needs-an-amendment-rather-than-a-fix": "12006ed542ed4088a19abd7ca602a0d215b65130903531e255e5967865c14513",
+      "1-purpose": "482e9f6f3257fc85dabfb4a3ffbdb62de5941f85d746d4c2a03f21f6573cc80a",
+      "2-territory": "983d0277fc97d7fc51d52250133b5f0824ab3ebaba0c9bf8210bcaf8023bec7d",
+      "3-1-check-spends-1-on-an-unresolved-claim": "4c091794c533a74898e10e404ffc0add006c059a18af6cd8d78bc1e3fdb1bb45",
+      "3-2-index-check-spends-1-on-the-same-fact": "d4d5dce6101bde29cd00cba3d9639a99a1c6ea5a85e2e47f59924f6b506ed274",
+      "3-3-nothing-else-moves": "da86fecae62ddad8584fb79d21d987ddea0f7c903b7a2c754280cfba28804cb9",
+      "3-4-the-acceptance-is-the-reproduction": "5d41e859e611b6c86077749a7188054ce4779723bc8bfbbc97e8652a1f6afe33",
+      "3-behavior": "be56759e373ab524acbea477dd38b70af24ac0e688f5f6714d5ffa5c6e214102",
+      "4-out-of-scope": "30152da5662979102bd9b9f5de8557e4047a28b7d33ba45437a38a8f3782ae57",
+      "5-resolved-decisions": "ba83e46bc107dbe99ae783ed55ad6285c299340648279cedacb750344781ab0a",
+      "verification": "dc8144be43adf023a38d94b335f53eac72aa350bdb6f0e5d17a7d205f5f99578"
+    },
     "sectionHeadings": [
       "080: An unresolved claim exits as a validation failure",
       "1. Purpose",
@@ -72,5 +88,5 @@
     "title": "An unresolved claim exits as a validation failure"
   },
   "shardHash": "d7a7b632e562d5509771c8678c75ac4a2fb3161d9e7321ebd8215fa49b904ac0",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

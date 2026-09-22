@@ -54,6 +54,26 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "073-a-mode-only-or-binary-change-is-a-change": "489a639d458f72486ada7dfdc0b97db3d62b81c598829bdc9d1b3811198d84d7",
+      "1-1-the-parser-reads-spans-and-infers-membership-from-them": "df18569a905e1cd20389fca3e48c42482b4caec31c25b5a806bedaf29cbb1571",
+      "1-2-git-prints-no-header-for-two-real-change-shapes": "fb9f0a6180418c245254606a29f9796d92cf1cc426d02382dda141e21302b4cd",
+      "1-3-the-workaround-already-in-the-tree": "b11dd0efa3c536ac79824bac2698f747f8760351deb71c9ba66d26c0df205890",
+      "1-4-why-the-name-list-is-the-authority-for-membership": "4ec515b3aab1d5f6d3e5330904021a7d6d4ef9b57c2682ec5825355ec16bada2",
+      "1-purpose": "f285f15ed6996b0aa7e333dbf9b1736cf57a8ea9047ddcdb97c1d80bcc0c1be6",
+      "2-territory": "3a5946abc7b3b1d8f1fa3db199b5fdae4b1665d3a8694bc00ff46ad0f36caea9",
+      "3-1-the-union": "6be1a2ea786dcd754d9d72f6e8ea463182b74ad1896512fc94acb2df2fc47bd3",
+      "3-2-deletion-is-read-from-the-status-letter": "4a41353edb62b77e662fea5bdd6ebf200aa1d861d614838a731e3c2aa1a05d9e",
+      "3-3-one-git-invocation-shape": "baac4e83f6f98e86aee435978e5ae0c7334f2268a87be68455aaa0f1a7396a5a",
+      "3-4-what-a-whole-file-entry-means-to-the-clearance-rules": "fcf253ab7d4ed06cb4f614d59ec9606c4ebd3c1b1b59d04d3d8d1faeb28b0f56",
+      "3-5-paths-from-is-unaffected": "abaf5722680247c96ecab1e46c4876e76d29731eb6690de9469332c7398ebb92",
+      "3-6-the-refusal-this-adds": "0b16699675360ffccc8470355373a3598e14440d99d00d4d74bec9ff167c8246",
+      "3-7-the-tests": "0eb9a4277016cf2314103abcb6c6c8544140af4fb76218c5942211b188f1b1ce",
+      "3-behavior": "a569406288f30f8b960ecef4f3cb450ad5984b58d1ba48bf7f76ca648124f27b",
+      "4-out-of-scope": "42bcb8c6625fdc573144e0dd8ca2f8f9e3aff0911fadb378ffacc606ae013011",
+      "5-resolved-decisions": "cc694a9f4f03376d085d5e56cf109e0cbbbac093bf9768c9240fd50bcda781b1",
+      "verification": "ed3a34f2766cc7dca68f2154ea6eb52a6e6f1a1d9d8cf6e138206d995210ff4f"
+    },
     "sectionHeadings": [
       "073: A mode-only or binary change is a change",
       "1. Purpose",
@@ -80,5 +100,5 @@
     "title": "A mode-only or binary change is a change"
   },
   "shardHash": "e4a3c4ace9c5b0272af68eeaf79d6855b10383e9af0766cac1e98b0a26565ab4",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

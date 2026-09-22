@@ -71,6 +71,23 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "044-index-diagnostics-reach-a-gate": "ce93bac8e7fd833406b00fd057fd0d26d25fea6d902b76d6b7d1ee1ee71d3e45",
+      "1-1-the-exact-shape-of-the-gap": "02a7a36556bce160aaad0e4d085dde191d01fba8b766a3158badd1e3c479a9a8",
+      "1-2-the-asymmetry-is-with-the-error-tier-not-with-severity": "46a347d7d4f470d0dd2e8d8cb81daae61b9d4e6d23d7432a0daadaee192941b2",
+      "1-3-what-248-invisible-warnings-cost": "ced35df83a42b93de7f37f2bf3d3cda3904cd2fd49315ac15401e6d533dff5aa",
+      "1-purpose": "427b21c534195b9b828faa3f77d1511f5dcc5818f0809ff081ed97e1af036eac",
+      "2-territory": "d2198099b0da225841e4ddaf76e5e83d6b94349422e3548f86588e7181f62355",
+      "3-1-index-check-reports-the-counts-it-already-holds": "1ed90643c2634e9f2d80d8171a1cd5afec303a302d40eedd581047a23fabf2ec",
+      "3-2-fail-on-unresolved-is-opt-in": "a7fe2fe9c851e40586ce88c92f3deb7b14ebe7ab1c34c48cccafe828bfe7c379",
+      "3-3-staleness-outranks-unresolution": "9cb279dd7adc6ecd65e5c0b8fe83e32b1db3e82bb96f289e0be57d9d4de26aa7",
+      "3-4-index-diagnostics-lists-them": "f6368ae6473a0ca4ae62a00dd0308f4837e995a05a6cad2dd58be2369123e4f6",
+      "3-5-everything-reads-the-committed-shards": "478e9a26166e2833df3359605af26e9fc3c0f1f3c0326033f57555debd7a314b",
+      "3-6-the-envelope-version-does-not-move": "194be42ccebb900d8846eaca29c39c1f6d84b213aba67345ec297f45922392ed",
+      "3-behavior": "4df46a7f5e40f95cca224adf638cd242dd9740ee30573adfb9908dc58c170bdf",
+      "4-out-of-scope": "3ef9d10ad0b153926a44a9a6846cd4cc86d1b8c86fd9877e9bac36fe264c8ae1",
+      "5-verification": "0f9066b16b26d6f45b749f1989be45789ca06e5507f606066215057083b30c7d"
+    },
     "sectionHeadings": [
       "044: Index diagnostics reach a gate",
       "1. Purpose",
@@ -94,5 +111,5 @@
     "title": "Index diagnostics reach a gate"
   },
   "shardHash": "f7c8acdc9b2312536eac93a70307d85c73d26cf677d4ef81d42493ce3bfa0561",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

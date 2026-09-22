@@ -36,6 +36,17 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "92145d3bccbf578f97255c3c59ca84ffb4e23fc91be196359ad0c6e0d243db35",
+      "120-a-scoped-sweep-judges-the-binary-the-blocks-name": "605c5f1531f0513cb8a3f7f75d7879873c78f9dde9f4149941d7d00d6108e26c",
+      "2-territory": "abba183841db6a938bacff8f700ff5e7531a3d62a7dfd26613297b974ae4406a",
+      "3-1-the-sweep-builds-the-binary-it-judges": "79ad6bbd77978ace040f4ba7361001ec8bef1b61136c2131763aac8794ed2f15",
+      "3-2-nothing-else-about-the-workflow-moves": "6d1154f0ab909e443b418bcb2db6fb94a03ca82c3ff2ec407e621e0ed2098eeb",
+      "3-behavior": "dc0ee7c58563960dfd14a298da6e9815b96637468ca8d95895c4ab9d52ba435a",
+      "4-out-of-scope": "0360bd4ae42535a3a5561f9bed805ca4c2d1d8f032cecbb0268967498d108ac6",
+      "5-resolved-decisions": "657cb96beeb57b684b9bd4782fa51a4ef266dbb480799f033b25e16285b5e301",
+      "verification": "ba48101277342bd366f27d87aab529299a90af9e838711acbaafab75875ecf71"
+    },
     "sectionHeadings": [
       "120: A scoped sweep judges the binary the blocks name",
       "1. Purpose",
@@ -53,5 +64,5 @@
     "title": "A scoped sweep judges the binary the blocks name"
   },
   "shardHash": "c10bb7296d1a7e24488b670cb7c7d30c8ffc0fdb7c7639579b81ba9a36118cac",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

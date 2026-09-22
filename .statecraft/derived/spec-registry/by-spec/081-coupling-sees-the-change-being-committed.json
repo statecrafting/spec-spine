@@ -52,6 +52,24 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "081-the-coupling-gate-can-see-the-change-being-committed": "638bc3ffce10bdd90ea354850d04f572b463581ca9481082b4f4dce6d6a1b010",
+      "1-1-a-gate-that-reports-on-nothing-reports-a-pass": "fe9d72bda5eef3d0e4b042ec1e4d97b8829587420a2e8842b57ec7e8f228fac2",
+      "1-2-two-out-of-scope-clauses-pointing-at-each-other": "a205c4e7bbe4864ed09fe956f37ad31c20554e66db5d8b52e4cf38aed828f35b",
+      "1-3-why-the-fix-belongs-in-couple-and-not-in-the-harness": "38e47e59f26babf96d2f61c8ff7c32fa3107158dd73278e70f0ca500e7d28f49",
+      "1-purpose": "62b304b469962cbf422e9e3e5166639f2a913ca5802bca762034f023b92d30d6",
+      "2-territory": "9dd61443dcb8f8fa7325445d9987bcfa847d8f2deb01ec671ccc9fd894d9d600",
+      "3-1-include-uncommitted-adds-the-working-tree-to-the-range": "d07eaced5a164a4c93f933f510f5692bbba9c72c3456886199296daca6f692b1",
+      "3-2-untracked-files-are-out-and-that-is-not-a-gap": "06469aec97d6b09b26eaa161a98957feaf4f905b7708258bf5910b30a198b0bf",
+      "3-3-the-flag-is-meaningful-only-against-head": "71bbaf0da08e0d8d36ae78a6d37fea1c49b17135074fc4e608f93868cab46822",
+      "3-4-the-default-does-not-move": "8a9b0244bf6f8bac67ff8da607d11a332c08f536bab2a353e3c2cbc0bb7dd559",
+      "3-5-what-spec-094-4-now-says": "a26ce0b73bd7431e77b1ccd18b48f047da5d56c25665bc735fd2c025e462ec9f",
+      "3-6-the-acceptance": "503e885e389a3e7f73cea6c9a43c124f6d1542687d075c74ac534f615e0894c2",
+      "3-behavior": "46e6a64d1f63772b8be2a65be8c88035f4bb55f6863a17bf8c0268e9b9504c8e",
+      "4-out-of-scope": "76b306bfdd8e5c0bdb22bbb85447d3c64aaf2b3b458ab9007e6ee3ec95c7f9f7",
+      "5-resolved-decisions": "99af8c98762f52687bc437b2dfa4f77afa2f8724b5205781dcc36f39a1632a24",
+      "verification": "da472ce6de9cdb13421dd9911dd6c48ea8078e5da621ed3954ca5507fc5dbc25"
+    },
     "sectionHeadings": [
       "081: The coupling gate can see the change being committed",
       "1. Purpose",
@@ -76,5 +94,5 @@
     "title": "The coupling gate can see the change being committed"
   },
   "shardHash": "abd03fb520a8c15d8129994818e29e498367b803eeb44ef214f1aef8cfdb5bc6",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

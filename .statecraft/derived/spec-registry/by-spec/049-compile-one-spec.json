@@ -102,6 +102,20 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "049-validate-one-draft-without-a-temporary-repository": "ea9981129d601faa7be2144f5b4101ddbf7ba5614c8107c6832c48d990ca62f0",
+      "1-purpose": "1fde33a2038b493a52a937841b12cbe179cc3c2cd823aa435c9cdb8c18978206",
+      "2-1-the-version-bump-reaches-four-more-files": "671043b53fbd5a94954c8d1afad20ae221138b1c38fbe190432d4b68a0186238",
+      "2-territory": "0747445ce3fe7091f41e6ed38d32e729b0678f669eb3ae7c1202ed5e8b90b9f2",
+      "3-1-spec-spine-compile-spec-id": "424d59be4d3a4731ba53850f91130507e6ad581a4efa3e0b359158c628742d2d",
+      "3-2-it-reports-one-spec-s-violations-and-says-so": "787d6ee08147cc7cff7cf5c9aa462a1b17c12111dd13dd9a30266988026edb00",
+      "3-3-it-resolves-against-the-real-repository": "190317eafa63b0265391918d0eb9a29be2f65e381a9c2bbdbb584e61ba7750e0",
+      "3-4-the-verdict-envelope": "8a0cef63bc3c7d4e2a5c3239d574e8f33f7c897950fa00c3c19e8eecfc0596b3",
+      "3-5-writing-is-still-compile": "92777737074e1d59c63e5213f028e509daef5f18c1bc57cdeb7b9442961cdef4",
+      "3-behavior": "859fcc1d034f73f97eace17a6cdfe096df2355e91a6381a97ad880f884c84821",
+      "4-out-of-scope": "56679788f21510f0dc773e90a82eb87983f9f9af9356bef736ec84197d6e7e1b",
+      "5-verification": "842d8a33e9ef5b42c3bc06fc92ef6a87974889b64f98e8dd1614e5dd848d4d2c"
+    },
     "sectionHeadings": [
       "049: Validate one draft without a temporary repository",
       "1. Purpose",
@@ -122,5 +136,5 @@
     "title": "Validate one draft without a temporary repository"
   },
   "shardHash": "2165e686daa1344c78c9237ecb1ebb06c8cc86f1a4718378b699c5bc42241c08",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

@@ -313,13 +313,21 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
 
 - `config_json` is a JSON object matching `Config`; `"{}"` ⇒ `Config::default()`.
 - `query_json` request: `{ "registry": "<registry.json text>", "op":
-  "list" | "show" | "status-report" | "relationships" | "plan", "id"?: string,
+  "list" | "show" | "status-report" | "relationships" | "plan" |
+  "obligation", "id"?: string,
   "status"?: string, "idsOnly"?: bool, "nonzeroOnly"?: bool }` (the projection
   fields, spec 009, default to `false`). Every answer is a **read document**
   (spec 074): an object with sorted keys and `schemaVersion` =
   `READ_SCHEMA_VERSION`; `list` (with or without `idsOnly`) carries its array
-  under `items`. `plan` (spec 035) returns `{ "ready": [{ "id", "status",
-  "title" }], "blocked": [{ "id", "blockedBy": [{ "id", "state" }] }], ...,
+  under `items`. `obligation` (spec 106) takes `id` as a qualified
+  `<spec-id>#<obligation-id>` and returns `{ "spec", "specPath",
+  "obligation", "sectionDigest", "schemaVersion" }`; an unqualified `id` is a
+  parse error (exit 3), never resolved against a spec. It carries no
+  `contentHash`, because registry text has none; the CLI's `registry
+  obligation` adds it from the committed shard, as `show` does.
+
+  `plan` (spec 035) returns `{ "ready": [{ "id", "status", "title" }],
+  "blocked": [{ "id", "blockedBy": [{ "id", "state" }] }], ...,
   "schemaVersion" }`. A ready entry's `status` (spec 102, read schema `0.2.0`)
   is the spec's `status` as the registry records it, verbatim, so a consumer
   can apply its approval rule from this one document.

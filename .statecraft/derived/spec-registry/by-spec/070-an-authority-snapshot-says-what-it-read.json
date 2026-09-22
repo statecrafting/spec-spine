@@ -130,6 +130,24 @@
       }
     ],
     "risk": "high",
+    "sectionDigests": {
+      "070-an-authority-snapshot-says-what-it-read": "66c03c38d5bcc983b6fa4ad8c6f5c3e0371a8509ec470f49c2b8e6c07898cdc1",
+      "1-purpose": "316b8c42f8f6a7a50082547009a114d5ba6b760332d95ebd1b51b9c5cef0dc64",
+      "2-territory": "8fd3642c1bbc540154ad0a8930d3a1a5ee7691d276bd27b8586bd129b0bc9456",
+      "3-1-the-payload": "aeb8a383abb65ffc7bc8fc9d872a3826344567e5f1594b5c7e7da6a4a112fc86",
+      "3-2-1-when-the-historical-join-hash-has-no-answer": "b3cb4033c4ee0cb28e4a0d7374651578feebd2291e38c055acaee124bcbf2d6e",
+      "3-2-what-each-member-covers": "98d2202c72f6ac4c634e8f29e4ef6fb738505541b17c319c27b5395a8da16ae3",
+      "3-3-1-which-pieces-a-digest-is-taken-over": "e2ad891b6f2d15ce8ccb1be142ca6949fde17cb26e480fca30aac7c526ce3b00",
+      "3-3-the-framed-digest": "7cf423b003cdd4ff107ceff51ec723b5e9ee7290cacf503e696e9ce652770119",
+      "3-4-purity": "dbed0bdf5687eff9d99ac748c00dd55ab9fe1e55b0d7b144fd184faa7183463d",
+      "3-5-surface": "303bf37a297b9f4b380b6ba52acd4bae3552f9baa88041211f0b6cfacf0d2d82",
+      "3-6-what-it-proves-and-what-it-does-not": "e9b98e9c3dfa233f8a2a0e6ad9854d8ba024f95e317c54bef43f46d0dc15b9b8",
+      "3-7-what-must-keep-working": "ffadff9d87b9ace753f0a3fd171d9044e3b68879fedd3cbc1bccf7720d48e063",
+      "3-behavior": "5b2107138e4caf0888abaa5ad7fe2f0b4ac7f64021378a3a65ac1437e954a4a6",
+      "4-out-of-scope": "698f85f7c5470860079cc6987d127758ac2e2ef265a8a1db84b457ba88e8f030",
+      "5-resolved-decisions": "80eacbe2ce5386f6c5ddd950684e4176fc94f27091a214e81272038b8335da86",
+      "verification": "e3cee1bce9ba289c9e429aed638cfe6a93fb2f5c701ca7b5759866b092fd2028"
+    },
     "sectionHeadings": [
       "070: An authority snapshot says what it read",
       "1. Purpose",
@@ -154,5 +172,5 @@
     "title": "An authority snapshot says what it read"
   },
   "shardHash": "50bbb36c146635f23903eff64affd46ed25cb79055a289eb3bfe0bba644c2386",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

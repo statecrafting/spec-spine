@@ -26,6 +26,17 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "015-resolve-short-spec-ids-on-depends-on-and-superseded-by": "96a584a03fa6d4bf5d7fb7cb6921aa4cbb8d57f2d61e15d8d89690dcf8e8bd3c",
+      "1-purpose": "cea0ced5fc507698e3cd11caac10934173bf5a4fc20a36d8e6f0ca2e5e049223",
+      "2-territory": "9d80c80c7fd5627fc23c7c0aea57c287f7129136e4fc910a234eaeea8742c935",
+      "3-1-resolution-policy": "ef9bde0f74a71491658e479dd61cc87211798976e4f78b48a011331157e4f564",
+      "3-2-scope-which-references-resolve": "6c3492ace59c80ea715eaa118c10be4f86ac1771e9fb02eb5645f17382f0a6ae",
+      "3-3-ordering-determinism-and-the-canonical-no-op": "4ad7a2d905a51cfdbaef9693d0c7f7d7687312fa93ccc1ac815393c9c7e04dd5",
+      "3-4-tests-minimum": "0613a8e220444acfb6ab7fda5b947e842bd17bba1db3077bdc8c3dfc5036275e",
+      "3-behavior": "13e16ac67b909fbd118f086ccd5cb654b69b75d44f7cd6845695f0db60eca885",
+      "4-out-of-scope": "3a236c2379ee9195f4c01c338feb58b3dd7c2d417271d479146906110ffe1727"
+    },
     "sectionHeadings": [
       "015: resolve short spec ids on `depends_on` and `superseded_by`",
       "1. Purpose",
@@ -43,5 +54,5 @@
     "title": "Compile: resolve short spec ids on `depends_on` and `superseded_by`"
   },
   "shardHash": "06c4c072b4d7b19f459cb9fac2d20c336039272b0aa8b8c31f22a84501ef7fc4",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

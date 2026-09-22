@@ -49,6 +49,24 @@
         }
       }
     ],
+    "sectionDigests": {
+      "1-purpose": "20180802c6ea14921f829c657338a7fd4210b659c037a2a289d9f9daacc4ff21",
+      "103-a-verifier-fixture-is-a-published-artifact": "a059ab6b926a246483f73c4446a9b2356d7b344f1dea21a4bdc23eead7d05a6e",
+      "2-territory": "49c67947907072b2b07da4387990a48aa83b9f3e9122dcc201e326cf9bd33c55",
+      "3-1-the-boundary-stated-first": "892cc4ae84c8213eaf713233a91a3a420dfd0d8a8f5843295ac8cb8006db0b22",
+      "3-2-three-kinds-of-bytes-never-conflated": "63bed4b8407f28b261f791f7d7df4c2b6ea4f9e63e6218143679b4c90fa1b3a4",
+      "3-3-what-a-fixture-case-is": "38337d1973ff440de4fd173bb4339652db8aab3ff20f46f11c1fea2c8f28019a",
+      "3-4-case-json-and-the-index": "7b22a19bfd5bfdd87a8b66d6338c1f3c8aa131825c94bdc18fb080ba01fa5c65",
+      "3-5-the-reason-classes-measured-against-the-shipped-verifier": "96e5240ca5dd2e9e36ca6b0c8790bcceff73c4d00312a08919860eb03fe956c5",
+      "3-6-recompute-cases-carry-their-corpus": "173503ba1e30dd0bd159bc5c9fa94b7dffd203f6d4356484161bb55d4d484c93",
+      "3-7-the-version-rule-so-the-set-does-not-rot": "6d9b0c3534943e3d8d77f601206187ce1ed96dbdcc9cf73574d21618f4e2dc26",
+      "3-8-the-set-describes-the-shipped-verifier-and-is-proven-to": "d20605a38fda03c0398fe21df1bc9ceb0b2e28a1e6e0014de298ec3ad07d0397",
+      "3-9-where-the-bytes-come-from-and-what-is-not-promised": "5c1be86b0e05248ce4c5b8933f6058f59c9545f0259597de82cc848189fce93b",
+      "3-behavior": "ea159d6f40233daa692c217aabb8df068beed0a644c3c577bf51bf118fe4cf1a",
+      "4-out-of-scope": "15182e31e5a954bd1a08325fd564012356d2a7e1c2dda4e87d18117140c89be4",
+      "5-resolved-decisions": "cf2744f4ec6bdd370f889a70135b69e61aca0d0983088d2fa545ceb7afc0d5d1",
+      "verification": "5bf4e1224a3f538f1a21e826133a6b53e6253e9cc56cbdd2b443350241e5afa7"
+    },
     "sectionHeadings": [
       "103: A verifier fixture is a published artifact",
       "1. Purpose",
@@ -73,5 +91,5 @@
     "title": "A verifier fixture is a published artifact"
   },
   "shardHash": "cd9c158f4993553d7bcd3219f964d495868663daf59b31c0918bcece822bbf6e",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

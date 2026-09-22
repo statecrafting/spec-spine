@@ -116,6 +116,22 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "029-ownership-coverage": "a69b652baf237e80000a0251257bcce40ff783795762579fc0940e996b507fe2",
+      "1-purpose": "c05af956fdaf22416d40cd00c15e47597feed41458e5f47ce29d329fc2d93f70",
+      "2-territory": "2a5b52b19f63050ecec6fa848556e7a94e5d6083207ec0d1a89a1f1400f91442",
+      "3-1-ownership-tiers": "dfe7d7e8e03b57e4a3795f9fd4bd41c96dd2dea9130cc9e0664c11f3b8947d82",
+      "3-2-the-universe": "a9e4806f8fac8efb050274fcb9c8faedce4152bb1854e2fc9c1759a313888443",
+      "3-3-spec-spine-index-coverage": "c6bf9edb2280e1d1cfb9ca841403d362321875d1fd94272b96fecfc1f01bad0a",
+      "3-4-c-002-the-ownership-ratchet": "47453b135ff2e40d6f71fe90c0ec2da960aa76eae8d9380bcf1bc038a72429a3",
+      "3-5-why-require-ownership-defaults-off": "d300ce4a7f0085ff3f0736fd3d4fb4bd38e233af1e79725c115f72bbcc71f25b",
+      "3-6-deletions": "741fa083eed5f88bf6ec5548a5cfc2aa44a31a6edc5af2065aeef2defc746c19",
+      "3-7-determinism": "b3d75156e1e286369f70016a1b91fce361a74fe0314593751ff105bccf6f3cde",
+      "3-8-measured-on-this-repo": "ad0d90197cdfe56f9bfdc80e82e5fb6816c6196da2dc6ab8ae03245a92f218b4",
+      "3-9-tests-minimum": "a948ff247908093e243b779d013eb51a9af48ec645a15a2dab0043d4ce357118",
+      "3-behavior": "d902a576bea09f7b4ec4ed527b330fd5ea30d666a6289a5e0953547ae48b0e6c",
+      "4-out-of-scope": "71ec3f3325e8d773d8af6a3890bc1ebe99ec5f0687fddf03de187b7dcf7393eb"
+    },
     "sectionHeadings": [
       "029: Ownership coverage",
       "1. Purpose",
@@ -138,5 +154,5 @@
     "title": "Ownership coverage: `spec-spine index coverage` and the `C-002` ratchet"
   },
   "shardHash": "1ebeedae69b0888f1598e79f92ea2c326c59b02091a89b4f3f07f88556c954f4",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

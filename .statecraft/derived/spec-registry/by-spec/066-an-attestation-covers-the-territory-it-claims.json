@@ -54,6 +54,20 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "066-an-attestation-covers-the-territory-it-claims": "d0748439c88559932d6fa8ec9f9f09d818afc8c5eb86172299209c1250f2df87",
+      "1-purpose": "8711626de771bbc622a51f6f408ae8e67f03743b9ba2b8775c4afc559dda16e8",
+      "2-territory": "84eec11e5c637c6bd9645252584bbe5880d31e04f39425c5b2ee691a4a43b739",
+      "3-1-every-owning-unit-that-resolves-must-attest-a-content-hash": "410d7420eeaa621080c899cc76ecc6f4b633aa5f649c01c8e0c4c1500665faba",
+      "3-2-a-directory-resolved-location-is-walked-under-one-exclusion-policy": "484dd684c6889226f6e48cd719da8ce70be2c0aa3ec470cc31873fa987b20355",
+      "3-3-a-directory-that-walks-to-no-files-hashes-its-own-path": "03e8b1cb18d5caca36425c993df66ab2c85568c9b1a65536477c9527d81097bc",
+      "3-4-determinism-and-what-a-recompute-mismatch-means": "9ecf03b9476d6aa2a14687a54e763aa20965e5a051ceb76d9df82a7f4fa5e3ee",
+      "3-5-what-must-keep-working": "75a06ab4c67037e64fb40ae22a6f7d3d022e0fd7f9590ca0d315277a142c6d6a",
+      "3-behavior": "29faf67e7856d8f9cab4c2a0a2010913a26b521c99cd25d455a1bac63de1fcd0",
+      "4-out-of-scope": "7d509e6c2874f92962aa42f0575276f5a1ef3e8a16974d614e26448325190b6f",
+      "5-resolved-decisions": "161b142a3392388abcbf684e994eb6414286c5de6371f20bffdd5a2a67d4cdd7",
+      "verification": "82c6e235318fb0bb336867065589300947e7cdef49e0b3e5b3e793d8c872cf60"
+    },
     "sectionHeadings": [
       "066: An attestation covers the territory it claims",
       "1. Purpose",
@@ -74,5 +88,5 @@
     "title": "An attestation covers the territory it claims"
   },
   "shardHash": "8810d1c4d122815b4582457389103a7e7f4a9edb12f0379b226d9f8e0d01fba0",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

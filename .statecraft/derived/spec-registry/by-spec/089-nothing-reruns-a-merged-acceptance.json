@@ -47,6 +47,29 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "089-nothing-reruns-a-merged-acceptance": "36f0d7559e0fb42b1601466ed93be7bba774b9338bfb3d7744817b2cd64d1b22",
+      "1-1-the-gap-in-the-corpus-s-own-record": "0501ecb69a1b0e86e88a623d8b659f2c7d85fbf1c3636ef10799ed58d419b60a",
+      "1-2-what-the-corpus-declares-today-measured": "c70a608f133b050ec50b70cc761040606a5fc8c0a8fc30d30d15db06243768f5",
+      "1-3-why-this-is-not-verify-all": "495b87c7df98ef87c11c269cd946c1cab98b2ca254333b2dda025d485d9e5052",
+      "1-4-the-first-run-measured": "f52e88f129dd459810511966e6f68db6f0513af6a7400e02259bbf819e9ad8a2",
+      "1-purpose": "1f869c12098ea85d2c699e75e648d50618d45fe8ddaaed0206c1b9e12407e20e",
+      "2-territory": "8cd22d34680cb8db71d25eb47e2a5d466d46d45f2f911c76a0a11f7e87b32e91",
+      "3-1-where-it-lives-and-who-runs-it": "be04634ff6c9b91009275b493dda83df4035a30737127ce50d6d002fe516b2f8",
+      "3-2-it-runs-the-existing-mechanism-unchanged": "39325cc88f16546477d1b365e25d2e26fb78ebd973626087c8286ed71dd1136c",
+      "3-3-five-outcomes-and-only-two-of-them-are-success": "43c3bfe5bc9590dafed20e14d3a0aaafb6feaad4a11b4b2121bbd16615c7f958",
+      "3-4-the-000-047-population-a-closed-ledger-that-only-shrinks": "042b256f107cf09b4f22fdf654a38cf2080dc1c856a8d4d6b82478b0d7a8ca61",
+      "3-5-selection": "fccb6851b73bb09bb0330da39c2ce3ac02e3ae114c92cf3879a18ba65328fe8e",
+      "3-6-isolation-fixtures-and-what-happens-after-a-failure": "85ad812cea57df66a4e9f45631e35b9955b81076bd0fc47921188f9f553c79da",
+      "3-7-the-trust-boundary-is-preserved-and-made-mechanical": "a0556ef5d207ce50f6d0adb08e8ccdc4b84f35d2091851d5b286b4990892ca96",
+      "3-8-the-report-is-the-evidence": "08b790c7b69d289fdd3c911781ebd9d33543d46c94140de173ef5d7dad4f77c4",
+      "3-9-when-a-maintainer-runs-it": "8b09223db4913c53c690e5b5b223bb42f37eb8f06e4971551cd1a64da564452d",
+      "3-behavior": "f699545a21fc00e39d4b85205e13d44ac4b9505ec42697d63980d8079df39145",
+      "4-out-of-scope": "5108a0bbd1c347ad413148d0708245cb5b29f77944717cf591b45f3561cca937",
+      "5-resolved-decisions": "334b142640a330db083be44831ae593fe3d884275c142ba50887cd170130aeaa",
+      "implementation-review-2026-09-17": "85498fdc6e3bf662e95d6da9849e71cba66adfea42e0bac87d86c4c785baa5eb",
+      "verification": "889a036bd4e06bd46036e0912d307ba5d87ef083395d3cc451e564b73f597810"
+    },
     "sectionHeadings": [
       "089: Nothing reruns a merged acceptance",
       "1. Purpose",
@@ -76,5 +99,5 @@
     "title": "Nothing reruns a merged acceptance"
   },
   "shardHash": "147cd9681f494c4137d06359c4f31aeb134249ab55471a2a15a4e05dffe57121",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

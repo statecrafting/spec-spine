@@ -116,6 +116,26 @@
         }
       }
     ],
+    "sectionDigests": {
+      "1-1-reproduced-not-predicted": "510d26b56ec21cdc7a740fd357fa8b5c84e2e192a41b662cf1593579d71f52ce",
+      "1-2-the-refusal-s-own-advice-does-not-work-here": "94205ba21b008f97f57e977356ecb64ca0ae90303820d5c185bfb3eecc8a71d6",
+      "1-purpose": "d29015c92a15a9799b28323fc582351ae481e135343dc5a8c6374802f6ab1b4e",
+      "100-a-deleted-path-is-judged-where-it-lived": "c642f6a16b6d40e3b9298e5008eb0ed4674ce162eee72d845bfdff42f6251f0e",
+      "2-territory": "d330016ccfd0be2e8f40468fcc7174a8595c9e0fe1e2fd13026ff49ea796f8e3",
+      "3-1-two-snapshots-and-which-one-answers": "85c18d763b718aa92f1d0cd42547b2769aac0056e3dbafc97c9f9aab4457c969",
+      "3-2-a-prior-snapshot-is-reconstructed-from-source-not-read-from-a-ledger": "33fa3293dc758e3d4160ec75f1fc67704cd50d2b58654ac0311b0ca009a7aac1",
+      "3-3-what-the-snapshot-read-does-not-change": "fd9bf8d119a40928349e00b4b8501eebb0a7360dc65f34d7d7e7c8a69f9bdd50",
+      "3-4-a-prior-snapshot-is-built-only-when-a-deletion-needs-one": "aac759dae8097111793df488709e577984f286b045b3142bb0697bbd877013b0",
+      "3-5-required-prior-evidence-that-cannot-be-obtained-is-a-refusal": "07450b6fa16ebc3fc8b58f01104dc5b7ce755b7bd870c5202d8a47e1b1002db4",
+      "3-6-renames-stay-two-facts": "fc2f0ad2aaf202d08421ce6bea750e94600bed2b05dee2c7d4fb7f64392ee992",
+      "3-7-the-report-records-which-snapshot-answered": "51af4733882c7ca3766a3ce3a1e7658db433b386130355122b0bdc43ec71b4a6",
+      "3-8-compatibility-is-preserved-and-is-not-the-corrected-behavior": "830a09ac8808ff417dd177ee9af8f06966dcb86ae53653cc6e23aa9baf14a31f",
+      "3-9-combined-histories": "3cd39ee9e95d623f78d2051fde17259151bca16def276b11521b2aac7e4c1aca",
+      "3-behavior": "2ff9093f8598f118c9a469b17b34723d42dbb0b31eccbacba9cb6c790cb02b84",
+      "4-out-of-scope": "983a7f6467e296c5d6d02e368823a405477aab3d6a63d0c904cdeaeade5bdb64",
+      "5-resolved-decisions": "b2a56bc80e77be3d8b310b92b56017fbba441011ad636bfa8c6935acc2435d08",
+      "verification": "986f4eb4035e274fdac5a61729556f478f2611baa6d72c57b6404e08a58edcc8"
+    },
     "sectionHeadings": [
       "100: A deleted path is judged where it lived",
       "1. Purpose",
@@ -142,5 +162,5 @@
     "title": "A deleted path is judged where it lived"
   },
   "shardHash": "92deddec966ed40e749a690840fac270eb04185625ec4ef903bbcb7a1f858e51",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

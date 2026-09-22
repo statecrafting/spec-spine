@@ -37,6 +37,18 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "059-a-malformed-id-is-refused-not-a-panic": "fe743a0fe0dc8aff04905a8ec7f98d634fa8e737fe392269515e80caf2279fc5",
+      "1-purpose": "e4934de9617962709eafc563fd2bdfd8992b96f8840a81b14813a3ced3d3f3e5",
+      "2-territory": "116df6febd50a593743f3d43edee12ee0bb78ea706d1b09191a6ca154f054582",
+      "3-1-the-numeric-prefix-is-read-by-character-and-only-when-numeric": "55c0a2a2b454130967516d6500912baa077bc8984f0b1f832a9b02791ea5473d",
+      "3-2-an-id-with-no-numeric-prefix-is-not-a-v-004-candidate": "fdd4a0ac8c97951b7a7b00bacfd2c5ddb01cfc33632b8f300e6d40a51ed0f487",
+      "3-3-what-must-keep-working": "2d7385f319a00a89a76650f339016fccf53936eaa64a91ff52c243594331768a",
+      "3-behavior": "0dc4effdb88f9ff2127490afde59105b869751507be4068415c71539d1e77878",
+      "4-out-of-scope": "b8adb8773325c81dce5ee1ca59ee4d5319adad96390f323db56d75bc8b91728e",
+      "5-resolved-decisions": "96c409b5bd1b4aa35640018ac33d14bd73e026a4ad417966dc6c92d4cab3823c",
+      "verification": "6a6bc30ee9b557e56ce72ca1b85b09e6e76ab4818f402d956ec88a5b14dcd653"
+    },
     "sectionHeadings": [
       "059: A malformed id is refused, not a panic",
       "1. Purpose",
@@ -55,5 +67,5 @@
     "title": "A malformed id is refused, not a panic"
   },
   "shardHash": "800096a75b73322013e40cf96347551676e40022b3f1f09dc9431f12f0d44989",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }
