@@ -29,6 +29,10 @@ extends:
   - { spec: "002-registry-query", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_registry.rs" }, nature: additive }
   # 3.7: the documentation a consumer reads.
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
+  # D-7: the read axis moves for the new document, with its pin and its table.
+  - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
+  - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-core/tests/read.rs" }, nature: additive }
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/04-authority-evidence-extension.md" }, role: context }
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: context }
@@ -285,6 +289,24 @@ section it points at fails. With the freshness check disabled, the stale-ledger
 test fails. Both restored, all eight core tests and both CLI tests pass. This
 spec declares its own obligations, and its acceptance resolves a closure over
 this corpus that names spec 106's `R-5`.
+
+**D-7 (2026-09-22, integration: the read axis moves for the closure).** The
+resolved closure is a new read document, so it takes a MINOR of the read axis
+of its own, `0.4.0`, on the rule spec 106 D-12 settled when two independent
+additive documents met on `main`: spec 102 took `0.2.0` and spec 106 `0.3.0`.
+The constant, `read.rs`'s pin and the `docs/schema-versioning.md` entry move
+together, each declared as an `extends` edge.
+
+**D-8 (2026-09-22, review: what an obligation piece digests, exactly).** §3.4
+says the piece "includes" an obligation's text, kind, withdrawal and section
+digest. It is the canonical JSON (sorted keys) of the whole resolved member:
+the member tag `kind` (`"obligation"`), `spec`, `id`, `obligationKind`,
+`text`, `anchor`, `inputs` (omitted when empty), `withdrawn` (omitted when
+false) and `sectionDigest`. So re-anchoring an
+obligation, or changing its verification inputs, also moves the digest. That
+is deliberate: each is part of what the obligation asks of the work, and a
+closure that stayed equal across such a change would hide it. Naming `spec`
+and `id` in the content as well as the piece name is redundant and harmless.
 
 ## Verification
 

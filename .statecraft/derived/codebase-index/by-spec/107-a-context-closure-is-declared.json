@@ -25,7 +25,19 @@
         "source": "multiple"
       },
       {
+        "path": "crates/spec-spine-core/tests/read.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/version.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "docs/api.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/schema-versioning.md",
         "source": "spec-edge"
       }
     ],
@@ -98,6 +110,32 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/read.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/version.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/api.md"
           }
         ],
@@ -106,6 +144,19 @@
         "unit": {
           "kind": "file",
           "path": "docs/api.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/schema-versioning.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
         }
       },
       {
@@ -139,5 +190,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "478b3cacc597dc8a29a07bd94a6b4f7f9e964683d9812b62c3d6042d538a286c"
+  "shardHash": "c8fa47e90c1f55186085bdcd72a46a51d1b26656b59837df0a820942fa1e753b"
 }

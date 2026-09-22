@@ -316,9 +316,11 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
 - `closure_json` request (spec 107): `{ "specs"?: [id], "sections"?: [{ "spec",
   "anchor" }], "obligations"?: ["<spec-id>#<obligation-id>"], "rationale"?:
   string }`, at least one member named, unknown members refused. The answer is
-  a read document: `members`, each tagged `kind` (`spec` with `contentHash`,
-  `section` with `digest`, `obligation` with its text, anchor and
-  `sectionDigest`), sorted by kind then identity; `digest`, the one hash
+  a read document (read schema `0.4.0`): `members`, each tagged `kind` (`spec`
+  with `contentHash`, `section` with `digest`, `obligation` with its whole
+  resolved member: `obligationKind`, `text`, `anchor`, `inputs` when non-empty,
+  `withdrawn` when true, and `sectionDigest`, every one of which its piece
+  digests), sorted by kind then identity; `digest`, the one hash
   construction over one piece per member (`spec:<id>`, `section:<id>#<anchor>`,
   `obligation:<id>#<obligation-id>`), so reordering, repeating or short-naming
   a member changes nothing and editing a named member's content changes it; and
