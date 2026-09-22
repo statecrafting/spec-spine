@@ -1,20 +1,21 @@
 {
   "mapping": {
     "dependsOn": [
-      "005-coupling-gate",
-      "073-a-mode-only-or-binary-change-is-a-change"
+      "099-a-merged-acceptance-is-asked-again",
+      "119-a-release-verdict-judges-what-was-built",
+      "120-a-scoped-sweep-judges-the-binary-the-blocks-name"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/cmd_couple.rs",
+        "path": ".github/workflows/acceptance.yml",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/main.rs",
+        "path": "scripts/acceptance-report.py",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "path": "scripts/test-verify-sweep.py",
         "source": "spec-edge"
       }
     ],
@@ -22,72 +23,72 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_couple.rs"
+            "file": "scripts/acceptance-report.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/acceptance-report.py"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/acceptance.yml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+          "path": ".github/workflows/acceptance.yml"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/main.rs"
+            "file": "scripts/test-verify-sweep.py"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/main.rs"
+          "path": "scripts/test-verify-sweep.py"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/cli.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-cli/tests/cli.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/design/05-remaining-waves-2026-09.md"
+            "file": "docs/release-candidate-0.22.0.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/05-remaining-waves-2026-09.md"
+          "path": "docs/release-candidate-0.22.0.md"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/design/06-harness-and-distribution-2026-09.md"
+            "file": "scripts/verify-sweep.sh"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/06-harness-and-distribution-2026-09.md"
+          "path": "scripts/verify-sweep.sh"
         }
       }
     ],
-    "specId": "081-coupling-sees-the-change-being-committed",
-    "specStatus": "approved"
+    "specId": "121-the-acceptance-workflow-judges-what-was-built",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "a32bad5cdb4c0d43d159b605c400ed9268ca4356dfc771e05e103118218da6e5"
+  "shardHash": "05da1efa63923a7d7db1871952806e06e368e34c39a6cebef0edae443f545214"
 }
