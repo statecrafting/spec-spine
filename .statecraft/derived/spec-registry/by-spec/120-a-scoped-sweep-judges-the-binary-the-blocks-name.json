@@ -1,0 +1,57 @@
+{
+  "record": {
+    "created": "2026-09-22",
+    "dependsOn": [
+      "089-nothing-reruns-a-merged-acceptance",
+      "099-a-merged-acceptance-is-asked-again"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "099-a-merged-acceptance-is-asked-again",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/acceptance.yml"
+        }
+      }
+    ],
+    "id": "120-a-scoped-sweep-judges-the-binary-the-blocks-name",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/release-candidate-0.22.0.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "120: A scoped sweep judges the binary the blocks name",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The sweep builds the binary it judges",
+      "3.2 Nothing else about the workflow moves",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/120-a-scoped-sweep-judges-the-binary-the-blocks-name/spec.md",
+    "status": "draft",
+    "summary": "The `Acceptance` workflow gives the sweep a binary built outside the sweep's worktree through `SPEC_SPINE_BIN`. Most acceptance blocks call `./target/release/spec-spine` relative to the worktree, and several do not build it first. In a whole-corpus run an earlier block's `cargo build --release` creates the file, so they pass by ordering. The push leg sweeps only the specs a merge touched, and when none of those builds, every block fails at exit 127, `not found`. That is how the ratification merge at `da47632b` and the merge at `ff79c68a` both went red with no acceptance failing. The workflow now lets the sweep build the binary from the revision inside its worktree, spec 089 3.8's default, so a block judges the binary it names.\n",
+    "title": "A scoped sweep judges the binary the blocks name"
+  },
+  "shardHash": "767fba99cd6f0dca5908456f412e3c4e9d2dbfdf0c84abe1fd25433a86849287",
+  "specVersion": "1.3.0"
+}
