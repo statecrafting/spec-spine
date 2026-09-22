@@ -1,0 +1,124 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "106-obligations-are-declared-constraints"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/closure.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/closure.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/closure.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      }
+    ],
+    "id": "107-a-context-closure-is-declared",
+    "implementation": "pending",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-1-why-it-is-built-now-design-note-09-d-7": "80a2bc8be9f84582f1a559ce1fa9424819cc83378db95d30d033ab8751f00388",
+      "1-2-why-it-depends-on-obligations-and-on-nothing-else": "ee98ec1084c5075ade5df5501ab9e864748ce2a8e75d521001a3fdf49ec36e27",
+      "1-purpose": "635a90595d632f97ecee58589f48edf229f5af506160a023350e9e690284be35",
+      "107-a-context-closure-is-declared": "904833a951e8ded6e617a6e919cdf98d830cab23ddbb833de7cba0e8f157e267",
+      "2-territory": "7143fbdfe9952cdf2d7fb547fb8dde0943cd30c9c850f417440b6d796ee65673",
+      "3-1-a-closure-lives-with-its-consumer-and-spec-spine-resolves-it": "732f5a426e02de209f5853b7df16a822e418348de2496b0ee6e3c18e46ca4941",
+      "3-2-every-reference-is-qualified-and-resolved": "2d763f6e58758bd2f087b8470299f207bece760c30e9adc19c6811f8d9e24f4a",
+      "3-3-the-resolved-closure": "a51636f38357b056ccbd6f9730caf2a08e23a1b5c84997c96effbf095ecffd29",
+      "3-4-the-digest-is-over-what-the-members-are-not-how-they-were-named": "d9c66b293db47c37a3420cbf68ba1221090cc3fa261df881206b068bda9f775f",
+      "3-5-a-digest-over-a-stale-ledger-is-refused": "5a5f7382bf281df2add197f7d4cffaa04b709d3d9cb4b00813249f5443f51123",
+      "3-6-the-surfaces": "15a336ca1a4fe3007cb1c1e4d7610b196452fcc0c3023ed65354a0ae6644fdef",
+      "3-7-what-a-closure-establishes-and-what-it-does-not": "a022460c6716a02f9d0c4208b734868ea82480439d784db19a68663a066450ae",
+      "3-8-closures-are-inert-in-every-gate": "bf3f695e1fb9b416ee8621e4cdfd425c73c966fd618e903597e5a2f37f671774",
+      "3-behavior": "debbc2e14d8ebfa0cf3f4f16617b57dc90ef8121ee383eedab71fa8b411b8fd2",
+      "4-out-of-scope": "ec20d0219e12f28a25d45908bac33b4bcbf0cc79319a8d1d17cb3c010531f266",
+      "5-resolved-decisions": "f4db954affa68d09f4bf20f55e1c27c30f01980cff565a8c4b799dbe7b9404b0",
+      "verification": "810ca1ecd9f45154856cf3e5138d7d49b659a66c84ec2f4983d9e8795d300ea4"
+    },
+    "sectionHeadings": [
+      "107: A context closure is declared",
+      "1. Purpose",
+      "1.1 Why it is built now (design note 09, D-7)",
+      "1.2 Why it depends on obligations, and on nothing else",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A closure lives with its consumer, and spec-spine resolves it",
+      "3.2 Every reference is qualified and resolved",
+      "3.3 The resolved closure",
+      "3.4 The digest is over what the members are, not how they were named",
+      "3.5 A digest over a stale ledger is refused",
+      "3.6 The surfaces",
+      "3.7 What a closure establishes, and what it does not",
+      "3.8 Closures are inert in every gate",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/107-a-context-closure-is-declared/spec.md",
+    "status": "draft",
+    "summary": "A piece of work has no declared answer to \"what must I have read before I act on this\", and no way to tell later whether that context changed. A ContextClosure is that answer as data: the specs, sections and obligations a task is answerable to, named by the task's owner. spec-spine resolves a closure request against the committed ledger and returns every member with its identity and one order-independent digest over all of them, so \"the context this work was done against has changed\" is one comparison. The closure lives in the consumer's record; spec-spine only resolves it, and no gate reads one.\n",
+    "title": "A context closure is declared"
+  },
+  "shardHash": "b8f716bd8aaa40c64c633d52ce3099e7702492aac65ae39180ed7b4da2ed30d1",
+  "specVersion": "1.4.0"
+}
