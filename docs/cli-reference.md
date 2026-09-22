@@ -233,7 +233,7 @@ the chain runs against branches whose contents are, in the general case, a
 stranger's.
 
 Under `--json`, stdout is reserved for the envelope and the child commands'
-output goes to stderr (spec 118).
+output goes to stderr (spec 090; filed pre-collapse as 118, see docs/corpus-map.md).
 
 ## attest
 
