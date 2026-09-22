@@ -1,0 +1,187 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "070-an-authority-snapshot-says-what-it-read",
+      "084-an-acceptance-outlives-the-output-it-was-written-against"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/obligation.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/obligations.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/obligations.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/frontmatter.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-keypath-section-anchors",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/sections.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "088-the-template-teaches-the-whole-grammar",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/templates/spec-template.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      }
+    ],
+    "id": "106-obligations-are-declared-constraints",
+    "implementation": "pending",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "106: Obligations are declared constraints",
+      "1. Purpose",
+      "1.1 Why it is built now (design note 09, D-7)",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Declarations live in frontmatter",
+      "3.2 Three kinds and no fourth",
+      "3.3 Ids are stable within a spec, and withdrawal is in place",
+      "3.4 An anchor is validated, not asserted",
+      "3.5 Every section has a digest, beside the spec's identity",
+      "3.6 A reference is qualified, and a read resolves it",
+      "3.7 A verification declares its inputs",
+      "3.8 What an obligation establishes, and what it does not",
+      "3.9 Compatibility",
+      "3.10 Documentation",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/106-obligations-are-declared-constraints/spec.md",
+    "status": "draft",
+    "summary": "A spec's normative content is prose, so nothing downstream can name a single requirement, cite it, or tell whether the sentence it cited has changed. This adds an optional `obligations` frontmatter key: three kinds, ids stable within a spec, an anchor validated against the spec's own headings, explicit inputs for a verification, and withdrawal in place rather than deletion. The registry gains a digest for every section of every spec, beside the spec's full content hash, and a read resolves a qualified `<spec-id>#<obligation-id>` reference. No gate reads any of it.\n",
+    "title": "Obligations are declared constraints"
+  },
+  "shardHash": "3e361deba816b98be7959944f7abcc55ef6154fd87af7b6bd72a7065471b08b9",
+  "specVersion": "1.3.0"
+}
