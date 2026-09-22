@@ -98,15 +98,17 @@ fn err(o: &Output) -> String {
     String::from_utf8_lossy(&o.stderr).into_owned()
 }
 
-/// Which stub, if any, the target actually executed.
+/// Which stub, if any, the target actually executed, read out of the marker rather than matched against a list
+/// of known identities. A fixed list is a footgun for the negative assertions
+/// that use this: a stub added later and forgotten here would make `ran`
+/// answer `None` while a binary had in fact run, so "no substitute may run"
+/// would pass by not looking. Any `STUB-RAN <id>` is a stub running.
 fn ran(o: &Output) -> Option<String> {
     let combined = format!("{}{}", out(o), err(o));
-    for id in ["INTREE", "PATH", "OVERRIDE"] {
-        if combined.contains(&format!("STUB-RAN {id}")) {
-            return Some(id.to_string());
-        }
-    }
-    None
+    let i = combined.find("STUB-RAN ")?;
+    let rest = &combined[i + "STUB-RAN ".len()..];
+    let id: String = rest.chars().take_while(|c| !c.is_whitespace()).collect();
+    if id.is_empty() { None } else { Some(id) }
 }
 
 // --- §3.5 row 1: an explicit override wins over everything present ---------

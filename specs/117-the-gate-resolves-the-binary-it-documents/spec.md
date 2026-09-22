@@ -323,6 +323,27 @@ override is added to the table as the row that pins the mechanism: it carries
 the executable bit and is not a program, so it is the case a `command -v` guard
 admits on any shell that answers for paths at all.
 
+**D-10 (2026-09-22, review: a resolved path containing a space is a known
+limitation, and quoting the invocation is not the fix).** Raised on the pull
+request: the preflight validates `"$b"`, which survives a space, while each
+chain line invokes `$(SPEC_SPINE)` unquoted, which the shell word-splits. So a
+path with a space clears the preflight and then fails as "command not found",
+which is the false confidence §3.2 is otherwise written against.
+
+Quoting the invocations is refused, and the reason is specific to this file.
+`tests/gate.rs` recognises an invocation by finding `spec-spine ` -- the name
+followed by a space -- after expanding `$(SPEC_SPINE)`. Writing
+`"$(SPEC_SPINE)" check` produces `"spec-spine" check`, which contains no such
+substring, so the detector that keeps this `Makefile` from growing a second,
+unreviewed chain of verbs would go blind to **every** line it guards. Trading
+spec 094's structural check for an edge case in path naming is a bad trade.
+
+The limitation is therefore recorded rather than fixed: a repository whose
+checkout path contains a space cannot be governed through `make` until the
+detector is taught to read a quoted invocation, which is spec 094's file and
+spec 094's change. The preflight's refusals are unaffected; what it cannot do
+is promise that a path it accepted will survive word splitting.
+
 ## Verification
 
 Behavioral, and written to fail against the tree this spec is filed on.
