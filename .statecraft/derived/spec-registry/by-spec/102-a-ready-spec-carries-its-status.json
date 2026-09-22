@@ -54,6 +54,6 @@
     "summary": "`ReadySpec` carries `id` and `title`, so a consumer reading `registry plan` directly cannot apply an approval rule without a second query per entry. An additive `status` field is a read-schema MINOR that lets a direct consumer see what `/next` sees. An enhancement with a named cost, not a defect fix.\n",
     "title": "A ready spec carries its status"
   },
-  "shardHash": "db7e2af54e957519babc7424499dfdb66d4810798edaeb5c1c588e9d9dfe7f88",
+  "shardHash": "b496481fd744c4101cae6e22cb06689aa23302c6c5143f9e6330d94f8c6eaa55",
   "specVersion": "1.3.0"
 }

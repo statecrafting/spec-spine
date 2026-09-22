@@ -1,0 +1,116 @@
+verify-sweep.sh: building spec-spine from f9fa6a8f ...
+  exempt        000-spec-spine-bootstrap
+  exempt        001-compile-registry
+  exempt        002-registry-query
+  exempt        003-conformance-lint
+  exempt        004-codebase-index
+  exempt        005-coupling-gate
+  exempt        006-distribution
+  exempt        007-python-distribution
+  exempt        008-coupling-floor-claim-precedence
+  exempt        009-registry-query-projection-flags
+  exempt        010-index-render-orphans
+  exempt        011-index-hash-slices
+  exempt        012-declared-extra-frontmatter-passthrough
+  exempt        013-edge-paths-grammar-sugar
+  exempt        014-establishes-wrapper-na-alias
+  exempt        015-short-id-resolution
+  exempt        016-directory-crate-module-units
+  exempt        017-constrains-discriminator-optional-unit
+  exempt        018-structured-partial-supersedes
+  exempt        019-release-supply-chain-artifacts
+  exempt        020-keypath-section-anchors
+  exempt        021-ledger-seal
+  exempt        022-index-sharding
+  exempt        023-unresolved-unit-severity
+  exempt        024-resolution-discovery-fixes
+  exempt        025-symbol-resolution-feature-gate
+  exempt        026-references-provenance-derived-at
+  exempt        027-cargo-workflow-dependency-waiver
+  exempt        028-registry-freshness-check
+  exempt        029-ownership-coverage
+  exempt        030-dependency-cycle-refusal
+  exempt        031-references-non-owning-paths
+  exempt        032-stdout-closed-reader
+  exempt        033-configured-corpus-root
+  exempt        034-machine-readable-verdicts
+  exempt        035-registry-plan-ready-set
+  exempt        036-declared-state-dir
+  exempt        037-amendment-authoring
+  exempt        038-completion-held-to-claims
+  exempt        039-per-spec-attestation
+  exempt        040-governance-document-gaps
+  exempt        041-in-progress-is-in-flight
+  exempt        042-absent-implementation-defers-to-status
+  passed        043-verify-declared-acceptance (107s)
+  passed        044-index-diagnostics-reach-a-gate (17s)
+  passed        045-couple-names-the-crossing (7s)
+  passed        046-depends-on-ordinal-monotonicity (3s)
+  passed        047-effective-config-is-a-governed-read (3s)
+  passed        048-the-ledger-answers-what-consumers-rebuild (10s)
+  passed        049-compile-one-spec (5s)
+  passed        050-claimed-but-unwitnessed (1s)
+  passed        051-retroactive-adoption-shape (1s)
+  passed        052-read-verbs-on-a-code-free-corpus (4s)
+  passed        053-plan-answers-the-whole-question (2s)
+  passed        054-the-scaffold-ships-what-adopters-wrote (110s)
+  passed        055-a-version-pin-the-cli-can-check (66s)
+  passed        056-the-contract-records-the-lifecycle-table (68s)
+  passed        057-the-docs-name-what-adopters-derived (1s)
+  passed        058-the-shipped-default-hashes-what-it-names (85s)
+  passed        059-a-malformed-id-is-refused-not-a-panic (2s)
+  passed        060-a-workflow-bump-is-not-a-governed-change (13s)
+  passed        061-shipped-is-not-the-same-as-working (1s)
+  passed        062-one-name-one-freshness-verb (63s)
+  passed        063-planned-territory-is-declared-not-inferred (4s)
+  passed        064-compile-warnings-reach-the-gate (54s)
+  passed        065-a-dead-glob-is-dead-in-both-tables (1s)
+  passed        066-an-attestation-covers-the-territory-it-claims (11s)
+  passed        067-a-short-id-names-the-same-spec-at-every-verb (3s)
+  passed        068-a-verifier-checks-the-bytes-it-was-given (2s)
+  passed        069-the-committed-index-is-compared-not-trusted (1s)
+  passed        070-an-authority-snapshot-says-what-it-read (2s)
+  passed        071-a-change-is-classified-under-the-bases-rules (2s)
+  passed        072-two-ready-specs-can-collide (1s)
+  passed        073-a-mode-only-or-binary-change-is-a-change (3s)
+  passed        074-a-governed-read-names-its-version (9s)
+  passed        075-a-claim-below-the-header-window-is-not-silent (1s)
+  passed        076-a-stray-shard-is-orphaned-at-the-verbs (3s)
+  passed        077-one-hash-one-construction-one-name (2s)
+  passed        078-governed-scope-is-declared-not-inferred (3s)
+  passed        079-a-blocking-claim-is-not-a-stale-shard (48s)
+  passed        080-an-unresolved-claim-is-not-stale (2s)
+  passed        081-coupling-sees-the-change-being-committed (3s)
+  passed        082-an-amended-acceptance-is-the-one-that-runs (9s)
+  passed        083-an-amendment-carries-the-acceptance-it-replaces (50s)
+  passed        084-an-acceptance-outlives-the-output-it-was-written-against (14s)
+  passed        085-a-version-pin-is-not-a-contract (2s)
+  passed        086-an-exact-key-set-refuses-what-the-rule-allows (2s)
+  passed        087-the-answer-is-a-member-not-the-document (2s)
+  passed        088-the-template-teaches-the-whole-grammar (2s)
+  passed        089-nothing-reruns-a-merged-acceptance (30s)
+  passed        090-the-verdict-is-the-only-thing-on-stdout (34s)
+  passed        091-an-unclassified-review-failure-blocks-the-merge (17s)
+  passed        092-the-engine-ships-governance-not-an-environment (64s)
+  passed        093-the-harness-this-repository-runs (16s)
+  passed        094-one-gate-and-the-boundaries-it-holds (2s)
+  passed        095-the-corpus-describes-what-exists (40s)
+  passed        096-compaction-is-a-verb-not-a-session (38s)
+  passed        097-a-path-leaves-the-corpus-the-way-a-spec-does (1s)
+  passed        098-a-citation-the-renumber-could-not-see (2s)
+  passed        099-a-merged-acceptance-is-asked-again (3s)
+  passed        100-a-deleted-path-is-judged-where-it-lived (39s)
+  passed        101-readiness-is-scheduling-not-approval (1s)
+  FAILED        102-a-ready-spec-carries-its-status (1s) verify: 102-a-ready-spec-carries-its-status: FAILED at command 2 (exit 1)
+  FAILED        103-a-verifier-fixture-is-a-published-artifact (1s) verify: 103-a-verifier-fixture-is-a-published-artifact: FAILED at command 1 (exit 1)
+  passed        104-a-producer-is-tested-as-published (38s)
+  passed        117-the-gate-resolves-the-binary-it-documents (2s)
+  passed        118-the-renumber-is-history-not-a-standing-rule (39s)
+  passed        119-a-release-verdict-judges-what-was-built (58s)
+  passed        120-a-scoped-sweep-judges-the-binary-the-blocks-name (216s)
+  passed        121-the-acceptance-workflow-judges-what-was-built (57s)
+
+verify-sweep.sh: f9fa6a8f  passed=65 failed=2 not-declared=0 exempt=43 not-run=0
+verify-sweep.sh: release verdict: clean  (not passing=0 pending=2)
+verify-sweep.sh: report /Users/bart/.cache/spec-spine/sweeps/f9fa6a8f-20260922T212305Z-8591/sweep.md  (json: /Users/bart/.cache/spec-spine/sweeps/f9fa6a8f-20260922T212305Z-8591/sweep.json, logs: /Users/bart/.cache/spec-spine/sweeps/f9fa6a8f-20260922T212305Z-8591/logs/)
+exit=0

@@ -2,7 +2,9 @@
 
 A design note, not a spec. It reconciles every proposal this repository's
 documentation carries against the corpus as it stands on 2026-09-21, and it is
-**the current backlog record**. Notes 05 and 06 are historical, note 07 §4 is
+**the current backlog record**. **Its implementation condition for deferred
+work (section 5, D-1, section 7's last paragraph) is superseded by D-7, section
+10, dated 2026-09-22.** Notes 05 and 06 are historical, note 07 §4 is
 their disposition against the Statecraft boundary, and note 08 is the handoff
 from the realignment. This note supersedes none of them as a record; it
 supersedes all of them as the place to look for what is open.
@@ -332,6 +334,11 @@ decision empties it.
 
 ## 5. SP-03, clarified and adopted
 
+> **[superseded 2026-09-22 by D-7, section 10]** The implementation half of the
+> rule below ("implement only for a named consumer need") no longer governs.
+> The specification half stands. The section is preserved as the record of
+> what was decided on 2026-09-21.
+
 grand-refactor revision 4's **SP-03** recommends deferring obligations,
 WorkScope, ContextClosure, A10 and B23 beyond the local slice, to be reopened
 for a named consumer need. This note proposed one narrowing of it. The owner
@@ -369,6 +376,9 @@ Section 1's tables were written while these were open. All five are now
 answered, and a sixth rule was set in the same instruction.
 
 ### D-1: SP-03's clarification is adopted
+
+> **[superseded 2026-09-22 by D-7]** Drafting stays authorized. "Schedulable
+> never, until a consumer names it" is replaced by D-7's evaluation.
 
 **Ruling: (a), adopt as written.** Section 5 carries the rule and the record.
 
@@ -502,6 +512,11 @@ each item separately reviewable and each spec its own pull request:
 5. **The governed-scope spec** (D-2), filed at the next free ordinal.
 6. **The section 1.3 drafts**, under D-5's baseline.
 
+> **[superseded 2026-09-22 by D-7]** The paragraph below no longer governs.
+> Spec 102 is authorized for implementation under section 10's evaluation; the
+> absence of a consumer request is no longer a reason to leave it unbuilt. The
+> paragraph is preserved as the record of what was decided on 2026-09-21.
+
 Spec 102 stays deferred until a consumer requires it. It is small, and that is
 not a reason to build it.
 
@@ -617,3 +632,149 @@ the same standard.
    requires exactly that for section 3.2. A number in this note is evidence of
    what was true at a commit, never a claim about the working tree a later
    reader has.
+
+## 10. Owner decision D-7 (2026-09-22): opportunity-led expansion
+
+### 10.1 The ruling
+
+Recorded as given, in substance:
+
+> The earlier "specify now; implement only for a named consumer need"
+> restriction is replaced. An existing consumer request is useful evidence, but
+> it is no longer a prerequisite for filing or implementing a spec-spine
+> capability. Opportunities are evaluated by the capability they enable; their
+> potential value to the Statecraft CLI, the Statecraft platform and other
+> adopters; their differentiation and strategic usefulness; their ability to
+> support multiple future features; and their architectural fit, dependencies,
+> maintenance cost and compatibility. Latent value is a legitimate reason to
+> build infrastructure. A plausible opportunity is distinguished from
+> demonstrated customer demand, but is not rejected because nobody has
+> requested it yet. This includes spec 102.
+
+What it supersedes: section 5's implementation condition, D-1's "schedulable
+never, until a consumer names it", section 7's last paragraph, and spec 102's
+own D-1 (recorded there as superseded, by its D-2). What it does not change:
+
+- **The producer boundary.** Runtime activation, remote fetching, mutable
+  orchestration state, provider execution and operational trust decisions stay
+  with their owners (spec 092; note 07). An opportunity that needs one of them
+  inside this repository is re-scoped, not built.
+- **Transferred items stay transferred** (section 1's C9, H1, H9, A7).
+- **D-5's drafting baseline**, which every contract in section 1.3 is written
+  against.
+- **One spec per implementation pull request, ratification separate.** Filing
+  and building remain distinct acts, and a draft is still not ratified by being
+  built.
+- **The lifecycle value `deferred`** keeps its meaning (spec 035): a decision
+  not to schedule. What changed is the reason a spec may be deferred, not the
+  state.
+
+### 10.2 The deferred contracts, reconciled
+
+Sections 1.2 and 1.3 were written before the deferred contracts were filed.
+Their state on 2026-09-22, before anything below is built:
+
+| Row | Spec | Where it is | State |
+|---|---|---|---|
+| C2 | 102 | `main` | filed, `draft` / `pending`; contract complete |
+| C3 | 103 | PR #301 | built, `draft` / `complete`, outside the 0.22.0 candidate |
+| A3 | 105, `governed_scope` enabled | local branch `105-governed-scope-is-enabled-here` (`a48a1691`), not pushed | built against the pre-integration stack; needs re-basing onto `main` and its own pull request |
+| P1 | 106, obligations | local branch `specs/deferred-contracts-2026-09-21` (`ed69e00a`), not pushed | filed as a deferred contract; no territory |
+| P2 | 107, ContextClosure | same branch | filed as a deferred contract; its open question 1 (where a closure lives) unanswered |
+| P3 | 108, WorkScope | same branch | filed, deferred |
+| P4 | 109, impact and conflict | same branch | filed, deferred; needs 106 |
+| P5 | 110, digest-pinned interface references | same branch | filed, deferred; needs 106's section digests |
+| P6 | 111, reviewed move mapping | same branch | filed, deferred |
+| P7 | 112, typed overlays | same branch | filed, deferred |
+| P8 | 113, waiver lifecycle | same branch | filed, deferred |
+| P9 | 114, A10/B23 separation | same branch | filed, deferred; A10 is Statecraft's |
+| P10 | 115, bindings mandate | same branch | filed, **deferred by mandate**: the one row whose deferral is the decision, unaffected by D-7 |
+| | 116, `L-001` exempts a deferred contract | same branch | built; needed only if the deferred contracts land on `main` while still deferred |
+
+Ordinals 105 and 108 to 116 stay **reserved** for those drafts (spec 118 made
+gaps legitimate). Nothing below renumbers or duplicates them: 106 and 107 are
+carried from that branch and corrected, not re-filed.
+
+### 10.3 The bounded wave selected under D-7
+
+Three specs, in dependency order, each its own pull request, none part of the
+0.22.0 candidate.
+
+**Spec 102, `status` on a ready spec.**
+
+- *Possible:* a consumer reading `registry plan --json` applies an approval
+  rule without one `registry show` per entry.
+- *Distinctive:* small, but it is the first read-document field added for a
+  scheduler rather than for a human, and it fixes the shape before a second
+  consumer copies the join.
+- *Scenario:* the Statecraft CLI's scheduling stage filters the ready set to
+  `approved` entries from one read, in one process, and records the plan
+  document it filtered.
+- *Hypothetical:* no Statecraft stage consumes it today.
+- *Smallest contract:* spec 102 as filed. One member, verbatim, read-schema
+  MINOR.
+- *Evidence:* ready-set membership and order unchanged (asserted by name); the
+  emitted plan conforms at the new version.
+
+**Spec 106, obligations.**
+
+- *Possible:* a requirement, invariant or verification becomes an addressable
+  thing (`<spec>#<id>`) with a text, a validated anchor and a digest of the
+  section that states it in full. Commit messages, acceptance lines, review
+  comments and orchestrators can cite a requirement rather than a paragraph
+  number that moves.
+- *Distinctive:* this is the substrate every later contract in section 1.3
+  builds on (107, 109, 110 and 113 all reference obligation ids). No other
+  tool in this family gives a requirement a stable, hash-checkable identity
+  tied to the prose it came from.
+- *Scenario:* a Statecraft work order records
+  `100-a-deleted-path-is-judged-where-it-lived#R-1` and the section digest it
+  was issued against; when the work is reviewed, the platform asks whether that
+  digest moved and flags the order for re-reading if it did.
+- *Hypothetical:* no corpus declares obligations yet, and no consumer reads
+  them. The first declarations will be this repository's own.
+- *Smallest contract:* an optional frontmatter key, three kinds, per-spec ids,
+  validated anchors, per-anchor section digests in the registry shard (additive
+  MINOR), explicit verification inputs, withdrawn ids kept as tombstones so
+  reuse is detectable without history, and no gate consulting any of it.
+- *Evidence:* compile-time validation of every rule; section digests move only
+  with their section; a corpus without the key compiles to unchanged
+  `shardHash` values; `couple` verdicts unchanged; the conformance test at the
+  new registry version.
+
+**Spec 107, ContextClosure, as a pure resolver.**
+
+- *Possible:* a set of specs, sections and obligations that a piece of work is
+  answerable to is resolved against the corpus and content-addressed, so "the
+  context this was done against has changed" is one digest comparison.
+- *Distinctive:* it turns 106's identities into the object an orchestrator
+  actually handles, while leaving the orchestration state where it belongs.
+- *Scenario:* the Statecraft CLI stores a closure request in a work order,
+  calls the resolver when the order is issued and again at review, and compares
+  the two digests.
+- *Hypothetical:* the request shape is designed here, not taken from a
+  consumer. 107's open question 1 (where a closure lives) is answered by the
+  boundary: it lives in the consumer's record, and spec-spine resolves it.
+- *Smallest contract:* a request document in, a resolved closure with an
+  order-independent digest out, through the JSON facade and one CLI verb;
+  every reference qualified and validated; inert in every gate.
+- *Evidence:* digest stable under reordering, moving with any member's
+  content; every unresolvable reference refused by name; gate verdicts
+  unchanged.
+
+### 10.4 The dependency sequence after this wave
+
+Not authorized for implementation by this note; recorded so the next wave
+starts from an order rather than a list.
+
+1. **105**, `governed_scope` enabled here: already built, needs re-basing and
+   its own pull request. Independent of the rest.
+2. **109**, impact and conflict sets, declared against 106's ids.
+3. **110**, digest-pinned interface references, on 106's section digests. Its
+   fetching and trust stay outside.
+4. **113**, waiver lifecycle over caller-supplied inputs, citing obligations
+   where a waiver names what it waives.
+5. **108**, WorkScope, completing spec 072's overlap half.
+6. **111** and **112** as consumers of the above appear. **114** is a
+   separation record, and **115** stays deferred by mandate.
+
