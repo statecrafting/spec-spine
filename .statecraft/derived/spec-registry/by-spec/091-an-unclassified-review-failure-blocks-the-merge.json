@@ -31,6 +31,33 @@
       }
     ],
     "risk": "high",
+    "sectionDigests": {
+      "091-an-unclassified-review-failure-blocks-the-merge": "8ecc0624895c1361e11a47d656de7dc473cfddbdab40b64bbbdf1a9cddb94ca4",
+      "1-1-what-was-observed": "0a3521ce6d9df05be7d6326ddcdc4cb205ae6391c60a825b1c69250f84f16143",
+      "1-2-the-misclassification": "a1f8461f668281465fd9c2f8c4eefccb333c10c8c02fec70f145ab994daaeaf6",
+      "1-3-two-adjacent-holes-in-scope": "f25a67a0b43d631acab0ae6a182db2ba49395268733447e06e1a2e729fb569cb",
+      "1-4-what-this-spec-does-not-fix": "f334ea517647662fc9bc4b56d58c628bb375dab1a38f1c2c01c5964d8f895814",
+      "1-purpose": "a7d4c15e59bf01179c711672231248b5ec2adbd06e560726b40a98e3704671a5",
+      "2-1-what-coupling-and-a-behavioral-test-each-protect": "54bcf2aad8870e86ab4663b7b498a0d925721a61e204d5f46d15afcc4012c85d",
+      "2-territory": "dd1c2784e24f05cccc4dce7d4fb04c7ba590e6b5106ba27a510d700923b2b2b4",
+      "3-1-success-and-failure-are-separated-before-any-text-is-read": "db7979b95fb00cee5369416cb8e2c1c0863724b594e12ccd42d6f53ed81d4795",
+      "3-10-acceptance": "9e181086d738dafe9c3436cd39b300b20e3906d67daf3bd8a8da1757e22db60a",
+      "3-2-class-1-structural-skip-unchanged": "51b86f1813855c1ce6183dd29b40bac14e2c39fac1287ac237095991cba1f9e5",
+      "3-3-class-2-secret-unset-unchanged": "1e968d2cb74cac262d5f9634e143d96e6e4669bb9a329b9b103df12c9f44b6a4",
+      "3-4-class-3-a-review-was-produced-and-published": "aaf256bd04b4ae82579f07d2bae7b21345993844e0941fd2986b6c089adc244e",
+      "3-5-class-4-access-refusal": "5b73555306df9e09dbdc214fb499594619fcb864db2914037a2d88e21c9936aa",
+      "3-6-1-a-timeout-is-not-a-recognized-transient-signal": "bc0ef3e86f4f989d2af0f78651420fb760cd048b278de7a4c5f8fb6e634d12cf",
+      "3-6-class-5-recognized-transient": "1d37d555f75a490f5c70e328a1e28c49b4376053ec891417857469df585e1307",
+      "3-7-class-6-unclassified-blocks": "db8bf94d1d5e922348159439ca3cddd48818e47fe6c63e7c4942c135b35cd8d7",
+      "3-8-1-fixture-matrix": "a78b79dfaa05fb13ffb0c847346f5a6db4147fcf234a522f99c814736ee7131b",
+      "3-8-2-the-inversion-regression-check": "1b174b671b4c8b1736c88f06b6e2ec83b1fa8c2221d4eec90b58c1ef6cfce6a1",
+      "3-8-the-policy-test-executes-the-workflow-s-own-script": "d3f4b7bea31797fd57dbe3aa319fcfe99dbf9e7df6975a0aceebe474239a9a06",
+      "3-9-precedence": "73da44c3572b5086976ed7ce636fa68bcf16a7cf32f5d994ca426e6f3b1704ee",
+      "3-behavior": "2d2794b0a6c03334b517ab9b0436fa0192e8dc97f0aeaf3241743cbc8fed5410",
+      "4-out-of-scope": "fe2a6d91fe49559ff76bb7a07c003675c79f3f2f0d52954f51ad6196c6493ab5",
+      "5-resolved-decisions": "07562f2885e2c65a8de51add62d7031a5d9e8033cc2e109c8893fcb0031ff018",
+      "verification": "6fe209953c2269620e469140c221cb78a1a4b8027a9c50973eea00218b80e0f5"
+    },
     "sectionHeadings": [
       "091: An unclassified review failure blocks the merge",
       "1. Purpose",
@@ -64,5 +91,5 @@
     "title": "An unclassified review failure blocks the merge"
   },
   "shardHash": "08372c52539369a8aec3cd0ad93eac695c86511bcdc5fd96ec0106afaa55ece8",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

@@ -255,7 +255,9 @@ claims are still needed for every file in the grown universe to be
 specifically claimed. The universe grows from 100 to 140 files, 40 of them from
 the declared scope (D-2 measured 97 to 136, 39, before specs 117 to 121 added
 files). `[index] extra_hashed_inputs` has not changed since the build, so §3.1's
-list is still exactly that set minus the floor paths.
+list is still exactly that set minus the floor paths. Re-measured again after the expansion
+wave merged (`main` at `6e123d2e`): 108 to 148, still 40 from the scope, all
+148 specifically claimed.
 
 **D-7 (2026-09-22, the scope adds a refusal, measured).** A larger universe
 is not the goal; a governance file that can no longer be added unowned is. On

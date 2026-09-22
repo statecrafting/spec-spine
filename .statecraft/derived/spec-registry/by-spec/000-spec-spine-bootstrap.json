@@ -10,6 +10,22 @@
     "origin": {
       "retroactive": true
     },
+    "sectionDigests": {
+      "000-bootstrap-spec-system": "54584dc2bd5505b8cf4d3f31110d561e9a6ce4f89626e4db9c9f1973c1131e31",
+      "1-the-authoring-derived-boundary": "ba617995983e5652586a8c51ede09e8882ac4f265c9986536e5e8ac3316c334c",
+      "2-identity-directory-name-equals-id": "ea97a1e43957d543bd7306285501c8efd69fec9f6f3ed30df5d0216a8a394a46",
+      "3-frontmatter-grammar": "7091e4932a3ef3d551dc1147fe14fc7835fe766f463d39799f251a8b46f06d86",
+      "4-1-edges-eight-types-seven-ownership-bearing": "e22b407e4651e1b9e8cb562d1f93731b9922a9d687f23350eb3e1a6b1d9a52d3",
+      "4-2-authority-units-file-section-symbol-directory-crate-module": "9ab7fe6d693f4c51eab4d0fb244b35644f3f8a89f278afda9b9daebbdbf7ea16",
+      "4-3-resolution-and-amends-awareness": "4014075fabb71f2ad96edb6e2bd333b1d4668f65479e9143d1a6044cca0ddac6",
+      "4-the-typed-authority-graph": "00ddb7d1b4e4391d55e950ead5cb4e52e2de1f513d4def989a6a2aaf4c612fcf",
+      "5-the-compiled-artifacts": "b66a9361c025c04ab57e9ed3a8f9e0d52f16c236361e37225054917af8b15d05",
+      "6-determinism": "61d6a26127bcbcc00c5fd605011e7d50fb02abd8ae2a307e6edd9121090ec87c",
+      "7-the-guardrails": "d966d53ef2c701a80e2ae2e7a847f4f3893cde06c79011fdb290c40886e7238f",
+      "8-bootstrap-order": "8175c66edc8662deea130112a1acc164cfa1b696543ce21febd62959d21c05b6",
+      "9-status": "f6fa8daa4c32ed48a2fc9f7a6bd7ac1080c7c56e32bb91563c4382185f0d93c2",
+      "amendments-received": "bf91d444fe2effbf768fb0e0dda627c44586733622fabec5b9e2830e04b38eda"
+    },
     "sectionHeadings": [
       "000: Bootstrap spec system",
       "1. The authoring/derived boundary",
@@ -40,5 +56,5 @@
     ]
   },
   "shardHash": "68665c3d36fd91683ca67adf5fbcd0509cc174b47637cbbbbba6c11050a50ffe",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

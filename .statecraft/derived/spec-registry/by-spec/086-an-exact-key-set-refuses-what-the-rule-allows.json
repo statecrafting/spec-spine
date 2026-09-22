@@ -27,6 +27,26 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "086-an-exact-key-set-refuses-what-the-rule-allows": "4bce49afe75a0923a1afdbccd8d52798d47df34e1158abb5def8ecb58ed1a68d",
+      "1-1-one-red-assertion-no-defect-behind-it": "62ddb908e2474b5801ece22b9f30af4fae7b19b77066613322fede4f6aac8eed",
+      "1-2-an-equality-over-a-key-set-asserts-a-closed-document": "986baedeb2834d39bf612ebc5726b1864ee9da25ef04dabcace89d9e5957cf2e",
+      "1-3-the-block-is-silent-about-the-decisions-059-recorded": "6d3265512b5746d1d4e66d4c5c39fbdc042df31f00b27356b53127b645f9d591",
+      "1-4-the-crossing-was-silent": "456c42693130676a203fd20d8213b32811c8d50f4eceb2b87bede0360118dc01",
+      "1-purpose": "6579ee99cc832c4cafac55bcf52aafa8f6303db15ccfec10afb889c48c4474d3",
+      "2-territory": "8738b567e7108960c0b766f103e3ec71e54a4f69948ba0b7095cc13013e0febf",
+      "3-1-what-spec-052-s-acceptance-now-is": "00f152022406b1afcd91bba208d7f4c6c68bb4a1a0241d6906a66e398194f83f",
+      "3-2-the-verb-s-exit-status-is-the-line-s-status": "ceaad7bc84338cb9947586a4bd63c8521e39387d84481051fa6cf17b39c5c1d1",
+      "3-3-the-key-set-becomes-presence-type-order-and-version": "464d6850d3b1c356d02d165b6edec30d46f122270e706c1faa36350bf271b704",
+      "3-4-the-two-recorded-decisions-are-asserted-on-the-fixture-that-shows-them": "d2942c49743b346a75ec8acd5101a9840204e134628fa301c6308f0bce6ff07e",
+      "3-5-the-acceptance": "73706fbbc31bc066a8653b5ba22b133aee8e0371b62413d5f0fb0ede8d29e615",
+      "3-6-no-amends-edge-was-owed-to-059-by-spec-074-and-none-is-claimed-here": "54bfcf97550bdccb0d69afce66878c0160037958b3d8df53a1689b81a9c9da19",
+      "3-7-no-code-changes": "834f99ff2229e33c0f8084e699908865f03fb295bbef216b460e17684cbc2ae8",
+      "3-behavior": "2e0f6cb7e15fa6828d3a72e152c0037de0fe05b6318d810c68fe183105715068",
+      "4-out-of-scope": "bd3d7206f101f55d559f549bf66478116efa1675e922891a9ee1b77b5eb8d297",
+      "5-resolved-decisions": "d5c96e6d0bbb73b25c45c8b172a0730a47806d797575fe7f49ffd0b9e0e039f8",
+      "verification": "6379779c3dfd115569daef9ea32e43ba0363ef8b9210ad91d3fee7f40759cbd2"
+    },
     "sectionHeadings": [
       "086: An exact key set refuses what the rule allows",
       "1. Purpose",
@@ -53,5 +73,5 @@
     "title": "An exact key set refuses what the rule allows"
   },
   "shardHash": "1ca8da71028d62629f7f6a255b5c304a6f9e8552c07c0b52baac531ee24c9d52",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

@@ -26,6 +26,24 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "085-a-version-pin-is-not-a-contract": "8ca4ea420ebd1502e1e63fa9ccf11a36e7bf1eb70655e045a2c570a0809e860e",
+      "1-1-one-red-assertion-no-defect-behind-it": "8ea58a69d5946e3121409610a02f0e1b3f56199653c59458e4e3220a2e28d7ce",
+      "1-2-the-pin-asserted-neither-half-of-the-rule-it-stood-for": "1c45f5d400426b7c64408e9936ba07c8101810896cc3d9d3328c685cc5f22b24",
+      "1-3-the-crossing-was-silent": "6053afc027515d1f2ec8c3886e9affe6e3d92d1053863b8a1add225c159b9d20",
+      "1-purpose": "d3e2be539ceaf2e7c84b69b760ba95db8be9494d610071276263c831c44b0987",
+      "2-territory": "c48b640e26016039bee29ee1aa9458f30164e306aeded9ed59431f5bd37866a5",
+      "3-1-what-spec-049-s-acceptance-now-is": "bc36aa713bace7474a6df6c88e3ad9889bcbcd032ca421147601f639cf65555d",
+      "3-2-the-verb-s-exit-status-is-the-line-s-status": "eb285b42f6e8dd53d960c11354adb1994eac6509929153a9c0714dff42d9ac05",
+      "3-3-the-version-is-compared-across-the-pair-the-rule-names": "217757ff8832bb3ae8331240a9a6427a50f2d3a3e9cd6dbe5e1643cb61a2a264",
+      "3-4-the-payload-is-asserted-because-short-id-resolution-lives-in-it": "314ac055c6637c8c099846283419c1611a673b83210b6654370b7233e22c6131",
+      "3-5-the-acceptance": "aeb5b499d1baed194079ad9aa4d1805811b93aa95f87322878dc9dd0defcd380",
+      "3-6-no-code-changes": "07796c1a4311a295bbf364c96d3689dc4d6e777fdd1173c544de318da86e0c97",
+      "3-behavior": "870ba262c83d7699d07b668b7c10bbe2a26feaa4a27fe3fc4c3d2301676e98fc",
+      "4-out-of-scope": "048358368dc782ea821ac8a443334b942ae8044e860ebfa4dbd78b15c60ec8aa",
+      "5-resolved-decisions": "465246b1d8e69a18b31513ed0827c771c9d2008a270aa5a21f280e73182fd01c",
+      "verification": "32040a7e1dec56d0dc600739614597356473b0c9dd0132bc5adbd5012e480d57"
+    },
     "sectionHeadings": [
       "085: A version pin is not a contract",
       "1. Purpose",
@@ -50,5 +68,5 @@
     "title": "A version pin is not a contract"
   },
   "shardHash": "a7180757e7555f3e36c2aac115c6ac6a730e3a4137487e3e23dd0fe9d70b366b",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

@@ -18,6 +18,14 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "003-corpus-conformance-lint": "df6f51b5a623cfaa0c727b44e7f76c91ab8c2028692990382ccc84724e2a6ed7",
+      "1-purpose": "53f661eb7b3cfc5c981de7732a28040284aa0ef1a79b86f9f4d06e974ecee93c",
+      "2-territory": "468af9dd56efc8d040ede792a63788fc32c473434f6780e9fe044c0b1dcb86f0",
+      "3-1-severity-gating": "9e17f4c7319004a4424e3bfdd08343b4ad155dc9fce7980f811426d45b67a9b3",
+      "3-behavior": "91c4f9ad039144bfdde9dd88a73c7288dabd02530cb9deaf86533cb19a0e4db9",
+      "4-out-of-scope": "5cf26c9362314c9ad9599e3aba909f630b4571aeade9793d0b881546ffa9d37a"
+    },
     "sectionHeadings": [
       "003: Corpus conformance lint",
       "1. Purpose",
@@ -32,5 +40,5 @@
     "title": "Corpus conformance lint"
   },
   "shardHash": "47ee7fb563e0969b59bd74e4a3d351440552fe475a0e9f70bbf05416bc1c9e04",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

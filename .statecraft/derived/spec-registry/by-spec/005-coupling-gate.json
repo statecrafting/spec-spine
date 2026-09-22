@@ -50,6 +50,21 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "005-the-coupling-gate": "4c64a8bb0ecbfadcaedc4505bb9a003d85aed78c96aeeafe7e501e6232b6807e",
+      "1-purpose": "6226ee51732c0ba58107c87966036ae36db44615bbb704db6b993dbbc9c1d422",
+      "2-territory": "173a31f38e5499cc142e5de78d9430835a50377bb1c9cd86e90e64bb539cc2ad",
+      "3-1-the-boundary-git-stays-out-of-core": "3cd8bdc73116f233ed27e2f300165dabb4bb594a2658e3a21e91ba33478c0aeb",
+      "3-2-owner-derivation-three-granularities": "00e1e4a7c37b302d641df8a0e0d83ab18268b24c68b69cf21d02e6a4a72f4375",
+      "3-3-amends-awareness-and-the-strict-expansion-guard-fr-005": "8118870542c1d915e8bb3854cd70fe4122bb0a242a6743f1db5d3abe7b0bc3e0",
+      "3-4-supersedes-authority-transfer": "33b689a2bd78d3fdac8e91d2780841432cae92cc9ac2d5b912888a08c257ddb5",
+      "3-5-clearance-waivers-and-bypass": "eb844d912b5120dd6f410206266bf12623d7a73cd208e02780f4c770961b2dfd",
+      "3-6-granularity-reconciliation-the-crate-spec-vs-file-establishes-question": "6c88cbb28ab78386d4a82b0b89138ed5f07df5a6b2800530d91523fc53c97122",
+      "3-7-exit-codes": "c632769da19f19a5eb3a466f31c423fa02963892c9e07ec304f11e9275c4962a",
+      "3-8-determinism": "538f2f0fe9bf9c556a549b951875b8fdf7ef42d024b6b6fe5fd1f4ce3eed6bb6",
+      "3-behavior": "e0f8bd8a7b99b496dfb73f1684792e9f23a69d202e2d32c3569a67020f5a6ca3",
+      "4-out-of-scope": "4350db8eaf3c5d96b5784384cff0e396e2e6dec0839d14413dd18afcfb7cb7de"
+    },
     "sectionHeadings": [
       "005: The coupling gate",
       "1. Purpose",
@@ -71,5 +86,5 @@
     "title": "The coupling gate: join the two views and refuse drift"
   },
   "shardHash": "adb2d69ff136f41bf31e5e1c7a14a3f92ea453000d86121039fcc76098bb34bc",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

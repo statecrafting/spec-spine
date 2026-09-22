@@ -11,7 +11,7 @@
   "producedBy": "spec-spine attest, over this case's corpus/",
   "schemaVersion": "0.1.0",
   "subject": {
-    "attestationHash": "sha256:e8b388375d10178be62445abde4b2d365c8ba32162c4c74775848ce0916925ad",
+    "attestationHash": "sha256:01bec6900716df21d9e531d396840ecad6b61ec16ae9173b86412cccf2d8d0c8",
     "kind": "corpus"
   },
   "toolVersion": "0.22.0"

@@ -42,6 +42,17 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "014-unit-wrapped-establishes-items-and-the-n-a-implementation-alias": "24955ee203439bdbbd07866564b0bd36e3a995a1c5dae5ab096d9f948cc23fff",
+      "1-purpose": "0617b219863d8c872eb7bee3eb78e355720ff593a3c3bfa478cca721f0cec896",
+      "2-territory": "81c6cab244ab8ad631b6007df8d40d85b8597ad0dc28fa4f5ec3e9d79897ccb8",
+      "3-1-the-unit-wrapper-a-third-1-1-unit-representation": "699261785447e85cb5fcfcf0be0b55e15c87dd97ef510e39e55a43204e9a3502",
+      "3-2-the-n-a-implementation-alias": "6bdda8202e198f41c0f52a4f90f4b6ce3e1257381283ee6970b08284092bcbd4",
+      "3-3-normalization-and-equivalence-the-sugar-never-escapes": "301660fe2946a5544050d423ee52356fc2c4b64beaecf5e063ea7d71e9e7b71d",
+      "3-4-tests-minimum": "6c07501141dc2faad8a0c202d78893e515ad9d11e3f35ce7f2fa6e60f9985c68",
+      "3-behavior": "eeadec050bde7772677deda5aa9ada3cafcbee9256144e38491b00808f65d626",
+      "4-out-of-scope": "881b7f0529741bcffbc716a53371ef8e26dd1593870c6d41375541528359ee31"
+    },
     "sectionHeadings": [
       "014: `unit:`-wrapped establishes items and the `n/a` implementation alias",
       "1. Purpose",
@@ -59,5 +70,5 @@
     "title": "Frontmatter sugar: `unit:`-wrapped establishes items and the `n/a` implementation alias"
   },
   "shardHash": "f5524e28b68ba7606746a6d615e7d057be097539e6fbb21ea3cbb2e8915283f0",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

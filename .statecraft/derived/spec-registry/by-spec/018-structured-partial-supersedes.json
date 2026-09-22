@@ -123,6 +123,18 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "018-structured-and-partial-supersedes": "51a60b21cabd31bd1b334fc0ad849af35743de6d250c971f2d658e3586ac95cb",
+      "1-purpose": "34903d683651fcd0d6e02befd7d8059aaa6fa5b186e113b49ec3218306f123b4",
+      "2-territory": "9ab71f094f2ebdf6b911cd9554453cb9ef9702ed1ff0063a3d1ea394e1de7b9a",
+      "3-1-grammar": "7a4bcf394241df5d6724898c00800d16a35f30f13d7a881a361cf5cb9aa01eb5",
+      "3-2-normalization-wire-the-full-form-never-escapes": "f4166124e33884077d4842d0f5c7930552d69cda35b2c1de1fdd31375c7ed966",
+      "3-3-authority-transfer": "5e692bebffcdf9f9e900935bb0f5348b7aabc4d22d76a212f8e71de770198a55",
+      "3-4-short-id-resolution": "cdf5339db6aefae9a28801be620570fc70d64adb84b710ef4596d53158afe266",
+      "3-5-tests-minimum": "50e9538f2a1f5f59963912b028b3dcf70da48ed9cbe46d4f5eb2f7c9bd7407dd",
+      "3-behavior": "2d32209cd96c1c1c6bb7afab77c4ba9a6b0335cabc1a230137349bd9fa42e308",
+      "4-out-of-scope": "e706a046efb369b3fa58e3767ab1584a7ed978d8df332822beaab3a6d9b431df"
+    },
     "sectionHeadings": [
       "018: structured and partial supersedes",
       "1. Purpose",
@@ -141,5 +153,5 @@
     "title": "Supersedes grammar: structured items and partial (unit-scoped) transfer"
   },
   "shardHash": "7b1508b9432cbbe4a1d1864e89fd14d05f0cc8ce5d26f14d7d0e6e0cf83275b2",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

@@ -51,6 +51,25 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "099-a-merged-acceptance-is-asked-again": "04740f83b40090cb1b811a1028d94857cd4a23ba1412ef8bf6d3cd9f52a4e05e",
+      "1-1-the-window-spec-089-left-open": "adc54a2c67c0282fb78e6833dcd6cc08938ac43e0b8930b0a422db75492ec1e1",
+      "1-2-the-boundary-the-never-ci-clause-was-protecting": "0fcb778c5bcdb4c30a68f19fe2933c89c670b1b7a94538183e34d3d0e9bb3241",
+      "1-3-why-this-spec-is-its-own-witness": "7c4109ccb7ac458bb9eb0432a4e20e044444f4ac614372140970e551c9337a94",
+      "1-purpose": "9c50807d943f1672a8f6515a6a56a2877e6b10a56bc13a7841dbbd42374e30e9",
+      "2-territory": "876c2782a98b512a94a4a92699281127c2e7e71c0b8c37d6bb5aa231976b246d",
+      "3-1-where-it-runs-and-where-it-must-not": "975dc9108bff3f63ab046e4a2110aa1fd42a954171d3d7d259631d268cc71b2a",
+      "3-2-the-scope-after-a-merge": "c704b71620062d40ccfaff832e424039345b03da25a9fae3c2efc6d70f9b637e",
+      "3-3-the-nightly-leg-sweeps-the-whole-corpus": "d645c89af76a558143ba37027e5783a75c17e36ef233522d237fbd9b117ae0f6",
+      "3-4-the-decision-about-the-token": "8d77ec0318db018c17534e677803e216aa0c43e092870f75cbff87d84d2da246",
+      "3-5-the-trusted-ref-is-named-not-inherited": "6c9e80cda1691aa08ad92c877af1597c6c03234b92654eff61b4a01861205901",
+      "3-6-spec-089-s-acceptance-line-corrected-in-place": "d6ee62f9196986fd77c920eb74f6172800109c9dedef29f2ceffb813cb469845",
+      "3-7-what-it-does-not-do": "c7d16cda6510868762cddc7f10e748d4658f27b4b8de0c3f0da74d7b26f72243",
+      "3-behavior": "69781e9d85d48f66f202a529b9153d42d4ca8abb57f2c48f0a003465d027c384",
+      "4-out-of-scope": "3e5efe82c72877aaf50856569f90e25b22bf31c94cc7833aa5d0de72df73e298",
+      "5-resolved-decisions": "033ec2ec2e2bcab40b036b98f8a31669397ac7d0702666a57a2afffee36a23b8",
+      "verification": "7b1264fbbaf5974744936ed0778894bb2c6be7915acc93594dcfb1d81a34081e"
+    },
     "sectionHeadings": [
       "099: A merged acceptance is asked again",
       "1. Purpose",
@@ -76,5 +95,5 @@
     "title": "A merged acceptance is asked again"
   },
   "shardHash": "eaf5a8eecdc9aa4bb444a37902ba989eb3d316903af99e81bf2e61df51a91103",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

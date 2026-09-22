@@ -55,6 +55,19 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "027-cargo-and-workflow-dependabot-bumps-self-clear": "f4cc05a2b63a9a370dd09021ab4a0296c4208e0d96d59d194f791f27b2b519d0",
+      "1-purpose": "eace43e1fbc414f88ca95ff43717d4c88555fd511ce3735a3fcb9972a37edad8",
+      "2-territory": "167249192a93fab78fb0794100424c29c9979e333355f5ecc309d6d0b304c514",
+      "3-1-cargo-freshness-projection-amends-004-3-5": "f9a27ae86c7c64e20994b0268213b27e429ef5917514f306ad1670ed6aa81965",
+      "3-2-cargo-dependency-only-auto-waiver-amends-005-3-5": "e5069615d398ad8bf8997af6f1de98425a406b330e6c7da80d20bd48a3fd31fd",
+      "3-3-workflow-dependency-only-auto-waiver-amends-005-3-5": "7c4ae68852ce1102e05b6fb9a18f4d9e353c7693ac59057b4da0644937e61596",
+      "3-4-the-whole-diff-rule-is-unchanged": "ca2aab941a1ef107b471ad800415e1fe0ca61a0f3e8a3d7d423ae857706640ab",
+      "3-5-config-determinism-and-report-shape": "72788500ea4559943005a1e7bc32c2b10debc04419027adc355c3ccc0b629903",
+      "3-6-tests-minimum": "e2786af7f88bbc77cec55a2d2f0834b615437000101aa1e1a20defd4cfa7de7a",
+      "3-behavior": "aa6e6f7746325b0840c34082e93535944dfb3aed78d1ef6c84e3f60c0d8e86fa",
+      "4-out-of-scope": "8b44985c2d863e79bc48a0289760aec90d1a11309f4346fbced85aea7e07e769"
+    },
     "sectionHeadings": [
       "027: Cargo and workflow dependabot bumps self-clear",
       "1. Purpose",
@@ -74,5 +87,5 @@
     "title": "Cargo and workflow dependabot bumps self-clear: freshness projection + auto-waiver"
   },
   "shardHash": "b794b882553d299f9a0e8dee593f0d6048294e914abd8f5857c41a79b96a7f06",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

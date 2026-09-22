@@ -79,6 +79,20 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "047-the-effective-configuration-is-a-governed-read": "5c6103608d0855f15b4cf2e794467f5c7405a98c413d2b386195a34051a8917a",
+      "1-purpose": "b0965730ba194cd7aa362e6af5ec919f87caeb2aca325961819968114493cf5e",
+      "2-1-two-crate-roots": "6776b7cc20537bd7e216c7f6b0209fa783f352078405d4ae0ae27474fe35a45f",
+      "2-territory": "8b9e404f2a77e337a691a8e6d25102ada0db65125aebb41f5f6c512c7b7d4b76",
+      "3-1-spec-spine-config-show": "1daf49337a0fd7dd17b77a12dee98ba41a96e2d9cc2c87ba6ece204854ae94f9",
+      "3-2-the-bypass-floor-is-reported-merged-and-attributed": "e73e7f162c8d48868bb6e201abb3ad3a659eb69c5dd3ecf727c943977589a858",
+      "3-3-the-report-is-data-first": "15261ffa81f76f44e720ab32ec248f304b4403f9ba1e1670ebd13124a08cfc89",
+      "3-4-what-it-reports-is-what-the-tool-would-use": "1986687f0da5524e1a6e7486e44beaaa0f4ef254fb009ec6da71c9d3a179ec04",
+      "3-5-determinism": "c073cae6b7e5e40d5807ca23e6a6be9224bc56e3b05561cb86e6975af3079de4",
+      "3-behavior": "c29c9ca40404e289a940f2bac72f13b7e869fd13b20f0514170bfe0324b6f596",
+      "4-out-of-scope": "9c9159611679aed556371b8bff99924c322f52787b810f43c1d5f029bbf74dc1",
+      "5-verification": "095ac9c30df1e5649fef0d464be57a54d817e1bb6ad109de643dbb71e3962b0a"
+    },
     "sectionHeadings": [
       "047: The effective configuration is a governed read",
       "1. Purpose",
@@ -99,5 +113,5 @@
     "title": "The effective configuration is a governed read"
   },
   "shardHash": "aa139e351a0201055036fd00ff07027b84869861851bcf9caafd72812264eea2",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

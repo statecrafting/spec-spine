@@ -117,6 +117,20 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "045-the-coupling-gate-names-the-crossing": "bf4bb9a7341e7dde2ae1457da6f93cfbbe8787d4dcd70fae853c0ef2a2a2c38f",
+      "1-purpose": "f6f0a5c63d05b9d239c8947ba83697f561a15711baf73f87d1124f324c51cbf8",
+      "2-1-six-more-files-the-field-s-shape-forces": "6c08ac24fde648539c8d5fff985b990cb45c21948723b668dbc5f5207d7c1450",
+      "2-territory": "3cf2db763623b381eb2d5e27331d6ed87c382ed59770ebf898f8bfa890524d0a",
+      "3-1-c-001-carries-its-owners-as-data": "142c80221c64323db7632413ea984d00ba589b73a4e2bad144a5847f408fc908",
+      "3-2-the-footer-names-three-doors": "95303f661660525b58fd161a57fa5c3a35ee7719a5be3a52c56abb0b047fd85c",
+      "3-3-the-guidance-is-specific-when-the-diff-makes-it-specific": "1f2ab928a9a59ebcdee21b0841e8a593f60db89888de42193a6ffa187d31c79c",
+      "3-4-nothing-committed-moves": "9e93fa631d44c19ff119078dc3d73d99803af473b09546b579c2bfe501f33916",
+      "3-5-the-json-form-carries-data-not-prose": "2f3a2fe3604bf7d9f39e0d18e3e7b46401e601758bfb170862f7992a9517f620",
+      "3-behavior": "9f66058c823bb9c2173596b883dc47590f20ff7c16bf836a15ea7b714ea0fe6a",
+      "4-out-of-scope": "ddc312f8ba8e82f4f17f8a7c6c0e7fdf3cf756a903150becc5fcfa1f7076c616",
+      "5-verification": "69b29275a9054a887d1516c9147722477889734c81ee6ceef6fbe48c3602e603"
+    },
     "sectionHeadings": [
       "045: The coupling gate names the crossing",
       "1. Purpose",
@@ -137,5 +151,5 @@
     "title": "The coupling gate names the crossing"
   },
   "shardHash": "12d12290f7d80d8049cd6346cdd6e3b67f7f025afbf16a30dd23e41636bb6f27",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

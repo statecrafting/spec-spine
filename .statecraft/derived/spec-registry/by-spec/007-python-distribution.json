@@ -28,6 +28,20 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "007-distribution-uvx-pypi-wheel-shim": "843fba3124222b7aff28b8b885232ab7378900387c320a87916d54ac05117acd",
+      "1-purpose": "5389fd28a2f90cccd86cb7cf5e97c0a0eac2c15faa87eb7acaed55a9b7cad2e9",
+      "2-territory": "c037987efffdfaeec8a8d6f69ed8bf6930408746a0d38f42cd89fd1289b930fa",
+      "3-1-the-pattern-per-platform-wheels-not-download-on-first-use": "8f1be7ce3bd26a14846a9da07be41a8281948c13f57b9a1e441f32bcbc085077",
+      "3-2-platform-map-the-same-five-triples": "52b6f4a39ae866b48696e01ddc7e45a135370745b33d18c755b8f730259c4c52",
+      "3-3-the-launcher-there-isn-t-one": "19c91ef495112c35e17d9fbf43c59f847a28de4abb2b5983d3d55249945a3246",
+      "3-4-unsupported-hosts-fail-clearly": "4c8e1838cbc831ac75865813577328ed2219d476675c6f4c09f7ed4ea1bfda98",
+      "3-5-version-lock": "ca4a03adefa1588bda033500127bf367472103ef9c703a421a339280a81a348e",
+      "3-6-release-integration": "9b5b02c6968e7471d2df0ae01dd0b0a0bef822b8046bb6761d16279a9b7f150e",
+      "3-behavior": "9e8478ab51ea99fc2f6f7e3619c6da4515356da1e9ab61833e98026877934b0c",
+      "4-out-of-scope": "518843fa284323352e961c3ade9320a6c51cf96f5f25cefe02d4fbfd5ec7be7b",
+      "release-log": "b925ab7a313f17d3c19d7ec6f3b00e88fd5754fd02f5e20390b43f8c9ce0e295"
+    },
     "sectionHeadings": [
       "007: Distribution, uvx/PyPI wheel shim",
       "1. Purpose",
@@ -48,5 +62,5 @@
     "title": "Distribution: uvx/PyPI wheel shim"
   },
   "shardHash": "65d02b6ae4ab9aff2a50d81f77abb9f3db0b3e2ed06dc6b64b9e4127bfa03a5f",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

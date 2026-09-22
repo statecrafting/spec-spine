@@ -48,6 +48,24 @@ pub enum RegistryQuery {
         #[arg(long)]
         json: bool,
     },
+    /// Resolve a qualified obligation reference, `<spec-id>#<obligation-id>`
+    /// (spec 106). An unqualified id is refused, never resolved locally.
+    Obligation {
+        /// `<spec-id>#<obligation-id>`; the spec half may be short (`106`).
+        reference: String,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Resolve a context closure against the committed ledger (spec 107): every
+    /// member's identity and one order-independent digest. Refuses a stale
+    /// registry (exit 2).
+    Closure {
+        /// A closure request document, or `-` for stdin.
+        #[arg(long, value_name = "FILE")]
+        request: String,
+        #[arg(long)]
+        json: bool,
+    },
     /// Which specs can be worked on now, and what blocks the rest (spec 035).
     Plan {
         #[arg(long)]
@@ -181,6 +199,87 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 print_json(&plan)?;
             } else {
                 print_plan(&plan);
+            }
+        }
+        RegistryQuery::Obligation { reference, json } => {
+            let view = spec_spine_core::obligation(&registry, reference)?;
+            // Spec 106 §3.6: the spec's full identity beside the section's,
+            // read from the committed shard and never recomputed (048 §3.3).
+            let content_hash = shard_content_hash(&cfg, repo, view.spec)?;
+            if *json {
+                let mut value =
+                    serde_json::to_value(&view).map_err(|e| Error::Schema(e.to_string()))?;
+                if let (Some(obj), Some(h)) = (value.as_object_mut(), content_hash.as_ref()) {
+                    obj.insert("contentHash".to_string(), serde_json::json!(h));
+                }
+                print_json(&value)?;
+            } else {
+                let ob = view.obligation;
+                let kind = serde_json::to_value(ob.kind)
+                    .ok()
+                    .and_then(|v| v.as_str().map(str::to_string))
+                    .unwrap_or_default();
+                outln!(
+                    "{}#{}{}",
+                    view.spec,
+                    ob.id,
+                    if ob.withdrawn { "  (withdrawn)" } else { "" }
+                );
+                outln!("kind:    {kind}");
+                outln!("text:    {}", ob.text);
+                outln!("anchor:  {}#{}", view.spec_path, ob.anchor);
+                if let Some(d) = view.section_digest {
+                    outln!("sectionDigest: {d}");
+                }
+                if let Some(h) = &content_hash {
+                    outln!("contentHash:   {h}");
+                }
+                for input in &ob.inputs {
+                    outln!("input:   {input}");
+                }
+            }
+        }
+        RegistryQuery::Closure { request, json } => {
+            let text = if request == "-" {
+                let mut buf = String::new();
+                std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)
+                    .map_err(|e| Error::Io(format!("read closure request from stdin: {e}")))?;
+                buf
+            } else {
+                std::fs::read_to_string(request)
+                    .map_err(|e| Error::Io(format!("read closure request {request}: {e}")))?
+            };
+            let req: spec_spine_core::ClosureRequest = serde_json::from_str(&text)
+                .map_err(|e| Error::Parse(format!("invalid closure request: {e}")))?;
+            let resolved = spec_spine_core::closure(&cfg, repo, &req)?;
+            if *json {
+                print_json(&resolved)?;
+            } else {
+                for m in &resolved.members {
+                    match m {
+                        spec_spine_core::ClosureMember::Spec { spec, content_hash } => {
+                            outln!("spec        {spec}  {content_hash}")
+                        }
+                        spec_spine_core::ClosureMember::Section {
+                            spec,
+                            anchor,
+                            digest,
+                        } => {
+                            outln!("section     {spec}#{anchor}  {digest}")
+                        }
+                        spec_spine_core::ClosureMember::Obligation {
+                            spec,
+                            id,
+                            section_digest,
+                            withdrawn,
+                            ..
+                        } => outln!(
+                            "obligation  {spec}#{id}  {section_digest}{}",
+                            if *withdrawn { "  (withdrawn)" } else { "" }
+                        ),
+                    }
+                }
+                outln!("digest: {}", resolved.digest);
             }
         }
         RegistryQuery::Relationships { id, json } => {

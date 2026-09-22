@@ -90,6 +90,18 @@
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "risk": "low",
+    "sectionDigests": {
+      "032-a-closed-reader-is-not-an-error": "0d3b1c2da7d76e1b85f634dc09238d1e04adf74635db3b784da6ca3bcc3795ac",
+      "1-purpose": "3bb801773551c3579cdfd33743b4f7c1ae4d160ce1f6d1b58b0d6ead2014ac20",
+      "2-territory": "c22aad059c4fe8da3bb6f0363fee42c63e7c7702d9718e1ffc3cd25bfa7c21cb",
+      "3-1-two-entry-points-one-classifier-three-outcomes": "f1a6126b375e756a5095a30b87627a05a75314000368959fbf9d5b53ecc43f13",
+      "3-2-why-not-the-two-shorter-fixes": "a115d9848c73ee85a91827491c23e127fe9b25ab1e1d5c9ea8e42e208cd95eb3",
+      "3-3-stderr-is-deliberately-unchanged": "170fb02af11c3c8a774f00ea2bf476cd5bc7fe832128c91a617324524482feb4",
+      "3-4-determinism-and-output-are-unaffected": "110be729b96046f3000b9ee2d236a06d3d3c66d673700448a890323d3d57050e",
+      "3-5-tests-minimum": "9adde785cd4911bd885143f77ab4c0a5f3cbeb7adb135c669d6c585aca765bf2",
+      "3-behavior": "ddf02f282797b6be7368bac5f46d5002898f74605b595a961c3268ffe50ed38e",
+      "4-out-of-scope": "f6b9d8d32ec6a2bac0f8a5340a4071fdc8c4f9c576ea17ba2f763de457ad8329"
+    },
     "sectionHeadings": [
       "032: A closed reader is not an error",
       "1. Purpose",
@@ -108,5 +120,5 @@
     "title": "A closed reader is not an error: stdout writes stop panicking the CLI"
   },
   "shardHash": "f2147f5b2dee08f47d819015dd3a14d4f2d95f7527e47ff09d1a8273ac3dbf3d",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

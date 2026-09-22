@@ -26,6 +26,20 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "006-distribution": "c9693d76a5835381beb43da7186e2f87f21ba6a99dc0921fc49b6625aff35fdc",
+      "1-purpose": "7cb80bd801791e2be23f948ce225cb02ea13dfd599e6340b1492b4766722d390",
+      "2-territory": "203a14b940b88dda43288b9d65357fdded8908005844eb2e59c4440126bdbbc8",
+      "3-1-the-pattern-optional-dependencies-platform-packages": "28d38cb02f348982e0befc739568fd3270c91a50567e9ea119674d18d6ba05ea",
+      "3-2-platform-map-the-five-triples": "76f6af1d851cb9f7a4eb662bbce64129964f91a12f4c2857c5e1ac9b4571a9ef",
+      "3-3-the-launcher": "b43692460f7607a680b8315c4aa9b58489e52003a081f0c37f015711d4934be3",
+      "3-4-unsupported-hosts-fail-clearly": "4dbe4035824de104d9efaacf1a9f48970f7d895ee0fb4ff859228a53bfdb36bf",
+      "3-5-version-lock": "92f856737c7948560ffccfa982bb188702a51eaa6b8ea827b1a7f3dd1fc435f7",
+      "3-6-release-integration": "f0c3c3d5311e98a9bcb43fadb2172a2b00ba130360cf71635b84fe145fbb2a6c",
+      "3-behavior": "1bc8a834cf77cb3ffb83758dc32b8e7dd992119ab9a884f61065d22f4ac789d0",
+      "4-out-of-scope": "0878e0d53936d9d0ad4912905aab9014db7499a29c64e3c540e3b68f656c89b1",
+      "release-log": "6798744bef6cd1f1c6d3463723f0e89b3d807d815c7c03d1bb254e93728c84c3"
+    },
     "sectionHeadings": [
       "006: Distribution",
       "1. Purpose",
@@ -46,5 +60,5 @@
     "title": "Distribution: npm binary shim + the release pipeline"
   },
   "shardHash": "5de1056c4207d934466ce6f08a911b251c52acb4ef53dbbb7e8bb5ee2eb12b84",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

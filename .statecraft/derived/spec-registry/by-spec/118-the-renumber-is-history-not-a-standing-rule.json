@@ -32,6 +32,21 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "1-1-a-red-block-with-no-defect-behind-it": "5af16ab851fd387d420b6be0df5e05fd1be0fe0235bd04413af03bf6a17b9076",
+      "1-2-the-owner-s-ruling": "424e5334a06680069277ce602f0a51d0abd68e10e105dcbdecb46ffd4ca0ae3f",
+      "1-purpose": "0e14378f2c5cb8eb371fa7d8f8d48f998d9a01111ba386d15380179944065f42",
+      "118-the-renumber-is-history-not-a-standing-rule": "e2a196f58041f9da405e32a0e0cd533d7b9bc219ea742101bab8c5ef535eebae",
+      "2-territory": "9cfa386a33c8cb6895ae377cd3f6fc9ae35a5e18349e45f383e1555cc60164ef",
+      "3-1-the-block-is-replaced-in-full": "ab102549c867b1ba1e1f64e61cdfbc6d23d9ee00ba67927450d61e15be457c80",
+      "3-2-the-historical-renumber-is-read-from-the-record-of-it": "3b6d634d30bb1541f5acf586e64840cbcc9c2d11436a8dbcf5cb5c305c4b0063",
+      "3-3-the-live-corpus-is-held-to-rules-that-survive-growth": "545e77e9f7ffd467da0e3042801a08d8f2d437e7619d5a2527b11db5e46c659b",
+      "3-4-the-engine-still-refuses-what-matters-shown-on-fixtures": "feae4e8a2147f6a4a1e498726de17432bcdcdc18991465e568cd63d3bc91cadd",
+      "3-behavior": "900c969b7afc11e8052c60a3e33e527e91b86cf1609273b4ac32248c92f4dacc",
+      "4-out-of-scope": "1b88a8f0be62a185ffca5578dd3cfb59d61676507ef4e926e19630b0e6837af0",
+      "5-resolved-decisions": "6c6aed885281dda050d26144c51f9fed352b88ac7d85a9694b7080f2ea3d4537",
+      "verification": "84362c7f8cc8ca5ce4050194a8d58e14ff7eaa1b97775302e53e12e31e47bb76"
+    },
     "sectionHeadings": [
       "118: The renumber is history, not a standing rule",
       "1. Purpose",
@@ -53,5 +68,5 @@
     "title": "The renumber is history, not a standing rule"
   },
   "shardHash": "79121ac493280b5b671ffa395885b55e9655db756c237c36ccb563215563254a",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

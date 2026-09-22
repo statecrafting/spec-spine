@@ -31,6 +31,29 @@
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "risk": "high",
+    "sectionDigests": {
+      "094-one-gate-and-the-boundaries-it-holds": "a5a815217deabc9e0dca0122c5008f59bf8852c1f9e91a23480281606bd88a6a",
+      "1-1-one-chain-five-documents-and-a-copy-in-each": "2904e0d5a41f0bc430812f254bd5ed97ba51aaa29d06b2d885e287e6cda79440",
+      "1-2-three-boundaries-one-definition": "e70627bcb26c92002f331348dc6757d585621cab0d8abfe76b79c726c3449f38",
+      "1-3-the-five-this-replaces": "9e6afcb4793695ddfd46d72a7fac1c3cc6f29f4a3386a715e4d567eaa41ad090",
+      "1-purpose": "0906ce55f0ece2567c1668af6184ecb4662acc2745c09e5ed2aefc6ec6f6f8f9",
+      "2-territory": "3f16173c3c1e9038b1075067653fdccce0366eeac8655f4416f2eb74243a4b73",
+      "3-1-the-target": "d9b792e667792771ba9b9256d18185832747bee98c0b79481ed5d81b61915ff8",
+      "3-2-the-language-targets-are-guarded-on-a-manifest-and-the-guard-is-an-if": "9de8d5850d3cd65b5633a230a9ecb29213dbfc8e28e4b6e291e075821a1d9e95",
+      "3-3-the-ownership-assertion-is-conditional-and-every-skip-is-announced": "b82a41895db6b10817a71e146182b1dacbb39de5d6856169f02966596159aab6",
+      "3-4-the-coupling-step-has-explicit-controls": "ea3b9e0ce6480c8ca4eac569bfb53bc17c8c5b6285c66e390ec5dcfd629d9a36",
+      "3-5-the-gate-holds-on-a-corpus-with-no-code": "36fa39c75e38d7aa11c574b2844d1976cc46c4491b5c4bfb45556064e8b55f51",
+      "3-behavior-the-one-definition": "29067314636b53d98654dc358d69b233f495a8d522d78ca4dddd53b845acdb5d",
+      "4-1-the-pull-request-and-push-legs-call-the-target": "a6cfc13507d946410f815e8fb002162f561bbdcd0348db255b6f3e8e33edf0dc",
+      "4-2-the-commit-boundary-refuses-it-does-not-repair": "5543cf07d9b4fb2c4bf6a3e9f456a7cc5c76a6cd15f628b7036eca39df49b822",
+      "4-3-the-merge-boundary-regenerates-rather-than-marking": "086e04144201eb7740b2ece97a8662699be90c0852b5f95c2318ed55498ea1c7",
+      "4-behavior-the-boundaries": "8394566f7bb1cdfad2777721d90f540a0dea8189de4f026dabe58646d921ef05",
+      "5-the-tests": "2981606c5d2151e60b5362a14ecb3caa8561ca4858b26fc89e382a0e8d1a74f6",
+      "6-what-the-five-said-that-is-not-carried-here": "88197dbcfe4c4a4889a8b93faefeaaa080361a5bd7299a94610287e2bff76319",
+      "7-out-of-scope": "b3bd48c2276c0ce8db3dfe4d5c92707cef6c8dc87b5b61850a7cd36cfbad5ca2",
+      "8-resolved-decisions": "ba3169e26555f2122f94ec49b3ea1f5af90ef87ac148a9aff63464088cbe8c29",
+      "verification": "9a0e007d39a94eb76a5fef4a2760fd55b7a1272334d0c4aa34e31a5d51dc2c3b"
+    },
     "sectionHeadings": [
       "094: One gate, and the boundaries it holds",
       "1. Purpose",
@@ -60,5 +83,5 @@
     "title": "One gate, and the boundaries it holds"
   },
   "shardHash": "59a10f98a550810994c295ab4cd698f624b988166150bbb317704e2fa5ecbc71",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }
