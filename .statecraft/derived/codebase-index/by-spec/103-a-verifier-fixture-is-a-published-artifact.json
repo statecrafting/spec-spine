@@ -4,10 +4,23 @@
       "021-ledger-seal",
       "068-a-verifier-checks-the-bytes-it-was-given"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-cli/tests/verifier_fixtures.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/fixtures/verifier/",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/fixtures/verifier/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -16,7 +29,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/verifier_fixtures.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -81,5 +98,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "ed798063d197b10b29a36ff3b626c87c3fa615f4a0e441412e4648845a1a775d"
+  "shardHash": "1aff75cc1a478d3a8d20cf2418efad3fb6e31d1052ad5c2b37dc7b4b0deb8b90"
 }
