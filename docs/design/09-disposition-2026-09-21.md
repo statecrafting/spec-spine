@@ -330,51 +330,290 @@ decision empties it.
 | **owed by Statecraft** | §3.24 implemented, since without it the four hook events have no route to a user's `settings.json` |
 | **neither's** | `.claude/agent-memory/`, which is aicortex's |
 
-## 5. A proposed clarification of SP-03
+## 5. SP-03, clarified and adopted
 
 grand-refactor revision 4's **SP-03** recommends deferring obligations,
 WorkScope, ContextClosure, A10 and B23 beyond the local slice, to be reopened
-for a named consumer need. It is **not adopted**: revision 4's adoption record
-holds only four statecrafting-profile rows, so §1.3's items are neither
-scheduled nor withdrawn.
+for a named consumer need. This note proposed one narrowing of it. The owner
+adopted that narrowing on 2026-09-21, in these words:
 
-This note proposes a clarification, and records it **as proposed**:
+> Adopt note 09 D-1 as "specify now; implement only for a named consumer need."
+> This authorizes concrete deferred draft contracts, not implementation of
+> every proposal.
+
+The adopted rule, stated once:
 
 > **Specify now, implement only for a named consumer need.** A deferred
 > proposal is written down as a contract when the documentation already
 > supports one, and built when a consumer names the need.
 
 What it changes: a deferred item stops being an undocumented intention. What it
-does not change: nothing is scheduled by writing it down, and a draft spec is
-not a work order (spec 093's `/next` rule).
+does not change: nothing is scheduled by writing it down, a draft spec is not a
+work order (spec 093's `/next` rule), and SP-03's ownership assignments from
+revision 3's 06 are untouched (spec-spine for source contracts, statecraft-cli
+for adapter and submission consumers, Statecraft for runtime binding).
 
-Spec 102 is this note's worked example. It is filed, its contract is complete,
-and its own D-1 states that it is built when a consumer names the need. Spec
-103 is the counter-example that keeps the rule honest: three consumers are
-already named in note 04 §7, so it is buildable now.
+Spec 102 is the worked example. It is filed, its contract is complete, and its
+own D-1 states that it is built when a consumer names the need. Spec 103 is the
+counter-example that keeps the rule honest: three consumers are already named
+in note 04 section 7, so it is buildable now.
 
-**This is a proposal. It is not recorded as adopted here and it must not be
-recorded as adopted in grand-refactor on the strength of this note.** Adoption
-is the owner's act, in revision 4's adoption record.
+**Where the adoption is recorded.** In grand-refactor's revision-4 adoption
+record, dated 2026-09-21, scoped to SP-03 alone. No other row of that package
+is adopted by it, no historical proposal is rewritten, and its own deferral of
+*implementation* stands.
 
-## 6. Decisions a human still owes
+## 6. Owner decisions, recorded 2026-09-21
 
-| # | Question | Options | Recommendation |
-|---|---|---|---|
-| **D-1** | Is §5's clarification of SP-03 adopted? | (a) adopt as written; (b) adopt full SP-03 deferral, leaving §1.3 undocumented; (c) leave open | **(a)**. It costs one sentence and converts ten undocumented intentions into reviewable contracts without scheduling any of them. (b) keeps re-deriving the same proposals; (c) is where we already are |
-| **D-2** | Enable `[coverage] governed_scope` here? | (a) close the three gaps in §3.2, then enable; (b) enable and accept three `C-002` refusals; (c) leave off | **(a)**, as its own spec, after spec 100. The cost is three paths, two of them one-line claims. (b) puts the gate in a red state on purpose; (c) leaves the governance files spec 078 was written for outside the ratchet in the repository that wrote it |
-| **D-3** | What of the deleted `website/` does Statecraft recreate, and where? | (a) audit the deleted tree and route each page; (b) declare the two rescued facts sufficient and let the rest stay in git; (c) defer to Statecraft entirely | **(b) plus a named audit**: `docs/adoption-guide.md` and `docs/api.md` already carry what only existed on the site, and nothing has been reported missing since. Recreating a site is Statecraft's product decision, not a documentation debt here |
-| **D-4** | Does the adopter migration note ship before the next release? | (a) yes, it gates the tag; (b) ship the release and follow with the note | **(a)**. Six repositories pin releases and three carry a kit copy. A release whose notes do not say `init` is gone and ids moved creates the support load the note prevents |
-| **D-5** | Obligation vocabulary (note 04 D-5), if P1 is ever scheduled | kinds, id syntax, frontmatter versus a fenced block, whether `constraint` is a fourth kind | No recommendation. It should be decided by the consumer that needs obligations, not in advance |
+Section 1's tables were written while these were open. All five are now
+answered, and a sixth rule was set in the same instruction.
 
-## 7. The next single work order
+### D-1: SP-03's clarification is adopted
 
-**Build spec 100.** It is the only filed, unblocked correctness defect; it is
-reproduced rather than predicted; its fix is bounded to two files and their
-tests; and spec 100 §3.6 settles the semantics P6 would later build on, so
-building it first is also the right order for the deferred backlog.
+**Ruling: (a), adopt as written.** Section 5 carries the rule and the record.
 
-After it, in this order and each independently deliverable: spec 101 (one
-paragraph of `docs/api.md`, plus one hashed-input glob), the adopter migration
-note (D-4), spec 103, and D-2's governed-scope spec. Spec 102 waits for a
-consumer.
+Consequence for section 1.3: every deferred row there becomes draftable now and
+schedulable never, until a consumer names it. Drafting them is authorized;
+implementing them is not.
+
+### D-2: `[coverage] governed_scope` is enabled here, after the gaps are closed
+
+**Ruling: (a).** Close the three measured gaps of section 3.2 through
+legitimate ownership, then enable the reviewed scope in its own spec, filed
+after spec 100.
+
+Two constraints attach to the ruling:
+
+- **Bypass semantics are not weakened as part of it.** The floor, the
+  configured additions, their match rules and their precedence over the scope
+  all stay exactly as spec 005 section 3.5, spec 078 section 3.3 and spec 092
+  section 3.8 have them. A path the floor exempts stays exempt after the scope
+  is on. If closing a gap appears to require loosening a bypass, that is the
+  signal to stop and re-scope, not to loosen it.
+- **The three-path list is re-measured before the switch is thrown**, not
+  assumed still exhaustive. It was measured against `4ab1b31e`; the tree has
+  moved since, and this session adds files to `docs/`.
+
+**What stays exempt, and is therefore not covered by the ratchet even with the
+scope on.** Stating it plainly, because "governed scope enabled" reads as
+"everything is covered" and it is not:
+
+| Still exempt | Why |
+|---|---|
+| everything under the built-in bypass floor, including `.github/`, `docs/`, `README.md` and the configured `derived_dir` | the floor is evaluated **before** the ratchet, so a floor path never reaches `C-002` however the scope is written |
+| everything under `[coupling] bypass_prefixes` | same evaluation order; additive to the floor |
+| everything under `[layout] state_dir` | declared ungoverned (spec 036); excluded from classification by construction |
+| anything matched by `[index] resolver_exclusions` | pruned before the universe is built |
+| anything listed in `[coverage] governed_scope_exclusions` | carved back out after the scope is applied |
+| a **deleted** path | `C-002` exempts deletions (spec 029), scope or no scope |
+| every path outside a discovered package **and** outside the declared scope | the scope is an allowlist, not a wildcard: a file in neither set is invisible to the ratchet exactly as before |
+
+In particular, the two unclaimed `.github/workflows/*.yml` files measured in
+section 3.2 remain exempt after the scope is on. They are not a gap being
+closed; they are a floor path that the scope cannot reach, and the spec must
+say so rather than imply the workflows became governed.
+
+### D-3: one bounded audit of the deleted site, with retention here
+
+**Ruling: (a) as performed, not (b).** The audit is in section 8. "No omission
+has been reported" is explicitly **not** its acceptance criterion: the deleted
+tree was extracted from git and compared claim by claim against the current
+documentation surface, and the criterion is that every distinct claim is
+accounted for by a named disposition.
+
+Routing, as ruled:
+
+- **Engine semantics, API and standalone governance guidance stay here.**
+  Section 8 records what that turned out to be and where it landed.
+- **Statecraft onboarding and harness instruction become a handoff for
+  Statecraft.** Not recreated here, not deleted from history, and named in
+  section 8.3 so the counterparty can take it up.
+- **No website is recreated.** Recreating a site is a product decision and is
+  not a documentation debt of this repository.
+
+### D-4: the migration note and a producer acceptance check gate the next release
+
+**Ruling: (a).** `docs/adopter-migration.md`, finished against the measured
+adopter inventory, and a conforming-producer acceptance check both land before
+the next tag.
+
+Two additions the ruling makes explicit:
+
+- **The release candidate is prepared promptly** and does not wait for full
+  harness delivery, for aicortex, for spec 102, or for any deferred vocabulary.
+- **The candidate carries a genuinely new version.** `0.21.0` must not be the
+  identity of two different published behaviors.
+
+### D-5: the drafting baseline for the deferred contracts
+
+**Ruling: adopted as the baseline every section 1.3 draft is written against.**
+
+1. Declarations live in **frontmatter**. No second fenced declaration syntax.
+2. Three constraint kinds: **requirement**, **invariant**, **verification**.
+3. **Stable unique ids within a spec**, and **qualified** cross-spec references.
+4. References point at **validated heading anchors**.
+5. **Section digests** are carried alongside full spec identity, not instead
+   of it.
+6. Verification inputs are **explicitly declared**, never inferred.
+7. **No fourth constraint kind** in the initial contract. `constraint` as a
+   kind of its own is not adopted.
+
+And the limit on what an obligation asserts, which is part of the baseline and
+not a caveat on it:
+
+> An obligation identifies declared requirements and evidence relationships. It
+> does **not** establish that a verification result is true, and it does not
+> establish that the declarations enumerate every dependency.
+
+Section 1.3 row P2 said ContextClosure needs D-5 settled first. It is settled,
+so that blocker is discharged.
+
+### D-6: evidence reuse, and the independence of CI
+
+Set in the same instruction and recorded here because section 1.4's H8 was the
+open question it answers.
+
+> Evidence is reusable only when the **subject**, the **tool identity**, the
+> **command**, the **configuration** and the **relevant inputs** all match. CI
+> verification remains independent.
+
+Consequences: a passing result may be reused across a session only while every
+one of those five is unchanged; a rebuilt binary, an edited `spec-spine.toml`,
+a different flag or a moved tree each invalidate it. CI never reuses a local
+result, and a local result is never reported as a CI result.
+
+H8's disposition therefore moves from **decision** to **decided**: the
+governance-side rule is the paragraph above; the orchestration-side scheduling
+of when to re-run remains Statecraft's.
+
+## 7. The sequence, as authorized
+
+Spec 100 is still the first work order, for the reasons section 1.1 E1 gives.
+What follows it is now an authorized sequence rather than a recommendation,
+each item separately reviewable and each spec its own pull request:
+
+1. **Spec 100**, corrected before it is built (section 9 records the
+   corrections the owner required).
+2. **Spec 101**, independently.
+3. **The producer release candidate**: the validated producer mismatch, the
+   smallest conforming change, a genuinely new version, `docs/adopter-migration.md`
+   finished, and a reviewable publication plan. Prepared, not published.
+4. **Spec 103**, tightened before it is built.
+5. **The governed-scope spec** (D-2), filed at the next free ordinal.
+6. **The section 1.3 drafts**, under D-5's baseline.
+
+Spec 102 stays deferred until a consumer requires it. It is small, and that is
+not a reason to build it.
+
+## 8. The deleted site, audited (D-3)
+
+Bounded and performed 2026-09-21. The tree was extracted from
+`373ab506^`, the last commit that contained it: 53 files, of which 34 are
+documentation pages. Every page's distinct claims were extracted as literal
+tokens and tested against the current documentation surface
+(`docs/*.md`, `README.md`, `AGENTS.md`, `CLAUDE.md`, `standards/spec/**`).
+The measurement is reproducible from that commit; it is not a reading
+impression.
+
+### 8.1 The result, by page group
+
+| Group | Pages | Disposition |
+|---|---|---|
+| `concepts/*` | 8 | **covered here.** Six carry no claim absent from the current tree. Two carried unit-literal syntax and the manifest-key JSON shape, retained in `docs/configuration.md` and already present in `standards/spec/contract.md` |
+| `getting-started/*`, `adoption-guide.md` | 3 | **covered here** by `docs/adoption-guide.md`, which is three times the length of the site's version |
+| `extending-and-overlays.md` | 1 | **covered here** by `docs/overlay-contract.md`. Zero absent claims |
+| `releasing.md` | 1 | **covered here** by `docs/releasing.md`. Zero absent claims |
+| `schema-and-versioning.md` | 1 | **covered here** by `docs/schema-versioning.md`, minus one install-script environment variable now in `docs/adoption-guide.md` |
+| `api-reference.md` | 1 | **covered here** by `docs/api.md`. Its two absent tokens are the facade signature and the purity statement, both in `CLAUDE.md` and `docs/design/00-architecture.md` |
+| `cli/*` minus `init.md` | 7 | **retained**: this was the real gap. See 8.2 |
+| `configuration.md` | 1 | **retained**: this was the other real gap. See 8.2 |
+| `faq.md` | 1 | **retained in part**: its two absent items are a waiver-reason convention and a layout key, both now in `docs/cli-reference.md` and `docs/configuration.md` |
+| `cli/init.md` | 1 | **obsolete.** `spec-spine init` was removed by spec 092. Not retained; `docs/cli-reference.md` says so under its own heading, so a reader arriving from an old link learns why rather than finding nothing |
+| `claude-code/*` | 10 | **handoff to Statecraft.** See 8.3 |
+
+### 8.2 What was retained, and where
+
+Two documents were written, from current source rather than copied forward:
+
+- **`docs/cli-reference.md`**: every verb, its flags, the exit-code contract,
+  and the `--json` verdict envelope with its `verb` and `error.kind` closed
+  sets. The deleted `cli/` pages were the only per-verb flag reference that
+  ever existed here, and seven verbs and subcommands have appeared since they
+  were written (`check`, `delta`, `compact`, `config show`, `index owner`,
+  `index diagnostics`, `registry plan --next`).
+- **`docs/configuration.md`**: every `spec-spine.toml` key with its default and
+  what enabling it changes. `[lint]`, `[coverage]`, `[meta]` and
+  `layout.state_dir` did not exist when the deleted page was written.
+
+Both are engine documentation and stay here by the ruling. Both were checked
+against the binary's own `--help` and against
+`crates/spec-spine-types/src/config.rs`, not against the deleted pages, so a
+default that changed since deletion is current rather than preserved wrong.
+
+### 8.3 What is handed off, and is not recreated here
+
+The ten `claude-code/` pages documented the distributed kit: installing it,
+copying `.claude/`, the `settings.json` hook table, the skills and agents
+reference, the session-init protocol, the governed loop and its checkpoints,
+and a troubleshooting page. Their subject is the **managed development
+environment**, which is Statecraft's by spec 092 and note 07 section 4.
+
+Two things follow, and they are different:
+
+- **Nothing here is recreated.** This repository's own harness instruction
+  lives in `AGENTS.md` and `.claude/`, which is its development instruction and
+  not a distribution source.
+- **The content is available to Statecraft**, in git at `373ab506^` under
+  `website/docs/claude-code/`, as source material for its own onboarding
+  documentation. Roughly three of the ten pages (`install.md`,
+  `adopt-in-your-repo.md`, `overview.md`) describe a kit-copy mechanism
+  Statecraft has replaced with content-addressed delivery and should not be
+  followed; the other seven describe the loop, the hooks, the skills and the
+  failure modes, which survive the mechanism change.
+
+This is a pointer, not a deliverable. spec-spine owes Statecraft nothing
+further on it.
+
+### 8.4 What the audit did not find
+
+No engine semantics, API surface or governance rule was found that exists only
+on the deleted site and nowhere else after this retention. That is the
+audit's *result*, reached by the token comparison above. It is not its
+acceptance criterion, and it was not assumed at the start.
+
+## 9. Corrections this note makes to itself
+
+Recorded here rather than by silent edit, because section 2 holds note 08 to
+the same standard.
+
+1. **"A human-named draft cannot be built"** was never stated outright and was
+   implied by section 1.1's "Build 100. It is the next work order" sitting
+   beside four `draft` specs. Stated plainly: in this repository **draft
+   readiness is intentional**, and a draft a human has named can be built
+   without prior ratification. The lifecycle is draft, build, then separately
+   ratify. `registry plan` reporting a draft on `ready` is that cadence
+   working, which is exactly what spec 101 writes down.
+2. **The matrix counts.** Section 1's five tables hold **51 rows**, not the
+   unstated number a reader would infer from "seven dispositions". Recomputed
+   as of the decisions above, and using a consistent vocabulary: two labels in
+   use (`blocked`, `not a defect`) were outside the declared seven and are
+   folded in as `deferred` with a stated blocker and `superseded` respectively,
+   with the row text unchanged.
+
+| Disposition | Rows, at filing | Rows, after section 6 |
+|---|---|---|
+| implemented | 15 | 15 |
+| filed | 4 | 4 |
+| deferred | 13 (plus 2 labelled `blocked`) | 13, plus 2 blocked on Statecraft, plus the 10 of 1.3 now **draftable under D-5** |
+| transferred | 4 | 4 |
+| superseded | 7 (plus 2 labelled `not a defect`) | 9 |
+| decision | 3 | **0**: H8 answered by D-6, A2 by D-3, A3 by D-2 |
+| draftable | 1 | 0: A1 is being written under D-4 |
+| **total** | **51** | **51** |
+
+3. **Dated measurements are not current facts.** Sections 3.1 and 3.2 are
+   measurements taken on 2026-09-21 against `4ab1b31e`. They are labelled as
+   such and must be re-measured before anything is built on them; D-2's ruling
+   requires exactly that for section 3.2. A number in this note is evidence of
+   what was true at a commit, never a claim about the working tree a later
+   reader has.
