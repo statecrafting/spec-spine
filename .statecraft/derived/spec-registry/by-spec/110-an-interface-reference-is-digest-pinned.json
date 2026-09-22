@@ -56,16 +56,16 @@
       "1-1-the-dependencies": "1458d38797efd2e8fd16c98dc4c4af3e8a3d96044531496ea8629f67db4d423c",
       "1-2-what-it-enables-d-1": "f739fbb4a5cd482111c432896af972a39b179d19db36c938d948d3f38a88a59e",
       "1-purpose": "f4e814d4cb7e6e25f269bd41e1a8fbc7efa598ba2d0cb745fb176a311fa65855",
-      "110-an-interface-reference-is-digest-pinned": "22bf271c986e010dedb05d4e9e0e6710e2cb0ee3e8c69e3d0ca004933b6ee640",
+      "110-an-interface-reference-is-digest-pinned": "754771a2ed2c7ffbf7fefce61eeff792ea97621474ad928951ffb5a85329272a",
       "2-territory": "0cb7694fdc499288762dfffa7d67690af06a2638c1c8a50fde1ce2a8f2a19726",
       "3-1-a-reference-names-a-corpus-a-spec-and-a-digest": "33825581058c2923ebc73b840742038003cb4027f2fd4a78f17a94837c6adca7",
       "3-2-malformed-references-are-refused-at-compile": "2b50985198c5efcce2678df1178efbe4be7dc71f95957f089da70535c36229c2",
-      "3-3-verification-recomputes-from-a-corpus-the-caller-supplies": "6327306f3877678fc56aa440e169a600f46edccb8be450e6bc7a944cbad9c322",
+      "3-3-verification-recomputes-from-a-corpus-the-caller-supplies": "e76dcf49a58ff8d6aff1f0323ae023546ef54f6aec120c303304bfd288c5e0c9",
       "3-4-the-library-and-the-facade": "6baf25a4197ddddf0490009d997df173f3f2e5742cf7cd8d98c90283be6cda5e",
       "3-5-what-a-reference-establishes-and-what-it-does-not": "00bf0d0b460d583bafe672a6322460c69c262fd7165d0357869fba5972262672",
       "3-6-a-reference-is-updated-deliberately": "c496f587e7d1f07557ad8bfb01cf0fc25c40cbcf6447f4a896ffe5011781b5f3",
       "3-7-nothing-else-gates-on-a-reference": "d78f117ab51ab868b222b192e67097a4e2416b2d5596e45ffee3670b66255f1f",
-      "3-behavior": "7afbc86ba799e7652d000de2a6b4cfbda091959eabd646d870ffdb3514a1b15e",
+      "3-behavior": "666aeed5ac4a4ee754cef05f26a04f519417492df12525394c023f9454d6e5b4",
       "4-out-of-scope": "cca5b4786525091cb3a19c6cc74e9827f4e543e12e4ea200117d851cde1a983b",
       "5-resolved-decisions": "f942366bd80ba0d46861e0c32d68ca5bfea64cba6721e42672f1ca7ce3d33220",
       "verification": "a4a0912f3c4451721eb0459d8795859311f991d7a07d869bb071a76621be067f"
@@ -93,6 +93,6 @@
     "summary": "A spec can cite another repository's spec only in prose, so the citation cannot go stale visibly. This declares a cross-corpus interface reference pinned to the cited spec's content hash, and optionally to the digests of the sections it relies on, and adds one verifier that recomputes those digests from a corpus the caller supplies locally. A moved interface becomes a named, exit-coded fact. Discovery, fetching and trust in the exporter stay with the caller; nothing is ever pinned from what was first observed.\n",
     "title": "An interface reference is digest-pinned"
   },
-  "shardHash": "27f0d0033885006461035d85e3a95ac7b987e092e1e389b61fd3ee61cc4d3d2c",
+  "shardHash": "2174d41ec7aeacfbdc5a9926c5900d0df3a15afc724797ade22f6b9aa7eccf23",
   "specVersion": "1.4.0"
 }

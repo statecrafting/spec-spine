@@ -169,6 +169,10 @@ registry schema takes a MINOR.
   unreadable export directory, an exporter `spec-spine.toml` that does not
   parse, or a `--spec` that names no spec here is a usage, I/O or config error
   (exit 3, or exit 1 for an unknown `--spec`).
+- The verifier reads the references from the committed registry and refuses a
+  stale one (exit 2) before reading any export, as the closure resolver does
+  (spec 107 §3.5): checking the committed references while `spec.md` says
+  something else would verify a statement nobody is currently making.
 - A corpus with no references answers with an empty report at exit 0.
 
 The answer, with `--json`, is a read document (spec 074, a MINOR of the read
