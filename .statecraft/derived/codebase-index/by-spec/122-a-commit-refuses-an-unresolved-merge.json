@@ -1,16 +1,15 @@
 {
   "mapping": {
     "dependsOn": [
-      "093-the-harness-this-repository-runs",
       "094-one-gate-and-the-boundaries-it-holds"
     ],
     "implementingPaths": [
       {
-        "path": "Makefile",
+        "path": ".githooks/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/gate_binary.rs",
+        "path": "crates/spec-spine-core/tests/commit_boundary.rs",
         "source": "spec-edge"
       }
     ],
@@ -18,46 +17,46 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/gate_binary.rs"
+            "file": "crates/spec-spine-core/tests/commit_boundary.rs"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/gate_binary.rs"
+          "path": "crates/spec-spine-core/tests/commit_boundary.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "Makefile"
+            "file": ".githooks/"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
-          "kind": "file",
-          "path": "Makefile"
+          "kind": "directory",
+          "path": ".githooks/"
         }
       },
       {
         "locations": [
           {
-            "file": ".githooks/pre-commit"
+            "file": ".gitattributes"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": ".githooks/pre-commit"
+          "path": ".gitattributes"
         }
       }
     ],
-    "specId": "117-the-gate-resolves-the-binary-it-documents",
-    "specStatus": "approved"
+    "specId": "122-a-commit-refuses-an-unresolved-merge",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "9f4cb303f17ea29691276afadaa8791e982d5fdad6830ddb4f08a3581967a34b"
+  "shardHash": "23c00501147a5cf7df3452b7fc3f5665ab29e9c112872874d828db791cdc3290"
 }
