@@ -52,6 +52,6 @@
     "summary": "Spec 095's acceptance asserts that the live corpus's ordinals are contiguous, `o == list(range(len(o)))`. Its requirement (3.3) is narrower: the one-time renumber left the survivors contiguous. Its own D-2 says reserved gaps are deliberate. Merging spec 117 while 105 to 116 stay reserved made the block red with no defect in the corpus. The repository owner ruled that the renumber is a historical transformation and not a perpetual contiguity rule (docs/release-candidate-0.22.0.md 10.1). This spec carries 095's block in full through `amends_verification`. The historical contiguity is read from the map that records it, and the live corpus is held to identity rules that survive growth, with fixture negatives showing each can still refuse. 095's requirements and block are not edited; its file gains only the superseded- acceptance note spec 082 3.4 requires.\n",
     "title": "The renumber is history, not a standing rule"
   },
-  "shardHash": "8b8fa6c83f889a4f77f4134a43c2226f0aac3f6a13477cd065d33c5e930fe9e2",
+  "shardHash": "79121ac493280b5b671ffa395885b55e9655db756c237c36ccb563215563254a",
   "specVersion": "1.3.0"
 }
