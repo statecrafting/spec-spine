@@ -1508,20 +1508,48 @@ fn no_deletion_builds_no_prior_snapshot() {
     assert!(clone.status.success());
     let c = shallow.path().join("c");
 
-    // No merge base is reachable, and it is not needed: the modification is
-    // judged at head and refuses for the ordinary reason.
+    // The change under test has to be a real one, or the assertion is vacuous:
+    // `--base HEAD --head HEAD` alone is an empty range, and a run that
+    // examines nothing trivially needs no snapshot. The working-tree segment
+    // carries a deletion-free modification instead, which the shallow clone
+    // can express without reaching any commit it does not have.
+    fs::write(
+        c.join("crate-a/src/kept.rs"),
+        "pub fn kept() {}\npub fn three() {}\n",
+    )
+    .unwrap();
     let out = bin()
         .arg("--repo")
         .arg(&c)
-        .args(["couple", "--base", "HEAD", "--head", "HEAD"])
+        .args([
+            "couple",
+            "--base",
+            "HEAD",
+            "--head",
+            "HEAD",
+            "--include-uncommitted",
+        ])
         .output()
         .unwrap();
+    let err = String::from_utf8_lossy(&out.stderr);
     assert_ne!(
         code(&out),
         3,
-        "a deletion-free run must not need history.\nstdout: {}\nstderr: {}",
-        String::from_utf8_lossy(&out.stdout),
-        String::from_utf8_lossy(&out.stderr)
+        "a deletion-free run must not need history.\nstdout: {}\nstderr: {err}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    // And it reached a verdict ABOUT the modification, not about nothing: the
+    // edited file is claimed by 001-a, whose spec.md is untouched, so the
+    // ordinary refusal is the proof the path was examined at all.
+    assert_eq!(
+        code(&out),
+        1,
+        "the modification must be judged at head.\nstdout: {}\nstderr: {err}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    assert!(
+        err.contains("C-001") && err.contains("crate-a/src/kept.rs"),
+        "the verdict must name the modified path: {err}"
     );
 }
 

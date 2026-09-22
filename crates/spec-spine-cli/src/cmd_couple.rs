@@ -812,6 +812,10 @@ impl PriorExports {
         if needs_head_commit {
             exports.head_commit = Some(snapshot_at(repo, "HEAD", &root, "head-commit")?);
         }
+        // `root` moves into the returned value only on the success path. On
+        // any `?` above it is still a stack local, so its `Drop` runs and the
+        // exported tree is removed: a partially built set of snapshots leaks
+        // nothing.
         exports._root = Some(root);
         Ok(exports)
     }
@@ -912,9 +916,14 @@ impl TempRoot {
     fn create() -> Result<Self, Error> {
         let parent = std::env::temp_dir();
         let pid = std::process::id();
+        // Full nanosecond width, not `subsec_nanos()`: the sub-second field
+        // repeats once a second, and on a coarse system clock it repeats for
+        // as long as the tick lasts. The name still carries the pid, so this
+        // only has to separate one process's runs from its own leftovers, but
+        // widening it costs nothing.
         let nanos = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.subsec_nanos())
+            .map(|d| d.as_nanos())
             .unwrap_or(0);
         // `create_dir`, not `create_dir_all`: an existing directory is someone
         // else's, so a collision tries the next name rather than reusing it.
