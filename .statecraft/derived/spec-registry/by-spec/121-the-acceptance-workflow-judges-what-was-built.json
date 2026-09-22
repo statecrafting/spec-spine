@@ -1,0 +1,78 @@
+{
+  "record": {
+    "created": "2026-09-22",
+    "dependsOn": [
+      "099-a-merged-acceptance-is-asked-again",
+      "119-a-release-verdict-judges-what-was-built",
+      "120-a-scoped-sweep-judges-the-binary-the-blocks-name"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "scripts/acceptance-report.py"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "099-a-merged-acceptance-is-asked-again",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/acceptance.yml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "089-nothing-reruns-a-merged-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/test-verify-sweep.py"
+        }
+      }
+    ],
+    "id": "121-the-acceptance-workflow-judges-what-was-built",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/release-candidate-0.22.0.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionHeadings": [
+      "121: The Acceptance workflow judges what was built",
+      "1. Purpose",
+      "1.1 A signal that is always red",
+      "1.2 What spec 119 left open",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Both legs exit on the release verdict",
+      "3.2 A report step that cannot be skipped by a red sweep",
+      "3.3 What the report step renders",
+      "3.4 The report step refuses what it cannot vouch for",
+      "3.5 The regressions",
+      "3.6 What does not change",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/121-the-acceptance-workflow-judges-what-was-built/spec.md",
+    "status": "draft",
+    "summary": "The nightly `Acceptance` leg exits on the sweep's corpus verdict, so it is red for as long as any draft is filed ahead of its build, which is this repository's normal state. A signal that is always red cannot tell a reader that an implemented spec's acceptance just broke. Spec 119 built the release verdict and left the workflow's choice open. This spec takes it: both legs exit on the release verdict, the full selected corpus still runs, and a new report step puts both verdicts, every release failure and every pending block's real outcome into the run's summary and annotations. A missing, unreadable or inconsistent report fails the job on its own.\n",
+    "title": "The Acceptance workflow judges what was built"
+  },
+  "shardHash": "696e25e3013dc0dbf63703d35cc466c0bbc555102f3d578fdca891be191415bd",
+  "specVersion": "1.3.0"
+}
