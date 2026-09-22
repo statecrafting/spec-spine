@@ -42,6 +42,11 @@ extends:
   # 3.10: the documentation an author and a consumer read.
   - { spec: "088-the-template-teaches-the-whole-grammar", unit: { kind: file, path: "standards/spec/templates/spec-template.md" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
+  # D-10: this spec changes what the producer emits for the fixture corpus, so
+  # it regenerates spec 103's set, on 103 §3.9's authority path.
+  - { spec: "103-a-verifier-fixture-is-a-published-artifact", unit: { kind: directory, path: "crates/spec-spine-core/fixtures/verifier/" }, nature: corrective }
+  # D-12: the read axis moves for the new document, and its pin moves with it.
+  - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-core/tests/read.rs" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
   # 3.9: the pin every registry MINOR moves (026, 063 and 082 did the same).
   - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-types/tests/dtos.rs" }, nature: additive }
@@ -390,7 +395,7 @@ its parser.
 **D-6 (2026-09-22, correction: the draft's "a fourth kind is a MINOR later").**
 Kept, and bounded: 3.2 fixes the closed set, and a later kind is additive to it.
 
-**D-7 (2026-09-22, build: the read axis does not move).** `registry list` and
+**D-7 (2026-09-22, build: the read axis does not move; its second half superseded by D-12).** `registry list` and
 `show` now carry `obligations` and `sectionDigests`, because they emit the
 registry record. `docs/schema-versioning.md` already says the read axis
 "does not move when `REGISTRY_SCHEMA_VERSION` ... does": a record's members are
@@ -413,6 +418,33 @@ With a section digest taken over the whole body instead of the section, the
 two digest tests fail. Both restored, all thirteen core tests pass. This spec
 declares its own nine obligations, so every compile of this repository
 exercises the grammar, the anchors and the digests on real prose.
+
+**D-10 (2026-09-22, integration with spec 103: the verifier fixtures are
+regenerated).** Merged with spec 103, the fixture harness failed as `STALE
+FIXTURES`: every registry record now carries `sectionDigests`, so the
+attested `registryHash` of the fixture corpus moved, and so did every case's
+`attestationHash`. That is the harness doing its job, not noise to adapt away.
+The set was regenerated with 103 §3.9's documented command against this
+build; the diff is those two digests in each case and nothing else, and a
+second run rewrites nothing. The directory is declared as a `corrective`
+`extends` edge on spec 103, the authority path 103 §3.9 names.
+
+**D-11 (2026-09-22, review: schema and compile agree on `text`).** V-024
+refuses an obligation whose `text` is empty after trimming, while both registry
+schemas accepted any non-empty string, so a hand-built document with
+`"text": "   "` validated. Both schemas now also require `"pattern": "\\S"`,
+so the schema and the compiler refuse the same values.
+
+**D-12 (2026-09-22, integration with spec 102: the read axis moves for the new
+document).** D-7 held that a new read document does not move
+`READ_SCHEMA_VERSION`. Once spec 102 merged, that left the `obligation` answer
+stamped `0.2.0`, a version whose changelog describes only `status` on a ready
+entry: a documentation and version disagreement produced by two independent
+additive changes. The axis versions the shape of an answer (spec 074), and a
+new answer is a shape added, so it takes a MINOR of its own: `0.3.0`. D-7's
+first half stands (`list` and `show` gain members through the registry
+schema). `read.rs`'s pin moves with it, declared as an `extends` edge on spec
+074, as spec 102 did.
 
 ## Verification
 

@@ -1,0 +1,30 @@
+{
+  "cases": [
+    "control-untampered",
+    "duplicate-key",
+    "flipped-verdict",
+    "minor-ahead-content-mismatch",
+    "missing-schema-version",
+    "reformatted-same-values",
+    "tool-version-changed",
+    "unknown-member-nested",
+    "unknown-member-top",
+    "unreadable-json",
+    "unsupported-major"
+  ],
+  "payloadTypes": [
+    "spec-spine/corpus-attestation",
+    "spec-spine/spec-attestation"
+  ],
+  "reasons": [
+    "unreadable-json",
+    "missing-schema-version",
+    "unsupported-major",
+    "unknown-member",
+    "duplicate-key",
+    "non-canonical-bytes",
+    "content-mismatch",
+    "version-mismatch"
+  ],
+  "schemaVersion": "0.1.0"
+}

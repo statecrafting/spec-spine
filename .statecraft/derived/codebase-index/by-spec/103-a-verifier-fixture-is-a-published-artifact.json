@@ -6,17 +6,21 @@
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/verify_attestation.rs",
+        "path": "crates/spec-spine-cli/tests/verifier_fixtures.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/attest.rs",
+        "path": "crates/spec-spine-core/fixtures/verifier/",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/fixtures/verifier/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -25,12 +29,16 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/verifier_fixtures.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/verifier_fixtures.rs"
+          "path": "crates/spec-spine-cli/tests/verifier_fixtures.rs"
         }
       },
       {
@@ -39,8 +47,8 @@
             "file": "crates/spec-spine-cli/src/verify_attestation.rs"
           }
         ],
-        "ownership": true,
-        "sourceField": "extends",
+        "ownership": false,
+        "sourceField": "references",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/verify_attestation.rs"
@@ -52,8 +60,8 @@
             "file": "crates/spec-spine-core/src/attest.rs"
           }
         ],
-        "ownership": true,
-        "sourceField": "extends",
+        "ownership": false,
+        "sourceField": "references",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/attest.rs"
@@ -90,5 +98,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "6d182181ec7f4776b42e06cb65406f06d2a4726dacbe75fb3274dd1d43da8ebc"
+  "shardHash": "ca45b7c571583986f34302ecdb177b4892c8814197900a3fc81132324a9ac8b5"
 }

@@ -125,6 +125,22 @@
         }
       },
       {
+        "nature": "corrective",
+        "spec": "103-a-verifier-fixture-is-a-published-artifact",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
         "nature": "additive",
         "spec": "057-the-docs-name-what-adopters-derived",
         "unit": {
@@ -233,7 +249,7 @@
     "sectionDigests": {
       "1-1-why-it-is-built-now-design-note-09-d-7": "c28d60f58bcdbd246795eb8f5e4e0378007adbc866640e7ae621e9f0321623a2",
       "1-purpose": "12ca3c8b44e12362e623a1fb072a89a3c3e0518df6d2d8096335267c0cdb737a",
-      "106-obligations-are-declared-constraints": "90e33ec0e4cfc82c0eb2dc39d470d2a7fd3970d0b896a324e4ff2aba23bb5365",
+      "106-obligations-are-declared-constraints": "25d442c7281a9606cd200079331883de10bf2f993f275507313ffc4258da82df",
       "2-territory": "2396e055b93fc6c6f12911082f809805e3dd21e12d70d35300baf6be01281ce6",
       "3-1-declarations-live-in-frontmatter": "84478b4ff8c41c5898a2520157729374cc33244cee5d4e72cbe00d6e5479b80f",
       "3-10-documentation": "25ecbcef9d9ba6e6050c23f6765a9028c728e3102d08d05cb078dd862495265c",
@@ -247,7 +263,7 @@
       "3-9-compatibility": "a5df471fafe7dfc8b3bae2b8fa0d575dea9a5c32944c113a29a64f1ee523117e",
       "3-behavior": "586881eb708ca238d8d4a147dcae0873531b10e6a7170f08d296e4c23c91d7b6",
       "4-out-of-scope": "c1f292744ac1ca783302c4d4478ff169382a9c2199f0101a25299dc66750c7ed",
-      "5-resolved-decisions": "7a6480096de7249f2db489f42c9c4de14040d4505ac1a18281c319e2f4fd9d0f",
+      "5-resolved-decisions": "ebd4d3ddd8b1cfad23172789d8317483593b7c05a920b7c8c30be07255218f7a",
       "verification": "6fefc549e59e114ce01d5bc53abb575c5404b34e149df8830559c05abd29fc73"
     },
     "sectionHeadings": [
@@ -275,6 +291,6 @@
     "summary": "A spec's normative content is prose, so nothing downstream can name a single requirement, cite it, or tell whether the sentence it cited has changed. This adds an optional `obligations` frontmatter key: three kinds, ids stable within a spec, an anchor validated against the spec's own headings, explicit inputs for a verification, and withdrawal in place rather than deletion. The registry gains a digest for every section of every spec, beside the spec's full content hash, and a read resolves a qualified `<spec-id>#<obligation-id>` reference. No gate reads any of it.\n",
     "title": "Obligations are declared constraints"
   },
-  "shardHash": "7638c33522e717b0b827cd00c397e92e62908d8d530dd7c92c00d82d83f6662c",
+  "shardHash": "cca658292da26a81ea588ebd4ef9edac96727ea1867d77dbaf5240d6a0dfbfd5",
   "specVersion": "1.4.0"
 }

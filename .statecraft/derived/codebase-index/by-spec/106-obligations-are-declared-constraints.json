@@ -18,6 +18,10 @@
         "source": "multiple"
       },
       {
+        "path": "crates/spec-spine-core/fixtures/verifier/",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/compile.rs",
         "source": "spec-edge"
       },
@@ -36,6 +40,10 @@
       {
         "path": "crates/spec-spine-core/tests/obligations.rs",
         "source": "multiple"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/read.rs",
+        "source": "spec-edge"
       },
       {
         "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json",
@@ -125,6 +133,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/fixtures/verifier/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-cli/src/cmd_registry.rs"
           }
         ],
@@ -198,6 +219,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/sections.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/read.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
         }
       },
       {
@@ -361,5 +395,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "99059999618951e1100a65e383f5c45dc3f7f373dda23d16481e87d8b9ed0f4d"
+  "shardHash": "73eb390205b20946e78ce0b8aefa6078fd9ba99ce6b97b7a3cfec84796e1a9cd"
 }
