@@ -1,0 +1,44 @@
+{
+  "mapping": {
+    "amends": [
+      "095-the-corpus-describes-what-exists"
+    ],
+    "dependsOn": [
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "095-the-corpus-describes-what-exists"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/corpus-map.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/corpus-map.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/release-candidate-0.22.0.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/release-candidate-0.22.0.md"
+        }
+      }
+    ],
+    "specId": "118-the-renumber-is-history-not-a-standing-rule",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "d1c595591ddcc4aeb177f7f7447d7a6fe7b1b42bb8932bfaee2b3127329779d4"
+}

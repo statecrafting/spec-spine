@@ -280,6 +280,20 @@ Each line is one command, run independently.
 27 directories §3.1 and §3.2 name all exist; `registry list --ids-only` shows
 gaps at 117 and, after spec 092's own build, nowhere else.
 
+> **Superseded acceptance (2026-09-22).** This block no longer runs.
+> `118-the-renumber-is-history-not-a-standing-rule` declares this spec in
+> `amends_verification`, so `spec-spine verify 095` builds its plan from that
+> spec's block and names the substitution in `acceptanceFrom` (spec 082 3.2
+> and 3.4). The repository owner ruled that 3.3's renumber is a historical
+> transformation, not a standing contiguity rule
+> (`docs/release-candidate-0.22.0.md` 10.1); this note is the one edit to this
+> file that ruling and spec 082 3.4 require.
+>
+> The commands below are kept **verbatim** and are not corrected: the amending
+> spec's own acceptance asserts that the superseded predicate is still here,
+> which is how the corpus proves this spec was amended rather than edited
+> (spec 037 3.1).
+
 ```verify:cli
 cargo build --release --locked
 # 3.1, 3.2: none of the twenty-seven remains, by directory and by registry.
