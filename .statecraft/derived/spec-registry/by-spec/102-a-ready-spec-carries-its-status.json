@@ -45,10 +45,26 @@
           "kind": "file",
           "path": "docs/schema-versioning.md"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "053-plan-answers-the-whole-question",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
       }
     ],
     "id": "102-a-ready-spec-carries-its-status",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "sectionHeadings": [
@@ -70,6 +86,6 @@
     "summary": "`ReadySpec` carries `id` and `title`, so a consumer reading `registry plan` directly cannot apply an approval rule without a second query per entry. An additive `status` field is a read-schema MINOR that lets a direct consumer see what `/next` sees. An enhancement with a named cost, not a defect fix.\n",
     "title": "A ready spec carries its status"
   },
-  "shardHash": "d4bc72497d0a99ed2e8555653950984733047c4ecf29b17dac84ff1edbccf222",
+  "shardHash": "730bf1434d19343c71dbb5f0971bfe09500e8e18e9e46bce458b9969bae30b18",
   "specVersion": "1.3.0"
 }

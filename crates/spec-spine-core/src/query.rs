@@ -275,6 +275,10 @@ pub struct BlockedSpec {
 pub struct ReadySpec {
     pub id: String,
     pub title: String,
+    /// The spec's `status` as the registry records it, verbatim (spec 102).
+    /// Reported, never consulted: membership and order are decided before it
+    /// is read, and a consumer's approval rule stays the consumer's (spec 101).
+    pub status: String,
 }
 
 /// The scheduling projection: what can be worked on now, and what cannot.
@@ -401,6 +405,15 @@ impl Plan {
 /// `plan_and_compile_agree_on_a_cycle_among_retired_specs` asserts it. If
 /// `compile`'s check were ever scoped to active specs, `plan` would begin
 /// refusing corpora `compile` accepts, and that test is what would catch it.
+/// A status spelled exactly as the registry serializes it, so the plan
+/// document and a registry shard can never disagree about the word.
+fn status_str(status: Status) -> String {
+    match serde_json::to_value(status) {
+        Ok(serde_json::Value::String(s)) => s,
+        _ => String::new(),
+    }
+}
+
 pub fn plan(registry: &Registry) -> Result<Plan, Error> {
     let by_id: BTreeMap<&str, &SpecRecord> =
         registry.specs.iter().map(|s| (s.id.as_str(), s)).collect();
@@ -454,12 +467,13 @@ pub fn plan(registry: &Registry) -> Result<Plan, Error> {
         // adopters kept writing.
         ready: topological(&ready, &by_id)
             .into_iter()
-            .map(|id| ReadySpec {
-                title: by_id
-                    .get(id.as_str())
-                    .map(|s| s.title.clone())
-                    .unwrap_or_default(),
-                id,
+            .map(|id| {
+                let spec = by_id.get(id.as_str());
+                ReadySpec {
+                    title: spec.map(|s| s.title.clone()).unwrap_or_default(),
+                    status: spec.map(|s| status_str(s.status)).unwrap_or_default(),
+                    id,
+                }
             })
             .collect(),
         blocked,

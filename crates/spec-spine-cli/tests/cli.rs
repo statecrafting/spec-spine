@@ -1484,9 +1484,11 @@ fn registry_plan_partitions_the_corpus() {
     // entries gain one additively. The breaking half is deliberate: a parallel
     // titles array to be zipped by position is the shape that generates the
     // join code this spec exists to delete.
+    // Spec 102 3.1: and the status the registry records, verbatim (read
+    // schema 0.2.0). Blocked entries below do not carry it (3.4).
     assert_eq!(
         v["ready"],
-        serde_json::json!([{ "id": "002-now", "title": "T" }])
+        serde_json::json!([{ "id": "002-now", "status": "approved", "title": "T" }])
     );
     assert_eq!(
         v["blocked"],
@@ -1508,7 +1510,8 @@ fn registry_plan_partitions_the_corpus() {
     assert_eq!(
         n,
         serde_json::json!({
-            "next": { "id": "002-now", "title": "T" },
+            // Spec 102: the pick is a ready entry, so it carries status too.
+            "next": { "id": "002-now", "status": "approved", "title": "T" },
             "schemaVersion": spec_spine_types::READ_SCHEMA_VERSION,
         })
     );

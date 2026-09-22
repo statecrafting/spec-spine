@@ -4,7 +4,7 @@ title: "A ready spec carries its status"
 status: draft
 kind: "tooling"
 created: "2026-09-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 depends_on:
   - "035-registry-plan-ready-set"
@@ -30,6 +30,13 @@ extends:
     nature: additive
   - spec: "057-the-docs-name-what-adopters-derived"
     unit: { kind: file, path: "docs/schema-versioning.md" }
+    nature: additive
+  # D-5: the two existing tests that pinned the old shape and the old version.
+  - spec: "074-a-governed-read-names-its-version"
+    unit: { kind: file, path: "crates/spec-spine-core/tests/read.rs" }
+    nature: additive
+  - spec: "053-plan-answers-the-whole-question"
+    unit: { kind: file, path: "crates/spec-spine-cli/tests/cli.rs" }
     nature: additive
 ---
 
@@ -155,6 +162,32 @@ behavior in section 3 changes. The version moves once, for every read
 document, because spec 074 made it one axis ("per-verb axes would always move
 together"); that is the precedent this spec follows rather than a choice it
 makes.
+
+**D-4 (2026-09-22, build: "never consulted" is about this field, and a
+sentence in `docs/api.md` was wrong).** The first draft of the §3.2 test
+flipped every status between `draft` and `approved` and expected an identical
+ready set. It was not identical: a spec with no `implementation` key is
+scheduled when `draft` and settled when `approved`, which is spec 042's
+absent-key rule. That rule predates this field and is unchanged by it; §3.2's
+guarantee is that the new member is never read, not that `status` never is.
+The test now flips statuses only for specs that declare `implementation`, and
+a second test asserts the 042 case and that its ready entry reports the status
+that scheduled it. The same measurement showed `docs/api.md` saying `status` is
+consulted "only" to exclude `superseded` and `retired`; the sentence now names
+the 042 case too. It sits in the `plan` paragraph this spec extends.
+
+**D-5 (2026-09-22, build: two existing pins moved with the contract).** The
+workspace tests found two assertions of the old shape. `cli.rs`'s
+`registry_plan_partitions_the_corpus` compared a ready entry to
+`{ id, title }`; it now expects `status` too, and still checks that blocked
+entries are unchanged. The same test's `plan --next --json` case gains `status`
+as well, because the pick is a `ReadySpec`: one type, one shape, and no second
+member added anywhere. `read.rs` pinned `READ_SCHEMA_VERSION` to `0.1.0` as
+"the axis starts at 0.1.0"; it now pins `0.2.0` and says where each value came
+from. Both files are other specs' territory, so both are declared here as
+`extends` edges rather than edited silently. Neither assertion was loosened:
+each still pins an exact value. Spec 074's own acceptance greps for the
+constant's name, not its value, and is unaffected.
 
 ## Verification
 
