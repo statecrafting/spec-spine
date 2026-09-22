@@ -1,16 +1,38 @@
 {
   "mapping": {
     "dependsOn": [
-      "089-nothing-reruns-a-merged-acceptance",
-      "099-a-merged-acceptance-is-asked-again"
+      "099-a-merged-acceptance-is-asked-again",
+      "119-a-release-verdict-judges-what-was-built",
+      "120-a-scoped-sweep-judges-the-binary-the-blocks-name"
     ],
     "implementingPaths": [
       {
         "path": ".github/workflows/acceptance.yml",
         "source": "spec-edge"
+      },
+      {
+        "path": "scripts/acceptance-report.py",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/test-verify-sweep.py",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "scripts/acceptance-report.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/acceptance-report.py"
+        }
+      },
       {
         "locations": [
           {
@@ -22,6 +44,19 @@
         "unit": {
           "kind": "file",
           "path": ".github/workflows/acceptance.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/test-verify-sweep.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/test-verify-sweep.py"
         }
       },
       {
@@ -51,9 +86,9 @@
         }
       }
     ],
-    "specId": "120-a-scoped-sweep-judges-the-binary-the-blocks-name",
-    "specStatus": "approved"
+    "specId": "121-the-acceptance-workflow-judges-what-was-built",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "313797040422e7e27409d91540339d446669647a8888b0d05a2f0576c60c386a"
+  "shardHash": "722a906de064792e69a04bc28640796c400ce915c10170896f5e525ef3132bca"
 }
