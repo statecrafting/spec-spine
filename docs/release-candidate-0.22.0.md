@@ -969,8 +969,11 @@ Not performed. Each numbered step is a human action.
    tag, that merge moves the proposed revision and everything in §11.3 and
    §11.5 that depends on source identity must be cut again.
 1. **Tag** `v0.22.0` on the chosen revision, signed and annotated:
-   `git tag -s v0.22.0 -m "spec-spine 0.22.0" <sha>`. The `-m` is required,
-   or the signing step is silently skipped. Push the tag only.
+   `git tag -s -m "spec-spine 0.22.0" v0.22.0 <sha>`. `-s` is what signs.
+   `-m` supplies the message; without it, a non-interactive run fails with
+   `fatal: no tag message?` (this repository's v0.11.0 release). §9.7's note
+   that a missing `-m` skips the signature silently is wrong and is corrected
+   here. Confirm with `git tag -v v0.22.0`, then push the tag only.
 2. **The tag drives `release.yml`:** `build` (prebuilt binaries per triple),
    then in parallel `publish` (the GitHub Release), `publish-crates`,
    `publish-npm` and `publish-pypi`. `publish-crates` publishes
