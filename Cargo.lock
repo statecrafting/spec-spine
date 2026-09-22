@@ -1637,7 +1637,7 @@ dependencies = [
 
 [[package]]
 name = "spec-spine-cli"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "clap",
  "ed25519-dalek",
@@ -1652,7 +1652,7 @@ dependencies = [
 
 [[package]]
 name = "spec-spine-core"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "glob",
  "jsonschema",
@@ -1671,7 +1671,7 @@ dependencies = [
 
 [[package]]
 name = "spec-spine-types"
-version = "0.21.0"
+version = "0.22.0"
 dependencies = [
  "serde",
  "serde_json",
