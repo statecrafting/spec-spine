@@ -842,7 +842,17 @@ fn snapshot_at(
                 "could not export the {label} tree ({commit}): {e}"
             )))
         })?;
-    let cfg = tree_config(&dest)?;
+    // §3.5: this failure has its own cause and its own remedy, so it gets its
+    // own sentence. `unobtainable` is about history that could not be reached
+    // and tells the operator to fetch more of it; a configuration that will
+    // not parse was reached and is broken, and no amount of fetching helps.
+    // Unwrapped, the bare error names a path inside a temporary directory,
+    // which says nothing about which commit is at fault.
+    let cfg = tree_config(&dest).map_err(|e| {
+        Error::Parse(format!(
+            "the {label} snapshot's configuration could not be read, so this change's              deletions cannot be judged: {e}. The snapshot is {commit}; repair that              commit's spec-spine.toml and rebase rather than re-running."
+        ))
+    })?;
     let paths = tracked_paths(repo, commit)?;
     let snapshot = prior_ownership_from_root(&cfg, &dest).map_err(|e| {
         Error::Parse(format!(

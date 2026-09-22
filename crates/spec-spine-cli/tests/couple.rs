@@ -1477,6 +1477,50 @@ fn corrupt_prior_corpus_refuses_exit_3() {
 }
 
 #[test]
+fn corrupt_prior_config_refuses_exit_3() {
+    // Spec 100 §3.5: a snapshot whose CONFIGURATION will not parse has not
+    // answered either. Distinct from the corrupt-corpus case above: the tree
+    // was reached and the fault is in it, so the refusal must name that cause
+    // and its own remedy instead of surfacing a bare config error about a path
+    // inside a temporary directory.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_deletion(root);
+    // The BASE commit carries a configuration that does not parse.
+    write(root, "spec-spine.toml", "[layout\nspecs_dir = \"specs\"\n");
+    git_in(root, &["init", "-q"]);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base with a broken config"]);
+
+    // Head repairs it, removes the file and withdraws the claim, so only the
+    // historical snapshot is unreadable.
+    fs::remove_file(root.join("spec-spine.toml")).unwrap();
+    fs::remove_file(root.join("crate-a/src/doomed.rs")).unwrap();
+    withdraw_claim(root);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "repair and remove"]);
+
+    let out = couple_range(root, &[]);
+    assert_eq!(
+        code(&out),
+        3,
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        err.contains("configuration could not be read"),
+        "the refusal must name the unreadable configuration: {err}"
+    );
+    assert!(
+        err.contains("merge-base"),
+        "the refusal must name which snapshot was at fault: {err}"
+    );
+}
+
+#[test]
 fn no_deletion_builds_no_prior_snapshot() {
     // Spec 100 §3.4: a deletion-free change asks no question a prior snapshot
     // could answer, so a shallow clone that cannot reach the merge base still
