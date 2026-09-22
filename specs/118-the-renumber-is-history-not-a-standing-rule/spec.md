@@ -1,7 +1,7 @@
 ---
 id: "118-the-renumber-is-history-not-a-standing-rule"
 title: "The renumber is history, not a standing rule"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-22"
 summary: >

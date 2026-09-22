@@ -1,7 +1,7 @@
 ---
 id: "119-a-release-verdict-judges-what-was-built"
 title: "A release verdict judges what was built"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-22"
 summary: >

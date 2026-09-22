@@ -90,8 +90,8 @@
       }
     ],
     "specId": "119-a-release-verdict-judges-what-was-built",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "580a8112d0dc0b8780254c106f6e0f4500bf76c7954203b87160630ec1d4cef3"
+  "shardHash": "6c7041d7eb227a83c04eeac9b28372688efe7b20814eede55f561836738fb7ef"
 }
