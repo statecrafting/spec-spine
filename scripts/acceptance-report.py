@@ -100,7 +100,9 @@ def main(argv):
         return refuse(summary, f"the report's schema ({version or 'absent'}) is not a 1.x "
                                "report carrying both verdicts (1.1.0 or later)")
     if report.get("mode") != "release":
-        return refuse(summary, f"the report's mode is {report.get('mode')!r}, not 'release': "
+        mode = report.get("mode")
+        return refuse(summary, f"the report's mode is {repr(mode) if mode is not None else 'absent'}, "
+                               "not 'release': "
                                "the workflow must exit on the release verdict")
 
     verdicts = report["verdicts"]

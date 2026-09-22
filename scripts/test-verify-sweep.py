@@ -549,11 +549,18 @@ class SweepRegressions(unittest.TestCase):
         self.commit()
         red = self.sweep(extra=("--release",))
         self.assertEqual(red.returncode, 1, red.stderr)
+        # The report read below is this second sweep's, not the first's.
+        second = json.loads((self.out / "sweep.json").read_text(encoding="utf-8"))
+        self.assertEqual(second["revision"], self.sha)
+        self.assertEqual([row["id"] for row in second["specs"]], ["001-built-red"])
         rendered, notes, _ = self.render(0)
         self.assertEqual(rendered.returncode, 1)
         self.assertIn("exited 0 but its report's release verdict is 'not-clean'", notes["error"][0])
 
     def fixture_reset(self):
+        # A second fixture in the same test: the repository is rebuilt from
+        # scratch at the same path, and the next sweep clears and rewrites
+        # self.out (spec 089 3.6), which the caller then checks.
         shutil.rmtree(self.repo)
 
 
