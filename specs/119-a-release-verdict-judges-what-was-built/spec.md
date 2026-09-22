@@ -16,10 +16,10 @@ summary: >
   built, with pending work run, listed with its real outcome and never counted
   as success or exemption, and `--release` puts it in the exit code. The
   corpus verdict and its exit code are unchanged. It also moves the default run
-  directory out of the macOS temporary tree, whose daily purge emptied a
-  build-script output mid-sweep and made 26 blocks fail that had not, and makes
-  that directory new per run, so a rerun cannot clear the evidence of the run
-  before it.
+  directory out of the macOS temporary tree, whose daily purge is the inferred
+  cause of a run in which 26 blocks failed that had not, and makes that
+  directory new per run, so a rerun cannot clear the evidence of the run before
+  it.
 implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
@@ -71,15 +71,28 @@ turn missing work into an exemption; or tag against a red checklist item.
 ### 1.2 A run that failed for a reason outside the corpus
 
 The first whole-corpus run at `835dd2e4` reported 26 failures, where the
-second found 3. `docs/release-candidate-0.22.0.md` 10.5 establishes the cause.
-The default run directory was under `$TMPDIR`. macOS's `dirhelper` purges files
-there older than three days at 03:35 each day, and it ran at 03:35:04 inside
-the run. `tree-sitter`'s build script clones a crate file whose timestamps are
-2006-07-23 into `OUT_DIR`, so a file created that morning looked old enough to
-delete. Cargo does not fingerprint build-script outputs, so every later
-compilation of `tree-sitter` in the sweep's worktree failed. The same fixed
-default directory also let the rerun clear the first run's report, so the only
-record of the failure is its console log.
+second found 3. `docs/release-candidate-0.22.0.md` 12 separates what is known
+about why (D-6 records the correction of this paragraph):
+
+- **Observed:** the default run directory was under `$TMPDIR`; macOS's
+  `dirhelper` removes files there older than three days, daily at 03:35, and
+  the unified log records it running at 03:35:04 local time, inside the first
+  run's window. The console log puts the last passing spec before the first
+  failure at about that minute.
+- **Reproduced:** once `tree-sitter`'s build-script output
+  `stdlib-symbols.txt` is deleted from a target directory, Cargo does not rerun
+  the build script, and every later compilation fails with the first run's
+  error text verbatim. That file is cloned from the crate archive with its
+  2006-07-23 timestamps, so an age-based purge would treat it as old.
+- **Inferred, not observed:** that the purge deleted that file from the
+  sweep's target directory during the run. Nothing recorded the deletion
+  itself, the per-spec logs that would show the order of events are gone, and
+  the cleaner was not run deliberately to reproduce it.
+
+The fixed default directory also let the rerun clear the first run's report, so
+the only record of the failure is its console log. The remedy in 3.5 does not
+depend on the inference being right: it takes the run out of the purged tree
+and keeps every run's evidence.
 
 ### 1.3 The owner's ruling
 
@@ -199,10 +212,10 @@ The trust boundary (089 3.7, 099 3.1) is untouched: no new trigger, no
   stays red while a draft is filed ahead of its build. Whether the nightly
   should exit on the release verdict is a separate decision about what that
   signal is for. Both verdicts are now in its uploaded report either way.
-- **A build-directory remedy inside Cargo or tree-sitter.** The failure was the
-  operating system deleting files the build still needed. Moving the run
-  directory out of the purged tree removes the cause without depending on a
-  dependency's copy semantics.
+- **A build-directory remedy inside Cargo or tree-sitter.** The inferred
+  failure is the operating system deleting files the build still needed (1.2).
+  Moving the run directory out of the purged tree removes that exposure without
+  depending on a dependency's copy semantics.
 - **Retiring or reclassifying any spec.** The sweep reports the lifecycle the
   corpus declares. It does not decide it.
 
@@ -232,6 +245,15 @@ D-5 (2026-09-22, the cache directory, not a new temporary directory). Any path
 under the operating system's temporary tree is subject to the purge that caused
 §1.2. `XDG_CACHE_HOME`, falling back to `~/.cache`, is where per-user tool state
 lives on both platforms, and it is not swept by age.
+
+D-6 (2026-09-22, the account of the first run is corrected, not the remedy).
+This spec's 1.2 first said the candidate record "establishes the cause" while
+the same record called the deletion inferred and the per-spec logs lost. That
+overstated the evidence. 1.2 now separates the observed cleaner timing, the
+reproduced Cargo behavior, and the inferred and unobserved deletion. No
+requirement moved: 3.5's run directory was always justified by the exposure
+and by the lost report, not by proof of the deletion. No investigation was
+rerun to obtain a stronger account.
 
 ## Verification
 
