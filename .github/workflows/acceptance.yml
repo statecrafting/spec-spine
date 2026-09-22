@@ -81,8 +81,11 @@ jobs:
 
       - name: Sweep
         if: ${{ github.event_name != 'push' || steps.scope.outputs.only != '' }}
-        env:
-          SPEC_SPINE_BIN: ${{ github.workspace }}/target/release/spec-spine
+        # No SPEC_SPINE_BIN (spec 120). The sweep then builds the binary from
+        # the revision inside its own worktree (spec 089 3.8's default), which
+        # is where a block's `./target/release/spec-spine` resolves. Handing it
+        # the binary built above left that path empty, so a scoped run of specs
+        # whose blocks do not build first failed every one at exit 127.
         run: |
           set -uo pipefail
           # The sweep refuses a revision that is not an ancestor of the trusted
