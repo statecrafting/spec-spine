@@ -371,3 +371,30 @@ fn the_facade_answers_the_same_question_without_a_content_hash() {
     assert!(doc.get("contentHash").is_none(), "{doc}");
     assert!(doc["schemaVersion"].is_string());
 }
+
+/// D-11: the registry schema refuses the obligation `text` compile refuses.
+/// A whitespace-only `text` validated against the schema before the pattern
+/// was added; both embedded registry schemas now reject it, and a real text
+/// still passes.
+#[test]
+fn the_registry_schema_refuses_a_whitespace_only_obligation_text() {
+    let schema: serde_json::Value =
+        serde_json::from_str(spec_spine_types::REGISTRY_SPEC_SHARD_SCHEMA).unwrap();
+    let text_schema =
+        &schema["$defs"]["specRecord"]["properties"]["obligations"]["items"]["properties"]["text"];
+    assert!(
+        text_schema.is_object(),
+        "the shard schema no longer has an obligation text at the expected path: {schema}"
+    );
+    let v = jsonschema::validator_for(text_schema).unwrap();
+    assert!(!v.is_valid(&serde_json::json!("   ")));
+    assert!(!v.is_valid(&serde_json::json!("")));
+    assert!(v.is_valid(&serde_json::json!("The rule holds.")));
+
+    let full: serde_json::Value = serde_json::from_str(spec_spine_types::REGISTRY_SCHEMA).unwrap();
+    let rendered = full.to_string();
+    assert!(
+        rendered.contains(r#""text":{"minLength":1,"pattern":"\\S","type":"string"}"#),
+        "the aggregate registry schema's obligation text lost its pattern"
+    );
+}

@@ -68,7 +68,7 @@
             "properties": {
               "id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9]+)*$" },
               "kind": { "enum": ["requirement", "invariant", "verification"] },
-              "text": { "type": "string", "minLength": 1 },
+              "text": { "type": "string", "minLength": 1, "pattern": "\\S" },
               "anchor": { "type": "string", "minLength": 1 },
               "inputs": { "type": "array", "items": { "type": "string" } },
               "withdrawn": { "const": true }

@@ -264,6 +264,12 @@ membership and order are unchanged; `status` is reported, never consulted. The
 registry schema does not move, and no `shardHash` changes. Every read document
 carries the new `schemaVersion`, because the axis is one constant (spec 074).
 
+**`0.3.0` (spec 106), additive.** A new read document: the `obligation` answer
+(`registry obligation <spec>#<id> --json`, `query_json` `op: "obligation"`),
+`{ "spec", "specPath", "obligation", "sectionDigest", "schemaVersion" }`, and
+`contentHash` from the CLI when the committed shard is present. No member of
+an existing document moved.
+
 ## Migration note: spec 034, the verdict envelope
 
 **If you regex a field out of a verdict verb's stdout, stop, and parse the
