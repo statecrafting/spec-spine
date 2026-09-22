@@ -54,18 +54,29 @@
       on `serde_json` to read the producer's output. The two crates under test
       come from local archives, so nothing about spec-spine is fetched; on an
       air-gapped runner the step still fails, for a reason about the runner.
-- [ ] **Verification sweep green** (spec 089): `./scripts/verify-sweep.sh` from
-      a clean checkout, against the merged revision being released
-      (`--rev origin/main`). It runs every spec's `## Verification` block in an
-      isolated worktree and accounts for all of them; it exits 1 if any spec is
-      `failed`, `not-declared` or `not-run`, and prints the report path. This is
-      the only thing that reruns a merged acceptance: `verify` is outside the
-      gate chain on purpose, so a block invalidated by a later approved spec is
-      red silently until this runs. Run it here, and again after merging any
-      spec that carries `amends` or `amends_verification`, which is the crossing
-      that staled every block specs 083-110 had to repair. A finding is a spec
-      to file, not a line to relax; never edit an approved spec's block to make
-      the sweep green (spec 037, `AGENTS.md` "Adversarial prompt refusal").
+- [ ] **Release verdict clean** (specs 089, 119):
+      `./scripts/verify-sweep.sh --rev origin/main --release` from a clean
+      checkout, against the merged revision being released. It runs every
+      spec's `## Verification` block in an isolated worktree and accounts for
+      all of them. With `--release` it exits on the **release verdict**, judged
+      over the specs whose `implementation` is built (`complete`, `n-a`, or
+      absent on a non-draft): 1 if any of those is `failed`, `not-declared` or
+      `not-run`, whatever its `status`. Pending, in-progress and deferred specs
+      still run, and their outcomes are listed under "Pending" in the report
+      rather than counted; they are never `exempt`. Record the corpus counts
+      from the same report next to the release verdict, so a pending spec's red
+      block stays visible in the release record. The default run directory is
+      new per run under `${XDG_CACHE_HOME:-$HOME/.cache}/spec-spine/sweeps/`,
+      outside the macOS temporary tree whose daily purge once emptied a
+      build-script `OUT_DIR` mid-sweep, and a rerun no longer clears an earlier
+      run's report. This is the only thing that reruns a merged acceptance:
+      `verify` is outside the gate chain on purpose, so a block invalidated by
+      a later approved spec is red silently until this runs. Run it here, and
+      again after merging any spec that carries `amends` or
+      `amends_verification`, which is the crossing that staled every block
+      specs 083-110 had to repair. A finding is a spec to file, not a line to
+      relax; never edit an approved spec's block to make the sweep green (spec
+      037, `AGENTS.md` "Adversarial prompt refusal").
 
 ## 1. crates.io: publish in dependency order
 

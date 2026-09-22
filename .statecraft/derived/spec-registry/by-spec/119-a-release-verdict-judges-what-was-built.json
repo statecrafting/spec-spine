@@ -1,0 +1,86 @@
+{
+  "record": {
+    "amends": [
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "created": "2026-09-22",
+    "dependsOn": [
+      "042-absent-implementation-defers-to-status",
+      "089-nothing-reruns-a-merged-acceptance",
+      "099-a-merged-acceptance-is-asked-again"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "089-nothing-reruns-a-merged-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "089-nothing-reruns-a-merged-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/test-verify-sweep.py"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "006-distribution",
+        "unit": {
+          "kind": "file",
+          "path": "docs/releasing.md"
+        }
+      }
+    ],
+    "id": "119-a-release-verdict-judges-what-was-built",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/release-candidate-0.22.0.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/acceptance.yml"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "119: A release verdict judges what was built",
+      "1. Purpose",
+      "1.1 \"Sweep green\" was unreachable, measured",
+      "1.2 A run that failed for a reason outside the corpus",
+      "1.3 The owner's ruling",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The lifecycle is a governed read",
+      "3.2 The release outcome",
+      "3.3 Two verdicts, one exit code",
+      "3.4 The report is versioned, and the change is additive",
+      "3.5 The default run directory",
+      "3.6 The regressions run, and they cannot rot silently again",
+      "3.7 The runbook reads the release verdict",
+      "3.8 What does not change",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/119-a-release-verdict-judges-what-was-built/spec.md",
+    "status": "draft",
+    "summary": "The whole-corpus sweep (spec 089) runs every declared acceptance block and exits 1 when any fails. This repository files a spec's acceptance before the spec is built and writes it to fail first, so any filed-but-unbuilt draft keeps the sweep red. \"Sweep green\" as a release pre-flight is then unreachable for as long as the backlog is honest. The sweep had no lifecycle predicate, and the only ways to get a green run were to build unrequested features or to hide the failures. This spec adds a release verdict next to the corpus verdict. It is judged over the specs whose implementation is built, with pending work run, listed with its real outcome and never counted as success or exemption, and `--release` puts it in the exit code. The corpus verdict and its exit code are unchanged. It also moves the default run directory out of the macOS temporary tree, whose daily purge emptied a build-script output mid-sweep and made 26 blocks fail that had not, and makes that directory new per run, so a rerun cannot clear the evidence of the run before it.\n",
+    "title": "A release verdict judges what was built"
+  },
+  "shardHash": "333b44cb5707259b1923925aab71836b14d88769daaf6c2f1d71bf3e606f092b",
+  "specVersion": "1.3.0"
+}

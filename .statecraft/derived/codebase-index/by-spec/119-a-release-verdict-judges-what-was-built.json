@@ -1,28 +1,24 @@
 {
   "mapping": {
     "amends": [
-      "004-codebase-index"
+      "089-nothing-reruns-a-merged-acceptance"
     ],
     "dependsOn": [
-      "001-compile-registry",
-      "004-codebase-index",
-      "005-coupling-gate"
+      "042-absent-implementation-defers-to-status",
+      "089-nothing-reruns-a-merged-acceptance",
+      "099-a-merged-acceptance-is-asked-again"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-core/src/index.rs",
+        "path": "docs/releasing.md",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/index.rs",
+        "path": "scripts/test-verify-sweep.py",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/version.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-types/tests/dtos.rs",
+        "path": "scripts/verify-sweep.sh",
         "source": "spec-edge"
       }
     ],
@@ -30,72 +26,72 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/index.rs"
+            "file": "docs/releasing.md"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/index.rs"
+          "path": "docs/releasing.md"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/index.rs"
+            "file": "scripts/test-verify-sweep.py"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/index.rs"
+          "path": "scripts/test-verify-sweep.py"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/version.rs"
+            "file": "scripts/verify-sweep.sh"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/version.rs"
+          "path": "scripts/verify-sweep.sh"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/tests/dtos.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-types/tests/dtos.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/design/00-architecture.md"
+            "file": ".github/workflows/acceptance.yml"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/00-architecture.md"
+          "path": ".github/workflows/acceptance.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/release-candidate-0.22.0.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/release-candidate-0.22.0.md"
         }
       }
     ],
-    "specId": "023-unresolved-unit-severity",
-    "specStatus": "approved"
+    "specId": "119-a-release-verdict-judges-what-was-built",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "af578d0beaed32fa92fbdeb24a06a351a25b45e04281c0d059b30d8b71a5c413"
+  "shardHash": "d7abef08ea4a787e9addf2666d0862d5c103d41361f044326005918a261136f5"
 }

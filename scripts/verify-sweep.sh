@@ -43,6 +43,21 @@
 #       1 any spec is failed, not-declared or not-run
 #       3 the sweep refused to run (usage, untrusted revision, bad ledger, I/O)
 #
+# THE RELEASE VERDICT (spec 119). Every row also carries the spec's lifecycle,
+# read through `registry list --json`, and a second outcome judged only over
+# what the corpus says is built. `implementation: complete` or `n-a`, or an
+# absent key on a spec that is not a draft (spec 042), is an implemented
+# obligation, and its release outcome is its outcome above, whatever its
+# `status`: an implemented draft that fails still fails. `pending`,
+# `in-progress`, `deferred`, or an absent key on a draft, is `pending`: its
+# block still runs and its outcome above is still reported, but it is neither
+# success nor failure of the release, and it is never `exempt`. A lifecycle the
+# sweep cannot read, and a plan it cannot read, are `not-run`.
+#
+# Both verdicts are always in the report. `--release` makes the exit code the
+# release verdict's (0 when every implemented spec is passed or exempt, 1
+# otherwise); without it the exit code is the corpus verdict above, unchanged.
+#
 # Reads the corpus only through `spec-spine` (registry list, verify), per
 # AGENTS.md "Governed artifact reads".
 
@@ -136,7 +151,12 @@ usage: $PROG [options]
                         3-digit ordinal `NNN` (the short form spec-spine itself
                         resolves; `49` is not one, `049` is)
   --out <dir>           run directory for the worktree, logs and report
-                        (default: \${TMPDIR}/spec-spine-sweep-<shortsha>)
+                        (default: a new directory per run,
+                        \${XDG_CACHE_HOME:-\$HOME/.cache}/spec-spine/sweeps/
+                        <shortsha>-<UTC time>-<pid>)
+  --release             exit with the release verdict: judged over the specs
+                        whose implementation is built, with pending work
+                        reported and not counted (spec 119)
   --exempt-file <path>  read the exemption ledger from this file instead of
                         the one built into this script
   --timeout <seconds>   per-spec limit, enforced by this script
@@ -162,6 +182,7 @@ out=""
 exempt_file=""
 timeout_s=900
 keep_tree=0
+release=0
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -173,6 +194,7 @@ while [ $# -gt 0 ]; do
     --exempt-file)  shift; [ $# -gt 0 ] || die "--exempt-file needs a value"; exempt_file="$1" ;;
     --timeout)      shift; [ $# -gt 0 ] || die "--timeout needs a value"; timeout_s="$1" ;;
     --keep-tree)    keep_tree=1 ;;
+    --release)      release=1 ;;
     -h|--help)      usage; exit 0 ;;
     *)              usage >&2; die "unknown argument: $1" ;;
   esac
@@ -211,7 +233,21 @@ git -C "$root" merge-base --is-ancestor "$sha" "$trusted_ref" \
   --trusted-ref."
 
 short=$(git -C "$root" rev-parse --short "$sha")
-[ -n "$out" ] || out="${TMPDIR:-/tmp}/spec-spine-sweep-$short"
+# The default run directory is outside the operating system's temporary tree
+# and new for every run (spec 119). Under $TMPDIR, macOS's dirhelper deletes
+# files older than three days at 03:35 each day, and a build script's copied
+# outputs keep their crate archive's timestamps (2006, for tree-sitter), so a
+# sweep that crossed 03:35 lost `OUT_DIR` files mid-run and reported 26 blocks
+# failed that were not (docs/release-candidate-0.22.0.md 10.5). A fixed
+# default also meant a rerun cleared the previous run's evidence.
+if [ -z "$out" ]; then
+  cache_root="${XDG_CACHE_HOME:-}"
+  if [ -z "$cache_root" ]; then
+    [ -n "${HOME:-}" ] || die "cannot choose a default --out: neither XDG_CACHE_HOME nor HOME is set; name one with --out"
+    cache_root="$HOME/.cache"
+  fi
+  out="$cache_root/spec-spine/sweeps/$short-$(date -u +%Y%m%dT%H%M%SZ)-$$"
+fi
 # Canonicalized WITHOUT creating anything: the containment check below has to
 # be able to refuse before a single directory exists inside the repository.
 # Resolving by `mkdir -p` the parent first, then `cd`+`pwd`, refused
@@ -231,6 +267,20 @@ case "$out" in
   "$root"|"$root"/*) die "--out must be outside the repository ($root): the sweep must never
   write into the tree the gate judges" ;;
 esac
+# A named --out under a purged temporary tree is honoured, and said (spec 119).
+if [ "$(uname -s 2>/dev/null)" = "Darwin" ]; then
+  for tmp_root in "${TMPDIR:-}" /private/tmp /private/var/tmp; do
+    [ -n "$tmp_root" ] && [ -d "$tmp_root" ] || continue
+    tmp_root=$(cd "$tmp_root" && pwd -P) || continue
+    case "$out" in
+      "$tmp_root"|"$tmp_root"/*)
+        say "$PROG: warning: --out is under $tmp_root, which macOS purges of files older
+  than three days (dirhelper, daily at 03:35). Build-script outputs keep their
+  crate's old timestamps, so a run crossing 03:35 can lose them mid-sweep."
+        break ;;
+    esac
+  done
+fi
 
 # The run directory is cleared before use, so it must be one this script is
 # entitled to delete: absent, empty, or a directory a previous sweep created
@@ -359,6 +409,59 @@ corpus=$("$ss" --repo "$tree" registry list --ids-only) \
   || die "cannot read the corpus at $short (registry list)"
 [ -n "$corpus" ] || die "the corpus at $short is empty"
 
+# The lifecycle, through the same governed read (spec 119). The CLI has already
+# deserialized the ledger; this parses its answer, not the ledger files.
+lifecycle_json=$("$ss" --repo "$tree" registry list --json) \
+  || die "cannot read the corpus lifecycle at $short (registry list --json)"
+printf '%s' "$lifecycle_json" | python3 -c '
+import json, sys
+for s in json.load(sys.stdin)["items"]:
+    print("\t".join([s["id"], s.get("status") or "-", s.get("implementation") or "-"]))
+' > "$out/lifecycle.tsv" || die "cannot parse the corpus lifecycle at $short (registry list --json)"
+
+# Sets lc_status, lc_impl and lc_class (implemented | pending | unknown).
+lifecycle_of() {
+  local _line
+  _line=$(awk -F'\t' -v id="$1" '$1 == id { print; exit }' "$out/lifecycle.tsv")
+  if [ -z "$_line" ]; then
+    lc_status="-"; lc_impl="-"; lc_class="unknown"; return
+  fi
+  lc_status=$(printf '%s\n' "$_line" | cut -f2)
+  lc_impl=$(printf '%s\n' "$_line" | cut -f3)
+  case "$lc_impl" in
+    complete|n-a) lc_class="implemented" ;;
+    pending|in-progress|deferred) lc_class="pending" ;;
+    -)
+      # Spec 042: an absent key defers to `status`.
+      case "$lc_status" in
+        draft) lc_class="pending" ;;
+        approved|superseded|retired) lc_class="implemented" ;;
+        *) lc_class="unknown" ;;
+      esac ;;
+    *) lc_class="unknown" ;;
+  esac
+}
+
+# Appends one row: the seven corpus fields, then the lifecycle and the release
+# outcome. <plan-read> is 0 when `verify --plan` itself could not answer.
+emit_row() { # id outcome commands exit failure dirty secs plan-read
+  local _rel
+  lifecycle_of "$1"
+  if [ "$8" -eq 0 ] || [ "$lc_class" = "unknown" ]; then
+    _rel="not-run"
+  elif [ "$lc_class" = "pending" ]; then
+    _rel="pending"
+  else
+    _rel="$2"
+  fi
+  case "$_rel" in
+    failed|not-declared|not-run) n_rel_bad=$((n_rel_bad + 1)) ;;
+    pending) n_rel_pending=$((n_rel_pending + 1)) ;;
+  esac
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$lc_status" "$lc_impl" "$lc_class" "$_rel" >> "$rows"
+}
+
 selected="$corpus"
 selection="all"
 if [ -n "$only" ]; then
@@ -431,6 +534,7 @@ started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 rows="$out/rows.tsv"
 : > "$rows"
 n_passed=0; n_failed=0; n_notdecl=0; n_exempt=0; n_notrun=0
+n_rel_bad=0; n_rel_pending=0
 
 for id in $selected; do
   plan_out=$("$ss" --repo "$tree" verify "$id" --plan 2>/dev/null)
@@ -439,8 +543,7 @@ for id in $selected; do
     # The verb could not answer what this spec declares, so neither can the
     # sweep. Reporting that as `not-declared` would claim a fact about the
     # spec's acceptance that was never established.
-    printf '%s\tnot-run\t0\t%s\tno verdict: verify --plan exited %s\t0\t0\n' \
-      "$id" "$plan_rc" "$plan_rc" >> "$rows"
+    emit_row "$id" not-run 0 "$plan_rc" "no verdict: verify --plan exited $plan_rc" 0 0 0
     n_notrun=$((n_notrun + 1))
     say "  NOT-RUN       $id (verify --plan exit $plan_rc)"
     continue
@@ -448,14 +551,14 @@ for id in $selected; do
   # A ledger entry excuses absent acceptance, not an unreadable document.
   # The plan must answer before an exemption can count as success (3.3).
   if exempt_p "$id"; then
-    printf '%s\texempt\t0\t0\t\t\t0\n' "$id" >> "$rows"
+    emit_row "$id" exempt 0 0 "" "" 0 1
     n_exempt=$((n_exempt + 1))
     say "  exempt        $id"
     continue
   fi
   total=$(printf '%s' "$plan_out" | grep -c . | tr -d ' ')
   if [ "${total:-0}" -eq 0 ]; then
-    printf '%s\tnot-declared\t0\t0\t\t\t0\n' "$id" >> "$rows"
+    emit_row "$id" not-declared 0 0 "" "" 0 1
     n_notdecl=$((n_notdecl + 1))
     say "  NOT-DECLARED  $id"
     continue
@@ -515,8 +618,7 @@ for id in $selected; do
     say "                (block left the tree dirty; restored)"
   fi
 
-  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-    "$id" "$outcome" "$total" "$code" "$fail_cmd" "$dirty" "$secs" >> "$rows"
+  emit_row "$id" "$outcome" "$total" "$code" "$fail_cmd" "$dirty" "$secs" 1
 done
 
 ended_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -542,12 +644,14 @@ SWEEP_CLOSED_AT="$LEDGER_CLOSED_AT" \
 SWEEP_TIMEOUT="$timeout_s" \
 SWEEP_STARTED="$started_at" \
 SWEEP_ENDED="$ended_at" \
+SWEEP_MODE="$([ "$release" -eq 1 ] && echo release || echo corpus)" \
 python3 - <<'PY' || die "cannot write the report to $out"
 import json, os, pathlib
 
 env = os.environ
 out = pathlib.Path(env["SWEEP_OUT"])
-fields = ("id", "outcome", "commands", "exitCode", "failure", "leftTreeDirty", "seconds")
+fields = ("id", "outcome", "commands", "exitCode", "failure", "leftTreeDirty", "seconds",
+          "status", "implementation", "lifecycleClass", "releaseOutcome")
 specs = []
 for line in pathlib.Path(env["SWEEP_ROWS"]).read_text().splitlines():
     if not line.strip():
@@ -559,6 +663,14 @@ for line in pathlib.Path(env["SWEEP_ROWS"]).read_text().splitlines():
     row["exitCode"] = int(row["exitCode"] or 0)
     row["leftTreeDirty"] = row["leftTreeDirty"] == "1"
     row["seconds"] = int(row["seconds"] or 0)
+    # Spec 119: what the ledger says about the spec, as read, and the outcome
+    # the release verdict counts. `-` is an absent key, reported as null.
+    status, impl = row.pop("status"), row.pop("implementation")
+    row["lifecycle"] = {
+        "status": None if status in ("", "-") else status,
+        "implementation": None if impl in ("", "-") else impl,
+        "class": row.pop("lifecycleClass") or "unknown",
+    }
     # Cited only when it exists. A spec whose `verify --plan` failed never
     # reached a run, so there is no log for it, and pointing the reader at a
     # path that is not there is worse than saying there is nothing to read.
@@ -569,10 +681,24 @@ for line in pathlib.Path(env["SWEEP_ROWS"]).read_text().splitlines():
 counts = {k: 0 for k in ("passed", "failed", "not-declared", "exempt", "not-run")}
 for s in specs:
     counts[s["outcome"]] = counts.get(s["outcome"], 0) + 1
+release_counts = {k: 0 for k in ("passed", "failed", "not-declared", "exempt", "not-run", "pending")}
+for s in specs:
+    release_counts[s["releaseOutcome"]] = release_counts.get(s["releaseOutcome"], 0) + 1
+BAD = ("failed", "not-declared", "not-run")
+corpus_clean = not any(counts[k] for k in BAD)
+release_clean = not any(release_counts[k] for k in BAD)
 timeout = int(env["SWEEP_TIMEOUT"])
 
 report = {
-    "schemaVersion": "1.0.0",
+    # 1.1.0 (spec 119): additive. `counts`, the five outcomes and the exit
+    # code without --release mean what they meant in 1.0.0.
+    "schemaVersion": "1.1.0",
+    "mode": env["SWEEP_MODE"],
+    "verdicts": {
+        "corpus": "clean" if corpus_clean else "not-clean",
+        "release": "clean" if release_clean else "not-clean",
+    },
+    "releaseCounts": release_counts,
     "tool": "verify-sweep",
     "revision": env["SWEEP_SHA"],
     "revisionShort": env["SWEEP_SHORT"],
@@ -607,6 +733,40 @@ md = [
 md += [f"| {k} | {counts[k]} |" for k in ("passed", "failed", "not-declared", "exempt", "not-run")]
 md += ["", f"**{'NOT CLEAN' if not_passing else 'CLEAN'}**: "
        f"{len(not_passing)} of {len(specs)} selected specs are not passing.", ""]
+pending = [s for s in specs if s["releaseOutcome"] == "pending"]
+release_bad = [s for s in specs if s["releaseOutcome"] in BAD]
+exit_from = "release" if env["SWEEP_MODE"] == "release" else "corpus"
+md += [
+    "## Release verdict",
+    "",
+    "Judged over the specs whose implementation is built (`complete`, `n-a`, or",
+    "absent on a non-draft). Pending work runs and is reported above, and is",
+    "counted here as `pending`: neither success nor failure of the release.",
+    f"This run's exit code is the **{exit_from}** verdict.",
+    "",
+    "| release outcome | count |",
+    "|---|---|",
+]
+md += [f"| {k} | {release_counts[k]} |" for k in ("passed", "failed", "not-declared", "exempt", "not-run", "pending")]
+md += ["", f"**{'CLEAN' if release_clean else 'NOT CLEAN'}**: "
+       f"{len(release_bad)} implemented or unreadable specs are not passing; "
+       f"{len(pending)} pending.", ""]
+if release_bad:
+    md += ["### Not passing the release", ""]
+    for s in release_bad:
+        lc = s["lifecycle"]
+        md.append(f"- **{s['id']}** {s['releaseOutcome']} "
+                  f"(status {lc['status'] or 'absent'}, implementation "
+                  f"{lc['implementation'] or 'absent'}, {lc['class']})")
+    md.append("")
+if pending:
+    md += ["### Pending, not a release obligation", "",
+           "Listed with the outcome their block produced, so nothing is hidden.", ""]
+    for s in pending:
+        lc = s["lifecycle"]
+        md.append(f"- {s['id']}: status {lc['status'] or 'absent'}, implementation "
+                  f"{lc['implementation'] or 'absent'}; block {s['outcome']}")
+    md.append("")
 if not_passing:
     md += ["## Not passing", ""]
     for s in not_passing:
@@ -628,7 +788,13 @@ PY
 
 say ""
 say "$PROG: $short  passed=$n_passed failed=$n_failed not-declared=$n_notdecl exempt=$n_exempt not-run=$n_notrun"
+if [ "$n_rel_bad" -eq 0 ]; then rel_verdict="clean"; else rel_verdict="NOT CLEAN"; fi
+say "$PROG: release verdict: $rel_verdict  (not passing=$n_rel_bad pending=$n_rel_pending)"
 say "$PROG: report $out/sweep.md  (json: $out/sweep.json, logs: $out/logs/)"
 
+if [ "$release" -eq 1 ]; then
+  [ "$n_rel_bad" -eq 0 ] || exit 1
+  exit 0
+fi
 [ "$((n_failed + n_notdecl + n_notrun))" -eq 0 ] || exit 1
 exit 0
