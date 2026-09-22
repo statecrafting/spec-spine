@@ -80,6 +80,7 @@ jobs:
         run: echo "No spec owns a path this push changed; the nightly leg covers the rest."
 
       - name: Sweep
+        id: sweep
         if: ${{ github.event_name != 'push' || steps.scope.outputs.only != '' }}
         # No SPEC_SPINE_BIN (spec 120). The sweep then builds the binary from
         # the revision inside its own worktree (spec 089 3.8's default), which
@@ -95,16 +96,30 @@ jobs:
           git fetch --no-tags --quiet origin +refs/heads/main:refs/remotes/origin/main
           rc=0
           if [ -n "${{ steps.scope.outputs.only }}" ]; then
-            scripts/verify-sweep.sh --rev "${{ github.sha }}" --trusted-ref origin/main \
+            scripts/verify-sweep.sh --release --rev "${{ github.sha }}" --trusted-ref origin/main \
               --out "${{ runner.temp }}/sweep" --only "${{ steps.scope.outputs.only }}" || rc=$?
           else
-            scripts/verify-sweep.sh --rev "${{ github.sha }}" --trusted-ref origin/main \
+            scripts/verify-sweep.sh --release --rev "${{ github.sha }}" --trusted-ref origin/main \
               --out "${{ runner.temp }}/sweep" || rc=$?
           fi
           echo "sweep exit: $rc"
+          echo "rc=$rc" >> "$GITHUB_OUTPUT"
           # The step's status is the sweep's. Letting the last command decide it
           # is how a red sweep becomes a green job.
           exit $rc
+
+      - name: Report both verdicts
+        # Spec 121. The sweep above exits on the release verdict (spec 119):
+        # judged over built specs, with every selected block still run. A
+        # pending draft's fail-first block is reported here as a warning with
+        # its real outcome, an implemented spec's failure or an unreadable
+        # result as an error, and the raw corpus verdict is written beside the
+        # release one. This step fails only when the evidence is missing or
+        # disagrees with the sweep's exit code; the sweep step decides the job.
+        if: ${{ always() && steps.sweep.conclusion != 'skipped' }}
+        env:
+          SWEEP_RC: ${{ steps.sweep.outputs.rc }}
+        run: python3 scripts/acceptance-report.py --report "${{ runner.temp }}/sweep/sweep.json" --sweep-exit "$SWEEP_RC"
 
       - name: Upload the report
         if: ${{ always() }}
