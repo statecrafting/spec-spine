@@ -8,38 +8,32 @@
     "establishes": [
       {
         "kind": "directory",
-        "path": "crates/spec-spine-core/fixtures/verifier/",
-        "planned": true
+        "path": "crates/spec-spine-core/fixtures/verifier/"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/verifier_fixtures.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/verifier_fixtures.rs"
       }
     ],
-    "extends": [
+    "id": "103-a-verifier-fixture-is-a-published-artifact",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
       {
-        "nature": "additive",
-        "spec": "068-a-verifier-checks-the-bytes-it-was-given",
+        "role": "context",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/attest.rs"
         }
       },
       {
-        "nature": "additive",
-        "spec": "068-a-verifier-checks-the-bytes-it-was-given",
+        "role": "context",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/verify_attestation.rs"
         }
-      }
-    ],
-    "id": "103-a-verifier-fixture-is-a-published-artifact",
-    "implementation": "pending",
-    "kind": "tooling",
-    "owner": "The spec-spine Authors",
-    "references": [
+      },
       {
         "role": "context",
         "unit": {
@@ -61,19 +55,23 @@
       "2. Territory",
       "3. Behavior",
       "3.1 The boundary, stated first",
-      "3.2 What a fixture case is",
-      "3.3 The cases the set MUST contain",
-      "3.4 The set describes the shipped verifier, and is proven to",
-      "3.5 Where the bytes come from, and what is not promised",
+      "3.2 Three kinds of bytes, never conflated",
+      "3.3 What a fixture case is",
+      "3.4 `case.json`, and the index",
+      "3.5 The reason classes, measured against the shipped verifier",
+      "3.6 Recompute cases carry their corpus",
+      "3.7 The version rule, so the set does not rot",
+      "3.8 The set describes the shipped verifier, and is proven to",
+      "3.9 Where the bytes come from, and what is not promised",
       "4. Out of scope",
       "5. Resolved decisions",
       "Verification"
     ],
     "specPath": "specs/103-a-verifier-fixture-is-a-published-artifact/spec.md",
     "status": "draft",
-    "summary": "The tamper and cross-version cases an independent verifier must reproduce exist only as commands inside spec 068's acceptance block and as a measured table in docs/authority-evidence.md. A verifier outside this repository cannot run either. This emits them as a named, versioned fixture set: bytes the producer owns, with the outcome each case must reach.\n",
+    "summary": "The tamper and cross-version cases an independent verifier must reproduce exist only as commands inside spec 068's acceptance block and as a measured table in docs/authority-evidence.md. A verifier outside this repository cannot run either. This emits them as a named, versioned fixture set: the bytes, the corpus each payload is about, and the outcome each case must reach, all measured against the shipped verifier rather than asserted.\n",
     "title": "A verifier fixture is a published artifact"
   },
-  "shardHash": "b57a105f52b958cdcb91df91ebd60136ca594b0c7c0a5418809192161cafc88a",
+  "shardHash": "cd9c158f4993553d7bcd3219f964d495868663daf59b31c0918bcece822bbf6e",
   "specVersion": "1.3.0"
 }

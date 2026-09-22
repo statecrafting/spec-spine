@@ -1,0 +1,20 @@
+{
+  "bytes": "mutated",
+  "derivedFrom": "control-untampered",
+  "expect": {
+    "exit": 1,
+    "outcome": "refused",
+    "reason": "content-mismatch"
+  },
+  "id": "minor-ahead-content-mismatch",
+  "mutation": "schemaVersion MINOR raised to 0.9.0, MAJOR unchanged",
+  "needsCorpus": true,
+  "payloadSchemaVersion": "0.9.0",
+  "payloadType": "spec-spine/corpus-attestation",
+  "schemaVersion": "0.1.0",
+  "subject": {
+    "attestationHash": "sha256:e8b388375d10178be62445abde4b2d365c8ba32162c4c74775848ce0916925ad",
+    "kind": "corpus"
+  },
+  "toolVersion": "0.22.0"
+}

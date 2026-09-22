@@ -1,0 +1,18 @@
+{
+  "authoredBecause": "attest cannot emit invalid JSON, so this payload has no producer form to derive from",
+  "bytes": "authored",
+  "expect": {
+    "exit": 3,
+    "outcome": "refused",
+    "reason": "unreadable-json"
+  },
+  "id": "unreadable-json",
+  "needsCorpus": false,
+  "payloadSchemaVersion": "(absent)",
+  "payloadType": "spec-spine/corpus-attestation",
+  "schemaVersion": "0.1.0",
+  "subject": {
+    "kind": "none"
+  },
+  "toolVersion": "0.22.0"
+}

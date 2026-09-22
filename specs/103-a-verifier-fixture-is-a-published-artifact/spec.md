@@ -4,7 +4,7 @@ title: "A verifier fixture is a published artifact"
 status: draft
 kind: "tooling"
 created: "2026-09-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 depends_on:
   - "021-ledger-seal"
@@ -13,18 +13,17 @@ summary: >
   The tamper and cross-version cases an independent verifier must reproduce
   exist only as commands inside spec 068's acceptance block and as a measured
   table in docs/authority-evidence.md. A verifier outside this repository
-  cannot run either. This emits them as a named, versioned fixture set: bytes
-  the producer owns, with the outcome each case must reach.
-extends:
-  - spec: "068-a-verifier-checks-the-bytes-it-was-given"
-    paths:
-      - "crates/spec-spine-core/src/attest.rs"
-      - "crates/spec-spine-cli/src/verify_attestation.rs"
-    nature: additive
+  cannot run either. This emits them as a named, versioned fixture set: the
+  bytes, the corpus each payload is about, and the outcome each case must
+  reach, all measured against the shipped verifier rather than asserted.
 establishes:
-  - { kind: directory, path: "crates/spec-spine-core/fixtures/verifier/", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/verifier_fixtures.rs", planned: true }
+  - { kind: directory, path: "crates/spec-spine-core/fixtures/verifier/"}
+  - { kind: file, path: "crates/spec-spine-cli/tests/verifier_fixtures.rs"}
 references:
+  - unit: { kind: file, path: "crates/spec-spine-core/src/attest.rs" }
+    role: "context"
+  - unit: { kind: file, path: "crates/spec-spine-cli/src/verify_attestation.rs" }
+    role: "context"
   - unit: { kind: file, path: "docs/authority-evidence.md" }
     role: "context"
   - unit: { kind: file, path: "docs/design/04-authority-evidence-extension.md" }
@@ -43,25 +42,43 @@ attestations independently: statecraft-cli, the hosted control plane, and hqgit
 
 That offer cannot be taken up. Those commands run against **this** repository's
 tree, this repository's scratch key and a binary built here. A verifier written
-in TypeScript against a stored evidence bundle has no way to execute them, and
-the table in `docs/authority-evidence.md` §8 is a measurement report, not an
-input. So the four contract gaps spec 068 closed are asserted for this
-repository's own verifier and for nobody else's, and a consumer that gets them
-wrong finds out from a tampered payload rather than from a test.
+in TypeScript against a stored payload has no way to execute them, and the
+table in `docs/authority-evidence.md` §8 is a measurement report, not an input.
+So the four contract gaps spec 068 closed are asserted for this repository's
+own verifier and for nobody else's, and a consumer that gets them wrong finds
+out from a tampered payload rather than from a test.
 
-The gap is narrow and so is this spec. spec-spine emits the **bytes and the
-expected outcomes**. Everything a bundle needs around them stays with the
-consumer.
+The gap is narrow and so is this spec. spec-spine emits the **bytes, the corpus
+they are about, and the expected outcomes**. Everything a consumer builds
+around them stays with the consumer.
 
 ## 2. Territory
 
-A fixture directory under `crates/spec-spine-core/fixtures/verifier/` and the
-test that proves its cases still describe the shipped verifier, plus the two
-files that already own strict payload validation.
+A fixture directory under `crates/spec-spine-core/fixtures/verifier/`, the
+documented generator inside it, and the test that proves its cases still
+describe the shipped verifier.
 
-Both new paths are declared `planned: true` (spec 063): they are this spec's
-territory and they are not written yet, so the claim is a declaration rather
-than an unresolved unit.
+The test lives in `crates/spec-spine-cli/tests/`, not beside the fixtures in
+core, because it must invoke the **shipped verifier**: the decision sequence
+under test (the loose `schemaVersion` read, the MAJOR gate, the strict parse,
+the recompute, the byte comparison, and the exit code each produces) is
+assembled in the CLI. A core test would have to reassemble that sequence from
+library calls and would then be asserting its own reimplementation, which is
+exactly the second-implementation failure this repository refuses elsewhere
+(D-5).
+
+Both paths were declared `planned: true` (spec 063) while this spec was a
+filed draft claiming territory it had not written. The build wrote them, so the
+flags came off in the same change that flipped `implementation` to `complete`:
+`L-011` refuses that pair, and it is right to, because completion asserts the
+work is done and a planned flag asserts it is not (D-9).
+
+It claims **no source file**. The draft this spec replaces claimed
+`attest.rs` and `verify_attestation.rs` through an `extends` edge. Nothing here
+changes either: the fixtures describe the verifier as it stands, and a claim
+that buys nothing makes two files look like this spec's territory to everyone
+who reads the frontmatter afterwards. They are carried as `references`, which
+is non-owning.
 
 ## 3. Behavior
 
@@ -76,31 +93,66 @@ than an unresolved unit.
 | the reason class of a refusal | the trust decision taken on a refusal |
 
 This spec MUST NOT emit an envelope, a bundle manifest, a trust policy, a key,
-a signature over anything but the fixture's own payload, or any statement that
-a fixture's subject is trustworthy. Spec 021 §7's vocabulary holds: these are
-attestations, recomputable records, and nothing here is testimony.
+a signature over anything but a fixture's own payload, or any statement that a
+fixture's subject is trustworthy. Spec 021 §7's vocabulary holds: these are
+attestations, recomputable records, and nothing here is testimony. It MUST NOT
+invent a consumer-side evidence bundle or trust policy of any kind.
 
 It MUST NOT reintroduce a distributed harness in any form. A fixture is data a
-verifier reads; it is not an installed file, not a template and not a generator.
+verifier reads; it is not an installed file, not a template and not a
+generator.
 
-### 3.2 What a fixture case is
+### 3.2 Three kinds of bytes, never conflated
 
-Each case is a directory holding exactly:
+The draft this spec replaces described every `payload.json` as bytes "written
+by `attest` and never re-serialized". That is true of some cases and false of
+most, because a tamper case is by construction not producer output. A fixture
+set that describes a mutated payload as unmodified producer output is lying
+about its own evidence.
 
-1. **`payload.json`**, the stored bytes, written by `attest` and never
-   re-serialized. Spec 068 makes a re-canonicalized copy fail verification, so
-   a fixture that round-tripped its own bytes would assert the opposite of the
-   contract it exists to pin.
-2. **`case.json`**, a record with a fixed shape:
+Every case MUST declare which of exactly three kinds its `payload.json` is:
+
+| `bytes` | Meaning |
+|---|---|
+| `producer` | verbatim output of `spec-spine attest` over the case's corpus, byte for byte, never re-serialized |
+| `mutated` | `producer` bytes with one named, mechanical change applied; `mutation` says what |
+| `authored` | hand-written bytes that `attest` could not produce at all, such as a payload that is not valid JSON |
+
+A `producer` case MUST record the command that produced it. A `mutated` case
+MUST record the `producer` case it derives from and the single change applied.
+Re-serializing a `mutated` payload through a JSON library after the change is
+permitted and is what most of the mutations are; what is forbidden is calling
+the result producer output.
+
+### 3.3 What a fixture case is
+
+Each case is a directory holding:
+
+1. **`payload.json`**, the bytes under test.
+2. **`case.json`**, the record (§3.4).
+3. **`corpus/`**, the tree the payload is about, for every case whose expected
+   outcome depends on a recompute (§3.6). Present exactly when `needsCorpus`
+   is true.
+
+A case MUST be reproducible from its own directory plus a spec-spine binary,
+with no reference to this repository's tree, its keys or its history. That is
+the whole point of publishing it, and it is the requirement the recompute
+contract makes expensive: see §3.6.
+
+### 3.4 `case.json`, and the index
 
 ```json
 {
   "schemaVersion": "0.1.0",
   "id": "unknown-member-nested",
   "payloadType": "spec-spine/corpus-attestation",
-  "payloadSchemaVersion": "1.0.0",
+  "payloadSchemaVersion": "0.1.0",
+  "bytes": "mutated",
+  "derivedFrom": "control-untampered",
+  "mutation": "added member `extra` to the nested `tool` object",
   "subject": { "kind": "corpus", "attestationHash": "sha256:..." },
-  "mutation": "added member `prCouple` to a nested object",
+  "needsCorpus": false,
+  "toolVersion": "0.21.0",
   "expect": { "outcome": "refused", "reason": "unknown-member", "exit": 3 }
 }
 ```
@@ -108,106 +160,419 @@ Each case is a directory holding exactly:
 - **`payloadType`** MUST be a stable name this repository owns and MUST NOT be
   a file path or a verb name. Note 04 S4 gives the composition envelope to
   Statecraft and reserves the type names for spec-spine; this is where they are
-  written down.
+  written down. Two names exist: `spec-spine/corpus-attestation` and
+  `spec-spine/spec-attestation`.
+- **`payloadSchemaVersion`** is the version the payload itself declares, which
+  for a version case is deliberately not this build's.
+- **`bytes`**, **`derivedFrom`** and **`mutation`** are §3.2's. `derivedFrom`
+  and `mutation` are required when `bytes` is `mutated` and MUST be absent
+  otherwise.
 - **`subject`** MUST identify what the payload is about by digest, never by a
-  local path: the corpus `attestationHash`, or a spec's `SpecAttestation` hash
-  together with its `specSourceHash`.
-- **`expect.outcome`** MUST be one of `match`, `mismatch` or `refused`, and
-  `expect.reason` a member of a closed set the fixture index declares. `exit`
-  is this repository's CLI exit code, recorded so a verifier can compare its own
-  mapping without being required to adopt it.
+  local path: the corpus `attestationHash`, or a spec attestation's hash
+  together with its `specSourceHash`. For an `authored` payload that has no
+  computable hash, `subject` is `{ "kind": "none" }`, which is the honest
+  answer and is not the same as omitting the member.
+- **`toolVersion`** is the `tool.version` the payload carries. It drives
+  §3.7's version rule.
+- **`expect.outcome`** MUST be `accepted` or `refused`; `expect.reason` a
+  member of §3.5's closed set, present exactly when the outcome is `refused`;
+  `expect.exit` this repository's CLI exit code, recorded so a verifier can
+  compare its own mapping without being required to adopt it.
 
-### 3.3 The cases the set MUST contain
+**The index**, `fixtures/verifier/index.json`:
 
-Derived from the measured table in `docs/authority-evidence.md` §8 and from
-spec 068's acceptance, not invented here:
+```json
+{
+  "schemaVersion": "0.1.0",
+  "payloadTypes": ["spec-spine/corpus-attestation", "spec-spine/spec-attestation"],
+  "reasons": ["unreadable-json", "missing-schema-version", "unsupported-major",
+              "unknown-member", "duplicate-key", "non-canonical-bytes",
+              "content-mismatch", "version-mismatch"],
+  "cases": ["control-untampered", "..."]
+}
+```
 
-**Tamper, at minimum one case each.** An untampered control that verifies; an
-unknown member at top level; an unknown member nested; an unknown member in a
-per-spec attestation; a reformatted copy with identical values; a flipped
-verdict; a changed `tool.version`; a duplicate key.
+`reasons` is the closed set, declared in the index rather than left implicit,
+so a consumer reads the vocabulary instead of inferring it from the cases that
+happen to be present. `cases` lists every case directory; a directory not
+listed, or a listed directory that does not exist, fails the test (§3.8).
 
-**Cross-version, at minimum one case each.** A corpus `schemaVersion` with an
-unsupported MAJOR; a per-spec `schemaVersion` with an unsupported MAJOR; a
-payload whose MAJOR is current and whose MINOR is ahead, which MUST verify,
-because a MINOR is additive and a verifier that refuses one would refuse every
-future release.
+**Compatibility.** The set is versioned as a whole by the index's
+`schemaVersion`, independently of the attestation schemas. Adding a case,
+adding a reason to the closed set, or adding an optional member to `case.json`
+is a MINOR. Removing or renaming a reason, removing a case, or changing a
+case's expected outcome is a MAJOR, and changing an expectation MUST NOT happen
+without the spec that changes the verifier: a fixture is this repository's
+written claim about its own behavior, and quietly editing the claim to match a
+regression is the failure the whole set exists to prevent.
 
-The control case is not optional. A suite of refusals alone passes for a
-verifier that refuses everything.
+### 3.5 The reason classes, measured against the shipped verifier
 
-### 3.4 The set describes the shipped verifier, and is proven to
+Every row below was measured on 2026-09-21 with `spec-spine 0.21.0`, by
+generating an attestation over a one-spec corpus and running
+`verify-attestation --recompute --json` against each payload. None of it is
+inferred from reading the code.
 
-A committed fixture is a claim about behavior, so it MUST be executed here:
-`crates/spec-spine-core/tests/verifier_fixtures.rs` walks the set, runs this
-repository's own verifier over each `payload.json`, and asserts the recorded
-outcome and reason. A case whose expectation no longer matches the shipped
-verifier fails the build.
+| `reason` | Where the verifier decides | Exit | `--json` |
+|---|---|---|---|
+| `unreadable-json` | `serde_json` before anything else | `3` | `error.kind: "parse"` |
+| `missing-schema-version` | the loose `schemaVersion` read, before the strict parse | `3` | `error.kind: "schema"` |
+| `unsupported-major` | the MAJOR gate, before the strict parse | `3` | `error.kind: "schema"` |
+| `unknown-member` | the strict parse (`deny_unknown_fields`) | `3` | `error.kind: "parse"` |
+| `duplicate-key` | the strict parse: a repeated struct field is a parse error | `3` | `error.kind: "parse"` |
+| `non-canonical-bytes` | the byte comparison, after a value match | `1` | `outcome: "contentMismatch"`, `differences: ["bytes are not the canonical serialization"]` |
+| `content-mismatch` | the recompute, field by field | `1` | `outcome: "contentMismatch"`, `differences` naming each field |
+| `version-mismatch` | the `tool.version` comparison, before the recompute | `1` | `outcome: "versionMismatch"` with `expected` and `actual` |
 
-The test MUST assert, before running any case, that the set is **non-empty and
-contains the control case**. An empty walk that asserts nothing is the failure
-mode this repository has already met more than once.
+An `accepted` case is exit `0` with `outcome: "match"`.
 
-### 3.5 Where the bytes come from, and what is not promised
+**The two the draft got wrong, corrected here:**
+
+- A payload whose MAJOR is current and whose **MINOR is ahead** does **not**
+  verify. The draft asserted it must, on the reasoning that a MINOR is additive
+  and a verifier refusing one would refuse every future release. That reasoning
+  holds for the **MAJOR gate**, and the MAJOR gate does admit it. It does not
+  hold for the verb: `verify_recompute` compares `schemaVersion` like every
+  other field, deliberately (spec 068 §3.3: skipping it let an attestation
+  claiming a schema this build never emitted recompute as a match), so a
+  MINOR-ahead payload is a `content-mismatch` on the `schemaVersion` field.
+  Measured: `differences: ["schemaVersion (0.9.0 -> 0.1.0)"]`, exit `1`.
+  The set therefore carries the case with its **measured** expectation, and
+  §3.9 records the contradiction rather than burying it.
+- **`duplicate-key` is refused at the parse**, not at the byte comparison as a
+  non-canonical form. Measured: exit `3`, `error.kind: "parse"`. Both are
+  refusals, and a fixture that recorded the wrong layer would teach a consumer
+  to implement the check in the wrong place.
+
+### 3.6 Recompute cases carry their corpus
+
+Spec 068's verifier is a **recompute** verifier: `--recompute` re-reads the
+corpus and compares. A payload alone therefore cannot produce `accepted`,
+`content-mismatch` or `version-mismatch`; only the refusals that happen before
+the recompute are decidable from the bytes.
+
+A case whose expected outcome needs a recompute MUST set `needsCorpus: true`
+and MUST carry, under `corpus/`, the complete tree the payload attests: every
+`spec.md` and the `spec-spine.toml`, if any, and nothing else. The corpus is
+kept to one spec so a case directory stays a few kilobytes and a consumer can
+read it.
+
+This is what "carries or precisely references all inputs needed to reproduce
+its verdict independently" costs, and it is not optional: a fixture whose
+expected outcome cannot be reproduced from the fixture is a claim, not a test.
+
+### 3.7 The version rule, so the set does not rot
+
+`verify_recompute` compares the payload's `tool.version` against the verifying
+build and returns `version-mismatch` when they differ, before any content
+comparison (spec 021 FR-005). A committed positive control therefore stops
+producing `accepted` the moment this repository releases again.
+
+The set's **generation version** is the control's `toolVersion`: the control is
+verbatim producer output, so it names the build that generated the set. A case
+whose `toolVersion` differs from it is a deliberate version case and MUST
+declare `version-mismatch`.
+
+The harness MUST resolve a difference between the generation version and the
+verifying build by asserting, never by skipping, on both of these branches:
+
+- **the first branch, the case's own expectation.** When the generation
+  version equals the verifying build, the committed bytes are verified and the
+  recorded `expect` MUST hold. When it differs, each recompute case generated
+  under it is **carried** to the verifying build: its one `"version": "<g>"`
+  literal is replaced by the build's (exactly one occurrence, or the harness
+  fails), and the recorded `expect` MUST hold for the carried bytes. Every
+  declared outcome is therefore observed at every version.
+- **the second branch, FR-005.** When the generation version differs, the
+  committed bytes of each such case MUST also be verified as they are, and the
+  outcome MUST be exactly `version-mismatch`, with `expected` equal to the
+  generation version and `actual` equal to the verifying build.
+
+The second branch is not a weakened form of the first: it is FR-005's own
+contract, that a version difference is a named outcome and never a false
+content mismatch and never a skip-as-pass.
+
+Cases whose refusal happens before the recompute (`needsCorpus: false`) are
+version-independent and take the first branch as committed.
+
+**The set must still describe this producer (D-12).** Before any case runs, the
+harness MUST attest the control's corpus with the shipped producer and compare
+the result, byte for byte, to the committed control with its version literal
+carried to the build. Any other difference means the producer's output has
+changed and the set no longer describes it: the harness MUST fail, and its
+message MUST say `STALE FIXTURES` and name the generator command. A version
+bump alone changes only the literal, so it needs no regeneration; a change to
+what the producer emits needs one, in the change that made it (§3.9).
+
+### 3.8 The set describes the shipped verifier, and is proven to
+
+A committed fixture is a claim about behavior, so it MUST be executed here.
+`crates/spec-spine-cli/tests/verifier_fixtures.rs` walks the set, runs this
+repository's own verifier over each payload, and asserts the recorded outcome
+and reason under §3.7's rule. A case whose expectation no longer matches the
+shipped verifier fails the build.
+
+**Before running any case**, the test MUST assert all of:
+
+1. the index parses and its `schemaVersion` MAJOR is understood;
+2. the case list is **non-empty**;
+3. the case list and the directories on disk are the **same set**, so a case
+   added without being listed, or listed without existing, is a failure rather
+   than a silent omission;
+4. the control case is present and is a `producer` case;
+5. every reason in the index's closed set was **produced by the shipped
+   verifier** for at least one case, and an `accepted` was produced too, and
+   every case's declared reason is in the closed set. What a `case.json`
+   expects never counts toward this; only an observed outcome does (D-11);
+6. every listed case produced at least one observed verifier outcome, judged
+   over the map of observed outcomes by case id and not over a loop counter
+   (D-13).
+
+An empty or partial walk that asserts nothing is the failure mode this
+repository has already met more than once, and clauses 2, 3 and 6 are there
+because "the loop ran zero times" and "the loop ran and passed" are
+indistinguishable without them.
+
+### 3.9 Where the bytes come from, and what is not promised
 
 Fixtures MUST be generated by a documented command and committed, not produced
 at test time. A fixture regenerated on each run would re-serialize the bytes
-whose exact spelling is the point.
+whose exact spelling is the point, and would make the non-canonical-bytes case
+unable to fail.
 
-The set is versioned as a whole by `schemaVersion` on its index. Adding a case
-is additive. Changing a case's expected outcome is a change to what this
-repository claims its verifier does, and MUST NOT happen without the spec that
-changes the verifier.
+**Distribution.** The set is committed in-tree and is therefore already
+obtainable by anyone who can read the repository. For a consumer who cannot,
+the route is the published crate: `crates/spec-spine-core/fixtures/` ships
+inside the `spec-spine-core` `.crate` archive, so
+
+```sh
+cargo package -p spec-spine-core --locked
+tar xzf target/package/spec-spine-core-<version>.crate
+# fixtures are at spec-spine-core-<version>/fixtures/verifier/
+```
+
+is a deterministic extraction route with a digest (the `.crate` SHA-256).
+**Committing the fixtures is not publishing them**, and this spec MUST NOT be
+read as a publication claim: the archive above exists locally until a release
+uploads it, and spec 104's record is where a packaged artifact's digest is
+written down.
+
+**Regeneration, and the coupling it implies.** The generator is deterministic:
+re-running it over an unchanged producer rewrites the same bytes. It is needed
+only when §3.7's currency check fails, which is when a change alters what the
+producer emits for the control's corpus (for example, a registry-schema MINOR
+that restamps shards). That change regenerates the set in the same pull
+request, and because the set is this spec's territory, it declares so: an
+`extends` edge on `crates/spec-spine-core/fixtures/verifier/` naming this spec,
+nature `corrective`, in the spec that changed the producer. That is an
+ordinary authority path, not a waiver. A version bump does not regenerate the
+set and does not touch it (D-12).
+
+**The set's version is not the crate's version.** The set declares the
+producer version that generated it (the control's `toolVersion`). A crate
+published at a later version may carry a set generated earlier; the harness
+proves, at that crate's own build, that the producer still emits the committed
+bytes apart from the version literal.
 
 Nothing here promises that a consumer's verifier is correct. It promises that a
-consumer's verifier can be **tested against the same bytes and outcomes this
-one is**, which is the whole of what a producer can offer.
+consumer's verifier can be **tested against the same bytes, the same corpora
+and the same outcomes this one is**, which is the whole of what a producer can
+offer.
 
 ## 4. Out of scope
 
-- **The neutral verifier's home** (note 04 D-6). A family decision; this spec is
-  deliberately only the fixtures, which is what D-6 says spec-spine's part is.
-- **Evidence-bundle composition**, receipt shapes, and the in-toto mapping (note
-  04 R2, S4).
-- **Signing keys and key distribution.** A fixture carries a seal made with a
-  scratch key or none; trust in a key is the consumer's.
-- **Obligation, closure and scope records.** They reference a snapshot digest
-  and are a separate, unadopted increment.
-- **Publishing the set to a registry.** Committed in-tree is the whole delivery;
-  where a release ships it is a packaging question for the release runbook.
+- **The neutral verifier's home** (note 04 D-6). A family decision; this spec
+  is deliberately only the fixtures, which is what D-6 says spec-spine's part
+  is.
+- **Evidence-bundle composition**, receipt shapes, the in-toto mapping, and any
+  consumer trust policy (note 04 R2, S4). §3.1.
+- **Signing keys and key distribution.** A fixture carries no seal; signature
+  verification is a separate axis with its own key-management question, and a
+  committed scratch key is a liability rather than a fixture.
+- **Changing the verifier.** Every expectation in the set is measured from the
+  verifier as it stands, including the two the draft predicted wrongly. If a
+  measured behavior is judged a defect, that is a new spec, and the fixture's
+  expectation moves with it and not before (§3.4's compatibility rule).
+- **Obligation, closure and scope records.** A separate, unadopted increment.
+- **Publishing the set to a registry.** §3.9.
 
 ## 5. Resolved decisions
-
-*(Filed as a draft. Decisions taken during the build are appended here.)*
 
 **D-1 (2026-09-21, this is buildable without a named consumer, unlike spec
 102).** Three consumers are already named in note 04 §7 and all three were
 offered these cases, so the need is recorded rather than hypothetical. What is
 not decided here is where a neutral verifier lives, and §4 keeps it that way.
 
+**D-2 (2026-09-21, owner correction: the ownership claim on the two source
+files is dropped).** Packaging fixtures does not change verifier behavior, and
+nothing in this spec edits `attest.rs` or `verify_attestation.rs`. They are
+`references`, which is non-owning.
+
+**D-3 (2026-09-21, owner correction: producer bytes and mutated bytes are
+different things).** §3.2. The draft described every payload as unmodified
+`attest` output, which is false for every tamper case and would have taught a
+consumer that a mutated payload is what the producer emits.
+
+**D-4 (2026-09-21, owner correction: expectations are measured, not
+predicted).** §3.5 and §3.9. The draft asserted that a MINOR-ahead payload must
+verify. It does not, and the reason is a deliberate decision in spec 068. The
+set records the measured behavior and §3.5 names the contradiction between the
+MAJOR gate's admission and the recompute's comparison, so a later reader
+decides it on purpose rather than discovering it.
+
+**D-5 (2026-09-21, build: the harness is a CLI test, not a core one).** See
+§2. The fixtures record the answer the *verb* gives, and that answer is
+assembled in the CLI: the loose `schemaVersion` read, the MAJOR gate, the
+strict parse, the recompute, the byte comparison, and an exit code. A core test
+would have to reassemble that sequence from library calls and would then be
+asserting a second implementation of it.
+
+**D-6 (2026-09-21, build: the generator is committed inside the fixture
+directory).** §3.9 requires the bytes to come from a documented command, and a
+command documented only in prose is one nobody can run. `generate.py` sits in
+the fixture directory, covered by the directory unit this spec already claims.
+Re-running it over an unchanged tree rewrites the same bytes.
+
+**D-7 (2026-09-21, build: the harness is mutation-tested, three ways).** A
+guard no fixture can reach is not a guard. Each was made to fire and then
+reverted: removing a case from the index's `cases` list fails the same-set
+assertion; changing one case's `expect.reason` fails with the observed reason
+named in the message; removing the control's `corpus/` fails the `needsCorpus`
+consistency assertion. Eleven cases, and every declared reason class is
+exercised, which the harness asserts rather than leaving to inspection.
+
+**D-8 (2026-09-21, build: the case the draft named that cannot exist).** The
+draft's acceptance named `reformatted-same-values` and `minor-ahead-verifies`.
+The first exists. The second does not and cannot: the measured behavior is a
+content mismatch, so the case is `minor-ahead-content-mismatch`. Naming a case
+after a behavior the verifier does not have would have baked the draft's wrong
+prediction into the artifact three consumers are asked to test against.
+
+**D-9 (2026-09-21, build: the `planned` flags come off with the completion).**
+See §2.
+
+**D-10 (2026-09-22, carried onto 0.22.0 and regenerated there).** The build
+was written on a branch cut before the 0.22.0 integration, with a 0.21.0
+binary, and carried onto the merged 0.22.0 tree. There, every `needsCorpus`
+case was attested under a different build and took §3.7's `version-mismatch`
+branch, so the control's `accepted`, `content-mismatch` and
+`non-canonical-bytes` were declared but never actually executed in-tree. The
+set was regenerated with the documented command against a 0.22.0 binary. The
+bytes differ from the 0.21.0 set only in `tool.version` and the hashes that
+cover it, and a second run of the generator rewrites nothing. The same thing
+happens at every release: until the set is regenerated, the version rule keeps
+the harness honest, and regenerating puts the recompute cases back on the
+first branch.
+
+**D-11 (2026-09-22, review: "exercised" means observed).** *Its consequence
+for version bumps is superseded by D-12; the observed-coverage rule stands.* The first harness
+put a reason into §3.8.5's coverage set as soon as a `case.json` expected it,
+before the verifier ran. With a set attested under another build, every
+recompute case takes §3.7's second branch and observes `version-mismatch`, so
+`content-mismatch`, `non-canonical-bytes` and the control's `accepted` were
+counted as exercised without ever being produced. Measured: the 0.21.0 set
+passed that harness on a 0.22.0 build. The harness now counts only what the
+shipped verifier produced, and it also requires an observed `accepted`, so the
+control has run on the first branch (§3.8.4's reason for having a control). The
+0.21.0 set now fails with a message naming the generator. Consequence, for the
+owner and the release runbook: after a version bump, `cargo test` fails until
+the set is regenerated. Regenerating writes under this spec's fixture
+directory, so the bump change touches territory this spec owns. The alternative
+was to keep a coverage check that passes while three outcomes go untested.
+
+**D-12 (2026-09-22, owner review: a version bump does not regenerate the
+set).** D-11 left a release consequence: after every version bump `cargo test`
+failed until the set was regenerated, and regenerating wrote under this spec's
+territory, so every bump pull request would have crossed it. The only ways
+through were an edit to this spec or a waiver, at every release, which is a
+standing requirement for a blanket waiver in all but name. The payload's only
+member that depends on the tool version is `tool.version`: `registryHash`,
+`inputsManifestHash` and `findingsHash` are over the corpus, and no registry
+shard carries the tool version (checked by search). So between two builds
+whose producers are otherwise identical, the committed bytes differ only in
+that literal and in each case's `attestationHash` over them. The 0.21.0 to
+0.22.0 set also moved `registryHash`, which is exactly the content drift the
+currency check exists to catch. So the harness now carries that one literal to
+the build under test (§3.7's first branch), keeps FR-005's assertion on the
+committed bytes (the second branch), and adds a currency check that fails as
+`STALE FIXTURES` when anything else differs. Evidence, at this build
+(0.22.0):
+
+- the current set passes;
+- the same set with its version literal rewritten to `0.21.99` (a simulated
+  pure bump) passes, with every declared reason and `accepted` observed on the
+  carried bytes;
+- the 0.21.0 set from `13c3ccd8`, whose `registryHash` also differs, fails
+  with `STALE FIXTURES` and the generator command;
+- removing `duplicate-key` from the index only fails the same-set guard, and
+  removing it from both the index and the disk fails §3.8.5 naming
+  `duplicate-key`.
+
+The generator's duplicate-key splice now copies the producer's own line,
+indentation included, rather than assuming two spaces; its output is
+byte-identical today.
+
+**D-13 (2026-09-22, review: §3.8.6 judged over observations).** The harness
+counted loop iterations, which in Rust can only differ from the listed count
+by panicking first, so the assertion could not fail. It now builds a map from
+case id to the outcomes the shipped verifier produced, and §3.8.5 and §3.8.6
+are both judged over that map: every listed id must have an observed outcome,
+and the declared reasons must appear among the observed ones.
+
+**D-14 (2026-09-22, review: what the set covers, and three guards made
+explicit).** The index names two payload types, and every case today is a
+`spec-spine/corpus-attestation`. The index's `payloadTypes` is the vocabulary
+this repository owns (§3.4), not a claim that both types have cases: the set
+covers corpus attestations only, and cases for per-spec attestations are a
+MINOR addition when they are written. The harness now checks every case's
+`payloadType` against that closed vocabulary, as it already did for reasons.
+Two other guards were implicit and are now asserted: a case attested under a
+version other than the set's must carry its corpus, since a version refusal
+happens at the recompute; and the literal carried to the verifying build must
+be `tool.version`, checked on the parsed payload before the textual
+substitution. `observed_reason`'s catch-all for other `parse` errors is kept:
+a misclassification still fails `assert_eq!` with both reasons in the
+message, and the envelope carries no finer structured kind to dispatch on.
+
+**D-15 (2026-09-22, review: a corpus subject's digest was only
+prefix-checked).** Every corpus case's `subject.attestationHash` must now equal
+the SHA-256 of the committed control payload, the set's generation-time
+identity under D-12. A version carry never rewrites those bytes, so the check
+holds across a bump; an edited or regenerated payload that kept the old digest
+fails by case name. Mutation: one case's digest altered by a nibble fails.
+
 ## Verification
 
-Written to fail against the tree this spec is filed on: no fixture set exists.
+Behavioral. The test executes every fixture against the shipped verifier under
+§3.7's rule and refuses an empty, partial or unlisted run.
+
+Written to fail against the tree this spec is filed on: no fixture set and no
+test file exist.
 
 ```verify:cli
-# 3.2: the set exists and every case carries both files.
+# 3.3, 3.4: the set and its index exist.
 test -d crates/spec-spine-core/fixtures/verifier
 test -f crates/spec-spine-core/fixtures/verifier/index.json
-# 3.3: the control case, without which a refusal suite asserts nothing.
-test -d crates/spec-spine-core/fixtures/verifier/control-untampered
+# 3.8.4: the control case, without which a suite of refusals asserts nothing.
 test -f crates/spec-spine-core/fixtures/verifier/control-untampered/payload.json
 test -f crates/spec-spine-core/fixtures/verifier/control-untampered/case.json
-# 3.3: the three cases most easily left out, by name.
-test -d crates/spec-spine-core/fixtures/verifier/unknown-member-nested
-test -d crates/spec-spine-core/fixtures/verifier/reformatted-same-values
-test -d crates/spec-spine-core/fixtures/verifier/minor-ahead-verifies
-# 3.2: a payload type name exists and is not a path or a verb.
-grep -q 'spec-spine/' crates/spec-spine-core/fixtures/verifier/index.json
-# 3.4: the set is executed against the shipped verifier, and the empty-walk
-# guard is present by name.
-test -f crates/spec-spine-core/tests/verifier_fixtures.rs
-grep -q 'control' crates/spec-spine-core/tests/verifier_fixtures.rs
-cargo test -p spec-spine-core --test verifier_fixtures --locked
+# 3.6: the control is a recompute case, so it carries the corpus it is about.
+test -f crates/spec-spine-core/fixtures/verifier/control-untampered/corpus/specs/000-bootstrap/spec.md
+# 3.5: the two cases the draft predicted wrongly are present under their
+# measured names, so a regression to the predicted behavior fails.
+test -d crates/spec-spine-core/fixtures/verifier/minor-ahead-content-mismatch
+test -d crates/spec-spine-core/fixtures/verifier/duplicate-key
+# 3.4: the payload type name is owned here and is not a path or a verb.
+grep -q 'spec-spine/corpus-attestation' crates/spec-spine-core/fixtures/verifier/index.json
+# 3.7, 3.8: the whole set is executed against the shipped verifier, with the
+# currency check, both version branches, and the non-empty, same-set,
+# observed-reason and observed-case guards.
+cargo test -p spec-spine-cli --test verifier_fixtures --locked
+# 3.7, D-12: the currency check exists and names the generator.
+grep -qF 'STALE FIXTURES' crates/spec-spine-cli/tests/verifier_fixtures.rs
+# 3.9: the set ships in the producer crate's package (29 files today).
+test "$(cargo package -p spec-spine-core --list --locked --allow-dirty | grep -c '^fixtures/verifier/')" -ge 29
 # The governed loop over the corpus this spec is part of.
 ./target/release/spec-spine check --fail-on-unresolved --fail-on-warn
+./target/release/spec-spine lint --fail-on-warn
 ```
