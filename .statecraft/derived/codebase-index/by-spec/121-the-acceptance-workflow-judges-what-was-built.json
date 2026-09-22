@@ -1,0 +1,86 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "099-a-merged-acceptance-is-asked-again",
+      "119-a-release-verdict-judges-what-was-built",
+      "120-a-scoped-sweep-judges-the-binary-the-blocks-name"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".github/workflows/acceptance.yml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/test-verify-sweep.py",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/acceptance-report.py"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/acceptance.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/acceptance.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/test-verify-sweep.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/test-verify-sweep.py"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/release-candidate-0.22.0.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/release-candidate-0.22.0.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-sweep.sh"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      }
+    ],
+    "specId": "121-the-acceptance-workflow-judges-what-was-built",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "1a4379cce265c3933e068dc638959592f6124d7ed9348fbc05f7e4b100b74024"
+}
