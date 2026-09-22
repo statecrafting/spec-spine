@@ -1,25 +1,21 @@
 {
   "mapping": {
     "dependsOn": [
-      "003-conformance-lint",
-      "030-dependency-cycle-refusal",
-      "035-registry-plan-ready-set"
+      "099-a-merged-acceptance-is-asked-again",
+      "119-a-release-verdict-judges-what-was-built",
+      "120-a-scoped-sweep-judges-the-binary-the-blocks-name"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-core/src/lint.rs",
+        "path": ".github/workflows/acceptance.yml",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/lint.rs",
+        "path": "scripts/acceptance-report.py",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/config.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-types/src/lib.rs",
+        "path": "scripts/test-verify-sweep.py",
         "source": "spec-edge"
       }
     ],
@@ -27,72 +23,72 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/lint.rs"
+            "file": "scripts/acceptance-report.py"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/lint.rs"
+          "path": "scripts/acceptance-report.py"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/lint.rs"
+            "file": ".github/workflows/acceptance.yml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/lint.rs"
+          "path": ".github/workflows/acceptance.yml"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/config.rs"
+            "file": "scripts/test-verify-sweep.py"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/config.rs"
+          "path": "scripts/test-verify-sweep.py"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/lib.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-types/src/lib.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/design/03-adopter-audit-2026-09.md"
+            "file": "docs/release-candidate-0.22.0.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/03-adopter-audit-2026-09.md"
+          "path": "docs/release-candidate-0.22.0.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-sweep.sh"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
         }
       }
     ],
-    "specId": "046-depends-on-ordinal-monotonicity",
-    "specStatus": "approved"
+    "specId": "121-the-acceptance-workflow-judges-what-was-built",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "600429cd561ef9e88643303c58d1ae3d0826f9aa320208a8af3fb365e9e5a016"
+  "shardHash": "722a906de064792e69a04bc28640796c400ce915c10170896f5e525ef3132bca"
 }

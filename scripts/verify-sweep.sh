@@ -236,10 +236,11 @@ short=$(git -C "$root" rev-parse --short "$sha")
 # The default run directory is outside the operating system's temporary tree
 # and new for every run (spec 119). Under $TMPDIR, macOS's dirhelper deletes
 # files older than three days at 03:35 each day, and a build script's copied
-# outputs keep their crate archive's timestamps (2006, for tree-sitter), so a
-# sweep that crossed 03:35 lost `OUT_DIR` files mid-run and reported 26 blocks
-# failed that were not (docs/release-candidate-0.22.0.md 10.5). A fixed
-# default also meant a rerun cleared the previous run's evidence.
+# outputs keep their crate archive's timestamps (2006, for tree-sitter). A
+# sweep that crossed 03:35 reported 26 blocks failed that were not; the purge
+# is the inferred cause, the deletion itself was not observed
+# (docs/release-candidate-0.22.0.md 12). A fixed default also meant a rerun
+# cleared the previous run's evidence.
 if [ -z "$out" ]; then
   cache_root="${XDG_CACHE_HOME:-}"
   if [ -z "$cache_root" ]; then
