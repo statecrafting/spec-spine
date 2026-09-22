@@ -72,6 +72,6 @@
     "summary": "The tamper and cross-version cases an independent verifier must reproduce exist only as commands inside spec 068's acceptance block and as a measured table in docs/authority-evidence.md. A verifier outside this repository cannot run either. This emits them as a named, versioned fixture set: the bytes, the corpus each payload is about, and the outcome each case must reach, all measured against the shipped verifier rather than asserted.\n",
     "title": "A verifier fixture is a published artifact"
   },
-  "shardHash": "9ef2368035d4ed6680b543de449ac163c0a2afb3e04e82ddfdbe5c2038a7d74a",
+  "shardHash": "cd9c158f4993553d7bcd3219f964d495868663daf59b31c0918bcece822bbf6e",
   "specVersion": "1.3.0"
 }

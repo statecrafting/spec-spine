@@ -287,6 +287,14 @@ fn the_fixture_set_describes_the_shipped_verifier() {
             "control-untampered",
         )
     };
+    let control_digest = {
+        use sha2::Digest;
+        let d = sha2::Sha256::digest(&committed_control);
+        format!(
+            "sha256:{}",
+            d.iter().map(|b| format!("{b:02x}")).collect::<String>()
+        )
+    };
     let produced_now = attest_now(&control_dir);
     assert!(
         produced_now == expected_now,
@@ -362,9 +370,14 @@ fn the_fixture_set_describes_the_shipped_verifier() {
             "{ctx}: unknown subject kind {skind:?}"
         );
         if skind == "corpus" {
-            assert!(
-                str_at(subject, "attestationHash", &ctx).starts_with("sha256:"),
-                "{ctx}: a corpus subject is identified by digest"
+            // The digest names the committed control bytes, the set's
+            // generation-time identity (D-12). A version carry never rewrites
+            // them, so it holds across a bump; an edited payload that kept the
+            // old digest does not.
+            assert_eq!(
+                str_at(subject, "attestationHash", &ctx),
+                control_digest,
+                "{ctx}: a corpus subject is identified by the digest of the committed control"
             );
         }
 

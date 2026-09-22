@@ -534,6 +534,13 @@ substitution. `observed_reason`'s catch-all for other `parse` errors is kept:
 a misclassification still fails `assert_eq!` with both reasons in the
 message, and the envelope carries no finer structured kind to dispatch on.
 
+**D-15 (2026-09-22, review: a corpus subject's digest was only
+prefix-checked).** Every corpus case's `subject.attestationHash` must now equal
+the SHA-256 of the committed control payload, the set's generation-time
+identity under D-12. A version carry never rewrites those bytes, so the check
+holds across a bump; an edited or regenerated payload that kept the old digest
+fails by case name. Mutation: one case's digest altered by a nibble fails.
+
 ## Verification
 
 Behavioral. The test executes every fixture against the shipped verifier under
