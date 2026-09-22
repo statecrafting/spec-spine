@@ -7,18 +7,15 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/src/closure.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/src/closure.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/closure.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/closure.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/closure.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/closure.rs"
       }
     ],
     "extends": [
@@ -40,14 +37,6 @@
       },
       {
         "nature": "additive",
-        "spec": "002-registry-query",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/query.rs"
-        }
-      },
-      {
-        "nature": "additive",
         "spec": "057-the-docs-name-what-adopters-derived",
         "unit": {
           "kind": "file",
@@ -56,8 +45,44 @@
       }
     ],
     "id": "107-a-context-closure-is-declared",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-4-the-digest-is-over-what-the-members-are-not-how-they-were-named",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "A closure's digest is the same however its members are ordered, repeated or short-named, and moves when any named member's content moves."
+      },
+      {
+        "anchor": "3-2-every-reference-is-qualified-and-resolved",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "Every unresolved reference in a closure request is named in one refusal, and an unqualified obligation reference is refused before any is resolved."
+      },
+      {
+        "anchor": "3-5-a-digest-over-a-stale-ledger-is-refused",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "A closure over a stale registry is refused with the staleness exit before anything is digested."
+      },
+      {
+        "anchor": "3-8-closures-are-inert-in-every-gate",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "No gate verdict reads a closure, and resolving one writes nothing."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/closure.rs",
+          "crates/spec-spine-cli/tests/closure.rs"
+        ],
+        "kind": "verification",
+        "text": "The digest's properties are asserted in both directions, and every refusal has its exit code through the shipped binary."
+      }
+    ],
     "owner": "The spec-spine Authors",
     "references": [
       {
@@ -80,8 +105,8 @@
       "1-1-why-it-is-built-now-design-note-09-d-7": "80a2bc8be9f84582f1a559ce1fa9424819cc83378db95d30d033ab8751f00388",
       "1-2-why-it-depends-on-obligations-and-on-nothing-else": "ee98ec1084c5075ade5df5501ab9e864748ce2a8e75d521001a3fdf49ec36e27",
       "1-purpose": "635a90595d632f97ecee58589f48edf229f5af506160a023350e9e690284be35",
-      "107-a-context-closure-is-declared": "904833a951e8ded6e617a6e919cdf98d830cab23ddbb833de7cba0e8f157e267",
-      "2-territory": "7143fbdfe9952cdf2d7fb547fb8dde0943cd30c9c850f417440b6d796ee65673",
+      "107-a-context-closure-is-declared": "186ae4ab92c25d0ff72bb40d0947be40e51cc45a279608836833e29a9918350b",
+      "2-territory": "02b92be69cb3f504c1adcc66dc07b4de389a2d76e677ee8aee7419372b9e72b8",
       "3-1-a-closure-lives-with-its-consumer-and-spec-spine-resolves-it": "732f5a426e02de209f5853b7df16a822e418348de2496b0ee6e3c18e46ca4941",
       "3-2-every-reference-is-qualified-and-resolved": "2d763f6e58758bd2f087b8470299f207bece760c30e9adc19c6811f8d9e24f4a",
       "3-3-the-resolved-closure": "a51636f38357b056ccbd6f9730caf2a08e23a1b5c84997c96effbf095ecffd29",
@@ -92,7 +117,7 @@
       "3-8-closures-are-inert-in-every-gate": "bf3f695e1fb9b416ee8621e4cdfd425c73c966fd618e903597e5a2f37f671774",
       "3-behavior": "debbc2e14d8ebfa0cf3f4f16617b57dc90ef8121ee383eedab71fa8b411b8fd2",
       "4-out-of-scope": "ec20d0219e12f28a25d45908bac33b4bcbf0cc79319a8d1d17cb3c010531f266",
-      "5-resolved-decisions": "f4db954affa68d09f4bf20f55e1c27c30f01980cff565a8c4b799dbe7b9404b0",
+      "5-resolved-decisions": "68d8656c6813531589d0322e63994af090ba1aba23fb90a61b02b8c449327de2",
       "verification": "810ca1ecd9f45154856cf3e5138d7d49b659a66c84ec2f4983d9e8795d300ea4"
     },
     "sectionHeadings": [
@@ -119,6 +144,6 @@
     "summary": "A piece of work has no declared answer to \"what must I have read before I act on this\", and no way to tell later whether that context changed. A ContextClosure is that answer as data: the specs, sections and obligations a task is answerable to, named by the task's owner. spec-spine resolves a closure request against the committed ledger and returns every member with its identity and one order-independent digest over all of them, so \"the context this work was done against has changed\" is one comparison. The closure lives in the consumer's record; spec-spine only resolves it, and no gate reads one.\n",
     "title": "A context closure is declared"
   },
-  "shardHash": "b8f716bd8aaa40c64c633d52ce3099e7702492aac65ae39180ed7b4da2ed30d1",
+  "shardHash": "592bb58a8dde017327033afb6929ac8001b95649d9275e90cbadf24be7962435",
   "specVersion": "1.4.0"
 }

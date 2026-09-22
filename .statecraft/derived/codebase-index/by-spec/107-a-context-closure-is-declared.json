@@ -9,12 +9,20 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/tests/closure.rs",
+        "source": "multiple"
+      },
+      {
+        "path": "crates/spec-spine-core/src/closure.rs",
+        "source": "multiple"
+      },
+      {
         "path": "crates/spec-spine-core/src/lib.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/query.rs",
-        "source": "spec-edge"
+        "path": "crates/spec-spine-core/tests/closure.rs",
+        "source": "multiple"
       },
       {
         "path": "docs/api.md",
@@ -23,7 +31,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/closure.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -32,7 +44,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/closure.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -41,7 +57,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/closure.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -73,19 +93,6 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/lib.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/src/query.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/query.rs"
         }
       },
       {
@@ -132,5 +139,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f9dfe5c865e90a070314ea2ce6d6c81ad993808ce3eca8d4309683e4e484d3f7"
+  "shardHash": "c3a0cfda248c7219805a940b0b32385a16f36bd9482ea19084568d0c785c5a2a"
 }

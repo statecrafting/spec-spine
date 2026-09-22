@@ -4,7 +4,7 @@ title: "A context closure is declared"
 status: draft
 kind: "governance"
 created: "2026-09-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -20,20 +20,42 @@ summary: >
   closure lives in the consumer's record; spec-spine only resolves it, and no
   gate reads one.
 establishes:
-  - { kind: file, path: "crates/spec-spine-core/src/closure.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/closure.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/closure.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/closure.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/closure.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/closure.rs" }
 extends:
   # 3.5: the facade and the CLI verb.
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
   - { spec: "002-registry-query", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_registry.rs" }, nature: additive }
-  # 3.4: the committed content hashes, read and never recomputed.
-  - { spec: "002-registry-query", unit: { kind: file, path: "crates/spec-spine-core/src/query.rs" }, nature: additive }
   # 3.7: the documentation a consumer reads.
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/04-authority-evidence-extension.md" }, role: context }
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: context }
+obligations:
+  - id: "R-1"
+    kind: requirement
+    text: "A closure's digest is the same however its members are ordered, repeated or short-named, and moves when any named member's content moves."
+    anchor: "3-4-the-digest-is-over-what-the-members-are-not-how-they-were-named"
+  - id: "R-2"
+    kind: requirement
+    text: "Every unresolved reference in a closure request is named in one refusal, and an unqualified obligation reference is refused before any is resolved."
+    anchor: "3-2-every-reference-is-qualified-and-resolved"
+  - id: "R-3"
+    kind: requirement
+    text: "A closure over a stale registry is refused with the staleness exit before anything is digested."
+    anchor: "3-5-a-digest-over-a-stale-ledger-is-refused"
+  - id: "I-1"
+    kind: invariant
+    text: "No gate verdict reads a closure, and resolving one writes nothing."
+    anchor: "3-8-closures-are-inert-in-every-gate"
+  - id: "V-1"
+    kind: verification
+    text: "The digest's properties are asserted in both directions, and every refusal has its exit code through the shipped binary."
+    anchor: "verification"
+    inputs:
+      - "crates/spec-spine-core/tests/closure.rs"
+      - "crates/spec-spine-cli/tests/closure.rs"
 ---
 
 # 107: A context closure is declared
@@ -80,8 +102,8 @@ mappings, overlays, waiver lifecycle or bindings.
 
 - `crates/spec-spine-core/src/closure.rs` (established): the request, the
   resolved closure, and the resolver.
-- The facade in `lib.rs`, the `registry closure` verb in `cmd_registry.rs`, and
-  the committed-content-hash read in `query.rs` (`extends`).
+- The facade in `lib.rs` and the `registry closure` verb in `cmd_registry.rs`
+  (`extends`).
 - `docs/api.md` (`extends`).
 - `crates/spec-spine-core/tests/closure.rs` and
   `crates/spec-spine-cli/tests/closure.rs` (established).
@@ -250,6 +272,19 @@ where they are resolved (3.2), with the exit codes the read verbs already use.
 **D-4 (2026-09-22, stricter than `show`: freshness first).** 3.5. A read that
 emits a digest is making a claim about the corpus, and spec 028's freshness
 check is the only thing that makes that claim true.
+
+**D-5 (2026-09-22, build: the content-hash read lives in `closure.rs`).** The
+filing claimed `query.rs` for reading every committed shard's hash. The build
+reads them in `closure.rs` through the shard reader `compile` already exposes,
+so `query.rs` is untouched and the claim is dropped rather than left
+decorative.
+
+**D-6 (2026-09-22, build: the guards were made to fire).** With an obligation
+member digested over its text alone, the test that edits the prose of the
+section it points at fails. With the freshness check disabled, the stale-ledger
+test fails. Both restored, all eight core tests and both CLI tests pass. This
+spec declares its own obligations, and its acceptance resolves a closure over
+this corpus that names spec 106's `R-5`.
 
 ## Verification
 
