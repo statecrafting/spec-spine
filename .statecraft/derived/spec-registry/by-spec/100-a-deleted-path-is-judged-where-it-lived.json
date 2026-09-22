@@ -1,5 +1,13 @@
 {
   "record": {
+    "amends": [
+      "005-coupling-gate",
+      "081-coupling-sees-the-change-being-committed"
+    ],
+    "amendsSections": [
+      "3.1",
+      "3.2"
+    ],
     "created": "2026-09-21",
     "dependsOn": [
       "005-coupling-gate",
@@ -45,10 +53,58 @@
           "kind": "file",
           "path": "crates/spec-spine-core/src/lib.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "071-a-change-is-classified-under-the-bases-rules",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_delta.rs"
+        }
       }
     ],
     "id": "100-a-deleted-path-is-judged-where-it-lived",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -67,23 +123,24 @@
       "1.2 The refusal's own advice does not work here",
       "2. Territory",
       "3. Behavior",
-      "3.1 The base snapshot is the merge base, and the spec says so",
-      "3.2 A deleted path is judged at the base snapshot",
-      "3.3 What the base-side read does not change",
-      "3.4 The base snapshot is resolved lazily",
-      "3.5 Base metadata that cannot be read is reported, never fatal",
+      "3.1 Two snapshots, and which one answers",
+      "3.2 A prior snapshot is reconstructed from source, not read from a ledger",
+      "3.3 What the snapshot read does not change",
+      "3.4 A prior snapshot is built only when a deletion needs one",
+      "3.5 Required prior evidence that cannot be obtained is a refusal",
       "3.6 Renames stay two facts",
-      "3.7 Committed and working-tree operation",
-      "3.8 The library contract is additive",
+      "3.7 The report records which snapshot answered",
+      "3.8 Compatibility is preserved, and is not the corrected behavior",
+      "3.9 Combined histories",
       "4. Out of scope",
       "5. Resolved decisions",
       "Verification"
     ],
     "specPath": "specs/100-a-deleted-path-is-judged-where-it-lived/spec.md",
     "status": "draft",
-    "summary": "The coupling gate resolves a deleted path's owners from the head index, where the claim the same change withdrew no longer exists, so a correct removal is refused as C-001 against a package floor that has nothing to say about it. A path the change deletes is judged against the base snapshot of the diff the gate already reads, which is the merge base and not the supplied base ref.\n",
+    "summary": "The coupling gate resolves a deleted path's owners from the head index, where the claim the same change withdrew no longer exists, so a correct removal is refused as C-001 against a package floor that has nothing to say about it. A deleted path is judged against the snapshot that precedes the segment its deletion belongs to, reconstructed from that snapshot's own source bytes, and a snapshot the gate cannot reconstruct is an explicit non-success rather than a head-only pass.\n",
     "title": "A deleted path is judged where it lived"
   },
-  "shardHash": "82a05a13a3d055cd252fc96c933f76911bd09ae5272da0468f94d50a5b59d95d",
+  "shardHash": "029dfdea83ef21aa2345de90830b2c99e9e281fe6467be9673c8138ea0d0c3a8",
   "specVersion": "1.3.0"
 }

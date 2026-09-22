@@ -13,13 +13,15 @@
 //! `git diff --name-status -z` over the same range (spec 073): the parser stays
 //! the authority for spans, the name list for which paths changed.
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use spec_spine_core::couple::spec_id_for_spec_md_path;
 use spec_spine_core::{
-    CoupleReport, DiffFile, DiffInput, FileContents, couple, dependency_only_waiver,
-    is_bypassed_path, load_committed_index, parse_waiver,
+    CoupleReport, DiffFile, DiffInput, FileContents, PriorOwnership, PriorSnapshots,
+    couple_snapshots, dependency_only_waiver, is_bypassed_path, load_committed_index, parse_waiver,
+    prior_ownership_from_root, tree_config,
 };
 use spec_spine_types::{Config, Error, LineSpan, Verdict, Violation, verdict::verb};
 
@@ -44,7 +46,10 @@ pub struct CoupleArgs {
 pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
     let cfg = load_repo_config(repo)?;
 
-    let diff = build_diff_input(repo, args)?;
+    let Segments {
+        diff,
+        worktree_deletions,
+    } = build_diff_input(repo, args)?;
     let body = read_pr_body(args)?;
     let mut waiver = parse_waiver(&cfg, &body);
     let mut auto_waived = false;
@@ -57,7 +62,17 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
         auto_waived = waiver.is_some();
     }
 
-    let report = couple(&cfg, repo, &diff, waiver.as_ref())?;
+    // Spec 100 §3.4: built only when a deletion needs one, and §3.5: a
+    // required snapshot that cannot be obtained is a refusal, never a
+    // head-only pass.
+    let exports = PriorExports::build(repo, args, &diff, &worktree_deletions)?;
+    let prior = PriorSnapshots {
+        merge_base: exports.merge_base.as_ref(),
+        head_commit: exports.head_commit.as_ref(),
+        worktree_deletions,
+    };
+
+    let report = couple_snapshots(&cfg, repo, &diff, waiver.as_ref(), &prior)?;
 
     if args.json {
         // The `CoupleReport` verbatim, as `spec_spine_core::couple_json`
@@ -244,7 +259,19 @@ fn spec_md_rel(specs_dir: &str, id: &str) -> String {
 
 /// Build the [`DiffInput`]: either from `--paths-from` (whole-file fallback, no
 /// hunks) or from `git diff --no-color -U0 base...head`.
-fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> {
+/// The diff the gate judges, plus which deletions the working-tree segment
+/// recorded (spec 100 §3.1).
+///
+/// The segment matters because a deletion is judged at the snapshot preceding
+/// the segment that recorded it: the merge base for the committed range, HEAD
+/// for `git diff HEAD`. Carried here rather than on [`DiffFile`] so the diff's
+/// serialized shape does not move.
+pub(crate) struct Segments {
+    pub(crate) diff: DiffInput,
+    pub(crate) worktree_deletions: BTreeSet<String>,
+}
+
+fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<Segments, Error> {
     if let Some(path) = &args.paths_from {
         // Spec 081 §3.3: `--paths-from` carries its own path list and no history
         // to union a working tree with, so the combination names no coherent
@@ -270,11 +297,24 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> 
                 deleted: false,
             })
             .collect();
-        return Ok(DiffInput { files });
+        // Spec 100 §3.9: a path list has no prior side, so no snapshot is
+        // required and none is built.
+        return Ok(Segments {
+            diff: DiffInput { files },
+            worktree_deletions: BTreeSet::new(),
+        });
     }
 
-    let raw = run_git_diff(repo, &[&format!("{}...{}", args.base, args.head)])?;
+    // Spec 100 §3.5: the three-dot range is itself a read of history, and it
+    // is the read that fails first when the clone cannot reach a merge base
+    // (a shallow fetch, or unrelated histories). Git's own message says what
+    // broke; this adds the remedy and, more importantly, says plainly that
+    // nothing was judged. A run that cannot read the range must never look
+    // like a run that found nothing to judge.
+    let raw =
+        run_git_diff(repo, &[&format!("{}...{}", args.base, args.head)]).map_err(unobtainable)?;
     let mut diff = parse_unified_diff(&raw);
+    let mut worktree_deletions: BTreeSet<String> = BTreeSet::new();
     // Spec 073 §3.1: the parser is the authority for spans, the name list for
     // membership. The range is the same three-dot `base...head` the text diff
     // read, so both answers describe one set of changes.
@@ -304,9 +344,33 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<DiffInput, Error> 
         let wt_raw = run_git_diff(repo, &["HEAD"])?;
         let wt = parse_unified_diff(&wt_raw);
         union_diff(&mut diff, wt);
-        union_name_statuses(&mut diff, changed_path_statuses(repo, &["HEAD"])?);
+        // One read of the working-tree statuses, used for both the union and
+        // the deletion set below. Asking git twice would let the two answers
+        // describe different working trees, and the second one decides which
+        // snapshot judges a deletion.
+        let wt_statuses = changed_path_statuses(repo, &["HEAD"])?;
+        let wt_paths: BTreeSet<String> = wt_statuses
+            .iter()
+            .filter(|(status, _)| status == "D")
+            .map(|(_, path)| path.clone())
+            .collect();
+        union_name_statuses(&mut diff, wt_statuses);
+
+        // Spec 100 §3.1: the working-tree segment's deletions, read back from
+        // the unioned result rather than from either raw view. The union rule
+        // (spec 081) is that the later view decides, so a path this segment
+        // restored is not a deletion at all and must not be listed.
+        worktree_deletions = diff
+            .files
+            .iter()
+            .filter(|f| f.deleted && wt_paths.contains(&f.path))
+            .map(|f| f.path.clone())
+            .collect();
     }
-    Ok(diff)
+    Ok(Segments {
+        diff,
+        worktree_deletions,
+    })
 }
 
 /// `git rev-parse <rev>`, for the one comparison spec 081 §3.3 needs.
@@ -696,6 +760,203 @@ fn read_pr_body(args: &CoupleArgs) -> Result<String, Error> {
     }
 }
 
+// ===== spec 100: the prior snapshots a deletion is judged against =====
+
+/// The reconstructed prior snapshots for one run, with their exported trees.
+///
+/// The trees are removed when this is dropped, on the error path too. The
+/// snapshots borrow nothing from them: `compile` and `index` return owned DTOs,
+/// so the directories are needed only while they are being read.
+pub(crate) struct PriorExports {
+    pub(crate) merge_base: Option<PriorOwnership>,
+    pub(crate) head_commit: Option<PriorOwnership>,
+    _root: Option<TempRoot>,
+}
+
+impl PriorExports {
+    /// Reconstruct only the snapshots this run's deletions actually need
+    /// (spec 100 §3.4), refusing rather than falling back when a required one
+    /// cannot be obtained (§3.5).
+    fn build(
+        repo: &Path,
+        args: &CoupleArgs,
+        diff: &DiffInput,
+        worktree_deletions: &BTreeSet<String>,
+    ) -> Result<Self, Error> {
+        let deleted: Vec<&DiffFile> = diff.files.iter().filter(|f| f.deleted).collect();
+        // §3.4: no deletion asks a question a prior snapshot could answer, so
+        // nothing is resolved, nothing is exported, and a shallow clone keeps
+        // working for the ordinary pull request.
+        if deleted.is_empty() {
+            return Ok(PriorExports {
+                merge_base: None,
+                head_commit: None,
+                _root: None,
+            });
+        }
+        let needs_merge_base = deleted
+            .iter()
+            .any(|f| !worktree_deletions.contains(&f.path));
+        let needs_head_commit = deleted.iter().any(|f| worktree_deletions.contains(&f.path));
+
+        let root = TempRoot::create()?;
+        let mut exports = PriorExports {
+            merge_base: None,
+            head_commit: None,
+            _root: None,
+        };
+        if needs_merge_base {
+            let commit = merge_base(repo, &args.base, &args.head).map_err(unobtainable)?;
+            exports.merge_base = Some(snapshot_at(repo, &commit, &root, "merge-base")?);
+        }
+        if needs_head_commit {
+            exports.head_commit = Some(snapshot_at(repo, "HEAD", &root, "head-commit")?);
+        }
+        // `root` moves into the returned value only on the success path. On
+        // any `?` above it is still a stack local, so its `Drop` runs and the
+        // exported tree is removed: a partially built set of snapshots leaks
+        // nothing.
+        exports._root = Some(root);
+        Ok(exports)
+    }
+}
+
+/// Export `commit`'s tree and reconstruct ownership from its source bytes.
+///
+/// Spec 100 §3.2: compiled and indexed under the **exported tree's own**
+/// `spec-spine.toml`, so a change cannot re-own a path it is deleting by
+/// editing the configuration in the same commit. §3.5: every failure here is
+/// an `Err` naming the cause and the remedy, never an empty snapshot and never
+/// a substituted revision.
+fn snapshot_at(
+    repo: &Path,
+    commit: &str,
+    root: &TempRoot,
+    label: &str,
+) -> Result<PriorOwnership, Error> {
+    let dest = root.0.join(label);
+    std::fs::create_dir(&dest).map_err(|e| Error::Io(format!("create {}: {e}", dest.display())))?;
+    crate::cmd_delta::export_tree(repo, commit, &root.0.join(format!("{label}.index")), &dest)
+        .map_err(|e| {
+            unobtainable(Error::Io(format!(
+                "could not export the {label} tree ({commit}): {e}"
+            )))
+        })?;
+    // §3.5: this failure has its own cause and its own remedy, so it gets its
+    // own sentence. `unobtainable` is about history that could not be reached
+    // and tells the operator to fetch more of it; a configuration that will
+    // not parse was reached and is broken, and no amount of fetching helps.
+    // Unwrapped, the bare error names a path inside a temporary directory,
+    // which says nothing about which commit is at fault.
+    let cfg = tree_config(&dest).map_err(|e| {
+        Error::Parse(format!(
+            "the {label} snapshot's configuration could not be read, so this change's \
+             deletions cannot be judged: {e}. The snapshot is {commit}; repair that \
+             commit's spec-spine.toml and rebase rather than re-running."
+        ))
+    })?;
+    let paths = tracked_paths(repo, commit)?;
+    let snapshot = prior_ownership_from_root(&cfg, &dest).map_err(|e| {
+        Error::Parse(format!(
+            "the {label} snapshot's corpus could not be compiled, so this change's \
+             deletions cannot be judged: {e}. A snapshot that could not be built has not \
+             answered; repair that commit's corpus and rebase rather than re-running."
+        ))
+    })?;
+    Ok(snapshot.with_paths(paths))
+}
+
+/// `git ls-tree -r --name-only <commit>`: the snapshot's tracked inventory.
+///
+/// Used only to tell "the snapshot says nobody owned this path" from "the path
+/// was not there at all" (spec 100 §3.5). Both give the same verdict; the
+/// distinction is reported.
+fn tracked_paths(repo: &Path, commit: &str) -> Result<BTreeSet<String>, Error> {
+    let out = Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .args([
+            "-c",
+            "core.quotepath=false",
+            "ls-tree",
+            "-r",
+            "--name-only",
+            "--full-tree",
+            "-z",
+            "--end-of-options",
+            commit,
+        ])
+        .output()
+        .map_err(|e| Error::Io(format!("spawn git ls-tree: {e}")))?;
+    if !out.status.success() {
+        return Err(unobtainable(Error::Io(format!(
+            "git ls-tree {commit} exited {:?}: {}",
+            out.status.code(),
+            String::from_utf8_lossy(&out.stderr).trim()
+        ))));
+    }
+    Ok(String::from_utf8_lossy(&out.stdout)
+        .split('\0')
+        .filter(|s| !s.is_empty())
+        .map(str::to_string)
+        .collect())
+}
+
+/// Wrap a git failure as the spec 100 §3.5 refusal, with the operator remedy.
+///
+/// Every state that reaches here has the same shape: the clone does not hold
+/// the history the gate needs. The gate must not substitute another revision,
+/// must not ignore the failure, and must not treat a missing history as an
+/// empty diff, so it says what happened, that it judged nothing, and what to
+/// do about it.
+fn unobtainable(e: Error) -> Error {
+    Error::Io(format!(
+        "{e}\n\nThe gate reads history: the diff is a three-dot range, and a deleted path \
+         is judged against the snapshot it lived in (spec 100). That history could not be \
+         read, so the gate has not judged this change and will not report a pass it did \
+         not compute.\n\
+         If this is a shallow clone, fetch enough history to reach the merge base \
+         (`git fetch --deepen=<n>`, or clone without `--depth`). If the histories are \
+         unrelated, name a base that shares one."
+    ))
+}
+
+/// A temporary directory removed when dropped.
+struct TempRoot(PathBuf);
+
+impl TempRoot {
+    fn create() -> Result<Self, Error> {
+        let parent = std::env::temp_dir();
+        let pid = std::process::id();
+        // Full nanosecond width, not `subsec_nanos()`: the sub-second field
+        // repeats once a second, and on a coarse system clock it repeats for
+        // as long as the tick lasts. The name still carries the pid, so this
+        // only has to separate one process's runs from its own leftovers, but
+        // widening it costs nothing.
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        // `create_dir`, not `create_dir_all`: an existing directory is someone
+        // else's, so a collision tries the next name rather than reusing it.
+        for attempt in 0..16u32 {
+            let root = parent.join(format!("spec-spine-couple-{pid}-{nanos}-{attempt}"));
+            if std::fs::create_dir(&root).is_ok() {
+                return Ok(TempRoot(root));
+            }
+        }
+        Err(Error::Io(
+            "could not create a temporary directory for the prior snapshot".to_string(),
+        ))
+    }
+}
+
+impl Drop for TempRoot {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -866,7 +1127,7 @@ mod tests {
             include_uncommitted: false,
             json: false,
         };
-        let d = build_diff_input(root, &args).unwrap();
+        let d = build_diff_input(root, &args).unwrap().diff;
         let paths: Vec<&str> = d.files.iter().map(|f| f.path.as_str()).collect();
         assert_eq!(paths, vec!["Makefile", "logo.png"]);
         assert_eq!(d.files[0].hunks, vec![LineSpan::new(5, 5)], "span kept");

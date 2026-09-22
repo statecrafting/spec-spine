@@ -15,7 +15,7 @@
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
-| verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.4.0` | library |
+| verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.5.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.1.0` | library |
 | read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.1.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
@@ -271,6 +271,14 @@ Every verb that renders a verdict takes `--json`: `compile --check`,
 `index check`, `lint`, `couple`, `attest`, `verify-attestation`, `verify`, and
 `compile --spec`. Each writes one envelope with `schemaVersion`, `verb`, `ok`,
 `exitCode`, and either `report` or `error`.
+
+**Verdict `0.5.0` (spec 100).** `couple`'s report gained a `deletions` block
+naming, for each deleted path examined, which snapshot resolved its owners
+(`merge-base`, `head-commit` or `head-tree`) and whether the path was absent
+from it. Additive in the strict sense this policy requires: the block is
+**omitted when empty**, so every input that produced a verdict before spec 100
+still produces the same payload bytes, and a consumer that does not read it is
+unaffected.
 
 **The guarantee that makes migrating safe:** `--json` changes what is written
 and never what is decided. Every exit code is identical with and without it. A

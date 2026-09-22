@@ -1046,3 +1046,583 @@ fn text_and_mode_change_to_one_path_is_judged_once() {
     assert_eq!(v["report"]["checkedPaths"], 1, "one path, once: {v}");
     assert_eq!(violation_codes(&v), vec!["C-001"], "{v}");
 }
+
+// ===== spec 100: a deleted path is judged where it lived =====
+//
+// End-to-end over real git repositories, because the thing under test is the
+// reconstruction of a historical snapshot and its failure modes. Each case
+// asserts an exit code and, where it matters, the message; none of them
+// searches the source for a token.
+
+/// A governed repo where `001-a` claims two files inside a crate whose
+/// manifest floor is `002-floor`.
+fn setup_deletion(root: &Path) {
+    write(root, "Cargo.toml", "[workspace]\nmembers = [\"crate-a\"]\n");
+    write(
+        root,
+        "crate-a/Cargo.toml",
+        "[package]\nname = \"crate-a\"\nversion = \"0.1.0\"\n\
+         [package.metadata.spec-spine]\nspec = \"002-floor\"\n",
+    );
+    write(root, "crate-a/src/doomed.rs", "pub fn doomed() {}\n");
+    write(root, "crate-a/src/kept.rs", "pub fn kept() {}\n");
+    write(
+        root,
+        "specs/001-a/spec.md",
+        "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\nestablishes:\n  - \"crate-a/src/doomed.rs\"\n  \
+         - \"crate-a/src/kept.rs\"\n---\n# 001-a\n## body\n",
+    );
+    write(
+        root,
+        "specs/002-floor/spec.md",
+        "---\nid: \"002-floor\"\ntitle: \"Floor\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\n---\n# 002-floor\n## body\n",
+    );
+}
+
+/// `001-a` without its claim on `doomed.rs`: the withdrawal.
+fn withdraw_claim(root: &Path) {
+    write(
+        root,
+        "specs/001-a/spec.md",
+        "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\nestablishes:\n  - \"crate-a/src/kept.rs\"\n---\n# 001-a\n## body\n",
+    );
+}
+
+fn couple_range(root: &Path, extra: &[&str]) -> std::process::Output {
+    let mut cmd = bin();
+    cmd.arg("--repo")
+        .arg(root)
+        .args(["couple", "--base", "HEAD~1", "--head", "HEAD"]);
+    cmd.args(extra);
+    cmd.output().unwrap()
+}
+
+#[test]
+fn committed_deletion_is_judged_at_the_merge_base() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_deletion(root);
+    git_in(root, &["init", "-q"]);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base"]);
+
+    // The whole correct removal, in one commit: the file goes, and its claim
+    // is withdrawn in the owning spec's own frontmatter.
+    fs::remove_file(root.join("crate-a/src/doomed.rs")).unwrap();
+    withdraw_claim(root);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "remove doomed"]);
+
+    let out = couple_range(root, &[]);
+    assert_eq!(
+        code(&out),
+        0,
+        "a withdrawn claim must clear its own removal.\nstdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
+
+#[test]
+fn committed_deletion_without_withdrawal_still_refuses() {
+    // The legitimate refusal that must survive: the file goes and nobody
+    // authors the removal in the spec that owned it.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_deletion(root);
+    git_in(root, &["init", "-q"]);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base"]);
+
+    // A file inside the crate that no spec specifically claims: the manifest
+    // floor `002-floor` is its only owner, at the merge base and at head
+    // alike. Removing it without an authoring edit must still refuse, and the
+    // index stays clean because no unit claim is left dangling.
+    write(root, "crate-a/src/floor_only.rs", "pub fn f() {}\n");
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "add a floor-only file"]);
+    fs::remove_file(root.join("crate-a/src/floor_only.rs")).unwrap();
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "remove without withdrawing"]);
+
+    let out = couple_range(root, &[]);
+    assert_eq!(code(&out), 1, "{}", String::from_utf8_lossy(&out.stderr));
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        err.contains("002-floor"),
+        "must name the prior owner: {err}"
+    );
+}
+
+#[test]
+fn worktree_deletion_is_judged_at_head_commit() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_deletion(root);
+    git_in(root, &["init", "-q"]);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base"]);
+    // A second commit so `HEAD~1` exists and the committed range is empty.
+    write(root, "notes.md", "n\n");
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "second"]);
+
+    // The removal exists only in the working tree, staged.
+    fs::remove_file(root.join("crate-a/src/doomed.rs")).unwrap();
+    withdraw_claim(root);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+
+    let out = couple_range(root, &["--include-uncommitted"]);
+    assert_eq!(
+        code(&out),
+        0,
+        "a working-tree withdrawal must clear its own removal.\nstdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
+
+#[test]
+fn add_then_delete_is_judged_at_head_commit() {
+    // The case a single merge-base snapshot gets wrong. The file does not
+    // exist at the merge base at all, so a base-only design finds no owner and
+    // silently passes. Its claim is standing at HEAD, so the withdrawal is
+    // obligatory and its absence must refuse.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_deletion(root);
+    git_in(root, &["init", "-q"]);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base"]);
+
+    // Commit a NEW file after the merge base. It is owned by the crate's
+    // manifest floor, which is ownership the merge base knows nothing about
+    // because the path did not exist there.
+    write(root, "crate-a/src/fresh.rs", "pub fn fresh() {}\n");
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "add fresh"]);
+
+    // Delete it in the working tree, editing no spec. A base-only design
+    // would find the path absent at the merge base, conclude nobody owned it,
+    // and pass. Judged at HEAD it has an owner, so it must refuse.
+    fs::remove_file(root.join("crate-a/src/fresh.rs")).unwrap();
+    git_in(root, &["add", "-A"]);
+    let refused = couple_range(root, &["--include-uncommitted", "--json"]);
+    assert_eq!(
+        code(&refused),
+        1,
+        "the ownership standing at HEAD must be authored.\nstdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&refused.stdout),
+        String::from_utf8_lossy(&refused.stderr)
+    );
+    let json: serde_json::Value =
+        serde_json::from_slice(&refused.stdout).expect("verdict envelope");
+    let d = json["report"]["deletions"]
+        .as_array()
+        .expect("deletion provenance")
+        .iter()
+        .find(|e| e["path"] == "crate-a/src/fresh.rs")
+        .expect("the fresh path");
+    assert_eq!(d["snapshot"], "head-commit", "{json}");
+    assert!(
+        json["report"]["violations"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|v| v["owners"]
+                .as_array()
+                .is_some_and(|o| o.iter().any(|x| x == "002-floor"))),
+        "must name the HEAD owner: {json}"
+    );
+
+    // Authoring the removal in the owning spec clears it.
+    write(
+        root,
+        "specs/002-floor/spec.md",
+        "---\nid: \"002-floor\"\ntitle: \"Floor\"\nstatus: approved\ncreated: \"2026-06-09\"\n\
+         summary: \"s\"\n---\n# 002-floor\n## body\n\n`fresh.rs` was removed.\n",
+    );
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    let cleared = couple_range(root, &["--include-uncommitted"]);
+    assert_eq!(
+        code(&cleared),
+        0,
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&cleared.stdout),
+        String::from_utf8_lossy(&cleared.stderr)
+    );
+}
+
+#[test]
+fn delete_then_restore_is_not_a_deletion() {
+    // The union takes the later view (spec 081), so a path removed in the
+    // committed range and restored in the working tree is an addition at head
+    // and engages no prior snapshot.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_deletion(root);
+    git_in(root, &["init", "-q"]);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base"]);
+
+    fs::remove_file(root.join("crate-a/src/doomed.rs")).unwrap();
+    withdraw_claim(root);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "remove"]);
+
+    // Restore it, and re-add the claim, in the working tree.
+    write(root, "crate-a/src/doomed.rs", "pub fn doomed() {}\n");
+    setup_deletion(root); // rewrites 001-a with both claims
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+
+    let out = couple_range(root, &["--include-uncommitted", "--json"]);
+    assert_eq!(
+        code(&out),
+        0,
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let json: serde_json::Value = serde_json::from_slice(&out.stdout).expect("verdict envelope");
+    let deletions = json["report"]["deletions"].as_array();
+    assert!(
+        deletions.is_none_or(|d| d.iter().all(|e| e["path"] != "crate-a/src/doomed.rs")),
+        "a restored path is not a deletion: {json}"
+    );
+}
+
+#[test]
+fn shallow_clone_is_not_treated_as_an_empty_diff() {
+    // Spec 100 §3.5, the "do not treat a shallow clone as an empty diff" rule.
+    //
+    // In a `--depth 1` clone the three-dot range cannot be resolved at all, so
+    // `git diff` fails before the snapshot logic is reached. That is still an
+    // explicit non-success at exit 3, which is what the rule requires: what
+    // must never happen is exit 0 with nothing examined. The tailored
+    // "could not obtain the snapshot" message belongs to the states where the
+    // diff succeeds and the merge base does not, which
+    // `unrelated_histories_refuse_exit_3` covers (D-5).
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_deletion(root);
+    git_in(root, &["init", "-q"]);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base"]);
+    fs::remove_file(root.join("crate-a/src/doomed.rs")).unwrap();
+    withdraw_claim(root);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "remove"]);
+
+    // A depth-1 clone holds the deletion commit and nothing before it, so
+    // there is no merge base to reconstruct.
+    let shallow = tempfile::tempdir().unwrap();
+    let clone = Command::new("git")
+        .args(["clone", "-q", "--depth", "1", "--no-local"])
+        .arg(format!("file://{}", root.display()))
+        .arg(shallow.path().join("c"))
+        .output()
+        .unwrap();
+    assert!(
+        clone.status.success(),
+        "clone: {}",
+        String::from_utf8_lossy(&clone.stderr)
+    );
+    let c = shallow.path().join("c");
+
+    let out = bin()
+        .arg("--repo")
+        .arg(&c)
+        .args(["couple", "--base", "HEAD~1", "--head", "HEAD"])
+        .output()
+        .unwrap();
+    assert_eq!(
+        code(&out),
+        3,
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(
+        !String::from_utf8_lossy(&out.stdout).contains("no drift"),
+        "a run that could not read the history must not report a pass"
+    );
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        err.contains("has not judged") && err.contains("fetch"),
+        "the refusal must say it judged nothing, and name the remedy: {err}"
+    );
+}
+
+#[test]
+fn unrelated_histories_refuse_exit_3() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_deletion(root);
+    git_in(root, &["init", "-q", "-b", "trunk"]);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base"]);
+
+    // An unrelated root commit, made with plumbing so the working tree is
+    // never touched: `checkout --orphan` would have to clobber the fixture.
+    let git_out = |args: &[&str]| -> String {
+        let out = Command::new("git")
+            .arg("-C")
+            .arg(root)
+            .args(args)
+            .env("GIT_AUTHOR_NAME", "t")
+            .env("GIT_AUTHOR_EMAIL", "t@t")
+            .env("GIT_COMMITTER_NAME", "t")
+            .env("GIT_COMMITTER_EMAIL", "t@t")
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "git {args:?}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8_lossy(&out.stdout).trim().to_string()
+    };
+    let empty_tree = git_out(&["hash-object", "-t", "tree", "/dev/null"]);
+    let orphan = git_out(&["commit-tree", &empty_tree, "-m", "orphan"]);
+    git_in(root, &["branch", "other", &orphan]);
+
+    fs::remove_file(root.join("crate-a/src/doomed.rs")).unwrap();
+    withdraw_claim(root);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "remove"]);
+
+    let out = bin()
+        .arg("--repo")
+        .arg(root)
+        .args(["couple", "--base", "other", "--head", "HEAD"])
+        .output()
+        .unwrap();
+    assert_eq!(
+        code(&out),
+        3,
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        err.contains("has not judged"),
+        "the refusal must say it did not judge: {err}"
+    );
+    assert!(
+        err.contains("fetch"),
+        "the refusal must name the operator remedy: {err}"
+    );
+}
+
+#[test]
+fn corrupt_prior_corpus_refuses_exit_3() {
+    // Spec 100 §3.5: a snapshot whose corpus does not compile has not
+    // answered. It is not empty, and the gate must not pass on it.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_deletion(root);
+    // The BASE commit carries a spec whose frontmatter does not parse.
+    write(
+        root,
+        "specs/003-broken/spec.md",
+        "---\nid: \"003-broken\"\ntitle: [this is not a string\n---\n# broken\n",
+    );
+    git_in(root, &["init", "-q"]);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base with a broken spec"]);
+
+    // Head repairs the corpus, removes the file and withdraws the claim, so
+    // the head tree is fine and only the historical snapshot is unreadable.
+    fs::remove_file(root.join("specs/003-broken/spec.md")).unwrap();
+    fs::remove_file(root.join("crate-a/src/doomed.rs")).unwrap();
+    withdraw_claim(root);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "repair and remove"]);
+
+    let out = couple_range(root, &[]);
+    assert_eq!(
+        code(&out),
+        3,
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        err.contains("could not be compiled"),
+        "the refusal must name corrupt historical evidence: {err}"
+    );
+}
+
+#[test]
+fn corrupt_prior_config_refuses_exit_3() {
+    // Spec 100 §3.5: a snapshot whose CONFIGURATION will not parse has not
+    // answered either. Distinct from the corrupt-corpus case above: the tree
+    // was reached and the fault is in it, so the refusal must name that cause
+    // and its own remedy instead of surfacing a bare config error about a path
+    // inside a temporary directory.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_deletion(root);
+    // The BASE commit carries a configuration that does not parse.
+    write(root, "spec-spine.toml", "[layout\nspecs_dir = \"specs\"\n");
+    git_in(root, &["init", "-q"]);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base with a broken config"]);
+
+    // Head repairs it, removes the file and withdraws the claim, so only the
+    // historical snapshot is unreadable.
+    fs::remove_file(root.join("spec-spine.toml")).unwrap();
+    fs::remove_file(root.join("crate-a/src/doomed.rs")).unwrap();
+    withdraw_claim(root);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "repair and remove"]);
+
+    let out = couple_range(root, &[]);
+    assert_eq!(
+        code(&out),
+        3,
+        "stdout: {}\nstderr: {}",
+        String::from_utf8_lossy(&out.stdout),
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(
+        err.contains("configuration could not be read"),
+        "the refusal must name the unreadable configuration: {err}"
+    );
+    assert!(
+        err.contains("merge-base"),
+        "the refusal must name which snapshot was at fault: {err}"
+    );
+    // A Rust string literal wrapped across source lines without a trailing
+    // backslash keeps the indentation as a run of spaces in the rendered
+    // message, and a short substring assertion cannot see it. These two span
+    // the wrap points, so they can. (The whole message is not whitespace-free:
+    // the embedded cause is a TOML diagnostic with its own layout.)
+    assert!(
+        err.contains("could not be read, so this change's deletions cannot be judged"),
+        "the first sentence must not be broken by source indentation: {err}"
+    );
+    assert!(
+        err.contains("repair that commit's spec-spine.toml and rebase"),
+        "the remedy must not be broken by source indentation: {err}"
+    );
+}
+
+#[test]
+fn no_deletion_builds_no_prior_snapshot() {
+    // Spec 100 §3.4: a deletion-free change asks no question a prior snapshot
+    // could answer, so a shallow clone that cannot reach the merge base still
+    // produces a verdict. This is the assertion that keeps §3.5's refusal from
+    // reaching every pull request.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_deletion(root);
+    git_in(root, &["init", "-q"]);
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "base"]);
+    write(
+        root,
+        "crate-a/src/kept.rs",
+        "pub fn kept() {}\npub fn two() {}\n",
+    );
+    refresh(root);
+    git_in(root, &["add", "-A"]);
+    git_in(root, &["commit", "-q", "-m", "modify"]);
+
+    let shallow = tempfile::tempdir().unwrap();
+    let clone = Command::new("git")
+        .args(["clone", "-q", "--depth", "1", "--no-local"])
+        .arg(format!("file://{}", root.display()))
+        .arg(shallow.path().join("c"))
+        .output()
+        .unwrap();
+    assert!(clone.status.success());
+    let c = shallow.path().join("c");
+
+    // The change under test has to be a real one, or the assertion is vacuous:
+    // `--base HEAD --head HEAD` alone is an empty range, and a run that
+    // examines nothing trivially needs no snapshot. The working-tree segment
+    // carries a deletion-free modification instead, which the shallow clone
+    // can express without reaching any commit it does not have.
+    fs::write(
+        c.join("crate-a/src/kept.rs"),
+        "pub fn kept() {}\npub fn three() {}\n",
+    )
+    .unwrap();
+    let out = bin()
+        .arg("--repo")
+        .arg(&c)
+        .args([
+            "couple",
+            "--base",
+            "HEAD",
+            "--head",
+            "HEAD",
+            "--include-uncommitted",
+        ])
+        .output()
+        .unwrap();
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert_ne!(
+        code(&out),
+        3,
+        "a deletion-free run must not need history.\nstdout: {}\nstderr: {err}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    // And it reached a verdict ABOUT the modification, not about nothing: the
+    // edited file is claimed by 001-a, whose spec.md is untouched, so the
+    // ordinary refusal is the proof the path was examined at all.
+    assert_eq!(
+        code(&out),
+        1,
+        "the modification must be judged at head.\nstdout: {}\nstderr: {err}",
+        String::from_utf8_lossy(&out.stdout)
+    );
+    assert!(
+        err.contains("C-001") && err.contains("crate-a/src/kept.rs"),
+        "the verdict must name the modified path: {err}"
+    );
+}
+
+#[test]
+fn paths_from_builds_no_prior_snapshot() {
+    // Spec 100 §3.9: `--paths-from` carries no history, sets no deletion, and
+    // must engage no snapshot even in a repository with no git history at all.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    setup_deletion(root);
+    refresh(root);
+    let out = couple_paths(root, &["crate-a/src/doomed.rs"], &[]);
+    assert_eq!(
+        code(&out),
+        1,
+        "judged at head as an edit, with no history present: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+}

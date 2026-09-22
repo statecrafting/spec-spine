@@ -65,9 +65,11 @@ pub use compile::{
     load_committed_registry, registry_dir, registry_shard_files,
 };
 pub use couple::{
-    CoupleReport, DEFAULT_BYPASS_PREFIXES, DiffFile, DiffInput, Waiver, build_superseders, couple,
-    couple_with, couple_with_scope, effective_bypass_prefixes, is_bypassed_path, owners_for_path,
-    parse_waiver,
+    CoupleReport, DEFAULT_BYPASS_PREFIXES, DeletionProvenance, DiffFile, DiffInput, PriorOwnership,
+    PriorSnapshots, SNAPSHOT_HEAD_COMMIT, SNAPSHOT_HEAD_TREE, SNAPSHOT_MERGE_BASE, Waiver,
+    build_superseders, couple, couple_snapshots, couple_with, couple_with_prior, couple_with_scope,
+    effective_bypass_prefixes, is_bypassed_path, owners_for_path, parse_waiver,
+    prior_ownership_from_root,
 };
 pub use coverage::{
     EmptyUniverse, GovernedScope, Ownership, SOURCE_EXTS, classify, coverage, coverage_with,
@@ -495,10 +497,33 @@ pub fn load_config_json(toml_src: &str) -> Result<String, Error> {
 
 /// Run the coupling gate. `request_json` bundles config + repo_root + diff +
 /// optional waiver:
-/// `{ "config"?: Config, "repoRoot": string, "diff": DiffInput, "waiver"?: { "reason": string } }`.
+/// `{ "config"?: Config, "repoRoot": string, "diff": DiffInput, "waiver"?: { "reason": string },
+///    "priorRoots"?: { "mergeBase"?: string, "headCommit"?: string,
+///                     "worktreeDeletions"?: [string] } }`.
 /// Returns the [`CoupleReport`] as JSON (even when drift is present; the caller
 /// inspects `violations` / `waiver`).
+///
+/// `priorRoots` names exported trees in exactly the sense [`delta_json`] takes
+/// `baseRoot` and `headRoot` (spec 100 §3.8). Each root is compiled and indexed
+/// under **its own** `spec-spine.toml`, and a deleted path is judged at the
+/// snapshot preceding the segment that recorded it: `headCommit` for a path
+/// listed in `worktreeDeletions`, `mergeBase` otherwise.
+///
+/// Absent, the facade behaves exactly as before: deletions resolve at head,
+/// which is the compatibility path and carries none of spec 100's guarantee.
+/// The member is additive, so no schema MAJOR moves.
 pub fn couple_json(request_json: &str) -> Result<String, Error> {
+    #[derive(Deserialize, Default)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct PriorRoots {
+        #[serde(default)]
+        merge_base: Option<String>,
+        #[serde(default)]
+        head_commit: Option<String>,
+        #[serde(default)]
+        worktree_deletions: Vec<String>,
+    }
+
     #[derive(Deserialize)]
     #[serde(rename_all = "camelCase", deny_unknown_fields)]
     struct Request {
@@ -508,15 +533,38 @@ pub fn couple_json(request_json: &str) -> Result<String, Error> {
         diff: DiffInput,
         #[serde(default)]
         waiver: Option<Waiver>,
+        #[serde(default)]
+        prior_roots: Option<PriorRoots>,
     }
 
     let request: Request = serde_json::from_str(request_json)
         .map_err(|e| Error::Parse(format!("invalid couple request: {e}")))?;
-    let report = couple(
+
+    let roots = request.prior_roots.unwrap_or_default();
+    let load = |root: &Option<String>| -> Result<Option<PriorOwnership>, Error> {
+        match root {
+            None => Ok(None),
+            Some(r) => {
+                let path = std::path::Path::new(r);
+                let cfg = tree_config(path)?;
+                Ok(Some(couple::prior_ownership_from_root(&cfg, path)?))
+            }
+        }
+    };
+    let merge_base = load(&roots.merge_base)?;
+    let head_commit = load(&roots.head_commit)?;
+    let prior = PriorSnapshots {
+        merge_base: merge_base.as_ref(),
+        head_commit: head_commit.as_ref(),
+        worktree_deletions: roots.worktree_deletions.into_iter().collect(),
+    };
+
+    let report = couple_snapshots(
         &request.config,
         std::path::Path::new(&request.repo_root),
         &request.diff,
         request.waiver.as_ref(),
+        &prior,
     )?;
     to_json(&report)
 }
