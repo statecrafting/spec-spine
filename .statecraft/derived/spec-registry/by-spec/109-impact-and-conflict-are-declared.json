@@ -226,7 +226,7 @@
       "1-1-why-the-obligations-dependency-is-real": "c0bc14b6209b19ddfb9fc396dfda381810a87f51d8385ee711fc552d59db9610",
       "1-2-what-it-enables-d-1": "0317338e740eeef769950739901b23d6ea030928ae488e82bd79ee71e03873ae",
       "1-purpose": "d0f6143aa6d090d31637259518ed945e9c46e7ed2fd43555fcba65c69b415914",
-      "109-impact-and-conflict-are-declared": "37f2b029eb40da2547b1d43b5aae7730089a31d34f5084686338706e4a163f74",
+      "109-impact-and-conflict-are-declared": "07f73dcd4d5e80266bf65b0f6686cb8d66538931d78b6dc9287748e083c07109",
       "2-territory": "b76e6a3db62d7b9b2fbd03b391a5be194e99d80b210f9f530454b74b17c1733b",
       "3-1-two-declarations-in-frontmatter": "b6c7e23e83c3ac8fe98c93faf7349ccf5face8494b62722f2e11f4d724be1d0d",
       "3-2-an-impact-names-an-obligation-qualified-and-resolving": "6f9e5f58a64946e5907a5f0102d42309b27e5328589ccf500f70e91f2232bb42",
@@ -238,7 +238,7 @@
       "3-8-nothing-gates-on-either": "8553875c25827a670396954338c0df5cb896978f93e9eb7e2aded3b4975f8387",
       "3-behavior": "cd906db41aa4fbd34068fba88138af6667694f7be926787db62bca62d1c72393",
       "4-out-of-scope": "09577175655c0ca7d56418849ff5248229a9e183ea44a9f0ce7af7cddc0768c9",
-      "5-resolved-decisions": "5348152eb8ae4019d48263065f5165c0e2db0a90dbaa1acd9c26ea8795ed449b",
+      "5-resolved-decisions": "a408ebc744a743f7d439d8ede572f568455d1a79c36724c830e98d366c8b8f4a",
       "verification": "b218a4120ded5746b15ac517b45617ba00d467c050c212e0d305cbdb04105f9b"
     },
     "sectionHeadings": [
@@ -265,6 +265,6 @@
     "summary": "A spec can say which specs it extends and amends. It cannot say which requirements it is expected to affect, or which requirements it knowingly conflicts with. Both are declared in frontmatter against spec 106's qualified obligation ids, validated at compile, carried in the registry, and answered by one read that inverts the declarations so the affected side can see them. Nothing gates on either, and nothing computes an impact.\n",
     "title": "Impact and conflict are declared"
   },
-  "shardHash": "8c1db230b46f6d01288f4c9ff3967a2f694af750046cca3d3325f07488fd43e4",
+  "shardHash": "46bdf17b17041f7692daf0ae1a44f58994bbbfc79f2bc4e83f41f7fa51c5471a",
   "specVersion": "1.5.0"
 }

@@ -192,3 +192,43 @@ extra_known_keys = []
 # `index check` still reports the total on every run and says how many of it
 # this list covers, so the exception is explicit rather than invisible.
 unwitnessed_allowed = ["crates/**/*.rs"]
+
+# Spec 105: the ownership ratchet's universe is otherwise inferred, as a source
+# extension inside a discovered package, which leaves every governance file at
+# the root, every script and hook in no package, and every non-code extension
+# outside `C-002`. This declares them in.
+#
+# The list is exactly the `[index] extra_hashed_inputs` set above, minus the
+# entries the bypass floor makes unreachable (`.github/**`, `docs/*.md`): the
+# two answer the same question, "which files outside a package govern this
+# repository", and a file whose edit restales every shard while the ratchet has
+# never heard of it is the divergence this keeps closed.
+#
+# Adding a path here obliges an owning claim for it. Spec 105 measured the cost
+# at four paths and closed all four before this was turned on; `spec-spine index
+# coverage --fail-on-untraced` is the standing check.
+#
+# The glob trap is `extra_hashed_inputs`'s: `dir/**` matches directories and so
+# no files, `dir/**/*` matches files. A glob matching nothing is `L-010`.
+#
+# `.claude/settings.local.json` is deliberately NOT matched: the entry is the
+# exact path, and that file is the user's own, claimed by no spec. The three
+# `.claude/` entries leave this list with the harness whenever its retirement
+# happens (design note 09 4.3).
+[coverage]
+governed_scope = [
+  "AGENTS.md",
+  "CLAUDE.md",
+  "Makefile",
+  "install.sh",
+  "standards/**/*.md",
+  "scripts/*.sh",
+  "scripts/*.py",
+  "py/scripts/*.py",
+  ".githooks/*.sh",
+  ".githooks/pre-commit",
+  "crates/spec-spine-types/schemas/*.json",
+  ".claude/settings.json",
+  ".claude/skills/*/SKILL.md",
+  ".claude/agents/*.md",
+]

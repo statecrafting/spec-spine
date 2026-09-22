@@ -1,0 +1,99 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "078-governed-scope-is-declared-not-inferred",
+      "100-a-deleted-path-is-judged-where-it-lived"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "CLAUDE.md"
+      },
+      {
+        "kind": "file",
+        "path": "scripts/bump_version.py"
+      },
+      {
+        "kind": "file",
+        "path": "standards/spec/templates/constitution-template.md"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "011-index-hash-slices",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/build-meta.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "061-shipped-is-not-the-same-as-working",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      }
+    ],
+    "id": "105-governed-scope-is-enabled-here",
+    "implementation": "complete",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/coverage.rs"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      }
+    ],
+    "sectionDigests": {
+      "1-1-the-measured-cost-re-measured": "65eebbff594ea443a829bb7a011edf9cdae9b5c8954b95eab37580179e88da67",
+      "1-purpose": "acf2aa9e2cdca7758d2cce5e12b0ed2b206cabae60061b53fadab9e8fd507722",
+      "105-governed-scope-is-enabled-here": "7e8bea61c883367a681b5137a979700ae5a4559042138e8b1c8b2145550f46e8",
+      "2-territory": "23bb829a8ba87ca7ce7acc776dd18698bb3c783b3bbb5ccca577e223158c2ff0",
+      "3-1-the-scope-is-declared-over-what-is-already-hashed": "05124347de5dcff70e6f54012a14788ddf193621e5f5ddd8d6920cee51d9cef2",
+      "3-2-the-four-gaps-are-closed-before-the-switch-is-thrown": "7d97f307c2e5c9c8835b335d4518f43e83344bf22ecca1558bbf5aad1d1e35ab",
+      "3-3-bypass-semantics-are-not-weakened": "c3a95abe934180c7cd691a03fba3c2c42f1c288aec1696a497398b0dfeb49d8a",
+      "3-4-what-stays-exempt-stated-plainly": "170ac50726f107e0a0c588654d843014efabcfeb05d595101888033ae872ae1e",
+      "3-5-claude-is-included-and-leaves-with-the-harness": "1540ba909d2736a00e96548319b5096fccb8927d4fd956851b7fb52850e352f6",
+      "3-6-nothing-about-the-mechanism-changes": "c475577c4336c969ea61b59deb4aa5fbdd73c190ba0e4f9db7bbb4d213775055",
+      "3-behavior": "075031a47be4d1b5376ba498f78913983ffb26c547b066d7a2f190da7e55c2e2",
+      "4-out-of-scope": "be3728835a0af48044306b1fe98b170c0030b50a0e291e569b0d27a78b538128",
+      "5-resolved-decisions": "e16622934da37e157ddd22819021f737691048c51af0bf71b66dbdc3ebc3f6cc",
+      "verification": "6bd72da0502b12ecec41429dc7d7c95893d5e4cf8fe907bcee88de570d9d6e73"
+    },
+    "sectionHeadings": [
+      "105: Governed scope is enabled here",
+      "1. Purpose",
+      "1.1 The measured cost, re-measured",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The scope is declared over what is already hashed",
+      "3.2 The four gaps are closed before the switch is thrown",
+      "3.3 Bypass semantics are not weakened",
+      "3.4 What stays exempt, stated plainly",
+      "3.5 `.claude/` is included, and leaves with the harness",
+      "3.6 Nothing about the mechanism changes",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/105-governed-scope-is-enabled-here/spec.md",
+    "status": "draft",
+    "summary": "Spec 078 added `[coverage] governed_scope` so a repository can bring its governance files under the ownership ratchet, and the repository that wrote it never turned it on. The measured cost is four unclaimed paths. They are claimed, the scope is declared over exactly the files this repository already folds into its content hash, and what stays exempt is stated rather than implied.\n",
+    "title": "Governed scope is enabled here"
+  },
+  "shardHash": "0f4d895f6fa5b7c854030207dd6107c248311b3ccc046b817e4817a7896ed648",
+  "specVersion": "1.5.0"
+}

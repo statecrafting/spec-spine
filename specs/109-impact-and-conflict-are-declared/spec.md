@@ -398,8 +398,9 @@ or registry axis. 106's status is `draft` (unratified), so the constitution's
 is a mechanical fix to a known anti-pattern rather than a change to what 106
 requires (the grep would have passed for `1.4.0` before this build and, if
 edited back, is inert for any value the constant ever holds after `1.4.0`
-too). Fixed by dropping the exact-value pin, matching the convention already
-used elsewhere for this constant, with a comment pointing here. No `amends`
+too). Fixed, on review, by a floor rather than a bare name check: MAJOR 1 and
+MINOR at least 4, which passes at `1.5.0` and fails at `1.3.0`, so the line
+still catches a regression below 106's own MINOR. 106 records it as its D-13. No `amends`
 edge: the change is to 106's `## Verification` fence, self-clearing the way
 any edit to a spec's own `spec.md` does (`couple.rs`'s self-ownership rule for
 `<specs_dir>/<id>/spec.md`), and `amends_verification` would require carrying
