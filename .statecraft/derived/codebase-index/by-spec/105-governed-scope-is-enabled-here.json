@@ -1,31 +1,28 @@
 {
   "mapping": {
-    "amends": [
-      "030-dependency-cycle-refusal"
-    ],
     "dependsOn": [
-      "002-registry-query",
-      "030-dependency-cycle-refusal"
+      "078-governed-scope-is-declared-not-inferred",
+      "100-a-deleted-path-is-judged-where-it-lived"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/cmd_registry.rs",
+        "path": "CLAUDE.md",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "path": "crates/spec-spine-types/schemas/build-meta.schema.json",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/lib.rs",
+        "path": "scripts/bump_version.py",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/query.rs",
+        "path": "spec-spine.toml",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/query.rs",
+        "path": "standards/spec/templates/constitution-template.md",
         "source": "spec-edge"
       }
     ],
@@ -33,98 +30,98 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_registry.rs"
+            "file": "CLAUDE.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "CLAUDE.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/bump_version.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/bump_version.py"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "standards/spec/templates/constitution-template.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/templates/constitution-template.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/schemas/build-meta.schema.json"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+          "path": "crates/spec-spine-types/schemas/build-meta.schema.json"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/cli.rs"
+            "file": "spec-spine.toml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/cli.rs"
+          "path": "spec-spine.toml"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/lib.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/lib.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/src/query.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/query.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/tests/query.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/query.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/design/02-agentic-builder-substrate.md"
+            "file": "crates/spec-spine-core/src/coverage.rs"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/02-agentic-builder-substrate.md"
+          "path": "crates/spec-spine-core/src/coverage.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "specs/030-dependency-cycle-refusal/spec.md"
+            "file": "docs/design/09-disposition-2026-09-21.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "specs/030-dependency-cycle-refusal/spec.md"
+          "path": "docs/design/09-disposition-2026-09-21.md"
         }
       }
     ],
-    "specId": "035-registry-plan-ready-set",
-    "specStatus": "approved"
+    "specId": "105-governed-scope-is-enabled-here",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "9df66325c27754654794de24092f566e047f79371a7dd6d5e048014012fe120e"
+  "shardHash": "8f298ce6e94b1e2226884d185104949a08871eec10f9e390459a79f961c789aa"
 }
