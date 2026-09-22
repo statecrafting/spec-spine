@@ -117,7 +117,9 @@ grep -qF 'cargo build --release --locked -p spec-spine-cli' .github/workflows/ac
 grep -qF 'contents: read' .github/workflows/acceptance.yml
 grep -qF -- '--trusted-ref origin/main' .github/workflows/acceptance.yml
 # 3.1, behavior: the scope that failed at exit 127, swept as the corrected
-# workflow sweeps it, passes. Needs origin/main at or after da47632b.
-env -u SPEC_SPINE_BIN scripts/verify-sweep.sh --rev origin/main --trusted-ref origin/main --only 100,101,104,117 --out "${TMPDIR:-/tmp}/ss120/run" >/dev/null 2>&1
+# workflow sweeps it, passes. Needs origin/main at or after da47632b. Its
+# output is kept: `verify` stops here if the sweep exits non-zero, and the
+# sweep's own progress lines are the diagnosis.
+env -u SPEC_SPINE_BIN scripts/verify-sweep.sh --rev origin/main --trusted-ref origin/main --only 100,101,104,117 --out "${TMPDIR:-/tmp}/ss120/run"
 python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss120/run/sweep.json'));assert d['binaryOrigin'].startswith('built from'), d['binaryOrigin'];o={s['id'][:3]:s['outcome'] for s in d['specs']};assert o=={'100':'passed','101':'passed','104':'passed','117':'passed'}, o"
 ```
