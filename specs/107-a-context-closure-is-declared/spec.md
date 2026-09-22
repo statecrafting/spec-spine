@@ -23,6 +23,8 @@ establishes:
   - { kind: file, path: "crates/spec-spine-core/src/closure.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/closure.rs" }
   - { kind: file, path: "crates/spec-spine-cli/tests/closure.rs" }
+  # D-9: the wave's contracts asserted together.
+  - { kind: file, path: "crates/spec-spine-cli/tests/closure_composed.rs" }
 extends:
   # 3.5: the facade and the CLI verb.
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
@@ -308,6 +310,35 @@ is deliberate: each is part of what the obligation asks of the work, and a
 closure that stayed equal across such a change would hide it. Naming `spec`
 and `id` in the content as well as the piece name is redundant and harmless.
 
+**D-9 (2026-09-22, integration: the wave asserted composed).** Specs 102,
+103, 106 and 107 each tested their own contract on their own branch. Where the
+contracts meet is here, so `crates/spec-spine-cli/tests/closure_composed.rs`
+asserts them together through the shipped binary and the `query_json` facade,
+over one disposable corpus:
+
+- ratifying a spec changes only its reported `status` on `plan` (membership,
+  order and `blocked` unchanged) and moves a closure that names the whole spec,
+  while a closure naming only its sections and obligations stays equal;
+- one obligation reads the same through `registry obligation`, `query_json`
+  and a closure member (text, anchor, kind, inputs, section digest, read
+  version), and only the CLI adds `contentHash`;
+- a withdrawn obligation resolves as withdrawn; re-declaring its id live beside
+  the tombstone fails compile naming it; replacing the tombstone under the same
+  id, which compile cannot see without history, moves every closure that named
+  it, so the reuse is detectable by a consumer holding the old digest;
+- editing a section moves its digest, the closures of obligations anchored in
+  it, and no closure that names only another section;
+- order, repetition and short ids do not move a digest;
+- `registry obligation` answers from a stale ledger and reports an absent
+  section digest as `null`, while a closure refuses a missing member (exit 1,
+  each named), a stale ledger (exit 2) and a hand-edited shard missing a digest
+  (exit 2, the freshness read's byte comparison).
+
+The resolver's own guards, which a valid or fresh ledger never reaches (an
+anchor with no digest, a named spec with no content hash), had no test. Both
+are now asserted on a ledger built to break each invariant, in
+`tests/closure.rs`; folding an empty digest instead fails it.
+
 ## Verification
 
 Written to fail against the tree it is filed on: nothing named here exists.
@@ -318,6 +349,8 @@ cargo build --release --locked
 cargo test -p spec-spine-core --test closure --locked
 # 3.5, 3.6: the shipped verb, including stdin, the stale refusal and exit codes.
 cargo test -p spec-spine-cli --test closure --locked
+# D-9: the wave's contracts (102, 106, 107) asserted together.
+cargo test -p spec-spine-cli --test closure_composed --locked
 # A closure over this corpus resolves.
 sh -c 'printf "%s" "{\"specs\":[\"107\"],\"obligations\":[\"106#R-5\"]}" | ./target/release/spec-spine registry closure --request - --json | grep -q "\"digest\""'
 ./target/release/spec-spine check --fail-on-unresolved --fail-on-warn

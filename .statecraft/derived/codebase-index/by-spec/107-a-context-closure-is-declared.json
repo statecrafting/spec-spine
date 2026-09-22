@@ -13,6 +13,10 @@
         "source": "multiple"
       },
       {
+        "path": "crates/spec-spine-cli/tests/closure_composed.rs",
+        "source": "multiple"
+      },
+      {
         "path": "crates/spec-spine-core/src/closure.rs",
         "source": "multiple"
       },
@@ -53,6 +57,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/tests/closure.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/closure_composed.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/closure_composed.rs"
         }
       },
       {
@@ -190,5 +207,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "c8fa47e90c1f55186085bdcd72a46a51d1b26656b59837df0a820942fa1e753b"
+  "shardHash": "7e5874c6bc387d0f50d466481aa2372df632ef8ad8b5ddab03f3ce4f0276be0d"
 }

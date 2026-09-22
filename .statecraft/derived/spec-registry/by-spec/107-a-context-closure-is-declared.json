@@ -16,6 +16,10 @@
       {
         "kind": "file",
         "path": "crates/spec-spine-cli/tests/closure.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/closure_composed.rs"
       }
     ],
     "extends": [
@@ -129,7 +133,7 @@
       "1-1-why-it-is-built-now-design-note-09-d-7": "80a2bc8be9f84582f1a559ce1fa9424819cc83378db95d30d033ab8751f00388",
       "1-2-why-it-depends-on-obligations-and-on-nothing-else": "ee98ec1084c5075ade5df5501ab9e864748ce2a8e75d521001a3fdf49ec36e27",
       "1-purpose": "635a90595d632f97ecee58589f48edf229f5af506160a023350e9e690284be35",
-      "107-a-context-closure-is-declared": "3b8e5c6f03814a31fe9e94dd54bbadb8b38c11365f2fbb917f8a4e96fb19c765",
+      "107-a-context-closure-is-declared": "fb0284eff1b223af7c9d4c99af51b342f9f072b516de57aac5d0a12d36638193",
       "2-territory": "02b92be69cb3f504c1adcc66dc07b4de389a2d76e677ee8aee7419372b9e72b8",
       "3-1-a-closure-lives-with-its-consumer-and-spec-spine-resolves-it": "732f5a426e02de209f5853b7df16a822e418348de2496b0ee6e3c18e46ca4941",
       "3-2-every-reference-is-qualified-and-resolved": "2d763f6e58758bd2f087b8470299f207bece760c30e9adc19c6811f8d9e24f4a",
@@ -141,8 +145,8 @@
       "3-8-closures-are-inert-in-every-gate": "bf3f695e1fb9b416ee8621e4cdfd425c73c966fd618e903597e5a2f37f671774",
       "3-behavior": "debbc2e14d8ebfa0cf3f4f16617b57dc90ef8121ee383eedab71fa8b411b8fd2",
       "4-out-of-scope": "ec20d0219e12f28a25d45908bac33b4bcbf0cc79319a8d1d17cb3c010531f266",
-      "5-resolved-decisions": "a9391a7628e46cec35d122d14f4611440fc627fdfc004e02b2004e6734566331",
-      "verification": "810ca1ecd9f45154856cf3e5138d7d49b659a66c84ec2f4983d9e8795d300ea4"
+      "5-resolved-decisions": "cc6be392b5ec9076be798257ac4a23704a6f7b93664a1e32aea34dffe4f5335e",
+      "verification": "65c915fa3d44fbe30f2bf9818c2db4310da847baa595b7cc984a2cee42286985"
     },
     "sectionHeadings": [
       "107: A context closure is declared",
@@ -168,6 +172,6 @@
     "summary": "A piece of work has no declared answer to \"what must I have read before I act on this\", and no way to tell later whether that context changed. A ContextClosure is that answer as data: the specs, sections and obligations a task is answerable to, named by the task's owner. spec-spine resolves a closure request against the committed ledger and returns every member with its identity and one order-independent digest over all of them, so \"the context this work was done against has changed\" is one comparison. The closure lives in the consumer's record; spec-spine only resolves it, and no gate reads one.\n",
     "title": "A context closure is declared"
   },
-  "shardHash": "cf893c190392d97bd3e8a4726c2853240fc7ed8a3f25bb850084536d5abe0921",
+  "shardHash": "f27d18191a4e8be5fab107a801a38b7f7ca0437cbcb86f66f7d4d68b80dc18bc",
   "specVersion": "1.4.0"
 }

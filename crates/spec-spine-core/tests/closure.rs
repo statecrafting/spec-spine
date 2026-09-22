@@ -294,3 +294,33 @@ fn a_stale_ledger_is_refused_before_anything_is_digested() {
     let err = closure(&Config::default(), tmp.path(), &standard()).unwrap_err();
     assert_eq!(err.exit_code(), 2, "{err}");
 }
+
+/// D-9: the two guards a valid ledger never reaches, asserted on a ledger that
+/// breaks each invariant. An obligation whose anchor has no section digest,
+/// and a named spec with no committed content hash, are refused by name; an
+/// empty digest or an absent hash is never folded in.
+#[test]
+fn a_ledger_missing_a_digest_or_a_content_hash_is_refused_not_folded() {
+    let (mut registry, hashes) = ledger(A_OBS, A_BODY, B_BODY);
+    let a = registry.specs.iter_mut().find(|s| s.id == "001-a").unwrap();
+    assert!(a.section_digests.remove("3-1-the-rule").is_some());
+    let err = resolve_closure(&registry, &hashes, &request(&[], &[], &["001#R-1"])).unwrap_err();
+    assert_eq!(err.exit_code(), 1, "{err}");
+    assert!(
+        err.to_string()
+            .contains("its anchor '3-1-the-rule' has no section digest in the ledger"),
+        "{err}"
+    );
+    // The same obligation's sibling, whose digest is intact, still resolves.
+    assert!(resolve_closure(&registry, &hashes, &request(&[], &[], &["001#V-1"])).is_ok());
+
+    let (registry, mut hashes) = ledger(A_OBS, A_BODY, B_BODY);
+    assert!(hashes.remove("002-b").is_some());
+    let err = resolve_closure(&registry, &hashes, &request(&["002"], &[], &[])).unwrap_err();
+    assert_eq!(err.exit_code(), 1, "{err}");
+    assert!(
+        err.to_string()
+            .contains("spec '002-b' has no committed shard"),
+        "{err}"
+    );
+}
