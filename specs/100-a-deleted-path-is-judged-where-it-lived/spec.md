@@ -1,7 +1,7 @@
 ---
 id: "100-a-deleted-path-is-judged-where-it-lived"
 title: "A deleted path is judged where it lived"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-21"
 implementation: complete

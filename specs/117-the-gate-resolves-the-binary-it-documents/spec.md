@@ -1,7 +1,7 @@
 ---
 id: "117-the-gate-resolves-the-binary-it-documents"
 title: "The gate resolves the binary it documents"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-21"
 implementation: complete

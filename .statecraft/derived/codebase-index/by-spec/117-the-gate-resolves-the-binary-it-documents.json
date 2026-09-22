@@ -56,8 +56,8 @@
       }
     ],
     "specId": "117-the-gate-resolves-the-binary-it-documents",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "fabcff4080d428a70bfe2191ec601c20273de781dd39c08e1ba22b37d8f2d9d8"
+  "shardHash": "101680a3da10512e8f08173b9cd9014b9f657788eadb5291255934a4e85b2c91"
 }
