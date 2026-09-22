@@ -1,94 +1,94 @@
 {
   "mapping": {
     "dependsOn": [
-      "021-ledger-seal",
-      "068-a-verifier-checks-the-bytes-it-was-given"
+      "099-a-merged-acceptance-is-asked-again",
+      "119-a-release-verdict-judges-what-was-built",
+      "120-a-scoped-sweep-judges-the-binary-the-blocks-name"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/verify_attestation.rs",
+        "path": ".github/workflows/acceptance.yml",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/attest.rs",
+        "path": "scripts/acceptance-report.py",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/test-verify-sweep.py",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "directory",
-          "path": "crates/spec-spine-core/fixtures/verifier/"
-        }
-      },
-      {
-        "locations": [],
+        "locations": [
+          {
+            "file": "scripts/acceptance-report.py"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/verifier_fixtures.rs"
+          "path": "scripts/acceptance-report.py"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/verify_attestation.rs"
+            "file": ".github/workflows/acceptance.yml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/verify_attestation.rs"
+          "path": ".github/workflows/acceptance.yml"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/attest.rs"
+            "file": "scripts/test-verify-sweep.py"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/attest.rs"
+          "path": "scripts/test-verify-sweep.py"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/authority-evidence.md"
+            "file": "docs/release-candidate-0.22.0.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/authority-evidence.md"
+          "path": "docs/release-candidate-0.22.0.md"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/design/04-authority-evidence-extension.md"
+            "file": "scripts/verify-sweep.sh"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/04-authority-evidence-extension.md"
+          "path": "scripts/verify-sweep.sh"
         }
       }
     ],
-    "specId": "103-a-verifier-fixture-is-a-published-artifact",
+    "specId": "121-the-acceptance-workflow-judges-what-was-built",
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "c6b659344810b2b955967f374ae4795f860559c9ea2a332591dd224808143e20"
+  "shardHash": "68cf075919290d1321075293a80f821e65cdf31c613dc1dea159f36fcc5a3b77"
 }

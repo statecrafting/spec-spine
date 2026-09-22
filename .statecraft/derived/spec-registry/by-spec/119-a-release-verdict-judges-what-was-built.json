@@ -58,10 +58,10 @@
     "risk": "medium",
     "sectionDigests": {
       "1-1-sweep-green-was-unreachable-measured": "3de867a3e8a078ccec5f015a536781a30e2c9e57b9c3a38589f0e12a19ba83b1",
-      "1-2-a-run-that-failed-for-a-reason-outside-the-corpus": "0bcec226e3db9a98c7737961f7eac95d164925ef7fbd419336b3ed3b7a7d6241",
+      "1-2-a-run-that-failed-for-a-reason-outside-the-corpus": "89dd1747e19df636550d2f9b85ab0579b4279de3452188dbb67de8a247db9e40",
       "1-3-the-owner-s-ruling": "0cef5957ffed0b02aa4039c7d37b507bf61e6e768adfac2e1e9f577028475ebf",
-      "1-purpose": "1908aa5518945686fb919a76813dacf9b96eac10fa0126a22617fae8005e4350",
-      "119-a-release-verdict-judges-what-was-built": "29567197e8d3e9f1de2b6356bc111f1f840acc1b4459f9a667ed89994c1f6f8c",
+      "1-purpose": "9d27817ac50fe7d7d8a63056db94662132fd2a8d51157bff4053c546637fd2e2",
+      "119-a-release-verdict-judges-what-was-built": "e9495297b90e6f66bc74d211f9578b4c658ed8f38c5bf87b7aae2dba8f73e503",
       "2-territory": "bbe04dd5c1f9eb1d0865377957442e80fd5af23e5dc5832c9f9038e8a21b28bf",
       "3-1-the-lifecycle-is-a-governed-read": "4a09a58513026a0c469dec4a99f7908f4d16a5a0c539cd84f7aade16c64336b1",
       "3-2-the-release-outcome": "8a5bd13324bec217d759c660e89b2b9b0175622cb1219964d8b6cc5f61ab3648",
@@ -72,8 +72,8 @@
       "3-7-the-runbook-reads-the-release-verdict": "62131d0d32b21dd84eb9ce5ccca42319089afe760326cd4cc0db39f94af59f07",
       "3-8-what-does-not-change": "f7195f9827f4949d54e8853d0d278a0e75db87ebc002e2f31c6e682f791e5852",
       "3-behavior": "cf398795d9efceeb1ff792df24e8811e8389e6e19997ff74d29fe363978e4faa",
-      "4-out-of-scope": "568ac97488682e944a0e1e88354d3879d716548b0cb8b5bbb3035a9d32675767",
-      "5-resolved-decisions": "20c216da6ed686c75cfd7cb454216f71167d5eb5378f6e41d1629febd1ce617d",
+      "4-out-of-scope": "7183509de4ddd0a5f58af6960663bbfe1e259c0ca5617c1372ae2b51d99970a9",
+      "5-resolved-decisions": "b5dabfec2f66a316dce2710be350e02b01c0318ce9f0b235623ff68be570e1cc",
       "verification": "a40bc701d24637c8bc476e1f00f2ed9cc3cf9748746bb9c9de82c5de8e60fb91"
     },
     "sectionHeadings": [
@@ -98,9 +98,9 @@
     ],
     "specPath": "specs/119-a-release-verdict-judges-what-was-built/spec.md",
     "status": "draft",
-    "summary": "The whole-corpus sweep (spec 089) runs every declared acceptance block and exits 1 when any fails. This repository files a spec's acceptance before the spec is built and writes it to fail first, so any filed-but-unbuilt draft keeps the sweep red. \"Sweep green\" as a release pre-flight is then unreachable for as long as the backlog is honest. The sweep had no lifecycle predicate, and the only ways to get a green run were to build unrequested features or to hide the failures. This spec adds a release verdict next to the corpus verdict. It is judged over the specs whose implementation is built, with pending work run, listed with its real outcome and never counted as success or exemption, and `--release` puts it in the exit code. The corpus verdict and its exit code are unchanged. It also moves the default run directory out of the macOS temporary tree, whose daily purge emptied a build-script output mid-sweep and made 26 blocks fail that had not, and makes that directory new per run, so a rerun cannot clear the evidence of the run before it.\n",
+    "summary": "The whole-corpus sweep (spec 089) runs every declared acceptance block and exits 1 when any fails. This repository files a spec's acceptance before the spec is built and writes it to fail first, so any filed-but-unbuilt draft keeps the sweep red. \"Sweep green\" as a release pre-flight is then unreachable for as long as the backlog is honest. The sweep had no lifecycle predicate, and the only ways to get a green run were to build unrequested features or to hide the failures. This spec adds a release verdict next to the corpus verdict. It is judged over the specs whose implementation is built, with pending work run, listed with its real outcome and never counted as success or exemption, and `--release` puts it in the exit code. The corpus verdict and its exit code are unchanged. It also moves the default run directory out of the macOS temporary tree, whose daily purge is the inferred cause of a run in which 26 blocks failed that had not, and makes that directory new per run, so a rerun cannot clear the evidence of the run before it.\n",
     "title": "A release verdict judges what was built"
   },
-  "shardHash": "333b44cb5707259b1923925aab71836b14d88769daaf6c2f1d71bf3e606f092b",
+  "shardHash": "448e9ee6a5fbf1026f69eb3481820101ceb84fa2369bcaf997c6cd6b81c75dd3",
   "specVersion": "1.4.0"
 }
