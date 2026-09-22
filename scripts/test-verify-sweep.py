@@ -543,6 +543,11 @@ class SweepRegressions(unittest.TestCase):
         rendered, notes, _ = self.render(0, legacy)
         self.assertEqual(rendered.returncode, 1)
         self.assertIn("(1.0.0) is not a 1.x report carrying both verdicts", notes["error"][0])
+        old["schemaVersion"] = None
+        legacy.write_text(json.dumps(old), encoding="utf-8")
+        rendered, notes, _ = self.render(0, legacy)
+        self.assertEqual(rendered.returncode, 1)
+        self.assertIn("schema (absent)", notes["error"][0])
         # And the other direction of disagreement, on a real not-clean report.
         self.fixture_reset()
         self.fixture({"001-built-red": ["false"]}, {"001-built-red": ("approved", "complete")})
@@ -560,7 +565,9 @@ class SweepRegressions(unittest.TestCase):
     def fixture_reset(self):
         # A second fixture in the same test: the repository is rebuilt from
         # scratch at the same path, and the next sweep clears and rewrites
-        # self.out (spec 089 3.6), which the caller then checks.
+        # self.out (spec 089 3.6), which the caller then checks. The run
+        # directory is a sibling of the repository, never inside it.
+        self.assertNotIn(self.repo, self.out.parents)
         shutil.rmtree(self.repo)
 
 

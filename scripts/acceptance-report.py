@@ -95,7 +95,7 @@ def main(argv):
     if not isinstance(report, dict):
         return refuse(summary, f"the report at {args.report} is not a JSON object")
 
-    version = str(report.get("schemaVersion", ""))
+    version = str(report.get("schemaVersion") or "")
     if version.split(".")[0] != "1" or any(k not in report for k in REQUIRED):
         return refuse(summary, f"the report's schema ({version or 'absent'}) is not a 1.x "
                                "report carrying both verdicts (1.1.0 or later)")
