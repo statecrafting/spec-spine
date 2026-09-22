@@ -68,8 +68,8 @@
       }
     ],
     "specId": "101-readiness-is-scheduling-not-approval",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "5b415d9f90014e1c0c9286e60b9f6c953dadd8261d6eac8a2550bea21dc6e066"
+  "shardHash": "c73b67ce88a4b756a20af80b31646ff77fec5a95a73157a4cc1baa8007dbf1e0"
 }
