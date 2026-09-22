@@ -15,6 +15,7 @@
 
 pub mod attest;
 mod canonical_json;
+pub mod closure;
 pub mod compact;
 pub mod compile;
 pub mod couple;
@@ -54,6 +55,10 @@ pub use attest::{
     attest_spec, attestation_hash, check_attestation_major, check_spec_attestation_major,
     payload_schema_version, spec_attestation_hash, stored_bytes_hash, verify_recompute,
     verify_spec_recompute, with_stored_bytes, with_stored_bytes_spec,
+};
+pub use closure::{
+    ClosureMember, ClosureRequest, ResolvedClosure, SectionRef, closure, committed_content_hashes,
+    resolve_closure,
 };
 pub use compact::{
     CompactPlan, Compaction, Leftover, RetireEntry, RetireKind, SkipClause, Skipped, UnitAction,
@@ -123,6 +128,25 @@ pub fn compile_json(config_json: &str, repo_root: &str) -> Result<String, Error>
     let config = config_from_json(config_json)?;
     let outcome = compile(&config, std::path::Path::new(repo_root))?;
     Ok(outcome.json)
+}
+
+/// Resolve a context closure against the committed ledger (spec 107).
+///
+/// `request_json` is a [`ClosureRequest`]: `{ "specs"?: [id], "sections"?:
+/// [{ "spec", "anchor" }], "obligations"?: ["<spec-id>#<obligation-id>"],
+/// "rationale"?: string }`. The answer is a read document (spec 074) with
+/// `members`, `digest` and `rationale`. A stale registry is refused (exit 2)
+/// before anything is digested.
+pub fn closure_json(
+    config_json: &str,
+    repo_root: &str,
+    request_json: &str,
+) -> Result<String, Error> {
+    let config = config_from_json(config_json)?;
+    let request: ClosureRequest = serde_json::from_str(request_json)
+        .map_err(|e| Error::Parse(format!("invalid closure request: {e}")))?;
+    let resolved = closure(&config, std::path::Path::new(repo_root), &request)?;
+    read_document(&resolved, Versioning::Stamp)
 }
 
 /// Run a read-only query described by `request_json`.

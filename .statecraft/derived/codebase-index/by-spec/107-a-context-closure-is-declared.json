@@ -1,48 +1,39 @@
 {
   "mapping": {
-    "amends": [
-      "005-coupling-gate",
-      "081-coupling-sees-the-change-being-committed"
-    ],
     "dependsOn": [
-      "005-coupling-gate",
-      "081-coupling-sees-the-change-being-committed"
+      "106-obligations-are-declared-constraints"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/cmd_couple.rs",
+        "path": "crates/spec-spine-cli/src/cmd_registry.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/cmd_delta.rs",
-        "source": "spec-edge"
+        "path": "crates/spec-spine-cli/tests/closure.rs",
+        "source": "multiple"
       },
       {
-        "path": "crates/spec-spine-cli/tests/cli.rs",
-        "source": "spec-edge"
+        "path": "crates/spec-spine-cli/tests/closure_composed.rs",
+        "source": "multiple"
       },
       {
-        "path": "crates/spec-spine-cli/tests/couple.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/src/couple.rs",
-        "source": "spec-edge"
+        "path": "crates/spec-spine-core/src/closure.rs",
+        "source": "multiple"
       },
       {
         "path": "crates/spec-spine-core/src/lib.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/couple.rs",
+        "path": "crates/spec-spine-core/tests/closure.rs",
+        "source": "multiple"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/read.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/spec-spine-types/src/version.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-types/tests/dtos.rs",
         "source": "spec-edge"
       },
       {
@@ -58,66 +49,66 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_couple.rs"
+            "file": "crates/spec-spine-cli/tests/closure.rs"
           }
         ],
         "ownership": true,
-        "sourceField": "extends",
+        "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+          "path": "crates/spec-spine-cli/tests/closure.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_delta.rs"
+            "file": "crates/spec-spine-cli/tests/closure_composed.rs"
           }
         ],
         "ownership": true,
-        "sourceField": "extends",
+        "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_delta.rs"
+          "path": "crates/spec-spine-cli/tests/closure_composed.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/cli.rs"
+            "file": "crates/spec-spine-core/src/closure.rs"
           }
         ],
         "ownership": true,
-        "sourceField": "extends",
+        "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/cli.rs"
+          "path": "crates/spec-spine-core/src/closure.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/couple.rs"
+            "file": "crates/spec-spine-core/tests/closure.rs"
           }
         ],
         "ownership": true,
-        "sourceField": "extends",
+        "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/couple.rs"
+          "path": "crates/spec-spine-core/tests/closure.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/couple.rs"
+            "file": "crates/spec-spine-cli/src/cmd_registry.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/couple.rs"
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
         }
       },
       {
@@ -136,14 +127,14 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/couple.rs"
+            "file": "crates/spec-spine-core/tests/read.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/couple.rs"
+          "path": "crates/spec-spine-core/tests/read.rs"
         }
       },
       {
@@ -157,19 +148,6 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/version.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-types/tests/dtos.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-types/tests/dtos.rs"
         }
       },
       {
@@ -201,6 +179,19 @@
       {
         "locations": [
           {
+            "file": "docs/design/04-authority-evidence-extension.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/design/09-disposition-2026-09-21.md"
           }
         ],
@@ -212,9 +203,9 @@
         }
       }
     ],
-    "specId": "100-a-deleted-path-is-judged-where-it-lived",
-    "specStatus": "approved"
+    "specId": "107-a-context-closure-is-declared",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "5f714870b9b6689392bbe1ff2cc72293631336e6204bc52ccbb0121814a935c5"
+  "shardHash": "9bf302d96b97b456919a92bc6bb2d09dee4ca4b39b64bcd19879e3cc7b8c6172"
 }
