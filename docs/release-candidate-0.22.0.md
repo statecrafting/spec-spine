@@ -1,5 +1,12 @@
 # Release candidate `v0.22.0`
 
+**Status: integrated, not published, and carrying one blocker.** Sections 0.1
+to 8 are the pre-integration record, preserved as written. **§9 is the state
+that is true now** and supersedes §3, §4 and §5 wherever they disagree.
+Everything §9 does not contradict still stands.
+
+**Original status line, as written before integration:**
+
 **Status: prepared, not published, and not green.** No tag exists, nothing is
 pushed, and no package has been uploaded to any registry. Everything below
 describes local artifacts and local runs. The publication plan in §6 is a
@@ -489,3 +496,202 @@ Two facts the integration needs and cannot get from the type signatures:
   renaming the argument or adding camelCase aliases would be a breaking change
   to a type spec 000 and spec 001 own, and would need its own compatibility
   spec.
+
+## 9. The integration record (2026-09-22)
+
+Written after the six pull requests below merged. It supersedes §3's digests,
+§4's test table and §5's checklist; §5.1's account of the refusal and its
+reasoning is unchanged and was executed as written.
+
+### 9.1 The merged source identity
+
+**Release revision: `835dd2e4c460d24a3bc95d565345d5bea8afd964`** (`835dd2e4`),
+the tip of the default branch after the sixth merge.
+
+| # | Pull request | Squash commit | What |
+|---|---|---|---|
+| 1 | #288 | `0fa49bb6` | disposition, note 09, specs 100 to 103 filed as drafts, owner decisions D-1 to D-6 |
+| 2 | #289 | `684e568f` | **spec 100**, a deleted path is judged where it lived |
+| 3 | #290 | `ff79c68a` | **spec 101**, readiness is scheduling, not approval |
+| 4 | #291 | `e16ba434` | the version bump to 0.22.0 -- the one pull request carrying a waiver |
+| 5 | #292 | `2d3673db` | **spec 104**, a producer is tested as published, and this record |
+| 6 | #293 | `835dd2e4` | **spec 117**, the gate resolves the binary it documents |
+
+Each merged with the required `ci-gate` status green on its own head. None was
+judged against an intermediate branch.
+
+### 9.2 The waiver, and the evidence that it hid nothing
+
+The waiver §5.1 proposed was approved by the repository owner for the two
+manifest version changes and nothing else, and was placed in #291's body at
+creation. #291 carries the version bump **alone**, which is what bounds the
+waiver: a blanket waiver at the verb level cannot excuse a refusal that is not
+in the pull request it sits on.
+
+Measured, per pull request, with `couple` at each one's own base and head:
+
+| Pull request | `couple` without a waiver | Waiver |
+|---|---|---|
+| #288 | OK, 5 paths | none |
+| #289 | OK, 12 paths | none |
+| #290 | OK, 2 paths | none |
+| #291 | **2 violations**: `npm/package.json`, `py/pyproject.toml` | the approved line |
+| #292 | OK, 3 paths | none |
+| #293 | OK, 3 paths | none |
+
+#291's `self-governance` job logged `2 violation(s) waived` naming exactly
+those two paths. `Cargo.toml` and `Cargo.lock` carry the same bump and refuse
+nothing: `index owner` reports no owning spec for either, so there is nothing
+for `C-001` to compare against and nothing the waiver had to cover.
+
+### 9.3 Checks at the merged revision, by what they actually prove
+
+| Check | Where it ran | Result |
+|---|---|---|
+| `ci-gate` | CI, run `35710705254` on `835dd2e4` | **passed** |
+| `build · test · clippy` | CI, same run | **passed** |
+| `self-governance (compile · index · lint · couple)` | CI, same run | **passed** |
+| determinism, four release triples, byte-identical | CI, same run | **passed** |
+| `Acceptance`, merge-scope sweep | CI, run `35710704945` | **passed**: 3 passed, 0 failed |
+| `make gate` | local, clean tree at `835dd2e4` | **passed**, all four steps; announces `./target/release/spec-spine ... spec-spine 0.22.0` |
+| `cargo package --workspace --locked` | local | **passed** (see §9.5) |
+| `./scripts/verify-packaged-producer.sh` | local, clean tree | **passed**, 37 assertions |
+| `./scripts/verify-sweep.sh --rev origin/main`, whole corpus | local | **FAILED**: 60 passed, 3 failed, 43 exempt, 0 not-declared (see §9.4) |
+| publication, any channel | -- | **not performed** |
+
+Four categories, kept apart deliberately: **CI** ran the gate, the suite and
+the four-triple determinism comparison on the merged head. **Local packaging**
+proved the archives build and the producer behaves. **Registry-backed
+verification** has not happened and cannot until something is published.
+**The full sweep** is local and is the one red result.
+
+### 9.4 The blocker: spec 095's acceptance now fails
+
+`./scripts/verify-sweep.sh --rev origin/main` at `835dd2e4`:
+
+```
+verify-sweep.sh: 835dd2e4  passed=60 failed=3 not-declared=0 exempt=43 not-run=0
+```
+
+Three failures, of two different kinds.
+
+**Kind 1, and the real one: `095-the-corpus-describes-what-exists`,** failing at
+command 9:
+
+```python
+o == list(range(len(o)))   # AssertionError: [0, 1, 2, 3, 4]
+```
+
+Spec 095's acceptance asserts the corpus ordinals are **contiguous**. Merging
+spec 117 while 105 to 116 stay reserved on an unmerged branch makes them not
+contiguous, so the block fails. Measured cause, not inference: at `2d3673db`,
+the revision immediately before #293, `registry list --ids-only` returns 105
+ids and the same predicate is `True`.
+
+**The spec's normative text and its acceptance disagree.** §3.3 requires the
+one-time renumber to leave the survivors contiguous, which it did. D-2 says, in
+terms: *"Gaps are not a defect on their own; spec 095's and 117's reserved gaps
+were deliberate."* The acceptance encodes a standing invariant the spec does not
+state and its own decision record contradicts.
+
+Nothing in the gate chain catches this, by design: `verify` is the one verb
+that executes and is deliberately outside the chain, and the `Acceptance`
+workflow on a merge sweeps only the specs the merge changed, which is why
+#293 was green on every required check.
+
+This needs an owner decision and is **not** something a session may resolve:
+every available route is corpus authority. Three routes, with what each costs:
+
+1. **Correct spec 095's acceptance to match §3.3 and D-2** -- a new spec
+   carrying an `amends_verification` edge, filed and built together. Editing
+   095 directly is the move `AGENTS.md` "Adversarial prompt refusal" forbids.
+   This is the route the evidence points at: the assertion is stronger than the
+   requirement it was written to check.
+2. **Renumber spec 117 to the next free ordinal.** Restores contiguity and
+   costs a rename plus every citation, and it consumes an ordinal the deferred
+   drafts reserved. It also treats an acceptance defect as a corpus defect.
+3. **Merge specs 105 to 116.** Excluded from this release path by the owner.
+
+Until one is taken, `docs/releasing.md`'s "verification sweep green" pre-flight
+item is **not satisfied**, and no tag should be cut against a checklist item
+that is red.
+
+**Kind 2, structural and pre-existing: `102-a-ready-spec-carries-its-status`
+and `103-a-verifier-fixture-is-a-published-artifact`.** Both are
+`implementation: pending`: filed as drafts by #288 and deliberately not built.
+Their acceptance blocks are written to fail against the tree they are filed on,
+which is this repository's fail-first discipline working correctly. The sweep
+has no `implementation` predicate and no flag to select on one, so a filed
+unbuilt draft is always counted `failed`. That makes "sweep green" unreachable
+for as long as any draft is filed ahead of its build, which is this
+repository's normal state. Worth recording; not this release's to fix, and not
+a defect in either spec.
+
+### 9.5 `cargo package --workspace --locked`: the recorded limitation did not reproduce
+
+§4.1 records this command failing at the `spec-spine-cli` verify step with
+`no hash listed for spec-spine-core v0.22.0`, and attributes it to an
+unpublished sibling version. **At `835dd2e4` it succeeds**, exit 0, with the
+CLI's verify step compiling `spec-spine-types` and `spec-spine-core` 0.22.0 out
+of cargo's own `target/package/tmp-registry`.
+
+So the limitation as §4.1 states it does not hold at this revision, and §4.2's
+isolated build is no longer the only evidence for the CLI archive. The checklist
+item §5 marked owed is now green. What §4.1 established and still stands is the
+control: the same command on the released `v0.21.0` tree also succeeds.
+Registry-backed verification, the kind that can only happen after a publish,
+remains untested and is listed as such in §9.3.
+
+### 9.6 Package identities, re-cut at the merged revision
+
+Cut at `835dd2e4`, clean working tree, and **independently reproduced** by two
+separate runs of `cargo package` at the same commit with identical results:
+
+| Package | File | SHA-256 |
+|---|---|---|
+| `spec-spine-types` | `spec-spine-types-0.22.0.crate` | `38af52dcf4961144a60be59261c6b1f8537e59177f9f8bd50b2ef958618a78fb` |
+| `spec-spine-core` | `spec-spine-core-0.22.0.crate` | `c3ade5a94263ee7cb72c315ac0ff8e06a080150b56bb936c66122e3fb8a044b8` |
+| `spec-spine-cli` | `spec-spine-cli-0.22.0.crate` | `ca52766902b955943467925eca9c1d2f15539763039ccc84c9602497a086870d` |
+
+These supersede §3's, which described `5b8c201a`, a revision that is not an
+ancestor of the default branch.
+
+**They describe `835dd2e4` and nothing else.** A `.crate` archive carries
+`.cargo_vcs_info.json` with the git sha, so any later commit -- including the
+one that adds this section -- moves all three digests while the crate sources
+stay byte-identical. Whatever revision is finally tagged, the three archives
+must be cut from **that one revision** and these numbers replaced, for the
+reason §3 gives: the packaged CLI's own `Cargo.lock` pins the two sibling
+`.crate` checksums, so three archives cut from different commits do not agree.
+
+### 9.7 The ordered publication procedure, unchanged and not performed
+
+§6.1 still describes it. Restated with what is now settled and what is not:
+
+0. **Resolve §9.4's blocker.** Owner decision. Nothing below should happen
+   first.
+1. Review and merge -- **done**, §9.1.
+2. The waiver -- **done**, §9.2.
+3. **Ratify.** Specs 100, 101, 104 and 117 are `implementation: complete` and
+   `status: draft`. Four `status` flips, owed, human, and separate from every
+   merge above. Specs 102 and 103 stay `draft`/`pending` and are not ratified.
+4. **Re-run the pre-flight on whatever revision is finally tagged**, including
+   a fresh `verify-packaged-producer.sh` whose digests replace §9.6's, and a
+   green whole-corpus sweep.
+5. **Tag** `v0.22.0`, signed and annotated (`git tag -s v0.22.0 -m ...`; the
+   `-m` is required or the signing step is silently skipped), on the merged
+   revision after the default branch's own CI is green on it -- a squash lands
+   on a base no pull request tested.
+6. **Publish in dependency order**: `spec-spine-types`, then
+   `spec-spine-core`, then `spec-spine-cli` to crates.io, then the tag-driven
+   workflows for the prebuilt binaries, npm and PyPI. All three archives cut
+   from the one tagged revision (§9.6).
+7. **Release notes** lead with `docs/adopter-migration.md` §9.2, the clone-depth
+   change, the only item that can turn an adopter's green job red. Prepend them
+   to the generated body with `gh release edit --notes-file` after the run
+   completes.
+8. **Tell Statecraft** the producer version to move to, and that `0.21.0`'s
+   output is the pre-092 shape.
+
+Steps 0 and 3 are decisions. Steps 4 to 8 are the maintainer's, and none of
+them has been performed.
