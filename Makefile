@@ -187,7 +187,12 @@ PR_BODY    ?=
 ## the string unchanged, so a non-executable absolute path passed this guard on
 ## Linux and failed one step later with the wrong message. The refusal a caller
 ## sees must not depend on which `/bin/sh` the runner has. Spec 117 D-9.
+## `SPEC_SPINE_ORIGIN` crosses the same way, for the same reason. It is an
+## internal variable rather than a documented input, but a command-line
+## assignment overrides a `:=` one in GNU make, so it is reachable, and leaving
+## half a class eliminated is worse than not knowing about it. Spec 117 D-8.
 spec-spine-binary: export SPEC_SPINE_VALUE = $(SPEC_SPINE)
+spec-spine-binary: export SPEC_SPINE_ORIGIN_VALUE = $(SPEC_SPINE_ORIGIN)
 spec-spine-binary:
 	@b="$$SPEC_SPINE_VALUE"; \
 	if test -z "$$b"; then \
@@ -200,7 +205,7 @@ spec-spine-binary:
 		*) command -v "$$b" >/dev/null 2>&1 && usable=yes ;; \
 	esac; \
 	if test "$$usable" = no; then \
-		if test "$(SPEC_SPINE_ORIGIN)" = "an explicit SPEC_SPINE override"; then \
+		if test "$$SPEC_SPINE_ORIGIN_VALUE" = "an explicit SPEC_SPINE override"; then \
 			echo "gate: SPEC_SPINE=$$b names nothing executable. Refusing rather than falling back to ./target/release/spec-spine or PATH: an explicit override is the caller naming the binary that must answer (spec 117 3.2)." >&2; \
 		else \
 			echo "gate: could not resolve a binary to govern with. Looked for ./target/release/spec-spine (build it with \`cargo build --release -p spec-spine-cli\`), then \`spec-spine\` on PATH (spec 117 3.1)." >&2; \
@@ -208,7 +213,7 @@ spec-spine-binary:
 		exit 3; \
 	fi; \
 	v=$$("$$b" --version 2>&1) || { echo "gate: $$b --version failed; the resolved binary does not run here." >&2; exit 3; }; \
-	echo "gate: governing with $$b [$(SPEC_SPINE_ORIGIN)] -- $$v" >&2
+	echo "gate: governing with $$b [$$SPEC_SPINE_ORIGIN_VALUE] -- $$v" >&2
 
 gate: spec-spine-binary
 	$(SPEC_SPINE) check --fail-on-unresolved --fail-on-warn

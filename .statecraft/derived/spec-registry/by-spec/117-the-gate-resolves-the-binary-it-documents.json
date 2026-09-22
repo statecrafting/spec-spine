@@ -55,6 +55,6 @@
     "summary": "The root Makefile's header documents a binary-resolution order preferring the binary this checkout builds, and its assignment implements none of it: `SPEC_SPINE ?= spec-spine` is the PATH fallback and nothing else, so `make gate` on a machine with an installed CLI governs with whatever that CLI is. Measured here at three releases behind the checkout. The assignment is corrected to the order the header states, an unusable explicit override is refused rather than silently replaced, and the resolved binary and its version are announced before the chain runs.\n",
     "title": "The gate resolves the binary it documents"
   },
-  "shardHash": "37249a4c73a484371a0b88a5efeab0aa757fea87741d91cf55896cad2bfe9075",
+  "shardHash": "402201c848314ee7f737e3e9cc4a06cf7db3619bd8ac22742615a6cc000c83ca",
   "specVersion": "1.3.0"
 }

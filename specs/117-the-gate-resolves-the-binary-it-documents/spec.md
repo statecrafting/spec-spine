@@ -302,6 +302,12 @@ Double-quoting only trades that for `$` expansion. A target-specific
 verbatim, where neither character is special. It costs one line and removes the
 class rather than one member of it.
 
+Extended on review to `SPEC_SPINE_ORIGIN`, which the same recipe expanded
+inline. It is an internal variable rather than a documented input, but a
+command-line assignment overrides a `:=` one in GNU make, so it is reachable
+by the same route; eliminating half a class and leaving the other half is
+worse than not having looked.
+
 **D-9 (2026-09-22, CI: usability is `test -x`, not `command -v`, for a value
 naming a path).** Found by this spec's own acceptance failing on the Linux
 runner while passing locally. `command -v` does not agree across shells on a
