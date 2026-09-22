@@ -313,29 +313,43 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
 
 - `config_json` is a JSON object matching `Config`; `"{}"` ⇒ `Config::default()`.
 - `query_json` request: `{ "registry": "<registry.json text>", "op":
-  "list" | "show" | "status-report" | "relationships" | "plan", "id"?: string,
+  "list" | "show" | "status-report" | "relationships" | "plan" |
+  "obligation", "id"?: string,
   "status"?: string, "idsOnly"?: bool, "nonzeroOnly"?: bool }` (the projection
   fields, spec 009, default to `false`). Every answer is a **read document**
   (spec 074): an object with sorted keys and `schemaVersion` =
   `READ_SCHEMA_VERSION`; `list` (with or without `idsOnly`) carries its array
-  under `items`. `plan` (spec 035) returns `{ "ready": [...], "blocked":
-  [{ "id", "blockedBy": [{ "id", "state" }] }], ..., "schemaVersion" }`.
+  under `items`. `obligation` (spec 106) takes `id` as a qualified
+  `<spec-id>#<obligation-id>` and returns `{ "spec", "specPath",
+  "obligation", "sectionDigest", "schemaVersion" }`; an unqualified `id` is a
+  parse error (exit 3), never resolved against a spec. It carries no
+  `contentHash`, because registry text has none; the CLI's `registry
+  obligation` adds it from the committed shard, as `show` does.
+
+  `plan` (spec 035) returns `{ "ready": [{ "id", "status", "title" }],
+  "blocked": [{ "id", "blockedBy": [{ "id", "state" }] }], ...,
+  "schemaVersion" }`. A ready entry's `status` (spec 102, read schema `0.2.0`)
+  is the spec's `status` as the registry records it, verbatim, so a consumer
+  can apply its approval rule from this one document.
 
   **What membership of `ready` means** (spec 101). It is a **scheduling**
   answer: every `depends_on` target is satisfied and the spec is itself
   schedulable. It is **not an approval**, not a permission to execute, and not
   a claim that any human has read the spec.
 
-  Approval is not a partition key. `status` is consulted only to exclude
-  `superseded` and `retired` (spec 035 section 3.1), so a `status: draft` spec
+  Approval is not a partition key. `status` is consulted to exclude
+  `superseded` and `retired` (spec 035 section 3.1), and, only when a spec
+  declares no `implementation`, to read the absent key as `pending` on a draft
+  and as settled on anything ratified (spec 042). So a `status: draft` spec
   appears on `ready` as soon as its dependencies are met. That is by design,
   not a defect, and it is what lets a repository whose cadence is
   draft-then-build and one whose cadence is ratify-then-build read the same
   document.
 
   The approval rule therefore belongs to the consumer, applied **on top of**
-  `plan`. This repository's own `/next` does exactly that: it drops a draft
-  from the ready set and reports it as awaiting approval (spec 093). A consumer
+  `plan`; a ready entry's `status` is the value that rule reads. This
+  repository's own `/next` does exactly that: it drops a draft from the ready
+  set and reports it as awaiting approval (spec 093). A consumer
   that treats `ready` as a work queue without adding such a rule is reading the
   document correctly and reaching a conclusion the document does not support.
 - `couple_json` request: `{ "config"?: Config, "repoRoot": string, "diff":

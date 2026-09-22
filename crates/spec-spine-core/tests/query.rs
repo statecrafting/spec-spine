@@ -1099,3 +1099,81 @@ fn plan_omits_overlaps_entirely_when_there_are_none() {
     let json = serde_json::to_string(&plan).unwrap();
     assert!(!json.contains("overlaps"), "{json}");
 }
+
+/// Spec 102 3.1: a ready entry carries the registry's `status`, verbatim, and
+/// blocked entries do not.
+#[test]
+fn ready_entries_carry_the_registry_status_verbatim() {
+    let reg = registry_of(&[
+        ("001-draft", "draft", Some("pending"), &[]),
+        ("002-approved", "approved", Some("pending"), &[]),
+        ("003-blocked", "approved", Some("pending"), &["001-draft"]),
+    ]);
+    let plan = spec_spine_core::plan(&reg).unwrap();
+    let got: Vec<(&str, &str)> = plan
+        .ready
+        .iter()
+        .map(|r| (r.id.as_str(), r.status.as_str()))
+        .collect();
+    assert_eq!(
+        got,
+        vec![("001-draft", "draft"), ("002-approved", "approved")]
+    );
+    let doc = serde_json::to_value(&plan).unwrap();
+    assert_eq!(doc["ready"][0]["status"], "draft");
+    assert!(
+        doc["blocked"][0].get("status").is_none(),
+        "spec 102 3.4: a blocked entry does not carry status: {doc}"
+    );
+}
+
+/// Spec 102 3.2: the new member is reported, never consulted. The same corpus
+/// with every status flipped between `draft` and `approved` yields the same
+/// ready ids in the same order, and the same blocked set, for every spec that
+/// declares `implementation`. (With the key absent, spec 042 already makes
+/// `status` decide whether a spec is schedulable at all; that rule predates
+/// this field, is unchanged by it, and is asserted separately below.)
+#[test]
+fn ready_order_is_unchanged_by_status() {
+    let rows = |a: &'static str, b: &'static str| {
+        registry_of(&[
+            ("001-root", a, Some("complete"), &[]),
+            ("004-late", b, Some("pending"), &["001-root"]),
+            ("002-left", a, Some("pending"), &["001-root"]),
+            ("003-right", b, Some("in-progress"), &["001-root"]),
+            ("005-join", a, Some("pending"), &["002-left", "003-right"]),
+            ("006-free", b, Some("pending"), &[]),
+        ])
+    };
+    let one = spec_spine_core::plan(&rows("draft", "approved")).unwrap();
+    let two = spec_spine_core::plan(&rows("approved", "draft")).unwrap();
+    let three = spec_spine_core::plan(&rows("approved", "approved")).unwrap();
+    // The order spec 035 and 053 fix, written out: topological, ties by id.
+    let expected = vec!["002-left", "003-right", "004-late", "006-free"];
+    assert_eq!(ready_ids(&one), expected);
+    assert_eq!(ready_ids(&two), expected);
+    assert_eq!(ready_ids(&three), expected);
+    let blocked = |p: &spec_spine_core::Plan| -> Vec<String> {
+        p.blocked.iter().map(|b| b.id.clone()).collect()
+    };
+    assert_eq!(blocked(&one), blocked(&two));
+    assert_eq!(blocked(&one), blocked(&three));
+    // And each entry reports its own status, not a derived boolean.
+    assert_eq!(one.ready[0].status, "draft");
+    assert_eq!(two.ready[0].status, "approved");
+}
+
+/// Spec 102 D-4: with `implementation` absent, spec 042 reads `status`, so a
+/// draft is scheduled and a ratified spec is not. The ready entry reports the
+/// status that made it schedulable, which is the case the field is most
+/// useful for.
+#[test]
+fn an_absent_implementation_is_scheduled_by_status_and_reports_it() {
+    let reg = registry_of(&[
+        ("001-draft-silent", "draft", None, &[]),
+        ("002-approved-silent", "approved", None, &[]),
+    ]);
+    let plan = spec_spine_core::plan(&reg).unwrap();
+    assert_eq!(ready_ids(&plan), vec!["001-draft-silent"]);
+    assert_eq!(plan.ready[0].status, "draft");
+}

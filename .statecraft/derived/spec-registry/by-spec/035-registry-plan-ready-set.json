@@ -71,6 +71,19 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "035-registry-plan": "c949834ac896f6039df6a599786877936e872c1e53e8cb21716d777328df847c",
+      "1-purpose": "2b019867b9a80929362ecb255707fc0e6ffc9fbc17a0918d4dffe51b14ae9303",
+      "2-territory": "5006d0982b2ee1bdb739d23baebe8042bb0dc0d1eb9802b1fb72ebf6f26422a5",
+      "3-1-the-partition": "0fc8a215eb4139180adbab0751c8e0a769916ff662e5c604ebbcfd94dfcf4b6f",
+      "3-2-ordering-is-total-and-deterministic": "cfb3aced2a62590fabe752856a4fa36bfbc77ba072416ae75accaadd054ae608",
+      "3-3-output": "638c59987f9d11885941279b24d34e5ef2eef963dd4095fb1097e57ab271a983",
+      "3-4-implementation-is-a-hint-never-evidence": "3c8b8935b7f5f8697e00824006f1da2dc19cd67a520cb4dfbb6c061e75a82347",
+      "3-5-tests-minimum": "51d18731bfe532f442a6024926c9b222f28702eb0e9e6b332a08080f5afc2ab9",
+      "3-behavior": "d6d9abc5b6f22bd08bacbc60cae451adca218af4188f872be065634b97bdccde",
+      "4-out-of-scope": "319763c5594c3bed0d76d0c3799f1b1542e80133f6a784bda5eeb4b1b487d770",
+      "5-resolved-decisions": "3aaa816821716ab627fe259dbf9103bba7e8619c0716e62f44542e3d6808848f"
+    },
     "sectionHeadings": [
       "035: `registry plan`",
       "1. Purpose",
@@ -90,5 +103,5 @@
     "title": "`registry plan`: the ready set in dependency order"
   },
   "shardHash": "92971233a3dd70ea3de80eaacee1b3f9e364480b7a932cd7653919a198ce99f7",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

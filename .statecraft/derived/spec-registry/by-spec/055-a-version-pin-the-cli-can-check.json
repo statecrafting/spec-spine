@@ -84,6 +84,19 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "055-a-version-pin-the-cli-can-check": "abb062ccd4251d5ce4ae1a0bbd26108ad66f3ae7b55a4b63cf5ef59b4ec3dfcb",
+      "1-purpose": "fa22293843b7911ed894d9333a22243028fdce637f37c87e5ec833a42f172498",
+      "2-territory": "bfb5c116294706e856817af1c47454bca0027e3e18d49bcb15bdddd94ef27951",
+      "3-1-meta-required-version": "7f8e2b7c094d0924a8cf196e99807b8da30926517a1fabc9f3d972ba8be3b8a6",
+      "3-2-every-verb-checks-it": "b04f0361fde9d30453b21ef1e2fa0ed2dfab9c3376b5083bc9a7bb120c54f44d",
+      "3-3-an-old-binary-refuses-too-for-the-wrong-reason": "0a18f43f78907f0c84cd8003404fe6e9908d3e192ed6e5784a19fbe9a374ae9a",
+      "3-4-the-scaffold-writes-it-commented-out": "c386f698b631b2ab1c3c706ad45fbbf999bf9d449f4c2158529e296239a8a9e5",
+      "3-5-it-does-not-check-the-schema-versions": "2eb1044f99a07aaaf84990996563be3a446afb32274a6bc0e2ba7ad3d711704e",
+      "3-behavior": "70b3ee38f9999fc12a01b63d4233408b81d048bd4f1c91aab83b53bd602a713b",
+      "4-out-of-scope": "e19606615f714f0ecc62357c5e75e745a3fd557a83efd2a43bbc2f2c4a418314",
+      "5-verification": "f762deba795a7294f67ff650a00ff8a10571bec7390e6861c87867b8aabb5467"
+    },
     "sectionHeadings": [
       "055: A version pin the CLI can check",
       "1. Purpose",
@@ -103,5 +116,5 @@
     "title": "A version pin the CLI can check"
   },
   "shardHash": "d00ce22550552b51b0d58caf268608f1bd203300ef3eda9a8919cc91328398ba",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

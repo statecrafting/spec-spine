@@ -39,6 +39,18 @@
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "risk": "medium",
+    "sectionDigests": {
+      "033-the-coupling-gate-honors-layout-specs-dir": "3131d0c27973e2f3253bfdaaf8d7d0b07f587c51137ef57191d6f926c0139e6e",
+      "1-purpose": "e4e7f7635f3a2b1d4778092497899090c47144eec4832b1d47702171cb62171a",
+      "2-territory": "f06e8790a1489a3813e5c279051e85bc6389eb7048a7341856dbcb94969626cc",
+      "3-1-one-constructor-one-parser-one-root": "d633027a8579655d8a3905990aeb47a9c5f91c5b2b785610b8e52ed6f76d94e3",
+      "3-2-prefix-matching-is-separator-aware": "e0d2f2f917fd16758fed585085d4d8715e5546e58ba8bdfef8399364e8085c28",
+      "3-3-a-trailing-slash-names-the-same-root": "2ebe41e95113d96e3a4399728da671315f5179c5e1c9468239046b8cbd6bae17",
+      "3-4-no-change-under-the-default-layout": "592423144e53d148d9135de7a85a40e4cf848d77f55e61590a30e608f9be3dd6",
+      "3-5-tests-minimum": "b05c1182ad0350e1fc24028541ed17f475a6b09de3fa28e314dafd02a7578105",
+      "3-behavior": "c261a5ec7a353254a301d6e96ccfbb7c515cbdb23a119de3da52aeeefe6bda7d",
+      "4-out-of-scope": "cc847dfed4552178db2bbca3db7981a02f53ceeaf100321d4a08ff8a97bcd3bf"
+    },
     "sectionHeadings": [
       "033: The coupling gate honors `layout.specs_dir`",
       "1. Purpose",
@@ -57,5 +69,5 @@
     "title": "The coupling gate honors `layout.specs_dir`"
   },
   "shardHash": "3266252dd0da0797a670cb36a4ed189c53b399345299e438d55dd5ebaec3ab92",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

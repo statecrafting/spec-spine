@@ -44,6 +44,17 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "010-index-render-and-index-orphans": "a9d0e68d61ab02ace7b56d0a60878b5d04ac145e2e62e0002e3e95bfd74aa820",
+      "1-purpose": "37828758fbe87759dcf63198f1c5e15d0c71ae0c79987bfbb0557d0fca211696",
+      "2-territory": "13a41f6e5e272c932064fcde9a7f8db48bcc3041d8c4257f48764a1502b4cf9a",
+      "3-1-common-contract": "34a78b794225c2acfc03eaf2a9d98d7ccc9fd2b43fd36a4a11c7c4d5b4d9b0f0",
+      "3-2-index-render-the-markdown-projection": "8bb541ec3c31b57f8e343079191219f584d138384bd0cd7a3e6d1b20d997ad9f",
+      "3-3-index-orphans": "622d6714a039ba6cefe08bbe20acbf4f2dc159128f440f7888e3bbb6014e3624",
+      "3-4-tests-minimum": "70207129c368e83d156a79f6d60f183c1ff9ff13ecc056409bf8858b6c1d713f",
+      "3-behavior": "5ae7b13b58ad1935c5614d946db2b860d6593b05cceb69e8c41975c6bb5e5a83",
+      "4-out-of-scope": "036eb788d621b403583895d71d6553616213e3976b1a78cfcb7c02cc5b6e542b"
+    },
     "sectionHeadings": [
       "010: `index render` and `index orphans`",
       "1. Purpose",
@@ -61,5 +72,5 @@
     "title": "Index: implement the reserved render and orphans subcommands"
   },
   "shardHash": "4c397d19df675a0a8d8a899e26746ff2d354ad107dfb38288638bd9f089bb5a8",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

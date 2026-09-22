@@ -26,6 +26,23 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "083-an-amendment-carries-the-acceptance-it-replaces": "3d27d8106993a3dbaf16ae6c6e57c3a1757a07ec68baef93c888e8281bf5607c",
+      "1-1-two-defects-in-one-block-neither-reachable-by-the-gate": "18a23f5f3e252962ce09dcde5fdab42f9b3f32d5a595e0a3fb4a89d907e464b5",
+      "1-2-why-spec-080-did-not-fix-this": "ab2419f6ecc5ae8168d455da40245583931dceeaa423fad12622dde46149fb90",
+      "1-3-why-this-is-082-s-named-follow-on": "3c12c48b3b5626c7d2c48a00de31701a67de8f55f0f8f426044e1db6a2428ece",
+      "1-purpose": "60b92a6d1074afcf5a62e7fac9fa245a704eb4ebd4e67fe77f6ab8faf8ca7d19",
+      "2-territory": "dd31aa22ae961b39d22107c787f923e4000feb460ef83eaccc4477da1cb781fe",
+      "3-1-what-spec-079-s-acceptance-now-is": "31e3f62c82ff5c2039cce76c5d73392239d8d51d98c14ba5482847bc55a6fc70",
+      "3-2-the-stale-only-assertion-is-not-migrated": "07d028d040aeab7684d42a82c917d13dd0dd7a8dfc2e4957d9b95eb92fb39e9a",
+      "3-3-ac-9-keeps-the-half-that-can-still-be-true": "930d3330d4675d42c750eee63ebeeba34457117fa37285d7dde87505b30cba8b",
+      "3-4-no-code-changes": "dea3df83d47568295130d8540b152089b3b6682dcc6055987d28a202ca1908b1",
+      "3-5-the-acceptance": "cb4aa2f2122ea8c73c399e87aad7f3352439d29571382f55e718b05724b58ec1",
+      "3-behavior": "42d4648a7642c93e13ef3cfc4b3d6a09a4120b2e80a8d9d50e623508e863594d",
+      "4-out-of-scope": "804f2bfa83efbc3a561ab8d3be90f513446b8c6fe2417845eb637fd5e8751af0",
+      "5-resolved-decisions": "81155e64211414cd36b53657f316b7d38008548ab698dd505b56978bdd9f9901",
+      "verification": "034ecddeeca419d2073a3f952d8dbc093b9688bcc5bbf40bd5be4f443f09ca6e"
+    },
     "sectionHeadings": [
       "083: An amendment carries the acceptance it replaces",
       "1. Purpose",
@@ -49,5 +66,5 @@
     "title": "An amendment carries the acceptance it replaces"
   },
   "shardHash": "101b2f6732462327c7ce2ce3dcc7ad73ebc654c155e777e6ff2126fd55e59041",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

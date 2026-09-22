@@ -28,6 +28,18 @@
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "risk": "low",
+    "sectionDigests": {
+      "030-dependency-cycle-refusal": "6aca6c12f6de2f7edbff853e72426e4126345ed6fa28e9e45241a2bbf5d6a403",
+      "1-purpose": "e58549bbb947db56baf921e52a635b6b6f878cc69a2168482d5055150e7973e2",
+      "2-territory": "29cd3d106a5ed69910392b33104c216866b61ca3241725134c7ba5841ff7430e",
+      "3-1-the-check": "d6c82e09861916401efced1e3263bede3da54df92b7fc489356224490b92a8d1",
+      "3-2-cross-spec-so-never-sharded": "cafb46bb33f18a3168e9a804133aa152f72e291b103d5f4a82bcc54ddfd7306c",
+      "3-3-determinism": "a957ba8c917757b84c815923b822ed8ddca446c25a31692e63088905852a775d",
+      "3-4-placement-compile-not-lint": "174ee12f306568b0dc2482798c80854be8dd031efa7d3a030e05eed2b25cdebc",
+      "3-5-tests-minimum": "365c215e533b7cb56439ab0f6bd2d934a371de63c7af1a0437b641834f728135",
+      "3-behavior": "176f3e1ded4ff1f8bbb9604afea9c614beab90d096c6fa33177658a27fdf31fb",
+      "4-out-of-scope": "3f4072ebe437b4b061af583d98aca5d45d76192ff7d614d33bf2cbb8f6b73a94"
+    },
     "sectionHeadings": [
       "030: Dependency cycle refusal",
       "1. Purpose",
@@ -46,5 +58,5 @@
     "title": "Dependency cycle refusal: the `V-014` corpus-wide check on `depends_on`"
   },
   "shardHash": "f3e259950cf932252986a97b07a28febeb491b90d66cdbd48c5d98864d93a88d",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

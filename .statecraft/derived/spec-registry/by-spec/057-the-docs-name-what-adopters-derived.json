@@ -42,6 +42,18 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "057-the-docs-name-what-adopters-derived-by-experiment": "6eddfc56496909ad52704d57b08097278b21fc07c6309c027cc4bf0a68a69e03",
+      "1-purpose": "f73fd5cfcca618156b53bbb44776311e260912c2e10ec89b220e2903aff60c6a",
+      "2-territory": "f295f82d3eb904302856f2104071e83c89a2f6d022e5271c266a5b827d26c08f",
+      "3-1-docs-specify-first-md": "3d6603667c59fb7c812fb8c88fe66a4390816c8dd9c2fe786fabcabbefa0566c",
+      "3-2-the-two-interactions-in-the-adoption-guide": "1e7e8a4c354d21064e7c0bada5678451dcdcbceebc8a2a5ccb42d49c7717ee4c",
+      "3-3-the-037-migration-note": "f7386f9c3b78ec057a942e2e5c6b6800daadc34397c16c1cc62ca437754e4197",
+      "3-4-nothing-mechanical-changes": "aaa41eb1c556344adf952507b5d1cef4acadcce7658666e53974816fd3c0f0ed",
+      "3-behavior": "91463641011c897594eecbb0e9c7ff33ee9793ab4cb8e9001ab21757ab40612a",
+      "4-out-of-scope": "711247b1db2afdc115705f1ee9d8640aa09e72383f23f36af607b6e5478c6959",
+      "5-verification": "7c8c439a41cbd036892eb13b3da2dd0fb1a6da414e0c0fc73fea026c26c202f8"
+    },
     "sectionHeadings": [
       "057: The docs name what adopters derived by experiment",
       "1. Purpose",
@@ -60,5 +72,5 @@
     "title": "The docs name what adopters derived by experiment"
   },
   "shardHash": "501fe8b87a3e91232d28dbfa7da758b823fe96f427da9e5ea5b7df4602ad4ceb",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

@@ -49,6 +49,18 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "024-indexer-resolution-discovery-fixes": "f74bc2d44fdb5004c79d204a5c2abdef64f937561673ab8b9aa6ed258d5dea8d",
+      "1-purpose": "529e15b408297a70a4b930c8f84c89cbc85837c5f5dcff4734ce19b312ed9560",
+      "2-territory": "0231645cb72354d75708d6d1b181275bb926e50f29f898424e50c40bd5090504",
+      "3-1-d1-foreign-yaml-resolves-region-markers": "b3770260919db2e45ee13afd41a661d6d1aeffbdacb648788e6b267037ee9f9b",
+      "3-2-d2-a-pending-makefile-tag-is-never-silently-lost": "c897c4f2f5ceefe75bc8da98689cb97ecddf79abf2e3104aaa9f72d2e193a933",
+      "3-3-d3-nested-workspace-globs-resolve-against-the-declaration-file": "0002ab5b14930c49921ac27b17360e33e38f2a2eda403b3ffd58644883f6447c",
+      "3-behavior": "c663cf329f61946f92d9d7dcc33f2bcf5219bb3c8a1ac77efe0f6dfa79e4276e",
+      "4-functional-requirements": "61fe93aa6e8a00f768811ac1ac6a81398c5af0c11afe35c69ca14f5560ca0e9a",
+      "5-acceptance-criteria": "90b18f387630b1c279e3be64aaa3fbd3b1e16225772fc17bf722430d00c1e36a",
+      "6-out-of-scope": "4c1b4f7dd072607f48516e92950080f87f96ce3461029ff8177b78910e14e0d7"
+    },
     "sectionHeadings": [
       "024: Indexer resolution + discovery fixes",
       "1. Purpose",
@@ -67,5 +79,5 @@
     "title": "Indexer resolution + discovery fixes: foreign-YAML regions, Makefile tags, nested-workspace globs"
   },
   "shardHash": "0c65b66a40cba890dfa376c43dd4f4c1f7d7acbac7f77985dc47aa051c963742",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

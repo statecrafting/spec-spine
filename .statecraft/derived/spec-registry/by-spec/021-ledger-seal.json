@@ -83,6 +83,17 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "021-ledger-seal": "8c593bf6b60c63c297af65e910835790860d45630dcc47d470fc767db1400365",
+      "1-purpose": "7fc7a061583d2427b5329bad2c9b095a3033b4ddb38c0095001a4df088dfd987",
+      "2-territory": "03c307033d4d885fc9209d606519f9aae4dde8b0b950a6915df060ba2555a92d",
+      "3-object-shape": "e2087ba496ea47473e1c2883c34e6ab5f2f3a4fa554865dfcee8c8299896c1a9",
+      "4-functional-requirements": "cba7fa99dff485d1c9e08a3c7a0ae9b863995f74a8bfa71bf2df8b84724000ba",
+      "5-acceptance-criteria": "bf1bf70e09d5c4821da7ba4c8292fc73e5d4368610e6047844fe5eed368c33df",
+      "6-out-of-scope": "f67cf958708a1b33cb1524d23ccdac8eb7f5669593d686bb112458e30d7c5863",
+      "7-naming-deliberate": "4666c7e6abe632ceb21df2ba5b2f1b53a70d55cc18bad51de4d124dbd141c7c6",
+      "8-sequencing": "0bd3413025483eec0a7c76e2d90c1a0b5c6bd2bdd3514e67a6c9a7e034741f6d"
+    },
     "sectionHeadings": [
       "021: Ledger Seal",
       "1. Purpose",
@@ -100,5 +111,5 @@
     "title": "Ledger Seal (signed, reproducible attestation over the spec corpus)"
   },
   "shardHash": "f2bc80e69cc1643035c6f9a186d0bead65edeca9ae0db1105c4f33e05b1f8ee2",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

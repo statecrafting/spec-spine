@@ -38,6 +38,18 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "001-compile-the-spec-corpus-into-a-deterministic-registry": "6e99f00ff33a9d27bed6703cb75265e11d5a7ee669187ac9e56c7d359f80109e",
+      "1-purpose": "6f369d873493469b61e69b4a2c0899f55e142977af27bbe05745f8784b4851b8",
+      "2-territory": "11340805353c895ca0bc87e02b0af6189c4e02a79e8bc2a590df72422079d98b",
+      "3-1-discovery-and-parsing": "f2693ba4b71b60a487708c6189f2823a623fc55174f5433c4d57b4679be7281d",
+      "3-2-validation-v-codes": "1151b519e49d0206abaad6e10673aeb574087c7050e48e82f4e95bc901bc0f9f",
+      "3-3-the-registry-record": "39a16fcd393098865e01126484d540fd1822e487c34d105546d8421e67426aa8",
+      "3-4-determinism": "b1fc1f7f854c0f360c965d24df33a445dfd2b8e5693e069786a19fbad60871c7",
+      "3-5-cli": "445cb5288639d73518c6dd241a986b70da317195031de7f44d974436c8f86323",
+      "3-behavior": "5e1917858f03cf9e724141a237d4f42db71388bd3a78f406214c36c30d48d400",
+      "4-out-of-scope": "6803e158c6188195e32baaaab6c15f811f6ff0e0f1abea6551330dbc02e5dcd9"
+    },
     "sectionHeadings": [
       "001: Compile the spec corpus into a deterministic registry",
       "1. Purpose",
@@ -56,5 +68,5 @@
     "title": "Compile the spec corpus into a deterministic registry"
   },
   "shardHash": "43188d563d68c524de330f47ebcadd3ccb4b25dda182af1b97d9421947dcf9a1",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

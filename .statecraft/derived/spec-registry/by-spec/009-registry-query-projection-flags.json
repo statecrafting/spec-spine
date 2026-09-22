@@ -42,6 +42,17 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "009-query-projection-flags": "939ca04a1bc9e3b4e5bbf4e52ad2cb65a855b0d42331219b1c215f86818f27a7",
+      "1-purpose": "76486b6e077fe7abbd2ff5962ef797a9b34dfd76487e12e923c3c141fca4cb5d",
+      "2-territory": "d20fd4dc3171cb1cd5a8b7d6806e62fe62c369d9d970b58275dd4670710f2b28",
+      "3-1-registry-list-ids-only": "9ee1e9cf8d793d3899e22896363475758a93f6022962d1600281190a192c5183",
+      "3-2-registry-status-report-nonzero-only": "3585e11535ad70c438f0e7a9a41eebfb86bf3896ef1b6bd1e2ecc9139d085e8c",
+      "3-3-contract": "a51405beaf7060652117c194d7ccd31cc10139ca15c7549c3915a705f9cda9af",
+      "3-4-tests-minimum": "d263265b502960072f15298bad9a6041c3e4a1179bf6f1b1f49a9a2b3c2b2bab",
+      "3-behavior": "b2ff01decf49501c3438e3e596dff4c6d52edeec885c756b656c60c6fecb43f0",
+      "4-out-of-scope": "4a27669a2d50d6bbc8dd8e3b1ce643da3d32ff26b6ddd8e946366a6bbb612bbd"
+    },
     "sectionHeadings": [
       "009: Query projection flags",
       "1. Purpose",
@@ -59,5 +70,5 @@
     "title": "Registry query: --ids-only and --nonzero-only projection flags"
   },
   "shardHash": "512daca4eeeeca0b54cb010056645d88a9295d2593cd078cb8e913dd2fca3538",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

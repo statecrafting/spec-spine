@@ -79,6 +79,27 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "075-a-claim-below-the-header-window-is-not-silent": "a6030de8f8620ebac978c9c4c6d744966442713032572dfb46b598d2976fda35",
+      "1-1-an-eligibility-rule-with-no-record": "6b19db6bc200502a99b4fb7e0d9742174b99c66bf80ffe6de736e119e4d7063a",
+      "1-2-what-the-silence-costs": "2a0c3468b4205f7a7d78eee610170569dd63f86f278943ce6b2cf92c0dddd999",
+      "1-3-two-neighbours-equally-silent": "3bca31ac07168f285715f300219f0bf91ab5329af325786573334901a68b058a",
+      "1-4-what-the-corpus-can-be-told": "b858d0ab678380b092f08033cb7c891a7b1c3540ce1e5ca2b71291cc8d797e82",
+      "1-purpose": "32fae0697a3b6e54b1df036da6c0ae11f3c15eecb3205a0eb42b0f2562c20fff",
+      "2-territory": "777fef3f51565a370a33aa9c827936c2912a5674c4a5aeb9f56ed0bfeb751d74",
+      "3-1-the-claim-window-is-declared": "1687b827baee6b1c82a2de186279e82557081f8f472935cea9975366dbe95e28",
+      "3-2-the-recognizer-is-declared-with-it-as-it-is": "4b5e43a42e7c20ac449215abd2cc849b11fab67543efd2d75da579d46f1b4dcf",
+      "3-3-the-near-miss-scan": "76f087818cd1a94837b4a0dd844fa211ae264c5c60ed923c3ddfccb31c93f08c",
+      "3-4-where-it-is-reported": "ae3c31383086f31939abad6ee446aa0fb3da6df4cc1c5ee69e79f3410fbc5db4",
+      "3-5-what-refuses-and-what-does-not": "346bdb15988093907668c99328c35cf4ea5e8b043e26b5175fdac7d502c562c9",
+      "3-6-the-report-window-and-why-it-is-bounded": "4f580c89b0466945be3a310c3b64ad7839f9c6b35bb4f9d56d528b9ca95c9b99",
+      "3-7-documentation": "d11bce2b11005e2086ccf429e40fee533ef1addbbd29e0e657520bbf648cc223",
+      "3-8-the-tests": "f8642fc4a0e701a920a14a70ebbaa45892dc9f5ae146932b20e53553f7f5044c",
+      "3-behavior": "91ba2f593335a4fbfcf9dd5c78caf80324870dd73533567628ccb5faf9d9bf77",
+      "4-out-of-scope": "8ecb4277bf14177cf969979f6c819bf54b03f546c94027996752bac668bfa142",
+      "5-resolved-decisions": "71d1414e3bca5853635889cf49a68ab7dab619119eec5182ff6c998b14cfa309",
+      "verification": "564ee422e3bb8abfb877e73432436006dcda444f8890c3fbe2c03f3c6ca89564"
+    },
     "sectionHeadings": [
       "075: A claim below the header window is not silent",
       "1. Purpose",
@@ -106,5 +127,5 @@
     "title": "A claim below the header window is not silent"
   },
   "shardHash": "30fc77a541af97885b3ea90103e18178802a53553a7b4fd29b99827bf022d0b1",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

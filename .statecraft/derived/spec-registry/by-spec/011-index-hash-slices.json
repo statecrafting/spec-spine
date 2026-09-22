@@ -82,6 +82,18 @@
     "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "sectionDigests": {
+      "011-named-hash-slices": "f1f3dac5a166c807c6d4926322b68052aad78a6ac82accdfb5ea8e84d9c4321b",
+      "1-purpose": "a0816f75cc1110d0ba8150c029bca4f23e578c0d211b86915d31193a99e9d9fc",
+      "2-territory": "a57c9bc96729bd0c71884e920afe946499e7ba4587f02e9049021551dac76ebb",
+      "3-1-config": "8c51d6e386314282e90a81de356b0ce33f1fc6b658760137afe691c36e018a9e",
+      "3-2-emission": "9a87dbd0b77e79bbce8a520c3e70e1377eb8893e50b458581ecba4b4eeed052e",
+      "3-3-index-check-slice-name": "28d738bcf5e5369fbb105c6c12446add178ebe986872ccc9cdaef77bd6ed4385",
+      "3-4-determinism": "0e79ada6bec2b6ad486aa651d54c7206dcc7dc58b7265867fbe3fded66148ab7",
+      "3-5-tests-minimum": "2dc9227cc5da478a1cc05099223429033b100b74e987c9a716b9affe555f0adb",
+      "3-behavior": "bca79737d2630756bac8d6da82d4f5fe573ab38e84ca479af8ff6c38c457faac",
+      "4-out-of-scope": "027e3ba9a19e6de8817f3c9d5464e9a06cf728551a58ee4ca7e5833fab5aa737"
+    },
     "sectionHeadings": [
       "011: Named hash slices",
       "1. Purpose",
@@ -100,5 +112,5 @@
     "title": "Index: named hash slices and `index check --slice <name>`"
   },
   "shardHash": "cead36b8966c84115ca343c93d6711504f2437866ab91c751f9528e88a2e3fa1",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

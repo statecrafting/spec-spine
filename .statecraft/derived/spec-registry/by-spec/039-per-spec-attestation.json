@@ -120,6 +120,22 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "039-per-spec-attestation": "88dd7e8f3cfd3339f0f592f94e88ebb163affa481c1114618ac1e4fa094353de",
+      "1-purpose": "8018f4ce514e4303e1dcc4180055c1bc3683fcd50211f44c8c21628adbe59258",
+      "2-territory": "49c82ad6746ebd5fa244404bbcab873958907c033894f04931d9c0178e7fe4f7",
+      "3-1-the-payload": "26ad4cf46104b9d59f818c438ce0b499f7a9c892536415327503dbf80e8d39b6",
+      "3-2-purity-and-where-the-clock-lives": "14f29f0ac3ef875ac4916bf19ab362378405a3ebadba9d39aae2fd4a567a668f",
+      "3-3-it-is-not-committed-and-that-is-a-decision": "8acbcbfbffa77b2898ea371dd9e0492e8363cacbb05658c841bca4ba90aff647",
+      "3-4-no-lint-rule-may-consume-a-specattestation": "024ef0179c34aa6ecf87636642124e3335523e79d94626ae02700b267cf352e1",
+      "3-5-verification": "9bd71b62252d690a5c9e112b29f74116c6c55cd519a140cc3d7ec5b54b79f134",
+      "3-6-versioning": "59ed38635c17841705ee95ea2d3f930e3501fb28f3b52ee5bb54e93ef2e19bc4",
+      "3-7-tests-minimum": "8b1d27194ca668cf06c309a9ca7fe5036325176d6f956055143fc98bfe5961c3",
+      "3-behavior": "a35948f63001a5e961438e3a03efc739bb586484530089257602e13df8b8eb7e",
+      "4-out-of-scope": "dde66a7738549b29bad39b69d5d7d29b21429b9adbe5d5158ddb6f3fbca88729",
+      "5-relationship-to-the-design-note": "fa2d8453989b4505864aaa664b20a155abefcf6bce7dd2b4f3a77f45edbbc591",
+      "6-resolved-decisions": "7d0e9a097fb2cbcca2e5379216504e0f1ca61657c95f73901d68be0bb176ff8f"
+    },
     "sectionHeadings": [
       "039: Per-spec attestation",
       "1. Purpose",
@@ -142,5 +158,5 @@
     "title": "`attest --spec <id>`: a signed record scoped to one spec"
   },
   "shardHash": "0d0193658cf0c7b9a598c62583a943058437bb0289167039b7cfbc6ef48d4daa",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

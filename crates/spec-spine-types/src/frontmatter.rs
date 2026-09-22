@@ -20,6 +20,7 @@ use crate::edges::{
     CoAuthorityItem, ConstrainItem, ExtendItem, Origin, ReferenceItem, RefineItem, SupersedeItem,
 };
 use crate::error::{Error, Result};
+use crate::obligation::Obligation;
 use crate::unit::Unit;
 
 /// Lifecycle status of a spec.
@@ -118,6 +119,8 @@ pub const KNOWN_KEYS: &[&str] = &[
     "amendment_record",
     // bootstrap marker
     "origin",
+    // Spec 106 3.1: declared constraints.
+    "obligations",
 ];
 
 /// The typed, parsed frontmatter of a `spec.md`.
@@ -192,6 +195,10 @@ pub struct Frontmatter {
     // --- bootstrap marker ---
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub origin: Option<Origin>,
+
+    // --- declared constraints (spec 106) ---
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub obligations: Vec<Obligation>,
 
     // --- overflow (populated by parse_frontmatter, never by serde) ---
     #[serde(skip)]

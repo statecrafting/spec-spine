@@ -10,14 +10,14 @@
 
 | Artifact | Field | Current | Owner |
 |---|---|---|---|
-| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.2.0` | library |
+| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.4.0` | library |
 | index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`) | `schemaVersion` | `1.1.0` | library |
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.5.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.1.0` | library |
-| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.1.0` | library |
+| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.2.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
 
@@ -53,6 +53,13 @@ MINOR history:
   still emits a bare string, so a full-only corpus is byte-identical; only a
   `partial` item emits an object. Readers that assumed `supersedes: string[]`
   must accept `string | object` entries.
+- registry `1.4.0` (spec 106): additive `obligations` (a spec's declared
+  requirements, invariants and verifications) and `sectionDigests` (every body
+  section's anchor mapped to a SHA-256 over `<specPath>#<anchor>`, NUL, and the
+  section's normalized lines). `sectionDigests` appears on **every** shard,
+  because every spec has headings, so every shard's bytes change once; no
+  `shardHash` moves, because it is over `spec.md`. (This table read `1.2.0`
+  before this change; `1.3.0` was spec 082's `amendsVerification`.)
 
 MAJOR history:
 
@@ -248,6 +255,20 @@ Every other read document gains `schemaVersion` and keeps its members, now in
 sorted order. That is additive when reading by key; a strict decoder that
 rejects unknown members, or a consumer that hashes or golden-files the bytes,
 sees a change. The text forms are unchanged.
+
+**`0.2.0` (spec 102), additive.** Each `registry plan` ready entry gains
+`status`, the spec's `status` as the registry records it:
+`{ "id", "status", "title" }`, and so does `plan --next`'s `next` object,
+which is a ready entry. `blocked` entries do not gain it. Ready-set
+membership and order are unchanged; `status` is reported, never consulted. The
+registry schema does not move, and no `shardHash` changes. Every read document
+carries the new `schemaVersion`, because the axis is one constant (spec 074).
+
+**`0.3.0` (spec 106), additive.** A new read document: the `obligation` answer
+(`registry obligation <spec>#<id> --json`, `query_json` `op: "obligation"`),
+`{ "spec", "specPath", "obligation", "sectionDigest", "schemaVersion" }`, and
+`contentHash` from the CLI when the committed shard is present. No member of
+an existing document moved.
 
 ## Migration note: spec 034, the verdict envelope
 

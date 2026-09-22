@@ -42,6 +42,20 @@
         }
       }
     ],
+    "sectionDigests": {
+      "1-1-the-layering-is-deliberate-and-is-not-reopened": "9b71217dee0b2d0c378ba60a605828cc5d19a5eb910b4baa045c8cf7d95c3e20",
+      "1-2-what-is-wrong-today-precisely": "b972fa0644d38015391882444e4736e2adfbdec09bcb1fab4812c367653be809",
+      "1-purpose": "efbc9e890775f26f6c6e8a4bd8deebd6626d736084a9be09303a34ff367b1f7a",
+      "101-readiness-is-scheduling-not-approval": "d216e24a01652700bc22816722db5019f49948fa81dde5e5fd8c75af85a66792",
+      "2-territory": "2cecb0800356db9bdc0fdabad99c7874ddaecba4e434f01ec5724c771bf62123",
+      "3-1-the-documentation-states-what-membership-means": "2be0131abb92f24332aac8e51af33d1d586114b030c0ec21881f29effb26b00e",
+      "3-2-it-is-a-documentation-requirement-and-nothing-else": "2fccd35335c843ed7929f82daf5313ddbf0a20d85700bf8892ee4d38df201982",
+      "3-3-the-claimed-file-is-hashed": "984c92c6f1988c5379849ceae24a5fecce8f6daee6ebac82acee736e02f1cb92",
+      "3-behavior": "8291ac40595fb5f04f52c107c6a12cc6ec2fd81f3fc7e5d08b2efcda0dc20d33",
+      "4-out-of-scope": "24d2afc218f713ddade11b4aff4cc8c1e7b10d425247d0dad0f965ac4b3c71f5",
+      "5-resolved-decisions": "0bfca03c6203b15dc471f8734d126d824aa040fa2936c508961c29764005ad6f",
+      "verification": "15b9ef717a715fead8757b81a83c9a23d3362def28e5ee8f2c98f552a02f8d1e"
+    },
     "sectionHeadings": [
       "101: Readiness is scheduling, not approval",
       "1. Purpose",
@@ -62,5 +76,5 @@
     "title": "Readiness is scheduling, not approval"
   },
   "shardHash": "112afb5950ed91f87619863d40c10d2d972035e84a49a3cad65ef034c013b98f",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

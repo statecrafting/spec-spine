@@ -34,6 +34,23 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "1-1-two-commits-the-boundary-let-through": "bdb5120bb3f90e583c2cae618c73a78b365ce1110e9abdebc45038739bfe6e1b",
+      "1-2-what-the-boundary-can-see-and-what-it-cannot": "79572793152efbb7dc21d20df2af9c9bfded8a6bbc0018fa1124f4d861596bb2",
+      "1-purpose": "7c69366ca735280297e4a5746499ff43c4fb81fced243e68c5be25e46414f8ea",
+      "122-a-commit-refuses-an-unresolved-merge": "5055329977944e896bcf8a46abc7e404678e89ae6a40e656eb23a415db2d83f7",
+      "2-territory": "fcfd66df3f51f5061ff4a05945002c3bec0105cedd70296e0c62158b11ca1382",
+      "3-1-placement": "4acbaddea43d45bc16b7be4cb2ad8f59c88b3739bf57e57e01075c39a0276541",
+      "3-2-unmerged-index-entries": "88cb84387cca947be00f0b7deacd2c432a6800ec79e9db78c2027cbb66051413",
+      "3-3-conflict-markers-on-added-lines": "82b9fc3057f1631391d52713ec405d379ac09e11190edb40e139b2cf5ef250fa",
+      "3-4-formatting-when-the-change-is-rust": "39bab662baecb6d1e4ff4d85cbe25f300ff0cc0aa0f10411f8c224f19530c2d6",
+      "3-5-evidence-is-behavioral": "9f13dcd97fd6da2b036c03473ad6c54553a85f2d70e1bccaa1fb62dcb0f84cab",
+      "3-6-unchanged": "63c12b3082854136d410a626704d2452c6491d8f43a04b01b03db11fb791b0c2",
+      "3-behavior": "fcad621da2a90cb382988220c9d96209f187aafec3d55b8657427191fcc46faf",
+      "4-out-of-scope": "262bb34ee90cadb61521d45b29a89ec2530def21302874e3473f008fc1f7cacb",
+      "5-resolved-decisions": "82e815b94e4589e1d61504dd343018e76f8a6c8395838fa2618300761cdf2631",
+      "verification": "d046c8ba803cd9c215a30946d8cfd847d2181a541fc6bce22694278c914aa6e1"
+    },
     "sectionHeadings": [
       "122: A commit refuses an unresolved merge",
       "1. Purpose",
@@ -57,5 +74,5 @@
     "title": "A commit refuses an unresolved merge"
   },
   "shardHash": "3b26179b44884c0b236ef2f8ae5c14003f781c2689b1e37bebf31bb70c1ed9c9",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

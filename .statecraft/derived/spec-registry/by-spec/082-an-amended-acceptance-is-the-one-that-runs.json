@@ -115,6 +115,24 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "082-an-amended-acceptance-is-the-one-that-runs": "940a3e2452c37183d5e128197055fc5d3f965e11d3d3e4bf75fcff59651cf67a",
+      "1-1-an-acceptance-line-that-asserted-a-fact-about-the-calendar": "93bc6421efb11fefeedced44a1744cbfb935107626f63301fc83c452b1af5645",
+      "1-2-an-amendment-with-nowhere-to-land": "43f059bd92866c3cf7e3c5dddded34ac1dab917739d3a9f9a8e35c3226db3aba",
+      "1-3-why-a-mechanism-rather-than-one-exception": "59dbc50d42144197cc9cdc865379f042b81bcdecacdbca810d928ee9a8b90dec",
+      "1-purpose": "e910ab2e36d452ae8256a52796d768786033aaa6d50b3fc01829cbff34603d45",
+      "2-territory": "e448b846814377f9fcf91bd22dc2963c0c8390c21ae699527c58def2e9e33264",
+      "3-1-amends-verification-declares-the-replacement": "d40195fd470461da0ce9b5ee0993454233c5de383a4549616d4c0127932863d6",
+      "3-2-verify-runs-the-replacement": "a556acede585e2cb65e8958f894d60caf35146eafc26b90df8f24205806a69b6",
+      "3-3-an-ambiguous-replacement-is-refused-not-guessed": "9c01cf18c7747b9a8cbe1c3b1fc5f921d3133bf2e9dad54944ff75ef9e83e2ef",
+      "3-4-the-substitution-is-stated-never-silent": "4934248d65ebceee1293b49b31a3fdc48509f18237810b4f653bc4da00934f95",
+      "3-5-what-spec-074-s-acceptance-now-is": "7299da46546b2f621f2757106cc77c3e7f8ff50405a8b978d0168dbca0cceced",
+      "3-6-the-acceptance": "2fe00297f431f5da97626a282755f836ad5dcf997246c1e1f47622fe870a402d",
+      "3-behavior": "cf4aae8bcbc29d3dab0f29a1a2cbe27d9de7711f8f8ac9a8282746fa3fb18411",
+      "4-out-of-scope": "542dc437cb510da393cd8ac2820f594affcb693c1381eaf3d3826a457da3f91a",
+      "5-resolved-decisions": "1c30654859881b129e86fe123f5926d8d13a2597f4b76f87e2722169e8fb437d",
+      "verification": "649a2b5bcf317168a060757f8463ebed1d02fde11aacabb8c695b85a8252330a"
+    },
     "sectionHeadings": [
       "082: An amended acceptance is the one that runs",
       "1. Purpose",
@@ -139,5 +157,5 @@
     "title": "An amended acceptance is the one that runs"
   },
   "shardHash": "043671f8e3072049f16b8bdcb2e9a7c1f95ddff3bb90d4e7b5a826de441ff298",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

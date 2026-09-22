@@ -141,6 +141,20 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "062-one-name-for-the-protocol-one-verb-for-freshness": "37000ec9553d019fd648a8f8679085d4deffbc8b153800158fd010ecfa30b558",
+      "1-purpose": "c0488fdc3b094e181bc1fb4c9f03273c7ab95f001cda1c1647224324d5512cfe",
+      "2-territory": "2fecf00b8e18608f82944c0e7cfa00fa02d9b91a69a08956065960b5de38309e",
+      "3-1-the-session-skill-is-prime-with-no-alias": "389854fca5258adad77c540280825aee67e03130b04d96caf7f2e4a34ee78a85",
+      "3-2-spec-spine-check-answers-the-freshness-question-once": "6c6840b7d8a5fb2c8c904436b54e0347704819676fc128417198a91184f94b11",
+      "3-3-one-exit-code-composed-in-a-pinned-order": "be09eb6ec2e45d48d133058c197940d59931dd046ea9361dc6d1358c71626879",
+      "3-4-each-tree-s-report-passes-through-unchanged": "b2ab21817cf9e81714fc9bea2a7ac416e6b945a01c4d98a5f7c8dc2f2ed678f3",
+      "3-5-every-consumer-calls-the-composed-verb": "be0e49ba67533fffea11f553d4e5702f871e61af480bc2bc9b2d05d34076b87f",
+      "3-behavior": "6cf6eb69cffc75dc6567d7e00396a66be3bff7ff23b705160a19eed8f5a5fe7a",
+      "4-out-of-scope": "5ab0d7191374977872d1960c2caa1ce2b4c782e588fe005531bbc738ac4029da",
+      "5-resolved-decisions": "2f759f5037b4925d5cefdf8b3a6d90187c433fd675525b993d69b42a4f8311cb",
+      "verification": "7633f857774533a77f99ae5468877c868fb30d0e4aa03dba5a981fb62affd3c2"
+    },
     "sectionHeadings": [
       "062: One name for the protocol, one verb for freshness",
       "1. Purpose",
@@ -161,5 +175,5 @@
     "title": "One name for the protocol, one verb for freshness"
   },
   "shardHash": "3a86aa6e9bf27edafdc2b6e00204e1deb19389a5e21f526548e892e95a935a6f",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

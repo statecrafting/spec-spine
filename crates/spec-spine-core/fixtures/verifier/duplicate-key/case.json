@@ -1,0 +1,19 @@
+{
+  "authoredBecause": "no JSON serializer emits a duplicate key, so this cannot be produced by mutating through a JSON library",
+  "bytes": "authored",
+  "expect": {
+    "exit": 3,
+    "outcome": "refused",
+    "reason": "duplicate-key"
+  },
+  "id": "duplicate-key",
+  "needsCorpus": false,
+  "payloadSchemaVersion": "0.1.0",
+  "payloadType": "spec-spine/corpus-attestation",
+  "schemaVersion": "0.1.0",
+  "subject": {
+    "attestationHash": "sha256:01bec6900716df21d9e531d396840ecad6b61ec16ae9173b86412cccf2d8d0c8",
+    "kind": "corpus"
+  },
+  "toolVersion": "0.22.0"
+}

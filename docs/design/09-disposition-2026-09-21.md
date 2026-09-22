@@ -520,6 +520,10 @@ each item separately reviewable and each spec its own pull request:
 Spec 102 stays deferred until a consumer requires it. It is small, and that is
 not a reason to build it.
 
+> **[superseded 2026-09-22 by D-7]** Spec 102 is authorized for implementation
+> under section 10's evaluation; the absence of a consumer request is no longer
+> a reason to leave it unbuilt.
+
 ## 8. The deleted site, audited (D-3)
 
 Bounded and performed 2026-09-21. The tree was extracted from

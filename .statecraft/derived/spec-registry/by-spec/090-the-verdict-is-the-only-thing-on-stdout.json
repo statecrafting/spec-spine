@@ -55,6 +55,23 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "090-the-verdict-is-the-only-thing-on-stdout": "9ab693baf3d91f1563733a7bf5ade97f44c4fef99ee8d51bf2cc2c24a55a8552",
+      "1-1-measured-on-the-default-branch": "9e999449b72926ac2f68394f16766a6bf77cf114adc75a24b456587486dc55e3",
+      "1-2-why-the-existing-tests-could-not-see-it": "ee964d5b36f8dd0a4bf3e50a7232e3d9c589e142ca39bbf29fd6ca123c831003",
+      "1-3-spec-043-3-5-asks-for-a-transcript-and-gets-none-here": "700da689a9a387ac3524872c9c16ea3be93dc0777e3f7ca2404a53a065d7727f",
+      "1-purpose": "82c3fb8a9eebeab54b8f0f5d222a2b514610ee355db85e09be1316404817ea99",
+      "2-territory": "d9f1ca5e9fc3e94337f171c05320349a91d5e75e4b367accc28b7daa17743790",
+      "3-1-under-json-stdout-carries-the-envelope-and-nothing-else": "e87cc6a807ee9193cb9bcd2fee827bd45296a7eccf5ffef67fef50933e2c5de9",
+      "3-2-the-bytes-are-streamed-not-accumulated": "c2499aba74271b5b60c3c0a01c367fdf207d65c94440cd6d1cff55df640b5359",
+      "3-3-the-transcript-is-a-diagnostic-and-under-json-it-goes-to-stderr": "74de2f4ff480aeff1736aa500522c4c46fa353f95c763245bc34766dbec7474b",
+      "3-4-everything-else-is-preserved-and-that-is-a-requirement": "93a230cb261c51b191c2aa03ea3fb97b8963c2e8f09689bd9c8b517e83c00fcb",
+      "3-5-tests-minimum": "8c44c21044a46d023626921a407f898c7a682741917a7304837c702213295e0f",
+      "3-behavior": "c1da011c7d266ee7d0baeaa71aae26b9498884a6e83de0b90996f83eb70bac0b",
+      "4-out-of-scope": "61adc19cbcf06cdc0868d05424883a15795f4ae0a9eb425f0b477259c7bb5305",
+      "5-resolved-decisions": "15a3cc6769db2ad4d0398221e2ce3dedcbfec7544dc5fb17de900241a1100690",
+      "verification": "8755d18404c143559fe6c3ee5b108af8409021cceeb57fa671ad212771ca9bbd"
+    },
     "sectionHeadings": [
       "090: The verdict is the only thing on stdout",
       "1. Purpose",
@@ -78,5 +95,5 @@
     "title": "The verdict is the only thing on stdout"
   },
   "shardHash": "01a6c552e5d07e33ee95bb256ebfd002229f5d9023d815a25232e5abc13ebbf6",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

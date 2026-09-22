@@ -74,6 +74,21 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "058-the-shipped-default-hashes-what-it-names": "f7d6f4a32f5223a87b640009bf39e23af4a2ec88ff9e902ce3bb5534808f9960",
+      "1-purpose": "b43340932c14cd3cd80cec8fa87be311a812e563fd31e958cf4c1f13e79f2797",
+      "2-territory": "f4f6ba84b152690fe413953f4e90ce3ff0d1a4e6a9b9487b1141c01744d65453",
+      "3-1-the-default-matches-files": "47cd50a225cdbf72482a700d18efc31a034ee4bb3ca67e9400bc7b8f5fb8ce4e",
+      "3-2-the-scaffold-stops-describing-the-default-as-broken": "e2a49660c1474598b12c53e67f8f5894435bc19c9edf9cd572f361fffb3a35b2",
+      "3-3-a-regression-guard-that-fails-on-the-old-default": "6f96869db1394bedf64187b1ad3656bc9f5df6c118225610fdaf1a8732d85041",
+      "3-4-the-documentation-stops-quoting-the-broken-value": "b1b1bbed22a730b75da85a9f599d707b53a029a9c92798e808984a8692c7076a",
+      "3-5-the-migration-note": "b4a82eac6c411bef93c9415d387369b23e38cc7c1ee77b9808bb429684c4be3b",
+      "3-6-a-workflow-bump-stales-the-ledger-and-the-test-says-so": "d6c9ef6e0a9f0393e1146dda11576d321d08df61e1bb2419587e89621765c237",
+      "3-behavior": "18fc50f66e6dadb9d24363cb0f9842a4eccd325f68f96716481b87cd8593dc96",
+      "4-out-of-scope": "a9a06f7b82c9e1d5d04d5880290167745e1e6b19168765effced8aa195a8c614",
+      "5-resolved-decisions": "05a9b92d9d98a25a119160a12b8e474c137e8215f2c292befb02cea580ac5530",
+      "verification": "9ae2ef7bd2c5ef2dad2a8f3be95b09873372dc7eb06796ff4f19628cdadbb8c3"
+    },
     "sectionHeadings": [
       "058: The shipped default hashes what it names",
       "1. Purpose",
@@ -95,5 +110,5 @@
     "title": "The shipped default hashes what it names"
   },
   "shardHash": "38059c608b472da3724d48829046638149b785d3164d73e0db2334aeb3d869d2",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

@@ -51,6 +51,23 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "1-1-a-signal-that-is-always-red": "728028500362e86660860012a5fb3bc7585c0eec0c42b66a9306e822e05b0c38",
+      "1-2-what-spec-119-left-open": "f42a95178bcbc7b0f0d37a768603635b748a544106e13dc275b85377c1c4a10e",
+      "1-purpose": "78d9eb4a1aa9ec183c2bdf41551479fa7e9afd63a459a6d5a67fd22cd5fa6697",
+      "121-the-acceptance-workflow-judges-what-was-built": "44e21b5b9765f88150cbbaa300e9bb4c96d3083accc081971d3ad2462e49f823",
+      "2-territory": "bd5fd5bf0bbe4453e63f11989ec7535775bc52ab76c5714285fcb5af289804bf",
+      "3-1-both-legs-exit-on-the-release-verdict": "0071e7b676764bc886eea86a762a296304a2a343cf0ddda7649ef1c832acc097",
+      "3-2-a-report-step-that-cannot-be-skipped-by-a-red-sweep": "bf9a23fa31a75340d042b1b8644e141dc0413a8517c177dd0b807259ccf7e1f4",
+      "3-3-what-the-report-step-renders": "d826df5b07eab2c19236f692846406c738de45f8339e00b5bc646afa5912d358",
+      "3-4-the-report-step-refuses-what-it-cannot-vouch-for": "edcec275ab8595e6ffcc223c7ef3300efdd4b26418ac145711d34904312442cc",
+      "3-5-the-regressions": "cdec25a1af8d1b883780e4c133c857b89a384547e55afb98ed9fbb18b2b623bd",
+      "3-6-what-does-not-change": "7aae74a78202f1321328bdbe175e8b274b0a567030b384a336f0a699e25852f4",
+      "3-behavior": "a9fa2721a51b2ac7fbfccc88156d70eff83e7d89b1debe3b04a522677aa3ee5f",
+      "4-out-of-scope": "154cd002e94a82adf4ebfec9b8f4b8b27a3fd37eafe1a7d30b0b36e50f14f832",
+      "5-resolved-decisions": "2e46360aca06197890ffbb59e3a02542309fcfbd74f91f46563c475b345d9373",
+      "verification": "53903b15ca6681be9b300f4d98518a21c6a7a3c3d3ba62164cd155a871bf2ab0"
+    },
     "sectionHeadings": [
       "121: The Acceptance workflow judges what was built",
       "1. Purpose",
@@ -74,5 +91,5 @@
     "title": "The Acceptance workflow judges what was built"
   },
   "shardHash": "696e25e3013dc0dbf63703d35cc466c0bbc555102f3d578fdca891be191415bd",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

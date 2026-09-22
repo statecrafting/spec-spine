@@ -56,6 +56,18 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "051-the-defects-heading-has-one-spelling": "e53035d59ee3156994683a644acfa0002bc7186a1219d2c0a586dde63bcdd7a7",
+      "1-purpose": "19de242a68116d9629b37bbc804dc24c7e79790f6fb085f8a01a3cc2c1997d9c",
+      "2-territory": "170aabf49c2f39c9f6fc5bc1162f392d37698ed68b85166218c09011e2b054f4",
+      "3-1-the-heading-is-an-anchor": "13df33a2bdaf4014fc84b853a48501614cec9b23cecbded966c200035fac09c8",
+      "3-2-l-009": "0babd383e08094368f6d2a8b385f116e0493915e1bc0d13d34f114c469e2b5a5",
+      "3-3-origin-retroactive-does-not-imply-the-heading": "37b2e47e9eeaf69660415d7371158d00aec81becfaac38d45c26306b124b6c97",
+      "3-4-nothing-else-moves": "dfad2172bfe0c42bcf9b1a7b6e98455c91c1dad8d0de4b4141978e5fb9d5e64a",
+      "3-behavior": "0be9a074f22eaa8e7aaf00e47555f902c400ebc189259c32a0c410ebd3cb5802",
+      "4-out-of-scope": "4b66d6304d747b6f11490c7af2313602e751a04662e4dd34ad8d14df55c87951",
+      "5-verification": "14180b959e74975c5c260b215ef173221ddbe91ab351d417b5d626725aa957f5"
+    },
     "sectionHeadings": [
       "051: The defects heading has one spelling",
       "1. Purpose",
@@ -74,5 +86,5 @@
     "title": "The defects heading has one spelling"
   },
   "shardHash": "e8f81e4d8ca151aed6c19c25476bbf237532604b3bfd4a0c6bc955ae727282ec",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }

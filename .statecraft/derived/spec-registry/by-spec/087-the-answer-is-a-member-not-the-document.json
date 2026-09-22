@@ -28,6 +28,26 @@
       }
     ],
     "risk": "low",
+    "sectionDigests": {
+      "087-the-answer-is-a-member-not-the-document": "cddf81c2b930855dced552f2974a101730fffff104d34d0b2aafa4467a4f92b3",
+      "1-1-one-red-assertion-and-this-one-has-an-amendment-behind-it": "0ce9f1afce5db4b50ef08914fab46cf636a5f6766ae783ce612ba04fcd9d86ff",
+      "1-2-this-is-not-an-over-strict-assertion-it-is-an-amended-rule": "004e6b43eb18f7f4a4635ef48f52f5affc13e5709d9f974e1e2ecf7d73d19480",
+      "1-3-the-block-never-asserted-053-s-strongest-requirement": "f554310db85dd8ecadc112fe8d4039397fdfb820fed9001cc7e54d32ba1b195d",
+      "1-4-the-crossing-was-silent": "d4ac28536819d05f4de84c79177c68f31db1786543712dd68aaf7c6b8dcbd134",
+      "1-purpose": "7934fef7294ef324181b9f721a5895ac69d6e9415d2f66c4cb9bbc50e431d177",
+      "2-territory": "bdcd9576a7bb2d6c4f0c2b54b199337b05ee3cd4db3161ca305b6c38ec743812",
+      "3-1-what-spec-053-s-acceptance-now-is": "4aa11f7a96f05a6f38c75cb36a1284066044106905c70aadf52e4fc05158f46d",
+      "3-2-the-verb-s-exit-status-is-the-line-s-status": "e9a0bbe9ed124013438353089f509e7abb55c03aec9f57511f7d604a30a727d8",
+      "3-3-the-pick-is-read-from-the-member-093-put-it-in": "c7b08f0e2087e44e21998447a97871d4a02f36a3b30bbffb70450d84dbd40224",
+      "3-4-the-fixture-gains-a-second-ready-spec-so-first-can-fail": "14e1ec3d1ee79db7644d155769394a4135f234889df7a717fe10ed874d08f911",
+      "3-5-the-acceptance": "27322ee3803398c5744cf01c798a8bef0ddd9a0cc0c387813bdecbea6de73ea6",
+      "3-6-the-empty-ready-set-stays-where-spec-074-put-it": "523f4a7f316a13dc1d622634e85025eb8f881d97005963011a9c878fa9c6c27b",
+      "3-7-no-code-changes": "7fe04a40c83c6cc3b2b8fe7214426904cbca3381c304c3dce0ec98725a15ca83",
+      "3-behavior": "8ae27d70b66248877e14d1f33bafd3b166650fba78ec9435e5011f5ff4e4470d",
+      "4-out-of-scope": "a12fa17088d6fd5acca33eb18c231418b6712a7439e22b402bd790a0b7fc7de2",
+      "5-resolved-decisions": "652583b8e9aa51d996cd1b3c9081b497f7bca6de8057dce6e5ae8db6607b5870",
+      "verification": "ff170993019574b53e6553ccfa7e0a40708fd579d6627763800f34c1b7d8222a"
+    },
     "sectionHeadings": [
       "087: The answer is a member, not the document",
       "1. Purpose",
@@ -54,5 +74,5 @@
     "title": "The answer is a member, not the document"
   },
   "shardHash": "38eb3724f047576f3ca47c7c4f3895f6b65e2488b0c1636ca2c65398c1a82c6e",
-  "specVersion": "1.3.0"
+  "specVersion": "1.4.0"
 }
