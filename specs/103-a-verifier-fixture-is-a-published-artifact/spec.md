@@ -519,6 +519,21 @@ case id to the outcomes the shipped verifier produced, and §3.8.5 and §3.8.6
 are both judged over that map: every listed id must have an observed outcome,
 and the declared reasons must appear among the observed ones.
 
+**D-14 (2026-09-22, review: what the set covers, and three guards made
+explicit).** The index names two payload types, and every case today is a
+`spec-spine/corpus-attestation`. The index's `payloadTypes` is the vocabulary
+this repository owns (§3.4), not a claim that both types have cases: the set
+covers corpus attestations only, and cases for per-spec attestations are a
+MINOR addition when they are written. The harness now checks every case's
+`payloadType` against that closed vocabulary, as it already did for reasons.
+Two other guards were implicit and are now asserted: a case attested under a
+version other than the set's must carry its corpus, since a version refusal
+happens at the recompute; and the literal carried to the verifying build must
+be `tool.version`, checked on the parsed payload before the textual
+substitution. `observed_reason`'s catch-all for other `parse` errors is kept:
+a misclassification still fails `assert_eq!` with both reasons in the
+message, and the envelope carries no finer structured kind to dispatch on.
+
 ## Verification
 
 Behavioral. The test executes every fixture against the shipped verifier under

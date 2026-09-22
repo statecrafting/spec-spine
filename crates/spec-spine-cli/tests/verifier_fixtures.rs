@@ -93,6 +93,13 @@ fn attest_now(case_dir: &Path) -> Vec<u8> {
 /// occurrence, or the substitution would be a guess.
 fn at_version(bytes: &[u8], from: &str, to: &str, ctx: &str) -> Vec<u8> {
     let text = std::str::from_utf8(bytes).unwrap_or_else(|e| panic!("{ctx}: not UTF-8: {e}"));
+    // Structural, not only textual: the literal carried is `tool.version`'s.
+    let parsed: serde_json::Value =
+        serde_json::from_str(text).unwrap_or_else(|e| panic!("{ctx}: carried bytes parse: {e}"));
+    assert_eq!(
+        parsed["tool"]["version"], from,
+        "{ctx}: the version literal to carry is not tool.version"
+    );
     let needle = format!("\"version\": \"{from}\"");
     let n = text.matches(&needle).count();
     assert_eq!(
@@ -214,6 +221,12 @@ fn the_fixture_set_describes_the_shipped_verifier() {
         .iter()
         .map(|c| c.as_str().expect("case id").to_string())
         .collect();
+    let payload_types: BTreeSet<String> = index["payloadTypes"]
+        .as_array()
+        .expect("index.payloadTypes")
+        .iter()
+        .map(|t| t.as_str().expect("payload type").to_string())
+        .collect();
     let closed_reasons: BTreeSet<String> = index["reasons"]
         .as_array()
         .expect("index.reasons")
@@ -307,6 +320,13 @@ fn the_fixture_set_describes_the_shipped_verifier() {
             "{ctx}: id disagrees with its directory"
         );
 
+        // §3.4: the payload type is a name from the index's closed vocabulary.
+        let payload_type = str_at(&case, "payloadType", &ctx);
+        assert!(
+            payload_types.contains(payload_type),
+            "{ctx}: payloadType {payload_type:?} is not in the index's payloadTypes"
+        );
+
         // §3.2: the byte-provenance vocabulary, and what each kind obliges.
         let kind = str_at(&case, "bytes", &ctx);
         assert!(
@@ -385,6 +405,13 @@ fn the_fixture_set_describes_the_shipped_verifier() {
         // A case attested under a version other than the set's is a deliberate
         // version case, and the only outcome it may declare is version-mismatch.
         if case_tool != set_version {
+            // A version refusal happens at the recompute, so a deliberate version
+            // case needs its corpus; without one it could never observe it.
+            assert!(
+                needs_corpus,
+                "{ctx}: attested under {case_tool}, not the set's {set_version}, so it \
+                 is a version case and must carry its corpus (needsCorpus: true)"
+            );
             assert_eq!(
                 want_reason,
                 Some("version-mismatch"),
