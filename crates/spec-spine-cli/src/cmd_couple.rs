@@ -344,17 +344,22 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<Segments, Error> {
         let wt_raw = run_git_diff(repo, &["HEAD"])?;
         let wt = parse_unified_diff(&wt_raw);
         union_diff(&mut diff, wt);
-        union_name_statuses(&mut diff, changed_path_statuses(repo, &["HEAD"])?);
+        // One read of the working-tree statuses, used for both the union and
+        // the deletion set below. Asking git twice would let the two answers
+        // describe different working trees, and the second one decides which
+        // snapshot judges a deletion.
+        let wt_statuses = changed_path_statuses(repo, &["HEAD"])?;
+        let wt_paths: BTreeSet<String> = wt_statuses
+            .iter()
+            .filter(|(status, _)| status == "D")
+            .map(|(_, path)| path.clone())
+            .collect();
+        union_name_statuses(&mut diff, wt_statuses);
 
         // Spec 100 §3.1: the working-tree segment's deletions, read back from
         // the unioned result rather than from either raw view. The union rule
         // (spec 081) is that the later view decides, so a path this segment
         // restored is not a deletion at all and must not be listed.
-        let wt_paths: BTreeSet<String> = changed_path_statuses(repo, &["HEAD"])?
-            .into_iter()
-            .filter(|(status, _)| status == "D")
-            .map(|(_, path)| path)
-            .collect();
         worktree_deletions = diff
             .files
             .iter()

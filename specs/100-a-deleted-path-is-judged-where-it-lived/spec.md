@@ -538,9 +538,9 @@ cargo test -p spec-spine-core --test couple --locked
 # The CLI suite, which after this build contains, by name:
 #   - committed_deletion_is_judged_at_the_merge_base
 #   - worktree_deletion_is_judged_at_head_commit
-#   - add_then_delete_is_judged_at_head_commit_and_refuses_without_withdrawal
+#   - add_then_delete_is_judged_at_head_commit
 #   - delete_then_restore_is_not_a_deletion
-#   - shallow_clone_without_a_merge_base_refuses_exit_3
+#   - shallow_clone_is_not_treated_as_an_empty_diff
 #   - unrelated_histories_refuse_exit_3
 #   - corrupt_prior_corpus_refuses_exit_3
 #   - no_deletion_builds_no_prior_snapshot
