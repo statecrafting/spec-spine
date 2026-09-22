@@ -1,0 +1,94 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "106-obligations-are-declared-constraints"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/impact.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/impact.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/impacts.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/impacts.rs",
+        "planned": true
+      }
+    ],
+    "id": "109-impact-and-conflict-are-declared",
+    "implementation": "pending",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      }
+    ],
+    "sectionDigests": {
+      "1-1-why-the-obligations-dependency-is-real": "c0bc14b6209b19ddfb9fc396dfda381810a87f51d8385ee711fc552d59db9610",
+      "1-2-what-it-enables-d-1": "0317338e740eeef769950739901b23d6ea030928ae488e82bd79ee71e03873ae",
+      "1-purpose": "d0f6143aa6d090d31637259518ed945e9c46e7ed2fd43555fcba65c69b415914",
+      "109-impact-and-conflict-are-declared": "f79f7cdd197df87d37da55cf1ebdceab6dfc7ceee68df0a336cfc8289a08bbf0",
+      "2-territory": "b76e6a3db62d7b9b2fbd03b391a5be194e99d80b210f9f530454b74b17c1733b",
+      "3-1-two-declarations-in-frontmatter": "b6c7e23e83c3ac8fe98c93faf7349ccf5face8494b62722f2e11f4d724be1d0d",
+      "3-2-an-impact-names-an-obligation-qualified-and-resolving": "6f9e5f58a64946e5907a5f0102d42309b27e5328589ccf500f70e91f2232bb42",
+      "3-3-a-conflict-is-declared-not-resolved": "006189e2ad89a5acb060c1075b9d1bd03089fc46c6d0e5042686921ad8130356",
+      "3-4-validation-at-compile": "c9099f9d7341a74597c63155bfbfc88c6c6845877154625cca82a691b9be536f",
+      "3-5-what-these-establish-and-what-they-do-not": "056c209a71ee1224ba5138a4371c5a73147c5620353308686680c33ba40627a2",
+      "3-6-the-read-inverts-the-declarations": "711951ef725bf6a8434796c4ad12d5fcb1d39e0de87ccc43f5adca9019ccbf58",
+      "3-7-the-registry-and-the-versions": "50ce099e19508580bf854bdbd41b1b0539dea98573eedf6c80dc51be302b6819",
+      "3-8-nothing-gates-on-either": "8553875c25827a670396954338c0df5cb896978f93e9eb7e2aded3b4975f8387",
+      "3-behavior": "cd906db41aa4fbd34068fba88138af6667694f7be926787db62bca62d1c72393",
+      "4-out-of-scope": "09577175655c0ca7d56418849ff5248229a9e183ea44a9f0ce7af7cddc0768c9",
+      "5-resolved-decisions": "9e214ecc50961ff026d39fc0c676831c376acf8f3a79566892ca379a5725be7f",
+      "verification": "b218a4120ded5746b15ac517b45617ba00d467c050c212e0d305cbdb04105f9b"
+    },
+    "sectionHeadings": [
+      "109: Impact and conflict are declared",
+      "1. Purpose",
+      "1.1 Why the obligations dependency is real",
+      "1.2 What it enables (D-1)",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Two declarations, in frontmatter",
+      "3.2 An impact names an obligation, qualified and resolving",
+      "3.3 A conflict is declared, not resolved",
+      "3.4 Validation at compile",
+      "3.5 What these establish, and what they do not",
+      "3.6 The read inverts the declarations",
+      "3.7 The registry and the versions",
+      "3.8 Nothing gates on either",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/109-impact-and-conflict-are-declared/spec.md",
+    "status": "draft",
+    "summary": "A spec can say which specs it extends and amends. It cannot say which requirements it is expected to affect, or which requirements it knowingly conflicts with. Both are declared in frontmatter against spec 106's qualified obligation ids, validated at compile, carried in the registry, and answered by one read that inverts the declarations so the affected side can see them. Nothing gates on either, and nothing computes an impact.\n",
+    "title": "Impact and conflict are declared"
+  },
+  "shardHash": "c71a667f50743a49d8109b555688ddcc9d01e82cfd4bf245a3b084f77855a80d",
+  "specVersion": "1.4.0"
+}
