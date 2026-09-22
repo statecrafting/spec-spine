@@ -1518,6 +1518,19 @@ fn corrupt_prior_config_refuses_exit_3() {
         err.contains("merge-base"),
         "the refusal must name which snapshot was at fault: {err}"
     );
+    // A Rust string literal wrapped across source lines without a trailing
+    // backslash keeps the indentation as a run of spaces in the rendered
+    // message, and a short substring assertion cannot see it. These two span
+    // the wrap points, so they can. (The whole message is not whitespace-free:
+    // the embedded cause is a TOML diagnostic with its own layout.)
+    assert!(
+        err.contains("could not be read, so this change's deletions cannot be judged"),
+        "the first sentence must not be broken by source indentation: {err}"
+    );
+    assert!(
+        err.contains("repair that commit's spec-spine.toml and rebase"),
+        "the remedy must not be broken by source indentation: {err}"
+    );
 }
 
 #[test]

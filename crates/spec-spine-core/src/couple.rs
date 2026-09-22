@@ -144,6 +144,18 @@ impl PriorOwnership {
 /// the working-tree diff. The segment is carried here rather than on
 /// [`DiffFile`] so the diff's serialized shape does not move, and because the
 /// caller that computes the segments is the same one that builds the snapshots.
+///
+/// **A partial set is allowed and resolves the missing side at head.** Either
+/// field may be `None` independently, including with a non-empty
+/// `worktree_deletions`, and a deletion whose side is `None` is judged at head
+/// and reported as [`SNAPSHOT_HEAD_TREE`]. This is §3.8's compatibility path
+/// rather than §3.5's refusal: §3.5 is about evidence the gate tried to obtain
+/// and could not, and the CLI refuses there (it never constructs a partial
+/// set, because its exporter builds exactly the sides the run's deletions
+/// need). A caller that declares no snapshot has not failed to read one, so
+/// the library records which snapshot answered instead of guessing what the
+/// caller meant. Anyone wanting §3.5's guarantee supplies the side, and the
+/// `head-tree` token in the report is how a reader tells the two apart.
 #[derive(Clone, Debug, Default)]
 pub struct PriorSnapshots<'a> {
     /// Answers for deletions recorded in `merge-base...head`.

@@ -503,6 +503,22 @@ left dangling and the gate is actually reached. The discriminating property is
 unaffected: the path is absent at the merge base and owned at HEAD, so a
 base-only design passes it and this one refuses.
 
+**D-10 (2026-09-21, review: a partial snapshot set is the compatibility path,
+not an unmet §3.5 refusal).** Raised on the pull request: `PriorSnapshots` lets
+`merge_base` and `head_commit` be `None` independently, so a facade caller
+supplying `priorRoots` with only `mergeBase` gets working-tree deletions
+resolved at head. That is §3.8's compatibility path reaching one side of a run
+rather than the whole of it, and it is not §3.5's case: §3.5 refuses evidence
+the gate tried to obtain and could not, and the CLI is where that obtaining
+happens. The CLI never constructs a partial set, because `PriorExports::build`
+builds exactly the sides the run's deletions need. A caller that declares no
+snapshot for a side has not failed to read one, and the run is not silent about
+it: §3.7's provenance records `head-tree` for every path resolved that way, in
+the verdict a reader reviews. The behavior therefore stands and the contract is
+written down instead, in `PriorSnapshots`'s rustdoc and in `docs/api.md`, which
+is what §3.8 already requires of every path that does not carry the
+two-snapshot guarantee.
+
 ## Verification
 
 Behavioral assertions. Every case below is a test that constructs a corpus,

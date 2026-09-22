@@ -326,7 +326,12 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   `priorRoots` (spec 100) names exported trees in exactly the sense
   `delta_json` takes `baseRoot` and `headRoot`; each is compiled and indexed
   under **its own** `spec-spine.toml`. Absent, deletions resolve at head, which
-  is the compatibility behavior and not the correction.
+  is the compatibility behavior and not the correction. **Each side is
+  independent**: supplying `mergeBase` without `headCommit` (or the reverse)
+  is accepted, and the side you did not supply resolves at head and is labelled
+  `head-tree` in the report. The library does not guess what a partial set
+  meant, and the CLI never sends one: it exports exactly the sides the run's
+  deletions need.
 - `delta_json` (spec 071) request: `{ "config"?: Config, "baseRoot": string,
   "headRoot": string, "changed": [string], "commits": { "base", "mergeBase",
   "head" } }`. The two roots are exported trees; `config` is the merge base's

@@ -141,6 +141,6 @@
     "summary": "The coupling gate resolves a deleted path's owners from the head index, where the claim the same change withdrew no longer exists, so a correct removal is refused as C-001 against a package floor that has nothing to say about it. A deleted path is judged against the snapshot that precedes the segment its deletion belongs to, reconstructed from that snapshot's own source bytes, and a snapshot the gate cannot reconstruct is an explicit non-success rather than a head-only pass.\n",
     "title": "A deleted path is judged where it lived"
   },
-  "shardHash": "0ff2a03cdf3415b1a26214b6b7e9d963b5dfe1e1e01d9640c34962b9605a33ab",
+  "shardHash": "029dfdea83ef21aa2345de90830b2c99e9e281fe6467be9673c8138ea0d0c3a8",
   "specVersion": "1.3.0"
 }

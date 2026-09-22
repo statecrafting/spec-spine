@@ -850,7 +850,9 @@ fn snapshot_at(
     // which says nothing about which commit is at fault.
     let cfg = tree_config(&dest).map_err(|e| {
         Error::Parse(format!(
-            "the {label} snapshot's configuration could not be read, so this change's              deletions cannot be judged: {e}. The snapshot is {commit}; repair that              commit's spec-spine.toml and rebase rather than re-running."
+            "the {label} snapshot's configuration could not be read, so this change's \
+             deletions cannot be judged: {e}. The snapshot is {commit}; repair that \
+             commit's spec-spine.toml and rebase rather than re-running."
         ))
     })?;
     let paths = tracked_paths(repo, commit)?;
