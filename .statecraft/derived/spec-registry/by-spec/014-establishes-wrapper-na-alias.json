@@ -70,5 +70,5 @@
     "title": "Frontmatter sugar: `unit:`-wrapped establishes items and the `n/a` implementation alias"
   },
   "shardHash": "f5524e28b68ba7606746a6d615e7d057be097539e6fbb21ea3cbb2e8915283f0",
-  "specVersion": "1.4.0"
+  "specVersion": "1.5.0"
 }

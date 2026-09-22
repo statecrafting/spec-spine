@@ -16,6 +16,7 @@ use crate::edges::{
     CoAuthorityItem, ConstrainItem, ExtendItem, Origin, ReferenceItem, RefineItem, SupersedeItem,
 };
 use crate::frontmatter::{Implementation, Risk, Status};
+use crate::impact::{Conflict, Impact};
 use crate::obligation::Obligation;
 use crate::unit::Unit;
 
@@ -128,6 +129,16 @@ pub struct SpecRecord {
     /// lines. Beside the spec's full content hash, never instead of it.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub section_digests: BTreeMap<String, String>,
+
+    // --- declared impact and conflict (spec 109) ---
+    /// This spec's declared relations to other specs' obligations, `obligation`
+    /// normalized to its full qualified form (spec 109 §3.7).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub impacts: Vec<Impact>,
+    /// This spec's declared, unresolved disagreements with other specs'
+    /// obligations, `obligation` normalized the same way.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub conflicts: Vec<Conflict>,
 
     // --- overflow ---
     /// Declared keys carry any JSON value (spec 012); undeclared keys are

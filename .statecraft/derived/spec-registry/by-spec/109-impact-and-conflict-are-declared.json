@@ -7,28 +7,204 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-types/src/impact.rs",
-        "planned": true
+        "path": "crates/spec-spine-types/src/impact.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/src/impact.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/src/impact.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/impacts.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/impacts.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/impacts.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/impacts.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/frontmatter.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "106-obligations-are-declared-constraints",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/obligations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "088-the-template-teaches-the-whole-grammar",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/templates/spec-template.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "103-a-verifier-fixture-is-a-published-artifact",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
       }
     ],
     "id": "109-impact-and-conflict-are-declared",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-2-an-impact-names-an-obligation-qualified-and-resolving",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "An impact names an obligation, qualified, and it must resolve."
+      },
+      {
+        "anchor": "3-3-a-conflict-is-declared-not-resolved",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "A conflict is declared, with a reason and a resolution, never resolved by the declaration itself."
+      },
+      {
+        "anchor": "3-3-a-conflict-is-declared-not-resolved",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "An unresolved conflict is reported by lint at warning tier, once per entry, and never refuses without --fail-on-warn."
+      },
+      {
+        "anchor": "3-4-validation-at-compile",
+        "id": "R-4",
+        "kind": "requirement",
+        "text": "A declaration naming a withdrawn obligation is valid, and the read reports the target as withdrawn."
+      },
+      {
+        "anchor": "3-8-nothing-gates-on-either",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "couple MUST NOT consult impacts or conflicts, and no verb refuses on their account except the validation errors of 3.4 and the --fail-on-warn refusal of an unresolved warning."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/impacts.rs",
+          "crates/spec-spine-cli/tests/impacts.rs"
+        ],
+        "kind": "verification",
+        "text": "Every declared rule is refused at compile with its code, the read inverts and sorts correctly, and a corpus without either key compiles to unchanged shardHash values."
+      }
+    ],
     "owner": "The spec-spine Authors",
     "references": [
       {
@@ -50,7 +226,7 @@
       "1-1-why-the-obligations-dependency-is-real": "c0bc14b6209b19ddfb9fc396dfda381810a87f51d8385ee711fc552d59db9610",
       "1-2-what-it-enables-d-1": "0317338e740eeef769950739901b23d6ea030928ae488e82bd79ee71e03873ae",
       "1-purpose": "d0f6143aa6d090d31637259518ed945e9c46e7ed2fd43555fcba65c69b415914",
-      "109-impact-and-conflict-are-declared": "f79f7cdd197df87d37da55cf1ebdceab6dfc7ceee68df0a336cfc8289a08bbf0",
+      "109-impact-and-conflict-are-declared": "37f2b029eb40da2547b1d43b5aae7730089a31d34f5084686338706e4a163f74",
       "2-territory": "b76e6a3db62d7b9b2fbd03b391a5be194e99d80b210f9f530454b74b17c1733b",
       "3-1-two-declarations-in-frontmatter": "b6c7e23e83c3ac8fe98c93faf7349ccf5face8494b62722f2e11f4d724be1d0d",
       "3-2-an-impact-names-an-obligation-qualified-and-resolving": "6f9e5f58a64946e5907a5f0102d42309b27e5328589ccf500f70e91f2232bb42",
@@ -62,7 +238,7 @@
       "3-8-nothing-gates-on-either": "8553875c25827a670396954338c0df5cb896978f93e9eb7e2aded3b4975f8387",
       "3-behavior": "cd906db41aa4fbd34068fba88138af6667694f7be926787db62bca62d1c72393",
       "4-out-of-scope": "09577175655c0ca7d56418849ff5248229a9e183ea44a9f0ce7af7cddc0768c9",
-      "5-resolved-decisions": "9e214ecc50961ff026d39fc0c676831c376acf8f3a79566892ca379a5725be7f",
+      "5-resolved-decisions": "5348152eb8ae4019d48263065f5165c0e2db0a90dbaa1acd9c26ea8795ed449b",
       "verification": "b218a4120ded5746b15ac517b45617ba00d467c050c212e0d305cbdb04105f9b"
     },
     "sectionHeadings": [
@@ -89,6 +265,6 @@
     "summary": "A spec can say which specs it extends and amends. It cannot say which requirements it is expected to affect, or which requirements it knowingly conflicts with. Both are declared in frontmatter against spec 106's qualified obligation ids, validated at compile, carried in the registry, and answered by one read that inverts the declarations so the affected side can see them. Nothing gates on either, and nothing computes an impact.\n",
     "title": "Impact and conflict are declared"
   },
-  "shardHash": "c71a667f50743a49d8109b555688ddcc9d01e82cfd4bf245a3b084f77855a80d",
-  "specVersion": "1.4.0"
+  "shardHash": "8c1db230b46f6d01288f4c9ff3967a2f694af750046cca3d3325f07488fd43e4",
+  "specVersion": "1.5.0"
 }

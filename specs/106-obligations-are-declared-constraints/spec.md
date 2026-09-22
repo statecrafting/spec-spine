@@ -458,8 +458,12 @@ cargo build --release --locked
 cargo test -p spec-spine-core --test obligations --locked
 # 3.6: the read through the shipped CLI, including the unqualified refusal.
 cargo test -p spec-spine-cli --test obligations --locked
-# 3.5, 3.9: the registry schema moved, and the shards conform to it.
-grep -q 'REGISTRY_SCHEMA_VERSION: &str = "1.4.0"' crates/spec-spine-types/src/version.rs
+# 3.5, 3.9: the registry schema moved, and the shards conform to it. A name
+# check, not a value pin (085's own doctrine, and the convention 074/082/102
+# already use for this same constant): fixed by spec 109, whose own additive
+# MINOR (1.5.0) is exactly the legitimate later move this line was pinning
+# against (109 D-7).
+grep -qF 'REGISTRY_SCHEMA_VERSION' crates/spec-spine-types/src/version.rs
 cargo test --workspace emitted_registry_conforms --locked
 # This spec's own obligations compile and resolve.
 ./target/release/spec-spine registry obligation 106-obligations-are-declared-constraints#R-5 --json | grep -q '"sectionDigest"'

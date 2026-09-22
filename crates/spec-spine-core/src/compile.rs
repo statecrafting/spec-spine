@@ -30,6 +30,10 @@ const CROSS_SPEC_CODES: &[&str] = &[
     // something about a spec other than the one being validated, so each is
     // corpus-wide and none belongs on a single spec's shard.
     "V-015", "V-016", "V-017",
+    // Spec 109 §3.4: an impact/conflict reference that must resolve a spec id
+    // against the corpus (dangling, self-referencing, duplicate once short ids
+    // are normalized, and `settled_by`).
+    "V-028", "V-029", "V-030", "V-031",
 ];
 
 /// The cap on **undeclared** `extra_frontmatter` keys before `V-007` fires.
@@ -178,6 +182,19 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
             let resolved = resolve_spec_ref(item.spec(), &all_ids);
             item.set_spec(resolved);
         }
+        // Spec 109 §3.7: an impact/conflict `obligation` reference's spec half
+        // normalizes the same way; an unqualified reference, or one whose spec
+        // half does not resolve, is left unchanged (`V-025`/`V-028` report
+        // those). `settled_by` is a bare spec id, normalized like `depends_on`.
+        for imp in &mut p.fm.impacts {
+            imp.obligation = normalize_obligation_ref(&imp.obligation, &all_ids);
+        }
+        for c in &mut p.fm.conflicts {
+            c.obligation = normalize_obligation_ref(&c.obligation, &all_ids);
+            if let Some(by) = c.settled_by.as_mut() {
+                *by = resolve_spec_ref(by, &all_ids);
+            }
+        }
     }
 
     // --- per-spec validation + record construction ---
@@ -193,6 +210,7 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
             &mut violations,
         );
         validate_obligations(&p.spec_path, &p.fm, &p.body, &mut violations);
+        validate_impacts_local(&p.spec_path, &p.fm, &mut violations);
         records.push(build_record(p.fm, p.spec_path, &p.body));
     }
     records.sort_by(|a, b| a.id.cmp(&b.id));
@@ -209,6 +227,9 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
     // A rule that cannot fire is worse than no rule, because the spec would
     // promise a refusal that never happens.
     validate_planned_territory(&records, &mut violations);
+    // Spec 109 §3.4 rules 2-4, and the `settled_by` rule of §3.3: the
+    // impact/conflict checks that must resolve a spec id against the corpus.
+    detect_impact_cross_spec(&records, &mut violations);
 
     // --- shard projection + aggregate content hash (spec 022) ---
     // One shard per spec, each carrying its compiled record, its corpus-
@@ -795,6 +816,8 @@ fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
         origin: fm.origin,
         section_digests: section_digests(&spec_path_for_digests, body),
         obligations: fm.obligations,
+        impacts: fm.impacts,
+        conflicts: fm.conflicts,
         extra_frontmatter: fm.extra_frontmatter,
     }
 }
@@ -893,6 +916,255 @@ fn validate_obligations(spec_path: &str, fm: &Frontmatter, body: &str, out: &mut
                 format!("obligation '{}' has empty text", ob.id),
                 at(),
             ));
+        }
+    }
+}
+
+/// Normalize a qualified obligation reference's spec half to its full id
+/// (spec 109 §3.7), mirroring `resolve_spec_ref`'s short-id resolution for
+/// `depends_on`. An unqualified reference, or one whose spec half does not
+/// resolve, is returned unchanged: `V-025` and `V-028` are what report those,
+/// and normalizing a reference that will be refused anyway would hide what the
+/// author actually wrote from the violation message.
+fn normalize_obligation_ref(
+    reference: &str,
+    all_ids: &std::collections::BTreeSet<String>,
+) -> String {
+    match spec_spine_types::split_obligation_ref(reference) {
+        Some((spec_part, ob_id)) => format!("{}#{ob_id}", resolve_spec_ref(spec_part, all_ids)),
+        None => reference.to_string(),
+    }
+}
+
+/// Spec 109 §3.4 rule 1, §3.2's successor rules, and §3.3's `reason` rule: the
+/// impact/conflict checks that are a pure function of one spec. Malformed
+/// members were already refused at parse (`V-002`).
+fn validate_impacts_local(spec_path: &str, fm: &Frontmatter, out: &mut Vec<Violation>) {
+    if fm.impacts.is_empty() && fm.conflicts.is_empty() {
+        return;
+    }
+    let at = || Some(spec_path.to_string());
+    // Live (non-withdrawn) ids this spec declares, for the successor rule
+    // (§3.2): a successor must be one of them.
+    let live_ids: std::collections::BTreeSet<&str> = fm
+        .obligations
+        .iter()
+        .filter(|o| !o.withdrawn)
+        .map(|o| o.id.as_str())
+        .collect();
+    let withdrawn_ids: std::collections::BTreeSet<&str> = fm
+        .obligations
+        .iter()
+        .filter(|o| o.withdrawn)
+        .map(|o| o.id.as_str())
+        .collect();
+
+    for imp in &fm.impacts {
+        if spec_spine_types::split_obligation_ref(&imp.obligation).is_none() {
+            out.push(error(
+                "V-025",
+                format!(
+                    "impact references '{}', which is not a qualified obligation reference \
+                     (<spec-id>#<obligation-id>): an unqualified reference is refused, never \
+                     resolved locally",
+                    imp.obligation
+                ),
+                at(),
+            ));
+        }
+        match (imp.nature, &imp.successor) {
+            (spec_spine_types::ImpactNature::Supersedes, None) => out.push(error(
+                "V-026",
+                format!(
+                    "impact on '{}' is nature 'supersedes' and names no successor: a \
+                     supersession with no successor is a deletion wearing a different word",
+                    imp.obligation
+                ),
+                at(),
+            )),
+            (spec_spine_types::ImpactNature::Supersedes, Some(succ)) => {
+                if !live_ids.contains(succ.as_str()) {
+                    let why = if withdrawn_ids.contains(succ.as_str()) {
+                        "is withdrawn"
+                    } else {
+                        "is not an obligation this spec declares"
+                    };
+                    out.push(error(
+                        "V-026",
+                        format!(
+                            "impact on '{}' names successor '{succ}', which {why}",
+                            imp.obligation
+                        ),
+                        at(),
+                    ));
+                }
+            }
+            (_, Some(succ)) => out.push(error(
+                "V-026",
+                format!(
+                    "impact on '{}' names successor '{succ}', and only a 'supersedes' impact \
+                     may: a member that means nothing on any other nature is a member somebody \
+                     will misread",
+                    imp.obligation
+                ),
+                at(),
+            )),
+            (_, None) => {}
+        }
+    }
+
+    for c in &fm.conflicts {
+        if spec_spine_types::split_obligation_ref(&c.obligation).is_none() {
+            out.push(error(
+                "V-025",
+                format!(
+                    "conflict references '{}', which is not a qualified obligation reference \
+                     (<spec-id>#<obligation-id>): an unqualified reference is refused, never \
+                     resolved locally",
+                    c.obligation
+                ),
+                at(),
+            ));
+        }
+        if c.reason.trim().is_empty() {
+            out.push(error(
+                "V-027",
+                format!("conflict on '{}' has empty reason", c.obligation),
+                at(),
+            ));
+        }
+    }
+}
+
+/// Spec 109 §3.4 rules 2-4, and the `settled_by` rule of §3.3: the
+/// impact/conflict checks that must resolve a spec id against the corpus,
+/// exactly as `depends_on`'s dangling check (`V-010`) does. Corpus-wide, so
+/// these codes are in [`CROSS_SPEC_CODES`] and [`recompute_cross_spec_violations`]
+/// re-derives them from the assembled records on read.
+fn detect_impact_cross_spec(records: &[SpecRecord], out: &mut Vec<Violation>) {
+    let by_id: std::collections::BTreeMap<&str, &SpecRecord> =
+        records.iter().map(|r| (r.id.as_str(), r)).collect();
+
+    for r in records {
+        let at = Some(r.spec_path.clone());
+
+        let mut seen: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
+        for imp in &r.impacts {
+            check_obligation_reference(&imp.obligation, r, &by_id, "impact", out, at.clone());
+            if !seen.insert(imp.obligation.as_str()) {
+                out.push(error(
+                    "V-030",
+                    format!(
+                        "spec '{}' names '{}' twice in impacts",
+                        r.id, imp.obligation
+                    ),
+                    at.clone(),
+                ));
+            }
+        }
+
+        let mut seen: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
+        for c in &r.conflicts {
+            check_obligation_reference(&c.obligation, r, &by_id, "conflict", out, at.clone());
+            if !seen.insert(c.obligation.as_str()) {
+                out.push(error(
+                    "V-030",
+                    format!(
+                        "spec '{}' names '{}' twice in conflicts",
+                        r.id, c.obligation
+                    ),
+                    at.clone(),
+                ));
+            }
+            match (c.resolution, &c.settled_by) {
+                (spec_spine_types::ConflictResolution::Pending, None) => out.push(error(
+                    "V-031",
+                    format!(
+                        "spec '{}' conflict on '{}' is resolution 'pending' and names no \
+                         settled_by",
+                        r.id, c.obligation
+                    ),
+                    at.clone(),
+                )),
+                (spec_spine_types::ConflictResolution::Pending, Some(by)) => {
+                    if !by_id.contains_key(by.as_str()) {
+                        out.push(error(
+                            "V-031",
+                            format!(
+                                "spec '{}' conflict on '{}' names settled_by '{by}', which does \
+                                 not resolve to an existing spec",
+                                r.id, c.obligation
+                            ),
+                            at.clone(),
+                        ));
+                    }
+                }
+                (_, Some(by)) => out.push(error(
+                    "V-031",
+                    format!(
+                        "spec '{}' conflict on '{}' names settled_by '{by}', and only a \
+                         'pending' conflict may",
+                        r.id, c.obligation
+                    ),
+                    at.clone(),
+                )),
+                (_, None) => {}
+            }
+        }
+    }
+}
+
+/// One impact/conflict `obligation` reference against the assembled corpus
+/// (spec 109 §3.4 rules 2-3): dangling (`V-028`, the spec or the obligation on
+/// it does not exist) or self-referencing (`V-029`, withdrawal and
+/// supersession inside one spec are what the tombstone is for). Already
+/// unqualified references are skipped: `V-025` reported those, and this would
+/// only restate it under a different code.
+fn check_obligation_reference(
+    reference: &str,
+    r: &SpecRecord,
+    by_id: &std::collections::BTreeMap<&str, &SpecRecord>,
+    kind: &str,
+    out: &mut Vec<Violation>,
+    at: Option<String>,
+) {
+    let Some((spec_part, ob_id)) = spec_spine_types::split_obligation_ref(reference) else {
+        return;
+    };
+    if spec_part == r.id {
+        out.push(error(
+            "V-029",
+            format!(
+                "spec '{}' {kind} '{reference}' names an obligation of the declaring spec \
+                 itself: withdrawal and supersession inside one spec are what the tombstone is \
+                 for",
+                r.id
+            ),
+            at,
+        ));
+        return;
+    }
+    match by_id.get(spec_part) {
+        None => out.push(error(
+            "V-028",
+            format!(
+                "spec '{}' {kind} '{reference}' does not resolve: no spec '{spec_part}'",
+                r.id
+            ),
+            at,
+        )),
+        Some(target) => {
+            if !target.obligations.iter().any(|o| o.id == ob_id) {
+                out.push(error(
+                    "V-028",
+                    format!(
+                        "spec '{}' {kind} '{reference}' does not resolve: '{spec_part}' \
+                         declares no obligation '{ob_id}'",
+                        r.id
+                    ),
+                    at,
+                ));
+            }
         }
     }
 }
@@ -1216,7 +1488,9 @@ pub fn load_committed_registry(cfg: &Config, repo_root: &Path) -> Result<Registr
     })
 }
 
-/// Re-derive the corpus-wide validation findings (V-003/004/008/010/014) from
+/// Re-derive the corpus-wide validation findings (V-003/004/008/010/014, and,
+/// by linkage through [`detect_amends_verification`] and
+/// [`detect_impact_cross_spec`], V-018/019/020 and V-028/029/030/031) from
 /// the assembled records. A local mirror of the cross-spec checks in
 /// [`compile`] (kept equal by value for V-003/004/008/010, and by linkage for
 /// V-014, which both paths reach through [`detect_dependency_cycle`]), so the
@@ -1259,6 +1533,7 @@ fn recompute_cross_spec_violations(records: &[SpecRecord]) -> Vec<Violation> {
     }
     detect_dependency_cycle(records, &mut out);
     detect_amends_verification(records, &mut out);
+    detect_impact_cross_spec(records, &mut out);
     out
 }
 

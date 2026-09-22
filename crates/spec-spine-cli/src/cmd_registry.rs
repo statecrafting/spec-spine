@@ -66,6 +66,18 @@ pub enum RegistryQuery {
         #[arg(long)]
         json: bool,
     },
+    /// Every declared impact and conflict (spec 109), inverted so the target
+    /// side can see what was declared about it. `--target` is a spec id
+    /// (every obligation it declares) or a qualified `<spec-id>#<obligation-id>`
+    /// reference; `--declared-by` is a spec id; both compose by intersection.
+    Impacts {
+        #[arg(long, value_name = "REF")]
+        target: Option<String>,
+        #[arg(long, value_name = "SPEC")]
+        declared_by: Option<String>,
+        #[arg(long)]
+        json: bool,
+    },
     /// Which specs can be worked on now, and what blocks the rest (spec 035).
     Plan {
         #[arg(long)]
@@ -239,6 +251,54 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 }
             }
         }
+        RegistryQuery::Impacts {
+            target,
+            declared_by,
+            json,
+        } => {
+            let set =
+                spec_spine_core::impacts(&registry, target.as_deref(), declared_by.as_deref())?;
+            if *json {
+                print_json(&set)?;
+            } else if set.impacts.is_empty() && set.conflicts.is_empty() {
+                outln!("(no declarations)");
+            } else {
+                for imp in &set.impacts {
+                    outln!(
+                        "impact    {} -> {}  {}{}{}",
+                        imp.declared_by,
+                        imp.target,
+                        label(imp.nature),
+                        imp.successor
+                            .as_deref()
+                            .map(|s| format!("  successor={s}"))
+                            .unwrap_or_default(),
+                        if imp.target_withdrawn {
+                            "  (target withdrawn)"
+                        } else {
+                            ""
+                        }
+                    );
+                }
+                for c in &set.conflicts {
+                    outln!(
+                        "conflict  {} -> {}  {}{}{}",
+                        c.declared_by,
+                        c.target,
+                        label(c.resolution),
+                        c.settled_by
+                            .as_deref()
+                            .map(|s| format!("  settled_by={s}"))
+                            .unwrap_or_default(),
+                        if c.target_withdrawn {
+                            "  (target withdrawn)"
+                        } else {
+                            ""
+                        }
+                    );
+                }
+            }
+        }
         RegistryQuery::Closure { request, json } => {
             let text = if request == "-" {
                 let mut buf = String::new();
@@ -399,6 +459,17 @@ fn parse_status(s: &str) -> Result<Status, Error> {
             "unknown status '{other}' (expected draft|approved|superseded|retired)"
         ))),
     }
+}
+
+/// The lowercase wire spelling of a `lowercase`-serde enum (spec 109's
+/// `ImpactNature` / `ConflictResolution`), for the text rendering: `{:?}`
+/// would print `Refines`, and the wire form a reader of the frontmatter wrote
+/// is `refines`.
+fn label(v: impl serde::Serialize) -> String {
+    serde_json::to_value(v)
+        .ok()
+        .and_then(|v| v.as_str().map(str::to_string))
+        .unwrap_or_default()
 }
 
 fn status_label(s: Status) -> &'static str {

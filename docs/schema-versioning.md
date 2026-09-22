@@ -10,14 +10,14 @@
 
 | Artifact | Field | Current | Owner |
 |---|---|---|---|
-| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.4.0` | library |
+| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.5.0` | library |
 | index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`) | `schemaVersion` | `1.1.0` | library |
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.5.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.1.0` | library |
-| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.2.0` | library |
+| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.5.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
 
@@ -60,6 +60,11 @@ MINOR history:
   because every spec has headings, so every shard's bytes change once; no
   `shardHash` moves, because it is over `spec.md`. (This table read `1.2.0`
   before this change; `1.3.0` was spec 082's `amendsVerification`.)
+- registry `1.5.0` (spec 109): additive `impacts` and `conflicts` on a record,
+  each entry's `obligation` normalized to its full qualified
+  `<spec-id>#<obligation-id>` form. Absent on every existing spec (neither key
+  existed before this spec), so only `specVersion` restamps and no
+  `shardHash` moves.
 
 MAJOR history:
 
@@ -274,6 +279,14 @@ an existing document moved.
 (`registry closure --request <file> --json`, `closure_json`),
 `{ "digest", "members", "rationale"?, "schemaVersion" }`. No member of an
 existing document moved.
+
+**`0.5.0` (spec 109), additive.** A new read document: the impact set
+(`registry impacts [--target] [--declared-by] --json`, `query_json`
+`op: "impacts"`), `{ "impacts": [...], "conflicts": [...], "schemaVersion" }`.
+No member of an existing document moved. (This table's summary row above had
+drifted to `0.2.0` since spec 102; corrected here alongside the axis's own
+move, since spec 106's and 107's entries below were already accurate and only
+the summary line had fallen behind.)
 
 ## Migration note: spec 034, the verdict envelope
 

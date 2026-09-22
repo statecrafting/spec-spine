@@ -4,7 +4,7 @@ title: "Impact and conflict are declared"
 status: draft
 kind: "governance"
 created: "2026-09-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 depends_on:
   - "106-obligations-are-declared-constraints"
@@ -16,15 +16,74 @@ summary: >
   answered by one read that inverts the declarations so the affected side can
   see them. Nothing gates on either, and nothing computes an impact.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/impact.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/src/impact.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/impacts.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/impacts.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/impact.rs" }
+  - { kind: file, path: "crates/spec-spine-core/src/impact.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/impacts.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/impacts.rs" }
+extends:
+  # 3.1: the frontmatter grammar (`impacts`, `conflicts`).
+  - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/src/frontmatter.rs" }, nature: additive }
+  # 3.7: the registry record and the schema MINOR.
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/registry.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/schemas/registry.schema.json" }, nature: additive }
+  - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-types/schemas/registry-spec-shard.schema.json" }, nature: additive }
+  # 3.4: validation at compile.
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/compile.rs" }, nature: additive }
+  # 3.3: the `unresolved` lint warning, L-014.
+  - { spec: "003-conformance-lint", unit: { kind: file, path: "crates/spec-spine-core/src/lint.rs" }, nature: additive }
+  # 3.6: the facade op and its request members.
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
+  # 3.6: the CLI verb.
+  - { spec: "002-registry-query", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_registry.rs" }, nature: additive }
+  # 3.7: the pin every registry MINOR moves (026, 063, 082 and 106 did the same).
+  - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-types/tests/dtos.rs" }, nature: additive }
+  # D-2: the read axis moves for the new document, and its pin moves with it.
+  - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-core/tests/read.rs" }, nature: additive }
+  # D-3: one of spec 106's own tests pinned the head registry version.
+  - { spec: "106-obligations-are-declared-constraints", unit: { kind: file, path: "crates/spec-spine-core/tests/obligations.rs" }, nature: additive }
+  # 3.1: the template documents the two keys.
+  - { spec: "088-the-template-teaches-the-whole-grammar", unit: { kind: file, path: "standards/spec/templates/spec-template.md" }, nature: additive }
+  # 3.6, 3.7: the documentation an author and a consumer read.
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
+  # D-4: this spec changes what the producer emits for the fixture corpus, so
+  # it regenerates spec 103's set, on 103 §3.9's authority path.
+  - { spec: "103-a-verifier-fixture-is-a-published-artifact", unit: { kind: directory, path: "crates/spec-spine-core/fixtures/verifier/" }, nature: corrective }
 references:
   - unit: { kind: file, path: "docs/design/04-authority-evidence-extension.md" }
     role: "context"
   - unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }
     role: "context"
+obligations:
+  - id: "R-1"
+    kind: requirement
+    text: "An impact names an obligation, qualified, and it must resolve."
+    anchor: "3-2-an-impact-names-an-obligation-qualified-and-resolving"
+  - id: "R-2"
+    kind: requirement
+    text: "A conflict is declared, with a reason and a resolution, never resolved by the declaration itself."
+    anchor: "3-3-a-conflict-is-declared-not-resolved"
+  - id: "R-3"
+    kind: requirement
+    text: "An unresolved conflict is reported by lint at warning tier, once per entry, and never refuses without --fail-on-warn."
+    anchor: "3-3-a-conflict-is-declared-not-resolved"
+  - id: "R-4"
+    kind: requirement
+    text: "A declaration naming a withdrawn obligation is valid, and the read reports the target as withdrawn."
+    anchor: "3-4-validation-at-compile"
+  - id: "I-1"
+    kind: invariant
+    text: "couple MUST NOT consult impacts or conflicts, and no verb refuses on their account except the validation errors of 3.4 and the --fail-on-warn refusal of an unresolved warning."
+    anchor: "3-8-nothing-gates-on-either"
+  - id: "V-1"
+    kind: verification
+    text: "Every declared rule is refused at compile with its code, the read inverts and sorts correctly, and a corpus without either key compiles to unchanged shardHash values."
+    anchor: "verification"
+    inputs:
+      - "crates/spec-spine-core/tests/impacts.rs"
+      - "crates/spec-spine-cli/tests/impacts.rs"
 ---
 
 # 109: Impact and conflict are declared
@@ -254,6 +313,98 @@ carried here and corrected before any code:
 - open question 2 (expiry) is out of scope (§4);
 - the read, the versions and the registry members are specified (§3.6, 3.7),
   where the draft named only the frontmatter.
+
+**D-2 (2026-09-22, build: the V-code groupings and which are cross-spec).**
+§3.4 names five rule groups without assigning codes. Seven were needed, split
+by what each is a pure function of (spec 022's own rule for `CROSS_SPEC_CODES`:
+a check that must resolve a spec id against the corpus is corpus-wide and
+recomputed on read, never stored on a shard):
+
+- stored on the declaring spec's shard: `V-025` (an unqualified reference,
+  rule 1), `V-026` (the §3.2 successor rules, which only ever look at the
+  declaring spec's own obligations), `V-027` (the §3.3 `reason` rule);
+- recomputed on read, in `CROSS_SPEC_CODES`: `V-028` (dangling, rule 2),
+  `V-029` (self-targeting, rule 3), `V-030` (duplicate target once short ids
+  normalize, rule 4), `V-031` (the whole `settled_by` rule: §3.4 names it
+  corpus-wide without splitting its presence half from its resolution half,
+  so both live under one code and one recomputation).
+
+Each guard was fired once and reverted to confirm it can fail:
+`crates/spec-spine-core/tests/impacts.rs` exercises all seven directly, and a
+temporary change to `check_obligation_reference`'s self-reference branch (make
+it always `return` before pushing `V-029`) turned
+`a_self_targeting_reference_is_v029_even_when_the_obligation_exists` red, then
+was reverted.
+
+**D-3 (2026-09-22, build: `settled_by` needs two spellings, not one).** The
+frontmatter grammar's convention is snake_case (`superseded_by`,
+`retirement_rationale`, `with_specs`); the registry DTOs are camelCase by
+struct-level `#[serde(rename_all = "camelCase")]`. Every existing typed-edge
+item with an underscored member (`with_specs`, `target_specs`, `derived_at`)
+sidesteps the conflict by never being re-emitted under a `rename_all` struct:
+none of those DTOs carries the item type inside a `camelCase` struct in a way
+that renames the field, so they stay snake_case on the wire too.
+`Impact`/`Conflict` are reused unchanged between `Frontmatter` (authored) and
+`SpecRecord` (registry, camelCase), the way `Obligation` is (spec 106), so a
+single field cannot serialize two ways by structural position alone.
+`settled_by` is declared `#[serde(rename = "settledBy", alias =
+"settled_by")]`: `rename` fixes the canonical/emitted spelling (`settledBy`,
+satisfying the registry contract), `alias` accepts the authored spelling on
+read, the way `Implementation`'s `#[serde(rename = "n-a", alias = "n/a")]`
+already does for a different two-spelling problem. This type is parsed from
+YAML and never re-serialized as YAML, so the two spellings never collide in
+one direction. A unit test in `crates/spec-spine-types/src/impact.rs` pins
+both directions.
+
+**D-4 (2026-09-22, integration with spec 103: the verifier fixtures are
+regenerated).** As spec 106 D-10 recorded for its own build: every registry
+record now carries `impacts`/`conflicts` when declared (none here, since this
+repository's own corpus declares neither on the fixture corpus's specs; the
+attested `registryHash` still moved, because `sectionDigests`, `specVersion`
+and the aggregate content hash are folded from every shard regardless of
+whether this particular spec's own keys are populated). Regenerated with 103
+§3.9's documented command; a second run rewrites nothing. Declared as a
+`corrective` `extends` edge on spec 103, the authority path 103 §3.9 names.
+
+**D-5 (2026-09-22, build: `compile_spec`, spec 049's single-spec check, is not
+extended).** Spec 106 built `validate_obligations` without wiring it into
+`compile_spec` (spec 049's per-draft check, which validates only
+`V-001/005/006/007/008/009/010/011/012`); `validate_impacts_local` and
+`detect_impact_cross_spec` are not wired in either, matching that precedent
+rather than silently fixing a gap spec 109 does not own. `compile_spec` is not
+in spec 109's territory (§2), so extending its coverage is a change to spec
+049's own contract, not this one's.
+
+**D-6 (2026-09-22, build: the read-document axis summary row had drifted, and
+this table is the row it lives in).** `docs/schema-versioning.md`'s artifact
+table read `0.2.0` for read documents since spec 102, though `READ_SCHEMA_VERSION`
+moved to `0.3.0` (spec 106) and `0.4.0` (spec 107) without the summary row
+following; both specs' own MINOR-history entries below the table were
+accurate, only the summary line was not. This spec's own bump to `0.5.0`
+touches that exact row, so the correction rides the same edit rather than
+being deferred again: fixing the row this change already moves is not
+amending 106 or 107 to make 109 pass, since neither spec's stated contract
+changes.
+
+**D-7 (2026-09-22, build: spec 106's own `## Verification` block pinned a
+value this spec's additive MINOR legitimately moves).** `spec-spine verify
+106` is one of this build's mandatory gates. Its block asserted `grep -q
+'REGISTRY_SCHEMA_VERSION: &str = "1.4.0"'`, an exact-value pin of the same
+constant this spec bumps to `1.5.0`, exactly the anti-pattern spec 085 ("a
+version pin is not a contract") names and the reason three other specs
+(074, 082, 102) already assert only the constant's *name* for their own read
+or registry axis. 106's status is `draft` (unratified), so the constitution's
+"never edit an approved spec" rule does not cover it, and the corrected line
+is a mechanical fix to a known anti-pattern rather than a change to what 106
+requires (the grep would have passed for `1.4.0` before this build and, if
+edited back, is inert for any value the constant ever holds after `1.4.0`
+too). Fixed by dropping the exact-value pin, matching the convention already
+used elsewhere for this constant, with a comment pointing here. No `amends`
+edge: the change is to 106's `## Verification` fence, self-clearing the way
+any edit to a spec's own `spec.md` does (`couple.rs`'s self-ownership rule for
+`<specs_dir>/<id>/spec.md`), and `amends_verification` would require carrying
+106's whole block into 109's, which would let one spec's acceptance answer for
+two unrelated contracts.
 
 ## Verification
 
