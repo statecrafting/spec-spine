@@ -65,7 +65,8 @@ pub fn valid_obligation_id(id: &str) -> bool {
 ///
 /// `None` when the reference is unqualified: no `#`, more than one, or a
 /// half that is empty or carries whitespace (neither a spec id nor an
-/// obligation id can contain any, so such a half is not a qualified name). The caller refuses that; it never resolves it locally.
+/// obligation id can contain any, so such a half is not a qualified name).
+/// The caller refuses that; it never resolves it locally.
 pub fn split_obligation_ref(reference: &str) -> Option<(&str, &str)> {
     let (spec, id) = reference.split_once('#')?;
     let blank = |h: &str| h.is_empty() || h.chars().any(char::is_whitespace);
@@ -96,7 +97,9 @@ mod tests {
             split_obligation_ref("106-obligations#V-1"),
             Some(("106-obligations", "V-1"))
         );
-        for bad in ["R-1", "#R-1", "106#", "106#R#1", " #R-1", " 106#R-1", "106#R-1 "] {
+        for bad in [
+            "R-1", "#R-1", "106#", "106#R#1", " #R-1", " 106#R-1", "106#R-1 ",
+        ] {
             assert_eq!(split_obligation_ref(bad), None, "{bad}");
         }
     }
