@@ -1,0 +1,40 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "001-compile-registry"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/lib.rs"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/bindings-plan.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/bindings-plan.md"
+        }
+      }
+    ],
+    "specId": "115-bindings-are-designed-not-shipped",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "8fc62ff4a6a77c1b6072aba58d20598e5e679c5fedd27831df063eecc1d97464"
+}

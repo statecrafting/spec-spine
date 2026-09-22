@@ -1,0 +1,42 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "106-obligations-are-declared-constraints"
+    ],
+    "id": "109-impact-and-conflict-are-declared",
+    "implementation": "deferred",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "sectionHeadings": [
+      "109: Impact and conflict are declared",
+      "1. Purpose",
+      "1.1 Why the obligations dependency is real",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Two declarations, in frontmatter",
+      "3.2 An impact names an obligation, qualified and resolving",
+      "3.3 A conflict is declared, not resolved",
+      "3.4 What these establish, and what they do not",
+      "3.5 Nothing gates on either",
+      "4. Out of scope",
+      "5. Open design questions",
+      "Acceptance when built"
+    ],
+    "specPath": "specs/109-impact-and-conflict-are-declared/spec.md",
+    "status": "draft",
+    "summary": "A spec can say which specs it extends and amends. It cannot say which requirements a change is expected to affect, or which requirements it knowingly conflicts with. Both are declared against obligation ids, which is why this depends on spec 106 and on nothing else. Deferred: specified now, built when a consumer names the need.\n",
+    "title": "Impact and conflict are declared"
+  },
+  "shardHash": "d3637d87a3c2db604062033d1566d96ea3f36684764b9a37123685165db6c98a",
+  "specVersion": "1.3.0"
+}

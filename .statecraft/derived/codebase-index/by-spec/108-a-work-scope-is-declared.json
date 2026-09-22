@@ -1,0 +1,27 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "072-two-ready-specs-can-collide"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/design/04-authority-evidence-extension.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "specId": "108-a-work-scope-is-declared",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "a0369ba6ec66dd1d3d4a5d7f9a2994a8db402e066c8507acc1eb8c557d39976c"
+}

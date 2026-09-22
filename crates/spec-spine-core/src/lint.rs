@@ -49,9 +49,30 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         // This exempts the DECLARATION, never a claim: a superseded spec that
         // still names a unit is still held to every diagnostic about that unit,
         // because the unit is still written down.
+        // Spec 116: a spec marked `implementation: deferred` is the fourth case
+        // of the same exemption. The owner's rule of 2026-09-21 is "specify
+        // now, implement only for a named consumer need", so a corpus acting
+        // on it files complete contracts that are deliberately not scheduled.
+        // Such a spec must not claim territory: a speculative `establishes`
+        // raises an unresolved-unit diagnostic that `check --fail-on-unresolved`
+        // refuses, and `planned: true` on a file that already exists raises
+        // `L-012`. It is not an author who forgot; it is an author who wrote
+        // down, in the one field the corpus has for it, that nothing is
+        // scheduled.
+        //
+        // A ratchet, not a hole: nothing remembers the deferral, so the moment
+        // `implementation` moves to `pending`, `in-progress` or `complete` the
+        // warning applies again. `n-a` is deliberately not included; it means
+        // a ratified spec that owns nothing on purpose, which is a different
+        // statement, and nothing measured asks for it (spec 116 §3.3).
+        //
+        // Like the two exemptions beside it, this exempts the DECLARATION and
+        // never a claim: a deferred spec that names a unit is still held to
+        // every diagnostic about that unit.
         let withdrawn = matches!(spec.status, Status::Superseded | Status::Retired);
         let retroactive = spec.origin.as_ref().is_some_and(|o| o.retroactive);
-        if !retroactive && !withdrawn && !has_ownership_edge(spec) {
+        let deferred = spec.implementation == Some(spec_spine_types::Implementation::Deferred);
+        if !retroactive && !withdrawn && !deferred && !has_ownership_edge(spec) {
             violations.push(warn(
                 "L-001",
                 format!(

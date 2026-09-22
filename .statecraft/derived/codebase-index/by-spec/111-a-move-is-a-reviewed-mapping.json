@@ -1,0 +1,27 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "100-a-deleted-path-is-judged-where-it-lived"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/design/04-authority-evidence-extension.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "specId": "111-a-move-is-a-reviewed-mapping",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "d69e95d34133cfa928499678681b033d5817ea87f0d15fa3e1d06e90b092871f"
+}

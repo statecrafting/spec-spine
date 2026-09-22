@@ -1,0 +1,40 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "092-the-engine-ships-governance-not-an-environment"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/design/07-statecraft-realignment-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/07-statecraft-realignment-2026-09.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/09-disposition-2026-09-21.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      }
+    ],
+    "specId": "114-authoring-adapters-and-intent-are-separated",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "07edf22cbe91fed4adfaafbdbfa31052e7c64faa3290f3a2990f1e8cc8e9bb64"
+}

@@ -1,0 +1,40 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "070-an-authority-snapshot-says-what-it-read"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/design/04-authority-evidence-extension.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/09-disposition-2026-09-21.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      }
+    ],
+    "specId": "106-obligations-are-declared-constraints",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "b6b9a742bf2d64f77a2b172e4770abaa81ae2fadbffdcfb3de0fecef0356ea26"
+}

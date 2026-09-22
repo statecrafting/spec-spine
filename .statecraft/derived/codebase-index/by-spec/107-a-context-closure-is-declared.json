@@ -1,0 +1,27 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "106-obligations-are-declared-constraints"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/design/04-authority-evidence-extension.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "specId": "107-a-context-closure-is-declared",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "1de124891663433ba2132101cd555cefe87c8343985561af8255b78fa35d50ad"
+}

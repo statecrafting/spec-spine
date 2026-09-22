@@ -1,0 +1,51 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "005-coupling-gate"
+    ],
+    "id": "113-a-waiver-has-a-declared-lifecycle",
+    "implementation": "deferred",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/couple.rs"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "sectionHeadings": [
+      "113: A waiver has a declared lifecycle",
+      "1. Purpose",
+      "1.1 What is deliberately not being built",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A waiver declares its scope",
+      "3.2 A waiver declares an expiry, evaluated against a supplied time",
+      "3.3 A waiver declares an ancestry, evaluated against supplied commits",
+      "3.4 Usage is counted by the caller, never by the corpus",
+      "3.5 The verdict says which waiver cleared what",
+      "3.6 A failed lifecycle check refuses",
+      "3.7 A waiver is still a human instrument",
+      "4. Out of scope",
+      "5. Open design questions",
+      "Acceptance when built"
+    ],
+    "specPath": "specs/113-a-waiver-has-a-declared-lifecycle/spec.md",
+    "status": "draft",
+    "summary": "A `Spec-Drift-Waiver:` line clears every refusal in the pull request it appears in, once, with no scope, no expiry and no record. This adds a declared lifecycle evaluated over caller-supplied inputs: scope, an as-of time, an ancestry, and a usage count the caller provides. No counter in an authored file and no atomic consumption. Deferred: specified now, built when a consumer names the need.\n",
+    "title": "A waiver has a declared lifecycle"
+  },
+  "shardHash": "4ed0bb5e003d7f11fd6f69ce303438f0fa0bf453310fd5a9837e04e6d7255851",
+  "specVersion": "1.3.0"
+}

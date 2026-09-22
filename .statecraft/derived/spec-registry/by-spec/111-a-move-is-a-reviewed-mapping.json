@@ -1,0 +1,42 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "100-a-deleted-path-is-judged-where-it-lived"
+    ],
+    "id": "111-a-move-is-a-reviewed-mapping",
+    "implementation": "deferred",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "sectionHeadings": [
+      "111: A move is a reviewed mapping",
+      "1. Purpose",
+      "1.1 Why the dependency is spec 100",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A mapping is authored, in frontmatter",
+      "3.2 No similarity, ever",
+      "3.3 A mapping changes no verdict",
+      "3.4 What a mapping is for",
+      "3.5 Mappings are validated for shape, not for truth",
+      "4. Out of scope",
+      "5. Open design questions",
+      "Acceptance when built"
+    ],
+    "specPath": "specs/111-a-move-is-a-reviewed-mapping/spec.md",
+    "status": "draft",
+    "summary": "The gate passes `--no-renames`, so a move arrives as a deletion and an addition and each half is judged where it is true. That is correct and it is not the whole story: nothing records that the two halves are one act. This declares the mapping as authored, reviewed data, never as a similarity heuristic. Deferred: specified now, built when a consumer names the need.\n",
+    "title": "A move is a reviewed mapping"
+  },
+  "shardHash": "a35f5b585b8fa105b1c79a1b9ed479b83ec8a56c8c16cffbb02468a1c008cad4",
+  "specVersion": "1.3.0"
+}

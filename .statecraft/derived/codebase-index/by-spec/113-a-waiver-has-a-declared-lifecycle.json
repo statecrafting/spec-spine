@@ -1,0 +1,40 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "005-coupling-gate"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/couple.rs"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/couple.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/04-authority-evidence-extension.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "specId": "113-a-waiver-has-a-declared-lifecycle",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "2e46c5ac9889e02c98d4a7f0300b9637e93399b1c66c9c3eea9792d0a425fd0d"
+}

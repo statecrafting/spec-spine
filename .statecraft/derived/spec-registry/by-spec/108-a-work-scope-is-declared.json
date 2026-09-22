@@ -1,0 +1,42 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "072-two-ready-specs-can-collide"
+    ],
+    "id": "108-a-work-scope-is-declared",
+    "implementation": "deferred",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "sectionHeadings": [
+      "108: A work scope is declared",
+      "1. Purpose",
+      "1.1 Not an obligations dependency",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A scope is a declared partition of paths",
+      "3.2 Every path is checked against ownership, and a mismatch is reported",
+      "3.3 What a scope establishes, and what it does not",
+      "3.4 A scope is not a gate",
+      "3.5 Two scopes are comparable",
+      "4. Out of scope",
+      "5. Open design questions",
+      "Acceptance when built"
+    ],
+    "specPath": "specs/108-a-work-scope-is-declared/spec.md",
+    "status": "draft",
+    "summary": "Spec 072 already reports that two ready specs claim overlapping territory, which was half of what WorkScope proposed. What is left is the other half: a declaration of what one piece of work may change exclusively, what it shares, and which spec answers for each. Deferred: specified now, built when a consumer names the need.\n",
+    "title": "A work scope is declared"
+  },
+  "shardHash": "d3dcfb7058a2df85abf153e24533881ab6118f5dfc5715b14b56f31365a2855f",
+  "specVersion": "1.3.0"
+}

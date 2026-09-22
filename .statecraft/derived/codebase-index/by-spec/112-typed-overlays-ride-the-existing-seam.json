@@ -1,0 +1,40 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "012-declared-extra-frontmatter-passthrough"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/design/04-authority-evidence-extension.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/overlay-contract.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/overlay-contract.md"
+        }
+      }
+    ],
+    "specId": "112-typed-overlays-ride-the-existing-seam",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "26175d27877e75a3dbdebae705cc8c65470f9b4542b9da5d8f5e6c9c6fbdec71"
+}

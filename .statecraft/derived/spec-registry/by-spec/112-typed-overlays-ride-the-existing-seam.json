@@ -1,0 +1,50 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "012-declared-extra-frontmatter-passthrough"
+    ],
+    "id": "112-typed-overlays-ride-the-existing-seam",
+    "implementation": "deferred",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/overlay-contract.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "sectionHeadings": [
+      "112: Typed overlays ride the existing seam",
+      "1. Purpose",
+      "1.2 Why the dependency is spec 012",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 An overlay is declared frontmatter, and nothing else",
+      "3.2 The engine reads an overlay's shape and never its meaning",
+      "3.3 The consumer owns the meaning, and says so",
+      "3.4 Overlays coexist by namespacing, not by luck",
+      "3.5 What an overlay establishes, and what it does not",
+      "3.6 Attaching to a unit, which is the one thing the seam does badly",
+      "4. Out of scope",
+      "5. Open design questions",
+      "Acceptance when built"
+    ],
+    "specPath": "specs/112-typed-overlays-ride-the-existing-seam/spec.md",
+    "status": "draft",
+    "summary": "Four proposals (effect contracts, budgets, dependency rationale, contract adapters) all want to attach typed data to a unit without changing what a unit is. The corpus already has the seam for that: declared extra frontmatter, preserved verbatim into the registry. This states the contract an overlay keeps so four of them can coexist without any of them reaching the engine. Deferred: specified now, built when a consumer names the need.\n",
+    "title": "Typed overlays ride the existing seam"
+  },
+  "shardHash": "32b83b34e73db2a19f719230f02eddf4fd656484f36fa1189cabef4c7d9d9cc0",
+  "specVersion": "1.3.0"
+}

@@ -1,0 +1,42 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "106-obligations-are-declared-constraints"
+    ],
+    "id": "107-a-context-closure-is-declared",
+    "implementation": "deferred",
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "sectionHeadings": [
+      "107: A context closure is declared",
+      "1. Purpose",
+      "1.1 Why it depends on obligations, and on nothing else in this wave",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A closure is a declared set, in frontmatter",
+      "3.2 Every reference is qualified and validated",
+      "3.3 What a closure establishes, and what it does not",
+      "3.4 A closure is content-addressed by what it names",
+      "3.5 Closures are inert in every gate",
+      "4. Out of scope",
+      "5. Open design questions",
+      "Acceptance when built"
+    ],
+    "specPath": "specs/107-a-context-closure-is-declared/spec.md",
+    "status": "draft",
+    "summary": "An agent given a work order today has no declared answer to \"what must I have read before I can act on this\". A ContextClosure declares that set explicitly: the specs, sections and obligations a piece of work is answerable to. It is a declaration of what was named, never a proof that the naming is complete. Deferred: specified now, built when a consumer names the need.\n",
+    "title": "A context closure is declared"
+  },
+  "shardHash": "3381314c80d3304f88c2aefd2645c411278622aad72b7e657b38d8f499b6cdec",
+  "specVersion": "1.3.0"
+}

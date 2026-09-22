@@ -1,0 +1,27 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "070-an-authority-snapshot-says-what-it-read"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/design/04-authority-evidence-extension.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      }
+    ],
+    "specId": "110-an-interface-reference-is-digest-pinned",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "edbd7e94c0027bbe1459dd2ff3134d1706080d7561df9abd18eecd33b330361e"
+}

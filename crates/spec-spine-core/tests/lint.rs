@@ -1070,3 +1070,139 @@ fn a_frontmatter_comment_is_not_the_title_heading() {
     );
     assert!(l013(tmp.path()).is_empty(), "{:?}", l013(tmp.path()));
 }
+
+// ===== spec 116: L-001 exempts a deferred contract =====
+//
+// The exemption is a ratchet, not a hole, so the negative cases carry the
+// weight: scheduling a deferred spec must bring the warning back, a deferred
+// spec that names a unit must still be diagnosed about that unit, and `n-a`
+// must not be swept in.
+
+/// A spec with no ownership edge at all, with an authored `implementation`.
+fn territoryless(id: &str, implementation: &str) -> String {
+    let impl_line = if implementation.is_empty() {
+        String::new()
+    } else {
+        format!("implementation: {implementation}\n")
+    };
+    format!(
+        "---\nid: \"{id}\"\ntitle: \"T\"\nstatus: draft\ncreated: \"2026-09-21\"\n\
+         {impl_line}summary: \"a contract with no consumer\"\n---\n# {id}\n## body\n"
+    )
+}
+
+fn l001(root: &Path) -> Vec<spec_spine_types::Violation> {
+    spec_spine_core::lint(&Config::default(), root)
+        .unwrap()
+        .violations
+        .into_iter()
+        .filter(|v| v.code == "L-001")
+        .collect()
+}
+
+#[test]
+fn a_deferred_spec_with_no_territory_is_exempt_from_l001() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    write(
+        root,
+        "specs/001-deferred/spec.md",
+        &territoryless("001-deferred", "deferred"),
+    );
+    assert!(
+        l001(root).is_empty(),
+        "a deliberately unscheduled contract claims nothing on purpose: {:?}",
+        l001(root)
+    );
+}
+
+#[test]
+fn scheduling_a_deferred_spec_re_arms_l001() {
+    // The assertion that makes the exemption a ratchet. Same corpus, same
+    // file, one field changed, compared against a fixed base rather than
+    // against a remembered count.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    let path = "specs/001-contract/spec.md";
+
+    write(root, path, &territoryless("001-contract", "deferred"));
+    assert!(l001(root).is_empty(), "deferred is exempt");
+
+    for scheduled in ["pending", "in-progress", "complete"] {
+        write(root, path, &territoryless("001-contract", scheduled));
+        let v = l001(root);
+        assert_eq!(
+            v.len(),
+            1,
+            "implementation: {scheduled} must re-arm L-001, got {v:?}"
+        );
+        assert!(v[0].message.contains("001-contract"));
+    }
+
+    // And an absent `implementation` was never exempt.
+    write(root, path, &territoryless("001-contract", ""));
+    assert_eq!(
+        l001(root).len(),
+        1,
+        "an absent implementation is not deferred"
+    );
+}
+
+#[test]
+fn an_n_a_spec_with_no_territory_still_raises_l001() {
+    // §3.3: `n-a` is a ratified spec that owns nothing on purpose, which is a
+    // different statement from "not scheduled", and is deliberately not swept
+    // into the exemption.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    write(
+        root,
+        "specs/001-na/spec.md",
+        &territoryless("001-na", "n-a"),
+    );
+    assert_eq!(
+        l001(root).len(),
+        1,
+        "n-a must not inherit the deferred exemption"
+    );
+}
+
+#[test]
+fn a_deferred_spec_that_names_a_unit_is_still_diagnosed() {
+    // §3.2: the exemption covers the DECLARATION, never a claim. A deferred
+    // spec claiming a path that does not resolve is still held to it.
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    write(
+        root,
+        "specs/001-deferred/spec.md",
+        "---\nid: \"001-deferred\"\ntitle: \"T\"\nstatus: draft\ncreated: \"2026-09-21\"\n\
+         implementation: deferred\nsummary: \"s\"\nestablishes:\n  - \"src/nowhere.rs\"\n\
+         ---\n# 001-deferred\n## body\n",
+    );
+    let report = spec_spine_core::lint(&Config::default(), root).unwrap();
+    assert!(
+        report.violations.iter().all(|v| v.code != "L-001"),
+        "it declares an ownership edge, so L-001 is not the question"
+    );
+    // The claim itself is still the corpus's business. The unit is recorded,
+    // and the index's unresolved-unit diagnostic is what holds a deferred
+    // spec to a path that does not exist: the deferral exempts the
+    // declaration, never the claim.
+    let outcome = spec_spine_core::index(&Config::default(), root).unwrap();
+    let codes: Vec<&str> = outcome
+        .index
+        .diagnostics
+        .warnings
+        .iter()
+        .chain(outcome.index.diagnostics.errors.iter())
+        .map(|d| d.code.as_str())
+        .collect();
+    assert!(
+        codes
+            .iter()
+            .any(|c| c.starts_with("W-") || c.starts_with("I-")),
+        "a claim by a deferred spec on a path that does not exist is still \
+         diagnosed; got {codes:?}"
+    );
+}
