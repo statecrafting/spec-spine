@@ -4,16 +4,7 @@
       "021-ledger-seal",
       "068-a-verifier-checks-the-bytes-it-was-given"
     ],
-    "implementingPaths": [
-      {
-        "path": "crates/spec-spine-cli/src/verify_attestation.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/src/attest.rs",
-        "source": "spec-edge"
-      }
-    ],
+    "implementingPaths": [],
     "resolvedUnits": [
       {
         "locations": [],
@@ -30,7 +21,7 @@
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/verifier_fixtures.rs"
+          "path": "crates/spec-spine-cli/tests/verifier_fixtures.rs"
         }
       },
       {
@@ -39,8 +30,8 @@
             "file": "crates/spec-spine-cli/src/verify_attestation.rs"
           }
         ],
-        "ownership": true,
-        "sourceField": "extends",
+        "ownership": false,
+        "sourceField": "references",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/verify_attestation.rs"
@@ -52,8 +43,8 @@
             "file": "crates/spec-spine-core/src/attest.rs"
           }
         ],
-        "ownership": true,
-        "sourceField": "extends",
+        "ownership": false,
+        "sourceField": "references",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/attest.rs"
@@ -90,5 +81,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "e7e894ca0edd78f9ed1ef9b8c53df3e1c2a19c7804a0d165b36af8a21b64ff1c"
+  "shardHash": "ed798063d197b10b29a36ff3b626c87c3fa615f4a0e441412e4648845a1a775d"
 }
