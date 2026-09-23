@@ -1,7 +1,7 @@
 ---
 id: "122-a-commit-refuses-an-unresolved-merge"
 title: "A commit refuses an unresolved merge or an unformatted Rust change"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-22"
 summary: >

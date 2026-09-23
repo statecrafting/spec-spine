@@ -91,10 +91,10 @@
       "Verification"
     ],
     "specPath": "specs/123-a-startup-verdict-names-its-reader/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Three session starts on 2026-09-23 reported \"spec registry: INVALID; codebase index: STALE\" on a corpus that was valid and fresh. The reader was the repository's own `target/release/spec-spine`, built from an earlier revision and left in place while the checkout fast-forwarded past the frontmatter grammar it knows, so an incompatible reader's refusal was printed as a finding about the corpus. The hooks that turn `check` into a message now name the executable they selected, and when that executable is the in-tree build and is older than the source it is built from, they say the verdict is an earlier revision's reading and keep what it said. They still read only: nothing builds, regenerates or installs.\n",
     "title": "A startup verdict names its reader"
   },
-  "shardHash": "b25a66169b33a6fe377da545be59b64e9d7ae31b597e6fe1766903818cc8aa89",
+  "shardHash": "4e672a57dbead646631e20fa272da6fab7ea105db28981b41cd1e0d8fc17dbbd",
   "specVersion": "1.6.0"
 }
