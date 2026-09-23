@@ -23,15 +23,17 @@ depends_on:
   - "022-index-sharding"
   - "039-per-spec-attestation"
 establishes:
-  - { kind: file, path: "crates/spec-spine-cli/tests/derived_paths.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-cli/tests/derived_paths.rs" }
 extends:
   # 3.1 and 3.2: the one shard writer both `compile` and `index` call, and the
   # name check beside it.
   - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-core/src/shard.rs" }, nature: additive }
   # 3.3: the per-spec attestation path.
   - { spec: "039-per-spec-attestation", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_attest.rs" }, nature: additive }
+  # D-4: the comment on `validate_spec_id` that said `attest --spec` was
+  # already protected; a comment correction, no behavior.
+  - { spec: "039-per-spec-attestation", unit: { kind: file, path: "crates/spec-spine-cli/src/verify_attestation.rs" }, nature: corrective }
 references:
-  - { unit: { kind: file, path: "crates/spec-spine-cli/src/verify_attestation.rs" }, role: context }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/compile.rs" }, role: context }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/index.rs" }, role: context }
 intent:
@@ -95,6 +97,8 @@ chooses which ids are known.
   the per-spec attestation path is created or written.
 - `crates/spec-spine-cli/tests/derived_paths.rs` (establishes): the three verbs
   through the shipped binary.
+- `crates/spec-spine-cli/src/verify_attestation.rs` (extends 039, D-4): the
+  comment that called `attest --spec` already protected.
 
 ## 3. Behavior
 
@@ -168,6 +172,29 @@ the offending shard and writing the rest would leave a ledger that silently
 lacks a spec, and `compile` would still exit 1 for a reason the operator reads
 as a validation problem. A refusal before anything moves is the state spec 021
 FR-006 asks of a failing mode: visible, and without side effects.
+
+**D-3 (2026-09-23): the artifact root the CLI creates before `sync_dir` is
+outside 3.2.** `compile` creates `<derived>/spec-registry` and `index` creates
+`<derived>/codebase-index` (`cmd_compile.rs` and `cmd_index.rs`, each a
+`create_dir_all` just before the first `sync_dir` call) before any shard name
+is seen. On a refused run over a tree that already exists, which is every
+committed ledger, that call changes nothing. On a first build it leaves that one
+empty directory, and its `.derived` parent, behind. The directory is a
+configured path, not one derived from an id, so it cannot be steered outside
+the derived tree, and 3.2 scopes its guarantee to `sync_dir`, which creates
+nothing on a refusal. Moving the check ahead of those calls would mean claiming
+both files, which is territory this spec does not declare; the gap is recorded
+rather than closed, and `derived_paths.rs` asserts exactly that one empty
+directory so the behavior cannot change unnoticed. The check is lexical: it
+does not resolve a symlink already present inside `by-spec/`, which only the
+repository's own checkout can put there and which neither 3.2 nor 3.3 speaks to.
+
+**D-4 (2026-09-23): the comment in `verify_attestation.rs` is corrected under
+an `extends` edge.** It said `attest --spec` was protected by its registry
+lookup, which 1.2 shows was false. Leaving a comment that names the defect as
+impossible beside the fix was the alternative; correcting it is a comment-only
+change, so the edge is `corrective` on spec 039's unit, which already extends
+that file, and no behavior of `verify-attestation` changes (4).
 
 ## Verification
 
