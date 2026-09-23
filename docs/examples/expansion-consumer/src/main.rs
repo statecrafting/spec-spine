@@ -322,6 +322,19 @@ fn contract_111(bin: &Path, scratch: &Path) {
     sorted.sort();
     assert_eq!(froms, sorted, "the flattened map is sorted");
     assert_eq!(froms.len(), 9, "{all}");
+    // The CLI and the facade answer from the same ledger; `unmapped` and
+    // `resolved` exit 0, `ambiguous` and `cycle` exit 1 (111 §3.4).
+    for (path, code) in [("src/a.rs", 0), ("src/c.rs", 0), ("src/s.rs", 0), ("src/x.rs", 1), ("src/p.rs", 1)] {
+        let via_cli = cli_json(bin, &mv, &["registry", "moves", path, "--json"], code);
+        assert_eq!(via_cli, look(path), "`registry moves {path}` and the facade disagree");
+    }
+    // `answered_by: "001"` resolves (a short id, spec 015), so no V-041 here;
+    // a dangling one below is a warning, never a refusal.
+    assert!(!reg["validation"].to_string().contains("V-041"), "{}", reg["validation"]);
+    // L-015: a declared `to` absent from the tree is a lint warning.
+    let lint_mv: Value = serde_json::from_str(&lint_json("{}", s(&mv)).unwrap()).unwrap();
+    assert!(lint_mv.to_string().contains("L-015"), "no L-015 for a missing `to`: {lint_mv}");
+    assert!(!lint_mv.to_string().contains("L-016"), "{lint_mv}");
 
     // A declared move clears no deletion: the same deletion, with and without
     // the mapping, reaches the identical verdict, and it is a refusal.
@@ -363,7 +376,24 @@ fn contract_111(bin: &Path, scratch: &Path) {
     assert!(out["validation"]["violations"].to_string().contains("V-040"), "{}", out["validation"]);
     let lint: Value = serde_json::from_str(&lint_json("{}", s(&bad)).unwrap()).unwrap();
     assert!(!lint.to_string().contains("L-016"), "lint stat a path outside the tree: {lint}");
-    println!("ok: 111 unmapped / resolved chain / split / ambiguous / cycle; the map is sorted; a mapping clears no deletion; V-040 refuses an escaping path");
+
+    // V-041: a dangling `answered_by` is a compile warning, and L-016: a path
+    // declared removed that is still in the tree is a lint warning.
+    let dangling = scratch.join("moves-dangling");
+    fs::create_dir_all(dangling.join("src")).unwrap();
+    fs::write(dangling.join("src/old.rs"), "pub fn o() {}\n").unwrap();
+    spec(
+        &dangling,
+        "001-a",
+        "status: draft\nestablishes:\n  - \"src/old.rs\"\nmoves:\n  - { from: \"src/old.rs\", to: null, kind: removed, answered_by: \"009\" }\n",
+        "# 001\n",
+    );
+    let out: Value = serde_json::from_str(&compile_json("{}", s(&dangling)).unwrap()).unwrap();
+    assert_eq!(out["validation"]["passed"], true, "V-041 is a warning: {}", out["validation"]);
+    assert!(out["validation"].to_string().contains("V-041"), "{}", out["validation"]);
+    let lint: Value = serde_json::from_str(&lint_json("{}", s(&dangling)).unwrap()).unwrap();
+    assert!(lint.to_string().contains("L-016"), "no L-016 for a present removed path: {lint}");
+    println!("ok: 111 unmapped / resolved chain / split / ambiguous / cycle; the map is sorted; CLI == facade; a mapping clears no deletion; V-040 refuses an escaping path; V-041, L-015, L-016 warn");
 }
 
 fn contract_112(bin: &Path, scratch: &Path) {
@@ -619,6 +649,14 @@ fn cli(bin: &Path, root: &Path, args: &[&str]) {
         .status()
         .unwrap();
     assert!(st.success(), "spec-spine {args:?} in {}", root.display());
+}
+
+fn cli_json(bin: &Path, root: &Path, args: &[&str], code: i32) -> Value {
+    let out = Command::new(bin).arg("--repo").arg(root).args(args).output().unwrap();
+    assert_eq!(out.status.code(), Some(code), "spec-spine {args:?} in {}", root.display());
+    serde_json::from_slice(&out.stdout).unwrap_or_else(|e| {
+        panic!("spec-spine {args:?}: stdout is not JSON ({e}): {}", String::from_utf8_lossy(&out.stdout))
+    })
 }
 
 fn s(p: &Path) -> &str {
