@@ -1,24 +1,38 @@
 # Consumer integration: the expansion wave after 0.22.0
 
 What a library or CLI consumer needs in order to use specs 102, 103, 105, 106,
-107, 109 and 110, which are merged on `main` **after** the frozen 0.22.0
-candidate (`f9fa6a8f`). None of it is in 0.22.0 and none of it is published.
-Every contract below is exact as of the `main` revision named in §8. The
-design rationale lives in each spec; this page is the integration surface.
+107, 108, 109, 110 and 113, which are merged on `main` **after** the frozen
+0.22.0 candidate (`f9fa6a8f`) and will ship as **0.23.0**. None of it is in
+0.22.0 and none of it is published. Every contract below is exact as of the
+`main` revision named in §10. The design rationale lives in each spec; this
+page is the integration surface. Specs 122, 123 and 125 correct this
+repository's own commit hook, session hooks and `verify` forwarding, and spec
+124 gives the line its own version; §0 says what each means for a consumer.
 
 ## 0. Prerequisites that apply to all of it
 
-- **Producer version.** A binary or library from `main` at or after the
-  revision in §8. Until the next release is cut it reports `0.22.0`, which is
-  also the frozen candidate's version, so **the version string does not tell
-  the two apart**: identify the producer by source revision or package digest.
+- **Producer version.** `main` reports **`0.23.0`** since spec 124, so the
+  version string now separates this line from the frozen `0.22.0` candidate.
+  It still does not name a build: until 0.23.0 is cut, every development
+  build of `main` answers `0.23.0` too. Identify a producer with
+  `scripts/reader-identity.sh <binary> [<checkout>]`, which records its path,
+  SHA-256, `--version`, the checkout's revision, whether it is that checkout's
+  current build, and each schema axis **as the binary emits it**.
+- **A reader older than the corpus refuses by name.** This repository's
+  `[meta] required_version` is `>=0.23.0` (spec 124, per 061 §3.8). An adopter
+  whose corpus uses a member introduced here (obligations, impacts, interface
+  references) should raise its own floor the same way. An older binary then
+  exits 3 naming the requirement instead of reporting a valid corpus
+  `INVALID`.
 - **Schema versions** (compile-time constants in
   `spec-spine-types/src/version.rs`):
 
-  | Axis | 0.22.0 candidate | `main` | Moved by |
+  | Axis | 0.22.0 candidate | `main` (0.23.0) | Moved by |
   |---|---|---|---|
   | registry (`specVersion`) | `1.3.0` | `1.6.0` | 106 (`1.4.0`), 109 (`1.5.0`), 110 (`1.6.0`) |
-  | read documents (`schemaVersion`) | `0.1.0` | `0.6.0` | 102, 106, 107, 109, 110 (one MINOR each) |
+  | read documents (`schemaVersion`) | `0.1.0` | `0.7.0` | 102, 106, 107, 109, 110, 108 (one MINOR each) |
+  | verdict envelope (`schemaVersion`) | `0.5.0` | `0.6.0` | 113 (`couple`'s `waivers`) |
+  | index | `1.1.0` | `1.1.0` | unchanged |
   | verifier fixture set | none | `0.1.0` | 103 |
 
   Every move is additive (MINOR). A loader that knows MAJOR 1 of the registry
@@ -34,7 +48,7 @@ design rationale lives in each spec; this page is the integration surface.
   before resolving anything. `registry show` and `registry obligation` are
   inspection reads and answer from whatever is committed; do not build an
   identity from them without a freshness check (`spec-spine check`).
-- **Local verification only** so far: the example in §7 packages the library
+- **Local verification only** so far: the example in §9 packages the library
   from source. Registry-backed verification waits for a published release.
 
 ## 1. Spec 102: a ready entry carries its status
@@ -63,7 +77,10 @@ design rationale lives in each spec; this page is the integration surface.
 - **Replay through the facade:** `verify_attestation_json({"repoRoot":
   <case corpus>, "attestationText": <payload.json text>})`. `Ok` answers
   `match`, `versionMismatch` or `contentMismatch`; a refusal before the
-  recompute is `Err` with the recorded exit code. §7 replays all eleven.
+  recompute is `Err` with the recorded exit code. §9 replays all eleven.
+  The set records the producer's version: it was regenerated at 0.23.0
+  (spec 124 §3.5), which moved only `toolVersion`, the payload `version`,
+  `registryHash` and `attestationHash`.
 
 ## 3. Spec 105: governed scope
 
@@ -140,7 +157,59 @@ design rationale lives in each spec; this page is the integration surface.
   is authoritative is the caller's decision, and the observed digest is
   printed for a human to copy; nothing rewrites a pin.
 
-## 7. A working example
+## 7. Spec 108: a work scope is evaluated, never enforced
+
+- **The document** (the consumer holds it, as a closure): `{ "id"?, "ownSpec",
+  "mutable"?: [path], "shared"?: [{ "path", "with": [spec] }], "readOnly"?:
+  [path] }`. Paths are repo-relative; a trailing `/` names a subtree. At least
+  one path; no absolute path, `..`, empty entry, unknown member, or one path
+  (or a subtree and a path inside it) under two roles, each exit 3.
+- **Evaluate:** `scope_json(config, root, scope)` or `spec-spine scope
+  evaluate --scope <file|-> [--json]`. Each path's owners come from the
+  committed index by the gate's own owner derivation. Findings are **warnings,
+  exit 0**: `S-001` a changed path nobody owns, `S-002` an undeclared crossing
+  (a `mutable` path another spec owns, naming both), `S-003` a `shared` path
+  whose `with` differs from its owners. `readOnly` raises nothing. The answer
+  carries `indexHash`. An unknown `ownSpec` or `with` spec is exit 1 (all
+  named); a stale index is exit 2, before anything resolves.
+- **Compare:** `scope_compare_json(a, b)` or `spec-spine scope compare <A> <B>
+  [--json]`, pure over two documents: `both-mutable`, `mutable-shared` and
+  `changed-under-read` conflicts, with subtree overlap. Two `shared` or two
+  `readOnly` declarations do not conflict. Exit 0 either way.
+- **Boundary:** a scope **reserves, excludes, locks, permits and enforces
+  nothing**. `couple`, `check`, `lint` and `index coverage` never read one.
+  Deciding which of two conflicting scopes proceeds is the orchestrator's.
+
+## 8. Spec 113: a waiver's lifecycle over the caller's inputs
+
+- **Declaration:** under a `Spec-Drift-Waiver: <reason>` line in the pull
+  request body, optional lines narrow that waiver: `-Paths:` (a
+  comma-separated scope; a trailing `/` is a subtree), `-Until:`
+  (`YYYY-MM-DD`, inclusive), `-Since:` (a commit) and `-Max-Uses:` (a positive
+  integer), each spelled from the configured keyword. Several waivers may be
+  declared in one body.
+- **Inputs are the caller's:** CLI `--waiver-as-of <date>` (never the clock),
+  `--waiver-uses <id>=<n>` (prior clearing runs, excluding this one), and
+  ancestry answered by git for each `-Since:`. In the facade, `couple_json`
+  takes `prBody` (or `waivers` as data) plus `waiverInputs: { asOf?,
+  ancestry?: { commit: bool }, uses?: { id: n } }`. At most one of `waiver`,
+  `waivers`, `prBody`; more is exit 3. A malformed `asOf` is exit 3.
+- **Evaluation:** each declared check is `satisfied`, `failed` or
+  `not-evaluated`. A missing input is `not-evaluated`, **never satisfied**, and
+  a missing count is never zero. A waiver with a failed check clears nothing;
+  a scoped waiver clears only its paths; each violation is cleared by the first
+  effective waiver whose scope covers it.
+- **The report** (verdict `0.6.0`): `waivers[]` with `id` (the use-count key),
+  `reason`, `scoped`/`paths`, `checks[]`, `effective` and `clears[]`, plus
+  `unattachedWaiverLines`. Both are omitted when no waiver is declared, so
+  those runs keep their exact report bytes. `waiver` still means "this run was
+  waived".
+- **Boundary:** nothing is counted, consumed, stored or authorized. A use
+  limit is only as good as the supplied count, and two concurrent runs given
+  the same count see the same answer. `effective` says nothing about who
+  approved the waiver, which remains a human instrument.
+
+## 9. A working example
 
 `docs/examples/expansion-consumer/` is a standalone crate that uses only the
 surfaces above. `run.sh` packages `spec-spine-types` and `spec-spine-core` with
@@ -151,9 +220,9 @@ workspace lockfile, builds the CLI from the same tree, and runs:
 docs/examples/expansion-consumer/run.sh
 ```
 
-It writes two disposable corpora (an exporter with obligations and impacts,
-and an importer pinning it), writes their ledgers with the CLI, and reads
-everything through the library facade:
+It writes three disposable corpora (an exporter with obligations and impacts,
+an importer pinning it, and a small governed corpus with code), writes their
+ledgers with the CLI, and reads everything through the library facade:
 
 ```
 ok: 102 plan entries carry status (a draft is ready; approval is the consumer's rule)
@@ -165,20 +234,30 @@ ok: 107 closure digest normalized; a missing member exits 1 with no digest
    110 3.1 edited: ["stale", "stale"]
 ok: 110 current / sections-current / stale / unverified, and the closure moved with the section
 ok: 103 all 11 fixture cases reproduce their recorded outcome
+ok: 108 scope names the crossing, accepts declared sharing, refuses unknown and escaping inputs, and compares
+ok: 113 scoped, expired, not-evaluated and spent waivers each report and clear as declared
+ok: composed: scope crossing == gate refusal; a waiver scoped to it clears exactly it; closure and scope unchanged
 ```
+
+The composed line is the one place the contracts meet in one flow. A work
+order holds a closure (107, over an obligation from 106) and a scope (108).
+The scope's `S-002` crossing is exactly the path `couple` refuses on the same
+change. A waiver scoped to that path (113), with a supplied as-of date, clears
+exactly it and nothing else. And neither the gate nor the waiver moves the
+closure's digest or the scope's evaluation.
 
 The pins it uses are the exporter's own identities, reached through supported
 reads: a closure member's `contentHash` for the whole spec and the registry
 record's `sectionDigests` entry for the section.
 
-## 8. Evidence and its limits
+## 10. Evidence and its limits
 
-Recorded against the merged revision in `docs/release-candidate-0.22.0.md`
-§14, which also separates this content from the frozen 0.22.0 candidate.
-Everything here is **local source/package verification**: the crates were
-packaged from a checkout, not downloaded from a registry.
+Recorded against the merged revision in `docs/release-candidate-0.23.0.md`,
+which keeps this line apart from the frozen 0.22.0 candidate. Everything here
+is **local source/package verification**: the crates were packaged from a
+checkout, not downloaded from a registry.
 
-## 9. For Statecraft
+## 11. For Statecraft
 
 Nothing in Statecraft needs to change to keep consuming 0.22.0. To adopt this
 wave after it is released:
