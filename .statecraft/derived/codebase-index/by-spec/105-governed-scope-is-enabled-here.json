@@ -1,5 +1,8 @@
 {
   "mapping": {
+    "amends": [
+      "078-governed-scope-is-declared-not-inferred"
+    ],
     "dependsOn": [
       "078-governed-scope-is-declared-not-inferred",
       "100-a-deleted-path-is-judged-where-it-lived"
@@ -123,5 +126,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "ad8eefb756de19458fce2eebb584fe264db94c9308f79d714d57b0dfdbe4c41b"
+  "shardHash": "bc5cbcb8247e38aff49d0db21ce0ec7410a85440e413580dde21fc9588b961c5"
 }

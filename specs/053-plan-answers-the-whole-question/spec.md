@@ -210,7 +210,9 @@ the corpus.
 > `087-the-answer-is-a-member-not-the-document` declares this spec in
 > `amends_verification`, so `spec-spine verify 053` builds its plan from that
 > spec's block and names the substitution in `acceptanceFrom` (spec 082 3.2
-> and 3.4).
+> and 3.4). Since 2026-09-23 087's acceptance is in turn held by
+> `102-a-ready-spec-carries-its-status` (102 D-7), so the block that runs for
+> this spec is 102's, which carries 087's.
 >
 > The commands below are kept **verbatim** and are not corrected, even where a
 > path in one no longer exists: the amending spec's own acceptance asserts

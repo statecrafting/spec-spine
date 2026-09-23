@@ -421,6 +421,20 @@ and the next reader can run it.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-23).** This block no longer runs.
+> `102-a-ready-spec-carries-its-status` declares this spec in
+> `amends_verification`, so `spec-spine verify 087` (and, through this spec,
+> `spec-spine verify 053`) builds its plan from that spec's block and names
+> the substitution in `acceptanceFrom` (spec 082 3.2 and 3.4). 102 added
+> `status` to a ready entry, which the exact-shape lines below predate (102
+> D-7).
+>
+> The commands below are kept **verbatim** and are not corrected: the
+> amending spec's own acceptance asserts that these exact lines are still
+> here, which is how the corpus proves this spec was amended rather than
+> edited (spec 037 3.1). Editing them here is the laundering move amendment
+> exists to refuse, and it goes red.
+
 Each line is one command, run independently: no shell variable survives to the
 next line, so the fixture under `${TMPDIR:-/tmp}/ss060` and the documents
 captured beside it carry the state instead. This block is spec 053's acceptance

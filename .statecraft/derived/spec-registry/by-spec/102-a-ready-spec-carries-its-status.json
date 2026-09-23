@@ -1,5 +1,11 @@
 {
   "record": {
+    "amends": [
+      "087-the-answer-is-a-member-not-the-document"
+    ],
+    "amendsVerification": [
+      "087-the-answer-is-a-member-not-the-document"
+    ],
     "created": "2026-09-21",
     "dependsOn": [
       "035-registry-plan-ready-set",
@@ -70,7 +76,7 @@
     "sectionDigests": {
       "1-1-why-this-is-filed-separately-from-101": "7cb64f09ea865615a5a05ba36a630b2cbc9f9cb009fcd625fda8063fe1607bff",
       "1-purpose": "df28934ab4e378ab6c3890b99cdfae11ae3163c5aa990ffaee5b9cf91d2327ca",
-      "102-a-ready-spec-carries-its-status": "7c618a9233bc9f3f6f12c912c2520a25176bcce25f40223637b8451e0df2f82f",
+      "102-a-ready-spec-carries-its-status": "1dcdf3c96d29329c8b31aeb691035384c06adcb97acb8d63e7e8db5f455333df",
       "2-territory": "43288c1570f4936b4cfe20184040824688be312be7a96495a1b7fb2a28d6cede",
       "3-1-one-additive-field": "919b1260815d65e0d401c67b5554654fad8e447ae285755f3f5f662f9a018d48",
       "3-2-it-changes-no-partition-and-no-ordering": "6261275b2d97da37c66d113325a5fe021c3dfabe70d612dda426033bda706a6c",
@@ -78,8 +84,8 @@
       "3-4-blocked-is-left-alone": "ddda837bd50abddb8f5c366daaba140b8a8c827cb1d34a5156c1c16a3ebbe260",
       "3-behavior": "3c95b71a3d4700eef1e831435f739801c82908f251934bc9325469ffb5810738",
       "4-out-of-scope": "0eae948e6ebd17dc3865a88112eea063bcd3500ee40ca207d8e5bc0b996c8e2a",
-      "5-resolved-decisions": "7659509733f0b822d3b2cb929a0214044e59273856fe7be092668b75029322bc",
-      "verification": "f5cd1549fa684b2d3d043ee34a2e0b5c637d5f1ed88283c7820e2e1ec4715a49"
+      "5-resolved-decisions": "acaa1a20fe10059b5e42bc8abee58d10119dcc8d3627eb3712f094809701bf2e",
+      "verification": "a74604a49f0df9780912793f5091ae1caf6a70097f715aa6507dece05a67d670"
     },
     "sectionHeadings": [
       "102: A ready spec carries its status",
@@ -100,6 +106,6 @@
     "summary": "`ReadySpec` carries `id` and `title`, so a consumer reading `registry plan` directly cannot apply an approval rule without a second query per entry. An additive `status` field is a read-schema MINOR that lets a direct consumer see what `/next` sees. An enhancement with a named cost, not a defect fix.\n",
     "title": "A ready spec carries its status"
   },
-  "shardHash": "e3812f0db45489e6d9086bece850b899f73c3b2d00934d3a6fe5b5e73563e1b8",
+  "shardHash": "84943202deb1453294d34629f5f5919f072a335890b87b029e2e11ad7856e09f",
   "specVersion": "1.6.0"
 }
