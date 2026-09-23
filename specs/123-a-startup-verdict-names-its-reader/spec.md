@@ -21,6 +21,8 @@ risk: low
 depends_on:
   - "093-the-harness-this-repository-runs"
   - "094-one-gate-and-the-boundaries-it-holds"
+# 3.7: one wording rule of 093 §3.9 and §3.10, for the older-reader case only.
+amends: ["093-the-harness-this-repository-runs"]
 extends:
   # 3.1 to 3.3: the three hooks that report `check`'s verdict.
   - { spec: "093-the-harness-this-repository-runs", unit: { kind: file, path: ".claude/settings.json" }, nature: additive }
@@ -125,9 +127,12 @@ Extends spec 093's `.claude/settings.json` and its hook test, and spec 094's
 
 Every message the `SessionStart`, `Stop` and `PreToolUse` (PR gate) hooks
 print from a `check` verdict other than a clean pass MUST name the executable
-that produced it, by the path the resolver selected and by what it answers to
-`--version`. `SessionStart` names it on a clean pass as well, because the
-banner is the one place a session learns which reader it is running.
+that produced it by the path the resolver selected, and by what it answers to
+`--version` wherever spec 093 §3.9 lets a hook ask. It does not let one ask on
+exit 0 or exit 2, which are answers, so a stale verdict names its reader by
+path alone; the age comparison of §3.2 spawns nothing and is asked there too.
+`SessionStart` names the reader on a clean pass as well, because the banner is
+the one place a session learns which reader it is running.
 
 ### 3.2 A reader older than its source is not believed
 
@@ -188,6 +193,24 @@ Behavioral, through the shipped bodies:
   refused as older, with its report kept.
 - Both files assert that every hook line naming `cargo build` is a message.
 
+### 3.7 What this amends in spec 093
+
+Spec 093 §3.9 says that when the probe succeeds on exit 2 "the message is
+unchanged, wording included", and §3.10 fixes the `SessionStart` banner's
+verdict wording. Both are amended for one case only, a reader that is the
+in-tree build and older than its source:
+
+- the PR gate's stale refusal keeps its first line and replaces the
+  `compile` / `index` remedy with the rebuild, because regenerating with an
+  earlier revision's reader would commit that revision's shards;
+- the `SessionStart` banner reports `NOT JUDGED` and quotes the verdict it
+  would have printed, instead of printing it as the tree's.
+
+For a current reader the stale wording is unchanged: the PR gate appends one
+line naming the reader's path, and `Stop` prints one before its unchanged
+report. `--version` stays off exit 0 and exit 2 in every hook, as §3.9
+requires. Nothing else in 093 moves, and its acceptance runs unchanged.
+
 ## 4. Out of scope
 
 - **Which reader is selected.** Spec 093's order is unchanged. The defect was
@@ -215,6 +238,15 @@ replaces cost a session that believed a valid corpus was invalid.
 `reader_identity.rs` cases fail; with this build all pass. The commit-hook
 cases are in their own file because spec 122's acceptance pins
 `commit_boundary.rs`'s case count.
+
+**D-3 (2026-09-23, review of #317).** The first build named the reader in the
+PR gate's invalid arm only, leaving its stale arm and catch-all, and `Stop`'s
+stale, unresolved and catch-all reports, unnamed, which §3.1 does not allow.
+Every arm now names it. Doing so on exit 2 met spec 093 §3.9, which keeps
+`--version` off an answered exit and the stale wording unchanged: the reader
+is named there by path, `--version` is not asked, and the one wording change
+(the older reader's remedy) is declared as an amendment (§3.7) rather than
+made quietly. 093's own pin, that the stale arm asks no `--version`, passes.
 
 ## Verification
 

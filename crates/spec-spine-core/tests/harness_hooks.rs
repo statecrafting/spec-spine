@@ -1706,3 +1706,55 @@ fn spec123_no_hook_builds_the_reader_it_names() {
         }
     }
 }
+
+/// Spec 123 §3.1, every arm: a stale verdict and a code the gate does not
+/// recognise name the reader too, and `Stop` names it before any non-fresh
+/// report. Review of #317 found these arms unnamed while the invalid one was.
+/// Exit 2 is an answer (spec 093 §3.9), so there the reader is named by path
+/// and `--version` is still not asked.
+#[test]
+fn spec123_every_non_fresh_arm_names_the_reader() {
+    let stale = "spec-registry: STALE (run `spec-spine compile`)\ncodebase-index: fresh\n";
+    let (code, err, built) = run_with_readers("PreToolUse", true, false, 2, stale);
+    assert_eq!(code, 2, "{err}");
+    assert!(err.contains("a committed shard tree is stale in"), "{err}");
+    assert!(err.contains(&format!("[pr-gate] reader: {built}")), "{err}");
+    assert!(
+        err.contains("spec-spine compile and index"),
+        "a current reader's stale is stale: {err}"
+    );
+    assert!(
+        !err.contains("0.22.0-in-tree"),
+        "--version is not asked on an answered exit (093 §3.9): {err}"
+    );
+
+    let (code, err, built) = run_with_readers("PreToolUse", true, true, 2, stale);
+    assert_eq!(code, 2, "{err}");
+    assert!(
+        err.contains(&format!("The reader {built} is older")),
+        "{err}"
+    );
+    assert!(
+        !err.contains("spec-spine compile and index"),
+        "an older reader's stale is not a reason to regenerate: {err}"
+    );
+
+    let (code, err, built) = run_with_readers("PreToolUse", true, false, 7, "odd\n");
+    assert_eq!(code, 2, "{err}");
+    assert!(err.contains("exited 7"), "{err}");
+    assert!(err.contains(&format!("The binary is {built}")), "{err}");
+
+    let (_, out, built) = run_with_readers("Stop", true, false, 2, stale);
+    assert!(
+        out.contains(&format!("[freshness] reader: {built}\n")),
+        "{out}"
+    );
+    assert!(!out.contains("0.22.0-in-tree"), "093 §3.9: {out}");
+    let (_, out, built) = run_with_readers("Stop", true, false, 7, "odd\n");
+    assert!(
+        out.contains(&format!(
+            "[freshness] reader: {built} (spec-spine 0.22.0-in-tree)"
+        )),
+        "{out}"
+    );
+}

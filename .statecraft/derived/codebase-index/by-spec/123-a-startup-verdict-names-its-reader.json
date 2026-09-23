@@ -1,5 +1,8 @@
 {
   "mapping": {
+    "amends": [
+      "093-the-harness-this-repository-runs"
+    ],
     "dependsOn": [
       "093-the-harness-this-repository-runs",
       "094-one-gate-and-the-boundaries-it-holds"
@@ -93,5 +96,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "6ea9039a6586e63ee6b59a0137d89b4b3c2fb3070ecec61ab941460024bf94f6"
+  "shardHash": "f40c5d3cee32fa2fad5f92da90e3a9d2022680541ca6945191965c4b3cc91514"
 }

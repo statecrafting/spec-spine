@@ -115,7 +115,7 @@ case "$code" in
   3) echo "$out"
      refuse "the freshness read could not be performed by $rd" 'read the error above; a read that did not answer is not a pass' ;;
   *) echo "$out"
-     refuse "unknown exit code $code from the freshness read" 'confirm the binary with spec-spine --version' ;;
+     refuse "unknown exit code $code from the freshness read by $rd" 'confirm the binary with spec-spine --version' ;;
 esac
 
 # 2. Staged completeness. A working tree that compiles clean still lands stale
