@@ -87,8 +87,9 @@ fn schema_versions_are_pinned() {
     // is additive, so a consumer's existing match arms still hold, which is
     // exactly the MINOR rule version.rs states. Spec 100 took it to 0.5.0 by
     // adding `couple`'s `deletions` block, which is omitted when empty and so
-    // additive in the same sense.
-    assert_eq!(VERDICT_SCHEMA_VERSION, "0.5.0");
+    // additive in the same sense. Spec 113 took it to 0.6.0 by adding
+    // `couple`'s `waivers` and `unattachedWaiverLines`, omitted when empty.
+    assert_eq!(VERDICT_SCHEMA_VERSION, "0.6.0");
     // Spec 039: the per-spec attestation, independent of the ledger versions so
     // a consumer pins the evidence shape it verifies without pinning the ledger
     // it was derived from.

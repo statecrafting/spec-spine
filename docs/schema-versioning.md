@@ -15,7 +15,7 @@
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
-| verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.5.0` | library |
+| verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.6.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.1.0` | library |
 | read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.6.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
@@ -327,6 +327,17 @@ from it. Additive in the strict sense this policy requires: the block is
 **omitted when empty**, so every input that produced a verdict before spec 100
 still produces the same payload bytes, and a consumer that does not read it is
 unaffected.
+
+**Verdict `0.6.0` (spec 113).** `couple`'s report gained `waivers`, one entry
+per declared waiver in declaration order (its `id`, `reason`, `scoped` and
+`paths`, each declared lifecycle check as `satisfied`, `failed` or
+`not-evaluated`, whether it was `effective`, and the violations it `clears`),
+and `unattachedWaiverLines`. Both are omitted when empty, so a run that
+declares no waiver produces the same payload bytes. A run with a waiver
+decides exactly as before unless the waiver declares a lifecycle line, and
+`waiver` still means "this run was waived". A consumer that reads `waiver`
+alone keeps working; one that wants to know what a waiver excused reads
+`waivers[].clears`.
 
 **The guarantee that makes migrating safe:** `--json` changes what is written
 and never what is decided. Every exit code is identical with and without it. A

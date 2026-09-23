@@ -1,12 +1,7 @@
 {
   "mapping": {
-    "amends": [
-      "005-coupling-gate",
-      "081-coupling-sees-the-change-being-committed"
-    ],
     "dependsOn": [
-      "005-coupling-gate",
-      "081-coupling-sees-the-change-being-committed"
+      "005-coupling-gate"
     ],
     "implementingPaths": [
       {
@@ -14,7 +9,7 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/cmd_delta.rs",
+        "path": "crates/spec-spine-cli/src/main.rs",
         "source": "spec-edge"
       },
       {
@@ -22,8 +17,8 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/couple.rs",
-        "source": "spec-edge"
+        "path": "crates/spec-spine-cli/tests/waiver.rs",
+        "source": "multiple"
       },
       {
         "path": "crates/spec-spine-core/src/couple.rs",
@@ -34,8 +29,12 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/couple.rs",
-        "source": "spec-edge"
+        "path": "crates/spec-spine-core/src/waiver.rs",
+        "source": "multiple"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/waiver.rs",
+        "source": "multiple"
       },
       {
         "path": "crates/spec-spine-types/src/version.rs",
@@ -58,6 +57,45 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-cli/tests/waiver.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/waiver.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/waiver.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/waiver.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/waiver.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/waiver.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-cli/src/cmd_couple.rs"
           }
         ],
@@ -71,14 +109,14 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_delta.rs"
+            "file": "crates/spec-spine-cli/src/main.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_delta.rs"
+          "path": "crates/spec-spine-cli/src/main.rs"
         }
       },
       {
@@ -92,19 +130,6 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/tests/cli.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-cli/tests/couple.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-cli/tests/couple.rs"
         }
       },
       {
@@ -131,19 +156,6 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/lib.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/tests/couple.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/couple.rs"
         }
       },
       {
@@ -201,6 +213,19 @@
       {
         "locations": [
           {
+            "file": "docs/design/04-authority-evidence-extension.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/design/09-disposition-2026-09-21.md"
           }
         ],
@@ -212,9 +237,9 @@
         }
       }
     ],
-    "specId": "100-a-deleted-path-is-judged-where-it-lived",
-    "specStatus": "approved"
+    "specId": "113-a-waiver-has-a-declared-lifecycle",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "3b2ffe241e463df704954c5eef882d06273b4e3d143d8b67acc8ed24ddabe695"
+  "shardHash": "5330ceda5966999cb30af22b5126293e955a7cde2eebc1dcef90eb526fcf98ce"
 }

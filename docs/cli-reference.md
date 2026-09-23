@@ -203,7 +203,8 @@ one.
 
 ```
 spec-spine couple [--base BASE] [--head HEAD] [--pr-body FILE]
-                  [--paths-from FILE] [--include-uncommitted] [--json]
+                  [--paths-from FILE] [--include-uncommitted]
+                  [--waiver-as-of YYYY-MM-DD] [--waiver-uses ID=N]... [--json]
 ```
 
 The PR-time gate: refuse code that drifts from its owning spec. The diff it
@@ -217,14 +218,38 @@ so the "before" side is `merge-base(base, head)`.
 | `--pr-body <FILE>` | The waiver source, as a file path. Falls back to `$SPEC_SPINE_PR_BODY`. |
 | `--paths-from <FILE>` | Override the diff: newline-delimited changed paths, whole-file authority, no hunk data. |
 | `--include-uncommitted` | Also judge the index and working tree, so a pre-commit run sees the change being committed (spec 081). Only valid when `--head` resolves to `HEAD`, and never with `--paths-from`. |
+| `--waiver-as-of <YYYY-MM-DD>` | The date a declared `-Until:` is judged against (spec 113). Never read from the clock: without it an expiry is reported `not-evaluated`. A value that is not a date exits `3`. |
+| `--waiver-uses <ID>=<N>` | How many runs the waiver with that `id` has already cleared, excluding this one (spec 113); repeatable. The count is yours: nothing records or consumes a use. Without it a declared `-Max-Uses:` is `not-evaluated`, never zero. |
 
 Refusal codes: `C-001` (a path changed without an authoring edit to any owning
 spec) and `C-002` (a changed source file no spec claims, when
 `[coupling] require_ownership` is on).
 
-A `Spec-Drift-Waiver:` line in the PR body clears a named path. It is a human
+A `Spec-Drift-Waiver:` line in the PR body clears the run. It is a human
 instrument; an agent never writes one on its own authority. A dependency-only
 manifest bump self-clears through `[coupling] auto_waive_dependency_only`.
+
+A waiver may narrow itself with lines of its own under it (spec 113), each
+naming the keyword without its colon plus a suffix:
+
+```
+Spec-Drift-Waiver: mechanical version bump
+Spec-Drift-Waiver-Paths: npm/package.json, py/pyproject.toml
+Spec-Drift-Waiver-Until: 2026-12-31
+Spec-Drift-Waiver-Since: a3d5213d
+Spec-Drift-Waiver-Max-Uses: 1
+```
+
+`-Paths:` clears only the listed paths (an entry ending in `/` is a subtree);
+without it a waiver clears everything, as it always has, and is reported
+unscoped. `-Until:` is judged against `--waiver-as-of`, `-Since:` by asking git
+whether the commit is an ancestor of `--head`, and `-Max-Uses:` against
+`--waiver-uses`. Each declared check is reported `satisfied`, `failed` or
+`not-evaluated`; a waiver with a failed check clears nothing. Several waivers
+may be declared, and each violation is cleared by the first effective waiver
+whose scope covers it. The report says which waiver cleared which violation,
+and `--json` carries it as `report.waivers`. A waiver reported `effective` is
+one whose declared checks did not fail; it says nothing about who approved it.
 
 ## delta
 
