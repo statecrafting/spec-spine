@@ -168,10 +168,10 @@
       "Verification"
     ],
     "specPath": "specs/107-a-context-closure-is-declared/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "A piece of work has no declared answer to \"what must I have read before I act on this\", and no way to tell later whether that context changed. A ContextClosure is that answer as data: the specs, sections and obligations a task is answerable to, named by the task's owner. spec-spine resolves a closure request against the committed ledger and returns every member with its identity and one order-independent digest over all of them, so \"the context this work was done against has changed\" is one comparison. The closure lives in the consumer's record; spec-spine only resolves it, and no gate reads one.\n",
     "title": "A context closure is declared"
   },
-  "shardHash": "f27d18191a4e8be5fab107a801a38b7f7ca0437cbcb86f66f7d4d68b80dc18bc",
+  "shardHash": "881957bbdb9b50a134200973fa4cdfeee205300dc429d3b8b512126c1add674b",
   "specVersion": "1.6.0"
 }

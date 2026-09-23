@@ -1,7 +1,7 @@
 ---
 id: "102-a-ready-spec-carries-its-status"
 title: "A ready spec carries its status"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-21"
 implementation: complete
