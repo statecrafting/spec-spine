@@ -259,20 +259,78 @@ checkout, not downloaded from a registry.
 
 ## 11. For Statecraft
 
-Nothing in Statecraft needs to change to keep consuming 0.22.0. To adopt this
-wave after it is released:
+Everything Statecraft needs to adopt this line, in one place. Nothing here
+changes Statecraft, and nothing in Statecraft needs to change to keep
+consuming 0.22.0.
 
-1. Pin the release that carries it; do not rely on the version string before
-   then (§0).
-2. Readiness (102): filter `plan.ready` on `status` to apply the approval rule
-   in one read.
-3. Closures (107): record the `digest` with the work it authorized; a later
-   resolve with a different digest means a named member moved. Resolve only
-   against a fresh ledger (exit 2 otherwise).
-4. Interface pins (110): for any Statecraft spec that cites a producer spec,
-   copy `contentHash` (and the sections relied on) from the producer's
-   `registry show --json`, and run `interface verify --export
-   <producer>=<checkout>` in the release job. Fetching and choosing the
-   checkout stay with Statecraft.
-5. Fixtures (103): an independent verifier replays `fixtures/verifier/` from
-   the packaged crate, as §7 does.
+**Producer.** Revision `97f82ee561efb656aeb3528d5ab9671bac8308bf`, intended
+release **0.23.0** (not yet cut or published). Identify a binary with
+`scripts/reader-identity.sh`, not `--version` (§0).
+
+**Interfaces and schema versions.**
+
+| Capability | Facade (`spec-spine-core`) | CLI | Answer's axis |
+|---|---|---|---|
+| readiness with status (102) | `query_json` `op: "plan"` | `registry plan --json` | read `0.7.0` |
+| obligation (106) | `query_json` `op: "obligation"` | `registry obligation <spec>#<id> --json` | read `0.7.0` |
+| closure (107) | `closure_json` | `registry closure --request <file\|-> --json` | read `0.7.0` |
+| impacts (109) | `query_json` `op: "impacts"` | `registry impacts --json` | read `0.7.0` |
+| interface pins (110) | `interface_verify_json` | `interface verify --export <c>=<dir> --json` | read `0.7.0` |
+| work scope (108) | `scope_json`, `scope_compare_json` | `scope evaluate`, `scope compare` (`--json`) | read `0.7.0` |
+| waiver lifecycle (113) | `couple_json` with `prBody` or `waivers`, and `waiverInputs` | `couple --pr-body --waiver-as-of --waiver-uses --json` | verdict `0.6.0` |
+| fixtures (103) | `verify_attestation_json` over `fixtures/verifier/` | `verify-attestation` | fixture set `0.1.0` |
+| registry records | `compile_json`, `query_json` `op: "show"` | `registry show --json` | registry `1.6.0` |
+
+**Examples and fixtures.**
+
+- `docs/examples/expansion-consumer/` (`run.sh`, `src/main.rs`): a disposable
+  consumer of the packaged crates exercising every row above, including the
+  composed flow of §9.
+- `crates/spec-spine-core/fixtures/verifier/` (in the packaged crate at
+  `fixtures/verifier/`): 11 cases with recorded outcomes, regenerated at
+  0.23.0.
+- The CLI-level cases Statecraft can copy as integration tests:
+  `crates/spec-spine-cli/tests/scope.rs`, `crates/spec-spine-cli/tests/waiver.rs`,
+  `crates/spec-spine-cli/tests/closure.rs`, `crates/spec-spine-cli/tests/interface.rs`.
+
+**Positive and negative consumer checks** (each is asserted in the example or
+the named tests):
+
+| Check | Expect |
+|---|---|
+| plan entry for a `draft` spec | present in `ready`, `status: "draft"` (readiness is not approval) |
+| obligation id without a spec | exit 3 |
+| closure with a missing member | exit 1, every missing member named, no digest |
+| closure over a stale ledger | exit 2 |
+| scope with an undeclared crossing | exit 0, `S-002` naming both specs |
+| scope with the crossing declared `shared` | exit 0, no finding |
+| scope with an unknown `ownSpec` / a `..` path / a stale index | exit 1 / 3 / 2 |
+| two scopes, one reading what the other changes | `changed-under-read` |
+| waiver scoped to one of two refused paths | the other path still refuses; `waivers[0].clears` names one |
+| waiver past its `-Until:` with an as-of supplied | clears nothing, check `failed` |
+| waiver with `-Until:` and no as-of | check `not-evaluated`, clears on the rest |
+| waiver at its `-Max-Uses:` per the supplied count | check `failed` |
+| no waiver declared | report has no `waivers` member |
+| `prBody` and `waiver` both given | exit 3 |
+| a reader older than 0.23.0 on this repository | exit 3, "requires spec-spine >=0.23.0" |
+
+**Compatibility and migration.**
+
+- All schema moves are additive (MINOR); a loader pinned to a MAJOR keeps
+  working. New members are omitted when empty wherever an old document would
+  otherwise change: `waivers` and `unattachedWaiverLines` on `couple`.
+- `couple`'s decision changes only for a pull request whose waiver declares a
+  lifecycle line. A plain waiver clears everything, exactly as before, and is
+  now reported as `scoped: false`.
+- The facade signatures are unchanged; new functions and optional request
+  members only (`couple_snapshots_waived`, `couple_with_prior_waived`,
+  `parse_waivers`, `scope_json`, `scope_compare_json`).
+- Adopting 0.23.0 in a Statecraft-managed repository: pin it, raise that
+  repository's `[meta] required_version` to `>=0.23.0` once its corpus uses a
+  0.23.0 member, and record the binary's identity in the job that gates.
+
+**The boundary, restated.** A scope does not lock, reserve, exclude or permit.
+A waiver's use limit is judged against the count Statecraft supplies. Nothing
+here counts, consumes or records a use, and two concurrent runs given the same
+count get the same answer. Scheduling, reservation, authorization, the use
+store and fetching a cited corpus all stay with Statecraft.
