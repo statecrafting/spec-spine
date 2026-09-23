@@ -220,6 +220,12 @@ that dropped a member still fails. 087's own mechanism lines are kept, and a
 line asserts that 087's and 053's files still carry the superseded form, so a
 later edit to either approved file goes red here.
 
+Spec 082 §3.4 requires every spec whose acceptance another holds to say so
+above its own fence, naming the holder. 087 gains that note, naming this spec,
+and 053's existing note gains one sentence saying 087's acceptance is now held
+here. The notes are the rule's own mandated edit; no command under either
+fence changes, and the lines this block greps in both files are untouched.
+
 ## Verification
 
 Written to fail against the tree this spec is filed on: the field does not

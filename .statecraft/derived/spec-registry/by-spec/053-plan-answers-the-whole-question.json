@@ -70,7 +70,7 @@
     ],
     "risk": "low",
     "sectionDigests": {
-      "053-the-plan-answers-the-whole-question-and-names-one-pick": "516cae37e387e8fcd5ba6245baf5655a6a3655bd495a87f3bd902e78d9907159",
+      "053-the-plan-answers-the-whole-question-and-names-one-pick": "48c4fe0d99ad44e4d927397b34d2dd6b89d6e3e0fbdac08fc2e2ee05c79d8124",
       "1-purpose": "8cae9386d2e483e43b3950bc2a7fee1b4b1581ca9fc860f081a7f59c17216999",
       "2-territory": "63eb4984ec61ec6f0998da15170c36f7b71fb3c6ede88c9d0954f82ef185de89",
       "3-1-the-prose-form-renders-what-the-structure-holds": "04f815d7f9fe08cb3553cea0bc735000c766194373fcb624b88ebe1aa3ac6c4d",
@@ -79,7 +79,7 @@
       "3-4-it-still-answers-what-is-claimed-not-what-is-done": "24d2bdb6fe00528a1280b14a41dda8f0123c990992c0c5714b24141122809332",
       "3-behavior": "b6540ad4200250d41dab290cf9635523475ca43a06c5556d362735a04051b839",
       "4-out-of-scope": "c359f449c2a5b3c2cbb9014aaa368ed24937b1385473250728d41d290803f5c8",
-      "5-verification": "5832eefef03ff0b5b017e2ea484600e93d0e665c850912a8740a05ee8ff4a3aa"
+      "5-verification": "929b8b74738f178e81643d55c52fcc15715aec02c8eee06d2cdf7d6feb6dfaec"
     },
     "sectionHeadings": [
       "053: The plan answers the whole question, and names one pick",
@@ -98,6 +98,6 @@
     "summary": "`registry plan` prints spec ids and a count. Every consumer needs more than that, so every consumer adds it back: adopters kept about forty lines of Python to join the ready ids against titles and to explain why each blocked spec is blocked, and the corpus's own `/next` skill has to make a second call to turn an id into something a human can read. The data is all there. `Plan` already carries each blocked spec's blockers with the state of each, and the registry it was computed from carries every title. This spec makes the prose form render what the structure already holds, and adds `--next`, the single pick that the one-spec-per-session loop actually asks for. The JSON shape gains title fields and is otherwise unchanged.\n",
     "title": "The plan answers the whole question, and names one pick"
   },
-  "shardHash": "9b65bf3d31c3f6fb19186202b3470e5cd9df75c9bbb80ce9ded403b7a566f8e0",
+  "shardHash": "5db08436676e55078077f87a72199d00acb12d96453cb3842d8ff2ee95e0739a",
   "specVersion": "1.6.0"
 }
