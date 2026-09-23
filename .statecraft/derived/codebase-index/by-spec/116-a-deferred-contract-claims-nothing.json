@@ -10,11 +10,19 @@
       {
         "path": "crates/spec-spine-core/src/lint.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/deferred_contract.rs",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/deferred_contract.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -66,5 +74,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "d011d843706eac584c9226a0702c5313ae4522709732c7ffb4043b06257ed9e5"
+  "shardHash": "c1e18e1a135557d3ca6baf0651ed3c5f07e906f816ec766d847afafe277f56f7"
 }
