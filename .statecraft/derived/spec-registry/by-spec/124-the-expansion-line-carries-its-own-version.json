@@ -117,10 +117,10 @@
       "Verification"
     ],
     "specPath": "specs/124-the-expansion-line-carries-its-own-version/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The frozen 0.22.0 candidate (`f9fa6a8f`) and `main` both answered `spec-spine 0.22.0` while emitting different registry, read and verdict schemas, so the version string could not say which engine a verdict came from, and an older reader judged a newer corpus invalid instead of refusing it. `main` now carries 0.23.0, the version the next expansion release will be cut at, in all three package manifests; this repository's version floor moves with it, so a reader older than the corpus's grammar refuses by name (exit 3); the release runbook makes both a standing step; and a script records a binary's identity from evidence (path, digest, revision, whether it is that checkout's current build, and the schema axes it emits) rather than from `--version`. The frozen candidate is not recut.\n",
     "title": "The expansion line carries its own version"
   },
-  "shardHash": "6433f00db07413f4363593606e763d91f3bb9dd227892c09f384aaee8a8bd77d",
+  "shardHash": "96cea3246d1e0deddcb0fece5c262ab0e1b69199bbdd4ed6414d3a409ba893c5",
   "specVersion": "1.6.0"
 }

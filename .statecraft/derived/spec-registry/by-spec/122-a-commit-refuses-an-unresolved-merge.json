@@ -69,10 +69,10 @@
       "Verification"
     ],
     "specPath": "specs/122-a-commit-refuses-an-unresolved-merge/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The commit-boundary hook (spec 094) refuses a stale or invalid derived tree and nothing else, so a merge whose conflict was \"resolved\" by staging the markers committed cleanly, and so did a Rust change whose formatting check had failed earlier in the same command chain. Both happened on this repository's expansion branches. The hook now also refuses unmerged index entries, conflict markers on the lines a commit adds (git's own detector, with git's own attribute as the only opt-out), and a staged Rust change that fails `cargo fmt --all --check`. It still writes and stages nothing.\n",
     "title": "A commit refuses an unresolved merge or an unformatted Rust change"
   },
-  "shardHash": "f40733ab805ad624310b4715979d71f95c71d6326bba037879571d41d0413210",
+  "shardHash": "acd25858ffe3581dae9cc52f440de67cc5b9b1ebd381fa4ad68969c63b407197",
   "specVersion": "1.6.0"
 }

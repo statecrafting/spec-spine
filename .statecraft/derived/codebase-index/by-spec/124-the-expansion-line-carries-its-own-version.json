@@ -154,8 +154,8 @@
       }
     ],
     "specId": "124-the-expansion-line-carries-its-own-version",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "5a24a07a59bac1a0d1af9752d5a5e31c7872edb7bf8ae6fa8d5b0533eaa091e0"
+  "shardHash": "1aef3b267b4c4a09fb114a6b6aee4b290e9b7d1f841d4bf7a2d55e1cc20bc446"
 }

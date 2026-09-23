@@ -1,7 +1,7 @@
 ---
 id: "125-a-forwarded-line-arrives-whole"
 title: "A forwarded line arrives whole"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-23"
 summary: >

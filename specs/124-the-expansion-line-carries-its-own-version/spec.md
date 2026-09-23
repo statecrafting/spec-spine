@@ -1,7 +1,7 @@
 ---
 id: "124-the-expansion-line-carries-its-own-version"
 title: "The expansion line carries its own version"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-23"
 summary: >
