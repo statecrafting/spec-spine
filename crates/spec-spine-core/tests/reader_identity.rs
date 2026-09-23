@@ -170,7 +170,7 @@ fn a_freshness_refusal_names_the_reader_that_made_it() {
 fn an_in_tree_reader_older_than_its_source_is_refused_as_that() {
     let repo = Repo::new();
     repo.write(".gitignore", "target/\n");
-    repo.write("Cargo.toml", "[workspace]\n");
+    repo.write("crates/c/src/lib.rs", "\n");
     let built = repo.root.join("target/release/spec-spine");
     fs::create_dir_all(built.parent().unwrap()).unwrap();
     fs::write(
@@ -186,7 +186,7 @@ fn an_in_tree_reader_older_than_its_source_is_refused_as_that() {
     }
     for (p, stamp) in [
         (&built, "202609220406"),
-        (&repo.root.join("Cargo.toml"), "202609222001"),
+        (&repo.root.join("crates/c/src/lib.rs"), "202609222001"),
     ] {
         assert!(
             Command::new("touch")
@@ -202,7 +202,7 @@ fn an_in_tree_reader_older_than_its_source_is_refused_as_that() {
     let t = text(&out);
     assert!(!out.status.success(), "{t}");
     assert!(
-        t.contains("older than this checkout's source (Cargo.toml is newer)"),
+        t.contains("older than this checkout's source (crates/c/src/lib.rs is newer)"),
         "{t}"
     );
     assert!(t.contains(&built.display().to_string()), "{t}");

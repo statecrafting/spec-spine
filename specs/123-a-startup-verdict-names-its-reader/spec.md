@@ -114,7 +114,8 @@ current source both answer `0.22.0`, which a separate change to the package
 identity addresses, and within one version every development build
 answers the same string. What does separate them, for the one reader that has
 a source to compare against, is age: a build older than any file it is built
-from was built from a different revision.
+from was built from a different revision. An input is a file the binary was
+compiled from, not any file in the crate tree (D-5).
 
 ## 2. Territory
 
@@ -137,8 +138,11 @@ the one place a session learns which reader it is running.
 ### 3.2 A reader older than its source is not believed
 
 When the selected reader is the repository's own `target/release/spec-spine`
-and any file under `crates/`, or `Cargo.toml` or `Cargo.lock`, is newer than
-it, the hooks MUST NOT report its verdict as the tree's:
+and any input it was compiled from is newer than it, the hooks MUST NOT report
+its verdict as the tree's. The inputs are the files cargo's dep-info beside the
+binary (`target/release/spec-spine.d`, rewritten on every link) lists; without
+that record, the files under a crate's `src/` or `schemas/`. A file the binary
+does not compile, such as a test, a fixture or a manifest, never ages it (D-5):
 
 - `SessionStart` prints `NOT JUDGED`, names the reader and the first newer
   source path, and gives the rebuild command.
@@ -230,9 +234,9 @@ source revision would need a build script that runs `git`, answers nothing
 from a packaged crate (which has no repository), and makes the binary depend
 on the commit it was built at. Modification time answers the only question
 the hook has, whether this build could be the build of this tree, from what
-is on disk, and errs toward "not judged" when a source file was touched after
-a build that it did not affect. That error costs a rebuild; the error it
-replaces cost a session that believed a valid corpus was invalid.
+is on disk. D-5 narrows which files are asked about to the ones the binary
+was compiled from, so the remedy the hook names always clears what it
+reports.
 
 **D-2 (2026-09-23, build: fail-first measured).** Against the hooks at
 `3b67b63d`, all six new `harness_hooks.rs` cases and both behavioral
@@ -253,6 +257,33 @@ made quietly. 093's own pin, that the stale arm asks no `--version`, passes.
 `--version` for every refusal, exit 2 included, where the other hooks keep it
 off an answered exit (spec 093 §3.9). It names a stale verdict's reader by path
 now, as they do, and `reader_identity.rs` asserts it.
+
+**D-5 (2026-09-23, after merge: the comparison was over the wrong files).**
+As merged in #317 the hooks compared the reader against every file under
+`crates/` plus `Cargo.toml` and `Cargo.lock`. `main` then moved by a merge
+that changed only test files under `crates/`; `cargo build` correctly did
+nothing, so the binary kept its date, and the banner on the main checkout said
+`NOT JUDGED` with a rebuild remedy that could not clear it. Measured there with
+the merged hook: "`crates/spec-spine-core/tests/harness_hooks.rs` is newer". A
+manifest or lockfile change that does not alter what the binary links behaves
+the same way, which is what the review's design note on `Cargo.lock` pointed
+at. The inputs are now what cargo's own dep-info lists for the binary (64 files
+here: the three crates' `src/` and the embedded schemas), with `src/` and
+`schemas/` as the fallback when that record is absent. Re-measured: the main
+checkout reports `fresh` with its reader named, and the incident's
+reproduction (a copied binary with no dep-info) still reports `NOT JUDGED`.
+`spec123_a_change_the_binary_does_not_compile_never_ages_it` and
+`spec123_the_reader_is_aged_by_the_inputs_it_was_built_from` fail against the
+merged hooks and pass with this change.
+
+**D-6 (2026-09-23, review of #319).** The dep-info read trusted every listed
+path, so a record naming another checkout's files (a copied or moved build)
+matched nothing here and read as "not older", and an unquoted `$(...)` over
+it was open to word splitting and globbing. The record is now read line by
+line, only listed files inside this repository that exist count, and a record
+with none falls through to `src/` and `schemas/`.
+`spec123_the_reader_is_aged_by_the_inputs_it_was_built_from` carries the
+foreign-record case, which fails against the hooks this correction replaces.
 
 ## Verification
 
