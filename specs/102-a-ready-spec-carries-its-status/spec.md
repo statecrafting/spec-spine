@@ -311,8 +311,9 @@ rm -f "${TMPDIR:-/tmp}/ss087-verify-tests.txt"
 target/release/spec-spine registry show 102 --json > "${TMPDIR:-/tmp}/ss102-show.json"
 python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss102-show.json')); assert d['amendsVerification'] == ['087-the-answer-is-a-member-not-the-document'], d; assert d['amends'] == ['087-the-answer-is-a-member-not-the-document'], d"
 rm -f "${TMPDIR:-/tmp}/ss102-show.json"
-# 087's file is not edited either: it still carries the two-member form this
-# block replaced. Red if someone repairs 087 in place instead.
+# 087's commands are not edited either (only its superseded note, spec 082
+# 3.4): it still carries the two-member form this block replaced. Red if
+# someone repairs 087's commands in place instead.
 grep -qF "assert p['ready'][0]=={'id':'001-alpha','title':'First thing'}, p" specs/087-the-answer-is-a-member-not-the-document/spec.md
 # --- this spec's own acceptance ---
 # 3.1: the field exists, and is the verbatim status string.
