@@ -123,8 +123,8 @@
       }
     ],
     "specId": "105-governed-scope-is-enabled-here",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "7aa2a02b6aab391c29347a46a190dd4e93ec5fdb6fd07e6f8f998db0aa767755"
+  "shardHash": "fac615af754c280c760487499078815686442d69768c4449898c9e615fd4c8eb"
 }

@@ -1,7 +1,7 @@
 ---
 id: "109-impact-and-conflict-are-declared"
 title: "Impact and conflict are declared"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-21"
 implementation: complete
