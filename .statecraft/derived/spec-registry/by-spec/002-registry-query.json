@@ -48,5 +48,5 @@
     "title": "Typed read-only query over the registry"
   },
   "shardHash": "8b3fa13aea9759890d821795f6004dd23f8eac1b569a35981167160bb08358d1",
-  "specVersion": "1.6.0"
+  "specVersion": "1.7.0"
 }

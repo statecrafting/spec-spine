@@ -111,5 +111,5 @@
     "title": "Ledger Seal (signed, reproducible attestation over the spec corpus)"
   },
   "shardHash": "f2bc80e69cc1643035c6f9a186d0bead65edeca9ae0db1105c4f33e05b1f8ee2",
-  "specVersion": "1.6.0"
+  "specVersion": "1.7.0"
 }

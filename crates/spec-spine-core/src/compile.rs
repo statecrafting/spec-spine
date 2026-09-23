@@ -212,6 +212,7 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
         validate_obligations(&p.spec_path, &p.fm, &p.body, &mut violations);
         validate_impacts_local(&p.spec_path, &p.fm, &mut violations);
         validate_interface_references(&p.spec_path, &p.fm, &mut violations);
+        validate_intent(&p.spec_path, &p.fm, &mut violations);
         records.push(build_record(p.fm, p.spec_path, &p.body));
     }
     records.sort_by(|a, b| a.id.cmp(&b.id));
@@ -820,7 +821,37 @@ fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
         impacts: fm.impacts,
         conflicts: fm.conflicts,
         interface_references: fm.interface_references,
+        intent: fm.intent.map(Into::into),
         extra_frontmatter: fm.extra_frontmatter,
+    }
+}
+
+/// Spec 114 §3.4: the one intent rule serde cannot see. A missing `goal`, a
+/// wrong type or an unknown member is already malformed frontmatter (`V-002`);
+/// what is left is a string that says nothing. `V-039` judges whether the
+/// declaration is well formed, never whether it is true (§3.5).
+fn validate_intent(spec_path: &str, fm: &Frontmatter, out: &mut Vec<Violation>) {
+    let Some(intent) = &fm.intent else {
+        return;
+    };
+    let empty = |member: &str| {
+        error(
+            "V-039",
+            format!(
+                "spec '{}' declares an intent whose {member} is empty; a declared \
+                 goal or non-goal that says nothing is refused, and the key is optional",
+                fm.id
+            ),
+            Some(spec_path.to_string()),
+        )
+    };
+    if intent.goal.trim().is_empty() {
+        out.push(empty("goal"));
+    }
+    for (i, ng) in intent.non_goals.iter().enumerate() {
+        if ng.trim().is_empty() {
+            out.push(empty(&format!("non_goals[{i}]")));
+        }
     }
 }
 

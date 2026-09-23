@@ -10,7 +10,7 @@
 
 | Artifact | Field | Current | Owner |
 |---|---|---|---|
-| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.6.0` | library |
+| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.7.0` | library |
 | index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`) | `schemaVersion` | `1.1.0` | library |
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
@@ -70,6 +70,10 @@ MINOR history:
   `sections`?, `obtained`, `rationale`?). Absent on every existing spec, so only
   `specVersion` restamps and no `shardHash` moves. A binary predating it meets
   the member with a parse error (exit 3).
+- registry `1.7.0` (spec 114): additive `intent` on a record, a spec's standing
+  `goal` and `nonGoals` as authored. Read by no gate. Absent on every existing
+  spec, so only `specVersion` restamps and no `shardHash` moves. A binary
+  predating it meets the member with a parse error (exit 3).
 
 MAJOR history:
 

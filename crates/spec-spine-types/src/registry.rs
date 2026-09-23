@@ -17,6 +17,7 @@ use crate::edges::{
 };
 use crate::frontmatter::{Implementation, Risk, Status};
 use crate::impact::{Conflict, Impact};
+use crate::intent::Intent;
 use crate::interface::InterfaceReference;
 use crate::obligation::Obligation;
 use crate::unit::Unit;
@@ -145,6 +146,12 @@ pub struct SpecRecord {
     /// Carried verbatim from frontmatter, omitted when empty (spec 110 §3.2).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub interface_references: Vec<InterfaceReference>,
+
+    // --- declared intent (spec 114) ---
+    /// The spec's standing goal and non-goals, as authored (spec 114 §3.3).
+    /// Omitted when the spec declares none. Read by no gate (§3.5).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub intent: Option<Intent>,
 
     // --- overflow ---
     /// Declared keys carry any JSON value (spec 012); undeclared keys are

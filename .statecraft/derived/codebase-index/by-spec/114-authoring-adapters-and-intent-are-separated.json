@@ -5,12 +5,44 @@
     ],
     "implementingPaths": [
       {
+        "path": "crates/spec-spine-cli/src/cmd_registry.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/fixtures/verifier/",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/compile.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/impacts.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/intent.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/obligations.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/schemas/registry.schema.json",
         "source": "spec-edge"
       },
       {
         "path": "crates/spec-spine-types/src/frontmatter.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/intent.rs",
+        "source": "multiple"
       },
       {
         "path": "crates/spec-spine-types/src/lib.rs",
@@ -19,11 +51,31 @@
       {
         "path": "crates/spec-spine-types/src/registry.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/version.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/tests/dtos.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/schema-versioning.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "standards/spec/templates/spec-template.md",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/intent.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -32,12 +84,42 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/intent.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/intent.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/fixtures/verifier/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_registry.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
         }
       },
       {
@@ -51,6 +133,58 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/impacts.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/impacts.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/obligations.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/obligations.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/schemas/registry.schema.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry.schema.json"
         }
       },
       {
@@ -95,6 +229,58 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-types/src/version.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/tests/dtos.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/schema-versioning.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "standards/spec/templates/spec-template.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/templates/spec-template.md"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/design/07-statecraft-realignment-2026-09.md"
           }
         ],
@@ -123,5 +309,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "1fe538e2843628846d4a4430236b75cf69615470c4cbbb8a33c2ef1c6cf36622"
+  "shardHash": "bbe08345682b7ac480740b687f30ab9ccff9876d04ad319519b7693dfb72e3fa"
 }
