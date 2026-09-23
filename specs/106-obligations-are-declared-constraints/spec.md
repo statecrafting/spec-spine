@@ -446,6 +446,14 @@ first half stands (`list` and `show` gain members through the registry
 schema). `read.rs`'s pin moves with it, declared as an `extends` edge on spec
 074, as spec 102 did.
 
+**D-13 (2026-09-22, recorded when spec 109 moved the registry to 1.5.0).**
+The acceptance pinned `REGISTRY_SCHEMA_VERSION` to exactly `1.4.0`, so spec
+109's additive MINOR failed it without anything this spec requires changing:
+the version-pin trap spec 085 names. The line now asserts a floor, MAJOR 1
+and MINOR at least 4, which still fails if the constant regresses below this
+spec's MINOR. Measured: it passes at `1.5.0` and fails at `1.3.0`. No
+requirement of this spec moved; this spec is `draft`.
+
 ## Verification
 
 Written to fail against the tree it is filed on: nothing named here exists.
@@ -458,8 +466,10 @@ cargo build --release --locked
 cargo test -p spec-spine-core --test obligations --locked
 # 3.6: the read through the shipped CLI, including the unqualified refusal.
 cargo test -p spec-spine-cli --test obligations --locked
-# 3.5, 3.9: the registry schema moved, and the shards conform to it.
-grep -q 'REGISTRY_SCHEMA_VERSION: &str = "1.4.0"' crates/spec-spine-types/src/version.rs
+# 3.5, 3.9: the registry schema moved, and the shards conform to it. A floor,
+# not a value pin (spec 085): MAJOR 1 and at least this spec's MINOR 4, so a
+# later additive MINOR passes and a regression below 1.4.0 fails (D-13).
+grep -qE 'REGISTRY_SCHEMA_VERSION: &str = "1\.([4-9]|[1-9][0-9]+)\.[0-9]+"' crates/spec-spine-types/src/version.rs
 cargo test --workspace emitted_registry_conforms --locked
 # This spec's own obligations compile and resolve.
 ./target/release/spec-spine registry obligation 106-obligations-are-declared-constraints#R-5 --json | grep -q '"sectionDigest"'

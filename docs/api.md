@@ -330,9 +330,10 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   in the consumer's record; this only resolves one, and no gate reads it.
 - `query_json` request: `{ "registry": "<registry.json text>", "op":
   "list" | "show" | "status-report" | "relationships" | "plan" |
-  "obligation", "id"?: string,
-  "status"?: string, "idsOnly"?: bool, "nonzeroOnly"?: bool }` (the projection
-  fields, spec 009, default to `false`). Every answer is a **read document**
+  "obligation" | "impacts", "id"?: string,
+  "status"?: string, "idsOnly"?: bool, "nonzeroOnly"?: bool, "target"?: string,
+  "declaredBy"?: string }` (the projection fields, spec 009, default to
+  `false`). Every answer is a **read document**
   (spec 074): an object with sorted keys and `schemaVersion` =
   `READ_SCHEMA_VERSION`; `list` (with or without `idsOnly`) carries its array
   under `items`. `obligation` (spec 106) takes `id` as a qualified
@@ -341,6 +342,24 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   parse error (exit 3), never resolved against a spec. It carries no
   `contentHash`, because registry text has none; the CLI's `registry
   obligation` adds it from the committed shard, as `show` does.
+
+  `impacts` (spec 109) inverts every declared impact and conflict against
+  spec 106's obligations, from either side, filtered by `target` (a spec id,
+  every obligation it declares, or a qualified `<spec-id>#<obligation-id>`
+  reference) and `declaredBy` (a spec id), composed by intersection; with
+  neither, every declaration in the corpus. The answer is `{ "impacts": [{
+  "declaredBy", "target", "nature", "successor"?, "note"?, "targetWithdrawn"
+  }], "conflicts": [{ "declaredBy", "target", "reason", "resolution",
+  "settledBy"?, "targetWithdrawn" }], "schemaVersion" }`, both arrays sorted
+  by `(target, declaredBy)`. `target` and `declaredBy` in each entry are full
+  ids; `target` is the full qualified obligation reference regardless of the
+  short form a filter or an author used. A `target` carrying `#` that is not a
+  qualified reference (an empty or blank half, or a second `#`) is a parse
+  error (exit 3), never resolved against a spec; a target spec, target
+  obligation or declaring spec that does not exist is `NotFound` (exit 1).
+  None of these three is answered as an empty result: an empty `impacts` and
+  `conflicts` pair means every filter resolved and nothing matched, never that
+  a filter failed to resolve.
 
   `plan` (spec 035) returns `{ "ready": [{ "id", "status", "title" }],
   "blocked": [{ "id", "blockedBy": [{ "id", "state" }] }], ...,

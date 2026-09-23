@@ -69,9 +69,11 @@ fn schema_versions_are_pinned() {
     // additive MINOR (spec 082), optional `amendsVerification` naming the
     // amended specs whose `## Verification` block this one replaces; 1.4.0:
     // additive MINOR (spec 106), optional `obligations` and a
-    // `sectionDigests` map on every record. A consumer that knows 1.x keeps
-    // working, which is the MINOR rule.
-    assert_eq!(REGISTRY_SCHEMA_VERSION, "1.4.0");
+    // `sectionDigests` map on every record; 1.5.0: additive MINOR (spec 109),
+    // optional `impacts` and `conflicts`, each `obligation` normalized to its
+    // full qualified form. A consumer that knows 1.x keeps working, which is
+    // the MINOR rule.
+    assert_eq!(REGISTRY_SCHEMA_VERSION, "1.5.0");
     // 1.1.0: additive MINOR (spec 023): unresolved-unit severity tiers (W-001 /
     // W-002 warnings) on top of the spec-024 sharded MAJOR.
     assert_eq!(INDEX_SCHEMA_VERSION, "1.1.0");

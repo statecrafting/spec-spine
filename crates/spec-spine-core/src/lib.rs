@@ -24,6 +24,7 @@ pub mod delta;
 pub mod dep_only;
 pub mod diagnostics;
 mod hash;
+pub mod impact;
 pub mod index;
 pub mod lint;
 pub mod manifest;
@@ -92,6 +93,7 @@ pub use diagnostics::{
     UNRESOLVED_CODES, UnwitnessedCounts, annotate_unreadable, committed_counts,
     committed_diagnostics, count as count_diagnostics,
 };
+pub use impact::{ConflictEntry, ImpactEntry, ImpactSet, impacts};
 pub use index::{
     BlockingClaim, Freshness, IndexFreshnessReport, IndexOutcome, IndexShardSet, OwnerKind,
     OwnerLink, OwnerReport, UnwitnessedClaim, authorities, check_index_freshness,
@@ -174,6 +176,12 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         ids_only: bool,
         #[serde(default)]
         nonzero_only: bool,
+        /// Spec 109 §3.6: `impacts`' filters. `target` is a spec id or a
+        /// qualified obligation reference; `declaredBy` is a spec id.
+        #[serde(default)]
+        target: Option<String>,
+        #[serde(default)]
+        declared_by: Option<String>,
     }
     #[derive(Deserialize)]
     #[serde(rename_all = "kebab-case")]
@@ -185,6 +193,9 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         Plan,
         /// Spec 106 §3.6: `id` is a qualified `<spec-id>#<obligation-id>`.
         Obligation,
+        /// Spec 109 §3.6: every declared impact and conflict, filtered by
+        /// `target` and `declaredBy`.
+        Impacts,
     }
 
     let request: Request = serde_json::from_str(request_json)
@@ -238,6 +249,14 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         // Spec 035. Not the spec 034 verdict envelope, which wraps the
         // adjudicating verbs; a read document instead (spec 074).
         Op::Plan => read_document(&plan(&registry)?, Versioning::Stamp)?,
+        Op::Impacts => read_document(
+            &impacts(
+                &registry,
+                request.target.as_deref(),
+                request.declared_by.as_deref(),
+            )?,
+            Versioning::Stamp,
+        )?,
     };
     Ok(json)
 }

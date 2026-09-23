@@ -112,6 +112,31 @@ implementation: pending        # pending | in-progress | complete | n-a | deferr
 # obligations:
 #   - { id: "R-1", kind: requirement, text: "The rule holds.", anchor: "3-1-the-rule" }
 #   - { id: "V-1", kind: verification, text: "It is checked.", anchor: "verification", inputs: ["tests/rule.rs"] }
+# --- declared impact and conflict (spec 109) ---
+# `impacts` and `conflicts` name this spec's relation to another spec's
+# obligation (spec 106): a qualified `<spec-id>#<obligation-id>` reference,
+# which MUST resolve (an unqualified reference is `V-025`, never resolved
+# locally, and a dangling or self-targeting one is `V-028`/`V-029`). Both are
+# optional; a spec may declare neither. Nothing computes either, and no gate
+# reads them: they record what the author said, not a proof it is complete or
+# correct.
+#   - `impacts[].nature`: `refines`, `extends`, `supersedes` or `informs`.
+#     `supersedes` MUST name, in `successor`, a non-withdrawn obligation THIS
+#     spec declares (`V-026`); `successor` on any other nature is refused.
+#   - `conflicts[].reason`: non-empty, why the divergence exists (`V-027`).
+#   - `conflicts[].resolution`: `deliberate`, `unresolved` or `pending`.
+#     `unresolved` is reported by `lint` (`L-014`), once per entry, warning
+#     tier. `settled_by`, a spec id, is required exactly when `resolution` is
+#     `pending` and refused otherwise (`V-031`).
+# The same obligation named twice in one spec's `impacts`, or twice in its
+# `conflicts`, is refused (`V-030`). `spec-spine registry impacts [--target
+# <ref>] [--declared-by <spec>]` inverts every declaration in the corpus.
+# impacts:
+#   - { obligation: "NNN-other#R-1", nature: refines, note: "why" }
+#   - { obligation: "NNN-other#R-2", nature: supersedes, successor: "R-4" }
+# conflicts:
+#   - { obligation: "NNN-other#R-3", reason: "why", resolution: deliberate }
+#   - { obligation: "NNN-other#R-5", reason: "why", resolution: pending, settled_by: "NNN-later" }
 # --- bootstrap marker (NOT an edge) ---
 # `origin.retroactive` declares authority held since before the graph existed:
 # code that predates its governing spec is evidence, not a violation, and a

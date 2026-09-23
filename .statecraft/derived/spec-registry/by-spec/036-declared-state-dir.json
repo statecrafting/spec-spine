@@ -144,5 +144,5 @@
     "title": "`layout.state_dir`: a declared, ungoverned tool-state root"
   },
   "shardHash": "a6d2bc7d953abd96b18e41997a446bffe3020d5fb32cf17b085efb28cfb00aca",
-  "specVersion": "1.4.0"
+  "specVersion": "1.5.0"
 }

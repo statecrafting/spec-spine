@@ -74,5 +74,5 @@
     "title": "A commit refuses an unresolved merge or an unformatted Rust change"
   },
   "shardHash": "f40733ab805ad624310b4715979d71f95c71d6326bba037879571d41d0413210",
-  "specVersion": "1.4.0"
+  "specVersion": "1.5.0"
 }
