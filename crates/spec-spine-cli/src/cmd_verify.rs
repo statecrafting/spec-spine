@@ -125,21 +125,76 @@ enum Drained {
 /// Memory stays bounded: one fixed buffer per stream, nothing accumulated,
 /// which is the same guarantee `io::copy` gave and spec 090 §3.2 requires.
 fn drain_to_stderr<R: Read>(src: &mut R) -> Drained {
+    drain_lines(src, |bytes| {
+        let stderr = std::io::stderr();
+        let mut handle = stderr.lock();
+        handle.write_all(bytes)
+    })
+}
+
+/// The longest partial line held back before it is written anyway (spec 125
+/// §3.2). A line longer than this is delivered in pieces, which is what keeps
+/// memory bounded when a command writes output with no newline at all.
+const LINE_HOLD: usize = DRAIN_BUF;
+
+/// [`drain_to_stderr`]'s loop, with the destination as a parameter so the
+/// line discipline can be tested without a process (spec 125 §3.3).
+///
+/// Every call to `deliver` carries whole lines: the tail of a read that did
+/// not end a line is held and prefixed to the next delivery (spec 125 §3.1).
+/// The two drains run on two threads and each delivery is one locked write,
+/// so the other stream can land only between lines, never inside one. A read
+/// ends wherever the pipe's contents did, which is mid-line whenever the
+/// child writes faster than the drain reads, and before this a line of one
+/// stream could be spliced by a chunk of the other.
+///
+/// Memory stays bounded (spec 090 §3.2): the held tail never exceeds
+/// [`LINE_HOLD`] after a delivery, and one delivery never exceeds that plus
+/// one read. Draining past a failed delivery is unchanged (spec 090 D-3).
+fn drain_lines<R: Read>(
+    src: &mut R,
+    mut deliver: impl FnMut(&[u8]) -> std::io::Result<()>,
+) -> Drained {
     let mut buf = [0u8; DRAIN_BUF];
+    let mut held: Vec<u8> = Vec::with_capacity(LINE_HOLD + DRAIN_BUF);
     let mut outcome = Drained::Delivered;
+    let mut send = |bytes: &[u8], outcome: &mut Drained| {
+        if *outcome == Drained::Delivered && !bytes.is_empty() && deliver(bytes).is_err() {
+            *outcome = Drained::Discarded;
+        }
+    };
     loop {
         let n = match src.read(&mut buf) {
-            Ok(0) => return outcome,
+            Ok(0) => {
+                send(&held, &mut outcome);
+                return outcome;
+            }
             Ok(n) => n,
             Err(e) if e.kind() == ErrorKind::Interrupted => continue,
-            Err(_) => return Drained::InputFailed,
-        };
-        if outcome == Drained::Delivered {
-            let stderr = std::io::stderr();
-            let mut handle = stderr.lock();
-            if handle.write_all(&buf[..n]).is_err() {
-                outcome = Drained::Discarded;
+            Err(_) => {
+                // Best effort: what was read is still delivered. The outcome
+                // is the read failure regardless (D-5's precedence).
+                send(&held, &mut outcome);
+                return Drained::InputFailed;
             }
+        };
+        let chunk = &buf[..n];
+        match chunk.iter().rposition(|&b| b == b'\n') {
+            Some(last) => {
+                if held.is_empty() {
+                    send(&chunk[..=last], &mut outcome);
+                } else {
+                    held.extend_from_slice(&chunk[..=last]);
+                    send(&held, &mut outcome);
+                    held.clear();
+                }
+                held.extend_from_slice(&chunk[last + 1..]);
+            }
+            None => held.extend_from_slice(chunk),
+        }
+        if held.len() >= LINE_HOLD {
+            send(&held, &mut outcome);
+            held.clear();
         }
     }
 }
@@ -383,4 +438,134 @@ pub fn run(repo: &Path, id: &str, json: bool, plan_only: bool) -> Result<u8, Err
         }
     }
     Ok(code)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Cursor;
+    use std::sync::{Arc, Mutex};
+
+    /// A reader that returns exactly the given pieces, one per `read`: the
+    /// shape a pipe produces when a read ends wherever its contents did.
+    struct Pieces(std::collections::VecDeque<Vec<u8>>);
+
+    impl Read for Pieces {
+        fn read(&mut self, out: &mut [u8]) -> std::io::Result<usize> {
+            match self.0.pop_front() {
+                None => Ok(0),
+                Some(p) => {
+                    let n = p.len().min(out.len());
+                    out[..n].copy_from_slice(&p[..n]);
+                    if n < p.len() {
+                        self.0.push_front(p[n..].to_vec());
+                    }
+                    Ok(n)
+                }
+            }
+        }
+    }
+
+    fn pieces(ps: &[&[u8]]) -> Pieces {
+        Pieces(ps.iter().map(|p| p.to_vec()).collect())
+    }
+
+    fn deliveries(mut r: impl Read) -> (Vec<Vec<u8>>, Drained) {
+        let mut got = Vec::new();
+        let d = drain_lines(&mut r, |b| {
+            got.push(b.to_vec());
+            Ok(())
+        });
+        (got, d)
+    }
+
+    /// Spec 125 §3.1: a read that splits a line does not split the delivery.
+    #[test]
+    fn a_line_split_across_reads_is_delivered_whole() {
+        let (got, d) = deliveries(pieces(&[b"OUT-1\nOU", b"T-2\nOUT", b"-3\n"]));
+        assert_eq!(d, Drained::Delivered);
+        assert_eq!(
+            got,
+            vec![
+                b"OUT-1\n".to_vec(),
+                b"OUT-2\n".to_vec(),
+                b"OUT-3\n".to_vec()
+            ]
+        );
+    }
+
+    /// Spec 125 §3.2: a final line with no newline is still delivered, at EOF.
+    #[test]
+    fn a_last_line_without_a_newline_is_delivered_at_eof() {
+        let (got, _) = deliveries(pieces(&[b"a\nb"]));
+        assert_eq!(got, vec![b"a\n".to_vec(), b"b".to_vec()]);
+    }
+
+    /// Spec 125 §3.2, spec 090 §3.2: a line longer than the hold is delivered
+    /// in bounded pieces, and nothing is lost or reordered.
+    #[test]
+    fn a_line_longer_than_the_hold_is_bounded_and_complete() {
+        let long = vec![b'x'; 3 * LINE_HOLD + 7];
+        let mut input = long.clone();
+        input.push(b'\n');
+        let (got, _) = deliveries(Cursor::new(input.clone()));
+        assert!(
+            got.iter().all(|g| g.len() <= LINE_HOLD + DRAIN_BUF),
+            "bounded"
+        );
+        assert_eq!(got.concat(), input, "every byte, in order");
+    }
+
+    /// Spec 090 D-3, unchanged: a delivery that fails stops delivery and never
+    /// stops draining.
+    #[test]
+    fn a_failed_delivery_still_drains_to_eof() {
+        let mut r = Cursor::new(b"one\ntwo\nthree\n".repeat(4096));
+        let mut calls = 0;
+        let d = drain_lines(&mut r, |_| {
+            calls += 1;
+            Err(std::io::Error::other("closed"))
+        });
+        assert_eq!(d, Drained::Discarded);
+        assert_eq!(calls, 1, "no delivery is attempted after the first failure");
+        assert_eq!(r.position() as usize, r.get_ref().len(), "read to EOF");
+    }
+
+    /// Spec 125 §3.1, the property #318's post-merge sweeps lost twice: two
+    /// streams drained concurrently into one destination, each read ending
+    /// mid-line, arrive with every line intact.
+    #[test]
+    fn two_streams_into_one_destination_splice_no_line() {
+        let sink = Arc::new(Mutex::new(Vec::<u8>::new()));
+        let stream = |tag: &'static str| {
+            let line = format!("{tag}-0123456789012345678901234567890123456789\n");
+            let all = line.repeat(2048).into_bytes();
+            // Reads of 7 bytes land mid-line almost every time.
+            let ps: Vec<Vec<u8>> = all.chunks(7).map(<[u8]>::to_vec).collect();
+            Pieces(ps.into())
+        };
+        let threads: Vec<_> = ["OUT", "ERR"]
+            .into_iter()
+            .map(|tag| {
+                let sink = Arc::clone(&sink);
+                let mut r = stream(tag);
+                std::thread::spawn(move || {
+                    drain_lines(&mut r, |b| {
+                        sink.lock().unwrap().extend_from_slice(b);
+                        std::thread::yield_now();
+                        Ok(())
+                    })
+                })
+            })
+            .collect();
+        for t in threads {
+            assert_eq!(t.join().unwrap(), Drained::Delivered);
+        }
+        let out = String::from_utf8(sink.lock().unwrap().clone()).unwrap();
+        for tag in ["OUT", "ERR"] {
+            let whole = format!("{tag}-0123456789012345678901234567890123456789");
+            assert_eq!(out.lines().filter(|l| *l == whole).count(), 2048, "{tag}");
+        }
+        assert_eq!(out.lines().count(), 4096, "no line was spliced");
+    }
 }
