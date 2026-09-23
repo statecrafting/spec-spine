@@ -23,6 +23,7 @@ establishes:
   - { kind: file, path: "crates/spec-spine-cli/src/cmd_interface.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/interface.rs" }
   - { kind: file, path: "crates/spec-spine-cli/tests/interface.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/interface_composed.rs" }
 extends:
   # 3.1: the frontmatter grammar (`interface_references`).
   - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/src/frontmatter.rs" }, nature: additive }
@@ -86,6 +87,7 @@ obligations:
     inputs:
       - "crates/spec-spine-core/tests/interface.rs"
       - "crates/spec-spine-cli/tests/interface.rs"
+      - "crates/spec-spine-cli/tests/interface_composed.rs"
 ---
 
 # 110: An interface reference is digest-pinned
@@ -344,6 +346,14 @@ carried here and corrected before any code:
   so spec 103's set is regenerated with its own generator. Only
   `registryHash` and `attestationHash` move; every recorded outcome,
   including `version-mismatch`, is unchanged.
+- **Composition is asserted, not assumed.** `interface_composed.rs` runs 102,
+  106, 107, 109 and this spec over one exporter corpus: the section digest
+  `registry obligation`, `registry show` and a pin carry is one value; an
+  edit to an obligation's section moves its closure and stales both pins
+  while the declared impact set stays byte-identical; a status flip stales a
+  whole-spec pin and leaves a section pin and the obligation's closure alone;
+  and a stale exporter ledger cannot hide a change, because the verifier
+  recomputes from `spec.md`.
 
 ## Verification
 

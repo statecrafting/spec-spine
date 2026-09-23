@@ -25,6 +25,10 @@
       {
         "kind": "file",
         "path": "crates/spec-spine-cli/tests/interface.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/interface_composed.rs"
       }
     ],
     "extends": [
@@ -212,7 +216,8 @@
         "id": "V-1",
         "inputs": [
           "crates/spec-spine-core/tests/interface.rs",
-          "crates/spec-spine-cli/tests/interface.rs"
+          "crates/spec-spine-cli/tests/interface.rs",
+          "crates/spec-spine-cli/tests/interface_composed.rs"
         ],
         "kind": "verification",
         "text": "Every compile rule and every verifier outcome is exercised against pins copied from a compiled exporter, through the library, the facade and the shipped binary."
@@ -239,7 +244,7 @@
       "1-1-the-dependencies": "1458d38797efd2e8fd16c98dc4c4af3e8a3d96044531496ea8629f67db4d423c",
       "1-2-what-it-enables-d-1": "f739fbb4a5cd482111c432896af972a39b179d19db36c938d948d3f38a88a59e",
       "1-purpose": "f4e814d4cb7e6e25f269bd41e1a8fbc7efa598ba2d0cb745fb176a311fa65855",
-      "110-an-interface-reference-is-digest-pinned": "ffd1a55d1bd1ebf36349c693bc52a75e9f4f5eae3c1fa8af27c56b89f93968d0",
+      "110-an-interface-reference-is-digest-pinned": "fd5dda5baf4f9a9d0161ab63574b941671c66dfe9c606df580734bf853954559",
       "2-territory": "0cb7694fdc499288762dfffa7d67690af06a2638c1c8a50fde1ce2a8f2a19726",
       "3-1-a-reference-names-a-corpus-a-spec-and-a-digest": "33825581058c2923ebc73b840742038003cb4027f2fd4a78f17a94837c6adca7",
       "3-2-malformed-references-are-refused-at-compile": "2b50985198c5efcce2678df1178efbe4be7dc71f95957f089da70535c36229c2",
@@ -250,7 +255,7 @@
       "3-7-nothing-else-gates-on-a-reference": "d78f117ab51ab868b222b192e67097a4e2416b2d5596e45ffee3670b66255f1f",
       "3-behavior": "666aeed5ac4a4ee754cef05f26a04f519417492df12525394c023f9454d6e5b4",
       "4-out-of-scope": "cca5b4786525091cb3a19c6cc74e9827f4e543e12e4ea200117d851cde1a983b",
-      "5-resolved-decisions": "f531a7183dd917fb3daee541028709fc39c5600e59c9f3b4a9f1c2178b95c906",
+      "5-resolved-decisions": "79ae1b13848f3fd6c31d909cad7349f2604533ac04337c60de2a0c3597727078",
       "verification": "a4a0912f3c4451721eb0459d8795859311f991d7a07d869bb071a76621be067f"
     },
     "sectionHeadings": [
@@ -276,6 +281,6 @@
     "summary": "A spec can cite another repository's spec only in prose, so the citation cannot go stale visibly. This declares a cross-corpus interface reference pinned to the cited spec's content hash, and optionally to the digests of the sections it relies on, and adds one verifier that recomputes those digests from a corpus the caller supplies locally. A moved interface becomes a named, exit-coded fact. Discovery, fetching and trust in the exporter stay with the caller; nothing is ever pinned from what was first observed.\n",
     "title": "An interface reference is digest-pinned"
   },
-  "shardHash": "01eccf503262a440b190fc35150218ad9e09047c226945427186f9bd7018b180",
+  "shardHash": "bea6e7bd2b49ebaa60e4c73fde12fc61863ba40f9bea521969c6306b823450b7",
   "specVersion": "1.6.0"
 }

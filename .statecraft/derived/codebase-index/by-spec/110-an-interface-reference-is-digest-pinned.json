@@ -18,6 +18,10 @@
         "source": "multiple"
       },
       {
+        "path": "crates/spec-spine-cli/tests/interface_composed.rs",
+        "source": "multiple"
+      },
+      {
         "path": "crates/spec-spine-cli/tests/spec_id.rs",
         "source": "spec-edge"
       },
@@ -123,6 +127,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/tests/interface.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/interface_composed.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/interface_composed.rs"
         }
       },
       {
@@ -429,5 +446,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "d9354f34548f25301a0691f478d67a401204d352b20ac2021f432989d266c6d5"
+  "shardHash": "7f0ec1d0b999b36f105074dc8ea0cad2ff93f46b90c304fca77464e206fe0c09"
 }
