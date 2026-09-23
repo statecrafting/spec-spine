@@ -29,6 +29,7 @@ mod cmd_index;
 mod cmd_interface;
 mod cmd_lint;
 mod cmd_registry;
+mod cmd_scope;
 mod cmd_verify;
 mod out;
 mod seal;
@@ -130,6 +131,14 @@ enum Command {
     Interface {
         #[command(subcommand)]
         action: cmd_interface::InterfaceAction,
+    },
+    /// Evaluate a declared work scope against the committed ownership index,
+    /// or compare two declared scopes for conflicting intentions (spec 108).
+    /// A scope lives in the consumer's record; nothing here locks, reserves,
+    /// excludes or permits anything, and no gate reads one.
+    Scope {
+        #[command(subcommand)]
+        action: cmd_scope::ScopeAction,
     },
     /// Run the corpus conformance lint.
     Lint {
@@ -341,6 +350,7 @@ fn main() -> ExitCode {
         Command::Registry { query } => cmd_registry::run(&repo, query),
         Command::Index { action } => cmd_index::run(&repo, action.as_ref()),
         Command::Interface { action } => cmd_interface::run(&repo, action),
+        Command::Scope { action } => cmd_scope::run(&repo, action),
         Command::Lint {
             fail_on_warn,
             fail_on_info,
