@@ -172,5 +172,5 @@
     "title": "An authority snapshot says what it read"
   },
   "shardHash": "50bbb36c146635f23903eff64affd46ed25cb79055a289eb3bfe0bba644c2386",
-  "specVersion": "1.6.0"
+  "specVersion": "1.8.0"
 }

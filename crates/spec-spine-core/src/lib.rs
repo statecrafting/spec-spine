@@ -30,6 +30,7 @@ pub mod interface;
 pub mod lint;
 pub mod manifest;
 mod markdown;
+pub mod moves;
 pub mod pathutil;
 pub mod query;
 pub mod read;
@@ -107,6 +108,10 @@ pub use interface::{
     ExportedSpec, Exports, interface_verify, load_export, verify_interface_references,
 };
 pub use lint::{LintReport, lint};
+pub use moves::{
+    AmbiguousCandidate, Hop, MoveEntry, MoveLookup, Terminal as MoveTerminal, flattened_moves,
+    lookup as lookup_move,
+};
 pub use query::{
     BlockedSpec, Blocker, ListFilter, ObligationView, Plan, ReadySpec, RelationshipView,
     StatusReport, StatusReportNonzero, list, list_ids, load_index, load_registry, obligation, plan,
@@ -225,6 +230,10 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         target: Option<String>,
         #[serde(default)]
         declared_by: Option<String>,
+        /// Spec 111 §3.4: `moves`' optional lookup path. Absent, the answer
+        /// is every declaration, flattened and sorted.
+        #[serde(default)]
+        path: Option<String>,
     }
     #[derive(Deserialize)]
     #[serde(rename_all = "kebab-case")]
@@ -239,6 +248,9 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         /// Spec 109 §3.6: every declared impact and conflict, filtered by
         /// `target` and `declaredBy`.
         Impacts,
+        /// Spec 111 §3.4: the move lookup, or (with no `path`) every
+        /// declaration flattened and sorted.
+        Moves,
     }
 
     let request: Request = serde_json::from_str(request_json)
@@ -300,6 +312,10 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
             )?,
             Versioning::Stamp,
         )?,
+        Op::Moves => match request.path.as_deref() {
+            Some(p) => read_document(&lookup_move(&registry, p), Versioning::Stamp)?,
+            None => read_document(&flattened_moves(&registry), Versioning::Stamp)?,
+        },
     };
     Ok(json)
 }

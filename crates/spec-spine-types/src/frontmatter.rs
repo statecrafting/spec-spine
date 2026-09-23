@@ -22,6 +22,7 @@ use crate::edges::{
 use crate::error::{Error, Result};
 use crate::impact::{Conflict, Impact};
 use crate::interface::InterfaceReference;
+use crate::moves::MoveDeclaration;
 use crate::obligation::Obligation;
 use crate::unit::Unit;
 
@@ -129,6 +130,8 @@ pub const KNOWN_KEYS: &[&str] = &[
     "conflicts",
     // Spec 110 3.1: cross-corpus interface references.
     "interface_references",
+    // Spec 111 3.1: declared move (relocation, split, merge, removal).
+    "moves",
 ];
 
 /// The typed, parsed frontmatter of a `spec.md`.
@@ -218,6 +221,10 @@ pub struct Frontmatter {
     // --- cross-corpus interface references (spec 110) ---
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub interface_references: Vec<InterfaceReference>,
+
+    // --- declared moves (spec 111) ---
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub moves: Vec<MoveDeclaration>,
 
     // --- overflow (populated by parse_frontmatter, never by serde) ---
     #[serde(skip)]

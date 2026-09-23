@@ -94,5 +94,5 @@
     "title": "The coupling gate can see the change being committed"
   },
   "shardHash": "abd03fb520a8c15d8129994818e29e498367b803eeb44ef214f1aef8cfdb5bc6",
-  "specVersion": "1.6.0"
+  "specVersion": "1.8.0"
 }

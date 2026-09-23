@@ -84,5 +84,5 @@
     "title": "A dependency points backward, and the corpus can say so"
   },
   "shardHash": "29b5e55ccf164bc4ad84629c3bcc64cb464bf5b7659ffeaf318b70ede6182f0a",
-  "specVersion": "1.6.0"
+  "specVersion": "1.8.0"
 }

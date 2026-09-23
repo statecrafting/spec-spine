@@ -34,6 +34,10 @@ const CROSS_SPEC_CODES: &[&str] = &[
     // against the corpus (dangling, self-referencing, duplicate once short ids
     // are normalized, and `settled_by`).
     "V-028", "V-029", "V-030", "V-031",
+    // Spec 111 §3.2: a move's `answered_by` that names no spec in the corpus.
+    // A warning, like `depends_on`'s V-010, not an error (D-3): informational,
+    // never authority-moving.
+    "V-041",
 ];
 
 /// The cap on **undeclared** `extra_frontmatter` keys before `V-007` fires.
@@ -195,6 +199,13 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
                 *by = resolve_spec_ref(by, &all_ids);
             }
         }
+        // Spec 111 §3.2: `answered_by` is a bare spec id, normalized the same
+        // way as `depends_on` and `settled_by`.
+        for mv in &mut p.fm.moves {
+            if let Some(by) = mv.answered_by.as_mut() {
+                *by = resolve_spec_ref(by, &all_ids);
+            }
+        }
     }
 
     // --- per-spec validation + record construction ---
@@ -212,6 +223,7 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
         validate_obligations(&p.spec_path, &p.fm, &p.body, &mut violations);
         validate_impacts_local(&p.spec_path, &p.fm, &mut violations);
         validate_interface_references(&p.spec_path, &p.fm, &mut violations);
+        validate_moves_local(&p.spec_path, &p.fm, &mut violations);
         records.push(build_record(p.fm, p.spec_path, &p.body));
     }
     records.sort_by(|a, b| a.id.cmp(&b.id));
@@ -231,6 +243,9 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
     // Spec 109 §3.4 rules 2-4, and the `settled_by` rule of §3.3: the
     // impact/conflict checks that must resolve a spec id against the corpus.
     detect_impact_cross_spec(&records, &mut violations);
+    // Spec 111 §3.2: a move's `answered_by` that must resolve a spec id
+    // against the corpus.
+    detect_move_cross_spec(&records, &mut violations);
 
     // --- shard projection + aggregate content hash (spec 022) ---
     // One shard per spec, each carrying its compiled record, its corpus-
@@ -820,6 +835,7 @@ fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
         impacts: fm.impacts,
         conflicts: fm.conflicts,
         interface_references: fm.interface_references,
+        moves: fm.moves,
         extra_frontmatter: fm.extra_frontmatter,
     }
 }
@@ -1147,6 +1163,118 @@ fn validate_interface_references(spec_path: &str, fm: &Frontmatter, out: &mut Ve
                 ),
                 at(),
             ));
+        }
+    }
+}
+
+/// A move path (spec 111 §3.2): non-empty, repo-relative (no leading `/`) and
+/// no `..` segment, the same grammar spec 108's scope paths use.
+fn check_move_path(p: &str) -> Option<&'static str> {
+    if p.is_empty() {
+        return Some("is empty");
+    }
+    if p.starts_with('/') {
+        return Some("is absolute: paths are repo-relative");
+    }
+    if p.split('/').any(|seg| seg == "..") {
+        return Some("carries a '..' segment");
+    }
+    None
+}
+
+/// Spec 111 §3.2: shape rules that are a pure function of one spec (no other
+/// spec consulted). A `kind` other than the four is already refused at parse
+/// (`V-002`), the way an unknown `ImpactNature`/`ObligationKind` is: `kind` is
+/// a closed, typed enum, not a raw string this function re-validates.
+fn validate_moves_local(spec_path: &str, fm: &Frontmatter, out: &mut Vec<Violation>) {
+    if fm.moves.is_empty() {
+        return;
+    }
+    let at = || Some(spec_path.to_string());
+    for mv in &fm.moves {
+        let from_paths = mv.from.paths();
+        let to_paths: Vec<&str> = mv.to.as_ref().map(|t| t.paths()).unwrap_or_default();
+        let kind_label = mv.kind.label();
+
+        // Arity vs kind (§3.1).
+        let arity_ok = match mv.kind {
+            spec_spine_types::MoveKind::Relocated => from_paths.len() == 1 && to_paths.len() == 1,
+            spec_spine_types::MoveKind::Split => from_paths.len() == 1 && to_paths.len() >= 2,
+            spec_spine_types::MoveKind::Merged => from_paths.len() >= 2 && to_paths.len() == 1,
+            spec_spine_types::MoveKind::Removed => from_paths.len() == 1 && mv.to.is_none(),
+        };
+        if !arity_ok {
+            out.push(error(
+                "V-040",
+                format!(
+                    "move (kind '{kind_label}') names {} 'from' path(s) and {} 'to' path(s), \
+                     which does not match its kind: relocated is one to one, split is one to \
+                     two or more, merged is two or more to one, and removed names one 'from' \
+                     and 'to: null'",
+                    from_paths.len(),
+                    to_paths.len()
+                ),
+                at(),
+            ));
+        }
+
+        // Path grammar (§3.2): non-empty, repo-relative, no `..` segment.
+        for p in from_paths.iter().chain(to_paths.iter()) {
+            if let Some(why) = check_move_path(p) {
+                out.push(error("V-040", format!("move path '{p}' {why}"), at()));
+            }
+        }
+
+        // The same path on both sides of one entry (§3.2).
+        for p in &from_paths {
+            if to_paths.contains(p) {
+                out.push(error(
+                    "V-040",
+                    format!("move (kind '{kind_label}') names '{p}' on both sides of one entry"),
+                    at(),
+                ));
+            }
+        }
+
+        // `answered_by` only under `removed` (§3.1, §3.2).
+        if mv.answered_by.is_some() && mv.kind != spec_spine_types::MoveKind::Removed {
+            out.push(error(
+                "V-040",
+                format!(
+                    "move (kind '{kind_label}') declares answered_by, which is meaningful \
+                     only for a 'removed' entry"
+                ),
+                at(),
+            ));
+        }
+    }
+}
+
+/// Spec 111 §3.2 (D-3): a move's `answered_by` that must resolve a spec id
+/// against the corpus, exactly as `depends_on`'s dangling check (`V-010`)
+/// does, and at the same warning tier: informational, never authority-moving
+/// (§3.5), so a dangling reference here is judged the way `depends_on` and
+/// every edge target are, not the way `superseded_by` (`V-008`) is. Corpus-
+/// wide, so this code is in [`CROSS_SPEC_CODES`] and
+/// [`recompute_cross_spec_violations`] re-derives it from the assembled
+/// record set on read.
+fn detect_move_cross_spec(records: &[SpecRecord], out: &mut Vec<Violation>) {
+    let all_ids: std::collections::BTreeSet<&str> = records.iter().map(|r| r.id.as_str()).collect();
+    for r in records {
+        for mv in &r.moves {
+            let Some(by) = &mv.answered_by else {
+                continue;
+            };
+            if !all_ids.contains(by.as_str()) {
+                out.push(warning(
+                    "V-041",
+                    format!(
+                        "spec '{}' move answered_by '{by}' does not resolve to an existing spec",
+                        r.id
+                    ),
+                    Some(r.spec_path.clone()),
+                ));
+            }
         }
     }
 }
@@ -1669,6 +1797,7 @@ fn recompute_cross_spec_violations(records: &[SpecRecord]) -> Vec<Violation> {
     detect_dependency_cycle(records, &mut out);
     detect_amends_verification(records, &mut out);
     detect_impact_cross_spec(records, &mut out);
+    detect_move_cross_spec(records, &mut out);
     out
 }
 

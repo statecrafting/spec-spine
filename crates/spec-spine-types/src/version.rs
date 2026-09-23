@@ -58,7 +58,16 @@
 /// moves (it is over `spec.md`'s bytes). A binary predating this spec meets
 /// the member with a parse error and exits 3, the same fail-closed direction
 /// 1.2.0, 1.4.0 and 1.5.0 chose.
-pub const REGISTRY_SCHEMA_VERSION: &str = "1.6.0";
+/// `1.7.0`: reserved for spec 114, built concurrently on another branch and
+/// not present in this history yet.
+/// `1.8.0`: additive `moves` (spec 111). A spec may declare a relocation,
+/// split, merge or removal of a path it once owned, `answered_by`'s spec half
+/// normalized to its full id (spec 111 §3.2, by way of spec 015's short-id
+/// resolution). Absent on every existing spec, so only `specVersion` is
+/// restamped and no `shardHash` moves (it is over `spec.md`'s bytes). A
+/// binary predating this spec meets the member with a parse error and exits
+/// 3, the same fail-closed direction 1.2.0, 1.4.0, 1.5.0 and 1.6.0 chose.
+pub const REGISTRY_SCHEMA_VERSION: &str = "1.8.0";
 
 /// `schemaVersion` emitted in the codebase index, carried by each index shard.
 /// `0.2.0`: additive `build.sliceHashes` (spec 011).
@@ -147,7 +156,12 @@ pub const DELTA_SCHEMA_VERSION: &str = "0.1.0";
 /// (`scope evaluate --json`, `scope_json`) and the scope comparison (`scope
 /// compare --json`, `scope_compare_json`). No member of an existing document
 /// moved.
-pub const READ_SCHEMA_VERSION: &str = "0.7.0";
+///
+/// `0.8.0` (spec 111): additive. A new read document, the move lookup
+/// (`registry moves [<path>] --json`, `query_json` `op: "moves"`), and the
+/// flattened move list it answers with when no path is given. No member of an
+/// existing document moved.
+pub const READ_SCHEMA_VERSION: &str = "0.8.0";
 
 /// `schemaVersion` of an authority snapshot (spec 070): its own axis, defined
 /// beside the DTO it versions and re-exported here with the others.

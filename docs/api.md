@@ -413,10 +413,10 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   an observed digest is reported for a human to copy.
 - `query_json` request: `{ "registry": "<registry.json text>", "op":
   "list" | "show" | "status-report" | "relationships" | "plan" |
-  "obligation" | "impacts", "id"?: string,
+  "obligation" | "impacts" | "moves", "id"?: string,
   "status"?: string, "idsOnly"?: bool, "nonzeroOnly"?: bool, "target"?: string,
-  "declaredBy"?: string }` (the projection fields, spec 009, default to
-  `false`). Every answer is a **read document**
+  "declaredBy"?: string, "path"?: string }` (the projection fields, spec 009,
+  default to `false`). Every answer is a **read document**
   (spec 074): an object with sorted keys and `schemaVersion` =
   `READ_SCHEMA_VERSION`; `list` (with or without `idsOnly`) carries its array
   under `items`. `obligation` (spec 106) takes `id` as a qualified
@@ -443,6 +443,24 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   None of these three is answered as an empty result: an empty `impacts` and
   `conflicts` pair means every filter resolved and nothing matched, never that
   a filter failed to resolve.
+
+  `moves` (spec 111) looks up `path` against every declared move in the
+  committed registry, following declared chains, never a similarity or
+  content signal (§3.6), and changes no verdict (§3.5). With `path`, the
+  answer is `{ "outcome": "unmapped" | "resolved" | "ambiguous" | "cycle",
+  "path", ... }`: `unmapped` carries only `path`; `resolved` adds `hops`
+  (each `{ "from", "to"?, "kind", "declaredBy": [...], "answeredBy"? }`) and
+  `terminals` (each `{ "path"?, "answeredBy"? }`); `ambiguous` adds `at` (the
+  path the declarations disagreed about) and `candidates` (every disagreeing
+  declaration, none picked); `cycle` adds `chain`, the repeated path naming
+  the loop's start and end. Without `path`, the answer is every declaration
+  flattened to one entry per branch/source and sorted by `(from, to,
+  declaredBy)`: `{ "items": [{ "from", "to"?, "kind", "declaredBy",
+  "answeredBy"? }], "schemaVersion" }`. The library form is
+  `lookup_move(&Registry, &str) -> MoveLookup` and
+  `flattened_moves(&Registry) -> Vec<MoveEntry>`; the CLI's `registry moves`
+  exits `0` on `unmapped`/`resolved` and `1` on `ambiguous`/`cycle`, the
+  lookup refusing to guess rather than an error.
 
   `plan` (spec 035) returns `{ "ready": [{ "id", "status", "title" }],
   "blocked": [{ "id", "blockedBy": [{ "id", "state" }] }], ...,

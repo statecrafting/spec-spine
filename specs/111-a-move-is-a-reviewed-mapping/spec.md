@@ -4,7 +4,7 @@ title: "A move is a reviewed mapping"
 status: draft
 kind: "governance"
 created: "2026-09-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 depends_on:
   - "100-a-deleted-path-is-judged-where-it-lived"
@@ -20,10 +20,10 @@ summary: >
   ownership, authorizes no deletion, infers no similarity and changes no
   verdict.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/moves.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/src/moves.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/moves.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/moves.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/moves.rs" }
+  - { kind: file, path: "crates/spec-spine-core/src/moves.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/moves.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/moves.rs" }
 extends:
   # 3.1: the frontmatter key and the registry member.
   - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/src/frontmatter.rs" }, nature: additive }
@@ -35,6 +35,27 @@ extends:
   # 3.4: the lookup, through the facade and one CLI verb.
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
   - { spec: "002-registry-query", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_registry.rs" }, nature: additive }
+  # Registry/read MINOR pins this build moves, in territory other specs
+  # established or already extend (109 D-7's precedent for moving a pin in a
+  # sibling spec's territory): the shard-version and schema-version-axis
+  # assertions these files pin move with every additive MINOR, this one
+  # included.
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
+  - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/tests/dtos.rs" }, nature: additive }
+  - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-core/tests/read.rs" }, nature: additive }
+  - { spec: "106-obligations-are-declared-constraints", unit: { kind: file, path: "crates/spec-spine-core/tests/obligations.rs" }, nature: additive }
+  - { spec: "109-impact-and-conflict-are-declared", unit: { kind: file, path: "crates/spec-spine-core/tests/impacts.rs" }, nature: additive }
+  - { spec: "108-a-work-scope-is-declared", unit: { kind: file, path: "crates/spec-spine-core/tests/scope.rs" }, nature: additive }
+  - { spec: "108-a-work-scope-is-declared", unit: { kind: file, path: "crates/spec-spine-cli/tests/scope.rs" }, nature: additive }
+  # Spec 088 §3.2: a key the parser accepts and the template omits is a key no
+  # author can find; a dogfood test enforces it.
+  - { spec: "088-the-template-teaches-the-whole-grammar", unit: { kind: file, path: "standards/spec/templates/spec-template.md" }, nature: additive }
+  # The registry MINOR moves the fixture set's attested registryHash, exactly
+  # as 109 and 110 each recorded (109 D-7, D-4): regenerated with 103 §3.9's
+  # documented, idempotent generator, through 103's own authority path.
+  - { spec: "103-a-verifier-fixture-is-a-published-artifact", unit: { kind: directory, path: "crates/spec-spine-core/fixtures/verifier/" }, nature: corrective }
 references:
   - unit: { kind: file, path: "docs/design/04-authority-evidence-extension.md" }
     role: "context"
@@ -260,6 +281,66 @@ a second place to disagree.
 `index owner` reporting the mapping as a use. `index owner` is defined as the
 gate's derivation (spec 048), and the lookup is a separate read, so an owner
 answer and a move answer can never be confused for each other.
+
+**D-6 (2026-09-23, build: codes).** §3.2's five bullets are covered by two
+new codes: `V-040` (error, local to one spec: arity vs `kind`, path grammar,
+the same path on both sides, `answered_by` on a kind other than `removed`)
+and `V-041` (warning, corpus-wide: a dangling `answered_by`, per D-3's tier).
+"A `kind` other than the four" is not a third code: `kind` is a closed, typed
+enum (`MoveKind`), the way `ImpactNature` and `ObligationKind` already are in
+this corpus, so an unknown value is refused at parse as malformed frontmatter
+(`V-002`), consistent with that precedent, and `V-040` covers what a typed
+enum cannot: arity and grammar. §3.3's two warnings are `L-015` (a
+`relocated`/`split`/`merged` entry whose `to` does not exist) and `L-016` (a
+`removed` entry whose `from` still exists), the next free codes after `L-014`.
+
+**D-7 (2026-09-23, build: identical duplicate declarations).** Two specs
+declaring the byte-identical step (same `from`, `to` set and `kind`) for the
+same `from` collapse to one step in the lookup, naming every declaring spec,
+rather than being reported as ambiguous: they are not a disagreement, they are
+one fact two authors happened to both write down. Anything less than
+byte-identical agreement (a different `to`, `kind` or `answered_by`) is
+ambiguous, with every candidate reported and none picked. To carry this,
+[`spec_spine_core::moves::Hop`] and `query_json`'s `moves` hop shape carry
+`declaredBy` as a list, always, rather than a single id: the common case is a
+one-element list, and the duplicate case needs no second shape.
+
+**D-8 (2026-09-23, build: registry/read schema versions).** Spec 114 was
+built concurrently on another branch and took registry `1.7.0`; this build's
+registry MINOR is `1.8.0`, and its `moves` member is what moved it. The read
+axis moves `0.7.0` to `0.8.0` for the move lookup and the flattened move-list
+documents. Where this landed a MINOR bump in territory another spec
+established or already extends (the schema-version pins in
+`crates/spec-spine-types/tests/dtos.rs`, `crates/spec-spine-core/tests/read.rs`,
+`tests/obligations.rs`, `tests/impacts.rs`, `crates/spec-spine-core/tests/scope.rs`
+and `crates/spec-spine-cli/tests/scope.rs`, and the verifier fixture set's
+attested `registryHash`), this spec declares its own `extends` edge on that
+file or directory, following exactly the precedent specs 106, 109 and 110 each
+recorded for the same situation. The fixture set was regenerated with spec
+103 §3.9's documented, idempotent generator.
+
+**D-9 (2026-09-23, build: fail-first).** `crates/spec-spine-core/tests/moves.rs`
+and `crates/spec-spine-cli/tests/moves.rs` were written before
+`crates/spec-spine-types/src/moves.rs` and `crates/spec-spine-core/src/moves.rs`
+existed: the core suite did not compile (no `spec_spine_core::moves` module,
+no `moves` field on `Frontmatter`/`SpecRecord`) and the CLI suite could not
+compile for the same reason, transitively. Confirmed by running both `cargo
+test` invocations against the unbuilt tree before writing `compile.rs`'s,
+`lint.rs`'s or `lib.rs`'s changes.
+
+**D-10 (2026-09-23, build: the coupling test is a control, and its mutation
+check).** `crates/spec-spine-cli/tests/moves.rs`'s three git-fixture tests
+assert `couple` is unchanged by this spec (§3.5), so they pass identically
+before this build (when no `moves` key exists at all, so the mapping-declared
+variant cannot even be authored) and after it: `couple.rs` itself is not
+edited anywhere in this build. To prove the test can actually fail, a
+throwaway local edit to `couple.rs` (never committed) made a deleted path
+skip its C-001 check when any spec's `moves` named it as a `from`; with that
+mutation in place, `a_declared_mapping_does_not_clear_the_unauthorized_deletion`
+and `the_same_fixture_without_the_mapping_reaches_the_identical_verdict` both
+failed (the couple exit code dropped from 1 to 0). The edit was reverted
+before this commit and `couple.rs`'s tree is byte-identical to its
+pre-build state.
 
 ## Verification
 

@@ -143,5 +143,5 @@
     "title": "Authoring adapters and intent are separated"
   },
   "shardHash": "1f1f9e014a9d523d3ade1927eed1e825da51be42b18a8602c43975c978a7c607",
-  "specVersion": "1.6.0"
+  "specVersion": "1.8.0"
 }

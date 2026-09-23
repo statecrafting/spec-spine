@@ -18,6 +18,7 @@ use crate::edges::{
 use crate::frontmatter::{Implementation, Risk, Status};
 use crate::impact::{Conflict, Impact};
 use crate::interface::InterfaceReference;
+use crate::moves::MoveDeclaration;
 use crate::obligation::Obligation;
 use crate::unit::Unit;
 
@@ -145,6 +146,14 @@ pub struct SpecRecord {
     /// Carried verbatim from frontmatter, omitted when empty (spec 110 §3.2).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub interface_references: Vec<InterfaceReference>,
+
+    // --- declared moves (spec 111) ---
+    /// Paths this spec declares it has relocated, split, merged or removed
+    /// (spec 111 §3.1), carried verbatim from frontmatter except
+    /// `answered_by`'s spec half, normalized to its full id (spec 111 §3.2 by
+    /// way of spec 015). Omitted when empty.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub moves: Vec<MoveDeclaration>,
 
     // --- overflow ---
     /// Declared keys carry any JSON value (spec 012); undeclared keys are
