@@ -1,10 +1,11 @@
 # Adopter migration: the realignment release
 
-**Status: prepared 2026-09-21 for release candidate `v0.22.0`, unreleased.**
-Nothing described here has shipped in a tagged build. The latest release is
-`v0.21.0`; every change below is on the default branch and is intended for the
-`v0.22.0` tag. This document is written before that tag so the release notes
-can point at it rather than restate it.
+**Status: shipped in `v0.23.0` (2026-09-23).** This was written on 2026-09-21
+for a `v0.22.0` tag that was never published; the 0.22.0 candidate was frozen
+and the owner chose to publish `v0.23.0` directly after `v0.21.0`. Every change
+below is in `v0.23.0`, which also carries the additive expansion line
+(`docs/consumer-integration-expansion.md`). Where this page says "this
+release", read `v0.23.0`.
 
 Read this if you pin `spec-spine` and upgrade past `v0.21.0`.
 
