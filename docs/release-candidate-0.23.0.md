@@ -115,7 +115,7 @@ evidence:
 | `cargo test -p spec-spine-core --no-default-features --locked` | exit 0 |
 | `scripts/bump_version.py --check 0.23.0` | exit 0 |
 | `scripts/verify-packaged-producer.sh` (spec 104) | exit 0, "ALL PACKAGED-PRODUCER ACCEPTANCE CHECKS PASSED" |
-| `scripts/verify-sweep.sh --rev 97f82ee5 --release` (whole corpus) | SWEEP_RESULT |
+| `scripts/verify-sweep.sh --rev 97f82ee5 --release` (whole corpus, its own worktree, binary built from the revision) | **release verdict clean**: `passed=78 failed=0 not-declared=0 exempt=43 not-run=0`, 121 specs accounted for |
 
 Package digests from the packaged-producer run (`cargo package`, source commit
 `97f82ee5`; the archive records its commit, so another commit's archive
