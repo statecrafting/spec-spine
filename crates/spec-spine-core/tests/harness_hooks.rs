@@ -1443,3 +1443,318 @@ fn spec104_an_unrecognised_code_still_falls_back() {
     assert!(out.contains("unknown (check exit 7)"), "{out}");
     assert!(!out.contains("NOT READ"), "{out}");
 }
+
+// ===== spec 123: a startup verdict names its reader =====
+
+/// The report `spec-spine 0.22.0` built from the frozen candidate (`f9fa6a8f`)
+/// printed for this repository at `0ca3001d`, whose specs 106, 107 and 109
+/// declare a frontmatter member that reader's grammar predates. Captured from
+/// the binary, not composed: it is the input the banner turned into
+/// "INVALID, the corpus fails validation" on 2026-09-22 and 2026-09-23.
+const OLDER_READER_REPORT: &str = "\
+spec-registry: INVALID: the corpus fails validation, so staleness was not computed (run `spec-spine compile --check` for the violations)
+codebase-index: STALE (run `spec-spine index`)
+3 stale shard(s):
+  orphaned by-spec/106-obligations-are-declared-constraints.json
+  orphaned by-spec/107-a-context-closure-is-declared.json
+  orphaned by-spec/109-impact-and-conflict-are-declared.json
+";
+
+/// A repository whose own build is `target/release/spec-spine`, with a
+/// DIFFERENT `spec-spine` on `PATH`, and no `$SPEC_SPINE_BIN`: the resolution
+/// that actually selected the reader on 2026-09-22 (the override was unset and
+/// the in-tree build existed, so `PATH` was never consulted). `in_tree_older`
+/// dates the build before the source it is built from, which is what a
+/// fast-forward over a build does.
+///
+/// Returns the hook's exit code, what it wrote to stdout and stderr, and the
+/// in-tree binary's path.
+fn run_with_readers(
+    event: &str,
+    in_tree: bool,
+    in_tree_older: bool,
+    check_exit: i32,
+    report: &str,
+) -> (i32, String, String) {
+    use std::io::Write;
+    use std::os::unix::fs::PermissionsExt;
+    use std::process::{Command, Stdio};
+
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path().join("repo");
+    let bin_dir = tmp.path().join("path-bin");
+    fs::create_dir_all(root.join("specs")).unwrap();
+    fs::create_dir_all(root.join("crates/c/src")).unwrap();
+    fs::create_dir_all(root.join("target/release")).unwrap();
+    fs::create_dir_all(&bin_dir).unwrap();
+    fs::write(root.join("Cargo.toml"), "[workspace]\n").unwrap();
+    fs::write(root.join("crates/c/src/lib.rs"), "\n").unwrap();
+    let report_file = tmp.path().join("report.txt");
+    fs::write(&report_file, report).unwrap();
+
+    let stand_in = |path: &std::path::Path, version: &str| {
+        fs::write(
+            path,
+            format!(
+                "#!/bin/sh\ncase \"$*\" in\n  *--version*) echo '{version}'; exit 0 ;;\n  \
+                 *--help*) exit 0 ;;\n  *couple*) exit 0 ;;\n  *config*) exit 3 ;;\nesac\n\
+                 cat '{}'\nexit {check_exit}\n",
+                report_file.display()
+            ),
+        )
+        .unwrap();
+        fs::set_permissions(path, fs::Permissions::from_mode(0o755)).unwrap();
+    };
+    let built = root.join("target/release/spec-spine");
+    if in_tree {
+        stand_in(&built, "spec-spine 0.22.0-in-tree");
+        // The build's age is set against the source's, never left to the
+        // order the files happened to be written in.
+        let (bin_stamp, src_stamp) = if in_tree_older {
+            ("202609220406", "202609222001")
+        } else {
+            ("202609222001", "202609220406")
+        };
+        for (p, stamp) in [
+            (built.clone(), bin_stamp),
+            (root.join("Cargo.toml"), src_stamp),
+            (root.join("crates/c/src/lib.rs"), src_stamp),
+        ] {
+            let ok = Command::new("touch")
+                .args(["-t", stamp])
+                .arg(&p)
+                .status()
+                .expect("touch runs")
+                .success();
+            assert!(ok, "touch -t {stamp} {}", p.display());
+        }
+    }
+    stand_in(&bin_dir.join("spec-spine"), "spec-spine 0.20.0-on-path");
+
+    let body = hook_bodies()[event].join("\n");
+    let path = format!("{}:/usr/bin:/bin", bin_dir.display());
+    let mut child = Command::new("sh")
+        .arg("-c")
+        .arg(&body)
+        .current_dir(&root)
+        .env("CLAUDE_PROJECT_DIR", &root)
+        .env("PATH", path)
+        .env_remove("SPEC_SPINE_BIN")
+        .env_remove("SPEC_SPINE_DEFAULT_BRANCH")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("sh runs");
+    let payload = serde_json::json!({
+        "tool_input": { "command": "gh pr create --title t --body b" },
+        "cwd": root.to_str().unwrap(),
+    })
+    .to_string();
+    child
+        .stdin
+        .as_mut()
+        .expect("stdin")
+        .write_all(payload.as_bytes())
+        .expect("payload written");
+    let out = child.wait_with_output().expect("hook exits");
+    (
+        out.status.code().unwrap_or(-1),
+        format!(
+            "{}{}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        ),
+        built.to_string_lossy().into_owned(),
+    )
+}
+
+/// Spec 123 §3.1, the regression for what happened: an in-tree build older
+/// than the checkout it sits in read a corpus its grammar predates, and the
+/// banner reported the corpus as invalid. It must instead name that build,
+/// say it is older than the source, and keep what it reported.
+#[test]
+fn spec123_the_banner_does_not_report_an_older_readers_verdict_as_the_trees() {
+    let (code, out, built) = run_with_readers("SessionStart", true, true, 1, OLDER_READER_REPORT);
+    assert_eq!(code, 0, "the banner advises and never refuses: {out}");
+    assert!(
+        !out.contains("[session-freshness] spec registry: INVALID"),
+        "an earlier revision's reading is not this tree's verdict: {out}"
+    );
+    assert!(out.contains("NOT JUDGED"), "{out}");
+    assert!(
+        out.contains(&built),
+        "the selected executable is named by path: {out}"
+    );
+    assert!(
+        out.contains("0.22.0-in-tree"),
+        "and by what it answers: {out}"
+    );
+    assert!(
+        !out.contains("0.20.0-on-path"),
+        "PATH was not the reader and must not be named as one: {out}"
+    );
+    assert!(out.contains("older than this checkout's source"), "{out}");
+    // §3.3: the original diagnostic survives, both halves of it.
+    assert!(
+        out.contains("INVALID, the corpus fails validation"),
+        "what the reader said is kept: {out}"
+    );
+    assert!(out.contains("STALE, run spec-spine index"), "{out}");
+    assert!(
+        out.contains("cargo build --release --locked -p spec-spine-cli"),
+        "{out}"
+    );
+}
+
+/// Spec 123 §3.2: a reader built from this checkout's source that reads the
+/// corpus and finds it invalid is reporting a finding, and says so, named.
+#[test]
+fn spec123_a_current_reader_that_finds_the_corpus_invalid_is_believed() {
+    let (code, out, built) = run_with_readers("SessionStart", true, false, 1, OLDER_READER_REPORT);
+    assert_eq!(code, 0, "{out}");
+    assert!(
+        out.contains("[session-freshness] spec registry: INVALID, the corpus fails validation"),
+        "{out}"
+    );
+    assert!(!out.contains("NOT JUDGED"), "{out}");
+    assert!(
+        out.contains(&format!("(reader: {built} (spec-spine 0.22.0-in-tree))")),
+        "{out}"
+    );
+}
+
+/// Spec 123 §3.1: with no in-tree build the resolver falls back to PATH, and
+/// the reader named is that one. There is no source to compare a PATH binary
+/// against, so it is named, never called older.
+#[test]
+fn spec123_a_path_reader_is_named_and_not_aged() {
+    let (code, out, _) = run_with_readers("SessionStart", false, false, 1, OLDER_READER_REPORT);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("spec registry: INVALID"), "{out}");
+    assert!(
+        out.contains("path-bin/spec-spine (spec-spine 0.20.0-on-path)"),
+        "{out}"
+    );
+    assert!(!out.contains("NOT JUDGED"), "{out}");
+}
+
+/// Spec 123 §3.2: a fresh verdict from a current reader keeps its banner, now
+/// with the reader beside it.
+#[test]
+fn spec123_a_fresh_banner_names_its_reader() {
+    let (code, out, built) = run_with_readers("SessionStart", true, false, 0, HEALTHY);
+    assert_eq!(code, 0, "{out}");
+    assert!(
+        out.contains("spec registry: fresh; codebase index: fresh (reader: "),
+        "{out}"
+    );
+    assert!(out.contains(&built), "{out}");
+}
+
+/// Spec 123 §3.1: `Stop` names the reader behind a non-fresh verdict, says
+/// when it is older than the source, and prints its report unchanged.
+#[test]
+fn spec123_the_stop_hook_names_an_older_reader_and_keeps_its_report() {
+    let (code, out, built) = run_with_readers("Stop", true, true, 1, OLDER_READER_REPORT);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("[freshness] NOT JUDGED"), "{out}");
+    assert!(out.contains(&built), "{out}");
+    assert!(
+        out.contains("[freshness] INVALID: the corpus does not validate as read by"),
+        "{out}"
+    );
+    let (_, current, _) = run_with_readers("Stop", true, false, 1, OLDER_READER_REPORT);
+    assert!(!current.contains("NOT JUDGED"), "{current}");
+    assert!(current.contains("as read by"), "{current}");
+}
+
+/// Spec 123 §3.1: the PR gate still refuses an exit 1 whoever made it (a
+/// check that did not pass is not green), and names the reader, and does not
+/// send the author to fix violations an older grammar invented.
+#[test]
+fn spec123_the_pr_gate_names_the_reader_behind_an_invalid_refusal() {
+    let (code, err, built) = run_with_readers("PreToolUse", true, true, 1, OLDER_READER_REPORT);
+    assert_eq!(code, 2, "exit 1 still refuses: {err}");
+    assert!(err.contains(&format!("as read by {built}")), "{err}");
+    assert!(err.contains("0.22.0-in-tree"), "{err}");
+    assert!(err.contains("older than this checkout's source"), "{err}");
+    assert!(!err.contains("fix the violations it names"), "{err}");
+
+    let (code, err, _) = run_with_readers("PreToolUse", true, false, 1, OLDER_READER_REPORT);
+    assert_eq!(code, 2, "{err}");
+    assert!(err.contains("fix the violations it names"), "{err}");
+    assert!(!err.contains("older than this checkout's source"), "{err}");
+}
+
+/// Spec 123 §3.5: naming a rebuild is advice. No hook runs one, because a
+/// startup or stop hook that builds would be a hook that writes, and a build
+/// in the middle of another session's work is exactly the side effect spec
+/// 093 took out of these bodies. Every line that mentions `cargo build` is
+/// inside a message.
+#[test]
+fn spec123_no_hook_builds_the_reader_it_names() {
+    for (event, bodies) in hook_bodies() {
+        for body in bodies {
+            for line in body.lines().filter(|l| l.contains("cargo build")) {
+                let t = line.trim_start();
+                assert!(
+                    t.starts_with('#') || t.starts_with("echo ") || t.contains("echo \""),
+                    "{event}: `cargo build` outside a message: {line}"
+                );
+            }
+        }
+    }
+}
+
+/// Spec 123 §3.1, every arm: a stale verdict and a code the gate does not
+/// recognise name the reader too, and `Stop` names it before any non-fresh
+/// report. Review of #317 found these arms unnamed while the invalid one was.
+/// Exit 2 is an answer (spec 093 §3.9), so there the reader is named by path
+/// and `--version` is still not asked.
+#[test]
+fn spec123_every_non_fresh_arm_names_the_reader() {
+    let stale = "spec-registry: STALE (run `spec-spine compile`)\ncodebase-index: fresh\n";
+    let (code, err, built) = run_with_readers("PreToolUse", true, false, 2, stale);
+    assert_eq!(code, 2, "{err}");
+    assert!(err.contains("a committed shard tree is stale in"), "{err}");
+    assert!(err.contains(&format!("[pr-gate] reader: {built}")), "{err}");
+    assert!(
+        err.contains("spec-spine compile and index"),
+        "a current reader's stale is stale: {err}"
+    );
+    assert!(
+        !err.contains("0.22.0-in-tree"),
+        "--version is not asked on an answered exit (093 §3.9): {err}"
+    );
+
+    let (code, err, built) = run_with_readers("PreToolUse", true, true, 2, stale);
+    assert_eq!(code, 2, "{err}");
+    assert!(
+        err.contains(&format!("The reader {built} is older")),
+        "{err}"
+    );
+    assert!(
+        !err.contains("spec-spine compile and index"),
+        "an older reader's stale is not a reason to regenerate: {err}"
+    );
+
+    let (code, err, built) = run_with_readers("PreToolUse", true, false, 7, "odd\n");
+    assert_eq!(code, 2, "{err}");
+    assert!(err.contains("exited 7"), "{err}");
+    assert!(err.contains(&format!("The binary is {built}")), "{err}");
+
+    let (_, out, built) = run_with_readers("Stop", true, false, 2, stale);
+    assert!(
+        out.contains(&format!("[freshness] reader: {built}\n")),
+        "{out}"
+    );
+    assert!(!out.contains("0.22.0-in-tree"), "093 §3.9: {out}");
+    let (_, out, built) = run_with_readers("Stop", true, false, 7, "odd\n");
+    assert!(
+        out.contains(&format!(
+            "[freshness] reader: {built} (spec-spine 0.22.0-in-tree)"
+        )),
+        "{out}"
+    );
+}

@@ -1,98 +1,100 @@
 {
   "mapping": {
+    "amends": [
+      "093-the-harness-this-repository-runs"
+    ],
     "dependsOn": [
-      "016-directory-crate-module-units",
-      "021-ledger-seal",
-      "039-per-spec-attestation"
+      "093-the-harness-this-repository-runs",
+      "094-one-gate-and-the-boundaries-it-holds"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "path": ".claude/settings.json",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/attest.rs",
+        "path": ".githooks/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/index.rs",
+        "path": "crates/spec-spine-core/tests/harness_hooks.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/attest.rs",
-        "source": "spec-edge"
+        "path": "crates/spec-spine-core/tests/reader_identity.rs",
+        "source": "multiple"
       }
     ],
     "resolvedUnits": [
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/cli.rs"
+            "file": "crates/spec-spine-core/tests/reader_identity.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/reader_identity.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".githooks/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": ".githooks/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".claude/settings.json"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/cli.rs"
+          "path": ".claude/settings.json"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/attest.rs"
+            "file": "crates/spec-spine-core/tests/harness_hooks.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/attest.rs"
+          "path": "crates/spec-spine-core/tests/harness_hooks.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/index.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/index.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/tests/attest.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/attest.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "specs/039-per-spec-attestation/spec.md"
+            "file": "docs/release-candidate-0.22.0.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "specs/039-per-spec-attestation/spec.md"
+          "path": "docs/release-candidate-0.22.0.md"
         }
       }
     ],
-    "specId": "066-an-attestation-covers-the-territory-it-claims",
-    "specStatus": "approved"
+    "specId": "123-a-startup-verdict-names-its-reader",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "4ffa28cb542a9c96f9684dbbf2854c770d0a4000c01b5a72f7743ed07e03ed80"
+  "shardHash": "79f9593c3c57b63aecc52db307cf8fc68ff6c1ba1230bdd044af0d259f0db7ed"
 }
