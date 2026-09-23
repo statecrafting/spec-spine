@@ -1,42 +1,36 @@
 {
   "mapping": {
     "dependsOn": [
-      "002-registry-query",
-      "004-codebase-index",
-      "022-index-sharding",
-      "029-ownership-coverage"
+      "006-distribution",
+      "061-shipped-is-not-the-same-as-working"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/cmd_index.rs",
+        "path": "CLAUDE.md",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/cmd_registry.rs",
+        "path": "crates/spec-spine-core/fixtures/verifier/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/couple.rs",
+        "path": "docs/releasing.md",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/index.rs",
+        "path": "npm/package.json",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/lib.rs",
+        "path": "py/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/query.rs",
+        "path": "scripts/reader-identity.sh",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/index.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/tests/query.rs",
+        "path": "spec-spine.toml",
         "source": "spec-edge"
       }
     ],
@@ -44,124 +38,124 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_index.rs"
+            "file": "scripts/reader-identity.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/reader-identity.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/fixtures/verifier/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "py/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": "py/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "CLAUDE.md"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+          "path": "CLAUDE.md"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_registry.rs"
+            "file": "docs/releasing.md"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+          "path": "docs/releasing.md"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/couple.rs"
+            "file": "npm/package.json"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/couple.rs"
+          "path": "npm/package.json"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/index.rs"
+            "file": "spec-spine.toml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/index.rs"
+          "path": "spec-spine.toml"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/lib.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/lib.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/src/query.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/query.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/tests/index.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/index.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/tests/query.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/query.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/design/03-adopter-audit-2026-09.md"
+            "file": "docs/release-candidate-0.22.0.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/03-adopter-audit-2026-09.md"
+          "path": "docs/release-candidate-0.22.0.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/bump_version.py"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/bump_version.py"
         }
       }
     ],
-    "specId": "048-the-ledger-answers-what-consumers-rebuild",
-    "specStatus": "approved"
+    "specId": "124-the-expansion-line-carries-its-own-version",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f1fda7d528e7ed7bb45447170dea2493e35c9b03e431c0ea05c6cfb7bf3e0ba2"
+  "shardHash": "5aae7521f795a529997a155ad25cdd124d5dde61eb0c3eac1cc6edcff4f033ce"
 }

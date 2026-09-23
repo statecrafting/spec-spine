@@ -28,6 +28,18 @@
       that let v0.2.0's PyPI publish fail while npm/crates shipped). Schema-version
       constants in `spec-spine-types` are decoupled; bump them separately per
       [schema-versioning.md](schema-versioning.md) only if the schema changed.
+- [ ] **The floor moves with the version** (specs 061 §3.8, 124): set
+      `spec-spine.toml` `[meta] required_version` to `>=<version>`, which
+      `bump_version.py` deliberately does not touch. A reader older than the
+      corpus's grammar then refuses with exit 3 naming the requirement,
+      instead of reporting a valid corpus as invalid.
+- [ ] **A version names one behavior** (spec 124): once `main` differs from a
+      frozen or published candidate in any engine source or schema, `main`'s
+      version moves off the candidate's, and the candidate is never recut to
+      follow `main`. Record each built binary's identity with
+      `scripts/reader-identity.sh <binary> <checkout>` (path, digest,
+      revision, whether it is that checkout's current build, and the schema
+      axes it emits), never from `--version` alone.
 - [ ] `Cargo.lock` regenerated after the bump: `bump_version.py` rewrites the
       three manifests but not the lockfile, so the workspace crates' `version`
       entries in `Cargo.lock` go stale and every `--locked` command (including
