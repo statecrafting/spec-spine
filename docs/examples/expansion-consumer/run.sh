@@ -33,7 +33,7 @@ BIN="$REPO/target/release/spec-spine"
 "$BIN" --version
 
 PKG="$SCRATCH/target"
-cargo package --locked -p spec-spine-types -p spec-spine-core --target-dir "$PKG" "${ALLOW[@]}"
+cargo package --locked -p spec-spine-types -p spec-spine-core --target-dir "$PKG" ${ALLOW[@]+"${ALLOW[@]}"}
 mkdir -p "$SCRATCH/vendor"
 for c in types core; do
   tar xzf "$PKG/package/spec-spine-$c-$VERSION.crate" -C "$SCRATCH/vendor"
@@ -46,8 +46,8 @@ done
 
 cp -R "$REPO/docs/examples/expansion-consumer" "$SCRATCH/consumer"
 sed -i.bak \
-  -e "s#PACKAGED_CORE#$SCRATCH/vendor/spec-spine-core-$VERSION#" \
-  -e "s#PACKAGED_TYPES#$SCRATCH/vendor/spec-spine-types-$VERSION#" \
+  -e "s|PACKAGED_CORE|$SCRATCH/vendor/spec-spine-core-$VERSION|" \
+  -e "s|PACKAGED_TYPES|$SCRATCH/vendor/spec-spine-types-$VERSION|" \
   "$SCRATCH/consumer/Cargo.toml"
 rm -f "$SCRATCH/consumer/Cargo.toml.bak" "$SCRATCH/consumer/run.sh"
 

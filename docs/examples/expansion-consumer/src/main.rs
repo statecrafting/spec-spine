@@ -149,9 +149,13 @@ fn replay(fixtures: &Path, id: &str) {
     let case: Value =
         serde_json::from_str(&fs::read_to_string(dir.join("case.json")).unwrap()).unwrap();
     let expect = &case["expect"];
-    let corpus = if dir.join("corpus").is_dir() {
+    // `needsCorpus` is the case's own statement; the directory must agree.
+    let needs = case["needsCorpus"].as_bool().expect("needsCorpus is a bool");
+    assert_eq!(needs, dir.join("corpus").is_dir(), "{id}: needsCorpus disagrees with corpus/");
+    let corpus = if needs {
         dir.join("corpus")
     } else {
+        // Refused before any recompute, so any corpus serves as the root.
         fixtures.join("control-untampered/corpus")
     };
     let bytes = fs::read(dir.join("payload.json")).unwrap();
