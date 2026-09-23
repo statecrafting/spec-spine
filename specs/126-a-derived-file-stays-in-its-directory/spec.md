@@ -16,7 +16,7 @@ summary: >
   Every file name derived from a spec id is now checked before anything is
   written, pruned or created: a name that is not one plain file name refuses
   the whole write with exit 3 and leaves the tree as it was.
-implementation: complete
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
