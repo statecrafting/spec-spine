@@ -38,7 +38,7 @@
       }
     ],
     "id": "126-a-derived-file-stays-in-its-directory",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "intent": {
       "goal": "a spec's id can never make a governance verb write, prune or create a file outside the directory that verb writes into",
       "nonGoals": [
@@ -100,6 +100,6 @@
     "summary": "`compile` and `index` name each per-spec shard `<id>.json` after the spec's frontmatter `id`, and `attest --spec` names its attestation the same way. None of the three checked that the id was a file name before joining it to a directory. A corpus declaring `id: \"../../../package\"` made `compile` overwrite the repository's `package.json` with shard JSON, an absolute id wrote wherever it pointed, and `index` and `attest --spec` did the same while exiting 0. `V-012` reported the id, but after the write rather than instead of it. These are verbs documented as safe to run against a stranger's branch. Every file name derived from a spec id is now checked before anything is written, pruned or created: a name that is not one plain file name refuses the whole write with exit 3 and leaves the tree as it was.\n",
     "title": "A derived file stays in its directory"
   },
-  "shardHash": "3c367bbba8e5846349da9f9672ab1c0c45551b7f9aa25b273e5d019a938e4ba7",
+  "shardHash": "28aee751b4b7d4f27976474748b2de725d6f18ec9650ae49339246409f5a6090",
   "specVersion": "1.8.0"
 }
