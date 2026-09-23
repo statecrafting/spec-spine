@@ -37,7 +37,11 @@ cargo package --locked -p spec-spine-types -p spec-spine-core --target-dir "$PKG
 mkdir -p "$SCRATCH/vendor"
 for c in types core; do
   tar xzf "$PKG/package/spec-spine-$c-$VERSION.crate" -C "$SCRATCH/vendor"
-  shasum -a 256 "$PKG/package/spec-spine-$c-$VERSION.crate"
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$PKG/package/spec-spine-$c-$VERSION.crate"
+  else
+    shasum -a 256 "$PKG/package/spec-spine-$c-$VERSION.crate"
+  fi
 done
 
 cp -R "$REPO/docs/examples/expansion-consumer" "$SCRATCH/consumer"
