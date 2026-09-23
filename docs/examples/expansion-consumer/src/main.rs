@@ -654,7 +654,9 @@ fn cli(bin: &Path, root: &Path, args: &[&str]) {
 fn cli_json(bin: &Path, root: &Path, args: &[&str], code: i32) -> Value {
     let out = Command::new(bin).arg("--repo").arg(root).args(args).output().unwrap();
     assert_eq!(out.status.code(), Some(code), "spec-spine {args:?} in {}", root.display());
-    serde_json::from_slice(&out.stdout).unwrap()
+    serde_json::from_slice(&out.stdout).unwrap_or_else(|e| {
+        panic!("spec-spine {args:?}: stdout is not JSON ({e}): {}", String::from_utf8_lossy(&out.stdout))
+    })
 }
 
 fn s(p: &Path) -> &str {

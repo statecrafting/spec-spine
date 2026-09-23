@@ -249,6 +249,11 @@ section's declared/undeclared and with/without contrasts are what make it
 able to fail. The first local run of the extended section failed because the
 new CLI check expected exit 0 for every outcome; spec 111 prescribes exit 1
 for `ambiguous` and `cycle`, so the harness was corrected, not the engine.
+After review of #335 the fixture check also requires `tool-version-changed`
+to exist (an absent file had let `! grep -q` succeed), and `cli_json` names
+non-JSON stdout; both were rerun against the same published crates and
+scratch (fixture binding exit 0; the rebuilt consumer, offline against the
+same registry lockfile, 13 `ok:` lines).
 
 ## 6. The 0.23.0 `uvx` path, rechecked
 
