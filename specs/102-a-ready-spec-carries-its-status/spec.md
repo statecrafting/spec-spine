@@ -309,7 +309,7 @@ grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss087-verify-te
 rm -f "${TMPDIR:-/tmp}/ss087-verify-tests.txt"
 # --- this spec's amendment of 087 (D-7) ---
 target/release/spec-spine registry show 102 --json > "${TMPDIR:-/tmp}/ss102-show.json"
-python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss102-show.json')); assert d['amendsVerification'] == ['087-the-answer-is-a-member-not-the-document'], d; assert '087-the-answer-is-a-member-not-the-document' in d['amends'], d"
+python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss102-show.json')); assert d['amendsVerification'] == ['087-the-answer-is-a-member-not-the-document'], d; assert d['amends'] == ['087-the-answer-is-a-member-not-the-document'], d"
 rm -f "${TMPDIR:-/tmp}/ss102-show.json"
 # 087's file is not edited either: it still carries the two-member form this
 # block replaced. Red if someone repairs 087 in place instead.
