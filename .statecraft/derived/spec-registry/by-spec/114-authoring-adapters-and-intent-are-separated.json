@@ -232,10 +232,10 @@
       "Verification"
     ],
     "specPath": "specs/114-authoring-adapters-and-intent-are-separated/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The feature register carried A10 (authoring-tool adapters) and B23 (an intent declaration) as one item. They belong to different owners: A10 is environment delivery, which is Statecraft's since spec 092, and B23 is a corpus-side declaration, which is spec-spine's. This separates them, records what an adapter author can build against, and specifies the smallest optional structured intent a spec can carry: a standing goal and its non-goals, validated for shape, transported into the registry, and read by no gate. The prose stays authoritative; attempt-specific planning stays with the consumer.\n",
     "title": "Authoring adapters and intent are separated"
   },
-  "shardHash": "7fbaa22e35d12085b54a3f3c867dfc85de055f0d3e58734e048a3b88d422cee3",
+  "shardHash": "2d1aa92cc23b0e20c36e4c7d45ed8299be211768b8ba4ad7874b4b0ee83c8ef3",
   "specVersion": "1.8.0"
 }

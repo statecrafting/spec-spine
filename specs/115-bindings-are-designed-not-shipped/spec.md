@@ -1,7 +1,7 @@
 ---
 id: "115-bindings-are-designed-not-shipped"
 title: "Bindings are designed, not shipped"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-21"
 implementation: n-a

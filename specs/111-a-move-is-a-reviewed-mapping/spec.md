@@ -1,7 +1,7 @@
 ---
 id: "111-a-move-is-a-reviewed-mapping"
 title: "A move is a reviewed mapping"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-21"
 implementation: complete

@@ -1,7 +1,7 @@
 ---
 id: "114-authoring-adapters-and-intent-are-separated"
 title: "Authoring adapters and intent are separated"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-21"
 implementation: complete

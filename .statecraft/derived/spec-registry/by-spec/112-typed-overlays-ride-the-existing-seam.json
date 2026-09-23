@@ -116,10 +116,10 @@
       "Verification"
     ],
     "specPath": "specs/112-typed-overlays-ride-the-existing-seam/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Four proposals (effect contracts, budgets, dependency rationale, contract adapters) all want to attach typed data to a spec's units without changing what a unit is. The corpus already has the seam: declared extra frontmatter (spec 012), carried into the registry as `extraFrontmatter`. This states the contract an overlay keeps on that seam, pins what the engine does and does not promise about it (canonical values, not original bytes; a hash scope that is the declaring spec's, not every shard), and asserts it with several independent overlays in one corpus. No new unit kind, no engine enforcement, and no domain schemas.\n",
     "title": "Typed overlays ride the existing seam"
   },
-  "shardHash": "bd8bc768833144ed671f89ff7a91c4dcedcfe6f56f440116ed29b9e12a03c033",
+  "shardHash": "fcb5613f2be7e9ac89a69e5358ce4b1755a92b9d333279118f8551449826e035",
   "specVersion": "1.8.0"
 }

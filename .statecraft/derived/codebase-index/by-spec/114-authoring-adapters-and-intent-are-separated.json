@@ -323,8 +323,8 @@
       }
     ],
     "specId": "114-authoring-adapters-and-intent-are-separated",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "1317343950359c8adb6f750a8075e37768fa513f13915ca3d0819c4d51b0b4ab"
+  "shardHash": "2db4d78b943c8a800785f1270787843a1db6b08217b8f2be9b4c386359a27195"
 }

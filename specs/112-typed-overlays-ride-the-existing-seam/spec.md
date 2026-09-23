@@ -1,7 +1,7 @@
 ---
 id: "112-typed-overlays-ride-the-existing-seam"
 title: "Typed overlays ride the existing seam"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-21"
 implementation: complete

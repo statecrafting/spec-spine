@@ -95,10 +95,10 @@
       "Verification"
     ],
     "specPath": "specs/115-bindings-are-designed-not-shipped/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`docs/bindings-plan.md` designs napi, pyo3 and cgo bindings and says no binding code belongs in this repository. That mandate lived only in a document header. This records it in the corpus as a policy, and states the obligations the JSON facade keeps so that a binding remains buildable elsewhere, each as it measurably holds today. It builds nothing, endorses no external binding, and is reviewable rather than enforced. Its implementation is `n-a`: there is no binding to implement, and this spec is the decision not to.\n",
     "title": "Bindings are designed, not shipped"
   },
-  "shardHash": "e57b948ddb262861e75f28c991aaba4681a4ce4d3813a6853c5a241851b8cfc9",
+  "shardHash": "fe0fb884917e004ff1959fd45bd5dbfa3eff23c44e3e127e8a6745d1a4b468ea",
   "specVersion": "1.8.0"
 }
