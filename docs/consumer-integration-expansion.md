@@ -1,4 +1,4 @@
-# Consumer integration: the expansion wave after 0.22.0
+# Consumer integration: the expansion wave, released as 0.23.0
 
 What a library or CLI consumer needs in order to use specs 102, 103, 105, 106,
 107, 108, 109, 110 and 113, merged on `main` **after** the frozen 0.22.0
