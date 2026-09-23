@@ -1,6 +1,6 @@
 # Bindings plan (napi / pyo3 / cgo)
 
-> **Design only: no binding code exists in this repo, by mandate.** This
+> **Design only: no binding code exists in this repo, by mandate (spec 115).** This
 > document describes how npm, Python, and Go bindings will wrap `spec-spine-core`
 > later. The library is built to make this a thin, mechanical exercise: every
 > operation already has a `&str → Result<String, Error>` facade

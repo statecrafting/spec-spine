@@ -103,6 +103,10 @@ extra_hashed_inputs = [
   "docs/releasing.md",
   "docs/schema-versioning.md",
   "docs/specify-first.md",
+  # Spec 112 D-3: the overlay contract, claimed by the spec that states it.
+  "docs/overlay-contract.md",
+  # Spec 115 D-2: the bindings plan, claimed by the policy that governs it.
+  "docs/bindings-plan.md",
   # Spec 095 3.5, narrowed by spec 092 3.5: the skill tree a session here loads.
   # It used to be one of three generated destinations (`.agents/skills/` and
   # `.codex/agents/` were the others); those were projections for a delivery

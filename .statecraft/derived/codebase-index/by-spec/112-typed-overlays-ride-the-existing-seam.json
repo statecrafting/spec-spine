@@ -1,0 +1,84 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "012-declared-extra-frontmatter-passthrough"
+    ],
+    "implementingPaths": [
+      {
+        "path": "docs/overlay-contract.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "spec-spine.toml",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/overlays.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/overlay-contract.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "docs/overlay-contract.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/04-authority-evidence-extension.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/012-declared-extra-frontmatter-passthrough/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/012-declared-extra-frontmatter-passthrough/spec.md"
+        }
+      }
+    ],
+    "specId": "112-typed-overlays-ride-the-existing-seam",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "d325f8978b85b426ae28c384d36738957a645df4df754969722418db612202b8"
+}
