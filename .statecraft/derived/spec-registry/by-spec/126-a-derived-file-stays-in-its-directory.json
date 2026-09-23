@@ -35,6 +35,22 @@
           "kind": "file",
           "path": "crates/spec-spine-cli/src/verify_attestation.rs"
         }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_compile.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
       }
     ],
     "id": "126-a-derived-file-stays-in-its-directory",
@@ -69,15 +85,15 @@
       "1-1-measured-on-main-at-95ef76df-0-24-0": "23d38980e80c315da8a0702511e019b56d084fe94a75cce88be3e534e12078c6",
       "1-2-why-it-matters": "8263caf21d10a531d2859f411b9a16bd4bdd506671e82af64482b871220bd457",
       "1-purpose": "cb9ff66c5d9040db727df9854ecc0f1bc9d3a8ef2a34257513de0b472158b776",
-      "126-a-derived-file-stays-in-its-directory": "86d89c4880aed66a6671d206c13111fea5ff59bb8afc78652e80ffa93e70db4a",
-      "2-territory": "eec85b84e925d736925c9ce5c0d2a8da34955e2a7e743b1c77fead59fc50c0c7",
+      "126-a-derived-file-stays-in-its-directory": "ab806813daa60c2391ede6223d4600fe7cd4427c4fa746d3aae0d9f49c7a19e0",
+      "2-territory": "adff783132f12906a6586b62cb98a07e49c5692034ef24f74671230ca498150a",
       "3-1-a-plain-file-name": "c9a430b95f3711b20c986c70f88c4f38550fe9600a87db7de4539aa76fe6e469",
       "3-2-the-shard-writer-checks-every-name-before-it-touches-the-directory": "21edc06d8663dd279afacecc4db7bc6a4651c1a4e9cdc293cc73f7d3388cb74e",
       "3-3-the-per-spec-attestation-checks-its-name-before-it-is-written": "52e4382be01d2198b3b64ec7bee36cc0927eec3aef52665a90b99e110f50fce1",
       "3-4-what-the-refusal-says": "dbc3835431c51d253fd41d33077c8d91dd21b97dcb3c516d63b9ca694a62b50f",
       "3-behavior": "5875360619c2e5cdb9ababcf80856fee426a48c8d9eac5974c7b86e1923b4271",
       "4-out-of-scope": "333bf5224a392f736574ca994e2922dff2081288f2e5ed05ddd4d13671cbde0e",
-      "5-resolved-decisions": "a78dab69675c91d173d0b074d14a3b6e70f99a775a6f92d6e011fd74e8dc5b2a",
+      "5-resolved-decisions": "edf8c8a47c96408469bfdbcc2e7f27da39d6eca281d94995a9ddaa56e9d1722c",
       "verification": "2be3585fc02485a66fc8799f9131af17016dd847e0c8ab1a8ebbbc545e6f6f95"
     },
     "sectionHeadings": [
@@ -100,6 +116,6 @@
     "summary": "`compile` and `index` name each per-spec shard `<id>.json` after the spec's frontmatter `id`, and `attest --spec` names its attestation the same way. None of the three checked that the id was a file name before joining it to a directory. A corpus declaring `id: \"../../../package\"` made `compile` overwrite the repository's `package.json` with shard JSON, an absolute id wrote wherever it pointed, and `index` and `attest --spec` did the same while exiting 0. `V-012` reported the id, but after the write rather than instead of it. These are verbs documented as safe to run against a stranger's branch. Every file name derived from a spec id is now checked before anything is written, pruned or created: a name that is not one plain file name refuses the whole write with exit 3 and leaves the tree as it was.\n",
     "title": "A derived file stays in its directory"
   },
-  "shardHash": "3c367bbba8e5846349da9f9672ab1c0c45551b7f9aa25b273e5d019a938e4ba7",
+  "shardHash": "265d210fcd373d82f5046a8a0773c28de593abcfe46366d8be7da3fbd65250d3",
   "specVersion": "1.8.0"
 }

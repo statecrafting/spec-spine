@@ -108,12 +108,17 @@ because a gate must never repair the tree it is judging.
 A shard is named after its spec's frontmatter `id`. If any id would not make
 one plain file name (empty, a leading `.`, or containing `/`, `\`, `:` or
 NUL, which covers `../` traversal and absolute paths), the writing form refuses
-with exit `3` before it writes, prunes or creates anything in `by-spec/`, and
-names the file name and directory (spec 126). This outranks the exit `1` the
+with exit `3` before it writes, prunes or creates anything, including the
+`spec-registry/` directory itself on a first build, and names the file name and
+directory (spec 126). This outranks the exit `1` the
 same id's `V-012` would earn. The refusal is about the file name, not the id
 grammar: an id that fails `V-012` but is a plain name (`001-Foo`) is still
 written and still exits `1`. `compile --check` reports the offending id without
-writing anything.
+writing anything. The check is on the name only: it does not make a shard file
+or a directory on the derived path that is already a symbolic link safe to
+write through, and a writing verb run over such a link writes, and prunes,
+where the link points. Run the writing verbs only in a checkout whose derived
+directory contains no links you did not put there.
 
 ## check
 
@@ -213,7 +218,8 @@ Builds the code-as-source index into `<derived_dir>/codebase-index/{by-spec,by-p
 
 Per-spec shards are named after the spec's `id`, with the same refusal as
 `compile`: an id that is not one plain file name exits `3` before anything
-under `by-spec/` or `by-package/` is written, pruned or created (spec 126).
+under `codebase-index/` is written, pruned or created, the directory itself
+included (spec 126).
 
 | Subcommand | Answers |
 |---|---|

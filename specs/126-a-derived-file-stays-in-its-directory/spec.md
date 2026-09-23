@@ -33,6 +33,11 @@ extends:
   # D-4: the comment on `validate_spec_id` that said `attest --spec` was
   # already protected; a comment correction, no behavior.
   - { spec: "039-per-spec-attestation", unit: { kind: file, path: "crates/spec-spine-cli/src/verify_attestation.rs" }, nature: corrective }
+  # D-5: the artifact root each writing verb created before any name was
+  # checked. Each edge names the spec that established the file, and the call
+  # dates from that spec's build.
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_compile.rs" }, nature: corrective }
+  - { spec: "004-codebase-index", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_index.rs" }, nature: corrective }
 references:
   - { unit: { kind: file, path: "crates/spec-spine-core/src/compile.rs" }, role: context }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/index.rs" }, role: context }
@@ -99,6 +104,9 @@ chooses which ids are known.
   through the shipped binary.
 - `crates/spec-spine-cli/src/verify_attestation.rs` (extends 039, D-4): the
   comment that called `attest --spec` already protected.
+- `crates/spec-spine-cli/src/cmd_compile.rs` (extends 001, D-5) and
+  `crates/spec-spine-cli/src/cmd_index.rs` (extends 004, D-5): the artifact
+  root each verb created before `sync_dir` saw a name.
 
 ## 3. Behavior
 
@@ -188,6 +196,8 @@ rather than closed, and `derived_paths.rs` asserts exactly that one empty
 directory so the behavior cannot change unnoticed. The check is lexical: it
 does not resolve a symlink already present inside `by-spec/`, which only the
 repository's own checkout can put there and which neither 3.2 nor 3.3 speaks to.
+*Closed by D-5 and corrected by D-6, both 2026-09-23; the text above is kept as
+it was decided.*
 
 **D-4 (2026-09-23): the comment in `verify_attestation.rs` is corrected under
 an `extends` edge.** It said `attest --spec` was protected by its registry
@@ -195,6 +205,43 @@ lookup, which 1.2 shows was false. Leaving a comment that names the defect as
 impossible beside the fix was the alternative; correcting it is a comment-only
 change, so the edge is `corrective` on spec 039's unit, which already extends
 that file, and no behavior of `verify-attestation` changes (4).
+
+**D-5 (2026-09-23): D-3 is closed; a refused run creates nothing.** D-3 left
+a gap between this spec's summary and D-2 ("leaves the tree as it was",
+"refusal before anything moves") and what a first build did: it left
+`<derived>/spec-registry` or `<derived>/codebase-index` behind, and the
+`<derived>` directory above it. Recording the gap did not make the two
+statements agree, so the gap is closed rather than scoped out. The
+`create_dir_all` in `cmd_compile.rs` and in `cmd_index.rs` is removed:
+`sync_dir` already creates its directory with every parent, and does so only
+after every name has passed 3.1, so the artifact root now appears on the same
+condition as the shards. Nothing else either verb writes (`build-meta.json`, a
+legacy `registry.json` or `index.json` removal, `slices.json`) runs before the
+first `sync_dir`, so no other write needed moving. `index` writes two batches,
+and now checks both before writing either, so a refused name in the second
+cannot follow a written first; a package slug cannot fail 3.1 today, which a
+unit test asserts, so that half of the check is a guard no fixture reaches. The
+first-build test now compares the whole fixture before and after, with no
+allowance, for every hostile id and both verbs, and a valid first build is
+asserted to create every directory it did before. The claim the edges carry is
+corrective on the two files' establishing specs (001 and 004). JSON
+diagnostics are the `attest --spec --json` envelope only: the writing forms of
+`compile` and `index` take no `--json` (spec 034 4), which is unchanged.
+
+**D-6 (2026-09-23): the symlink sentence in D-3 was wrong, and is out of this
+spec's scope.** D-3 said a symlink inside `by-spec/` is one "only the
+repository's own checkout can put there". Git records a symlink (mode
+`120000`) like any file, so a branch being inspected can carry one, and a
+linked `by-spec/`, `<derived>/spec-registry` or `<derived>` directory as well.
+Measured on this build and on the pre-126 binary alike: `compile`, `index` and
+`attest --spec` (and its seal) write through a linked shard file, and `sync_dir`
+prunes `*.json` files in whatever directory a linked `by-spec/` or ancestor
+points at, all with exit 0. That is not a name derived from an id, so 3.1 does
+not reach it, and a refusal there is a separate change with its own decisions
+(what a writer does on a linked component, whether a configured
+`derived_dir` may be a link, and the check-then-write race). It is recorded as
+its own finding for its own spec, and this spec's guarantee remains what 3.1
+to 3.3 say: a name derived from a spec id cannot leave its directory.
 
 ## Verification
 

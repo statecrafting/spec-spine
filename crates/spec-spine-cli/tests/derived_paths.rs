@@ -205,29 +205,52 @@ fn compile_and_index_refuse_an_id_that_is_not_a_file_name() {
     }
 }
 
-/// 3.2 on a tree never built: the `by-spec/` directory `sync_dir` would have
-/// created is not created. The one new entry is the artifact root the CLI
-/// creates before it calls `sync_dir` (`.derived/spec-registry` or
-/// `.derived/codebase-index`), which is empty, configured rather than derived
-/// from an id, and outside 3.2's scope (D-3).
+/// 3.2 on a tree never built: nothing at all is created, not the `by-spec/`
+/// directory `sync_dir` would have made and not the artifact root the CLI used
+/// to create before calling it (D-3, closed by D-5). The comparison is exact:
+/// the snapshot after the refused run equals the one before it.
 #[test]
-fn a_refused_first_build_creates_no_shard_directory() {
-    for (verb, root) in [
-        ("compile", ".derived/spec-registry"),
-        ("index", ".derived/codebase-index"),
-    ] {
-        let (tmp, repo) = fixture(false);
-        let h = hostile_ids(tmp.path()).swap_remove(0);
-        write_spec(&repo, "002-b", &h.id);
-        let mut expected = snapshot(tmp.path());
-        let out = run_in(&repo, &[verb]);
-        assert_refused(&out, &h.id, &format!("first `{verb}`"));
-        assert!(!repo.join(root).join("by-spec").exists());
-        assert!(!repo.join(root).join("by-package").exists());
-        expected.insert(Path::new("repo/.derived").to_path_buf(), None);
-        expected.insert(Path::new("repo").join(root), None);
-        assert_eq!(snapshot(tmp.path()), expected, "first `{verb}`");
+fn a_refused_first_build_creates_nothing() {
+    for verb in ["compile", "index"] {
+        for case in 0..hostile_ids(Path::new("/")).len() {
+            let (tmp, repo) = fixture(false);
+            let h = hostile_ids(tmp.path()).swap_remove(case);
+            write_spec(&repo, "002-b", &h.id);
+            let before = snapshot(tmp.path());
+            let out = run_in(&repo, &[verb]);
+            let what = format!("first `{verb}` with id {:?} ({})", h.id, h.what);
+            assert_refused(&out, &h.id, &what);
+            assert!(!repo.join(".derived").exists(), "{what} created .derived");
+            assert_eq!(snapshot(tmp.path()), before, "{what} changed the tree");
+        }
     }
+}
+
+/// The other side of D-5: with the premature `create_dir_all` gone, a valid
+/// first build still creates every directory and file it did before, because
+/// `sync_dir` creates the artifact root on its way to the shards.
+#[test]
+fn a_valid_first_build_still_creates_its_whole_tree() {
+    let (_tmp, repo) = fixture(true);
+    for dir in [
+        ".derived/spec-registry/by-spec",
+        ".derived/codebase-index/by-spec",
+        ".derived/codebase-index/by-package",
+        ".derived/attestation/by-spec",
+    ] {
+        assert!(repo.join(dir).is_dir(), "a valid first build creates {dir}");
+    }
+    assert!(
+        repo.join(".derived/spec-registry/build-meta.json")
+            .is_file(),
+        "compile still writes build-meta.json beside the shards"
+    );
+    // And a second, unchanged run is still clean over the tree it made.
+    assert_eq!(
+        code(&run_in(&repo, &["check"])),
+        0,
+        "the first build is fresh"
+    );
 }
 
 /// 3.3: `attest --spec` resolves a hostile id from the corpus, because the

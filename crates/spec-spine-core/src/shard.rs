@@ -258,6 +258,32 @@ mod tests {
         assert_eq!(package_slug(".hidden"), "_.hidden");
     }
 
+    /// Spec 126 3.2: a package shard's name is a slug, so it cannot reach the
+    /// refusal. `index` still checks both batches before writing either (D-5);
+    /// this is the assertion that the by-package half of that check is
+    /// unreachable today, and fails if the slug ever stops being plain.
+    #[test]
+    fn a_package_slug_is_always_a_plain_file_name() {
+        let dir = Path::new("by-package");
+        for name in [
+            "",
+            ".",
+            "..",
+            "../../x",
+            "/abs",
+            "a\\b",
+            "C:evil",
+            "a:b",
+            "a\0b",
+            ".hidden",
+            "@scope/pkg",
+            "é",
+        ] {
+            let file = format!("{}.json", package_slug(name));
+            assert!(check_file_name(&file, dir).is_ok(), "{name:?} -> {file:?}");
+        }
+    }
+
     #[test]
     fn sync_dir_prunes_removed_shards() {
         let tmp = tempfile::tempdir().unwrap();
