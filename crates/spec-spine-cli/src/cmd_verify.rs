@@ -122,8 +122,9 @@ enum Drained {
 /// forbids: the verdict is computed from exit statuses, so it must not depend
 /// on whether the parent could write its logs anywhere.
 ///
-/// Memory stays bounded: one fixed buffer per stream, nothing accumulated,
-/// which is the same guarantee `io::copy` gave and spec 090 §3.2 requires.
+/// Memory stays bounded: one fixed buffer per stream and a held partial line
+/// of at most [`LINE_HOLD`] (spec 125 §3.2), never the stream's output, which
+/// is the guarantee spec 090 §3.2 requires.
 fn drain_to_stderr<R: Read>(src: &mut R) -> Drained {
     drain_lines(src, |bytes| {
         let stderr = std::io::stderr();
