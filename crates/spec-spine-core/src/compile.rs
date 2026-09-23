@@ -971,6 +971,9 @@ fn validate_impacts_local(spec_path: &str, fm: &Frontmatter, out: &mut Vec<Viola
                 ),
                 at(),
             ));
+            // One mistake, one violation (D-8): the successor rules describe a
+            // target, and an unqualified reference names none.
+            continue;
         }
         match (imp.nature, &imp.successor) {
             (spec_spine_types::ImpactNature::Supersedes, None) => out.push(error(

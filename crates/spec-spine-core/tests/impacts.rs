@@ -139,6 +139,20 @@ fn an_unqualified_reference_is_v025_for_impacts_and_conflicts() {
     }
 }
 
+/// D-8: an unqualified reference is one mistake and reports one violation,
+/// even on a `supersedes` entry with no successor, whose successor rule would
+/// otherwise describe the unparsable string as if it were a target.
+#[test]
+fn an_unqualified_supersedes_reports_v025_alone() {
+    let (_t, out) = compiled("impacts:\n  - obligation: \"R-1\"\n    nature: supersedes\n");
+    let found = codes(&out);
+    assert!(
+        has(&out, "V-025", "not a qualified obligation reference"),
+        "{found:?}"
+    );
+    assert!(!found.iter().any(|(c, _)| c == "V-026"), "{found:?}");
+}
+
 // ---- 3.4 rule 2: dangling ----------------------------------------------------
 
 #[test]

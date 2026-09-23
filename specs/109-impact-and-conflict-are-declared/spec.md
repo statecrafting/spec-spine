@@ -407,6 +407,12 @@ any edit to a spec's own `spec.md` does (`couple.rs`'s self-ownership rule for
 106's whole block into 109's, which would let one spec's acceptance answer for
 two unrelated contracts.
 
+**D-8 (2026-09-22, review: one mistake, one violation).** An unqualified
+reference on a `supersedes` impact with no successor reported both `V-025` and
+a `V-026` that described the unparsable string as a target. The successor
+rules now run only on a reference that parses, so the entry reports `V-025`
+alone; a test asserts it, and removing the early `continue` fails that test.
+
 ## Verification
 
 Written to fail against the tree this spec is filed on: none of the keys, the
