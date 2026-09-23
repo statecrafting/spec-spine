@@ -49,9 +49,23 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         // This exempts the DECLARATION, never a claim: a superseded spec that
         // still names a unit is still held to every diagnostic about that unit,
         // because the unit is still written down.
+        //
+        // Spec 116: a spec marked `implementation: deferred` is the fourth case
+        // of the same exemption. The contract's lifecycle table keeps
+        // `deferred` as a decision not to schedule, and the only honest
+        // territory for a contract nobody is building is none: a speculative
+        // `establishes` raises an unresolved unit that `check
+        // --fail-on-unresolved` refuses, and `planned: true` on a file that
+        // already exists raises `L-012`.
+        //
+        // A ratchet, not a hole: nothing remembers the deferral, so any other
+        // `implementation` value, or none, re-arms the warning. `n-a` is
+        // deliberately not included (spec 116 §3.3). Like the exemptions
+        // beside it, this covers the declaration and never a claim.
         let withdrawn = matches!(spec.status, Status::Superseded | Status::Retired);
         let retroactive = spec.origin.as_ref().is_some_and(|o| o.retroactive);
-        if !retroactive && !withdrawn && !has_ownership_edge(spec) {
+        let deferred = spec.implementation == Some(spec_spine_types::Implementation::Deferred);
+        if !retroactive && !withdrawn && !deferred && !has_ownership_edge(spec) {
             violations.push(warn(
                 "L-001",
                 format!(

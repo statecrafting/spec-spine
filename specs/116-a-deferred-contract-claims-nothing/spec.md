@@ -4,7 +4,7 @@ title: "A deferred contract claims nothing"
 status: draft
 kind: "tooling"
 created: "2026-09-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 depends_on:
   - "003-conformance-lint"
@@ -21,7 +21,7 @@ amends:
   - "003-conformance-lint"
 amends_sections: ["l-001"]
 establishes:
-  - { kind: file, path: "crates/spec-spine-core/tests/deferred_contract.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/tests/deferred_contract.rs" }
 extends:
   - spec: "003-conformance-lint"
     paths:
@@ -196,6 +196,17 @@ and every case runs on a scratch corpus.
 loose).** It accepted any code beginning `W-` or `I-`, which a regression
 emitting an unrelated diagnostic would satisfy. The build asserts the
 unresolved-unit code the index emits for that claim and the path it names.
+
+**D-7 (2026-09-23, build: fail-first and mutation evidence).** The five
+cases in `tests/deferred_contract.rs` were run before the exemption was
+written: the exemption, re-arming and "no other diagnostic moves" cases
+failed (3 of 5), and the two guard cases (`n-a`, and a deferred claim still
+diagnosed) passed, as they must on a lint that exempts nothing. With the
+exemption in place all five pass. Two mutants were then run against the
+suite: one that stops `L-001` firing at all fails the re-arming, `n-a` and
+"no other diagnostic" cases; one that also exempts `n-a` fails the `n-a`
+case. The re-arming loop covers `pending`, `in-progress`, `complete` and an
+absent field, and then returns to `deferred`.
 
 ## Verification
 
