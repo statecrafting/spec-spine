@@ -1,20 +1,21 @@
-# Consumer integration: the expansion wave after 0.22.0
+# Consumer integration: the expansion wave, released as 0.23.0
 
 What a library or CLI consumer needs in order to use specs 102, 103, 105, 106,
-107, 108, 109, 110 and 113, which are merged on `main` **after** the frozen
-0.22.0 candidate (`f9fa6a8f`) and will ship as **0.23.0**. None of it is in
-0.22.0 and none of it is published. Every contract below is exact as of the
-`main` revision named in §10. The design rationale lives in each spec; this
+107, 108, 109, 110 and 113, merged on `main` **after** the frozen 0.22.0
+candidate (`f9fa6a8f`) and **published as 0.23.0** on 2026-09-23 from
+`d2bb47634404b874ca36cf8bf75b4a31a70328f7` (`docs/release-0.23.0.md`). The
+0.22.0 candidate was never published. Every contract below is exact as of that
+revision. The design rationale lives in each spec; this
 page is the integration surface. Specs 122, 123 and 125 correct this
 repository's own commit hook, session hooks and `verify` forwarding, and spec
 124 gives the line its own version; §0 says what each means for a consumer.
 
 ## 0. Prerequisites that apply to all of it
 
-- **Producer version.** `main` reports **`0.23.0`** since spec 124, so the
-  version string now separates this line from the frozen `0.22.0` candidate.
-  It still does not name a build: until 0.23.0 is cut, every development
-  build of `main` answers `0.23.0` too. Identify a producer with
+- **Producer version.** The released producer is **`0.23.0`** (tag
+  `v0.23.0`, source `d2bb4763`). The version string alone still does not name
+  a build: a development build of a later `main` may answer the same version
+  until the next bump. Identify a producer with
   `scripts/reader-identity.sh <binary> [<checkout>]`, which records its path,
   SHA-256, `--version`, the checkout's revision, whether it is that checkout's
   current build, and each schema axis **as the binary emits it**.
@@ -48,8 +49,9 @@ repository's own commit hook, session hooks and `verify` forwarding, and spec
   before resolving anything. `registry show` and `registry obligation` are
   inspection reads and answer from whatever is committed; do not build an
   identity from them without a freshness check (`spec-spine check`).
-- **Local verification only** so far: the example in §9 packages the library
-  from source. Registry-backed verification waits for a published release.
+- **Verified from the registries.** The example in §9 was run against the
+  crates published to crates.io, with the CLI installed from crates.io and a
+  fresh Cargo home (`docs/release-0.23.0.md` §5).
 
 ## 1. Spec 102: a ready entry carries its status
 
@@ -252,10 +254,11 @@ record's `sectionDigests` entry for the section.
 
 ## 10. Evidence and its limits
 
-Recorded against the merged revision in `docs/release-candidate-0.23.0.md`,
-which keeps this line apart from the frozen 0.22.0 candidate. Everything here
-is **local source/package verification**: the crates were packaged from a
-checkout, not downloaded from a registry.
+Local package verification is recorded in `docs/release-candidate-0.23.0.md`
+(at `97f82ee5`) and repeated at the released revision `d2bb4763` in
+`docs/release-0.23.0.md` §3. Registry-backed verification (crates.io library
+and CLI, npm, the PyPI wheel, the GitHub Release archives and their
+provenance) is in its §4 and §5.
 
 ## 11. For Statecraft
 
@@ -263,9 +266,31 @@ Everything Statecraft needs to adopt this line, in one place. Nothing here
 changes Statecraft, and nothing in Statecraft needs to change to keep
 consuming 0.22.0.
 
-**Producer.** Revision `97f82ee561efb656aeb3528d5ab9671bac8308bf`, intended
-release **0.23.0** (not yet cut or published). Identify a binary with
-`scripts/reader-identity.sh`, not `--version` (§0).
+**Producer: released.** `v0.23.0`, source revision
+`d2bb47634404b874ca36cf8bf75b4a31a70328f7`, published 2026-09-23. Identify a
+binary with `scripts/reader-identity.sh`, not `--version` (§0).
+
+| Package | Identity |
+|---|---|
+| `spec-spine-core` 0.23.0 (crates.io) | `.crate` SHA-256 `3dca8f6819d7951110757fbafba31897a3ed6dad516a85599e05e334f6b3e492` |
+| `spec-spine-types` 0.23.0 (crates.io) | `.crate` SHA-256 `dcd35073ecd95b9aa21b0173e0351fc44398d2a6019d6de73948d5287b319dc4` |
+| `spec-spine-cli` 0.23.0 (crates.io) | `.crate` SHA-256 `6b0e780069a88d1a9f1ecf9d0d49cab1308bef0d44fbae63d1e5f3322975ca91` |
+| `spec-spine@0.23.0` (npm) and `@spec-spine/cli-<os>-<cpu>@0.23.0` | integrities in `docs/release-0.23.0.md` §4 |
+| `spec-spine` 0.23.0 (PyPI), wheels and sdist | SHA-256 in `docs/release-0.23.0.md` §4 |
+| GitHub Release archives | SHA-256 sidecars and build provenance naming `d2bb4763`, `docs/release-0.23.0.md` §4 |
+
+**What Statecraft uses today, and what moving to 0.23.0 means for it.** The
+Statecraft CLI pins `spec-spine-core =0.21.0` with `default-features = false`
+and calls only `scaffold_init_json`; its governed loop pins the CLI at
+`=0.20.0`. Moving the library pin to `=0.23.0` keeps that call's signature and
+contract: the registry-backed check in `docs/release-0.23.0.md` §5 builds
+exactly that shape (`default-features = false`, `scaffold_init_json` only)
+against the published crate and asserts the governance file set, purity and
+the refusal of a camelCase key. The producer emits the same governance file set
+Statecraft already implements against (spec 092); 0.21.0's `AGENTS.md` and
+`.claude/` output is gone, which is the correction 0.22.0 was cut for. Moving
+the CLI pin past 0.21.0 removes `spec-spine init` and makes a gate that cannot
+read history exit 3 (`docs/adopter-migration.md` §9.2: use `fetch-depth: 0`).
 
 **Interfaces and schema versions.**
 
@@ -281,7 +306,8 @@ release **0.23.0** (not yet cut or published). Identify a binary with
 | fixtures (103) | `verify_attestation_json` over `fixtures/verifier/` | `verify-attestation` | fixture set `0.1.0` |
 | registry records | `compile_json`, `query_json` `op: "show"` | `registry show --json` | registry `1.6.0` |
 
-**Examples and fixtures.**
+**Examples and fixtures.** Paths inside the published `spec-spine-core`
+0.23.0 crate are the same as in the repository at `d2bb4763`.
 
 - `docs/examples/expansion-consumer/` (`run.sh`, `src/main.rs`): a disposable
   consumer of the packaged crates exercising every row above, including the
