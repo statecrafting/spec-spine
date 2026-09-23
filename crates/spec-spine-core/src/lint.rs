@@ -234,7 +234,21 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         // the working tree, checked against it directly. Warning tier: these
         // describe the tree at a point in time, not the declaration's own
         // well-formedness (that is `V-040`, at compile), and they MUST NOT
-        // attempt to verify that content moved (§3.6).
+        // attempt to verify that content moved (§3.6). A path `V-040`
+        // refuses (empty, absolute, a `..` segment), or one carrying a
+        // platform root or prefix, is never joined onto the repository root:
+        // `Path::join` with an absolute argument discards the root, so the
+        // stat would read outside the tree and answer about another file
+        // (111 D-12). The declaration is already an error at compile.
+        let in_tree = |p: &str| {
+            crate::compile::check_move_path(p).is_none()
+                && std::path::Path::new(p).components().all(|c| {
+                    matches!(
+                        c,
+                        std::path::Component::Normal(_) | std::path::Component::CurDir
+                    )
+                })
+        };
         for mv in &spec.moves {
             let kind_label = mv.kind.label();
             match (&mv.to, mv.kind) {
@@ -246,7 +260,7 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
                     // declared, joined, rather than repeated per `to`.
                     let from_label = mv.from.paths().join(", ");
                     for to_path in to.paths() {
-                        if !repo_root.join(to_path).exists() {
+                        if in_tree(to_path) && !repo_root.join(to_path).exists() {
                             violations.push(warn(
                                 "L-015",
                                 format!(
@@ -263,7 +277,7 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
                     // L-016: the other direction. `from` has exactly one path
                     // under `removed` (V-040 enforces the arity).
                     for from_path in mv.from.paths() {
-                        if repo_root.join(from_path).exists() {
+                        if in_tree(from_path) && repo_root.join(from_path).exists() {
                             violations.push(warn(
                                 "L-016",
                                 format!(

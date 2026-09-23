@@ -359,7 +359,9 @@ new `done` set (black, a fully-expanded node, safe to reuse without
 re-expanding). This is provably traversal-order-independent for cycle
 detection (a reachable cycle is found by any complete DFS, regardless of
 which branch of a `split` is walked first), so a cycle reachable through only
-one branch of a `split` is still reported (added as a regression test). A
+one branch of a `split` is still reported (added as a test,
+`a_cycle_reached_only_through_a_split_branch_is_reported`; see D-12 for what it
+does and does not discriminate). A
 consequence worth recording because it changes the documented shape: `hops`
 in a `resolved` answer are now, by construction (a node is expanded at most
 once), the **distinct** declared steps reached, deduplicated on `(from, to,
@@ -370,6 +372,32 @@ assertion changed. Two performance regression tests were added: a 5,000-hop
 linear chain resolves and completes in well under a second, and a depth-16
 two-branch reconverging `split` DAG (`2^16` root-to-leaf paths, ~32
 declarations) resolves with a hop count linear in the declarations.
+
+**D-12 (2026-09-23, second independent review: a lint stat stays in the
+tree).** An independent read-only review of the D-11 head (`6c480f71`) found
+that `lint` checked §3.3's two warnings by joining each declared path onto the
+repository root and asking whether it exists, without the path grammar `V-040`
+enforces at compile. `lint` keeps its own violation list, so it never sees
+`V-040`, and `Path::join` with an absolute argument discards the root: a
+`removed` entry naming an absolute or `..` path to a file that exists outside
+the tree raised `L-016` about that other file, and one naming a missing
+outside path raised `L-015`. `compile` already refused all three shapes as
+`V-040`, so no such declaration reaches a governed tree through the gate, but a
+standalone `lint` read outside the repository and answered about the wrong
+file. §3.3 is silent on malformed paths. Decided: `lint` skips any move path
+`V-040` refuses, or one carrying a platform root or prefix, and never joins it
+onto the root; the declaration stays an error where it belongs, at compile.
+`l015_l016_never_stat_a_path_outside_the_tree` pins it: two `removed` entries
+(`../outside.rs` and its absolute spelling, both existing outside the tree) and
+a `relocated` entry to a missing `../missing.rs` raise `V-040` at compile and
+neither warning at lint. With `lint.rs` reverted to the D-11 head it fails
+(`L-016` raised for the outside file). The same review mutation-tested D-11:
+against the first build's recursive walk, the 5,000-hop chain test aborts with
+a stack overflow and the depth-16 split test reports 131,070 hops instead of
+62, so both discriminate; the split-branch cycle test passes on the first
+build too, because ancestry-based recursion also finds a cycle on either
+branch. It is kept as coverage of the property D-11 relies on, not as a
+regression test for the defect D-11 fixed.
 
 ## Verification
 

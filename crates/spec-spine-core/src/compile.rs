@@ -1200,7 +1200,7 @@ fn validate_interface_references(spec_path: &str, fm: &Frontmatter, out: &mut Ve
 
 /// A move path (spec 111 §3.2): non-empty, repo-relative (no leading `/`) and
 /// no `..` segment, the same grammar spec 108's scope paths use.
-fn check_move_path(p: &str) -> Option<&'static str> {
+pub(crate) fn check_move_path(p: &str) -> Option<&'static str> {
     if p.is_empty() {
         return Some("is empty");
     }

@@ -336,6 +336,44 @@ fn l016_a_removed_path_that_still_exists_is_warned_and_its_absence_is_silent() {
     );
 }
 
+#[test]
+fn l015_l016_never_stat_a_path_outside_the_tree() {
+    // 111 D-12: a path V-040 refuses is not joined onto the repository root.
+    // Both outside files exist, so a stat that escaped the tree would raise
+    // L-016 for them; the missing one would raise L-015.
+    let tmp = tempfile::tempdir().unwrap();
+    let repo = tmp.path().join("repo");
+    fs::create_dir_all(&repo).unwrap();
+    let outside = tmp.path().join("outside.rs");
+    fs::write(&outside, "pub fn outside() {}\n").unwrap();
+    let abs = outside.to_str().unwrap().replace('\\', "/");
+    write(
+        &repo,
+        "001-a",
+        &format!(
+            "moves:\n  - from: \"../outside.rs\"\n    to: null\n    kind: removed\n\
+             \x20 - from: \"{abs}\"\n    to: null\n    kind: removed\n\
+             \x20 - from: \"a.rs\"\n    to: \"../missing.rs\"\n    kind: relocated\n"
+        ),
+    );
+    fs::write(repo.join("a.rs"), "pub fn a() {}\n").unwrap();
+
+    // The declarations are refused where they belong: at compile, as V-040.
+    let out = compile(&Config::default(), &repo).unwrap();
+    assert!(has(&out, "V-040", "../outside.rs"), "{:?}", codes(&out));
+    assert!(has(&out, "V-040", "../missing.rs"), "{:?}", codes(&out));
+
+    let report = lint(&Config::default(), &repo).unwrap();
+    assert!(
+        !report
+            .violations
+            .iter()
+            .any(|v| v.code == "L-015" || v.code == "L-016"),
+        "{:?}",
+        report.violations
+    );
+}
+
 // ===== 3.4: the lookup is derived and never guesses =========================
 
 fn compiled_registry(root: &Path) -> spec_spine_types::Registry {
