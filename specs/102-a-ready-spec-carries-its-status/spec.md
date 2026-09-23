@@ -9,6 +9,11 @@ owner: "The spec-spine Authors"
 depends_on:
   - "035-registry-plan-ready-set"
   - "101-readiness-is-scheduling-not-approval"
+# D-7: 087 holds spec 053's acceptance, and it pins the ready entry's exact
+# shape, which this spec changed. The replacement attaches to the current
+# holder (spec 082 3.2), so `verify 053` and `verify 087` both run this block.
+amends: ["087-the-answer-is-a-member-not-the-document"]
+amends_verification: ["087-the-answer-is-a-member-not-the-document"]
 summary: >
   `ReadySpec` carries `id` and `title`, so a consumer reading `registry plan`
   directly cannot apply an approval rule without a second query per entry. An
@@ -198,12 +203,105 @@ rather than reaching a consumer as `""`, and a unit test pins every arm to
 serde's spelling so the plan document and a registry shard cannot disagree.
 The member stays `status: String`, as §3.1 states.
 
+**D-7 (2026-09-23, the acceptance this spec broke, repaired by amendment).**
+Spec 053's acceptance is held by spec 087 (`amends_verification`), and three
+of its lines compare a ready entry, and the `--next` pick, to exactly
+`{ id, title }`. D-5 moved the two test pins of that shape and missed these,
+because a pin inside a `## Verification` block is not a test the build runs.
+The Acceptance push leg on `main` has been red on `053` since this spec's merge
+(`75a998f7`), and nothing on a pull request runs it.
+
+Both 053 and 087 are `approved`, so neither file is edited (spec 037 §3.1).
+This spec declares `amends` and `amends_verification` on 087, the current
+holder (spec 082 §3.2), and its block below carries 087's acceptance in full,
+with each exact-shape assertion kept exact and extended to
+`{ id, title, status }`: the pick is still compared by value, so a `--next`
+that dropped a member still fails. 087's own mechanism lines are kept, and a
+line asserts that 087's and 053's files still carry the superseded form, so a
+later edit to either approved file goes red here.
+
 ## Verification
 
 Written to fail against the tree this spec is filed on: the field does not
 exist.
 
+Since D-7 this block is also spec 087's acceptance, and through 087 spec 053's
+(spec 082 §3.2), so it is read in three labelled parts. The carried part is
+087's block with each exact-shape assertion extended by `status`, and nothing
+dropped.
+
 ```verify:cli
+# --- spec 053's acceptance, held by 087 and carried here (D-7) ---
+# Self-contained: the commands below invoke the release binary.
+cargo build --release --locked
+cargo test -p spec-spine-core --test query --locked
+# A scratch corpus with two ready specs and one blocked by the first, so the
+# shape assertions below hold whatever this repository's own backlog is doing,
+# and so "the first element of ready" has a failing case (3.4, D-3).
+rm -rf "${TMPDIR:-/tmp}/ss060" && mkdir -p "${TMPDIR:-/tmp}/ss060/specs/001-alpha" "${TMPDIR:-/tmp}/ss060/specs/002-beta" "${TMPDIR:-/tmp}/ss060/specs/003-gamma" && : > "${TMPDIR:-/tmp}/ss060/spec-spine.toml" && printf -- '---\nid: "001-alpha"\ntitle: "First thing"\nstatus: approved\ncreated: "2026-09-07"\nsummary: "s"\nimplementation: pending\nestablishes:\n  - "specs/001-alpha/spec.md"\n---\n\n# 001-alpha\n## body\n' > "${TMPDIR:-/tmp}/ss060/specs/001-alpha/spec.md" && printf -- '---\nid: "002-beta"\ntitle: "Second thing"\nstatus: approved\ncreated: "2026-09-07"\nsummary: "s"\nimplementation: pending\ndepends_on:\n  - "001-alpha"\nestablishes:\n  - "specs/002-beta/spec.md"\n---\n\n# 002-beta\n## body\n' > "${TMPDIR:-/tmp}/ss060/specs/002-beta/spec.md" && printf -- '---\nid: "003-gamma"\ntitle: "Third thing"\nstatus: approved\ncreated: "2026-09-07"\nsummary: "s"\nimplementation: pending\nestablishes:\n  - "specs/003-gamma/spec.md"\n---\n\n# 003-gamma\n## body\n' > "${TMPDIR:-/tmp}/ss060/specs/003-gamma/spec.md" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" compile >/dev/null
+# The two documents are captured to files, so each verb's own exit status is its
+# line's status, which a pipeline into `python3` would not be (3.2, D-5).
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan --json > "${TMPDIR:-/tmp}/ss060/plan.json"
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan --next --json > "${TMPDIR:-/tmp}/ss060/next.json"
+# 053 3.3: the ready array carries titles, so no consumer needs a second call.
+# With two ready specs this is also a claim about order (3.4).
+python3 -c "import json; p=json.load(open('${TMPDIR:-/tmp}/ss060/plan.json')); assert p['ready'][0]=={'id':'001-alpha','title':'First thing','status':'approved'}, p"
+# 053 3.1: and each blocked entry carries its title and the state of every
+# blocker, rather than a count of them.
+python3 -c "import json; b=json.load(open('${TMPDIR:-/tmp}/ss060/plan.json'))['blocked'][0]; assert b['title']=='Second thing', b; assert b['blockedBy'][0]['id']=='001-alpha', b; assert b['blockedBy'][0]['state'], b"
+# 053 3.1: the prose form renders what the structure holds, remainder included.
+# Captured once rather than piped twice, so the verb's own exit status is a
+# line's status and the two assertions read the same rendering (3.2).
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss060" registry plan > "${TMPDIR:-/tmp}/ss060/plan.txt"
+grep -q 'not schedulable' "${TMPDIR:-/tmp}/ss060/plan.txt"
+grep -q 'blocked by 001-alpha' "${TMPDIR:-/tmp}/ss060/plan.txt"
+# 3.3: 060 3.2's pick, read from the member spec 074 moved it into. Sorted keys
+# and the version member are 074 3.2's rule for every governed read, and the
+# pick is compared by value so a `--next` that dropped the title fails (D-1).
+python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss060/next.json')); k=list(d); assert k==sorted(k), k; assert d['schemaVersion'], d; assert d['next']=={'id':'001-alpha','title':'First thing','status':'approved'}, d"
+# 3.4: 053 3.2's projection requirement, which a one-element ready set cannot
+# show. `--next` names the first element of `ready` rather than reimplementing
+# selection; with two ready specs, answering `003-gamma` fails this line.
+python3 -c "import json; n=json.load(open('${TMPDIR:-/tmp}/ss060/next.json'))['next']; p=json.load(open('${TMPDIR:-/tmp}/ss060/plan.json')); assert p['ready'][0]==n, (p['ready'], n)"
+# 053 3.2: and an empty ready set is a true answer at exit 0, not a failure.
+# This repository is that case now. Nothing is asserted about the contents:
+# that document's `next: null` path is guarded by spec 074 3.8 in
+# crates/spec-spine-cli/tests/cli.rs, and asserting it here would pin corpus
+# state, which 053's own decision of 2026-09-08 rejects (3.6, D-4).
+target/release/spec-spine registry plan --next
+rm -rf "${TMPDIR:-/tmp}/ss060"
+# 053 3.3: the ledger is untouched by a read verb.
+target/release/spec-spine compile --check
+# --- spec 087's own mechanism (087 3.5), carried unchanged ---
+# The replacement is declared, read through the CLI rather than off the shard.
+# Redirected, not piped, for the reason D-5 gives: at the parent commit this
+# verb exits 1 and prints nothing. The file is named for this spec, whose
+# mechanism it is, not for 060, whose acceptance the half above is (3.2).
+target/release/spec-spine registry show 087 --json > "${TMPDIR:-/tmp}/ss109-show.json"
+python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss109-show.json')); assert d['amendsVerification'] == ['053-plan-answers-the-whole-question'], d; assert d['amends'] == ['053-plan-answers-the-whole-question'], d"
+rm -f "${TMPDIR:-/tmp}/ss109-show.json"
+# Spec 053's file is not edited (spec 037 3.1): its own block still carries the
+# superseded whole-document equality. This goes red the moment someone resolves
+# this by editing 060 instead.
+grep -qF 'assert json.load(sys.stdin)=={"id":"001-alpha","title":"First thing"}' specs/053-plan-answers-the-whole-question/spec.md
+# The resolution this spec relies on is spec 082's and is unchanged here, so
+# what is asserted is that mechanism, not a new one. No `verify` command may
+# appear in this block: it is the block `verify 060` runs, and cmd_verify's
+# re-entry guard refuses a nested call before it honours `--plan` (3.5).
+# The run is captured and its summary asserted to name a non-zero pass count: a
+# name filter that matches nothing exits 0, so the bare line would stay green
+# while asserting nothing (spec 084 D-7).
+cargo test -p spec-spine-core --test verify --locked spec103_ > "${TMPDIR:-/tmp}/ss109-spec103.txt" 2>&1
+grep -qE 'test result: ok\. [1-9][0-9]* passed' "${TMPDIR:-/tmp}/ss109-spec103.txt"
+rm -f "${TMPDIR:-/tmp}/ss109-spec103.txt"
+# --- this spec's amendment of 087 (D-7) ---
+target/release/spec-spine registry show 102 --json > "${TMPDIR:-/tmp}/ss102-show.json"
+python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss102-show.json')); assert d['amendsVerification'] == ['087-the-answer-is-a-member-not-the-document'], d; assert '087-the-answer-is-a-member-not-the-document' in d['amends'], d"
+rm -f "${TMPDIR:-/tmp}/ss102-show.json"
+# 087's file is not edited either: it still carries the two-member form this
+# block replaced. Red if someone repairs 087 in place instead.
+grep -qF "assert p['ready'][0]=={'id':'001-alpha','title':'First thing'}, p" specs/087-the-answer-is-a-member-not-the-document/spec.md
+# --- this spec's own acceptance ---
 # 3.1: the field exists, and is the verbatim status string.
 grep -q 'pub struct ReadySpec' crates/spec-spine-core/src/query.rs
 grep -A6 'pub struct ReadySpec' crates/spec-spine-core/src/query.rs | grep -q 'pub status: String'

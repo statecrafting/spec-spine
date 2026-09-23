@@ -1,5 +1,8 @@
 {
   "mapping": {
+    "amends": [
+      "087-the-answer-is-a-member-not-the-document"
+    ],
     "dependsOn": [
       "035-registry-plan-ready-set",
       "101-readiness-is-scheduling-not-approval"
@@ -131,5 +134,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "3a5360bc44c0be379f5d74fce50d1106f51d1d35257a449ed74245402190ac3e"
+  "shardHash": "ac3760f7aa327778e60cae5e35c31989e1a4324fee1732aa423c672e6b2d2c56"
 }
