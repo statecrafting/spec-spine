@@ -1758,3 +1758,156 @@ fn spec123_every_non_fresh_arm_names_the_reader() {
         "{out}"
     );
 }
+
+/// A repository with an in-tree build dated `bin_stamp`, the listed files each
+/// dated as given, and optionally the dep-info cargo writes beside the binary,
+/// listing `dep_info` (repo-relative). Returns the `SessionStart` banner.
+fn banner_with_inputs(
+    bin_stamp: &str,
+    files: &[(&str, &str)],
+    dep_info: Option<&[&str]>,
+) -> String {
+    use std::os::unix::fs::PermissionsExt;
+    use std::process::{Command, Stdio};
+
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path().join("repo");
+    fs::create_dir_all(root.join("specs")).unwrap();
+    fs::create_dir_all(root.join("target/release")).unwrap();
+    let built = root.join("target/release/spec-spine");
+    fs::write(
+        &built,
+        "#!/bin/sh\ncase \"$*\" in\n  *--version*) echo 'spec-spine 0.0.0-in-tree'; exit 0 ;;\n  \
+         *--help*) exit 0 ;;\nesac\nprintf 'spec-registry: fresh\\ncodebase-index: fresh\\n'\nexit 0\n",
+    )
+    .unwrap();
+    fs::set_permissions(&built, fs::Permissions::from_mode(0o755)).unwrap();
+    let touch = |p: &std::path::Path, stamp: &str| {
+        assert!(
+            Command::new("touch")
+                .args(["-t", stamp])
+                .arg(p)
+                .status()
+                .unwrap()
+                .success()
+        );
+    };
+    for (rel, stamp) in files {
+        let p = root.join(rel);
+        fs::create_dir_all(p.parent().unwrap()).unwrap();
+        fs::write(&p, "\n").unwrap();
+        touch(&p, stamp);
+    }
+    if let Some(deps) = dep_info {
+        let listed: Vec<String> = deps
+            .iter()
+            .map(|d| root.join(d).to_string_lossy().into_owned())
+            .collect();
+        fs::write(
+            root.join("target/release/spec-spine.d"),
+            format!("{}: {}\n", built.display(), listed.join(" ")),
+        )
+        .unwrap();
+    }
+    touch(&built, bin_stamp);
+    let out = Command::new("sh")
+        .arg("-c")
+        .arg(hook_bodies()["SessionStart"].join("\n"))
+        .current_dir(&root)
+        .env("CLAUDE_PROJECT_DIR", &root)
+        .env_remove("SPEC_SPINE_BIN")
+        .stdin(Stdio::null())
+        .output()
+        .unwrap();
+    String::from_utf8_lossy(&out.stdout).into_owned()
+}
+
+/// As [`banner_with_inputs`] with an older build, but the dep-info beside it
+/// lists files of a different checkout, as a copied or moved build's would.
+fn banner_with_foreign_dep_info(files: &[(&str, &str)]) -> String {
+    let elsewhere = tempfile::tempdir().unwrap();
+    let foreign = elsewhere.path().join("crates/t/src/lib.rs");
+    fs::create_dir_all(foreign.parent().unwrap()).unwrap();
+    fs::write(&foreign, "\n").unwrap();
+    // Older than the build, so a loop that trusted the record would find
+    // nothing newer and report the reader current.
+    assert!(
+        std::process::Command::new("touch")
+            .args(["-t", "202609210000"])
+            .arg(&foreign)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let rel = foreign.to_string_lossy().into_owned();
+    // `banner_with_inputs` joins dep-info entries onto the repository root;
+    // an absolute path joins to itself, so this one stays outside it.
+    banner_with_inputs(OLD, files, Some(&[rel.as_str()]))
+}
+
+const OLD: &str = "202609220406";
+const NEW: &str = "202609222001";
+
+/// Spec 123 D-5, the regression for what #317 shipped: a change the binary
+/// does not compile (a test, a fixture, a manifest) never ages it. `main`
+/// moved by a test-only merge, `cargo build` rightly did nothing, and the
+/// banner said NOT JUDGED with a remedy that could not clear it.
+#[test]
+fn spec123_a_change_the_binary_does_not_compile_never_ages_it() {
+    let files = [
+        ("crates/c/src/lib.rs", OLD),
+        ("crates/c/tests/t.rs", NEW),
+        ("crates/c/fixtures/f.json", NEW),
+        ("Cargo.toml", NEW),
+        ("Cargo.lock", NEW),
+    ];
+    for dep_info in [None, Some(&["crates/c/src/lib.rs"][..])] {
+        let out = banner_with_inputs(OLD, &files, dep_info);
+        assert!(!out.contains("NOT JUDGED"), "{dep_info:?}: {out}");
+        assert!(
+            out.contains("fresh; codebase index: fresh (reader: "),
+            "{out}"
+        );
+    }
+}
+
+/// Spec 123 §3.2 as corrected: the inputs are what cargo's dep-info lists, so
+/// a listed file newer than the binary ages it (an embedded schema included)
+/// and an unlisted one does not; without dep-info, `src/` and `schemas/`.
+#[test]
+fn spec123_the_reader_is_aged_by_the_inputs_it_was_built_from() {
+    let listed = ["crates/t/src/lib.rs", "crates/t/schemas/s.json"];
+    let out = banner_with_inputs(
+        OLD,
+        &[
+            ("crates/t/src/lib.rs", OLD),
+            ("crates/t/schemas/s.json", NEW),
+        ],
+        Some(&listed),
+    );
+    assert!(out.contains("NOT JUDGED"), "{out}");
+    assert!(out.contains("(crates/t/schemas/s.json is newer)"), "{out}");
+
+    let out = banner_with_inputs(
+        OLD,
+        &[
+            ("crates/t/src/lib.rs", OLD),
+            ("crates/t/src/unlisted.rs", NEW),
+        ],
+        Some(&["crates/t/src/lib.rs"][..]),
+    );
+    assert!(!out.contains("NOT JUDGED"), "dep-info is the record: {out}");
+
+    // A record naming another checkout's files says nothing about this one:
+    // it falls through to `src/` and `schemas/` (review of #319).
+    let foreign = banner_with_foreign_dep_info(&[("crates/t/src/lib.rs", NEW)]);
+    assert!(
+        foreign.contains("(crates/t/src/lib.rs is newer)"),
+        "{foreign}"
+    );
+
+    let out = banner_with_inputs(OLD, &[("crates/t/src/lib.rs", NEW)], None);
+    assert!(out.contains("(crates/t/src/lib.rs is newer)"), "{out}");
+    let out = banner_with_inputs(NEW, &[("crates/t/src/lib.rs", OLD)], None);
+    assert!(!out.contains("NOT JUDGED"), "{out}");
+}
