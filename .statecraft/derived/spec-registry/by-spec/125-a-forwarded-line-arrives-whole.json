@@ -57,10 +57,10 @@
       "Verification"
     ],
     "specPath": "specs/125-a-forwarded-line-arrives-whole/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`verify` forwards a command's stdout and stderr to its own stderr from two threads, one write per read. A read ends wherever the pipe's contents did, which is mid-line whenever the command writes faster than the drain, so a line of one stream could be spliced by a chunk of the other. Spec 090's own flood test counts intact lines and caught it intermittently: the post-merge acceptance sweep at `0bf9ff78` failed twice, in two different specs' runs of the same suite, with 8191 of 8192 lines intact. Each drain now delivers whole lines only, holding a partial line until its newline arrives or a bound is reached. Order between the streams is still not promised.\n",
     "title": "A forwarded line arrives whole"
   },
-  "shardHash": "80f5b63e576a19a8783cac7b1513741ed40f53f64eb1197c04d6686f43acdbc0",
+  "shardHash": "648c894ddf4f19aa6c7c657177eb0230a887725434797f09cc3c2c892a8667b4",
   "specVersion": "1.6.0"
 }

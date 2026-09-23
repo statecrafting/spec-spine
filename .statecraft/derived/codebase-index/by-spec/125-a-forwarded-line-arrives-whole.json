@@ -38,8 +38,8 @@
       }
     ],
     "specId": "125-a-forwarded-line-arrives-whole",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "6c6a19c73246593bc25684b5217d71ca0faaf4d2e2a01afc3f218901dcd8d6f6"
+  "shardHash": "40f88aa00d2e7b649c813efd9dffdece121c5878e935673de615d9cf36d95215"
 }
