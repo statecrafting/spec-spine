@@ -92,8 +92,12 @@ changes what is written and never what is decided.
 **Ask `spec-spine --version` before believing any exit code.** The binary in
 `target/release/` is whatever was last built, not necessarily this checkout, and
 a binary predating a flag cannot report on it. `spec-spine.toml` sets
-`[meta] required_version = ">=0.17.0"` as a floor for exactly this failure;
-`scripts/bump_version.py` deliberately does not touch that key.
+`[meta] required_version` to this repository's own package version (spec 061
+§3.8, raised with each bump by spec 124) as a floor for exactly this failure;
+`scripts/bump_version.py` deliberately does not touch that key. The version
+string alone does not identify a build: `scripts/reader-identity.sh <binary>
+[<checkout>]` records its digest, its checkout's revision and the schema axes
+it actually emits.
 
 ## Architecture
 
@@ -283,9 +287,10 @@ Consequences for working here:
 
 ## Schema & release versioning (two decoupled axes)
 
-- **Schema versions** (`registry` 1.2.0, `index` 1.1.0, `verdict` 0.3.0,
-  `build-meta`, `config`) are compile-time `const`s in
-  `spec-spine-types/src/version.rs`. The conformance test
+- **Schema versions** (`registry`, `index`, `verdict`, read documents,
+  `build-meta`, `config` and the rest) are compile-time `const`s in
+  `spec-spine-types/src/version.rs`; `docs/schema-versioning.md` lists each
+  axis's current value and history. The conformance test
   (`core/tests/conformance.rs`) asserts emitted JSON validates against the
   embedded schema of that version: a DTO/schema drift fails the **build**.
   MINOR = additive only; MAJOR = breaking (loaders reject an unknown MAJOR). An

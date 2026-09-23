@@ -1,11 +1,8 @@
 {
   "mapping": {
-    "amends": [
-      "078-governed-scope-is-declared-not-inferred"
-    ],
     "dependsOn": [
-      "078-governed-scope-is-declared-not-inferred",
-      "100-a-deleted-path-is-judged-where-it-lived"
+      "006-distribution",
+      "061-shipped-is-not-the-same-as-working"
     ],
     "implementingPaths": [
       {
@@ -13,19 +10,27 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/schemas/build-meta.schema.json",
+        "path": "crates/spec-spine-core/fixtures/verifier/",
         "source": "spec-edge"
       },
       {
-        "path": "scripts/bump_version.py",
+        "path": "docs/releasing.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "npm/package.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": "py/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/reader-identity.sh",
         "source": "spec-edge"
       },
       {
         "path": "spec-spine.toml",
-        "source": "spec-edge"
-      },
-      {
-        "path": "standards/spec/templates/constitution-template.md",
         "source": "spec-edge"
       }
     ],
@@ -33,11 +38,50 @@
       {
         "locations": [
           {
-            "file": "CLAUDE.md"
+            "file": "scripts/reader-identity.sh"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/reader-identity.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/fixtures/verifier/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "py/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": "py/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "CLAUDE.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
         "unit": {
           "kind": "file",
           "path": "CLAUDE.md"
@@ -46,40 +90,27 @@
       {
         "locations": [
           {
-            "file": "scripts/bump_version.py"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "scripts/bump_version.py"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "standards/spec/templates/constitution-template.md"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "standards/spec/templates/constitution-template.md"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-types/schemas/build-meta.schema.json"
+            "file": "docs/releasing.md"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/schemas/build-meta.schema.json"
+          "path": "docs/releasing.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "npm/package.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "npm/package.json"
         }
       },
       {
@@ -98,33 +129,33 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/coverage.rs"
+            "file": "docs/release-candidate-0.22.0.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/coverage.rs"
+          "path": "docs/release-candidate-0.22.0.md"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/design/09-disposition-2026-09-21.md"
+            "file": "scripts/bump_version.py"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/09-disposition-2026-09-21.md"
+          "path": "scripts/bump_version.py"
         }
       }
     ],
-    "specId": "105-governed-scope-is-enabled-here",
+    "specId": "124-the-expansion-line-carries-its-own-version",
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "998c8958c36aae2a0cc11c877a0d484e875c794328325d16e71c82096a431f8f"
+  "shardHash": "5a24a07a59bac1a0d1af9752d5a5e31c7872edb7bf8ae6fa8d5b0533eaa091e0"
 }
