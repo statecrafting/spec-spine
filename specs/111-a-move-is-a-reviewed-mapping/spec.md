@@ -386,7 +386,10 @@ outside path raised `L-015`. `compile` already refused all three shapes as
 standalone `lint` read outside the repository and answered about the wrong
 file. §3.3 is silent on malformed paths. Decided: `lint` skips any move path
 `V-040` refuses, or one carrying a platform root or prefix, and never joins it
-onto the root; the declaration stays an error where it belongs, at compile.
+onto the root. A path `V-040` refuses stays an error where it belongs, at
+compile; one only the component scan rejects (a Windows drive prefix, which
+`V-040`'s string grammar does not inspect) is skipped by `lint` and is not a
+compile error.
 `l015_l016_never_stat_a_path_outside_the_tree` pins it: two `removed` entries
 (`../outside.rs` and its absolute spelling, both existing outside the tree) and
 a `relocated` entry to a missing `../missing.rs` raise `V-040` at compile and

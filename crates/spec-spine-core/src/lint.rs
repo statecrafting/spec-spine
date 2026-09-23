@@ -239,7 +239,9 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         // platform root or prefix, is never joined onto the repository root:
         // `Path::join` with an absolute argument discards the root, so the
         // stat would read outside the tree and answer about another file
-        // (111 D-12). The declaration is already an error at compile.
+        // (111 D-12). A path `check_move_path` refuses is also a `V-040` at
+        // compile; one only the component scan rejects (a Windows drive
+        // prefix, say) is skipped here and is not a compile error.
         let in_tree = |p: &str| {
             crate::compile::check_move_path(p).is_none()
                 && std::path::Path::new(p).components().all(|c| {

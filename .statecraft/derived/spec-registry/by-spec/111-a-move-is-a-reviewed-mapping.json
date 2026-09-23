@@ -251,7 +251,7 @@
     "sectionDigests": {
       "1-1-why-the-dependency-is-spec-100": "1ecb0a88b77b68bd479da588d8ce611b6c555a4ced13f0d9133cca50c9b709a3",
       "1-purpose": "ed0758c5ff2a5b0ce49034365b8ee06a7f7b8290f71cc7e0a744058cf0fd9882",
-      "111-a-move-is-a-reviewed-mapping": "33492de2962b7292e2a54db1d48ca52637ed3be81c7353b5fc925b4551f6ab8f",
+      "111-a-move-is-a-reviewed-mapping": "f761e2f5bfce0fff7a3b01244040e0f7477b25eb11c7b6e544438e02926c0dc7",
       "2-territory": "4dd33bc15dba46ca03fd850054013b0d0702f79291ef7f6ff66d6b53c44642ff",
       "3-1-a-move-is-declared-by-the-spec-that-performs-it": "a9bd7ccc0f9ad0114dde5edf7161f11df71084b4942c8ceed8e544e5f34daf56",
       "3-2-the-shape-is-validated-at-compile": "baa528c5bef794ac0f819d47173e111997669903021577de0f5a4fcb19496743",
@@ -261,7 +261,7 @@
       "3-6-no-similarity-ever": "f3f14d1ea7d436895090fe777269f855d3a39f68c7159f2622ec1bb228fb63d7",
       "3-behavior": "4cba28dff0f62476be1891c27a77456c40c497f5ec7309a6657100713571aaaa",
       "4-out-of-scope": "7721bdc3aaa4e46fe07796c842de5c51e41a81611144f3f1fc006f9646856d96",
-      "5-resolved-decisions": "f4f8e5203cad2b6edb7e874368d81a498ce196f406c455a5c834976dd6047d54",
+      "5-resolved-decisions": "bbee42ae1972980257caf176443115fb858170b1546e91ec0ef2b37ad32fd3dc",
       "verification": "4f9298f60b06f939ae867916d489c08f4d2ffb5852ec56869b91eedbfd4fd2f2"
     },
     "sectionHeadings": [
@@ -285,6 +285,6 @@
     "summary": "The gate passes `--no-renames`, so a move arrives as a deletion and an addition and each half is judged where it is true. That is correct and it is not the whole story: nothing records that the two halves are one act. The spec performing a move declares it in its own frontmatter as authored, reviewed data. The compiler validates the declaration's shape, the lint checks its paths against the tree, and a lookup derived from every declaration follows declared chains, reporting ambiguity and cycles instead of guessing through them. A move is informational: it transfers no ownership, authorizes no deletion, infers no similarity and changes no verdict.\n",
     "title": "A move is a reviewed mapping"
   },
-  "shardHash": "82b103a773c6cdfd5782c61566efb0e77153a3aa090dca288b72e71fc1242d92",
+  "shardHash": "ea5a2b7a542c778ed652320104379998aaf6ca19862283a406351d418f550472",
   "specVersion": "1.8.0"
 }
