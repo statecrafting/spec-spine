@@ -86,10 +86,10 @@
       "Verification"
     ],
     "specPath": "specs/103-a-verifier-fixture-is-a-published-artifact/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The tamper and cross-version cases an independent verifier must reproduce exist only as commands inside spec 068's acceptance block and as a measured table in docs/authority-evidence.md. A verifier outside this repository cannot run either. This emits them as a named, versioned fixture set: the bytes, the corpus each payload is about, and the outcome each case must reach, all measured against the shipped verifier rather than asserted.\n",
     "title": "A verifier fixture is a published artifact"
   },
-  "shardHash": "cd9c158f4993553d7bcd3219f964d495868663daf59b31c0918bcece822bbf6e",
+  "shardHash": "8e75087fbf0cb35b944f138999a9ae8cb2cf0dba2ce5654cbeee27d19796faef",
   "specVersion": "1.6.0"
 }

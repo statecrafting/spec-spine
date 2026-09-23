@@ -1,7 +1,7 @@
 ---
 id: "107-a-context-closure-is-declared"
 title: "A context closure is declared"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-21"
 implementation: complete

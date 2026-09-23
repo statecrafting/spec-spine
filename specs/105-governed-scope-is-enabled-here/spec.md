@@ -1,7 +1,7 @@
 ---
 id: "105-governed-scope-is-enabled-here"
 title: "Governed scope is enabled here"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-21"
 implementation: complete
