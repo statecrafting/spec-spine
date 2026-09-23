@@ -328,7 +328,7 @@ fn contract_111(bin: &Path, scratch: &Path) {
         let via_cli = cli_json(bin, &mv, &["registry", "moves", path, "--json"], code);
         assert_eq!(via_cli, look(path), "`registry moves {path}` and the facade disagree");
     }
-    // `answered_by: "001"` resolves (a short id, spec 084), so no V-041 here;
+    // `answered_by: "001"` resolves (a short id, spec 015), so no V-041 here;
     // a dangling one below is a warning, never a refusal.
     assert!(!reg["validation"].to_string().contains("V-041"), "{}", reg["validation"]);
     // L-015: a declared `to` absent from the tree is a lint warning.
