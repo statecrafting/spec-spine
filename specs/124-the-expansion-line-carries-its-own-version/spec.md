@@ -9,8 +9,8 @@ summary: >
   `spec-spine 0.22.0` while emitting different registry, read and verdict
   schemas, so the version string could not say which engine a verdict came
   from, and an older reader judged a newer corpus invalid instead of refusing
-  it. `main` now carries 0.23.0, the version the next expansion release will be
-  cut at, in all three package manifests; this repository's version floor
+  it. `main` carries the version the next release will be cut at (0.23.0
+  when filed, 0.24.0 since D-3), in all three package manifests; this repository's version floor
   moves with it, so a reader older than the corpus's grammar refuses by name
   (exit 3); the release runbook makes both a standing step; and a script
   records a binary's identity from evidence (path, digest, revision, whether it
@@ -141,8 +141,9 @@ cut, which is why §3.4 exists.
 
 ### 3.2 The floor moves with the version
 
-`spec-spine.toml` `[meta] required_version` MUST be `>=0.23.0`, spec 061
-§3.8's "matching this repository's own package version". A reader older than
+`spec-spine.toml` `[meta] required_version` MUST be `>=` this repository's
+package version, spec 061 §3.8's "matching this repository's own package
+version": `>=0.23.0` when this spec was filed, `>=0.24.0` since D-3. A reader older than
 0.23.0 then refuses this corpus with exit 3, naming the requirement, the
 running version and where the pin lives, instead of reading a grammar it
 predates. Measured: the candidate's build (`0.22.0`) and the `0.21.0` build
@@ -226,6 +227,18 @@ files is reported `NOT MEASURED` (exit 1), never as current. A missing
 scratch checkout: a relative entry newer than the build reports `NO`, and a
 record naming only another directory's file reports `NOT MEASURED`.
 
+**D-3 (2026-09-23, the 0.24.0 bump).** 0.23.0 was published from `d2bb4763`.
+`main` then merged engine and schema changes beyond it: specs 116 (#327), 112
+(#328) and 114 (#329, registry `1.7.0`). §3.1 applies again, so `main` moves to
+0.24.0, the version the next release is cut at, and, as §1.3 prescribes, the
+bump edits this record rather than asking for a waiver:
+`scripts/bump_version.py 0.24.0` with `--check 0.24.0` green, the three
+workspace crates' `Cargo.lock` entries, the floor at `>=0.24.0`, and the
+fixture set regenerated with `generate.py` (the four-field movement §3.5
+describes, 21 files, no case changed its outcome). The Verification block's
+version literals follow the bump; its shape and every assertion it makes are
+unchanged. Published 0.23.0 is not recut.
+
 ## Verification
 
 Written to fail against the tree this spec is filed on: the version is 0.22.0,
@@ -234,16 +247,16 @@ the floor is `>=0.17.0`, and the script does not exist.
 ```verify:cli
 cargo build --release --locked
 # 3.1: one version in all three manifests, and the build answers it.
-python3 scripts/bump_version.py --check 0.23.0
-./target/release/spec-spine --version | grep -qx 'spec-spine 0.23.0'
+python3 scripts/bump_version.py --check 0.24.0
+./target/release/spec-spine --version | grep -qx 'spec-spine 0.24.0'
 # 3.2: the floor matches the version.
-grep -qx 'required_version = ">=0.23.0"' spec-spine.toml
+grep -qx 'required_version = ">=0.24.0"' spec-spine.toml
 # 3.3: both standing steps are in the runbook.
 grep -qF 'The floor moves with the version' docs/releasing.md
 grep -qF 'A version names one behavior' docs/releasing.md
 # 3.4: the identity record measures every line from the binary itself.
 scripts/reader-identity.sh target/release/spec-spine . > "${TMPDIR:-/tmp}/ss124.txt"
-grep -qE '^answers +spec-spine 0\.23\.0$' "${TMPDIR:-/tmp}/ss124.txt"
+grep -qE '^answers +spec-spine 0\.24\.0$' "${TMPDIR:-/tmp}/ss124.txt"
 grep -qE '^sha256 +[0-9a-f]{64}$' "${TMPDIR:-/tmp}/ss124.txt"
 grep -qE '^registry schema +[0-9]+\.[0-9]+\.[0-9]+$' "${TMPDIR:-/tmp}/ss124.txt"
 grep -qE '^read schema +[0-9]+\.[0-9]+\.[0-9]+$' "${TMPDIR:-/tmp}/ss124.txt"
