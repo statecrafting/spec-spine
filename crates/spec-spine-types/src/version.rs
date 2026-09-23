@@ -101,7 +101,12 @@ pub const SPEC_ATTESTATION_SCHEMA_VERSION: &str = "0.1.0";
 /// 0.5.0 is additive in the strict sense the policy requires: the block is
 /// omitted when empty, so every input that produced a verdict before spec 100
 /// still produces the same payload bytes.
-pub const VERDICT_SCHEMA_VERSION: &str = "0.5.0";
+///
+/// 0.6.0 (spec 113): `couple`'s report gains `waivers`, each declared waiver
+/// evaluated with what it cleared, and `unattachedWaiverLines`. Both are
+/// omitted when empty, so a run that declares no waiver keeps its payload
+/// bytes, and no existing member changed meaning.
+pub const VERDICT_SCHEMA_VERSION: &str = "0.6.0";
 
 /// `schemaVersion` carried by a change-classification report (spec 071).
 ///

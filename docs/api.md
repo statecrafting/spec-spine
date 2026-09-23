@@ -122,6 +122,35 @@ pub struct Waiver    { pub reason: String }
 // Build a Waiver from a PR body using the configured keyword:
 pub fn parse_waiver(cfg: &Config, pr_body: &str) -> Option<Waiver>;
 
+// Spec 113: every waiver a body declares, with its lifecycle lines. The first
+// declaration's reason is what parse_waiver returns.
+pub fn parse_waivers(cfg: &Config, pr_body: &str) -> WaiverSet;
+pub struct WaiverSet { pub declarations: Vec<WaiverDeclaration>, pub unattached: Vec<String> }
+pub struct WaiverDeclaration {           // values kept as written; a malformed one fails its check
+    pub reason: String, pub paths: Option<Vec<String>>,       // None = unscoped
+    pub until: Option<String>, pub since: Option<String>, pub max_uses: Option<String>,
+    pub repeated: Vec<String>,           // single-valued keys declared twice
+}
+impl WaiverDeclaration { pub fn id(&self) -> String; }        // "sha256:...", the use-count key
+// The caller's inputs. The library reads no clock and runs no git: an input left
+// out leaves its check `not-evaluated`, never satisfied, and a missing count is not zero.
+pub struct WaiverInputs {
+    pub as_of: Option<String>,                   // YYYY-MM-DD
+    pub ancestry: BTreeMap<String, bool>,        // declared -Since: -> is an ancestor of head
+    pub uses: BTreeMap<String, u64>,             // waiver id -> prior clearing runs
+}
+pub fn couple_snapshots_waived(cfg: &Config, repo_root: &Path, diff: &DiffInput,
+                               waivers: &WaiverSet, inputs: &WaiverInputs,
+                               prior: &PriorSnapshots<'_>) -> Result<CoupleReport, Error>;
+pub fn couple_with_prior_waived(cfg: &Config, registry: &Registry, index: &CodebaseIndex,
+                                scope: &GovernedScope, prior: &PriorSnapshots<'_>,
+                                diff: &DiffInput, waivers: &WaiverSet,
+                                inputs: &WaiverInputs) -> Result<CoupleReport, Error>;
+// CoupleReport gains `waivers: Vec<WaiverOutcome>` (id, reason, scoped, paths,
+// checks [{check, declared, input?, outcome, detail?}], effective, clears
+// [{code, path}]) and `unattached_waiver_lines`, both omitted from JSON when
+// empty, and `uncleared()`. Every older entry point is one unscoped waiver.
+
 // Mechanical dependency-only auto-waiver (spec 005 §3.5; cargo + workflow
 // classes added by spec 027), used when `coupling.auto_waive_dependency_only`
 // is set and no PR-body waiver is present. dependency_only_waiver dispatches
@@ -442,8 +471,14 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   that treats `ready` as a work queue without adding such a rule is reading the
   document correctly and reaching a conclusion the document does not support.
 - `couple_json` request: `{ "config"?: Config, "repoRoot": string, "diff":
-  DiffInput, "waiver"?: { "reason": string }, "priorRoots"?: { "mergeBase"?:
+  DiffInput, "waiver"?: { "reason": string }, "waivers"?: [WaiverDeclaration],
+  "prBody"?: string, "waiverInputs"?: { "asOf"?: string, "ancestry"?: { commit:
+  bool }, "uses"?: { waiverId: number } }, "priorRoots"?: { "mergeBase"?:
   string, "headCommit"?: string, "worktreeDeletions"?: [string] } }`.
+  At most one of `waiver`, `waivers` and `prBody` (spec 113); `prBody` is
+  parsed with the configured keyword exactly as the CLI parses `--pr-body`.
+  `waiverInputs` is the only source of a lifecycle input: the facade reads no
+  clock and runs no git.
   `priorRoots` (spec 100) names exported trees in exactly the sense
   `delta_json` takes `baseRoot` and `headRoot`; each is compiled and indexed
   under **its own** `spec-spine.toml`. Absent, deletions resolve at head, which

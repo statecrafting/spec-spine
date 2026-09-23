@@ -29,6 +29,7 @@ use spec_spine_types::{
 
 use crate::coverage::{Ownership, classify, in_coverage_universe_with};
 use crate::index::{Freshness, check_index_freshness, spec_md_rel};
+use crate::waiver::{WaiverDeclaration, WaiverInputs, WaiverSet};
 
 /// The hardcoded generic bypass floor (spec 005 §3.5): the **single built-in
 /// source** of bypass entries. The adopter's `config.coupling.bypass_prefixes`
@@ -215,8 +216,9 @@ fn is_false(b: &bool) -> bool {
 }
 
 /// The coupling outcome. Returned `Ok` for any completed analysis (clean, drift,
-/// or waived); the CLI maps it to an exit code. A blocking drift is
-/// `!violations.is_empty() && waiver.is_none()`.
+/// or waived); the CLI maps it to an exit code. A blocking drift is a
+/// violation no waiver cleared (spec 113 §3.6); with no waiver declared that is
+/// `!violations.is_empty() && waiver.is_none()`, as it always was.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CoupleReport {
@@ -232,12 +234,43 @@ pub struct CoupleReport {
     /// bytes every pre-spec-100 input produced.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub deletions: Vec<DeletionProvenance>,
+    /// Every declared waiver, evaluated, with what each cleared (spec 113
+    /// §3.6). **Omitted when empty**, which is every run that declares no
+    /// waiver, so those runs keep their exact bytes (§3.8).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub waivers: Vec<crate::waiver::WaiverOutcome>,
+    /// Lifecycle lines with no waiver above them (spec 113 §3.1). Omitted when
+    /// empty.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unattached_waiver_lines: Vec<String>,
 }
 
 impl CoupleReport {
     /// True when there is drift that no waiver excuses (exit 1).
+    ///
+    /// Spec 113 §3.6: a violation is excused only by the waiver the report
+    /// says cleared it. A report carrying no evaluated waivers is judged by
+    /// `waiver` alone, as before, so a report built by hand keeps its meaning.
     pub fn has_blocking_drift(&self) -> bool {
-        !self.violations.is_empty() && self.waiver.is_none()
+        if self.violations.is_empty() {
+            return false;
+        }
+        if self.waivers.is_empty() {
+            return self.waiver.is_none();
+        }
+        !crate::waiver::uncleared(&self.violations, &self.waivers).is_empty()
+    }
+
+    /// The violations no waiver cleared, in report order (spec 113 §3.6).
+    pub fn uncleared(&self) -> Vec<&Violation> {
+        if self.waivers.is_empty() {
+            return if self.waiver.is_some() {
+                Vec::new()
+            } else {
+                self.violations.iter().collect()
+            };
+        }
+        crate::waiver::uncleared(&self.violations, &self.waivers)
     }
 
     /// `1` for blocking drift, else `0`. Stale / IO are `Err`, not a report.
@@ -298,6 +331,27 @@ pub fn couple_snapshots(
     waiver: Option<&Waiver>,
     prior: &PriorSnapshots<'_>,
 ) -> Result<CoupleReport, Error> {
+    couple_snapshots_waived(
+        cfg,
+        repo_root,
+        diff,
+        &legacy_set(waiver),
+        &WaiverInputs::default(),
+        prior,
+    )
+}
+
+/// [`couple_snapshots`] with every declared waiver and the caller's lifecycle
+/// inputs (spec 113). The CLI calls this form.
+pub fn couple_snapshots_waived(
+    cfg: &Config,
+    repo_root: &Path,
+    diff: &DiffInput,
+    waivers: &WaiverSet,
+    inputs: &WaiverInputs,
+    prior: &PriorSnapshots<'_>,
+) -> Result<CoupleReport, Error> {
+    inputs.validate()?;
     match check_index_freshness(cfg, repo_root)? {
         Freshness::Stale { expected, actual } => return Err(Error::Stale { expected, actual }),
         Freshness::Fresh => {}
@@ -313,7 +367,18 @@ pub fn couple_snapshots(
     } else {
         crate::coverage::GovernedScope::from_globs(cfg, repo_root)
     };
-    couple_with_prior(cfg, &registry, &index, &scope, prior, diff, waiver)
+    couple_with_prior_waived(cfg, &registry, &index, &scope, prior, diff, waivers, inputs)
+}
+
+/// A pre-spec-113 caller's one waiver, as a set: one unscoped declaration, or
+/// none (spec 113 §3.8).
+fn legacy_set(waiver: Option<&Waiver>) -> WaiverSet {
+    WaiverSet {
+        declarations: waiver
+            .map(|w| vec![WaiverDeclaration::unscoped(w.reason.clone())])
+            .unwrap_or_default(),
+        unattached: Vec::new(),
+    }
 }
 
 /// Pure coupling over already-loaded artifacts (overlays, tests). No IO.
@@ -385,6 +450,33 @@ pub fn couple_with_prior(
     diff: &DiffInput,
     waiver: Option<&Waiver>,
 ) -> Result<CoupleReport, Error> {
+    couple_with_prior_waived(
+        cfg,
+        registry,
+        index,
+        scope,
+        prior,
+        diff,
+        &legacy_set(waiver),
+        &WaiverInputs::default(),
+    )
+}
+
+/// [`couple_with_prior`] with every declared waiver and the caller's lifecycle
+/// inputs (spec 113 §3.3 to §3.6). Pure: the inputs are data, so no clock and
+/// no git are read here.
+#[allow(clippy::too_many_arguments)]
+pub fn couple_with_prior_waived(
+    cfg: &Config,
+    registry: &Registry,
+    index: &CodebaseIndex,
+    scope: &crate::coverage::GovernedScope,
+    prior: &PriorSnapshots<'_>,
+    diff: &DiffInput,
+    waivers: &WaiverSet,
+    inputs: &WaiverInputs,
+) -> Result<CoupleReport, Error> {
+    inputs.validate()?;
     let diff_paths: BTreeSet<String> = diff.files.iter().map(|f| f.path.clone()).collect();
     let superseders = build_superseders(registry);
     // Spec 033: every "is this a spec.md, and whose?" question below is asked
@@ -492,11 +584,26 @@ pub fn couple_with_prior(
 
     deletions.sort_by(|a, b| a.path.cmp(&b.path));
 
+    // Spec 113 §3.6: each violation is paired with the first effective waiver
+    // whose scope covers it. `waiver` keeps its meaning, "this run was waived":
+    // the first effective reason when nothing is left uncleared.
+    let outcomes = crate::waiver::evaluate(&waivers.declarations, inputs, &violations);
+    let waiver = if crate::waiver::uncleared(&violations, &outcomes).is_empty() {
+        outcomes
+            .iter()
+            .find(|o| o.effective)
+            .map(|o| o.reason.clone())
+    } else {
+        None
+    };
+
     Ok(CoupleReport {
         violations,
-        waiver: waiver.map(|w| w.reason.clone()),
+        waiver,
         checked_paths,
         deletions,
+        waivers: outcomes,
+        unattached_waiver_lines: waivers.unattached.clone(),
     })
 }
 

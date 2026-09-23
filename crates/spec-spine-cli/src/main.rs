@@ -189,6 +189,16 @@ enum Command {
         /// to `HEAD`, and never with `--paths-from`.
         #[arg(long)]
         include_uncommitted: bool,
+        /// The date a declared `-Until:` is judged against, `YYYY-MM-DD`
+        /// (spec 113 §3.3). Never read from the clock: without it an expiry is
+        /// reported not evaluated.
+        #[arg(long, value_name = "YYYY-MM-DD")]
+        waiver_as_of: Option<String>,
+        /// How many runs a waiver has already cleared, excluding this one, as
+        /// `<waiver id>=<count>` (spec 113 §3.3); repeatable. The count is the
+        /// caller's: nothing here records or consumes a use.
+        #[arg(long, value_name = "ID=N")]
+        waiver_uses: Vec<String>,
         /// Emit the verdict as a JSON envelope on stdout (spec 034).
         #[arg(long)]
         json: bool,
@@ -353,6 +363,8 @@ fn main() -> ExitCode {
             pr_body,
             paths_from,
             include_uncommitted,
+            waiver_as_of,
+            waiver_uses,
             json,
         } => cmd_couple::run(
             &repo,
@@ -362,6 +374,8 @@ fn main() -> ExitCode {
                 pr_body: pr_body.clone(),
                 paths_from: paths_from.clone(),
                 include_uncommitted: *include_uncommitted,
+                waiver_as_of: waiver_as_of.clone(),
+                waiver_uses: waiver_uses.clone(),
                 json: *json,
             },
         ),

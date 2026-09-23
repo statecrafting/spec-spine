@@ -42,6 +42,7 @@ pub mod snapshot;
 pub mod spec_id;
 pub mod symbols;
 pub mod verify;
+pub mod waiver;
 
 use serde::{Deserialize, Serialize};
 use spec_spine_types::{Config, CorpusAttestation, Error, Status, load_config};
@@ -75,9 +76,9 @@ pub use compile::{
 pub use couple::{
     CoupleReport, DEFAULT_BYPASS_PREFIXES, DeletionProvenance, DiffFile, DiffInput, PriorOwnership,
     PriorSnapshots, SNAPSHOT_HEAD_COMMIT, SNAPSHOT_HEAD_TREE, SNAPSHOT_MERGE_BASE, Waiver,
-    build_superseders, couple, couple_snapshots, couple_with, couple_with_prior, couple_with_scope,
-    effective_bypass_prefixes, is_bypassed_path, owners_for_path, parse_waiver,
-    prior_ownership_from_root,
+    build_superseders, couple, couple_snapshots, couple_snapshots_waived, couple_with,
+    couple_with_prior, couple_with_prior_waived, couple_with_scope, effective_bypass_prefixes,
+    is_bypassed_path, owners_for_path, parse_waiver, prior_ownership_from_root,
 };
 pub use coverage::{
     EmptyUniverse, GovernedScope, Ownership, SOURCE_EXTS, classify, coverage, coverage_with,
@@ -121,6 +122,10 @@ pub use scope::{
 pub use snapshot::{
     SnapshotOutcome, check_snapshot_major, snapshot, snapshot_hash, verify_snapshot_recompute,
     with_stored_bytes_snapshot,
+};
+pub use waiver::{
+    CheckOutcome, ClearedViolation, WaiverCheck, WaiverDeclaration, WaiverInputs, WaiverOutcome,
+    WaiverSet, parse_waivers,
 };
 // Spec 067 3.4: the one spec-id policy, public because the CLI's two
 // non-library arguments (the attestation file name, and the attestation
@@ -620,10 +625,18 @@ pub fn load_config_json(toml_src: &str) -> Result<String, Error> {
 /// Run the coupling gate. `request_json` bundles config + repo_root + diff +
 /// optional waiver:
 /// `{ "config"?: Config, "repoRoot": string, "diff": DiffInput, "waiver"?: { "reason": string },
+///    "waivers"?: [WaiverDeclaration], "prBody"?: string,
+///    "waiverInputs"?: { "asOf"?: string, "ancestry"?: { commit: bool },
+///                       "uses"?: { waiverId: number } },
 ///    "priorRoots"?: { "mergeBase"?: string, "headCommit"?: string,
 ///                     "worktreeDeletions"?: [string] } }`.
 /// Returns the [`CoupleReport`] as JSON (even when drift is present; the caller
-/// inspects `violations` / `waiver`).
+/// inspects `violations` / `waiver`, and `waivers` for what each cleared).
+///
+/// At most one of `waiver`, `waivers` and `prBody` may be given (spec 113).
+/// `waiverInputs` is the only place a lifecycle check gets its input: the
+/// library reads no clock and runs no git, so an input left out leaves its
+/// check `not-evaluated` (spec 113 §3.4).
 ///
 /// `priorRoots` names exported trees in exactly the sense [`delta_json`] takes
 /// `baseRoot` and `headRoot` (spec 100 §3.8). Each root is compiled and indexed
@@ -655,6 +668,16 @@ pub fn couple_json(request_json: &str) -> Result<String, Error> {
         diff: DiffInput,
         #[serde(default)]
         waiver: Option<Waiver>,
+        /// Spec 113: every declared waiver, as data.
+        #[serde(default)]
+        waivers: Option<Vec<WaiverDeclaration>>,
+        /// Spec 113: a pull request body, parsed with the configured keyword
+        /// exactly as the CLI parses `--pr-body`.
+        #[serde(default)]
+        pr_body: Option<String>,
+        /// Spec 113 §3.3: the caller's lifecycle inputs.
+        #[serde(default)]
+        waiver_inputs: WaiverInputs,
         #[serde(default)]
         prior_roots: Option<PriorRoots>,
     }
@@ -681,11 +704,37 @@ pub fn couple_json(request_json: &str) -> Result<String, Error> {
         worktree_deletions: roots.worktree_deletions.into_iter().collect(),
     };
 
-    let report = couple_snapshots(
+    // Spec 113: one source of waivers. Two would leave the precedence to a
+    // rule the caller cannot see.
+    let sources = [
+        request.waiver.is_some(),
+        request.waivers.is_some(),
+        request.pr_body.is_some(),
+    ];
+    if sources.iter().filter(|s| **s).count() > 1 {
+        return Err(Error::Parse(
+            "invalid couple request: give at most one of `waiver`, `waivers` and `prBody`".into(),
+        ));
+    }
+    let waivers = match (request.waiver, request.waivers, request.pr_body) {
+        (Some(w), _, _) => WaiverSet {
+            declarations: vec![WaiverDeclaration::unscoped(w.reason)],
+            unattached: Vec::new(),
+        },
+        (_, Some(declarations), _) => WaiverSet {
+            declarations,
+            unattached: Vec::new(),
+        },
+        (_, _, Some(body)) => parse_waivers(&request.config, &body),
+        _ => WaiverSet::default(),
+    };
+
+    let report = couple_snapshots_waived(
         &request.config,
         std::path::Path::new(&request.repo_root),
         &request.diff,
-        request.waiver.as_ref(),
+        &waivers,
+        &request.waiver_inputs,
         &prior,
     )?;
     to_json(&report)
