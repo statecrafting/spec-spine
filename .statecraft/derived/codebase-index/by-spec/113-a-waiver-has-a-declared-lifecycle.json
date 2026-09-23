@@ -238,8 +238,8 @@
       }
     ],
     "specId": "113-a-waiver-has-a-declared-lifecycle",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "4aed610c917b0835b030d38d55117a127d2a50c00b869d55fb51ecb848c2c76c"
+  "shardHash": "10177af76a87bdb515a4b27f5376b4abc830014e7a9fe554799d4397396413f8"
 }

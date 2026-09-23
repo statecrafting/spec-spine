@@ -204,8 +204,8 @@
       }
     ],
     "specId": "108-a-work-scope-is-declared",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "0dab27746dfa0577bccc31d31fc8935aff82fbca2192ec5769d5c587502be2de"
+  "shardHash": "fcc1bf6d52d9b64853e0168237a96b558966a3e597b22076ced6924863bc7926"
 }

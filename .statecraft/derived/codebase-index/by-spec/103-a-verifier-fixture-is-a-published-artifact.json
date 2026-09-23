@@ -95,8 +95,8 @@
       }
     ],
     "specId": "103-a-verifier-fixture-is-a-published-artifact",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f1bf798e691cd839db800b4c8a3367a041dacd90eee65d0fa1fda4ce7b377a6a"
+  "shardHash": "546cd79bbfd9d79ee6905c4d8595c563d9e6fb19873ab10f63e1e37c66d7005b"
 }
