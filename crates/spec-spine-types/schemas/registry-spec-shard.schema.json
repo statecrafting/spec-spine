@@ -85,6 +85,34 @@
               "settledBy": { "type": "string", "minLength": 1 }
             }
           }
+        },
+        "interfaceReferences": {
+          "type": "array",
+          "description": "Cross-corpus interface references, carried verbatim (spec 110; first shipped in specVersion 1.6.0).",
+          "items": {
+            "type": "object",
+            "required": ["corpus", "spec", "digest", "obtained"],
+            "additionalProperties": false,
+            "properties": {
+              "corpus": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+              "spec": { "type": "string" },
+              "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+              "sections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["anchor", "digest"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "anchor": { "type": "string", "minLength": 1 },
+                    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+                  }
+                }
+              },
+              "obtained": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+              "rationale": { "type": "string" }
+            }
+          }
         }
       }
     },

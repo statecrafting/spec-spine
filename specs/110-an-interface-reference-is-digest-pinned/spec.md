@@ -4,7 +4,7 @@ title: "An interface reference is digest-pinned"
 status: draft
 kind: "governance"
 created: "2026-09-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 depends_on:
   - "070-an-authority-snapshot-says-what-it-read"
@@ -18,16 +18,74 @@ summary: >
   a named, exit-coded fact. Discovery, fetching and trust in the exporter stay
   with the caller; nothing is ever pinned from what was first observed.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/interface.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/src/interface.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/src/cmd_interface.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/interface.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/interface.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/interface.rs" }
+  - { kind: file, path: "crates/spec-spine-core/src/interface.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/src/cmd_interface.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/interface.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/interface.rs" }
+extends:
+  # 3.1: the frontmatter grammar (`interface_references`).
+  - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/src/frontmatter.rs" }, nature: additive }
+  # 3.2: the registry record and the schema MINOR.
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/registry.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/schemas/registry.schema.json" }, nature: additive }
+  - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-types/schemas/registry-spec-shard.schema.json" }, nature: additive }
+  # 3.2: validation at compile, V-032 to V-038.
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/compile.rs" }, nature: additive }
+  # 3.4: the facade and the library exports.
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
+  # 3.3: the verb, and spec 067's census of spec-id arguments (D-2).
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-cli/src/main.rs" }, nature: additive }
+  - { spec: "067-a-short-id-names-the-same-spec-at-every-verb", unit: { kind: file, path: "crates/spec-spine-cli/tests/spec_id.rs" }, nature: additive }
+  # 3.2: the pins every registry MINOR moves (106 and 109 did the same).
+  - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-types/tests/dtos.rs" }, nature: additive }
+  - { spec: "106-obligations-are-declared-constraints", unit: { kind: file, path: "crates/spec-spine-core/tests/obligations.rs" }, nature: additive }
+  - { spec: "109-impact-and-conflict-are-declared", unit: { kind: file, path: "crates/spec-spine-core/tests/impacts.rs" }, nature: additive }
+  # 3.3: the read axis moves for the new document, and its pin moves with it.
+  - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-core/tests/read.rs" }, nature: additive }
+  # 3.1: the template documents the key.
+  - { spec: "088-the-template-teaches-the-whole-grammar", unit: { kind: file, path: "standards/spec/templates/spec-template.md" }, nature: additive }
+  # 3.3, 3.4: the documentation an author and a consumer read.
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
+  # D-2: the registry MINOR moves the fixture corpus's registry hash, so this
+  # spec regenerates spec 103's set, on 103 §3.9's authority path.
+  - { spec: "103-a-verifier-fixture-is-a-published-artifact", unit: { kind: directory, path: "crates/spec-spine-core/fixtures/verifier/" }, nature: corrective }
 references:
   - unit: { kind: file, path: "docs/design/04-authority-evidence-extension.md" }
     role: "context"
   - unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }
     role: "context"
+obligations:
+  - id: "R-1"
+    kind: requirement
+    text: "A reference names a corpus, a full spec id, a sha256 digest and an authored obtained date, and every malformed member is a compile error naming the declaring spec."
+    anchor: "3-2-malformed-references-are-refused-at-compile"
+  - id: "R-2"
+    kind: requirement
+    text: "interface verify recomputes each pin from a caller-supplied local export and answers current, sections-current, stale, missing or unverified, holding only on the first two."
+    anchor: "3-3-verification-recomputes-from-a-corpus-the-caller-supplies"
+  - id: "R-3"
+    kind: requirement
+    text: "A stale committed registry is refused (exit 2) before any export is read."
+    anchor: "3-3-verification-recomputes-from-a-corpus-the-caller-supplies"
+  - id: "I-1"
+    kind: invariant
+    text: "Nothing fetches, discovers or trusts a corpus, and no verb writes or fills in a pin from what it observed."
+    anchor: "3-6-a-reference-is-updated-deliberately"
+  - id: "I-2"
+    kind: invariant
+    text: "compile, check, lint, index and couple reach the same verdicts whether or not references are declared."
+    anchor: "3-7-nothing-else-gates-on-a-reference"
+  - id: "V-1"
+    kind: verification
+    text: "Every compile rule and every verifier outcome is exercised against pins copied from a compiled exporter, through the library, the facade and the shipped binary."
+    anchor: "verification"
+    inputs:
+      - "crates/spec-spine-core/tests/interface.rs"
+      - "crates/spec-spine-cli/tests/interface.rs"
 ---
 
 # 110: An interface reference is digest-pinned
@@ -258,6 +316,34 @@ carried here and corrected before any code:
 - open question 1 (obligation pins) is out of scope with a stated reason
   (§4); open question 2 (what `corpus` is a name in) stays the caller's (§4);
   open question 3 (the snapshot) is answered in §4.
+
+**D-2 (2026-09-22, the build).** What the contract was silent on:
+
+- **Codes.** `V-032` corpus name, `V-033` spec id (short or malformed, with
+  distinct messages), `V-034` reference digest, `V-035` section digest,
+  `V-036` `obtained`, `V-037` duplicate anchor, `V-038` duplicate
+  `(corpus, spec)`. A missing member or an unknown one is `V-002` (malformed
+  frontmatter), because the reference is `deny_unknown_fields`: a misspelt
+  `digest` must not parse as "no digest", which §3.2 forbids.
+- **A digest message says which mistake was made**: an unsupported algorithm,
+  no algorithm prefix, or a malformed `sha256:` value.
+- **`--export <name>=` with an empty directory is a usage error** (exit 3),
+  like the empty name §3.3 lists, rather than the working directory by
+  default.
+- **A referenced `spec.md` that resolves outside its export root** (a symlink
+  out) is refused at exit 3. §3.3 says the verifier follows no link out of the
+  named directory; refusing is how that is kept, rather than silently
+  treating the spec as `missing`.
+- **An export text with no frontmatter fence** recomputes no section digests,
+  so every pinned anchor is `missing`, rather than one malformed export
+  aborting the whole report.
+- **`interface verify --spec` is a seventh spec-id argument.** It resolves
+  through spec 067's one resolver, and spec 067's census and matrix are
+  extended to seven, which is the route that census exists to force.
+- **The registry MINOR (`1.6.0`) moves the fixture corpus's registry hash**,
+  so spec 103's set is regenerated with its own generator. Only
+  `registryHash` and `attestationHash` move; every recorded outcome,
+  including `version-mismatch`, is unchanged.
 
 ## Verification
 

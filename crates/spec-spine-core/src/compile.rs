@@ -211,6 +211,7 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
         );
         validate_obligations(&p.spec_path, &p.fm, &p.body, &mut violations);
         validate_impacts_local(&p.spec_path, &p.fm, &mut violations);
+        validate_interface_references(&p.spec_path, &p.fm, &mut violations);
         records.push(build_record(p.fm, p.spec_path, &p.body));
     }
     records.sort_by(|a, b| a.id.cmp(&b.id));
@@ -818,6 +819,7 @@ fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
         obligations: fm.obligations,
         impacts: fm.impacts,
         conflicts: fm.conflicts,
+        interface_references: fm.interface_references,
         extra_frontmatter: fm.extra_frontmatter,
     }
 }
@@ -826,7 +828,7 @@ fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
 /// heading with a given anchor wins, which is the section `resolve_section`
 /// answers for that anchor. One hash construction (spec 077): the name is
 /// `<specPath>#<anchor>`, so equal text in two specs is two identities.
-fn section_digests(spec_path: &str, body: &str) -> BTreeMap<String, String> {
+pub(crate) fn section_digests(spec_path: &str, body: &str) -> BTreeMap<String, String> {
     let mut out = BTreeMap::new();
     for (anchor, text) in crate::sections::markdown_section_texts(body) {
         if anchor.is_empty() || out.contains_key(&anchor) {
@@ -1036,6 +1038,136 @@ fn validate_impacts_local(spec_path: &str, fm: &Frontmatter, out: &mut Vec<Viola
                 at(),
             ));
         }
+    }
+}
+
+/// Spec 110 §3.2: interface-reference rules that are a pure function of one
+/// spec (no other spec is consulted, unlike spec 109's impact/conflict
+/// resolution, because the cited spec lives in another corpus this compile
+/// cannot see). Malformed members were already refused at parse (`V-002`).
+fn validate_interface_references(spec_path: &str, fm: &Frontmatter, out: &mut Vec<Violation>) {
+    if fm.interface_references.is_empty() {
+        return;
+    }
+    let at = || Some(spec_path.to_string());
+    let mut pairs_seen: std::collections::BTreeSet<(&str, &str)> =
+        std::collections::BTreeSet::new();
+    for r in &fm.interface_references {
+        let label = format!("{}#{}", r.corpus, r.spec);
+
+        if !spec_spine_types::valid_corpus_name(&r.corpus) {
+            out.push(error(
+                "V-032",
+                format!(
+                    "interface reference '{label}' has corpus '{}', which does not match \
+                     ^[a-z0-9][a-z0-9._-]*$",
+                    r.corpus
+                ),
+                at(),
+            ));
+        }
+
+        if !valid_id(&r.spec) {
+            if r.spec.bytes().all(|b| b.is_ascii_digit()) {
+                out.push(error(
+                    "V-033",
+                    format!(
+                        "interface reference '{label}' names spec '{}', a short id: a short id \
+                         cannot be resolved against another corpus, and a reference must name \
+                         the cited spec's full id",
+                        r.spec
+                    ),
+                    at(),
+                ));
+            } else {
+                out.push(error(
+                    "V-033",
+                    format!(
+                        "interface reference '{label}' names spec '{}', which does not match \
+                         ^[0-9]{{3}}-[a-z0-9]+(-[a-z0-9]+)*$: a reference must name the cited \
+                         spec's full id",
+                        r.spec
+                    ),
+                    at(),
+                ));
+            }
+        }
+
+        if !spec_spine_types::valid_digest(&r.digest) {
+            out.push(error(
+                "V-034",
+                unsupported_digest_message(&format!("interface reference '{label}'"), &r.digest),
+                at(),
+            ));
+        }
+
+        let mut anchors_seen: std::collections::BTreeSet<&str> = std::collections::BTreeSet::new();
+        for s in &r.sections {
+            if !spec_spine_types::valid_digest(&s.digest) {
+                out.push(error(
+                    "V-035",
+                    unsupported_digest_message(
+                        &format!("interface reference '{label}' section '{}'", s.anchor),
+                        &s.digest,
+                    ),
+                    at(),
+                ));
+            }
+            if !anchors_seen.insert(s.anchor.as_str()) {
+                out.push(error(
+                    "V-037",
+                    format!(
+                        "interface reference '{label}' pins anchor '{}' twice: anchors are \
+                         unique within one reference",
+                        s.anchor
+                    ),
+                    at(),
+                ));
+            }
+        }
+
+        if !spec_spine_types::valid_obtained_date(&r.obtained) {
+            out.push(error(
+                "V-036",
+                format!(
+                    "interface reference '{label}' has obtained '{}', which does not match \
+                     ^[0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}}$",
+                    r.obtained
+                ),
+                at(),
+            ));
+        }
+
+        if !pairs_seen.insert((r.corpus.as_str(), r.spec.as_str())) {
+            out.push(error(
+                "V-038",
+                format!(
+                    "interface reference '{label}' is declared twice: a spec names one \
+                     reference per (corpus, spec) pair"
+                ),
+                at(),
+            ));
+        }
+    }
+}
+
+/// The digest-grammar refusal message (spec 110 §3.1, §3.2), shared by the
+/// reference-level and section-level checks: an unrecognized algorithm prefix
+/// ("only sha256: is supported") is a different mistake than a malformed
+/// sha256 digest, and a reader correcting the frontmatter needs to know which
+/// one they made.
+fn unsupported_digest_message(what: &str, digest: &str) -> String {
+    match digest.split_once(':') {
+        Some(("sha256", _)) => {
+            format!("{what} has digest '{digest}', which does not match ^sha256:[0-9a-f]{{64}}$")
+        }
+        Some((algo, _)) => format!(
+            "{what} has digest '{digest}' under algorithm '{algo}': only sha256 is supported"
+        ),
+        None => format!(
+            "{what} has digest '{digest}' with no algorithm prefix: the form is \
+             sha256:<64 lowercase hex digits>"
+        ),
     }
 }
 
@@ -1561,7 +1693,7 @@ fn warning(code: &str, message: String, path: Option<String>) -> Violation {
 }
 
 /// Repo-relative POSIX path of `file` under `repo_root` (forward slashes).
-fn rel_posix(repo_root: &Path, file: &Path) -> String {
+pub(crate) fn rel_posix(repo_root: &Path, file: &Path) -> String {
     let rel = file.strip_prefix(repo_root).unwrap_or(file);
     rel.components()
         .map(|c| c.as_os_str().to_string_lossy())

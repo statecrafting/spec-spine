@@ -144,6 +144,32 @@ Read-only queries over the compiled registry. Every subcommand takes `--json`.
 `plan`'s `ready` set is a **scheduling** answer, not an approval. See
 `docs/api.md` for what membership does and does not mean.
 
+## interface
+
+```
+spec-spine interface verify [--export <CORPUS>=<DIR>]... [--spec <ID>] [--json]
+```
+
+Recompute every declared cross-corpus interface reference (spec 110) against a
+local checkout of each cited corpus. Each `--export` names a corpus and a
+directory the caller asserts is its repository root; only the referenced
+`spec.md` files under its specs directory are read. Nothing is fetched and
+nothing is written.
+
+| Outcome | Meaning | Exit |
+|---|---|---|
+| `current` | the cited spec's content hash equals the pin | `0` |
+| `sections-current` | the spec moved, and every pinned section is unchanged | `0` |
+| `stale` | the spec moved and no section is pinned, or a pinned section moved or vanished | `1` |
+| `missing` | the export has no such spec | `1` |
+| `unverified` | no `--export` was supplied for the corpus | `1` |
+
+A stale committed registry exits `2` before any export is read. A malformed
+`--export`, a corpus named twice, or an unreadable export directory exits `3`.
+`--spec` accepts the short id; an unknown one exits `1`. To pin a reference,
+run `spec-spine registry show <id> --json` in the cited corpus and copy
+`contentHash` (and any `sectionDigests` entry), each prefixed `sha256:`.
+
 ## index
 
 ```

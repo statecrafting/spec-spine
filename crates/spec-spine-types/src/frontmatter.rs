@@ -21,6 +21,7 @@ use crate::edges::{
 };
 use crate::error::{Error, Result};
 use crate::impact::{Conflict, Impact};
+use crate::interface::InterfaceReference;
 use crate::obligation::Obligation;
 use crate::unit::Unit;
 
@@ -126,6 +127,8 @@ pub const KNOWN_KEYS: &[&str] = &[
     // obligations.
     "impacts",
     "conflicts",
+    // Spec 110 3.1: cross-corpus interface references.
+    "interface_references",
 ];
 
 /// The typed, parsed frontmatter of a `spec.md`.
@@ -211,6 +214,10 @@ pub struct Frontmatter {
     pub impacts: Vec<Impact>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub conflicts: Vec<Conflict>,
+
+    // --- cross-corpus interface references (spec 110) ---
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub interface_references: Vec<InterfaceReference>,
 
     // --- overflow (populated by parse_frontmatter, never by serde) ---
     #[serde(skip)]

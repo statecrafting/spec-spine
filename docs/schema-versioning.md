@@ -10,14 +10,14 @@
 
 | Artifact | Field | Current | Owner |
 |---|---|---|---|
-| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.5.0` | library |
+| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.6.0` | library |
 | index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`) | `schemaVersion` | `1.1.0` | library |
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.5.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.1.0` | library |
-| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.5.0` | library |
+| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.6.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
 
@@ -65,6 +65,11 @@ MINOR history:
   `<spec-id>#<obligation-id>` form. Absent on every existing spec (neither key
   existed before this spec), so only `specVersion` restamps and no
   `shardHash` moves.
+- registry `1.6.0` (spec 110): additive `interfaceReferences` on a record, a
+  spec's cross-corpus citations carried verbatim (`corpus`, `spec`, `digest`,
+  `sections`?, `obtained`, `rationale`?). Absent on every existing spec, so only
+  `specVersion` restamps and no `shardHash` moves. A binary predating it meets
+  the member with a parse error (exit 3).
 
 MAJOR history:
 
@@ -287,6 +292,10 @@ No member of an existing document moved. (This table's summary row above had
 drifted to `0.2.0` since spec 102; corrected here alongside the axis's own
 move, since spec 106's and 107's entries below were already accurate and only
 the summary line had fallen behind.)
+
+**`0.6.0` (spec 110), additive.** A new read document: the interface report
+(`interface verify --json`, `interface_verify_json`), `{ "references": [...],
+"summary": {...}, "schemaVersion" }`. No member of an existing document moved.
 
 ## Migration note: spec 034, the verdict envelope
 

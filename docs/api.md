@@ -302,6 +302,7 @@ pub fn couple_json         (request_json: &str)                 -> Result<String
 pub fn delta_json          (request_json: &str)                 -> Result<String, Error>;
 pub fn query_json          (request_json: &str)                 -> Result<String, Error>;
 pub fn closure_json        (config_json: &str, repo_root: &str, request_json: &str) -> Result<String, Error>;
+pub fn interface_verify_json(request_json: &str)                -> Result<String, Error>;
 pub fn render_json         (config_json: &str, index_json: &str) -> Result<String, Error>;
 pub fn orphans_json        (index_json: &str)                    -> Result<String, Error>;
 pub fn load_config_json    (toml_src: &str)                     -> Result<String, Error>;
@@ -328,6 +329,27 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   and refuses a stale ledger (exit 2); an empty or unqualified request is exit
   3; every unresolved reference is named in one exit-1 refusal. A closure lives
   in the consumer's record; this only resolves one, and no gate reads it.
+- `interface_verify_json` request (spec 110): `{ "registry": "<registry.json
+  text>", "exports": { "<corpus>": { "<spec-id>": { "path", "text" } } },
+  "spec"?: id }`, unknown members refused (exit 3). `path` is the cited spec's
+  repo-relative path **in the exporting corpus** (it is part of the hash
+  construction), `text` its `spec.md` bytes. No filesystem: a binding supplies
+  the exported texts it already holds. The answer is a read document (read
+  schema `0.6.0`), the same one `interface verify --json` prints:
+  `references`, each `{ "declaredBy", "corpus", "spec", "digest",
+  "observedDigest"?, "outcome", "sections"? }` with `outcome` one of `current`,
+  `sections-current`, `stale`, `missing`, `unverified`, and each section
+  `{ "anchor", "digest", "observedDigest"?, "outcome" }` (`current`, `stale`,
+  `missing`); sorted by `(declaredBy, corpus, spec)`; and `summary`, a count
+  per outcome. `current` and `sections-current` hold; the other three do not.
+  An unknown `spec` is exit 1. The library form is
+  `verify_interface_references(&Registry, &Exports, Option<&str>)`, and
+  `interface_verify(&Config, repo_root, &BTreeMap<corpus, dir>, Option<&str>)`
+  adds the committed-ledger read (a stale registry is exit 2, refused before
+  any export is read) and `load_export`, which reads only
+  `<specs_dir>/<id>/spec.md` for the referenced ids and refuses a path that
+  resolves outside the export root. Nothing fetches, and nothing writes a pin:
+  an observed digest is reported for a human to copy.
 - `query_json` request: `{ "registry": "<registry.json text>", "op":
   "list" | "show" | "status-report" | "relationships" | "plan" |
   "obligation" | "impacts", "id"?: string,

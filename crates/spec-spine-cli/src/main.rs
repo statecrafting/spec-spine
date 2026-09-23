@@ -26,6 +26,7 @@ mod cmd_config;
 mod cmd_couple;
 mod cmd_delta;
 mod cmd_index;
+mod cmd_interface;
 mod cmd_lint;
 mod cmd_registry;
 mod cmd_verify;
@@ -122,6 +123,13 @@ enum Command {
     Index {
         #[command(subcommand)]
         action: Option<cmd_index::IndexAction>,
+    },
+    /// Cross-corpus interface references (spec 110): recompute each declared
+    /// pin against a local checkout of the cited corpus. Reads only; fetches
+    /// nothing.
+    Interface {
+        #[command(subcommand)]
+        action: cmd_interface::InterfaceAction,
     },
     /// Run the corpus conformance lint.
     Lint {
@@ -322,6 +330,7 @@ fn main() -> ExitCode {
         Command::Config { action } => cmd_config::run(&repo, action),
         Command::Registry { query } => cmd_registry::run(&repo, query),
         Command::Index { action } => cmd_index::run(&repo, action.as_ref()),
+        Command::Interface { action } => cmd_interface::run(&repo, action),
         Command::Lint {
             fail_on_warn,
             fail_on_info,
@@ -542,7 +551,10 @@ fn exit_for_clap_error(e: clap::Error) -> ExitCode {
 mod tests {
     use clap::CommandFactory;
 
-    /// Spec 067 §3.5: the six arguments that take a spec id, and no seventh.
+    /// Spec 067 §3.5: the arguments that take a spec id, and no other. Six at
+    /// 067; the seventh, `interface verify --spec`, landed with spec 110
+    /// through the one resolver, which is the route this census exists to
+    /// force.
     ///
     /// 043 §3.2 and 049 §3.1 each asserted the cross-verb rule in prose and
     /// nothing held it, which is how `registry show`, `registry relationships`,
@@ -551,8 +563,8 @@ mod tests {
     /// the fix: a seventh verb that takes a spec id cannot land without the
     /// resolver by accident, because this test fails when the set moves.
     ///
-    /// It keys on the argument ids `id` and `spec`, the two spellings all six
-    /// use today. A future argument spelled differently (`--target <ID>`) would
+    /// It keys on the argument ids `id` and `spec`, the two spellings every one
+    /// uses today. A future argument spelled differently (`--target <ID>`) would
     /// evade it; keying on `value_name = "ID"` instead would catch
     /// `attest --key-id`, which takes a key id, and renaming value names to
     /// tell the two apart was rejected as help-text churn to close a gap a
@@ -588,6 +600,7 @@ mod tests {
         let mut expected: Vec<String> = vec![
             "attest <spec>".to_string(),
             "compile <spec>".to_string(),
+            "interface verify <spec>".to_string(),
             "registry relationships <id>".to_string(),
             "registry show <id>".to_string(),
             "verify <id>".to_string(),

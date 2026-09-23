@@ -99,6 +99,17 @@ fn six(id: &str) -> Vec<(&'static str, Vec<String>)> {
                 "--recompute".into(),
             ],
         ),
+        // Spec 110: the seventh, through the same resolver. The fixture
+        // declares no interface reference, so the answer is an empty report.
+        (
+            "interface verify --spec",
+            vec![
+                "interface".into(),
+                "verify".into(),
+                "--spec".into(),
+                id.into(),
+            ],
+        ),
     ]
 }
 
@@ -211,7 +222,7 @@ fn an_ambiguous_ordinal_is_one_refusal_at_all_six_arguments() {
         );
         messages.push(msg);
     }
-    assert_eq!(messages.len(), 6, "every argument must write a refusal");
+    assert_eq!(messages.len(), 7, "every argument must write a refusal");
     messages.dedup();
     assert_eq!(
         messages.len(),
@@ -238,9 +249,9 @@ fn no_match_is_one_refusal_at_the_five_arguments_that_refuse_it() {
         assert!(!msg.is_empty(), "{name} wrote no refusal");
         messages.push(msg);
     }
-    assert_eq!(messages.len(), 5, "the five that refuse a no match");
+    assert_eq!(messages.len(), 6, "the six that refuse a no match");
     messages.dedup();
-    assert_eq!(messages.len(), 1, "five different refusals: {messages:?}");
+    assert_eq!(messages.len(), 1, "different refusals: {messages:?}");
 }
 
 /// §3.2 and D-4: at `verify-attestation`, step 4 does not refuse. The argument
@@ -318,6 +329,7 @@ fn every_id_argument_documents_the_short_form() {
         (vec!["verify", "--help"], "short"),
         (vec!["attest", "--help"], "short id"),
         (vec!["verify-attestation", "--help"], "short id"),
+        (vec!["interface", "verify", "--help"], "short id"),
     ] {
         let out = bin().args(&verb).output().unwrap();
         let text = format!("{}{}", stdout(&out), stderr(&out));

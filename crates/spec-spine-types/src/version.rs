@@ -51,7 +51,14 @@
 /// `shardHash` moves (it is over `spec.md`'s bytes). A binary predating this
 /// spec meets either member with a parse error and exits 3, the same
 /// fail-closed direction 1.2.0 and 1.4.0 chose.
-pub const REGISTRY_SCHEMA_VERSION: &str = "1.5.0";
+/// `1.6.0`: additive `interfaceReferences` (spec 110). A spec may declare a
+/// cross-corpus interface reference: a citation of another repository's spec,
+/// pinned to its content hash and optionally its section digests. Absent on
+/// every existing spec, so only `specVersion` is restamped and no `shardHash`
+/// moves (it is over `spec.md`'s bytes). A binary predating this spec meets
+/// the member with a parse error and exits 3, the same fail-closed direction
+/// 1.2.0, 1.4.0 and 1.5.0 chose.
+pub const REGISTRY_SCHEMA_VERSION: &str = "1.6.0";
 
 /// `schemaVersion` emitted in the codebase index, carried by each index shard.
 /// `0.2.0`: additive `build.sliceHashes` (spec 011).
@@ -126,7 +133,11 @@ pub const DELTA_SCHEMA_VERSION: &str = "0.1.0";
 /// `0.5.0` (spec 109): additive. A new read document, the impact set
 /// (`registry impacts --json`, `query_json` `op: "impacts"`). No member of an
 /// existing document moved.
-pub const READ_SCHEMA_VERSION: &str = "0.5.0";
+///
+/// `0.6.0` (spec 110): additive. A new read document, the interface report
+/// (`interface verify --json`, `interface_verify_json`). No member of an
+/// existing document moved.
+pub const READ_SCHEMA_VERSION: &str = "0.6.0";
 
 /// `schemaVersion` of an authority snapshot (spec 070): its own axis, defined
 /// beside the DTO it versions and re-exported here with the others.

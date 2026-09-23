@@ -31,6 +31,7 @@ pub mod edges;
 pub mod error;
 pub mod frontmatter;
 pub mod impact;
+pub mod interface;
 pub mod obligation;
 pub mod registry;
 pub mod schema;
@@ -76,6 +77,10 @@ pub use frontmatter::{
     parse_frontmatter_with, split_frontmatter,
 };
 pub use impact::{Conflict, ConflictResolution, Impact, ImpactNature};
+pub use interface::{
+    InterfaceReference, InterfaceReport, Outcome, PinnedSection, ReferenceResult, SectionOutcome,
+    SectionResult, Summary, valid_corpus_name, valid_digest, valid_obtained_date,
+};
 pub use obligation::{Obligation, ObligationKind, split_obligation_ref, valid_obligation_id};
 pub use registry::{
     Build, BuildMeta, Registry, RegistrySpecShard, Severity, SpecRecord, ValidationReport,
