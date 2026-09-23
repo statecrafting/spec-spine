@@ -4,7 +4,7 @@ title: "Typed overlays ride the existing seam"
 status: draft
 kind: "governance"
 created: "2026-09-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 depends_on:
   - "012-declared-extra-frontmatter-passthrough"
@@ -19,7 +19,7 @@ summary: >
   independent overlays in one corpus. No new unit kind, no engine
   enforcement, and no domain schemas.
 establishes:
-  - { kind: file, path: "crates/spec-spine-core/tests/overlays.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/tests/overlays.rs" }
   - { kind: file, path: "docs/overlay-contract.md" }
 extends:
   # D-3: the claim puts the document into `[index] extra_hashed_inputs`.
@@ -233,6 +233,21 @@ either is an engine change with its own spec.
 **D-3 (2026-09-23, territory).** `docs/overlay-contract.md` is the surface an
 overlay author reads, and had no owner. This spec establishes it, which puts
 it under `L-008` and therefore into `[index] extra_hashed_inputs`.
+
+**D-4 (2026-09-23, build: the measured hash scope).** Editing one value in
+one overlay of one spec changed exactly two shard files across both trees:
+that spec's registry shard and its index `by-spec` shard. The other spec's
+shards and the package shard were byte-identical, and `check` reported both
+trees stale until they were regenerated and fresh after. The test asserts the
+changed set by name.
+
+**D-5 (2026-09-23, build: evidence and its limits).** The engine was not
+changed, so the tests pass on the engine as it stood; their fail-first is the
+absent test target. Their power was checked by a mutant that drops one
+declared key in transport (`compile.rs`, building the record), which fails the
+independence case. The neutrality case compares two freshly regenerated
+trees on a `C-001` refusal, a clearance and a `C-002` refusal, so it cannot
+pass by comparing two empty answers.
 
 ## Verification
 
