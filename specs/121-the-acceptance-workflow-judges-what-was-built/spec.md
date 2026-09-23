@@ -1,7 +1,7 @@
 ---
 id: "121-the-acceptance-workflow-judges-what-was-built"
 title: "The Acceptance workflow judges what was built"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-22"
 summary: >

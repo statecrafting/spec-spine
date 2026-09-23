@@ -1,7 +1,7 @@
 ---
 id: "120-a-scoped-sweep-judges-the-binary-the-blocks-name"
 title: "A scoped sweep judges the binary the blocks name"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-22"
 summary: >

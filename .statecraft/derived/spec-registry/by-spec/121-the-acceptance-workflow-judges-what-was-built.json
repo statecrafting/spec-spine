@@ -86,10 +86,10 @@
       "Verification"
     ],
     "specPath": "specs/121-the-acceptance-workflow-judges-what-was-built/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The nightly `Acceptance` leg exits on the sweep's corpus verdict, so it is red for as long as any draft is filed ahead of its build, which is this repository's normal state. A signal that is always red cannot tell a reader that an implemented spec's acceptance just broke. Spec 119 built the release verdict and left the workflow's choice open. This spec takes it: both legs exit on the release verdict, the full selected corpus still runs, and a new report step puts both verdicts, every release failure and every pending block's real outcome into the run's summary and annotations. A missing, unreadable or inconsistent report fails the job on its own.\n",
     "title": "The Acceptance workflow judges what was built"
   },
-  "shardHash": "696e25e3013dc0dbf63703d35cc466c0bbc555102f3d578fdca891be191415bd",
+  "shardHash": "0d410906d8b76c8f820584045b5c18bc380415c1976828a055042a711ef9f5a3",
   "specVersion": "1.6.0"
 }
