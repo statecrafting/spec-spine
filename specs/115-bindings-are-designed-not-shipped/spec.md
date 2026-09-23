@@ -40,10 +40,12 @@ obligations:
     anchor: "3-2-the-facade-is-the-seam-and-what-that-obliges"
   - id: "V-1"
     kind: verification
-    text: "The existing evidence for the testable obligations: every emitted document validates against its versioned schema, and the error-kind set is closed with its exit-code mapping."
+    text: "The existing evidence for the testable obligations: emitted registry and index documents validate against their versioned schemas, read documents carry the read axis version, and the error-kind set is closed with its exit-code mapping."
     anchor: "verification"
     inputs:
       - "crates/spec-spine-core/tests/conformance.rs"
+      - "crates/spec-spine-core/tests/index.rs"
+      - "crates/spec-spine-core/tests/read.rs"
       - "crates/spec-spine-types/src/verdict.rs"
 ---
 
@@ -185,9 +187,12 @@ paragraph), and `unsafe_code = "forbid"` plus the types crate's owned DTOs are
 already held by the workspace lints and the DTO suite.
 
 ```verify:cli
-# 3.2.4: every emitted document validates against the embedded schema of the
-# version it declares.
+# 3.2.4: the emitted registry and index documents validate against the
+# embedded schema of the version they declare, and a read document carries the
+# read axis version.
 cargo test -p spec-spine-core --test conformance --locked
+cargo test -p spec-spine-core --test index --locked conform
+cargo test -p spec-spine-core --test read --locked
 # 3.2.5: the error-kind token set is closed (an exhaustive match that fails
 # the build on a new variant), and each kind carries its own exit code.
 cargo test -p spec-spine-types --lib --locked verdict::

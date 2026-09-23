@@ -43,7 +43,7 @@ references:
 obligations:
   - id: "R-1"
     kind: requirement
-    text: "A move is declared only in the frontmatter of the spec performing it, and its shape is validated at compile, a dangling answered_by being a validation error."
+    text: "A move is declared only in the frontmatter of the spec performing it; its shape is validated at compile, and a dangling answered_by is a compile warning, as every other informational cross-reference is."
     anchor: "3-2-the-shape-is-validated-at-compile"
   - id: "R-2"
     kind: requirement
@@ -139,16 +139,23 @@ Validation errors on the declaring spec:
   its `kind` (§3.1);
 - a path that is empty, absolute, or has a `..` segment;
 - the same path on both sides of one entry;
-- `answered_by` on a kind other than `removed`;
+- `answered_by` on a kind other than `removed`.
+
+A compile **warning** on the declaring spec:
+
 - an `answered_by` that names no spec in the corpus.
 
-The last is an **error**, not a warning, and that settles an inconsistency in
-the reserved draft, which listed it at warning tier in §3.5 and as a
-validation error in its acceptance. A dangling spec reference in frontmatter
-is an error everywhere else in this corpus (`depends_on`, `superseded_by`,
-every edge), and a move is no reason to be more lenient about which spec
-answers for a path. It is judged from the corpus alone, so it belongs in
-`compile`, which is a pure function of the corpus.
+That settles an inconsistency in the reserved draft, which listed this at
+warning tier in its §3.5 and as a validation error in its acceptance. The
+corpus's precedent decides it. A dangling reference to another spec is a
+warning wherever the reference is informational: `depends_on` (`V-010`) and
+every edge target (`L-004`). It is an error only where the reference moves
+authority: `superseded_by` (`V-008`), because a superseded spec's authority
+has to land somewhere. A move moves no authority (§3.5), so `answered_by` is
+informational and takes the informational tier. It is judged from the corpus
+alone, so it belongs in `compile`; compile warnings reach this repository's
+gate through `check --fail-on-warn` (spec 064), so a dangling reference still
+cannot merge here.
 
 ### 3.3 The paths are checked against the tree, as warnings
 
@@ -236,7 +243,12 @@ map.
 how far a chain is followed. To its declared end, with ambiguity and cycles
 reported by name and never resolved by a rule (§3.4).
 
-**D-3 (2026-09-23, `answered_by` tier).** §3.2: an error, at compile.
+**D-3 (2026-09-23, `answered_by` tier).** §3.2: a compile warning, the
+tier every informational spec reference takes (`V-010`, `L-004`); only a
+reference that moves authority (`superseded_by`, `V-008`) is an error. An
+earlier finalization of this text claimed dangling references were errors
+everywhere, which was wrong for `depends_on` and every edge; it was corrected
+in review before the build.
 
 **D-4 (2026-09-23, `reviewed_by` removed).** The draft's example carried a
 `reviewed_by` member whose value was a placeholder sentence. The declaring

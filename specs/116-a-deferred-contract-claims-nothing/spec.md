@@ -19,7 +19,7 @@ summary: >
   is scheduled.
 amends:
   - "003-conformance-lint"
-amends_sections: ["l-001"]
+amends_sections: ["3"]
 establishes:
   - { kind: file, path: "crates/spec-spine-core/tests/deferred_contract.rs" }
 extends:
@@ -99,8 +99,9 @@ spec's to anyone reading the frontmatter.
 ### 1.3 Why it is still needed after the reserved contracts were built
 
 When this spec was first drafted, the ten contracts that tripped `L-001` were
-its motivation. By 2026-09-23 six of them were built and the remaining four
-are scheduled, so none is deferred on `main`. The defect is not in those ten
+its motivation. By 2026-09-23 six of them were built, three more (111, 112,
+114) were finalized for building, and 115 was recorded as a policy with
+nothing to build, so none is deferred on `main`. The defect is not in those ten
 documents; it is that the contract's lifecycle table and the lint disagree
 about a value both keep. The next deferred contract reproduces it. The
 evidence therefore moves from this corpus to a fixture (D-5).

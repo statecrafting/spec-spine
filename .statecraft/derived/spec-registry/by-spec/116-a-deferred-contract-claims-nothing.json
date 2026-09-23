@@ -4,7 +4,7 @@
       "003-conformance-lint"
     ],
     "amendsSections": [
-      "l-001"
+      "3"
     ],
     "created": "2026-09-21",
     "dependsOn": [
@@ -78,9 +78,9 @@
     "sectionDigests": {
       "1-1-the-exemption-l-001-already-has-and-why-this-is-the-same-case": "a9a3ae807854b31aa32d3c9743d2c8852fe2035b8562c77fd7394295848d47b9",
       "1-2-why-the-answer-is-not-give-them-planned-territory": "75e5f357089b9c27a7cc0ef900ccb18e2ae591cf1828419bc24851d3a3e15e83",
-      "1-3-why-it-is-still-needed-after-the-reserved-contracts-were-built": "1e565a305083b3f3d8179465d76c31b4f164836dddc08bc8caf6dcc21fce65c9",
-      "1-purpose": "2df661d6cd46015e861fea8babfea8681b7e213f6b3324f39f8dded765ceb0c2",
-      "116-a-deferred-contract-claims-nothing": "f2943a1d42430081bf47a9d399f7946358b3c3f2be34894341e87334cd5cbee1",
+      "1-3-why-it-is-still-needed-after-the-reserved-contracts-were-built": "1ef58f00558856ad7061b6e59b5e05a3edff85ae34dd0a60999e7db8571ebfa7",
+      "1-purpose": "a1f7dea2afd9bf825336835878828781416e6080642a9ac3e175e32fb9e4f1d0",
+      "116-a-deferred-contract-claims-nothing": "88ef3ef9d7a7e5022f556635d08170b4e1199633e3273a710d797914f90b06d2",
       "2-territory": "5b63fec4dc1caba28b505e54076d1593273b0192c2a2b14d10eae839d921f4df",
       "3-1-a-deferred-spec-is-exempt-from-l-001": "6f3bba77c6bc26160d804a8e60c726521c05bfaeac46ce0e10ac0470287e31f0",
       "3-2-the-exemption-covers-the-declaration-never-a-claim": "954eb27378f40cd2c01b3f205bf8a0e7af101c8dd9bfdbf807dbd8133a21c84b",
@@ -112,6 +112,6 @@
     "summary": "`L-001` warns when a spec declares no ownership edge, and exempts a superseded, retired or retroactive one because each is making a correct statement by claiming nothing. A spec deliberately not scheduled (`implementation: deferred`) is in the same position and is not exempt, so the one shape the corpus contract leaves a deferred contract, no territory, makes `lint --fail-on-warn` red. The exemption is extended to `deferred`, covers the declaration and never a claim, and re-arms the moment the spec is scheduled.\n",
     "title": "A deferred contract claims nothing"
   },
-  "shardHash": "3a7a6522a93611a16416c1f541c6c313a1274ff67066e9d62755c0a63d004918",
+  "shardHash": "7584ee14a820a4fdde63e9122f99f0b4e3da0939be1a464afef293011f7e7042",
   "specVersion": "1.6.0"
 }
