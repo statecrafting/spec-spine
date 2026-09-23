@@ -1,5 +1,9 @@
 # Consumer integration: the expansion wave, released as 0.23.0
 
+> **Update for 0.24.0 (published 2026-09-23).** Sections 0 to 11 are exact as
+> of 0.23.0 and are kept as written. Section 12 is the additive 0.24.0 update:
+> specs 111, 112, 114 and 116, and the one migration note.
+
 What a library or CLI consumer needs in order to use specs 102, 103, 105, 106,
 107, 108, 109, 110 and 113, merged on `main` **after** the frozen 0.22.0
 candidate (`f9fa6a8f`) and **published as 0.23.0** on 2026-09-23 from
@@ -360,3 +364,110 @@ A waiver's use limit is judged against the count Statecraft supplies. Nothing
 here counts, consumes or records a use, and two concurrent runs given the same
 count get the same answer. Scheduling, reservation, authorization, the use
 store and fetching a cited corpus all stay with Statecraft.
+
+## 12. The 0.24.0 update, for Statecraft
+
+An additive update to §11. Statecraft adopted published 0.23.0 in
+`statecrafting/statecraft-cli` `49370fbe` (#70): `statecraft-home` pins
+`spec-spine-core = { version = "=0.23.0", default-features = false }` and calls
+only `scaffold_init_json`, and its own `spec-spine.toml` sets
+`required_version = "=0.23.0"`. Nothing below requires it to move.
+
+**Producer: released.** `v0.24.0`, signed tag object
+`95abc8b32c89275aa6a54e67c344ab856cd6aee7`, source revision
+`a812f72dbef80d25c4027d85f267db9ba657506e`, published 2026-09-23
+(`docs/release-0.24.0.md`).
+
+| Package | Identity |
+|---|---|
+| `spec-spine-core` 0.24.0 (crates.io) | `.crate` SHA-256 `17c82ac7ff58206ce607ba7f742d4f231c23e5a90163e396d19e4bfb9e1d5b31` |
+| `spec-spine-types` 0.24.0 (crates.io) | `.crate` SHA-256 `18c0643fe1e9a3d88aa806c31f0732e47c3e8f74d3a3cf1904b9fd36e3ff02b8` |
+| `spec-spine-cli` 0.24.0 (crates.io) | `.crate` SHA-256 `b5e8fb2743285343e12a0090bf028134c4c874744f9739fa3bc3b5c2cea46b01` |
+| `spec-spine@0.24.0` (npm, `latest`) and five `@spec-spine/cli-<os>-<cpu>@0.24.0` | integrities in `docs/release-0.24.0.md` §4 |
+| `spec-spine` 0.24.0 (PyPI), five wheels and the sdist | SHA-256 in `docs/release-0.24.0.md` §4 |
+| GitHub Release archives | SHA-256 sidecars, SBOMs and build provenance naming `a812f72d`, `docs/release-0.24.0.md` §4 |
+
+**Schema axes.**
+
+| Axis | 0.23.0 | 0.24.0 | Moved by |
+|---|---|---|---|
+| registry (`specVersion`) | `1.6.0` | `1.8.0` | 114 (`1.7.0`, `intent`), 111 (`1.8.0`, `moves`) |
+| read documents (`schemaVersion`) | `0.7.0` | `0.8.0` | 111 (the move lookup) |
+| verdict envelope | `0.6.0` | `0.6.0` | unchanged |
+| index | `1.1.0` | `1.1.0` | unchanged |
+| verifier fixture set | `0.1.0` | `0.1.0` | unchanged; cases regenerated at 0.24.0 |
+
+**New surfaces.**
+
+| Capability | Facade (`spec-spine-core`) | CLI | Answer's axis |
+|---|---|---|---|
+| move lookup (111) | `query_json` `op: "moves"`, with `path` for one path or without for the sorted flattened map | `registry moves [<path>] [--json]`; exit 0 `unmapped`/`resolved`, 1 `ambiguous`/`cycle` | read `0.8.0` |
+| move declarations (111) | `compile_json`: a record's `moves`; V-040 (error), V-041 (warning) | `compile`, `registry show --json` | registry `1.8.0` |
+| move tree checks (111) | `lint_json`: L-015, L-016 (warnings) | `lint` | verdict `0.6.0` |
+| intent (114) | `compile_json`: a record's optional `intent` `{goal, nonGoals}` | `registry show --json` | registry `1.7.0`+ |
+| overlays (112) | `compile_json`: `extraFrontmatter`, declared through `frontmatter.extra_known_keys` | `registry show --json` | registry (unchanged seam) |
+| deferred contract (116) | `lint_json`: no L-001 for `implementation: deferred` claiming nothing | `lint` | verdict `0.6.0` |
+
+**Examples and fixtures.** Inside the published `spec-spine-core` 0.24.0 crate,
+`fixtures/verifier/` holds 11 cases; 10 record `toolVersion` 0.24.0 and
+`tool-version-changed` deliberately records another. The consumer
+`docs/examples/expansion-consumer/` (tag `v0.24.0` for the version run at
+qualification; this branch adds the CLI, V-041, L-015 and L-016 checks) and
+`registry.sh` are what `docs/release-0.24.0.md` §5 ran. CLI-level cases
+Statecraft can copy: `crates/spec-spine-cli/tests/moves.rs`; library cases:
+`crates/spec-spine-core/tests/moves.rs`, `intent.rs`, `overlays.rs`,
+`deferred_contract.rs`.
+
+**Positive and negative consumer checks** (each asserted in the example or the
+named tests):
+
+| Check | Expect |
+|---|---|
+| a path no spec declares moved | `unmapped`, exit 0 |
+| a relocation declared by one spec and continued by another | `resolved`, every hop with its `declaredBy`, one terminal |
+| a split | `resolved`, every branch a terminal, sorted |
+| two specs declaring different targets for one path | `ambiguous`, exit 1, both specs named, none picked |
+| a loop | `cycle`, exit 1, the chain closed on its start |
+| a declared move and an unauthored deletion of the old path | `couple` refuses with the identical `C-001` it gives without the declaration |
+| a `..` or absolute move path | V-040 at compile; `lint` stats nothing outside the tree |
+| `answered_by` naming no spec | V-041 warning; validation still passes |
+| declared `to` absent / `removed` path still present | L-015 / L-016 warning |
+| `intent` with `goal` and `non_goals` | recorded as `{goal, nonGoals}`; no verdict changes |
+| no `intent` | no member |
+| `intent` without `goal`, blank `goal`, an unknown member, or a string | compile validation error |
+| an undeclared nested overlay | V-002 |
+| a deferred spec claiming nothing | no L-001; `pending` and `n-a` still raise it |
+| a 0.23.0 reader on a corpus requiring `>=0.24.0` | exit 3, naming `>=0.24.0` |
+
+**Compatibility and migration.**
+
+- `moves` and `intent` are now typed frontmatter keys. A corpus that declared
+  either in `[frontmatter] extra_known_keys` with another shape is refused by
+  0.24.0 with V-002; rename the overlay key before moving.
+- `Frontmatter` and `SpecRecord` gained public fields (`intent`, `moves`). A
+  Rust consumer building either with a struct literal must add them; the JSON
+  facade is unaffected.
+- The facade signatures are unchanged: no function was removed or changed;
+  `moves` is a new module and `op: "moves"` a new query.
+- 116 can only make `lint --fail-on-warn` pass where it failed.
+- `scaffold_init_json` emits the same seven files; the only byte difference is
+  the commented sample `# required_version = "0.24.0"` in the scaffolded
+  `spec-spine.toml`. A golden test over that output would move by that line.
+
+**What Statecraft can leave unchanged.** Everything. Its pin
+(`=0.23.0`, `default-features = false`, `scaffold_init_json` only) keeps
+working against the published 0.23.0, which is not yanked. Moving the pin to
+`=0.24.0` changes only that commented line in the scaffolded config; the
+registry-backed check (`docs/release-0.24.0.md` §5) built exactly that shape
+against the published 0.24.0 crate. If Statecraft's own corpus moves to a
+0.24.0 reader, its `required_version = "=0.23.0"` must move with it, because
+that pin is exact.
+
+**Capabilities that need an explicit consumer feature, not automatic wiring.**
+Move lookup (111), intent (114) and overlays (112) are informational reads. No
+spec-spine verdict consumes them, and nothing should be wired to treat them
+as authority: a declared move transfers no ownership and clears no deletion,
+an intent authorizes nothing, and an overlay is read by no verdict. A
+Statecraft feature that shows a moved path's successor, a spec's goal or an
+overlay value must ask for it through the reads above and decide for itself
+what it means. 116 needs nothing; it applies wherever `lint` runs.

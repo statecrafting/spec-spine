@@ -102,7 +102,9 @@ step cli-identity "$REPO/scripts/reader-identity.sh" "$BIN"
 step lib-build build_lib "$V" "$T/lib"
 FIX="$(fixtures_of "$V")"
 step lib-fixtures-present test -f "$FIX/index.json"
-step lib-fixtures-bound sh -c "n=\$(grep -l '\"toolVersion\": \"$V\"' '$FIX'/*/case.json | wc -l); m=\$(ls -d '$FIX'/*/ | wc -l); echo \"fixtures naming $V: \$n of \$m cases\"; test \"\$n\" -ge 1"
+# Every case names VERSION except `tool-version-changed`, whose point is a
+# different producer version; so exactly m-1 of m, and that one is the odd one.
+step lib-fixtures-bound sh -c "n=\$(grep -l '\"toolVersion\": \"$V\"' '$FIX'/*/case.json | wc -l); m=\$(ls -d '$FIX'/*/ | wc -l); echo \"fixtures naming $V: \$n of \$m cases\"; test \"\$m\" -ge 2 && test \"\$n\" -eq \$((m - 1)) && ! grep -q '\"toolVersion\": \"$V\"' '$FIX'/tool-version-changed/case.json"
 mkdir -p "$T/lib-work"
 step lib-contracts "$T/lib/target/release/expansion-consumer-registry" "$BIN" "$FIX" "$T/lib-work"
 step lib-resolved sh -c "grep -A2 'name = \"spec-spine-core\"' '$T/lib/Cargo.lock' | grep -q 'registry+https://github.com/rust-lang/crates.io-index' && grep -A1 'name = \"spec-spine-types\"' '$T/lib/Cargo.lock' | grep -q 'version = \"$V\"' && ! grep -qE 'path\\+|git\\+' '$T/lib/Cargo.lock'"
