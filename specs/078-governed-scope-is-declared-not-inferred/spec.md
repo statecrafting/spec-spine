@@ -587,6 +587,19 @@ set scope that matches nothing emits `declaredScopeFiles: []` with its
 
 ## Verification
 
+> **Superseded acceptance (2026-09-23).** This block no longer runs.
+> `105-governed-scope-is-enabled-here` declares this spec in
+> `amends_verification`, so `spec-spine verify 078` builds its plan from that
+> spec's block and names the substitution in `acceptanceFrom` (spec 082 3.2
+> and 3.4). 105 set `governed_scope` in this repository, which the §3.1 line
+> below asserted was unset (105 D-8).
+>
+> The commands below are kept **verbatim** and are not corrected: the
+> amending spec's own acceptance asserts that these exact lines are still
+> here, which is how the corpus proves this spec was amended rather than
+> edited (spec 037 3.1). Editing them here is the laundering move amendment
+> exists to refuse, and it goes red.
+
 Each line is one command. The lines asserting the config keys, the report member
 and the CLI enumeration fail against pre-097 code, because none of the three
 exists, and so does the `--paths-from` line, because `index coverage` has no

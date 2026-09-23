@@ -1,5 +1,11 @@
 {
   "record": {
+    "amends": [
+      "078-governed-scope-is-declared-not-inferred"
+    ],
+    "amendsVerification": [
+      "078-governed-scope-is-declared-not-inferred"
+    ],
     "created": "2026-09-21",
     "dependsOn": [
       "078-governed-scope-is-declared-not-inferred",
@@ -60,7 +66,7 @@
     "sectionDigests": {
       "1-1-the-measured-cost-re-measured": "65eebbff594ea443a829bb7a011edf9cdae9b5c8954b95eab37580179e88da67",
       "1-purpose": "acf2aa9e2cdca7758d2cce5e12b0ed2b206cabae60061b53fadab9e8fd507722",
-      "105-governed-scope-is-enabled-here": "7e8bea61c883367a681b5137a979700ae5a4559042138e8b1c8b2145550f46e8",
+      "105-governed-scope-is-enabled-here": "530597bfd9d5c32e99f2b6ffd6abc02c99f491ec243d35b1b40420558fecbf8d",
       "2-territory": "23bb829a8ba87ca7ce7acc776dd18698bb3c783b3bbb5ccca577e223158c2ff0",
       "3-1-the-scope-is-declared-over-what-is-already-hashed": "05124347de5dcff70e6f54012a14788ddf193621e5f5ddd8d6920cee51d9cef2",
       "3-2-the-four-gaps-are-closed-before-the-switch-is-thrown": "7d97f307c2e5c9c8835b335d4518f43e83344bf22ecca1558bbf5aad1d1e35ab",
@@ -70,8 +76,8 @@
       "3-6-nothing-about-the-mechanism-changes": "c475577c4336c969ea61b59deb4aa5fbdd73c190ba0e4f9db7bbb4d213775055",
       "3-behavior": "075031a47be4d1b5376ba498f78913983ffb26c547b066d7a2f190da7e55c2e2",
       "4-out-of-scope": "be3728835a0af48044306b1fe98b170c0030b50a0e291e569b0d27a78b538128",
-      "5-resolved-decisions": "e16622934da37e157ddd22819021f737691048c51af0bf71b66dbdc3ebc3f6cc",
-      "verification": "6bd72da0502b12ecec41429dc7d7c95893d5e4cf8fe907bcee88de570d9d6e73"
+      "5-resolved-decisions": "532ac1e15baeb49f3339b1153fce75ae69f1784eacb0453518145c9e192378c8",
+      "verification": "97165d4d1c31f54efce5d0fa45be26435355bf4d3644961e8d1fe0e97091cbcc"
     },
     "sectionHeadings": [
       "105: Governed scope is enabled here",
@@ -94,6 +100,6 @@
     "summary": "Spec 078 added `[coverage] governed_scope` so a repository can bring its governance files under the ownership ratchet, and the repository that wrote it never turned it on. The measured cost is four unclaimed paths. They are claimed, the scope is declared over exactly the files this repository already folds into its content hash, and what stays exempt is stated rather than implied.\n",
     "title": "Governed scope is enabled here"
   },
-  "shardHash": "0f4d895f6fa5b7c854030207dd6107c248311b3ccc046b817e4817a7896ed648",
+  "shardHash": "9551670c1a5e1a4eb77a9a53d5b7ae44e0172c3187ccb5289a013084f881ffcb",
   "specVersion": "1.6.0"
 }

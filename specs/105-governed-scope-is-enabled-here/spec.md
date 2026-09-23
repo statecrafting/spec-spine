@@ -9,6 +9,10 @@ owner: "The spec-spine Authors"
 depends_on:
   - "078-governed-scope-is-declared-not-inferred"
   - "100-a-deleted-path-is-judged-where-it-lived"
+# D-8: 078's acceptance asserts this repository leaves the scope unset, which
+# this spec made false. The replacement is declared, and this block holds it.
+amends: ["078-governed-scope-is-declared-not-inferred"]
+amends_verification: ["078-governed-scope-is-declared-not-inferred"]
 summary: >
   Spec 078 added `[coverage] governed_scope` so a repository can bring its
   governance files under the ownership ratchet, and the repository that wrote
@@ -268,6 +272,27 @@ declared, and exits 0 on the same tree with the scope removed. The probe is
 not in the acceptance because it has to write into the committed tree and
 regenerate the ledger; it is recorded here and in the pull request.
 
+**D-8 (2026-09-23, the acceptance this spec broke, repaired by amendment).**
+Spec 078's block asserts §3.1 ("an unset key changes nothing") against **this
+repository**: `index coverage --json` must carry neither `declaredScopeFiles`
+nor `enumeration`. That was a statement about corpus state, and this spec
+changed the state it described. The Acceptance push leg on `main` reported
+`078 ... FAILED at command 9` at `0ca3001d` and `8c6c4d73`, the runs whose
+scope included 078; nothing on a pull request runs `verify`.
+
+078 is `approved`, so its file is not edited (spec 037 §3.1). This spec
+declares `amends` and `amends_verification` on 078 (spec 082 §3.2), and its
+block carries 078's in full with that one line replaced by two, keeping both
+properties rather than dropping one: the unset case is asserted on a scratch
+corpus with an empty `spec-spine.toml`, where the report must still carry
+neither member, and the set case is asserted here, where it must carry a
+non-empty `declaredScopeFiles` and `enumeration: "tracked"`. A line asserts
+078's file still carries the superseded form.
+
+Spec 082 §3.4 requires 078's own `## Verification` section to say, above its
+fence, that this spec holds its acceptance; it gains that note, naming 105,
+and no command under its fence changes.
+
 ## Verification
 
 Behavioral where it can be. The load-bearing assertion is that the ratchet,
@@ -278,7 +303,51 @@ the case count is compared against the pre-scope figure.
 Written to fail against the tree this spec is filed on: `governed_scope` is
 empty and three of the four paths have no owner.
 
+Since D-8 this block is also spec 078's acceptance (spec 082 §3.2), so it is
+read in three labelled parts. The carried part is 078's block with one line
+replaced by the two assertions D-8 names, and nothing else changed.
+
 ```verify:cli
+# --- spec 078's acceptance, carried here (D-8) ---
+# 3.2: both keys exist in the config model.
+grep -qF 'governed_scope' crates/spec-spine-types/src/config.rs
+grep -qF 'governed_scope_exclusions' crates/spec-spine-types/src/config.rs
+# 3.5: the report names what entered through the scope.
+grep -qE 'declared_scope_files|declaredScopeFiles' crates/spec-spine-types/src/coverage.rs
+# 3.6: the CLI enumerates, the core does not.
+grep -qF 'ls-files' crates/spec-spine-cli/src/cmd_index.rs
+! grep -rqF 'Command::new("git")' crates/spec-spine-core/src/
+# 3.7: the effective config prints it.
+target/release/spec-spine config show | grep -q 'governed_scope'
+# 3.6: the git-free route exists at the verb whose denominator now depends on
+# the enumeration.
+target/release/spec-spine index coverage --help | grep -q 'paths-from'
+# 3.1: the ratchet still holds on this corpus.
+target/release/spec-spine index coverage --fail-on-untraced
+# 3.1: an unset key changes nothing. Asserted on a scratch corpus since spec
+# 105 set the scope here (105 D-8); the report carries neither new member.
+rm -rf "${TMPDIR:-/tmp}/ss078" && mkdir -p "${TMPDIR:-/tmp}/ss078/specs/001-a" && : > "${TMPDIR:-/tmp}/ss078/spec-spine.toml" && printf -- '---\nid: "001-a"\ntitle: "A"\nstatus: approved\ncreated: "2026-09-23"\nsummary: "s"\n---\n# 001\n' > "${TMPDIR:-/tmp}/ss078/specs/001-a/spec.md" && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss078" compile >/dev/null && target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss078" index >/dev/null
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss078" index coverage --json > "${TMPDIR:-/tmp}/ss078/cov.json"
+python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss078/cov.json')); assert 'declaredScopeFiles' not in d, d['declaredScopeFiles']; assert 'enumeration' not in d, d['enumeration']"
+rm -rf "${TMPDIR:-/tmp}/ss078"
+# 3.5 with the scope set (105): the report names what entered and how.
+target/release/spec-spine index coverage --json > "${TMPDIR:-/tmp}/ss105-cov.json"
+python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss105-cov.json')); assert d['declaredScopeFiles'], d; assert d['enumeration'] == 'tracked', d['enumeration']"
+rm -f "${TMPDIR:-/tmp}/ss105-cov.json"
+# 3.3, 3.4, 3.5, 3.8: the cases.
+cargo test -p spec-spine-core --test coverage --locked
+cargo test -p spec-spine-core --test couple --locked
+# 3.6, 3.8: the enumeration, its failure mode, and the facade/CLI agreement.
+cargo test -p spec-spine-cli --test cli --locked
+# --- this spec's amendment of 078 (D-8) ---
+target/release/spec-spine registry show 105 --json > "${TMPDIR:-/tmp}/ss105-show.json"
+python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss105-show.json')); assert d['amendsVerification'] == ['078-governed-scope-is-declared-not-inferred'], d; assert d['amends'] == ['078-governed-scope-is-declared-not-inferred'], d"
+rm -f "${TMPDIR:-/tmp}/ss105-show.json"
+# 078's commands are not edited (only its superseded note, spec 082 3.4): it
+# still carries the in-repository form replaced above. Red if someone
+# repairs 078's commands in place instead.
+grep -qF 'assert "declaredScopeFiles" not in d, d["declaredScopeFiles"]' specs/078-governed-scope-is-declared-not-inferred/spec.md
+# --- this spec's own acceptance ---
 # Each `python3 -c` below is a SINGLE line on purpose: `verify:cli` commands
 # run under `sh -c`, where an embedded newline inside a double-quoted argument
 # ends the command and the rest is parsed as shell.
