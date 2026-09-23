@@ -1,7 +1,7 @@
 ---
 id: "108-a-work-scope-is-declared"
 title: "A work scope is declared"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-21"
 implementation: complete

@@ -1,7 +1,7 @@
 ---
 id: "106-obligations-are-declared-constraints"
 title: "Obligations are declared constraints"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-21"
 implementation: complete

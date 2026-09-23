@@ -277,10 +277,10 @@
       "Verification"
     ],
     "specPath": "specs/110-an-interface-reference-is-digest-pinned/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "A spec can cite another repository's spec only in prose, so the citation cannot go stale visibly. This declares a cross-corpus interface reference pinned to the cited spec's content hash, and optionally to the digests of the sections it relies on, and adds one verifier that recomputes those digests from a corpus the caller supplies locally. A moved interface becomes a named, exit-coded fact. Discovery, fetching and trust in the exporter stay with the caller; nothing is ever pinned from what was first observed.\n",
     "title": "An interface reference is digest-pinned"
   },
-  "shardHash": "7ee3e5762dee111707c39e8823ce36310b0c4a85b9ccd6be0930dcc44edba30f",
+  "shardHash": "0736331a16269f49934d5be8e3300804fdb255b781f8192dd7efebf672750813",
   "specVersion": "1.6.0"
 }

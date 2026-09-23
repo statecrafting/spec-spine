@@ -287,10 +287,10 @@
       "Verification"
     ],
     "specPath": "specs/106-obligations-are-declared-constraints/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "A spec's normative content is prose, so nothing downstream can name a single requirement, cite it, or tell whether the sentence it cited has changed. This adds an optional `obligations` frontmatter key: three kinds, ids stable within a spec, an anchor validated against the spec's own headings, explicit inputs for a verification, and withdrawal in place rather than deletion. The registry gains a digest for every section of every spec, beside the spec's full content hash, and a read resolves a qualified `<spec-id>#<obligation-id>` reference. No gate reads any of it.\n",
     "title": "Obligations are declared constraints"
   },
-  "shardHash": "81f80156b0b9227d85d2110cffab4c9396350cd3dcfd7e63fcec195c7bf474b8",
+  "shardHash": "8d3473fef30d4f59570d5090f2758cc5dae552396030edb2c39d3c5fe91bbc0a",
   "specVersion": "1.6.0"
 }

@@ -1,7 +1,7 @@
 ---
 id: "103-a-verifier-fixture-is-a-published-artifact"
 title: "A verifier fixture is a published artifact"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-21"
 implementation: complete
