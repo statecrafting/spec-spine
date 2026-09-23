@@ -281,10 +281,10 @@
       "Verification"
     ],
     "specPath": "specs/111-a-move-is-a-reviewed-mapping/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The gate passes `--no-renames`, so a move arrives as a deletion and an addition and each half is judged where it is true. That is correct and it is not the whole story: nothing records that the two halves are one act. The spec performing a move declares it in its own frontmatter as authored, reviewed data. The compiler validates the declaration's shape, the lint checks its paths against the tree, and a lookup derived from every declaration follows declared chains, reporting ambiguity and cycles instead of guessing through them. A move is informational: it transfers no ownership, authorizes no deletion, infers no similarity and changes no verdict.\n",
     "title": "A move is a reviewed mapping"
   },
-  "shardHash": "ea5a2b7a542c778ed652320104379998aaf6ca19862283a406351d418f550472",
+  "shardHash": "c5c77066dc755cc67f52908f3cfa809ae64ea9498cf8e6cc92810b84bbffd3f8",
   "specVersion": "1.8.0"
 }

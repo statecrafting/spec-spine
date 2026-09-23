@@ -108,10 +108,10 @@
       "Verification"
     ],
     "specPath": "specs/116-a-deferred-contract-claims-nothing/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`L-001` warns when a spec declares no ownership edge, and exempts a superseded, retired or retroactive one because each is making a correct statement by claiming nothing. A spec deliberately not scheduled (`implementation: deferred`) is in the same position and is not exempt, so the one shape the corpus contract leaves a deferred contract, no territory, makes `lint --fail-on-warn` red. The exemption is extended to `deferred`, covers the declaration and never a claim, and re-arms the moment the spec is scheduled.\n",
     "title": "A deferred contract claims nothing"
   },
-  "shardHash": "7584ee14a820a4fdde63e9122f99f0b4e3da0939be1a464afef293011f7e7042",
+  "shardHash": "d2de257e693f3d7031068d84b57c332445f48344076295f5b8921ed915aafa87",
   "specVersion": "1.8.0"
 }

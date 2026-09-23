@@ -1,7 +1,7 @@
 ---
 id: "116-a-deferred-contract-claims-nothing"
 title: "A deferred contract claims nothing"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-21"
 implementation: complete
