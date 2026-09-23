@@ -33,7 +33,7 @@ extends:
   # unclaimed here rather than adding it to `[index] extra_hashed_inputs`
   # purely to clear `L-008` for a claim this change does not need to make.
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
-  # D-2: the read axis moves for the two new documents, with its pin and its table.
+  # 3.3, 3.5: the read axis moves for the two new documents, with its pin and its table.
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-core/tests/read.rs" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }

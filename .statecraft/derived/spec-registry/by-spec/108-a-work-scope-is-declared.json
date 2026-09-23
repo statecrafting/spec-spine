@@ -172,6 +172,6 @@
     "summary": "Spec 072 reports that two ready specs claim overlapping territory, at spec granularity. What was left of WorkScope is the path-level half: one piece of work declares which paths it expects to change alone, which it expects to change alongside named other specs, and which it only reads. A scope is a document the consumer holds, like a context closure (spec 107). spec-spine evaluates it against the committed ownership index, reporting undeclared crossings, unowned paths and wrong sharing declarations, and compares two scopes for conflicting intentions. Both answers are reads. Nothing here locks, reserves, excludes or permits anything, and no gate reads a scope.\n",
     "title": "A work scope is declared"
   },
-  "shardHash": "46664bd87f5d08abb0b3943ccba07742735aa555ca8745f7c91e974eb1ff21fe",
+  "shardHash": "8e0119ddd1af3b5e6f33131c39b8333dcda4b33cc26bed28d3af9db86c317454",
   "specVersion": "1.6.0"
 }
