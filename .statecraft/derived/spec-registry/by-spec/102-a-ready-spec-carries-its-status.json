@@ -76,7 +76,7 @@
     "sectionDigests": {
       "1-1-why-this-is-filed-separately-from-101": "7cb64f09ea865615a5a05ba36a630b2cbc9f9cb009fcd625fda8063fe1607bff",
       "1-purpose": "df28934ab4e378ab6c3890b99cdfae11ae3163c5aa990ffaee5b9cf91d2327ca",
-      "102-a-ready-spec-carries-its-status": "abd234077383d4845ceb995a153c81c87ed6b45ae202f15ad51af4f68d1fcd5a",
+      "102-a-ready-spec-carries-its-status": "13649fddefa71df52007626a6dfe7025eb055ee0c60984555041005352b0901e",
       "2-territory": "43288c1570f4936b4cfe20184040824688be312be7a96495a1b7fb2a28d6cede",
       "3-1-one-additive-field": "919b1260815d65e0d401c67b5554654fad8e447ae285755f3f5f662f9a018d48",
       "3-2-it-changes-no-partition-and-no-ordering": "6261275b2d97da37c66d113325a5fe021c3dfabe70d612dda426033bda706a6c",
@@ -84,8 +84,8 @@
       "3-4-blocked-is-left-alone": "ddda837bd50abddb8f5c366daaba140b8a8c827cb1d34a5156c1c16a3ebbe260",
       "3-behavior": "3c95b71a3d4700eef1e831435f739801c82908f251934bc9325469ffb5810738",
       "4-out-of-scope": "0eae948e6ebd17dc3865a88112eea063bcd3500ee40ca207d8e5bc0b996c8e2a",
-      "5-resolved-decisions": "73ed893ecca8eb046fbe56047f8e52348320ea9629e46ceee53314bf1f14b6c3",
-      "verification": "dfa2118c1f4e3b32fcbca23c1c1dcc0c71cfdf52e7ec339cda3ae14a75a9a803"
+      "5-resolved-decisions": "acaa1a20fe10059b5e42bc8abee58d10119dcc8d3627eb3712f094809701bf2e",
+      "verification": "bd0213b56b0fea8d3ebb6b7bdbeffba298e4c88a2609d424407a3b922c695c19"
     },
     "sectionHeadings": [
       "102: A ready spec carries its status",
@@ -106,6 +106,6 @@
     "summary": "`ReadySpec` carries `id` and `title`, so a consumer reading `registry plan` directly cannot apply an approval rule without a second query per entry. An additive `status` field is a read-schema MINOR that lets a direct consumer see what `/next` sees. An enhancement with a named cost, not a defect fix.\n",
     "title": "A ready spec carries its status"
   },
-  "shardHash": "d2b4a1b1693661acd70bba5fe9ba3593b22bfac302e0b418a96210fdfb419fb3",
+  "shardHash": "1c22cf7a65f0ee640c3515374ce72ef69637b04ce11f27672958f216ef522b8e",
   "specVersion": "1.6.0"
 }
