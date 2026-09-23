@@ -1,0 +1,113 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "005-coupling-gate"
+    ],
+    "id": "113-a-waiver-has-a-declared-lifecycle",
+    "implementation": "in-progress",
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-2-a-waiver-may-declare-its-scope",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "A scoped waiver clears only violations on the paths it lists, and a violation it does not cover still refuses."
+      },
+      {
+        "anchor": "3-4-a-missing-input-is-not-evaluated-never-satisfied",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "A declared check whose input was not supplied is reported as not evaluated, never as satisfied, and an absent use count is never treated as zero."
+      },
+      {
+        "anchor": "3-5-a-failed-check-clears-nothing",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "A waiver with any failed lifecycle check clears nothing, and the verdict names the failed check."
+      },
+      {
+        "anchor": "3-6-the-verdict-says-which-waiver-cleared-what",
+        "id": "R-4",
+        "kind": "requirement",
+        "text": "The verdict associates every cleared violation with the one waiver that cleared it."
+      },
+      {
+        "anchor": "3-7-what-the-engine-does-not-do",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "The engine reads no clock, runs no git, writes no usage record and consumes nothing; every lifecycle input is supplied by the caller."
+      },
+      {
+        "anchor": "3-8-compatibility",
+        "id": "I-2",
+        "kind": "invariant",
+        "text": "A run with no waiver declared produces a verdict byte-identical to the one it produced before this spec."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-1-why-it-is-built-now-design-note-09-d-7": "0d5ed66d2b2b33c32aeaae183b8ab9238598a723c0a807931608f2e865cdd8db",
+      "1-2-what-is-deliberately-not-being-built": "b5fca832700c08ec0c2d5c9fc772b0d37aff85d22b73a05530ebc126345a68d1",
+      "1-purpose": "a7cd902a0366598143ca8fa5e785c63e3bda1ae2c3f22b8d453c14cf7d58c048",
+      "113-a-waiver-has-a-declared-lifecycle": "02478b144f3af227ea37c00e47c03a454cf38b606c195b20b0f983e773b73ce1",
+      "2-territory": "8eeae740fa5a81d1547dccc2931ee41f06a0c4931a50a2ad271047797afe7dea",
+      "3-1-the-declaration": "d878be0201b012b99f8da778d72e7a28aaea02778a56d761ab6acb973c0c3459",
+      "3-2-a-waiver-may-declare-its-scope": "6fd4155f4ef80e75cf7a5bee4736548c167f50ced4574790bb8a43873da3da5c",
+      "3-3-declared-checks-are-evaluated-against-supplied-inputs": "e228c903463047b8b8763c1fde64ceb486c18a194b33932981a981a2d5e704e5",
+      "3-4-a-missing-input-is-not-evaluated-never-satisfied": "315294f6bb08c081ff0f3c3af5b3460d4e61a8c16eb574ce9fa21e004b4a49a0",
+      "3-5-a-failed-check-clears-nothing": "84c94721e99f552463f48046672b9bd740d5e93f7dbb59756e40c5e4d20b01c2",
+      "3-6-the-verdict-says-which-waiver-cleared-what": "c256740351bf3d62f24b6681807b02f62737b63bf7080d7576d376aa45c9e24f",
+      "3-7-what-the-engine-does-not-do": "b7a2333db8de3b46837540cd6448a0378f5d5b8de2fd73993530ac5dc5e3c33f",
+      "3-8-compatibility": "296ec64a4e913fb719043ed02914d78b13329e0f49f96091213584876118cc24",
+      "3-behavior": "ced22be4aceeb146ea34096ff0aecfc79e4419a5088c6b8deb4465c976387d21",
+      "4-out-of-scope": "c6bd3642b0f073f54d150527681c7c2858eef2309ff667fb6272ad46d1058e4f",
+      "5-resolved-decisions": "cc24292c8be1ef4165f9feaa4a2109f9504011f953f4f86466caa4a624087159",
+      "acceptance": "99227985e1b89d2ceb7fcea62e306b0c202f428f5e86a3a09d6cbc1610d1095a",
+      "verification": "ed4d0d9235680fae8819f7c77d3012643facb64db854df9ecf7615f4ac1bb270"
+    },
+    "sectionHeadings": [
+      "113: A waiver has a declared lifecycle",
+      "1. Purpose",
+      "1.1 Why it is built now (design note 09, D-7)",
+      "1.2 What is deliberately not being built",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The declaration",
+      "3.2 A waiver may declare its scope",
+      "3.3 Declared checks are evaluated against supplied inputs",
+      "3.4 A missing input is not evaluated, never satisfied",
+      "3.5 A failed check clears nothing",
+      "3.6 The verdict says which waiver cleared what",
+      "3.7 What the engine does not do",
+      "3.8 Compatibility",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Acceptance",
+      "Verification"
+    ],
+    "specPath": "specs/113-a-waiver-has-a-declared-lifecycle/spec.md",
+    "status": "draft",
+    "summary": "A `Spec-Drift-Waiver:` line clears every refusal in the pull request it appears in, with no scope, no expiry and no record of what it excused. A waiver may now declare a path scope, an expiry, an ancestry and a use limit on lines of its own. The gate evaluates each declared check over inputs the caller supplies (an as-of date, an ancestry answer, a prior use count) and reports it as satisfied, failed or not evaluated, never guessing a missing input. A failed check makes the waiver clear nothing; a scoped waiver clears only its paths; and the verdict says which waiver cleared which violation. Nothing is counted, consumed, stored or authorized by the engine, and an undeclared waiver behaves exactly as before.\n",
+    "title": "A waiver has a declared lifecycle"
+  },
+  "shardHash": "10b1ddeb9d425fdff1f2cb148e15b8dbce062c25e6e412b22ecfc27de1500ed1",
+  "specVersion": "1.6.0"
+}
