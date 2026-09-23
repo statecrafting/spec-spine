@@ -70,8 +70,10 @@ MINOR history:
   `sections`?, `obtained`, `rationale`?). Absent on every existing spec, so only
   `specVersion` restamps and no `shardHash` moves. A binary predating it meets
   the member with a parse error (exit 3).
-- registry `1.7.0`: reserved for spec 114, built concurrently on another
-  branch and not in this history yet.
+- registry `1.7.0` (spec 114): additive `intent` on a record, a spec's standing
+  `goal` and `nonGoals` as authored. Read by no gate. Absent on every existing
+  spec, so only `specVersion` restamps and no `shardHash` moves. A binary
+  predating it meets the member with a parse error (exit 3).
 - registry `1.8.0` (spec 111): additive `moves` on a record, a spec's declared
   relocation, split, merge or removal of a path it once owned
   (`from`, `to`, `kind`, `answered_by`?), `answered_by`'s spec half normalized

@@ -102,10 +102,10 @@
       "Verification"
     ],
     "specPath": "specs/102-a-ready-spec-carries-its-status/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`ReadySpec` carries `id` and `title`, so a consumer reading `registry plan` directly cannot apply an approval rule without a second query per entry. An additive `status` field is a read-schema MINOR that lets a direct consumer see what `/next` sees. An enhancement with a named cost, not a defect fix.\n",
     "title": "A ready spec carries its status"
   },
-  "shardHash": "84943202deb1453294d34629f5f5919f072a335890b87b029e2e11ad7856e09f",
+  "shardHash": "b6aeff774049b14ff1eb45c98b13cb3b05cba06ca6a3e7ca12a9201181ebf389",
   "specVersion": "1.8.0"
 }

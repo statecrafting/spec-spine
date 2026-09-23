@@ -5,6 +5,10 @@
     ],
     "implementingPaths": [
       {
+        "path": "crates/spec-spine-core/tests/overlays.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "docs/overlay-contract.md",
         "source": "spec-edge"
       },
@@ -15,7 +19,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/overlays.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -80,5 +88,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "24b9c1730275bc4e3dc2ed074763780d4ed5284d0280350318fb007ae2a93e79"
+  "shardHash": "63a315a4731a2e9003c2e5cfd7c519b60b8073c99b807f0c71169aca140a0722"
 }

@@ -27,6 +27,8 @@ establishes:
 extends:
   # 3.1: the frontmatter key and the registry member.
   - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/src/frontmatter.rs" }, nature: additive }
+  - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/schemas/registry.schema.json" }, nature: additive }
+  - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/schemas/registry-spec-shard.schema.json" }, nature: additive }
   - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/src/registry.rs" }, nature: additive }
   - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   # 3.2: shape validation at compile; 3.3: path checks in the lint.

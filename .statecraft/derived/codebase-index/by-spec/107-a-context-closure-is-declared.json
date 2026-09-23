@@ -204,8 +204,8 @@
       }
     ],
     "specId": "107-a-context-closure-is-declared",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "22fb15ac8a087f68890e72d00f9ef1c36d5836557cf5561601aac551cfbe166f"
+  "shardHash": "c74d54b2afa4d84d2662ffdf8acb7813a3b3a3ab242b3affbe1ad20272ac4023"
 }

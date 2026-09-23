@@ -122,6 +122,7 @@ states the disposition this note proposes for all of them at once.
 | H12 | `@.statecraft/AGENTS.md` bridge | note 08 §2.6; 092 §3.10 | Statecraft initializer | **blocked** | `.statecraft/environment.json` does not exist here; an import of a missing file is a broken instruction | Enrol this repository first (§4 step 1) |
 | H13 | Kit-era items: B1 generated protocol drift, B2 `govern.yml`, B3 install ratchet, B5 one agent-tree source | note 05 §3, §9.1 | spec-spine | **superseded** | The kit is gone (092) and `scaffold_init_json` emits no `AGENTS.md`, no `CLAUDE.md` and no `.claude/`. B1's subject, the scaffolded protocol string, no longer exists | none. Do not refile |
 | H14 | B4 `/shepherd` misses `issues/<n>/comments` | note 05 §3 | spec-spine | **implemented** | spec 093 (absorbed the pre-collapse shepherd spec) | none |
+| H15 | A10 authoring-tool adapters | note 04 §5 P9; §1.3 P9 above | Statecraft | **transferred** (2026-09-23) | spec 114 §3.1 separated A10 from B23 and built B23 (intent) here; A10 is environment delivery. What an adapter builds against already exists: the facade, `scaffold_init_json`'s templates, `compile --spec`, the versioned read documents | none here |
 
 ### 1.5 Documentation, adoption and release
 

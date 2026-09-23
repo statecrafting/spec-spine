@@ -7,8 +7,7 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/overlays.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/overlays.rs"
       },
       {
         "kind": "file",
@@ -26,7 +25,7 @@
       }
     ],
     "id": "112-typed-overlays-ride-the-existing-seam",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "governance",
     "obligations": [
       {
@@ -84,7 +83,7 @@
       "1-1-why-the-dependency-is-spec-012": "ba384198c2d488c94c4e7e7d932db1e20a106d7cdf4e506bdc4c82732288aa87",
       "1-2-what-the-reserved-draft-said-that-the-engine-does-not-do": "0e341a86ed82daad0dc706756154bc0e178cfe8eca1994f96266faf146e77eeb",
       "1-purpose": "3c7d71f11ca4c8fec3edefa740e439f7fbc6e89f446f84d9a912801bd911a18f",
-      "112-typed-overlays-ride-the-existing-seam": "f65d3e848876908d83d102fc0e8894de8456abe5725a6f570f97cac9048174d3",
+      "112-typed-overlays-ride-the-existing-seam": "dbe2461dc692c2055e9bddec023b26f3b16f2d63fd11b02f62277bfc3dca7505",
       "2-territory": "b51803ac088e3fea39c94b9893ef25f8192292bbb3718c3b082cee03725a01bf",
       "3-1-an-overlay-is-a-declared-extra-frontmatter-key-and-nothing-else": "3ccc479e3074afbf99595afda59a85cecc8f79caeddf610102605253054f6597",
       "3-2-the-engine-transports-an-overlay-s-value-and-never-its-meaning": "0336f2ebc1b7d29a56a533f9737c6899a37c1f9ff0e448f603d4423a450d23ab",
@@ -95,7 +94,7 @@
       "3-7-what-an-overlay-establishes-and-what-it-does-not": "985c7fa3f55073227b1d31094c2e463af743f55b448ab26fcbc06929137aa5f0",
       "3-behavior": "5863c77b41792fbe43567e0cd13cebaad9308bbd622a96446e8ffbaee21efef2",
       "4-out-of-scope": "54d758ffa15f02095ab1a55d558faa49cd087b1d94e65dc1599647733bfa43ab",
-      "5-resolved-decisions": "58dd502b54d69978e52a7cde1d0a1da371cd0f7743ff491b3b200c50a0eaf5a5",
+      "5-resolved-decisions": "0a76818a70fc087c33831de5b7a733b35e081898f7ccf83a1bd69ad223f336a9",
       "verification": "ad62c2aa3aa89c64e0d224084f729ed00c98682f3786526e17fd661460188e73"
     },
     "sectionHeadings": [
@@ -121,6 +120,6 @@
     "summary": "Four proposals (effect contracts, budgets, dependency rationale, contract adapters) all want to attach typed data to a spec's units without changing what a unit is. The corpus already has the seam: declared extra frontmatter (spec 012), carried into the registry as `extraFrontmatter`. This states the contract an overlay keeps on that seam, pins what the engine does and does not promise about it (canonical values, not original bytes; a hash scope that is the declaring spec's, not every shard), and asserts it with several independent overlays in one corpus. No new unit kind, no engine enforcement, and no domain schemas.\n",
     "title": "Typed overlays ride the existing seam"
   },
-  "shardHash": "3dfe2dd1d3f86baaea4b6dd06763eb49aaa2c8cd0ad2429018fbcbb9ed06ce07",
+  "shardHash": "bd8bc768833144ed671f89ff7a91c4dcedcfe6f56f440116ed29b9e12a03c033",
   "specVersion": "1.8.0"
 }

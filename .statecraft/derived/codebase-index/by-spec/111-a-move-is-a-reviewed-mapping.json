@@ -61,6 +61,14 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/schemas/registry.schema.json",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/src/frontmatter.rs",
         "source": "spec-edge"
       },
@@ -296,6 +304,32 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/schemas/registry.schema.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry.schema.json"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-types/src/frontmatter.rs"
           }
         ],
@@ -428,5 +462,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "7350302fff82a4243e4a699df627b3d7abd4ea91337287203f1ef38dfc88a06c"
+  "shardHash": "cb013e2b846363dc1fe91185747e146e05b46d701b4b631fd690408396266236"
 }

@@ -142,6 +142,52 @@ The compiler validates and emits these deterministically alongside the generic
 fields; the overlay picks them up from the typed `Registry`. Neither path
 requires editing `spec-spine-types` or `spec-spine-core`.
 
+### 5.1 What the engine promises an overlay, and what it does not (spec 112)
+
+- **Values, not bytes.** A declared value is parsed once, YAML to JSON:
+  mappings become objects with **sorted keys**, sequences keep their order,
+  scalars resolve by the YAML core schema (spec 012 §3.2). The original
+  formatting and key order are not kept. An overlay that needs the authored
+  bytes reads `spec.md`.
+- **Independence.** Each declared key is its own member of
+  `extraFrontmatter`. Several overlays on one spec, or on different specs, are
+  never merged, renamed or leaked onto another spec.
+- **Declaring admits a nested value.** Under an undeclared key a nested value
+  is refused as malformed frontmatter (`V-002`); declared, it is accepted. An
+  undeclared scalar or string list is accepted silently and counts toward the
+  `V-007` cap, with no per-key warning.
+- **The hash scope is the declaring spec.** An overlay value is part of
+  `spec.md`, so editing it stales that spec's registry shard and its index
+  `by-spec` shard, and nothing else. `spec-spine check` reports it until
+  `compile` and `index` are rerun.
+- **No verdict reads an overlay.** `compile`, `check`, `lint`, `index
+  coverage` and `couple` reach the same answers on equivalent fresh trees with
+  and without overlays. Nothing is validated inside a value, nothing is
+  enforced, and unit spellings inside a value are never resolved: an overlay
+  that names a path resolves it itself, against the index it can already read.
+
+### 5.2 Several overlays in one corpus
+
+Give each overlay its **own top-level key**, and never partition one key
+between two overlays by convention: `extraFrontmatter` is unvalidated, so a
+collision inside a key is invisible (no error, no warning, one value silently
+winning). Per-unit data is keyed on a unit spelling inside the overlay's own
+value:
+
+```yaml
+effects:
+  "crates/spec-spine-core/src/couple.rs":
+    reads: ["the committed index"]
+    network: false
+budget:
+  ms: 50
+```
+
+Write down what each key means in the corpus's own standards documents; the
+configuration records only the name. An overlay's value is a declaration by an
+author, not a checked fact: an effect contract is not a sandbox and a budget
+is not a limit unless the consumer that reads it enforces it.
+
 ---
 
 ## 6. Worked example: OAP self-adoption

@@ -202,10 +202,10 @@
       "Verification"
     ],
     "specPath": "specs/113-a-waiver-has-a-declared-lifecycle/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "A `Spec-Drift-Waiver:` line clears every refusal in the pull request it appears in, with no scope, no expiry and no record of what it excused. A waiver may now declare a path scope, an expiry, an ancestry and a use limit on lines of its own. The gate evaluates each declared check over inputs the caller supplies (an as-of date, an ancestry answer, a prior use count) and reports it as satisfied, failed or not evaluated, never guessing a missing input. A failed check makes the waiver clear nothing; a scoped waiver clears only its paths; and the verdict says which waiver cleared which violation. Nothing is counted, consumed, stored or authorized by the engine, and an undeclared waiver behaves exactly as before.\n",
     "title": "A waiver has a declared lifecycle"
   },
-  "shardHash": "c7efcee122176521e37a9d3cd5feb2531e85d92d82d8576c1c96be85ac02cad4",
+  "shardHash": "d98bf5f68925cd2aec86ad496ce70b939b1321f058ab83e381962b30782f7d50",
   "specVersion": "1.8.0"
 }

@@ -36,6 +36,22 @@
         "spec": "000-spec-spine-bootstrap",
         "unit": {
           "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
           "path": "crates/spec-spine-types/src/registry.rs"
         }
       },
@@ -269,6 +285,6 @@
     "summary": "The gate passes `--no-renames`, so a move arrives as a deletion and an addition and each half is judged where it is true. That is correct and it is not the whole story: nothing records that the two halves are one act. The spec performing a move declares it in its own frontmatter as authored, reviewed data. The compiler validates the declaration's shape, the lint checks its paths against the tree, and a lookup derived from every declaration follows declared chains, reporting ambiguity and cycles instead of guessing through them. A move is informational: it transfers no ownership, authorizes no deletion, infers no similarity and changes no verdict.\n",
     "title": "A move is a reviewed mapping"
   },
-  "shardHash": "b0d782d9d2d45f875b6f2976295f9f459ef83132138b2797de741ecdf1341bf9",
+  "shardHash": "749cd8e87852c75533b017c573ea81705225e4bc653f46da1f30abc7ba07c47c",
   "specVersion": "1.8.0"
 }

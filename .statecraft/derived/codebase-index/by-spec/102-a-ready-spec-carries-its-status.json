@@ -131,8 +131,8 @@
       }
     ],
     "specId": "102-a-ready-spec-carries-its-status",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "2fbcae029f88c4ca739ef7f5107c0707686cfb122e7103081fec2be188938a1a"
+  "shardHash": "881d1ebc78838d95eb9fe95991f9e249c200afbcc8cc48ddb2ee680c4f958530"
 }

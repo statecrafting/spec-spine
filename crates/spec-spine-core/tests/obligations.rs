@@ -288,11 +288,11 @@ fn a_spec_without_the_key_carries_no_obligations_and_its_shard_hash_is_the_file_
             .collect::<String>()
     };
     assert_eq!(out.shards.spec_shards[0].shard_hash, expected);
-    // Spec 109's, 110's and 111's extends edges on this file: each additive
-    // registry MINOR after 106's shipped (109's `impacts`/`conflicts`, 110's
-    // `interfaceReferences`, 111's `moves`) moves this pin the same way 106
-    // itself once moved a pin in 082's territory (106 D-8). 1.7.0 is reserved
-    // for spec 114, built concurrently and not in this history.
+    // Spec 109's, 110's, 114's and 111's extends edges on this file: each
+    // additive registry MINOR after 106's shipped (109's
+    // `impacts`/`conflicts`, 110's `interfaceReferences`, 114's `intent`,
+    // 111's `moves`) moves this pin the same way 106 itself once moved a pin
+    // in 082's territory (106 D-8).
     assert_eq!(out.shards.spec_shards[0].spec_version, "1.8.0");
 }
 

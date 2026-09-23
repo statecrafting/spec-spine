@@ -261,10 +261,10 @@
       "Verification"
     ],
     "specPath": "specs/109-impact-and-conflict-are-declared/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "A spec can say which specs it extends and amends. It cannot say which requirements it is expected to affect, or which requirements it knowingly conflicts with. Both are declared in frontmatter against spec 106's qualified obligation ids, validated at compile, carried in the registry, and answered by one read that inverts the declarations so the affected side can see them. Nothing gates on either, and nothing computes an impact.\n",
     "title": "Impact and conflict are declared"
   },
-  "shardHash": "9e10d87966eab9a8c87dd9954e6f78dd2ce8841157718a9bdd09f9c419e0a0bc",
+  "shardHash": "af9b40565696216e8d41911072b27296a9c138070cd3f9cc11535f247a89c67b",
   "specVersion": "1.8.0"
 }

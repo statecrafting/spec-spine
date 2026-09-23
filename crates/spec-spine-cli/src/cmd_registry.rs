@@ -161,6 +161,16 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 outln!("created: {}", spec.created);
                 outln!("path:    {}", spec.spec_path);
                 outln!("summary: {}", spec.summary.trim());
+                // Spec 114 §3.6: the declared intent is printed beside the
+                // summary, so a reader sees both statements of purpose
+                // together. Neither is checked against the other; where they
+                // disagree the prose governs and the intent is corrected.
+                if let Some(intent) = &spec.intent {
+                    outln!("intent:  {}", intent.goal.trim());
+                    for ng in &intent.non_goals {
+                        outln!("  not:   {}", ng.trim());
+                    }
+                }
                 if let Some(h) = &content_hash {
                     // 048 §3.4: say which hash this is in the same breath as
                     // reporting it. The registry's and the index's per-spec

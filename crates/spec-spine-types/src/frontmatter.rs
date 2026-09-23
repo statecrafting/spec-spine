@@ -21,6 +21,7 @@ use crate::edges::{
 };
 use crate::error::{Error, Result};
 use crate::impact::{Conflict, Impact};
+use crate::intent::IntentDeclaration;
 use crate::interface::InterfaceReference;
 use crate::moves::MoveDeclaration;
 use crate::obligation::Obligation;
@@ -130,6 +131,8 @@ pub const KNOWN_KEYS: &[&str] = &[
     "conflicts",
     // Spec 110 3.1: cross-corpus interface references.
     "interface_references",
+    // Spec 114 3.3: a standing goal and its deliberate exclusions.
+    "intent",
     // Spec 111 3.1: declared move (relocation, split, merge, removal).
     "moves",
 ];
@@ -221,6 +224,10 @@ pub struct Frontmatter {
     // --- cross-corpus interface references (spec 110) ---
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub interface_references: Vec<InterfaceReference>,
+
+    // --- declared intent (spec 114) ---
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub intent: Option<IntentDeclaration>,
 
     // --- declared moves (spec 111) ---
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

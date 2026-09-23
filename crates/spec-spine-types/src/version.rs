@@ -58,8 +58,10 @@
 /// moves (it is over `spec.md`'s bytes). A binary predating this spec meets
 /// the member with a parse error and exits 3, the same fail-closed direction
 /// 1.2.0, 1.4.0 and 1.5.0 chose.
-/// `1.7.0`: reserved for spec 114, built concurrently on another branch and
-/// not present in this history yet.
+/// `1.7.0`: additive `intent` (spec 114). A spec may declare its standing goal
+/// and non-goals. Absent on every existing spec, so only `specVersion` is
+/// restamped and no `shardHash` moves. Read by no gate. A binary predating
+/// this spec meets the member with a parse error and exits 3, as for 1.6.0.
 /// `1.8.0`: additive `moves` (spec 111). A spec may declare a relocation,
 /// split, merge or removal of a path it once owned, `answered_by`'s spec half
 /// normalized to its full id (spec 111 §3.2, by way of spec 015's short-id

@@ -1,7 +1,7 @@
 ---
 id: "113-a-waiver-has-a-declared-lifecycle"
 title: "A waiver has a declared lifecycle"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-21"
 implementation: complete
