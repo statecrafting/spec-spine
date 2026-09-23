@@ -7,8 +7,9 @@ use std::path::Path;
 
 use clap::Subcommand;
 use spec_spine_core::{
-    ListFilter, Plan, Versioning, list, list_ids, load_committed_registry, plan, read_document,
-    relationships, shard_content_hash, show, status_report,
+    ListFilter, MoveLookup, Plan, Versioning, flattened_moves, list, list_ids,
+    load_committed_registry, lookup_move, plan, read_document, relationships, shard_content_hash,
+    show, status_report,
 };
 use spec_spine_types::{Error, Status};
 
@@ -75,6 +76,16 @@ pub enum RegistryQuery {
         target: Option<String>,
         #[arg(long, value_name = "SPEC")]
         declared_by: Option<String>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Look up a path against every declared move (spec 111 §3.4). Without a
+    /// path, lists every declaration, flattened and sorted: the derived path
+    /// map. Answers from the committed registry, like `show`; refuses
+    /// nothing about the working tree. Exits 1 on `ambiguous` or `cycle`.
+    Moves {
+        /// The path to look up. Omit to list every declared move.
+        path: Option<String>,
         #[arg(long)]
         json: bool,
     },
@@ -309,6 +320,51 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 }
             }
         }
+        RegistryQuery::Moves { path, json } => {
+            return Ok(match path {
+                Some(p) => {
+                    let outcome = lookup_move(&registry, p);
+                    // Spec 111 §3.4: `unmapped`/`resolved` exit 0; the lookup
+                    // refusing to answer (`ambiguous`/`cycle`) exits 1, the
+                    // way `couple` exits 1 on an open violation without that
+                    // being an `Err` (spec 034): a full report is still
+                    // printed, only the process's exit signals the refusal.
+                    let code = match &outcome {
+                        MoveLookup::Unmapped { .. } | MoveLookup::Resolved { .. } => 0,
+                        MoveLookup::Ambiguous { .. } | MoveLookup::Cycle { .. } => 1,
+                    };
+                    if *json {
+                        print_json(&outcome)?;
+                    } else {
+                        print_move_lookup(&outcome);
+                    }
+                    code
+                }
+                None => {
+                    let entries = flattened_moves(&registry);
+                    if *json {
+                        print_json(&entries)?;
+                    } else if entries.is_empty() {
+                        outln!("(no declared moves)");
+                    } else {
+                        for e in &entries {
+                            outln!(
+                                "{}  {} -> {}  ({}){}",
+                                e.declared_by,
+                                e.from,
+                                e.to.as_deref().unwrap_or("(removed)"),
+                                e.kind.label(),
+                                e.answered_by
+                                    .as_deref()
+                                    .map(|s| format!("  answered_by={s}"))
+                                    .unwrap_or_default()
+                            );
+                        }
+                    }
+                    0
+                }
+            });
+        }
         RegistryQuery::Closure { request, json } => {
             let text = if request == "-" {
                 let mut buf = String::new();
@@ -500,6 +556,62 @@ fn print_count(label: &str, count: Option<usize>) {
 fn print_ids(label: &str, ids: &[String]) {
     if !ids.is_empty() {
         outln!("  {label}: {}", ids.join(", "));
+    }
+}
+
+/// The prose form of a `registry moves <path>` lookup (spec 111 §3.4).
+fn print_move_lookup(outcome: &MoveLookup) {
+    match outcome {
+        MoveLookup::Unmapped { path } => outln!("{path}  unmapped"),
+        MoveLookup::Resolved {
+            path,
+            hops,
+            terminals,
+        } => {
+            outln!("{path}  resolved");
+            for h in hops {
+                outln!(
+                    "  {} -> {}  ({}, declared by {}){}",
+                    h.from,
+                    h.to.as_deref().unwrap_or("(removed)"),
+                    h.kind.label(),
+                    h.declared_by.join(", "),
+                    h.answered_by
+                        .as_deref()
+                        .map(|s| format!("  answered_by={s}"))
+                        .unwrap_or_default()
+                );
+            }
+            for t in terminals {
+                match (&t.path, &t.answered_by) {
+                    (Some(p), _) => outln!("  terminal: {p}"),
+                    (None, Some(by)) => outln!("  terminal: removed, answered_by={by}"),
+                    (None, None) => outln!("  terminal: removed"),
+                }
+            }
+        }
+        MoveLookup::Ambiguous {
+            path,
+            at,
+            candidates,
+        } => {
+            outln!("{path}  ambiguous at '{at}'");
+            for c in candidates {
+                outln!(
+                    "  {} declares {}  ({}){}",
+                    c.declared_by,
+                    c.to.as_deref().unwrap_or("(removed)"),
+                    c.kind.label(),
+                    c.answered_by
+                        .as_deref()
+                        .map(|s| format!("  answered_by={s}"))
+                        .unwrap_or_default()
+                );
+            }
+        }
+        MoveLookup::Cycle { path, chain } => {
+            outln!("{path}  cycle: {}", chain.join(" -> "));
+        }
     }
 }
 

@@ -354,12 +354,11 @@ fn a_corpus_without_either_key_compiles_to_the_file_hash_unchanged() {
             .collect::<String>()
     };
     assert_eq!(shard.shard_hash, expected);
-    // Spec 110's extends edge on this file: an additive registry MINOR after
-    // 109's shipped (110's own `interfaceReferences`) moves this pin the same
-    // way 109 itself moved a pin in 106's territory (109's note on
-    // `obligations.rs`). Spec 114's `intent` moves it again, declared the
-    // same way.
-    assert_eq!(shard.spec_version, "1.7.0");
+    // Spec 110's, 114's and 111's extends edges on this file: each additive
+    // registry MINOR after 109's shipped (110's `interfaceReferences`, 114's
+    // `intent`, 111's `moves`) moves this pin the same way 109 itself moved a
+    // pin in 106's territory (109's note on `obligations.rs`).
+    assert_eq!(shard.spec_version, "1.8.0");
 }
 
 #[test]

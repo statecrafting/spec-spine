@@ -10,14 +10,14 @@
 
 | Artifact | Field | Current | Owner |
 |---|---|---|---|
-| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.7.0` | library |
+| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.8.0` | library |
 | index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`) | `schemaVersion` | `1.1.0` | library |
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.6.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.1.0` | library |
-| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.7.0` | library |
+| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.8.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
 
@@ -74,6 +74,12 @@ MINOR history:
   `goal` and `nonGoals` as authored. Read by no gate. Absent on every existing
   spec, so only `specVersion` restamps and no `shardHash` moves. A binary
   predating it meets the member with a parse error (exit 3).
+- registry `1.8.0` (spec 111): additive `moves` on a record, a spec's declared
+  relocation, split, merge or removal of a path it once owned
+  (`from`, `to`, `kind`, `answered_by`?), `answered_by`'s spec half normalized
+  to its full id. Absent on every existing spec, so only `specVersion`
+  restamps and no `shardHash` moves. A binary predating it meets the member
+  with a parse error (exit 3).
 
 MAJOR history:
 
@@ -307,6 +313,14 @@ the summary line had fallen behind.)
 and the scope comparison (`scope compare <a> <b> --json`,
 `scope_compare_json`), `{ "a", "b", "conflicts": [...], "schemaVersion" }`. No
 member of an existing document moved.
+
+**`0.8.0` (spec 111), additive.** A new read document, the move lookup
+(`registry moves <path> --json`, `query_json` `op: "moves"`):
+`{ "outcome": "unmapped" | "resolved" | "ambiguous" | "cycle", "path",
+"hops"?, "terminals"?, "at"?, "candidates"?, "chain"?, "schemaVersion" }`, and
+the flattened move list (`registry moves --json` with no path), `{ "items":
+[ { "from", "to"?, "kind", "declaredBy", "answeredBy"? } ], "schemaVersion" }`.
+No member of an existing document moved.
 
 ## Migration note: spec 034, the verdict envelope
 

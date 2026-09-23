@@ -33,6 +33,7 @@ pub mod frontmatter;
 pub mod impact;
 pub mod intent;
 pub mod interface;
+pub mod moves;
 pub mod obligation;
 pub mod registry;
 pub mod schema;
@@ -83,6 +84,7 @@ pub use interface::{
     InterfaceReference, InterfaceReport, Outcome, PinnedSection, ReferenceResult, SectionOutcome,
     SectionResult, Summary, valid_corpus_name, valid_digest, valid_obtained_date,
 };
+pub use moves::{MoveDeclaration, MoveKind, MovePaths};
 pub use obligation::{Obligation, ObligationKind, split_obligation_ref, valid_obligation_id};
 pub use registry::{
     Build, BuildMeta, Registry, RegistrySpecShard, Severity, SpecRecord, ValidationReport,

@@ -229,6 +229,71 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
                 ));
             }
         }
+
+        // L-015 / L-016 (spec 111 §3.3): what a move declaration says about
+        // the working tree, checked against it directly. Warning tier: these
+        // describe the tree at a point in time, not the declaration's own
+        // well-formedness (that is `V-040`, at compile), and they MUST NOT
+        // attempt to verify that content moved (§3.6). A path `V-040`
+        // refuses (empty, absolute, a `..` segment), or one carrying a
+        // platform root or prefix, is never joined onto the repository root:
+        // `Path::join` with an absolute argument discards the root, so the
+        // stat would read outside the tree and answer about another file
+        // (111 D-12). A path `check_move_path` refuses is also a `V-040` at
+        // compile; one only the component scan rejects (a Windows drive
+        // prefix, say) is skipped here and is not a compile error.
+        let in_tree = |p: &str| {
+            crate::compile::check_move_path(p).is_none()
+                && std::path::Path::new(p).components().all(|c| {
+                    matches!(
+                        c,
+                        std::path::Component::Normal(_) | std::path::Component::CurDir
+                    )
+                })
+        };
+        for mv in &spec.moves {
+            let kind_label = mv.kind.label();
+            match (&mv.to, mv.kind) {
+                (Some(to), _) => {
+                    // L-015: a relocated/split/merged `to` path that does not
+                    // exist, naming the declaring spec and both paths. One
+                    // warning per missing `to` (a `split` entry checks each
+                    // branch independently); the `from` side is named as
+                    // declared, joined, rather than repeated per `to`.
+                    let from_label = mv.from.paths().join(", ");
+                    for to_path in to.paths() {
+                        if in_tree(to_path) && !repo_root.join(to_path).exists() {
+                            violations.push(warn(
+                                "L-015",
+                                format!(
+                                    "spec '{}' declares a '{kind_label}' move from '{from_label}' \
+                                     to '{to_path}', and '{to_path}' does not exist",
+                                    spec.id
+                                ),
+                                at(),
+                            ));
+                        }
+                    }
+                }
+                (None, spec_spine_types::MoveKind::Removed) => {
+                    // L-016: the other direction. `from` has exactly one path
+                    // under `removed` (V-040 enforces the arity).
+                    for from_path in mv.from.paths() {
+                        if in_tree(from_path) && repo_root.join(from_path).exists() {
+                            violations.push(warn(
+                                "L-016",
+                                format!(
+                                    "spec '{}' declares '{from_path}' removed, and it still exists",
+                                    spec.id
+                                ),
+                                at(),
+                            ));
+                        }
+                    }
+                }
+                (None, _) => {}
+            }
+        }
     }
 
     // L-008 (spec 050): a claimed path that exists and that no content hash

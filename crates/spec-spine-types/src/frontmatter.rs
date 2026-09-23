@@ -23,6 +23,7 @@ use crate::error::{Error, Result};
 use crate::impact::{Conflict, Impact};
 use crate::intent::IntentDeclaration;
 use crate::interface::InterfaceReference;
+use crate::moves::MoveDeclaration;
 use crate::obligation::Obligation;
 use crate::unit::Unit;
 
@@ -132,6 +133,8 @@ pub const KNOWN_KEYS: &[&str] = &[
     "interface_references",
     // Spec 114 3.3: a standing goal and its deliberate exclusions.
     "intent",
+    // Spec 111 3.1: declared move (relocation, split, merge, removal).
+    "moves",
 ];
 
 /// The typed, parsed frontmatter of a `spec.md`.
@@ -225,6 +228,10 @@ pub struct Frontmatter {
     // --- declared intent (spec 114) ---
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub intent: Option<IntentDeclaration>,
+
+    // --- declared moves (spec 111) ---
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub moves: Vec<MoveDeclaration>,
 
     // --- overflow (populated by parse_frontmatter, never by serde) ---
     #[serde(skip)]

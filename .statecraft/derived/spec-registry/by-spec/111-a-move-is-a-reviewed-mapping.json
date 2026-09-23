@@ -7,23 +7,19 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-types/src/moves.rs",
-        "planned": true
+        "path": "crates/spec-spine-types/src/moves.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/src/moves.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/src/moves.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/moves.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/moves.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/moves.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/moves.rs"
       }
     ],
     "extends": [
@@ -33,6 +29,22 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/frontmatter.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json"
         }
       },
       {
@@ -61,6 +73,14 @@
       },
       {
         "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/conformance.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "003-conformance-lint",
         "unit": {
           "kind": "file",
@@ -82,10 +102,98 @@
           "kind": "file",
           "path": "crates/spec-spine-cli/src/cmd_registry.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "106-obligations-are-declared-constraints",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/obligations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "109-impact-and-conflict-are-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/impacts.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "108-a-work-scope-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scope.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "108-a-work-scope-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/scope.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "088-the-template-teaches-the-whole-grammar",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/templates/spec-template.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "103-a-verifier-fixture-is-a-published-artifact",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
       }
     ],
     "id": "111-a-move-is-a-reviewed-mapping",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "governance",
     "obligations": [
       {
@@ -143,7 +251,7 @@
     "sectionDigests": {
       "1-1-why-the-dependency-is-spec-100": "1ecb0a88b77b68bd479da588d8ce611b6c555a4ced13f0d9133cca50c9b709a3",
       "1-purpose": "ed0758c5ff2a5b0ce49034365b8ee06a7f7b8290f71cc7e0a744058cf0fd9882",
-      "111-a-move-is-a-reviewed-mapping": "96d66db125bf3370d385c77f524112fb7d8fe38ffb49f02b3a5b58591401784d",
+      "111-a-move-is-a-reviewed-mapping": "f761e2f5bfce0fff7a3b01244040e0f7477b25eb11c7b6e544438e02926c0dc7",
       "2-territory": "4dd33bc15dba46ca03fd850054013b0d0702f79291ef7f6ff66d6b53c44642ff",
       "3-1-a-move-is-declared-by-the-spec-that-performs-it": "a9bd7ccc0f9ad0114dde5edf7161f11df71084b4942c8ceed8e544e5f34daf56",
       "3-2-the-shape-is-validated-at-compile": "baa528c5bef794ac0f819d47173e111997669903021577de0f5a4fcb19496743",
@@ -153,7 +261,7 @@
       "3-6-no-similarity-ever": "f3f14d1ea7d436895090fe777269f855d3a39f68c7159f2622ec1bb228fb63d7",
       "3-behavior": "4cba28dff0f62476be1891c27a77456c40c497f5ec7309a6657100713571aaaa",
       "4-out-of-scope": "7721bdc3aaa4e46fe07796c842de5c51e41a81611144f3f1fc006f9646856d96",
-      "5-resolved-decisions": "6590c61a40a8657b1276dfd9b6337412c7ff8f71eb3c8967f475acd8b1450c75",
+      "5-resolved-decisions": "bbee42ae1972980257caf176443115fb858170b1546e91ec0ef2b37ad32fd3dc",
       "verification": "4f9298f60b06f939ae867916d489c08f4d2ffb5852ec56869b91eedbfd4fd2f2"
     },
     "sectionHeadings": [
@@ -177,6 +285,6 @@
     "summary": "The gate passes `--no-renames`, so a move arrives as a deletion and an addition and each half is judged where it is true. That is correct and it is not the whole story: nothing records that the two halves are one act. The spec performing a move declares it in its own frontmatter as authored, reviewed data. The compiler validates the declaration's shape, the lint checks its paths against the tree, and a lookup derived from every declaration follows declared chains, reporting ambiguity and cycles instead of guessing through them. A move is informational: it transfers no ownership, authorizes no deletion, infers no similarity and changes no verdict.\n",
     "title": "A move is a reviewed mapping"
   },
-  "shardHash": "87de8588e8d95870c48c788608c1dd5504ae260b74bfe3ee15d380eb04c0da64",
-  "specVersion": "1.7.0"
+  "shardHash": "ea5a2b7a542c778ed652320104379998aaf6ca19862283a406351d418f550472",
+  "specVersion": "1.8.0"
 }

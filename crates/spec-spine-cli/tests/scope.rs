@@ -109,7 +109,7 @@ fn evaluate_stdin_and_a_file_give_the_same_read_document() {
     let doc: serde_json::Value = serde_json::from_slice(&from_stdin.stdout).unwrap();
     assert_eq!(doc["ownSpec"], "100-a");
     assert_eq!(doc["schemaVersion"], spec_spine_types::READ_SCHEMA_VERSION);
-    assert_eq!(spec_spine_types::READ_SCHEMA_VERSION, "0.7.0");
+    assert_eq!(spec_spine_types::READ_SCHEMA_VERSION, "0.8.0");
     assert_eq!(doc["findings"].as_array().unwrap().len(), 0);
     assert!(!doc["indexHash"].as_str().unwrap().is_empty());
 

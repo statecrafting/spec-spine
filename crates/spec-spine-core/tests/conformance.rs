@@ -25,7 +25,9 @@ fn emitted_registry_conforms_to_embedded_schema() {
         tmp.path(),
         "001-child",
         "depends_on: [\"000-root\"]\nestablishes:\n  - \"src/lib.rs\"\nx_extra: \"v\"\nrisk: medium\nimplementation: complete\n\
-         intent:\n  goal: \"a goal\"\n  non_goals: [\"a non-goal\"]\n",
+         intent:\n  goal: \"a goal\"\n  non_goals: [\"a non-goal\"]\n\
+         moves:\n  - from: \"src/old.rs\"\n    to: \"src/new.rs\"\n    kind: relocated\n  \
+         - from: \"src/gone.rs\"\n    to: null\n    kind: removed\n",
     );
 
     let outcome = compile(&Config::default(), tmp.path()).unwrap();
@@ -59,7 +61,9 @@ fn emitted_registry_shards_conform_to_embedded_schema() {
         tmp.path(),
         "001-child",
         "depends_on: [\"000-root\"]\nestablishes:\n  - \"src/lib.rs\"\nx_extra: \"v\"\nrisk: medium\nimplementation: complete\n\
-         intent:\n  goal: \"a goal\"\n  non_goals: [\"a non-goal\"]\n",
+         intent:\n  goal: \"a goal\"\n  non_goals: [\"a non-goal\"]\n\
+         moves:\n  - from: \"src/old.rs\"\n    to: \"src/new.rs\"\n    kind: relocated\n  \
+         - from: \"src/gone.rs\"\n    to: null\n    kind: removed\n",
     );
     let outcome = compile(&Config::default(), tmp.path()).unwrap();
     let files = registry_shard_files(&outcome.shards).unwrap();

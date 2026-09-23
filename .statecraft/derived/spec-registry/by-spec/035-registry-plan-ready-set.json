@@ -103,5 +103,5 @@
     "title": "`registry plan`: the ready set in dependency order"
   },
   "shardHash": "92971233a3dd70ea3de80eaacee1b3f9e364480b7a932cd7653919a198ce99f7",
-  "specVersion": "1.7.0"
+  "specVersion": "1.8.0"
 }

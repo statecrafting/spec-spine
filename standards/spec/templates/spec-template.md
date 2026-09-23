@@ -173,6 +173,34 @@ implementation: pending        # pending | in-progress | complete | n-a | deferr
 #   goal: "what this spec is for"
 #   non_goals:
 #     - "a thing a reader would expect that is deliberately excluded"
+# --- declared moves (spec 111) ---
+# `moves` declares that THIS spec relocated, split, merged or removed a path
+# it once owned. It lives only in the moving spec; there is no second,
+# authored, corpus-wide path map (the derived one comes from
+# `spec-spine registry moves`). It changes no verdict: `couple` never
+# consults it, and a deletion still needs its owning spec's own authoring
+# edit (spec 100 §3.6). Nothing infers a move: no similarity, rename
+# detection or content comparison.
+#   - `kind`: `relocated` (one path to one), `split` (one `from`, `to` a list
+#     of two or more), `merged` (`from` a list of two or more, one `to`), or
+#     `removed` (`to: null`). A `from`/`to` whose arity does not match its
+#     `kind` is `V-040`, as is an empty/absolute/`..`-segment path, the same
+#     path on both sides of one entry, or `answered_by` on a kind other than
+#     `removed`.
+#   - `answered_by`: optional, `removed` only, the spec that now answers for
+#     the path's former responsibility. A dangling one is a compile warning
+#     (`V-041`), the tier every informational spec reference takes.
+# `lint` warns (never errors) when a `relocated`/`split`/`merged` `to` does
+# not exist (`L-015`) or a `removed` `from` still does (`L-016`): what the
+# declaration says about the tree at a point in time, not its own shape.
+# moves:
+#   - from: "old/path.rs"
+#     to: "new/path.rs"
+#     kind: relocated
+#   - from: "old/gone.rs"
+#     to: null
+#     kind: removed
+#     answered_by: "NNN-successor"
 # --- bootstrap marker (NOT an edge) ---
 # `origin.retroactive` declares authority held since before the graph existed:
 # code that predates its governing spec is evidence, not a violation, and a

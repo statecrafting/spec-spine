@@ -74,9 +74,11 @@ fn schema_versions_are_pinned() {
     // full qualified form; 1.6.0: additive MINOR (spec 110), optional
     // `interfaceReferences`, a spec's cross-corpus citations pinned to
     // another repository's content hash; 1.7.0: additive MINOR (spec 114),
-    // optional `intent`, a spec's standing goal and non-goals. A consumer that
-    // knows 1.x keeps working, which is the MINOR rule.
-    assert_eq!(REGISTRY_SCHEMA_VERSION, "1.7.0");
+    // optional `intent`, a spec's standing goal and non-goals; 1.8.0:
+    // additive MINOR (spec 111), optional `moves`, a spec's declared
+    // relocation, split, merge or removal of a path. A consumer that knows
+    // 1.x keeps working, which is the MINOR rule.
+    assert_eq!(REGISTRY_SCHEMA_VERSION, "1.8.0");
     // 1.1.0: additive MINOR (spec 023): unresolved-unit severity tiers (W-001 /
     // W-002 warnings) on top of the spec-024 sharded MAJOR.
     assert_eq!(INDEX_SCHEMA_VERSION, "1.1.0");
