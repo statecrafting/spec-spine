@@ -1491,3 +1491,36 @@ failed=0`, release verdict clean.
 verdict on `main` before merging the next change. A red push leg is a finding
 about the merged revision, and the next merge's green PR checks do not answer
 it.
+
+## 15. After the second expansion increment (2026-09-23)
+
+The frozen candidate is **unchanged**: `f9fa6a8f56b82c8d97cf2803bc31838a0b455a21`,
+`0.22.0`, not tagged, not published, not recut. Nothing merged after it
+corrects a defect in it (§14.4's result stands; the defects found since are in
+code the candidate does not carry, or in this repository's own harness).
+
+What moved, recorded in full in `docs/release-candidate-0.23.0.md`:
+
+- **`main` no longer shares the candidate's version.** Spec 124 (#322) moved
+  `main` to `0.23.0` and this repository's `[meta] required_version` to
+  `>=0.23.0`. The candidate's build now refuses `main`'s corpus by name (exit
+  3), where it used to judge it `INVALID`. §14.1's "reports `0.22.0` too" row
+  is historical from that merge on.
+- **The expansion line gained 108, 113, 123, 124 and 125**, and #319
+  corrected 123. The ratification decisions for them, and for the wave §14.6
+  lists as "not proposed", are in the 0.23.0 record. §14.6's row for 118 to
+  121 is closed: #305 merged as `3b67b63d` on 2026-09-23 and those four are
+  `approved` on `main`, and so outside 0.22.0 unless the owner takes #305's
+  option 2, which was not prepared.
+- **The session warning of 2026-09-23** that §14.8's last paragraph
+  attributes to an installed `spec-spine 0.20.0` on `PATH`: that attribution
+  is correct for the commit-hook refusal it describes, and **wrong for the
+  `SessionStart` banner** seen the same day. The banner's reader was the main
+  checkout's `target/release/spec-spine`, built at `3d4f3902` (the
+  candidate's engine) and left in place while the checkout moved on. Spec 123
+  §1.1 has the measurement.
+
+**Procedure, restated.** The candidate is not recut because `main` or an
+evidence document moves (§14.1). A recut is owed only if a defect is found in
+`f9fa6a8f` itself, or if the owner chooses to ship a different revision as
+0.22.0.

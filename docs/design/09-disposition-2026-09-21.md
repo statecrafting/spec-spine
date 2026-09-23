@@ -782,3 +782,46 @@ starts from an order rather than a list.
 6. **111** and **112** as consumers of the above appear. **114** is a
    separation record, and **115** stays deferred by mandate.
 
+
+## 11. The reserved ordinals and the second increment (2026-09-23)
+
+Section 10.2 reserved 105 and 108 to 116 for the deferred contracts on
+`specs/deferred-contracts-2026-09-21`, and section 10.4 ordered what came
+after the first wave. Their state now, read from each spec's frontmatter on
+`main`, not from ordinals:
+
+| Ordinal | Contract | State on `main` | How |
+|---|---|---|---|
+| 105 | `governed_scope` enabled here | `draft` / `complete` | #311, repaired by #315 (carries 078's acceptance through `amends` + `amends_verification`) |
+| 106 | obligations | `draft` / `complete` | #308, carried from the branch and corrected, same id |
+| 107 | ContextClosure | `draft` / `complete` | #309, same |
+| 108 | WorkScope | `draft` / `complete` | #320. The reserved draft was corrected before the build (its D-1): a scope is a consumer-held document, evaluated against the committed index, compared purely, and never a gate, lock or permission |
+| 109 | impact and conflict | `draft` / `complete` | #312 |
+| 110 | digest-pinned interface references | `draft` / `complete` | #313 |
+| 111 | reviewed move mapping | reserved, not on `main` | unchanged: filed on the branch, deferred |
+| 112 | typed overlays | reserved, not on `main` | unchanged |
+| 113 | waiver lifecycle | `draft` / `complete` | #318. Corrected before the build (its D-1): the draft required both reporting an unscoped waiver and a byte-identical verdict, which cannot both hold |
+| 114 | A10/B23 separation | reserved, not on `main` | unchanged; A10 is Statecraft's |
+| 115 | bindings mandate | reserved, not on `main` | deferred by mandate, unaffected by D-7 |
+| 116 | `L-001` exempts a deferred contract | reserved, not on `main` | still unneeded: 108 and 113 landed built, not deferred |
+
+No ordinal was renumbered or re-used. Ordinals 117 to 125 are new filings:
+
+- **117 to 121** belong to the 0.22.0 correction work (the release record's
+  §§9 to 13) and are `approved`.
+- **122** (#310, a commit refuses an unresolved merge or unformatted Rust)
+  is corrective. It `extends` spec 094's `.githooks/` and replaced nothing in
+  the authorized list; it exists because the first wave's integration
+  committed conflict markers and an unformatted change (0.22.0 record §14.8).
+- **123** (#317, #319) is corrective: the session hooks name their reader and
+  do not report an older in-tree build's verdict as the tree's. It `amends`
+  093 for one wording rule.
+- **124** (#322) gives the expansion line its own version (0.23.0) and moves
+  this repository's floor with it.
+- **125** (#321) is corrective: `verify`'s forwarder delivers whole lines, the
+  defect that turned the post-merge sweep at `0bf9ff78` red twice.
+
+Section 10.4's order is complete through its fifth item. What remains is its
+sixth: **111** and **112** when a consumer of the above appears (D-7 permits
+building them sooner on their own merits), **114** as a separation record, and
+**115**, deferred by mandate.
