@@ -170,6 +170,28 @@ A stale committed registry exits `2` before any export is read. A malformed
 run `spec-spine registry show <id> --json` in the cited corpus and copy
 `contentHash` (and any `sectionDigests` entry), each prefixed `sha256:`.
 
+## scope
+
+```
+spec-spine scope evaluate --scope <FILE|-> [--json]
+spec-spine scope compare <A> <B> [--json]
+```
+
+Evaluate or compare a declared work scope (spec 108): a consumer's document
+naming which paths one piece of work expects to change alone (`mutable`),
+alongside named other specs (`shared`, each with a non-empty `with` list of
+specs), and only reads (`readOnly`). A scope lives in the consumer's record,
+never in spec frontmatter; spec-spine only evaluates and compares one.
+
+| Subcommand | Answers |
+|---|---|
+| `scope evaluate --scope <FILE\|->` | Resolves each declared path's owners against the committed index and reports where the declaration and the ownership disagree: `S-001` unowned, `S-002` undeclared crossing (a `mutable` path another spec owns), `S-003` sharing mismatch (a `shared` path whose owners disagree with its declared `with`). `readOnly` paths are reported with no finding. Refuses a stale committed index with exit `2` before any path is resolved. A malformed document (unknown member, an absolute path or one carrying `..`, no path at all, one path under two roles) exits `3`; an unresolved `ownSpec` or `with` exits `1` naming every one. Otherwise exits `0` whether or not it found anything: a report, not a gate. |
+| `scope compare <A> <B>` | Reports every overlapping declared path (equal, or one a subtree containing the other) whose roles conflict: `both-mutable`, `mutable-shared`, `changed-under-read`. Two `shared` or two `readOnly` entries never conflict. Reads no ledger and exits `0` whether or not a conflict is found; the same malformed-document refusal (exit `3`) applies to each document. |
+
+Either `--scope`, or one of `A` / `B`, may be `-` for stdin. Nothing here
+locks, reserves, excludes or permits anything: `couple`, `check`, `lint` and
+`index coverage` never read a scope.
+
 ## index
 
 ```

@@ -4,7 +4,7 @@ title: "A work scope is declared"
 status: draft
 kind: "governance"
 created: "2026-09-21"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -20,10 +20,23 @@ summary: >
   scopes for conflicting intentions. Both answers are reads. Nothing here
   locks, reserves, excludes or permits anything, and no gate reads a scope.
 establishes:
-  - { kind: file, path: "crates/spec-spine-core/src/scope.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/scope.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/src/cmd_scope.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/scope.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/scope.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/scope.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/src/cmd_scope.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/scope.rs" }
+extends:
+  # 3.6: the facade and the CLI entry point.
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-cli/src/main.rs" }, nature: additive }
+  # 3.6: the documentation a consumer reads. `docs/cli-reference.md` is edited
+  # too, but claimed by no spec before or after this one, so it is left
+  # unclaimed here rather than adding it to `[index] extra_hashed_inputs`
+  # purely to clear `L-008` for a claim this change does not need to make.
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
+  # D-2: the read axis moves for the two new documents, with its pin and its table.
+  - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
+  - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-core/tests/read.rs" }, nature: additive }
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/04-authority-evidence-extension.md" }, role: context }
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: context }
@@ -267,6 +280,28 @@ and raising no finding on it: its value is §3.5's `changed-under-read`, the
 mutable-and-read-only, to a `shared` entry as well: a shared path is still one
 the other work changes. The draft's owner-lookup wording ("the compiler MUST
 resolve its owners") is kept as §3.2, now against the committed index.
+
+**D-2 (2026-09-23, build).** §3.3 does not say what a `mutable` or `shared`
+path that resolves to no owner at all reports beyond `S-001`, and whether
+`S-002`/`S-003` also fire on top of it. The smallest faithful reading: `S-001`
+is the whole answer for an unowned path. A `mutable` entry checks `S-001`
+first and only computes the crossing (`S-002`) when owners is non-empty; a
+`shared` entry checks `S-001` first and only compares the declared `with`
+against the owners (`S-003`) when owners is non-empty. An unowned `shared`
+path with a non-empty `with` therefore reports only `S-001`, not also a
+sharing mismatch against the empty owner set: the more fundamental problem
+(nobody owns this yet) is the one finding, not two that both restate it.
+
+**D-3 (2026-09-23, build: fail-first measured).** Both new test files
+(`crates/spec-spine-core/tests/scope.rs`, `crates/spec-spine-cli/tests/scope.rs`)
+were run against a tree with `scope.rs` and `cmd_scope.rs` removed and the
+`lib.rs`/`main.rs`/`version.rs`/`read.rs` edits reverted (the frontmatter and
+docs edits are inert either way). The core suite failed to compile (every new
+name unresolved); the CLI suite compiled, since `main.rs` no longer referenced
+`cmd_scope`, and failed at runtime instead (`error: unrecognized subcommand
+'scope'`, exit 3, on 8 of 9 tests; the ninth, which itself expects exit 3,
+passed by coincidence). Both are genuine fail-first results: neither test file
+passes against unbuilt code.
 
 ## Acceptance
 

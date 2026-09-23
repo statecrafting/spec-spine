@@ -35,6 +35,7 @@ pub mod query;
 pub mod read;
 pub mod render;
 pub mod scaffold;
+pub mod scope;
 pub mod sections;
 pub mod shard;
 pub mod snapshot;
@@ -113,6 +114,10 @@ pub use query::{
 pub use read::{Versioning, read_document};
 pub use render::{OrphanReport, orphans, partition_orphans, render_markdown};
 pub use scaffold::{Scaffold, ScaffoldFile, scaffold_init};
+pub use scope::{
+    Conflict, EvaluatedEntry, Finding, Role, ScopeComparison, ScopeConflictEntry, ScopeEvaluation,
+    ScopeIdentity, ScopeRequest, SharedPath, compare_scopes, evaluate, evaluate_scope,
+};
 pub use snapshot::{
     SnapshotOutcome, check_snapshot_major, snapshot, snapshot_hash, verify_snapshot_recompute,
     with_stored_bytes_snapshot,
@@ -153,6 +158,35 @@ pub fn closure_json(
         .map_err(|e| Error::Parse(format!("invalid closure request: {e}")))?;
     let resolved = closure(&config, std::path::Path::new(repo_root), &request)?;
     read_document(&resolved, Versioning::Stamp)
+}
+
+/// Evaluate a work scope against the committed ownership index (spec 108).
+///
+/// `scope_json` is a [`ScopeRequest`]: `{ "id"?: string, "ownSpec": id,
+/// "mutable"?: [path], "shared"?: [{ "path", "with": [id] }], "readOnly"?:
+/// [path] }`. The answer is a read document (spec 074) naming each path's
+/// resolved owners and every `S-00x` finding where the declaration and the
+/// index disagree. A stale index is refused (exit 2) before any path is
+/// resolved. It is a report, not a gate: exit 0 whether or not it found
+/// anything.
+pub fn scope_json(config_json: &str, repo_root: &str, scope_json: &str) -> Result<String, Error> {
+    let config = config_from_json(config_json)?;
+    let request: ScopeRequest = serde_json::from_str(scope_json)
+        .map_err(|e| Error::Parse(format!("invalid scope request: {e}")))?;
+    let evaluated = evaluate(&config, std::path::Path::new(repo_root), &request)?;
+    read_document(&evaluated, Versioning::Stamp)
+}
+
+/// Compare two declared work scopes for conflicting intentions (spec 108
+/// §3.5). Pure: reads no ledger, and validates each document as
+/// [`scope_json`] does.
+pub fn scope_compare_json(a_json: &str, b_json: &str) -> Result<String, Error> {
+    let a: ScopeRequest = serde_json::from_str(a_json)
+        .map_err(|e| Error::Parse(format!("invalid scope request 'a': {e}")))?;
+    let b: ScopeRequest = serde_json::from_str(b_json)
+        .map_err(|e| Error::Parse(format!("invalid scope request 'b': {e}")))?;
+    let comparison = compare_scopes(&a, &b)?;
+    read_document(&comparison, Versioning::Stamp)
 }
 
 /// Run a read-only query described by `request_json`.

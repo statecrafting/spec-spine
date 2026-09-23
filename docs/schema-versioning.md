@@ -17,7 +17,7 @@
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.5.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.1.0` | library |
-| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.6.0` | library |
+| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.7.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
 
@@ -296,6 +296,13 @@ the summary line had fallen behind.)
 **`0.6.0` (spec 110), additive.** A new read document: the interface report
 (`interface verify --json`, `interface_verify_json`), `{ "references": [...],
 "summary": {...}, "schemaVersion" }`. No member of an existing document moved.
+
+**`0.7.0` (spec 108), additive.** Two new read documents: the scope evaluation
+(`scope evaluate --scope <file> --json`, `scope_json`), `{ "ownSpec",
+"indexHash", "entries": [...], "findings": [...], "id"?, "schemaVersion" }`,
+and the scope comparison (`scope compare <a> <b> --json`,
+`scope_compare_json`), `{ "a", "b", "conflicts": [...], "schemaVersion" }`. No
+member of an existing document moved.
 
 ## Migration note: spec 034, the verdict envelope
 

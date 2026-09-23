@@ -7,27 +7,73 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/src/scope.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/src/scope.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/scope.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/scope.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/src/cmd_scope.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/src/cmd_scope.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/scope.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/scope.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
       }
     ],
     "id": "108-a-work-scope-is-declared",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "governance",
     "obligations": [
       {
@@ -87,7 +133,7 @@
       "1-1-why-it-is-built-now-design-note-09-d-7": "624ec242ccfd3342c0001f14c894fcd9942aeac0e465059a57ebd61490fcd843",
       "1-2-not-an-obligations-dependency": "c7bac21bd754340c43bb12441e7957cb3c81e296f55e37323c776bd956c68f6f",
       "1-purpose": "2c0a5d23c4e5cd3ce346ea57716607c6a85e715fddcaeece994c2903385561c0",
-      "108-a-work-scope-is-declared": "2ed224992b633da0e0fa6cf6bc9c2a3b3acd844793fbfb9cdc1e46792730c484",
+      "108-a-work-scope-is-declared": "24ee886340c7f26a3cef5759e57ea922840aaee86440410b9bc57308c6a64b1b",
       "2-territory": "c34bef376cefa6995bc74186c4a76b83dea7bb4322245618e4ec07b62e212152",
       "3-1-a-scope-lives-with-its-consumer-and-spec-spine-evaluates-it": "6200934ad69cbb6720e052ec66ded5fec59b54e9b216f3885500e9356798c4a3",
       "3-2-paths-are-resolved-the-way-index-owner-resolves-them": "85c06995a0582fe6004f76b68a806f22206a185b7b37aaee0b1b131309eda57a",
@@ -98,7 +144,7 @@
       "3-7-a-scope-is-not-a-gate-a-lock-or-a-permission": "d5404504f489c6b88c05f1a335638852f71e6b3adec883835973129eaeee2c68",
       "3-behavior": "35dde87f0eca718ed778f8673d59367ff03b25dad771f428d681700e0c7829fb",
       "4-out-of-scope": "ef63f6058c95512553eec9cbe92b62ad2f72877728b588a64dc492c9580a4edc",
-      "5-resolved-decisions": "25950100aa459eca30787ed0bd2046dc389a4c96d2c6f7d5e027822d42ee8521",
+      "5-resolved-decisions": "655841f1d8aaad7ffcac51fafab10c5566a248083c47702130a92dec1bdfde29",
       "acceptance": "c599ac24431531c171a060b8f0c8831b2b8861c83998dbe7156b3a0d93357e4b",
       "verification": "5c9c238d40c0052cde2aa3a140bf34fc496a7aa8f189c8b1f947e5dcbc08f89c"
     },
@@ -126,6 +172,6 @@
     "summary": "Spec 072 reports that two ready specs claim overlapping territory, at spec granularity. What was left of WorkScope is the path-level half: one piece of work declares which paths it expects to change alone, which it expects to change alongside named other specs, and which it only reads. A scope is a document the consumer holds, like a context closure (spec 107). spec-spine evaluates it against the committed ownership index, reporting undeclared crossings, unowned paths and wrong sharing declarations, and compares two scopes for conflicting intentions. Both answers are reads. Nothing here locks, reserves, excludes or permits anything, and no gate reads a scope.\n",
     "title": "A work scope is declared"
   },
-  "shardHash": "e4546e4242b62480a215540fb185ef92bbe1233bc403a7a30ae80fad986123a9",
+  "shardHash": "46664bd87f5d08abb0b3943ccba07742735aa555ca8745f7c91e974eb1ff21fe",
   "specVersion": "1.6.0"
 }

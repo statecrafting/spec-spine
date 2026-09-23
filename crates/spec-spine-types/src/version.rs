@@ -137,7 +137,12 @@ pub const DELTA_SCHEMA_VERSION: &str = "0.1.0";
 /// `0.6.0` (spec 110): additive. A new read document, the interface report
 /// (`interface verify --json`, `interface_verify_json`). No member of an
 /// existing document moved.
-pub const READ_SCHEMA_VERSION: &str = "0.6.0";
+///
+/// `0.7.0` (spec 108): additive. Two new read documents, the scope evaluation
+/// (`scope evaluate --json`, `scope_json`) and the scope comparison (`scope
+/// compare --json`, `scope_compare_json`). No member of an existing document
+/// moved.
+pub const READ_SCHEMA_VERSION: &str = "0.7.0";
 
 /// `schemaVersion` of an authority snapshot (spec 070): its own axis, defined
 /// beside the DTO it versions and re-exported here with the others.

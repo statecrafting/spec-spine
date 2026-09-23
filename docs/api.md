@@ -302,6 +302,8 @@ pub fn couple_json         (request_json: &str)                 -> Result<String
 pub fn delta_json          (request_json: &str)                 -> Result<String, Error>;
 pub fn query_json          (request_json: &str)                 -> Result<String, Error>;
 pub fn closure_json        (config_json: &str, repo_root: &str, request_json: &str) -> Result<String, Error>;
+pub fn scope_json          (config_json: &str, repo_root: &str, scope_json: &str) -> Result<String, Error>;
+pub fn scope_compare_json  (a_json: &str, b_json: &str)          -> Result<String, Error>;
 pub fn interface_verify_json(request_json: &str)                -> Result<String, Error>;
 pub fn render_json         (config_json: &str, index_json: &str) -> Result<String, Error>;
 pub fn orphans_json        (index_json: &str)                    -> Result<String, Error>;
@@ -329,6 +331,36 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   and refuses a stale ledger (exit 2); an empty or unqualified request is exit
   3; every unresolved reference is named in one exit-1 refusal. A closure lives
   in the consumer's record; this only resolves one, and no gate reads it.
+- `scope_json` request (spec 108): a `ScopeRequest` document, `{ "id"?:
+  string, "ownSpec": id, "mutable"?: [path], "shared"?: [{ "path", "with":
+  [id] }], "readOnly"?: [path] }`, at least one path in total, no absolute
+  path or `..` segment, a non-empty `with` for every `shared` entry, and no
+  path (or subtree and a path inside it) named under two roles; unknown
+  members refused (exit 3). It checks index freshness first and refuses a
+  stale index (exit 2); an unresolved `ownSpec` or `with` is one exit-1
+  refusal naming every one. The answer is a read document (read schema
+  `0.7.0`): `ownSpec` and `indexHash` (the committed index's aggregate content
+  hash), `entries`, one per declared path with its resolved `role`, `owners`
+  (the specs the committed index says own it, by the same function `index
+  owner` uses) and, for a `shared` entry, resolved `with`, and `findings`,
+  sorted by path then code: `S-001` unowned, `S-002` undeclared crossing (a
+  `mutable` path another spec owns), `S-003` sharing mismatch (a `shared`
+  path whose owners disagree with its declared `with`). It exits 0 whether or
+  not it found anything: a report, not a gate. The library form is
+  `evaluate_scope(&Config, &Registry, &CodebaseIndex, &ScopeRequest)`
+  (pure), and `evaluate(&Config, repo_root, &ScopeRequest)` adds the
+  freshness guard and the committed-ledger read. A scope lives in the
+  consumer's record; this only evaluates one, and no gate reads it.
+- `scope_compare_json` request (spec 108): two `ScopeRequest` documents (the
+  same shape `scope_json` takes), validated the same way but never resolved
+  against a ledger: comparison is a pure function of the two documents. The
+  answer is a read document naming each scope's `id` and `ownSpec` as
+  declared, and `conflicts`: every overlapping pair of declared paths (equal,
+  or one a subtree containing the other) whose roles conflict per spec 108
+  §3.5's table (`both-mutable`, `mutable-shared`, `changed-under-read`; two
+  `shared` or two `readOnly` entries never conflict). Exits 0 whether or not
+  any conflict is found. The library form is `compare_scopes(&ScopeRequest,
+  &ScopeRequest)`.
 - `interface_verify_json` request (spec 110): `{ "registry": "<registry.json
   text>", "exports": { "<corpus>": { "<spec-id>": { "path", "text" } } },
   "spec"?: id }`, unknown members refused (exit 3). `path` is the cited spec's
