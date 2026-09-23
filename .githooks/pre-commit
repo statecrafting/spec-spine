@@ -23,6 +23,48 @@ set -eu
 root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 [ -d "$root/specs" ] || exit 0
 
+refuse() {
+  echo "[pre-commit] REFUSED: $1"
+  echo "[pre-commit] fix: $2"
+  echo '[pre-commit] bypass this one commit: git commit --no-verify'
+  exit 1
+}
+
+# 0. The change itself is whole (spec 122). These need no spec-spine binary,
+# so they run before it is resolved and hold on a machine without one.
+#
+# 0a. No unmerged index entry. `git add` after a conflicted merge clears the
+# stages without looking at what was added, so this is the weaker half; 0b is
+# the one that catches a resolved-by-staging conflict.
+if [ -n "$(git -C "$root" ls-files -u 2>/dev/null)" ]; then
+  git -C "$root" ls-files -u | cut -f2 | sort -u | sed 's/^/  /'
+  refuse 'the index holds unmerged entries' 'resolve each path listed above, then stage it'
+fi
+
+# 0b. No conflict marker on an ADDED line. git's own detector, over the staged
+# change only, so a marker already in history is never re-reported. A file
+# that carries markers on purpose (a merge fixture) opts out by name with the
+# git attribute `conflict-marker-size`, never by a pattern here.
+markers=$(git -C "$root" diff --cached --check 2>/dev/null | grep 'leftover conflict marker' || true)
+if [ -n "$markers" ]; then
+  printf '%s\n' "$markers" | sed 's/^/  /'
+  refuse 'the staged change adds merge conflict markers' 'resolve the conflict in each file listed above; an intentional fixture sets the conflict-marker-size attribute in .gitattributes'
+fi
+
+# 0c. Formatting, when the change stages Rust. The one required check cheap
+# enough for every commit; clippy and the tests stay the gate's (spec 094).
+# A manifest probe, then a tool probe, as the Makefile guards do.
+if [ -f "$root/Cargo.toml" ] && git -C "$root" diff --cached --name-only --diff-filter=ACMR | grep -q '\.rs$'; then
+  if command -v cargo >/dev/null 2>&1; then
+    if ! fmt_out=$(cd "$root" && cargo fmt --all --check 2>&1); then
+      printf '%s\n' "$fmt_out" | head -40
+      refuse 'cargo fmt --all --check failed' 'cargo fmt --all, then stage the result'
+    fi
+  else
+    echo '[pre-commit] cargo absent, formatting check skipped (spec 122)'
+  fi
+fi
+
 # Spec 093's resolution order: the explicit override, then the binary this
 # repository builds, then PATH. A repository that builds its own must be
 # governed by the one it builds.
@@ -37,13 +79,6 @@ if [ -z "$sc" ]; then
   echo '[pre-commit] spec-spine absent, freshness check skipped (spec 093 3.5)'
   exit 0
 fi
-
-refuse() {
-  echo "[pre-commit] REFUSED: $1"
-  echo "[pre-commit] fix: $2"
-  echo '[pre-commit] bypass this one commit: git commit --no-verify'
-  exit 1
-}
 
 # 1. Freshness. `check` reads both committed trees and never writes (spec 062),
 # which is the property that lets a hook call it at all.

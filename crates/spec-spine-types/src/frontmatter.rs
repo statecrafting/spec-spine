@@ -20,6 +20,7 @@ use crate::edges::{
     CoAuthorityItem, ConstrainItem, ExtendItem, Origin, ReferenceItem, RefineItem, SupersedeItem,
 };
 use crate::error::{Error, Result};
+use crate::impact::{Conflict, Impact};
 use crate::obligation::Obligation;
 use crate::unit::Unit;
 
@@ -121,6 +122,10 @@ pub const KNOWN_KEYS: &[&str] = &[
     "origin",
     // Spec 106 3.1: declared constraints.
     "obligations",
+    // Spec 109 3.1: declared impact and conflict against another spec's
+    // obligations.
+    "impacts",
+    "conflicts",
 ];
 
 /// The typed, parsed frontmatter of a `spec.md`.
@@ -199,6 +204,13 @@ pub struct Frontmatter {
     // --- declared constraints (spec 106) ---
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub obligations: Vec<Obligation>,
+
+    // --- declared impact and conflict against another spec's obligations
+    // (spec 109) ---
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub impacts: Vec<Impact>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub conflicts: Vec<Conflict>,
 
     // --- overflow (populated by parse_frontmatter, never by serde) ---
     #[serde(skip)]

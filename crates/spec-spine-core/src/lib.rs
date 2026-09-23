@@ -15,6 +15,7 @@
 
 pub mod attest;
 mod canonical_json;
+pub mod closure;
 pub mod compact;
 pub mod compile;
 pub mod couple;
@@ -23,6 +24,7 @@ pub mod delta;
 pub mod dep_only;
 pub mod diagnostics;
 mod hash;
+pub mod impact;
 pub mod index;
 pub mod lint;
 pub mod manifest;
@@ -54,6 +56,10 @@ pub use attest::{
     attest_spec, attestation_hash, check_attestation_major, check_spec_attestation_major,
     payload_schema_version, spec_attestation_hash, stored_bytes_hash, verify_recompute,
     verify_spec_recompute, with_stored_bytes, with_stored_bytes_spec,
+};
+pub use closure::{
+    ClosureMember, ClosureRequest, ResolvedClosure, SectionRef, closure, committed_content_hashes,
+    resolve_closure,
 };
 pub use compact::{
     CompactPlan, Compaction, Leftover, RetireEntry, RetireKind, SkipClause, Skipped, UnitAction,
@@ -87,6 +93,7 @@ pub use diagnostics::{
     UNRESOLVED_CODES, UnwitnessedCounts, annotate_unreadable, committed_counts,
     committed_diagnostics, count as count_diagnostics,
 };
+pub use impact::{ConflictEntry, ImpactEntry, ImpactSet, impacts};
 pub use index::{
     BlockingClaim, Freshness, IndexFreshnessReport, IndexOutcome, IndexShardSet, OwnerKind,
     OwnerLink, OwnerReport, UnwitnessedClaim, authorities, check_index_freshness,
@@ -125,6 +132,25 @@ pub fn compile_json(config_json: &str, repo_root: &str) -> Result<String, Error>
     Ok(outcome.json)
 }
 
+/// Resolve a context closure against the committed ledger (spec 107).
+///
+/// `request_json` is a [`ClosureRequest`]: `{ "specs"?: [id], "sections"?:
+/// [{ "spec", "anchor" }], "obligations"?: ["<spec-id>#<obligation-id>"],
+/// "rationale"?: string }`. The answer is a read document (spec 074) with
+/// `members`, `digest` and `rationale`. A stale registry is refused (exit 2)
+/// before anything is digested.
+pub fn closure_json(
+    config_json: &str,
+    repo_root: &str,
+    request_json: &str,
+) -> Result<String, Error> {
+    let config = config_from_json(config_json)?;
+    let request: ClosureRequest = serde_json::from_str(request_json)
+        .map_err(|e| Error::Parse(format!("invalid closure request: {e}")))?;
+    let resolved = closure(&config, std::path::Path::new(repo_root), &request)?;
+    read_document(&resolved, Versioning::Stamp)
+}
+
 /// Run a read-only query described by `request_json`.
 ///
 /// Request shape: `{ "registry": "<registry.json text>", "op": "list" |
@@ -150,6 +176,12 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         ids_only: bool,
         #[serde(default)]
         nonzero_only: bool,
+        /// Spec 109 §3.6: `impacts`' filters. `target` is a spec id or a
+        /// qualified obligation reference; `declaredBy` is a spec id.
+        #[serde(default)]
+        target: Option<String>,
+        #[serde(default)]
+        declared_by: Option<String>,
     }
     #[derive(Deserialize)]
     #[serde(rename_all = "kebab-case")]
@@ -161,6 +193,9 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         Plan,
         /// Spec 106 §3.6: `id` is a qualified `<spec-id>#<obligation-id>`.
         Obligation,
+        /// Spec 109 §3.6: every declared impact and conflict, filtered by
+        /// `target` and `declaredBy`.
+        Impacts,
     }
 
     let request: Request = serde_json::from_str(request_json)
@@ -214,6 +249,14 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         // Spec 035. Not the spec 034 verdict envelope, which wraps the
         // adjudicating verbs; a read document instead (spec 074).
         Op::Plan => read_document(&plan(&registry)?, Versioning::Stamp)?,
+        Op::Impacts => read_document(
+            &impacts(
+                &registry,
+                request.target.as_deref(),
+                request.declared_by.as_deref(),
+            )?,
+            Versioning::Stamp,
+        )?,
     };
     Ok(json)
 }

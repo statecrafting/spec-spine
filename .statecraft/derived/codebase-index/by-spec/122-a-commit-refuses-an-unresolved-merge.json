@@ -1,0 +1,62 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "094-one-gate-and-the-boundaries-it-holds"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".githooks/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/commit_boundary.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/commit_boundary.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/commit_boundary.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".githooks/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": ".githooks/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".gitattributes"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": ".gitattributes"
+        }
+      }
+    ],
+    "specId": "122-a-commit-refuses-an-unresolved-merge",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "438f2323927a36e6466ad7c66c3f944bae576ca3116bdeca4dda285f93e76138"
+}

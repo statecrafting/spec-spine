@@ -137,6 +137,8 @@ Read-only queries over the compiled registry. Every subcommand takes `--json`.
 | `registry status-report [--nonzero-only]` | Counts by status. `--nonzero-only` omits zero counts; the total still covers the corpus. |
 | `registry relationships <ID>` | A spec's relationship neighborhood: the typed edges in and out. |
 | `registry obligation <SPEC>#<ID>` | One declared obligation (spec 106): its kind, text, anchor and inputs, its section's digest, and the spec's content hash. The spec half accepts the short id; an unqualified id exits `3`, an unknown one `1`. |
+| `registry closure --request <FILE\|->` | Resolve a context closure (spec 107): every named spec, section and obligation with its identity, and one order-independent digest over them. Refuses a stale registry with exit `2`. |
+| `registry impacts [--target <REF>] [--declared-by <SPEC>]` | Every declared impact and conflict against spec 106's obligations (spec 109), inverted so the target side can see them. `--target` is a spec id or a qualified `<spec-id>#<obligation-id>` reference; `--declared-by` is a spec id; both filters compose by intersection. An unqualified `#` reference exits `3`; an unknown spec or obligation exits `1`. |
 | `registry plan [--next]` | Which specs can be worked on now and what blocks the rest (spec 035). `--next` prints only the first ready spec; an empty ready set is `(nothing ready)` at exit `0`, not a failure. |
 
 `plan`'s `ready` set is a **scheduling** answer, not an approval. See
