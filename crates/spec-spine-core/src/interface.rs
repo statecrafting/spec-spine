@@ -128,6 +128,9 @@ fn verify_one(
     let recomputed = compile::section_digests(&exported.path, &body);
 
     let mut sections = Vec::with_capacity(r.sections.len());
+    // Starts false when nothing is pinned: a reference without sections is a
+    // claim about the whole spec, so a moved content hash is `stale`, never
+    // `sections-current` (§3.3).
     let mut sections_current = !r.sections.is_empty();
     for s in &r.sections {
         match recomputed.get(&s.anchor) {

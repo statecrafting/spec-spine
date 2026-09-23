@@ -1,5 +1,6 @@
 // Spec: specs/067-a-short-id-names-the-same-spec-at-every-verb/spec.md
-//! Spec 067 §3.5: the six-argument matrix.
+//! Spec 067 §3.5: the spec-id argument matrix (six at 067, seven since spec
+//! 110 added `interface verify --spec`).
 //!
 //! 043 §3.2 and 049 §3.1 each asserted the cross-verb rule in prose, and
 //! nothing held it: four of the six arguments refused the short form through
@@ -231,10 +232,10 @@ fn an_ambiguous_ordinal_is_one_refusal_at_all_six_arguments() {
     );
 }
 
-/// Step 4, at the five arguments that refuse it. `verify-attestation` is the
+/// Step 4, at every argument that refuses it (five at 067, six since 110). `verify-attestation` is the
 /// exception and is asserted separately below.
 #[test]
-fn no_match_is_one_refusal_at_the_five_arguments_that_refuse_it() {
+fn no_match_is_one_refusal_at_every_argument_that_refuses_it() {
     let t = corpus();
     let mut messages: Vec<String> = Vec::new();
     // Named, not positional: `take(5)` would silently test the wrong set if
