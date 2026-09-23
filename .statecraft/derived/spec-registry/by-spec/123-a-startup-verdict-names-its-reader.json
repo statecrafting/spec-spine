@@ -56,20 +56,20 @@
     "risk": "low",
     "sectionDigests": {
       "1-1-what-happened-measured": "e82c80dba7774dc72ea9eb8c339a9a944db5717108de6e18af11eee89a8b2b04",
-      "1-2-why-the-hook-could-not-tell": "3283d4f10e098a8083a78c1588b7b8c74d034de901408f809b3fed390b79dd39",
-      "1-purpose": "2848328ab4b5cee1c3c5f32018c05d47c4ad089176e6425dc5352cd24ee87277",
-      "123-a-startup-verdict-names-its-reader": "9bc85cb6b032350f6ddbd980e0eb1eecf5db8c93aef0f3d45606ff8596386153",
+      "1-2-why-the-hook-could-not-tell": "6266631e526b9ff6a1b08c96e70b2fff66b1b60f391aa977fb5c4bedfece9079",
+      "1-purpose": "5ca7000cc18658c81149ef4235985f1ee222966575c4ff7cf377b08d27b4771b",
+      "123-a-startup-verdict-names-its-reader": "798f8636c322dd9f92f49e27a5f758788f743993b6ae7df5dd0418d464671772",
       "2-territory": "e4bf56eef47d13c4421c9344b66ea718db4cb22f5697457e4465b5a8b2cb7015",
       "3-1-the-reader-is-named": "4c5335566054e2fdbc91a6de0965aab48474c18c1630e885c64fa41d40932e65",
-      "3-2-a-reader-older-than-its-source-is-not-believed": "c974e8d54e2f6765dd2178db91e52dd075d6b463e84e24ce687e50142f736f93",
+      "3-2-a-reader-older-than-its-source-is-not-believed": "0570a708eb07951468dee20902a5aef0b166846860344fff5f993a80af73a150",
       "3-3-the-original-diagnostic-is-kept": "214a018f4890b610ef13587db3605e18a489b3614b50927f15003a3b31c3f908",
       "3-4-the-commit-boundary-names-its-reader": "441aa4e5593b06c417bbc3fb2b13cd22e12e11e433c85873cbc643a56b251bd2",
       "3-5-read-only": "6c93eb74e2e69b38482d5298196f509ed531fdd13d22e67e5726743038ffccc7",
       "3-6-evidence": "3f9bb09554e34108dd378b4b9a3ebfd6365966be41f65de6712c9ea2b3131053",
       "3-7-what-this-amends-in-spec-093": "f01a31ee9fdf239002ad87b6147846f1528d59ffdda1844571bfc5ba8da381c3",
-      "3-behavior": "c625ed859bf8da9960fa6849f1d2f0e8ba041a1cdff84b34ebb7640c12fc314f",
+      "3-behavior": "00083e0f0761da47e52d4173bd795900a6c041d9e1a411e7870d437e437204cf",
       "4-out-of-scope": "90299a0211512bca924f53a71e8955684037a4377e4cc140cdd8453a34624608",
-      "5-resolved-decisions": "b8c79b3e93a46444e11108b7a75e3f97f6eea12c8a2a709fd88b987afd138ed7",
+      "5-resolved-decisions": "c6f251d22f1cba8a521fbaea4ee0e307f43975ae307b4d2fa0483732ab941d6e",
       "verification": "543fb1803216f0292f996ad0855407f2f2ba67a0ed516789f109dcbab38602b4"
     },
     "sectionHeadings": [
@@ -95,6 +95,6 @@
     "summary": "Three session starts on 2026-09-23 reported \"spec registry: INVALID; codebase index: STALE\" on a corpus that was valid and fresh. The reader was the repository's own `target/release/spec-spine`, built from an earlier revision and left in place while the checkout fast-forwarded past the frontmatter grammar it knows, so an incompatible reader's refusal was printed as a finding about the corpus. The hooks that turn `check` into a message now name the executable they selected, and when that executable is the in-tree build and is older than the source it is built from, they say the verdict is an earlier revision's reading and keep what it said. They still read only: nothing builds, regenerates or installs.\n",
     "title": "A startup verdict names its reader"
   },
-  "shardHash": "82755f1ba281a53c485463bcc3a81983228e5e8745cb8f2b528bc78f11b0b92d",
+  "shardHash": "3ccaa21767fb70ea235824d9f42bd3299d19c5bdcda26f419044354a1cbd4a1d",
   "specVersion": "1.6.0"
 }
