@@ -1,0 +1,18 @@
+# A disposable consumer of the packaged spec-spine library. Not a workspace
+# member: `run.sh` copies this directory to a scratch location, points the two
+# dependencies below at crates unpacked from `cargo package`, and builds it
+# there, off the workspace lockfile. See docs/consumer-integration-expansion.md.
+[package]
+name = "expansion-consumer"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+spec-spine-core = { path = "PACKAGED_CORE" }
+serde_json = "1"
+
+[patch.crates-io]
+spec-spine-types = { path = "PACKAGED_TYPES" }
+
+[workspace]
