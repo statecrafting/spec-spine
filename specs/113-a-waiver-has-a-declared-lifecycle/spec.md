@@ -4,11 +4,29 @@ title: "A waiver has a declared lifecycle"
 status: draft
 kind: "governance"
 created: "2026-09-21"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
   - "005-coupling-gate"
+establishes:
+  # 3.1 to 3.6: the declaration, its parsing and its evaluation.
+  - { kind: file, path: "crates/spec-spine-core/src/waiver.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/waiver.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/waiver.rs" }
+extends:
+  # 3.3, 3.6, 3.8: the gate evaluates every declared waiver and reports it.
+  - { spec: "005-coupling-gate", unit: { kind: file, path: "crates/spec-spine-core/src/couple.rs" }, nature: additive }
+  - { spec: "005-coupling-gate", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_couple.rs" }, nature: additive }
+  - { spec: "005-coupling-gate", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
+  - { spec: "005-coupling-gate", unit: { kind: file, path: "crates/spec-spine-cli/src/main.rs" }, nature: additive }
+  # 3.8: the verdict envelope's MINOR, with its pins.
+  - { spec: "034-machine-readable-verdicts", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
+  - { spec: "034-machine-readable-verdicts", unit: { kind: file, path: "crates/spec-spine-types/tests/dtos.rs" }, nature: additive }
+  - { spec: "034-machine-readable-verdicts", unit: { kind: file, path: "crates/spec-spine-cli/tests/cli.rs" }, nature: additive }
+  # The documentation a consumer reads.
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
 summary: >
   A `Spec-Drift-Waiver:` line clears every refusal in the pull request it
   appears in, with no scope, no expiry and no record of what it excused. A
@@ -48,8 +66,15 @@ obligations:
     anchor: "3-7-what-the-engine-does-not-do"
   - id: "I-2"
     kind: invariant
-    text: "A run with no waiver declared produces a verdict byte-identical to the one it produced before this spec."
+    text: "A run with no waiver declared produces the same report bytes it produced before this spec; only the envelope's schemaVersion moves."
     anchor: "3-8-compatibility"
+  - id: "V-1"
+    kind: verification
+    text: "Each lifecycle check is asserted satisfied, failed and not evaluated from the verdict, the pairing is asserted non-positionally, and disabling the checks or the scope fails the suite."
+    anchor: "verification"
+    inputs:
+      - "crates/spec-spine-core/tests/waiver.rs"
+      - "crates/spec-spine-cli/tests/waiver.rs"
 ---
 
 # 113: A waiver has a declared lifecycle
@@ -232,9 +257,10 @@ reports a waiver `effective` says nothing about whether it was authorized.
 
 ### 3.8 Compatibility
 
-- A run with no waiver declared produces a verdict byte-identical to the one
-  it produced before this spec: `waivers` and `unattachedWaiverLines` are
-  omitted when empty.
+- A run with no waiver declared produces the same report bytes it produced
+  before this spec (`couple_json`'s answer, and the envelope's `report`):
+  `waivers` and `unattachedWaiverLines` are omitted when empty. The envelope's
+  `schemaVersion` is the one member that moves, as spec 100's did.
 - A run whose one waiver declares no lifecycle line decides exactly as before
   (same exit code, same `violations`, same `waiver`) and its report gains the
   `waivers` block reporting it unscoped, which §3.2 requires.
@@ -271,6 +297,39 @@ excluding this one), how a malformed declaration is treated (a failed check,
 §3.5), and where the CLI's inputs come from (§3.3: an explicit flag for the
 date and the count, git for ancestry, never the clock).
 
+**D-2 (2026-09-23, build).** Decisions the contract left to the build:
+
+- *The payload, not the envelope, is what stays byte-identical.* The draft and
+  D-1 said "verdict"; the envelope's `schemaVersion` moves to `0.6.0` on every
+  run, so the invariant is stated over the report (`couple_json`'s answer and
+  the envelope's `report`), which is what spec 100 kept for its own MINOR.
+  I-2 and §3.8 say so.
+- *The as-of date is validated by the pure core too*, not only by the
+  freshness-guarded entry: a caller passing `23/09/2026` straight to
+  `couple_with_prior_waived` gets the usage error (exit 3), rather than a
+  string comparison that would decide an expiry on character order.
+- *The CLI's ancestry question* passes `--end-of-options` before its operands,
+  as `merge_base` does, and asks only for a `-Since:` shaped like a commit, so
+  nothing a pull request body says reaches git as an option.
+- *The waiver `id`* is `sha256:` over named pieces with the corpus's one hash
+  construction, so the order lines were written in and repeated `-Paths:`
+  lines do not move it and every declared value does. Scoped-to-nothing and
+  unscoped have different ids.
+- *Prose.* One plain waiver renders exactly the lines it rendered before;
+  anything more adds a block per waiver (its `id`, which `--waiver-uses`
+  takes, its scope, `effective` or `REFUSED`, what it cleared, each check) and
+  one line per unattached lifecycle line. A refusal counts and lists only the
+  violations no waiver cleared, and its resolution footer is computed over
+  those.
+
+**D-3 (2026-09-23, build: fail-first by mutation).** The new test files call
+functions that do not exist before this build, so run against the prior tree
+they fail to compile, which proves nothing. Measured instead against two
+mutations of `waiver.rs`: with every lifecycle check discarded, 9 of 22
+library cases and 4 of 9 CLI cases fail; with scope ignored (every effective
+waiver clears every violation), 4 and 2 fail. The rest assert compatibility
+and parsing that neither mutation touches.
+
 ## Acceptance
 
 The build MUST establish, behaviorally, with the negative cases that matter:
@@ -294,8 +353,8 @@ The build MUST establish, behaviorally, with the negative cases that matter:
   waiver's scope covers the second violation and the second waiver's the
   first;
 - an unattached lifecycle line is reported and narrows nothing;
-- a run with no waiver produces a verdict byte-identical to the same run
-  before this change, and a run with one plain waiver decides identically;
+- a run with no waiver produces the same report bytes as the same run before
+  this change, and a run with one plain waiver decides identically;
 - the facade and the CLI agree, and the envelope carries verdict `0.6.0`.
 
 ## Verification
