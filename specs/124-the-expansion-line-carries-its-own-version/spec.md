@@ -216,6 +216,16 @@ matches this repository's practice (the 0.22.0 bump preceded its tag the same
 way). The limit is stated in §3.1: until 0.23.0 is cut, the version names the
 expansion line, and §3.4 names the build.
 
+**D-2 (2026-09-23, review of #322).** The script trusted only absolute
+dep-info entries under the checkout, so a record written with cargo's
+`build.dep-info-basedir` (relative paths) matched nothing and the script
+reported "built-from: yes" having compared nothing. A relative entry is now
+resolved against the checkout, and a record that names none of the checkout's
+files is reported `NOT MEASURED` (exit 1), never as current. A missing
+`python3` is named as that, not reported as a missing shard. Exercised on a
+scratch checkout: a relative entry newer than the build reports `NO`, and a
+record naming only another directory's file reports `NOT MEASURED`.
+
 ## Verification
 
 Written to fail against the tree this spec is filed on: the version is 0.22.0,

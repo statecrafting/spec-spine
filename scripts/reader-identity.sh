@@ -61,11 +61,22 @@ if [ -n "$checkout" ]; then
     elif [ ! -f "$bin.d" ]; then
       miss built-from "no dep-info beside the build, so its inputs are unknown"
     else
-      newer=$(sed 's/^[^:]*://' "$bin.d" | tr ' ' '\n' | while IFS= read -r f; do
+      # Entries are absolute unless cargo's `build.dep-info-basedir` made them
+      # relative; a relative one is resolved against the checkout. `L` marks
+      # an input that was compared, so a record that names none of this
+      # checkout's files is reported as unmeasured rather than as current.
+      r=$(sed 's/^[^:]*://' "$bin.d" | tr ' ' '\n' | while IFS= read -r f; do
+        [ -n "$f" ] || continue
+        [ "${f#/}" != "$f" ] || f="$checkout/$f"
         [ "${f#"$checkout"/}" != "$f" ] && [ -f "$f" ] || continue
-        if [ "$f" -nt "$bin" ]; then printf '%s\n' "${f#"$checkout"/}"; break; fi
+        if [ "$f" -nt "$bin" ]; then printf 'N %s\n' "${f#"$checkout"/}"; break; fi
+        echo L
       done)
-      if [ -n "$newer" ]; then
+      newer=''
+      case "$r" in *"N "*) newer=${r##*N } ;; esac
+      if [ -z "$newer" ] && [ -z "$r" ]; then
+        miss built-from "the dep-info beside the build names none of $checkout's files"
+      elif [ -n "$newer" ]; then
         say built-from "NO: $newer is newer than the build; rebuild before recording it"
         unmeasured=1
       else
@@ -97,6 +108,7 @@ establishes:
 # 000-probe
 ## Body
 EOF
+command -v python3 >/dev/null 2>&1 || { miss "schemas" "python3 is not available to read the emitted JSON"; exit 1; }
 field() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get(sys.argv[2], ""))' "$1" "$2" 2>/dev/null; }
 if "$bin" --repo "$scratch" compile >/dev/null 2>&1 && "$bin" --repo "$scratch" index >/dev/null 2>&1; then
   derived=$("$bin" --repo "$scratch" config show --json 2>/dev/null \
