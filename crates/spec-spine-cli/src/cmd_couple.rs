@@ -15,13 +15,13 @@
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 use spec_spine_core::couple::spec_id_for_spec_md_path;
 use spec_spine_core::{
-    CoupleReport, DiffFile, DiffInput, FileContents, PriorOwnership, PriorSnapshots,
-    couple_snapshots, dependency_only_waiver, is_bypassed_path, load_committed_index, parse_waiver,
-    prior_ownership_from_root, tree_config,
+    CheckOutcome, CoupleReport, DiffFile, DiffInput, FileContents, PriorOwnership, PriorSnapshots,
+    WaiverDeclaration, WaiverInputs, WaiverSet, couple_snapshots_waived, dependency_only_waiver,
+    is_bypassed_path, load_committed_index, parse_waivers, prior_ownership_from_root, tree_config,
 };
 use spec_spine_types::{Config, Error, LineSpan, Verdict, Violation, verdict::verb};
 
@@ -39,6 +39,11 @@ pub struct CoupleArgs {
     /// set. Off by default: CI runs over a pushed range where the working tree
     /// is irrelevant and must stay so (§3.4).
     pub include_uncommitted: bool,
+    /// Spec 113 §3.3: the date a declared expiry is judged against. Only ever
+    /// the operator's: the clock is never read for it.
+    pub waiver_as_of: Option<String>,
+    /// Spec 113 §3.3: `<waiver id>=<prior uses>`, repeatable.
+    pub waiver_uses: Vec<String>,
     /// Emit the verdict as a JSON envelope instead of prose (spec 034).
     pub json: bool,
 }
@@ -51,16 +56,26 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
         worktree_deletions,
     } = build_diff_input(repo, args)?;
     let body = read_pr_body(args)?;
-    let mut waiver = parse_waiver(&cfg, &body);
+    // Spec 113 §3.1: every waiver the body declares, with its lifecycle lines.
+    // The first declaration is exactly what `parse_waiver` returns.
+    let mut waivers = parse_waivers(&cfg, &body);
     let mut auto_waived = false;
 
     // Spec 005 §3.5: mechanical dependency-only auto-waiver. Opt-in,
     // git-diff mode only (`--paths-from` has no content to compare), and
-    // never overrides an explicit PR-body waiver.
-    if waiver.is_none() && cfg.coupling.auto_waive_dependency_only && args.paths_from.is_none() {
-        waiver = try_dependency_only_waiver(repo, &cfg, args, &diff)?;
-        auto_waived = waiver.is_some();
+    // never overrides an explicit PR-body waiver. It is one unscoped waiver
+    // (spec 113 §3.8).
+    if waivers.declarations.is_empty()
+        && cfg.coupling.auto_waive_dependency_only
+        && args.paths_from.is_none()
+        && let Some(w) = try_dependency_only_waiver(repo, &cfg, args, &diff)?
+    {
+        waivers
+            .declarations
+            .push(WaiverDeclaration::unscoped(w.reason));
+        auto_waived = true;
     }
+    let inputs = waiver_inputs(repo, args, &waivers)?;
 
     // Spec 100 §3.4: built only when a deletion needs one, and §3.5: a
     // required snapshot that cannot be obtained is a refusal, never a
@@ -72,7 +87,7 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
         worktree_deletions,
     };
 
-    let report = couple_snapshots(&cfg, repo, &diff, waiver.as_ref(), &prior)?;
+    let report = couple_snapshots_waived(&cfg, repo, &diff, &waivers, &inputs, &prior)?;
 
     if args.json {
         // The `CoupleReport` verbatim, as `spec_spine_core::couple_json`
@@ -88,13 +103,13 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
         return Ok(code);
     }
 
+    // Spec 113 §3.6: the refusal is over the violations no waiver cleared,
+    // which is every violation when no waiver is declared, so that case
+    // renders exactly the bytes it rendered before.
+    let open: Vec<Violation> = report.uncleared().into_iter().cloned().collect();
     if report.has_blocking_drift() {
-        let unclaimed = report
-            .violations
-            .iter()
-            .filter(|v| v.code == "C-002")
-            .count();
-        let drift = report.violations.len() - unclaimed;
+        let unclaimed = open.iter().filter(|v| v.code == "C-002").count();
+        let drift = open.len() - unclaimed;
         if unclaimed == 0 {
             eprintln!(
                 "spec-spine couple: {drift} drift violation(s): a changed path lacks an authoring edit to an owning spec.\n"
@@ -102,13 +117,20 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
         } else {
             eprintln!(
                 "spec-spine couple: {} violation(s): {drift} drift (C-001), {unclaimed} unclaimed (C-002, require_ownership is on).\n",
-                report.violations.len()
+                open.len()
             );
         }
-        for v in &report.violations {
+        for v in &open {
             eprintln!("  {} {}", v.code, v.message);
         }
-        eprint!("{}", resolution_footer(&cfg, &report, &diff));
+        if waivers_worth_reporting(&report) {
+            eprint!("{}", render_waivers(&report));
+        }
+        let unwaived = CoupleReport {
+            violations: open,
+            ..report.clone()
+        };
+        eprint!("{}", resolution_footer(&cfg, &unwaived, &diff));
     } else if let Some(reason) = &report.waiver {
         outln!(
             "spec-spine couple: {} violation(s) {}, reason: {reason}",
@@ -118,11 +140,17 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
         for v in &report.violations {
             outln!("  {} (waived)", v.message);
         }
+        if waivers_worth_reporting(&report) {
+            out!("{}", render_waivers(&report));
+        }
     } else {
         outln!(
             "spec-spine couple: OK: {} path(s) checked, no drift.",
             report.checked_paths
         );
+        if waivers_worth_reporting(&report) {
+            out!("{}", render_waivers(&report));
+        }
     }
 
     Ok(report.exit_code())
@@ -749,6 +777,135 @@ fn parse_hunk_header(line: &str) -> Option<LineSpan> {
     Some(LineSpan::new(start, start + count - 1))
 }
 
+/// The caller's lifecycle inputs (spec 113 §3.3). The as-of date and the use
+/// counts come only from their flags; ancestry is asked of git, which is where
+/// this verb already reads the range from, and only for a `-Since:` shaped like
+/// a commit, so nothing a pull request body says reaches git as an option.
+fn waiver_inputs(
+    repo: &Path,
+    args: &CoupleArgs,
+    waivers: &WaiverSet,
+) -> Result<WaiverInputs, Error> {
+    let mut inputs = WaiverInputs {
+        as_of: args.waiver_as_of.clone(),
+        ..WaiverInputs::default()
+    };
+    for entry in &args.waiver_uses {
+        let parsed = entry
+            .rsplit_once('=')
+            .and_then(|(id, n)| n.trim().parse::<u64>().ok().map(|n| (id.trim(), n)))
+            .filter(|(id, _)| !id.is_empty());
+        let Some((id, n)) = parsed else {
+            return Err(Error::Parse(format!(
+                "--waiver-uses '{entry}' is not <waiver id>=<count>"
+            )));
+        };
+        inputs.uses.insert(id.to_string(), n);
+    }
+    let sinces: BTreeSet<&str> = waivers
+        .declarations
+        .iter()
+        .filter_map(|d| d.since.as_deref())
+        .filter(|s| (4..=40).contains(&s.len()) && s.bytes().all(|c| c.is_ascii_hexdigit()))
+        .collect();
+    for since in sinces {
+        let status = Command::new("git")
+            // `--end-of-options`, as `merge_base` does: `--head` is the
+            // operator's, and a ref shaped like a flag stays an operand.
+            .args([
+                "merge-base",
+                "--is-ancestor",
+                "--end-of-options",
+                since,
+                &args.head,
+            ])
+            .current_dir(repo)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status();
+        // 0 and 1 are git's two answers; anything else (an unknown commit, a
+        // shallow clone) is no answer, and supplies nothing (spec 113 §3.4).
+        match status.ok().and_then(|s| s.code()) {
+            Some(0) => {
+                inputs.ancestry.insert(since.to_string(), true);
+            }
+            Some(1) => {
+                inputs.ancestry.insert(since.to_string(), false);
+            }
+            _ => {}
+        }
+    }
+    Ok(inputs)
+}
+
+/// Whether the prose report needs a waiver section: anything beyond one plain
+/// waiver, which renders exactly as before (spec 113 §3.8).
+fn waivers_worth_reporting(report: &CoupleReport) -> bool {
+    !report.unattached_waiver_lines.is_empty()
+        || report.waivers.len() > 1
+        || report
+            .waivers
+            .iter()
+            .any(|w| w.scoped || !w.checks.is_empty())
+}
+
+/// One block per declared waiver: its id (the key `--waiver-uses` takes), its
+/// scope, whether it was effective, what it cleared, and each check.
+fn render_waivers(report: &CoupleReport) -> String {
+    use std::fmt::Write as _;
+    let mut s = String::new();
+    for (n, w) in report.waivers.iter().enumerate() {
+        let scope = if w.scoped {
+            format!("scoped to {}", w.paths.join(", "))
+        } else {
+            "unscoped (clears every violation)".to_string()
+        };
+        let state = if w.effective { "effective" } else { "REFUSED" };
+        let _ = writeln!(
+            s,
+            "  waiver {} {}: \"{}\", {scope}, {state}, cleared {}",
+            n + 1,
+            w.id,
+            w.reason,
+            w.clears.len()
+        );
+        for c in &w.clears {
+            let _ = writeln!(
+                s,
+                "    clears {} {}",
+                c.code,
+                c.path.as_deref().unwrap_or("-")
+            );
+        }
+        for c in &w.checks {
+            let outcome = match c.outcome {
+                CheckOutcome::Satisfied => "satisfied",
+                CheckOutcome::Failed => "failed",
+                CheckOutcome::NotEvaluated => "not evaluated",
+            };
+            let input = c
+                .input
+                .as_deref()
+                .map(|i| format!(", input {i}"))
+                .unwrap_or_default();
+            let detail = c
+                .detail
+                .as_deref()
+                .map(|d| format!(": {d}"))
+                .unwrap_or_default();
+            let _ = writeln!(
+                s,
+                "    {}: {outcome} (declared {}{input}){detail}",
+                c.check, c.declared
+            );
+        }
+    }
+    for line in &report.unattached_waiver_lines {
+        let _ = writeln!(s, "  unattached waiver line, narrows nothing: {line}");
+    }
+    s
+}
+
 fn read_pr_body(args: &CoupleArgs) -> Result<String, Error> {
     if let Some(path) = &args.pr_body {
         std::fs::read_to_string(path)
@@ -1125,6 +1282,8 @@ mod tests {
             // Spec 081: this fixture asserts the committed range alone, which
             // is the default and what CI runs.
             include_uncommitted: false,
+            waiver_as_of: None,
+            waiver_uses: Vec::new(),
             json: false,
         };
         let d = build_diff_input(root, &args).unwrap().diff;

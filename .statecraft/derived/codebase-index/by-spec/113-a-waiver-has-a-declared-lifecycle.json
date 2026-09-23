@@ -1,23 +1,11 @@
 {
   "mapping": {
-    "amends": [
-      "015-short-id-resolution"
-    ],
     "dependsOn": [
-      "002-registry-query",
-      "004-codebase-index",
-      "015-short-id-resolution",
-      "039-per-spec-attestation",
-      "043-verify-declared-acceptance",
-      "049-compile-one-spec"
+      "005-coupling-gate"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/cmd_attest.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-cli/src/cmd_registry.rs",
+        "path": "crates/spec-spine-cli/src/cmd_couple.rs",
         "source": "spec-edge"
       },
       {
@@ -25,23 +13,15 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/verify_attestation.rs",
+        "path": "crates/spec-spine-cli/tests/cli.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/spec_id.rs",
+        "path": "crates/spec-spine-cli/tests/waiver.rs",
         "source": "multiple"
       },
       {
-        "path": "crates/spec-spine-core/src/attest.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/src/compile.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/src/index.rs",
+        "path": "crates/spec-spine-core/src/couple.rs",
         "source": "spec-edge"
       },
       {
@@ -49,86 +29,81 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/query.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/src/spec_id.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/src/verify.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/tests/spec_id.rs",
+        "path": "crates/spec-spine-core/src/waiver.rs",
         "source": "multiple"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/waiver.rs",
+        "source": "multiple"
+      },
+      {
+        "path": "crates/spec-spine-types/src/version.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/tests/dtos.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/api.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/schema-versioning.md",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/spec_id.rs"
+            "file": "crates/spec-spine-cli/tests/waiver.rs"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/spec_id.rs"
+          "path": "crates/spec-spine-cli/tests/waiver.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/spec_id.rs"
+            "file": "crates/spec-spine-core/src/waiver.rs"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/spec_id.rs"
+          "path": "crates/spec-spine-core/src/waiver.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/spec_id.rs"
+            "file": "crates/spec-spine-core/tests/waiver.rs"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/spec_id.rs"
+          "path": "crates/spec-spine-core/tests/waiver.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_attest.rs"
+            "file": "crates/spec-spine-cli/src/cmd_couple.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_attest.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-cli/src/cmd_registry.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
         }
       },
       {
@@ -147,53 +122,27 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/verify_attestation.rs"
+            "file": "crates/spec-spine-cli/tests/cli.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/verify_attestation.rs"
+          "path": "crates/spec-spine-cli/tests/cli.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/attest.rs"
+            "file": "crates/spec-spine-core/src/couple.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/attest.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/src/compile.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/compile.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/src/index.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/index.rs"
+          "path": "crates/spec-spine-core/src/couple.rs"
         }
       },
       {
@@ -212,59 +161,85 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/query.rs"
+            "file": "crates/spec-spine-types/src/version.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/query.rs"
+          "path": "crates/spec-spine-types/src/version.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/verify.rs"
+            "file": "crates/spec-spine-types/tests/dtos.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/verify.rs"
+          "path": "crates/spec-spine-types/tests/dtos.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "specs/018-structured-partial-supersedes/spec.md"
+            "file": "docs/api.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/schema-versioning.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/04-authority-evidence-extension.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "specs/018-structured-partial-supersedes/spec.md"
+          "path": "docs/design/04-authority-evidence-extension.md"
         }
       },
       {
         "locations": [
           {
-            "file": "specs/066-an-attestation-covers-the-territory-it-claims/spec.md"
+            "file": "docs/design/09-disposition-2026-09-21.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "specs/066-an-attestation-covers-the-territory-it-claims/spec.md"
+          "path": "docs/design/09-disposition-2026-09-21.md"
         }
       }
     ],
-    "specId": "067-a-short-id-names-the-same-spec-at-every-verb",
-    "specStatus": "approved"
+    "specId": "113-a-waiver-has-a-declared-lifecycle",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "1bff47480db5d715209ec09bab03a27188c65b73bbad08d33ff34ac5040bf03a"
+  "shardHash": "d57d729e26f10e13a5a08f5aacf46742c637fbf87314f897dd7c87662b28991b"
 }
