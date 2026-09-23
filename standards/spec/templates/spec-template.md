@@ -137,6 +137,29 @@ implementation: pending        # pending | in-progress | complete | n-a | deferr
 # conflicts:
 #   - { obligation: "NNN-other#R-3", reason: "why", resolution: deliberate }
 #   - { obligation: "NNN-other#R-5", reason: "why", resolution: pending, settled_by: "NNN-later" }
+# --- cross-corpus interface references (spec 110) ---
+# `interface_references` cite a spec in ANOTHER repository, pinned to what it
+# said when it was read. Nothing fetches it and no gate reads the pin; only
+# `spec-spine interface verify --export <corpus>=<dir>` checks it, against a
+# local checkout the caller supplies.
+#   - `corpus`: a name, `^[a-z0-9][a-z0-9._-]*$`, never a URL or path (`V-032`).
+#   - `spec`: the cited spec's FULL id in that corpus; a short id is `V-033`.
+#   - `digest`: `sha256:` + 64 lowercase hex, the cited spec's `contentHash`
+#     from `spec-spine registry show <id> --json` run in that corpus (`V-034`).
+#     There is no placeholder form: a pin is copied, never filled in later.
+#   - `sections`: optional anchors, each with its `sectionDigests` entry, in the
+#     same `sha256:` form (`V-035`); an anchor pinned twice is `V-037`.
+#   - `obtained`: the authored `YYYY-MM-DD` date the digests were read (`V-036`).
+#   - `rationale`: optional free text.
+# One reference per (corpus, spec) pair in a spec (`V-038`).
+# interface_references:
+#   - corpus: "other-repo"
+#     spec: "NNN-cited-spec"
+#     digest: "sha256:<64 hex>"
+#     sections:
+#       - { anchor: "3-1-the-rule", digest: "sha256:<64 hex>" }
+#     obtained: "YYYY-MM-DD"
+#     rationale: "why this spec relies on it"
 # --- bootstrap marker (NOT an edge) ---
 # `origin.retroactive` declares authority held since before the graph existed:
 # code that predates its governing spec is evidence, not a violation, and a

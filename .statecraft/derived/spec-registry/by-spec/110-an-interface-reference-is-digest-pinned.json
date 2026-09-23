@@ -1,0 +1,286 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "070-an-authority-snapshot-says-what-it-read",
+      "106-obligations-are-declared-constraints"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/interface.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/interface.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_interface.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/interface.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/interface.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/interface_composed.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/frontmatter.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "067-a-short-id-names-the-same-spec-at-every-verb",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/spec_id.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "106-obligations-are-declared-constraints",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/obligations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "109-impact-and-conflict-are-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/impacts.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "088-the-template-teaches-the-whole-grammar",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/templates/spec-template.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "103-a-verifier-fixture-is-a-published-artifact",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
+      }
+    ],
+    "id": "110-an-interface-reference-is-digest-pinned",
+    "implementation": "complete",
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-2-malformed-references-are-refused-at-compile",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "A reference names a corpus, a full spec id, a sha256 digest and an authored obtained date, and every malformed member is a compile error naming the declaring spec."
+      },
+      {
+        "anchor": "3-3-verification-recomputes-from-a-corpus-the-caller-supplies",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "interface verify recomputes each pin from a caller-supplied local export and answers current, sections-current, stale, missing or unverified, holding only on the first two."
+      },
+      {
+        "anchor": "3-3-verification-recomputes-from-a-corpus-the-caller-supplies",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "A stale committed registry is refused (exit 2) before any export is read."
+      },
+      {
+        "anchor": "3-6-a-reference-is-updated-deliberately",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "Nothing fetches, discovers or trusts a corpus, and no verb writes or fills in a pin from what it observed."
+      },
+      {
+        "anchor": "3-7-nothing-else-gates-on-a-reference",
+        "id": "I-2",
+        "kind": "invariant",
+        "text": "compile, check, lint, index and couple reach the same verdicts whether or not references are declared."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/interface.rs",
+          "crates/spec-spine-cli/tests/interface.rs",
+          "crates/spec-spine-cli/tests/interface_composed.rs"
+        ],
+        "kind": "verification",
+        "text": "Every compile rule and every verifier outcome is exercised against pins copied from a compiled exporter, through the library, the facade and the shipped binary."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      }
+    ],
+    "sectionDigests": {
+      "1-1-the-dependencies": "1458d38797efd2e8fd16c98dc4c4af3e8a3d96044531496ea8629f67db4d423c",
+      "1-2-what-it-enables-d-1": "f739fbb4a5cd482111c432896af972a39b179d19db36c938d948d3f38a88a59e",
+      "1-purpose": "f4e814d4cb7e6e25f269bd41e1a8fbc7efa598ba2d0cb745fb176a311fa65855",
+      "110-an-interface-reference-is-digest-pinned": "17dc468b4508fc259c8d3ca83f9e20d4dc0ad959c740f116bc18185269851e1a",
+      "2-territory": "0cb7694fdc499288762dfffa7d67690af06a2638c1c8a50fde1ce2a8f2a19726",
+      "3-1-a-reference-names-a-corpus-a-spec-and-a-digest": "33825581058c2923ebc73b840742038003cb4027f2fd4a78f17a94837c6adca7",
+      "3-2-malformed-references-are-refused-at-compile": "2b50985198c5efcce2678df1178efbe4be7dc71f95957f089da70535c36229c2",
+      "3-3-verification-recomputes-from-a-corpus-the-caller-supplies": "e76dcf49a58ff8d6aff1f0323ae023546ef54f6aec120c303304bfd288c5e0c9",
+      "3-4-the-library-and-the-facade": "6baf25a4197ddddf0490009d997df173f3f2e5742cf7cd8d98c90283be6cda5e",
+      "3-5-what-a-reference-establishes-and-what-it-does-not": "00bf0d0b460d583bafe672a6322460c69c262fd7165d0357869fba5972262672",
+      "3-6-a-reference-is-updated-deliberately": "c496f587e7d1f07557ad8bfb01cf0fc25c40cbcf6447f4a896ffe5011781b5f3",
+      "3-7-nothing-else-gates-on-a-reference": "d78f117ab51ab868b222b192e67097a4e2416b2d5596e45ffee3670b66255f1f",
+      "3-behavior": "666aeed5ac4a4ee754cef05f26a04f519417492df12525394c023f9454d6e5b4",
+      "4-out-of-scope": "cca5b4786525091cb3a19c6cc74e9827f4e543e12e4ea200117d851cde1a983b",
+      "5-resolved-decisions": "8aaaa44b2fda081f01325b43f0b7ae3abfc3a71641f5e80ec801050d10c00fa9",
+      "verification": "a4a0912f3c4451721eb0459d8795859311f991d7a07d869bb071a76621be067f"
+    },
+    "sectionHeadings": [
+      "110: An interface reference is digest-pinned",
+      "1. Purpose",
+      "1.1 The dependencies",
+      "1.2 What it enables (D-1)",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A reference names a corpus, a spec and a digest",
+      "3.2 Malformed references are refused at compile",
+      "3.3 Verification recomputes from a corpus the caller supplies",
+      "3.4 The library and the facade",
+      "3.5 What a reference establishes, and what it does not",
+      "3.6 A reference is updated deliberately",
+      "3.7 Nothing else gates on a reference",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/110-an-interface-reference-is-digest-pinned/spec.md",
+    "status": "draft",
+    "summary": "A spec can cite another repository's spec only in prose, so the citation cannot go stale visibly. This declares a cross-corpus interface reference pinned to the cited spec's content hash, and optionally to the digests of the sections it relies on, and adds one verifier that recomputes those digests from a corpus the caller supplies locally. A moved interface becomes a named, exit-coded fact. Discovery, fetching and trust in the exporter stay with the caller; nothing is ever pinned from what was first observed.\n",
+    "title": "An interface reference is digest-pinned"
+  },
+  "shardHash": "7ee3e5762dee111707c39e8823ce36310b0c4a85b9ccd6be0930dcc44edba30f",
+  "specVersion": "1.6.0"
+}

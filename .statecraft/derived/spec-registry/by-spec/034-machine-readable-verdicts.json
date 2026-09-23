@@ -168,5 +168,5 @@
     "title": "Machine-readable verdicts: `--json` on the adjudicating verbs"
   },
   "shardHash": "5a96be7aff93348aeb3825fe95c56fb44a1516c8dc4c5142f97ab993e586aa39",
-  "specVersion": "1.5.0"
+  "specVersion": "1.6.0"
 }

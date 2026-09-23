@@ -62,5 +62,5 @@
     "title": "Distribution: uvx/PyPI wheel shim"
   },
   "shardHash": "65d02b6ae4ab9aff2a50d81f77abb9f3db0b3e2ed06dc6b64b9e4127bfa03a5f",
-  "specVersion": "1.5.0"
+  "specVersion": "1.6.0"
 }

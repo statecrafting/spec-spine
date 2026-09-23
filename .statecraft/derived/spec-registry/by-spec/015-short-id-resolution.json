@@ -54,5 +54,5 @@
     "title": "Compile: resolve short spec ids on `depends_on` and `superseded_by`"
   },
   "shardHash": "06c4c072b4d7b19f459cb9fac2d20c336039272b0aa8b8c31f22a84501ef7fc4",
-  "specVersion": "1.5.0"
+  "specVersion": "1.6.0"
 }

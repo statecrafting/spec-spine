@@ -61,15 +61,15 @@ fn a_stamped_document_carries_the_read_axis_version() {
     let doc = read_document(&Inner { yak: 1, bee: 2 }, Versioning::Stamp).unwrap();
     let v: serde_json::Value = serde_json::from_str(&doc).unwrap();
     assert_eq!(v["schemaVersion"], READ_SCHEMA_VERSION);
-    // The axis started at 0.1.0 (§3.4) and has moved four times, additively:
+    // The axis started at 0.1.0 (§3.4) and has moved five times, additively:
     // spec 102 added `status` to a `plan` ready entry, spec 106 added the
-    // `obligation` document, spec 107 the resolved closure, and spec 109 the
-    // impact set. Pinned, so the next move is a decision someone writes down
-    // rather than a constant that drifts.
+    // `obligation` document, spec 107 the resolved closure, spec 109 the
+    // impact set, and spec 110 the interface report. Pinned, so the next move
+    // is a decision someone writes down rather than a constant that drifts.
     assert_eq!(
-        READ_SCHEMA_VERSION, "0.5.0",
+        READ_SCHEMA_VERSION, "0.6.0",
         "0.1.0 at spec 074, 0.2.0 at spec 102, 0.3.0 at spec 106, 0.4.0 at spec 107, \
-         0.5.0 at spec 109"
+         0.5.0 at spec 109, 0.6.0 at spec 110"
     );
 }
 

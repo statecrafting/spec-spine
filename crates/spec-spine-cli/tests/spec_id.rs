@@ -1,5 +1,6 @@
 // Spec: specs/067-a-short-id-names-the-same-spec-at-every-verb/spec.md
-//! Spec 067 §3.5: the six-argument matrix.
+//! Spec 067 §3.5: the spec-id argument matrix (six at 067, seven since spec
+//! 110 added `interface verify --spec`).
 //!
 //! 043 §3.2 and 049 §3.1 each asserted the cross-verb rule in prose, and
 //! nothing held it: four of the six arguments refused the short form through
@@ -97,6 +98,17 @@ fn six(id: &str) -> Vec<(&'static str, Vec<String>)> {
                 "--spec".into(),
                 id.into(),
                 "--recompute".into(),
+            ],
+        ),
+        // Spec 110: the seventh, through the same resolver. The fixture
+        // declares no interface reference, so the answer is an empty report.
+        (
+            "interface verify --spec",
+            vec![
+                "interface".into(),
+                "verify".into(),
+                "--spec".into(),
+                id.into(),
             ],
         ),
     ]
@@ -211,7 +223,7 @@ fn an_ambiguous_ordinal_is_one_refusal_at_all_six_arguments() {
         );
         messages.push(msg);
     }
-    assert_eq!(messages.len(), 6, "every argument must write a refusal");
+    assert_eq!(messages.len(), 7, "every argument must write a refusal");
     messages.dedup();
     assert_eq!(
         messages.len(),
@@ -220,10 +232,10 @@ fn an_ambiguous_ordinal_is_one_refusal_at_all_six_arguments() {
     );
 }
 
-/// Step 4, at the five arguments that refuse it. `verify-attestation` is the
+/// Step 4, at every argument that refuses it (five at 067, six since 110). `verify-attestation` is the
 /// exception and is asserted separately below.
 #[test]
-fn no_match_is_one_refusal_at_the_five_arguments_that_refuse_it() {
+fn no_match_is_one_refusal_at_every_argument_that_refuses_it() {
     let t = corpus();
     let mut messages: Vec<String> = Vec::new();
     // Named, not positional: `take(5)` would silently test the wrong set if
@@ -238,9 +250,9 @@ fn no_match_is_one_refusal_at_the_five_arguments_that_refuse_it() {
         assert!(!msg.is_empty(), "{name} wrote no refusal");
         messages.push(msg);
     }
-    assert_eq!(messages.len(), 5, "the five that refuse a no match");
+    assert_eq!(messages.len(), 6, "the six that refuse a no match");
     messages.dedup();
-    assert_eq!(messages.len(), 1, "five different refusals: {messages:?}");
+    assert_eq!(messages.len(), 1, "different refusals: {messages:?}");
 }
 
 /// §3.2 and D-4: at `verify-attestation`, step 4 does not refuse. The argument
@@ -318,6 +330,7 @@ fn every_id_argument_documents_the_short_form() {
         (vec!["verify", "--help"], "short"),
         (vec!["attest", "--help"], "short id"),
         (vec!["verify-attestation", "--help"], "short id"),
+        (vec!["interface", "verify", "--help"], "short id"),
     ] {
         let out = bin().args(&verb).output().unwrap();
         let text = format!("{}{}", stdout(&out), stderr(&out));

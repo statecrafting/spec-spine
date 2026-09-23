@@ -26,6 +26,7 @@ pub mod diagnostics;
 mod hash;
 pub mod impact;
 pub mod index;
+pub mod interface;
 pub mod lint;
 pub mod manifest;
 mod markdown;
@@ -99,6 +100,9 @@ pub use index::{
     OwnerLink, OwnerReport, UnwitnessedClaim, authorities, check_index_freshness,
     check_slice_freshness, index, index_dir, index_freshness_report, index_shard_files,
     load_committed_index, owner, owner_with, slices_path, unwitnessed_claims, witnessed_paths,
+};
+pub use interface::{
+    ExportedSpec, Exports, interface_verify, load_export, verify_interface_references,
 };
 pub use lint::{LintReport, lint};
 pub use query::{
@@ -259,6 +263,34 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
         )?,
     };
     Ok(json)
+}
+
+/// Recompute every declared cross-corpus interface reference against
+/// caller-supplied export text (spec 110 §3.3, §3.4). No filesystem: a
+/// binding builds `exports` directly and gets the same answer `interface
+/// verify` gives from a local checkout.
+///
+/// `request_json`: `{ "registry": "<registry.json text>", "exports": {
+/// "<corpus>": { "<spec-id>": { "path", "text" } } }, "spec"?: "<id>" }`,
+/// unknown members refused. The answer is a read document (spec 074, read
+/// schema `0.6.0`), the same shape `interface verify --json` prints; an
+/// unresolved `spec` is [`Error::NotFound`] (exit 1).
+pub fn interface_verify_json(request_json: &str) -> Result<String, Error> {
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct Request {
+        registry: String,
+        #[serde(default)]
+        exports: interface::Exports,
+        #[serde(default)]
+        spec: Option<String>,
+    }
+
+    let request: Request = serde_json::from_str(request_json)
+        .map_err(|e| Error::Parse(format!("invalid interface verify request: {e}")))?;
+    let registry = load_registry(request.registry.as_bytes())?;
+    let report = verify_interface_references(&registry, &request.exports, request.spec.as_deref())?;
+    read_document(&report, Versioning::Stamp)
 }
 
 /// Index the corpus under `repo_root`, returning `index.json`.
