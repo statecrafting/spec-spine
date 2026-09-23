@@ -1,0 +1,66 @@
+{
+  "record": {
+    "created": "2026-09-23",
+    "dependsOn": [
+      "090-the-verdict-is-the-only-thing-on-stdout"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "090-the-verdict-is-the-only-thing-on-stdout",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_verify.rs"
+        }
+      }
+    ],
+    "id": "125-a-forwarded-line-arrives-whole",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/verify_streams.rs"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-1-measured-on-the-default-branch": "d4c14183d568d3dd4aa13f3b66e2e9fa20dc58d75d5b6e46c68f42c12cef7327",
+      "1-2-why-a-line-was-lost": "98e68c17357683996572797574144e81ad8bb0434ac59deb6170421b69a57ad6",
+      "1-purpose": "fe9dea61b6ee5000034d97df868e8857f857b65bc418cb2bdc19b6e2934536bf",
+      "125-a-forwarded-line-arrives-whole": "441c5761b34b8a725824760738b0d50f4beea7538b1f65fe1521b50f8e0b5985",
+      "2-territory": "2fdbfde68305fe39c859a82cf2a17ff4cac5aea818fa2ed5bec5072dcb9b4bf4",
+      "3-1-every-delivery-is-whole-lines": "18b17973abff1b31fe0d48d5a274403f03fd52de215c86d42cb014a68eb3856e",
+      "3-2-bounds-and-what-arrives-at-the-end": "3b999f1ec99877be0102b6667bdeb475cef8a530d1ca99a3cd682655840d0a48",
+      "3-3-evidence": "d84d611d6b1fd37b0c69f0dc8eeb5b96d0249fa8c289704a77f5f2c0f6920355",
+      "3-behavior": "98b13db7c10f5ef1a5f7f435ad5cfb1fa61f41679c4e5985c0d4871c4882730d",
+      "4-out-of-scope": "aeb115036e611d5edcdd013905d355be84f9dbb5395e0d873ad1ce9728fcc97a",
+      "5-resolved-decisions": "42ad84dc23c7dc500dc4a4fa49afac2476047e0d1aba4353b436aacd33bb3d8b",
+      "verification": "af0e184d30c328f79f04390db342676242f6835363152f6513b3294ea822e3e6"
+    },
+    "sectionHeadings": [
+      "125: A forwarded line arrives whole",
+      "1. Purpose",
+      "1.1 Measured, on the default branch",
+      "1.2 Why a line was lost",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Every delivery is whole lines",
+      "3.2 Bounds, and what arrives at the end",
+      "3.3 Evidence",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/125-a-forwarded-line-arrives-whole/spec.md",
+    "status": "draft",
+    "summary": "`verify` forwards a command's stdout and stderr to its own stderr from two threads, one write per read. A read ends wherever the pipe's contents did, which is mid-line whenever the command writes faster than the drain, so a line of one stream could be spliced by a chunk of the other. Spec 090's own flood test counts intact lines and caught it intermittently: the post-merge acceptance sweep at `0bf9ff78` failed twice, in two different specs' runs of the same suite, with 8191 of 8192 lines intact. Each drain now delivers whole lines only, holding a partial line until its newline arrives or a bound is reached. Order between the streams is still not promised.\n",
+    "title": "A forwarded line arrives whole"
+  },
+  "shardHash": "80f5b63e576a19a8783cac7b1513741ed40f53f64eb1197c04d6686f43acdbc0",
+  "specVersion": "1.6.0"
+}

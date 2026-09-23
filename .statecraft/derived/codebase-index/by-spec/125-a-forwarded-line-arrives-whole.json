@@ -1,0 +1,45 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "090-the-verdict-is-the-only-thing-on-stdout"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-cli/src/cmd_verify.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_verify.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_verify.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/verify_streams.rs"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/verify_streams.rs"
+        }
+      }
+    ],
+    "specId": "125-a-forwarded-line-arrives-whole",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "a6544eadbe6a811d51cf31a14ab26845c6227f5382e20beadd548b2c0147655a"
+}
