@@ -292,12 +292,14 @@ fn resolve_attested_spec(repo: &Path, cfg: &Config, id: &str) -> Result<String, 
 /// A spec id is one path segment, so interpolating it into a filename cannot
 /// walk out of the attestation directory.
 ///
-/// `attest --spec` is already protected by its registry lookup, which refuses an
-/// unknown id before anything is written. This side reads, and reads before any
-/// lookup, so it is guarded here instead. The impact is confusion rather than
-/// exposure, since `--attestation` already lets the caller name any path they
-/// can read, but a traversing id would fail with a puzzling parse error on some
-/// unrelated file rather than saying what was wrong.
+/// `attest --spec` is guarded where it writes (spec 126 3.3): its registry
+/// lookup refuses an unknown id, but the corpus chooses which ids are known, so
+/// the lookup alone never protected it. This side reads, and reads before any
+/// lookup, so it is guarded here instead, with its own narrower rule. The
+/// impact is confusion rather than exposure, since `--attestation` already lets
+/// the caller name any path they can read, but a traversing id would fail with
+/// a puzzling parse error on some unrelated file rather than saying what was
+/// wrong.
 fn validate_spec_id(id: &str) -> Result<(), Error> {
     let bad = id.is_empty()
         || id.contains('/')

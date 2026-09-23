@@ -150,11 +150,11 @@ pub fn run(
     }
 
     let out_dir = registry_dir(&cfg, repo);
-    fs::create_dir_all(&out_dir)
-        .map_err(|e| Error::Io(format!("create {}: {e}", out_dir.display())))?;
 
     // Per-spec shards. `sync_dir` prunes a removed spec's shard, so the shard set
-    // always equals the current corpus.
+    // always equals the current corpus. It also creates `out_dir`, and only once
+    // every name has passed spec 126 3.1, so a refused run creates nothing, not
+    // even the artifact root (spec 126 D-5).
     let shard_files = registry_shard_files(&outcome.shards)?;
     let by_spec = out_dir.join(BY_SPEC_DIR);
     shard::sync_dir(&by_spec, &shard_files)?;

@@ -17,7 +17,7 @@
 
 use std::collections::BTreeSet;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 use spec_spine_types::{Config, Error, parse_semver};
 
@@ -132,11 +132,50 @@ pub fn package_slug(name: &str) -> String {
     slug
 }
 
+/// Refuse a file name that is not one plain file name before it is joined to
+/// `dir` (spec 126 3.1). A per-spec shard or attestation is named after the
+/// spec's frontmatter `id`, which the corpus chooses, so an id such as
+/// `../../../package` or an absolute path would otherwise write wherever it
+/// points. Plain means: not empty, no leading `.`, no `/`, `\`, `:` or NUL,
+/// and exactly one ordinary path component. The separators and the colon are
+/// refused on every platform, so a corpus cannot write a name here that walks
+/// out of its directory on another one.
+///
+/// This is a check on the name, not on the id grammar: `V-012` is unchanged,
+/// and an id that fails it but is a plain name (`001-Foo`) passes here. It is
+/// lexical: it does not resolve symlinks already present under `dir`.
+pub fn check_file_name(name: &str, dir: &Path) -> Result<(), Error> {
+    let mut components = Path::new(name).components();
+    let one_component = matches!(components.next(), Some(Component::Normal(c)) if c == name)
+        && components.next().is_none();
+    let plain = !name.is_empty()
+        && !name.starts_with('.')
+        && !name.contains(['/', '\\', ':', '\0'])
+        && one_component;
+    if plain {
+        return Ok(());
+    }
+    Err(Error::Io(format!(
+        "refused to write {name:?} into {}: a file name derived from a spec id must be one \
+         plain file name (not empty, no leading `.`, no `/`, `\\`, `:` or NUL; spec 126); \
+         nothing was written. Run `spec-spine compile --check` to see the spec's id \
+         violation without writing",
+        dir.display()
+    )))
+}
+
 /// Write `files` (`(filename, content)`) into `dir`, creating it, and prune any
 /// `*.json` already there whose name is not in `files`. This is what makes a
 /// removed spec/package delete its shard: emit is a directory *sync*, not a
 /// blind write, so the shard set always equals the current authority set.
+///
+/// Every name is checked with [`check_file_name`] before anything happens, so
+/// one unsafe name refuses the whole batch with `dir` neither created, pruned
+/// nor written (spec 126 3.2).
 pub fn sync_dir(dir: &Path, files: &[(String, String)]) -> Result<(), Error> {
+    for (name, _) in files {
+        check_file_name(name, dir)?;
+    }
     fs::create_dir_all(dir).map_err(|e| Error::Io(format!("create {}: {e}", dir.display())))?;
     let keep: BTreeSet<&str> = files.iter().map(|(name, _)| name.as_str()).collect();
     if let Ok(entries) = fs::read_dir(dir) {
@@ -219,6 +258,32 @@ mod tests {
         assert_eq!(package_slug(".hidden"), "_.hidden");
     }
 
+    /// Spec 126 3.2: a package shard's name is a slug, so it cannot reach the
+    /// refusal. `index` still checks both batches before writing either (D-5);
+    /// this is the assertion that the by-package half of that check is
+    /// unreachable today, and fails if the slug ever stops being plain.
+    #[test]
+    fn a_package_slug_is_always_a_plain_file_name() {
+        let dir = Path::new("by-package");
+        for name in [
+            "",
+            ".",
+            "..",
+            "../../x",
+            "/abs",
+            "a\\b",
+            "C:evil",
+            "a:b",
+            "a\0b",
+            ".hidden",
+            "@scope/pkg",
+            "é",
+        ] {
+            let file = format!("{}.json", package_slug(name));
+            assert!(check_file_name(&file, dir).is_ok(), "{name:?} -> {file:?}");
+        }
+    }
+
     #[test]
     fn sync_dir_prunes_removed_shards() {
         let tmp = tempfile::tempdir().unwrap();
@@ -231,5 +296,86 @@ mod tests {
         sync_dir(&dir, &[("a.json".into(), "1".into())]).unwrap();
         assert!(dir.join("a.json").is_file());
         assert!(!dir.join("b.json").is_file(), "removed shard is pruned");
+    }
+
+    #[test]
+    fn check_file_name_accepts_exactly_one_plain_name() {
+        let dir = Path::new("by-spec");
+        // Spec 126 3.1: `V-012` is not this rule, so an id failing the grammar
+        // but plain as a name (`001-Foo`) is accepted.
+        for ok in ["001-a.json", "001-Foo.json", "a.b.json", "_scope_pkg.json"] {
+            assert!(check_file_name(ok, dir).is_ok(), "{ok:?} is plain");
+        }
+        for bad in [
+            "",
+            ".",
+            "..",
+            ".json",
+            ".hidden.json",
+            "...json",
+            "a/b.json",
+            "../x.json",
+            "../../../package.json",
+            "/abs.json",
+            "a\\b.json",
+            "..\\x.json",
+            "C:x.json",
+            "a:b.json",
+            "a\0b.json",
+        ] {
+            let err = check_file_name(bad, dir).expect_err(bad);
+            assert_eq!(err.exit_code(), 3, "{bad:?}");
+            let msg = err.to_string();
+            assert!(msg.contains(&format!("{bad:?}")), "names the name: {msg}");
+            assert!(msg.contains("by-spec"), "names the directory: {msg}");
+            assert!(msg.contains("nothing was written"), "{msg}");
+            assert!(msg.contains("spec-spine compile --check"), "{msg}");
+        }
+    }
+
+    /// Spec 126 3.2: safe names ahead of an unsafe one are not written, the
+    /// shard the batch would have pruned survives, and nothing lands outside.
+    #[test]
+    fn sync_dir_refuses_the_whole_batch_before_touching_anything() {
+        let tmp = tempfile::tempdir().unwrap();
+        let dir = tmp.path().join("a").join("b").join("by-spec");
+        sync_dir(
+            &dir,
+            &[
+                ("old.json".into(), "old".into()),
+                ("a.json".into(), "1".into()),
+            ],
+        )
+        .unwrap();
+        fs::write(tmp.path().join("victim.json"), "victim").unwrap();
+        let batch: ShardFiles = vec![
+            ("a.json".into(), "changed".into()),
+            ("new.json".into(), "new".into()),
+            ("../../../victim.json".into(), "pwned".into()),
+        ];
+        let err = sync_dir(&dir, &batch).expect_err("an unsafe name refuses");
+        assert_eq!(err.exit_code(), 3);
+        assert_eq!(fs::read_to_string(dir.join("old.json")).unwrap(), "old");
+        assert_eq!(fs::read_to_string(dir.join("a.json")).unwrap(), "1");
+        assert!(!dir.join("new.json").exists());
+        assert_eq!(
+            fs::read_to_string(tmp.path().join("victim.json")).unwrap(),
+            "victim"
+        );
+        let mut names: Vec<_> = fs::read_dir(&dir)
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect();
+        names.sort();
+        assert_eq!(names, ["a.json", "old.json"]);
+
+        // A directory that does not exist yet is not created.
+        let fresh = tmp.path().join("fresh").join("by-spec");
+        sync_dir(
+            &fresh,
+            &[("a.json".into(), "1".into()), (String::new(), "x".into())],
+        )
+        .expect_err("an empty name refuses");
+        assert!(!tmp.path().join("fresh").exists());
     }
 }

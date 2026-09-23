@@ -377,12 +377,18 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
         None => {
             let outcome = index(&cfg, repo)?;
             let dir = index_dir(&cfg, repo);
-            fs::create_dir_all(&dir)
-                .map_err(|e| Error::Io(format!("create {}: {e}", dir.display())))?;
 
             // Per-spec + per-package shards; `sync_dir` prunes a removed unit's
-            // shard so the shard set always equals the current corpus.
+            // shard so the shard set always equals the current corpus, and
+            // creates `dir` on the way. Both batches are checked against spec
+            // 126 3.1 before either is written, so a refused name leaves no
+            // artifact root and no half-written tree (spec 126 D-5).
             let (by_spec, by_package) = index_shard_files(&outcome.shards)?;
+            for (sub, files) in [(BY_SPEC_DIR, &by_spec), (BY_PACKAGE_DIR, &by_package)] {
+                for (name, _) in files {
+                    shard::check_file_name(name, &dir.join(sub))?;
+                }
+            }
             shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec)?;
             shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package)?;
             write_slices(&cfg, repo, &outcome.index.build.slice_hashes)?;

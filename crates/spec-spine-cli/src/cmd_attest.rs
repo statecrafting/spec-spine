@@ -130,7 +130,15 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
 
     let out_dir = repo.join(&cfg.layout.derived_dir).join("attestation");
     let attestation_path = match &resolved_spec {
-        Some(id) => out_dir.join("by-spec").join(format!("{id}.json")),
+        // Spec 126 3.3: the resolved id is the corpus's choice, and a known id
+        // is not a safe one, so its file name is checked before the directory
+        // is created or the attestation or its seal is written.
+        Some(id) => {
+            let by_spec = out_dir.join("by-spec");
+            let name = format!("{id}.json");
+            spec_spine_core::shard::check_file_name(&name, &by_spec)?;
+            by_spec.join(name)
+        }
         None if args.snapshot => out_dir.join("snapshot.json"),
         None => out_dir.join("attestation.json"),
     };
