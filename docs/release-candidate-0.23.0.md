@@ -182,7 +182,8 @@ Nothing below has been done. Merge authority covers none of it.
 ### 8.1 Ratification: corrective
 
 Specs that repair this repository's tooling or a defect. Each is `draft` /
-`complete` on `main`:
+`complete` on `main`. **Prepared as draft #324**, status-only; approving it
+means marking it ready and merging it:
 
 | Spec | What approving it establishes |
 |---|---|
@@ -193,7 +194,8 @@ Specs that repair this repository's tooling or a defect. Each is `draft` /
 
 ### 8.2 Ratification: expansion
 
-New capability, each `draft` / `complete` on `main`:
+New capability, each `draft` / `complete` on `main`. **Prepared as draft
+#325**, status-only; a subset can be approved by dropping specs from it:
 
 | Spec | Contract |
 |---|---|
