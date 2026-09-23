@@ -232,3 +232,35 @@ fn the_hook_names_a_rebuild_and_never_runs_one() {
         "the remedy is named somewhere, or this asserts nothing"
     );
 }
+
+/// Spec 123 §3.1 with spec 093 §3.9: a stale refusal names its reader by path,
+/// and `--version`, which exit 2 does not warrant, is not asked.
+#[test]
+fn a_stale_refusal_names_the_reader_without_asking_its_version() {
+    let repo = Repo::new();
+    let shim = repo.shims.join("spec-spine");
+    fs::write(
+        &shim,
+        "#!/bin/sh\ncase \"$*\" in\n  *--version*) echo 'spec-spine 0.20.0-on-path'; exit 0 ;;\nesac\n\
+         echo 'spec-registry: STALE (run `spec-spine compile`)'\nexit 2\n",
+    )
+    .unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(&shim, fs::Permissions::from_mode(0o755)).unwrap();
+    }
+    repo.write("notes.md", "changed\n");
+    repo.git_ok(&["add", "-A"]);
+    let out = repo.git(&["commit", "-q", "-m", "c"]);
+    let t = text(&out);
+    assert!(!out.status.success(), "{t}");
+    assert!(
+        t.contains(&format!(
+            "a committed shard tree is stale, as read by {}",
+            shim.display()
+        )),
+        "{t}"
+    );
+    assert!(!t.contains("0.20.0-on-path"), "093 §3.9: {t}");
+}

@@ -97,9 +97,11 @@ code=0
 out=$("$sc" --repo "$root" check 2>&1) || code=$?
 # Spec 123: a refusal names the executable that made it, and says when that is
 # an in-tree build older than this checkout's source. Asked only off the happy
-# path. The reader's own report is printed unchanged either way.
+# path, and `--version` not on exit 2, which is an answer (spec 093 3.9): there
+# the path names the reader. The reader's own report is printed unchanged.
 if [ "$code" != 0 ]; then
-  rd="$sc ($("$sc" --version 2>/dev/null || echo 'no answer to --version'))"
+  rd="$sc"
+  [ "$code" = 2 ] || rd="$sc ($("$sc" --version 2>/dev/null || echo 'no answer to --version'))"
   old=$(spec_spine_reader_predates "$sc" "$root")
   if [ -n "$old" ]; then
     echo "$out"

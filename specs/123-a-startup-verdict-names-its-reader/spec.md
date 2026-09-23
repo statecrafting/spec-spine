@@ -110,8 +110,8 @@ the two are the same answer. The difference is in the reader, and the hook
 never said which reader it had asked.
 
 A version comparison would not have separated them either. The build and the
-current source both answer `0.22.0` (spec 124 gives the expansion line its own
-version for that reason), and within one version every development build
+current source both answer `0.22.0`, which a separate change to the package
+identity addresses, and within one version every development build
 answers the same string. What does separate them, for the one reader that has
 a source to compare against, is age: a build older than any file it is built
 from was built from a different revision.
@@ -217,7 +217,8 @@ requires. Nothing else in 093 moves, and its acceptance runs unchanged.
   that the selected reader was not named, not that it was selected.
 - **A floor for released readers.** A published binary older than the
   corpus's grammar is refused by `[meta] required_version`, which needs a
-  version that distinguishes the readers; that is spec 124's.
+  version that distinguishes the readers; that belongs to the change that
+  gives the expansion line its own package version.
 - **Embedding a source revision in the binary.** §5 D-1.
 - **The `PostToolUse` hook.** It prints `check`'s own lines after an edit and
   interprets no verdict.
@@ -247,6 +248,11 @@ Every arm now names it. Doing so on exit 2 met spec 093 §3.9, which keeps
 is named there by path, `--version` is not asked, and the one wording change
 (the older reader's remedy) is declared as an amendment (§3.7) rather than
 made quietly. 093's own pin, that the stale arm asks no `--version`, passes.
+
+**D-4 (2026-09-23, second review of #317).** The commit hook asked
+`--version` for every refusal, exit 2 included, where the other hooks keep it
+off an answered exit (spec 093 §3.9). It names a stale verdict's reader by path
+now, as they do, and `reader_identity.rs` asserts it.
 
 ## Verification
 

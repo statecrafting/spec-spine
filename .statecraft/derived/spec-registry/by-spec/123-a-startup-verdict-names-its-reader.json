@@ -56,9 +56,9 @@
     "risk": "low",
     "sectionDigests": {
       "1-1-what-happened-measured": "e82c80dba7774dc72ea9eb8c339a9a944db5717108de6e18af11eee89a8b2b04",
-      "1-2-why-the-hook-could-not-tell": "3307f300956688a002f02fafa1d52ec38fe907a140f796f1c480e229deabeef1",
-      "1-purpose": "102b596be3ea01e7fa3d4ab1f73ebc216949feea6c11553056a4e0bdae1a1b89",
-      "123-a-startup-verdict-names-its-reader": "8746c44ba5fcc3414c361968ba13e6ef7521f8f068c364cbf75211f2ec08e565",
+      "1-2-why-the-hook-could-not-tell": "3283d4f10e098a8083a78c1588b7b8c74d034de901408f809b3fed390b79dd39",
+      "1-purpose": "2848328ab4b5cee1c3c5f32018c05d47c4ad089176e6425dc5352cd24ee87277",
+      "123-a-startup-verdict-names-its-reader": "9bc85cb6b032350f6ddbd980e0eb1eecf5db8c93aef0f3d45606ff8596386153",
       "2-territory": "e4bf56eef47d13c4421c9344b66ea718db4cb22f5697457e4465b5a8b2cb7015",
       "3-1-the-reader-is-named": "4c5335566054e2fdbc91a6de0965aab48474c18c1630e885c64fa41d40932e65",
       "3-2-a-reader-older-than-its-source-is-not-believed": "c974e8d54e2f6765dd2178db91e52dd075d6b463e84e24ce687e50142f736f93",
@@ -68,8 +68,8 @@
       "3-6-evidence": "3f9bb09554e34108dd378b4b9a3ebfd6365966be41f65de6712c9ea2b3131053",
       "3-7-what-this-amends-in-spec-093": "f01a31ee9fdf239002ad87b6147846f1528d59ffdda1844571bfc5ba8da381c3",
       "3-behavior": "c625ed859bf8da9960fa6849f1d2f0e8ba041a1cdff84b34ebb7640c12fc314f",
-      "4-out-of-scope": "cfe0eb768cd54d303bd2563a9062bb9c299f551626ac0e07ded17391067e238e",
-      "5-resolved-decisions": "f18bc98c8c8e9513721b3bf64160a50ccb7a41e2608bfe8fae876c396aa39019",
+      "4-out-of-scope": "90299a0211512bca924f53a71e8955684037a4377e4cc140cdd8453a34624608",
+      "5-resolved-decisions": "b8c79b3e93a46444e11108b7a75e3f97f6eea12c8a2a709fd88b987afd138ed7",
       "verification": "543fb1803216f0292f996ad0855407f2f2ba67a0ed516789f109dcbab38602b4"
     },
     "sectionHeadings": [
@@ -95,6 +95,6 @@
     "summary": "Three session starts on 2026-09-23 reported \"spec registry: INVALID; codebase index: STALE\" on a corpus that was valid and fresh. The reader was the repository's own `target/release/spec-spine`, built from an earlier revision and left in place while the checkout fast-forwarded past the frontmatter grammar it knows, so an incompatible reader's refusal was printed as a finding about the corpus. The hooks that turn `check` into a message now name the executable they selected, and when that executable is the in-tree build and is older than the source it is built from, they say the verdict is an earlier revision's reading and keep what it said. They still read only: nothing builds, regenerates or installs.\n",
     "title": "A startup verdict names its reader"
   },
-  "shardHash": "b73f3cfd22237a827a171f12007bdd9299c218b132c1f621e069e66f077ca2ca",
+  "shardHash": "82755f1ba281a53c485463bcc3a81983228e5e8745cb8f2b528bc78f11b0b92d",
   "specVersion": "1.6.0"
 }
