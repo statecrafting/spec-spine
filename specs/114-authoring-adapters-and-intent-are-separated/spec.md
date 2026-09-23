@@ -33,6 +33,7 @@ extends:
   - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/schemas/registry.schema.json" }, nature: additive }
   - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-types/schemas/registry-spec-shard.schema.json" }, nature: additive }
   - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/tests/dtos.rs" }, nature: additive }
+  - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-core/tests/conformance.rs" }, nature: additive }
   - { spec: "109-impact-and-conflict-are-declared", unit: { kind: file, path: "crates/spec-spine-core/tests/impacts.rs" }, nature: additive }
   - { spec: "106-obligations-are-declared-constraints", unit: { kind: file, path: "crates/spec-spine-core/tests/obligations.rs" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
@@ -269,6 +270,16 @@ written first and did not compile against the unbuilt tree (`no field
 intent on SpecRecord`). This spec declares its own intent, so every compile of
 this repository exercises the key on real prose, and `registry show 114`
 prints it (asserted by the verification block).
+
+**D-9 (2026-09-23, review: the schema is exercised, and one verification
+line was added).** An independent review found that no conformance test
+emitted a record carrying an intent, so the schema block was unexercised. Both
+conformance fixtures now declare one, and a new test starts from an emitted
+record and breaks the intent four ways (whitespace goal, empty non-goal, an
+`approach` member, no goal); each is refused by the shard schema. Removing the
+`\S` pattern from `goal` fails it. The review also noted that the
+verification block gained the `registry show 114` line during the build: it
+adds an assertion of §3.6 and changes no requirement.
 
 ## Verification
 

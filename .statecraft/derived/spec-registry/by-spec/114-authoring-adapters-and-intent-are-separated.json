@@ -81,6 +81,14 @@
       },
       {
         "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/conformance.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "109-impact-and-conflict-are-declared",
         "unit": {
           "kind": "file",
@@ -194,7 +202,7 @@
     "sectionDigests": {
       "1-1-the-two-and-why-pairing-them-was-wrong": "ef329970677167c93eec0c5094154b9faa19b6f0e1bf5713ab228c9241305a26",
       "1-purpose": "984948906775e4f511622c612137557265f66116182690a1cfc54c795be1b9f0",
-      "114-authoring-adapters-and-intent-are-separated": "6dbf98e14adf716ca02f65b0118f3186300f99a43ae3163a5d61b697a81d3cf7",
+      "114-authoring-adapters-and-intent-are-separated": "daf59f4c019bd641e56b6de4041eda61c72cea19e9c6de73975718ff1447d38f",
       "2-territory": "00e2b9b7251bd89da632f60a9b566ab927ef94487dbbea1149c748cb0b38b491",
       "3-1-a10-is-transferred-and-what-transfers-with-it": "c05798f7c795aef699fd6d05c9742bc814e0d2ceb6ec12c4725988e6245c63fd",
       "3-2-what-spec-spine-must-not-build-for-a10": "12d7f8e3aba73b1a3fee9e4f215b92ef8ae3e2d8112d3cf9ca71504ae3808bae",
@@ -204,7 +212,7 @@
       "3-6-the-prose-stays-authoritative-and-disagreement-is-surfaced-not-resolved": "6c62fdf1027e28f90e50b493b87bd47a620d782ab1d11d1856432a484c3d3a5d",
       "3-behavior": "f713a32503a9d21c1a85ddc775989990168727f96d0026c7c1cd88e08a23a2f3",
       "4-out-of-scope": "e4a5b986463a6461c4ebdddff5354bdd732664b393f47aa5a96cf605e070b019",
-      "5-resolved-decisions": "c9aa34adaa62f59d4c736d434b5392271daeac2be242cc407a179c13e358efe0",
+      "5-resolved-decisions": "9eee31dbd5a5d018b1bb1bb676d971812fc8878d7ac116df8469a8656d0ae848",
       "verification": "a0fab00c1d3a936dea18902cfbb05187a885f9f9916e394c27263acef89c8f1a"
     },
     "sectionHeadings": [
@@ -228,6 +236,6 @@
     "summary": "The feature register carried A10 (authoring-tool adapters) and B23 (an intent declaration) as one item. They belong to different owners: A10 is environment delivery, which is Statecraft's since spec 092, and B23 is a corpus-side declaration, which is spec-spine's. This separates them, records what an adapter author can build against, and specifies the smallest optional structured intent a spec can carry: a standing goal and its non-goals, validated for shape, transported into the registry, and read by no gate. The prose stays authoritative; attempt-specific planning stays with the consumer.\n",
     "title": "Authoring adapters and intent are separated"
   },
-  "shardHash": "71571959da6bdd9b9700bf62cda4f9f51d87e8f4b67211b17536d5099cf15abb",
+  "shardHash": "7fbaa22e35d12085b54a3f3c867dfc85de055f0d3e58734e048a3b88d422cee3",
   "specVersion": "1.7.0"
 }
