@@ -1822,6 +1822,29 @@ fn banner_with_inputs(
     String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
+/// As [`banner_with_inputs`] with an older build, but the dep-info beside it
+/// lists files of a different checkout, as a copied or moved build's would.
+fn banner_with_foreign_dep_info(files: &[(&str, &str)]) -> String {
+    let elsewhere = tempfile::tempdir().unwrap();
+    let foreign = elsewhere.path().join("crates/t/src/lib.rs");
+    fs::create_dir_all(foreign.parent().unwrap()).unwrap();
+    fs::write(&foreign, "\n").unwrap();
+    // Older than the build, so a loop that trusted the record would find
+    // nothing newer and report the reader current.
+    assert!(
+        std::process::Command::new("touch")
+            .args(["-t", "202609210000"])
+            .arg(&foreign)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let rel = foreign.to_string_lossy().into_owned();
+    // `banner_with_inputs` joins dep-info entries onto the repository root;
+    // an absolute path joins to itself, so this one stays outside it.
+    banner_with_inputs(OLD, files, Some(&[rel.as_str()]))
+}
+
 const OLD: &str = "202609220406";
 const NEW: &str = "202609222001";
 
@@ -1874,6 +1897,14 @@ fn spec123_the_reader_is_aged_by_the_inputs_it_was_built_from() {
         Some(&["crates/t/src/lib.rs"][..]),
     );
     assert!(!out.contains("NOT JUDGED"), "dep-info is the record: {out}");
+
+    // A record naming another checkout's files says nothing about this one:
+    // it falls through to `src/` and `schemas/` (review of #319).
+    let foreign = banner_with_foreign_dep_info(&[("crates/t/src/lib.rs", NEW)]);
+    assert!(
+        foreign.contains("(crates/t/src/lib.rs is newer)"),
+        "{foreign}"
+    );
 
     let out = banner_with_inputs(OLD, &[("crates/t/src/lib.rs", NEW)], None);
     assert!(out.contains("(crates/t/src/lib.rs is newer)"), "{out}");

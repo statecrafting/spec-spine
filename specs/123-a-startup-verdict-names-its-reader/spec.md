@@ -276,6 +276,15 @@ reproduction (a copied binary with no dep-info) still reports `NOT JUDGED`.
 `spec123_the_reader_is_aged_by_the_inputs_it_was_built_from` fail against the
 merged hooks and pass with this change.
 
+**D-6 (2026-09-23, review of #319).** The dep-info read trusted every listed
+path, so a record naming another checkout's files (a copied or moved build)
+matched nothing here and read as "not older", and an unquoted `$(...)` over
+it was open to word splitting and globbing. The record is now read line by
+line, only listed files inside this repository that exist count, and a record
+with none falls through to `src/` and `schemas/`.
+`spec123_the_reader_is_aged_by_the_inputs_it_was_built_from` carries the
+foreign-record case, which fails against the hooks this correction replaces.
+
 ## Verification
 
 Written to fail against the tree this spec is filed on: neither the helper

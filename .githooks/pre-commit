@@ -85,11 +85,20 @@ spec_spine_reader_predates() {
   # test, a fixture, a manifest's dev table) never ages it, and the rebuild
   # this names always clears what it reports. Without that record, the source
   # and embedded-schema trees stand in for it.
+  # Read line by line (no word splitting, no globbing), and trust only listed
+  # files that exist inside this repository: a record naming another
+  # checkout's files (a copied or moved build) says nothing about this one, so
+  # it falls through to the fallback rather than reading as "not older".
   if [ -f "$1.d" ]; then
-    for f in $(sed 's/^[^:]*://' "$1.d"); do
-      [ -f "$f" ] && [ "$f" -nt "$1" ] && { printf '%s\n' "${f#"$2"/}"; return 0; }
-    done
-    return 0
+    r=$(sed 's/^[^:]*://' "$1.d" | tr ' ' '\n' | while IFS= read -r f; do
+      [ "${f#"$2"/}" != "$f" ] && [ -f "$f" ] || continue
+      if [ "$f" -nt "$1" ]; then printf 'N %s\n' "${f#"$2"/}"; break; fi
+      echo L
+    done)
+    case "$r" in
+      *"N "*) printf '%s\n' "${r##*N }"; return 0 ;;
+      *L*) return 0 ;;
+    esac
   fi
   n=$(find "$2/crates" -type f \( -path '*/src/*' -o -path '*/schemas/*' \) -newer "$1" 2>/dev/null | head -1)
   [ -n "$n" ] && printf '%s\n' "${n#"$2"/}"
