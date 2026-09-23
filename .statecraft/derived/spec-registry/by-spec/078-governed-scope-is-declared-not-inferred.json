@@ -146,7 +146,7 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "078-governed-scope-is-declared-not-inferred": "0e1a3b83dc2e01f2aedeec5be590f9d3c5994f85bca87dfb2069d3309bf0d032",
+      "078-governed-scope-is-declared-not-inferred": "a5d49d012623a5281bac7ec94425c8c0d8a1851132b9f465eda8c816a0aa892c",
       "1-1-four-conjuncts-and-only-one-of-them-is-about-code": "70d40cab9c58e6eca123853e7374a0c632c2ac4c3ef247de85317b0f2048667a",
       "1-2-what-the-conjuncts-exclude-here": "6b65226efdd23212d637be027f064def33155138758c2591aaaf4299a2b9c4d7",
       "1-3-why-a-longer-extension-list-does-not-fix-it": "95af0ae04945eb14c44838cb300bc31677044907aad9bafe0d6cb40252c78db1",
@@ -167,7 +167,7 @@
       "the-walk": "0561adec691f290bdd46d083415cb16aa5d02ab2ca9810fba9bbd663d2dd0b0d",
       "three-cases-not-two": "c97cff6b86669dacd651f477fd1c257a8f4e3566d1cc3307339989904a5365f4",
       "tracked-added-deleted": "9f6fa5c2c2505e127b3e2cc81a734d23a513327a87cc2a7c662c9bf8f87f2107",
-      "verification": "c430006bba985f1374ab071abf6b1efaadedf0dfe8da875678efa4d73edab433"
+      "verification": "1ac34154ddbf634373b272637e7fb6eed0c03700101a1ed0ebd1e4c40ba81307"
     },
     "sectionHeadings": [
       "078: Governed scope is declared, not inferred",
@@ -198,6 +198,6 @@
     "summary": "The ownership ratchet sees a file only if all four conjuncts of `coverage.rs::in_coverage_universe` hold: the extension is in `SOURCE_EXTS`, no path component is a resolver exclusion, the file lies inside a discovered package, and no bypass prefix matches. Measured on 2026-09-15: this repository tracks 572 files and the ratchet can see 89. Nineteen tracked files carry a `SOURCE_EXTS` extension and are invisible on the package conjunct alone, and eleven of those nineteen are files `[index] extra_hashed_inputs` already names, so a change to one restales all 101 shards while `C-002` cannot ask who owns it. Seven of the nineteen already carry a valid `// Spec:` claim header that nothing ever reads. The two lists disagree about what this repository governs. This spec adds an opt-in declared scope: named path patterns that join the coverage universe whatever their extension and wherever they sit, with the tracked-file enumeration done by the CLI and passed in, because the core has no git. Empty by default, so no adopter's verdict changes on upgrade. The claim scanner is untouched: a scoped file is claimed from spec frontmatter, so those seven headers stay inert and this spec says so rather than implying otherwise.\n",
     "title": "Governed scope is declared, not inferred"
   },
-  "shardHash": "67ee9f21cd00a524e5e605a69e2a1cf35710df3219b3f2a6568e0463eab99ee8",
+  "shardHash": "97010b1a9c2fa3d09b038af92bdd5854af33ea21b2327698efda4d0b14ae7752",
   "specVersion": "1.6.0"
 }

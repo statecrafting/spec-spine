@@ -289,6 +289,10 @@ neither member, and the set case is asserted here, where it must carry a
 non-empty `declaredScopeFiles` and `enumeration: "tracked"`. A line asserts
 078's file still carries the superseded form.
 
+Spec 082 §3.4 requires 078's own `## Verification` section to say, above its
+fence, that this spec holds its acceptance; it gains that note, naming 105,
+and no command under its fence changes.
+
 ## Verification
 
 Behavioral where it can be. The load-bearing assertion is that the ratchet,
@@ -337,7 +341,7 @@ cargo test -p spec-spine-core --test couple --locked
 cargo test -p spec-spine-cli --test cli --locked
 # --- this spec's amendment of 078 (D-8) ---
 target/release/spec-spine registry show 105 --json > "${TMPDIR:-/tmp}/ss105-show.json"
-python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss105-show.json')); assert d['amendsVerification'] == ['078-governed-scope-is-declared-not-inferred'], d; assert '078-governed-scope-is-declared-not-inferred' in d['amends'], d"
+python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss105-show.json')); assert d['amendsVerification'] == ['078-governed-scope-is-declared-not-inferred'], d; assert d['amends'] == ['078-governed-scope-is-declared-not-inferred'], d"
 rm -f "${TMPDIR:-/tmp}/ss105-show.json"
 # 078's file is not edited: it still carries the in-repository form replaced
 # above. Red if someone repairs 078 in place instead.
