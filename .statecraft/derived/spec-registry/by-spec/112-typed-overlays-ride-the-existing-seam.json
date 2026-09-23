@@ -1,0 +1,126 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "012-declared-extra-frontmatter-passthrough"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/overlays.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "docs/overlay-contract.md"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "092-the-engine-ships-governance-not-an-environment",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      }
+    ],
+    "id": "112-typed-overlays-ride-the-existing-seam",
+    "implementation": "pending",
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-2-the-engine-transports-an-overlay-s-value-and-never-its-meaning",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Each declared overlay key reaches its spec's registry record independently, with its value preserved under spec 012's canonical JSON normalization."
+      },
+      {
+        "anchor": "3-3-the-hash-scope-is-the-declaring-spec",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "An edit to an overlay value stales exactly the declaring spec's registry shard and the index shards that record that spec's content hash, as any edit to that spec.md does."
+      },
+      {
+        "anchor": "3-4-declaring-is-what-admits-an-overlay",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "An undeclared key carrying a nested value is refused at compile time; declaring the key is what admits it."
+      },
+      {
+        "anchor": "3-6-no-verdict-reads-an-overlay",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "No gate verdict changes because an overlay is present: compile, check, lint, coverage and couple reach the same answers on equivalent fresh trees with and without overlays."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/overlays.rs"
+        ],
+        "kind": "verification",
+        "text": "Several independent overlays, nested values, undeclared keys, freshness scope and gate neutrality, each on a scratch corpus."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/012-declared-extra-frontmatter-passthrough/spec.md"
+        }
+      }
+    ],
+    "sectionDigests": {
+      "1-1-why-the-dependency-is-spec-012": "ba384198c2d488c94c4e7e7d932db1e20a106d7cdf4e506bdc4c82732288aa87",
+      "1-2-what-the-reserved-draft-said-that-the-engine-does-not-do": "0e341a86ed82daad0dc706756154bc0e178cfe8eca1994f96266faf146e77eeb",
+      "1-purpose": "3c7d71f11ca4c8fec3edefa740e439f7fbc6e89f446f84d9a912801bd911a18f",
+      "112-typed-overlays-ride-the-existing-seam": "f65d3e848876908d83d102fc0e8894de8456abe5725a6f570f97cac9048174d3",
+      "2-territory": "b51803ac088e3fea39c94b9893ef25f8192292bbb3718c3b082cee03725a01bf",
+      "3-1-an-overlay-is-a-declared-extra-frontmatter-key-and-nothing-else": "3ccc479e3074afbf99595afda59a85cecc8f79caeddf610102605253054f6597",
+      "3-2-the-engine-transports-an-overlay-s-value-and-never-its-meaning": "0336f2ebc1b7d29a56a533f9737c6899a37c1f9ff0e448f603d4423a450d23ab",
+      "3-3-the-hash-scope-is-the-declaring-spec": "ec7d147eebac83cf1750c8428f3d6422abc7e391aa65b3033b12ad257150959c",
+      "3-4-declaring-is-what-admits-an-overlay": "3d132585ac084d27679792de7ea30cdb2ad9186e61b4695595f521b607572c3c",
+      "3-5-overlays-coexist-by-namespacing-and-the-consumer-owns-the-meaning": "71e61543fb1f1e7d1eb7c54f089918c9276e38ebf1e70c22ce8861a95302ab6f",
+      "3-6-no-verdict-reads-an-overlay": "07087b48614d6e8a582af9313840f8dca649c561384befb102b9351f96f2cca4",
+      "3-7-what-an-overlay-establishes-and-what-it-does-not": "985c7fa3f55073227b1d31094c2e463af743f55b448ab26fcbc06929137aa5f0",
+      "3-behavior": "5863c77b41792fbe43567e0cd13cebaad9308bbd622a96446e8ffbaee21efef2",
+      "4-out-of-scope": "54d758ffa15f02095ab1a55d558faa49cd087b1d94e65dc1599647733bfa43ab",
+      "5-resolved-decisions": "58dd502b54d69978e52a7cde1d0a1da371cd0f7743ff491b3b200c50a0eaf5a5",
+      "verification": "ad62c2aa3aa89c64e0d224084f729ed00c98682f3786526e17fd661460188e73"
+    },
+    "sectionHeadings": [
+      "112: Typed overlays ride the existing seam",
+      "1. Purpose",
+      "1.1 Why the dependency is spec 012",
+      "1.2 What the reserved draft said that the engine does not do",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 An overlay is a declared extra frontmatter key, and nothing else",
+      "3.2 The engine transports an overlay's value and never its meaning",
+      "3.3 The hash scope is the declaring spec",
+      "3.4 Declaring is what admits an overlay",
+      "3.5 Overlays coexist by namespacing, and the consumer owns the meaning",
+      "3.6 No verdict reads an overlay",
+      "3.7 What an overlay establishes, and what it does not",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/112-typed-overlays-ride-the-existing-seam/spec.md",
+    "status": "draft",
+    "summary": "Four proposals (effect contracts, budgets, dependency rationale, contract adapters) all want to attach typed data to a spec's units without changing what a unit is. The corpus already has the seam: declared extra frontmatter (spec 012), carried into the registry as `extraFrontmatter`. This states the contract an overlay keeps on that seam, pins what the engine does and does not promise about it (canonical values, not original bytes; a hash scope that is the declaring spec's, not every shard), and asserts it with several independent overlays in one corpus. No new unit kind, no engine enforcement, and no domain schemas.\n",
+    "title": "Typed overlays ride the existing seam"
+  },
+  "shardHash": "3dfe2dd1d3f86baaea4b6dd06763eb49aaa2c8cd0ad2429018fbcbb9ed06ce07",
+  "specVersion": "1.6.0"
+}

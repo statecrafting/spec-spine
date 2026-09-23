@@ -1,0 +1,147 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "092-the-engine-ships-governance-not-an-environment"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/intent.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/intent.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/frontmatter.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      }
+    ],
+    "id": "114-authoring-adapters-and-intent-are-separated",
+    "implementation": "pending",
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-3-an-intent-is-a-standing-declaration-on-the-spec",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "A well-formed intent reaches the declaring spec's registry record with its goal and non-goals preserved as authored text."
+      },
+      {
+        "anchor": "3-4-a-malformed-declaration-is-refused-as-a-declaration",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "A malformed intent (an empty or whitespace-only goal or non-goal, a wrong type, or an unknown member) is a compile validation error naming the spec."
+      },
+      {
+        "anchor": "3-5-a-valid-intent-is-not-an-authorization",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "A well-formed intent, present or absent, changes no verdict and authorizes nothing."
+      },
+      {
+        "anchor": "3-2-what-spec-spine-must-not-build-for-a10",
+        "id": "I-2",
+        "kind": "invariant",
+        "text": "spec-spine builds no adapter, installs nothing and adds no verb that writes a spec for A10."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/intent.rs"
+        ],
+        "kind": "verification",
+        "text": "Round trip, optionality with unchanged shard hashes, each malformed shape refused, and verdict neutrality on equivalent fresh trees."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/07-statecraft-realignment-2026-09.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      }
+    ],
+    "sectionDigests": {
+      "1-1-the-two-and-why-pairing-them-was-wrong": "ef329970677167c93eec0c5094154b9faa19b6f0e1bf5713ab228c9241305a26",
+      "1-purpose": "984948906775e4f511622c612137557265f66116182690a1cfc54c795be1b9f0",
+      "114-authoring-adapters-and-intent-are-separated": "d339aefbd022837e05621d961c3208bcc55520ac19e20f7a2d0d60226aee8c64",
+      "2-territory": "00e2b9b7251bd89da632f60a9b566ab927ef94487dbbea1149c748cb0b38b491",
+      "3-1-a10-is-transferred-and-what-transfers-with-it": "c05798f7c795aef699fd6d05c9742bc814e0d2ceb6ec12c4725988e6245c63fd",
+      "3-2-what-spec-spine-must-not-build-for-a10": "12d7f8e3aba73b1a3fee9e4f215b92ef8ae3e2d8112d3cf9ca71504ae3808bae",
+      "3-3-an-intent-is-a-standing-declaration-on-the-spec": "c8f872714ceccd2ec52b9c65871c78544334daf1732ea3a6182379e8ee1517b4",
+      "3-4-a-malformed-declaration-is-refused-as-a-declaration": "0924da75bd5091177f31aef3bdf0f66c9bea9681b1bfd2815d28f4855a232e4c",
+      "3-5-a-valid-intent-is-not-an-authorization": "efd22e5e667d40da6ccccb1e79fa3de76334ec4a54377427c68dbb1f78e00445",
+      "3-6-the-prose-stays-authoritative-and-disagreement-is-surfaced-not-resolved": "6c62fdf1027e28f90e50b493b87bd47a620d782ab1d11d1856432a484c3d3a5d",
+      "3-behavior": "f713a32503a9d21c1a85ddc775989990168727f96d0026c7c1cd88e08a23a2f3",
+      "4-out-of-scope": "e4a5b986463a6461c4ebdddff5354bdd732664b393f47aa5a96cf605e070b019",
+      "5-resolved-decisions": "3e7d71adaf1f7b1adb3295a34868c1e1f4e2eccf5d39f061a5fac91a8ad0f511",
+      "verification": "ba610cf24584bf05bd222f4e3fdb4a6bf880be214ee6e6ee45d2985cb6471c12"
+    },
+    "sectionHeadings": [
+      "114: Authoring adapters and intent are separated",
+      "1. Purpose",
+      "1.1 The two, and why pairing them was wrong",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A10 is transferred, and what transfers with it",
+      "3.2 What spec-spine MUST NOT build for A10",
+      "3.3 An intent is a standing declaration on the spec",
+      "3.4 A malformed declaration is refused as a declaration",
+      "3.5 A valid intent is not an authorization",
+      "3.6 The prose stays authoritative, and disagreement is surfaced, not resolved",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/114-authoring-adapters-and-intent-are-separated/spec.md",
+    "status": "draft",
+    "summary": "The feature register carried A10 (authoring-tool adapters) and B23 (an intent declaration) as one item. They belong to different owners: A10 is environment delivery, which is Statecraft's since spec 092, and B23 is a corpus-side declaration, which is spec-spine's. This separates them, records what an adapter author can build against, and specifies the smallest optional structured intent a spec can carry: a standing goal and its non-goals, validated for shape, transported into the registry, and read by no gate. The prose stays authoritative; attempt-specific planning stays with the consumer.\n",
+    "title": "Authoring adapters and intent are separated"
+  },
+  "shardHash": "1f1f9e014a9d523d3ade1927eed1e825da51be42b18a8602c43975c978a7c607",
+  "specVersion": "1.6.0"
+}

@@ -1,0 +1,104 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "001-compile-registry"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "docs/bindings-plan.md"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "092-the-engine-ships-governance-not-an-environment",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      }
+    ],
+    "id": "115-bindings-are-designed-not-shipped",
+    "implementation": "n-a",
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-1-no-binding-code-in-this-repository",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "This repository contains no binding crate, binding build script or workspace member whose purpose is to expose the library to another runtime."
+      },
+      {
+        "anchor": "3-2-the-facade-is-the-seam-and-what-that-obliges",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "A change that breaks a facade obligation declares that it does, in the spec making it, whether or not a binding exists."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/conformance.rs",
+          "crates/spec-spine-core/tests/index.rs",
+          "crates/spec-spine-core/tests/read.rs",
+          "crates/spec-spine-types/src/verdict.rs"
+        ],
+        "kind": "verification",
+        "text": "The existing evidence for the testable obligations: emitted registry and index documents validate against their versioned schemas, read documents carry the read axis version, and the error-kind set is closed with its exit-code mapping."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      }
+    ],
+    "sectionDigests": {
+      "1-1-why-the-dependency-is-spec-001": "b510463bc895506a57abd823477b26be88d97cf2325b9a118265abedf6c4eca9",
+      "1-purpose": "9ffe5045c3a3a8f5d66399d347851088f052af7cb7a6c688443e8d62b5431816",
+      "115-bindings-are-designed-not-shipped": "10edea23754966fc9f0a53750ef07497b35bb4877e08d684ec26934a49a19e01",
+      "2-territory": "d3356c953833c32f2cdc8fc9e3f9cffb61d7df960b6c9507560d5989dd9b14e6",
+      "3-1-no-binding-code-in-this-repository": "2f4ba7180b26aa1adedd5cc199e33db5b38ddffe6327941ec1f74f500e75b76f",
+      "3-2-the-facade-is-the-seam-and-what-that-obliges": "cbbdbf12ab833173cc85d5429d158ba041e7b047f8878f0194b4d529a9684918",
+      "3-3-the-mandate-is-reviewable-not-enforced": "a1a8fa6ec8060eab9465c52041d1a77e28f9795ca0abd6ad92665ea66aa01ab3",
+      "3-4-what-this-establishes-and-what-it-does-not": "6a050d12ff4a32c64654d9a9db346de15a493fb98f4e03d8a1d2b52ad46be339",
+      "3-behavior": "e801b6bcd1fda4163eb4414b0679525fa48272d3464c9129cbdb8145c2d9b7fb",
+      "4-out-of-scope": "c979aa3a755633e9f63109b72885ff9bf78bdd1b1cd424d1d6fa837500eed550",
+      "5-resolved-decisions": "0f669cce48b2a174ac535185f84a97ba9d2f3737a431cd4f9a5d000430c13946",
+      "verification": "8712d40d8f9de98df66a30f6d3f88207ffe9169db7bda3cf1dc2f77276ff52fe"
+    },
+    "sectionHeadings": [
+      "115: Bindings are designed, not shipped",
+      "1. Purpose",
+      "1.1 Why the dependency is spec 001",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 No binding code in this repository",
+      "3.2 The facade is the seam, and what that obliges",
+      "3.3 The mandate is reviewable, not enforced",
+      "3.4 What this establishes, and what it does not",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/115-bindings-are-designed-not-shipped/spec.md",
+    "status": "draft",
+    "summary": "`docs/bindings-plan.md` designs napi, pyo3 and cgo bindings and says no binding code belongs in this repository. That mandate lived only in a document header. This records it in the corpus as a policy, and states the obligations the JSON facade keeps so that a binding remains buildable elsewhere, each as it measurably holds today. It builds nothing, endorses no external binding, and is reviewable rather than enforced. Its implementation is `n-a`: there is no binding to implement, and this spec is the decision not to.\n",
+    "title": "Bindings are designed, not shipped"
+  },
+  "shardHash": "e57b948ddb262861e75f28c991aaba4681a4ce4d3813a6853c5a241851b8cfc9",
+  "specVersion": "1.6.0"
+}

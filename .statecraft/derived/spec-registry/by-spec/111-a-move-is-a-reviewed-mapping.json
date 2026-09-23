@@ -1,0 +1,182 @@
+{
+  "record": {
+    "created": "2026-09-21",
+    "dependsOn": [
+      "100-a-deleted-path-is-judged-where-it-lived"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/moves.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/moves.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/moves.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/moves.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/frontmatter.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      }
+    ],
+    "id": "111-a-move-is-a-reviewed-mapping",
+    "implementation": "pending",
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-2-the-shape-is-validated-at-compile",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "A move is declared only in the frontmatter of the spec performing it; its shape is validated at compile, and a dangling answered_by is a compile warning, as every other informational cross-reference is."
+      },
+      {
+        "anchor": "3-4-the-lookup-is-derived-and-never-guesses",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "The lookup is derived from every declaration, follows declared chains, and reports ambiguity and cycles by name instead of choosing a path through them."
+      },
+      {
+        "anchor": "3-5-a-move-changes-no-verdict",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "No verdict consults a move: couple reaches the same decision on the same diff with and without the declaration, including the refusal of an unauthorized deletion."
+      },
+      {
+        "anchor": "3-6-no-similarity-ever",
+        "id": "I-2",
+        "kind": "invariant",
+        "text": "Nothing infers a move: no similarity, rename detection or content comparison, and --no-renames stays."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/moves.rs",
+          "crates/spec-spine-cli/tests/moves.rs"
+        ],
+        "kind": "verification",
+        "text": "Shape validation, path lints, chain, split, ambiguity and cycle lookups, and the coupling refusal with and without a mapping on a git fixture whose similarity index would pair the halves."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/04-authority-evidence-extension.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/corpus-map.md"
+        }
+      }
+    ],
+    "sectionDigests": {
+      "1-1-why-the-dependency-is-spec-100": "1ecb0a88b77b68bd479da588d8ce611b6c555a4ced13f0d9133cca50c9b709a3",
+      "1-purpose": "ed0758c5ff2a5b0ce49034365b8ee06a7f7b8290f71cc7e0a744058cf0fd9882",
+      "111-a-move-is-a-reviewed-mapping": "96d66db125bf3370d385c77f524112fb7d8fe38ffb49f02b3a5b58591401784d",
+      "2-territory": "4dd33bc15dba46ca03fd850054013b0d0702f79291ef7f6ff66d6b53c44642ff",
+      "3-1-a-move-is-declared-by-the-spec-that-performs-it": "a9bd7ccc0f9ad0114dde5edf7161f11df71084b4942c8ceed8e544e5f34daf56",
+      "3-2-the-shape-is-validated-at-compile": "baa528c5bef794ac0f819d47173e111997669903021577de0f5a4fcb19496743",
+      "3-3-the-paths-are-checked-against-the-tree-as-warnings": "081b822c3a16d59d53834e2a5fc2d7949add1e218efad79ad160dd703770399f",
+      "3-4-the-lookup-is-derived-and-never-guesses": "fc4ec9622ba38f48817a85a4c670dc7f22fe9649e1c88c16f274865ca3c728ac",
+      "3-5-a-move-changes-no-verdict": "e29027ad0dc4de6e81ddfd794e5f825b1cc0e117183f087dbee04502154b319b",
+      "3-6-no-similarity-ever": "f3f14d1ea7d436895090fe777269f855d3a39f68c7159f2622ec1bb228fb63d7",
+      "3-behavior": "4cba28dff0f62476be1891c27a77456c40c497f5ec7309a6657100713571aaaa",
+      "4-out-of-scope": "7721bdc3aaa4e46fe07796c842de5c51e41a81611144f3f1fc006f9646856d96",
+      "5-resolved-decisions": "6590c61a40a8657b1276dfd9b6337412c7ff8f71eb3c8967f475acd8b1450c75",
+      "verification": "4f9298f60b06f939ae867916d489c08f4d2ffb5852ec56869b91eedbfd4fd2f2"
+    },
+    "sectionHeadings": [
+      "111: A move is a reviewed mapping",
+      "1. Purpose",
+      "1.1 Why the dependency is spec 100",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A move is declared by the spec that performs it",
+      "3.2 The shape is validated at compile",
+      "3.3 The paths are checked against the tree, as warnings",
+      "3.4 The lookup is derived and never guesses",
+      "3.5 A move changes no verdict",
+      "3.6 No similarity, ever",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/111-a-move-is-a-reviewed-mapping/spec.md",
+    "status": "draft",
+    "summary": "The gate passes `--no-renames`, so a move arrives as a deletion and an addition and each half is judged where it is true. That is correct and it is not the whole story: nothing records that the two halves are one act. The spec performing a move declares it in its own frontmatter as authored, reviewed data. The compiler validates the declaration's shape, the lint checks its paths against the tree, and a lookup derived from every declaration follows declared chains, reporting ambiguity and cycles instead of guessing through them. A move is informational: it transfers no ownership, authorizes no deletion, infers no similarity and changes no verdict.\n",
+    "title": "A move is a reviewed mapping"
+  },
+  "shardHash": "87de8588e8d95870c48c788608c1dd5504ae260b74bfe3ee15d380eb04c0da64",
+  "specVersion": "1.6.0"
+}
