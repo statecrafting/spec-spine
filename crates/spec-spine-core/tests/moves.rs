@@ -11,7 +11,10 @@ use std::path::Path;
 
 use spec_spine_core::moves::{MoveLookup, flattened_moves, lookup};
 use spec_spine_core::{compile, lint};
-use spec_spine_types::{Config, Severity};
+use spec_spine_types::{
+    Build, Config, MoveDeclaration, MoveKind, MovePaths, Registry, Severity, SpecRecord, Status,
+    ValidationReport,
+};
 
 const BODY: &str = "# T\n\n## 1. Purpose\n\nWhy.\n\n## Verification\n\nChecks.\n";
 
@@ -625,4 +628,213 @@ fn a_well_formed_move_with_paths_matching_the_tree_passes_compile_and_lint() {
          diagnostic: {:?}",
         report.violations
     );
+}
+
+// ===== D-11: the walk is iterative and each node expands once ==============
+//
+// Built directly as a `Registry`, not through `compile`: these fixtures are
+// large enough (thousands of specs) that parsing that many `spec.md` files
+// would make the test itself the bottleneck. `lookup` is a pure function of
+// a `Registry`, so a hand-built one is exactly as valid an input as a
+// compiled one.
+
+/// A `SpecRecord` with every field but `id`, `spec_path` and `moves` at its
+/// empty/absent default: enough for `lookup`, which reads only `id` and
+/// `moves`.
+fn minimal_record(id: &str, moves: Vec<MoveDeclaration>) -> SpecRecord {
+    SpecRecord {
+        id: id.to_string(),
+        title: "T".to_string(),
+        status: Status::Approved,
+        created: "2026-09-23".to_string(),
+        summary: "s".to_string(),
+        spec_path: format!("specs/{id}/spec.md"),
+        authors: Vec::new(),
+        owner: None,
+        kind: None,
+        domain: None,
+        risk: None,
+        implementation: None,
+        depends_on: Vec::new(),
+        code_aliases: Vec::new(),
+        feature_branch: None,
+        section_headings: Vec::new(),
+        establishes: Vec::new(),
+        extends: Vec::new(),
+        refines: Vec::new(),
+        supersedes: Vec::new(),
+        amends: Vec::new(),
+        co_authority: Vec::new(),
+        constrains: Vec::new(),
+        references: Vec::new(),
+        superseded_by: None,
+        retirement_rationale: None,
+        amends_sections: Vec::new(),
+        amends_verification: Vec::new(),
+        unamendable: Vec::new(),
+        amendment_record: None,
+        origin: None,
+        obligations: Vec::new(),
+        section_digests: Default::default(),
+        impacts: Vec::new(),
+        conflicts: Vec::new(),
+        interface_references: Vec::new(),
+        moves,
+        extra_frontmatter: Default::default(),
+    }
+}
+
+fn registry_of(specs: Vec<SpecRecord>) -> Registry {
+    Registry {
+        spec_version: spec_spine_types::REGISTRY_SCHEMA_VERSION.to_string(),
+        build: Build {
+            compiler_id: "test".to_string(),
+            compiler_version: "0.0.0".to_string(),
+            input_root: ".".to_string(),
+            content_hash: "0".repeat(64),
+        },
+        specs,
+        validation: ValidationReport::from_violations(Vec::new()),
+    }
+}
+
+fn relocated(from: &str, to: &str) -> MoveDeclaration {
+    MoveDeclaration {
+        from: MovePaths::One(from.to_string()),
+        to: Some(MovePaths::One(to.to_string())),
+        kind: MoveKind::Relocated,
+        answered_by: None,
+    }
+}
+
+fn split(from: &str, to: &[&str]) -> MoveDeclaration {
+    MoveDeclaration {
+        from: MovePaths::One(from.to_string()),
+        to: Some(MovePaths::Many(to.iter().map(|s| s.to_string()).collect())),
+        kind: MoveKind::Split,
+        answered_by: None,
+    }
+}
+
+#[test]
+fn a_five_thousand_hop_linear_chain_resolves_and_completes_fast() {
+    const N: usize = 5_000;
+    let specs: Vec<SpecRecord> = (0..N)
+        .map(|i| {
+            minimal_record(
+                &format!("{i:05}-a"),
+                vec![relocated(&format!("p{i}.rs"), &format!("p{}.rs", i + 1))],
+            )
+        })
+        .collect();
+    let registry = registry_of(specs);
+
+    let start = std::time::Instant::now();
+    let outcome = lookup(&registry, "p0.rs");
+    let elapsed = start.elapsed();
+
+    match outcome {
+        MoveLookup::Resolved {
+            hops, terminals, ..
+        } => {
+            assert_eq!(hops.len(), N);
+            assert_eq!(terminals.len(), 1);
+            assert_eq!(
+                terminals[0].path.as_deref(),
+                Some(format!("p{N}.rs").as_str())
+            );
+        }
+        other => panic!("expected resolved, got {other:?}"),
+    }
+    assert!(
+        elapsed.as_secs() < 5,
+        "a {N}-hop linear chain must resolve quickly (iterative, not \
+         recursive): took {elapsed:?}"
+    );
+}
+
+/// A depth-16, two-node-per-level DAG where every node at level `i` splits to
+/// **both** nodes at level `i + 1` (a diamond, repeated): `2^16` distinct
+/// root-to-leaf paths, but only `2 * 16` declarations. A per-path walk (the
+/// pre-D-11 recursion) would enumerate on the order of `2^16` traversals; an
+/// iterative walk that memoizes each fully-expanded node visits each of the
+/// ~32 declaring nodes once, so the hop count - and the wall clock - stays
+/// linear in the declaration count, not the path count.
+#[test]
+fn a_depth_16_reconverging_split_resolves_with_hops_linear_in_the_declarations() {
+    const DEPTH: usize = 16;
+    let level = |d: usize, branch: usize| format!("L{d}_{branch}.rs");
+
+    let mut specs: Vec<SpecRecord> = Vec::new();
+    // Level 0 is the single query root, which splits to both level-1 nodes.
+    specs.push(minimal_record(
+        "00000-root",
+        vec![split("root.rs", &[&level(1, 0), &level(1, 1)])],
+    ));
+    for d in 1..DEPTH {
+        for branch in 0..2 {
+            let from = level(d, branch);
+            let to_a = level(d + 1, 0);
+            let to_b = level(d + 1, 1);
+            specs.push(minimal_record(
+                &format!("{:05}-l{d}-{branch}", d * 2 + branch + 1),
+                vec![split(&from, &[&to_a, &to_b])],
+            ));
+        }
+    }
+    let declared_count = specs.len();
+    let registry = registry_of(specs);
+
+    let start = std::time::Instant::now();
+    let outcome = lookup(&registry, "root.rs");
+    let elapsed = start.elapsed();
+
+    match outcome {
+        MoveLookup::Resolved {
+            hops, terminals, ..
+        } => {
+            // One declaration -> exactly two hops (a `split` to two paths).
+            assert_eq!(hops.len(), declared_count * 2, "{hops:?}");
+            // The two leaf nodes at the deepest level, reached by every
+            // surviving branch, collapsed to their two distinct terminals.
+            assert_eq!(terminals.len(), 2, "{terminals:?}");
+        }
+        other => panic!("expected resolved, got {other:?}"),
+    }
+    assert!(
+        elapsed.as_millis() < 500,
+        "a depth-{DEPTH} reconverging split must resolve in time linear in \
+         its ~{declared_count} declarations, not its 2^{DEPTH} paths: took \
+         {elapsed:?}"
+    );
+}
+
+#[test]
+fn a_cycle_reached_only_through_a_split_branch_is_reported() {
+    // `a` splits to [`b`, `x`]; `b` alone leads back to `a` (a cycle `a`
+    // never has via its other branch, `x`, which is an ordinary terminus).
+    let tmp = tempfile::tempdir().unwrap();
+    write(
+        tmp.path(),
+        "001-a",
+        "moves:\n  - from: \"a.rs\"\n    to: [\"b.rs\", \"x.rs\"]\n    kind: split\n",
+    );
+    write(
+        tmp.path(),
+        "002-b",
+        "moves:\n  - from: \"b.rs\"\n    to: \"a.rs\"\n    kind: relocated\n",
+    );
+    let registry = compiled_registry(tmp.path());
+    match lookup(&registry, "a.rs") {
+        MoveLookup::Cycle { path, chain } => {
+            assert_eq!(path, "a.rs");
+            assert_eq!(
+                chain,
+                vec!["a.rs".to_string(), "b.rs".to_string(), "a.rs".to_string()]
+            );
+        }
+        other => panic!(
+            "a cycle reachable through only one split branch must still be reported: {other:?}"
+        ),
+    }
 }

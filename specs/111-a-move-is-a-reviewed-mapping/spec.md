@@ -31,6 +31,7 @@ extends:
   - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   # 3.2: shape validation at compile; 3.3: path checks in the lint.
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/compile.rs" }, nature: additive }
+  - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/tests/conformance.rs" }, nature: additive }
   - { spec: "003-conformance-lint", unit: { kind: file, path: "crates/spec-spine-core/src/lint.rs" }, nature: additive }
   # 3.4: the lookup, through the facade and one CLI verb.
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
@@ -341,6 +342,32 @@ and `the_same_fixture_without_the_mapping_reaches_the_identical_verdict` both
 failed (the couple exit code dropped from 1 to 0). The edit was reverted
 before this commit and `couple.rs`'s tree is byte-identical to its
 pre-build state.
+
+**D-11 (2026-09-23, review: the walk is iterative and memoized).** Independent
+review of the first build found `spec_spine_core::moves::walk` was native
+recursion with ancestry-only cycle detection: a long declared chain (on the
+order of 10,000-20,000 sequential relocations) could overflow the native call
+stack (a process abort, which core's "panic-free on user input" invariant
+forbids), and a legal, acyclic, reconverging `split` DAG was walked once per
+root-to-leaf path rather than once per node, making the traversal exponential
+in depth rather than linear in the declaration count. Fixed by replacing the
+recursion with an explicit work stack and the classic DFS three-color
+coloring: `on_stack` (gray, the current ancestry, unchanged in meaning) and a
+new `done` set (black, a fully-expanded node, safe to reuse without
+re-expanding). This is provably traversal-order-independent for cycle
+detection (a reachable cycle is found by any complete DFS, regardless of
+which branch of a `split` is walked first), so a cycle reachable through only
+one branch of a `split` is still reported (added as a regression test). A
+consequence worth recording because it changes the documented shape: `hops`
+in a `resolved` answer are now, by construction (a node is expanded at most
+once), the **distinct** declared steps reached, deduplicated on `(from, to,
+kind)` and sorted by `(from, to)`, rather than one copy per root-to-leaf path
+that crossed them; every existing test's expectations were already written
+against the deduplicated form (none exercised a reconverging DAG), so no test
+assertion changed. Two performance regression tests were added: a 5,000-hop
+linear chain resolves and completes in well under a second, and a depth-16
+two-branch reconverging `split` DAG (`2^16` root-to-leaf paths, ~32
+declarations) resolves with a hop count linear in the declarations.
 
 ## Verification
 

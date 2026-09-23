@@ -137,6 +137,32 @@
               "rationale": { "type": "string" }
             }
           }
+        },
+        "moves": {
+          "type": "array",
+          "description": "Declared relocation, split, merge or removal of a path (spec 111; first shipped in specVersion 1.8.0). `answeredBy`'s spec half is normalized to its full id.",
+          "items": {
+            "type": "object",
+            "required": ["from", "to", "kind"],
+            "additionalProperties": false,
+            "properties": {
+              "from": {
+                "oneOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+                ]
+              },
+              "to": {
+                "oneOf": [
+                  { "type": "string", "minLength": 1 },
+                  { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+                  { "type": "null" }
+                ]
+              },
+              "kind": { "enum": ["relocated", "split", "merged", "removed"] },
+              "answeredBy": { "type": "string", "minLength": 1 }
+            }
+          }
         }
       }
     },

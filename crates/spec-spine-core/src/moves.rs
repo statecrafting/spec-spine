@@ -265,70 +265,140 @@ fn resolve_groups(at: &str, groups: &[StepGroup]) -> Result<ResolvedGroup, Stop>
     })
 }
 
-/// Follow declared steps from `current`, recording every [`Hop`] and
-/// [`Terminal`] reached, until nothing further is declared, a cycle returns
-/// to a path already on `ancestry`, or a step is ambiguous.
-fn walk(
-    current: &str,
-    index: &BTreeMap<String, Vec<StepGroup>>,
-    ancestry: &mut Vec<String>,
-    hops: &mut Vec<Hop>,
-    terminals: &mut BTreeSet<Terminal>,
-) -> Result<(), Stop> {
-    // The caller only recurses into a path it already confirmed is in
-    // `index` (or is the initial, checked query path), so this is present.
-    let groups = index
-        .get(current)
-        .expect("walked only into an indexed path");
-    let resolved = resolve_groups(current, groups)?;
+/// One node's expansion, on the explicit work stack (spec 111 §3.4, D-11):
+/// `node`'s declared targets, already resolved and sorted when the frame was
+/// pushed, walked one at a time so the traversal never recurses.
+struct Frame {
+    node: String,
+    targets: Vec<String>,
+    next_idx: usize,
+}
 
-    if resolved.kind == MoveKind::Removed {
-        hops.push(Hop {
-            from: current.to_string(),
-            to: None,
-            kind: resolved.kind,
-            declared_by: resolved.declared_by,
-            answered_by: resolved.answered_by.clone(),
-        });
-        terminals.insert(Terminal {
-            path: None,
-            answered_by: resolved.answered_by,
-        });
-        return Ok(());
+/// The iterative walk's state (D-11): an explicit stack replaces recursion
+/// (unbounded native-stack depth on a long chain is a process abort, which
+/// core's "panic-free on user input" invariant forbids), and `done` memoizes
+/// every fully-expanded node so a DAG with reconverging branches (a `split`
+/// followed by another `split`, and so on) expands each node exactly once
+/// instead of once per root-to-leaf path.
+///
+/// `on_stack` (gray, in [`Self::on_stack`] order for cycle-chain
+/// construction, mirrored in `on_stack_set` for lookup) and `done` (black)
+/// are the classic DFS three-color coloring: white (absent from both) is
+/// unvisited, gray is mid-expansion (an edge into a gray node is a back edge,
+/// a cycle), black is fully resolved (an edge into a black node is safe to
+/// reuse without re-expanding, and cannot itself close a cycle, because
+/// every node reachable from it was already proven acyclic before it turned
+/// black). This is traversal-order-independent: a graph reachable from
+/// `path` has a cycle if and only if this single DFS finds a back edge,
+/// regardless of which branch order `resolve_groups`' sorted targets walk
+/// first, which is what lets a cycle reachable only through one branch of a
+/// `split` (never the other) still be found.
+struct Walker<'a> {
+    index: &'a BTreeMap<String, Vec<StepGroup>>,
+    hops: Vec<Hop>,
+    terminals: BTreeSet<Terminal>,
+    on_stack: Vec<String>,
+    on_stack_set: BTreeSet<String>,
+    done: BTreeSet<String>,
+}
+
+impl<'a> Walker<'a> {
+    fn new(index: &'a BTreeMap<String, Vec<StepGroup>>) -> Self {
+        Walker {
+            index,
+            hops: Vec::new(),
+            terminals: BTreeSet::new(),
+            on_stack: Vec::new(),
+            on_stack_set: BTreeSet::new(),
+            done: BTreeSet::new(),
+        }
     }
 
-    let mut targets = resolved.targets;
-    targets.sort();
-    for to in targets {
-        hops.push(Hop {
-            from: current.to_string(),
-            to: Some(to.clone()),
-            kind: resolved.kind,
-            declared_by: resolved.declared_by.clone(),
-            answered_by: None,
-        });
-        if let Some(pos) = ancestry.iter().position(|p| p == &to) {
-            let mut chain: Vec<String> = ancestry[pos..].to_vec();
-            chain.push(to);
-            return Err(Stop::Cycle { chain });
+    /// Expand `node` for the first time: resolve its declared group (or
+    /// propagate [`Stop::Ambiguous`]), record its hop(s) - each distinct
+    /// `(from, to, kind)` exactly once, since a node is only ever expanded
+    /// once - and either close it immediately (`removed`, which has no
+    /// further edges) or open it as a new stack frame. The caller guarantees
+    /// `node` is neither `on_stack` nor `done`.
+    fn expand(&mut self, node: &str, stack: &mut Vec<Frame>) -> Result<(), Stop> {
+        // The caller only expands a path it already confirmed is in `index`
+        // (the initial, checked query path, or a target [`Self::visit`]
+        // confirmed), so this is present.
+        let groups = self.index.get(node).expect("expanded only an indexed path");
+        let resolved = resolve_groups(node, groups)?;
+
+        if resolved.kind == MoveKind::Removed {
+            self.hops.push(Hop {
+                from: node.to_string(),
+                to: None,
+                kind: resolved.kind,
+                declared_by: resolved.declared_by,
+                answered_by: resolved.answered_by.clone(),
+            });
+            self.terminals.insert(Terminal {
+                path: None,
+                answered_by: resolved.answered_by,
+            });
+            self.done.insert(node.to_string());
+            return Ok(());
         }
-        if index.contains_key(&to) {
-            ancestry.push(to.clone());
-            walk(&to, index, ancestry, hops, terminals)?;
-            ancestry.pop();
-        } else {
-            terminals.insert(Terminal {
-                path: Some(to),
+
+        let mut targets = resolved.targets;
+        targets.sort();
+        for to in &targets {
+            self.hops.push(Hop {
+                from: node.to_string(),
+                to: Some(to.clone()),
+                kind: resolved.kind,
+                declared_by: resolved.declared_by.clone(),
                 answered_by: None,
             });
         }
+        self.on_stack.push(node.to_string());
+        self.on_stack_set.insert(node.to_string());
+        stack.push(Frame {
+            node: node.to_string(),
+            targets,
+            next_idx: 0,
+        });
+        Ok(())
     }
-    Ok(())
+
+    /// Step into `target` from the frame currently being walked: a back edge
+    /// into a gray (`on_stack`) node is a cycle; an edge into a black
+    /// (`done`) node, or a path nothing declares a further step from, needs
+    /// no further work (its hops/terminals were already recorded, or it is
+    /// an ordinary terminus); anything else is expanded for the first time.
+    fn visit(&mut self, target: &str, stack: &mut Vec<Frame>) -> Result<(), Stop> {
+        if self.on_stack_set.contains(target) {
+            let pos = self
+                .on_stack
+                .iter()
+                .position(|p| p == target)
+                .expect("on_stack_set and on_stack agree");
+            let mut chain: Vec<String> = self.on_stack[pos..].to_vec();
+            chain.push(target.to_string());
+            return Err(Stop::Cycle { chain });
+        }
+        if self.done.contains(target) || !self.index.contains_key(target) {
+            if !self.index.contains_key(target) {
+                self.terminals.insert(Terminal {
+                    path: Some(target.to_string()),
+                    answered_by: None,
+                });
+            }
+            return Ok(());
+        }
+        self.expand(target, stack)
+    }
 }
 
 /// Look up `path` against every declared move in `registry` (spec 111 §3.4).
 /// Pure: consults nothing else, and consults no similarity, content or
-/// timing signal (§3.6).
+/// timing signal (§3.6). Iterative (D-11): an explicit work stack, so
+/// neither a long declared chain nor a deep reconverging `split` DAG can
+/// overflow the native call stack or re-expand a shared node once per path
+/// reaching it.
 pub fn lookup(registry: &Registry, path: &str) -> MoveLookup {
     let index = build_step_index(registry);
     if !index.contains_key(path) {
@@ -336,15 +406,43 @@ pub fn lookup(registry: &Registry, path: &str) -> MoveLookup {
             path: path.to_string(),
         };
     }
-    let mut hops: Vec<Hop> = Vec::new();
-    let mut terminals: BTreeSet<Terminal> = BTreeSet::new();
-    let mut ancestry: Vec<String> = vec![path.to_string()];
-    match walk(path, &index, &mut ancestry, &mut hops, &mut terminals) {
-        Ok(()) => MoveLookup::Resolved {
-            path: path.to_string(),
-            hops,
-            terminals: terminals.into_iter().collect(),
-        },
+
+    let mut walker = Walker::new(&index);
+    let mut stack: Vec<Frame> = Vec::new();
+    let result = (|| -> Result<(), Stop> {
+        walker.expand(path, &mut stack)?;
+        while let Some(frame) = stack.last_mut() {
+            if frame.next_idx >= frame.targets.len() {
+                let node = frame.node.clone();
+                stack.pop();
+                walker.on_stack.pop();
+                walker.on_stack_set.remove(&node);
+                walker.done.insert(node);
+                continue;
+            }
+            let target = frame.targets[frame.next_idx].clone();
+            frame.next_idx += 1;
+            // `frame` is not used again this iteration, so its mutable
+            // borrow of `stack` ends here (NLL), freeing it for `visit`.
+            walker.visit(&target, &mut stack)?;
+        }
+        Ok(())
+    })();
+
+    match result {
+        Ok(()) => {
+            // Deterministic regardless of traversal order: sorted by
+            // `(from, to)`, which is already unique per hop (§3.4's
+            // dedupe-on-`(from, to, kind)`, guaranteed by construction since
+            // `expand` runs at most once per node).
+            let mut hops = walker.hops;
+            hops.sort_by(|a, b| (&a.from, &a.to).cmp(&(&b.from, &b.to)));
+            MoveLookup::Resolved {
+                path: path.to_string(),
+                hops,
+                terminals: walker.terminals.into_iter().collect(),
+            }
+        }
         Err(Stop::Ambiguous { at, candidates }) => MoveLookup::Ambiguous {
             path: path.to_string(),
             at,

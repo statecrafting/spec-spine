@@ -37,6 +37,10 @@
         "source": "multiple"
       },
       {
+        "path": "crates/spec-spine-core/tests/conformance.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/tests/impacts.rs",
         "source": "spec-edge"
       },
@@ -227,6 +231,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/conformance.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/conformance.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/tests/impacts.rs"
           }
         ],
@@ -411,5 +428,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "bf4c62b087b68b9eb44e0d746f1946bcf32fc37a2c5a1687939f2d3f189dcb51"
+  "shardHash": "7350302fff82a4243e4a699df627b3d7abd4ea91337287203f1ef38dfc88a06c"
 }

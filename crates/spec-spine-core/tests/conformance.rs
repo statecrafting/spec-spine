@@ -24,7 +24,9 @@ fn emitted_registry_conforms_to_embedded_schema() {
     write_spec(
         tmp.path(),
         "001-child",
-        "depends_on: [\"000-root\"]\nestablishes:\n  - \"src/lib.rs\"\nx_extra: \"v\"\nrisk: medium\nimplementation: complete\n",
+        "depends_on: [\"000-root\"]\nestablishes:\n  - \"src/lib.rs\"\nx_extra: \"v\"\nrisk: medium\nimplementation: complete\n\
+         moves:\n  - from: \"src/old.rs\"\n    to: \"src/new.rs\"\n    kind: relocated\n  \
+         - from: \"src/gone.rs\"\n    to: null\n    kind: removed\n",
     );
 
     let outcome = compile(&Config::default(), tmp.path()).unwrap();
@@ -57,7 +59,9 @@ fn emitted_registry_shards_conform_to_embedded_schema() {
     write_spec(
         tmp.path(),
         "001-child",
-        "depends_on: [\"000-root\"]\nestablishes:\n  - \"src/lib.rs\"\nx_extra: \"v\"\nrisk: medium\nimplementation: complete\n",
+        "depends_on: [\"000-root\"]\nestablishes:\n  - \"src/lib.rs\"\nx_extra: \"v\"\nrisk: medium\nimplementation: complete\n\
+         moves:\n  - from: \"src/old.rs\"\n    to: \"src/new.rs\"\n    kind: relocated\n  \
+         - from: \"src/gone.rs\"\n    to: null\n    kind: removed\n",
     );
     let outcome = compile(&Config::default(), tmp.path()).unwrap();
     let files = registry_shard_files(&outcome.shards).unwrap();
