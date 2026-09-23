@@ -826,3 +826,24 @@ Section 10.4's order is complete through its fifth item. What remains is its
 sixth: **111** and **112** when a consumer of the above appears (D-7 permits
 building them sooner on their own merits), **114** as a separation record, and
 **115**, deferred by mandate.
+
+## 12. The reserved ordinals closed (2026-09-23)
+
+Section 11's four remaining reserved contracts, and 116, are on `main` and
+built or dispositioned, read from each spec's frontmatter:
+
+| Ordinal | Contract | State | How |
+|---|---|---|---|
+| 111 | reviewed move mapping | built, `complete` | #332. Two independent reviews; the second found `lint` statting move paths outside the tree (111 D-12) |
+| 112 | typed overlays | built, `complete` | #328. Tests and `docs/overlay-contract.md`; no engine source, the guarantee rides spec 012's seam |
+| 114 | A10/B23 separation, intent | built, `complete` | #329, registry `1.7.0`. A10 stays Statecraft's |
+| 115 | bindings mandate | `n-a` | #326. A policy record; no binding code here, by mandate |
+| 116 | `L-001` exempts a deferred contract | built, `complete` | #327 |
+
+`main` moved to 0.24.0 before 111 integrated (#331, spec 124 D-3), because
+112, 114 and 116 had already changed the engine beyond published 0.23.0. The
+five are ratified together, status only. No ordinal is reserved any longer,
+and section 10.4's order is complete. Every spec directory found on a local or
+remote branch and not on `main` (checked 2026-09-23) is either a pre-renumber
+name `docs/corpus-map.md` maps, or the pre-renumber
+`117-the-derived-tree-question-asked-honestly` draft, withdrawn by note 07 §5.

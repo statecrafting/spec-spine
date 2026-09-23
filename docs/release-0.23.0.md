@@ -175,5 +175,19 @@ no fixture set, it lacks the expansion API), so the checks can fail.
   `_last-serial` 41270277 without 0.23.0 more than 30 minutes after the
   upload. This is PyPI's CDN, not the artifact; it is rechecked before this
   line is closed.
+
+  **Closed 2026-09-23 (recheck, 09:40 UTC).** With a fresh uv cache and no
+  configuration, `uvx spec-spine@0.23.0 --version` (uv 0.10.12) answers
+  `spec-spine 0.23.0`, and `pip install spec-spine==0.23.0` (pip 26.1.2, fresh
+  venv, `--no-cache-dir`) installs and answers the same. uv's verbose log shows
+  a fresh GET of `https://pypi.org/simple/spec-spine/` followed by the 0.23.0
+  wheel's `.metadata` and the wheel. The simple index now answers per
+  representation: the JSON form requested with uv's `Accept` header and
+  compression reports `X-PyPI-Last-Serial` 41362461 and lists 0.23.0, while an
+  uncompressed JSON request and the `text/html` form still served the cached
+  41270277 page without it. So the earlier failure was a cached variant of the
+  JSON index, the variant the resolvers use is now current, and the artifact,
+  its metadata and the client needed no change. The failed observation above
+  is kept as it was made.
 - **Statecraft adoption** is Statecraft's work, against
   `docs/consumer-integration-expansion.md` §11.
