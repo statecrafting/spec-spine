@@ -58,7 +58,11 @@
 /// moves (it is over `spec.md`'s bytes). A binary predating this spec meets
 /// the member with a parse error and exits 3, the same fail-closed direction
 /// 1.2.0, 1.4.0 and 1.5.0 chose.
-pub const REGISTRY_SCHEMA_VERSION: &str = "1.6.0";
+/// `1.7.0`: additive `intent` (spec 114). A spec may declare its standing goal
+/// and non-goals. Absent on every existing spec, so only `specVersion` is
+/// restamped and no `shardHash` moves. Read by no gate. A binary predating
+/// this spec meets the member with a parse error and exits 3, as for 1.6.0.
+pub const REGISTRY_SCHEMA_VERSION: &str = "1.7.0";
 
 /// `schemaVersion` emitted in the codebase index, carried by each index shard.
 /// `0.2.0`: additive `build.sliceHashes` (spec 011).

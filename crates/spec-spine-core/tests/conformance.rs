@@ -24,7 +24,8 @@ fn emitted_registry_conforms_to_embedded_schema() {
     write_spec(
         tmp.path(),
         "001-child",
-        "depends_on: [\"000-root\"]\nestablishes:\n  - \"src/lib.rs\"\nx_extra: \"v\"\nrisk: medium\nimplementation: complete\n",
+        "depends_on: [\"000-root\"]\nestablishes:\n  - \"src/lib.rs\"\nx_extra: \"v\"\nrisk: medium\nimplementation: complete\n\
+         intent:\n  goal: \"a goal\"\n  non_goals: [\"a non-goal\"]\n",
     );
 
     let outcome = compile(&Config::default(), tmp.path()).unwrap();
@@ -57,7 +58,8 @@ fn emitted_registry_shards_conform_to_embedded_schema() {
     write_spec(
         tmp.path(),
         "001-child",
-        "depends_on: [\"000-root\"]\nestablishes:\n  - \"src/lib.rs\"\nx_extra: \"v\"\nrisk: medium\nimplementation: complete\n",
+        "depends_on: [\"000-root\"]\nestablishes:\n  - \"src/lib.rs\"\nx_extra: \"v\"\nrisk: medium\nimplementation: complete\n\
+         intent:\n  goal: \"a goal\"\n  non_goals: [\"a non-goal\"]\n",
     );
     let outcome = compile(&Config::default(), tmp.path()).unwrap();
     let files = registry_shard_files(&outcome.shards).unwrap();
@@ -78,6 +80,60 @@ fn emitted_registry_shards_conform_to_embedded_schema() {
                 errors.join("\n")
             );
         }
+    }
+}
+
+#[test]
+fn the_intent_schema_refuses_what_the_compiler_refuses() {
+    // Spec 114 D-6: the schema and the compiler refuse the same intent values.
+    // Start from a record the compiler emitted (it carries a well-formed
+    // intent and validates), then break the intent one way at a time.
+    let tmp = tempfile::tempdir().unwrap();
+    write_spec(
+        tmp.path(),
+        "001-child",
+        "intent:\n  goal: \"a goal\"\n  non_goals: [\"a non-goal\"]\n",
+    );
+    let outcome = compile(&Config::default(), tmp.path()).unwrap();
+    let files = registry_shard_files(&outcome.shards).unwrap();
+    let good: serde_json::Value = serde_json::from_str(&files[0].1).unwrap();
+    let schema: serde_json::Value = serde_json::from_str(REGISTRY_SPEC_SHARD_SCHEMA).unwrap();
+    let validator = jsonschema::validator_for(&schema).unwrap();
+    assert!(validator.is_valid(&good), "the emitted intent conforms");
+    assert!(good.to_string().contains("\"nonGoals\""), "{good}");
+
+    let broken = |edit: &dyn Fn(&mut serde_json::Value)| {
+        let mut v = good.clone();
+        let spec = v
+            .as_object_mut()
+            .unwrap()
+            .values_mut()
+            .find(|x| x.get("intent").is_some())
+            .expect("the record carrying the intent");
+        edit(spec.get_mut("intent").unwrap());
+        v
+    };
+    for (what, bad) in [
+        (
+            "whitespace goal",
+            broken(&|i| i["goal"] = serde_json::json!("  ")),
+        ),
+        (
+            "empty non-goal",
+            broken(&|i| i["nonGoals"] = serde_json::json!([""])),
+        ),
+        (
+            "attempt member",
+            broken(&|i| i["approach"] = serde_json::json!("x")),
+        ),
+        (
+            "no goal",
+            broken(&|i| {
+                i.as_object_mut().unwrap().remove("goal");
+            }),
+        ),
+    ] {
+        assert!(!validator.is_valid(&bad), "{what} must be refused: {bad}");
     }
 }
 

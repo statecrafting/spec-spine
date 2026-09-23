@@ -86,6 +86,16 @@
             }
           }
         },
+        "intent": {
+          "type": "object",
+          "description": "The spec's standing goal and deliberate exclusions, as authored; read by no gate (spec 114; first shipped in specVersion 1.7.0).",
+          "additionalProperties": false,
+          "required": ["goal"],
+          "properties": {
+            "goal": { "type": "string", "pattern": "\\S" },
+            "nonGoals": { "type": "array", "items": { "type": "string", "pattern": "\\S" } }
+          }
+        },
         "interfaceReferences": {
           "type": "array",
           "description": "Cross-corpus interface references, carried verbatim (spec 110; first shipped in specVersion 1.6.0).",

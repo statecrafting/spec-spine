@@ -4,7 +4,7 @@ title: "Authoring adapters and intent are separated"
 status: draft
 kind: "governance"
 created: "2026-09-21"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 depends_on:
   - "092-the-engine-ships-governance-not-an-environment"
@@ -19,8 +19,8 @@ summary: >
   no gate. The prose stays authoritative; attempt-specific planning stays
   with the consumer.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/intent.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/intent.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/intent.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/intent.rs" }
 extends:
   # 3.3: the frontmatter key and the registry member.
   - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/src/frontmatter.rs" }, nature: additive }
@@ -28,6 +28,28 @@ extends:
   - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   # 3.4: shape validation at compile.
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/compile.rs" }, nature: additive }
+  # 3.3: the registry MINOR (1.7.0), its schemas and the pins it moves.
+  - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
+  - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/schemas/registry.schema.json" }, nature: additive }
+  - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-types/schemas/registry-spec-shard.schema.json" }, nature: additive }
+  - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/tests/dtos.rs" }, nature: additive }
+  - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-core/tests/conformance.rs" }, nature: additive }
+  - { spec: "109-impact-and-conflict-are-declared", unit: { kind: file, path: "crates/spec-spine-core/tests/impacts.rs" }, nature: additive }
+  - { spec: "106-obligations-are-declared-constraints", unit: { kind: file, path: "crates/spec-spine-core/tests/obligations.rs" }, nature: additive }
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
+  # 3.6: `registry show` prints the intent beside the summary.
+  - { spec: "002-registry-query", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_registry.rs" }, nature: additive }
+  # Spec 088: the template documents every frontmatter key the parser accepts.
+  - { spec: "088-the-template-teaches-the-whole-grammar", unit: { kind: file, path: "standards/spec/templates/spec-template.md" }, nature: additive }
+  # Spec 103 §3.9: the registry MINOR changes what the producer emits for the
+  # fixture corpus, so the set is regenerated with its documented command.
+  - { spec: "103-a-verifier-fixture-is-a-published-artifact", unit: { kind: directory, path: "crates/spec-spine-core/fixtures/verifier/" }, nature: corrective }
+intent:
+  goal: "a spec can declare its standing goal and non-goals in a form a tool can read, without that declaration deciding anything"
+  non_goals:
+    - "authoring-tool adapters, which are Statecraft's"
+    - "a gate, permission or plan that reads an intent"
+    - "replacing or checking the Purpose and Out of scope prose"
 references:
   - unit: { kind: file, path: "docs/design/07-statecraft-realignment-2026-09.md" }
     role: "context"
@@ -220,6 +242,45 @@ the engine.
 rows gain A10 when this spec is built, with §3.1 as what Statecraft can build
 against.
 
+**D-5 (2026-09-23, build: two shapes, one per side of the compiler).** The
+frontmatter key is snake_case (`non_goals`), the registry member camelCase
+(`nonGoals`), as every other key is. Two types (`IntentDeclaration`,
+`Intent`) each accept only their own spelling, so an author writing
+`nonGoals` in frontmatter is refused (`V-002`) instead of being accepted in a
+second dialect. The test asserts that refusal.
+
+**D-6 (2026-09-23, build: which refusal carries which code).** A non-mapping
+intent, a missing `goal`, a wrong type and an unknown member (including
+`approach`) are malformed frontmatter, refused by the parser as `V-002` like
+any other malformed key. What the parser cannot see is a string that says
+nothing, so an empty or whitespace-only `goal` or non-goal is `V-039`, naming
+the spec and the member. Both registry schemas carry a `\S` pattern on the
+strings, so the schema and the compiler refuse the same values.
+
+**D-7 (2026-09-23, build: what moved with the MINOR).** Registry `1.6.0` to
+`1.7.0`. The two pins that hold the head registry version (`impacts.rs`,
+`obligations.rs`) and the pinned-versions test (`dtos.rs`) moved, each
+declared as an edge. The authoring template gained the key, which spec 088's
+test requires. The verifier fixtures were regenerated with spec 103's
+documented command: only `registryHash` and `attestationHash` changed, and a
+second run rewrote nothing.
+
+**D-8 (2026-09-23, build: fail-first and dogfood).** The acceptance file was
+written first and did not compile against the unbuilt tree (`no field
+intent on SpecRecord`). This spec declares its own intent, so every compile of
+this repository exercises the key on real prose, and `registry show 114`
+prints it (asserted by the verification block).
+
+**D-9 (2026-09-23, review: the schema is exercised, and one verification
+line was added).** An independent review found that no conformance test
+emitted a record carrying an intent, so the schema block was unexercised. Both
+conformance fixtures now declare one, and a new test starts from an emitted
+record and breaks the intent four ways (whitespace goal, empty non-goal, an
+`approach` member, no goal); each is refused by the shard schema. Removing the
+`\S` pattern from `goal` fails it. The review also noted that the
+verification block gained the `registry show 114` line during the build: it
+adds an assertion of §3.6 and changes no requirement.
+
 ## Verification
 
 Written to fail against the tree it is filed on: the test target does not
@@ -230,6 +291,9 @@ exist.
 # shape refused by name, and verdict neutrality on equivalent fresh trees.
 cargo test -p spec-spine-core --test intent --locked
 cargo build --release --locked -p spec-spine-cli
+# 3.3, 3.6: this spec's own intent reaches the registry and `registry show`
+# prints it beside the summary.
+sh -c './target/release/spec-spine registry show 114 | grep -q "^intent:  a spec can declare its standing goal"'
 ./target/release/spec-spine check --fail-on-unresolved --fail-on-warn
 ./target/release/spec-spine lint --fail-on-warn
 ```

@@ -199,5 +199,5 @@
     "title": "Governed scope is declared, not inferred"
   },
   "shardHash": "97010b1a9c2fa3d09b038af92bdd5854af33ea21b2327698efda4d0b14ae7752",
-  "specVersion": "1.6.0"
+  "specVersion": "1.7.0"
 }

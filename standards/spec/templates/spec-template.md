@@ -160,6 +160,19 @@ implementation: pending        # pending | in-progress | complete | n-a | deferr
 #       - { anchor: "3-1-the-rule", digest: "sha256:<64 hex>" }
 #     obtained: "YYYY-MM-DD"
 #     rationale: "why this spec relies on it"
+# --- declared intent (spec 114) ---
+# `intent` is optional: the spec's standing goal and what it deliberately
+# excludes, in a form a tool can read. It restates `## 1. Purpose` and
+# `## 4. Out of scope` and does not replace them: where they disagree, the
+# prose governs and the intent is the thing to correct. No gate reads it.
+#   - `goal`: one non-empty sentence (an empty one is `V-039`).
+#   - `non_goals`: optional, each non-empty (`V-039`).
+# No other member: how one attempt means to meet the goal is that attempt's,
+# and belongs in the work record that tracks it, not here.
+# intent:
+#   goal: "what this spec is for"
+#   non_goals:
+#     - "a thing a reader would expect that is deliberately excluded"
 # --- bootstrap marker (NOT an edge) ---
 # `origin.retroactive` declares authority held since before the graph existed:
 # code that predates its governing spec is evidence, not a violation, and a
