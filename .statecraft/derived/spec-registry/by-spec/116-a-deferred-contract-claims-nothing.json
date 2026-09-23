@@ -13,8 +13,7 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/deferred_contract.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/deferred_contract.rs"
       }
     ],
     "extends": [
@@ -28,7 +27,7 @@
       }
     ],
     "id": "116-a-deferred-contract-claims-nothing",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "obligations": [
       {
@@ -81,7 +80,7 @@
       "1-2-why-the-answer-is-not-give-them-planned-territory": "75e5f357089b9c27a7cc0ef900ccb18e2ae591cf1828419bc24851d3a3e15e83",
       "1-3-why-it-is-still-needed-after-the-reserved-contracts-were-built": "1ef58f00558856ad7061b6e59b5e05a3edff85ae34dd0a60999e7db8571ebfa7",
       "1-purpose": "a1f7dea2afd9bf825336835878828781416e6080642a9ac3e175e32fb9e4f1d0",
-      "116-a-deferred-contract-claims-nothing": "6d8f03b12a065f69306b632c1abcf8bbcd12aa36dfb04bbc3c69687abc6c63e5",
+      "116-a-deferred-contract-claims-nothing": "88ef3ef9d7a7e5022f556635d08170b4e1199633e3273a710d797914f90b06d2",
       "2-territory": "5b63fec4dc1caba28b505e54076d1593273b0192c2a2b14d10eae839d921f4df",
       "3-1-a-deferred-spec-is-exempt-from-l-001": "6f3bba77c6bc26160d804a8e60c726521c05bfaeac46ce0e10ac0470287e31f0",
       "3-2-the-exemption-covers-the-declaration-never-a-claim": "954eb27378f40cd2c01b3f205bf8a0e7af101c8dd9bfdbf807dbd8133a21c84b",
@@ -89,7 +88,7 @@
       "3-4-nothing-else-about-the-lint-moves": "3cfe4c4be96b3ce848e8a33ed185402244f34776062e2fa816b0bb360287009b",
       "3-behavior": "14f9dd83622b59c35cc61e557de31b409477fca48a70dfbfe9bfe332789b1d1d",
       "4-out-of-scope": "3947771ca56783cec30909a8e13094ba7858296e535e7399a26b176730fcb852",
-      "5-resolved-decisions": "31ae0025f12e8d5a3879077c2ddaa676302958b860f11283acdb9631066b435c",
+      "5-resolved-decisions": "f6d7231f723a6c5a91b735b00f983d3319a6b841cfc85648bd909300f35c307e",
       "verification": "b4a9460e95a96d636037c950be7e1a548028853e6c99a5956a295380226a0818"
     },
     "sectionHeadings": [
@@ -113,6 +112,6 @@
     "summary": "`L-001` warns when a spec declares no ownership edge, and exempts a superseded, retired or retroactive one because each is making a correct statement by claiming nothing. A spec deliberately not scheduled (`implementation: deferred`) is in the same position and is not exempt, so the one shape the corpus contract leaves a deferred contract, no territory, makes `lint --fail-on-warn` red. The exemption is extended to `deferred`, covers the declaration and never a claim, and re-arms the moment the spec is scheduled.\n",
     "title": "A deferred contract claims nothing"
   },
-  "shardHash": "e103f849143108fe68ed03d29ac153ff6ad085bfb9666f7637b7be507713f7e0",
+  "shardHash": "7584ee14a820a4fdde63e9122f99f0b4e3da0939be1a464afef293011f7e7042",
   "specVersion": "1.7.0"
 }
