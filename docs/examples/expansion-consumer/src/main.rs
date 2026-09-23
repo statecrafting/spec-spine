@@ -1,6 +1,6 @@
-//! A disposable consumer of the expansion wave (specs 102, 103, 106, 107, 109,
-//! 110), written only against supported surfaces: the `spec-spine` binary
-//! writes each corpus's committed ledger, as it would in an adopting
+//! A disposable consumer of the expansion wave (specs 102, 103, 106, 107, 108,
+//! 109, 110, 113), written only against supported surfaces: the `spec-spine`
+//! binary writes each corpus's committed ledger, as it would in an adopting
 //! repository, and every read goes through the packaged library's JSON facade.
 //!
 //! Usage: expansion-consumer <spec-spine binary> <fixtures/verifier dir> <scratch dir>
@@ -14,7 +14,8 @@ use std::process::Command;
 
 use serde_json::{Value, json};
 use spec_spine_core::{
-    closure_json, compile_json, interface_verify_json, query_json, verify_attestation_json,
+    closure_json, compile_json, couple_json, interface_verify_json, query_json, scope_compare_json,
+    scope_json, verify_attestation_json,
 };
 
 const RULE: &str = "3-1-the-rule";
@@ -142,6 +143,100 @@ fn main() {
         replay(&fixtures, c.as_str().unwrap());
     }
     println!("ok: 103 all {} fixture cases reproduce their recorded outcome", cases.len());
+
+    // ---- A governed corpus with code: 001-a owns src/a.rs, 002-b owns
+    // src/b.rs, and src/c.rs is nobody's.
+    let work = scratch.join("work");
+    write_work(&work);
+    cli(&bin, &work, &["compile"]);
+    cli(&bin, &work, &["index"]);
+
+    // ---- 108: a scope is evaluated against ownership, and compared.
+    let ev = scope(&work, json!({ "id": "W-1", "ownSpec": "001", "mutable": ["src/a.rs", "src/b.rs"], "readOnly": ["src/c.rs"] }));
+    let found: Vec<(String, String)> = ev["findings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|f| (str_of(&f["code"]), str_of(&f["path"])))
+        .collect();
+    assert_eq!(found, vec![("S-002".into(), "src/b.rs".into())], "{ev}");
+    assert_eq!(ev["ownSpec"], "001-a");
+    assert!(ev["indexHash"].is_string() && ev["schemaVersion"].is_string(), "{ev}");
+    let shared = scope(&work, json!({ "ownSpec": "001", "mutable": ["src/a.rs"], "shared": [{ "path": "src/b.rs", "with": ["002"] }] }));
+    assert_eq!(shared["findings"], json!([]), "declared sharing is no crossing");
+    let err = scope_json("{}", s(&work), &json!({ "ownSpec": "999", "mutable": ["src/a.rs"] }).to_string()).unwrap_err();
+    assert_eq!(err.exit_code(), 1, "an unknown ownSpec: {err}");
+    let err = scope_json("{}", s(&work), &json!({ "ownSpec": "001", "mutable": ["../x"] }).to_string()).unwrap_err();
+    assert_eq!(err.exit_code(), 3, "a path outside the repository: {err}");
+    let a = json!({ "ownSpec": "001", "mutable": ["src/b.rs"] });
+    let b = json!({ "ownSpec": "002", "mutable": ["src/"] });
+    let r = json!({ "ownSpec": "002", "readOnly": ["src/b.rs"] });
+    let kinds = |x: &Value, y: &Value| -> Vec<String> {
+        let c: Value = serde_json::from_str(&scope_compare_json(&x.to_string(), &y.to_string()).unwrap()).unwrap();
+        c["conflicts"].as_array().unwrap().iter().map(|k| str_of(&k["kind"])).collect()
+    };
+    assert_eq!(kinds(&a, &b), vec!["both-mutable"], "a subtree overlaps a file inside it");
+    assert_eq!(kinds(&a, &r), vec!["changed-under-read"]);
+    assert_eq!(kinds(&r, &r), Vec::<String>::new(), "two readers do not conflict");
+    println!("ok: 108 scope names the crossing, accepts declared sharing, refuses unknown and escaping inputs, and compares");
+
+    // ---- 113: a waiver's lifecycle is evaluated over inputs the caller gives.
+    let both = ["src/a.rs", "src/b.rs"];
+    let scoped = "Spec-Drift-Waiver: b only\nSpec-Drift-Waiver-Paths: src/b.rs\nSpec-Drift-Waiver-Until: 2026-12-31\n";
+    let rep = couple(&work, &both, json!({ "prBody": scoped, "waiverInputs": { "asOf": "2026-10-01" } }));
+    assert_eq!(cleared(&rep, 0), vec!["src/b.rs"], "{rep}");
+    assert!(rep.get("waiver").is_none(), "src/a.rs still refuses, so the run is not waived");
+    let expired = couple(&work, &both, json!({ "prBody": scoped, "waiverInputs": { "asOf": "2027-01-01" } }));
+    assert_eq!(expired["waivers"][0]["effective"], false);
+    assert_eq!(cleared(&expired, 0), Vec::<String>::new(), "a failed check clears nothing");
+    let undated = couple(&work, &both, json!({ "prBody": scoped }));
+    assert_eq!(undated["waivers"][0]["checks"][0]["outcome"], "not-evaluated");
+    assert_eq!(cleared(&undated, 0), vec!["src/b.rs"], "not evaluated is not failed");
+    let once = "Spec-Drift-Waiver: once\nSpec-Drift-Waiver-Max-Uses: 1\n";
+    let id = str_of(&couple(&work, &both, json!({ "prBody": once }))["waivers"][0]["id"]);
+    let mut uses = serde_json::Map::new();
+    uses.insert(id, json!(1));
+    let spent = couple(&work, &both, json!({ "prBody": once, "waiverInputs": { "uses": uses } }));
+    assert_eq!(spent["waivers"][0]["checks"][0]["outcome"], "failed", "the caller's count reached the limit");
+    let none = couple(&work, &both, json!({}));
+    assert!(none.get("waivers").is_none(), "no waiver declared, no new member: {none}");
+    let two_sources = json!({ "repoRoot": s(&work), "diff": diff(&both), "prBody": scoped, "waiver": { "reason": "x" } });
+    assert_eq!(couple_json(&two_sources.to_string()).unwrap_err().exit_code(), 3);
+    println!("ok: 113 scoped, expired, not-evaluated and spent waivers each report and clear as declared");
+
+    // ---- Composed: a work order holds a closure and a scope, changes the
+    // code, and asks the gate. What the scope called a crossing is exactly
+    // what the gate refuses; a waiver scoped to it clears exactly that; and
+    // neither the gate nor the waiver moves the closure or the scope.
+    let order_closure = json!({ "obligations": ["001#R-1"], "specs": ["001"] });
+    let before = closure(&work, order_closure.clone());
+    let changed = ["specs/001-a/spec.md", "src/a.rs", "src/b.rs"];
+    let gate = couple(&work, &changed, json!({}));
+    let refused: Vec<String> = gate["violations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| str_of(&v["path"]))
+        .collect();
+    let crossings: Vec<String> = ev["findings"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|f| f["code"] == "S-002")
+        .map(|f| str_of(&f["path"]))
+        .collect();
+    assert_eq!(refused, crossings, "the scope predicted the gate's refusal");
+    let body = format!(
+        "Spec-Drift-Waiver: the declared crossing\nSpec-Drift-Waiver-Paths: {}\nSpec-Drift-Waiver-Until: 2026-12-31\n",
+        crossings.join(", ")
+    );
+    let waived = couple(&work, &changed, json!({ "prBody": body, "waiverInputs": { "asOf": "2026-10-01" } }));
+    assert_eq!(waived["waiver"], "the declared crossing", "every refusal cleared: {waived}");
+    assert_eq!(cleared(&waived, 0), crossings, "and nothing beyond the crossing");
+    assert_eq!(closure(&work, order_closure)["digest"], before["digest"], "the gate moved no closure");
+    let again = scope(&work, json!({ "id": "W-1", "ownSpec": "001", "mutable": ["src/a.rs", "src/b.rs"], "readOnly": ["src/c.rs"] }));
+    assert_eq!(again, ev, "the gate and the waiver moved no scope evaluation");
+    println!("ok: composed: scope crossing == gate refusal; a waiver scoped to it clears exactly it; closure and scope unchanged");
 }
 
 fn replay(fixtures: &Path, id: &str) {
@@ -189,6 +284,46 @@ fn query(registry: &str, mut req: Value) -> Value {
 
 fn closure(root: &Path, req: Value) -> Value {
     serde_json::from_str(&closure_json("{}", s(root), &req.to_string()).unwrap()).unwrap()
+}
+
+fn scope(root: &Path, req: Value) -> Value {
+    serde_json::from_str(&scope_json("{}", s(root), &req.to_string()).unwrap()).unwrap()
+}
+
+fn diff(paths: &[&str]) -> Value {
+    json!({ "files": paths.iter().map(|p| json!({ "path": p, "hunks": [], "deleted": false })).collect::<Vec<_>>() })
+}
+
+/// `couple_json` over `paths`, with `extra` members merged into the request.
+fn couple(root: &Path, paths: &[&str], extra: Value) -> Value {
+    let mut req = json!({ "repoRoot": s(root), "diff": diff(paths) });
+    for (k, v) in extra.as_object().unwrap() {
+        req[k] = v.clone();
+    }
+    serde_json::from_str(&couple_json(&req.to_string()).unwrap()).unwrap()
+}
+
+fn cleared(report: &Value, n: usize) -> Vec<String> {
+    report["waivers"][n]["clears"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|c| str_of(&c["path"]))
+        .collect()
+}
+
+fn write_work(root: &Path) {
+    fs::create_dir_all(root.join("src")).unwrap();
+    for f in ["a", "b", "c"] {
+        fs::write(root.join(format!("src/{f}.rs")), format!("pub fn {f}() {{}}\n")).unwrap();
+    }
+    spec(
+        root,
+        "001-a",
+        "status: draft\nestablishes:\n  - \"src/a.rs\"\nobligations:\n  - { id: \"R-1\", kind: requirement, text: \"A holds.\", anchor: \"3-1-the-rule\" }\n",
+        "# 001\n\n## 3. Behavior\n\n### 3.1 The rule\n\nA holds.\n",
+    );
+    spec(root, "002-b", "status: draft\nestablishes:\n  - \"src/b.rs\"\n", "# 002\n");
 }
 
 fn cli(bin: &Path, root: &Path, args: &[&str]) {
