@@ -1,5 +1,6 @@
 //! A disposable consumer of the expansion wave (specs 102, 103, 106, 107, 108,
-//! 109, 110, 113), written only against supported surfaces: the `spec-spine`
+//! 109, 110, 113, and since 0.24.0 specs 111, 112, 114 and 116), written only
+//! against supported surfaces: the `spec-spine`
 //! binary writes each corpus's committed ledger, as it would in an adopting
 //! repository, and every read goes through the packaged library's JSON facade.
 //!
@@ -14,8 +15,8 @@ use std::process::Command;
 
 use serde_json::{Value, json};
 use spec_spine_core::{
-    closure_json, compile_json, couple_json, interface_verify_json, query_json, scope_compare_json,
-    scope_json, verify_attestation_json,
+    closure_json, compile_json, couple_json, interface_verify_json, lint_json, query_json,
+    scope_compare_json, scope_json, verify_attestation_json,
 };
 
 const RULE: &str = "3-1-the-rule";
@@ -237,6 +238,290 @@ fn main() {
     let again = scope(&work, json!({ "id": "W-1", "ownSpec": "001", "mutable": ["src/a.rs", "src/b.rs"], "readOnly": ["src/c.rs"] }));
     assert_eq!(again, ev, "the gate and the waiver moved no scope evaluation");
     println!("ok: composed: scope crossing == gate refusal; a waiver scoped to it clears exactly it; closure and scope unchanged");
+
+    since_0_24_0(&bin, &scratch);
+}
+
+/// The contracts added in 0.24.0. Each is additive: nothing above changes.
+/// `CONSUMER_ONLY=111,116` runs a subset, so a negative control can show each
+/// section failing on its own against a release that lacks it.
+fn since_0_24_0(bin: &Path, scratch: &Path) {
+    let only = std::env::var("CONSUMER_ONLY").ok();
+    let want = |id: &str| only.as_deref().is_none_or(|o| o.split(',').any(|x| x == id));
+    if want("111") {
+        contract_111(bin, scratch);
+    }
+    if want("112") {
+        contract_112(bin, scratch);
+    }
+    if want("114") {
+        contract_114(scratch);
+    }
+    if want("116") {
+        contract_116(scratch);
+    }
+}
+
+fn contract_111(bin: &Path, scratch: &Path) {
+    // ---- 111: a move is a reviewed mapping, looked up and never inferred.
+    let mv = scratch.join("moves");
+    write_moves(&mv, true);
+    cli(bin, &mv, &["compile"]);
+    cli(bin, &mv, &["index"]);
+    let registry = compile_json("{}", s(&mv)).unwrap();
+    let reg: Value = serde_json::from_str(&registry).unwrap();
+    assert_eq!(reg["validation"]["passed"], true, "{}", reg["validation"]);
+    let look = |path: &str| query(&registry, json!({ "op": "moves", "path": path }));
+    let unmapped = look("src/c.rs");
+    assert_eq!(unmapped["outcome"], "unmapped", "{unmapped}");
+    assert!(unmapped["schemaVersion"].is_string(), "a versioned read document");
+    let chain = look("src/a.rs");
+    assert_eq!(chain["outcome"], "resolved", "{chain}");
+    let hops: Vec<(String, String)> = chain["hops"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|h| (str_of(&h["from"]), str_of(&h["to"])))
+        .collect();
+    assert_eq!(
+        hops,
+        vec![
+            ("src/a.rs".into(), "src/a2.rs".into()),
+            ("src/a2.rs".into(), "src/a3.rs".into())
+        ],
+        "a two-hop chain across two specs"
+    );
+    assert_eq!(chain["terminals"], json!([{ "path": "src/a3.rs" }]), "{chain}");
+    let split = look("src/s.rs");
+    assert_eq!(split["outcome"], "resolved", "{split}");
+    assert_eq!(
+        split["terminals"],
+        json!([{ "path": "src/s1.rs" }, { "path": "src/s2.rs" }]),
+        "a split follows every declared branch"
+    );
+    let amb = look("src/x.rs");
+    assert_eq!(amb["outcome"], "ambiguous", "{amb}");
+    let cands: Vec<String> = amb["candidates"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|c| str_of(&c["declaredBy"]))
+        .collect();
+    assert_eq!(cands, vec!["001-a", "002-b"], "every candidate named, none picked");
+    let cyc = look("src/p.rs");
+    assert_eq!(cyc["outcome"], "cycle", "{cyc}");
+    assert_eq!(cyc["chain"], json!(["src/p.rs", "src/q.rs", "src/p.rs"]), "{cyc}");
+    let all = query(&registry, json!({ "op": "moves" }));
+    let froms: Vec<String> = all["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|i| str_of(&i["from"]))
+        .collect();
+    let mut sorted = froms.clone();
+    sorted.sort();
+    assert_eq!(froms, sorted, "the flattened map is sorted");
+    assert_eq!(froms.len(), 9, "{all}");
+
+    // A declared move clears no deletion: the same deletion, with and without
+    // the mapping, reaches the identical verdict, and it is a refusal.
+    let bare = scratch.join("moves-bare");
+    write_moves(&bare, false);
+    cli(bin, &bare, &["compile"]);
+    cli(bin, &bare, &["index"]);
+    let deletion = |root: &Path| -> Value {
+        let req = json!({
+            "repoRoot": s(root),
+            "diff": { "files": [{ "path": "src/a.rs", "hunks": [], "deleted": true }] },
+        });
+        serde_json::from_str(&couple_json(&req.to_string()).unwrap()).unwrap()
+    };
+    let with_map = deletion(&mv);
+    let without = deletion(&bare);
+    assert_eq!(with_map["violations"], without["violations"], "the mapping moved the verdict");
+    let codes: Vec<String> = with_map["violations"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|v| str_of(&v["code"]))
+        .collect();
+    assert_eq!(codes, vec!["C-001"], "an unauthored deletion is refused: {with_map}");
+
+    // A malformed declaration is refused at compile (V-040), and lint's tree
+    // checks stay inside the repository (111 D-12).
+    let bad = scratch.join("moves-bad");
+    fs::create_dir_all(&bad).unwrap();
+    spec(
+        &bad,
+        "001-a",
+        "status: draft\nestablishes:\n  - \"src/a.rs\"\nmoves:\n  - { from: \"../outside.rs\", to: null, kind: removed }\n",
+        "# 001\n",
+    );
+    fs::write(scratch.join("outside.rs"), "pub fn o() {}\n").unwrap();
+    let out: Value = serde_json::from_str(&compile_json("{}", s(&bad)).unwrap()).unwrap();
+    assert_eq!(out["validation"]["passed"], false);
+    assert!(out["validation"]["violations"].to_string().contains("V-040"), "{}", out["validation"]);
+    let lint: Value = serde_json::from_str(&lint_json("{}", s(&bad)).unwrap()).unwrap();
+    assert!(!lint.to_string().contains("L-016"), "lint stat a path outside the tree: {lint}");
+    println!("ok: 111 unmapped / resolved chain / split / ambiguous / cycle; the map is sorted; a mapping clears no deletion; V-040 refuses an escaping path");
+}
+
+fn contract_112(bin: &Path, scratch: &Path) {
+
+    // ---- 112: a declared overlay is transported, scoped to its spec, and
+    // read by no verdict.
+    let ov = scratch.join("overlay");
+    write_overlay(&ov, true);
+    let cfg = json!({ "frontmatter": { "extra_known_keys": ["effects"] } }).to_string();
+    let with: Value = serde_json::from_str(&compile_json(&cfg, s(&ov)).unwrap()).unwrap();
+    assert_eq!(with["validation"]["passed"], true, "{}", with["validation"]);
+    let rec = record(&with, "001-a");
+    assert_eq!(
+        rec["extraFrontmatter"]["effects"],
+        json!({ "src/a.rs": { "network": false, "reads": ["the index"] } }),
+        "transported as JSON, keys sorted"
+    );
+    let undeclared: Value = serde_json::from_str(&compile_json("{}", s(&ov)).unwrap()).unwrap();
+    assert_eq!(undeclared["validation"]["passed"], false, "an undeclared nested overlay");
+    assert!(undeclared["validation"]["violations"].to_string().contains("V-002"));
+    let plain = scratch.join("overlay-absent");
+    write_overlay(&plain, false);
+    let without: Value = serde_json::from_str(&compile_json(&cfg, s(&plain)).unwrap()).unwrap();
+    assert_eq!(record(&without, "002-b"), record(&with, "002-b"), "the other spec's record");
+    // The hash scope is the declaring spec: the committed ledger's content
+    // hash moves for 001-a and for nothing else.
+    for root in [&ov, &plain] {
+        fs::write(root.join("spec-spine.toml"), "[frontmatter]\nextra_known_keys = [\"effects\"]\n").unwrap();
+        cli(bin, root, &["compile"]);
+    }
+    let hash = |root: &Path, id: &str| -> Value {
+        let req = json!({ "specs": [id] }).to_string();
+        let c: Value = serde_json::from_str(&closure_json(&cfg, s(root), &req).unwrap()).unwrap();
+        c["members"][0]["contentHash"].clone()
+    };
+    assert!(hash(&ov, "002").is_string());
+    assert_eq!(hash(&ov, "002"), hash(&plain, "002"), "the hash scope is the declaring spec");
+    assert_ne!(hash(&ov, "001"), hash(&plain, "001"));
+    assert_eq!(
+        verdicts(&cfg, &ov),
+        verdicts(&cfg, &plain),
+        "no verdict reads an overlay"
+    );
+    println!("ok: 112 overlay transported, refused when undeclared, hashed only in its spec, read by no verdict");
+}
+
+fn contract_114(scratch: &Path) {
+
+    // ---- 114: intent is a well-formed standing declaration, optional, and
+    // an authorization of nothing.
+    let it = scratch.join("intent");
+    write_intent(&it, "intent:\n  goal: \"a correct removal stops being refused\"\n  non_goals:\n    - \"changing C-001\"\n");
+    let valid: Value = serde_json::from_str(&compile_json("{}", s(&it)).unwrap()).unwrap();
+    assert_eq!(valid["validation"]["passed"], true, "{}", valid["validation"]);
+    assert_eq!(
+        record(&valid, "001-a")["intent"],
+        json!({ "goal": "a correct removal stops being refused", "nonGoals": ["changing C-001"] })
+    );
+    let absent = scratch.join("intent-absent");
+    write_intent(&absent, "");
+    let none: Value = serde_json::from_str(&compile_json("{}", s(&absent)).unwrap()).unwrap();
+    assert!(record(&none, "001-a").get("intent").is_none(), "absent is no member");
+    assert_eq!(verdicts("{}", &it), verdicts("{}", &absent), "a valid intent moves no verdict");
+    for bad in [
+        "intent:\n  non_goals: [\"x\"]\n",
+        "intent:\n  goal: \"   \"\n",
+        "intent:\n  goal: \"g\"\n  approach: \"how\"\n",
+        "intent: \"just a string\"\n",
+    ] {
+        let dir = scratch.join("intent-bad");
+        let _ = fs::remove_dir_all(&dir);
+        write_intent(&dir, bad);
+        let out: Value = serde_json::from_str(&compile_json("{}", s(&dir)).unwrap()).unwrap();
+        assert_eq!(out["validation"]["passed"], false, "accepted a malformed intent: {bad}");
+    }
+    println!("ok: 114 valid intent recorded as {{goal, nonGoals}}; absence is no member; four malformed shapes refused; no verdict moves");
+}
+
+fn contract_116(scratch: &Path) {
+
+    // ---- 116: a deferred spec claiming nothing raises no L-001, and the
+    // exemption re-arms when it is scheduled.
+    let lint_codes = |implementation: &str| -> Vec<String> {
+        let dir = scratch.join(format!("deferred-{implementation}"));
+        spec(&dir, "001-a", "status: draft\n", "# 001\n");
+        let text = fs::read_to_string(dir.join("specs/001-a/spec.md"))
+            .unwrap()
+            .replace("implementation: pending", &format!("implementation: {implementation}"));
+        fs::write(dir.join("specs/001-a/spec.md"), text).unwrap();
+        let out: Value = serde_json::from_str(&lint_json("{}", s(&dir)).unwrap()).unwrap();
+        out.as_array()
+            .unwrap()
+            .iter()
+            .map(|v| str_of(&v["code"]))
+            .collect()
+    };
+    assert!(!lint_codes("deferred").contains(&"L-001".to_string()), "deferred is exempt");
+    assert!(lint_codes("pending").contains(&"L-001".to_string()), "scheduled re-arms L-001");
+    assert!(lint_codes("n-a").contains(&"L-001".to_string()), "n-a is deliberately not exempt");
+    println!("ok: 116 L-001 exempts a deferred spec only, and re-arms when scheduled");
+}
+
+/// Two corpora differing only in `moves`: 001-a owns src/a.rs; with `map`,
+/// 001-a and 002-b declare a chain, a split, a disagreement and a loop.
+fn write_moves(root: &Path, map: bool) {
+    fs::create_dir_all(root.join("src")).unwrap();
+    for f in ["a", "a3", "b", "c", "s1", "s2"] {
+        fs::write(root.join(format!("src/{f}.rs")), "pub fn f() {}\n").unwrap();
+    }
+    let (a, b) = if map {
+        (
+            "moves:\n  - { from: \"src/a.rs\", to: \"src/a2.rs\", kind: relocated }\n  - { from: \"src/s.rs\", to: [\"src/s1.rs\", \"src/s2.rs\"], kind: split }\n  - { from: \"src/x.rs\", to: \"src/y.rs\", kind: relocated }\n  - { from: \"src/p.rs\", to: \"src/q.rs\", kind: relocated }\n",
+            "moves:\n  - { from: \"src/a2.rs\", to: \"src/a3.rs\", kind: relocated }\n  - { from: \"src/x.rs\", to: \"src/z.rs\", kind: relocated }\n  - { from: \"src/q.rs\", to: \"src/p.rs\", kind: relocated }\n  - { from: \"src/old.rs\", to: null, kind: removed, answered_by: \"001\" }\n",
+        )
+    } else {
+        ("", "")
+    };
+    spec(root, "001-a", &format!("status: draft\nestablishes:\n  - \"src/a.rs\"\n{a}"), "# 001\n");
+    spec(root, "002-b", &format!("status: draft\nestablishes:\n  - \"src/b.rs\"\n{b}"), "# 002\n");
+}
+
+fn write_overlay(root: &Path, overlay: bool) {
+    fs::create_dir_all(root.join("src")).unwrap();
+    fs::write(root.join("src/a.rs"), "pub fn a() {}\n").unwrap();
+    fs::write(root.join("src/b.rs"), "pub fn b() {}\n").unwrap();
+    let o = if overlay {
+        "effects:\n  \"src/a.rs\":\n    reads: [\"the index\"]\n    network: false\n"
+    } else {
+        ""
+    };
+    spec(root, "001-a", &format!("status: draft\nestablishes:\n  - \"src/a.rs\"\n{o}"), "# 001\n");
+    spec(root, "002-b", "status: draft\nestablishes:\n  - \"src/b.rs\"\n", "# 002\n");
+}
+
+fn write_intent(root: &Path, intent: &str) {
+    fs::create_dir_all(root.join("src")).unwrap();
+    fs::write(root.join("src/a.rs"), "pub fn a() {}\n").unwrap();
+    spec(root, "001-a", &format!("status: draft\nestablishes:\n  - \"src/a.rs\"\n{intent}"), "# 001\n");
+}
+
+/// One spec's record from a `compile_json` answer.
+fn record<'a>(compiled: &'a Value, id: &str) -> &'a Value {
+    compiled["specs"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["id"] == id)
+        .unwrap_or_else(|| panic!("no record for {id}"))
+}
+
+/// The verdicts a gate reads, minus the one thing that legitimately differs
+/// between two corpora (their content hashes): compile's validation and
+/// lint's violations (`lint_json` answers with the array itself).
+fn verdicts(cfg: &str, root: &Path) -> (Value, Value) {
+    let c: Value = serde_json::from_str(&compile_json(cfg, s(root)).unwrap()).unwrap();
+    let l: Value = serde_json::from_str(&lint_json(cfg, s(root)).unwrap()).unwrap();
+    assert!(c["validation"].is_object() && l.is_array(), "{c} {l}");
+    (c["validation"].clone(), l)
 }
 
 fn replay(fixtures: &Path, id: &str) {
