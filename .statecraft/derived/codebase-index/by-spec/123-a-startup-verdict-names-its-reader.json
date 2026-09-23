@@ -1,101 +1,97 @@
 {
   "mapping": {
-    "amends": [
-      "004-codebase-index"
-    ],
     "dependsOn": [
-      "001-compile-registry",
-      "004-codebase-index",
-      "005-coupling-gate"
+      "093-the-harness-this-repository-runs",
+      "094-one-gate-and-the-boundaries-it-holds"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-core/src/index.rs",
+        "path": ".claude/settings.json",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/index.rs",
+        "path": ".githooks/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/version.rs",
+        "path": "crates/spec-spine-core/tests/harness_hooks.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/tests/dtos.rs",
-        "source": "spec-edge"
+        "path": "crates/spec-spine-core/tests/reader_identity.rs",
+        "source": "multiple"
       }
     ],
     "resolvedUnits": [
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/index.rs"
+            "file": "crates/spec-spine-core/tests/reader_identity.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/reader_identity.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".githooks/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": ".githooks/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".claude/settings.json"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/index.rs"
+          "path": ".claude/settings.json"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/index.rs"
+            "file": "crates/spec-spine-core/tests/harness_hooks.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/index.rs"
+          "path": "crates/spec-spine-core/tests/harness_hooks.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/version.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-types/src/version.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-types/tests/dtos.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-types/tests/dtos.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/design/00-architecture.md"
+            "file": "docs/release-candidate-0.22.0.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/00-architecture.md"
+          "path": "docs/release-candidate-0.22.0.md"
         }
       }
     ],
-    "specId": "023-unresolved-unit-severity",
-    "specStatus": "approved"
+    "specId": "123-a-startup-verdict-names-its-reader",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f9afb4cfd219879268f9549daa6bc137854c5dccc367246f7a6fa093d40d56c1"
+  "shardHash": "6ea9039a6586e63ee6b59a0137d89b4b3c2fb3070ecec61ab941460024bf94f6"
 }
