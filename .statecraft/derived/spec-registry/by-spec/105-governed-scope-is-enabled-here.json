@@ -96,10 +96,10 @@
       "Verification"
     ],
     "specPath": "specs/105-governed-scope-is-enabled-here/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 078 added `[coverage] governed_scope` so a repository can bring its governance files under the ownership ratchet, and the repository that wrote it never turned it on. The measured cost is four unclaimed paths. They are claimed, the scope is declared over exactly the files this repository already folds into its content hash, and what stays exempt is stated rather than implied.\n",
     "title": "Governed scope is enabled here"
   },
-  "shardHash": "9551670c1a5e1a4eb77a9a53d5b7ae44e0172c3187ccb5289a013084f881ffcb",
+  "shardHash": "e4feca16954dfdcb6ac49a75c8abd35fff39d002f3b280f8edf1cc32bf8ce291",
   "specVersion": "1.6.0"
 }

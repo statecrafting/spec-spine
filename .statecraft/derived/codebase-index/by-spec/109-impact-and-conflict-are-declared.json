@@ -391,8 +391,8 @@
       }
     ],
     "specId": "109-impact-and-conflict-are-declared",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "469771a7a85869911340979927f628fa19bfb4f592857d9c024b01832f11a210"
+  "shardHash": "146910875006033e0437a1e2f2838a79e2df1a7a04f925710be876674f1b19ad"
 }

@@ -1,7 +1,7 @@
 ---
 id: "110-an-interface-reference-is-digest-pinned"
 title: "An interface reference is digest-pinned"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-21"
 implementation: complete
