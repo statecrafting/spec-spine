@@ -1,7 +1,10 @@
 # Release candidate `v0.22.0`
 
 **Status: candidate re-frozen at `f9fa6a8f56b82c8d97cf2803bc31838a0b455a21`,
-not tagged and not published.** **§13 is the state that is true now**: it
+not tagged and not published.** §14 (2026-09-23) keeps that candidate apart
+from current `main` and from the next expansion release, and supersedes 13.7's
+ratification text; nothing in it moves the tag revision. **§13 is the
+candidate's record**: it
 supersedes §11's proposed tag revision (`da47632b`), its checks, its digests
 and its procedure, because `da47632b` lacks the `Acceptance` corrections of
 specs 120 and 121 (§13.1). Sections 0.1 to 8 are the pre-integration record,
@@ -1259,3 +1262,232 @@ Under the pre-121 workflow the same corpus made the nightly red (run
 `35723398403` at `3d4f3902`). The counts equal the local run's in 13.5; they
 were measured independently, on a GitHub-hosted runner and on this machine.
 
+
+## 14. Three revisions kept apart, after the expansion wave merged (2026-09-23)
+
+The expansion wave merged on `main` after the freeze. None of it moves the
+proposed tag. This section keeps three things separate so that no later merge
+can be read as a change to 0.22.0.
+
+### 14.1 The three revisions
+
+| | Revision | What it is |
+|---|---|---|
+| **Frozen 0.22.0 candidate** | `f9fa6a8f56b82c8d97cf2803bc31838a0b455a21` | Unchanged. §13 is its whole record: checks (13.4), sweep (13.5), package digests (13.6), procedure (13.9). Not tagged, not published, not recut. |
+| **Current `main`** | `2fff1e494cabc40746ccc77a8610f67ce0807175` | The candidate plus the evidence records, the expansion wave and the two acceptance repairs below. Reports `0.22.0` too, so the version string does not distinguish it from the candidate. |
+| **Next expansion release** | not cut | Specs 102, 103, 105, 106, 107, 109, 110 and 122 (14.2). Needs its own version bump, candidate record, checks and ratification decisions. |
+
+**No recut.** A recut is owed only if the chosen tag revision changes.
+Nothing merged after `f9fa6a8f` changes a byte of that revision, and 14.4
+records that nothing merged after it corrects a defect in it.
+
+### 14.2 Merged after the freeze, one pull request each
+
+| # | Pull request | Squash commit (full) | What | In 0.22.0? |
+|---|---|---|---|---|
+| 1 | #304 | `d29fa048943711898954a170ed9da650b3f84b4f` | owner decision D-7, opportunity-led expansion | no, record |
+| 2 | #306 | `03a204b94ada8d5cfca49a7566fb3ec8e98fe308` | §13, the re-freeze record | no, record |
+| 3 | #301 | `c638093216f99221f33d2a76975c242c65b8802f` | **spec 103**, verifier fixtures | no |
+| 4 | #307 | `75a998f7122f32392c38c8b052c8e686511e1230` | **spec 102**, readiness status | no |
+| 5 | #308 | `088d6d4b711659ce563f496d6c5c421ac2f9a84f` | **spec 106**, obligations and section digests | no |
+| 6 | #310 | `45becbbeb960dc95df3c201cd027c366b15693cd` | **spec 122**, the commit refuses an unresolved merge or unformatted Rust | no |
+| 7 | #309 | `6e123d2e4632ef2feb8d65e8e8843ff8bf545482` | **spec 107**, context closures | no |
+| 8 | #311 | `b7c13452a3cdcc924ddc7cf720810b571325c803` | **spec 105**, governed scope | no |
+| 9 | #312 | `0ca3001d6b5cc36bec14fde8b2852360572fa63c` | **spec 109**, impact and conflict | no |
+| 10 | #313 | `8c6c4d73d25d7c586fee2b6a49d0b11b8db302c8` | **spec 110**, digest-pinned interface references | no |
+| 11 | #314 | `73182329f548c7c54572d4bee80260c212581c43` | spec 102 carries 053's acceptance (held by 087), with `status` (14.9) | no |
+| 12 | #315 | `2fff1e494cabc40746ccc77a8610f67ce0807175` | spec 105 carries 078's acceptance, unset case on a scratch corpus (14.9) | no |
+
+Every implementation PR merged through branch protection with the required
+checks green on its head. The stacked 107 was verified against its effective
+diff after 106's squash; 110's branch carried 109's pre-squash history and, after
+merging `main` at `0ca3001d`, differed from `main` by 110's files only.
+
+### 14.3 Composed verification on `main` at `8c6c4d73d25d7c586fee2b6a49d0b11b8db302c8`
+
+Measured in a clean detached worktree at the merge commit, with the binary
+built from it (`spec-spine 0.22.0`). Local unless the row says CI.
+
+| Check | Result |
+|---|---|
+| `make gate` (check, lint, coverage, couple) | **passed** |
+| `cargo fmt --all --check`; `cargo clippy --workspace --all-targets --locked -- -D warnings` | **passed** |
+| `cargo test --workspace --locked --no-fail-fast` (53 test binaries); `cargo test -p spec-spine-core --no-default-features --locked` | **passed** |
+| `spec-spine verify` for 102 (10), 103 (13), 105 (16), 106 (11), 107 (7), 109 (9), 110 (8), 122 (12) | **all passed**, 86 commands |
+| `./scripts/verify-packaged-producer.sh` (spec 104), packaged crates | **passed**, 37 assertions |
+| `docs/examples/expansion-consumer/run.sh`, packaged crates | **passed**, every contract below |
+| CI on the merge commit: `CI` run `35811669236` | **passed** |
+| CI on the merge commit: `Acceptance` push leg run `35811669203` | **failed**: `053` and `078`, both `approved`, release verdict not clean (14.9) |
+
+The packaged runs were cut from `52ae253b` (this docs change), whose
+`crates/`, `Cargo.toml` and `Cargo.lock` are identical to `8c6c4d73`'s; the
+archives' digests describe that commit's VCS metadata, not a release
+(`spec-spine-types` `3c2c7fdf...`, `spec-spine-core` `bc17feae...`). This is
+local source/package verification, not registry-backed verification.
+
+The combined contracts, and where each is asserted:
+
+| Contract | Asserted by |
+|---|---|
+| A ready entry carries its real status; scheduling and approval stay distinct (a `draft` is ready) | `closure_composed.rs` (102 with 106/107), consumer §102 |
+| An obligation resolves the same through `registry obligation`, `registry show` and `query_json` | `closure_composed.rs`, `interface_composed.rs`, consumer §106 |
+| A withdrawn obligation keeps its identity; re-declaring the id is refused, and a reused id cannot keep a recorded digest | `closure_composed.rs`; its impacts report `targetWithdrawn` (`interface_composed.rs`, consumer §109) |
+| A section digest moves when its governed content moves, and only then | `closure_composed.rs`, `interface_composed.rs` (a status flip moves the whole-spec identity and no section) |
+| A closure normalizes order, duplicates and short ids | `closure_composed.rs`, consumer §107 |
+| Missing members, absent section digests and stale ledgers refuse; what a tolerant read accepts cannot enter a closure | `closure_composed.rs`, consumer §107 |
+| A changed obligation or section changes the closure, and a pin on it goes stale while the declared impact set stays byte-identical | `interface_composed.rs`, consumer §110 |
+| A stale exporter ledger cannot hide a change from a pin; a stale importer ledger refuses (exit 2) | `interface_composed.rs` |
+| Verifier-fixture coverage measures real outcomes, from the packaged crate | `verifier_fixtures.rs` (every build), consumer §103 (all 11 cases through `verify_attestation_json`) |
+| Fixture regeneration after a registry MINOR moves only `registryHash`/`attestationHash`; `version-mismatch` stays a version mismatch | 110 D-2 (diff measured), consumer §103 |
+
+### 14.4 The frozen candidate: defects looked for, none found
+
+Examined: `git diff f9fa6a8f 8c6c4d73` over `crates/*/src`, `npm/`, `py/`,
+`Cargo.toml` and `Cargo.lock`, every `*_SCHEMA_VERSION` constant, and every post-freeze commit subject. The engine
+diff is additive (new modules, new fields, new verbs): 2405 lines added, 17
+deleted. The deleted lines restructure `plan`'s ready entries and a re-export
+list to carry 102's new field, replace two doc comments, widen two compile
+helpers to `pub(crate)`, and move the two schema constants; none of them
+changes an existing behavior, and no post-freeze commit is a fix to code in
+the candidate. Spec 122 corrects this repository's own
+commit procedure (`.githooks/pre-commit`), which is not in any package.
+**Result: no defect in `f9fa6a8f` was found by this work.** That is a
+statement about what was examined, not a proof of absence.
+
+### 14.5 Schema axes: candidate against `main`
+
+| Axis | `f9fa6a8f` | `main` |
+|---|---|---|
+| registry `specVersion` | `1.3.0` | `1.6.0` (106, 109, 110) |
+| read documents `schemaVersion` | `0.1.0` | `0.6.0` (102, 106, 107, 109, 110) |
+| verifier fixture set | absent | `0.1.0` (103) |
+| index, verdict, attestation, delta, snapshot, config | unchanged | unchanged |
+
+All moves are MINOR. Each MINOR has one owner and one number: 1.4.0/1.5.0/1.6.0
+and 0.2.0 to 0.6.0 were each taken once, in merge order, and
+`schema_versions_are_pinned` (`dtos.rs`) and
+`a_stamped_document_carries_the_read_axis_version` (`read.rs`) pin the head of
+each axis with its history. `docs/schema-versioning.md` lists every step.
+
+### 14.6 Ratification decisions still open (supersedes 13.7)
+
+Status changes are the owner's. Nothing here is ratified.
+
+| Specs | Where | State | Effect on 0.22.0 |
+|---|---|---|---|
+| 118, 119, 120, 121 | #305, status-only, brought up to date with `main` | awaiting owner approval | none if merged on `main`: the candidate stays `f9fa6a8f` and these ship there as `draft` / `complete`. Ratifying *inside* 0.22.0 needs a release branch from `f9fa6a8f` and a full recut (#305 option 2), not prepared. |
+| 102, 103, 105, 106, 107, 109, 110, 122 | not proposed | `draft` / `complete` | none; they are next-release content |
+
+13.7's sentence that a ratification merge before the tag moves the tag
+revision is superseded: `main` now carries the wave, so no merge commit on
+`main` is a 0.22.0 candidate.
+
+### 14.7 Publication
+
+Unchanged from 13.9 and not performed. **Pushing the tag starts
+publication**: `release.yml` publishes to crates.io, npm and PyPI and creates
+the GitHub Release on the tag push, with no further approval step. The tag,
+if the owner chooses 0.22.0 as frozen, is
+`git tag -s -m "spec-spine 0.22.0" v0.22.0 f9fa6a8f56b82c8d97cf2803bc31838a0b455a21`,
+followed by `git tag -v v0.22.0` and `git push origin refs/tags/v0.22.0`.
+
+### 14.8 The merge and commit failure path, corrected and observed
+
+Two execution mistakes during the wave's integration committed work that should
+have been refused: conflict markers after a merge that reported conflicts, and
+a commit after a failed `cargo fmt --all --check`. Both passed through a
+command chain in which a `;` (or a pipe whose exit status was the last
+command's) let the commit run whatever the earlier step returned, and through a
+pre-commit hook that checked neither.
+
+The correction is in two places, neither of them new machinery:
+
+- **The repository's hook (spec 122, #310).** Before resolving any binary,
+  `.githooks/pre-commit` refuses unmerged index entries (`git ls-files -u`),
+  refuses conflict markers on added lines only (`git diff --cached --check`,
+  so a marker already in history is never re-reported, and an intentional
+  fixture opts out by the `conflict-marker-size` attribute, never by a path
+  pattern in the hook), and refuses a staged Rust change that fails
+  `cargo fmt --all --check`. Generated shards left stale by a conflict
+  resolution are still refused by the freshness read that follows. Asserted
+  behaviorally through `git commit` in a throwaway repository
+  (`commit_boundary.rs`), and `verify 122` passes at `8c6c4d73`.
+- **The procedure.** A required check and the commit it guards are separate
+  commands, or joined only by `&&` with no `;` and no pipe between them; a
+  pipe that must carry the check's status runs under `pipefail`.
+
+Observed once, unprompted, on 2026-09-23 while addressing review on #313: a
+chain of the form `cargo fmt --all --check && <build> ; git add ... && git
+commit ...` ran `git commit` after the format check had failed. The hook
+answered `REFUSED: cargo fmt --all --check failed`, `HEAD` did not move, and
+the push that followed sent nothing. The commit was redone as separate steps
+(`2d45831d`). Separately, a commit in a fresh worktree with no in-tree binary
+was refused because the hook fell back to an installed `spec-spine 0.20.0`
+that predates spec 106 and judged the corpus invalid. That refusal was a
+wrong-judge refusal, not a pass: building `target/release/spec-spine` first
+is the remedy, and the hook's resolution order (spec 093) is unchanged.
+
+### 14.9 Two approved acceptance blocks the wave broke, and their repair
+
+The push leg of `Acceptance` runs only after a merge (spec 099 keeps it off
+pull requests, because it executes what the corpus declares), so no pull
+request check could see this. It was red on `main` from #307 onward, and the
+wave kept merging:
+
+| Run | Commit | `053` | `078` |
+|---|---|---|---|
+| `35793731561` | `75a998f7` (#307, 102) | failed | passed |
+| `35795405838` | `088d6d4b` (#308, 106) | failed | passed |
+| `35798066907` | `6e123d2e` (#309, 107) | failed | passed |
+| `35799033728` | `b7c13452` (#311, 105) | not in scope | not in scope |
+| `35808640704` | `0ca3001d` (#312, 109) | failed | failed |
+| `35811669203` | `8c6c4d73` (#313, 110) | failed | failed |
+
+The leg sweeps a scope computed from what the merge touched. At 105's own
+merge it swept four specs and 078 was not among them, so 105's break surfaced
+one merge later, on 109's run. A scoped leg can therefore report a break on a
+later, unrelated merge; the whole-corpus run (nightly, or `verify-sweep.sh`
+by hand) is the one that attributes a break to nothing but the tree.
+
+- **053**, held by 087: three lines compare a ready entry, and the `--next`
+  pick, to exactly `{ id, title }`. Spec 102 added `status`. 102's D-5 moved
+  the two test pins of that shape and missed the block, because a block is
+  not a test the build runs.
+- **078**: its block asserts that *this repository* leaves `governed_scope`
+  unset. Spec 105 set it. The assertion was about corpus state.
+
+The whole-corpus release sweep at `8c6c4d73` (`verify-sweep.sh --rev
+8c6c4d73d25d7c586fee2b6a49d0b11b8db302c8 --release`, run locally in its own
+worktree with the binary built from the revision) accounts for all 116 specs:
+
+```
+verify-sweep.sh: 8c6c4d73  passed=70 failed=3 not-declared=0 exempt=43 not-run=0
+verify-sweep.sh: release verdict: NOT CLEAN  (not passing=3 pending=0)
+```
+
+The three are `053`, `078` and `087` (087 is the same break as 053, seen at the
+spec that holds 053's acceptance). Nothing else in the corpus is red.
+
+Neither is a defect in the code: the behavior each block was written to pin
+still holds, and each block's failure is an exact-shape or corpus-state
+assertion that the later spec made false on purpose. Both specs are
+`approved`, so each is repaired by amendment (spec 082 §3.2), never by an
+edit: #314 (spec 102 carries 087's block, and through it 053's, with each
+exact assertion extended by `status`) and #315 (spec 105 carries 078's
+block, with the unset case moved to a scratch corpus and the set case asserted
+here). Each keeps its exact assertions exact and adds a line that goes red if
+the approved file is edited in place.
+
+**After the repairs.** #314 merged as `73182329`; its push leg (run
+`35814736994`) swept `053`, `087` and `102`: `passed=3 failed=0`, release
+verdict clean. #315 merged as `2fff1e49`, whose tree is byte-identical to the
+head that was verified locally: `make gate`, and `verify` for 053, 087 and 102
+(36 commands each, all running 102's block) and for 078 and 105 (38 commands
+each, running 105's block), all passed there. On `main` at `2fff1e49`, `CI` (run `35815207825`) passed and the
+`Acceptance` push leg (run `35815207681`) swept `078` and `105`: `passed=2
+failed=0`, release verdict clean.
+
+**Procedure correction.** After each merge, read the post-merge `Acceptance`
+verdict on `main` before merging the next change. A red push leg is a finding
+about the merged revision, and the next merge's green PR checks do not answer
+it.
