@@ -709,3 +709,43 @@ fn exported_spec_is_constructible_by_a_binding() {
     );
     assert_eq!(e["c"]["001-x"].path, "specs/001-x/spec.md");
 }
+
+// ---- 3.2: the embedded schemas hold the same grammar compile does ----------
+
+#[test]
+fn the_schemas_refuse_what_compile_refuses_in_a_reference() {
+    let exp = exporter(EXPORTER_BODY);
+    let pin = pin_of(exp.path());
+    let (_t, out) = importer(&[reference("statecraft-cli", EXPORTER_ID, &pin.digest, &[])]);
+    let shard: serde_json::Value =
+        serde_json::from_str(&spec_spine_core::registry_shard_files(&out.shards).unwrap()[0].1)
+            .unwrap();
+    let registry = serde_json::to_value(&out.registry).unwrap();
+    for (schema_src, instance, pointer) in [
+        (
+            spec_spine_types::REGISTRY_SPEC_SHARD_SCHEMA,
+            shard,
+            "/record/interfaceReferences/0",
+        ),
+        (
+            spec_spine_types::REGISTRY_SCHEMA,
+            registry,
+            "/specs/0/interfaceReferences/0",
+        ),
+    ] {
+        let schema: serde_json::Value = serde_json::from_str(schema_src).unwrap();
+        let v = jsonschema::validator_for(&schema).unwrap();
+        assert!(v.is_valid(&instance), "the emitted form conforms");
+        for (member, bad) in [
+            ("spec", "002"),
+            ("spec", "not an id"),
+            ("corpus", "Upper"),
+            ("digest", "sha1:00"),
+            ("obtained", "22/09/2026"),
+        ] {
+            let mut m = instance.clone();
+            *m.pointer_mut(pointer).unwrap().get_mut(member).unwrap() = serde_json::json!(bad);
+            assert!(!v.is_valid(&m), "{pointer}/{member} = {bad:?} was accepted");
+        }
+    }
+}

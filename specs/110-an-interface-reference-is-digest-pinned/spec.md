@@ -346,6 +346,11 @@ carried here and corrected before any code:
   so spec 103's set is regenerated with its own generator. Only
   `registryHash` and `attestationHash` move; every recorded outcome,
   including `version-mismatch`, is unchanged.
+- **The embedded schemas carry compile's grammar for every member**,
+  including `spec` (the full-id pattern the record's own `id` uses), so a
+  shard that could only come from a hand edit is refused by schema
+  validation too, not only by compile. A test mutates each constrained member
+  of an emitted shard and registry and asserts refusal (review of #313).
 - **Composition is asserted, not assumed.** `interface_composed.rs` runs 102,
   106, 107, 109 and this spec over one exporter corpus: the section digest
   `registry obligation`, `registry show` and a pin carry is one value; an
