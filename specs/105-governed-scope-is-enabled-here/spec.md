@@ -343,8 +343,9 @@ cargo test -p spec-spine-cli --test cli --locked
 target/release/spec-spine registry show 105 --json > "${TMPDIR:-/tmp}/ss105-show.json"
 python3 -c "import json; d=json.load(open('${TMPDIR:-/tmp}/ss105-show.json')); assert d['amendsVerification'] == ['078-governed-scope-is-declared-not-inferred'], d; assert d['amends'] == ['078-governed-scope-is-declared-not-inferred'], d"
 rm -f "${TMPDIR:-/tmp}/ss105-show.json"
-# 078's file is not edited: it still carries the in-repository form replaced
-# above. Red if someone repairs 078 in place instead.
+# 078's commands are not edited (only its superseded note, spec 082 3.4): it
+# still carries the in-repository form replaced above. Red if someone
+# repairs 078's commands in place instead.
 grep -qF 'assert "declaredScopeFiles" not in d, d["declaredScopeFiles"]' specs/078-governed-scope-is-declared-not-inferred/spec.md
 # --- this spec's own acceptance ---
 # Each `python3 -c` below is a SINGLE line on purpose: `verify:cli` commands
