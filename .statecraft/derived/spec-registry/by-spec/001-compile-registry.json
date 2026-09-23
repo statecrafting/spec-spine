@@ -68,5 +68,5 @@
     "title": "Compile the spec corpus into a deterministic registry"
   },
   "shardHash": "43188d563d68c524de330f47ebcadd3ccb4b25dda182af1b97d9421947dcf9a1",
-  "specVersion": "1.4.0"
+  "specVersion": "1.6.0"
 }

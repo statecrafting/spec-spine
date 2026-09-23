@@ -55,5 +55,5 @@
     "title": "Bounded keypath section anchors for first-party structured config"
   },
   "shardHash": "95503829a61e5150689e0b5a7183251c7774a5f2dba75dadca0d23c004559c80",
-  "specVersion": "1.4.0"
+  "specVersion": "1.6.0"
 }

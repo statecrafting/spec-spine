@@ -120,5 +120,5 @@
     "title": "Frontmatter: declared extra keys carry arbitrary YAML, verbatim"
   },
   "shardHash": "7c972f54a702744cb1418701e67ab301f9f5d005f834ad959f9ef6c4c3b95449",
-  "specVersion": "1.4.0"
+  "specVersion": "1.6.0"
 }

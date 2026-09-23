@@ -198,6 +198,23 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
                 at(),
             ));
         }
+
+        // L-014 (spec 109 §3.3): an `unresolved` conflict, once per entry. A
+        // corpus is allowed to know it contradicts itself; what it is not
+        // allowed to do is know silently, so this is a warning, not an error,
+        // and `--fail-on-warn` is what turns it into a refusal.
+        for c in &spec.conflicts {
+            if c.resolution == spec_spine_types::ConflictResolution::Unresolved {
+                violations.push(warn(
+                    "L-014",
+                    format!(
+                        "spec '{}' declares an unresolved conflict with '{}'",
+                        spec.id, c.obligation
+                    ),
+                    at(),
+                ));
+            }
+        }
     }
 
     // L-008 (spec 050): a claimed path that exists and that no content hash

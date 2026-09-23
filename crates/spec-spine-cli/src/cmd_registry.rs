@@ -56,6 +56,28 @@ pub enum RegistryQuery {
         #[arg(long)]
         json: bool,
     },
+    /// Resolve a context closure against the committed ledger (spec 107): every
+    /// member's identity and one order-independent digest. Refuses a stale
+    /// registry (exit 2).
+    Closure {
+        /// A closure request document, or `-` for stdin.
+        #[arg(long, value_name = "FILE")]
+        request: String,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Every declared impact and conflict (spec 109), inverted so the target
+    /// side can see what was declared about it. `--target` is a spec id
+    /// (every obligation it declares) or a qualified `<spec-id>#<obligation-id>`
+    /// reference; `--declared-by` is a spec id; both compose by intersection.
+    Impacts {
+        #[arg(long, value_name = "REF")]
+        target: Option<String>,
+        #[arg(long, value_name = "SPEC")]
+        declared_by: Option<String>,
+        #[arg(long)]
+        json: bool,
+    },
     /// Which specs can be worked on now, and what blocks the rest (spec 035).
     Plan {
         #[arg(long)]
@@ -229,6 +251,97 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                 }
             }
         }
+        RegistryQuery::Impacts {
+            target,
+            declared_by,
+            json,
+        } => {
+            let set =
+                spec_spine_core::impacts(&registry, target.as_deref(), declared_by.as_deref())?;
+            if *json {
+                print_json(&set)?;
+            } else if set.impacts.is_empty() && set.conflicts.is_empty() {
+                outln!("(no declarations)");
+            } else {
+                for imp in &set.impacts {
+                    outln!(
+                        "impact    {} -> {}  {}{}{}",
+                        imp.declared_by,
+                        imp.target,
+                        label(imp.nature),
+                        imp.successor
+                            .as_deref()
+                            .map(|s| format!("  successor={s}"))
+                            .unwrap_or_default(),
+                        if imp.target_withdrawn {
+                            "  (target withdrawn)"
+                        } else {
+                            ""
+                        }
+                    );
+                }
+                for c in &set.conflicts {
+                    outln!(
+                        "conflict  {} -> {}  {}{}{}",
+                        c.declared_by,
+                        c.target,
+                        label(c.resolution),
+                        c.settled_by
+                            .as_deref()
+                            .map(|s| format!("  settled_by={s}"))
+                            .unwrap_or_default(),
+                        if c.target_withdrawn {
+                            "  (target withdrawn)"
+                        } else {
+                            ""
+                        }
+                    );
+                }
+            }
+        }
+        RegistryQuery::Closure { request, json } => {
+            let text = if request == "-" {
+                let mut buf = String::new();
+                std::io::Read::read_to_string(&mut std::io::stdin(), &mut buf)
+                    .map_err(|e| Error::Io(format!("read closure request from stdin: {e}")))?;
+                buf
+            } else {
+                std::fs::read_to_string(request)
+                    .map_err(|e| Error::Io(format!("read closure request {request}: {e}")))?
+            };
+            let req: spec_spine_core::ClosureRequest = serde_json::from_str(&text)
+                .map_err(|e| Error::Parse(format!("invalid closure request: {e}")))?;
+            let resolved = spec_spine_core::closure(&cfg, repo, &req)?;
+            if *json {
+                print_json(&resolved)?;
+            } else {
+                for m in &resolved.members {
+                    match m {
+                        spec_spine_core::ClosureMember::Spec { spec, content_hash } => {
+                            outln!("spec        {spec}  {content_hash}")
+                        }
+                        spec_spine_core::ClosureMember::Section {
+                            spec,
+                            anchor,
+                            digest,
+                        } => {
+                            outln!("section     {spec}#{anchor}  {digest}")
+                        }
+                        spec_spine_core::ClosureMember::Obligation {
+                            spec,
+                            id,
+                            section_digest,
+                            withdrawn,
+                            ..
+                        } => outln!(
+                            "obligation  {spec}#{id}  {section_digest}{}",
+                            if *withdrawn { "  (withdrawn)" } else { "" }
+                        ),
+                    }
+                }
+                outln!("digest: {}", resolved.digest);
+            }
+        }
         RegistryQuery::Relationships { id, json } => {
             let view = relationships(&registry, id)?;
             if *json {
@@ -346,6 +459,17 @@ fn parse_status(s: &str) -> Result<Status, Error> {
             "unknown status '{other}' (expected draft|approved|superseded|retired)"
         ))),
     }
+}
+
+/// The lowercase wire spelling of a `lowercase`-serde enum (spec 109's
+/// `ImpactNature` / `ConflictResolution`), for the text rendering: `{:?}`
+/// would print `Refines`, and the wire form a reader of the frontmatter wrote
+/// is `refines`.
+fn label(v: impl serde::Serialize) -> String {
+    serde_json::to_value(v)
+        .ok()
+        .and_then(|v| v.as_str().map(str::to_string))
+        .unwrap_or_default()
 }
 
 fn status_label(s: Status) -> &'static str {

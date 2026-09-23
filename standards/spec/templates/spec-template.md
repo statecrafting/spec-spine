@@ -112,6 +112,54 @@ implementation: pending        # pending | in-progress | complete | n-a | deferr
 # obligations:
 #   - { id: "R-1", kind: requirement, text: "The rule holds.", anchor: "3-1-the-rule" }
 #   - { id: "V-1", kind: verification, text: "It is checked.", anchor: "verification", inputs: ["tests/rule.rs"] }
+# --- declared impact and conflict (spec 109) ---
+# `impacts` and `conflicts` name this spec's relation to another spec's
+# obligation (spec 106): a qualified `<spec-id>#<obligation-id>` reference,
+# which MUST resolve (an unqualified reference is `V-025`, never resolved
+# locally, and a dangling or self-targeting one is `V-028`/`V-029`). Both are
+# optional; a spec may declare neither. Nothing computes either, and no gate
+# reads them: they record what the author said, not a proof it is complete or
+# correct.
+#   - `impacts[].nature`: `refines`, `extends`, `supersedes` or `informs`.
+#     `supersedes` MUST name, in `successor`, a non-withdrawn obligation THIS
+#     spec declares (`V-026`); `successor` on any other nature is refused.
+#   - `conflicts[].reason`: non-empty, why the divergence exists (`V-027`).
+#   - `conflicts[].resolution`: `deliberate`, `unresolved` or `pending`.
+#     `unresolved` is reported by `lint` (`L-014`), once per entry, warning
+#     tier. `settled_by`, a spec id, is required exactly when `resolution` is
+#     `pending` and refused otherwise (`V-031`).
+# The same obligation named twice in one spec's `impacts`, or twice in its
+# `conflicts`, is refused (`V-030`). `spec-spine registry impacts [--target
+# <ref>] [--declared-by <spec>]` inverts every declaration in the corpus.
+# impacts:
+#   - { obligation: "NNN-other#R-1", nature: refines, note: "why" }
+#   - { obligation: "NNN-other#R-2", nature: supersedes, successor: "R-4" }
+# conflicts:
+#   - { obligation: "NNN-other#R-3", reason: "why", resolution: deliberate }
+#   - { obligation: "NNN-other#R-5", reason: "why", resolution: pending, settled_by: "NNN-later" }
+# --- cross-corpus interface references (spec 110) ---
+# `interface_references` cite a spec in ANOTHER repository, pinned to what it
+# said when it was read. Nothing fetches it and no gate reads the pin; only
+# `spec-spine interface verify --export <corpus>=<dir>` checks it, against a
+# local checkout the caller supplies.
+#   - `corpus`: a name, `^[a-z0-9][a-z0-9._-]*$`, never a URL or path (`V-032`).
+#   - `spec`: the cited spec's FULL id in that corpus; a short id is `V-033`.
+#   - `digest`: `sha256:` + 64 lowercase hex, the cited spec's `contentHash`
+#     from `spec-spine registry show <id> --json` run in that corpus (`V-034`).
+#     There is no placeholder form: a pin is copied, never filled in later.
+#   - `sections`: optional anchors, each with its `sectionDigests` entry, in the
+#     same `sha256:` form (`V-035`); an anchor pinned twice is `V-037`.
+#   - `obtained`: the authored `YYYY-MM-DD` date the digests were read (`V-036`).
+#   - `rationale`: optional free text.
+# One reference per (corpus, spec) pair in a spec (`V-038`).
+# interface_references:
+#   - corpus: "other-repo"
+#     spec: "NNN-cited-spec"
+#     digest: "sha256:<64 hex>"
+#     sections:
+#       - { anchor: "3-1-the-rule", digest: "sha256:<64 hex>" }
+#     obtained: "YYYY-MM-DD"
+#     rationale: "why this spec relies on it"
 # --- bootstrap marker (NOT an edge) ---
 # `origin.retroactive` declares authority held since before the graph existed:
 # code that predates its governing spec is evidence, not a violation, and a

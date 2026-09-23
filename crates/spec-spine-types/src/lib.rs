@@ -30,6 +30,8 @@ pub mod delta;
 pub mod edges;
 pub mod error;
 pub mod frontmatter;
+pub mod impact;
+pub mod interface;
 pub mod obligation;
 pub mod registry;
 pub mod schema;
@@ -73,6 +75,11 @@ pub use error::{Error, Result};
 pub use frontmatter::{
     Frontmatter, FrontmatterIssue, Implementation, KNOWN_KEYS, Risk, Status, parse_frontmatter,
     parse_frontmatter_with, split_frontmatter,
+};
+pub use impact::{Conflict, ConflictResolution, Impact, ImpactNature};
+pub use interface::{
+    InterfaceReference, InterfaceReport, Outcome, PinnedSection, ReferenceResult, SectionOutcome,
+    SectionResult, Summary, valid_corpus_name, valid_digest, valid_obtained_date,
 };
 pub use obligation::{Obligation, ObligationKind, split_obligation_ref, valid_obligation_id};
 pub use registry::{

@@ -79,6 +79,64 @@
           "type": "object",
           "description": "Every body section's anchor mapped to its digest (spec 106; first shipped in specVersion 1.4.0).",
           "additionalProperties": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        },
+        "impacts": {
+          "type": "array",
+          "description": "Declared relations to other specs' obligations (spec 109; first shipped in specVersion 1.5.0). `obligation` is normalized to its full qualified form.",
+          "items": {
+            "type": "object",
+            "required": ["obligation", "nature"],
+            "additionalProperties": false,
+            "properties": {
+              "obligation": { "type": "string", "pattern": "^[^\\s#]+#[^\\s#]+$" },
+              "nature": { "enum": ["refines", "extends", "supersedes", "informs"] },
+              "successor": { "type": "string", "minLength": 1 },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "conflicts": {
+          "type": "array",
+          "description": "Declared, unresolved disagreements with other specs' obligations (spec 109; first shipped in specVersion 1.5.0). `obligation` is normalized to its full qualified form.",
+          "items": {
+            "type": "object",
+            "required": ["obligation", "reason", "resolution"],
+            "additionalProperties": false,
+            "properties": {
+              "obligation": { "type": "string", "pattern": "^[^\\s#]+#[^\\s#]+$" },
+              "reason": { "type": "string", "minLength": 1, "pattern": "\\S" },
+              "resolution": { "enum": ["deliberate", "unresolved", "pending"] },
+              "settledBy": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "interfaceReferences": {
+          "type": "array",
+          "description": "Cross-corpus interface references, carried verbatim (spec 110; first shipped in specVersion 1.6.0).",
+          "items": {
+            "type": "object",
+            "required": ["corpus", "spec", "digest", "obtained"],
+            "additionalProperties": false,
+            "properties": {
+              "corpus": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$" },
+              "spec": { "type": "string", "pattern": "^[0-9]{3}-[a-z0-9]+(-[a-z0-9]+)*$" },
+              "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+              "sections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["anchor", "digest"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "anchor": { "type": "string", "minLength": 1 },
+                    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+                  }
+                }
+              },
+              "obtained": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+              "rationale": { "type": "string" }
+            }
+          }
         }
       }
     },

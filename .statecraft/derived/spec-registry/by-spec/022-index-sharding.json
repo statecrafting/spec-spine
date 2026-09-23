@@ -231,5 +231,5 @@
     "title": "Per-unit shard storage (conflict-free committed registry + index)"
   },
   "shardHash": "d9655e746f56bbf247226671fe2113c994b8ddbe4135f05555cf9634b7bb8610",
-  "specVersion": "1.4.0"
+  "specVersion": "1.6.0"
 }
