@@ -112,10 +112,10 @@
       "Verification"
     ],
     "specPath": "specs/126-a-derived-file-stays-in-its-directory/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`compile` and `index` name each per-spec shard `<id>.json` after the spec's frontmatter `id`, and `attest --spec` names its attestation the same way. None of the three checked that the id was a file name before joining it to a directory. A corpus declaring `id: \"../../../package\"` made `compile` overwrite the repository's `package.json` with shard JSON, an absolute id wrote wherever it pointed, and `index` and `attest --spec` did the same while exiting 0. `V-012` reported the id, but after the write rather than instead of it. These are verbs documented as safe to run against a stranger's branch. Every file name derived from a spec id is now checked before anything is written, pruned or created: a name that is not one plain file name refuses the whole write with exit 3 and leaves the tree as it was.\n",
     "title": "A derived file stays in its directory"
   },
-  "shardHash": "e9ac87eb7474405bc067555cf5a8d0389667c9a2923d54c605ec6c12c9476374",
+  "shardHash": "83062fc759d0421b24827894b2fe8526453abf3b27ea13e6471b2c02fb0f69a1",
   "specVersion": "1.8.0"
 }
