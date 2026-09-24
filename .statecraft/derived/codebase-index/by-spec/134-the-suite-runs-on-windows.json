@@ -31,26 +31,9 @@
       {
         "path": "crates/spec-spine-core/tests/reader_identity.rs",
         "source": "spec-edge"
-      },
-      {
-        "path": "docs/windows-findings.md",
-        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
-      {
-        "locations": [
-          {
-            "file": "docs/windows-findings.md"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "docs/windows-findings.md"
-        }
-      },
       {
         "locations": [
           {
@@ -141,11 +124,24 @@
           "kind": "file",
           "path": "crates/spec-spine-core/tests/reader_identity.rs"
         }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/windows-findings.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/windows-findings.md"
+        }
       }
     ],
     "specId": "134-the-suite-runs-on-windows",
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "a956491a8b65d2783906fa1fad0f83d9f12b483c333a0f738f57769ca3684696"
+  "shardHash": "2d113e634d3335edb7a64c4aab21a2c33421c97cd3ca26f768951c42e910a261"
 }

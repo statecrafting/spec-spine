@@ -27,8 +27,8 @@ extends:
   - { spec: "122-a-commit-refuses-an-unresolved-merge", unit: "crates/spec-spine-core/tests/commit_boundary.rs", nature: additive }
   - { spec: "123-a-startup-verdict-names-its-reader", unit: "crates/spec-spine-core/tests/reader_identity.rs", nature: additive }
   - { spec: "094-one-gate-and-the-boundaries-it-holds", unit: "crates/spec-spine-core/tests/gate.rs", nature: additive }
-establishes:
-  - { kind: file, path: "docs/windows-findings.md" }
+references:
+  - { unit: { kind: file, path: "docs/windows-findings.md" }, role: context }
 ---
 
 # 134: The suite runs on Windows

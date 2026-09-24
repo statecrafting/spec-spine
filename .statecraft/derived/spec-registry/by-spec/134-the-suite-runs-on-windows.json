@@ -4,12 +4,6 @@
     "dependsOn": [
       "094-one-gate-and-the-boundaries-it-holds"
     ],
-    "establishes": [
-      {
-        "kind": "file",
-        "path": "docs/windows-findings.md"
-      }
-    ],
     "extends": [
       {
         "nature": "additive",
@@ -72,6 +66,15 @@
     "implementation": "in-progress",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/windows-findings.md"
+        }
+      }
+    ],
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "cd1c0e1756e27766126c058c715a4cf7214885d4c1a41641fe1ebf7e62a5465a",
@@ -88,6 +91,6 @@
     "summary": "spec-spine ships a Windows binary and proves its shard trees byte-identical on Windows, but CI only ever built there: the workspace test suite ran on Linux alone, so a Windows behavior difference could ship with every check green. A `test (windows)` job now runs `cargo test --workspace` on `windows-latest` as a check of its own, required through `ci-gate`. A test that cannot run on Windows is gated or quarantined in its source with a tracked finding, never skipped by the workflow, and Windows results are reported apart from build results.\n",
     "title": "The suite runs on Windows"
   },
-  "shardHash": "b48c73ac86199e924ecf165189a16b5c1b6f31e6f8c164a6549638c35027a021",
+  "shardHash": "492799194c2b2b127f5191355badf3e6db05ed696f59e2cc7f870b3d669f123c",
   "specVersion": "1.8.0"
 }
