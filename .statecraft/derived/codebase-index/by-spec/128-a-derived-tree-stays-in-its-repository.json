@@ -107,8 +107,8 @@
       }
     ],
     "specId": "128-a-derived-tree-stays-in-its-repository",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "47140923240bd0e470888be02813f658fc2a50901a13ee42498d7bfd49f4a1e1"
+  "shardHash": "742776a41d7daae90192fe20b9509a8cf16247e65a398e5cc22be116cee385f1"
 }

@@ -1,7 +1,7 @@
 ---
 id: "128-a-derived-tree-stays-in-its-repository"
 title: "A derived tree stays in its repository"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-23"
 summary: >

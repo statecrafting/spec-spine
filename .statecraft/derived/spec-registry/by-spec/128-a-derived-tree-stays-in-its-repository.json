@@ -104,10 +104,10 @@
       "Verification"
     ],
     "specPath": "specs/128-a-derived-tree-stays-in-its-repository/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`[layout] derived_dir` is read from the committed `spec-spine.toml`, and nothing checked where it pointed. `derived_dir = \"../outside\"`, an absolute path, or `x/../../outside` made `compile`, `index` and `attest` write their shards outside the repository and prune `*.json` files there, all with exit 0, on `main` and on spec 127's build. Spec 127 checks every component below the repository root for links, and stops where a path leaves the root (its D-4), so it did not reach this. A `derived_dir` that is absolute, carries a `..` segment, or uses a Windows path form is now refused when the configuration is loaded, before any verb reads or writes, and the checked writer refuses any path that is not wholly below its root. A repository reached through a link still works.\n",
     "title": "A derived tree stays in its repository"
   },
-  "shardHash": "2c77398812b22007ccf1a23b5474f76c529b0c712660a21165f9e76fa5ac25ee",
+  "shardHash": "4c886a433b3a1af6e3943ded92d2b4e7e9d5d13cc154e3835600b4b607e989ee",
   "specVersion": "1.8.0"
 }
