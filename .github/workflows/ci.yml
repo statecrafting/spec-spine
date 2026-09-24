@@ -59,6 +59,21 @@ jobs:
       - name: Clippy (no default features)
         run: cargo clippy -p spec-spine-core --no-default-features --all-targets --locked -- -D warnings
 
+  # Spec 134: the workspace test suite on Windows, reported as a check of its
+  # own so a Windows test result is never read as a build result. The
+  # determinism job builds on Windows; this one runs the tests. A test that
+  # cannot run there is gated or quarantined in the test source with a tracked
+  # finding (docs/windows-findings.md), never skipped here.
+  test_windows:
+    name: test (windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Show toolchain
+        run: rustc --version && cargo --version
+      - name: Test
+        run: cargo test --workspace --locked --no-fail-fast
+
   self_governance:
     name: self-governance (compile · index · lint · couple)
     runs-on: ubuntu-latest
@@ -150,15 +165,15 @@ jobs:
   ci-gate:
     name: ci-gate
     if: ${{ always() }}
-    needs: [test, self_governance, determinism, ai-review]
+    needs: [test, test_windows, self_governance, determinism, ai-review]
     runs-on: ubuntu-latest
     steps:
       - name: Require all CI jobs to have passed
         if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
         run: |
           echo "A required CI job failed or was cancelled:"
-          echo "  test=${{ needs.test.result }}  self_governance=${{ needs.self_governance.result }}  determinism=${{ needs.determinism.result }}  ai-review=${{ needs.ai-review.result }}"
+          echo "  test=${{ needs.test.result }}  test_windows=${{ needs.test_windows.result }}  self_governance=${{ needs.self_governance.result }}  determinism=${{ needs.determinism.result }}  ai-review=${{ needs.ai-review.result }}"
           exit 1
       - name: All required CI jobs passed
         run: |
-          echo "ci-gate passed: test, self_governance, determinism, and ai-review are all green or skipped"
+          echo "ci-gate passed: test, test_windows, self_governance, determinism, and ai-review are all green or skipped"
