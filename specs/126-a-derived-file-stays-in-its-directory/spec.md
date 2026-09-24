@@ -1,7 +1,7 @@
 ---
 id: "126-a-derived-file-stays-in-its-directory"
 title: "A derived file stays in its directory"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-23"
 summary: >
