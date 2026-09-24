@@ -1580,6 +1580,79 @@ fn a_planned_unit_that_resolves_is_owned_like_any_other() {
     );
 }
 
+// ── spec 130: a planned claim ends at completion ─────────────────────────
+
+/// The unit is not on disk in any of these, so the answer depends only on the
+/// flag and the lifecycle.
+const PLANNED_ABSENT: &str = "  - { kind: file, path: \"src/future.rs\", planned: true }\n";
+
+/// Spec 130 §3.1: once the spec says its work is complete, the flag no longer
+/// holds the claim open. The unresolved unit classifies exactly as an unmarked
+/// one does on a settled spec, the natural `I-0xx` error, so `check` and
+/// `index check` refuse it without needing the lint.
+#[test]
+fn a_planned_unit_on_a_complete_spec_is_an_unresolved_claim() {
+    for status in ["approved", "draft"] {
+        let tmp = planned_fixture(PLANNED_ABSENT, status, "complete");
+        let codes = diag_codes(&tmp);
+        assert_eq!(
+            codes,
+            vec!["I-004".to_string()],
+            "{status} + complete: completion ends the planned window, so the \
+             absent unit is the settled-spec error"
+        );
+    }
+}
+
+/// Spec 130 §3.2, the positive controls: before completion the flag still
+/// declares the claim, whatever the status, and a spec with no
+/// `implementation` key keeps 063's meaning too. The rule keys on
+/// `complete`, not on "not in flight", which would have swept the absent key
+/// in with it.
+#[test]
+fn a_planned_unit_before_completion_still_produces_nothing() {
+    for (status, implementation) in [
+        ("approved", "pending"),
+        ("approved", "in-progress"),
+        ("draft", "pending"),
+        ("approved", "deferred"),
+    ] {
+        let tmp = planned_fixture(PLANNED_ABSENT, status, implementation);
+        assert_eq!(
+            diag_codes(&tmp),
+            Vec::<String>::new(),
+            "{status} + {implementation}: a planned claim is a declared state"
+        );
+    }
+    // No `implementation` key at all: `in_flight` is false for an approved
+    // spec here, which is exactly why the rule must not read it.
+    let tmp = tempfile::tempdir().unwrap();
+    write(tmp.path(), "Cargo.toml", "[workspace]\nmembers = []\n");
+    write(
+        tmp.path(),
+        "specs/001-a/spec.md",
+        &format!(
+            "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-09-08\"\n\
+             summary: \"s\"\nestablishes:\n{PLANNED_ABSENT}---\n# 001-a\n## body\n"
+        ),
+    );
+    assert_eq!(
+        diag_codes(&tmp),
+        Vec::<String>::new(),
+        "no implementation key"
+    );
+}
+
+/// Spec 130 §3.2: an unmarked claim keeps every classification it had, so a
+/// typo is still `W-001` in flight and the natural error once complete.
+#[test]
+fn an_unmarked_claim_keeps_its_classification() {
+    let in_flight = planned_fixture("  - \"src/typo.rs\"\n", "approved", "pending");
+    assert_eq!(diag_codes(&in_flight), vec!["W-001".to_string()]);
+    let settled = planned_fixture("  - \"src/typo.rs\"\n", "approved", "complete");
+    assert_eq!(diag_codes(&settled), vec!["I-004".to_string()]);
+}
+
 // ── spec 075: the claim window and the recognizer, declared ──────────────
 
 /// A floorless crate holding one file with `content`, and the spec

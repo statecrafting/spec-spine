@@ -4426,3 +4426,64 @@ fn statecraft_derived_layout_compiles_indexes_and_is_judged() {
         "the bypass floor names the configured derived root: {text}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Spec 130: a planned claim ends at completion.
+//
+// The consumer's case, at the verbs: a spec that plans a subtree it has not
+// written passes every gate flag while its work is not complete, and the same
+// tree is an unresolved claim the moment it says `complete`.
+// ---------------------------------------------------------------------------
+
+fn planned_corpus(root: &Path, implementation: &str) {
+    let dir = root.join("specs/001-planned");
+    fs::create_dir_all(&dir).unwrap();
+    fs::write(
+        dir.join("spec.md"),
+        format!(
+            "---\nid: \"001-planned\"\ntitle: \"T\"\nstatus: approved\ncreated: \"2026-09-24\"\n\
+             implementation: {implementation}\nsummary: \"s\"\nestablishes:\n\
+             \x20 - {{ kind: file, path: \"crates/later/\", planned: true }}\n---\n\n# 001-planned\n"
+        ),
+    )
+    .unwrap();
+    assert_eq!(code(&run_in(root, &["compile"])), 0);
+    assert_eq!(code(&run_in(root, &["index"])), 0);
+}
+
+/// Spec 130 §3.2: before completion every gate flag accepts the planned claim.
+#[test]
+fn spec130_a_planned_claim_passes_the_gate_flags_before_completion() {
+    for implementation in ["pending", "in-progress"] {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path();
+        planned_corpus(root, implementation);
+        for args in [
+            &["check", "--fail-on-unresolved", "--fail-on-warn"][..],
+            &["index", "check", "--fail-on-unresolved"][..],
+        ] {
+            let out = run_in(root, args);
+            assert_eq!(code(&out), 0, "{implementation} {args:?}: {}", stderr(&out));
+        }
+    }
+}
+
+/// Spec 130 §3.1: at completion the same tree is an unresolved claim, refused
+/// by plain `check` and `index check` as well as by the flag, with spec 079's
+/// report and spec 080's exit code.
+#[test]
+fn spec130_a_planned_claim_is_refused_once_complete() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    planned_corpus(root, "complete");
+    for args in [
+        &["check"][..],
+        &["check", "--fail-on-unresolved"][..],
+        &["index", "check"][..],
+        &["index", "check", "--fail-on-unresolved"][..],
+    ] {
+        let out = run_in(root, args);
+        assert_eq!(code(&out), 1, "{args:?}: {}", stderr(&out));
+        assert!(stderr(&out).contains("I-004"), "{args:?}: {}", stderr(&out));
+    }
+}

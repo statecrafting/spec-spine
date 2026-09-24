@@ -1,0 +1,127 @@
+{
+  "record": {
+    "amends": [
+      "063-planned-territory-is-declared-not-inferred"
+    ],
+    "amendsSections": [
+      "3.2"
+    ],
+    "created": "2026-09-24",
+    "dependsOn": [
+      "063-planned-territory-is-declared-not-inferred",
+      "080-an-unresolved-claim-is-not-stale"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "029-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/coverage.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/coverage.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "063-planned-territory-is-declared-not-inferred",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "079-a-blocking-claim-is-not-a-stale-shard",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/specify-first.md"
+        }
+      }
+    ],
+    "id": "130-a-planned-claim-ends-at-completion",
+    "implementation": "complete",
+    "intent": {
+      "goal": "a spec may claim unwritten territory until it says its work is complete, and every freshness verb refuses the claim from then on",
+      "nonGoals": [
+        "a new marker, edge or grammar: 063's `planned: true` is the authored form (4)",
+        "changing any verdict for an unmarked claim (3.2)",
+        "the exit code `index coverage` and `couple` give an unresolved claim (4)"
+      ]
+    },
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/063-planned-territory-is-declared-not-inferred/spec.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "dd51e4d65607e343be9f56587bf912b062075d329f9862d9493d54fd365a29ed",
+      "130-a-planned-claim-ends-at-completion": "1c1778e37ac2a26481588e39e1f3173328a0ed7fbeb67d76c03c4e7fe25432d6",
+      "2-territory": "1c8469acf65e8910124dc0c446098933ff1902afdfac1ca58eb01889a516ec51",
+      "3-1-the-flag-holds-a-claim-open-until-completion-amends-063-3-2": "cb09480db03f3add6950a3753f05a644250423f8505e4c86d6d91c753880ec58",
+      "3-2-what-stays-as-it-was": "79c2b73cbed33671c16a1be7f6f0dfb86b8a9833f8c24fdae99b3b39a83d6054",
+      "3-3-coverage-lists-only-what-is-not-yet-written": "55e6d36a5b21756127ea8f4ed43eed6d2c2988e41471f46866ef5b5cbbc8f2ae",
+      "3-4-adopter-guidance": "f76a835d3f0e02a515bb3f0dc94489aa38b85aa12f5f5cd4dec9e076ecb3822a",
+      "3-behavior": "77f967e9363699810a226efb3fd0222be23051735f60e897be2bffee8ed12676",
+      "4-out-of-scope": "31dd4178cbc59342662799481b6f302dfb613547f499196015668a9a4c8e7474",
+      "5-resolved-decisions": "a3a630004f0bbaf87c4cd8623921b127e1a31c494ac2ed80fe26a0d2f1ce9b52",
+      "verification": "d4fb5eb901928c663c95eb6225a2942919bc1c8274cd6e9b22f522c473a1e460"
+    },
+    "sectionHeadings": [
+      "130: A planned claim ends at completion",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The flag holds a claim open until completion (amends 063 §3.2)",
+      "3.2 What stays as it was",
+      "3.3 Coverage lists only what is not yet written",
+      "3.4 Adopter guidance",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/130-a-planned-claim-ends-at-completion/spec.md",
+    "status": "draft",
+    "summary": "Spec 063's `planned: true` lets a spec claim territory it has not written, so a corpus gating on `--fail-on-unresolved` can ratify before it builds. 063 bound the flag to completion only through the lint (`L-011`): a spec at `implementation: complete` whose planned unit is absent passed `check`, `index check` and both with `--fail-on-unresolved`, exit 0, because the index dropped the diagnostic for a planned unit at every lifecycle. A consumer whose hooks run `check` alone never saw the contradiction. The flag now holds a claim open only until the spec says `complete`; after that the absent unit classifies like any settled claim, the natural `I-0xx` error, and `check` exits 1. `index coverage` also stops listing a planned unit that has resolved as \"not yet written\". Nothing changes for an unmarked claim or for a spec whose work is not complete.\n",
+    "title": "A planned claim ends at completion"
+  },
+  "shardHash": "1f8573370b85aaf05219cb63e760b9245a0e351c3453bfcd8a9ca4bad054acf8",
+  "specVersion": "1.8.0"
+}

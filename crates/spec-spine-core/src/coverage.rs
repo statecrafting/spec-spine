@@ -425,8 +425,29 @@ pub fn coverage_with_inventory(
     // the report: this member is additive information beside a coverage verdict
     // that has already been reached, and `compile --check` is where a broken
     // registry is the operator's problem.
+    //
+    // Spec 130 §3.3: the list reads "declared, not yet written", so a planned
+    // unit the committed index resolves is left out of it. It is written: it
+    // is already counted as claimed, and `L-012` tells the author to drop the
+    // flag.
     if let Ok(registry) = crate::compile::load_committed_registry(cfg, repo_root) {
-        report.planned_territory = crate::query::planned_territory(&registry);
+        let written: std::collections::BTreeSet<String> = index
+            .traceability
+            .mappings
+            .iter()
+            .flat_map(|t| {
+                t.resolved_units
+                    .iter()
+                    .filter(|ru| !ru.locations.is_empty())
+                    .map(move |ru| {
+                        format!("{}: {}", t.spec_id, crate::query::unit_identity(&ru.unit))
+                    })
+            })
+            .collect();
+        report.planned_territory = crate::query::planned_territory(&registry)
+            .into_iter()
+            .filter(|entry| !written.contains(entry))
+            .collect();
     }
     // Spec 075 §3.4: the headers that tried to claim a file and did not, over
     // the claim scan's own universe. Beside the classification, never inside

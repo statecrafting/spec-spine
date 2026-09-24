@@ -753,7 +753,7 @@ fn planned_units(spec: &SpecRecord) -> Vec<String> {
 }
 
 /// A unit as the identity string a reader recognizes.
-fn unit_identity(unit: &spec_spine_types::Unit) -> String {
+pub(crate) fn unit_identity(unit: &spec_spine_types::Unit) -> String {
     use spec_spine_types::Unit;
     match unit {
         Unit::File { path, .. } => format!("file:{path}"),

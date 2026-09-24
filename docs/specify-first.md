@@ -49,6 +49,32 @@ Three things follow, and all three are correct:
 `spec-spine index diagnostics` lists them, and `spec-spine index orphans`
 separates the specs that are genuinely orphaned from the ones merely in flight.
 
+## Ratifying before building: planned claims
+
+A corpus that runs `--fail-on-unresolved` can still ratify a spec before its
+code exists, by marking each claim it has not written `planned: true` (spec
+063, bounded by spec 130). The object form is required; the bare-string
+shorthand cannot carry the flag:
+
+```yaml
+establishes:
+  - { kind: file, path: "crates/my-new-crate/", planned: true }
+  - { kind: crate, id: "my-new-crate", planned: true }
+```
+
+| The spec says | The planned unit | Gate verdict |
+|---|---|---|
+| any `status`, `implementation` other than `complete` | absent | accepted by `check`, `index check` and both with `--fail-on-unresolved`; coverage lists it as planned |
+| the same | present | `L-012` warning (`lint --fail-on-warn` refuses): drop the flag |
+| `implementation: complete` | absent | `I-004` (or the kind's own code): `check` and `index check` exit 1 with or without the flag; `L-011` error from `lint` |
+| `implementation: complete` | present | `L-011` error from `lint`: drop the flag |
+
+An unmarked claim keeps its old behavior, so a typo is still `W-001` in flight
+and refused by `--fail-on-unresolved`. A spec whose only ownership edges are
+planned claims is not `L-001`: the edge exists. The build pull request writes
+the code and drops the flag in the same change, which is also the spec-side
+edit the coupling gate asks for.
+
 ## The composite gate on a code-free tree
 
 A composite gate built for this mode guards its language targets on a
