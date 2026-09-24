@@ -244,7 +244,8 @@ impl Kind {
 /// before any of it happens (spec 127).
 ///
 /// [`apply`](Self::apply) first checks every name against
-/// [`check_file_name`], and every component of every path below `root` that
+/// [`check_file_name`], that every path is wholly below `root` (spec 128 3.3),
+/// and every component of every path below `root` that
 /// the run writes, creates, removes or prunes: a symbolic link, or an existing
 /// component of the wrong kind, refuses the whole run with exit 3 and nothing
 /// written (3.1 to 3.4). Only then does it create directories, one level at a
@@ -349,6 +350,14 @@ impl DerivedWrites {
         }
         for op in &self.ops {
             match op {
+                Op::Sync { dir, .. } => self.check_below_root(dir)?,
+                Op::Write { dir, name, .. } | Op::Remove { dir, name } => {
+                    self.check_below_root(&dir.join(name))?;
+                }
+            }
+        }
+        for op in &self.ops {
+            match op {
                 Op::Sync { dir, files } => {
                     self.check_path(dir, Kind::Dir)?;
                     for (name, _) in files {
@@ -366,8 +375,32 @@ impl DerivedWrites {
         Ok(())
     }
 
-    /// The ordinary components of `path` below the root, or `None` for a path
-    /// not wholly below it, which is checked only as far as it is (D-4).
+    /// Refuse a path that is not wholly below the root: one that does not
+    /// start with it, or whose remainder has a `..`, a root or a prefix
+    /// component (spec 128 3.3, withdrawing 127 D-4). Lexical, so the root is
+    /// never resolved and a root reached through a link still works. A
+    /// synced directory's prune entries are read from inside it, so checking
+    /// the directory covers them.
+    fn check_below_root(&self, path: &Path) -> Result<(), Error> {
+        let below = path.strip_prefix(&self.root).is_ok_and(|rel| {
+            rel.components()
+                .all(|c| matches!(c, Component::Normal(_) | Component::CurDir))
+        });
+        if below {
+            return Ok(());
+        }
+        Err(Error::Io(format!(
+            "refused to write {}: it is not below {}, the directory this run writes into \
+             (spec 128); nothing was written. A derived path must stay inside the \
+             repository: check `[layout] derived_dir`",
+            path.display(),
+            self.root.display()
+        )))
+    }
+
+    /// The ordinary components of `path` below the root. The preflight has
+    /// already refused a path that is not wholly below it (spec 128 3.3), so
+    /// the walk stopping early is a guard, not a case.
     fn below_root<'p>(&self, path: &'p Path) -> Vec<&'p std::ffi::OsStr> {
         let Ok(rel) = path.strip_prefix(&self.root) else {
             return Vec::new();
@@ -426,8 +459,8 @@ impl DerivedWrites {
     /// repeats the preflight on purpose: it is the only check between the
     /// preflight and a `create_dir`, so do not fold it away. The root is
     /// created with its ancestors if missing, which only [`sync_dir`]'s root can
-    /// be. A path not wholly below the root falls back to `create_dir_all` for
-    /// the part that is not (D-4).
+    /// be. The final `create_dir_all` finds every level already made: a path
+    /// not wholly below the root never reaches here (spec 128 3.3).
     fn create_dirs(&self, dir: &Path) -> Result<(), Error> {
         let io = |p: &Path, e: std::io::Error| Error::Io(format!("create {}: {e}", p.display()));
         fs::create_dir_all(&self.root).map_err(|e| io(&self.root, e))?;
@@ -856,6 +889,74 @@ mod tests {
         run(&root).apply().unwrap();
         assert_eq!(listing(&real.join("d/by-spec")), ["a.json"]);
         assert_eq!(listing(&real.join("d")), ["by-spec", "meta.json"]);
+    }
+
+    /// Spec 128 3.3: a path that is not wholly below the root refuses the
+    /// whole run in the preflight, wherever it sits in the run, with nothing
+    /// written, created, removed or pruned inside the root or out of it.
+    #[test]
+    fn derived_writes_refuse_a_path_not_below_the_root_and_change_nothing() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = tmp.path().join("repo");
+        let outside = tmp.path().join("outside");
+        fs::create_dir_all(root.join("d")).unwrap();
+        fs::create_dir_all(outside.join("by-spec")).unwrap();
+        fs::write(outside.join("by-spec/o.json"), "o").unwrap();
+        fs::write(outside.join("o.json"), "o").unwrap();
+        let listing = |p: &Path| {
+            let mut v: Vec<_> = fs::read_dir(p)
+                .unwrap()
+                .map(|e| e.unwrap().file_name())
+                .collect();
+            v.sort();
+            v
+        };
+        let shard = || vec![("a.json".to_string(), "1".to_string())];
+
+        type Escape = Box<dyn Fn(DerivedWrites) -> DerivedWrites>;
+        let escapes: Vec<(&str, Escape)> = vec![
+            ("sync through ..", {
+                let dir = root.join("../outside/by-spec");
+                Box::new(move |w| w.sync_dir(&dir, shard()))
+            }),
+            ("sync to a path elsewhere", {
+                let dir = outside.join("by-spec");
+                Box::new(move |w| w.sync_dir(&dir, shard()))
+            }),
+            ("write through a mid-path ..", {
+                let dir = root.join("d/../../outside");
+                Box::new(move |w| w.write(&dir, "m.json", "m".into()))
+            }),
+            ("remove through ..", {
+                let dir = root.join("..").join("outside");
+                Box::new(move |w| w.remove(&dir, "o.json"))
+            }),
+        ];
+        for (what, escape) in &escapes {
+            // The escaping output comes after a legitimate one, so a run that
+            // wrote before it checked would leave `d/meta.json` behind.
+            let run =
+                escape(DerivedWrites::new(&root).write(&root.join("d"), "meta.json", "m".into()));
+            let err = run.apply().expect_err(what);
+            assert_eq!(err.exit_code(), 3, "{what}");
+            let msg = err.to_string();
+            assert!(msg.contains("not below"), "{what}: {msg}");
+            assert!(msg.contains("nothing was written"), "{what}: {msg}");
+            assert_eq!(listing(&outside), ["by-spec", "o.json"], "{what}");
+            assert_eq!(listing(&outside.join("by-spec")), ["o.json"], "{what}");
+            assert_eq!(fs::read_to_string(outside.join("o.json")).unwrap(), "o");
+            assert!(
+                listing(&root.join("d")).is_empty(),
+                "{what}: nothing written"
+            );
+        }
+
+        // A `.` component is ignored, and the clean run still writes.
+        DerivedWrites::new(&root)
+            .write(&root.join("./d"), "meta.json", "m".into())
+            .apply()
+            .unwrap();
+        assert_eq!(listing(&root.join("d")), ["meta.json"]);
     }
 
     /// Spec 127 D-3: `sync_dir` keeps its signature and checks `dir` and every

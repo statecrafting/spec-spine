@@ -322,3 +322,65 @@ fn the_meta_table_is_additive() {
     assert_eq!(old.meta.required_version, None);
     assert!(old.check_required_version("0.15.0").is_ok());
 }
+
+// ===== spec 128: layout.derived_dir stays in the repository =====
+
+/// Load a config setting only `derived_dir`, as a TOML literal string so a `\`
+/// reaches the loader as written.
+fn with_derived_dir(value: &str) -> spec_spine_types::Result<Config> {
+    load_config(&format!("[layout]\nderived_dir = '{value}'\n"))
+}
+
+#[test]
+fn derived_dir_escaping_the_repository_is_refused() {
+    for value in [
+        // 3.1: absolute, including the POSIX spelling of a UNC share.
+        "/tmp/outside",
+        "/",
+        "//server/share/outside",
+        // 3.1: a `..` segment anywhere.
+        "..",
+        "../outside",
+        "x/../../outside",
+        "x/..",
+        ".derived/../..",
+        // 3.1: Windows separators and drive or stream forms (1.2).
+        "..\\outside",
+        "\\outside",
+        "\\\\server\\share\\outside",
+        "x\\..\\..\\outside",
+        "C:\\outside",
+        "C:outside",
+        "C:/outside",
+        ".derived:stream",
+    ] {
+        let err = with_derived_dir(value).unwrap_err();
+        assert!(
+            matches!(&err, Error::Config(m) if m.contains("layout.derived_dir")
+                && m.contains(value)
+                && m.contains("inside the repository")),
+            "derived_dir '{value}' must be refused naming the key and value, got {err:?}"
+        );
+    }
+}
+
+#[test]
+fn derived_dir_inside_the_repository_is_kept() {
+    for value in [
+        ".derived",
+        ".statecraft/derived",
+        "./.derived/",
+        "build/derived",
+        "..a",
+        "a..b",
+        "x/..y/z",
+        // D-3: both name the repository root, which is inside it.
+        "",
+        ".",
+    ] {
+        let c = with_derived_dir(value)
+            .unwrap_or_else(|e| panic!("derived_dir '{value}' is inside the repository: {e:?}"));
+        assert_eq!(c.layout.derived_dir, value);
+    }
+    assert!(load_config("").is_ok(), "the default layout loads");
+}
