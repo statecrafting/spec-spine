@@ -1,11 +1,11 @@
 {
   "mapping": {
     "dependsOn": [
-      "090-the-verdict-is-the-only-thing-on-stdout"
+      "093-the-harness-this-repository-runs"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/cmd_verify.rs",
+        "path": "AGENTS.md",
         "source": "spec-edge"
       }
     ],
@@ -13,33 +13,33 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_verify.rs"
+            "file": "AGENTS.md"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_verify.rs"
+          "path": "AGENTS.md"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/verify_streams.rs"
+            "file": "specs/093-the-harness-this-repository-runs/spec.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/verify_streams.rs"
+          "path": "specs/093-the-harness-this-repository-runs/spec.md"
         }
       }
     ],
-    "specId": "125-a-forwarded-line-arrives-whole",
-    "specStatus": "approved"
+    "specId": "133-owner-delegation-is-declared",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "0474d89b60a3c37d1edb0763d8d8ebd2821df1d160eae2174f77cfdf5c98766b"
+  "shardHash": "ceba6215c07b52c58a147cf3065a835b347bf370895f2465bced616c32f24d0b"
 }

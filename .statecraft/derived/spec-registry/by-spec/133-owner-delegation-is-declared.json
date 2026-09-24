@@ -1,0 +1,67 @@
+{
+  "record": {
+    "created": "2026-09-24",
+    "dependsOn": [
+      "093-the-harness-this-repository-runs"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      }
+    ],
+    "id": "133-owner-delegation-is-declared",
+    "implementation": "complete",
+    "intent": {
+      "goal": "every agent working here reads, in one place, which decisions it takes and reports and which it stops and presents",
+      "nonGoals": [
+        "widening any authority the standing rules withhold: waivers stay a human instrument and approved specs are still never edited to make code pass (3.2)",
+        "delegation in any other repository (4)"
+      ]
+    },
+    "kind": "governance",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/093-the-harness-this-repository-runs/spec.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "c40491a841ae0ad5ae9bcbf01ad40bbac540722f06f332a587cdf48668f56c14",
+      "133-owner-delegation-is-declared": "1ca610503eec974884a7d43522a992ce7124a10c41aa43e5619148aeae83a3c4",
+      "2-territory": "02200da907a16381cb287d71d5d6d1a85fd00c2b130fe23a5f54e577502d92b0",
+      "3-1-the-section": "b5b518ac0ef1a94d15edd13b15b71031941dfcbeb8022987948a1b44564e444b",
+      "3-2-it-widens-nothing": "3252f1e166d7187e5fd5b5497fa7f85061f13fa8e909470335a4513e061c29b5",
+      "3-behavior": "dc55893f3d8e706bfd52b4c1ba35dee9799dead7a6206fc9abc24984be145d8e",
+      "4-out-of-scope": "86b9f943f37fb132d475590e370de81142cad2ffdd3d9f994bfef8979fa83b0d",
+      "5-resolved-decisions": "59ff3af99e0cc906118ed6cd5e1311e3faff17d4fa7d3695efacc5e0eca7efcf",
+      "verification": "de3d7e4ce933ea01c187465e4012106d3d160b3cf14cdd8ae117b11d0572d14f"
+    },
+    "sectionHeadings": [
+      "133: Owner delegation is declared",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The section",
+      "3.2 It widens nothing",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/133-owner-delegation-is-declared/spec.md",
+    "status": "draft",
+    "summary": "What an agent may decide in this repository without asking was spread across the owner's session instructions and never written where every agent reads. `AGENTS.md` gains an \"Owner delegation\" section that states it: agents decide, record and report reversible choices inside an adopted direction, relocation-only changes, test and evidence design, repository hygiene, and unambiguous corrections of internal inconsistencies; ratification, waivers, publication, spending, trust roots and signing, changes to the gate, check suite or acceptance authority, anything visible outside the repository or affecting another adopter, and deleting anything remote stay with the owner. Every handoff ends with one decision table. The section widens no authority the standing rules withhold.\n",
+    "title": "Owner delegation is declared"
+  },
+  "shardHash": "4ba1a4edbc0cd3cfeafe55162577feea259e36f8de69389daa1b269acb6dc339",
+  "specVersion": "1.8.0"
+}
