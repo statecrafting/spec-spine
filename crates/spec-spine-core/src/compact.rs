@@ -867,6 +867,16 @@ fn drop_empty_edge_keys(src: &str) -> String {
     out
 }
 
+/// Whether a plan path is rooted, decided on the string (spec 134, WF-8).
+///
+/// `Path::is_absolute` is platform-dependent: on Windows `/etc/passwd` has no
+/// drive prefix, so it is not absolute, and the refusals that call this failed
+/// open. A plan path is a corpus-relative POSIX string on every platform, so a
+/// leading `/` or `\\` refuses everywhere, as spec 128 decides `derived_dir`.
+fn is_rooted(path: &str) -> bool {
+    path.starts_with('/') || path.starts_with('\\') || Path::new(path).is_absolute()
+}
+
 /// Does `path` carry a `.` component, as a STRING?
 ///
 /// `Path::components()` normalises an interior `.` away, so `rules/./one.md`
@@ -1561,7 +1571,7 @@ fn validate_retire(
         //
         // The `.` test is on the string rather than on `components()`, which
         // normalises an interior `.` away and would never yield `CurDir` for it.
-        if candidate.is_absolute()
+        if is_rooted(&e.path)
             || candidate
                 .components()
                 .any(|c| matches!(c, std::path::Component::ParentDir))
@@ -1601,7 +1611,7 @@ fn validate_retire(
         }
         for f in &e.historical_files {
             let p = Path::new(f);
-            if p.is_absolute()
+            if is_rooted(f)
                 || p.components()
                     .any(|c| matches!(c, std::path::Component::ParentDir))
                 || has_dot_component(f)

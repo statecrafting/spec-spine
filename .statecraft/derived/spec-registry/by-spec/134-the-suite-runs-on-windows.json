@@ -60,6 +60,30 @@
           "kind": "file",
           "path": "crates/spec-spine-core/tests/gate.rs"
         }
+      },
+      {
+        "nature": "corrective",
+        "spec": "097-a-path-leaves-the-corpus-the-way-a-spec-does",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compact.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "071-a-change-is-classified-under-the-bases-rules",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "100-a-deleted-path-is-judged-where-it-lived",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/couple.rs"
+        }
       }
     ],
     "id": "134-the-suite-runs-on-windows",
@@ -91,6 +115,6 @@
     "summary": "spec-spine ships a Windows binary and proves its shard trees byte-identical on Windows, but CI only ever built there: the workspace test suite ran on Linux alone, so a Windows behavior difference could ship with every check green. A `test (windows)` job now runs `cargo test --workspace` on `windows-latest` as a check of its own, required through `ci-gate`. A test that cannot run on Windows is gated or quarantined in its source with a tracked finding, never skipped by the workflow, and Windows results are reported apart from build results.\n",
     "title": "The suite runs on Windows"
   },
-  "shardHash": "492799194c2b2b127f5191355badf3e6db05ed696f59e2cc7f870b3d669f123c",
+  "shardHash": "2545b5e1df301fe25fbbfeab3f6b353870bd7a41c85772a26119ff623ba7a275",
   "specVersion": "1.8.0"
 }

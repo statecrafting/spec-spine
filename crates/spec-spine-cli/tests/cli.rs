@@ -2714,6 +2714,10 @@ fn change_classes(report: &serde_json::Value, path: &str) -> Vec<String> {
 /// tree's configuration would see the candidate's rules; `delta` reads the
 /// merge base's, from the exported base tree.
 #[test]
+#[cfg_attr(
+    windows,
+    ignore = "WF-7: git on Windows checks committed shards out as CRLF, which the byte comparison reads as stale"
+)]
 fn delta_classifies_under_the_merge_base_not_the_checked_out_head() {
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path().join("repo");
@@ -2800,6 +2804,10 @@ fn delta_classifies_under_the_merge_base_not_the_checked_out_head() {
 /// §3.1 and §3.5: an unchanged range is a report, exit 0, and the prose says
 /// what `required: false` does not mean.
 #[test]
+#[cfg_attr(
+    windows,
+    ignore = "WF-7: git on Windows checks committed shards out as CRLF, which the byte comparison reads as stale"
+)]
 fn delta_prose_says_what_not_required_does_not_mean() {
     let tmp = tempfile::tempdir().unwrap();
     let root = tmp.path();

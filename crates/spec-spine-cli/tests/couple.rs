@@ -1534,6 +1534,10 @@ fn corrupt_prior_config_refuses_exit_3() {
 }
 
 #[test]
+#[cfg_attr(
+    windows,
+    ignore = "WF-7: git on Windows checks committed shards out as CRLF, which the byte comparison reads as stale"
+)]
 fn no_deletion_builds_no_prior_snapshot() {
     // Spec 100 §3.4: a deletion-free change asks no question a prior snapshot
     // could answer, so a shallow clone that cannot reach the merge base still

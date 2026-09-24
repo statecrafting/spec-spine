@@ -27,6 +27,11 @@ extends:
   - { spec: "122-a-commit-refuses-an-unresolved-merge", unit: "crates/spec-spine-core/tests/commit_boundary.rs", nature: additive }
   - { spec: "123-a-startup-verdict-names-its-reader", unit: "crates/spec-spine-core/tests/reader_identity.rs", nature: additive }
   - { spec: "094-one-gate-and-the-boundaries-it-holds", unit: "crates/spec-spine-core/tests/gate.rs", nature: additive }
+  # WF-8: the plan-path refusal decided on the string.
+  - { spec: "097-a-path-leaves-the-corpus-the-way-a-spec-does", unit: "crates/spec-spine-core/src/compact.rs", nature: corrective }
+  # WF-7: the quarantined tests.
+  - { spec: "071-a-change-is-classified-under-the-bases-rules", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
+  - { spec: "100-a-deleted-path-is-judged-where-it-lived", unit: "crates/spec-spine-cli/tests/couple.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/windows-findings.md" }, role: context }
 ---
