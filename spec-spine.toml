@@ -20,7 +20,7 @@
 # to deserialize this key and exits 3 with a config error, never 2. The signal
 # is unambiguous in both directions.
 [meta]
-required_version = ">=0.24.0"
+required_version = ">=0.25.0"
 
 [manifest]
 # Our own crates carry `[package.metadata.spec-spine].spec = "NNN-slug"`.
