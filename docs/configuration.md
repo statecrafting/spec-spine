@@ -73,6 +73,11 @@ configuration:
 | `couple`, when the diff deletes any path | 3 | the merge-base snapshot's configuration cannot load |
 | `delta` | 3 | it always classifies by the merge-base's rules |
 
+The `couple` rows are for the ordinary `--base <ref> --head <ref>` run, the
+one a pull request's gate makes. With `--include-uncommitted`, a deletion that
+exists only in the working tree is judged at the head commit instead, whose
+configuration loads.
+
 Measured with a build of spec 129's branch, whose CLI behaves here exactly as
 spec 128's does. A `Spec-Drift-Waiver:` does not
 change either exit 3: a waiver clears drift, and this is not drift. Do not use
