@@ -111,8 +111,8 @@
       }
     ],
     "specId": "127-a-derived-file-is-where-its-path-says",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "8e5c98f622c0f27393972437e901b3bb417879ac4568bcc984aaf6acefb580e8"
+  "shardHash": "f3fe51ca0a9e10c3c82e9524d472474d8470550f2ed174a2d5dae0e8f83059c1"
 }

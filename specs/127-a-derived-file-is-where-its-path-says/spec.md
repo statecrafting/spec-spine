@@ -1,7 +1,7 @@
 ---
 id: "127-a-derived-file-is-where-its-path-says"
 title: "A derived file is where its path says"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-23"
 summary: >

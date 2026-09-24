@@ -109,10 +109,10 @@
       "Verification"
     ],
     "specPath": "specs/127-a-derived-file-is-where-its-path-says/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 126 made every file name derived from a spec id one plain name, so an id can no longer walk a write out of its directory. Two ways past that remained. A symbolic link committed inside the derived tree (git records it like any file) made `compile`, `index` and `attest` write through it and prune `*.json` files wherever it pointed, all with exit 0. And a name that passes 126's lexical rule can still name a Windows device (`CON.json`, `nul.tar.json`), which is not a file at all there. Every path below the repository root that these verbs write, create, remove or prune is now checked for a link before anything moves, a device name is refused on every platform, and a refusal leaves the tree exactly as it was. A repository reached through a link still works.\n",
     "title": "A derived file is where its path says"
   },
-  "shardHash": "8f9a2512adef592d1570aab38addd318d14c288c3fc293fae57650bd08f5e59c",
+  "shardHash": "ab339d7f11c3682b9701bd4f664c81f7c83f56169c0a8783aa074a1feb6756ea",
   "specVersion": "1.8.0"
 }
