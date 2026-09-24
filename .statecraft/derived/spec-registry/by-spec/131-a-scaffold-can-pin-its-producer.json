@@ -101,10 +101,10 @@
       "Verification"
     ],
     "specPath": "specs/131-a-scaffold-can-pin-its-producer/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Statecraft writes the `spec-spine.toml` that `scaffold_init_json` returns byte for byte, and that file pins nothing: the `[meta]` header and the key are both commented out (055 §3.4), and the example is a caret range. A repository Statecraft initializes is therefore judged by whatever binary a hook finds. This spec adds an opt-in scaffold option, `pinExactVersion`, that emits an active `[meta]` table with `required_version = \"=<this producer's version>\"`, through a new facade entry `scaffold_init_with_options_json(config_json, options_json)` and its Rust form `scaffold_init_with_options`. Without the option the output is byte-identical to `scaffold_init_json`'s, measured against 0.25.0 for Statecraft's configuration and the default. The configuration is validated exactly as 129 requires, and an unknown option is refused rather than silently producing an unpinned file.\n",
     "title": "A scaffold can pin its producer"
   },
-  "shardHash": "eb37075b9cc109e4dab475128860e0d6b68767bdd26f1168712913dec025ab7d",
+  "shardHash": "10b581b5051c1d282548bbb680d7b4a92653015651b5dfdcea944e8439a7e650",
   "specVersion": "1.8.0"
 }
