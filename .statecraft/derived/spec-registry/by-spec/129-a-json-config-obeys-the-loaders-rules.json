@@ -132,10 +132,10 @@
       "Verification"
     ],
     "specPath": "specs/129-a-json-config-obeys-the-loaders-rules/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`load_config` refuses a `derived_dir` that leaves the repository (128), a `state_dir` that is the repository root or overlaps a governed root (036), and a malformed `[index.slices]` entry (011). The JSON facade deserialized its configuration with serde alone and ran none of those rules, at all 22 entries that take one, so a binding could hand the engine a configuration no `spec-spine.toml` can hold. `scaffold_init_json`, the entry Statecraft links, returned `Ok` with a `spec-spine.toml` that every verb then refuses with exit 3, and it wrote each value between literal quotes, so a `\"` broke the file and a `\\` changed the value. The rules now live in one public function, `validate_config`, which the loader and every facade entry call, and the scaffold refuses what the loader refuses and escapes what it writes. Checks that need the filesystem or the running binary stay where they are.\n",
     "title": "A configuration passed as JSON obeys the loader's rules"
   },
-  "shardHash": "6993effadc4c9f4238e55f7fd49ac0f67a6611457c5b83cbb50e6abbdba49343",
+  "shardHash": "37498a2fa9f40b1c571d4b79647e44b449fe8aac638acea230725c6b7ed20e04",
   "specVersion": "1.8.0"
 }

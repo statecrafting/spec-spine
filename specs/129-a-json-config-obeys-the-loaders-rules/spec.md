@@ -1,7 +1,7 @@
 ---
 id: "129-a-json-config-obeys-the-loaders-rules"
 title: "A configuration passed as JSON obeys the loader's rules"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-24"
 summary: >

@@ -154,8 +154,8 @@
       }
     ],
     "specId": "129-a-json-config-obeys-the-loaders-rules",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "13c2a18036fedd1736c7f416934dd6de5530efabaeee02865e33bf4913d21490"
+  "shardHash": "cde09f986dbfd1c29027e2f21d909a09d2dfee17f63305815f2869d2a95630e7"
 }
