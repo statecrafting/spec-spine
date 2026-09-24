@@ -1,0 +1,39 @@
+{
+  "record": {
+    "created": "2026-09-24",
+    "dependsOn": [
+      "094-one-gate-and-the-boundaries-it-holds"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      }
+    ],
+    "id": "134-the-suite-runs-on-windows",
+    "implementation": "in-progress",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "cd1c0e1756e27766126c058c715a4cf7214885d4c1a41641fe1ebf7e62a5465a",
+      "134-the-suite-runs-on-windows": "b04ffaf57194f58960d23a8291df3a3d1495a0f20e26590c7e24f2d3098aad4f",
+      "verification": "f02894529ad0d7d92119c7f985ee65a8726cc4101406251b5e8248e0988f43cf"
+    },
+    "sectionHeadings": [
+      "134: The suite runs on Windows",
+      "1. Purpose",
+      "Verification"
+    ],
+    "specPath": "specs/134-the-suite-runs-on-windows/spec.md",
+    "status": "draft",
+    "summary": "spec-spine ships a Windows binary and proves its shard trees byte-identical on Windows, but CI only ever built there: the workspace test suite ran on Linux alone, so a Windows behavior difference could ship with every check green. A `test (windows)` job now runs `cargo test --workspace` on `windows-latest` as a check of its own, required through `ci-gate`. A test that cannot run on Windows is gated or quarantined in its source with a tracked finding, never skipped by the workflow, and Windows results are reported apart from build results.\n",
+    "title": "The suite runs on Windows"
+  },
+  "shardHash": "f8a129b21af7cef4b5a21407125de23ddcd4b79a7e3f9ff521c621c5649142aa",
+  "specVersion": "1.8.0"
+}

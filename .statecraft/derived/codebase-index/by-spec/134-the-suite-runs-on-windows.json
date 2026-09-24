@@ -1,0 +1,32 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "094-one-gate-and-the-boundaries-it-holds"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".github/workflows/ci.yml",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/ci.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      }
+    ],
+    "specId": "134-the-suite-runs-on-windows",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "4f974f02ab374a450ccf84a4e876cf6d5ae2718e7fdda198c3e6a7d9794005fb"
+}
