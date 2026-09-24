@@ -711,8 +711,43 @@ impl EffectiveConfig {
 pub fn load_config(toml_src: &str) -> Result<Config> {
     let config: Config = toml::from_str(toml_src).map_err(|e| Error::Config(e.to_string()))?;
     validate_slices(&config)?;
+    validate_derived_dir(&config)?;
     validate_state_dir(&config)?;
     Ok(config)
+}
+
+/// `layout.derived_dir` names a directory inside the repository (spec 128 3.1).
+///
+/// `compile`, `index` and `attest` write, create and prune below it, and the
+/// configuration is committed content, so a value leaving the repository made
+/// those verbs write and prune wherever it pointed. The rule is over the value
+/// as written and the same on every platform (128 D-2): nothing is resolved
+/// against the filesystem, so a repository reached through a link is
+/// unaffected. `\` and `:` are refused everywhere because on Windows they are a
+/// separator and a drive or stream form, as spec 126 refuses them in a derived
+/// file name. An empty value and `.` name the repository root, which is inside
+/// it (128 D-3).
+fn validate_derived_dir(config: &Config) -> Result<()> {
+    let raw = &config.layout.derived_dir;
+    let why = if raw.starts_with('/') {
+        Some("is an absolute path")
+    } else if raw.split('/').any(|segment| segment == "..") {
+        Some("has a '..' segment")
+    } else if raw.contains('\\') {
+        Some("contains a '\\', which is a separator on Windows")
+    } else if raw.contains(':') {
+        Some("contains a ':', which is a drive or stream form on Windows")
+    } else {
+        None
+    };
+    match why {
+        None => Ok(()),
+        Some(why) => Err(Error::Config(format!(
+            "layout.derived_dir '{raw}' must name a directory inside the repository, and it \
+             {why}: compile, index and attest would write and prune outside it \
+             (spec 128). Use a relative path of plain segments, such as '.derived'"
+        ))),
+    }
 }
 
 /// `layout.state_dir` may not overlap `specs_dir` or `derived_dir` in either

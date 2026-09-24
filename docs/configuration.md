@@ -33,7 +33,7 @@ Path conventions. Nothing in the engine hardcodes `specs/` or `.derived/`.
 | Key | Default | Meaning |
 |---|---|---|
 | `specs_dir` | `specs` | Where `NNN-slug/spec.md` lives. |
-| `derived_dir` | `.derived` | The compiled shard trees. Whatever it is set to, the gate adds it to the bypass floor itself (spec 092 section 3.8). |
+| `derived_dir` | `.derived` | The compiled shard trees. Whatever it is set to, the gate adds it to the bypass floor itself (spec 092 section 3.8). It must name a directory inside the repository: an absolute path, a `..` segment, a `\` or a `:` is a configuration error (exit 3) at every verb (spec 128). |
 | `standards_dir` | `standards/spec` | Constitution, contract, templates. |
 | `schemas_dir` | `standards/schemas` | Adopter-side schemas. |
 | `cargo_workspace` | `Cargo.toml` | The root Cargo workspace manifest. |

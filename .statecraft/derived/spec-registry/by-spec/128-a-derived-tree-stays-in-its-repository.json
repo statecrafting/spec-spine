@@ -1,0 +1,113 @@
+{
+  "record": {
+    "amends": [
+      "127-a-derived-file-is-where-its-path-says"
+    ],
+    "amendsSections": [
+      "4",
+      "5"
+    ],
+    "created": "2026-09-23",
+    "dependsOn": [
+      "036-declared-state-dir",
+      "092-the-engine-ships-governance-not-an-environment",
+      "127-a-derived-file-is-where-its-path-says"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/derived_dir_contained.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/config.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/shard.rs"
+        }
+      }
+    ],
+    "id": "128-a-derived-tree-stays-in-its-repository",
+    "implementation": "complete",
+    "intent": {
+      "goal": "no committed configuration can make a governance verb write, create, remove or prune a file outside the repository it governs",
+      "nonGoals": [
+        "confining `specs_dir`, `standards_dir` or any other layout key, which no verb writes through (4)",
+        "validation of configuration passed to the JSON facade, which loads no file (4)",
+        "protection against another process replacing a path while the verb runs",
+        "a claim about Windows links or junctions, which were not measured"
+      ]
+    },
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/033-configured-corpus-root/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/derived_symlinks.rs"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-1-measured-on-spec-127-s-build-84c4731e-over-main-at-f6afdc61": "6ccfdbb1f95db1647d1e23503d632f75393b83989662e7304bb8fb5744f1ce3a",
+      "1-2-found-by-reading-windows-path-forms": "c96ea4f6b1655c0da88b1d5105c4df8485295981b88c6e6cca56acdf9d733705",
+      "1-purpose": "b93025a92c1af4e5a842d9423d81c987987a6c33bf0afda61191332e18a675ed",
+      "128-a-derived-tree-stays-in-its-repository": "786dbe2b6bac5c48a960bd44a9bce133af367e0f2922231d75eb59128542e9ef",
+      "2-territory": "496d1a18231843898ee104ead5011090ea534d9f6d94adbde3176d94fab93f31",
+      "3-1-a-derived-dir-names-a-directory-inside-the-repository": "568ea3233720d59d0653fae33239d5457c006fd3d8d78c3e781970a999e8125f",
+      "3-2-every-verb-that-loads-the-configuration-refuses-it": "8f5a18986f06c9a6dc02cd4a0e1845138c0fbe812bc89b4f28dd9ce0f4a414f0",
+      "3-3-the-checked-writer-refuses-a-path-not-wholly-below-its-root-amends-127": "1c784e08aabe3cb60ab830f2b01420e6c275495ea1f69f68f22f276306c109e5",
+      "3-behavior": "2537de85064ad2b67ca8628fbbe14b54569288bc5f94b2901d03109e6855de98",
+      "4-out-of-scope-and-the-limits-of-the-claim": "621c3c0d71f1456720cd7d113b948724215051e3142ab634e4922ce6e92c7972",
+      "5-resolved-decisions": "37f4dac18ad1785ab80f039e94802f907481b1d44324f0d7799f52bdbcf96aba",
+      "verification": "4c07cdeb711b022c1b55823707986d6c496af44af1b6d47d6b8bd0ef888bb0f2"
+    },
+    "sectionHeadings": [
+      "128: A derived tree stays in its repository",
+      "1. Purpose",
+      "1.1 Measured, on spec 127's build (`84c4731e`, over `main` at `f6afdc61`)",
+      "1.2 Found by reading: Windows path forms",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A `derived_dir` names a directory inside the repository",
+      "3.2 Every verb that loads the configuration refuses it",
+      "3.3 The checked writer refuses a path not wholly below its root (amends 127)",
+      "4. Out of scope, and the limits of the claim",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/128-a-derived-tree-stays-in-its-repository/spec.md",
+    "status": "draft",
+    "summary": "`[layout] derived_dir` is read from the committed `spec-spine.toml`, and nothing checked where it pointed. `derived_dir = \"../outside\"`, an absolute path, or `x/../../outside` made `compile`, `index` and `attest` write their shards outside the repository and prune `*.json` files there, all with exit 0, on `main` and on spec 127's build. Spec 127 checks every component below the repository root for links, and stops where a path leaves the root (its D-4), so it did not reach this. A `derived_dir` that is absolute, carries a `..` segment, or uses a Windows path form is now refused when the configuration is loaded, before any verb reads or writes, and the checked writer refuses any path that is not wholly below its root. A repository reached through a link still works.\n",
+    "title": "A derived tree stays in its repository"
+  },
+  "shardHash": "df8047c5cb4651c171349ed454345a6f1d5637c555995678654ce1c292b2e433",
+  "specVersion": "1.8.0"
+}
