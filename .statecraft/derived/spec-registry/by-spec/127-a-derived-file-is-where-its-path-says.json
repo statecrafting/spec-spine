@@ -1,0 +1,118 @@
+{
+  "record": {
+    "amends": [
+      "126-a-derived-file-stays-in-its-directory"
+    ],
+    "amendsSections": [
+      "3.1"
+    ],
+    "created": "2026-09-23",
+    "dependsOn": [
+      "022-index-sharding",
+      "039-per-spec-attestation",
+      "126-a-derived-file-stays-in-its-directory"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/derived_symlinks.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/shard.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_compile.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "039-per-spec-attestation",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_attest.rs"
+        }
+      }
+    ],
+    "id": "127-a-derived-file-is-where-its-path-says",
+    "implementation": "complete",
+    "intent": {
+      "goal": "no committed content can make a governance verb write, create, remove or prune a file anywhere but the path its derived tree names",
+      "nonGoals": [
+        "protection against another process replacing a path while the verb runs",
+        "a claim about Windows links or junctions, which were not measured",
+        "confining a configured derived_dir that itself points outside the repository"
+      ]
+    },
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/derived_paths.rs"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-1-measured-on-main-at-f6afdc61-spec-126-merged": "9b69038dca4400b573aff3e5c7363ec4c1fca92d7bc88275b84ce87a240c7eb9",
+      "1-2-found-by-reading-a-plain-name-can-still-be-a-device": "bc9321ba2591e01d3de624722348fecc6ac679ac1a4cccb68fcdc9cb9b90934b",
+      "1-purpose": "98a0441aab0805cab512f5192cb4fceeea9b6c24baca9a3c1960a0aaa39c2a43",
+      "127-a-derived-file-is-where-its-path-says": "2720320a6d27967b8a367d45ccd2c9c736bd73a62e793eb7848826787f5316e7",
+      "2-territory": "f9af961fd48afbce59be1d3e67f9effa4d764ab0381b050c78115559411df194",
+      "3-1-what-is-checked-every-component-below-the-repository-root": "ca4bc1b779bb7e46ebbd87e7edc6d718e8a5e8b3bddc58d1ed508f2815d8d3d3",
+      "3-2-a-link-refuses-the-whole-run": "7ed0fb6d5b666b859c52f0b8fe93483410868d75b28e713d43e71ec9985fbb9f",
+      "3-3-the-preflight-covers-every-output-of-the-run": "bd0bf2c0c6599c404b96fc3f4ea49a3e5d458e567f1fbf8521268b70a8bd28f1",
+      "3-4-directories-are-created-one-level-at-a-time": "70d8d01d79e5a0dda4dcbdc9f3d6a59529b2564844d4796b0a6dc791d77e48c5",
+      "3-5-a-plain-file-name-is-not-a-device-name-amends-126-3-1": "f0de4695fabbd56eab5517f2e5944c5aea82e4d38bb01e0a9cd5727ddeacd6e9",
+      "3-6-a-package-slug-stays-plain": "0b27ab1e1c161a49dc93c3f067960e193414b35acec5b3a442c111e1d2d4bdcb",
+      "3-behavior": "9ab556d1bf8cbbd4d1e6f2fa0dab52c5293b9952a0c331cd8088928fe21cd6a2",
+      "4-out-of-scope-and-the-limits-of-the-claim": "9f946d68efb46ae5af5938b18b7f9fccb172b1bf39d79ed1cf7964d45a257a62",
+      "5-resolved-decisions": "9f7a62857a327fc2276e9f20efbd36c005d3f5ef1c2dfba79c04b85107d6ae48",
+      "verification": "5de29dcf4d8d2392b30eb90c0c7516e13995d72eb86b1388d3ea95f1ccc727f2"
+    },
+    "sectionHeadings": [
+      "127: A derived file is where its path says",
+      "1. Purpose",
+      "1.1 Measured, on `main` at `f6afdc61` (spec 126 merged)",
+      "1.2 Found by reading: a plain name can still be a device",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 What is checked: every component below the repository root",
+      "3.2 A link refuses the whole run",
+      "3.3 The preflight covers every output of the run",
+      "3.4 Directories are created one level at a time",
+      "3.5 A plain file name is not a device name (amends 126 3.1)",
+      "3.6 A package slug stays plain",
+      "4. Out of scope, and the limits of the claim",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/127-a-derived-file-is-where-its-path-says/spec.md",
+    "status": "draft",
+    "summary": "Spec 126 made every file name derived from a spec id one plain name, so an id can no longer walk a write out of its directory. Two ways past that remained. A symbolic link committed inside the derived tree (git records it like any file) made `compile`, `index` and `attest` write through it and prune `*.json` files wherever it pointed, all with exit 0. And a name that passes 126's lexical rule can still name a Windows device (`CON.json`, `nul.tar.json`), which is not a file at all there. Every path below the repository root that these verbs write, create, remove or prune is now checked for a link before anything moves, a device name is refused on every platform, and a refusal leaves the tree exactly as it was. A repository reached through a link still works.\n",
+    "title": "A derived file is where its path says"
+  },
+  "shardHash": "8f9a2512adef592d1570aab38addd318d14c288c3fc293fae57650bd08f5e59c",
+  "specVersion": "1.8.0"
+}

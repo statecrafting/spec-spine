@@ -5,10 +5,9 @@
 //! command is the IO + clock shell: it writes the artifact and, under `--sign`,
 //! the wall-clock-dated detached seal.
 
-use std::fs;
 use std::path::{Path, PathBuf};
 
-use spec_spine_core::{AttestOptions, attest, attest_spec, snapshot};
+use spec_spine_core::{AttestOptions, attest, attest_spec, shard, snapshot};
 use spec_spine_types::{Error, Verdict, verdict::verb};
 use time::OffsetDateTime;
 use time::format_description::well_known::Rfc3339;
@@ -129,24 +128,40 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
     };
 
     let out_dir = repo.join(&cfg.layout.derived_dir).join("attestation");
-    let attestation_path = match &resolved_spec {
+    let (dir, name) = match &resolved_spec {
         // Spec 126 3.3: the resolved id is the corpus's choice, and a known id
-        // is not a safe one, so its file name is checked before the directory
-        // is created or the attestation or its seal is written.
-        Some(id) => {
-            let by_spec = out_dir.join("by-spec");
-            let name = format!("{id}.json");
-            spec_spine_core::shard::check_file_name(&name, &by_spec)?;
-            by_spec.join(name)
-        }
-        None if args.snapshot => out_dir.join("snapshot.json"),
-        None => out_dir.join("attestation.json"),
+        // is not a safe one, so its file name is checked (by the writer's
+        // preflight, below) before the directory is created or the attestation
+        // or its seal is written.
+        Some(id) => (out_dir.join("by-spec"), format!("{id}.json")),
+        None if args.snapshot => (out_dir.clone(), "snapshot.json".to_string()),
+        None => (out_dir.clone(), "attestation.json".to_string()),
     };
-    let parent = attestation_path.parent().unwrap_or(&out_dir);
-    fs::create_dir_all(parent)
-        .map_err(|e| Error::Io(format!("create {}: {e}", parent.display())))?;
-    fs::write(&attestation_path, &json)
-        .map_err(|e| Error::Io(format!("write {}: {e}", attestation_path.display())))?;
+    let attestation_path = dir.join(&name);
+
+    // Spec 127 3.3: the seal is made before anything is written, so the
+    // attestation and its seal are checked as one run, and a seal path that
+    // refuses leaves the attestation unwritten too.
+    let seal = match signer {
+        Some((signing_key, key_id)) => {
+            let ledger_seal = seal::sign(&attestation_hash, &signing_key, key_id, now_rfc3339())?;
+            let seal_json = serde_json::to_string_pretty(&ledger_seal)
+                .map_err(|e| Error::Schema(e.to_string()))?
+                + "\n";
+            let seal_path = attestation_path.with_extension("sig");
+            Some((ledger_seal.key_id, seal_path, seal_json))
+        }
+        None => None,
+    };
+    let mut run = shard::DerivedWrites::new(repo).write(&dir, &name, json);
+    if let Some((_, seal_path, seal_json)) = &seal {
+        let seal_name = seal_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or_default();
+        run = run.write(&dir, seal_name, seal_json.clone());
+    }
+    run.apply()?;
 
     // Spec 067 3.3 again: the echoed scope is a value derived from the id, so
     // it is the resolved one. `attested 016 -> .../016-short.json` names two
@@ -160,21 +175,10 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
     if !args.json {
         outln!("attested {scope} -> {}", attestation_path.display());
         outln!("  attestationHash: {attestation_hash}");
-    }
-
-    if let Some((signing_key, key_id)) = signer {
-        let ledger_seal = seal::sign(&attestation_hash, &signing_key, key_id, now_rfc3339())?;
-        let seal_json = serde_json::to_string_pretty(&ledger_seal)
-            .map_err(|e| Error::Schema(e.to_string()))?
-            + "\n";
-        let seal_path = attestation_path.with_extension("sig");
-        fs::write(&seal_path, seal_json)
-            .map_err(|e| Error::Io(format!("write {}: {e}", seal_path.display())))?;
-        if !args.json {
+        if let Some((key_id, seal_path, _)) = &seal {
             outln!(
-                "sealed -> {} (alg ed25519, keyId {})",
-                seal_path.display(),
-                ledger_seal.key_id
+                "sealed -> {} (alg ed25519, keyId {key_id})",
+                seal_path.display()
             );
         }
     }

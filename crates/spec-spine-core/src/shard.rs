@@ -111,7 +111,8 @@ pub fn aggregate_content_hash(keyed: &[(String, String)]) -> String {
 /// A filesystem-safe slug for a package-shard filename, derived from the package
 /// name: any character outside `[A-Za-z0-9._-]` becomes `_` (so a scoped npm
 /// name like `@scope/pkg` yields `_scope_pkg`). Leading dots are escaped so a
-/// shard is never a hidden file.
+/// shard is never a hidden file, and so is a Windows device-name stem, so a
+/// package named `aux` is never the device (spec 127 3.6).
 pub fn package_slug(name: &str) -> String {
     let mut slug: String = name
         .chars()
@@ -123,7 +124,9 @@ pub fn package_slug(name: &str) -> String {
             }
         })
         .collect();
-    if slug.starts_with('.') {
+    // Spec 127 3.6: a device-name stem (`aux`, `con.x`) is escaped the same
+    // way, so a slug stays a plain file name on every platform.
+    if slug.starts_with('.') || is_device_name(&slug) {
         slug.insert(0, '_');
     }
     if slug.is_empty() {
@@ -133,35 +136,60 @@ pub fn package_slug(name: &str) -> String {
 }
 
 /// Refuse a file name that is not one plain file name before it is joined to
-/// `dir` (spec 126 3.1). A per-spec shard or attestation is named after the
-/// spec's frontmatter `id`, which the corpus chooses, so an id such as
-/// `../../../package` or an absolute path would otherwise write wherever it
-/// points. Plain means: not empty, no leading `.`, no `/`, `\`, `:` or NUL,
-/// and exactly one ordinary path component. The separators and the colon are
-/// refused on every platform, so a corpus cannot write a name here that walks
-/// out of its directory on another one.
+/// `dir` (spec 126 3.1, widened by spec 127 3.5). A per-spec shard or
+/// attestation is named after the spec's frontmatter `id`, which the corpus
+/// chooses, so an id such as `../../../package` or an absolute path would
+/// otherwise write wherever it points. Plain means: not empty, no leading `.`,
+/// no trailing `.` or space, no `/`, `\`, `:` or NUL, exactly one ordinary path
+/// component, and not a reserved Windows device name ([`is_device_name`]). The
+/// separators, the colon and the device names are refused on every platform,
+/// so a corpus gets the same verdict on every release triple.
 ///
 /// This is a check on the name, not on the id grammar: `V-012` is unchanged,
 /// and an id that fails it but is a plain name (`001-Foo`) passes here. It is
-/// lexical: it does not resolve symlinks already present under `dir`.
+/// lexical; the links a path passes through are [`DerivedWrites`]' check.
 pub fn check_file_name(name: &str, dir: &Path) -> Result<(), Error> {
     let mut components = Path::new(name).components();
     let one_component = matches!(components.next(), Some(Component::Normal(c)) if c == name)
         && components.next().is_none();
     let plain = !name.is_empty()
         && !name.starts_with('.')
+        && !name.ends_with(['.', ' '])
         && !name.contains(['/', '\\', ':', '\0'])
-        && one_component;
+        && one_component
+        && !is_device_name(name);
     if plain {
         return Ok(());
     }
     Err(Error::Io(format!(
         "refused to write {name:?} into {}: a file name derived from a spec id must be one \
-         plain file name (not empty, no leading `.`, no `/`, `\\`, `:` or NUL; spec 126); \
-         nothing was written. Run `spec-spine compile --check` to see the spec's id \
-         violation without writing",
+         plain file name (not empty, no leading `.`, no trailing `.` or space, no `/`, `\\`, \
+         `:` or NUL, and not a reserved Windows device name such as `CON` or `NUL.txt`; \
+         specs 126 and 127); nothing was written. Run `spec-spine compile --check` to see \
+         the spec's id violation without writing",
         dir.display()
     )))
+}
+
+/// Whether `name` is a reserved Windows device name (spec 127 3.5): its stem,
+/// the text before the first `.` with trailing spaces removed, is `CON`, `PRN`,
+/// `AUX`, `NUL`, `COM1`..`COM9`, `LPT1`..`LPT9` or a superscript `COM¹²³` /
+/// `LPT¹²³`, ignoring ASCII case. Windows treats `NUL.tar.gz` as `NUL`, hence
+/// the first dot, and strips trailing spaces, hence the trim.
+pub fn is_device_name(name: &str) -> bool {
+    let stem = name.split('.').next().unwrap_or(name).trim_end_matches(' ');
+    if ["CON", "PRN", "AUX", "NUL"]
+        .iter()
+        .any(|d| stem.eq_ignore_ascii_case(d))
+    {
+        return true;
+    }
+    let mut chars = stem.chars();
+    let prefix: String = chars.by_ref().take(3).collect();
+    let (digit, rest) = (chars.next(), chars.next());
+    (prefix.eq_ignore_ascii_case("COM") || prefix.eq_ignore_ascii_case("LPT"))
+        && rest.is_none()
+        && digit.is_some_and(|d| matches!(d, '1'..='9' | '\u{b9}' | '\u{b2}' | '\u{b3}'))
 }
 
 /// Write `files` (`(filename, content)`) into `dir`, creating it, and prune any
@@ -171,33 +199,289 @@ pub fn check_file_name(name: &str, dir: &Path) -> Result<(), Error> {
 ///
 /// Every name is checked with [`check_file_name`] before anything happens, so
 /// one unsafe name refuses the whole batch with `dir` neither created, pruned
-/// nor written (spec 126 3.2).
+/// nor written (spec 126 3.2). It is [`DerivedWrites`] rooted at `dir`'s parent
+/// (spec 127 D-3): `dir` and every entry it touches are checked for links, and
+/// nothing above `dir` is. A writer into a repository uses [`DerivedWrites`]
+/// with the repository root, which is what the CLI does.
 pub fn sync_dir(dir: &Path, files: &[(String, String)]) -> Result<(), Error> {
-    for (name, _) in files {
-        check_file_name(name, dir)?;
-    }
-    fs::create_dir_all(dir).map_err(|e| Error::Io(format!("create {}: {e}", dir.display())))?;
-    let keep: BTreeSet<&str> = files.iter().map(|(name, _)| name.as_str()).collect();
-    if let Ok(entries) = fs::read_dir(dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            let is_json = path.extension().and_then(|e| e.to_str()) == Some("json");
-            let name = path
-                .file_name()
-                .and_then(|n| n.to_str())
-                .map(str::to_string);
-            if is_json && name.as_deref().is_some_and(|n| !keep.contains(n)) {
-                fs::remove_file(&path)
-                    .map_err(|e| Error::Io(format!("prune {}: {e}", path.display())))?;
-            }
+    let root = dir.parent().unwrap_or(dir);
+    DerivedWrites::new(root)
+        .sync_dir(dir, files.to_vec())
+        .apply()
+}
+
+/// One output of a [`DerivedWrites`] run.
+enum Op {
+    /// Write `files` into `dir` and prune every other `*.json` there.
+    Sync { dir: PathBuf, files: ShardFiles },
+    /// Write one file.
+    Write {
+        dir: PathBuf,
+        name: String,
+        content: String,
+    },
+    /// Remove one file, if it is there.
+    Remove { dir: PathBuf, name: String },
+}
+
+/// What a checked path component is expected to be.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Kind {
+    Dir,
+    File,
+}
+
+impl Kind {
+    fn noun(self) -> &'static str {
+        match self {
+            Kind::Dir => "a directory",
+            Kind::File => "a file",
         }
     }
-    for (name, content) in files {
-        let path = dir.join(name);
-        fs::write(&path, content)
-            .map_err(|e| Error::Io(format!("write {}: {e}", path.display())))?;
+}
+
+/// Every output one verb writes into the derived tree, checked as a whole
+/// before any of it happens (spec 127).
+///
+/// [`apply`](Self::apply) first checks every name against
+/// [`check_file_name`], and every component of every path below `root` that
+/// the run writes, creates, removes or prunes: a symbolic link, or an existing
+/// component of the wrong kind, refuses the whole run with exit 3 and nothing
+/// written (3.1 to 3.4). Only then does it create directories, one level at a
+/// time and re-checked as it goes, prune, write and remove, in the order the
+/// outputs were added. `root` itself and its ancestors are never checked, so a
+/// repository reached through a link still works (3.1). Another process
+/// changing the tree while this runs is outside the claim (4).
+pub struct DerivedWrites {
+    root: PathBuf,
+    ops: Vec<Op>,
+}
+
+impl DerivedWrites {
+    /// A run writing below `root`, the repository root.
+    pub fn new(root: &Path) -> Self {
+        DerivedWrites {
+            root: root.to_path_buf(),
+            ops: Vec::new(),
+        }
     }
-    Ok(())
+
+    /// Synchronize `dir` to exactly `files`, as [`sync_dir`] does.
+    #[must_use]
+    pub fn sync_dir(mut self, dir: &Path, files: ShardFiles) -> Self {
+        self.ops.push(Op::Sync {
+            dir: dir.to_path_buf(),
+            files,
+        });
+        self
+    }
+
+    /// Write `content` to `dir/name`, creating `dir`.
+    #[must_use]
+    pub fn write(mut self, dir: &Path, name: &str, content: String) -> Self {
+        self.ops.push(Op::Write {
+            dir: dir.to_path_buf(),
+            name: name.to_string(),
+            content,
+        });
+        self
+    }
+
+    /// Remove `dir/name` if it exists (a legacy or no-longer-configured file).
+    #[must_use]
+    pub fn remove(mut self, dir: &Path, name: &str) -> Self {
+        self.ops.push(Op::Remove {
+            dir: dir.to_path_buf(),
+            name: name.to_string(),
+        });
+        self
+    }
+
+    /// Check the whole run, then perform it.
+    pub fn apply(self) -> Result<(), Error> {
+        self.preflight()?;
+        for op in &self.ops {
+            match op {
+                Op::Sync { dir, files } => {
+                    self.create_dirs(dir)?;
+                    for path in prune_entries(dir, files) {
+                        fs::remove_file(&path)
+                            .map_err(|e| Error::Io(format!("prune {}: {e}", path.display())))?;
+                    }
+                    for (name, content) in files {
+                        let path = dir.join(name);
+                        fs::write(&path, content)
+                            .map_err(|e| Error::Io(format!("write {}: {e}", path.display())))?;
+                    }
+                }
+                Op::Write { dir, name, content } => {
+                    self.create_dirs(dir)?;
+                    let path = dir.join(name);
+                    fs::write(&path, content)
+                        .map_err(|e| Error::Io(format!("write {}: {e}", path.display())))?;
+                }
+                Op::Remove { dir, name } => {
+                    let path = dir.join(name);
+                    if fs::symlink_metadata(&path).is_ok() {
+                        fs::remove_file(&path)
+                            .map_err(|e| Error::Io(format!("remove {}: {e}", path.display())))?;
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// Every check, before any mutation. Names first, so 126's refusal keeps
+    /// its message whatever else is wrong with the tree.
+    fn preflight(&self) -> Result<(), Error> {
+        for op in &self.ops {
+            match op {
+                Op::Sync { dir, files } => {
+                    for (name, _) in files {
+                        check_file_name(name, dir)?;
+                    }
+                }
+                Op::Write { dir, name, .. } | Op::Remove { dir, name } => {
+                    check_file_name(name, dir)?;
+                }
+            }
+        }
+        for op in &self.ops {
+            match op {
+                Op::Sync { dir, files } => {
+                    self.check_path(dir, Kind::Dir)?;
+                    for (name, _) in files {
+                        self.check_path(&dir.join(name), Kind::File)?;
+                    }
+                    for path in prune_entries(dir, files) {
+                        self.check_path(&path, Kind::File)?;
+                    }
+                }
+                Op::Write { dir, name, .. } | Op::Remove { dir, name } => {
+                    self.check_path(&dir.join(name), Kind::File)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    /// The ordinary components of `path` below the root, or `None` for a path
+    /// not wholly below it, which is checked only as far as it is (D-4).
+    fn below_root<'p>(&self, path: &'p Path) -> Vec<&'p std::ffi::OsStr> {
+        let Ok(rel) = path.strip_prefix(&self.root) else {
+            return Vec::new();
+        };
+        let mut out = Vec::new();
+        for c in rel.components() {
+            match c {
+                Component::CurDir => {}
+                Component::Normal(n) => out.push(n),
+                _ => break,
+            }
+        }
+        out
+    }
+
+    /// Refuse a link, or an existing component of the wrong kind, anywhere
+    /// from the root down to `path` (3.1, 3.2, 3.4). A missing or unreadable
+    /// component ends the walk (D-5).
+    fn check_path(&self, path: &Path, last: Kind) -> Result<(), Error> {
+        let parts = self.below_root(path);
+        let mut cur = self.root.clone();
+        for (i, part) in parts.iter().enumerate() {
+            cur.push(part);
+            let want = if i + 1 == parts.len() {
+                last
+            } else {
+                Kind::Dir
+            };
+            let Ok(md) = fs::symlink_metadata(&cur) else {
+                return Ok(());
+            };
+            let found = md.file_type();
+            if found.is_symlink() {
+                return Err(self.refusal(&cur, want, "is a symbolic link"));
+            }
+            if (want == Kind::Dir) != found.is_dir() {
+                return Err(self.refusal(&cur, want, "exists and is not one"));
+            }
+        }
+        Ok(())
+    }
+
+    fn refusal(&self, at: &Path, want: Kind, what: &str) -> Error {
+        let rel = rel_posix(&self.root, at);
+        Error::Io(format!(
+            "refused to write under {}: `{rel}` {what}, where the derived tree expects {} \
+             (spec 127); nothing was written. The derived tree must contain no symbolic links \
+             and no component of the wrong kind: remove `{rel}` and run again",
+            self.root.display(),
+            want.noun()
+        ))
+    }
+
+    /// Create `dir` below the root one level at a time, re-checking each level
+    /// as it is reached so none is created through a link (3.4). The re-check
+    /// repeats the preflight on purpose: it is the only check between the
+    /// preflight and a `create_dir`, so do not fold it away. The root is
+    /// created with its ancestors if missing, which only [`sync_dir`]'s root can
+    /// be. A path not wholly below the root falls back to `create_dir_all` for
+    /// the part that is not (D-4).
+    fn create_dirs(&self, dir: &Path) -> Result<(), Error> {
+        let io = |p: &Path, e: std::io::Error| Error::Io(format!("create {}: {e}", p.display()));
+        fs::create_dir_all(&self.root).map_err(|e| io(&self.root, e))?;
+        let mut cur = self.root.clone();
+        for part in self.below_root(dir) {
+            cur.push(part);
+            match fs::symlink_metadata(&cur) {
+                Ok(md) if md.is_dir() => continue,
+                Ok(_) => return Err(changed(&cur)),
+                Err(_) => match fs::create_dir(&cur) {
+                    Ok(()) => {}
+                    Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+                        if !fs::symlink_metadata(&cur).is_ok_and(|md| md.is_dir()) {
+                            return Err(changed(&cur));
+                        }
+                    }
+                    Err(e) => return Err(io(&cur, e)),
+                },
+            }
+        }
+        fs::create_dir_all(dir).map_err(|e| io(dir, e))
+    }
+}
+
+/// A directory the preflight passed is no longer one: another process changed
+/// the tree during the run, which is outside spec 127's claim (4). Unlike a
+/// preflight refusal, earlier outputs of this run may already be written.
+fn changed(at: &Path) -> Error {
+    Error::Io(format!(
+        "stopped at {}: it was a directory when the run was checked and is not one now; \
+         the tree changed while this ran (spec 127 4), and earlier outputs of this run may \
+         already be written",
+        at.display()
+    ))
+}
+
+/// The `*.json` entries in `dir` a sync to `files` would prune, sorted. A
+/// missing or unreadable directory has none.
+fn prune_entries(dir: &Path, files: &[(String, String)]) -> Vec<PathBuf> {
+    let keep: BTreeSet<&str> = files.iter().map(|(name, _)| name.as_str()).collect();
+    let Ok(entries) = fs::read_dir(dir) else {
+        return Vec::new();
+    };
+    let mut out: Vec<PathBuf> = entries
+        .flatten()
+        .map(|entry| entry.path())
+        .filter(|path| {
+            let is_json = path.extension().and_then(|e| e.to_str()) == Some("json");
+            let name = path.file_name().and_then(|n| n.to_str());
+            is_json && name.is_some_and(|n| !keep.contains(n))
+        })
+        .collect();
+    out.sort();
+    out
 }
 
 /// Read every `*.json` file in `dir`, sorted by filename, as raw bytes. A
@@ -278,6 +562,14 @@ mod tests {
             ".hidden",
             "@scope/pkg",
             "é",
+            // Spec 127 3.6: device names, with extensions, in any case.
+            "aux",
+            "CON",
+            "nul.tar",
+            "Com1",
+            "lpt9.x",
+            "prn.",
+            "con .x",
         ] {
             let file = format!("{}.json", package_slug(name));
             assert!(check_file_name(&file, dir).is_ok(), "{name:?} -> {file:?}");
@@ -377,5 +669,219 @@ mod tests {
         )
         .expect_err("an empty name refuses");
         assert!(!tmp.path().join("fresh").exists());
+    }
+
+    /// Spec 127 3.5, platform-independent: every reserved device stem refuses
+    /// in three cases, bare, with one extension and with two, and with the
+    /// trailing spaces and dots Windows strips; the near misses stay plain.
+    #[test]
+    fn a_device_name_is_not_a_plain_file_name() {
+        let dir = Path::new("by-spec");
+        let mut stems: Vec<String> = ["CON", "PRN", "AUX", "NUL"]
+            .iter()
+            .map(|s| (*s).to_string())
+            .collect();
+        for port in ["COM", "LPT"] {
+            for d in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '¹', '²', '³'] {
+                stems.push(format!("{port}{d}"));
+            }
+        }
+        assert_eq!(stems.len(), 4 + 2 * 12);
+        for stem in &stems {
+            let cases = [stem.clone(), stem.to_ascii_lowercase(), {
+                // Mixed case: every other letter lowered.
+                stem.chars()
+                    .enumerate()
+                    .map(|(i, c)| {
+                        if i % 2 == 1 {
+                            c.to_ascii_lowercase()
+                        } else {
+                            c
+                        }
+                    })
+                    .collect()
+            }];
+            for form in cases {
+                for name in [
+                    format!("{form}.json"),
+                    format!("{form}.sig"),
+                    format!("{form}.tar.json"),
+                    format!("{form} .json"),
+                    format!("{form}  .json"),
+                    format!("{form}..json"),
+                    format!("{form}. .json"),
+                ] {
+                    assert!(is_device_name(&name), "{name:?} is a device");
+                    let err = check_file_name(&name, dir).expect_err(&name);
+                    assert_eq!(err.exit_code(), 3, "{name:?}");
+                    let msg = err.to_string();
+                    assert!(msg.contains(&format!("{name:?}")), "{msg}");
+                    assert!(msg.contains("nothing was written"), "{msg}");
+                    assert!(msg.contains("reserved Windows device name"), "{msg}");
+                }
+            }
+        }
+        for plain in [
+            "CONSOLE.json",
+            "COM0.json",
+            "COM10.json",
+            "LPT0.json",
+            "NULL.json",
+            "LPT.json",
+            "COM.json",
+            "xCON.json",
+            "CON-1.json",
+            "CON_.json",
+            "001-con.json",
+            "001-a.json",
+            "_aux.json",
+            "COM⁴.json",
+            "a.con.json",
+        ] {
+            assert!(!is_device_name(plain), "{plain:?} is not a device");
+            assert!(check_file_name(plain, dir).is_ok(), "{plain:?} is plain");
+        }
+    }
+
+    /// Spec 127 3.5 (D-6): a whole name ending in a dot or a space is not
+    /// plain, because Windows strips them and the name would be another one.
+    #[test]
+    fn a_trailing_dot_or_space_is_not_a_plain_file_name() {
+        let dir = Path::new("by-spec");
+        for bad in [
+            "a.json.",
+            "a.json ",
+            "a.",
+            "a ",
+            "a. ",
+            "a .",
+            "001-a.json..",
+        ] {
+            let err = check_file_name(bad, dir).expect_err(bad);
+            assert_eq!(err.exit_code(), 3, "{bad:?}");
+        }
+        for ok in ["a.json", "a b.json", "a .b.json"] {
+            assert!(check_file_name(ok, dir).is_ok(), "{ok:?}");
+        }
+    }
+
+    /// Spec 127 3.6: the escape only fires on a device stem, so every other
+    /// slug is byte-for-byte what it was.
+    #[test]
+    fn the_slug_escape_touches_only_device_names() {
+        assert_eq!(package_slug("aux"), "_aux");
+        assert_eq!(package_slug("CON"), "_CON");
+        assert_eq!(package_slug("nul.tar"), "_nul.tar");
+        assert_eq!(package_slug("console"), "console");
+        assert_eq!(package_slug("my-aux"), "my-aux");
+        assert_eq!(package_slug("com10"), "com10");
+    }
+
+    /// Spec 127 3.2 to 3.4 at the library seam, on Unix where a test can make
+    /// a link: a linked directory, a linked output file, a linked prune entry
+    /// and a wrong-kind component each refuse the whole run with nothing
+    /// changed, and the root itself may be reached through a link.
+    #[cfg(unix)]
+    #[test]
+    fn derived_writes_refuse_a_link_below_the_root_and_change_nothing() {
+        use std::os::unix::fs::symlink;
+        let tmp = tempfile::tempdir().unwrap();
+        let real = tmp.path().join("real");
+        let outside = tmp.path().join("outside");
+        fs::create_dir_all(real.join("d/by-spec")).unwrap();
+        fs::create_dir_all(&outside).unwrap();
+        fs::write(real.join("d/by-spec/old.json"), "old").unwrap();
+        fs::write(outside.join("o.json"), "o").unwrap();
+        // The root, reached through a link, is not checked.
+        let root = tmp.path().join("root-link");
+        symlink(&real, &root).unwrap();
+
+        let run = |root: &Path| {
+            DerivedWrites::new(root)
+                .sync_dir(&root.join("d/by-spec"), vec![("a.json".into(), "1".into())])
+                .write(&root.join("d"), "meta.json", "m".into())
+                .remove(&root.join("d"), "legacy.json")
+        };
+        let listing = |p: &Path| {
+            let mut v: Vec<_> = fs::read_dir(p)
+                .unwrap()
+                .map(|e| e.unwrap().file_name())
+                .collect();
+            v.sort();
+            v
+        };
+
+        for (at, target, is_dir) in [
+            ("d", outside.clone(), true),
+            ("d/meta.json", outside.join("o.json"), false),
+            ("d/legacy.json", outside.join("o.json"), false),
+            ("d/by-spec/a.json", outside.join("o.json"), false),
+            ("d/by-spec/stray.json", outside.join("o.json"), false),
+        ] {
+            let path = real.join(at);
+            let moved = tmp.path().join("moved");
+            if is_dir {
+                fs::rename(&path, &moved).unwrap();
+            }
+            symlink(&target, &path).unwrap();
+            let err = run(&root).apply().expect_err(at);
+            assert_eq!(err.exit_code(), 3, "{at}");
+            let msg = err.to_string();
+            assert!(msg.contains(&format!("`{at}`")), "{at}: {msg}");
+            assert!(msg.contains("symbolic link"), "{at}: {msg}");
+            assert!(msg.contains("nothing was written"), "{at}: {msg}");
+            assert_eq!(listing(&outside), ["o.json"], "{at}: outside untouched");
+            assert_eq!(fs::read_to_string(outside.join("o.json")).unwrap(), "o");
+            fs::remove_file(&path).unwrap();
+            if is_dir {
+                fs::rename(&moved, &path).unwrap();
+            }
+            assert_eq!(
+                listing(&real.join("d")),
+                ["by-spec"],
+                "{at}: nothing written"
+            );
+            assert_eq!(listing(&real.join("d/by-spec")), ["old.json"], "{at}");
+        }
+
+        // A wrong-kind component refuses in the same preflight.
+        fs::create_dir(real.join("d/meta.json")).unwrap();
+        let err = run(&root).apply().expect_err("a directory at a file");
+        assert!(err.to_string().contains("exists and is not one"), "{err}");
+        assert_eq!(listing(&real.join("d/by-spec")), ["old.json"]);
+        fs::remove_dir(real.join("d/meta.json")).unwrap();
+
+        // And the clean run, through the linked root, syncs, writes, prunes.
+        fs::write(real.join("d/legacy.json"), "l").unwrap();
+        run(&root).apply().unwrap();
+        assert_eq!(listing(&real.join("d/by-spec")), ["a.json"]);
+        assert_eq!(listing(&real.join("d")), ["by-spec", "meta.json"]);
+    }
+
+    /// Spec 127 D-3: `sync_dir` keeps its signature and checks `dir` and every
+    /// entry it touches, rooted at `dir`'s parent.
+    #[cfg(unix)]
+    #[test]
+    fn sync_dir_refuses_a_linked_directory_or_entry() {
+        use std::os::unix::fs::symlink;
+        let tmp = tempfile::tempdir().unwrap();
+        let outside = tmp.path().join("outside");
+        fs::create_dir(&outside).unwrap();
+        fs::write(outside.join("o.json"), "o").unwrap();
+        let dir = tmp.path().join("by-spec");
+        symlink(&outside, &dir).unwrap();
+        let err = sync_dir(&dir, &[("a.json".into(), "1".into())]).expect_err("linked dir");
+        assert_eq!(err.exit_code(), 3);
+        fs::remove_file(&dir).unwrap();
+        fs::create_dir(&dir).unwrap();
+        symlink(outside.join("o.json"), dir.join("a.json")).unwrap();
+        sync_dir(&dir, &[("a.json".into(), "1".into())]).expect_err("linked entry");
+        let mut names: Vec<_> = fs::read_dir(&outside)
+            .unwrap()
+            .map(|e| e.unwrap().file_name())
+            .collect();
+        names.sort();
+        assert_eq!(names, ["o.json"]);
+        assert_eq!(fs::read_to_string(outside.join("o.json")).unwrap(), "o");
     }
 }
