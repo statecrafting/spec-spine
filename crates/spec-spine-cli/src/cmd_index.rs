@@ -378,27 +378,21 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             let outcome = index(&cfg, repo)?;
             let dir = index_dir(&cfg, repo);
 
-            // Per-spec + per-package shards; `sync_dir` prunes a removed unit's
-            // shard so the shard set always equals the current corpus, and
-            // creates `dir` on the way. Both batches are checked against spec
-            // 126 3.1 before either is written, so a refused name leaves no
-            // artifact root and no half-written tree (spec 126 D-5).
+            // Every output of the run is checked before any is written (spec
+            // 127 3.3): the per-spec and per-package shards, whose syncs prune
+            // a removed unit's shard so the shard set always equals the
+            // current corpus; `slices.json`, written or removed; and the
+            // pre-024 monolithic index.json dropped on upgrade. Both batches'
+            // names (spec 126 3.1) and every path's links are checked before
+            // either batch is written, so a refusal leaves no artifact root
+            // and no half-written tree (spec 126 D-5).
             let (by_spec, by_package) = index_shard_files(&outcome.shards)?;
-            for (sub, files) in [(BY_SPEC_DIR, &by_spec), (BY_PACKAGE_DIR, &by_package)] {
-                for (name, _) in files {
-                    shard::check_file_name(name, &dir.join(sub))?;
-                }
-            }
-            shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec)?;
-            shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package)?;
-            write_slices(&cfg, repo, &outcome.index.build.slice_hashes)?;
-
-            // Drop a pre-024 monolithic index.json on upgrade.
-            let legacy = dir.join("index.json");
-            if legacy.exists() {
-                fs::remove_file(&legacy)
-                    .map_err(|e| Error::Io(format!("remove {}: {e}", legacy.display())))?;
-            }
+            let run = shard::DerivedWrites::new(repo)
+                .sync_dir(&dir.join(BY_SPEC_DIR), by_spec)
+                .sync_dir(&dir.join(BY_PACKAGE_DIR), by_package);
+            slices_output(run, &cfg, repo, &outcome.index.build.slice_hashes)?
+                .remove(&dir, "index.json")
+                .apply()?;
 
             // Print both tiers. Spec 023 downgrades an unresolved unit on an
             // in-flight spec (or a `references` edge) to a counted `W-001` /
@@ -628,28 +622,26 @@ fn render_coverage(report: &CoverageReport) -> String {
     out
 }
 
-/// Write (or remove) the per-slice sidecar `slices.json` (spec 011/024). The
-/// slices live in their own small file emitted only when `[index.slices]` is
-/// configured, so a corpus with no slices commits no such file. Canonical
-/// (`BTreeMap` ⇒ sorted keys, 2-space, trailing LF).
-fn write_slices(
+/// Add the per-slice sidecar `slices.json` (spec 011/024) to `run`: written
+/// when `[index.slices]` is configured, removed when it is not, so a corpus
+/// with no slices commits no such file. Canonical (`BTreeMap` ⇒ sorted keys,
+/// 2-space, trailing LF).
+fn slices_output(
+    run: shard::DerivedWrites,
     cfg: &Config,
     repo: &Path,
     slice_hashes: &std::collections::BTreeMap<String, String>,
-) -> Result<(), Error> {
+) -> Result<shard::DerivedWrites, Error> {
     let path = slices_path(cfg, repo);
+    let dir = path.parent().unwrap_or(repo);
+    let name = "slices.json";
     if slice_hashes.is_empty() {
-        if path.exists() {
-            fs::remove_file(&path)
-                .map_err(|e| Error::Io(format!("remove {}: {e}", path.display())))?;
-        }
-        return Ok(());
+        return Ok(run.remove(dir, name));
     }
     let json = serde_json::to_string_pretty(slice_hashes)
         .map_err(|e| Error::Schema(e.to_string()))?
         + "\n";
-    fs::write(&path, json).map_err(|e| Error::Io(format!("write {}: {e}", path.display())))?;
-    Ok(())
+    Ok(run.write(dir, name, json))
 }
 
 /// The token the prose form prints for a linkage kind (spec 048 §3.1).

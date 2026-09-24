@@ -106,19 +106,25 @@ The bare writing form is for authors. A gate calls `--check` or `check`,
 because a gate must never repair the tree it is judging.
 
 A shard is named after its spec's frontmatter `id`. If any id would not make
-one plain file name (empty, a leading `.`, or containing `/`, `\`, `:` or
-NUL, which covers `../` traversal and absolute paths), the writing form refuses
-with exit `3` before it writes, prunes or creates anything, including the
-`spec-registry/` directory itself on a first build, and names the file name and
-directory (spec 126). This outranks the exit `1` the
-same id's `V-012` would earn. The refusal is about the file name, not the id
-grammar: an id that fails `V-012` but is a plain name (`001-Foo`) is still
-written and still exits `1`. `compile --check` reports the offending id without
-writing anything. The check is on the name only: it does not make a shard file
-or a directory on the derived path that is already a symbolic link safe to
-write through, and a writing verb run over such a link writes, and prunes,
-where the link points. Run the writing verbs only in a checkout whose derived
-directory contains no links you did not put there.
+one plain file name (empty, a leading `.`, a trailing `.` or space, or
+containing `/`, `\`, `:` or NUL, which covers `../` traversal and absolute
+paths; or a reserved Windows device name such as `CON`, `NUL.tar` or `COM1`, on
+every platform), the writing form refuses with exit `3` before it writes,
+prunes or creates anything, including the `spec-registry/` directory itself on
+a first build, and names the file name and directory (specs 126 and 127). This
+outranks the exit `1` the same id's `V-012` would earn. The refusal is about
+the file name, not the id grammar: an id that fails `V-012` but is a plain name
+(`001-Foo`) is still written and still exits `1`. `compile --check` reports the
+offending id without writing anything.
+
+The writing form also refuses, with exit `3` and nothing written, when any path
+it would write, create, remove or prune passes through a symbolic link below
+the repository root, or meets an existing component of the wrong kind (a file
+where a directory belongs), and names that path (spec 127). It does not replace
+the link. The repository root itself, and its ancestors, may be links. Not
+covered: another process replacing a path while the verb runs, a configured
+`derived_dir` that points outside the repository, and Windows links or
+junctions, which were not measured.
 
 ## check
 
@@ -219,7 +225,9 @@ Builds the code-as-source index into `<derived_dir>/codebase-index/{by-spec,by-p
 Per-spec shards are named after the spec's `id`, with the same refusal as
 `compile`: an id that is not one plain file name exits `3` before anything
 under `codebase-index/` is written, pruned or created, the directory itself
-included (spec 126).
+included (spec 126). So does a symbolic link below the repository root on any
+path it writes, removes or prunes, `slices.json` and both shard directories
+included (spec 127).
 
 | Subcommand | Answers |
 |---|---|
@@ -355,7 +363,10 @@ Exit `0` means an attestation was written. It is a record, not a gate.
 With `--spec`, the file is named after the resolved spec id. An id the corpus
 declares but that is not one plain file name (see `compile`) exits `3` before
 `by-spec/` is created and before the attestation or its seal is written (spec
-126).
+126). Every form refuses the same way when the attestation, the snapshot, the
+seal or a directory above them is a symbolic link below the repository root;
+the seal is made first, so a refused seal leaves the attestation unwritten too
+(spec 127).
 
 The document goes to the file, not to stdout: stdout carries a summary, and
 redirecting it publishes prose rather than the attestation.

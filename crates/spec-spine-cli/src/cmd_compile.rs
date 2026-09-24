@@ -8,7 +8,6 @@
 //! compares against the committed shards, the registry counterpart of
 //! `index check`.
 
-use std::fs;
 use std::path::Path;
 
 use spec_spine_core::shard::{self, BY_SPEC_DIR};
@@ -151,22 +150,6 @@ pub fn run(
 
     let out_dir = registry_dir(&cfg, repo);
 
-    // Per-spec shards. `sync_dir` prunes a removed spec's shard, so the shard set
-    // always equals the current corpus. It also creates `out_dir`, and only once
-    // every name has passed spec 126 3.1, so a refused run creates nothing, not
-    // even the artifact root (spec 126 D-5).
-    let shard_files = registry_shard_files(&outcome.shards)?;
-    let by_spec = out_dir.join(BY_SPEC_DIR);
-    shard::sync_dir(&by_spec, &shard_files)?;
-
-    // Drop a pre-024 monolithic registry.json on upgrade (it is no longer the
-    // committed form; the shard tree supersedes it).
-    let legacy = out_dir.join("registry.json");
-    if legacy.exists() {
-        fs::remove_file(&legacy)
-            .map_err(|e| Error::Io(format!("remove {}: {e}", legacy.display())))?;
-    }
-
     // build-meta.json carries the wall clock; the CLI owns it. Excluded from
     // determinism/golden checks and from version control (see .gitignore).
     let meta = BuildMeta {
@@ -177,9 +160,21 @@ pub fn run(
     };
     let meta_json =
         serde_json::to_string_pretty(&meta).map_err(|e| Error::Schema(e.to_string()))? + "\n";
-    let meta_path = out_dir.join("build-meta.json");
-    fs::write(&meta_path, meta_json)
-        .map_err(|e| Error::Io(format!("write {}: {e}", meta_path.display())))?;
+
+    // Every output of the run is checked before any is written (spec 127 3.3):
+    // the per-spec shards, whose sync prunes a removed spec's shard so the
+    // shard set always equals the current corpus; the pre-024 monolithic
+    // registry.json dropped on upgrade (the shard tree supersedes it); and
+    // build-meta.json. A name spec 126 refuses, or a link or wrong-kind
+    // component anywhere below the root, refuses the run with nothing written,
+    // not even the artifact root (spec 126 D-5).
+    let shard_files = registry_shard_files(&outcome.shards)?;
+    let by_spec = out_dir.join(BY_SPEC_DIR);
+    shard::DerivedWrites::new(repo)
+        .sync_dir(&by_spec, shard_files)
+        .remove(&out_dir, "registry.json")
+        .write(&out_dir, "build-meta.json", meta_json)
+        .apply()?;
 
     let warnings = outcome.warning_count();
 
