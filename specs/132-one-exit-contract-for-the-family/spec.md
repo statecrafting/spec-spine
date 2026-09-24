@@ -92,6 +92,40 @@ extends:
   - { spec: "044-index-diagnostics-reach-a-gate", unit: "crates/spec-spine-core/src/diagnostics.rs", nature: corrective }
   - { spec: "074-a-governed-read-names-its-version", unit: "crates/spec-spine-core/src/read.rs", nature: corrective }
   - { spec: "067-a-short-id-names-the-same-spec-at-every-verb", unit: "crates/spec-spine-core/src/spec_id.rs", nature: corrective }
+  # 3.1 to 3.7: every test that pinned a moved code or the old envelope.
+  - { spec: "034-machine-readable-verdicts", unit: "crates/spec-spine-cli/tests/cli.rs", nature: additive }
+  - { spec: "107-a-context-closure-is-declared", unit: "crates/spec-spine-cli/tests/closure.rs", nature: additive }
+  - { spec: "107-a-context-closure-is-declared", unit: "crates/spec-spine-cli/tests/closure_composed.rs", nature: additive }
+  - { spec: "047-effective-config-is-a-governed-read", unit: "crates/spec-spine-cli/tests/config.rs", nature: additive }
+  - { spec: "005-coupling-gate", unit: "crates/spec-spine-cli/tests/couple.rs", nature: additive }
+  - { spec: "128-a-derived-tree-stays-in-its-repository", unit: "crates/spec-spine-cli/tests/derived_dir_contained.rs", nature: additive }
+  - { spec: "126-a-derived-file-stays-in-its-directory", unit: "crates/spec-spine-cli/tests/derived_paths.rs", nature: additive }
+  - { spec: "127-a-derived-file-is-where-its-path-says", unit: "crates/spec-spine-cli/tests/derived_symlinks.rs", nature: additive }
+  - { spec: "110-an-interface-reference-is-digest-pinned", unit: "crates/spec-spine-cli/tests/interface.rs", nature: additive }
+  - { spec: "110-an-interface-reference-is-digest-pinned", unit: "crates/spec-spine-cli/tests/interface_composed.rs", nature: additive }
+  - { spec: "108-a-work-scope-is-declared", unit: "crates/spec-spine-cli/tests/scope.rs", nature: additive }
+  - { spec: "067-a-short-id-names-the-same-spec-at-every-verb", unit: "crates/spec-spine-cli/tests/spec_id.rs", nature: additive }
+  - { spec: "103-a-verifier-fixture-is-a-published-artifact", unit: "crates/spec-spine-cli/tests/verifier_fixtures.rs", nature: additive }
+  - { spec: "068-a-verifier-checks-the-bytes-it-was-given", unit: "crates/spec-spine-cli/tests/verify_attestation_bytes.rs", nature: additive }
+  - { spec: "090-the-verdict-is-the-only-thing-on-stdout", unit: "crates/spec-spine-cli/tests/verify_streams.rs", nature: additive }
+  - { spec: "113-a-waiver-has-a-declared-lifecycle", unit: "crates/spec-spine-cli/tests/waiver.rs", nature: additive }
+  - { spec: "021-ledger-seal", unit: "crates/spec-spine-core/tests/attest.rs", nature: additive }
+  - { spec: "107-a-context-closure-is-declared", unit: "crates/spec-spine-core/tests/closure.rs", nature: additive }
+  - { spec: "096-compaction-is-a-verb-not-a-session", unit: "crates/spec-spine-core/tests/compact.rs", nature: additive }
+  - { spec: "071-a-change-is-classified-under-the-bases-rules", unit: "crates/spec-spine-core/tests/delta.rs", nature: additive }
+  - { spec: "093-the-harness-this-repository-runs", unit: "crates/spec-spine-core/tests/harness_hooks.rs", nature: additive }
+  - { spec: "110-an-interface-reference-is-digest-pinned", unit: "crates/spec-spine-core/tests/interface.rs", nature: additive }
+  - { spec: "002-registry-query", unit: "crates/spec-spine-core/tests/query.rs", nature: additive }
+  - { spec: "097-a-path-leaves-the-corpus-the-way-a-spec-does", unit: "crates/spec-spine-core/tests/retire.rs", nature: additive }
+  - { spec: "108-a-work-scope-is-declared", unit: "crates/spec-spine-core/tests/scope.rs", nature: additive }
+  - { spec: "113-a-waiver-has-a-declared-lifecycle", unit: "crates/spec-spine-core/tests/waiver.rs", nature: additive }
+  - { spec: "055-a-version-pin-the-cli-can-check", unit: "crates/spec-spine-types/tests/config.rs", nature: additive }
+  - { spec: "034-machine-readable-verdicts", unit: "crates/spec-spine-types/tests/dtos.rs", nature: additive }
+  - { spec: "012-declared-extra-frontmatter-passthrough", unit: "crates/spec-spine-types/tests/frontmatter.rs", nature: additive }
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: "docs/adoption-guide.md", nature: additive }
+  - { spec: "100-a-deleted-path-is-judged-where-it-lived", unit: "docs/api.md", nature: additive }
+  - { spec: "115-bindings-are-designed-not-shipped", unit: "docs/bindings-plan.md", nature: additive }
+  - { spec: "055-a-version-pin-the-cli-can-check", unit: "docs/schema-versioning.md", nature: additive }
   # 3.6: the verifier fixture set, a published artifact, moves to 1.0.0.
   - { spec: "103-a-verifier-fixture-is-a-published-artifact", unit: "crates/spec-spine-core/fixtures/verifier/", nature: corrective }
   # 3.7: the harness and the scripts that read the codes.
