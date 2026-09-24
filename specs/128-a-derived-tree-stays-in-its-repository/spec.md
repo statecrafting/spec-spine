@@ -190,9 +190,17 @@ compatibility change this spec has no evidence to make.
 `spec-spine.toml` sets an escaping `derived_dir` now fails every verb with
 exit 3 until the key is corrected, where before its writing verbs wrote
 outside it and exited 0. The pull request that corrects the key is judged
-by `couple` and `delta` against a base whose configuration no longer loads, so
-they exit 3 on it too, as they already do for a base with an invalid
-`state_dir`; that PR needs a human merge decision. No repository known to this project sets one: this
+against a base whose configuration no longer loads. Corrected on 2026-09-24
+to what was measured (spec 129 4, `docs/configuration.md`), where this
+entry first said `couple` and `delta` both refuse it: `delta` exits 3 on
+that pull request, because it always classifies by the merge-base's rules;
+`couple` exits 3 only when the diff deletes a path, because only a deletion
+asks it for the base snapshot (spec 100 3.4), and a correcting diff that
+deletes nothing gets `couple` exit 0. A `Spec-Drift-Waiver:` changes neither
+result, since this is not drift. The recovery is therefore a correcting pull
+request that deletes nothing; where a required check runs `delta`, merging it
+is the owner's explicit decision, and deletions follow in a later pull
+request. No repository known to this project sets one: this
 repository and the managed layout use `.statecraft/derived`, and the default
 is `.derived`. No schema, API signature, exit-code mapping or shard name
 changes.

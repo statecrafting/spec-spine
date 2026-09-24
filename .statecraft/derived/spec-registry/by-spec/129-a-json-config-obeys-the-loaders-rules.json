@@ -102,7 +102,7 @@
       "1-2-measured-through-the-entry-statecraft-links": "be2b6b1afef93cafb22c6d1b5ec7924d4acfd7297960f97afd56194bb284f146",
       "1-3-statecraft-s-call-shape": "549efed35d5f3f225199e3b958002a856b6900139cc0b0a6aa36ea55b0602cdb",
       "1-purpose": "3770139482f0c962bf727bbb687f309a7be63a5e517791155800d9ea06368883",
-      "129-a-configuration-passed-as-json-obeys-the-loader-s-rules": "cac68d558bbe6d594a326b95d3e9ad0a9fa591441fa49bfecc2dbd5316a8adf0",
+      "129-a-configuration-passed-as-json-obeys-the-loader-s-rules": "b6a65426e8a366c96a5ac3919f9a49b171ecc12945b2567742336116286e07dc",
       "2-territory": "e37412e9733bf59cd8b666c27bf7b89f0332448e67a09525bc8c8ed43fe00024",
       "3-1-one-validator-run-by-the-loader-and-by-every-facade-entry": "dc4d6b372dc905123fedd8aeecaef20fbfbb004d7b92b70816020ad921bf7beb",
       "3-2-what-stays-accepted": "9780c739957f3ca20968387820e5229de102b8fc47d102b46de30ff2bc0b8130",
@@ -110,7 +110,7 @@
       "3-4-checks-that-are-not-the-facade-s": "4e6d3477734255f22070c14da854b7c8621be5a9796faadc67e14d953da53211",
       "3-5-documentation": "b04daad5116e4dea93007725224e65575be87474f826459244f45b19892befe0",
       "3-behavior": "cf06b7650f92b7c0074e1f096b54bd1ec4f96b1f4a3e47514658f17c209ed299",
-      "4-out-of-scope-and-the-limits-of-the-claim": "2ae233a6ddc387e496a5f324a09f7313cf469a55c978438749f214a33ea55112",
+      "4-out-of-scope-and-the-limits-of-the-claim": "bd6f78812c96398ba9f901102d3236efd307d0704537c0c6f78f672ead509229",
       "5-resolved-decisions": "1c7e5420aa41e3007643b97c82f459ddc342916e4be751bc7f70162bc914a07b",
       "verification": "6049ecbf79d831583c0daf1f97bcc66ee0543f9b7db6397b8a5e2300b83fa01d"
     },
@@ -136,6 +136,6 @@
     "summary": "`load_config` refuses a `derived_dir` that leaves the repository (128), a `state_dir` that is the repository root or overlaps a governed root (036), and a malformed `[index.slices]` entry (011). The JSON facade deserialized its configuration with serde alone and ran none of those rules, at all 22 entries that take one, so a binding could hand the engine a configuration no `spec-spine.toml` can hold. `scaffold_init_json`, the entry Statecraft links, returned `Ok` with a `spec-spine.toml` that every verb then refuses with exit 3, and it wrote each value between literal quotes, so a `\"` broke the file and a `\\` changed the value. The rules now live in one public function, `validate_config`, which the loader and every facade entry call, and the scaffold refuses what the loader refuses and escapes what it writes. Checks that need the filesystem or the running binary stay where they are.\n",
     "title": "A configuration passed as JSON obeys the loader's rules"
   },
-  "shardHash": "21bc479191cc916028d899583e168702a8798e4c511b6598a97c9e0010610ff5",
+  "shardHash": "6993effadc4c9f4238e55f7fd49ac0f67a6611457c5b83cbb50e6abbdba49343",
   "specVersion": "1.8.0"
 }

@@ -211,8 +211,8 @@ error, and that `required_version` is not checked there.
   on the pull request that corrects it, `delta` exits 3, and `couple` exits 3
   only when the diff deletes a path (it reads the base snapshot only then,
   spec 100 3.4); a correcting diff that deletes nothing gets `couple` exit 0.
-  128 D-4 says both refuse; that is true of `couple` only with a deletion.
-  128 is left as written for its ratification.
+  128 D-4 first said both refuse, true of `couple` only with a deletion; it
+  was corrected to this measurement before its ratification.
 
 ## 5. Resolved decisions
 
