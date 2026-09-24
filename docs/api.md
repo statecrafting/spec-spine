@@ -230,6 +230,12 @@ pub fn load_config(toml_src: &str) -> Result<Config, Error>;
 // bootstrap spec and a .gitignore fragment, and no agent or environment
 // artifact of any kind.
 pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error>;
+// Spec 131: the same, under options. `ScaffoldOptions::default()` is
+// byte-identical to `scaffold_init`; `pin_exact_version: true` emits an active
+// `[meta]` table with `required_version = "=<this producer's version>"`.
+pub fn scaffold_init_with_options(cfg: &Config, options: &ScaffoldOptions)
+    -> Result<Scaffold, Error>;
+pub struct ScaffoldOptions { pub pin_exact_version: bool }
 pub struct Scaffold     { pub files: Vec<ScaffoldFile> }
 pub struct ScaffoldFile { pub rel_path: String, pub contents: String, pub overwrite: bool,
                           pub executable: bool, pub append: bool,
@@ -338,6 +344,7 @@ pub fn render_json         (config_json: &str, index_json: &str) -> Result<Strin
 pub fn orphans_json        (index_json: &str)                    -> Result<String, Error>;
 pub fn load_config_json    (toml_src: &str)                     -> Result<String, Error>;
 pub fn scaffold_init_json  (config_json: &str)                  -> Result<String, Error>;
+pub fn scaffold_init_with_options_json(config_json: &str, options_json: &str) -> Result<String, Error>;
 pub fn attest_json         (config_json: &str, repo_root: &str, with_coupling: bool) -> Result<String, Error>;
 pub fn attest_spec_json    (config_json: &str, repo_root: &str, spec_id: &str)       -> Result<String, Error>;
 pub fn verify_attestation_json     (request_json: &str)         -> Result<String, Error>;
@@ -354,6 +361,15 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   `scaffold_init_json` refuse it too, and escape every value they write into
   the starter `spec-spine.toml`. `[meta] required_version` is not checked
   here: only the CLI knows the version it runs as.
+- `scaffold_init_with_options_json` (spec 131) takes the options as a JSON
+  object: `{"pinExactVersion": true}` returns the scaffold with an active
+  `[meta]` table and `required_version = "=<this producer's version>"`, so the
+  written repository is judged only by the spec-spine release that produced
+  it. `"{}"` or `{"pinExactVersion": false}` returns exactly what
+  `scaffold_init_json` returns. An unknown option key or options that are not
+  JSON is `Error::Config`, so a request for a pin never yields an unpinned
+  file silently. Only `spec-spine.toml`'s `[meta]` block differs; every other
+  byte and file is the same.
 - `closure_json` request (spec 107): `{ "specs"?: [id], "sections"?: [{ "spec",
   "anchor" }], "obligations"?: ["<spec-id>#<obligation-id>"], "rationale"?:
   string }`, at least one member named, unknown members refused. The answer is

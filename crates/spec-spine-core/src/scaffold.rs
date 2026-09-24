@@ -88,12 +88,35 @@ pub struct Scaffold {
 /// anything the scaffold wrote and absent from anything it did not.
 const GITIGNORE_MARKER: &str = "# spec-spine: transient metadata and runtime state";
 
+/// How the scaffold is produced, beyond the configuration it describes
+/// (spec 131). Every field defaults to the behavior `scaffold_init` has always
+/// had, so an absent or empty options document changes nothing.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct ScaffoldOptions {
+    /// Emit an active `[meta]` table with `required_version = "=<this
+    /// producer's version>"`, instead of the commented example 055 §3.4 writes.
+    /// For a consumer that writes the file byte for byte and wants the new
+    /// repository judged only by the release that produced it.
+    #[serde(default)]
+    pub pin_exact_version: bool,
+}
+
 /// Generate the adopter scaffold for `cfg`. Pure; performs no IO.
 ///
 /// Refuses a configuration `load_config` would refuse, with the same message
 /// (spec 129 3.3): the first file this returns is a `spec-spine.toml`, and a
 /// producer must not hand its consumer one that every verb then refuses.
 pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
+    scaffold_init_with_options(cfg, &ScaffoldOptions::default())
+}
+
+/// [`scaffold_init`] under `options` (spec 131). With the default options the
+/// result is byte-identical to [`scaffold_init`]'s.
+pub fn scaffold_init_with_options(
+    cfg: &Config,
+    options: &ScaffoldOptions,
+) -> Result<Scaffold, Error> {
     validate_config(cfg)?;
     let ns = &cfg.manifest.metadata_namespace;
     let specs = cfg.layout.specs_dir.trim_end_matches('/');
@@ -106,7 +129,7 @@ pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
     };
 
     let files = vec![
-        file("spec-spine.toml".to_string(), config_toml(cfg)),
+        file("spec-spine.toml".to_string(), config_toml(cfg, options)),
         file(
             format!("{standards}/constitution.md"),
             CONSTITUTION.to_string(),
@@ -157,7 +180,53 @@ pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
 /// `tests/scaffold.rs` asserts this parses back to `Config::default()` modulo
 /// the values substituted from `cfg`: a documented config that has drifted from
 /// the defaults it documents is worse than none.
-fn config_toml(cfg: &Config) -> String {
+fn config_toml(cfg: &Config, options: &ScaffoldOptions) -> String {
+    let text = config_toml_unpinned(cfg);
+    if !options.pin_exact_version {
+        return text;
+    }
+    // Spec 131 §3.1: the same file with the `[meta]` block made active and
+    // exact. Replacing the block, rather than templating a second file, is what
+    // keeps every other byte identical to the unpinned scaffold.
+    //
+    // `config_toml_unpinned` interpolates `meta_block_commented` itself, so the
+    // block being replaced is always present, verbatim, exactly once.
+    let running_version = env!("CARGO_PKG_VERSION");
+    text.replacen(
+        &meta_block_commented(running_version),
+        &meta_block_pinned(running_version),
+        1,
+    )
+}
+
+/// The `[meta]` block 055 §3.4 writes: header and key commented out.
+fn meta_block_commented(running_version: &str) -> String {
+    format!(
+        "# [meta]\n\
+         # Pin the spec-spine version this repository is governed by. Uncomment to\n\
+         # refuse a binary that does not satisfy it. A pin is not only about\n\
+         # features: the coupling gate\x27s built-in bypass floor is compiled into\n\
+         # the binary, so two versions can judge the same diff differently.\n\
+         # Cargo semantics: a bare version is a caret range, `=` is exact.\n\
+         # required_version = \"{running_version}\"\n"
+    )
+}
+
+/// The block spec 131 §3.1 writes instead: active, exact, and saying so.
+fn meta_block_pinned(running_version: &str) -> String {
+    format!(
+        "[meta]\n\
+         # The spec-spine version this repository is governed by. A binary that\n\
+         # does not satisfy it refuses to run. A pin is not only about features:\n\
+         # the coupling gate\x27s built-in bypass floor is compiled into the\n\
+         # binary, so two versions can judge the same diff differently.\n\
+         # Cargo semantics: a bare version is a caret range, `=` is exact. This\n\
+         # pin is exact: it names the spec-spine release that produced this file.\n\
+         required_version = \"={running_version}\"\n"
+    )
+}
+
+fn config_toml_unpinned(cfg: &Config) -> String {
     format!(
         "# spec-spine.toml governs this repository. Every key is optional; an\n\
          # absent file behaves as the defaults for a single-Cargo-workspace repo.\n\
@@ -165,13 +234,7 @@ fn config_toml(cfg: &Config) -> String {
          # `spec-spine config show` prints the effective configuration, including\n\
          # the built-in bypass floor this file cannot see.\n\
          \n\
-         # [meta]\n\
-         # Pin the spec-spine version this repository is governed by. Uncomment to\n\
-         # refuse a binary that does not satisfy it. A pin is not only about\n\
-         # features: the coupling gate\x27s built-in bypass floor is compiled into\n\
-         # the binary, so two versions can judge the same diff differently.\n\
-         # Cargo semantics: a bare version is a caret range, `=` is exact.\n\
-         # required_version = \"{running_version}\"\n\
+         {meta}\
          \n\
          [manifest]\n\
          # Drives the Cargo `[package.metadata.{ns_text}].spec` and package.json `\"{ns_text}\".spec` reads.\n\
@@ -278,7 +341,7 @@ fn config_toml(cfg: &Config) -> String {
          # Keys this corpus recognizes beyond the grammar, so the unknown-key\n\
          # lint stays quiet about them. They still land in `extraFrontmatter`.\n\
          # extra_known_keys = [\"owner\", \"risk\"]\n",
-        running_version = env!("CARGO_PKG_VERSION"),
+        meta = meta_block_commented(env!("CARGO_PKG_VERSION")),
         ns = basic(&cfg.manifest.metadata_namespace),
         ns_text = escaped(&cfg.manifest.metadata_namespace),
         specs = basic(&cfg.layout.specs_dir),
