@@ -144,8 +144,8 @@
       }
     ],
     "specId": "130-a-planned-claim-ends-at-completion",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "7f7ad8d93fe44bc19d36f7bc51dbc587609b295b5cf7bc852e3adc44a805ec18"
+  "shardHash": "2541a9c805634ec9636ceb9d732fe6a920dc33e8f67d1755f2832d5c55d36abf"
 }
