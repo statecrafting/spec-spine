@@ -1,10 +1,10 @@
 {
   "inputsManifestHash": "60d0ea9b6afcedcb19b4b974e4fc4130424b79aed363f65468346c9a6447570f",
-  "registryHash": "393a34060db77cc690278d0779458a056adf481a1b1ec8bfed4f99c2a4893b7f",
+  "registryHash": "6c23e0ffdb6739ada73012ac56cf45120815e43ae3cbc181b3298f74000ee03f",
   "schemaVersion": "0.9.0",
   "tool": {
     "name": "spec-spine",
-    "version": "0.24.0"
+    "version": "0.25.0"
   },
   "verdicts": {
     "compile": {
