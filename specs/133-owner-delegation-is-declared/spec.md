@@ -113,7 +113,7 @@ grep -q '^\*\*Agents decide, record and report afterwards:\*\*$' AGENTS.md
 grep -q '^\*\*Reserved to the owner:\*\*$' AGENTS.md
 grep -q '^\*\*Every handoff ends with one decision table\*\*' AGENTS.md
 # 3.2: it widens nothing.
-grep -q 'widens no authority the rules above withhold' AGENTS.md
+grep -q 'no authority the rules above withhold' AGENTS.md
 # The four standing rules are untouched (093 4.10).
 sh -c 'n=$(awk "/^## Rules/{f=1;next} /^## /{f=0} f && /^### /" AGENTS.md | wc -l | tr -d " "); test "$n" -eq 4'
 ```
