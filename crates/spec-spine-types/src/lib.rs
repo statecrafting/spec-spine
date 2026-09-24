@@ -59,7 +59,7 @@ pub use config::{
     AllowlistConfig, BrandingConfig, BypassEntry, BypassSource, Config, CouplingConfig,
     CoverageConfig, EffectiveConfig, EffectiveCouplingConfig, FrontmatterConfig, IndexConfig,
     LayoutConfig, LintConfig, ManifestConfig, MetaConfig, ProvenanceConfig, VersionReq,
-    load_config,
+    load_config, validate_config,
 };
 pub use coverage::{
     CoverageReport, Enumeration, Inventory, InventoryProvenance, NearMissHeader, NearMissReason,

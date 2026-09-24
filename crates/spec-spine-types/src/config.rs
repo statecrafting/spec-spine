@@ -710,10 +710,23 @@ impl EffectiveConfig {
 /// unknown-key error; never panics.
 pub fn load_config(toml_src: &str) -> Result<Config> {
     let config: Config = toml::from_str(toml_src).map_err(|e| Error::Config(e.to_string()))?;
-    validate_slices(&config)?;
-    validate_derived_dir(&config)?;
-    validate_state_dir(&config)?;
+    validate_config(&config)?;
     Ok(config)
+}
+
+/// The rules a [`Config`] must satisfy wherever it comes from (spec 129).
+///
+/// [`load_config`] runs them on a parsed `spec-spine.toml`, and the core
+/// crate's JSON facade runs them on every configuration it deserializes, so a
+/// binding cannot hand the engine a configuration no `spec-spine.toml` could
+/// hold. Each rule is over the values as written: nothing is resolved against
+/// the filesystem, no clock or environment is read, and the version pin
+/// (`[meta] required_version`) is not checked here, because only the running
+/// binary knows the version it would compare against (129 3.4).
+pub fn validate_config(config: &Config) -> Result<()> {
+    validate_slices(config)?;
+    validate_derived_dir(config)?;
+    validate_state_dir(config)
 }
 
 /// `layout.derived_dir` names a directory inside the repository (spec 128 3.1).

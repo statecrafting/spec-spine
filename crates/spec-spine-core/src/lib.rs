@@ -46,7 +46,7 @@ pub mod verify;
 pub mod waiver;
 
 use serde::{Deserialize, Serialize};
-use spec_spine_types::{Config, CorpusAttestation, Error, Status, load_config};
+use spec_spine_types::{Config, CorpusAttestation, Error, Status, load_config, validate_config};
 
 // Re-export the type substrate so callers depend on one crate.
 pub use spec_spine_types as types;
@@ -582,6 +582,7 @@ pub fn coverage_inventory_json(request_json: &str) -> Result<String, Error> {
     }
     let request: Request = serde_json::from_str(request_json)
         .map_err(|e| Error::Parse(format!("invalid coverage request: {e}")))?;
+    validate_config(&request.config)?;
     read_document(
         &coverage_with_inventory(
             &request.config,
@@ -700,6 +701,7 @@ pub fn couple_json(request_json: &str) -> Result<String, Error> {
 
     let request: Request = serde_json::from_str(request_json)
         .map_err(|e| Error::Parse(format!("invalid couple request: {e}")))?;
+    validate_config(&request.config)?;
 
     let roots = request.prior_roots.unwrap_or_default();
     let load = |root: &Option<String>| -> Result<Option<PriorOwnership>, Error> {
@@ -782,7 +784,10 @@ pub fn delta_json(request_json: &str) -> Result<String, Error> {
         .map_err(|e| Error::Parse(format!("invalid delta request: {e}")))?;
     let base_root = std::path::Path::new(&request.base_root);
     let config = match request.config {
-        Some(config) => config,
+        Some(config) => {
+            validate_config(&config)?;
+            config
+        }
         None => tree_config(base_root)?,
     };
     to_json(&delta(
@@ -909,6 +914,7 @@ pub fn verify_snapshot_attestation_json(request_json: &str) -> Result<String, Er
     const VERB: &str = "verify-snapshot-attestation";
     let request: Request = serde_json::from_str(request_json)
         .map_err(|e| Error::Parse(format!("invalid {VERB} request: {e}")))?;
+    validate_config(&request.config)?;
     let (attested, stored) = match (request.attestation, request.attestation_text) {
         (Some(_), Some(_)) => return Err(both_supplied(VERB)),
         (None, None) => return Err(neither_supplied(VERB)),
@@ -966,6 +972,7 @@ pub fn verify_spec_attestation_json(request_json: &str) -> Result<String, Error>
     const VERB: &str = "verify-spec-attestation";
     let request: Request = serde_json::from_str(request_json)
         .map_err(|e| Error::Parse(format!("invalid {VERB} request: {e}")))?;
+    validate_config(&request.config)?;
     let (attestation, stored) = match (request.attestation, request.attestation_text) {
         (Some(_), Some(_)) => return Err(both_supplied(VERB)),
         (None, None) => return Err(neither_supplied(VERB)),
@@ -1032,6 +1039,7 @@ pub fn verify_attestation_json(request_json: &str) -> Result<String, Error> {
     const VERB: &str = "verify-attestation";
     let request: Request = serde_json::from_str(request_json)
         .map_err(|e| Error::Parse(format!("invalid {VERB} request: {e}")))?;
+    validate_config(&request.config)?;
     let (attestation, stored) = match (request.attestation, request.attestation_text) {
         (Some(_), Some(_)) => return Err(both_supplied(VERB)),
         (None, None) => return Err(neither_supplied(VERB)),
@@ -1094,9 +1102,14 @@ fn neither_supplied(verb: &str) -> Error {
     ))
 }
 
+/// Deserialize a facade configuration and hold it to the loader's rules
+/// (spec 129 3.1): a configuration arriving as JSON is refused exactly where,
+/// and with exactly the message, `load_config` would refuse it as TOML.
 fn config_from_json(config_json: &str) -> Result<Config, Error> {
-    serde_json::from_str(config_json)
-        .map_err(|e| Error::Config(format!("invalid config JSON: {e}")))
+    let config = serde_json::from_str(config_json)
+        .map_err(|e| Error::Config(format!("invalid config JSON: {e}")))?;
+    validate_config(&config)?;
+    Ok(config)
 }
 
 fn to_json<T: serde::Serialize>(value: &T) -> Result<String, Error> {

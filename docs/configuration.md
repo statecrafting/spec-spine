@@ -57,6 +57,57 @@ silently bypassing a real path on upgrade would change what the gate refuses.
 Matching is separator-aware for both roots: a root of `state` covers `state`
 and `state/journal.db` and never `stateful/x`.
 
+### Recovering from a base whose `derived_dir` escapes
+
+Since spec 128, a committed `derived_dir` that is absolute, has a `..`
+segment, or contains `\` or `:` is a configuration error (exit 3) at every
+verb. Older binaries wrote the derived tree wherever such a value pointed, so
+a repository can have one committed on its default branch. The pull request
+that corrects it is judged against that base, and two verbs read the base's
+configuration:
+
+| Verb on the correcting pull request | Exit | Why |
+|---|---|---|
+| `check`, `lint`, `index coverage` (read head only) | as usual | head's configuration loads |
+| `couple`, when the diff deletes no path | 0 | no deletion asks for the base snapshot (spec 100 3.4) |
+| `couple`, when the diff deletes any path | 3 | the merge-base snapshot's configuration cannot load |
+| `delta` | 3 | it always classifies by the merge-base's rules |
+
+The `couple` rows are for the ordinary `--base <ref> --head <ref>` run, the
+one a pull request's gate makes. With `--include-uncommitted`, a deletion that
+exists only in the working tree is judged at the head commit instead, whose
+configuration loads.
+
+Measured with a build of spec 129's branch, whose CLI behaves here exactly as
+spec 128's does. A `Spec-Drift-Waiver:` does not
+change either exit 3: a waiver clears drift, and this is not drift. Do not use
+one, and do not run an older binary to get a pass, since an older binary is
+what writes outside the repository.
+
+The procedure:
+
+1. **Confirm the cause at the base.** `spec-spine config show` on the default
+   branch exits 3 and names `layout.derived_dir`. If it names anything else,
+   this procedure does not apply.
+2. **Account for what was written outside.** An older binary created, and
+   pruned `*.json` files in, the directory the value pointed at. That
+   directory is outside the repository; inspect it and decide what to remove
+   by hand. No spec-spine verb touches it any more.
+3. **Open a correcting pull request that deletes nothing.** Change
+   `derived_dir` to a relative path of plain segments, run `spec-spine
+   compile` and `spec-spine index`, and commit the regenerated tree, which is
+   all additions. Put no other change in it, and in particular no deletion:
+   with none, `couple` judges the diff normally and exits 0 when it is clean.
+4. **If a required check runs `delta`, it stays at exit 3 on that pull
+   request.** The repository's owner merges it by an explicit decision, with
+   the `config show` output and the diff's file list recorded in the pull
+   request body. That is a human override of one check on one pull request,
+   not a waiver, and it is the owner's to make; a session or an agent never
+   makes it. This repository's gate runs no `delta`, so here step 3 suffices.
+5. **Make every other change after the merge.** Deletions and any other work
+   go in a later pull request, whose base configuration now loads, so
+   `couple` and `delta` judge it as usual (measured: both exit 0).
+
 ## `[manifest]`
 
 | Key | Default | Meaning |

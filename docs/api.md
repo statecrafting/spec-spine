@@ -345,6 +345,15 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
 ```
 
 - `config_json` is a JSON object matching `Config`; `"{}"` ⇒ `Config::default()`.
+  Since spec 129 it, and the `config` member of every request that carries
+  one, is held to the rules `load_config` applies to a `spec-spine.toml`
+  (the `[index.slices]` grammar, spec 128's `derived_dir` rule, spec 036's
+  `state_dir` rule), through the public `spec_spine_types::validate_config`.
+  A configuration the loader would refuse is `Error::Config` (exit 3) with the
+  loader's message, before the entry reads anything. `scaffold_init` and
+  `scaffold_init_json` refuse it too, and escape every value they write into
+  the starter `spec-spine.toml`. `[meta] required_version` is not checked
+  here: only the CLI knows the version it runs as.
 - `closure_json` request (spec 107): `{ "specs"?: [id], "sections"?: [{ "spec",
   "anchor" }], "obligations"?: ["<spec-id>#<obligation-id>"], "rationale"?:
   string }`, at least one member named, unknown members refused. The answer is

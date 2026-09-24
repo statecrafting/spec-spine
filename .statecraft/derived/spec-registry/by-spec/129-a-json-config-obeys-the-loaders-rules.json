@@ -1,0 +1,141 @@
+{
+  "record": {
+    "amends": [
+      "092-the-engine-ships-governance-not-an-environment"
+    ],
+    "amendsSections": [
+      "3.3"
+    ],
+    "created": "2026-09-24",
+    "dependsOn": [
+      "036-declared-state-dir",
+      "092-the-engine-ships-governance-not-an-environment",
+      "128-a-derived-tree-stays-in-its-repository"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/config_facade.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "092-the-engine-ships-governance-not-an-environment",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      }
+    ],
+    "id": "129-a-json-config-obeys-the-loaders-rules",
+    "implementation": "complete",
+    "intent": {
+      "goal": "a configuration the engine accepts as JSON is one a `spec-spine.toml` could hold, refused with the same message where the loader would refuse it",
+      "nonGoals": [
+        "confining `specs_dir`, `standards_dir` or any layout key 128 left unchecked (4)",
+        "read-side link handling, concurrent path swaps, or any claim about Windows links and junctions (4)",
+        "checking `[meta] required_version` outside the CLI, which alone knows the version it runs as (3.4)",
+        "validating a `Config` a Rust caller builds and passes to a non-facade function other than `scaffold_init` (4)"
+      ]
+    },
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/128-a-derived-tree-stays-in-its-repository/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/036-declared-state-dir/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/configuration.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-1-inventory-of-the-facade-on-main-at-8446e773": "b99c708e4d21d9a5ef76c4b52d7c575740f5bbc540e20f58cbfcfbb573e9c875",
+      "1-2-measured-through-the-entry-statecraft-links": "be2b6b1afef93cafb22c6d1b5ec7924d4acfd7297960f97afd56194bb284f146",
+      "1-3-statecraft-s-call-shape": "549efed35d5f3f225199e3b958002a856b6900139cc0b0a6aa36ea55b0602cdb",
+      "1-purpose": "3770139482f0c962bf727bbb687f309a7be63a5e517791155800d9ea06368883",
+      "129-a-configuration-passed-as-json-obeys-the-loader-s-rules": "cac68d558bbe6d594a326b95d3e9ad0a9fa591441fa49bfecc2dbd5316a8adf0",
+      "2-territory": "e37412e9733bf59cd8b666c27bf7b89f0332448e67a09525bc8c8ed43fe00024",
+      "3-1-one-validator-run-by-the-loader-and-by-every-facade-entry": "dc4d6b372dc905123fedd8aeecaef20fbfbb004d7b92b70816020ad921bf7beb",
+      "3-2-what-stays-accepted": "9780c739957f3ca20968387820e5229de102b8fc47d102b46de30ff2bc0b8130",
+      "3-3-the-scaffold-refuses-what-the-loader-refuses-and-escapes-what-it-writes-amends-092-3-3": "7a4eb8d63c325a621b95bc58afe01eef6857729c321958c63236c98a78d49cc9",
+      "3-4-checks-that-are-not-the-facade-s": "4e6d3477734255f22070c14da854b7c8621be5a9796faadc67e14d953da53211",
+      "3-5-documentation": "b04daad5116e4dea93007725224e65575be87474f826459244f45b19892befe0",
+      "3-behavior": "cf06b7650f92b7c0074e1f096b54bd1ec4f96b1f4a3e47514658f17c209ed299",
+      "4-out-of-scope-and-the-limits-of-the-claim": "2ae233a6ddc387e496a5f324a09f7313cf469a55c978438749f214a33ea55112",
+      "5-resolved-decisions": "1c7e5420aa41e3007643b97c82f459ddc342916e4be751bc7f70162bc914a07b",
+      "verification": "6049ecbf79d831583c0daf1f97bcc66ee0543f9b7db6397b8a5e2300b83fa01d"
+    },
+    "sectionHeadings": [
+      "129: A configuration passed as JSON obeys the loader's rules",
+      "1. Purpose",
+      "1.1 Inventory of the facade, on `main` at `8446e773`",
+      "1.2 Measured through the entry Statecraft links",
+      "1.3 Statecraft's call shape",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One validator, run by the loader and by every facade entry",
+      "3.2 What stays accepted",
+      "3.3 The scaffold refuses what the loader refuses, and escapes what it writes (amends 092 3.3)",
+      "3.4 Checks that are not the facade's",
+      "3.5 Documentation",
+      "4. Out of scope, and the limits of the claim",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/129-a-json-config-obeys-the-loaders-rules/spec.md",
+    "status": "draft",
+    "summary": "`load_config` refuses a `derived_dir` that leaves the repository (128), a `state_dir` that is the repository root or overlaps a governed root (036), and a malformed `[index.slices]` entry (011). The JSON facade deserialized its configuration with serde alone and ran none of those rules, at all 22 entries that take one, so a binding could hand the engine a configuration no `spec-spine.toml` can hold. `scaffold_init_json`, the entry Statecraft links, returned `Ok` with a `spec-spine.toml` that every verb then refuses with exit 3, and it wrote each value between literal quotes, so a `\"` broke the file and a `\\` changed the value. The rules now live in one public function, `validate_config`, which the loader and every facade entry call, and the scaffold refuses what the loader refuses and escapes what it writes. Checks that need the filesystem or the running binary stay where they are.\n",
+    "title": "A configuration passed as JSON obeys the loader's rules"
+  },
+  "shardHash": "21bc479191cc916028d899583e168702a8798e4c511b6598a97c9e0010610ff5",
+  "specVersion": "1.8.0"
+}

@@ -18,7 +18,7 @@
 //! never to the configuration file's directory.
 
 use serde::{Deserialize, Serialize};
-use spec_spine_types::{Config, Error};
+use spec_spine_types::{Config, Error, validate_config};
 
 /// One file `init` writes: repo-relative path, contents, and how the writer
 /// reconciles it with a file already on disk.
@@ -89,7 +89,12 @@ pub struct Scaffold {
 const GITIGNORE_MARKER: &str = "# spec-spine: transient metadata and runtime state";
 
 /// Generate the adopter scaffold for `cfg`. Pure; performs no IO.
+///
+/// Refuses a configuration `load_config` would refuse, with the same message
+/// (spec 129 3.3): the first file this returns is a `spec-spine.toml`, and a
+/// producer must not hand its consumer one that every verb then refuses.
 pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
+    validate_config(cfg)?;
     let ns = &cfg.manifest.metadata_namespace;
     let specs = cfg.layout.specs_dir.trim_end_matches('/');
     let standards = cfg.layout.standards_dir.trim_end_matches('/');
@@ -169,8 +174,8 @@ fn config_toml(cfg: &Config) -> String {
          # required_version = \"{running_version}\"\n\
          \n\
          [manifest]\n\
-         # Drives the Cargo `[package.metadata.{ns}].spec` and package.json `\"{ns}\".spec` reads.\n\
-         metadata_namespace = \"{ns}\"\n\
+         # Drives the Cargo `[package.metadata.{ns_text}].spec` and package.json `\"{ns_text}\".spec` reads.\n\
+         metadata_namespace = {ns}\n\
          \n\
          [domains]\n\
          # L-002: warn on a spec with no `domain` once this list is non-empty.\n\
@@ -183,18 +188,18 @@ fn config_toml(cfg: &Config) -> String {
          \n\
          [layout]\n\
          # Where authored truth lives.\n\
-         specs_dir     = \"{specs}\"\n\
+         specs_dir     = {specs}\n\
          # Where the compiler and indexer write. See .gitignore for whether the\n\
          # shard trees belong in version control.\n\
-         derived_dir   = \"{derived}\"\n\
-         standards_dir = \"{standards}\"\n\
-         schemas_dir   = \"{schemas}\"\n\
+         derived_dir   = {derived}\n\
+         standards_dir = {standards}\n\
+         schemas_dir   = {schemas}\n\
          # An ungoverned root for a tool's own working files (spec 036): excluded\n\
          # from every content hash, and bypassed by the coupling gate. L-006 if a\n\
          # spec claims a unit inside it. Empty means no such root is declared.\n\
-         state_dir     = \"{state}\"\n\
+         state_dir     = {state}\n\
          # The workspace manifest the Rust package discovery starts from.\n\
-         cargo_workspace = \"{cargo_workspace}\"\n\
+         cargo_workspace = {cargo_workspace}\n\
          # Files probed for npm workspace globs.\n\
          npm_workspaces = [{npm_workspaces}]\n\
          # Packages outside any workspace, named one by one.\n\
@@ -213,7 +218,7 @@ fn config_toml(cfg: &Config) -> String {
          # form in spec-spine\x27s own config before that. If you narrow or\n\
          # extend this list, keep the trailing `/*`:\n\
          #\n\
-         #   extra_hashed_inputs = [\"{standards}/**/*\", \".github/workflows/**/*\"]\n\
+         #   extra_hashed_inputs = [\"{standards_text}/**/*\", \".github/workflows/**/*\"]\n\
          extra_hashed_inputs = [{extra_hashed_inputs}]\n\
          # Directories the symbol resolver and the coverage walk skip.\n\
          resolver_exclusions = [{resolver_exclusions}]\n\
@@ -223,14 +228,14 @@ fn config_toml(cfg: &Config) -> String {
          \n\
          [branding]\n\
          # Recorded in every emitted artifact's `build` block.\n\
-         compiler_id = \"{compiler_id}\"\n\
-         indexer_id  = \"{indexer_id}\"\n\
+         compiler_id = {compiler_id}\n\
+         indexer_id  = {indexer_id}\n\
          \n\
          [coupling]\n\
          # The PR-body waiver keyword (the reason follows the colon). A waiver is\n\
          # a human instrument: it needs explicit human approval, and an agent\n\
          # never writes one on its own authority.\n\
-         waiver_keyword = \"{waiver}\"\n\
+         waiver_keyword = {waiver}\n\
          # ADDITIVE to the built-in generic floor; it cannot remove an entry.\n\
          # `spec-spine config show` prints the merged list the gate matches on.\n\
          bypass_prefixes = []\n\
@@ -274,19 +279,21 @@ fn config_toml(cfg: &Config) -> String {
          # lint stays quiet about them. They still land in `extraFrontmatter`.\n\
          # extra_known_keys = [\"owner\", \"risk\"]\n",
         running_version = env!("CARGO_PKG_VERSION"),
-        ns = cfg.manifest.metadata_namespace,
-        specs = cfg.layout.specs_dir,
-        derived = cfg.layout.derived_dir,
-        standards = cfg.layout.standards_dir,
-        schemas = cfg.layout.schemas_dir,
-        state = cfg.layout.state_dir,
-        cargo_workspace = cfg.layout.cargo_workspace,
+        ns = basic(&cfg.manifest.metadata_namespace),
+        ns_text = escaped(&cfg.manifest.metadata_namespace),
+        specs = basic(&cfg.layout.specs_dir),
+        derived = basic(&cfg.layout.derived_dir),
+        standards = basic(&cfg.layout.standards_dir),
+        standards_text = escaped(&cfg.layout.standards_dir),
+        schemas = basic(&cfg.layout.schemas_dir),
+        state = basic(&cfg.layout.state_dir),
+        cargo_workspace = basic(&cfg.layout.cargo_workspace),
         npm_workspaces = quoted(&cfg.layout.npm_workspaces),
         extra_hashed_inputs = quoted(&cfg.index.extra_hashed_inputs),
         resolver_exclusions = quoted(&cfg.index.resolver_exclusions),
-        compiler_id = cfg.branding.compiler_id,
-        indexer_id = cfg.branding.indexer_id,
-        waiver = cfg.coupling.waiver_keyword,
+        compiler_id = basic(&cfg.branding.compiler_id),
+        indexer_id = basic(&cfg.branding.indexer_id),
+        waiver = basic(&cfg.coupling.waiver_keyword),
         require_ownership = cfg.coupling.require_ownership,
         auto_waive = cfg.coupling.auto_waive_dependency_only,
         ordinal_monotonic = cfg.lint.require_ordinal_monotonic_depends_on,
@@ -297,9 +304,38 @@ fn config_toml(cfg: &Config) -> String {
 fn quoted(values: &[String]) -> String {
     values
         .iter()
-        .map(|v| format!("\"{v}\""))
+        .map(|v| basic(v))
         .collect::<Vec<_>>()
         .join(", ")
+}
+
+/// `value` as a TOML basic string, quotes included (spec 129 3.3).
+///
+/// The template used to interpolate each value between literal quotes, so a
+/// `"` ended the string early and the file did not parse, and a `\` was read
+/// back as an escape (`\t` as a tab). Escaped, every value a configuration
+/// can hold reads back as given.
+fn basic(value: &str) -> String {
+    format!("\"{}\"", escaped(value))
+}
+
+/// `value`'s TOML basic-string escaping, without the quotes. Also used where a
+/// value appears inside a comment, so a line break in it cannot end the
+/// comment and start a key.
+fn escaped(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for c in value.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\t' => out.push_str("\\t"),
+            '\r' => out.push_str("\\r"),
+            c if c.is_control() => out.push_str(&format!("\\u{:04X}", u32::from(c))),
+            c => out.push(c),
+        }
+    }
+    out
 }
 
 /// The scaffolded `.gitignore` (spec 054 §3.1).
