@@ -14,6 +14,10 @@
 //! binary and that binary having failed, which is the exact failure being
 //! refused.
 
+// Spec 134: this suite runs POSIX shell (WF-2 in docs/windows-findings.md),
+// so it is compiled on Unix only; the Linux job runs it on every change.
+#![cfg(unix)]
+
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};

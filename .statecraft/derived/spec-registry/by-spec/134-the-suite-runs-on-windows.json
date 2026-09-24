@@ -4,6 +4,12 @@
     "dependsOn": [
       "094-one-gate-and-the-boundaries-it-holds"
     ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "docs/windows-findings.md"
+      }
+    ],
     "extends": [
       {
         "nature": "additive",
@@ -11,6 +17,54 @@
         "unit": {
           "kind": "file",
           "path": ".github/workflows/ci.yml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "091-an-unclassified-review-failure-blocks-the-merge",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/ai_review_policy.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "117-the-gate-resolves-the-binary-it-documents",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate_binary.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/harness_hooks.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "122-a-commit-refuses-an-unresolved-merge",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/commit_boundary.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "123-a-startup-verdict-names-its-reader",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/reader_identity.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
         }
       }
     ],
@@ -34,6 +88,6 @@
     "summary": "spec-spine ships a Windows binary and proves its shard trees byte-identical on Windows, but CI only ever built there: the workspace test suite ran on Linux alone, so a Windows behavior difference could ship with every check green. A `test (windows)` job now runs `cargo test --workspace` on `windows-latest` as a check of its own, required through `ci-gate`. A test that cannot run on Windows is gated or quarantined in its source with a tracked finding, never skipped by the workflow, and Windows results are reported apart from build results.\n",
     "title": "The suite runs on Windows"
   },
-  "shardHash": "f8a129b21af7cef4b5a21407125de23ddcd4b79a7e3f9ff521c621c5649142aa",
+  "shardHash": "b48c73ac86199e924ecf165189a16b5c1b6f31e6f8c164a6549638c35027a021",
   "specVersion": "1.8.0"
 }

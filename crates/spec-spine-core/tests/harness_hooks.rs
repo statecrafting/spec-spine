@@ -15,6 +15,10 @@
 //! files' hook bodies were asserted byte-equal up to the moment one of them was
 //! removed.
 
+// Spec 134: this suite runs POSIX shell (WF-3 in docs/windows-findings.md),
+// so it is compiled on Unix only; the Linux job runs it on every change.
+#![cfg(unix)]
+
 use std::collections::BTreeMap;
 use std::fs;
 
