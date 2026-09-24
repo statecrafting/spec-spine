@@ -1,0 +1,110 @@
+{
+  "record": {
+    "amends": [
+      "055-a-version-pin-the-cli-can-check"
+    ],
+    "amendsSections": [
+      "3.4"
+    ],
+    "created": "2026-09-24",
+    "dependsOn": [
+      "055-a-version-pin-the-cli-can-check",
+      "092-the-engine-ships-governance-not-an-environment",
+      "129-a-json-config-obeys-the-loaders-rules"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/scaffold_pin.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "092-the-engine-ships-governance-not-an-environment",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "129-a-json-config-obeys-the-loaders-rules",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/config_facade.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "129-a-json-config-obeys-the-loaders-rules",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      }
+    ],
+    "id": "131-a-scaffold-can-pin-its-producer",
+    "implementation": "complete",
+    "intent": {
+      "goal": "a consumer that writes the scaffold byte for byte can ask for a repository pinned exactly to the producer that wrote it, and a consumer that does not ask gets the same bytes as before",
+      "nonGoals": [
+        "a caller-supplied version: the pin names this producer, whose version is compiled in (4)",
+        "pinning by digest or checking artifact identity (4)",
+        "changing the default output, or 092 §3.2's retained entry and its signature (3.2)"
+      ]
+    },
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/055-a-version-pin-the-cli-can-check/spec.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "19336c80c652d93a982b9317d33dc22d0b3183232f5e54458ffd17c4bc76470e",
+      "131-a-scaffold-can-pin-its-producer": "a53b60831c120f4a896ffe93d39250b59a6df4d024f009b5128bca0ce08d91ea",
+      "2-territory": "5dfae869a4f88187616948f4f607531a059064bf778690eced85264634c4eabc",
+      "3-1-the-option": "539fed9c7ff0044b4f14f101eec34db44696e99ebccf92841e6bb0e286b09a18",
+      "3-2-the-default-is-unchanged": "bf2b5c409f894e2e56a02a4f71d1917dfcb0e18c13b48e14b83bfc779f7c7ebb",
+      "3-3-the-facade-entry": "22ab573a52d47223afe881bad5eabf9bc68ed638896516497cf30578b187d1de",
+      "3-4-documentation": "d5d62464dd2c597e97acf3165f11d763d4ff378079fa6384c0ee545e8c2a8170",
+      "3-behavior": "e4f0b7bd83a59c9363e0828553809d106dc4a84d86c556b8a224ee557e3dd8b5",
+      "4-out-of-scope": "018f90dc3d226349c1c1d545455bb8fcb328442f667394a5b017bb697ba8e779",
+      "5-resolved-decisions": "96bfb847ebc52907ed70782f3e8289d5416d6113b74bde3bde6526a7cc794a99",
+      "verification": "deb6b427b4b65a2f301e1ee058a0e1863f689fc42e86ee34e26f4c5e72ddd804"
+    },
+    "sectionHeadings": [
+      "131: A scaffold can pin its producer",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The option",
+      "3.2 The default is unchanged",
+      "3.3 The facade entry",
+      "3.4 Documentation",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/131-a-scaffold-can-pin-its-producer/spec.md",
+    "status": "draft",
+    "summary": "Statecraft writes the `spec-spine.toml` that `scaffold_init_json` returns byte for byte, and that file pins nothing: the `[meta]` header and the key are both commented out (055 §3.4), and the example is a caret range. A repository Statecraft initializes is therefore judged by whatever binary a hook finds. This spec adds an opt-in scaffold option, `pinExactVersion`, that emits an active `[meta]` table with `required_version = \"=<this producer's version>\"`, through a new facade entry `scaffold_init_with_options_json(config_json, options_json)` and its Rust form `scaffold_init_with_options`. Without the option the output is byte-identical to `scaffold_init_json`'s, measured against 0.25.0 for Statecraft's configuration and the default. The configuration is validated exactly as 129 requires, and an unknown option is refused rather than silently producing an unpinned file.\n",
+    "title": "A scaffold can pin its producer"
+  },
+  "shardHash": "eb37075b9cc109e4dab475128860e0d6b68767bdd26f1168712913dec025ab7d",
+  "specVersion": "1.8.0"
+}
