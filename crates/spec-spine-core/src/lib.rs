@@ -156,7 +156,7 @@ pub fn compile_json(config_json: &str, repo_root: &str) -> Result<String, Error>
 /// `request_json` is a [`ClosureRequest`]: `{ "specs"?: [id], "sections"?:
 /// [{ "spec", "anchor" }], "obligations"?: ["<spec-id>#<obligation-id>"],
 /// "rationale"?: string }`. The answer is a read document (spec 074) with
-/// `members`, `digest` and `rationale`. A stale registry is refused (exit 2)
+/// `members`, `digest` and `rationale`. A stale registry is refused (exit 1)
 /// before anything is digested.
 pub fn closure_json(
     config_json: &str,
@@ -165,7 +165,7 @@ pub fn closure_json(
 ) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
     let request: ClosureRequest = serde_json::from_str(request_json)
-        .map_err(|e| Error::Parse(format!("invalid closure request: {e}")))?;
+        .map_err(|e| Error::Usage(format!("invalid closure request: {e}")))?;
     let resolved = closure(&config, std::path::Path::new(repo_root), &request)?;
     read_document(&resolved, Versioning::Stamp)
 }
@@ -176,13 +176,13 @@ pub fn closure_json(
 /// "mutable"?: [path], "shared"?: [{ "path", "with": [id] }], "readOnly"?:
 /// [path] }`. The answer is a read document (spec 074) naming each path's
 /// resolved owners and every `S-00x` finding where the declaration and the
-/// index disagree. A stale index is refused (exit 2) before any path is
+/// index disagree. A stale index is refused (exit 1) before any path is
 /// resolved. It is a report, not a gate: exit 0 whether or not it found
 /// anything.
 pub fn scope_json(config_json: &str, repo_root: &str, scope_json: &str) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
     let request: ScopeRequest = serde_json::from_str(scope_json)
-        .map_err(|e| Error::Parse(format!("invalid scope request: {e}")))?;
+        .map_err(|e| Error::Usage(format!("invalid scope request: {e}")))?;
     let evaluated = evaluate(&config, std::path::Path::new(repo_root), &request)?;
     read_document(&evaluated, Versioning::Stamp)
 }
@@ -192,9 +192,9 @@ pub fn scope_json(config_json: &str, repo_root: &str, scope_json: &str) -> Resul
 /// [`scope_json`] does.
 pub fn scope_compare_json(a_json: &str, b_json: &str) -> Result<String, Error> {
     let a: ScopeRequest = serde_json::from_str(a_json)
-        .map_err(|e| Error::Parse(format!("invalid scope request 'a': {e}")))?;
+        .map_err(|e| Error::Usage(format!("invalid scope request 'a': {e}")))?;
     let b: ScopeRequest = serde_json::from_str(b_json)
-        .map_err(|e| Error::Parse(format!("invalid scope request 'b': {e}")))?;
+        .map_err(|e| Error::Usage(format!("invalid scope request 'b': {e}")))?;
     let comparison = compare_scopes(&a, &b)?;
     read_document(&comparison, Versioning::Stamp)
 }
@@ -254,7 +254,7 @@ pub fn query_json(request_json: &str) -> Result<String, Error> {
     }
 
     let request: Request = serde_json::from_str(request_json)
-        .map_err(|e| Error::Parse(format!("invalid query request: {e}")))?;
+        .map_err(|e| Error::Usage(format!("invalid query request: {e}")))?;
     let registry = load_registry(request.registry.as_bytes())?;
 
     // Spec 074 §3.3: every answer here is a read document, so it goes through
@@ -342,7 +342,7 @@ pub fn interface_verify_json(request_json: &str) -> Result<String, Error> {
     }
 
     let request: Request = serde_json::from_str(request_json)
-        .map_err(|e| Error::Parse(format!("invalid interface verify request: {e}")))?;
+        .map_err(|e| Error::Usage(format!("invalid interface verify request: {e}")))?;
     let registry = load_registry(request.registry.as_bytes())?;
     let report = verify_interface_references(&registry, &request.exports, request.spec.as_deref())?;
     read_document(&report, Versioning::Stamp)
@@ -554,7 +554,7 @@ fn freshness_to_json(freshness: Freshness) -> serde_json::Value {
 
 /// Report file-granular ownership coverage against the committed index (spec
 /// 029), returning the [`CoverageReport`] as JSON. Freshness-guarded like
-/// `couple`: a stale committed index is [`Error::Stale`] (exit 2), never a
+/// `couple`: a stale committed index is [`Error::Stale`] (exit 1), never a
 /// report over the wrong ledger.
 pub fn coverage_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
@@ -581,7 +581,7 @@ pub fn coverage_inventory_json(request_json: &str) -> Result<String, Error> {
         inventory: Option<spec_spine_types::Inventory>,
     }
     let request: Request = serde_json::from_str(request_json)
-        .map_err(|e| Error::Parse(format!("invalid coverage request: {e}")))?;
+        .map_err(|e| Error::Usage(format!("invalid coverage request: {e}")))?;
     validate_config(&request.config)?;
     read_document(
         &coverage_with_inventory(
@@ -700,7 +700,7 @@ pub fn couple_json(request_json: &str) -> Result<String, Error> {
     }
 
     let request: Request = serde_json::from_str(request_json)
-        .map_err(|e| Error::Parse(format!("invalid couple request: {e}")))?;
+        .map_err(|e| Error::Usage(format!("invalid couple request: {e}")))?;
     validate_config(&request.config)?;
 
     let roots = request.prior_roots.unwrap_or_default();
@@ -730,7 +730,7 @@ pub fn couple_json(request_json: &str) -> Result<String, Error> {
         request.pr_body.is_some(),
     ];
     if sources.iter().filter(|s| **s).count() > 1 {
-        return Err(Error::Parse(
+        return Err(Error::Usage(
             "invalid couple request: give at most one of `waiver`, `waivers` and `prBody`".into(),
         ));
     }
@@ -781,7 +781,7 @@ pub fn delta_json(request_json: &str) -> Result<String, Error> {
     }
 
     let request: Request = serde_json::from_str(request_json)
-        .map_err(|e| Error::Parse(format!("invalid delta request: {e}")))?;
+        .map_err(|e| Error::Usage(format!("invalid delta request: {e}")))?;
     let base_root = std::path::Path::new(&request.base_root);
     let config = match request.config {
         Some(config) => {
@@ -926,7 +926,7 @@ pub fn verify_snapshot_attestation_json(request_json: &str) -> Result<String, Er
     }
     const VERB: &str = "verify-snapshot-attestation";
     let request: Request = serde_json::from_str(request_json)
-        .map_err(|e| Error::Parse(format!("invalid {VERB} request: {e}")))?;
+        .map_err(|e| Error::Usage(format!("invalid {VERB} request: {e}")))?;
     validate_config(&request.config)?;
     let (attested, stored) = match (request.attestation, request.attestation_text) {
         (Some(_), Some(_)) => return Err(both_supplied(VERB)),
@@ -941,7 +941,7 @@ pub fn verify_snapshot_attestation_json(request_json: &str) -> Result<String, Er
                 "snapshot",
             )?)?;
             let a = serde_json::from_str(&text)
-                .map_err(|e| Error::Parse(format!("invalid {VERB} attestationText: {e}")))?;
+                .map_err(|e| Error::Schema(format!("invalid {VERB} attestationText: {e}")))?;
             (a, Some(text))
         }
     };
@@ -984,7 +984,7 @@ pub fn verify_spec_attestation_json(request_json: &str) -> Result<String, Error>
     }
     const VERB: &str = "verify-spec-attestation";
     let request: Request = serde_json::from_str(request_json)
-        .map_err(|e| Error::Parse(format!("invalid {VERB} request: {e}")))?;
+        .map_err(|e| Error::Usage(format!("invalid {VERB} request: {e}")))?;
     validate_config(&request.config)?;
     let (attestation, stored) = match (request.attestation, request.attestation_text) {
         (Some(_), Some(_)) => return Err(both_supplied(VERB)),
@@ -999,7 +999,7 @@ pub fn verify_spec_attestation_json(request_json: &str) -> Result<String, Error>
                 "attestation",
             )?)?;
             let a = serde_json::from_str(&text)
-                .map_err(|e| Error::Parse(format!("invalid {VERB} attestationText: {e}")))?;
+                .map_err(|e| Error::Schema(format!("invalid {VERB} attestationText: {e}")))?;
             (a, Some(text))
         }
     };
@@ -1051,7 +1051,7 @@ pub fn verify_attestation_json(request_json: &str) -> Result<String, Error> {
     }
     const VERB: &str = "verify-attestation";
     let request: Request = serde_json::from_str(request_json)
-        .map_err(|e| Error::Parse(format!("invalid {VERB} request: {e}")))?;
+        .map_err(|e| Error::Usage(format!("invalid {VERB} request: {e}")))?;
     validate_config(&request.config)?;
     let (attestation, stored) = match (request.attestation, request.attestation_text) {
         (Some(_), Some(_)) => return Err(both_supplied(VERB)),
@@ -1066,7 +1066,7 @@ pub fn verify_attestation_json(request_json: &str) -> Result<String, Error> {
                 "attestation",
             )?)?;
             let a = serde_json::from_str(&text)
-                .map_err(|e| Error::Parse(format!("invalid {VERB} attestationText: {e}")))?;
+                .map_err(|e| Error::Schema(format!("invalid {VERB} attestationText: {e}")))?;
             (a, Some(text))
         }
     };
@@ -1101,7 +1101,7 @@ pub fn verify_attestation_json(request_json: &str) -> Result<String, Error> {
 /// rule of 3.1 can be applied to, so a caller that sent both and got the value
 /// form checked would be told its bytes were verified when they were not.
 fn both_supplied(verb: &str) -> Error {
-    Error::Parse(format!(
+    Error::Usage(format!(
         "invalid {verb} request: `attestation` and `attestationText` are alternatives; \
          supply exactly one (`attestationText` carries the stored bytes, so only it can be \
          checked against them)"
@@ -1109,7 +1109,7 @@ fn both_supplied(verb: &str) -> Error {
 }
 
 fn neither_supplied(verb: &str) -> Error {
-    Error::Parse(format!(
+    Error::Usage(format!(
         "invalid {verb} request: one of `attestation` (the parsed value) or `attestationText` \
          (its exact bytes) is required"
     ))
@@ -1126,5 +1126,5 @@ fn config_from_json(config_json: &str) -> Result<Config, Error> {
 }
 
 fn to_json<T: serde::Serialize>(value: &T) -> Result<String, Error> {
-    serde_json::to_string(value).map_err(|e| Error::Schema(e.to_string()))
+    serde_json::to_string(value).map_err(|e| Error::Internal(e.to_string()))
 }

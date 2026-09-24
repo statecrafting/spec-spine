@@ -76,7 +76,7 @@ pub fn verify(
     let sig_bytes = hex_decode(&seal.sig)?;
     let sig_arr: [u8; 64] = sig_bytes
         .try_into()
-        .map_err(|_| Error::Parse("ed25519 signature must be 64 bytes".to_string()))?;
+        .map_err(|_| Error::Schema("ed25519 signature must be 64 bytes".to_string()))?;
     let signature = Signature::from_bytes(&sig_arr);
     Ok(verifying_key.verify_strict(&digest, &signature).is_ok())
 }
@@ -115,13 +115,13 @@ fn hex_encode(bytes: &[u8]) -> String {
 fn hex_decode(s: &str) -> Result<Vec<u8>, Error> {
     let s = s.trim();
     if s.len() % 2 != 0 {
-        return Err(Error::Parse("hex string has an odd length".to_string()));
+        return Err(Error::Config("hex string has an odd length".to_string()));
     }
     (0..s.len())
         .step_by(2)
         .map(|i| {
             u8::from_str_radix(&s[i..i + 2], 16)
-                .map_err(|e| Error::Parse(format!("invalid hex: {e}")))
+                .map_err(|e| Error::Config(format!("invalid hex: {e}")))
         })
         .collect()
 }

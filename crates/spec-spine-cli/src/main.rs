@@ -60,7 +60,7 @@ enum Command {
     /// Compile specs/*/spec.md into a deterministic registry.
     Compile {
         /// Verify the committed shards match the corpus without writing
-        /// anything (exit 2 if stale). The registry counterpart of
+        /// anything (exit 1 if stale). The registry counterpart of
         /// `index check`.
         #[arg(long)]
         check: bool,
@@ -311,10 +311,8 @@ enum Command {
 
 fn main() -> ExitCode {
     // Spec 093 §3.1: a command line clap cannot parse is a usage error, and a
-    // usage error is exit 3. Clap's own default is 2, which this tool spends on
-    // staleness, so an unknown flag was indistinguishable from a stale ledger
-    // except by matching clap's English on stderr. After this, exit 2 from any
-    // verb means staleness and nothing else.
+    // usage error is exit 3. Clap's own default is 2, which spec 132 spends on
+    // a refusal, so an unknown flag must not answer 2.
     let cli = match Cli::try_parse() {
         Ok(cli) => cli,
         Err(e) => return exit_for_clap_error(e),
@@ -329,8 +327,14 @@ fn main() -> ExitCode {
     // mismatched binary is the quiet failure this exists to prevent: `registry
     // plan` from an old binary answers a question about a corpus it may
     // misunderstand, and answers it confidently.
+    //
+    // Spec 132 §3.4: under `--json` the refusal is an envelope like any other,
+    // so a consumer's pin mismatch arrives in the shape its other failures do.
     if let Err(e) = check_version_pin(&repo, &cli.command) {
-        eprintln!("spec-spine: {e}");
+        match json_verb {
+            Some(v) => emit_error_envelope(v, &e),
+            None => eprintln!("spec-spine: {e}"),
+        }
         return ExitCode::from(e.exit_code());
     }
 
@@ -542,14 +546,10 @@ fn check_version_pin(repo: &Path, command: &Command) -> Result<(), Error> {
 }
 
 /// Render a clap error and map it to this tool's exit-code contract
-/// (spec 093 §3.1).
+/// (spec 093 §3.1, spec 132 §3.2).
 ///
 /// Help and version are successful requests for information: stdout, exit 0.
-/// Everything else is the invocation failing to parse, which belongs in the
-/// same cell as I/O, parse, schema and config failures. `3` rather than a new
-/// code, because the contract is documented by four repositories and two
-/// package shims, and a fourth code would extend it to distinguish a case none
-/// of them needs distinguished.
+/// Everything else is the invocation failing to parse, which is usage, exit 3.
 fn exit_for_clap_error(e: clap::Error) -> ExitCode {
     use clap::error::ErrorKind;
     match e.kind() {

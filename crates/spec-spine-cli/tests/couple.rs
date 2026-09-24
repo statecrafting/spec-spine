@@ -128,7 +128,7 @@ fn stale_index_exits_2() {
          summary: \"s\"\nestablishes:\n  - \"crate-a/src/lib.rs\"\n---\n# 001-a\n## body\n",
     );
     let out = couple_paths(tmp.path(), &["crate-a/src/lib.rs"], &[]);
-    assert_eq!(code(&out), 2, "stale index must exit 2");
+    assert_eq!(code(&out), 1, "stale index must exit 1");
 }
 
 #[test]
@@ -603,7 +603,7 @@ fn workflow_run_edit_stales_the_index_and_refuses_the_waiver() {
     let stale = index_check(root);
     assert_eq!(
         code(&stale),
-        2,
+        1,
         "a `run:` edit must stale the index: {}",
         String::from_utf8_lossy(&stale.stderr)
     );
@@ -1355,7 +1355,7 @@ fn shallow_clone_is_not_treated_as_an_empty_diff() {
         .unwrap();
     assert_eq!(
         code(&out),
-        3,
+        4,
         "stdout: {}\nstderr: {}",
         String::from_utf8_lossy(&out.stdout),
         String::from_utf8_lossy(&out.stderr)
@@ -1419,7 +1419,7 @@ fn unrelated_histories_refuse_exit_3() {
         .unwrap();
     assert_eq!(
         code(&out),
-        3,
+        4,
         "stdout: {}\nstderr: {}",
         String::from_utf8_lossy(&out.stdout),
         String::from_utf8_lossy(&out.stderr)
@@ -1464,7 +1464,7 @@ fn corrupt_prior_corpus_refuses_exit_3() {
     let out = couple_range(root, &[]);
     assert_eq!(
         code(&out),
-        3,
+        2,
         "stdout: {}\nstderr: {}",
         String::from_utf8_lossy(&out.stdout),
         String::from_utf8_lossy(&out.stderr)
@@ -1504,7 +1504,7 @@ fn corrupt_prior_config_refuses_exit_3() {
     let out = couple_range(root, &[]);
     assert_eq!(
         code(&out),
-        3,
+        2,
         "stdout: {}\nstderr: {}",
         String::from_utf8_lossy(&out.stdout),
         String::from_utf8_lossy(&out.stderr)

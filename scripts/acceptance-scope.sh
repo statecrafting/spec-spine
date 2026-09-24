@@ -93,12 +93,12 @@ ${id%%/*}"
   esac
   owners=$("$bin" index owner --repo "$root" --json "$path" 2>/dev/null) || {
     rc=$?
-    # Exit 2 is a stale ledger and exit 3 a read that could not be made: both
-    # are a question this script cannot answer, and answering "nothing" would
-    # be a silent empty sweep. Anything else (a path with no owner) is fine.
-    [ "$rc" -eq 2 ] && die "index is stale; the scope cannot be computed from it"
-    [ "$rc" -eq 3 ] && die "'index owner $path' refused (exit 3)"
-    continue
+    # Spec 132: exit 1 is a stale ledger (a path with no owner is exit 0), and
+    # 2, 3 and 4 a read that was refused or could not be made (before 0.26.0,
+    # 2 was stale and 3 a failed read). Each is a question this script cannot
+    # answer, and answering "nothing" would be a silent empty sweep.
+    [ "$rc" -eq 1 ] && die "index is stale; the scope cannot be computed from it"
+    die "'index owner $path' refused (exit $rc)"
   }
   ids="$ids
 $(printf '%s' "$owners" | sed -n 's/.*"specId"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')"

@@ -514,7 +514,7 @@ fn the_ledger_is_read_committed_and_a_stale_one_refuses_before_any_export_is_rea
     dirs.insert("statecraft-cli".into(), t.path().join("no-such-dir"));
     let err = interface_verify(&Config::default(), t.path(), &dirs, None).unwrap_err();
     assert!(matches!(err, Error::Stale { .. }), "{err}");
-    assert_eq!(err.exit_code(), 2);
+    assert_eq!(err.exit_code(), 1);
 }
 
 #[test]
@@ -547,10 +547,10 @@ fn an_unparseable_exporter_config_or_an_unreadable_root_is_exit_3() {
     let exp = tempfile::tempdir().unwrap();
     fs::write(exp.path().join("spec-spine.toml"), "[layout\n").unwrap();
     let err = load_export(exp.path(), &[EXPORTER_ID.to_string()]).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
 
     let err = load_export(&exp.path().join("absent"), &[]).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 4, "{err}");
 }
 
 #[cfg(unix)]
@@ -565,7 +565,7 @@ fn a_spec_linked_out_of_the_export_root_is_refused() {
     )
     .unwrap();
     let err = load_export(exp.path(), &[EXPORTER_ID.to_string()]).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     assert!(err.to_string().contains("escapes"), "{err}");
 }
 

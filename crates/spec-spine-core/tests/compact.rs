@@ -87,7 +87,7 @@ fn a_plan_naming_a_spec_the_corpus_does_not_have_is_refused() {
     let mut p = plan();
     p.remove[0].spec = "009-nope".into();
     let err = compact(&cfg(), tmp.path(), &p).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     assert!(format!("{err}").contains("009-nope"), "{err}");
 }
 
@@ -100,7 +100,7 @@ fn a_plan_whose_answering_spec_is_itself_removed_is_refused() {
         answered_by: "001-beta".into(),
     });
     let err = compact(&cfg(), tmp.path(), &p).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     assert!(format!("{err}").contains("001-beta"), "{err}");
 }
 
@@ -117,7 +117,7 @@ fn an_ordinal_collision_is_refused_and_names_both() {
         &spec_doc("002-twin", "Body."),
     );
     let err = compact(&cfg(), tmp.path(), &plan()).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     let msg = format!("{err}");
     assert!(
         msg.contains("002-gamma") && msg.contains("002-twin"),
@@ -274,7 +274,7 @@ fn a_renamed_spec_directory_holding_an_uncarryable_file_is_refused() {
     )
     .unwrap();
     let err = compact(&cfg(), tmp.path(), &plan()).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     let msg = format!("{err}");
     assert!(
         msg.contains("diagram.png") && msg.contains("002-gamma"),
@@ -473,7 +473,7 @@ fn a_plan_parses_from_yaml() {
 #[test]
 fn a_plan_with_an_unknown_key_is_refused() {
     let err = parse_plan("renumber: contiguous\nrenumberr: none\n").unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
 }
 
 // ── form 4: the document's own title heading (spec 098 §3.1) ────────────────

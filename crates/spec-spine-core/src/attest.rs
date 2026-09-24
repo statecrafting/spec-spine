@@ -605,7 +605,7 @@ pub fn stored_bytes_hash(bytes: &[u8]) -> String {
 /// saying "this file was written by a later spec-spine".
 pub fn payload_schema_version(bytes: &[u8], what: &str) -> Result<String, Error> {
     let value: serde_json::Value =
-        serde_json::from_slice(bytes).map_err(|e| Error::Parse(format!("invalid {what}: {e}")))?;
+        serde_json::from_slice(bytes).map_err(|e| Error::Schema(format!("invalid {what}: {e}")))?;
     match value.get("schemaVersion").and_then(|v| v.as_str()) {
         Some(version) => Ok(version.to_string()),
         None => Err(Error::Schema(format!(

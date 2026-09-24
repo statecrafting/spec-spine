@@ -15,11 +15,12 @@
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
-| verdict envelope (any `--json` verdict verb) | `schemaVersion` | `0.6.0` | library |
+| verdict envelope (any `--json` verdict verb) | `schemaVersion` | `1.0.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.1.0` | library |
 | read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.8.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
+| verifier fixture set (`fixtures/verifier/`, spec 103) | `schemaVersion` | `1.0.0` | library (test data, not emitted at runtime) |
 
 Every row is a compile-time `const` in `spec-spine-types/src/version.rs`
 (`attest.rs` for the corpus attestation), and the conformance test asserts the
@@ -69,17 +70,17 @@ MINOR history:
   spec's cross-corpus citations carried verbatim (`corpus`, `spec`, `digest`,
   `sections`?, `obtained`, `rationale`?). Absent on every existing spec, so only
   `specVersion` restamps and no `shardHash` moves. A binary predating it meets
-  the member with a parse error (exit 3).
+  the member as a schema mismatch (exit 4, `kind: schema`; exit 3 before 0.26.0).
 - registry `1.7.0` (spec 114): additive `intent` on a record, a spec's standing
   `goal` and `nonGoals` as authored. Read by no gate. Absent on every existing
   spec, so only `specVersion` restamps and no `shardHash` moves. A binary
-  predating it meets the member with a parse error (exit 3).
+  predating it meets the member as a schema mismatch (exit 4, `kind: schema`; exit 3 before 0.26.0).
 - registry `1.8.0` (spec 111): additive `moves` on a record, a spec's declared
   relocation, split, merge or removal of a path it once owned
   (`from`, `to`, `kind`, `answered_by`?), `answered_by`'s spec half normalized
   to its full id. Absent on every existing spec, so only `specVersion`
   restamps and no `shardHash` moves. A binary predating it meets the member
-  with a parse error (exit 3).
+  as a schema mismatch (exit 4, `kind: schema`; exit 3 before 0.26.0).
 
 MAJOR history:
 
@@ -93,6 +94,13 @@ MAJOR history:
   (unknown MAJOR), so adopters re-run `compile` + `index` once on upgrade. The
   spec 011 `[index.slices]` hashes move to a small `codebase-index/slices.json`
   sidecar.
+- verdict envelope `1.0.0` (spec 132): see "Verdict `1.0.0` (spec 132)" below.
+- verifier fixture set `1.0.0` (spec 132, formerly `0.1.0` since spec 103):
+  every case's recorded `expect.exit` moves to the five-code contract; a case
+  whose payload fails to load (an unreadable, missing-`schemaVersion` or
+  unsupported-MAJOR document, an unknown member, a duplicate key) now expects
+  exit `4` rather than `3`, matching `Error::Schema`'s new exit code. A
+  content or version mismatch that does load still expects exit `1`.
 
 Each is a **compile-time `const`** in `spec-spine-types`
 (`REGISTRY_SCHEMA_VERSION`, `INDEX_SCHEMA_VERSION`, `BUILD_META_SCHEMA_VERSION`,
@@ -340,10 +348,12 @@ spec-spine attest | grep -o 'attestationHash: .*' | cut -d' ' -f2
 spec-spine attest --json | jq -r '.report.attestationHash'
 ```
 
-Every verb that renders a verdict takes `--json`: `compile --check`,
-`index check`, `lint`, `couple`, `attest`, `verify-attestation`, `verify`, and
-`compile --spec`. Each writes one envelope with `schemaVersion`, `verb`, `ok`,
-`exitCode`, and either `report` or `error`.
+Every verb that renders a verdict takes `--json`: `check`, `compile --check`,
+`compile --spec`, `index check`, `lint`, `couple`, `delta`, `attest`,
+`verify-attestation`, `verify`. Each writes one envelope with
+`schemaVersion`, `tool`, `verb`, `outcome`, `exitCode`, `summary`, and either
+`report` or `error` (before spec 132, the header carried `ok` instead of
+`outcome`/`summary`, and had no `tool` member).
 
 **Verdict `0.5.0` (spec 100).** `couple`'s report gained a `deletions` block
 naming, for each deleted path examined, which snapshot resolved its owners
@@ -364,6 +374,21 @@ decides exactly as before unless the waiver declares a lifecycle line, and
 alone keeps working; one that wants to know what a waiver excused reads
 `waivers[].clears`.
 
+**Verdict `1.0.0` (spec 132), MAJOR.** The header is fixed as the family
+contract shared with the Statecraft CLI: it gains `tool` (always
+`"spec-spine"`), `outcome` (one of `ok`, `finding`, `refused`, `usage`,
+`failed`, derived from `exitCode` and never passed separately) and `summary`
+(one line of human text, no stability promise), and loses `ok`. `exitCode`
+itself takes the five-code contract: staleness moves from `2` to `1`, a
+config or containment refusal that was `3` moves to `2`, and an I/O,
+tool-produced-artifact-schema or internal failure that was `3` moves to `4`.
+`error.kind` becomes the closed set `validation`, `stale`, `not-found`,
+`drift`, `refused`, `config`, `io`, `schema`, `usage`, `internal`: `parse` is
+gone (authored content that does not parse now reports `validation`, since
+it is a finding about the corpus like any other), and `refused`, `usage`,
+`internal` and `drift` are new. A reader gates on the MAJOR: a `0.x` verdict
+reader must refuse a `1.x` envelope.
+
 **The guarantee that makes migrating safe:** `--json` changes what is written
 and never what is decided. Every exit code is identical with and without it. A
 consumer switching to the envelope is changing its parsing, not its control
@@ -376,13 +401,16 @@ The schema versions above tell a **loader** what it can read. They say nothing
 about which **binary** should be reading it, and a repository is otherwise
 governed by whichever `spec-spine` happens to be on the path. Spec 055 adds
 `[meta] required_version` for that: a semver requirement the CLI checks before
-doing any work, refusing with exit `3` and naming the requirement, the running
-version, and where the pin lives.
+doing any work, refusing (`Error::Refused`, exit `2`; exit `3` before spec 132)
+and naming the requirement, the running version, and where the pin lives.
+Under `--json` the refusal is an envelope like any other (`outcome: "refused"`,
+`error.kind: "refused"`), rather than the prose line it was before spec 132.
 
 Cargo's conventions: a bare `"0.15.0"` is a caret range, `"=0.15.0"` is exact,
-`">=0.15, <0.16"` is a range, `"*"` constrains nothing. `--version`, `--help`
-and `init` are exempt, because they are how an operator finds out what they are
-running and what to do about it.
+`">=0.15, <0.16"` is a range, `"*"` constrains nothing. `--version` and
+`--help` are exempt, because they are how an operator finds out what they are
+running and what to do about it. (There is no `init` verb since spec 092; an
+earlier revision of this pin also exempted it.)
 
 **A binary older than the pin refuses too, for the wrong reason.** Every
 `Config` table carries `deny_unknown_fields`, so a binary released before spec

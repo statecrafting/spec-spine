@@ -57,7 +57,7 @@ fn index_slice_hashes_and_check() {
     .unwrap();
     assert_eq!(
         code(&run(&["index", "check", "--slice", "agent-config"])),
-        2,
+        1,
         "an index predating the slice config is not vouching for it"
     );
 
@@ -81,7 +81,7 @@ fn index_slice_hashes_and_check() {
     assert_eq!(code(&run(&["index", "check"])), 0, "global gate unaffected");
     assert_eq!(
         code(&run(&["index", "check", "--slice", "agent-config"])),
-        2
+        1
     );
     assert_eq!(code(&run(&["index", "check", "--slice", "zz-last"])), 0);
 
@@ -89,7 +89,7 @@ fn index_slice_hashes_and_check() {
     write_spec(tmp.path(), "001-a", "001-a", "draft");
     assert_eq!(
         code(&run(&["index", "check"])),
-        2,
+        1,
         "spec.md is global input"
     );
     assert_eq!(code(&run(&["index", "check", "--slice", "zz-last"])), 0);
@@ -97,7 +97,7 @@ fn index_slice_hashes_and_check() {
     // Deletion of a guarded file is a hash change, not a config error.
     assert_eq!(code(&run(&["index"])), 0);
     fs::remove_file(tmp.path().join("conf/b.json")).unwrap();
-    assert_eq!(code(&run(&["index", "check", "--slice", "zz-last"])), 2);
+    assert_eq!(code(&run(&["index", "check", "--slice", "zz-last"])), 1);
 
     // Unknown name with slices configured is still 3.
     assert_eq!(code(&run(&["index", "check", "--slice", "nope"])), 3);
@@ -123,7 +123,7 @@ fn invalid_slice_config_exits_3() {
                 .output()
                 .unwrap()
         ),
-        3
+        2
     );
 
     // Empty glob list.
@@ -141,7 +141,7 @@ fn invalid_slice_config_exits_3() {
                 .output()
                 .unwrap()
         ),
-        3
+        2
     );
 }
 
@@ -416,7 +416,7 @@ fn missing_specs_dir_exits_3() {
         .arg("compile")
         .output()
         .unwrap();
-    assert_eq!(code(&out), 3, "I/O error exits 3");
+    assert_eq!(code(&out), 4, "I/O error exits 4");
 }
 
 #[test]
@@ -430,7 +430,7 @@ fn registry_query_before_compile_exits_3() {
         .args(["registry", "list"])
         .output()
         .unwrap();
-    assert_eq!(code(&out), 3);
+    assert_eq!(code(&out), 4);
 }
 
 #[test]
@@ -468,7 +468,7 @@ fn index_then_check_fresh_then_stale() {
         .args(["index", "check"])
         .output()
         .unwrap();
-    assert_eq!(code(&stale), 2, "stale -> 2");
+    assert_eq!(code(&stale), 1, "stale -> 1");
 }
 
 #[test]
@@ -499,14 +499,14 @@ fn index_render_and_orphans_projections() {
         .args(["index", "render"])
         .output()
         .unwrap();
-    assert_eq!(code(&early_render), 3, "render without index -> 3");
+    assert_eq!(code(&early_render), 4, "render without index -> 4");
     let early_orphans = bin()
         .arg("--repo")
         .arg(tmp.path())
         .args(["index", "orphans"])
         .output()
         .unwrap();
-    assert_eq!(code(&early_orphans), 3, "orphans without index -> 3");
+    assert_eq!(code(&early_orphans), 4, "orphans without index -> 4");
 
     let built = bin()
         .arg("--repo")
@@ -633,7 +633,7 @@ fn compile_check_exit_contract() {
     // Never compiled: the committed registry is not vouching for anything.
     assert_eq!(
         code(&run(&["compile", "--check"])),
-        2,
+        1,
         "unbuilt -> stale (2)"
     );
 
@@ -660,7 +660,7 @@ fn compile_check_exit_contract() {
     let edited = fs::read_to_string(&spec_md).unwrap() + "\nmore body\n";
     fs::write(&spec_md, edited).unwrap();
     let stale = run(&["compile", "--check"]);
-    assert_eq!(code(&stale), 2, "edited spec, stale shard -> 2");
+    assert_eq!(code(&stale), 1, "edited spec, stale shard -> 1");
     assert!(
         String::from_utf8_lossy(&stale.stderr).contains("modified 001-a.json"),
         "stale detail belongs on stderr: {}",
@@ -706,7 +706,7 @@ fn index_coverage_reports_and_gates() {
 
     assert_eq!(
         code(&run(&["index", "coverage"])),
-        3,
+        4,
         "no committed index -> artifact missing (3)"
     );
     assert_eq!(code(&run(&["index"])), 0);
@@ -748,7 +748,7 @@ fn index_coverage_reports_and_gates() {
     );
     assert_eq!(
         code(&run(&["index", "coverage"])),
-        2,
+        1,
         "stale index -> 2, never a report over the wrong ledger"
     );
     assert_eq!(code(&run(&["index"])), 0);
@@ -1015,7 +1015,7 @@ fn json_envelope_on_every_adjudicating_verb() {
             "{verb}"
         );
         assert_eq!(v["verb"], verb);
-        assert_eq!(v["ok"], true, "{verb}");
+        assert_eq!(v["outcome"], "ok", "{verb}");
         assert_eq!(v["exitCode"], 0, "{verb}");
         assert!(v.get("report").is_some(), "{verb} must carry a report");
         assert!(v.get("error").is_none(), "{verb} must carry no error");
@@ -1039,7 +1039,7 @@ fn json_exit_codes_match_the_prose_form() {
     assert_eq!(code(&json), code(&prose), "couple drift");
     let v = envelope(&json);
     assert_eq!(v["exitCode"], 1);
-    assert_eq!(v["ok"], false);
+    assert_ne!(v["outcome"], "ok");
     assert!(
         !v["report"]["violations"].as_array().unwrap().is_empty(),
         "the reasons ride in the report, not in prose"
@@ -1059,10 +1059,10 @@ fn json_exit_codes_match_the_prose_form() {
         let mut json_args = args.to_vec();
         json_args.push("--json");
         let json = run_in(root, &json_args);
-        assert_eq!(code(&prose), 2, "{args:?} prose");
+        assert_eq!(code(&prose), 1, "{args:?} prose");
         assert_eq!(code(&json), code(&prose), "{args:?} json");
         let v = envelope(&json);
-        assert_eq!(v["ok"], false, "{args:?}");
+        assert_ne!(v["outcome"], "ok", "{args:?}");
         assert_eq!(v["report"]["fresh"], false, "{args:?}");
         assert!(
             v["report"]["expected"].is_string(),
@@ -1156,11 +1156,11 @@ fn json_error_path_is_an_envelope_on_stdout() {
     // A malformed spec-spine.toml is Error::Config -> exit 3.
     fs::write(root.join("spec-spine.toml"), "[layout\n").unwrap();
     let out = run_in(root, &["lint", "--json"]);
-    assert_eq!(code(&out), 3);
+    assert_eq!(code(&out), 2);
     let v = envelope(&out);
     assert_eq!(v["verb"], "lint");
-    assert_eq!(v["exitCode"], 3);
-    assert_eq!(v["ok"], false);
+    assert_eq!(v["exitCode"], 2);
+    assert_ne!(v["outcome"], "ok");
     assert_eq!(v["error"]["kind"], "config");
     assert!(v.get("report").is_none(), "error and report are exclusive");
     assert!(
@@ -1173,7 +1173,7 @@ fn json_error_path_is_an_envelope_on_stdout() {
     fs::remove_file(root.join("spec-spine.toml")).unwrap();
     let out = run_in(root, &["compile", "--json"]);
     assert_eq!(code(&out), 3);
-    assert_eq!(envelope(&out)["error"]["kind"], "config");
+    assert_eq!(envelope(&out)["error"]["kind"], "usage");
 
     // A validation failure is the one error class with a structured payload,
     // and it must survive the generic error path: a consumer that reads
@@ -1354,7 +1354,7 @@ fn json_verify_attestation_reports_the_signature_mode() {
     );
     assert_eq!(code(&out), 0, "{}", String::from_utf8_lossy(&out.stderr));
     let v = envelope(&out);
-    assert_eq!(v["ok"], true);
+    assert_eq!(v["outcome"], "ok");
     assert_eq!(v["report"]["outcome"], "match");
     assert_eq!(v["report"]["signature"]["valid"], true);
     assert_eq!(v["report"]["signature"]["keyId"], key_id.as_str());
@@ -1390,7 +1390,7 @@ fn json_verify_attestation_reports_the_signature_mode() {
     );
     assert_eq!(code(&out), 1);
     let v = envelope(&out);
-    assert_eq!(v["ok"], false);
+    assert_ne!(v["outcome"], "ok");
     assert_eq!(v["exitCode"], 1);
     assert_eq!(v["report"]["signature"]["valid"], false);
 }
@@ -1405,8 +1405,8 @@ fn json_verify_attestation_with_no_mode_is_an_error_envelope() {
     let out = run_in(root, &["verify-attestation", "--json"]);
     assert_eq!(code(&out), 3);
     let v = envelope(&out);
-    assert_eq!(v["ok"], false);
-    assert_eq!(v["error"]["kind"], "config");
+    assert_ne!(v["outcome"], "ok");
+    assert_eq!(v["error"]["kind"], "usage");
     assert!(v.get("report").is_none());
 }
 
@@ -1708,7 +1708,7 @@ fn attest_spec_json_rides_in_the_verdict_envelope() {
     assert_eq!(code(&out), 0);
     let v = envelope(&out);
     assert_eq!(v["verb"], "attest");
-    assert_eq!(v["ok"], true);
+    assert_eq!(v["outcome"], "ok");
     assert_eq!(v["report"]["attestation"]["specId"], "001-a");
     assert!(v["report"]["attestationHash"].is_string());
 
@@ -1919,7 +1919,7 @@ fn verify_json_is_a_verdict_envelope_that_agrees_with_the_exit_code() {
     // The constant, not a literal: an additive verb elsewhere is not a change
     // to this one's envelope (spec 049 bumped it to 0.3.0 for `compile.spec`).
     assert_eq!(v["schemaVersion"], spec_spine_types::VERDICT_SCHEMA_VERSION);
-    assert_eq!(v["ok"], true);
+    assert_eq!(v["outcome"], "ok");
     assert_eq!(v["exitCode"], 0);
     assert_eq!(v["report"]["outcome"], "passed");
     assert_eq!(v["report"]["declared"], true);
@@ -1943,7 +1943,7 @@ fn verify_json_is_a_verdict_envelope_that_agrees_with_the_exit_code() {
     // not-declared is distinguishable from a pass without parsing prose.
     let (c, v) = json("003-prose");
     assert_eq!(c, 0);
-    assert_eq!(v["ok"], true);
+    assert_eq!(v["outcome"], "ok");
     assert_eq!(v["report"]["outcome"], "not-declared");
     assert_eq!(v["report"]["declared"], false);
 }
@@ -2177,7 +2177,7 @@ fn staleness_outranks_unresolution() {
     // longer exists, so refusing for them would name the wrong problem.
     assert_eq!(
         code(&run(&["index", "check", "--fail-on-unresolved"])),
-        2,
+        1,
         "staleness must outrank unresolution"
     );
 }
@@ -2320,7 +2320,7 @@ fn exit_two_still_means_a_stale_ledger() {
     .unwrap();
     assert_eq!(
         code(&run_in(root, &["compile", "--check"])),
-        2,
+        1,
         "the one condition exit 2 is for"
     );
 }
@@ -2401,7 +2401,7 @@ fn check_never_writes_even_when_the_tree_is_stale() {
     assert!(!before.is_empty(), "the fixture must have committed shards");
 
     let out = check(tmp.path(), &[]);
-    assert_eq!(code(&out), 2, "a stale tree is exit 2");
+    assert_eq!(code(&out), 1, "a stale tree is exit 1");
     assert_eq!(
         before,
         snapshot(&derived),
@@ -2465,8 +2465,8 @@ fn check_json_carries_both_halves_and_decides_nothing_differently() {
 
     let v: serde_json::Value = serde_json::from_slice(&json.stdout).expect("an envelope");
     assert_eq!(v["verb"], "check");
-    assert_eq!(v["exitCode"], 2);
-    assert_eq!(v["ok"], false);
+    assert_eq!(v["exitCode"], 1);
+    assert_ne!(v["outcome"], "ok");
     // Both halves, each keeping its own shape rather than being flattened.
     assert_eq!(v["report"]["registry"]["fresh"], false);
     assert_eq!(v["report"]["registry"]["validationPassed"], true);
@@ -2573,7 +2573,7 @@ fn fail_on_warn_refuses_a_warning_on_compile_and_check() {
     assert_eq!(code(&plain), code(&jsonic));
     let v: serde_json::Value = serde_json::from_slice(&jsonic.stdout).unwrap();
     assert_eq!(v["exitCode"], 1);
-    assert_eq!(v["ok"], false);
+    assert_ne!(v["outcome"], "ok");
     // §3.4: the tally is in the envelope, attributed to the registry half.
     assert_eq!(v["report"]["registry"]["warnings"], 1);
     assert_eq!(v["report"]["registry"]["validationPassed"], true);
@@ -2745,7 +2745,7 @@ fn delta_classifies_under_the_merge_base_not_the_checked_out_head() {
     let v = envelope(&out);
     assert_eq!(v["verb"], "delta");
     assert_eq!(v["schemaVersion"], spec_spine_types::VERDICT_SCHEMA_VERSION);
-    assert_eq!(v["ok"], true);
+    assert_eq!(v["outcome"], "ok");
     let report = &v["report"];
     assert_eq!(
         report["schemaVersion"],
@@ -2832,7 +2832,7 @@ fn delta_failures_keep_the_exit_code_contract() {
     delta_repo(&root);
 
     let out = delta_json_in(&root, "no-such-ref", tmp.path());
-    assert_eq!(code(&out), 3);
+    assert_eq!(code(&out), 4);
     let v = envelope(&out);
     assert_eq!(v["verb"], "delta");
     assert_eq!(v["error"]["kind"], "io");
@@ -2852,7 +2852,7 @@ fn delta_failures_keep_the_exit_code_contract() {
         .args(["delta", "--base", "stale-base", "--head", "stale-base"])
         .output()
         .unwrap();
-    assert_eq!(code(&out), 2, "{}", String::from_utf8_lossy(&out.stderr));
+    assert_eq!(code(&out), 1, "{}", String::from_utf8_lossy(&out.stderr));
 }
 
 // ── spec 076: a stray shard is orphaned at the verbs ─────────────────────
@@ -2870,15 +2870,15 @@ fn assert_judged_stale(root: &Path, named: &str) -> serde_json::Value {
         let stderr = String::from_utf8_lossy(&out.stderr);
         assert_eq!(
             code(&out),
-            2,
+            1,
             "{args:?} must judge, not fail to read: {stderr}"
         );
         assert!(stderr.contains(named), "{args:?} names {named}: {stderr}");
     }
     let out = run_in(root, &["check", "--json"]);
-    assert_eq!(code(&out), 2, "{}", String::from_utf8_lossy(&out.stdout));
+    assert_eq!(code(&out), 1, "{}", String::from_utf8_lossy(&out.stdout));
     let v = envelope(&out);
-    assert_eq!(v["exitCode"], 2, "{v}");
+    assert_eq!(v["exitCode"], 1, "{v}");
     assert_eq!(v["report"]["index"]["fresh"], false, "{v}");
     v["report"]["index"].clone()
 }
@@ -3017,14 +3017,14 @@ fn the_consumer_verbs_still_refuse_an_unparseable_stray() {
     let owner = run_in(root, &["index", "owner", "crate-a/src/lib.rs"]);
     assert_eq!(
         code(&owner),
-        2,
+        1,
         "{}",
         String::from_utf8_lossy(&owner.stderr)
     );
     let render = run_in(root, &["index", "render"]);
     assert_eq!(
         code(&render),
-        3,
+        4,
         "{}",
         String::from_utf8_lossy(&render.stderr)
     );
@@ -3458,7 +3458,7 @@ fn coverage_git_failure_is_exit_3_not_a_walk() {
     let root = tmp.path();
     scope_repo(root);
     let out = run_in(root, &["index", "coverage"]);
-    assert_eq!(code(&out), 3, "{}", String::from_utf8_lossy(&out.stdout));
+    assert_eq!(code(&out), 4, "{}", String::from_utf8_lossy(&out.stdout));
     let err = String::from_utf8_lossy(&out.stderr);
     assert!(err.contains("--paths-from"), "{err}");
     assert!(!String::from_utf8_lossy(&out.stdout).contains("declared scope"));
@@ -3661,9 +3661,9 @@ fn check_json_is_unchanged_by_the_message_fix() {
     // spec 113 §3.8 to 0.6.0, by adding `couple`'s `waivers`.
     assert_eq!(code(&out), 1);
     let json = envelope(&out);
-    assert_eq!(json["schemaVersion"], "0.6.0", "{json}");
+    assert_eq!(json["schemaVersion"], "1.0.0", "{json}");
     assert_eq!(json["exitCode"], 1, "{json}");
-    assert_eq!(json["ok"], false, "{json}");
+    assert_ne!(json["outcome"], "ok", "{json}");
     let members: Vec<&str> = json
         .as_object()
         .unwrap()
@@ -3672,7 +3672,15 @@ fn check_json_is_unchanged_by_the_message_fix() {
         .collect();
     assert_eq!(
         members,
-        ["exitCode", "ok", "report", "schemaVersion", "verb"],
+        [
+            "exitCode",
+            "outcome",
+            "report",
+            "schemaVersion",
+            "summary",
+            "tool",
+            "verb"
+        ],
         "{json}"
     );
     let index = &json["report"]["index"];
@@ -3705,7 +3713,7 @@ fn a_stale_shard_still_reads_as_staleness() {
     write_spec(root, "001-a", "001-a", "draft"); // a hashed input moves
 
     let out = run_in(root, &["check"]);
-    assert_eq!(code(&out), 2);
+    assert_eq!(code(&out), 1);
     let err = stderr(&out);
     assert!(
         err.contains("codebase-index: STALE (run `spec-spine index`)"),
@@ -3716,7 +3724,7 @@ fn a_stale_shard_still_reads_as_staleness() {
     assert!(!err.contains("UNRESOLVED CLAIM"), "{err}");
 
     let idx = run_in(root, &["index", "check"]);
-    assert_eq!(code(&idx), 2);
+    assert_eq!(code(&idx), 1);
     assert!(
         stderr(&idx).contains("index is STALE (run `spec-spine index` to refresh)"),
         "{}",
@@ -3865,13 +3873,13 @@ fn spec101_a_stale_shard_alone_still_exits_2() {
     write_spec(root, "001-a", "001-a", "draft"); // a hashed input moves
 
     let out = run_in(root, &["check"]);
-    assert_eq!(code(&out), 2, "{}", stderr(&out));
+    assert_eq!(code(&out), 1, "{}", stderr(&out));
     assert!(
         stderr(&out).contains("codebase-index: STALE (run `spec-spine index`)"),
         "{}",
         stderr(&out)
     );
-    assert_eq!(code(&run_in(root, &["index", "check"])), 2);
+    assert_eq!(code(&run_in(root, &["index", "check"])), 1);
 }
 
 /// Spec 080 §3.3: `--json` carries the new code and nothing else moves.
@@ -3885,8 +3893,8 @@ fn spec101_json_carries_the_new_code_and_keeps_its_shape() {
     assert_eq!(code(&out), 1);
     let json = envelope(&out);
     assert_eq!(json["exitCode"], 1, "{json}");
-    assert_eq!(json["ok"], false, "{json}");
-    assert_eq!(json["schemaVersion"], "0.6.0", "{json}");
+    assert_ne!(json["outcome"], "ok", "{json}");
+    assert_eq!(json["schemaVersion"], "1.0.0", "{json}");
     let members: Vec<&str> = json
         .as_object()
         .unwrap()
@@ -3895,7 +3903,15 @@ fn spec101_json_carries_the_new_code_and_keeps_its_shape() {
         .collect();
     assert_eq!(
         members,
-        ["exitCode", "ok", "report", "schemaVersion", "verb"],
+        [
+            "exitCode",
+            "outcome",
+            "report",
+            "schemaVersion",
+            "summary",
+            "tool",
+            "verb"
+        ],
         "{json}"
     );
     // Spec 080 §4: `actual` stays spec 079 FR-009's deliberate hold, and
@@ -4377,7 +4393,7 @@ fn statecraft_derived_layout_compiles_indexes_and_is_judged() {
         body.replace("summary: \"s\"", "summary: \"changed\""),
     )
     .unwrap();
-    assert_eq!(code(&run(&["check"])), 2, "a stale relocated tree is stale");
+    assert_eq!(code(&run(&["check"])), 1, "a stale relocated tree is stale");
     assert_eq!(code(&run(&["compile"])), 0);
     assert_eq!(code(&run(&["index"])), 0);
     assert_eq!(code(&run(&["check"])), 0, "and recomputing clears it");
@@ -4385,7 +4401,7 @@ fn statecraft_derived_layout_compiles_indexes_and_is_judged() {
     // Missing: delete a committed shard.
     let missing = root.join(".statecraft/derived/spec-registry/by-spec/002-b.json");
     fs::remove_file(&missing).unwrap();
-    assert_eq!(code(&run(&["check"])), 2, "a missing shard is staleness");
+    assert_eq!(code(&run(&["check"])), 1, "a missing shard is staleness");
     assert!(
         !missing.exists(),
         "the gate did not repair the tree it judged"
@@ -4405,7 +4421,7 @@ fn statecraft_derived_layout_compiles_indexes_and_is_judged() {
     let orphaned = run(&["check"]);
     assert_eq!(
         code(&orphaned),
-        2,
+        1,
         "a stray shard at the relocated path is refused, as it is at the default \
          (spec 076: exit 2, named as orphaned)"
     );

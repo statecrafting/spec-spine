@@ -62,22 +62,22 @@ fn parse_exports(args: &[String]) -> Result<BTreeMap<String, PathBuf>, Error> {
     let mut out = BTreeMap::new();
     for arg in args {
         let Some((name, dir)) = arg.split_once('=') else {
-            return Err(Error::Parse(format!(
+            return Err(Error::Usage(format!(
                 "--export '{arg}' has no '=': the form is <corpus>=<dir>"
             )));
         };
         if name.is_empty() {
-            return Err(Error::Parse(format!(
+            return Err(Error::Usage(format!(
                 "--export '{arg}' names no corpus: the form is <corpus>=<dir>"
             )));
         }
         if dir.is_empty() {
-            return Err(Error::Parse(format!(
+            return Err(Error::Usage(format!(
                 "--export '{arg}' names no directory: the form is <corpus>=<dir>"
             )));
         }
         if out.insert(name.to_string(), PathBuf::from(dir)).is_some() {
-            return Err(Error::Parse(format!(
+            return Err(Error::Usage(format!(
                 "--export names corpus '{name}' twice: one directory per corpus"
             )));
         }

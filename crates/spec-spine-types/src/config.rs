@@ -547,9 +547,10 @@ impl Config {
     /// Refuse when `[meta] required_version` is present and `running` does not
     /// satisfy it (spec 055 §3.2).
     ///
-    /// [`Error::Config`] (exit 3): a configuration the tool cannot honour, which
-    /// is what 3 means. Emphatically not 1 (nothing was validated), not 2
-    /// (nothing is stale), and not 0.
+    /// [`Error::Refused`] (exit 2, spec 132): a precondition the tool cannot
+    /// honour, and nothing was done. Not 1 (nothing was validated or found),
+    /// and not 0. A requirement that is not semver is [`Error::Config`], also
+    /// exit 2.
     ///
     /// The message names the requirement, the running version, and where the
     /// pin lives, because an operator told only "version mismatch" has to go
@@ -563,8 +564,11 @@ impl Config {
                 "[meta] required_version '{req_src}' is not a semver requirement: {e}"
             ))
         })?;
+        // Spec 132 §3.2: a pin the running binary does not satisfy is a
+        // refusal, exit 2. A pin that is not a requirement at all stays a
+        // configuration error.
         let Some(version) = crate::parse_semver(running) else {
-            return Err(Error::Config(format!(
+            return Err(Error::Refused(format!(
                 "cannot compare the running version '{running}' against [meta] \
                  required_version '{req_src}'"
             )));
@@ -572,7 +576,7 @@ impl Config {
         if req.matches(version) {
             return Ok(());
         }
-        Err(Error::Config(format!(
+        Err(Error::Refused(format!(
             "this repository requires spec-spine {req_src} (spec-spine.toml [meta] \
              required_version); running {running}. Install the required version, or \
              change the pin deliberately"
@@ -706,7 +710,7 @@ impl EffectiveConfig {
 
 /// Load and validate a `spec-spine.toml` from its source text.
 ///
-/// Returns [`Error::Config`] (mapped to exit code 3) on any malformed or
+/// Returns [`Error::Config`] (mapped to exit code 2) on any malformed or
 /// unknown-key error; never panics.
 pub fn load_config(toml_src: &str) -> Result<Config> {
     let config: Config = toml::from_str(toml_src).map_err(|e| Error::Config(e.to_string()))?;
