@@ -112,7 +112,7 @@
       },
       {
         "nature": "corrective",
-        "spec": "021-ledger-attestation",
+        "spec": "021-ledger-seal",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/cmd_attest.rs"
@@ -120,7 +120,7 @@
       },
       {
         "nature": "corrective",
-        "spec": "021-ledger-attestation",
+        "spec": "021-ledger-seal",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/verify_attestation.rs"
@@ -128,7 +128,7 @@
       },
       {
         "nature": "corrective",
-        "spec": "021-ledger-attestation",
+        "spec": "021-ledger-seal",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/seal.rs"
@@ -136,7 +136,7 @@
       },
       {
         "nature": "corrective",
-        "spec": "096-compaction-is-authored",
+        "spec": "096-compaction-is-a-verb-not-a-session",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/cmd_compact.rs"
@@ -176,7 +176,7 @@
       },
       {
         "nature": "corrective",
-        "spec": "022-sharded-derived-artifacts",
+        "spec": "022-index-sharding",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/shard.rs"
@@ -208,7 +208,7 @@
       },
       {
         "nature": "corrective",
-        "spec": "021-ledger-attestation",
+        "spec": "021-ledger-seal",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/attest.rs"
@@ -240,7 +240,7 @@
       },
       {
         "nature": "corrective",
-        "spec": "071-a-change-is-classified-under-the-base",
+        "spec": "071-a-change-is-classified-under-the-bases-rules",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/delta.rs"
@@ -260,6 +260,78 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/waiver.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "071-a-change-is-classified-under-the-bases-rules",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_delta.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_lint.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "043-verify-declared-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_verify.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/canonical_json.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/couple.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "029-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/coverage.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "044-index-diagnostics-reach-a-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/diagnostics.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/read.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "067-a-short-id-names-the-same-spec-at-every-verb",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/spec_id.rs"
         }
       },
       {
@@ -284,6 +356,46 @@
         "unit": {
           "kind": "file",
           "path": "AGENTS.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/code-review/SKILL.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/ship/SKILL.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/pre-commit"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "099-a-merged-acceptance-is-asked-again",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/acceptance-scope.sh"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "105-governed-scope-is-enabled-here",
+        "unit": {
+          "kind": "file",
+          "path": "CLAUDE.md"
         }
       }
     ],
@@ -357,6 +469,6 @@
     "summary": "spec-spine and the Statecraft CLI answered in two exit vocabularies. spec-spine spent 2 on staleness and 3 on everything that went wrong, from a malformed `spec-spine.toml` to a failed read to a refused write, so a consumer could not tell \"you asked for something this tool will not do\" from \"the disk failed\", and a containment refusal was reported as I/O. This spec adopts the family contract the two tools share: 0 ok, 1 finding (validation, drift, stale, unresolved, not found, authored content that does not parse), 2 refused (an invalid configuration, a version pin not met, a containment refusal: nothing done), 3 usage, 4 failed (I/O, internal, a tool-produced artifact that fails its schema). `Error` gains `Refused`, `Usage` and `Internal`, and every call site is classified. The `--json` envelope becomes the family envelope, version 1.0.0: `schemaVersion`, `tool`, `verb`, `outcome`, `exitCode`, `summary`, then `report` or `error`, with `ok` removed and `error.kind` a closed set of ten tokens. It is a deliberate breaking change, accepted by the owner, taken once so the consumer migrates once.\n",
     "title": "One exit contract for the family"
   },
-  "shardHash": "b532ca06634725255f3dcc82d8435ad043d2796cc5d6b9d48f055319db3b7030",
+  "shardHash": "8f254bd444be9274aec208e01122dd5fcf6dbafab38b04ac0950bb42f882159a",
   "specVersion": "1.8.0"
 }
