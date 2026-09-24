@@ -1,36 +1,39 @@
 {
   "mapping": {
+    "amends": [
+      "063-planned-territory-is-declared-not-inferred"
+    ],
     "dependsOn": [
-      "006-distribution",
-      "061-shipped-is-not-the-same-as-working"
+      "063-planned-territory-is-declared-not-inferred",
+      "080-an-unresolved-claim-is-not-stale"
     ],
     "implementingPaths": [
       {
-        "path": "CLAUDE.md",
+        "path": "crates/spec-spine-cli/tests/cli.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/fixtures/verifier/",
+        "path": "crates/spec-spine-core/src/coverage.rs",
         "source": "spec-edge"
       },
       {
-        "path": "docs/releasing.md",
+        "path": "crates/spec-spine-core/src/index.rs",
         "source": "spec-edge"
       },
       {
-        "path": "npm/package.json",
+        "path": "crates/spec-spine-core/src/query.rs",
         "source": "spec-edge"
       },
       {
-        "path": "py/",
+        "path": "crates/spec-spine-core/tests/coverage.rs",
         "source": "spec-edge"
       },
       {
-        "path": "scripts/reader-identity.sh",
+        "path": "crates/spec-spine-core/tests/index.rs",
         "source": "spec-edge"
       },
       {
-        "path": "spec-spine.toml",
+        "path": "docs/specify-first.md",
         "source": "spec-edge"
       }
     ],
@@ -38,124 +41,111 @@
       {
         "locations": [
           {
-            "file": "scripts/reader-identity.sh"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "scripts/reader-identity.sh"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/fixtures/verifier/"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "directory",
-          "path": "crates/spec-spine-core/fixtures/verifier/"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "py/"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "directory",
-          "path": "py/"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "CLAUDE.md"
+            "file": "crates/spec-spine-cli/tests/cli.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "CLAUDE.md"
+          "path": "crates/spec-spine-cli/tests/cli.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/releasing.md"
+            "file": "crates/spec-spine-core/src/coverage.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "docs/releasing.md"
+          "path": "crates/spec-spine-core/src/coverage.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "npm/package.json"
+            "file": "crates/spec-spine-core/src/index.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "npm/package.json"
+          "path": "crates/spec-spine-core/src/index.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "spec-spine.toml"
+            "file": "crates/spec-spine-core/src/query.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "spec-spine.toml"
+          "path": "crates/spec-spine-core/src/query.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/release-candidate-0.22.0.md"
+            "file": "crates/spec-spine-core/tests/coverage.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/coverage.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/index.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/specify-first.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/specify-first.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/063-planned-territory-is-declared-not-inferred/spec.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/release-candidate-0.22.0.md"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "scripts/bump_version.py"
-          }
-        ],
-        "ownership": false,
-        "sourceField": "references",
-        "unit": {
-          "kind": "file",
-          "path": "scripts/bump_version.py"
+          "path": "specs/063-planned-territory-is-declared-not-inferred/spec.md"
         }
       }
     ],
-    "specId": "124-the-expansion-line-carries-its-own-version",
-    "specStatus": "approved"
+    "specId": "130-a-planned-claim-ends-at-completion",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "0d759a8f6dfe504391cb72388f083537fd03dc4a7bb0b126ad1d577d0dfc25b6"
+  "shardHash": "61ffdef64dad8934a5553f5c486431843da2917e6dc967f750b0d799f73eead6"
 }

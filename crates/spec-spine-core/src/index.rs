@@ -359,12 +359,17 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
                 &spec.id,
                 &mut unit_diags,
             );
+            // Spec 130 §3.1: the flag holds a claim open only until the spec
+            // says its work is complete. Keyed on `complete` itself, not on
+            // `!in_flight`: an approved spec with no `implementation` key is
+            // not in flight either, and 063 gave it the flag without a bound.
+            let complete = matches!(spec.implementation, Some(Implementation::Complete));
             classify_unresolved(
                 &mut spec_diags,
                 unit_diags,
                 *ownership,
                 in_flight,
-                unit.is_planned(),
+                unit.is_planned() && !complete,
             );
             // Only an owning edge contributes an implementing path (spec 031).
             // `references` is non-owning by definition, so a file a spec merely
@@ -1150,7 +1155,9 @@ fn classify_unresolved(
         // Spec 063 §3.2: an unresolved unit marked `planned` is not an
         // unresolved claim; it is a claim whose subject is openly not yet
         // written, so it produces no diagnostic at all rather than a
-        // suppressed one. Everything else classifies exactly as spec 023
+        // suppressed one. The caller passes `planned` false once the spec is
+        // `complete` (spec 130 §3.1, amending 063 §3.2), so a finished spec's
+        // absent unit classifies like any other claim on a settled spec. Everything else classifies exactly as spec 023
         // requires, so a path that is simply wrong is still caught and still
         // refused by `--fail-on-unresolved`. That asymmetry is the whole
         // safety argument: nobody marks a typo planned.
