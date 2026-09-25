@@ -77,10 +77,10 @@
       "Verification"
     ],
     "specPath": "specs/138-the-legacy-ledger-is-paid-coupling-and-freshness/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "10 specs filed before `verify` existed (005, 008, 027, 028, 029, 030, 031, 033, 035, 036) sit on the legacy ledger in `scripts/verify-sweep.sh` with no executable acceptance, although the tests that hold their behavior exist and pass. This spec carries that acceptance for them under `amends_verification`, the route spec 132 used, and deletes their ledger lines in the same change. Every command names its tests exactly and asserts the exact pass count, so a renamed or deleted test turns the block red instead of passing on an empty filter. The area is the coupling gate, ownership coverage, freshness and scheduling.\n",
     "title": "The legacy ledger is paid: coupling, coverage and freshness"
   },
-  "shardHash": "d5c4c7c2ff1ef7a048d6203735278d42cd9eb232123539c31523c3aec1c1eac6",
+  "shardHash": "abc504daa5621291b12fbb8979c4db571385571e7ae11853156c4b82942b1415",
   "specVersion": "1.9.0"
 }
