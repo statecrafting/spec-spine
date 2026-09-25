@@ -25,6 +25,8 @@ extends:
   - { spec: "094-one-gate-and-the-boundaries-it-holds", unit: ".github/workflows/ci.yml", nature: additive }
   # `jsonschema` without its HTTP resolver (a dev-dependency).
   - { spec: "001-compile-registry", unit: "crates/spec-spine-core/Cargo.toml", nature: corrective }
+  # The MSRV statement.
+  - { spec: "105-governed-scope-is-enabled-here", unit: "CLAUDE.md", nature: corrective }
 references:
   - { unit: { kind: file, path: "deny.toml" }, role: context }
   - { unit: { kind: file, path: "CONTRIBUTING.md" }, role: context }

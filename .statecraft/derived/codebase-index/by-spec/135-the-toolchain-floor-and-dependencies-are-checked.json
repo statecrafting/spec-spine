@@ -10,6 +10,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "CLAUDE.md",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/Cargo.toml",
         "source": "spec-edge"
       }
@@ -26,6 +30,19 @@
         "unit": {
           "kind": "file",
           "path": ".github/workflows/ci.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "CLAUDE.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "CLAUDE.md"
         }
       },
       {
@@ -72,5 +89,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f37fb08ac3e88dd980c5667f674c6a63259a215a7322a6cf0f722122f307461e"
+  "shardHash": "4091601d7c87d24d0e75572ab5efe298f99a3ad2137115a73a0d27eea250f0ac"
 }
