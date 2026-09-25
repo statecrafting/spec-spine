@@ -87,7 +87,7 @@
       }
     ],
     "id": "134-the-suite-runs-on-windows",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -101,13 +101,27 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "1-purpose": "cd1c0e1756e27766126c058c715a4cf7214885d4c1a41641fe1ebf7e62a5465a",
-      "134-the-suite-runs-on-windows": "b04ffaf57194f58960d23a8291df3a3d1495a0f20e26590c7e24f2d3098aad4f",
-      "verification": "f02894529ad0d7d92119c7f985ee65a8726cc4101406251b5e8248e0988f43cf"
+      "1-purpose": "f1b7d855e65f52e2000045ccd8c85089f402e9b9f4f51c4611b78f006567c454",
+      "134-the-suite-runs-on-windows": "64f969242ac58748d2c4dba1af1b2a38535674d601560edaa18a8f4bfd9cb421",
+      "2-territory": "c80e1d6056eaf501cc9d1d374519364df053c8599b55f7ba9fe32dc773ece246",
+      "3-1-a-windows-test-check-of-its-own": "689c07cc9f937757b6b2427d6e552d04e1dda1894862855e9c679f79a56ffbd5",
+      "3-2-nothing-is-skipped-silently": "855cd5b5c4b2e7cd56a7524c0237a6f5050ed7d8701d3eb15d82159df05d4888",
+      "3-3-wf-8-is-fixed": "3afc00f9c0568be99567a1a98290ed6f7a879df0fbb9f7232125a705dbf00158",
+      "3-behavior": "a373c6f62260ae76ee5f0370f4891abab632c8bf4bf039e9291d7af2906a26ce",
+      "4-out-of-scope": "70f3afa5ca642065beb5dd7ed90f24e51fec22fda263eeb05d19ef60dd822f95",
+      "5-resolved-decisions": "0fc971b860ea958247b284954c0c38b08806e94e4a9f2153b6dea981365851a8",
+      "verification": "06d51bfc504aa84a5b4b1d4e5593e5f071d5f71f671a498f6656e108dcdc06e1"
     },
     "sectionHeadings": [
       "134: The suite runs on Windows",
       "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A Windows test check of its own",
+      "3.2 Nothing is skipped silently",
+      "3.3 WF-8 is fixed",
+      "4. Out of scope",
+      "5. Resolved decisions",
       "Verification"
     ],
     "specPath": "specs/134-the-suite-runs-on-windows/spec.md",
@@ -115,6 +129,6 @@
     "summary": "spec-spine ships a Windows binary and proves its shard trees byte-identical on Windows, but CI only ever built there: the workspace test suite ran on Linux alone, so a Windows behavior difference could ship with every check green. A `test (windows)` job now runs `cargo test --workspace` on `windows-latest` as a check of its own, required through `ci-gate`. A test that cannot run on Windows is gated or quarantined in its source with a tracked finding, never skipped by the workflow, and Windows results are reported apart from build results.\n",
     "title": "The suite runs on Windows"
   },
-  "shardHash": "2545b5e1df301fe25fbbfeab3f6b353870bd7a41c85772a26119ff623ba7a275",
+  "shardHash": "0e086be6b2657c62d22374c81a94b0e2d9a5716cf7e1013c9d537565456575d4",
   "specVersion": "1.8.0"
 }
