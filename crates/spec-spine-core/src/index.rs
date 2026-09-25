@@ -623,7 +623,8 @@ fn compare_shard_dir(
     for (name, content) in &expected {
         match committed.get(*name) {
             None => drift.push(format!("missing {label}/{name}")),
-            Some(bytes) if bytes.as_slice() != content.as_bytes() => {
+            // Spec 143: CRLF from a Windows checkout is the same text (WF-7).
+            Some(bytes) if !shard::same_committed_text(bytes, content) => {
                 reject_foreign_major(bytes)?;
                 drift.push(format!("modified {label}/{name}"));
             }
@@ -689,7 +690,7 @@ pub(crate) fn committed_index_drift(
     let (name, content) = index_inputs_file(shards)?;
     match fs::read(dir.join(&name)) {
         Err(_) => drift.push(format!("missing {name}")),
-        Ok(bytes) if bytes != content.as_bytes() => {
+        Ok(bytes) if !shard::same_committed_text(&bytes, &content) => {
             reject_foreign_major(&bytes)?;
             drift.push(format!("modified {name}"));
         }

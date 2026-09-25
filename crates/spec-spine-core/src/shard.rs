@@ -131,6 +131,34 @@ pub fn inputs_fold<'a>(digests: impl IntoIterator<Item = (&'a String, &'a String
     )
 }
 
+/// Whether a committed derived file holds the text the emitter would write
+/// (spec 143). Byte-equal, or equal once the committed bytes' CRLF line endings
+/// are read as LF.
+///
+/// Every emitted file is canonical JSON with LF endings. Git on a Windows
+/// checkout with `core.autocrlf=true` and no `.gitattributes` rule for the
+/// derived tree hands the same text back with CRLF, and a strict byte
+/// comparison then reported every shard `modified` (WF-7): a false staleness
+/// that regenerating cannot cure, because the next checkout converts again.
+/// Only `\r\n` is folded, so a lone `\r`, or any other byte, still differs.
+pub fn same_committed_text(committed: &[u8], emitted: &str) -> bool {
+    let emitted = emitted.as_bytes();
+    if committed == emitted {
+        return true;
+    }
+    let mut folded = Vec::with_capacity(committed.len());
+    let mut i = 0;
+    while i < committed.len() {
+        if committed[i] == b'\r' && committed.get(i + 1) == Some(&b'\n') {
+            i += 1;
+            continue;
+        }
+        folded.push(committed[i]);
+        i += 1;
+    }
+    folded == emitted
+}
+
 /// The aggregate content hash recomputed from the shard set on read: SHA-256
 /// over the sorted `(shardKey, shardHash)` pairs. It is a pure function of the
 /// shard hashes (each of which is a pure function of that shard's inputs), so it
