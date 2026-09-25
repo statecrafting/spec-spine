@@ -286,9 +286,7 @@ sh -c '! grep -q "GLOBAL_INPUTS_KEY" crates/spec-spine-core/src/index.rs'
 grep -q '^    "AGENTS.md": {$' .statecraft/derived/codebase-index/inputs.json
 grep -q '^    "spec-spine.toml": {$' .statecraft/derived/codebase-index/inputs.json
 # D-5: on a copy of this tree, an AGENTS.md edit rewrites one derived file.
-sh -c 'T="${TMPDIR:-/tmp}/ss141"; rm -rf "$T" && mkdir -p "$T" && git archive HEAD | tar -x -C "$T" && B="$PWD/target/release/spec-spine" && cd "$T" && git init -q && git add -A && git -c user.email=t@example.invalid -c user.name=t -c commit.gpgsign=false commit -qm base && printf "
-One more line.
-" >> AGENTS.md && "$B" index >/dev/null && n=$(git status --porcelain -- .statecraft/derived | wc -l | tr -d " ") && f=$(git status --porcelain -- .statecraft/derived | awk "{print \$2}") && cd / && rm -rf "$T" && test "$n" -eq 1 && test "$f" = .statecraft/derived/codebase-index/inputs.json'
+sh -c 'T="${TMPDIR:-/tmp}/ss141"; rm -rf "$T" && mkdir -p "$T" && git archive HEAD | tar -x -C "$T" && B="$PWD/target/release/spec-spine" && cd "$T" && git init -q && git add -A && git -c user.email=t@example.invalid -c user.name=t -c commit.gpgsign=false commit -qm base && echo "One more line." >> AGENTS.md && "$B" index >/dev/null && git status --porcelain -- .statecraft/derived > ../ss141.out; cd .. && rm -rf "$T" && test "$(cat ss141.out)" = " M .statecraft/derived/codebase-index/inputs.json"; r=$?; rm -f ss141.out; exit $r'
 # The tree this block runs in is fresh under the new construction.
 target/release/spec-spine check
 ```

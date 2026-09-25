@@ -245,7 +245,7 @@
       "1-1-one-edit-every-shard": "caea85ef31fe93c875850f4da71da3ee981fb660dee67bd92f72974ff81ba5a9",
       "1-2-what-the-fold-is-for-and-what-else-provides-it": "b7dbe54ded22eac2faf26b3414178ab853646fcad2b4641cd86c79b47a040652",
       "1-purpose": "ba9a54f90cc9056bd8e666abd76810ca609c7ded0e35dffa93523b95c0aa645c",
-      "141-a-governance-edit-rewrites-one-file": "753b1976fe07a1c1b6bbd8ae76d6586cd43d6cbb53de7d900f8fbc07f9a7b866",
+      "141-a-governance-edit-rewrites-one-file": "c6af2224f6a84b606bed59dac9400f2f63136469f495c9948bcbaa3d6b117c01",
       "2-territory": "33cd8d3d35a177790b22695628dfb7e6cb4784f41e204f9cab7c4236dbe5cbfd",
       "3-1-shard-hashes-cover-only-their-own-inputs-amends-022": "ae43f40cba46beb7eee9308b6847e31a1f1182fc78158862e65a84ef3c7a06b1",
       "3-2-the-inputs-sidecar": "b4dc7f129cb8fef26b8dcc875600b19c2015d15e39866d9d2259f448351cb512",
@@ -257,7 +257,7 @@
       "3-behavior": "74f29b124b1dccae602536fe45f1511806605306ab3e6988b5572180aef44fa3",
       "4-out-of-scope": "0f378c76185007f9a2d1d05a7d4fed57702fc27a27331152cde328d050899b33",
       "5-resolved-decisions": "4c4bd823eb43f7b7e0d76c7414b7e84d1d24c4fb5da1b94521d093f187afc4e6",
-      "verification": "b6d317548b6e2e7db7d11cdaade28a62018c9cb62c85b2c9c2316bbd40c1245c"
+      "verification": "58752c4636a179cba3eb2ea6235b0d17ab1c4a202acb92223f97c8a80ccaba57"
     },
     "sectionHeadings": [
       "141: A governance edit rewrites one file",
@@ -282,6 +282,6 @@
     "summary": "Every index shard's `shardHash` folds one global scalar over `spec-spine.toml` and every `[index] extra_hashed_inputs` file, so a one-line edit to any root document restamps every shard. Measured on this repository at `153d35df`: an `AGENTS.md` edit rewrites 139 shards, and two pull requests editing two different root documents conflict on all 139. An adopter's merge queue pays that on every such PR. This spec moves the global inputs out of the shard hashes into one committed sidecar, `codebase-index/inputs.json`, with one entry per input file, compared byte for byte like a shard. A governance edit then rewrites that one file, and two edits to different documents change lines far enough apart to merge. The aggregate index content hash folds the sidecar, so an attestation still covers every authored input.\n",
     "title": "A governance edit rewrites one file"
   },
-  "shardHash": "f3d33c8f3a1125c32740548b5011a98366cd7087d3dfe2eca4f288d562471e7b",
+  "shardHash": "65380b1729825c91ac45f6bfbd28b81e4e76a25f9dfbaee8280b9ef57edd21c9",
   "specVersion": "1.8.0"
 }
