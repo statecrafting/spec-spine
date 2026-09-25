@@ -1,7 +1,7 @@
 ---
 id: "144-a-repository-path-is-one-type"
 title: "A repository path is one type"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-25"
 summary: >

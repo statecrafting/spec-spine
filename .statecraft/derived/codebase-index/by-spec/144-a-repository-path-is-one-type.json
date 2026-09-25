@@ -201,8 +201,8 @@
       }
     ],
     "specId": "144-a-repository-path-is-one-type",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "0463f232d55d538d3303d6fd93d5a43eeba1e7b956a2719aa95b199db58e6d3c"
+  "shardHash": "0762a62e7cb0d87cea76035f7e583c70688174d0ae1d20e28e5bf3934e028bfd"
 }
