@@ -124,6 +124,20 @@
             }
           }
         },
+        "relocates": {
+          "type": "array",
+          "description": "Declared section relocations from another spec (spec 142; first shipped in specVersion 1.9.0). `spec` is normalized to its full id.",
+          "items": {
+            "type": "object",
+            "required": ["spec", "from"],
+            "additionalProperties": false,
+            "properties": {
+              "spec": { "type": "string", "minLength": 1 },
+              "from": { "type": "string", "minLength": 1 },
+              "to": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
         "moves": {
           "type": "array",
           "description": "Declared relocation, split, merge or removal of a path (spec 111; first shipped in specVersion 1.8.0). `answeredBy`'s spec half is normalized to its full id.",

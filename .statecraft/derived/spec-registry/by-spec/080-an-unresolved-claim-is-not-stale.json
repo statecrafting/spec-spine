@@ -88,5 +88,5 @@
     "title": "An unresolved claim exits as a validation failure"
   },
   "shardHash": "d7a7b632e562d5509771c8678c75ac4a2fb3161d9e7321ebd8215fa49b904ac0",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

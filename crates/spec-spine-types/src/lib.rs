@@ -36,6 +36,7 @@ pub mod interface;
 pub mod moves;
 pub mod obligation;
 pub mod registry;
+pub mod relocation;
 pub mod schema;
 pub mod snapshot;
 pub mod unit;
@@ -67,7 +68,7 @@ pub use coverage::{
 };
 pub use delta::{
     AuthorityDelta, ChangeKind, DeltaChange, DeltaClass, DeltaCommits, DeltaReport, PriorPolicy,
-    ValueChange, VerificationDelta,
+    RelocationCheck, ValueChange, VerificationDelta,
 };
 pub use edges::{
     CoAuthorityItem, ConstrainItem, ExtendItem, Origin, Provenance, ReferenceItem, RefineItem,
@@ -90,6 +91,7 @@ pub use registry::{
     Build, BuildMeta, Registry, RegistrySpecShard, Severity, SpecRecord, ValidationReport,
     Violation,
 };
+pub use relocation::Relocation;
 pub use schema::{
     BUILD_META_SCHEMA, INDEX_INPUTS_SCHEMA, INDEX_PACKAGE_SHARD_SCHEMA, INDEX_SCHEMA,
     INDEX_SPEC_SHARD_SCHEMA, REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA,

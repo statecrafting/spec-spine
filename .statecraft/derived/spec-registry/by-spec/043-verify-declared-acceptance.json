@@ -146,5 +146,5 @@
     "title": "`spec-spine verify <id>`: run a spec's declared acceptance"
   },
   "shardHash": "d0b7f941aae19138d093ba4d258c3b7adb834d57dac3775df93d1a3339ae44e3",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

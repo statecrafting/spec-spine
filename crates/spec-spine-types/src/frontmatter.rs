@@ -135,6 +135,8 @@ pub const KNOWN_KEYS: &[&str] = &[
     "intent",
     // Spec 111 3.1: declared move (relocation, split, merge, removal).
     "moves",
+    // Spec 142 3.2: declared section relocations.
+    "relocates",
 ];
 
 /// The typed, parsed frontmatter of a `spec.md`.
@@ -232,6 +234,10 @@ pub struct Frontmatter {
     // --- declared moves (spec 111) ---
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub moves: Vec<MoveDeclaration>,
+
+    // --- declared section relocations (spec 142) ---
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub relocates: Vec<crate::Relocation>,
 
     // --- overflow (populated by parse_frontmatter, never by serde) ---
     #[serde(skip)]

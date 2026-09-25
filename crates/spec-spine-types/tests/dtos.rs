@@ -78,7 +78,7 @@ fn schema_versions_are_pinned() {
     // additive MINOR (spec 111), optional `moves`, a spec's declared
     // relocation, split, merge or removal of a path. A consumer that knows
     // 1.x keeps working, which is the MINOR rule.
-    assert_eq!(REGISTRY_SCHEMA_VERSION, "1.8.0");
+    assert_eq!(REGISTRY_SCHEMA_VERSION, "1.9.0");
     // 1.1.0: additive MINOR (spec 023): unresolved-unit severity tiers (W-001 /
     // W-002 warnings) on top of the spec-024 sharded MAJOR.
     assert_eq!(INDEX_SCHEMA_VERSION, "1.2.0");
@@ -100,7 +100,7 @@ fn schema_versions_are_pinned() {
     assert_eq!(SPEC_ATTESTATION_SCHEMA_VERSION, "0.1.0");
     // Spec 071: the change-classification report, on its own axis for the same
     // reason.
-    assert_eq!(DELTA_SCHEMA_VERSION, "0.1.0");
+    assert_eq!(DELTA_SCHEMA_VERSION, "0.2.0");
 }
 
 /// Spec 071 §3.3 and §3.6: the class tokens and the verb token are the external
@@ -129,6 +129,7 @@ fn delta_class_tokens_and_prior_policy_set_are_pinned() {
             "implementation",
             "lifecycle",
             "policy",
+            "relocation",
             "requirement",
             "unknown",
             "unowned",

@@ -46,5 +46,5 @@
     "title": "Release supply-chain artifacts: per-target SBOM and build provenance"
   },
   "shardHash": "071506c57cf34e757b7335b45dc48ee115b7ad67f3d73c77590a959a8b676c7d",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

@@ -358,7 +358,7 @@ fn a_corpus_without_either_key_compiles_to_the_file_hash_unchanged() {
     // registry MINOR after 109's shipped (110's `interfaceReferences`, 114's
     // `intent`, 111's `moves`) moves this pin the same way 109 itself moved a
     // pin in 106's territory (109's note on `obligations.rs`).
-    assert_eq!(shard.spec_version, "1.8.0");
+    assert_eq!(shard.spec_version, "1.9.0");
 }
 
 #[test]

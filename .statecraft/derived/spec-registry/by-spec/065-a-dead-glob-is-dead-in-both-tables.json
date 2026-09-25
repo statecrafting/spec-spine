@@ -62,5 +62,5 @@
     "title": "A dead glob is dead in both tables"
   },
   "shardHash": "dc188f3b68741b42f3e4fc473c4b751704fe3e772aaf6424840c1d9b4f5a2910",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

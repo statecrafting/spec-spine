@@ -69,7 +69,11 @@
 /// restamped and no `shardHash` moves (it is over `spec.md`'s bytes). A
 /// binary predating this spec meets the member with a parse error and exits
 /// 3, the same fail-closed direction 1.2.0, 1.4.0, 1.5.0 and 1.6.0 chose.
-pub const REGISTRY_SCHEMA_VERSION: &str = "1.8.0";
+/// `1.9.0` (spec 142): additive `relocates` on a record, a spec's declared
+/// section relocations from another spec (`spec`, `from`, `to`?), `spec`
+/// normalized to its full id. Absent on every existing spec, so only
+/// `specVersion` restamps and no `shardHash` moves.
+pub const REGISTRY_SCHEMA_VERSION: &str = "1.9.0";
 
 /// `schemaVersion` emitted in the codebase index, carried by each index shard.
 /// `0.2.0`: additive `build.sliceHashes` (spec 011).
@@ -136,7 +140,12 @@ pub const VERDICT_SCHEMA_VERSION: &str = "1.0.0";
 /// On its own axis, like the per-spec attestation: a consumer that stores what a
 /// change was classified as pins the shape of that record without pinning the
 /// envelope it arrived in or the ledger it was classified against.
-pub const DELTA_SCHEMA_VERSION: &str = "0.1.0";
+///
+/// `0.2.0` (spec 142): additive. A new class, `relocation`, for a change to a
+/// spec's body that is exactly the removal of sections another spec proved it
+/// received unchanged; and a `relocations` list naming every declared
+/// relocation the diff touches and whether it was proven.
+pub const DELTA_SCHEMA_VERSION: &str = "0.2.0";
 
 /// `schemaVersion` carried by every read document (spec 074): the JSON a read
 /// verb, or the facade function behind it, emits when it answers a question

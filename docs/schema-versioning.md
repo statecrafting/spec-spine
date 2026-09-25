@@ -10,13 +10,13 @@
 
 | Artifact | Field | Current | Owner |
 |---|---|---|---|
-| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.8.0` | library |
+| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.9.0` | library |
 | index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`, `inputs.json`) | `schemaVersion` | `1.2.0` | library |
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb) | `schemaVersion` | `1.0.0` | library |
-| change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.1.0` | library |
+| change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.2.0` | library |
 | read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.8.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
@@ -88,6 +88,16 @@ MINOR history:
   the aggregate `contentHash` folds. Shard documents keep their shape; each
   `shardHash` value changes once, so adopters regenerate once. A governance
   edit then rewrites one file instead of every shard.
+- registry `1.9.0` (spec 142): additive `relocates` on a record, a spec's
+  declared section relocations from another spec (`spec`, `from`, `to`?),
+  `spec` normalized to its full id. Absent on every existing spec, so only
+  `specVersion` restamps and no `shardHash` moves.
+- delta report `0.2.0` (spec 142): additive. A twelfth class, `relocation`, for
+  a `spec.md` body that only lost sections another spec proved it received
+  unchanged, carried instead of `requirement` and not requiring prior policy;
+  and `relocations`, one entry per declared relocation the change touches with
+  `proven` and a `reason` when not. A consumer that treats the class set as
+  closed must add `relocation`.
 
 MAJOR history:
 

@@ -719,6 +719,7 @@ fn minimal_record(id: &str, moves: Vec<MoveDeclaration>) -> SpecRecord {
         interface_references: Vec::new(),
         intent: None,
         moves,
+        relocates: Vec::new(),
         extra_frontmatter: Default::default(),
     }
 }

@@ -201,6 +201,22 @@ implementation: pending        # pending | in-progress | complete | n-a | deferr
 #     to: null
 #     kind: removed
 #     answered_by: "NNN-successor"
+# --- declared section relocations (spec 142) ---
+# `relocates` declares that THIS spec took over a section of another spec's
+# text. `delta` proves it against the merge base: when the section arrived
+# unchanged (ignoring its heading line, the leading numbers of headings inside
+# it, heading levels and blank-line runs) and the source lost exactly the
+# relocated sections, the source's change is classed `relocation` rather than
+# `requirement`. An unproven relocation leaves it `requirement`.
+#   - `spec`: the source spec (a short id resolves); it must exist and not be
+#     this spec (`V-043`).
+#   - `from`: the section's anchor in the source at the merge base.
+#   - `to`: optional, the receiving section's anchor here, default `from`; it
+#     must be exactly one heading in this spec's body (`V-042`).
+# It moves no code: hand a unit over with a partial `supersedes` naming it,
+# which makes this spec its only owner.
+# relocates:
+#   - { spec: "NNN-source", from: "3-2-the-rule", to: "3-1-the-rule" }
 # --- bootstrap marker (NOT an edge) ---
 # `origin.retroactive` declares authority held since before the graph existed:
 # code that predates its governing spec is evidence, not a violation, and a

@@ -72,5 +72,5 @@
     "title": "Index: implement the reserved render and orphans subcommands"
   },
   "shardHash": "4c397d19df675a0a8d8a899e26746ff2d354ad107dfb38288638bd9f089bb5a8",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }
