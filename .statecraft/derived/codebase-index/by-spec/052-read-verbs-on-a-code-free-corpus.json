@@ -144,6 +144,6 @@
     "specId": "052-read-verbs-on-a-code-free-corpus",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "386463755a3209039a75ac1ee21a00a69b6d5ae324d7dd5ed43981a05a0bfc3e"
+  "schemaVersion": "1.2.0",
+  "shardHash": "6679febbbaa768e6753a7446c739534ec624e37282083661ca458b28b8ee3f81"
 }

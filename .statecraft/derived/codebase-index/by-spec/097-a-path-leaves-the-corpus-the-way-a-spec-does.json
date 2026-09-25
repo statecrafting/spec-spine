@@ -127,6 +127,6 @@
     "specId": "097-a-path-leaves-the-corpus-the-way-a-spec-does",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "a71eab431e0feee58f704a2844eb9a97bde64d67b3dac9c4a5b2e1ee4fc8a901"
+  "schemaVersion": "1.2.0",
+  "shardHash": "c947eff6e8990030861cc5a183832084824a4b030b4c87b2dcb2040cdcc7ca98"
 }

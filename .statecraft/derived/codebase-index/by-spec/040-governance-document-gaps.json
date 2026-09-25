@@ -135,6 +135,6 @@
     "specId": "040-governance-document-gaps",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "eb8045dc83ffa60e434278650793e5cae12b302d577bd0ceba4b4a2d4ac7e111"
+  "schemaVersion": "1.2.0",
+  "shardHash": "41f845afb3cb37ca3261b92b04fbec0bc632915f08110367722f15e4238884b3"
 }

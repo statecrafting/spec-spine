@@ -193,6 +193,6 @@
     "specId": "134-the-suite-runs-on-windows",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "1bcd59df26f73bcba7c2d21f3a1ed7f839efd33b3ced0a67128fa39694e37875"
+  "schemaVersion": "1.2.0",
+  "shardHash": "2b2465f762ff1aca280106573141956f96942fa14e6283c2ad781361b063faf8"
 }

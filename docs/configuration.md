@@ -135,9 +135,14 @@ a refusal rather than a quiet no-op.
 Slices are independent of the global hash: listing a file in a slice does
 **not** fold it into `contentHash`.
 
-Adding a pattern to `extra_hashed_inputs` restales every shard, so it is a
-deliberate and expensive edit. Keep the patterns narrow: a bare `dir/**/*` over
-a directory that can hold `.DS_Store` makes shard hashes machine-dependent.
+Each file an `extra_hashed_inputs` pattern matches gets one entry in
+`<derived_dir>/codebase-index/inputs.json` (spec 141), and the aggregate
+`contentHash` folds that record. An edit to a hashed file rewrites that one
+file, not every shard, and two pull requests that edit different hashed files
+merge without a conflict on it. Every edit to a hashed file is still a
+governance change the committed ledger must record, so keep the patterns
+narrow: a bare `dir/**/*` over a directory that can hold `.DS_Store` makes the
+record machine-dependent.
 
 ## `[coverage]`
 

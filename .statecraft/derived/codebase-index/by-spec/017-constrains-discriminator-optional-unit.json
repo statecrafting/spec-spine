@@ -113,6 +113,6 @@
     "specId": "017-constrains-discriminator-optional-unit",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "98c5892277600ed30ba8743badf30221d6a48073f7d90ec388d4ecedbb8af29a"
+  "schemaVersion": "1.2.0",
+  "shardHash": "55899a97b18b11a61ec11f93193cea6311d084c937380ae9dfaafd2cc51ae3b6"
 }

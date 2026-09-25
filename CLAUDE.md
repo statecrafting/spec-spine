@@ -217,13 +217,14 @@ This repo runs its own gates against its own corpus in CI (`.github/workflows/ci
   `spec-spine index`. CI runs `check` rather than `compile`/`index`, because a
   gate must never repair the tree it is judging; it fails (exit 1, a `STALE`
   report line) if any committed shard is stale.
-- **Editing a governance file restales every shard.** `[index] extra_hashed_inputs`
-  in `spec-spine.toml` folds `AGENTS.md`, `CLAUDE.md`, `spec-spine.toml` itself,
-  `Makefile`, the workflows and the embedded schemas into one
-  global scalar. A one-line edit to any of them means regenerating and committing
-  the whole index. Adding a pattern there is expensive and deliberate; the
-  patterns are narrow on purpose (a bare `.claude/**/*` would fold in
-  `.DS_Store` and make shard hashes machine-dependent).
+- **Editing a governance file restales one file.** `[index] extra_hashed_inputs`
+  in `spec-spine.toml` records `AGENTS.md`, `CLAUDE.md`, `spec-spine.toml` itself,
+  `Makefile`, the workflows and the embedded schemas, one entry each, in
+  `.statecraft/derived/codebase-index/inputs.json` (spec 141; before it they
+  folded into every shard's hash). A one-line edit to any of them means
+  regenerating and committing that file. The patterns are narrow on purpose (a
+  bare `.claude/**/*` would fold in `.DS_Store` and make the record
+  machine-dependent).
 - Editing code under a path owned by a spec generally requires also editing that
   spec's `spec.md` (or adding a `Spec-Drift-Waiver:` line to the PR body, which
   is a human instrument an agent never self-approves). The bypass floor (docs,

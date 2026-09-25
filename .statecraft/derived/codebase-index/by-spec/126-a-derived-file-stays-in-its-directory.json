@@ -139,6 +139,6 @@
     "specId": "126-a-derived-file-stays-in-its-directory",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "fb3698aa3ccd9173607fef0bae2b67f0d2d66ef13815cfe9c2210eff247c3481"
+  "schemaVersion": "1.2.0",
+  "shardHash": "83062fc759d0421b24827894b2fe8526453abf3b27ea13e6471b2c02fb0f69a1"
 }

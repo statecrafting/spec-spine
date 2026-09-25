@@ -145,6 +145,6 @@
     "specId": "075-a-claim-below-the-header-window-is-not-silent",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "f23d1eb1330520ec94910082575e208b96cd9a7d81681a4ff69679da2051b560"
+  "schemaVersion": "1.2.0",
+  "shardHash": "30fc77a541af97885b3ea90103e18178802a53553a7b4fd29b99827bf022d0b1"
 }

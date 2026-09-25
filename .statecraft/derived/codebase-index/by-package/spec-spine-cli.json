@@ -5,6 +5,6 @@
     "path": "crates/spec-spine-cli",
     "specRef": "001-compile-registry"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "2997a4c2a6d802cd2beafa9946c82ebc18df81b89456ee105ac3ba8a617e3ae4"
+  "schemaVersion": "1.2.0",
+  "shardHash": "640c89d9c1b5ae5015befdfd2b0f6784b3e000ef854d7f3e326faf3877fe9d0e"
 }

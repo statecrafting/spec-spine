@@ -29,6 +29,6 @@
     "specId": "084-an-acceptance-outlives-the-output-it-was-written-against",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "8f33b165e9d887bdc552a5addfe526f211145201ff704dfcb67964e3dbc820ad"
+  "schemaVersion": "1.2.0",
+  "shardHash": "010c2893bf242b20c507c1cb33c36912ca810de07d4066da79edd407a74097eb"
 }

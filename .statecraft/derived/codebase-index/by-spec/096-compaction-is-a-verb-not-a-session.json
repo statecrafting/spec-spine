@@ -111,6 +111,6 @@
     "specId": "096-compaction-is-a-verb-not-a-session",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "1a4700a3f7890ee7001f71abede8034339102acbf657919b3fb7cd4987d64ba2"
+  "schemaVersion": "1.2.0",
+  "shardHash": "4b150b64d577b0ee825dc3aaff8802dc9ca933a6159d19b6d1f0c15a07051915"
 }

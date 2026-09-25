@@ -39,6 +39,6 @@
     "specId": "118-the-renumber-is-history-not-a-standing-rule",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "bb6e5a34a4c991f6a7ede4e470f1260345992b3aee39ba647aeaf2d9945ac8bc"
+  "schemaVersion": "1.2.0",
+  "shardHash": "11e7bf103fb8acc734b5c81e8ed919d8d963ac123b0b7a8e875d14781a6d1e7e"
 }

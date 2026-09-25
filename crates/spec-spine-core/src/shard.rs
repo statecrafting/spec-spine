@@ -15,7 +15,7 @@
 //! The per-artifact projection (record/mapping shapes, per-shard hash inputs)
 //! lives with each producer: [`crate::compile`] and [`crate::index`].
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Component, Path, PathBuf};
 
@@ -50,15 +50,17 @@ pub const BY_SPEC_DIR: &str = "by-spec";
 /// The shard subdirectory holding per-package shards under an artifact's dir.
 pub const BY_PACKAGE_DIR: &str = "by-package";
 
-/// The scalar folded into every shard's `shardHash` so a change to a globally
-/// shared input (the `spec-spine.toml` config and any `index.extra_hashed_inputs`
-/// file) restamps every shard rather than silently staling none. A config edit
-/// is rare and inherently global, and two PRs that touch only disjoint specs do
-/// not touch it, so the conflict-free property is unaffected. Pure function of
-/// `(config, file contents)`. The registry deliberately does not fold this (its
-/// pre-shard hash covered `spec.md` only); the index does (its pre-shard hash
-/// covered `spec-spine.toml` + `extra_hashed_inputs`).
-pub fn global_inputs_hash(cfg: &Config, repo_root: &Path) -> String {
+/// The global inputs as hash pieces, `(repo-relative POSIX path, piece)`, sorted
+/// and deduplicated by path: `spec-spine.toml` and every
+/// `index.extra_hashed_inputs` match outside a declared state root. A workflow
+/// contributes its governance projection rather than its raw bytes (spec 060
+/// 3.1). Pure function of `(config, file contents)`.
+///
+/// Spec 141 moved these out of every shard's `shardHash`: they are recorded one
+/// entry per file in the `codebase-index/inputs.json` sidecar
+/// ([`input_digests`]) and folded into the aggregate content hash, so a
+/// governance edit rewrites one committed file rather than every shard.
+pub fn global_input_pieces(cfg: &Config, repo_root: &Path) -> Vec<(String, String)> {
     let mut pieces: Vec<(String, String)> = Vec::new();
     let cfg_path = repo_root.join("spec-spine.toml");
     if let Ok(content) = fs::read_to_string(&cfg_path) {
@@ -78,12 +80,10 @@ pub fn global_inputs_hash(cfg: &Config, repo_root: &Path) -> String {
             }
             if let Ok(content) = fs::read_to_string(&file) {
                 // Spec 060 3.1: a workflow folds as its governance projection,
-                // not as raw bytes. `.github/workflows/**/*` is half the
-                // shipped default and this scalar is inside EVERY shard hash,
-                // so without the projection a one-character action-ref bump
-                // stales the whole ledger, and the bot that made it can neither
-                // re-index nor waive. Unparseable falls back to raw bytes, as
-                // the npm and cargo projections do.
+                // not as raw bytes, so a one-character action-ref bump leaves
+                // the ledger fresh and the bot that made it is not walled.
+                // Unparseable falls back to raw bytes, as the npm and cargo
+                // projections do.
                 let piece = if crate::dep_only::is_workflow_yaml(&rel) {
                     crate::manifest::workflow_hash_projection(&content).unwrap_or(content)
                 } else {
@@ -95,7 +95,40 @@ pub fn global_inputs_hash(cfg: &Config, repo_root: &Path) -> String {
     }
     pieces.sort_by(|a, b| a.0.cmp(&b.0));
     pieces.dedup_by(|a, b| a.0 == b.0);
-    hash::content_hash(pieces)
+    pieces
+}
+
+/// One content hash over every global input (spec 022's scalar). Since spec 141
+/// no shard folds it; it remains the single-value answer to "did any governance
+/// input change", with the same construction as before.
+pub fn global_inputs_hash(cfg: &Config, repo_root: &Path) -> String {
+    hash::content_hash(global_input_pieces(cfg, repo_root))
+}
+
+/// Each global input's own digest, keyed by path (spec 141 3.2): the
+/// `contentHash` of the one-piece set `(path, piece)`, the same construction a
+/// shard hash uses, so an input is hashed the same way wherever it is hashed.
+pub fn input_digests(cfg: &Config, repo_root: &Path) -> BTreeMap<String, String> {
+    global_input_pieces(cfg, repo_root)
+        .into_iter()
+        .map(|(path, piece)| {
+            let digest = hash::content_hash(vec![(path.clone(), piece)]);
+            (path, digest)
+        })
+        .collect()
+}
+
+/// The value the aggregate index content hash folds for the inputs sidecar
+/// (spec 141 3.4): a content hash over the sorted `(path, contentHash)` pairs.
+/// Computable from the sidecar alone, so the aggregate assembled from the
+/// committed tree equals the one computed at emit.
+pub fn inputs_fold<'a>(digests: impl IntoIterator<Item = (&'a String, &'a String)>) -> String {
+    hash::content_hash(
+        digests
+            .into_iter()
+            .map(|(path, digest)| (path.clone(), digest.clone()))
+            .collect(),
+    )
 }
 
 /// The aggregate content hash recomputed from the shard set on read: SHA-256

@@ -32,6 +32,6 @@
     "specId": "140-a-prose-only-example-stays-prose-only",
     "specStatus": "draft"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "ef566d988480e4059fec559a418038aad5772ac7133838a6630314d59e394cde"
+  "schemaVersion": "1.2.0",
+  "shardHash": "84f729ea7847436dd0e011d083c31e7542a2fbdd3b356f384a9ef31bfce48a2e"
 }

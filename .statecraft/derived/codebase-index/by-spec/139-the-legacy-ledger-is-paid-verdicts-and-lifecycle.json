@@ -53,6 +53,6 @@
     "specId": "139-the-legacy-ledger-is-paid-verdicts-and-lifecycle",
     "specStatus": "draft"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "d81e2c67e6821e2b51f34cbad2b0f122962e71d40c49100488e348f8930b4bb4"
+  "schemaVersion": "1.2.0",
+  "shardHash": "0137a8b006af0e85cf656071473a8f644925d543007172247dc22a84fab6eb7f"
 }

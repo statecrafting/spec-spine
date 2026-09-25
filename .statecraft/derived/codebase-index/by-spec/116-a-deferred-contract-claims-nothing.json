@@ -73,6 +73,6 @@
     "specId": "116-a-deferred-contract-claims-nothing",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "788c9e9ab77e694cb5c3d925cd316c0a8f25ec9d3cb1884cbccecd67d5e64ada"
+  "schemaVersion": "1.2.0",
+  "shardHash": "d2de257e693f3d7031068d84b57c332445f48344076295f5b8921ed915aafa87"
 }

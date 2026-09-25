@@ -100,6 +100,6 @@
     "specId": "027-cargo-workflow-dependency-waiver",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "9a0f6b0190a2edecd8660fc3315e1b18b440e19860fa8997cd76d9bfd6785876"
+  "schemaVersion": "1.2.0",
+  "shardHash": "b794b882553d299f9a0e8dee593f0d6048294e914abd8f5857c41a79b96a7f06"
 }

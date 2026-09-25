@@ -61,6 +61,6 @@
     "specId": "038-completion-held-to-claims",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "9de111670137faa6d00065ac919afcc6241ba0d024ad4bf44c9491eaffec91c8"
+  "schemaVersion": "1.2.0",
+  "shardHash": "2ddcfd4c770a42ca4eca7854a7ed8a7ff63b57d2d445469ca9f3303f0676aacb"
 }

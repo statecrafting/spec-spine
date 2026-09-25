@@ -231,6 +231,6 @@
     "specId": "074-a-governed-read-names-its-version",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "8d59bf7aac61dbda5d8ea671ec09245ce976fcbae78da5bba335dbe17bff1297"
+  "schemaVersion": "1.2.0",
+  "shardHash": "49af0d8bc3269bb1c884c273be7d127a2b222ace1cfa05d8d5721d847d7470d0"
 }

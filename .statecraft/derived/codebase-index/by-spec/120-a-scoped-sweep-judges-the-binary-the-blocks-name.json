@@ -54,6 +54,6 @@
     "specId": "120-a-scoped-sweep-judges-the-binary-the-blocks-name",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "15ad511a48b78b07d800031920cfe049345adb2dffbb9caef79b2dc24ee0be7b"
+  "schemaVersion": "1.2.0",
+  "shardHash": "f8142c37e130a594fb1be4143525b981d14ba220d52efca10f1627fd780279b2"
 }

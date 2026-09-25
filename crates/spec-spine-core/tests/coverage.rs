@@ -35,6 +35,9 @@ fn emit_index(cfg: &Config, repo: &Path) {
     let (by_spec, by_package) = index_shard_files(&outcome.shards).unwrap();
     shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec).unwrap();
     shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package).unwrap();
+    // Spec 141: the inputs sidecar, as `spec-spine index` writes it.
+    let (inputs_name, inputs) = spec_spine_core::index_inputs_file(&outcome.shards).unwrap();
+    std::fs::write(dir.join(inputs_name), inputs).unwrap();
 }
 
 /// Two crates. `crates/a` names `000-floor` in its manifest; `001-a` claims
@@ -793,6 +796,9 @@ fn coverage_reports_planned_territory_separately_from_the_counts() {
     let (by_spec, by_package) = index_shard_files(&out.shards).unwrap();
     shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec).unwrap();
     shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package).unwrap();
+    // Spec 141: the inputs sidecar, as `spec-spine index` writes it.
+    let (inputs_name, inputs) = spec_spine_core::index_inputs_file(&out.shards).unwrap();
+    std::fs::write(dir.join(inputs_name), inputs).unwrap();
     let compiled = spec_spine_core::compile(&cfg, tmp.path()).unwrap();
     let reg_dir = spec_spine_core::registry_dir(&cfg, tmp.path());
     shard::sync_dir(
@@ -846,6 +852,9 @@ fn coverage_lists_only_planned_territory_that_is_not_yet_written() {
     let (by_spec, by_package) = index_shard_files(&out.shards).unwrap();
     shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec).unwrap();
     shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package).unwrap();
+    // Spec 141: the inputs sidecar, as `spec-spine index` writes it.
+    let (inputs_name, inputs) = spec_spine_core::index_inputs_file(&out.shards).unwrap();
+    std::fs::write(dir.join(inputs_name), inputs).unwrap();
     let compiled = spec_spine_core::compile(&cfg, tmp.path()).unwrap();
     let reg_dir = spec_spine_core::registry_dir(&cfg, tmp.path());
     shard::sync_dir(

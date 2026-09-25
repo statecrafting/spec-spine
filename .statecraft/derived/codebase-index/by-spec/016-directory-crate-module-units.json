@@ -129,6 +129,6 @@
     "specId": "016-directory-crate-module-units",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "0aa956cac648c2321d64d8d1cc3b7077af27fe0b6b6dbefbdac47bd2c197d1dc"
+  "schemaVersion": "1.2.0",
+  "shardHash": "8bef2929f21c7d014c2e30ba5868eb361e19dbe6f8e95ea9216e1083bfa5f195"
 }

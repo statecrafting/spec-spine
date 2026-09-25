@@ -29,6 +29,6 @@
     "specId": "087-the-answer-is-a-member-not-the-document",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "309a8556809cb8d1f896bcb9d119d0a87c76c278d99d7bfb2a727d5f0e945b91"
+  "schemaVersion": "1.2.0",
+  "shardHash": "933cc8cd62d4ce2d581debb375dcedba4d1102ef099ecb56f6a47768058f3bff"
 }

@@ -6,6 +6,6 @@
     "specRef": "006-distribution",
     "version": "0.26.0"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "bce6fae8e9aedf5e3a15f8a5c23cdfe725040483287c47c364d80df13758d0a7"
+  "schemaVersion": "1.2.0",
+  "shardHash": "a80c771842fd9a21f576899e56a8d3f0c3c982681ac70b1f3e65823474030c61"
 }

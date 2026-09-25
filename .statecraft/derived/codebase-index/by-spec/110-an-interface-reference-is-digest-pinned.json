@@ -445,6 +445,6 @@
     "specId": "110-an-interface-reference-is-digest-pinned",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "21ad0978e85caa1053913cbd185adc8f9c8f5c6d50ea478996d2b7ae671afc83"
+  "schemaVersion": "1.2.0",
+  "shardHash": "0736331a16269f49934d5be8e3300804fdb255b781f8192dd7efebf672750813"
 }

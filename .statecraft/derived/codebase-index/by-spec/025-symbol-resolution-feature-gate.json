@@ -79,6 +79,6 @@
     "specId": "025-symbol-resolution-feature-gate",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "675e089f5507b8c0e221d2f3c1948878dcab00dedfbb5f8a85047316d7c7dd71"
+  "schemaVersion": "1.2.0",
+  "shardHash": "1a3fcd125d66e249db546504562cb4fc824a12e6b6995169e22a6e64cb2989c7"
 }

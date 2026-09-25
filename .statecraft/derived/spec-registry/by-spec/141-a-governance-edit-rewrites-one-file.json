@@ -1,0 +1,287 @@
+{
+  "record": {
+    "amends": [
+      "022-index-sharding",
+      "050-claimed-but-unwitnessed",
+      "057-the-docs-name-what-adopters-derived",
+      "061-shipped-is-not-the-same-as-working",
+      "060-a-workflow-bump-is-not-a-governed-change",
+      "069-the-committed-index-is-compared-not-trusted"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "022-index-sharding",
+      "060-a-workflow-bump-is-not-a-governed-change",
+      "069-the-committed-index-is-compared-not-trusted",
+      "070-an-authority-snapshot-says-what-it-read"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/schemas/codebase-index-inputs.schema.json"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/governance_inputs.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/shard.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "092-the-engine-ships-governance-not-an-environment",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scaffold.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/codebase.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/schema.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "046-depends-on-ordinal-monotonicity",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/lint.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/coverage.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "071-a-change-is-classified-under-the-bases-rules",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/delta.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "044-index-diagnostics-reach-a-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/diagnostics.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "069-the-committed-index-is-compared-not-trusted",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index_body.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "114-authoring-adapters-and-intent-are-separated",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/intent.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "112-typed-overlays-ride-the-existing-seam",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/overlays.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "108-a-work-scope-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scope.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "070-an-authority-snapshot-says-what-it-read",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/snapshot.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "105-governed-scope-is-enabled-here",
+        "unit": {
+          "kind": "file",
+          "path": "CLAUDE.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/adoption-guide.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "055-a-version-pin-the-cli-can-check",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "id": "141-a-governance-edit-rewrites-one-file",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-1-one-edit-every-shard": "caea85ef31fe93c875850f4da71da3ee981fb660dee67bd92f72974ff81ba5a9",
+      "1-2-what-the-fold-is-for-and-what-else-provides-it": "b7dbe54ded22eac2faf26b3414178ab853646fcad2b4641cd86c79b47a040652",
+      "1-purpose": "ba9a54f90cc9056bd8e666abd76810ca609c7ded0e35dffa93523b95c0aa645c",
+      "141-a-governance-edit-rewrites-one-file": "c6af2224f6a84b606bed59dac9400f2f63136469f495c9948bcbaa3d6b117c01",
+      "2-territory": "33cd8d3d35a177790b22695628dfb7e6cb4784f41e204f9cab7c4236dbe5cbfd",
+      "3-1-shard-hashes-cover-only-their-own-inputs-amends-022": "ae43f40cba46beb7eee9308b6847e31a1f1182fc78158862e65a84ef3c7a06b1",
+      "3-2-the-inputs-sidecar": "b4dc7f129cb8fef26b8dcc875600b19c2015d15e39866d9d2259f448351cb512",
+      "3-3-freshness-compares-it-amends-069": "4da37550ee5f3ea71b4f444f6b2a10e1f880efeae93d0ff500716612e3a9e2d2",
+      "3-4-the-aggregate-still-covers-the-inputs": "7312bfc61b393a07562cb6db78f6e1526747bf9a68d0066033666ee750106ba8",
+      "3-5-the-l-008-message-states-the-new-cost-amends-050-057-061": "a82928237a1eda689f067db936c9a9c0e3cca0e6fd33fc0bd68a9627f08f6821",
+      "3-6-the-fold-site-amends-060": "dfacc34a8bb969ee62ff53690ea1e16c11770a769695b2ec5a43e7ff02f84b75",
+      "3-7-version-and-migration": "e2e5dc848be52b44962bf333cc569a903b65b1051a4c92a17f87c13da67ed59b",
+      "3-behavior": "74f29b124b1dccae602536fe45f1511806605306ab3e6988b5572180aef44fa3",
+      "4-out-of-scope": "0f378c76185007f9a2d1d05a7d4fed57702fc27a27331152cde328d050899b33",
+      "5-resolved-decisions": "4c4bd823eb43f7b7e0d76c7414b7e84d1d24c4fb5da1b94521d093f187afc4e6",
+      "verification": "58752c4636a179cba3eb2ea6235b0d17ab1c4a202acb92223f97c8a80ccaba57"
+    },
+    "sectionHeadings": [
+      "141: A governance edit rewrites one file",
+      "1. Purpose",
+      "1.1 One edit, every shard",
+      "1.2 What the fold is for, and what else provides it",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Shard hashes cover only their own inputs (amends 022)",
+      "3.2 The inputs sidecar",
+      "3.3 Freshness compares it (amends 069)",
+      "3.4 The aggregate still covers the inputs",
+      "3.5 The L-008 message states the new cost (amends 050, 057, 061)",
+      "3.6 The fold site (amends 060)",
+      "3.7 Version and migration",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/141-a-governance-edit-rewrites-one-file/spec.md",
+    "status": "draft",
+    "summary": "Every index shard's `shardHash` folds one global scalar over `spec-spine.toml` and every `[index] extra_hashed_inputs` file, so a one-line edit to any root document restamps every shard. Measured on this repository at `153d35df`: an `AGENTS.md` edit rewrites 139 shards, and two pull requests editing two different root documents conflict on all 139. An adopter's merge queue pays that on every such PR. This spec moves the global inputs out of the shard hashes into one committed sidecar, `codebase-index/inputs.json`, with one entry per input file, compared byte for byte like a shard. A governance edit then rewrites that one file, and two edits to different documents change lines far enough apart to merge. The aggregate index content hash folds the sidecar, so an attestation still covers every authored input.\n",
+    "title": "A governance edit rewrites one file"
+  },
+  "shardHash": "65380b1729825c91ac45f6bfbd28b81e4e76a25f9dfbaee8280b9ef57edd21c9",
+  "specVersion": "1.8.0"
+}

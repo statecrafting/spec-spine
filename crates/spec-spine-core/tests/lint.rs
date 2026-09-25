@@ -222,6 +222,9 @@ fn commit_index(cfg: &Config, root: &Path) {
     let (by_spec, by_package) = spec_spine_core::index_shard_files(&outcome.shards).unwrap();
     shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec).unwrap();
     shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package).unwrap();
+    // Spec 141: the inputs sidecar, as `spec-spine index` writes it.
+    let (inputs_name, inputs) = spec_spine_core::index_inputs_file(&outcome.shards).unwrap();
+    std::fs::write(dir.join(inputs_name), inputs).unwrap();
 }
 
 fn l008(cfg: &Config, root: &Path) -> Vec<spec_spine_types::Violation> {
@@ -273,10 +276,16 @@ fn an_unwitnessed_claim_is_an_l008_warning_naming_both_remedies() {
     // Spec 061 3.2, conformance with 057: naming both remedies is not enough.
     // 057 requires the message to say how they DIFFER, and the shipped string
     // dropped that, so it read as a pick-either and sent an adopter to the
-    // wrong one. A glob restamps every shard; a span-backed unit stales one.
+    // wrong one. Since spec 141 a glob makes every edit a governance change
+    // recorded in the inputs sidecar; a span-backed unit stales one shard.
     assert!(
-        v.message.contains("EVERY shard"),
+        v.message.contains("governance change") && v.message.contains("inputs.json"),
         "the glob's cost must be stated: {}",
+        v.message
+    );
+    assert!(
+        !v.message.contains("EVERY shard"),
+        "spec 141: a glob no longer restamps every shard: {}",
         v.message
     );
     assert!(
@@ -843,6 +852,9 @@ fn l012_reports_a_planned_unit_that_has_resolved() {
         &by_package,
     )
     .unwrap();
+    // Spec 141: the inputs sidecar, as `spec-spine index` writes it.
+    let (inputs_name, inputs) = spec_spine_core::index_inputs_file(&out.shards).unwrap();
+    std::fs::write(dir.join(inputs_name), inputs).unwrap();
 
     let found = lint_codes(&tmp);
     assert!(

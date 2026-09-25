@@ -25,6 +25,6 @@
     "specId": "000-spec-spine-bootstrap",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "f708b215d2fe1b06981561cc5ef9841d83295fb07966bf3d93cf7adc2239ceae"
+  "schemaVersion": "1.2.0",
+  "shardHash": "68665c3d36fd91683ca67adf5fbcd0509cc174b47637cbbbbba6c11050a50ffe"
 }

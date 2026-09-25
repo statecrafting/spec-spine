@@ -91,6 +91,6 @@
     "specId": "026-references-provenance-derived-at",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "bd0666863003004bff0a11e9854bd21f57f314a47018632d87c9af1b14105214"
+  "schemaVersion": "1.2.0",
+  "shardHash": "aafb1573430456b6bf2f9e458dd5cb5dd121ef58cf839fcd39951136acccf43e"
 }

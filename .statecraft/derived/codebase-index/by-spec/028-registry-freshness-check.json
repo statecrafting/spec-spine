@@ -139,6 +139,6 @@
     "specId": "028-registry-freshness-check",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "2b579628a3b3e3516a101f1b940e28368ccdc93a6633e8d51bff683973e92290"
+  "schemaVersion": "1.2.0",
+  "shardHash": "cfb78301eb29cbd9cdcd260e992bc15441548da03fd43e5ff8307c8361ca3c76"
 }

@@ -237,6 +237,31 @@ pub struct IndexPackageShard {
     pub package: PackageRecord,
 }
 
+/// The governance-inputs sidecar, `<derived>/codebase-index/inputs.json` (spec
+/// 141): one entry per file the index treats as a global input
+/// (`spec-spine.toml` and every `[index] extra_hashed_inputs` match outside a
+/// declared state root). Before spec 141 these folded into every shard's
+/// `shardHash`, so one edit restamped the whole tree; recorded here, one edit
+/// rewrites one file, and two edits to different inputs change lines far
+/// enough apart for git to merge them.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct IndexInputs {
+    /// `schemaVersion`; see [`crate::version::INDEX_SCHEMA_VERSION`].
+    pub schema_version: String,
+    /// Repository-relative POSIX path to that file's digest.
+    pub inputs: BTreeMap<String, InputDigest>,
+}
+
+/// One global input's digest (spec 141 3.2).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct InputDigest {
+    /// `hash::content_hash` over this one file's piece: its path and its
+    /// normalized bytes, or a workflow's governance projection (spec 060).
+    pub content_hash: String,
+}
+
 /// A single index diagnostic (`I-###`).
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

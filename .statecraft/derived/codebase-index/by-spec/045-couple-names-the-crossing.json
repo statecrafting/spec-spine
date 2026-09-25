@@ -225,6 +225,6 @@
     "specId": "045-couple-names-the-crossing",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "849663491ae3ed305f03cc56c45ddc9a19d16ec95e09f280cc444c5422938712"
+  "schemaVersion": "1.2.0",
+  "shardHash": "12d12290f7d80d8049cd6346cdd6e3b67f7f025afbf16a30dd23e41636bb6f27"
 }

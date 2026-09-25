@@ -106,6 +106,6 @@
     "specId": "090-the-verdict-is-the-only-thing-on-stdout",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "652efe0f78877989bf9fa8288f4835b1f10ebae76e88f024b03633afa12c4a5d"
+  "schemaVersion": "1.2.0",
+  "shardHash": "01a6c552e5d07e33ee95bb256ebfd002229f5d9023d815a25232e5abc13ebbf6"
 }
