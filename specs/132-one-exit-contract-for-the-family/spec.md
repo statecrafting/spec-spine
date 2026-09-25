@@ -274,7 +274,9 @@ finding.
   --spec` that is not one path segment.
 - **Failed (4).** Every genuine I/O and git failure (`Io`). A committed shard,
   registry, index, attestation or seal payload that does not parse, lacks its
-  `schemaVersion`, or carries an unsupported MAJOR (`Schema`). A value the tool
+  `schemaVersion`, or carries an unsupported MAJOR (`Schema`); a seal whose
+  signature or algorithm cannot be read is the same (`Schema`), while the same
+  malformed hex in an operator's public key stays `Config`. A value the tool
   built that will not serialize (`Internal`). A shard directory that exists and
   cannot be listed MUST be `Io`, not an empty listing.
 - **Finding (1).** Staleness in every verb that reads it (`check`, `index
