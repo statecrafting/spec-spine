@@ -1,7 +1,7 @@
 ---
 id: "132-one-exit-contract-for-the-family"
 title: "One exit contract for the family"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-24"
 summary: >

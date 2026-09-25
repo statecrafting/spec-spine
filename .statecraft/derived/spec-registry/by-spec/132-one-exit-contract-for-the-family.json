@@ -741,10 +741,10 @@
       "Verification"
     ],
     "specPath": "specs/132-one-exit-contract-for-the-family/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "spec-spine and the Statecraft CLI answered in two exit vocabularies. spec-spine spent 2 on staleness and 3 on everything that went wrong, from a malformed `spec-spine.toml` to a failed read to a refused write, so a consumer could not tell \"you asked for something this tool will not do\" from \"the disk failed\", and a containment refusal was reported as I/O. This spec adopts the family contract the two tools share: 0 ok, 1 finding (validation, drift, stale, unresolved, not found, authored content that does not parse), 2 refused (an invalid configuration, a version pin not met, a containment refusal: nothing done), 3 usage, 4 failed (I/O, internal, a tool-produced artifact that fails its schema). `Error` gains `Refused`, `Usage` and `Internal`, and every call site is classified. The `--json` envelope becomes the family envelope, version 1.0.0: `schemaVersion`, `tool`, `verb`, `outcome`, `exitCode`, `summary`, then `report` or `error`, with `ok` removed and `error.kind` a closed set of ten tokens. It is a deliberate breaking change, accepted by the owner, taken once so the consumer migrates once.\n",
     "title": "One exit contract for the family"
   },
-  "shardHash": "2bb5122e20bfde08c0effc9e798e241518fbbadf95ce0bb7b97d43c7535628b6",
+  "shardHash": "5396196bcf4361912fd38ba1d51506492d5f0cff46b5fb1bd3e640d761911e1b",
   "specVersion": "1.8.0"
 }
