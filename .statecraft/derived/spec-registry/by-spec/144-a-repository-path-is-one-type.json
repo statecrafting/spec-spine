@@ -1,0 +1,61 @@
+{
+  "record": {
+    "amends": [
+      "128-a-derived-tree-stays-in-its-repository"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "096-compaction-is-a-verb-not-a-session",
+      "127-a-derived-file-is-where-its-path-says",
+      "128-a-derived-tree-stays-in-its-repository",
+      "134-the-suite-runs-on-windows"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/repo_path.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/repo_path.rs"
+      }
+    ],
+    "id": "144-a-repository-path-is-one-type",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "8b844000dc05c4bc2f32d9a7e7f4a2e88890c6dff267cbd41203be600e3a95eb",
+      "144-a-repository-path-is-one-type": "ccd76f3ec9d322f878e39e0b680b79acb596e7f7e1087d38a07ca8d7540b199e",
+      "2-territory": "1ea9a941670c4caba6c60b6be05c52edd66d314057dce7379477e05548ae051c",
+      "3-1-one-rule": "8411217e13ce844f3ae09d03b53e06f9009c9ab7baad87f88e921a1b42f94805",
+      "3-2-every-layout-root-amends-128": "db4a24961529cca1680ddb42aff89167b6a8a0bd53efdf8c307b494b8c9ba08b",
+      "3-3-compact-plan-paths": "70a0a4e6fabdfc4f7a09c192f0f49f4adfd297f6fc2ee4faccb7da8e1263b6ef",
+      "3-4-no-read-leaves-the-repository-through-a-link": "2494904afe0c7adfeab8ef0af6456abc993ec1c6fbae076410d749792fe57d87",
+      "3-behavior": "49a7b502eb190843cb4dc17acdf63ea90fdc1a0b6c751634ff4d3cec71b3e50e",
+      "4-out-of-scope": "3cb0f82f81b3faf5e2a1aa8f61eb63a2a56ef7888aa4e2bd9d4e6e474427882f",
+      "5-resolved-decisions": "d3ded050c2389436744e5abf3c42708780128e6315d1f837a724f5c914914f8d",
+      "verification": "519546a2a15135b3857ad19e859e92ece2c090e8fea374053ce7d5258cafb1ce"
+    },
+    "sectionHeadings": [
+      "144: A repository path is one type",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One rule",
+      "3.2 Every layout root (amends 128)",
+      "3.3 Compact plan paths",
+      "3.4 No read leaves the repository through a link",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/144-a-repository-path-is-one-type/spec.md",
+    "status": "draft",
+    "summary": "Paths the engine joins onto the repository root were checked key by key, or not at all. `derived_dir` refused `/`, `..`, `\\` and `:` (spec 128); `specs_dir` and `standards_dir` accepted anything, so a corpus could be read from outside the repository; a compact plan refused a leading slash (WF-8) and let the drive-relative `C:foo` through; no key refused a Windows device-name segment; and a link inside the repository could point any governed read outside it. This spec gives one rule for a repository-relative path, applies it to every layout root and to compact plan paths, and refuses a run whose tree holds a link that resolves outside the repository, exit 2, while a repository reached through a link keeps working.\n",
+    "title": "A repository path is one type"
+  },
+  "shardHash": "e8cb25a3efa7678257aa8b1fc6ebeb98c926d7135268942450fc6fc72c771ca8",
+  "specVersion": "1.9.0"
+}

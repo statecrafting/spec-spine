@@ -887,7 +887,10 @@ fn a_retired_path_in_a_windows_form_is_refused() {
         e.path = bad.into();
         let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
         assert_eq!(err.exit_code(), 2, "{bad}: {err}");
-        assert!(format!("{err}").contains("as the corpus spells it"), "{bad}: {err}");
+        assert!(
+            format!("{err}").contains("as the corpus spells it"),
+            "{bad}: {err}"
+        );
     }
     for bad in ["C:docs/note.md", "docs\\note.md", "aux.md"] {
         let mut e = retire_rules();

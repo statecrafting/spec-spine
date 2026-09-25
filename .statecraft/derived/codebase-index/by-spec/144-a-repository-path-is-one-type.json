@@ -1,0 +1,55 @@
+{
+  "mapping": {
+    "amends": [
+      "128-a-derived-tree-stays-in-its-repository"
+    ],
+    "dependsOn": [
+      "096-compaction-is-a-verb-not-a-session",
+      "127-a-derived-file-is-where-its-path-says",
+      "128-a-derived-tree-stays-in-its-repository",
+      "134-the-suite-runs-on-windows"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/tests/repo_path.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/repo_path.rs",
+        "source": "multiple"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/repo_path.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/repo_path.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/repo_path.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/repo_path.rs"
+        }
+      }
+    ],
+    "specId": "144-a-repository-path-is-one-type",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "e8cb25a3efa7678257aa8b1fc6ebeb98c926d7135268942450fc6fc72c771ca8"
+}

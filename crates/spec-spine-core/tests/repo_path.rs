@@ -20,7 +20,15 @@ fn write(root: &Path, rel: &str, content: &str) {
 #[test]
 fn every_layout_root_follows_the_one_rule() {
     for key in ["specs_dir", "standards_dir", "derived_dir"] {
-        for bad in ["../x", "/etc", "C:foo", "a\\b", "con/x", "a/nul.txt", "x./y"] {
+        for bad in [
+            "../x",
+            "/etc",
+            "C:foo",
+            "a\\b",
+            "con/x",
+            "a/nul.txt",
+            "x./y",
+        ] {
             let toml = format!("[layout]\n{key} = '{bad}'\n");
             let err = load_config(&toml).unwrap_err();
             assert_eq!(err.exit_code(), 2, "{key} = {bad}: {err}");
@@ -60,7 +68,10 @@ fn a_link_leaving_the_repository_refuses_the_read() {
 
     symlink(repo.join("src/a.rs"), repo.join("src/inside.rs")).unwrap();
     symlink(repo.join("src/gone.rs"), repo.join("src/dangling.rs")).unwrap();
-    assert!(compile(&cfg, &repo).is_ok(), "a link inside, and a dangling one, are fine");
+    assert!(
+        compile(&cfg, &repo).is_ok(),
+        "a link inside, and a dangling one, are fine"
+    );
     assert!(index(&cfg, &repo).is_ok());
 
     symlink(outside.join("secret.rs"), repo.join("src/leak.rs")).unwrap();
@@ -74,7 +85,9 @@ fn a_link_leaving_the_repository_refuses_the_read() {
     // A directory link is checked without being followed.
     fs::remove_file(repo.join("src/leak.rs")).unwrap();
     symlink(&outside, repo.join("specs/elsewhere")).unwrap();
-    let err = compile(&cfg, &repo).err().expect("a directory link refuses too");
+    let err = compile(&cfg, &repo)
+        .err()
+        .expect("a directory link refuses too");
     assert!(format!("{err}").contains("specs/elsewhere"), "{err}");
 }
 

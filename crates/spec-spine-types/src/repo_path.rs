@@ -118,7 +118,16 @@ mod tests {
 
     #[test]
     fn plain_relative_paths_pass() {
-        for ok in ["", ".", "specs", "./specs", "a/b/c", ".statecraft/derived", "specs/", "a.b/c"] {
+        for ok in [
+            "",
+            ".",
+            "specs",
+            "./specs",
+            "a/b/c",
+            ".statecraft/derived",
+            "specs/",
+            "a.b/c",
+        ] {
             assert_eq!(repo_path_problem(ok), None, "{ok}");
         }
     }
@@ -126,8 +135,22 @@ mod tests {
     #[test]
     fn every_escape_and_windows_hazard_is_refused() {
         for bad in [
-            "/etc", "\\x", "C:foo", "C:\\x", "a:b", "a\\b", "..", "a/../b", "a/..",
-            "con", "a/NUL.txt", "com1/x", "lpt9", "a./b", "a /b", "x\0y",
+            "/etc",
+            "\\x",
+            "C:foo",
+            "C:\\x",
+            "a:b",
+            "a\\b",
+            "..",
+            "a/../b",
+            "a/..",
+            "con",
+            "a/NUL.txt",
+            "com1/x",
+            "lpt9",
+            "a./b",
+            "a /b",
+            "x\0y",
         ] {
             assert!(repo_path_problem(bad).is_some(), "{bad:?}");
         }
