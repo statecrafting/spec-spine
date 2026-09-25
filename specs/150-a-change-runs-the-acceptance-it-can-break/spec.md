@@ -1,7 +1,7 @@
 ---
 id: "150-a-change-runs-the-acceptance-it-can-break"
 title: "A change runs the acceptance it can break"
-status: draft
+status: approved
 kind: "process"
 created: "2026-09-25"
 summary: >
@@ -88,26 +88,31 @@ any engine change, and is narrower only for changes outside engine source.
   changed, a changed path, or a changed test file, plus every spec whose
   `spec.md` changed.
 
-The report MUST say which rule selected each spec.
+The report MUST say which rule selected each spec (`engine-source`,
+`changed-spec`, `names-spec`, `names-path` or `names-test`).
+
+`scripts/test-verify-sweep.py` MUST carry one case per rule, named
+`test_affected_by_engine_source_selects_every_spec`,
+`test_affected_by_a_changed_spec_selects_itself`,
+`test_affected_by_a_named_spec_is_selected`,
+`test_affected_by_a_named_path_is_selected` and
+`test_affected_by_a_named_test_is_selected`, and a sixth,
+`test_affected_by_an_unrelated_spec_is_not_selected`, proving the selector is
+narrower than the corpus outside engine source.
 
 ### 3.2 It runs before merge, on the pull request's head
 
-Before a pull request that changes anything but documentation merges, the
-session driving it MUST run `verify-sweep.sh --affected-by <base>` on the
+Before a pull request merges, unless its diff touches only `docs/`,
+`website/`, or Markdown files outside `specs/`, the session driving it MUST
+run `verify-sweep.sh --affected-by <base>` on the
 pull request's head and record the head SHA and the counts in the pull
 request. A `failed` or `not-run` outcome blocks the merge until it is fixed or
 a spec is filed for it; the step never marks a block exempt.
 
-Where it runs is the owner's decision (D-1), because each option changes a
-trust boundary spec 099 set:
-
-- **A. The driving session, locally** (recommended). The session authored the
-  branch, so the sweep's trusted ref is the branch head itself
-  (`--trusted-ref <head>`), an explicit override 089 §3.7 already allows. No
-  workflow changes; a stranger's pull request is never swept by CI.
-- **B. CI on the merge queue** (`merge_group`): it runs only on a change a
-  maintainer has queued, which is closer to 099's rule, but costs the queue
-  about 45 minutes per engine change, sequentially.
+It runs in the driving session, locally (D-1). The session authored the
+branch, so the sweep's trusted ref is the branch head itself
+(`--trusted-ref <head>`), an explicit override 089 §3.7 already allows. No
+workflow changes, and a stranger's pull request is never swept by CI.
 
 ### 3.3 The post-merge sweep stays
 
@@ -123,13 +128,23 @@ the release verdict.
 
 ## 5. Resolved decisions
 
-**D-1 (open, owner): where the pre-merge run executes.** Option A or B in 3.2.
+**D-1 (2026-09-25, owner): the pre-merge run executes in the driving session,
+locally.** Each option changes a trust boundary spec 099 set. Chosen: the
+session that authored the branch runs the sweep against its own head, with
+`--trusted-ref <head>` visible in the report; it costs that session about 45
+minutes per engine change and changes no workflow. Considered and not taken:
+CI on the merge queue (`merge_group`), which runs only on a change a maintainer
+has queued and so stays closer to 099's rule, but costs the queue about 45
+minutes per engine change, sequentially; its runner cost could be carried by
+self-hosted runners paid with cloud credits. That option stays open for a later
+spec if session time becomes the constraint; adopting it is a change to the
+check suite and so the owner's.
 
 ## Verification
 
 ```verify:cli
-# 3.1: the selector's cases, including the whole-corpus fallback on engine source.
-sh -c 'python3 scripts/test-verify-sweep.py 2>&1 | grep -q "affected_by"'
+# 3.1: the suite passes, and each of the six named selector cases ran and passed.
+sh -c 'O="${TMPDIR:-/tmp}/ss150.out"; python3 scripts/test-verify-sweep.py > "$O" 2>&1; rc=$?; r=0; for t in test_affected_by_engine_source_selects_every_spec test_affected_by_a_changed_spec_selects_itself test_affected_by_a_named_spec_is_selected test_affected_by_a_named_path_is_selected test_affected_by_a_named_test_is_selected test_affected_by_an_unrelated_spec_is_not_selected; do grep -q "^$t .* ok$" "$O" || { echo "missing or failed: $t"; r=1; }; done; rm -f "$O"; test $rc -eq 0 && test $r -eq 0'
 sh -c 'scripts/verify-sweep.sh --help 2>&1 | grep -q -- "--affected-by"'
 # 3.2: the step is where the loop is.
 grep -q -- '--affected-by' AGENTS.md
