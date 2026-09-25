@@ -55,7 +55,9 @@ pub fn relocation_only(base: &str, head: &str, removed: &BTreeSet<String>) -> bo
     let mut drop = vec![false; lines.len()];
     let mut found: BTreeSet<&str> = BTreeSet::new();
     for (anchor, span) in markdown_section_spans(base) {
-        if !removed.contains(&anchor) || !found.insert(removed.get(&anchor).map_or("", String::as_str)) {
+        if !removed.contains(&anchor)
+            || !found.insert(removed.get(&anchor).map_or("", String::as_str))
+        {
             continue;
         }
         let from = span.start_line.saturating_sub(1);
@@ -92,12 +94,14 @@ fn normalize(text: &str, keep_levels: bool) -> String {
             continue;
         }
         let level = t.bytes().take_while(|&b| b == b'#').count();
-        let heading = !in_fence
-            && (1..=6).contains(&level)
-            && t[level..].starts_with([' ', '\t']);
+        let heading = !in_fence && (1..=6).contains(&level) && t[level..].starts_with([' ', '\t']);
         if heading {
             let text = strip_number(t[level..].trim());
-            let hashes = if keep_levels { "#".repeat(level) } else { "#".to_string() };
+            let hashes = if keep_levels {
+                "#".repeat(level)
+            } else {
+                "#".to_string()
+            };
             out.push(format!("{hashes} {text}"));
         } else if line.is_empty() {
             if out.last().is_some_and(String::is_empty) || out.is_empty() {

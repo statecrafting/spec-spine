@@ -78,6 +78,6 @@
     "specId": "009-registry-query-projection-flags",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "98fc32bf8cfb516aaf5a6bf85a8f97d9f891987aa10b1057714807348c948cf3"
+  "schemaVersion": "1.2.0",
+  "shardHash": "512daca4eeeeca0b54cb010056645d88a9295d2593cd078cb8e913dd2fca3538"
 }

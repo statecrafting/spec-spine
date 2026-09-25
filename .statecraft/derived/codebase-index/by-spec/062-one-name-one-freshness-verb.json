@@ -281,6 +281,6 @@
     "specId": "062-one-name-one-freshness-verb",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "21d5036ecbc648270770790526aa9efe76785c0f27b5570a2ab99d3a1e650757"
+  "schemaVersion": "1.2.0",
+  "shardHash": "3a86aa6e9bf27edafdc2b6e00204e1deb19389a5e21f526548e892e95a935a6f"
 }

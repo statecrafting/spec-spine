@@ -84,6 +84,6 @@
     "specId": "054-the-scaffold-ships-what-adopters-wrote",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "7632adeccd290b35aad6fab65de51444b7a200bdaa3f501efabe0f8f491fcfb4"
+  "schemaVersion": "1.2.0",
+  "shardHash": "344dc825f5eea764628372f8c3e0bbb14272b6e762a65ed783e37b09a096fe25"
 }

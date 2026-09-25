@@ -71,6 +71,6 @@
     "specId": "037-amendment-authoring",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "94b5f3c2defdb05a48159ed3da93f325c97855376d88e5f0526e404e46892ec2"
+  "schemaVersion": "1.2.0",
+  "shardHash": "cd0a6f55c1dae2f8df33d9a9c59ccbe60e6d9552b2b87dd0625fb51e9b24b712"
 }

@@ -134,6 +134,6 @@
     "specId": "042-absent-implementation-defers-to-status",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "e226678f3586cee17117c9d78820b2478abadec7aed59b0dd9cc6c1d55d90df0"
+  "schemaVersion": "1.2.0",
+  "shardHash": "00a8a67cb7bacb9f8c7bd99002dbe03b809e7b01433af6026eedddd822e17b8c"
 }

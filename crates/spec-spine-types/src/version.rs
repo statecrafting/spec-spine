@@ -86,7 +86,11 @@ pub const REGISTRY_SCHEMA_VERSION: &str = "1.9.0";
 /// non-blocking `W-001` (draft/pending owning) or `W-002` (non-owning reference)
 /// warning instead of a hard error; the `warnings` tier and free-form diagnostic
 /// `code` already exist, so no schema-file edit is needed.
-pub const INDEX_SCHEMA_VERSION: &str = "1.1.0";
+/// `1.2.0`: additive (spec 141). The global inputs (`spec-spine.toml` and every
+/// `[index] extra_hashed_inputs` match) move out of every shard's `shardHash`
+/// into one sidecar, `codebase-index/inputs.json`, one entry per file. Shard
+/// documents keep their shape; each `shardHash` value changes once.
+pub const INDEX_SCHEMA_VERSION: &str = "1.2.0";
 
 /// `schemaVersion` emitted in `build-meta.json` (the non-deterministic artifact).
 pub const BUILD_META_SCHEMA_VERSION: &str = "0.1.0";

@@ -265,6 +265,6 @@
     "specId": "067-a-short-id-names-the-same-spec-at-every-verb",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "0be2a55493f7e656efe75d7a3045663b8915524cd540f8423e4784e11da6ed86"
+  "schemaVersion": "1.2.0",
+  "shardHash": "6702615fa31f23ca2eb0279ec565b5836477336ef27fae2fe58c4915e46a8bfa"
 }

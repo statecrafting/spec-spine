@@ -54,6 +54,6 @@
     "specId": "137-the-legacy-ledger-is-paid-index-and-lint",
     "specStatus": "draft"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "0beb792359f90f9eb1d5c55172e30ff8fe3da8a6bd6a1e6653be145af3f7d90f"
+  "schemaVersion": "1.2.0",
+  "shardHash": "0cec9e7df264f9ce032692b3c38475abb53bebc6fc1f52eed398a94607ab97a5"
 }

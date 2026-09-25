@@ -34,3 +34,7 @@ pub const INDEX_SPEC_SHARD_SCHEMA: &str =
 /// `by-package/<slug>.json` (spec 022).
 pub const INDEX_PACKAGE_SHARD_SCHEMA: &str =
     include_str!("../schemas/codebase-index-package-shard.schema.json");
+
+/// JSON Schema for the committed governance-inputs sidecar,
+/// `codebase-index/inputs.json` (spec 141).
+pub const INDEX_INPUTS_SCHEMA: &str = include_str!("../schemas/codebase-index-inputs.schema.json");

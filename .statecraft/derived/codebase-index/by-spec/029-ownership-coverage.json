@@ -246,6 +246,6 @@
     "specId": "029-ownership-coverage",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "224d55a2054f465c5744e33c72bf55e904cacf728ea196b3d6e34f3bf7c7bac7"
+  "schemaVersion": "1.2.0",
+  "shardHash": "1ebeedae69b0888f1598e79f92ea2c326c59b02091a89b4f3f07f88556c954f4"
 }

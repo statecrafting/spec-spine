@@ -262,6 +262,6 @@
     "specId": "034-machine-readable-verdicts",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "5c8d220dac8c30ea0be672bab4f11f19b239b4f002b0ec198168ee366ea5485b"
+  "schemaVersion": "1.2.0",
+  "shardHash": "5a96be7aff93348aeb3825fe95c56fb44a1516c8dc4c5142f97ab993e586aa39"
 }

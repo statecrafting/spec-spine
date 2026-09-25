@@ -180,6 +180,6 @@
     "specId": "012-declared-extra-frontmatter-passthrough",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "829bdc8d7d346acea512488ca578889e6f52b61a15868dacd2586ef238e2da59"
+  "schemaVersion": "1.2.0",
+  "shardHash": "7c972f54a702744cb1418701e67ab301f9f5d005f834ad959f9ef6c4c3b95449"
 }

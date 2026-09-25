@@ -211,6 +211,6 @@
     "specId": "082-an-amended-acceptance-is-the-one-that-runs",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "4f5b4b52bdcb25aa05f914e06668141d97aef727c53292eb2e4a9a2cc4e258fa"
+  "schemaVersion": "1.2.0",
+  "shardHash": "043671f8e3072049f16b8bdcb2e9a7c1f95ddff3bb90d4e7b5a826de441ff298"
 }

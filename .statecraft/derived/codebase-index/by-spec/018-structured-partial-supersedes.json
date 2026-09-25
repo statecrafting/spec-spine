@@ -249,6 +249,6 @@
     "specId": "018-structured-partial-supersedes",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "b0ac22f23c3de927d8d14c8926260b55ad4b09a03ea0766cc00bf43b53a162df"
+  "schemaVersion": "1.2.0",
+  "shardHash": "7b1508b9432cbbe4a1d1864e89fd14d05f0cc8ce5d26f14d7d0e6e0cf83275b2"
 }

@@ -102,6 +102,6 @@
     "specId": "006-distribution",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "b69a54de8bef4b06b7bbacd2648b9b0b9351ed2f29704e9675e5a2e102d7ec57"
+  "schemaVersion": "1.2.0",
+  "shardHash": "5de1056c4207d934466ce6f08a911b251c52acb4ef53dbbb7e8bb5ee2eb12b84"
 }

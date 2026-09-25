@@ -72,6 +72,6 @@
     "specId": "088-the-template-teaches-the-whole-grammar",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "7587b221b48778e9b4e5b1055f49751cff792cdbe6b2cccdec114be31e8c269a"
+  "schemaVersion": "1.2.0",
+  "shardHash": "b22e873c59adbcaca4b4835d9b692fe60dbccee9b0b7d90bd02cf95199bba559"
 }

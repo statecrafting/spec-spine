@@ -85,6 +85,6 @@
     "specId": "073-a-mode-only-or-binary-change-is-a-change",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "59dcbbc1dd57630767f0a0317ed051e460c43dba0a5da95c825b4a204e1ef844"
+  "schemaVersion": "1.2.0",
+  "shardHash": "e4a3c4ace9c5b0272af68eeaf79d6855b10383e9af0766cac1e98b0a26565ab4"
 }

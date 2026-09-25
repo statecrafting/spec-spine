@@ -124,6 +124,6 @@
     "specId": "069-the-committed-index-is-compared-not-trusted",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "3b06b5a9f6b1072dcafd81ab7c124bdd7a48eebb6b94e0c92792d46390d497e4"
+  "schemaVersion": "1.2.0",
+  "shardHash": "adac832c9a2e075f222fb88c711b308898e30b02ca8fb4962ac4667a2c8d6270"
 }

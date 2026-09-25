@@ -70,6 +70,6 @@
     "specId": "115-bindings-are-designed-not-shipped",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "c7943d37e6c1127e711514ce5c450e3b7a0965fb8071c878b8446a1b08c6f329"
+  "schemaVersion": "1.2.0",
+  "shardHash": "fe0fb884917e004ff1959fd45bd5dbfa3eff23c44e3e127e8a6745d1a4b468ea"
 }

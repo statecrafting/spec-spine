@@ -321,13 +321,16 @@ needed for anything else.
   separate answer, from `check`, and `check --json` reports booleans, not the
   digests it compared.
 - **An index shard's hash does not cover its own body.** `shardHash` covers
-  the shard's inputs (the `spec.md`, the span files, the global scalar). Up to
+  the shard's inputs (the `spec.md` and the span files; since `v0.27.0` the
+  global inputs are recorded in `codebase-index/inputs.json` instead). Up to
   `v0.18.0`, `index check` compared only that field; since `v0.19.0` it compares
   the whole shard's bytes with a fresh index, so the body is checked even
   though the hash still does not cover it (§5).
 - **`spec-spine.toml` has no digest of its own** in a spec-corpus-only
   attestation. It reaches `registryHash` only through what it changes in the
-  compile, and reaches `indexHash` through the global-inputs scalar.
+  compile, and reaches `indexHash` through the global inputs, which the
+  aggregate folds (through every shard hash up to `v0.26.0`, through the
+  `inputs.json` sidecar since `v0.27.0`).
 - **The normalization is deliberate and lossy.** CRLF and LF variants, and a
   file with or without a BOM, hash identically.
 - **The fold is not injective.** Measured with the current binary: a claimed

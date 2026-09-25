@@ -95,6 +95,6 @@
     "specId": "013-edge-paths-grammar-sugar",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "2550037e584393c72a780f00e881452fae5f5cd0880e87eb35ea3f1e9e332ab1"
+  "schemaVersion": "1.2.0",
+  "shardHash": "61a182dc12a25b16ac427eebd2fd599d32be0b4a0c6058de65e70d98b0bb3a76"
 }

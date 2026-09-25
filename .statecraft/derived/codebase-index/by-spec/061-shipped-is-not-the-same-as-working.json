@@ -196,6 +196,6 @@
     "specId": "061-shipped-is-not-the-same-as-working",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "780c1282dbd088819d1e17af9ba17d52a686e2ad541ceed204df4ab5f6010536"
+  "schemaVersion": "1.2.0",
+  "shardHash": "f42830c83acea69f23d8178f2ca5802b70abf7d1219bb89614c2d2451b013e24"
 }

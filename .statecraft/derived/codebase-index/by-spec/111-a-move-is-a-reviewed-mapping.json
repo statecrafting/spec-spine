@@ -461,6 +461,6 @@
     "specId": "111-a-move-is-a-reviewed-mapping",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "d4e8e517ed900effc524e0e8b9f00e35cc5e059d94d871b9ecd1177a7a74cd9e"
+  "schemaVersion": "1.2.0",
+  "shardHash": "c5c77066dc755cc67f52908f3cfa809ae64ea9498cf8e6cc92810b84bbffd3f8"
 }

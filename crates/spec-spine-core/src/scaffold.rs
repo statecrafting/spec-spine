@@ -267,8 +267,8 @@ fn config_toml_unpinned(cfg: &Config) -> String {
          # standalone_npm_packages    = [\"npm\"]\n\
          \n\
          [index]\n\
-         # Extra files folded into the global-inputs hash, so a change to one\n\
-         # stales every shard.\n\
+         # Extra files recorded in the index's inputs record\n\
+         # (codebase-index/inputs.json), so a change to one rewrites that file.\n\
          #\n\
          # WATCH THE GLOB FORM. `dir/**` matches DIRECTORIES and therefore no\n\
          # files; you want `dir/**/*`, which is what the default below has.\n\

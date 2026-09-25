@@ -275,6 +275,6 @@
     "specId": "135-the-toolchain-floor-and-dependencies-are-checked",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "3bd4476dc9d15e6fcb63bf0a33a19dd35436b0204741b0c558eddc7e196590f5"
+  "schemaVersion": "1.2.0",
+  "shardHash": "9ca6229a9fe1720bd429ad737d504869b341ec08ff3209981de0a7e179a4f74e"
 }

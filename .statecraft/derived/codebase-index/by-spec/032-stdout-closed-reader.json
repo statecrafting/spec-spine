@@ -181,6 +181,6 @@
     "specId": "032-stdout-closed-reader",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "a0724c61fb07ccd8e386d15ba59ad0c5267ac67f8cffb116547fd6d5ea82b501"
+  "schemaVersion": "1.2.0",
+  "shardHash": "f2147f5b2dee08f47d819015dd3a14d4f2d95f7527e47ff09d1a8273ac3dbf3d"
 }

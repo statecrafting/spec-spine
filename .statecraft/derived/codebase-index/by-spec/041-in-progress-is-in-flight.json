@@ -74,6 +74,6 @@
     "specId": "041-in-progress-is-in-flight",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "f6f20e5b889d8bc6853153cbc03e9e0db7d1853156289bd961c733f2294fbab9"
+  "schemaVersion": "1.2.0",
+  "shardHash": "39a3c97730ba4d92dd1b83f8399249bb0546ff9e7815bb8881f1e6389dfc4dac"
 }

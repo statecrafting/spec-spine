@@ -246,9 +246,7 @@ fn check_relocations(
             });
         }
     }
-    out.sort_by(|a, b| {
-        (&a.spec, &a.from_spec, &a.from).cmp(&(&b.spec, &b.from_spec, &b.from))
-    });
+    out.sort_by(|a, b| (&a.spec, &a.from_spec, &a.from).cmp(&(&b.spec, &b.from_spec, &b.from)));
     Ok(out)
 }
 
@@ -316,7 +314,13 @@ fn classify_path(
     if let Some(id) = spec_id {
         let empty = BTreeSet::new();
         let proven = proven_from.get(id).unwrap_or(&empty);
-        let spec = classify_spec_md(cfg, id, proven, base_bytes.as_deref(), head_bytes.as_deref())?;
+        let spec = classify_spec_md(
+            cfg,
+            id,
+            proven,
+            base_bytes.as_deref(),
+            head_bytes.as_deref(),
+        )?;
         classes.extend(&spec.classes);
         verification = spec.verification;
         if !spec.lifecycle.is_empty() {

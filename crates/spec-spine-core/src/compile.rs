@@ -1325,7 +1325,12 @@ fn detect_move_cross_spec(records: &[SpecRecord], out: &mut Vec<Violation>) {
 /// must name an anchor, and the receiving section (`to`, or `from` when `to` is
 /// absent) must be exactly one heading in this spec's body, because that is the
 /// text `delta` compares with the source.
-fn validate_relocations_local(spec_path: &str, fm: &Frontmatter, body: &str, out: &mut Vec<Violation>) {
+fn validate_relocations_local(
+    spec_path: &str,
+    fm: &Frontmatter,
+    body: &str,
+    out: &mut Vec<Violation>,
+) {
     if fm.relocates.is_empty() {
         return;
     }
@@ -1337,7 +1342,10 @@ fn validate_relocations_local(spec_path: &str, fm: &Frontmatter, body: &str, out
         if r.from.trim().is_empty() {
             out.push(error(
                 "V-042",
-                format!("relocation from '{}' names no section: 'from' is empty", r.spec),
+                format!(
+                    "relocation from '{}' names no section: 'from' is empty",
+                    r.spec
+                ),
                 Some(spec_path.to_string()),
             ));
             continue;

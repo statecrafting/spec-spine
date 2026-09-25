@@ -243,6 +243,9 @@ fn regenerate(cfg: &Config, root: &Path) {
     let (by_spec, by_package) = index_shard_files(&ix.shards).unwrap();
     shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec).unwrap();
     shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package).unwrap();
+    // Spec 141: the inputs sidecar, as `spec-spine index` writes it.
+    let (inputs_name, inputs) = spec_spine_core::index_inputs_file(&ix.shards).unwrap();
+    std::fs::write(dir.join(inputs_name), inputs).unwrap();
 }
 
 #[test]

@@ -75,3 +75,4 @@ Dockerfile* text eol=lf
 .statecraft/derived/codebase-index/by-spec/*.json merge=spec-spine-derived-regen
 .statecraft/derived/codebase-index/by-package/*.json merge=spec-spine-derived-regen
 .statecraft/derived/codebase-index/slices.json merge=spec-spine-derived-regen
+.statecraft/derived/codebase-index/inputs.json merge=spec-spine-derived-regen

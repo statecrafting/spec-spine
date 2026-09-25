@@ -195,6 +195,6 @@
     "specId": "049-compile-one-spec",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "9c58d5ff3e6f8b9f183d1e1931ecbcd620bd1fbabbdda5091821ced77da2d8f8"
+  "schemaVersion": "1.2.0",
+  "shardHash": "2165e686daa1344c78c9237ecb1ebb06c8cc86f1a4718378b699c5bc42241c08"
 }

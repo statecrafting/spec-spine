@@ -307,11 +307,16 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         registry.specs.iter().map(|s| (s.id.as_str(), s)).collect();
     for spec in &registry.specs {
         for entry in &spec.amends_sections {
-            let named = spec.amends.iter().filter_map(|a| by_id.get(a.as_str())).any(|t| {
-                t.section_headings
-                    .iter()
-                    .any(|h| heading_number(h) == Some(entry.as_str()) || crate::sections::anchor_of(h) == *entry)
-            });
+            let named = spec
+                .amends
+                .iter()
+                .filter_map(|a| by_id.get(a.as_str()))
+                .any(|t| {
+                    t.section_headings.iter().any(|h| {
+                        heading_number(h) == Some(entry.as_str())
+                            || crate::sections::anchor_of(h) == *entry
+                    })
+                });
             if !named {
                 violations.push(warn(
                     "L-017",
@@ -402,18 +407,20 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
                 // Spec 061 3.2, conformance with 057 3.x: the two remedies are
                 // genuinely different choices and the message must say how, or
                 // it reads as a pick-either. It sent an adopter to the wrong
-                // one. A glob folds the file into the GLOBAL scalar, which
-                // restamps every shard when it changes: right for a handful of
+                // one. Since spec 141 a glob records the file in the index's
+                // inputs record, so an edit rewrites that one file and makes
+                // the change a governance change: right for a handful of
                 // governance files, wrong for a tree of source. A section or
                 // symbol unit is hashed through its span and stales only the
                 // claiming spec's shard.
                 format!(
                     "spec '{}' claims '{}', which is in no content hash: its contents can \
                      change without staling any shard. Either add a covering glob to \
-                     [index] extra_hashed_inputs, which folds the file into the global \
-                     scalar and so restamps EVERY shard whenever it changes (right for a \
-                     few governance files, wrong for a tree of source), or claim a section \
-                     or symbol unit, which is hashed through its span and stales only this \
+                     [index] extra_hashed_inputs, which records the file in the index's \
+                     inputs record (codebase-index/inputs.json), so every edit to it is a \
+                     governance change that rewrites that record (right for a few \
+                     governance files, wrong for a tree of source), or claim a section or \
+                     symbol unit, which is hashed through its span and stales only this \
                      spec's shard",
                     claim.spec_id, claim.path
                 ),

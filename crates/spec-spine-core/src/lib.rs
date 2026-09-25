@@ -100,10 +100,11 @@ pub use diagnostics::{
 };
 pub use impact::{ConflictEntry, ImpactEntry, ImpactSet, impacts};
 pub use index::{
-    BlockingClaim, Freshness, IndexFreshnessReport, IndexOutcome, IndexShardSet, OwnerKind,
-    OwnerLink, OwnerReport, UnwitnessedClaim, authorities, check_index_freshness,
-    check_slice_freshness, index, index_dir, index_freshness_report, index_shard_files,
-    load_committed_index, owner, owner_with, slices_path, unwitnessed_claims, witnessed_paths,
+    BlockingClaim, Freshness, INPUTS_FILE, IndexFreshnessReport, IndexOutcome, IndexShardSet,
+    OwnerKind, OwnerLink, OwnerReport, UnwitnessedClaim, authorities, check_index_freshness,
+    check_slice_freshness, index, index_dir, index_freshness_report, index_inputs_file,
+    index_shard_files, load_committed_index, owner, owner_with, slices_path, unwitnessed_claims,
+    witnessed_paths,
 };
 pub use interface::{
     ExportedSpec, Exports, interface_verify, load_export, verify_interface_references,

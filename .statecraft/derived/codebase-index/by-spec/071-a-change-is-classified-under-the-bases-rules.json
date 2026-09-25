@@ -294,6 +294,6 @@
     "specId": "071-a-change-is-classified-under-the-bases-rules",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "373c7d32b276970729227be981ff909919049f20692e1d757098b6376d56fb70"
+  "schemaVersion": "1.2.0",
+  "shardHash": "cd5644d6b43c0d523c2ea36fb03445ee1664ae9bb985581c891c787b8986088b"
 }

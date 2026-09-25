@@ -137,6 +137,6 @@
     "specId": "001-compile-registry",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "165e77d97c37e5d48c0e64a71c8a187ac929a5d745e87be2882d4df63c827289"
+  "schemaVersion": "1.2.0",
+  "shardHash": "43188d563d68c524de330f47ebcadd3ccb4b25dda182af1b97d9421947dcf9a1"
 }

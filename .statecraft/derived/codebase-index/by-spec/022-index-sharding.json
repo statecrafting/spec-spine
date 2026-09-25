@@ -461,6 +461,6 @@
     "specId": "022-index-sharding",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "f24eb9236b62b41443033ece546b05d13aa485ce968f1b199bad0cf397dd619a"
+  "schemaVersion": "1.2.0",
+  "shardHash": "d9655e746f56bbf247226671fe2113c994b8ddbe4135f05555cf9634b7bb8610"
 }

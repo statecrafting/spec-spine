@@ -96,6 +96,6 @@
     "specId": "098-a-citation-the-renumber-could-not-see",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "e0ec57738da23e4cbed2c5b0f760f6f201f1d18e872b94d8ef4824f151589b5e"
+  "schemaVersion": "1.2.0",
+  "shardHash": "ea597a684a8ffb9d89e33debaf63deb8abc89a6198ca9478fd9708476caab0f2"
 }

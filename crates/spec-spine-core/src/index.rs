@@ -13,9 +13,9 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 use spec_spine_types::{
     CodebaseIndex, Config, Diagnostic, Diagnostics, Error, INDEX_SCHEMA_VERSION, Implementation,
-    ImplementingPath, IndexBuild, IndexPackageShard, IndexSpecShard, LayoutConfig, PackageKind,
-    PackageRecord, Registry, ResolvedLocation, ResolvedUnit, SourceField, TraceMapping,
-    TraceSource, Traceability, Unit, parse_frontmatter_with,
+    ImplementingPath, IndexBuild, IndexInputs, IndexPackageShard, IndexSpecShard, InputDigest,
+    LayoutConfig, PackageKind, PackageRecord, Registry, ResolvedLocation, ResolvedUnit,
+    SourceField, TraceMapping, TraceSource, Traceability, Unit, parse_frontmatter_with,
 };
 
 use crate::coverage::SOURCE_EXTS;
@@ -56,6 +56,9 @@ pub struct IndexOutcome {
 pub struct IndexShardSet {
     pub spec_shards: Vec<IndexSpecShard>,
     pub package_shards: Vec<IndexPackageShard>,
+    /// The governance-inputs sidecar (spec 141), written as
+    /// `codebase-index/inputs.json` beside the two shard directories.
+    pub inputs: IndexInputs,
 }
 
 /// Index freshness relative to current inputs.
@@ -324,10 +327,18 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
     #[cfg(not(feature = "symbol-resolution"))]
     let module_index = ModuleIndex::default();
 
-    // The scalar folded into every shard hash so a config / extra-input change
-    // restamps all shards (spec 022); two PRs touching only disjoint specs never
-    // touch it, so the conflict-free property holds.
-    let global_inputs = shard::global_inputs_hash(cfg, repo_root);
+    // Spec 141: the global inputs (config + extra_hashed_inputs) are recorded
+    // once, one entry per file, in the inputs sidecar, and folded only into the
+    // aggregate content hash. Before 141 their scalar was inside every shard
+    // hash, so one governance edit restamped the whole tree and two PRs editing
+    // different root documents conflicted on every shard.
+    let inputs = IndexInputs {
+        schema_version: INDEX_SCHEMA_VERSION.to_string(),
+        inputs: shard::input_digests(cfg, repo_root)
+            .into_iter()
+            .map(|(path, content_hash)| (path, InputDigest { content_hash }))
+            .collect(),
+    };
 
     // --- traceability mappings (per spec, with per-spec resolver diagnostics) ---
     // Resolver diagnostics are scoped to the spec they concern (they name its
@@ -492,7 +503,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
     for (mapping, diags) in &spec_entries {
         let spec_md = spec_md_rel(&cfg.layout.specs_dir, &mapping.spec_id);
         let span_files = span_files_for_mapping(mapping);
-        let shard_hash = spec_shard_hash(repo_root, &spec_md, &span_files, &global_inputs);
+        let shard_hash = spec_shard_hash(repo_root, &spec_md, &span_files);
         keyed.push((format!("spec:{}", mapping.spec_id), shard_hash.clone()));
         spec_shards.push(IndexSpecShard {
             schema_version: INDEX_SCHEMA_VERSION.to_string(),
@@ -503,7 +514,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
     }
     let mut package_shards: Vec<IndexPackageShard> = Vec::new();
     for pkg in &discovered.packages {
-        let shard_hash = package_shard_hash(repo_root, pkg, cfg, &global_inputs);
+        let shard_hash = package_shard_hash(repo_root, pkg, cfg);
         keyed.push((format!("package:{}", pkg.path), shard_hash.clone()));
         package_shards.push(IndexPackageShard {
             schema_version: INDEX_SCHEMA_VERSION.to_string(),
@@ -511,6 +522,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
             package: pkg.clone(),
         });
     }
+    keyed.push((INPUTS_KEY.to_string(), inputs_fold(&inputs)));
     let content_hash = shard::aggregate_content_hash(&keyed);
 
     let codebase_index = CodebaseIndex {
@@ -542,6 +554,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
         shards: IndexShardSet {
             spec_shards,
             package_shards,
+            inputs,
         },
         complete_specs,
     })
@@ -669,6 +682,17 @@ pub(crate) fn committed_index_drift(
         shard::BY_PACKAGE_DIR,
         &by_package,
     )?);
+    // Spec 141 3.3: the inputs sidecar is compared exactly as a shard is, so a
+    // governance edit reports this one file.
+    let (name, content) = index_inputs_file(shards)?;
+    match fs::read(dir.join(&name)) {
+        Err(_) => drift.push(format!("missing {name}")),
+        Ok(bytes) if bytes != content.as_bytes() => {
+            reject_foreign_major(&bytes)?;
+            drift.push(format!("modified {name}"));
+        }
+        Ok(_) => {}
+    }
     Ok(drift)
 }
 
@@ -892,6 +916,15 @@ pub fn index_shard_files(
     Ok((by_spec, by_package))
 }
 
+/// Serialize the inputs sidecar (spec 141) to `(file name, canonical JSON)`.
+/// The CLI writes it at `<index_dir>/inputs.json`.
+pub fn index_inputs_file(shards: &IndexShardSet) -> Result<(String, String), Error> {
+    Ok((
+        INPUTS_FILE.to_string(),
+        canonical_json::to_string(&shards.inputs)?,
+    ))
+}
+
 /// The per-slice sidecar (spec 011, relocated by spec 022): `slices.json`. The
 /// index slices live in their own small file (emitted only when `[index.slices]`
 /// is configured) rather than a global `index.json` build block, so a corpus
@@ -969,6 +1002,9 @@ pub fn load_committed_index(
         packages.push(sh.package.clone());
     }
     packages.sort_by(|a, b| a.path.cmp(&b.path));
+    if let Some(inputs) = read_committed_inputs(cfg, repo_root)? {
+        keyed.push((INPUTS_KEY.to_string(), inputs_fold(&inputs)));
+    }
 
     // orphaned specs / untraced code: pure functions of the assembled shards.
     let orphaned_specs: Vec<String> = mappings
@@ -1009,6 +1045,23 @@ pub fn load_committed_index(
         },
         diagnostics,
     })
+}
+
+/// Read the committed inputs sidecar (spec 141), MAJOR-gated like a shard.
+/// Absent is `None`: a tree written before 141 has no sidecar, and the
+/// freshness comparison already reports it `missing`, so assembly folds nothing
+/// rather than failing every read verb on that tree.
+fn read_committed_inputs(
+    cfg: &spec_spine_types::Config,
+    repo_root: &Path,
+) -> Result<Option<IndexInputs>, Error> {
+    let Ok(bytes) = fs::read(index_dir(cfg, repo_root).join(INPUTS_FILE)) else {
+        return Ok(None);
+    };
+    let inputs: IndexInputs = serde_json::from_slice(&bytes)
+        .map_err(|e| Error::Schema(format!("invalid index inputs {INPUTS_FILE}: {e}")))?;
+    shard::check_major("index", &inputs.schema_version, INDEX_SCHEMA_VERSION)?;
+    Ok(Some(inputs))
 }
 
 /// Read the committed per-slice hashes from the `slices.json` sidecar (spec
@@ -1514,10 +1567,19 @@ fn spec_id_from_path(reference: &str, all_ids: &BTreeSet<String>) -> Option<Stri
     all_ids.contains(candidate).then(|| candidate.to_string())
 }
 
-/// The sort key prefixing the global-inputs scalar inside a shard hash. A
-/// leading NUL sorts it ahead of every real repo path and cannot collide with
-/// one.
-const GLOBAL_INPUTS_KEY: &str = "\u{0}global-inputs";
+/// The aggregate content hash's key for the inputs sidecar (spec 141 3.4).
+/// The other keys are `spec:<id>` and `package:<path>`, so a bare word cannot
+/// collide with one.
+const INPUTS_KEY: &str = "inputs";
+
+/// The inputs sidecar's file name under `codebase-index/` (spec 141 3.2).
+pub const INPUTS_FILE: &str = "inputs.json";
+
+/// The aggregate's value for the sidecar: [`shard::inputs_fold`] over its
+/// `(path, contentHash)` pairs.
+fn inputs_fold(inputs: &IndexInputs) -> String {
+    shard::inputs_fold(inputs.inputs.iter().map(|(p, d)| (p, &d.content_hash)))
+}
 
 /// Repo-relative POSIX path of a spec's `spec.md` (the dir name equals the id,
 /// enforced by compile's V-001), e.g. `specs/022-index-sharding/spec.md`.
@@ -1552,16 +1614,11 @@ fn span_files_for_mapping(m: &TraceMapping) -> BTreeSet<String> {
     out
 }
 
-/// The hash a per-spec index shard self-describes: its `spec.md`, its span-
-/// backing source files, and the global-inputs scalar (config + extra inputs).
-/// Recomputed identically at emit and at `index check`, so an edit to any of
-/// those inputs stales exactly this shard.
-fn spec_shard_hash(
-    repo_root: &Path,
-    spec_md_rel: &str,
-    span_files: &BTreeSet<String>,
-    global_inputs: &str,
-) -> String {
+/// The hash a per-spec index shard self-describes: its `spec.md` and its span-
+/// backing source files. Nothing global: since spec 141 the config and the
+/// extra hashed inputs are recorded in the inputs sidecar instead, so an edit
+/// to one of them stales that one file rather than every shard.
+fn spec_shard_hash(repo_root: &Path, spec_md_rel: &str, span_files: &BTreeSet<String>) -> String {
     let mut pieces: Vec<(String, String)> = Vec::new();
     if let Ok(content) = fs::read_to_string(repo_root.join(spec_md_rel)) {
         pieces.push((spec_md_rel.to_string(), content));
@@ -1571,7 +1628,6 @@ fn spec_shard_hash(
             pieces.push((rel.clone(), content));
         }
     }
-    pieces.push((GLOBAL_INPUTS_KEY.to_string(), global_inputs.to_string()));
     hash::content_hash(pieces)
 }
 
@@ -1589,8 +1645,8 @@ fn package_manifest_rel(package: &PackageRecord) -> String {
     }
 }
 
-/// The hash a per-package index shard self-describes: its manifest folded with
-/// the global-inputs scalar. npm and cargo manifests fold as their governance
+/// The hash a per-package index shard self-describes: its manifest, and
+/// nothing global (spec 141). npm and cargo manifests fold as their governance
 /// projection (spec 004 §3.5; cargo added by spec 027): a dependabot-class
 /// dependency bump leaves the shard fresh, while a change to a field the
 /// indexer reads (name / version / workspaces / spec-metadata / package kind)
@@ -1599,7 +1655,6 @@ fn package_shard_hash(
     repo_root: &Path,
     package: &PackageRecord,
     cfg: &spec_spine_types::Config,
-    global_inputs: &str,
 ) -> String {
     let manifest_rel = package_manifest_rel(package);
     let mut pieces: Vec<(String, String)> = Vec::new();
@@ -1614,7 +1669,6 @@ fn package_shard_hash(
         };
         pieces.push((manifest_rel, piece));
     }
-    pieces.push((GLOBAL_INPUTS_KEY.to_string(), global_inputs.to_string()));
     hash::content_hash(pieces)
 }
 

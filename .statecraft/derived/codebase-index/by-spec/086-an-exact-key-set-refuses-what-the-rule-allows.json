@@ -28,6 +28,6 @@
     "specId": "086-an-exact-key-set-refuses-what-the-rule-allows",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "547d11ef37e4c9063a836ead5135736854f1f2c0a8ecb390e4c9d5d4e43e16a9"
+  "schemaVersion": "1.2.0",
+  "shardHash": "1ca8da71028d62629f7f6a255b5c304a6f9e8552c07c0b52baac531ee24c9d52"
 }

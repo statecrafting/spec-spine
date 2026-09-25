@@ -87,6 +87,6 @@
     "specId": "112-typed-overlays-ride-the-existing-seam",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "696c9433f82de331f5f502da85d3c9c60da8c98fd2694288c9982c47846fabdc"
+  "schemaVersion": "1.2.0",
+  "shardHash": "fcb5613f2be7e9ac89a69e5358ce4b1755a92b9d333279118f8551449826e035"
 }
