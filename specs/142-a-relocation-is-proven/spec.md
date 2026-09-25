@@ -70,6 +70,9 @@ extends:
   - { spec: "111-a-move-is-a-reviewed-mapping", unit: "crates/spec-spine-core/tests/moves.rs", nature: additive }
   # 3.2 the verifier fixtures, regenerated: their attestation hashes cover the registry, whose specVersion moved.
   - { spec: "103-a-verifier-fixture-is-a-published-artifact", unit: { kind: directory, path: "crates/spec-spine-core/fixtures/verifier/" }, nature: additive }
+  # 3.2, 3.3 the template documents the key, and the schema history records both bumps.
+  - { spec: "088-the-template-teaches-the-whole-grammar", unit: "standards/spec/templates/spec-template.md", nature: additive }
+  - { spec: "055-a-version-pin-the-cli-can-check", unit: "docs/schema-versioning.md", nature: additive }
 establishes:
   - { kind: file, path: "crates/spec-spine-core/src/relocation.rs" }
   - { kind: file, path: "crates/spec-spine-types/src/relocation.rs" }

@@ -98,6 +98,14 @@
       {
         "path": "crates/spec-spine-types/tests/dtos.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "docs/schema-versioning.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "standards/spec/templates/spec-template.md",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
@@ -393,6 +401,32 @@
             "file": "docs/schema-versioning.md"
           }
         ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "standards/spec/templates/spec-template.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/templates/spec-template.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/schema-versioning.md"
+          }
+        ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
@@ -405,5 +439,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "71fd52937513f7dde5450bc96c2d4669812955ae7813a3fd4998c967852f7966"
+  "shardHash": "bab1e210bc636823bdcad174b6de7ae74d7a0bc654cfda2eb3a6d6b0b9ac39fc"
 }
