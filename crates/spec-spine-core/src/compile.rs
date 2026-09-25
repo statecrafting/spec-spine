@@ -335,24 +335,24 @@ fn validate_spec(
         ));
     }
     // V-005: domain allowlist (only when configured non-empty).
-    if let Some(domain) = &fm.domain {
-        if !cfg.domains.permits(domain) {
-            out.push(error(
-                "V-005",
-                format!("domain '{domain}' is not in domains.allowed"),
-                at(),
-            ));
-        }
+    if let Some(domain) = &fm.domain
+        && !cfg.domains.permits(domain)
+    {
+        out.push(error(
+            "V-005",
+            format!("domain '{domain}' is not in domains.allowed"),
+            at(),
+        ));
     }
     // V-006: kind allowlist (only when configured non-empty).
-    if let Some(kind) = &fm.kind {
-        if !cfg.kind.permits(kind) {
-            out.push(error(
-                "V-006",
-                format!("kind '{kind}' is not in kind.allowed"),
-                at(),
-            ));
-        }
+    if let Some(kind) = &fm.kind
+        && !cfg.kind.permits(kind)
+    {
+        out.push(error(
+            "V-006",
+            format!("kind '{kind}' is not in kind.allowed"),
+            at(),
+        ));
     }
     // V-007: undeclared extra_frontmatter count cap.
     let undeclared = fm

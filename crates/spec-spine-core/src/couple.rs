@@ -797,17 +797,17 @@ pub fn owners_for_path(
 
     // 4. Amends-awareness, only when the base owner set is non-empty (FR-005
     //    strict-expansion guard) and the path is `<specs_dir>/<id>/spec.md`.
-    if !owners.is_empty() {
-        if let Some(amended_id) = spec_id_for_spec_md_path(specs_dir, path) {
-            for m in &index.traceability.mappings {
-                if m.amends.iter().any(|a| a == amended_id) {
-                    owners.insert(m.spec_id.clone());
-                }
-                if m.spec_id == amended_id {
-                    if let Some(record) = &m.amendment_record {
-                        owners.insert(record.clone());
-                    }
-                }
+    if !owners.is_empty()
+        && let Some(amended_id) = spec_id_for_spec_md_path(specs_dir, path)
+    {
+        for m in &index.traceability.mappings {
+            if m.amends.iter().any(|a| a == amended_id) {
+                owners.insert(m.spec_id.clone());
+            }
+            if m.spec_id == amended_id
+                && let Some(record) = &m.amendment_record
+            {
+                owners.insert(record.clone());
             }
         }
     }

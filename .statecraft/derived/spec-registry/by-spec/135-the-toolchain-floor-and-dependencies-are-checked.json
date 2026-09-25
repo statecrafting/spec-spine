@@ -29,10 +29,98 @@
           "kind": "file",
           "path": "CLAUDE.md"
         }
+      },
+      {
+        "nature": "corrective",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "021-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/seal.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/couple.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/manifest.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/sections.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/symbols.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "067-a-short-id-names-the-same-spec-at-every-verb",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/spec_id.rs"
+        }
       }
     ],
     "id": "135-the-toolchain-floor-and-dependencies-are-checked",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -53,13 +141,31 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "1-purpose": "c360db6a270abbb917937022cf9648f821a5c5bf5b52f9e31aca5232f1633f49",
-      "135-the-toolchain-floor-and-the-dependencies-are-checked": "673d2f27415788dc0c7a726bb6736cfdb6452e350902282571f6eb88715305d0",
-      "verification": "5f97c1f4a0bd1970a49ad6816502d47c0532bb11bd41f8c95dfadcf12faa3961"
+      "1-1-the-declared-floor-was-false": "6cb1a07b35a74b062058992ab7bb27a461871b255939a760df8ea4fc65d7e1c8",
+      "1-2-dependencies-were-never-checked": "ac3d511d1841bfb091538f7c83d45377278cb0327779745d5c63012e56cebb7c",
+      "1-purpose": "1854b7b863fa2c2044553066e87703492a41352738b2de145fc85e892591f799",
+      "135-the-toolchain-floor-and-the-dependencies-are-checked": "834ff6577e70236a347858a7989de0de42f36def1cb8f7ca35f43c03457d7afc",
+      "2-territory": "56ded20a930e4070b4e64a73cf913843b85490ae24d6814c16e3f18ab26cefb9",
+      "3-1-the-declared-floor-is-built-and-tested": "9f24ed1a3fc4c4deeabe5655d2fd8dcc7fd7a3a0bef7d8ab5d92d305c810a064",
+      "3-2-the-dependencies-are-checked": "cf377de0624a952986b3d6b2b58b0d5846f39223c00efef9f37ec638c4030b38",
+      "3-3-contributors-read-the-loop": "1e3884196724db314f0417e33f45cc8552fcdebaf5c71eccc80cc01048eda51f",
+      "3-behavior": "813c84042ec4375520f042d2ed67dce58c55a08d1fd64a64f1cd90288bae2ac7",
+      "4-out-of-scope": "b51b6ab6f0ee5910e4c24c5b21ba0f9948cef773a97c9f58c349d6f27245794d",
+      "5-resolved-decisions": "d345ed1108d72d968ed82e02fb54c4c24450252bb9c7078c2d11bdc8c80d22a2",
+      "verification": "894da2a759dec658664371755944d3b5ed00c20ed1bba7898d346072b61036db"
     },
     "sectionHeadings": [
       "135: The toolchain floor and the dependencies are checked",
       "1. Purpose",
+      "1.1 The declared floor was false",
+      "1.2 Dependencies were never checked",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The declared floor is built and tested",
+      "3.2 The dependencies are checked",
+      "3.3 Contributors read the loop",
+      "4. Out of scope",
+      "5. Resolved decisions",
       "Verification"
     ],
     "specPath": "specs/135-the-toolchain-floor-and-dependencies-are-checked/spec.md",
@@ -67,6 +173,6 @@
     "summary": "The workspace declares `rust-version = \"1.85\"` and nothing ever built it there; the code uses let-chains, stable only since 1.88, so the declaration was false. Dependencies were never checked for advisories, licenses or sources, and the dev tree carried two open RustSec advisories through `jsonschema`'s HTTP resolver, which no test uses. CI now builds and tests at the declared `rust-version`, read from `Cargo.toml`, and runs `cargo deny check` against a committed `deny.toml`; both are required through `ci-gate`. `jsonschema` drops its default features, which removes the whole HTTP and TLS dev tree and both advisories, and the declared `rust-version` is corrected to the measured floor. `CONTRIBUTING.md` states the loop.\n",
     "title": "The toolchain floor and the dependencies are checked"
   },
-  "shardHash": "5226d6c76fa05c9c8387880e32f176735fc1a2adab288aff789d3103b7399572",
+  "shardHash": "d3455425ca8094d0fff34477e85ad3c26a4be035cb1ab239ec9e0811e83ef6f2",
   "specVersion": "1.8.0"
 }
