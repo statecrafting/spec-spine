@@ -10,7 +10,7 @@ summary: >
   schemas, so the version string could not say which engine a verdict came
   from, and an older reader judged a newer corpus invalid instead of refusing
   it. `main` carries the version the next release will be cut at (0.23.0
-  when filed, 0.24.0 since D-3, 0.25.0 since D-4), in all three package manifests; this repository's version floor
+  when filed, 0.24.0 since D-3, 0.25.0 since D-4, 0.26.0 since D-5), in all three package manifests; this repository's version floor
   moves with it, so a reader older than the corpus's grammar refuses by name
   (exit 3); the release runbook makes both a standing step; and a script
   records a binary's identity from evidence (path, digest, revision, whether it
@@ -143,7 +143,7 @@ cut, which is why §3.4 exists.
 
 `spec-spine.toml` `[meta] required_version` MUST be `>=` this repository's
 package version, spec 061 §3.8's "matching this repository's own package
-version": `>=0.23.0` when this spec was filed, `>=0.24.0` since D-3, `>=0.25.0` since D-4. A reader older than
+version": `>=0.23.0` when this spec was filed, `>=0.24.0` since D-3, `>=0.25.0` since D-4, `>=0.26.0` since D-5. A reader older than
 0.23.0 then refuses this corpus with exit 3, naming the requirement, the
 running version and where the pin lives, instead of reading a grammar it
 predates. Measured: the candidate's build (`0.22.0`) and the `0.21.0` build
@@ -251,6 +251,16 @@ files, no case changed its outcome). The Verification block's version
 literals follow the bump; its shape and every assertion it makes are
 unchanged. Published 0.24.0 is not recut. No schema axis moves.
 
+**D-5 (2026-09-24, the 0.26.0 bump).** 0.25.0 was published from `25d46b9f`.
+`main` then merged engine changes beyond it: specs 130 (#346), 131 (#347,
+#352), 132 (#355), 134 (#351) and 135 (#354), which change a classification,
+a facade entry, every exit code and the envelope. §3.1 applies again, so
+`main` moves to 0.26.0, the version the next release is cut at, by the same
+steps as D-4: `scripts/bump_version.py 0.26.0` with `--check` green, the
+three workspace crates' `Cargo.lock` entries, the floor at `>=0.26.0`, and
+the fixture set regenerated with `generate.py`. The Verification block's
+version literals follow the bump. Published 0.25.0 is not recut.
+
 ## Verification
 
 Written to fail against the tree this spec is filed on: the version is 0.22.0,
@@ -259,10 +269,10 @@ the floor is `>=0.17.0`, and the script does not exist.
 ```verify:cli
 cargo build --release --locked
 # 3.1: one version in all three manifests, and the build answers it.
-python3 scripts/bump_version.py --check 0.25.0
-./target/release/spec-spine --version | grep -qx 'spec-spine 0.25.0'
+python3 scripts/bump_version.py --check 0.26.0
+./target/release/spec-spine --version | grep -qx 'spec-spine 0.26.0'
 # 3.2: the floor matches the version.
-grep -qx 'required_version = ">=0.25.0"' spec-spine.toml
+grep -qx 'required_version = ">=0.26.0"' spec-spine.toml
 # 3.3: both standing steps are in the runbook.
 grep -qF 'The floor moves with the version' docs/releasing.md
 grep -qF 'A version names one behavior' docs/releasing.md
