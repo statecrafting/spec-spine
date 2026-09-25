@@ -179,7 +179,7 @@ fn checked_paths(changed: &[String]) -> Result<BTreeSet<String>, Error> {
                 .components()
                 .all(|c| matches!(c, Component::Normal(_)));
         if !plain {
-            return Err(Error::Parse(format!(
+            return Err(Error::Usage(format!(
                 "invalid changed path '{path}': expected a repo-relative path with no '.' or '..' component"
             )));
         }
@@ -581,7 +581,7 @@ fn edge_items(fm: &Frontmatter) -> Result<BTreeMap<&'static str, Vec<serde_json:
     fn values<T: serde::Serialize>(items: &[T]) -> Result<Vec<serde_json::Value>, Error> {
         items
             .iter()
-            .map(|i| serde_json::to_value(i).map_err(|e| Error::Schema(e.to_string())))
+            .map(|i| serde_json::to_value(i).map_err(|e| Error::Internal(e.to_string())))
             .collect()
     }
     let mut out = BTreeMap::new();

@@ -104,7 +104,7 @@ pub struct ResolvedClosure {
 /// (spec 107 §3.2 - 3.4). Pure: reads nothing but its arguments.
 ///
 /// Refusals, in order: an empty request or an unqualified obligation reference
-/// is [`Error::Parse`] (exit 3); every reference that does not resolve is
+/// is [`Error::Usage`] (exit 3); every reference that does not resolve is
 /// collected into one [`Error::NotFound`] (exit 1) naming each.
 pub fn resolve_closure(
     registry: &Registry,
@@ -112,14 +112,14 @@ pub fn resolve_closure(
     request: &ClosureRequest,
 ) -> Result<ResolvedClosure, Error> {
     if request.specs.is_empty() && request.sections.is_empty() && request.obligations.is_empty() {
-        return Err(Error::Parse(
+        return Err(Error::Usage(
             "a closure names at least one spec, section or obligation".into(),
         ));
     }
     let mut obligation_refs = Vec::new();
     for reference in &request.obligations {
         let parts = split_obligation_ref(reference).ok_or_else(|| {
-            Error::Parse(format!(
+            Error::Usage(format!(
                 "closure obligation '{reference}' is not qualified: a qualified form \
                  <spec-id>#<obligation-id> is required (spec 106)"
             ))
@@ -228,7 +228,7 @@ pub fn committed_content_hashes(
     let mut out = BTreeMap::new();
     for (name, bytes) in shard::read_shard_files(&dir)? {
         let sh: RegistrySpecShard = serde_json::from_slice(&bytes)
-            .map_err(|e| Error::Parse(format!("invalid registry shard {name}: {e}")))?;
+            .map_err(|e| Error::Schema(format!("invalid registry shard {name}: {e}")))?;
         shard::check_major("registry", &sh.spec_version, REGISTRY_SCHEMA_VERSION)?;
         out.insert(sh.record.id, sh.shard_hash);
     }
@@ -236,7 +236,7 @@ pub fn committed_content_hashes(
 }
 
 /// Resolve a closure against the committed ledger (spec 107 §3.5, 3.6). A
-/// stale registry is refused with [`Error::Stale`] (exit 2) before anything is
+/// stale registry is refused with [`Error::Stale`] (exit 1) before anything is
 /// digested.
 pub fn closure(
     cfg: &Config,

@@ -168,7 +168,7 @@ fn assert_refused(f: &Fixture, args: &[&str], rel: &str, what: &str) {
     let out = run_in(&f.repo, args);
     let stderr = String::from_utf8_lossy(&out.stderr);
     let what = format!("{what}: `{}`", args.join(" "));
-    assert_eq!(code(&out), 3, "{what}: exit 3; stderr: {stderr}");
+    assert_eq!(code(&out), 2, "{what}: exit 2; stderr: {stderr}");
     for needle in [rel, "nothing was written", "spec 127"] {
         assert!(
             stderr.contains(needle),
@@ -507,7 +507,7 @@ fn an_id_naming_a_reserved_device_refuses_everywhere() {
                 let out = run_in(&f.repo, verb);
                 let stderr = String::from_utf8_lossy(&out.stderr);
                 let what = format!("id {id:?} (built: {built}): `{}`", verb.join(" "));
-                assert_eq!(code(&out), 3, "{what}; stderr: {stderr}");
+                assert_eq!(code(&out), 2, "{what}; stderr: {stderr}");
                 assert!(stderr.contains(&quoted), "{what}: names {quoted}: {stderr}");
                 assert!(stderr.contains("nothing was written"), "{what}: {stderr}");
                 assert_eq!(snapshot(f.tmp.path()), before, "{what} changed the tree");

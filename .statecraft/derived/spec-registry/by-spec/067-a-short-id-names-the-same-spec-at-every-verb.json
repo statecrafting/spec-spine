@@ -130,7 +130,7 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "067-a-short-id-names-the-same-spec-at-every-verb": "6d339b375e53a06e5fe4df1e0cd5af923b69fe22f2ecd885906785455feb17c8",
+      "067-a-short-id-names-the-same-spec-at-every-verb": "64b73104f35bf649ec4ad72de7363c3713f87c325e117e83d4f8941ac0265a4d",
       "1-1-four-copies-of-one-policy": "772ce40c487c6f7b97b48f9e72f519dec3cce6d44522167fde599f74cf56e6e6",
       "1-2-the-exact-case-joins-the-argument-onto-a-path": "552971ce037aeaa5d9837d6804be508c38423a74c521c81d3478a084452fac4c",
       "1-3-the-obvious-fix-is-wrong-twice": "b09930a24dffdd499c6e776889b53f87e9714fe9bb2cac1df055b5882702db1a",
@@ -145,7 +145,7 @@
       "3-behavior": "3a75544d1ac05cbcc82f7d26845afb35eaae3242a28b23a9a369e4458add9980",
       "4-out-of-scope": "9876494bf973558568e395430909dd9b48a2d20392b460b6cdf13dc16449ebea",
       "5-resolved-decisions": "82845baf2669f61a2e5760d67a3e322f726be359ba30f80d860092843cb5b593",
-      "verification": "8348bfaf7e24f308f73cc1d4eac398f38dcea374d0a7012558193655cbbe97ac"
+      "verification": "720246adebe194b0a0b76b32d2c5ee55e26b037493582273af8c7576e5f98f8a"
     },
     "sectionHeadings": [
       "067: A short id names the same spec at every verb",
@@ -170,6 +170,6 @@
     "summary": "Six arguments take a spec id, and they disagree about what one is. `verify` and `compile --spec` accept the short form spec 015 defines; `registry show`, `registry relationships` and `attest --spec` refuse it at exit 1; and `verify-attestation --spec` fails at exit 3 reading a file named after the raw argument. Specs 043 3.2 and 056 3.1 each state the cross-verb rule as already true elsewhere, and nothing enforces it. The policy itself exists in four private copies, two strict ones for arguments and two lenient ones for frontmatter references, and the two strict ones test the exact case by joining the argument onto a path, so `verify ../specs/<id>` resolves and `compile --spec ./<id>` reports a false `V-001` on a valid spec. This spec puts the policy in one module that every argument and both reference resolvers call. Each verb resolves against the ids it already reads, and every value derived from the id after resolution uses the resolved id, which is what keeps `relationships` from computing incoming edges against the raw argument and `attest` from naming its output file after it. A census over the CLI's argument tree fails when a seventh id argument appears outside the matrix. It amends 016 2, whose mirror becomes a shared call. The implementation changes no committed shard: the lenient adapters return what the mirrors returned.\n",
     "title": "A short id names the same spec at every verb"
   },
-  "shardHash": "8745cca6631a265e4b52c3d90784cf80b984532fb06bc9e863d973f2e32917bb",
+  "shardHash": "6702615fa31f23ca2eb0279ec565b5836477336ef27fae2fe58c4915e46a8bfa",
   "specVersion": "1.8.0"
 }

@@ -172,12 +172,15 @@ fn observed_reason(json: &serde_json::Value) -> String {
     if let Some(err) = json.get("error") {
         let kind = err.get("kind").and_then(|k| k.as_str()).unwrap_or("");
         let msg = err.get("message").and_then(|m| m.as_str()).unwrap_or("");
+        // Spec 132: an attestation is a document the tool produced, so every
+        // way it can fail to load is `kind: schema` (exit 4), and the reason
+        // is told apart by the message.
         return match kind {
             "schema" if msg.contains("no string schemaVersion") => "missing-schema-version",
-            "schema" => "unsupported-major",
-            "parse" if msg.contains("duplicate field") => "duplicate-key",
-            "parse" if msg.contains("unknown field") => "unknown-member",
-            "parse" => "unreadable-json",
+            "schema" if msg.contains("is unsupported") => "unsupported-major",
+            "schema" if msg.contains("duplicate field") => "duplicate-key",
+            "schema" if msg.contains("unknown field") => "unknown-member",
+            "schema" => "unreadable-json",
             other => other,
         }
         .to_string();
@@ -211,7 +214,9 @@ fn the_fixture_set_describes_the_shipped_verifier() {
     // ---- §3.8.1: the index is understood -----------------------------------
     let index_version = str_at(&index, "schemaVersion", "index.json");
     assert!(
-        index_version.starts_with("0."),
+        // Spec 132 took the set to 1.0.0: a load failure's expected exit moved
+        // from 3 to 4, which a consumer comparing exit codes must notice.
+        index_version.starts_with("1."),
         "index schemaVersion MAJOR {index_version} is not one this test understands"
     );
 

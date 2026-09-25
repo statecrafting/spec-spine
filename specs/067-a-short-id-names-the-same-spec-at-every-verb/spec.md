@@ -464,6 +464,16 @@ have changed all six.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-24).** This block no longer runs.
+> `132-one-exit-contract-for-the-family` declares this spec in
+> `amends_verification`, so `spec-spine verify 067` builds its plan from that
+> spec's block, where these commands are carried with the exit codes spec 132
+> moved and every other line unchanged (spec 082 3.2 and 3.4).
+>
+> The commands below are kept **verbatim**. A predecessor is amended, never
+> edited (spec 037 3.1): this block is the record of what was asserted when
+> this spec was ratified.
+
 Each line below is one command: spec 043 3.2 makes each fenced body line a
 command, and 043 3.5 runs each one in its own `sh -c`, so no line may depend on a
 variable another line set. The scratch

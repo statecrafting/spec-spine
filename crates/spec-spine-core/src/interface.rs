@@ -180,8 +180,8 @@ fn verify_one(
 /// A spec id with no `spec.md` under `root` is not an error: its absence is
 /// what makes the reference `missing` rather than `unverified`. An unreadable
 /// `root`, an exporter config that does not parse, or a spec path that
-/// escapes `root` (a symlink out) is [`Error::Io`] or [`Error::Config`]
-/// (exit 3).
+/// escapes `root` (a symlink out) is [`Error::Io`] (exit 4),
+/// [`Error::Config`] or [`Error::Refused`] (exit 2) under spec 132.
 pub fn load_export(
     root: &Path,
     spec_ids: &[String],
@@ -210,7 +210,8 @@ pub fn load_export(
         let canonical_candidate = std::fs::canonicalize(&candidate)
             .map_err(|e| Error::Io(format!("read {}: {e}", candidate.display())))?;
         if !canonical_candidate.starts_with(&canonical_root) {
-            return Err(Error::Io(format!(
+            // Spec 132 §3.2: a containment refusal, not an I/O failure.
+            return Err(Error::Refused(format!(
                 "export path for '{id}' escapes its root {}: {}",
                 root.display(),
                 candidate.display()
@@ -240,7 +241,7 @@ fn referenced_ids_by_corpus(registry: &Registry) -> BTreeMap<String, BTreeSet<St
 }
 
 /// Verify against the committed ledger (spec 110 §3.3): a stale registry is
-/// refused with [`Error::Stale`] (exit 2) **before** any export is read,
+/// refused with [`Error::Stale`] (exit 1) **before** any export is read,
 /// checking the committed references the way [`crate::closure::closure`]
 /// checks the committed ledger, because verifying what `spec.md` currently
 /// says while the committed shard says something else would verify a

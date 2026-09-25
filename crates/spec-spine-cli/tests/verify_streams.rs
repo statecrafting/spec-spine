@@ -89,7 +89,7 @@ fn json_keeps_a_passing_commands_output_off_stdout() {
 
     let v = one_envelope(&out);
     assert_eq!(v["verb"], "verify");
-    assert_eq!(v["ok"], true);
+    assert_eq!(v["outcome"], "ok");
     assert_eq!(v["exitCode"], 0);
     assert_eq!(v["report"]["outcome"], "passed");
     assert_eq!(v["report"]["ran"], 1);

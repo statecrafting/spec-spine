@@ -166,7 +166,7 @@ fn hostile_ids(outer: &Path) -> Vec<Hostile> {
 /// reached the name check rather than failing earlier for another reason.
 fn assert_refused(out: &Output, id: &str, what: &str) {
     let stderr = String::from_utf8_lossy(&out.stderr);
-    assert_eq!(code(out), 3, "{what}: exit 3; stderr: {stderr}");
+    assert_eq!(code(out), 2, "{what}: exit 2; stderr: {stderr}");
     let quoted = format!("{:?}", format!("{id}.json"));
     for needle in [
         quoted.as_str(),
@@ -286,11 +286,11 @@ fn attest_spec_refuses_an_id_that_is_not_a_file_name() {
 
             // JSON: the same refusal, as the one envelope on stdout.
             let out = run_in(&repo, &["attest", "--spec", &h.id, "--json"]);
-            assert_eq!(code(&out), 3, "{what} --json");
+            assert_eq!(code(&out), 2, "{what} --json");
             let v: serde_json::Value = serde_json::from_slice(&out.stdout)
                 .unwrap_or_else(|e| panic!("{what} --json: stdout is one envelope: {e}"));
-            assert_eq!(v["ok"], false, "{what} --json");
-            assert_eq!(v["exitCode"], 3, "{what} --json");
+            assert_ne!(v["outcome"], "ok", "{what} --json");
+            assert_eq!(v["exitCode"], 2, "{what} --json");
             let message = v["error"]["message"].as_str().unwrap_or_default();
             assert!(
                 message.contains("nothing was written")

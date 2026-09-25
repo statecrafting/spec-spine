@@ -92,7 +92,8 @@ fn schema_versions_are_pinned() {
     // adding `couple`'s `deletions` block, which is omitted when empty and so
     // additive in the same sense. Spec 113 took it to 0.6.0 by adding
     // `couple`'s `waivers` and `unattachedWaiverLines`, omitted when empty.
-    assert_eq!(VERDICT_SCHEMA_VERSION, "0.6.0");
+    // Spec 132 took it to 1.0.0, a MAJOR: the family envelope.
+    assert_eq!(VERDICT_SCHEMA_VERSION, "1.0.0");
     // Spec 039: the per-spec attestation, independent of the ledger versions so
     // a consumer pins the evidence shape it verifies without pinning the ledger
     // it was derived from.
@@ -171,7 +172,10 @@ fn verdict_envelope_round_trips_with_the_documented_members() {
     let value: serde_json::Value = serde_json::from_str(&json).unwrap();
     assert_eq!(value["schemaVersion"], VERDICT_SCHEMA_VERSION);
     assert_eq!(value["verb"], "couple");
-    assert_eq!(value["ok"], false);
+    assert_eq!(value["outcome"], "finding");
+    assert_eq!(value["tool"], "spec-spine");
+    assert_eq!(value["summary"], "couple: finding");
+    assert!(value.get("ok").is_none(), "spec 132 retired `ok`");
     assert_eq!(value["exitCode"], 1);
     assert!(value.get("report").is_some());
     assert!(value.get("error").is_none());
@@ -190,7 +194,7 @@ fn verdict_failure_kinds_are_the_documented_tokens() {
     );
     let value: serde_json::Value = serde_json::from_str(&v.to_canonical_json().unwrap()).unwrap();
     assert_eq!(value["error"]["kind"], "stale");
-    assert_eq!(value["exitCode"], 2);
+    assert_eq!(value["exitCode"], 1);
     assert!(value.get("report").is_none());
 }
 

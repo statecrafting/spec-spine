@@ -564,7 +564,7 @@ struct SchemaProbe {
 }
 
 /// A committed shard whose schema MAJOR this build does not understand is an
-/// [`Error::Schema`] (exit 3), not drift.
+/// [`Error::Schema`] (exit 4), not drift.
 ///
 /// Byte comparison alone would call it `modified`, and the remedy a stale
 /// verdict advises, "run `spec-spine index`", would overwrite a tree a newer
@@ -675,7 +675,7 @@ pub(crate) fn committed_index_drift(
 /// Render drift lines as a [`Freshness`], in the registry's report shape.
 ///
 /// That shape is contractual (spec 028 §3.3): the session protocol reads the
-/// drifted shard names back to an operator, and exit 2 alone cannot say which
+/// drifted shard names back to an operator, and exit 1 alone cannot say which
 /// shard moved. One line per shard, each carrying its class, capped so a
 /// corpus-wide restamp does not flood a CI log.
 fn drift_verdict(mut drift: Vec<String>, emitted: usize) -> Freshness {
@@ -805,9 +805,10 @@ pub fn index_freshness_report(
 
 /// Recompute one named slice and compare it to the committed
 /// `build.sliceHashes` entry (spec 011 §3.3). A single-subject gate: it never
-/// consults the global hash or diagnostics. Unknown name → [`Error::Config`]
-/// (exit 3); a committed index with no entry for a configured slice is
-/// `Stale`, not an error: an index predating the slice config is by
+/// consults the global hash or diagnostics. Unknown name → [`Error::Usage`]
+/// (exit 3, spec 132: the argument names nothing the configuration declares);
+/// a committed index with no entry for a configured slice is `Stale`, not an
+/// error: an index predating the slice config is by
 /// definition not vouching for it.
 pub fn check_slice_freshness(
     cfg: &spec_spine_types::Config,
@@ -815,7 +816,7 @@ pub fn check_slice_freshness(
     name: &str,
 ) -> Result<Freshness, Error> {
     let Some(patterns) = cfg.index.slices.get(name) else {
-        return Err(Error::Config(format!(
+        return Err(Error::Usage(format!(
             "unknown slice '{name}' (declare it under [index.slices] in spec-spine.toml)"
         )));
     };
@@ -843,10 +844,10 @@ pub fn authorities(index: &CodebaseIndex, unit: &Unit) -> Vec<String> {
                 owners.insert(mapping.spec_id.clone());
             }
         }
-        if let Unit::File { path, .. } = unit {
-            if mapping.implementing_paths.iter().any(|p| &p.path == path) {
-                owners.insert(mapping.spec_id.clone());
-            }
+        if let Unit::File { path, .. } = unit
+            && mapping.implementing_paths.iter().any(|p| &p.path == path)
+        {
+            owners.insert(mapping.spec_id.clone());
         }
     }
     owners.into_iter().collect()
@@ -915,14 +916,14 @@ pub(crate) fn read_committed_index_shards(
     let mut spec_shards = Vec::new();
     for (name, bytes) in shard::read_shard_files(&dir.join(shard::BY_SPEC_DIR))? {
         let sh: IndexSpecShard = serde_json::from_slice(&bytes)
-            .map_err(|e| Error::Parse(format!("invalid index shard {name}: {e}")))?;
+            .map_err(|e| Error::Schema(format!("invalid index shard {name}: {e}")))?;
         shard::check_major("index", &sh.schema_version, INDEX_SCHEMA_VERSION)?;
         spec_shards.push(sh);
     }
     let mut package_shards = Vec::new();
     for (name, bytes) in shard::read_shard_files(&dir.join(shard::BY_PACKAGE_DIR))? {
         let sh: IndexPackageShard = serde_json::from_slice(&bytes)
-            .map_err(|e| Error::Parse(format!("invalid index shard {name}: {e}")))?;
+            .map_err(|e| Error::Schema(format!("invalid index shard {name}: {e}")))?;
         shard::check_major("index", &sh.schema_version, INDEX_SCHEMA_VERSION)?;
         package_shards.push(sh);
     }
@@ -1415,12 +1416,12 @@ pub fn near_miss_headers_in(
         .take(COMMENT_HEADER_CLAIM_WINDOW)
         .enumerate()
     {
-        if let Some(rest) = line.trim_start().strip_prefix("//!") {
-            if let Some(reference) = rest.trim_start().strip_prefix("Spec:") {
-                let id = spec_id_from_path(reference.trim(), all_ids);
-                out.push(miss(i + 1, NearMissReason::DocCommentMarker, id));
-                continue;
-            }
+        if let Some(rest) = line.trim_start().strip_prefix("//!")
+            && let Some(reference) = rest.trim_start().strip_prefix("Spec:")
+        {
+            let id = spec_id_from_path(reference.trim(), all_ids);
+            out.push(miss(i + 1, NearMissReason::DocCommentMarker, id));
+            continue;
         }
         if let Some(reference) = header_attempt(line) {
             match spec_id_from_path(reference, all_ids) {
@@ -2007,7 +2008,7 @@ pub struct OwnerReport {
     pub owners: Vec<OwnerLink>,
 }
 
-/// Freshness-guarded owner query: refuses a stale committed index (exit 2).
+/// Freshness-guarded owner query: refuses a stale committed index (exit 1).
 ///
 /// An owner answer read off a stale ledger is the one kind of wrong answer this
 /// verb must never give, because its caller is deciding what to edit.

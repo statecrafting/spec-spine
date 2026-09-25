@@ -44,7 +44,7 @@ then the stack's own build, tests, and lints. Stop on the first failure
 (orchestrator rule: halt, never continue silently). Outcomes:
 
 - All green: continue to Step 2.
-- `check` stale (exit 2): `spec-spine index` (or `compile`, per the tree it
+- `check` stale (exit 1, report line `STALE`): `spec-spine index` (or `compile`, per the tree it
   named), stage the derived
   directory, and re-run. The shards are committed with the change they
   describe.

@@ -69,7 +69,7 @@ command. See **[docs/adoption-guide.md](docs/adoption-guide.md)** and
 
 | Command | Capability |
 |---|---|
-| `spec-spine check` | **both** freshness reads in one verb (spec 062): are the committed registry shards and the committed index shards current? Never writes; the exit code is the more severe of the two (`3` then `1` then `2` then `0`) |
+| `spec-spine check` | **both** freshness reads in one verb (spec 062): are the committed registry shards and the committed index shards current? Never writes; the exit code is the higher of the two halves under spec 132's contract (`0` ok, `1` finding, `2` refused, `3` usage, `4` failed) |
 | `spec-spine compile` / `compile --check` | validate frontmatter, emit the deterministic registry / verify the committed shards match without writing (the single-tree read `check` composes) |
 | `spec-spine index` / `index check` / `index render` / `index orphans` / `index coverage` | emit the codebase index / check staleness / render it as markdown / list orphaned specs / report which source files no spec specifically claims (`--fail-on-untraced` asserts full coverage) |
 | `spec-spine registry list\|show\|status-report\|relationships\|plan` | typed read-only queries; `plan` (spec 035) partitions the corpus into what can be worked on now and what is blocked, naming each blocker's state |
@@ -78,14 +78,21 @@ command. See **[docs/adoption-guide.md](docs/adoption-guide.md)** and
 | `spec-spine delta --base B --head H` | classify every path a change touches (implementation, requirement, verification, authority, lifecycle, constitutional, policy, derived, bypassed, unowned, unknown) under the **merge base's** configuration and index, and name the classes to judge under the base's policy (spec 071). A report, not a gate: `priorPolicy.required: false` does not mean the change is safe, correct or approved |
 | `spec-spine verify <id>` / `verify <id> --plan` | run a spec's declared acceptance: the `verify:cli` commands under its `## Verification` heading, in order, stopping at the first failure / print what would run without running it. **Executes code the corpus declares**, so it is deliberately not part of the gate chain (spec 043) |
 
-Exit codes: `0` ok · `1` validation failure / not found / drift · `2` stale ·
-`3` I/O / parse / schema / config.
+Exit codes are the family contract shared with the Statecraft CLI (spec 132):
+`0` ok (found nothing) · `1` finding (validation failure, drift, staleness, an
+unresolved claim, not found, authored content that does not parse) · `2`
+refused (invalid configuration, a version pin the binary does not satisfy, a
+containment refusal; nothing was done) · `3` usage (a bad invocation or
+request document) · `4` failed (I/O, an internal error, a tool-produced
+artifact that fails its schema).
 
-The verbs that render a **verdict** (`check`, `compile --check`, `index check`, `lint`,
-`couple`, `delta`, `attest`, `verify-attestation`, `verify`) take `--json` (spec 034), writing one
-canonical envelope (`schemaVersion`, `verb`, `ok`, `exitCode`, and either
-`report` or `error`) instead of prose. The flag changes what is written, never
-what is decided: every exit code is identical with and without it.
+The verbs that render a **verdict** (`check`, `compile --check`, `compile
+--spec`, `index check`, `lint`, `couple`, `delta`, `attest`,
+`verify-attestation`, `verify`) take `--json` (spec 034), writing one canonical
+envelope (`schemaVersion`, `tool`, `verb`, `outcome`, `exitCode`, `summary`,
+and either `report` or `error`) instead of prose. The flag changes what is
+written, never what is decided: every exit code is identical with and without
+it.
 
 ### `verify` runs what the corpus declares
 

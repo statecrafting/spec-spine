@@ -59,7 +59,7 @@ pub enum RegistryQuery {
     },
     /// Resolve a context closure against the committed ledger (spec 107): every
     /// member's identity and one order-independent digest. Refuses a stale
-    /// registry (exit 2).
+    /// registry (exit 1).
     Closure {
         /// A closure request document, or `-` for stdin.
         #[arg(long, value_name = "FILE")]
@@ -149,7 +149,7 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
             let content_hash = shard_content_hash(&cfg, repo, &spec.id)?;
             if *json {
                 let mut value =
-                    serde_json::to_value(spec).map_err(|e| Error::Schema(e.to_string()))?;
+                    serde_json::to_value(spec).map_err(|e| Error::Internal(e.to_string()))?;
                 if let (Some(obj), Some(h)) = (value.as_object_mut(), content_hash.as_ref()) {
                     obj.insert("contentHash".to_string(), serde_json::json!(h));
                 }
@@ -241,7 +241,7 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
             let content_hash = shard_content_hash(&cfg, repo, view.spec)?;
             if *json {
                 let mut value =
-                    serde_json::to_value(&view).map_err(|e| Error::Schema(e.to_string()))?;
+                    serde_json::to_value(&view).map_err(|e| Error::Internal(e.to_string()))?;
                 if let (Some(obj), Some(h)) = (value.as_object_mut(), content_hash.as_ref()) {
                     obj.insert("contentHash".to_string(), serde_json::json!(h));
                 }
@@ -376,7 +376,7 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                     .map_err(|e| Error::Io(format!("read closure request {request}: {e}")))?
             };
             let req: spec_spine_core::ClosureRequest = serde_json::from_str(&text)
-                .map_err(|e| Error::Parse(format!("invalid closure request: {e}")))?;
+                .map_err(|e| Error::Usage(format!("invalid closure request: {e}")))?;
             let resolved = spec_spine_core::closure(&cfg, repo, &req)?;
             if *json {
                 print_json(&resolved)?;

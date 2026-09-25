@@ -42,7 +42,7 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
             (args.with_coupling, "--with-coupling"),
         ] {
             if given {
-                return Err(Error::Config(format!(
+                return Err(Error::Usage(format!(
                     "attest --snapshot cannot combine with {flag}: each names a different \
                      scope (spec 070 3.5); a snapshot already records every spec's territory \
                      and the resolution verdict"
@@ -57,7 +57,7 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
     // the caller asked for, with nothing said. A mode that cannot run fails
     // visibly (spec 021 FR-006).
     if args.spec.is_some() && args.with_coupling {
-        return Err(Error::Config(
+        return Err(Error::Usage(
             "attest --with-coupling is corpus-scoped and cannot combine with --spec: \
              coupling is a property of a diff between two revisions, not of a spec at one \
              (spec 039 3.1); run `spec-spine attest --with-coupling` for that verdict"
@@ -71,7 +71,7 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
     // or invalid key fails before any artifact lands on disk.
     let signer = if args.sign {
         let key_path = args.key.as_ref().ok_or_else(|| {
-            Error::Config(
+            Error::Usage(
                 "attest --sign requires --key <path> (a 32-byte ed25519 signing key, raw or hex)"
                     .to_string(),
             )
@@ -146,7 +146,7 @@ pub fn run(repo: &Path, args: &AttestArgs) -> Result<u8, Error> {
         Some((signing_key, key_id)) => {
             let ledger_seal = seal::sign(&attestation_hash, &signing_key, key_id, now_rfc3339())?;
             let seal_json = serde_json::to_string_pretty(&ledger_seal)
-                .map_err(|e| Error::Schema(e.to_string()))?
+                .map_err(|e| Error::Internal(e.to_string()))?
                 + "\n";
             let seal_path = attestation_path.with_extension("sig");
             Some((ledger_seal.key_id, seal_path, seal_json))

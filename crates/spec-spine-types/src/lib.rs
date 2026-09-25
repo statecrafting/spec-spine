@@ -73,7 +73,7 @@ pub use edges::{
     CoAuthorityItem, ConstrainItem, ExtendItem, Origin, Provenance, ReferenceItem, RefineItem,
     SupersedeItem, SupersedeScope, SupersedeScoped,
 };
-pub use error::{Error, Result};
+pub use error::{Error, Result, outcome};
 pub use frontmatter::{
     Frontmatter, FrontmatterIssue, Implementation, KNOWN_KEYS, Risk, Status, parse_frontmatter,
     parse_frontmatter_with, split_frontmatter,
