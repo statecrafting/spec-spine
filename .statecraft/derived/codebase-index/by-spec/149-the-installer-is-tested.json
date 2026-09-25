@@ -40,8 +40,8 @@
       }
     ],
     "specId": "149-the-installer-is-tested",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "850cef7ce4ebd96ab45eefcf3f2aebd3fb5693e7e6a578260cab91ab17c08b04"
+  "shardHash": "a28972f588da420bbc7ece20ef82274df1378cf01fb4bb201f17350758d77018"
 }
