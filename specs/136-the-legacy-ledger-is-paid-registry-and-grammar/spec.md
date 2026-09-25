@@ -127,6 +127,11 @@ exit 1.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-25).** This block no longer runs.
+> `151-carried-acceptance-tests-what-it-names` declares this spec in
+> `amends_verification`, so `spec-spine verify 136` builds its plan from that
+> spec's block, where these commands are carried unchanged, with 018's section extended (spec 082 3.2 and 3.4).
+
 ```verify:cli
 # 3.2: every target's line is gone from the legacy ledger (the sweep also refuses a stale entry).
 sh -c '! grep -Eqx "(001-compile-registry|002-registry-query|009-registry-query-projection-flags|012-declared-extra-frontmatter-passthrough|013-edge-paths-grammar-sugar|014-establishes-wrapper-na-alias|015-short-id-resolution|017-constrains-discriminator-optional-unit|018-structured-partial-supersedes|026-references-provenance-derived-at)" scripts/verify-sweep.sh'

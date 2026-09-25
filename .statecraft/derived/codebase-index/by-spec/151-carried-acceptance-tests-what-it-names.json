@@ -1,0 +1,20 @@
+{
+  "mapping": {
+    "amends": [
+      "136-the-legacy-ledger-is-paid-registry-and-grammar",
+      "144-a-repository-path-is-one-type",
+      "145-an-unresolved-claim-is-not-called-stale"
+    ],
+    "dependsOn": [
+      "136-the-legacy-ledger-is-paid-registry-and-grammar",
+      "142-a-relocation-is-proven",
+      "144-a-repository-path-is-one-type",
+      "145-an-unresolved-claim-is-not-called-stale"
+    ],
+    "implementingPaths": [],
+    "specId": "151-carried-acceptance-tests-what-it-names",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "ffc377a50e4ed52d56d9f0c2cbd3e7396657879350c9f9bb2732d2c2992812b4"
+}

@@ -101,7 +101,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "8b844000dc05c4bc2f32d9a7e7f4a2e88890c6dff267cbd41203be600e3a95eb",
-      "144-a-repository-path-is-one-type": "90c0a9838f75ff54008f7f780a775282748f989b9ee8aed4576cb4de0013edef",
+      "144-a-repository-path-is-one-type": "6e9622871d42db2f838c82decbf0eb1ce4778873fdbbc0fd9e201292386d9307",
       "2-territory": "1ea9a941670c4caba6c60b6be05c52edd66d314057dce7379477e05548ae051c",
       "3-1-one-rule": "8411217e13ce844f3ae09d03b53e06f9009c9ab7baad87f88e921a1b42f94805",
       "3-2-every-layout-root-amends-128": "db4a24961529cca1680ddb42aff89167b6a8a0bd53efdf8c307b494b8c9ba08b",
@@ -110,7 +110,7 @@
       "3-behavior": "b0671a6c97f1b0b3a30abcfee366fc850465be9937c3ed35d7ec4d06001cb3bd",
       "4-out-of-scope": "3cb0f82f81b3faf5e2a1aa8f61eb63a2a56ef7888aa4e2bd9d4e6e474427882f",
       "5-resolved-decisions": "5e33c4cb0036ca9831df9ac9dfffc7c36d7ee0e078cde67bc41a7baa8485ec67",
-      "verification": "519546a2a15135b3857ad19e859e92ece2c090e8fea374053ce7d5258cafb1ce"
+      "verification": "3ffc6ccb8ab070c4d7aaf43f25827c54424c636de979343976f38d3d287717a6"
     },
     "sectionHeadings": [
       "144: A repository path is one type",
@@ -130,6 +130,6 @@
     "summary": "Paths the engine joins onto the repository root were checked key by key, or not at all. `derived_dir` refused `/`, `..`, `\\` and `:` (spec 128); `specs_dir` and `standards_dir` accepted anything, so a corpus could be read from outside the repository; a compact plan refused a leading slash (WF-8) and let the drive-relative `C:foo` through; no key refused a Windows device-name segment; and a link inside the repository could point any governed read outside it. This spec gives one rule for a repository-relative path, applies it to every layout root and to compact plan paths, and refuses a run whose tree holds a link that resolves outside the repository, exit 2, while a repository reached through a link keeps working.\n",
     "title": "A repository path is one type"
   },
-  "shardHash": "0762a62e7cb0d87cea76035f7e583c70688174d0ae1d20e28e5bf3934e028bfd",
+  "shardHash": "09d472fe8998a18de5ead0eeee35df58d1fe7ea803d4007d433d9c8def5142fb",
   "specVersion": "1.9.0"
 }
