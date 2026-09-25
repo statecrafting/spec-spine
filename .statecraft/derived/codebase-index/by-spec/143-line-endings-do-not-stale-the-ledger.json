@@ -1,0 +1,39 @@
+{
+  "mapping": {
+    "amends": [
+      "028-registry-freshness-check",
+      "069-the-committed-index-is-compared-not-trusted",
+      "134-the-suite-runs-on-windows"
+    ],
+    "dependsOn": [
+      "069-the-committed-index-is-compared-not-trusted",
+      "134-the-suite-runs-on-windows",
+      "141-a-governance-edit-rewrites-one-file"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/tests/line_endings.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/line_endings.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/line_endings.rs"
+        }
+      }
+    ],
+    "specId": "143-line-endings-do-not-stale-the-ledger",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "869c33539d472a219229a4278b748893f48b08d75037cef72dc0c21619ed4d40"
+}

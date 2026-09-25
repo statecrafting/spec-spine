@@ -1692,7 +1692,8 @@ pub fn compare_committed_registry(
     for (name, content) in &expected {
         match committed.get(name) {
             None => stale.push(format!("missing {name}")),
-            Some(bytes) if bytes.as_slice() != content.as_bytes() => {
+            // Spec 143: CRLF from a Windows checkout is the same text (WF-7).
+            Some(bytes) if !shard::same_committed_text(bytes, content) => {
                 stale.push(format!("modified {name}"));
             }
             Some(_) => {}

@@ -1,0 +1,54 @@
+{
+  "record": {
+    "amends": [
+      "028-registry-freshness-check",
+      "069-the-committed-index-is-compared-not-trusted",
+      "134-the-suite-runs-on-windows"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "069-the-committed-index-is-compared-not-trusted",
+      "134-the-suite-runs-on-windows",
+      "141-a-governance-edit-rewrites-one-file"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/line_endings.rs"
+      }
+    ],
+    "id": "143-line-endings-do-not-stale-the-ledger",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "b191cd8f53f84d8147343acf2f4e7e44273eeb30fb9f24c8223b859f8af40368",
+      "143-line-endings-do-not-stale-the-ledger": "2555ad7fbd6829324106cb79b4b323b36b0bbff972fe0921dfa559734ed919a0",
+      "2-territory": "855bca5d443e652663f0fdc28a26045a41cb144e269894c16c8e53860d855a0a",
+      "3-1-crlf-is-the-same-text-amends-028-3-1-069-3-1": "301ed7460703bc3f3ad0091c07188cbf86961d2ac14a452e2747361628e84ea8",
+      "3-2-wf-7-is-fixed-amends-134": "42f90a172dd97b64681bd4d98518f9cdbac59f66946b0651368ae291cb161f8a",
+      "3-behavior": "280adef4243e7a7407b8b8d9f130e90c8200f761a430c6e1f3b1ffc764028b0e",
+      "4-out-of-scope": "f74dca217f928f3e30f4bbe9186099f9015e380befdde7abf0f79a47ce1348ee",
+      "5-resolved-decisions": "d32b84b6e8972f6780f901f9a9af13ad7777d2fa3747d6aa4c8e79d5e43e77cb",
+      "verification": "aa5e5fe37ec88d454ab67ead4a07b16196b6afddbd92ab83981578ae29505402"
+    },
+    "sectionHeadings": [
+      "143: Line endings do not stale the ledger",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 CRLF is the same text (amends 028 §3.1, 069 §3.1)",
+      "3.2 WF-7 is fixed (amends 134)",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/143-line-endings-do-not-stale-the-ledger/spec.md",
+    "status": "draft",
+    "summary": "Every emitted derived file is canonical JSON with LF endings, and the freshness reads compare the committed bytes with the recompute exactly (spec 086). Git on Windows with `core.autocrlf=true` and no `.gitattributes` rule for the derived tree checks those files out with CRLF, so every shard read as `modified`: a false staleness that regenerating cannot cure, because the next checkout converts again. Spec 134 quarantined three tests for it as WF-7. This spec makes the comparison read a committed file whose only difference is CRLF for LF as the same text, in the registry, the index and the inputs sidecar, keeps every other byte significant, and lifts the quarantine so the Windows test job proves it.\n",
+    "title": "Line endings do not stale the ledger"
+  },
+  "shardHash": "869c33539d472a219229a4278b748893f48b08d75037cef72dc0c21619ed4d40",
+  "specVersion": "1.8.0"
+}
