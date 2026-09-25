@@ -1,7 +1,7 @@
 ---
 id: "140-a-prose-only-example-stays-prose-only"
 title: "A prose-only example stays prose-only"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-25"
 summary: >

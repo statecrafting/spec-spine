@@ -52,10 +52,10 @@
       "Verification"
     ],
     "specPath": "specs/140-a-prose-only-example-stays-prose-only/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 043's acceptance, and one of its tests, use spec 041 as the corpus's standing example of a spec whose acceptance is prose only: `verify 041` must report `not-declared`. Spec 139 carries 041's acceptance, which makes that example false while the rule it illustrates still holds. This spec carries 043's block unchanged except that the example is 037, which stays prose-only by design (139 3.3), and moves the test's example the same way.\n",
     "title": "A prose-only example stays prose-only"
   },
-  "shardHash": "84f729ea7847436dd0e011d083c31e7542a2fbdd3b356f384a9ef31bfce48a2e",
+  "shardHash": "3a4154a35dcae01891bc87a1f654829c2fcb4cfff8ab8f468615846a9e8841bb",
   "specVersion": "1.9.0"
 }
