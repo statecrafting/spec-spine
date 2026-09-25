@@ -1,7 +1,7 @@
 ---
 id: "136-the-legacy-ledger-is-paid-registry-and-grammar"
 title: "The legacy ledger is paid: registry and grammar"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-25"
 summary: >
