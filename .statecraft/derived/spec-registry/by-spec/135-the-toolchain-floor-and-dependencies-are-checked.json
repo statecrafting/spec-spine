@@ -169,10 +169,10 @@
       "Verification"
     ],
     "specPath": "specs/135-the-toolchain-floor-and-dependencies-are-checked/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The workspace declares `rust-version = \"1.85\"` and nothing ever built it there; the code uses let-chains, stable only since 1.88, so the declaration was false. Dependencies were never checked for advisories, licenses or sources, and the dev tree carried two open RustSec advisories through `jsonschema`'s HTTP resolver, which no test uses. CI now builds and tests at the declared `rust-version`, read from `Cargo.toml`, and runs `cargo deny check` against a committed `deny.toml`; both are required through `ci-gate`. `jsonschema` drops its default features, which removes the whole HTTP and TLS dev tree and both advisories, and the declared `rust-version` is corrected to the measured floor. `CONTRIBUTING.md` states the loop.\n",
     "title": "The toolchain floor and the dependencies are checked"
   },
-  "shardHash": "d3455425ca8094d0fff34477e85ad3c26a4be035cb1ab239ec9e0811e83ef6f2",
+  "shardHash": "9ca6229a9fe1720bd429ad737d504869b341ec08ff3209981de0a7e179a4f74e",
   "specVersion": "1.8.0"
 }

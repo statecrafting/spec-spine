@@ -1417,8 +1417,8 @@
       }
     ],
     "specId": "132-one-exit-contract-for-the-family",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "59d2070ebed97684dbad3f43cb1deb473876cbdacfc799e31085f26847af809b"
+  "shardHash": "6c049ff16751ecdb34c9169253d68a29070c6bb8be8608bfe0f2bf47e6f02bb2"
 }

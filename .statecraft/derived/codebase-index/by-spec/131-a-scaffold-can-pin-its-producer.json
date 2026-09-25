@@ -111,8 +111,8 @@
       }
     ],
     "specId": "131-a-scaffold-can-pin-its-producer",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "a75c198aee5960fdfee06278f3dafa21a247fb3b9d47b3824cbd6ccd7add317e"
+  "shardHash": "cf40d9e972e476f1d502ca12cec2862e6182949dcce65539b6eae6fe37199855"
 }
