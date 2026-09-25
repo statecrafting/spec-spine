@@ -1,0 +1,240 @@
+{
+  "record": {
+    "amends": [
+      "018-structured-partial-supersedes",
+      "071-a-change-is-classified-under-the-bases-rules"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "018-structured-partial-supersedes",
+      "071-a-change-is-classified-under-the-bases-rules",
+      "106-obligations-are-declared-constraints",
+      "111-a-move-is-a-reviewed-mapping"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/relocation.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/relocation.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/relocation.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "111-a-move-is-a-reviewed-mapping",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/frontmatter.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "106-obligations-are-declared-constraints",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "106-obligations-are-declared-constraints",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "071-a-change-is-classified-under-the-bases-rules",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/delta.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "071-a-change-is-classified-under-the-bases-rules",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/delta.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-keypath-section-anchors",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/sections.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lint.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "045-couple-names-the-crossing",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "109-impact-and-conflict-are-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/impacts.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "106-obligations-are-declared-constraints",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/obligations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "111-a-move-is-a-reviewed-mapping",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/moves.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "103-a-verifier-fixture-is-a-published-artifact",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
+      }
+    ],
+    "id": "142-a-relocation-is-proven",
+    "implementation": "complete",
+    "intent": {
+      "goal": "a consumer can split an approved spec into several, moving text and code claims, and have the tools prove the move changed nothing it requires",
+      "nonGoals": [
+        "inferring a relocation: a move not declared is not one, and similarity is never evidence (3.3)",
+        "moving code: a code path's move is spec 111's `moves`"
+      ]
+    },
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionDigests": {
+      "1-purpose": "bb5d35287e54e21249eb56c8d7e17588f84caa2604e943a73239a87287c81e8c",
+      "142-a-relocation-is-proven": "e46dc5d1229bddd2603362f8524637b53865d757abe5d95c9f2ce0124c39bd6a",
+      "2-territory": "5b2bac846d750e6c8a82b168f11b85c7ccd4261ce8a70b029fb82371664c4302",
+      "3-1-a-partial-supersedes-hands-its-unit-over-amends-018-4-3": "7635030a677e73895fcb0d5d83862305899baf8e185166ecfc93a705ad143f84",
+      "3-2-a-relocation-is-declared": "8e7bb7dc28316f2f9e8628c014b3fdfd527ef4ab2a01d0bca66f8dc193fad9a6",
+      "3-3-delta-proves-it-against-the-merge-base-amends-071": "dbcab7eb436d46ab03f8df10a9743d219fd4492882d889e2d734cd9bc35eb05a",
+      "3-4-amends-sections-names-real-sections-l-017": "28d91ec418175cf0c523ba3c33e2966a159490aeefe2d3e6725f75477a3b5892",
+      "3-5-one-live-establisher-per-unit-l-018": "098e9ea0e07a764da9f1fe752ccab840649cafa10b6efe76bbad6c47caeb2d31",
+      "3-6-amends-does-not-grant-code-ownership": "ab6dc087fb53f0bb0e840fa87995490165de239f8b47e5cb6e3982f5f741b3aa",
+      "3-behavior": "016ecaf0a1d58241d13ce222ef1ea9a69cc8fc4b76c0e123937d81b4bd2a03a0",
+      "4-out-of-scope": "ce77588eddffa56bc1cd58d82aa5b4f19a8d071b69c37876e68393dd98dca647",
+      "5-resolved-decisions": "1b0c683f49e9d88c574405da49ef7c170e2215e2b18a6278a2873605852ca026",
+      "verification": "4649c7dfa375ddb54fe9f037125fe45b68a3bb19044be6ce7cac8a097be9807b"
+    },
+    "sectionHeadings": [
+      "142: A relocation is proven",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A partial supersedes hands its unit over (amends 018 §4.3)",
+      "3.2 A relocation is declared",
+      "3.3 `delta` proves it against the merge base (amends 071)",
+      "3.4 `amends_sections` names real sections (L-017)",
+      "3.5 One live establisher per unit (L-018)",
+      "3.6 `amends` does not grant code ownership",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/142-a-relocation-is-proven/spec.md",
+    "status": "draft",
+    "summary": "Splitting an approved spec had no honest path. A partial `supersedes` added the new spec as an owner of a unit and left the old one owning it too, so an edit to either spec cleared a change to the code. Moving a section of text out of an approved spec read as a requirement change, whatever the text said, because a section's digest is keyed by its spec's path. `amends_sections` accepted any string, and nothing said whether `amends` grants code ownership. This spec makes a partial `supersedes` an exclusive hand-off of its unit; adds a `relocates` declaration that `delta` proves against the merge base, classing a proven move `relocation` instead of `requirement`; validates `amends_sections` against the amended specs' headings (L-017); warns when two live specs establish one unit (L-018); and states the rule that `amends` changes what a spec requires and never who owns its code.\n",
+    "title": "A relocation is proven"
+  },
+  "shardHash": "71fd52937513f7dde5450bc96c2d4669812955ae7813a3fd4998c967852f7966",
+  "specVersion": "1.9.0"
+}
