@@ -12,8 +12,8 @@
     ],
     "implementingPaths": [],
     "specId": "146-carried-acceptance-follows-139-and-144",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "560d794364f7c8d54cf6b5f6fa4694f235bf2c84ee948b0559c13a627370030f"
+  "shardHash": "2049df6b246842b1bda550dd2be4a9cff5df385b92d7c64283f42e738befa7dd"
 }
