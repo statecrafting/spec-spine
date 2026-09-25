@@ -5,6 +5,10 @@
       "055-a-version-pin-the-cli-can-check",
       "061-shipped-is-not-the-same-as-working",
       "062-one-name-one-freshness-verb",
+      "067-a-short-id-names-the-same-spec-at-every-verb",
+      "068-a-verifier-checks-the-bytes-it-was-given",
+      "069-the-committed-index-is-compared-not-trusted",
+      "070-an-authority-snapshot-says-what-it-read",
       "079-a-blocking-claim-is-not-a-stale-shard",
       "080-an-unresolved-claim-is-not-stale",
       "093-the-harness-this-repository-runs",
@@ -1416,5 +1420,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "9565850a4e930644f3d34ad6aa50095603dd50c37cc6010a21479f6561f55d0d"
+  "shardHash": "403f83a862513fae7307ba7615ff96076c42745fdcda84317dd77cceec1fa797"
 }

@@ -33,11 +33,20 @@ depends_on:
 # Every approved spec whose normative text states a code this spec moves, or
 # the envelope members it changes. The sections are listed per spec in §2,
 # because `amends_sections` is one flat list shared by every target.
+amends_verification:
+  - "067-a-short-id-names-the-same-spec-at-every-verb"
+  - "068-a-verifier-checks-the-bytes-it-was-given"
+  - "069-the-committed-index-is-compared-not-trusted"
+  - "070-an-authority-snapshot-says-what-it-read"
 amends:
   - "034-machine-readable-verdicts"
   - "055-a-version-pin-the-cli-can-check"
   - "061-shipped-is-not-the-same-as-working"
   - "062-one-name-one-freshness-verb"
+  - "067-a-short-id-names-the-same-spec-at-every-verb"
+  - "068-a-verifier-checks-the-bytes-it-was-given"
+  - "069-the-committed-index-is-compared-not-trusted"
+  - "070-an-authority-snapshot-says-what-it-read"
   - "079-a-blocking-claim-is-not-a-stale-shard"
   - "080-an-unresolved-claim-is-not-stale"
   - "093-the-harness-this-repository-runs"
@@ -186,7 +195,7 @@ committed shard directory that cannot be listed was read as empty, so
 `extends` crossing on the file that constructs or maps the error, listed in the
 frontmatter.
 
-**This spec amends twelve approved specs.** Each states a code this spec moves
+**This spec amends sixteen approved specs.** Each states a code this spec moves
 or an envelope member it changes; none is edited (spec 037).
 
 | Spec | Section | What it says, and what it becomes |
@@ -203,6 +212,10 @@ or an envelope member it changes; none is edited (spec 037).
 | 127 | 3.2, 3.4, 3.5 | a linked or wrong-kind component refuses with exit 3 | 2 |
 | 128 | 3.1, 3.2, 3.3 | an escaping `derived_dir` is a configuration error, exit 3 | 2, `kind: config`; the writer's backstop 2, `kind: refused` |
 | 129 | 3.1 | `Error::Config`, exit 3 | exit 2 |
+| 067 | acceptance | a missing attestation falls through to exit 3 | 4; carried (§3.8) |
+| 068 | acceptance | a payload that fails to load exits 3 | 4; carried (§3.8) |
+| 069 | acceptance | a corrupted shard is stale at exit 2 | 1; carried (§3.8) |
+| 070 | acceptance | a non-UTF-8 direct claim refuses `attest --spec` at exit 3 | 2; carried (§3.8) |
 
 ## 3. Behavior
 
@@ -244,6 +257,9 @@ finding.
   a dirty tree (`Refused`) and a compaction plan it will not apply (`Config`,
   unchanged variant). `couple`'s prior snapshot whose configuration or corpus
   cannot be built (`Refused`: the question cannot be asked of that commit).
+  A per-spec attestation over a directly claimed file that is not UTF-8
+  (`Refused`: spec 070 §3.2.1's construction cannot answer it, and nothing is
+  written).
 - **Usage (3).** Clap's errors, as 093 §3.1 requires. An argument combination
   a verb rejects (`compile --json` without `--check`, `compile --spec` with
   `--check`, `attest --snapshot` with a scope flag or `--with-coupling` with
@@ -342,6 +358,17 @@ session hooks still only advise. `scripts/acceptance-scope.sh` MUST read
 
 `AGENTS.md`'s freshness protocol MUST state the five codes.
 
+### 3.8 The acceptance this contract changes is carried here
+
+Four approved specs' own `## Verification` blocks assert codes this spec
+moves: 067 (a missing attestation file, 3 to 4), 068 (a payload that fails to
+load, 3 to 4, eight lines), 069 (a corrupted shard is stale, 2 to 1, three
+lines), 070 (a non-UTF-8 direct claim, 3 to 2). This spec MUST carry each of
+those blocks in full through `amends_verification` (spec 082, as 083 did for
+079), with only those codes migrated and every other line unchanged, and MUST
+NOT edit the four files. The blocks spec 092 already carries (for 055, 062,
+079 through 083) assert no moved code and are not taken over.
+
 ## 4. Out of scope
 
 **A lock.** The contract names "lock busy" as a refusal. spec-spine takes no
@@ -397,4 +424,112 @@ cargo test -p spec-spine-cli --test verifier_fixtures --locked
 # 3.7: the hooks read the five codes, and older binaries' codes.
 cargo test -p spec-spine-core --test harness_hooks --locked
 cargo test -p spec-spine-core --test commit_boundary --locked
+# ---- carried for 067-a-short-id-names-the-same-spec-at-every-verb (amends_verification), migrated to spec 132's codes ----
+# Self-contained: the assertions below drive the release binary.
+cargo build --release --locked
+# 3.4 the policy, the library entry points, and the facade.
+cargo test -p spec-spine-core --test spec_id --locked
+# 3.5 the six-argument matrix.
+cargo test -p spec-spine-cli --test spec_id --locked
+# 3.5 the census; the grep refuses a filter that matched nothing, which cargo reports as a pass.
+sh -c 'cargo test -p spec-spine-cli --bin spec-spine --locked spec_id_census 2>&1 | grep -q "test result: ok. [1-9]"'
+# 3.1 the four arguments that refuse the short form today accept it.
+target/release/spec-spine registry show 015 >/dev/null
+target/release/spec-spine registry relationships 015 >/dev/null
+target/release/spec-spine attest --spec 059 >/dev/null
+sh -c 'target/release/spec-spine attest --spec 059-a-malformed-id-is-refused-not-a-panic >/dev/null && target/release/spec-spine verify-attestation --spec 059 --recompute >/dev/null'
+# 3.3 show: the short and full forms print the same bytes.
+sh -c 'A=$(target/release/spec-spine registry show 015-short-id-resolution --json); B=$(target/release/spec-spine registry show 015 --json); test -n "$A" && test "$A" = "$B"'
+# 3.3 relationships: the same bytes, and the incoming edge a raw-argument comparison drops is present.
+sh -c 'A=$(target/release/spec-spine registry relationships 015-short-id-resolution --json); B=$(target/release/spec-spine registry relationships 015 --json); echo "$A" | grep -q 043-verify-declared-acceptance && test "$A" = "$B"'
+# 3.3 attest: the same payload bytes, which a short-form attestation over zero units would not be.
+sh -c 'A=$(target/release/spec-spine attest --spec 059-a-malformed-id-is-refused-not-a-panic --json); B=$(target/release/spec-spine attest --spec 059 --json); echo "$A" | grep -q "\"contentHash\": \"" && test "$A" = "$B"'
+# 3.3 attest: the file is named by the resolved id, and nothing is named after the argument.
+sh -c 'D=.statecraft/derived/attestation/by-spec; rm -f "$D/070.json" "$D/059-a-malformed-id-is-refused-not-a-panic.json"; target/release/spec-spine attest --spec 059 >/dev/null || exit 1; test -f "$D/059-a-malformed-id-is-refused-not-a-panic.json" && test ! -e "$D/070.json"'
+# 3.2 and D-6 a path is not an id: each of these resolved through the filesystem before 084.
+sh -c 'for a in ../specs/059-a-malformed-id-is-refused-not-a-panic 059-a-malformed-id-is-refused-not-a-panic/; do target/release/spec-spine verify "$a" --plan >/dev/null 2>&1; test $? -eq 1 || { echo "resolved a path: $a" >&2; exit 1; }; done; E=$(target/release/spec-spine compile --spec ./059-a-malformed-id-is-refused-not-a-panic 2>&1); echo "$E" | grep -q "not found" && ! echo "$E" | grep -q V-001'
+# 3.4 no source file outside spec_id.rs carries the ordinal-segment match.
+sh -c 'test $(grep -rl "split(.-.).next()" crates/spec-spine-core/src crates/spec-spine-cli/src | grep -v "/spec_id.rs$" | wc -l) -eq 0'
+# 3.1 the five arguments that refuse no match do it at exit 1 with one message.
+sh -c 'E="${TMPDIR:-/tmp}/ss084.nm"; : > "$E"; X=0; for c in "registry show 999" "registry relationships 999" "compile --spec 999" "verify 999 --plan" "attest --spec 999"; do target/release/spec-spine $c >/dev/null 2>>"$E"; test $? -eq 1 || { echo "not exit 1: $c" >&2; X=1; }; done; U=$(sort -u "$E" | grep -c .); L=$(grep -c . "$E"); rm -f "$E"; test $X -eq 0 && test $L -eq 5 && test $U -eq 1'
+# 3.6 a full id is still accepted at all six arguments (a guard: passes before and after).
+sh -c 'for c in "registry show 015-short-id-resolution" "registry relationships 015-short-id-resolution" "compile --spec 015-short-id-resolution" "verify 015-short-id-resolution --plan" "attest --spec 015-short-id-resolution" "verify-attestation --spec 015-short-id-resolution --recompute"; do target/release/spec-spine $c >/dev/null || { echo "full id refused: $c" >&2; exit 1; }; done'
+# 3.6 an unknown id keeps its exit code, and a partial ordinal is not an ordinal (guards).
+sh -c 'target/release/spec-spine registry show 999 >/dev/null 2>&1; test $? -eq 1'
+sh -c 'target/release/spec-spine registry show 16 >/dev/null 2>&1; test $? -eq 1'
+# 3.2 and D-4 step 4 at verify-attestation, whose set is the attestation files: with 015's removed, 016 matches none and falls through to a failed read, exit 4 (132; was 3).
+sh -c 'rm -f .statecraft/derived/attestation/by-spec/015-short-id-resolution.json; target/release/spec-spine verify-attestation --spec 015 --recompute >/dev/null 2>&1; test $? -eq 4'
+# 3.2 validate_spec_id still refuses a path-shaped argument at verify-attestation, at exit 3 (a usage error since 132).
+sh -c 'target/release/spec-spine verify-attestation --spec ../x --recompute >/dev/null 2>&1; test $? -eq 3'
+# A scratch corpus whose two specs share an ordinal, the mistake a new draft makes.
+rm -rf "${TMPDIR:-/tmp}/ss084" && mkdir -p "${TMPDIR:-/tmp}/ss084/specs/001-a" "${TMPDIR:-/tmp}/ss084/specs/001-b"
+sh -c 'for n in a b; do printf -- "---\nid: \"001-%s\"\ntitle: \"t\"\nstatus: draft\ncreated: \"2026-09-11\"\nsummary: \"s\"\n---\n\n# t\n" "$n" > "${TMPDIR:-/tmp}/ss084/specs/001-$n/spec.md"; done'
+# compile refuses that corpus (V-004, exit 1) and still writes the shards registry show reads.
+sh -c 'target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss084" compile >/dev/null 2>&1; test $? -eq 1 && test -f "${TMPDIR:-/tmp}/ss084/.derived/spec-registry/by-spec/001-a.json" && test -f "${TMPDIR:-/tmp}/ss084/.derived/spec-registry/by-spec/001-b.json"'
+# 3.1 all six arguments refuse the shared ordinal at exit 1, with one message naming both candidates.
+sh -c 'R="${TMPDIR:-/tmp}/ss084"; E="${TMPDIR:-/tmp}/ss084.err"; D="$R/.derived/attestation/by-spec"; mkdir -p "$D"; : > "$D/001-a.json"; : > "$D/001-b.json"; : > "$E"; X=0; for c in "registry show 001" "registry relationships 001" "compile --spec 001" "verify 001 --plan" "attest --spec 001" "verify-attestation --spec 001 --recompute"; do target/release/spec-spine --repo "$R" $c >/dev/null 2>>"$E"; test $? -eq 1 || { echo "not exit 1: $c" >&2; X=1; }; done; U=$(sort -u "$E" | grep -c .); L=$(grep -c . "$E"); grep -q ambiguous "$E" && grep -q 001-a "$E" && grep -q 001-b "$E" || X=1; rm -rf "$R/.derived/attestation" "$E"; test $X -eq 0 && test $L -eq 6 && test $U -eq 1'
+rm -rf "${TMPDIR:-/tmp}/ss084"
+# 3.6 no committed shard moved: the lenient adapters return what the mirrors returned (a guard).
+target/release/spec-spine check
+# ---- carried for 068-a-verifier-checks-the-bytes-it-was-given (amends_verification), migrated to spec 132's codes ----
+cargo build --release --locked
+rm -rf "${TMPDIR:-/tmp}/ss085" && mkdir -p "${TMPDIR:-/tmp}/ss085"
+printf '0707070707070707070707070707070707070707070707070707070707070707' > "${TMPDIR:-/tmp}/ss085/k"
+target/release/spec-spine attest --sign --key "${TMPDIR:-/tmp}/ss085/k" >/dev/null
+target/release/spec-spine attest --spec 066-an-attestation-covers-the-territory-it-claims --sign --key "${TMPDIR:-/tmp}/ss085/k" >/dev/null
+sed -n 's/.*"keyId": "\([0-9a-f]*\)".*/\1/p' .statecraft/derived/attestation/attestation.sig > "${TMPDIR:-/tmp}/ss085/pub" && test -s "${TMPDIR:-/tmp}/ss085/pub"
+target/release/spec-spine verify-attestation --recompute --signature --public-key "${TMPDIR:-/tmp}/ss085/pub"
+D="${TMPDIR:-/tmp}/ss085"; awk 'NR==1{print; print "  \"prCouple\": {\"ok\": true},"; next} {print}' .statecraft/derived/attestation/attestation.json > "$D/t1.json"; target/release/spec-spine verify-attestation --attestation "$D/t1.json" --seal .statecraft/derived/attestation/attestation.sig --signature --public-key "$D/pub" 2> "$D/t1.err"; test $? -eq 4 && grep -q prCouple "$D/t1.err"
+D="${TMPDIR:-/tmp}/ss085"; awk 'NR==1{print; print "  \"prCouple\": {\"ok\": true},"; next} {print}' .statecraft/derived/attestation/attestation.json > "$D/t1r.json"; target/release/spec-spine verify-attestation --attestation "$D/t1r.json" --recompute 2> "$D/t1r.err"; test $? -eq 4 && grep -q prCouple "$D/t1r.err"
+D="${TMPDIR:-/tmp}/ss085"; awk '/"compile": \{/{print; print "      \"ignoredWarnings\": 12,"; next} {print}' .statecraft/derived/attestation/attestation.json > "$D/t2.json"; target/release/spec-spine verify-attestation --attestation "$D/t2.json" --seal .statecraft/derived/attestation/attestation.sig --recompute --signature --public-key "$D/pub" 2> "$D/t2.err"; test $? -eq 4 && grep -q ignoredWarnings "$D/t2.err"
+D="${TMPDIR:-/tmp}/ss085"; A=.statecraft/derived/attestation/by-spec/066-an-attestation-covers-the-territory-it-claims; awk '/"contentHash":/ && !done {print "        \"coveredBy\": \"review\","; done=1} {print}' "$A.json" > "$D/s1.json"; target/release/spec-spine verify-attestation --spec 066-an-attestation-covers-the-territory-it-claims --attestation "$D/s1.json" --seal "$A.sig" --recompute --signature --public-key "$D/pub" 2> "$D/s1.err"; test $? -eq 4 && grep -q coveredBy "$D/s1.err"
+D="${TMPDIR:-/tmp}/ss085"; awk 'NR==1{print; print "  \"revokedAt\": \"2026-01-01\","; next} {print}' .statecraft/derived/attestation/attestation.sig > "$D/sl.sig"; target/release/spec-spine verify-attestation --seal "$D/sl.sig" --signature --public-key "$D/pub" 2> "$D/sl.err"; test $? -eq 4 && grep -q revokedAt "$D/sl.err"
+D="${TMPDIR:-/tmp}/ss085"; sed 's/"schemaVersion": "0.1.0"/"schemaVersion": "9.0.0"/' .statecraft/derived/attestation/attestation.json > "$D/t3.json"; target/release/spec-spine verify-attestation --attestation "$D/t3.json" --recompute 2> "$D/t3.err"; test $? -eq 4 && grep -q "MAJOR 9" "$D/t3.err"
+D="${TMPDIR:-/tmp}/ss085"; A=.statecraft/derived/attestation/by-spec/066-an-attestation-covers-the-territory-it-claims.json; sed 's/"schemaVersion": "0.1.0"/"schemaVersion": "9.0.0"/' "$A" > "$D/s3.json"; target/release/spec-spine verify-attestation --spec 066-an-attestation-covers-the-territory-it-claims --attestation "$D/s3.json" --recompute 2> "$D/s3.err"; test $? -eq 4 && grep -q "MAJOR 9" "$D/s3.err"
+D="${TMPDIR:-/tmp}/ss085"; sed 's/"schemaVersion": "0.1.0"/"schemaVersion": "0.2.0"/' .statecraft/derived/attestation/attestation.json > "$D/t4.json"; target/release/spec-spine verify-attestation --attestation "$D/t4.json" --recompute --json > "$D/t4.out"; test $? -eq 1 && grep -q '"schemaVersion (0.2.0' "$D/t4.out"
+D="${TMPDIR:-/tmp}/ss085"; tr -d '\n' < .statecraft/derived/attestation/attestation.json > "$D/t6.json"; target/release/spec-spine verify-attestation --attestation "$D/t6.json" --seal .statecraft/derived/attestation/attestation.sig --signature --public-key "$D/pub"; test $? -eq 1
+D="${TMPDIR:-/tmp}/ss085"; tr -d '\n' < .statecraft/derived/attestation/attestation.json > "$D/t6r.json"; target/release/spec-spine verify-attestation --attestation "$D/t6r.json" --recompute --json > "$D/t6r.out"; test $? -eq 1 && grep -q contentMismatch "$D/t6r.out" && grep -q "bytes are not the canonical serialization" "$D/t6r.out"
+D="${TMPDIR:-/tmp}/ss085"; sed 's/"version": "[^"]*"/"version": "0.0.1"/' .statecraft/derived/attestation/attestation.json > "$D/r1.json"; target/release/spec-spine verify-attestation --attestation "$D/r1.json" --recompute --json > "$D/r1.out"; test $? -eq 1 && grep -q versionMismatch "$D/r1.out"
+D="${TMPDIR:-/tmp}/ss085"; sed 's/"ok": true/"ok": false/' .statecraft/derived/attestation/attestation.json > "$D/r2.json"; target/release/spec-spine verify-attestation --attestation "$D/r2.json" --recompute --json > "$D/r2.out"; test $? -eq 1 && grep -q contentMismatch "$D/r2.out"
+D="${TMPDIR:-/tmp}/ss085"; awk '/"registryHash":/ && !done {print "  \"registryHash\": \"00\","; done=1} {print}' .statecraft/derived/attestation/attestation.json > "$D/r3.json"; target/release/spec-spine verify-attestation --attestation "$D/r3.json" --recompute 2> "$D/r3.err"; test $? -eq 4 && grep -q registryHash "$D/r3.err"
+target/release/spec-spine attest --spec 093-the-harness-this-repository-runs >/dev/null && target/release/spec-spine verify-attestation --spec 093-the-harness-this-repository-runs --recompute
+target/release/spec-spine verify-attestation --spec 066-an-attestation-covers-the-territory-it-claims --recompute --signature --public-key "${TMPDIR:-/tmp}/ss085/pub"
+H=$(target/release/spec-spine attest --json | sed -n 's/.*"attestationHash": "\([0-9a-f]*\)".*/\1/p'); F=.statecraft/derived/attestation/attestation.json; if command -v sha256sum >/dev/null 2>&1; then G=$(sha256sum "$F" | cut -d' ' -f1); else G=$(shasum -a 256 "$F" | cut -d' ' -f1); fi; test -n "$H" && test "$H" = "$G"
+target/release/spec-spine check
+rm -rf "${TMPDIR:-/tmp}/ss085"
+# ---- carried for 069-the-committed-index-is-compared-not-trusted (amends_verification), migrated to spec 132's codes ----
+cargo build --release --locked
+rm -rf "${TMPDIR:-/tmp}/ss086" && mkdir -p "${TMPDIR:-/tmp}/ss086/specs/001-a" "${TMPDIR:-/tmp}/ss086/src"
+printf -- '---\nid: "001-a"\ntitle: "a"\nstatus: approved\ncreated: "2026-09-11"\nimplementation: complete\nsummary: "s"\nestablishes:\n  - "src/a.rs"\n---\n\n# a\n' > "${TMPDIR:-/tmp}/ss086/specs/001-a/spec.md"
+printf 'pub fn a() {}\n' > "${TMPDIR:-/tmp}/ss086/src/a.rs"
+D="${TMPDIR:-/tmp}/ss086"; S=target/release/spec-spine; $S --repo "$D" compile >/dev/null && $S --repo "$D" index >/dev/null && $S --repo "$D" check
+D="${TMPDIR:-/tmp}/ss086"; S=target/release/spec-spine; F="$D/.derived/codebase-index/by-spec/001-a.json"; cp "$F" "$D/bak"; sed 's#"src/a.rs"#"src/zz.rs"#g' "$D/bak" > "$F"; $S --repo "$D" index check > "$D/out" 2>&1; R=$?; cp "$D/bak" "$F"; test $R -eq 1 && grep -q "001-a" "$D/out"
+D="${TMPDIR:-/tmp}/ss086"; S=target/release/spec-spine; F="$D/.derived/codebase-index/by-spec/001-a.json"; cp "$F" "$D/bak"; sed 's#"src/a.rs"#"src/zz.rs"#g' "$D/bak" > "$F"; $S --repo "$D" check >/dev/null 2>&1; R=$?; cp "$D/bak" "$F"; test $R -eq 1
+D="${TMPDIR:-/tmp}/ss086"; S="$PWD/target/release/spec-spine"; cd "$D" && git init -q -b main && git -c user.email=t@example.invalid -c user.name=t add -A && git -c user.email=t@example.invalid -c user.name=t commit -qm base && sed -i.orig 's#"src/a.rs"#"src/zz.rs"#g' .derived/codebase-index/by-spec/001-a.json && rm .derived/codebase-index/by-spec/001-a.json.orig && printf 'pub fn a() { edited(); }\n' > src/a.rs && git -c user.email=t@example.invalid -c user.name=t commit -qam tamper && "$S" couple --base main~1 --head HEAD >/dev/null 2>&1; R=$?; git reset -q --hard main~1; test $R -eq 1
+D="${TMPDIR:-/tmp}/ss086"; S=target/release/spec-spine; $S --repo "$D" index >/dev/null && $S --repo "$D" index check
+target/release/spec-spine check
+rm -rf "${TMPDIR:-/tmp}/ss086"
+# ---- carried for 070-an-authority-snapshot-says-what-it-read (amends_verification), migrated to spec 132's codes ----
+cargo build --release --locked
+target/release/spec-spine attest --snapshot --json > "${TMPDIR:-/tmp}/ss087-self.json" && grep -q '"matchesRecompute": true' "${TMPDIR:-/tmp}/ss087-self.json"
+A=$(target/release/spec-spine attest --snapshot --json); B=$(target/release/spec-spine attest --snapshot --json); test -n "$A" && test "$A" = "$B"
+H=$(target/release/spec-spine attest --spec 066-an-attestation-covers-the-territory-it-claims --json | sed -n 's/.*"attestationHash": "\([0-9a-f]*\)".*/\1/p'); test -n "$H" && grep -q "\"specAttestationHash\": \"$H\"" .statecraft/derived/attestation/snapshot.json
+test "$(( $(grep -c '"specAttestationHash"' .statecraft/derived/attestation/snapshot.json) + $(grep -c '"specAttestationUnavailable"' .statecraft/derived/attestation/snapshot.json) ))" -eq "$(target/release/spec-spine registry list --ids-only | wc -l | tr -d ' ')"
+target/release/spec-spine verify-attestation --snapshot --recompute
+rm -rf "${TMPDIR:-/tmp}/ss087" && mkdir -p "${TMPDIR:-/tmp}/ss087/specs/001-a" "${TMPDIR:-/tmp}/ss087/g"
+printf -- '[index]\nextra_hashed_inputs = ["g/*"]\n' > "${TMPDIR:-/tmp}/ss087/spec-spine.toml"
+printf -- '---\nid: "001-a"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-11"\nsummary: "s"\nestablishes:\n  - "g/"\n---\n\n# t\n' > "${TMPDIR:-/tmp}/ss087/specs/001-a/spec.md"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; printf 'x' > "$D/g/a"; printf 'y' > "$D/g/b"; A=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); rm "$D/g/b"; printf 'xg/b\000y' > "$D/g/a"; B=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); rm -f "$D/g/a" "$D/g/b"; printf 'x' > "$D/g/a"; printf 'y' > "$D/g/b"; test -n "$A" && test -n "$B" && test "$A" != "$B"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; printf '\377\376\000\001' > "$D/g/a"; if command -v sha256sum >/dev/null 2>&1; then H=$(sha256sum "$D/g/a" | cut -d' ' -f1); else H=$(shasum -a 256 "$D/g/a" | cut -d' ' -f1); fi; B=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); printf 'sha256:%s' "$H" > "$D/g/a"; A=$($S --repo "$D" attest --snapshot --json | awk '/"governanceInputs": \{/{getline; print; exit}'); printf 'x' > "$D/g/a"; test -n "$A" && test -n "$B" && test "$A" != "$B"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; $S --repo "$D" compile >/dev/null && $S --repo "$D" index >/dev/null || exit 1; A=$($S --repo "$D" attest --snapshot --json | grep -c '"territoryDigest"'); T=$($S --repo "$D" registry list --ids-only | wc -l | tr -d ' '); printf 'changed' > "$D/g/a"; B=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); printf 'x' > "$D/g/a"; C=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); test "$A" -eq "$T" && test -n "$B" && test -n "$C" && test "$B" != "$C"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; $S --repo "$D" compile >/dev/null && $S --repo "$D" index >/dev/null && $S --repo "$D" attest --snapshot --json > "$D/before.json" && F="$D/.derived/spec-registry/by-spec/001-a.json" && cp "$F" "$D/shard.bak" && printf ' ' >> "$F" && $S --repo "$D" attest --snapshot --json > "$D/after.json"; R=$?; cp "$D/shard.bak" "$F"; test $R -eq 0 && grep -q '"matchesRecompute": false' "$D/after.json" && test "$(grep '"registryHash"' "$D/before.json")" = "$(grep '"registryHash"' "$D/after.json")"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; A=$($S --repo "$D" attest --snapshot --json); printf '# a comment\n' >> "$D/spec-spine.toml"; B=$($S --repo "$D" attest --snapshot --json); printf -- '[index]\nextra_hashed_inputs = ["g/*"]\n' > "$D/spec-spine.toml"; test "$A" != "$B" && test "$(echo "$A" | grep '"inputsManifestHash"')" = "$(echo "$B" | grep '"inputsManifestHash"')"
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss087" attest --snapshot --spec 001-a >/dev/null 2> "${TMPDIR:-/tmp}/ss087/scope.err"; test $? -eq 3 && grep -q "cannot combine" "${TMPDIR:-/tmp}/ss087/scope.err"
+target/release/spec-spine --repo "${TMPDIR:-/tmp}/ss087" attest --snapshot --with-coupling >/dev/null 2> "${TMPDIR:-/tmp}/ss087/scope2.err"; test $? -eq 3 && grep -q "cannot combine" "${TMPDIR:-/tmp}/ss087/scope2.err"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; M="$D/specs/001-a/spec.md"; cp "$M" "$D/spec.bak"; A=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); printf -- '---\nid: "001-a"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-11"\nsummary: "s"\nestablishes:\n  - "g/"\n  - "g/a"\n---\n\n# t\n' > "$M"; B=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); cp "$D/spec.bak" "$M"; test -n "$A" && test "$A" = "$B"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; M="$D/specs/001-a/spec.md"; cp "$M" "$D/spec.bak"; printf -- '---\nid: "001-a"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-11"\nsummary: "s"\nestablishes:\n  - "nowhere/at/all.txt"\n---\n\n# t\n' > "$M"; N=$($S --repo "$D" attest --snapshot --json | grep -c '"territoryDigest"'); cp "$D/spec.bak" "$M"; test "$N" -eq 0
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; mkdir -p "$D/g/e"; A=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); rmdir "$D/g/e"; : > "$D/g/e"; B=$($S --repo "$D" attest --snapshot --json | sed -n 's/.*"territoryDigest": "\([0-9a-f]*\)".*/\1/p' | head -1); rm -f "$D/g/e"; test -n "$A" && test -n "$B" && test "$A" != "$B"
+D="${TMPDIR:-/tmp}/ss087"; S=target/release/spec-spine; M="$D/specs/001-a/spec.md"; cp "$M" "$D/spec.bak"; printf '\377\376\000\001' > "$D/bin.dat"; printf -- '---\nid: "001-a"\ntitle: "t"\nstatus: draft\ncreated: "2026-09-11"\nsummary: "s"\nestablishes:\n  - "bin.dat"\n---\n\n# t\n' > "$M"; $S --repo "$D" attest --spec 001-a >/dev/null 2>&1; E=$?; J=$($S --repo "$D" attest --snapshot --json); R=$?; cp "$D/spec.bak" "$M"; rm -f "$D/bin.dat"; test $E -eq 2 && test $R -eq 0 && printf '%s' "$J" | grep -q '"specAttestationUnavailable": "non-utf8-direct-claim"' && printf '%s' "$J" | grep -q '"territoryDigest"' && ! printf '%s' "$J" | grep -q '"specAttestationHash"'
+rm -rf "${TMPDIR:-/tmp}/ss087" "${TMPDIR:-/tmp}/ss087-self.json"
+target/release/spec-spine check
 ```
