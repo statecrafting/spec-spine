@@ -209,5 +209,5 @@ fn the_output_is_deterministic() {
 fn a_malformed_config_is_exit_3() {
     let tmp = tempfile::tempdir().unwrap();
     write(tmp.path(), "spec-spine.toml", "[coupling]\nnot_a_key = 1\n");
-    assert_eq!(code(&show(tmp.path(), &[])), 3);
+    assert_eq!(code(&show(tmp.path(), &[])), 2);
 }

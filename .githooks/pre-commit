@@ -115,13 +115,21 @@ fi
 # which is the property that lets a hook call it at all.
 code=0
 out=$("$sc" --repo "$root" check 2>&1) || code=$?
+# Spec 132: `check` answers 0 fresh, 1 a finding (stale or invalid, which the
+# report tells apart; INVALID outranks STALE, spec 062 3.3), 2 a refusal (an
+# invalid configuration or version pin; staleness on a binary before 0.26.0,
+# which its report still says), 3 usage and 4 a read that failed.
+stale=0
+case "$out" in *'spec-registry: STALE'*|*'codebase-index: STALE'*|*'index is STALE'*) stale=1 ;; esac
+case "$out" in *'spec-registry: INVALID'*) stale=0 ;; esac
 # Spec 123: a refusal names the executable that made it, and says when that is
 # an in-tree build older than this checkout's source. Asked only off the happy
-# path, and `--version` not on exit 2, which is an answer (spec 093 3.9): there
-# the path names the reader. The reader's own report is printed unchanged.
+# path, and `--version` not on a stale report, which is an answer (spec 093
+# 3.9): there the path names the reader. The reader's own report is printed
+# unchanged.
 if [ "$code" != 0 ]; then
   rd="$sc"
-  [ "$code" = 2 ] || rd="$sc ($("$sc" --version 2>/dev/null || echo 'no answer to --version'))"
+  [ "$stale" = 1 ] || rd="$sc ($("$sc" --version 2>/dev/null || echo 'no answer to --version'))"
   old=$(spec_spine_reader_predates "$sc" "$root")
   if [ -n "$old" ]; then
     echo "$out"
@@ -130,12 +138,17 @@ if [ "$code" != 0 ]; then
 fi
 case "$code" in
   0) ;;
-  2) echo "$out"
-     refuse "a committed shard tree is stale, as read by $rd" 'make refresh, then stage the regenerated shards' ;;
-  1) echo "$out"
-     refuse "the corpus does not validate, as read by $rd" 'resolve the violations printed above, or confirm the reader is the one this corpus needs' ;;
-  3) echo "$out"
-     refuse "the freshness read could not be performed by $rd" 'read the error above; a read that did not answer is not a pass' ;;
+  1|2)
+     echo "$out"
+     if [ "$stale" = 1 ]; then
+       refuse "a committed shard tree is stale, as read by $rd" 'make refresh, then stage the regenerated shards'
+     elif [ "$code" = 1 ]; then
+       refuse "the corpus does not validate, as read by $rd" 'resolve the violations printed above, or confirm the reader is the one this corpus needs'
+     else
+       refuse "the freshness read was refused by $rd (an invalid configuration or a version pin it does not satisfy)" 'read the refusal above; nothing was judged'
+     fi ;;
+  3|4) echo "$out"
+     refuse "the freshness read could not be performed by $rd (exit $code)" 'read the error above; a read that did not answer is not a pass' ;;
   *) echo "$out"
      refuse "unknown exit code $code from the freshness read by $rd" 'confirm the binary with spec-spine --version' ;;
 esac

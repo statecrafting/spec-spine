@@ -97,7 +97,7 @@ pub fn run(repo: &Path, args: &CoupleArgs) -> Result<u8, Error> {
         // auto-waiver distinction the prose draws is deliberately not in the
         // envelope: the report carries the waiver's reason, and how it was
         // obtained is a CLI concern, not part of the gate's verdict.
-        let value = serde_json::to_value(&report).map_err(|e| Error::Schema(e.to_string()))?;
+        let value = serde_json::to_value(&report).map_err(|e| Error::Internal(e.to_string()))?;
         let code = report.exit_code();
         out::verdict(&Verdict::report(verb::COUPLE, code, value))?;
         return Ok(code);
@@ -303,9 +303,10 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<Segments, Error> {
     if let Some(path) = &args.paths_from {
         // Spec 081 §3.3: `--paths-from` carries its own path list and no history
         // to union a working tree with, so the combination names no coherent
-        // question. Refused (exit 3) rather than silently ignoring one of them.
+        // question. Refused as usage (exit 3, spec 132) rather than silently
+        // ignoring one of them.
         if args.include_uncommitted {
-            return Err(Error::Config(
+            return Err(Error::Usage(
                 "--include-uncommitted unions the working tree into a git diff, and \
                  --paths-from replaces that diff with a path list; pass one or the other"
                     .to_string(),
@@ -359,7 +360,7 @@ fn build_diff_input(repo: &Path, args: &CoupleArgs) -> Result<Segments, Error> {
         // and describe a state that never existed. Refused, not guessed.
         let head_oid = rev_parse(repo, "HEAD")?;
         if rev_parse(repo, &args.head)? != head_oid {
-            return Err(Error::Config(format!(
+            return Err(Error::Usage(format!(
                 "--include-uncommitted compares the working tree with HEAD, so it cannot be \
                  combined with --head {}, which resolves to a different commit",
                 args.head
@@ -796,7 +797,7 @@ fn waiver_inputs(
             .and_then(|(id, n)| n.trim().parse::<u64>().ok().map(|n| (id.trim(), n)))
             .filter(|(id, _)| !id.is_empty());
         let Some((id, n)) = parsed else {
-            return Err(Error::Parse(format!(
+            return Err(Error::Usage(format!(
                 "--waiver-uses '{entry}' is not <waiver id>=<count>"
             )));
         };
@@ -1006,7 +1007,7 @@ fn snapshot_at(
     // Unwrapped, the bare error names a path inside a temporary directory,
     // which says nothing about which commit is at fault.
     let cfg = tree_config(&dest).map_err(|e| {
-        Error::Parse(format!(
+        Error::Refused(format!(
             "the {label} snapshot's configuration could not be read, so this change's \
              deletions cannot be judged: {e}. The snapshot is {commit}; repair that \
              commit's spec-spine.toml and rebase rather than re-running."
@@ -1014,7 +1015,7 @@ fn snapshot_at(
     })?;
     let paths = tracked_paths(repo, commit)?;
     let snapshot = prior_ownership_from_root(&cfg, &dest).map_err(|e| {
-        Error::Parse(format!(
+        Error::Refused(format!(
             "the {label} snapshot's corpus could not be compiled, so this change's \
              deletions cannot be judged: {e}. A snapshot that could not be built has not \
              answered; repair that commit's corpus and rebase rather than re-running."

@@ -79,14 +79,17 @@ spec-spine verify <id>      # run a spec's `## Verification` block
 
 The `--fail-on-*` flags are what turn a read into a refusal: `lint
 --fail-on-warn`, `check --fail-on-unresolved --fail-on-warn`, `index coverage
---fail-on-untraced`. Bare `check` still exits 2 on a stale tree and 1 on a
-validation failure; what the flags add are the unresolved-unit and warning-tier
-refusals. Bare `index coverage` refuses nothing at all.
+--fail-on-untraced`. Bare `check` exits 1 on a stale tree or a validation
+failure (the report lines say which); what the flags add are the
+unresolved-unit and warning-tier refusals. Bare `index coverage` refuses nothing at all.
 
-Exit codes are a stable contract: `0` ok · `1` validation failure / not found /
-drift · `2` stale · `3` I/O / parse / schema / config / usage. They are mapped
-in exactly one place (`crates/spec-spine-cli/src/main.rs` via
-`Error::exit_code()`). Verdict-rendering verbs take `--json` (spec 034), which
+Exit codes are the family contract shared with Statecraft (spec 132): `0` ok ·
+`1` finding (validation, drift, stale, unresolved, not found, authored content
+that does not parse) · `2` refused (invalid config, a version pin not met, a
+containment refusal; nothing done) · `3` usage · `4` failed (I/O, internal, a
+tool-produced artifact that fails its schema). They are mapped in exactly one
+place (`Error::exit_code()` in `spec-spine-types`, applied by
+`crates/spec-spine-cli/src/main.rs`). Verdict-rendering verbs take `--json` (spec 034), which
 changes what is written and never what is decided.
 
 **Ask `spec-spine --version` before believing any exit code.** The binary in
@@ -212,8 +215,8 @@ This repo runs its own gates against its own corpus in CI (`.github/workflows/ci
   shard trees are **committed** (only `build-meta.json` is gitignored). After any
   change that affects them, regenerate and commit: `spec-spine compile` then
   `spec-spine index`. CI runs `check` rather than `compile`/`index`, because a
-  gate must never repair the tree it is judging; it fails (exit 2) if any
-  committed shard is stale.
+  gate must never repair the tree it is judging; it fails (exit 1, a `STALE`
+  report line) if any committed shard is stale.
 - **Editing a governance file restales every shard.** `[index] extra_hashed_inputs`
   in `spec-spine.toml` folds `AGENTS.md`, `CLAUDE.md`, `spec-spine.toml` itself,
   `Makefile`, the workflows and the embedded schemas into one

@@ -62,7 +62,7 @@ enum TargetFilter {
 ///
 /// `None` when no filter was given. A reference carrying `#` that
 /// [`split_obligation_ref`] rejects (an empty or blank half, or a second `#`)
-/// is [`Error::Parse`] (exit 3), never resolved against a spec; a target spec
+/// is [`Error::Usage`] (exit 3), never resolved against a spec; a target spec
 /// or target obligation that does not exist is [`Error::NotFound`] (exit 1).
 fn resolve_target(
     registry: &Registry,
@@ -73,7 +73,7 @@ fn resolve_target(
     };
     if arg.contains('#') {
         let (spec_part, ob_id) = split_obligation_ref(arg).ok_or_else(|| {
-            Error::Parse(format!(
+            Error::Usage(format!(
                 "'{arg}' is not a qualified obligation reference: a qualified form \
                  <spec-id>#<obligation-id> is required, and an unqualified id is never \
                  resolved against a spec"

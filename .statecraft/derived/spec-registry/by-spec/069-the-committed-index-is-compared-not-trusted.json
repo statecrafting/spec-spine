@@ -72,7 +72,7 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "069-the-committed-index-is-compared-not-trusted": "fe84d4b2a12708d85eebddd11b20f663630c417f8dbd7785508907e1223433fe",
+      "069-the-committed-index-is-compared-not-trusted": "185981dbf39a87a7160ef37fcb943373149623184baf379ce9ea6b18ffcd7214",
       "1-purpose": "8612835489a34d17ceeaa32ed273d6341aa9f4c9eadfa759614cec96326e7966",
       "2-territory": "0f18c14daa0ca1b58b0f91d36aaad93cf80971cbef69c9d82b2ef62deb943eac",
       "3-1-index-check-compares-bytes-and-sets": "6ec4bba8a6f918da60d5e5433f918524561e51642f771466e49a56fcff3ec506",
@@ -84,7 +84,7 @@
       "3-behavior": "764bd191d2d0f6a2f7050bbfa24f286266f0b9cccf051f1152d4f5bac4e2299c",
       "4-out-of-scope": "f1efae041021137b339772303d7a12dae77a0f6cee8603f24e85d29c90303494",
       "5-resolved-decisions": "19abda6886eee32193824813f417888ac460b0747eae5d1992377bf7c0ba9dec",
-      "verification": "f538acfecf55462f49eca6b2fd9b3df67ac880638fdccc910c2f5189e0821e7a"
+      "verification": "5a9b57dbb4da9af35f1213cb16890ee9d8c9267b3921fa9ba97beaf599dfb0aa"
     },
     "sectionHeadings": [
       "069: The committed index is compared, not trusted",
@@ -106,6 +106,6 @@
     "summary": "`index check` does not compare the committed index with what the corpus indexes to. It reads each committed shard's own mapping, derives from that mapping which span files to hash, and compares the resulting hash with the shard's `shardHash` field. The mapping body itself (which units resolved where, which paths implement which spec, the ownership flags) is never compared with a fresh resolution, and for a `file`, `directory` or `crate` unit, which carries no span, nothing in the hash constrains it. Measured on a scratch repository: rewriting a committed shard so its spec owns nothing, with `shardHash` left alone, leaves `index check` and `check` reporting fresh, and `couple` then derives ownership from the edited body and passes a change to code the spec owned, without its `spec.md`. `.derived/` is in the bypass floor, so the edit itself trips nothing. AGENTS.md tells every session that a fresh `check` means the committed shards are exactly what the corpus compiles to; for the index that is not what is checked. Spec 028 3.1 recorded the weaker comparison as a cost trade; a full re-index of this repository takes 0.04 s against 0.03 s for the check. This spec makes `index check` compare bytes and set membership exactly as `compile --check` does, so every reader of the committed index (the coupling gate, `index owner`, coverage, the projections) reads a body equal to the recompute. It amends 024 5, whose bounded trade let a sibling-caused resolution flip go unreported.\n",
     "title": "The committed index is compared, not trusted"
   },
-  "shardHash": "e834fd45b6b7305d9ab359aad4358ff32a7cdadac1741cebd7c462a01f8ca67f",
+  "shardHash": "adac832c9a2e075f222fb88c711b308898e30b02ca8fb4962ac4667a2c8d6270",
   "specVersion": "1.8.0"
 }

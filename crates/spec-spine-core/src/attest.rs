@@ -342,11 +342,19 @@ pub(crate) fn spec_units(
                 // and are not UTF-8", the one shape this construction cannot
                 // answer. The message is unchanged either way.
                 let non_utf8 = e.kind() == std::io::ErrorKind::InvalidData;
-                let err = Error::Io(format!(
+                let msg = format!(
                     "read {} for spec '{spec_id}' unit {:?}: {e}",
                     path.display(),
                     resolved.unit
-                ));
+                );
+                // Spec 132 §3.2: bytes that are not UTF-8 are a precondition
+                // this construction cannot meet, and nothing is written, so a
+                // refusal (2). Any other read failure is I/O (4).
+                let err = if non_utf8 {
+                    Error::Refused(msg)
+                } else {
+                    Error::Io(msg)
+                };
                 if non_utf8 {
                     SpecUnitsError::NonUtf8DirectClaim(err)
                 } else {
@@ -605,7 +613,7 @@ pub fn stored_bytes_hash(bytes: &[u8]) -> String {
 /// saying "this file was written by a later spec-spine".
 pub fn payload_schema_version(bytes: &[u8], what: &str) -> Result<String, Error> {
     let value: serde_json::Value =
-        serde_json::from_slice(bytes).map_err(|e| Error::Parse(format!("invalid {what}: {e}")))?;
+        serde_json::from_slice(bytes).map_err(|e| Error::Schema(format!("invalid {what}: {e}")))?;
     match value.get("schemaVersion").and_then(|v| v.as_str()) {
         Some(version) => Ok(version.to_string()),
         None => Err(Error::Schema(format!(

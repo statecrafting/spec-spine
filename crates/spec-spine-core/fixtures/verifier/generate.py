@@ -80,7 +80,7 @@ def main():
 
     def base(cid, kind, reason, exit_code, needs_corpus, **extra):
         c = {
-            "schemaVersion": "0.1.0",
+            "schemaVersion": "1.0.0",
             "id": cid,
             "payloadType": PT,
             "payloadSchemaVersion": extra.pop("payloadSchemaVersion", schema),
@@ -109,12 +109,12 @@ def main():
     d = json.loads(producer); d["prCouple"] = 1
     write_case("unknown-member-top", reserialize(d),
                M("unknown-member-top", "added top-level member `prCouple`",
-                 reason="unknown-member", exit=3))
+                 reason="unknown-member", exit=4))
 
     d = json.loads(producer); d["tool"]["extra"] = 1
     write_case("unknown-member-nested", reserialize(d),
                M("unknown-member-nested", "added member `extra` to the nested `tool` object",
-                 reason="unknown-member", exit=3))
+                 reason="unknown-member", exit=4))
 
     # Reformatted: identical values, different whitespace. Needs the corpus,
     # because the byte comparison happens only after a value match.
@@ -127,7 +127,7 @@ def main():
     d = json.loads(producer); d["schemaVersion"] = "9.0.0"
     write_case("unsupported-major", reserialize(d),
                M("unsupported-major", "schemaVersion MAJOR raised to 9.0.0",
-                 reason="unsupported-major", exit=3, payloadSchemaVersion="9.0.0"))
+                 reason="unsupported-major", exit=4, payloadSchemaVersion="9.0.0"))
 
     d = json.loads(producer); d["schemaVersion"] = "0.9.0"
     write_case("minor-ahead-content-mismatch", reserialize(d),
@@ -166,7 +166,7 @@ def main():
     d = json.loads(producer); del d["schemaVersion"]
     write_case("missing-schema-version", reserialize(d),
                M("missing-schema-version", "the schemaVersion member removed",
-                 reason="missing-schema-version", exit=3,
+                 reason="missing-schema-version", exit=4,
                  payloadSchemaVersion="(absent)"))
 
     write_case("unreadable-json", b"{ this is not json\n",
@@ -177,7 +177,7 @@ def main():
 
     cases = sorted(n for n in os.listdir(OUT) if os.path.isdir(os.path.join(OUT, n)))
     index = {
-        "schemaVersion": "0.1.0",
+        "schemaVersion": "1.0.0",
         "payloadTypes": ["spec-spine/corpus-attestation", "spec-spine/spec-attestation"],
         "reasons": ["unreadable-json", "missing-schema-version", "unsupported-major",
                     "unknown-member", "duplicate-key", "non-canonical-bytes",

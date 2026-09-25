@@ -27,7 +27,7 @@ pub fn run(repo: &Path, fail_on_warn: bool, fail_on_info: bool, json: bool) -> R
 
     if json {
         let value =
-            serde_json::to_value(&report.violations).map_err(|e| Error::Schema(e.to_string()))?;
+            serde_json::to_value(&report.violations).map_err(|e| Error::Internal(e.to_string()))?;
         out::verdict(&Verdict::report(verb::LINT, code, value))?;
         return Ok(code);
     }

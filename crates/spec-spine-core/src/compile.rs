@@ -1743,7 +1743,7 @@ fn read_committed_registry_shards(
     let mut shards = Vec::new();
     for (name, bytes) in shard::read_shard_files(&dir)? {
         let sh: RegistrySpecShard = serde_json::from_slice(&bytes)
-            .map_err(|e| Error::Parse(format!("invalid registry shard {name}: {e}")))?;
+            .map_err(|e| Error::Schema(format!("invalid registry shard {name}: {e}")))?;
         shard::check_major("registry", &sh.spec_version, REGISTRY_SCHEMA_VERSION)?;
         shards.push(sh);
     }

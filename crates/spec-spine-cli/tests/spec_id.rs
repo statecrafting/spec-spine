@@ -265,7 +265,7 @@ fn verify_attestation_falls_through_to_exit_three_on_no_match() {
         t.path(),
         &["verify-attestation", "--spec", "999", "--recompute"],
     );
-    assert_eq!(code(&out), 3, "{}", stderr(&out));
+    assert_eq!(code(&out), 4, "{}", stderr(&out));
     assert!(
         stderr(&out).contains("attest --spec"),
         "the hint must survive: {}",

@@ -306,7 +306,7 @@ pub fn prior_ownership_from_root(cfg: &Config, root: &Path) -> Result<PriorOwner
     Ok(PriorOwnership::new(&registry, index))
 }
 
-/// Freshness-guarded coupling. Refuses a stale index (exit 2, recompute first),
+/// Freshness-guarded coupling. Refuses a stale index (exit 1, recompute first),
 /// then loads the committed `registry.json` + `index.json` from `derived_dir`
 /// and delegates to [`couple_with`].
 pub fn couple(

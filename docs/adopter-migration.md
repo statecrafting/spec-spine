@@ -211,13 +211,18 @@ repository that never committed its derived tree is unaffected.
 turn a passing job red.
 
 The gate reads history: its diff is a three-dot range, and a deleted path needs
-the snapshot it lived in. When that history cannot be read, the gate now exits
-`3` with a message saying it judged nothing and naming the remedy. It does not
-substitute another revision, does not ignore a historical corpus that fails
-validation, and does not treat an unreadable range as an empty diff.
+the snapshot it lived in. When that history cannot be read, the gate exits `4`
+(exit `3` before spec 132) with a message saying it judged nothing and naming
+the remedy. It does not substitute another revision, does not ignore a
+historical corpus that fails validation, and does not treat an unreadable
+range as an empty diff.
 
-Exit `3` is the code spec 005 already assigns to an IO or parse failure, so no
-new exit code is introduced.
+This is an `Error::Io` failure (an unreachable git object in a shallow clone),
+which spec 005 already routed to the "the tool could not do its work" cell;
+spec 132 moves that cell's code from `3` to `4` without changing which
+failures land in it. A snapshot the gate *could* reach but whose
+configuration or corpus does not compile is a different case,
+`Error::Refused`, exit `2`: a repair-the-commit refusal, not an I/O one.
 
 **Who is affected.** A job whose checkout cannot reach the merge base. In
 practice that is `actions/checkout` left at its default `fetch-depth: 1`. If

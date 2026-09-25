@@ -79,25 +79,25 @@ struct ParsedEntry {
 /// §3.1: at least one path in total, no absolute path or `..` segment, no
 /// empty entry, a non-empty `with` for every `shared` entry, a path named
 /// twice under one role collapsed to one, and no path (or subtree and a path
-/// inside it) named under two roles. Refused as [`Error::Parse`] (exit 3).
+/// inside it) named under two roles. Refused as [`Error::Usage`] (exit 3).
 fn validate(req: &ScopeRequest) -> Result<Vec<ParsedEntry>, Error> {
     if req.mutable.is_empty() && req.shared.is_empty() && req.read_only.is_empty() {
-        return Err(Error::Parse(
+        return Err(Error::Usage(
             "a scope names at least one path across mutable, shared or readOnly".into(),
         ));
     }
 
     fn check_path(p: &str) -> Result<(), Error> {
         if p.is_empty() {
-            return Err(Error::Parse("a scope path may not be empty".into()));
+            return Err(Error::Usage("a scope path may not be empty".into()));
         }
         if p.starts_with('/') {
-            return Err(Error::Parse(format!(
+            return Err(Error::Usage(format!(
                 "scope path '{p}' is absolute: paths are repo-relative"
             )));
         }
         if p.split('/').any(|seg| seg == "..") {
-            return Err(Error::Parse(format!(
+            return Err(Error::Usage(format!(
                 "scope path '{p}' carries a '..' segment"
             )));
         }
@@ -118,7 +118,7 @@ fn validate(req: &ScopeRequest) -> Result<Vec<ParsedEntry>, Error> {
     for s in &req.shared {
         check_path(&s.path)?;
         if s.with.is_empty() {
-            return Err(Error::Parse(format!(
+            return Err(Error::Usage(format!(
                 "shared path '{}' names an empty 'with': a shared path must name at least \
                  one other spec",
                 s.path
@@ -157,7 +157,7 @@ fn validate(req: &ScopeRequest) -> Result<Vec<ParsedEntry>, Error> {
         for j in (i + 1)..entries.len() {
             let (a, b) = (&entries[i], &entries[j]);
             if a.role != b.role && paths_overlap(&a.path, &b.path) {
-                return Err(Error::Parse(format!(
+                return Err(Error::Usage(format!(
                     "'{}' ({}) and '{}' ({}) name one path under two roles",
                     a.path,
                     a.role.label(),
@@ -400,7 +400,7 @@ pub fn evaluate_scope(
 }
 
 /// Evaluate a scope against the committed ledger (spec 108 §3.4). A stale
-/// index is refused with [`Error::Stale`] (exit 2) before any path is
+/// index is refused with [`Error::Stale`] (exit 1) before any path is
 /// resolved.
 pub fn evaluate(
     cfg: &Config,

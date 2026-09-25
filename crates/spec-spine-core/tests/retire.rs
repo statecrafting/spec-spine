@@ -327,7 +327,7 @@ fn retiring_a_path_the_tree_does_not_have_is_refused() {
     let mut e = retire_rules();
     e.path = "rules/absent.md".into();
     let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     assert!(format!("{err}").contains("rules/absent.md"), "{err}");
 }
 
@@ -337,7 +337,7 @@ fn a_form_with_no_rule_is_refused_rather_than_skipped() {
     let mut e = retire_rules();
     e.forms.insert("markdown".into(), Some("x".into()));
     let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     assert!(format!("{err}").contains("markdown"), "{err}");
 }
 
@@ -363,7 +363,7 @@ fn a_unit_on_an_approved_spec_needs_the_human_acknowledgement() {
         acknowledge_approved: false,
     }];
     let err = compact(&cfg(), tmp.path(), &plan_with(e.clone())).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     assert!(format!("{err}").contains("approved"), "{err}");
 
     e.units[0].acknowledge_approved = true;
@@ -481,7 +481,7 @@ fn a_retarget_with_no_target_is_refused() {
         acknowledge_approved: true,
     }];
     let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
 }
 
 /// §3.3: a `path` form rule and a unit action on the same frontmatter line. In
@@ -533,7 +533,7 @@ fn a_withdrawal_that_also_names_a_target_is_refused() {
         acknowledge_approved: true,
     }];
     let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     assert!(format!("{err}").contains("withdrawal"), "{err}");
 }
 
@@ -659,7 +659,7 @@ fn a_glob_replacement_that_is_not_a_prefix_is_refused() {
     .into_iter()
     .collect();
     let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     assert!(format!("{err}").contains("directory prefix"), "{err}");
 }
 
@@ -710,7 +710,7 @@ fn an_empty_retired_path_is_refused() {
     let mut e = retire_rules();
     e.path = String::new();
     let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     assert!(format!("{err}").contains("empty"), "{err}");
 }
 
@@ -868,7 +868,7 @@ fn a_retired_path_outside_the_corpus_is_refused() {
         let mut e = retire_rules();
         e.path = outside.into();
         let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
-        assert_eq!(err.exit_code(), 3, "{outside}: {err}");
+        assert_eq!(err.exit_code(), 2, "{outside}: {err}");
         assert!(
             format!("{err}").contains("as the corpus spells it"),
             "{outside}: {err}"
@@ -890,7 +890,7 @@ fn a_retarget_with_an_empty_target_is_refused() {
         acknowledge_approved: true,
     }];
     let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     assert!(format!("{err}").contains("no `to`"), "{err}");
 }
 
@@ -904,7 +904,7 @@ fn a_directory_entry_without_a_trailing_slash_is_refused() {
     e.path = "rules".into();
     e.kind = RetireKind::Directory;
     let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     assert!(format!("{err}").contains("does not end with"), "{err}");
 }
 
@@ -984,7 +984,7 @@ fn a_dot_slash_prefixed_path_is_refused() {
     let mut e = retire_rules();
     e.path = "./rules/one.md".into();
     let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     assert!(format!("{err}").contains("./"), "{err}");
 }
 
@@ -1077,7 +1077,7 @@ fn an_empty_historical_entry_is_refused() {
         e.historical_sections = sections;
         e.historical_files = files;
         let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
-        assert_eq!(err.exit_code(), 3, "{err}");
+        assert_eq!(err.exit_code(), 2, "{err}");
         assert!(format!("{err}").contains("empty"), "{err}");
     }
 }
@@ -1306,7 +1306,7 @@ fn a_historical_file_outside_the_corpus_is_refused() {
         let mut e = retire_rules();
         e.historical_files = vec![bad.to_string()];
         let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
-        assert_eq!(err.exit_code(), 3, "{bad}: {err}");
+        assert_eq!(err.exit_code(), 2, "{bad}: {err}");
         assert!(format!("{err}").contains("historical"), "{bad}: {err}");
     }
 }
@@ -1716,7 +1716,7 @@ fn a_glob_may_be_removed_but_a_citation_may_not() {
     let mut e = retire_rules();
     e.forms.insert("citation".into(), None);
     let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
-    assert_eq!(err.exit_code(), 3, "{err}");
+    assert_eq!(err.exit_code(), 2, "{err}");
     assert!(format!("{err}").contains("glob"), "{err}");
 }
 

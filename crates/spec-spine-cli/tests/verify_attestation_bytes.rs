@@ -237,7 +237,7 @@ fn an_unknown_member_is_refused_in_every_payload_and_both_scopes() {
 
     for (what, member, args) in cases {
         let out = run(&f.root, &args);
-        assert_eq!(code(&out), 3, "{what}: must fail to load, not verify");
+        assert_eq!(code(&out), 4, "{what}: must fail to load, not verify");
         // Naming the member is what keeps this from passing on a missing file,
         // which is also exit 3.
         assert!(
@@ -274,7 +274,7 @@ fn an_unknown_schema_major_is_refused_in_both_scopes() {
             "--recompute",
         ],
     );
-    assert_eq!(code(&out), 3, "corpus: a MAJOR 9 payload is unreadable");
+    assert_eq!(code(&out), 4, "corpus: a MAJOR 9 payload is unreadable");
     assert!(
         stderr(&out)
             .contains("attestation schema MAJOR 9 is unsupported (this build understands 0.x)"),
@@ -294,7 +294,7 @@ fn an_unknown_schema_major_is_refused_in_both_scopes() {
             "--recompute",
         ],
     );
-    assert_eq!(code(&out), 3, "per-spec: a MAJOR 9 payload is unreadable");
+    assert_eq!(code(&out), 4, "per-spec: a MAJOR 9 payload is unreadable");
     assert!(
         stderr(&out).contains("MAJOR 9 is unsupported"),
         "{}",
@@ -319,7 +319,7 @@ fn an_unknown_schema_major_is_refused_in_both_scopes() {
             "--recompute",
         ],
     );
-    assert_eq!(code(&out), 3);
+    assert_eq!(code(&out), 4);
     assert!(stderr(&out).contains("not semver"), "{}", stderr(&out));
 }
 

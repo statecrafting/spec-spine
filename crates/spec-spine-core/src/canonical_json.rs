@@ -12,8 +12,9 @@ use spec_spine_types::Error;
 pub fn to_string<T: Serialize>(value: &T) -> Result<String, Error> {
     // to_value -> BTreeMap-backed objects (sorted keys); pretty-print preserves
     // that order. Arrays keep their element order (callers sort where needed).
-    let value = serde_json::to_value(value).map_err(|e| Error::Schema(e.to_string()))?;
-    let mut out = serde_json::to_string_pretty(&value).map_err(|e| Error::Schema(e.to_string()))?;
+    let value = serde_json::to_value(value).map_err(|e| Error::Internal(e.to_string()))?;
+    let mut out =
+        serde_json::to_string_pretty(&value).map_err(|e| Error::Internal(e.to_string()))?;
     out.push('\n');
     Ok(out)
 }

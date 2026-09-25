@@ -27,7 +27,7 @@ use crate::pathutil::rel_posix;
 /// Reject a shard whose schema MAJOR differs from this build's (the versioning
 /// policy: a build understands its own MAJOR line only). Mirrors
 /// `query::reject_unknown_major`, applied per shard at the read boundary so a
-/// stale-major shard fails with a clean [`Error::Schema`] (exit 3) rather than a
+/// stale-major shard fails with a clean [`Error::Schema`] (exit 4) rather than a
 /// silent misread.
 pub fn check_major(what: &str, found: &str, ours: &str) -> Result<(), Error> {
     let (want_major, ..) = parse_semver(ours).expect("our own version constant is semver");
@@ -161,7 +161,7 @@ pub fn check_file_name(name: &str, dir: &Path) -> Result<(), Error> {
     if plain {
         return Ok(());
     }
-    Err(Error::Io(format!(
+    Err(Error::Refused(format!(
         "refused to write {name:?} into {}: a file name derived from a spec id must be one \
          plain file name (not empty, no leading `.`, no trailing `.` or space, no `/`, `\\`, \
          `:` or NUL, and not a reserved Windows device name such as `CON` or `NUL.txt`; \
@@ -247,7 +247,7 @@ impl Kind {
 /// [`check_file_name`], that every path is wholly below `root` (spec 128 3.3),
 /// and every component of every path below `root` that
 /// the run writes, creates, removes or prunes: a symbolic link, or an existing
-/// component of the wrong kind, refuses the whole run with exit 3 and nothing
+/// component of the wrong kind, refuses the whole run with exit 2 and nothing
 /// written (3.1 to 3.4). Only then does it create directories, one level at a
 /// time and re-checked as it goes, prune, write and remove, in the order the
 /// outputs were added. `root` itself and its ancestors are never checked, so a
@@ -389,7 +389,7 @@ impl DerivedWrites {
         if below {
             return Ok(());
         }
-        Err(Error::Io(format!(
+        Err(Error::Refused(format!(
             "refused to write {}: it is not below {}, the directory this run writes into \
              (spec 128); nothing was written. A derived path must stay inside the \
              repository: check `[layout] derived_dir`",
@@ -445,7 +445,7 @@ impl DerivedWrites {
 
     fn refusal(&self, at: &Path, want: Kind, what: &str) -> Error {
         let rel = rel_posix(&self.root, at);
-        Error::Io(format!(
+        Error::Refused(format!(
             "refused to write under {}: `{rel}` {what}, where the derived tree expects {} \
              (spec 127); nothing was written. The derived tree must contain no symbolic links \
              and no component of the wrong kind: remove `{rel}` and run again",
@@ -520,11 +520,17 @@ fn prune_entries(dir: &Path, files: &[(String, String)]) -> Vec<PathBuf> {
 /// Read every `*.json` file in `dir`, sorted by filename, as raw bytes. A
 /// missing directory yields an empty list (an artifact with no shards of that
 /// kind, e.g. a corpus with no packages, or a not-yet-built artifact).
+///
+/// A directory that exists and cannot be read is `Error::Io` (spec 132 §3.2):
+/// reading it as empty reported every committed shard as missing, so a read
+/// the tool could not perform arrived as a stale ledger and a prescription to
+/// regenerate it.
 pub fn read_shard_files(dir: &Path) -> Result<Vec<(String, Vec<u8>)>, Error> {
     let mut out: Vec<(String, Vec<u8>)> = Vec::new();
     let entries = match fs::read_dir(dir) {
         Ok(e) => e,
-        Err(_) => return Ok(out),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(out),
+        Err(e) => return Err(Error::Io(format!("read {}: {e}", dir.display()))),
     };
     let mut paths: Vec<PathBuf> = entries
         .filter_map(|e| e.ok().map(|e| e.path()))
@@ -649,7 +655,7 @@ mod tests {
             "a\0b.json",
         ] {
             let err = check_file_name(bad, dir).expect_err(bad);
-            assert_eq!(err.exit_code(), 3, "{bad:?}");
+            assert_eq!(err.exit_code(), 2, "{bad:?}");
             let msg = err.to_string();
             assert!(msg.contains(&format!("{bad:?}")), "names the name: {msg}");
             assert!(msg.contains("by-spec"), "names the directory: {msg}");
@@ -679,7 +685,7 @@ mod tests {
             ("../../../victim.json".into(), "pwned".into()),
         ];
         let err = sync_dir(&dir, &batch).expect_err("an unsafe name refuses");
-        assert_eq!(err.exit_code(), 3);
+        assert_eq!(err.exit_code(), 2);
         assert_eq!(fs::read_to_string(dir.join("old.json")).unwrap(), "old");
         assert_eq!(fs::read_to_string(dir.join("a.json")).unwrap(), "1");
         assert!(!dir.join("new.json").exists());
@@ -746,7 +752,7 @@ mod tests {
                 ] {
                     assert!(is_device_name(&name), "{name:?} is a device");
                     let err = check_file_name(&name, dir).expect_err(&name);
-                    assert_eq!(err.exit_code(), 3, "{name:?}");
+                    assert_eq!(err.exit_code(), 2, "{name:?}");
                     let msg = err.to_string();
                     assert!(msg.contains(&format!("{name:?}")), "{msg}");
                     assert!(msg.contains("nothing was written"), "{msg}");
@@ -791,7 +797,7 @@ mod tests {
             "001-a.json..",
         ] {
             let err = check_file_name(bad, dir).expect_err(bad);
-            assert_eq!(err.exit_code(), 3, "{bad:?}");
+            assert_eq!(err.exit_code(), 2, "{bad:?}");
         }
         for ok in ["a.json", "a b.json", "a .b.json"] {
             assert!(check_file_name(ok, dir).is_ok(), "{ok:?}");
@@ -858,7 +864,7 @@ mod tests {
             }
             symlink(&target, &path).unwrap();
             let err = run(&root).apply().expect_err(at);
-            assert_eq!(err.exit_code(), 3, "{at}");
+            assert_eq!(err.exit_code(), 2, "{at}");
             let msg = err.to_string();
             assert!(msg.contains(&format!("`{at}`")), "{at}: {msg}");
             assert!(msg.contains("symbolic link"), "{at}: {msg}");
@@ -938,7 +944,7 @@ mod tests {
             let run =
                 escape(DerivedWrites::new(&root).write(&root.join("d"), "meta.json", "m".into()));
             let err = run.apply().expect_err(what);
-            assert_eq!(err.exit_code(), 3, "{what}");
+            assert_eq!(err.exit_code(), 2, "{what}");
             let msg = err.to_string();
             assert!(msg.contains("not below"), "{what}: {msg}");
             assert!(msg.contains("nothing was written"), "{what}: {msg}");
@@ -972,7 +978,7 @@ mod tests {
         let dir = tmp.path().join("by-spec");
         symlink(&outside, &dir).unwrap();
         let err = sync_dir(&dir, &[("a.json".into(), "1".into())]).expect_err("linked dir");
-        assert_eq!(err.exit_code(), 3);
+        assert_eq!(err.exit_code(), 2);
         fs::remove_file(&dir).unwrap();
         fs::create_dir(&dir).unwrap();
         symlink(outside.join("o.json"), dir.join("a.json")).unwrap();

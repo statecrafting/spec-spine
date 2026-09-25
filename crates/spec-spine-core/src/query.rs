@@ -18,7 +18,7 @@ use spec_spine_types::{
 /// MAJOR line only).
 pub fn load_registry(bytes: &[u8]) -> Result<Registry, Error> {
     let registry: Registry = serde_json::from_slice(bytes)
-        .map_err(|e| Error::Parse(format!("invalid registry.json: {e}")))?;
+        .map_err(|e| Error::Schema(format!("invalid registry.json: {e}")))?;
     reject_unknown_major("registry", &registry.spec_version, REGISTRY_SCHEMA_VERSION)?;
     Ok(registry)
 }
@@ -54,7 +54,7 @@ pub fn shard_content_hash(
         Err(e) => return Err(Error::Io(format!("read {}: {e}", path.display()))),
     };
     let shard: RegistrySpecShard = serde_json::from_slice(&bytes)
-        .map_err(|e| Error::Parse(format!("invalid registry shard {spec_id}: {e}")))?;
+        .map_err(|e| Error::Schema(format!("invalid registry shard {spec_id}: {e}")))?;
     Ok(Some(shard.shard_hash))
 }
 
@@ -62,7 +62,7 @@ pub fn shard_content_hash(
 /// MAJOR schema version. The index-side overlay seam.
 pub fn load_index(bytes: &[u8]) -> Result<CodebaseIndex, Error> {
     let index: CodebaseIndex = serde_json::from_slice(bytes)
-        .map_err(|e| Error::Parse(format!("invalid index.json: {e}")))?;
+        .map_err(|e| Error::Schema(format!("invalid index.json: {e}")))?;
     reject_unknown_major("index", &index.schema_version, INDEX_SCHEMA_VERSION)?;
     Ok(index)
 }
@@ -134,7 +134,7 @@ pub struct ObligationView<'a> {
 
 /// Resolve a qualified `<spec-id>#<obligation-id>` reference (spec 106 §3.6).
 ///
-/// An unqualified reference is refused as a parse failure (exit 3) and is
+/// An unqualified reference is refused as a usage error (exit 3) and is
 /// never resolved against any spec. The spec half follows the one spec-id
 /// policy (spec 084); an unknown spec or obligation is [`Error::NotFound`].
 pub fn obligation<'a>(
@@ -143,7 +143,7 @@ pub fn obligation<'a>(
 ) -> Result<ObligationView<'a>, Error> {
     let (spec_part, ob_id) =
         spec_spine_types::split_obligation_ref(reference).ok_or_else(|| {
-            Error::Parse(format!(
+            Error::Usage(format!(
                 "'{reference}' is not a qualified obligation reference: a qualified form \
              <spec-id>#<obligation-id> is required, and an unqualified id is never \
              resolved against a spec"

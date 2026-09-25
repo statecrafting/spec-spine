@@ -5,7 +5,7 @@
 //!
 //! A scope lives in the consumer's record; nothing here writes, locks,
 //! reserves or permits anything (§3.7). Evaluation refuses a stale committed
-//! index (exit 2); comparison reads no ledger at all.
+//! index (exit 1); comparison reads no ledger at all.
 
 use std::io::Read as _;
 use std::path::Path;
@@ -54,7 +54,7 @@ pub fn run(repo: &Path, action: &ScopeAction) -> Result<u8, Error> {
 fn read_arg(arg: &str, stdin_claimed: &mut bool) -> Result<String, Error> {
     if arg == "-" {
         if *stdin_claimed {
-            return Err(Error::Parse(
+            return Err(Error::Usage(
                 "only one of the two scope arguments may read stdin ('-')".into(),
             ));
         }
@@ -70,7 +70,7 @@ fn read_arg(arg: &str, stdin_claimed: &mut bool) -> Result<String, Error> {
 }
 
 fn parse_request(text: &str) -> Result<ScopeRequest, Error> {
-    serde_json::from_str(text).map_err(|e| Error::Parse(format!("invalid scope request: {e}")))
+    serde_json::from_str(text).map_err(|e| Error::Usage(format!("invalid scope request: {e}")))
 }
 
 fn run_evaluate(repo: &Path, scope: &str, json: bool) -> Result<u8, Error> {

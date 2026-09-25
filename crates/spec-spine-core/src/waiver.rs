@@ -121,7 +121,7 @@ impl WaiverInputs {
         if let Some(d) = &self.as_of
             && !is_date(d)
         {
-            return Err(spec_spine_types::Error::Parse(format!(
+            return Err(spec_spine_types::Error::Usage(format!(
                 "waiver as-of '{d}' is not a YYYY-MM-DD date"
             )));
         }

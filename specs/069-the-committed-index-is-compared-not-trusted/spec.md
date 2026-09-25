@@ -234,6 +234,16 @@ stands: this keeps a refusal that already existed rather than adding one.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-24).** This block no longer runs.
+> `132-one-exit-contract-for-the-family` declares this spec in
+> `amends_verification`, so `spec-spine verify 069` builds its plan from that
+> spec's block, where these commands are carried with the exit codes spec 132
+> moved and every other line unchanged (spec 082 3.2 and 3.4).
+>
+> The commands below are kept **verbatim**. A predecessor is amended, never
+> edited (spec 037 3.1): this block is the record of what was asserted when
+> this spec was ratified.
+
 Each line runs in its own `sh -c` from the repository root (spec 043 3.5). The
 scratch repository lives at a fixed path; each tampering line restores the
 shard before its final assertion.

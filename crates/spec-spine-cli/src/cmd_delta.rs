@@ -56,7 +56,7 @@ pub fn run(repo: &Path, args: &DeltaArgs) -> Result<u8, Error> {
     drop(trees);
 
     if args.json {
-        let value = serde_json::to_value(&report).map_err(|e| Error::Schema(e.to_string()))?;
+        let value = serde_json::to_value(&report).map_err(|e| Error::Internal(e.to_string()))?;
         out::verdict(&Verdict::report(verb::DELTA, 0, value))?;
     } else {
         render(&report);

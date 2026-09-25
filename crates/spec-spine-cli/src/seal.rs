@@ -66,17 +66,26 @@ pub fn verify(
     seal: &LedgerSeal,
     verifying_key: &VerifyingKey,
 ) -> Result<bool, Error> {
+    // Spec 132 §3.2: the seal and the hash it signs are documents the tool
+    // produced, so a seal that cannot be read is a schema failure (4). The
+    // same hex reader serves a public key the operator supplies, where a
+    // malformed value is a configuration refusal (2), so the mapping is made
+    // here rather than in `hex_decode`.
     if seal.alg != "ed25519" {
-        return Err(Error::Config(format!(
+        return Err(Error::Schema(format!(
             "unsupported seal algorithm '{}' (only ed25519 is supported)",
             seal.alg
         )));
     }
-    let digest = hex_decode(attestation_hash)?;
-    let sig_bytes = hex_decode(&seal.sig)?;
+    let in_seal = |e: Error| match e {
+        Error::Config(m) => Error::Schema(format!("seal: {m}")),
+        other => other,
+    };
+    let digest = hex_decode(attestation_hash).map_err(in_seal)?;
+    let sig_bytes = hex_decode(&seal.sig).map_err(in_seal)?;
     let sig_arr: [u8; 64] = sig_bytes
         .try_into()
-        .map_err(|_| Error::Parse("ed25519 signature must be 64 bytes".to_string()))?;
+        .map_err(|_| Error::Schema("ed25519 signature must be 64 bytes".to_string()))?;
     let signature = Signature::from_bytes(&sig_arr);
     Ok(verifying_key.verify_strict(&digest, &signature).is_ok())
 }
@@ -115,13 +124,13 @@ fn hex_encode(bytes: &[u8]) -> String {
 fn hex_decode(s: &str) -> Result<Vec<u8>, Error> {
     let s = s.trim();
     if s.len() % 2 != 0 {
-        return Err(Error::Parse("hex string has an odd length".to_string()));
+        return Err(Error::Config("hex string has an odd length".to_string()));
     }
     (0..s.len())
         .step_by(2)
         .map(|i| {
             u8::from_str_radix(&s[i..i + 2], 16)
-                .map_err(|e| Error::Parse(format!("invalid hex: {e}")))
+                .map_err(|e| Error::Config(format!("invalid hex: {e}")))
         })
         .collect()
 }
@@ -166,6 +175,25 @@ mod tests {
         let seal = sign(HASH, &key, "k".to_string(), "t".to_string()).unwrap();
         let wrong = SigningKey::from_bytes(&[9u8; 32]);
         assert!(!verify(HASH, &seal, &wrong.verifying_key()).unwrap());
+    }
+
+    /// Spec 132 §3.2: a seal the tool wrote that cannot be read is a schema
+    /// failure (exit 4), while the same malformed hex in an operator's key
+    /// stays a configuration refusal (exit 2).
+    #[test]
+    fn a_seal_that_cannot_be_read_is_a_schema_failure() {
+        let key = fixed_key();
+        let mut seal = sign(HASH, &key, "k".to_string(), "t".to_string()).unwrap();
+        seal.sig = "zz".to_string();
+        let err = verify(HASH, &seal, &key.verifying_key()).unwrap_err();
+        assert!(matches!(err, Error::Schema(_)), "{err:?}");
+        assert_eq!(err.exit_code(), 4);
+        seal.sig = "00".repeat(64);
+        seal.alg = "rsa".to_string();
+        let err = verify(HASH, &seal, &key.verifying_key()).unwrap_err();
+        assert!(matches!(err, Error::Schema(_)), "{err:?}");
+        let key_err = parse_key_bytes(&"zz".repeat(32).into_bytes(), "k").unwrap_err();
+        assert_eq!(key_err.exit_code(), 2, "{key_err:?}");
     }
 
     #[test]

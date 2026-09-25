@@ -31,10 +31,11 @@ pub fn run(
     json: bool,
 ) -> Result<u8, Error> {
     let cfg = load_repo_config(repo)?;
-    // An `Err` from either half propagates, and `Error::exit_code()` spends 3
-    // on it. That is the top of the precedence in 3.3, and it is the right
-    // shape: a read that could not be performed has not answered, so no verdict
-    // from the other tree makes the overall answer trustworthy.
+    // An `Err` from either half propagates, and `Error::exit_code()` spends 2
+    // or 4 on it (spec 132). Either outranks every finding the fold below can
+    // produce, which is the right shape: a read that could not be performed has
+    // not answered, so no verdict from the other tree makes the overall answer
+    // trustworthy.
     // Spec 079 §3.2: one read, two facts. The index half's blocking set and its
     // stale set arrive apart, so this verb can say which refusal it is holding
     // without indexing again and without reading back its own prose.
@@ -42,7 +43,7 @@ pub fn run(
     let code = exit_code(&report, &freshness, fail_on_unresolved, fail_on_warn);
 
     if json {
-        let value = serde_json::to_value(&report).map_err(|e| Error::Schema(e.to_string()))?;
+        let value = serde_json::to_value(&report).map_err(|e| Error::Internal(e.to_string()))?;
         out::verdict(&Verdict::report(verb::CHECK, code, value))?;
         return Ok(code);
     }
@@ -52,17 +53,15 @@ pub fn run(
     Ok(code)
 }
 
-/// The composed exit code: **`3` dominates `1` dominates `2` dominates `0`**
-/// (spec 062 §3.3).
+/// The composed exit code: the higher of the two halves (spec 132 §3.3,
+/// amending spec 062 §3.3).
 ///
-/// `3` is not reachable here because an unperformed read is an `Err` that never
-/// arrives at this function; it is named in the order because the order is the
-/// contract, and a reader checking the fold should find all four rungs.
-///
-/// `1` outranks `2` because **staleness is not meaningful against a corpus that
-/// does not validate**. `AGENTS.md` already draws that conclusion for the
-/// reporting case, requiring lifecycle counts to be reported as unverified when
-/// validation fails; the exit code now agrees with the prose.
+/// Under spec 132's contract every code is ordered by severity numerically:
+/// `4` failed outranks `3` usage outranks `2` refused outranks `1` finding
+/// outranks `0`. Staleness is a finding like a validation failure, so the two
+/// halves' findings no longer need ranking against each other: either one is
+/// `1`, and the report lines say which. `2` and `4` arrive as an `Err` before
+/// this function runs; they are in the order because the order is the contract.
 ///
 /// Pinned by test rather than only documented, because it is the one part of
 /// this verb a caller cannot observe from a single run.
@@ -83,7 +82,8 @@ fn exit_code(
     } else if report.registry.fresh {
         0
     } else {
-        2
+        // Spec 132 §3.2: staleness is a finding.
+        1
     };
     let index = if !freshness.blocking.is_empty() {
         // Spec 080 §3.1, amending spec 069 §3.1: an unresolved claim is a
@@ -100,7 +100,7 @@ fn exit_code(
         // stale one alone.
         1
     } else if !report.index.fresh {
-        2
+        1
     } else if fail_on_unresolved && report.index.diagnostics.has_unresolved() {
         // A different axis: the warning-tier W-001 / W-002 claims a spec makes
         // over territory it has not written yet (specs 023, 044). Unchanged.
@@ -111,25 +111,17 @@ fn exit_code(
     severity_max(registry, index)
 }
 
-/// The more severe of two exit codes under 3.3's order.
-///
-/// A rank table rather than `max`, because the numeric order is not the
-/// severity order: `2` is numerically larger than `1` and less severe.
+/// The more severe of two exit codes: under spec 132 the numeric order is the
+/// severity order, so this is `max`.
 fn severity_max(a: u8, b: u8) -> u8 {
-    let rank = |c: u8| match c {
-        3 => 3,
-        1 => 2,
-        2 => 1,
-        _ => 0,
-    };
-    if rank(a) >= rank(b) { a } else { b }
+    a.max(b)
 }
 
 /// The registry half, attributed to its tree (spec 062 §3.4).
 ///
 /// The stale report passes through with its structure intact: spec 028 §3.3
 /// makes it contractual because the session protocol reads the drifted shard
-/// names back to the operator, and exit 2 alone cannot say which shard moved.
+/// names back to the operator, and exit 1 alone cannot say which shard moved.
 fn report_registry(report: &CheckReport, fail_on_warn: bool) {
     let r = &report.registry;
     if !r.validation_passed {
@@ -167,7 +159,7 @@ fn report_registry(report: &CheckReport, fail_on_warn: bool) {
 /// Spec 079 §3.3 splits the refusal this used to print one way. Staleness means
 /// "the committed artifact is behind the source, regenerate it"; an unresolved
 /// claim means "the spec and the tree disagree about what exists", which no
-/// command repairs. Both still exit 2 (§3.1), and the stale-only report is
+/// command repairs. Both exit 1 (spec 132), and the stale-only report is
 /// unchanged, wording included (FR-008).
 fn report_index(report: &CheckReport, freshness: &IndexFreshnessReport, fail_on_unresolved: bool) {
     let i = &report.index;
@@ -222,29 +214,18 @@ mod tests {
     /// Spec 062 §3.3: the order is the contract, so it is pinned here rather
     /// than only described. A caller cannot observe a precedence from a single
     /// run, which is why documenting it would not have been enough.
+    /// Spec 132 §3.3. Named with the `check_exit_order` prefix 062's
+    /// acceptance filters on, so that filter still runs a test.
     #[test]
-    fn check_exit_order_is_three_one_two_zero() {
+    fn check_exit_order_is_the_higher_code() {
         // Every pair, in both argument orders, so the fold cannot be
         // accidentally asymmetric.
-        for (a, b, want) in [
-            (0, 0, 0),
-            (0, 2, 2),
-            (2, 0, 2),
-            (0, 1, 1),
-            (1, 0, 1),
-            (2, 1, 1), // validation failure outranks staleness
-            (1, 2, 1),
-            (3, 1, 3),
-            (1, 3, 3),
-            (3, 2, 3),
-            (2, 3, 3),
-            (3, 0, 3),
-        ] {
-            assert_eq!(
-                severity_max(a, b),
-                want,
-                "severity_max({a}, {b}) must be {want}"
-            );
+        for a in 0u8..=4 {
+            for b in 0u8..=4 {
+                assert_eq!(severity_max(a, b), a.max(b), "severity_max({a}, {b})");
+            }
         }
+        // The two findings a tree can hold at once fold to one finding.
+        assert_eq!(severity_max(1, 1), 1);
     }
 }

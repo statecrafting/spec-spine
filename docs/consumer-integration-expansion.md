@@ -4,6 +4,16 @@
 > of 0.23.0 and are kept as written. Section 12 is the additive 0.24.0 update:
 > specs 111, 112, 114 and 116, and the one migration note.
 
+> **Exit-code note (spec 132, ships in 0.26.0).** Every exit code named below
+> was correct for the release it documents. Spec 132 later fixes the exit
+> contract as the family contract shared with the Statecraft CLI: staleness
+> moves from `2` to `1`, a config or containment refusal moves from `3` to
+> `2`, and an I/O or schema/version failure moves from `3` to `4`; usage
+> errors (a malformed request, a rejected argument combination) stay `3`. This
+> section is not restated per line below; read every `2` this page calls
+> "stale" as `1`, and every `3` this page calls an I/O, config, containment or
+> schema failure as `2` or `4` per that rule, on a binary at or after 0.26.0.
+
 What a library or CLI consumer needs in order to use specs 102, 103, 105, 106,
 107, 108, 109, 110 and 113, merged on `main` **after** the frozen 0.22.0
 candidate (`f9fa6a8f`) and **published as 0.23.0** on 2026-09-23 from
@@ -27,8 +37,8 @@ repository's own commit hook, session hooks and `verify` forwarding, and spec
   `[meta] required_version` is `>=0.23.0` (spec 124, per 061 §3.8). An adopter
   whose corpus uses a member introduced here (obligations, impacts, interface
   references) should raise its own floor the same way. An older binary then
-  exits 3 naming the requirement instead of reporting a valid corpus
-  `INVALID`.
+  exits 2 naming the requirement instead of reporting a valid corpus
+  `INVALID` (was exit 3 before spec 132).
 - **Schema versions** (compile-time constants in
   `spec-spine-types/src/version.rs`):
 
@@ -42,15 +52,18 @@ repository's own commit hook, session hooks and `verify` forwarding, and spec
 
   Every move is additive (MINOR). A loader that knows MAJOR 1 of the registry
   keeps working; a binary predating a MINOR that meets its new member refuses
-  with exit 3 rather than guessing.
+  with exit 4 rather than guessing (was exit 3 before spec 132).
 - **The facade is `&str -> Result<String, Error>`**; `Error::exit_code()` is
   the CLI's exit code (`1` not found / refused, `2` stale, `3` usage, parse,
-  I/O, config). The `config_json` argument is the `spec-spine.toml` model in
-  snake_case; every other request and every emitted document is camelCase, and
-  all of them refuse unknown members.
+  I/O, config, as of 0.23.0; superseded by spec 132's `0` ok / `1` finding
+  (validation, drift, stale, not found, unparseable authored content) / `2`
+  refused (config, containment, version pin) / `3` usage / `4` failed (I/O,
+  schema, internal), shipping in 0.26.0). The `config_json` argument is the
+  `spec-spine.toml` model in snake_case; every other request and every emitted
+  document is camelCase, and all of them refuse unknown members.
 - **Stale ledgers.** The read verbs that compose identities (`registry
-  closure`, `interface verify`) refuse a stale committed registry with exit 2
-  before resolving anything. `registry show` and `registry obligation` are
+  closure`, `interface verify`) refuse a stale committed registry with exit 1
+  (exit 2 before spec 132) before resolving anything. `registry show` and `registry obligation` are
   inspection reads and answer from whatever is committed; do not build an
   identity from them without a freshness check (`spec-spine check`).
 - **Verified from the registries.** The example in §9 was run against the
@@ -127,7 +140,7 @@ repository's own commit hook, session hooks and `verify` forwarding, and spec
   order, duplicates and short ids, moves when any named member's content
   moves, and never moves for a section nobody named. Refusals: empty or
   unqualified request exit 3; any unresolved member exit 1 (all named, no
-  digest); stale ledger exit 2; a member whose section digest is absent is
+  digest); stale ledger exit 1 (exit 2 before spec 132); a member whose section digest is absent is
   refused, so a gap cannot enter a digest that looks complete.
 - **109, impacts and conflicts.** Authoring `impacts: [{ obligation:
   "<spec>#<id>", nature: refines|extends|supersedes|informs, successor?,
@@ -157,8 +170,9 @@ repository's own commit hook, session hooks and `verify` forwarding, and spec
 - **CLI:** `spec-spine interface verify [--export <corpus>=<dir>]... [--spec
   <id>] [--json]`.
 - **Outcomes:** `current` and `sections-current` exit 0; `stale`, `missing`,
-  `unverified` exit 1; stale local ledger exit 2; malformed `--export`,
-  unreadable directory or a spec linked out of its export root exit 3.
+  `unverified` exit 1; stale local ledger exit 1 (exit 2 before spec 132);
+  malformed `--export` exit 3; an unreadable export directory exit 4 (I/O; was
+  3); a spec linked out of its export root exit 2 (a containment refusal; was 3).
 - **Boundary:** nothing fetches, discovers or trusts a corpus. Which checkout
   is authoritative is the caller's decision, and the observed digest is
   printed for a human to copy; nothing rewrites a pin.
@@ -177,7 +191,7 @@ repository's own commit hook, session hooks and `verify` forwarding, and spec
   (a `mutable` path another spec owns, naming both), `S-003` a `shared` path
   whose `with` differs from its owners. `readOnly` raises nothing. The answer
   carries `indexHash`. An unknown `ownSpec` or `with` spec is exit 1 (all
-  named); a stale index is exit 2, before anything resolves.
+  named); a stale index is exit 1 (exit 2 before spec 132), before anything resolves.
 - **Compare:** `scope_compare_json(a, b)` or `spec-spine scope compare <A> <B>
   [--json]`, pure over two documents: `both-mutable`, `mutable-shared` and
   `changed-under-read` conflicts, with subtree overlap. Two `shared` or two
@@ -294,7 +308,7 @@ the refusal of a camelCase key. The producer emits the same governance file set
 Statecraft already implements against (spec 092); 0.21.0's `AGENTS.md` and
 `.claude/` output is gone, which is the correction 0.22.0 was cut for. Moving
 the CLI pin past 0.21.0 removes `spec-spine init` and makes a gate that cannot
-read history exit 3 (`docs/adopter-migration.md` §9.2: use `fetch-depth: 0`).
+read history exit 4 (was exit 3 before spec 132; `docs/adopter-migration.md` §9.2: use `fetch-depth: 0`).
 
 **Interfaces and schema versions.**
 
@@ -331,10 +345,10 @@ the named tests):
 | plan entry for a `draft` spec | present in `ready`, `status: "draft"` (readiness is not approval) |
 | obligation id without a spec | exit 3 |
 | closure with a missing member | exit 1, every missing member named, no digest |
-| closure over a stale ledger | exit 2 |
+| closure over a stale ledger | exit 1 (exit 2 before spec 132) |
 | scope with an undeclared crossing | exit 0, `S-002` naming both specs |
 | scope with the crossing declared `shared` | exit 0, no finding |
-| scope with an unknown `ownSpec` / a `..` path / a stale index | exit 1 / 3 / 2 |
+| scope with an unknown `ownSpec` / a `..` path / a stale index | exit 1 / 3 / 1 (stale index was exit 2 before spec 132) |
 | two scopes, one reading what the other changes | `changed-under-read` |
 | waiver scoped to one of two refused paths | the other path still refuses; `waivers[0].clears` names one |
 | waiver past its `-Until:` with an as-of supplied | clears nothing, check `failed` |
@@ -342,7 +356,7 @@ the named tests):
 | waiver at its `-Max-Uses:` per the supplied count | check `failed` |
 | no waiver declared | report has no `waivers` member |
 | `prBody` and `waiver` both given | exit 3 |
-| a reader older than 0.23.0 on this repository | exit 3, "requires spec-spine >=0.23.0" |
+| a reader older than 0.23.0 on this repository | exit 2, "requires spec-spine >=0.23.0" (exit 3 before spec 132) |
 
 **Compatibility and migration.**
 
@@ -437,7 +451,7 @@ named tests):
 | `intent` without `goal`, blank `goal`, an unknown member, or a string | compile validation error |
 | an undeclared nested overlay | V-002 |
 | a deferred spec claiming nothing | no L-001; `pending` and `n-a` still raise it |
-| a 0.23.0 reader on a corpus requiring `>=0.24.0` | exit 3, naming `>=0.24.0` |
+| a 0.23.0 reader on a corpus requiring `>=0.24.0` | exit 2, naming `>=0.24.0` (exit 3 before spec 132) |
 
 **Compatibility and migration.**
 
