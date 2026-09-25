@@ -1,7 +1,7 @@
 ---
 id: "149-the-installer-is-tested"
 title: "The installer is tested"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-25"
 summary: >
@@ -62,18 +62,27 @@ archive (`spec-spine-<tag>-<triple>.tar.gz` containing a stub `spec-spine`
 that prints a version) and its `.sha256` sidecar, put a `curl` stub on `PATH`
 that serves those URLs from the directory (and fails any other), and run
 `install.sh` with `SPEC_SPINE_VERSION`, `SPEC_SPINE_BIN_DIR` and
-`SPEC_SPINE_SKIP_ATTESTATION=1`. It MUST assert, each as its own case with its
-exit code:
+`SPEC_SPINE_SKIP_ATTESTATION=1` unless a case says otherwise. Each case runs
+against a fresh `SPEC_SPINE_BIN_DIR` and asserts the installer's exit code. The
+cases are:
 
 1. a matching checksum installs the binary into `SPEC_SPINE_BIN_DIR`, exit 0,
    and the installed binary runs;
-2. a sidecar that does not match refuses, exit 1, naming the checksum, and
-   installs nothing;
-3. an archive without the binary refuses, exit 1;
-4. `uname` stubs reporting an unsupported OS and an unsupported architecture
-   each refuse, exit 1, naming it;
-5. `SPEC_SPINE_REQUIRE_ATTESTATION=1` with no `gh` on `PATH` refuses, exit 1;
-6. `latest` resolves the tag from the stubbed releases API response.
+2. a sidecar that does not match refuses, exit 1, with `checksum mismatch` on
+   stderr, and installs nothing;
+3. an archive without the binary, with a sidecar that matches it (so the
+   installer reaches extraction), refuses, exit 1, and installs nothing;
+4. a `uname` stub reporting an unsupported OS refuses, exit 1, naming the OS;
+5. a `uname` stub reporting an unsupported architecture refuses, exit 1,
+   naming it;
+6. `SPEC_SPINE_REQUIRE_ATTESTATION=1`, with `SPEC_SPINE_SKIP_ATTESTATION`
+   unset and a `PATH` holding no `gh`, refuses, exit 1, and installs nothing;
+7. `SPEC_SPINE_VERSION=latest` resolves the tag from the stubbed releases API
+   response (`{"tag_name": "<tag>"}`) and installs that tag's archive, exit 0.
+
+The script MUST print one line per case naming it and its result, and end with
+exactly `install.sh: 7 of 7 cases passed` when all pass; it exits 0 only then,
+and 1 otherwise.
 
 The triple under test is the host's, from the same `uname` mapping the
 installer uses, so the test runs on every sweep host.
@@ -104,8 +113,11 @@ None yet.
 ## Verification
 
 ```verify:cli
-sh scripts/test-install.sh
+# 3.1: all seven cases, counted exactly.
+sh -c 'sh scripts/test-install.sh > "${TMPDIR:-/tmp}/ss149.out" 2>&1; rc=$?; grep -qx "install.sh: 7 of 7 cases passed" "${TMPDIR:-/tmp}/ss149.out"; g=$?; rm -f "${TMPDIR:-/tmp}/ss149.out"; test $rc -eq 0 && test $g -eq 0'
+# 3.2: the npm shim's offline unit test and pack-install-launch smoke test.
 sh -c 'cd npm && npm test'
 sh -c 'cd npm && npm run smoke'
+# 3.3: the ledger no longer lists 006.
 sh -c '! grep -qx "006-distribution" scripts/verify-sweep.sh'
 ```
