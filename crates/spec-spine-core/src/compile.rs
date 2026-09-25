@@ -91,6 +91,8 @@ pub struct RegistryShardSet {
 /// failures are carried inside `registry.validation` with
 /// `validation_passed == false`.
 pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> {
+    // Spec 144 §3.4: no governed read may leave the repository through a link.
+    crate::pathutil::refuse_links_leaving(cfg, repo_root)?;
     let specs_dir = repo_root.join(&cfg.layout.specs_dir);
     let mut violations: Vec<Violation> = Vec::new();
     let mut hash_pieces: Vec<(String, String)> = Vec::new();

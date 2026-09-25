@@ -874,7 +874,14 @@ fn drop_empty_edge_keys(src: &str) -> String {
 /// open. A plan path is a corpus-relative POSIX string on every platform, so a
 /// leading `/` or `\\` refuses everywhere, as spec 128 decides `derived_dir`.
 fn is_rooted(path: &str) -> bool {
-    path.starts_with('/') || path.starts_with('\\') || Path::new(path).is_absolute()
+    // Spec 144: the shared repository-path rule, which adds a drive-relative
+    // `C:foo`, a `\` separator and a device-name segment to the leading-slash
+    // forms WF-8 fixed. `C:foo` is not absolute on Windows either, so the
+    // `is_absolute` test let it through there.
+    path.starts_with('/')
+        || path.starts_with('\\')
+        || Path::new(path).is_absolute()
+        || spec_spine_types::repo_path_problem(path).is_some()
 }
 
 /// Does `path` carry a `.` component, as a STRING?
@@ -1609,6 +1616,15 @@ fn validate_retire(
                 e.path
             )));
         }
+        // An empty entry first: spec 144's path rule would otherwise refuse a
+        // whitespace-only one as a segment ending in a space, a truer-sounding
+        // and less useful message.
+        if e.historical_files.iter().any(|f| f.trim().is_empty()) {
+            return Err(Error::Config(format!(
+                "compact: `{}` lists an empty `historical_files` entry",
+                e.path
+            )));
+        }
         for f in &e.historical_files {
             let p = Path::new(f);
             if is_rooted(f)
@@ -1622,12 +1638,6 @@ fn validate_retire(
                     e.path
                 )));
             }
-        }
-        if e.historical_files.iter().any(|f| f.trim().is_empty()) {
-            return Err(Error::Config(format!(
-                "compact: `{}` lists an empty `historical_files` entry",
-                e.path
-            )));
         }
         if matches!(e.kind, RetireKind::Directory) && !e.path.ends_with('/') {
             return Err(Error::Config(format!(

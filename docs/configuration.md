@@ -42,6 +42,16 @@ Path conventions. Nothing in the engine hardcodes `specs/` or `.derived/`.
 | `standalone_npm_packages` | `[]` | npm packages outside the declared workspaces. |
 | `state_dir` | `""` (none) | A declared, ungoverned tool-state root (spec 036). |
 
+Every layout root (`specs_dir`, `standards_dir`, `derived_dir`, `state_dir`)
+names a directory inside the repository by one rule (spec 144): no leading `/`
+or `\`, no `:` (a drive, a drive-relative `C:foo`, or a stream), no `\`, no
+`..` segment, no Windows device-name segment (`con`, `nul.txt`, `com1`), and no
+segment ending in `.` or a space. A violation is a configuration error, exit 2,
+naming the key. Separately, `compile` and `index` refuse (exit 2, naming it) a
+repository whose tree holds a symbolic link resolving outside the repository;
+a link inside it, a dangling link, and a repository reached through a link are
+all fine.
+
 `.derived` is the product default and is **not** deprecated. This repository
 and `statecraft-cli` set `derived_dir = ".statecraft/derived"` because they run
 under Statecraft's managed layout; that is their configuration, not a change to
