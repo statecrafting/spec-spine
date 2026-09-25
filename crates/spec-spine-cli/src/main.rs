@@ -459,7 +459,19 @@ fn main() -> ExitCode {
             let code = e.exit_code();
             match json_verb {
                 Some(v) => emit_error_envelope(v, &e),
-                None => eprintln!("spec-spine: {e}"),
+                None => {
+                    eprintln!("spec-spine: {e}");
+                    // Spec 145: a validation failure names what failed, one
+                    // line per violation, rather than only counting it.
+                    if let spec_spine_types::Error::Validation(violations) = &e {
+                        for v in violations {
+                            match &v.path {
+                                Some(path) => eprintln!("  {} [{path}] {}", v.code, v.message),
+                                None => eprintln!("  {} {}", v.code, v.message),
+                            }
+                        }
+                    }
+                }
             }
             ExitCode::from(code)
         }

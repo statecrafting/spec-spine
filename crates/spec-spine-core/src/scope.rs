@@ -19,7 +19,6 @@ use serde::{Deserialize, Serialize};
 use spec_spine_types::{CodebaseIndex, Config, Error, Registry};
 
 use crate::couple::claim_matches;
-use crate::index::Freshness;
 use crate::spec_id;
 
 /// One path this work declares an intent for (spec 108 §3.1).
@@ -407,11 +406,7 @@ pub fn evaluate(
     repo_root: &Path,
     req: &ScopeRequest,
 ) -> Result<ScopeEvaluation, Error> {
-    if let Freshness::Stale { expected, actual } =
-        crate::index::check_index_freshness(cfg, repo_root)?
-    {
-        return Err(Error::Stale { expected, actual });
-    }
+    crate::index::guard_committed_index(cfg, repo_root)?;
     let registry = crate::compile::load_committed_registry(cfg, repo_root)?;
     let index = crate::index::load_committed_index(cfg, repo_root)?;
     evaluate_scope(cfg, &registry, &index, req)

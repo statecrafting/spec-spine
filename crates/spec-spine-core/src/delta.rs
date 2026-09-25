@@ -36,7 +36,7 @@ use crate::compile::compile;
 use crate::couple::{
     build_superseders, is_bypassed_path, owners_for_path, spec_id_for_spec_md_path,
 };
-use crate::index::{Freshness, check_index_freshness, index, load_committed_index};
+use crate::index::{index, load_committed_index};
 use crate::pathutil::rel_posix;
 use crate::shard;
 use crate::verify::{plan_from_markdown, without_verification_section};
@@ -109,11 +109,16 @@ pub fn delta(
 ) -> Result<DeltaReport, Error> {
     let paths = checked_paths(changed)?;
 
-    if let Freshness::Stale { expected, actual } = check_index_freshness(cfg, base_root)? {
-        return Err(Error::Stale {
-            expected: format!("{expected} at the merge base"),
-            actual,
-        });
+    // Spec 145: the base's shards drifting is staleness; an unresolved claim at
+    // the base is a finding about the base, said as one.
+    match crate::index::guard_committed_index(cfg, base_root) {
+        Err(Error::Stale { expected, actual }) => {
+            return Err(Error::Stale {
+                expected: format!("{expected} at the merge base"),
+                actual,
+            });
+        }
+        other => other?,
     }
     let base_index = load_committed_index(cfg, base_root)?;
     let head_index = index(cfg, head_root)?.index;
