@@ -278,10 +278,10 @@
       "Verification"
     ],
     "specPath": "specs/141-a-governance-edit-rewrites-one-file/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Every index shard's `shardHash` folds one global scalar over `spec-spine.toml` and every `[index] extra_hashed_inputs` file, so a one-line edit to any root document restamps every shard. Measured on this repository at `153d35df`: an `AGENTS.md` edit rewrites 139 shards, and two pull requests editing two different root documents conflict on all 139. An adopter's merge queue pays that on every such PR. This spec moves the global inputs out of the shard hashes into one committed sidecar, `codebase-index/inputs.json`, with one entry per input file, compared byte for byte like a shard. A governance edit then rewrites that one file, and two edits to different documents change lines far enough apart to merge. The aggregate index content hash folds the sidecar, so an attestation still covers every authored input.\n",
     "title": "A governance edit rewrites one file"
   },
-  "shardHash": "65380b1729825c91ac45f6bfbd28b81e4e76a25f9dfbaee8280b9ef57edd21c9",
+  "shardHash": "8729802016e725a418186a4cbbd71af12769270aae413257b498c43210b3d9ff",
   "specVersion": "1.9.0"
 }

@@ -1,7 +1,7 @@
 ---
 id: "141-a-governance-edit-rewrites-one-file"
 title: "A governance edit rewrites one file"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-25"
 summary: >
