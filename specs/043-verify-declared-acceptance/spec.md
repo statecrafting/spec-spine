@@ -344,6 +344,12 @@ the second follows from `verify` reading only `specs/<id>/spec.md`.
 
 ## 5. Verification
 
+> **Superseded acceptance (2026-09-25).** This block no longer runs.
+> `140-a-prose-only-example-stays-prose-only` declares this spec in
+> `amends_verification`, so `spec-spine verify 043` builds its plan from that
+> spec's block, where these commands are carried with the prose-only example
+> moved from 041 to 037 and every other line unchanged (spec 082 3.2 and 3.4).
+
 ```verify:cli
 # The block is self-contained: the commands below invoke the release binary,
 # and `cargo test` builds only debug artifacts, so it is built first. An

@@ -93,49 +93,16 @@ legacy_ledger() {
   cat <<'LEDGER'
 # Filed before spec 043 built `verify`; no acceptance was declarable. Five of
 # the original 48 were removed by spec 095's collapse and are gone from here.
+# Specs 136 to 139 carried acceptance for 39 more under amends_verification
+# and deleted their lines. The four below remain, each with its reason.
+# exempt: tier-1 constitution, whose claims the whole gate chain and determinism.yml test (139 3.3)
 000-spec-spine-bootstrap
-001-compile-registry
-002-registry-query
-003-conformance-lint
-004-codebase-index
-005-coupling-gate
+# exempt: install.sh, the tag-gated release pipeline and npm publication run only in a release (139 3.3)
 006-distribution
-007-python-distribution
-008-coupling-floor-claim-precedence
-009-registry-query-projection-flags
-010-index-render-orphans
-011-index-hash-slices
-012-declared-extra-frontmatter-passthrough
-013-edge-paths-grammar-sugar
-014-establishes-wrapper-na-alias
-015-short-id-resolution
-016-directory-crate-module-units
-017-constrains-discriminator-optional-unit
-018-structured-partial-supersedes
+# exempt: SBOM and SLSA provenance are produced only by a tag-triggered release run (139 3.3)
 019-release-supply-chain-artifacts
-020-keypath-section-anchors
-021-ledger-seal
-022-index-sharding
-023-unresolved-unit-severity
-024-resolution-discovery-fixes
-025-symbol-resolution-feature-gate
-026-references-provenance-derived-at
-027-cargo-workflow-dependency-waiver
-028-registry-freshness-check
-029-ownership-coverage
-030-dependency-cycle-refusal
-031-references-non-owning-paths
-032-stdout-closed-reader
-033-configured-corpus-root
-034-machine-readable-verdicts
-035-registry-plan-ready-set
-036-declared-state-dir
+# exempt: a process rule on pull-request edits; its descendants 082, 083, 095 and 118 carry acceptance (139 3.3)
 037-amendment-authoring
-038-completion-held-to-claims
-039-per-spec-attestation
-040-governance-document-gaps
-041-in-progress-is-in-flight
-042-absent-implementation-defers-to-status
 LEDGER
 }
 

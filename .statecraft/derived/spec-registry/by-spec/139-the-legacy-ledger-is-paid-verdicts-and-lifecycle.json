@@ -1,0 +1,86 @@
+{
+  "record": {
+    "amends": [
+      "007-python-distribution",
+      "021-ledger-seal",
+      "032-stdout-closed-reader",
+      "034-machine-readable-verdicts",
+      "038-completion-held-to-claims",
+      "039-per-spec-attestation",
+      "040-governance-document-gaps",
+      "041-in-progress-is-in-flight",
+      "042-absent-implementation-defers-to-status"
+    ],
+    "amendsVerification": [
+      "007-python-distribution",
+      "021-ledger-seal",
+      "032-stdout-closed-reader",
+      "034-machine-readable-verdicts",
+      "038-completion-held-to-claims",
+      "039-per-spec-attestation",
+      "040-governance-document-gaps",
+      "041-in-progress-is-in-flight",
+      "042-absent-implementation-defers-to-status"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "043-verify-declared-acceptance",
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "089-nothing-reruns-a-merged-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      }
+    ],
+    "id": "139-the-legacy-ledger-is-paid-verdicts-and-lifecycle",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "456bb703188ddf42b8eaf13862eb5842c5d826155eb8e8165a291887babbdc81",
+      "139-the-legacy-ledger-is-paid-verdicts-attestation-and-lifecycle": "79d2623a948435e34484bd753eff2b4defe4e0c2596632c056dee4b55402f668",
+      "2-territory": "92afb27ea99c60351f866456dc19ae96aea556b5557ed4e076c5009bf74a2e57",
+      "3-1-the-carried-acceptance": "4e348292760d48f08a1ed95078dc21dbb4657dc1aa4378ca4aee1354faae1ccb",
+      "3-2-the-ledger-shrinks-in-the-same-change": "3cd17ab8d96515aa9a3529fba682070d4b49c58ac14a55b4facc552bdeb339c9",
+      "3-3-the-four-that-stay-and-why": "e21dcd918cec4bb5baab86fb39b43ef36590d2e5a8e379c5e46067e250c40a1f",
+      "3-behavior": "5af10ff48d9137b06b890851b48c0523cf66cd832512988a1d92bf71adf47da9",
+      "4-out-of-scope": "7a24f3cf1a812929424778a01cf0e9893c4cd8f066c646c2d6a4b9017399b154",
+      "5-resolved-decisions": "7f6267ef23860fb4ac519c853154d2b6030cbbebb785a8818990742dfe1f3a1d",
+      "verification": "050629baa593d4bc6a11085381f1c66f623818391e60eb37a4b3443737f4b4c6"
+    },
+    "sectionHeadings": [
+      "139: The legacy ledger is paid: verdicts, attestation and lifecycle",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The carried acceptance",
+      "3.2 The ledger shrinks in the same change",
+      "3.3 The four that stay, and why",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/139-the-legacy-ledger-is-paid-verdicts-and-lifecycle/spec.md",
+    "status": "draft",
+    "summary": "9 specs filed before `verify` existed (007, 021, 032, 034, 038, 039, 040, 041, 042) sit on the legacy ledger in `scripts/verify-sweep.sh` with no executable acceptance, although the tests that hold their behavior exist and pass. This spec carries that acceptance for them under `amends_verification`, the route spec 132 used, and deletes their ledger lines in the same change. Every command names its tests exactly and asserts the exact pass count, so a renamed or deleted test turns the block red instead of passing on an empty filter. The area is verdicts, attestation, lifecycle leniency, governance documents and the PyPI shim.\n",
+    "title": "The legacy ledger is paid: verdicts, attestation and lifecycle"
+  },
+  "shardHash": "0137a8b006af0e85cf656071473a8f644925d543007172247dc22a84fab6eb7f",
+  "specVersion": "1.8.0"
+}

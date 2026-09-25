@@ -1,0 +1,59 @@
+{
+  "mapping": {
+    "amends": [
+      "001-compile-registry",
+      "002-registry-query",
+      "009-registry-query-projection-flags",
+      "012-declared-extra-frontmatter-passthrough",
+      "013-edge-paths-grammar-sugar",
+      "014-establishes-wrapper-na-alias",
+      "015-short-id-resolution",
+      "017-constrains-discriminator-optional-unit",
+      "018-structured-partial-supersedes",
+      "026-references-provenance-derived-at"
+    ],
+    "dependsOn": [
+      "043-verify-declared-acceptance",
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "implementingPaths": [
+      {
+        "path": "scripts/verify-sweep.sh",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-sweep.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "136-the-legacy-ledger-is-paid-registry-and-grammar",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "f0872184d6b9d858bcff0c45025fae6ffc6336aab897023693308f923abc3b4a"
+}

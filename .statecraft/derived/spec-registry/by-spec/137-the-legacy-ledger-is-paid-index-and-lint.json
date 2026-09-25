@@ -1,0 +1,86 @@
+{
+  "record": {
+    "amends": [
+      "003-conformance-lint",
+      "004-codebase-index",
+      "010-index-render-orphans",
+      "011-index-hash-slices",
+      "016-directory-crate-module-units",
+      "020-keypath-section-anchors",
+      "022-index-sharding",
+      "023-unresolved-unit-severity",
+      "024-resolution-discovery-fixes",
+      "025-symbol-resolution-feature-gate"
+    ],
+    "amendsVerification": [
+      "003-conformance-lint",
+      "004-codebase-index",
+      "010-index-render-orphans",
+      "011-index-hash-slices",
+      "016-directory-crate-module-units",
+      "020-keypath-section-anchors",
+      "022-index-sharding",
+      "023-unresolved-unit-severity",
+      "024-resolution-discovery-fixes",
+      "025-symbol-resolution-feature-gate"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "043-verify-declared-acceptance",
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "089-nothing-reruns-a-merged-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      }
+    ],
+    "id": "137-the-legacy-ledger-is-paid-index-and-lint",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "5876dd5ad603ceaecdc5c4b0b764d8318a99647cce89ff9baecc79340134ad5c",
+      "137-the-legacy-ledger-is-paid-index-lint-and-resolution": "a6ddd7a4c1e30de8e36152685f28beec31092c90eb5a581c204d95dbf8c6b6b1",
+      "2-territory": "ee54f2bef2841ee01a6bfed3f0a56cb17fb02a55f5e9144fafa84890f0d1eef0",
+      "3-1-the-carried-acceptance": "cb985f0545080af457a4ba42733623946160343b5fa0a836ab52e0bd8adb6cc7",
+      "3-2-the-ledger-shrinks-in-the-same-change": "3e2e6f7587a26c6d586fe280bc8b1df9ceb0c064693daa19165b9d2ceec54213",
+      "3-behavior": "3de5e1ecde0762856ee1d3c968695ebd9e2aa18ef9a050d90c5266d986d84057",
+      "4-out-of-scope": "e2221f2cc69dca111535357144438cca042570ed91fb3a360339961eb85043a7",
+      "5-resolved-decisions": "679a79dfdc85f3f24f61617d48e178f3b78586d9f6c4b930acf8674caee7ee46",
+      "verification": "13abc378af7b6b5927cb0e9c92c5587bbf1ab1cb42de23851e972422793ffb13"
+    },
+    "sectionHeadings": [
+      "137: The legacy ledger is paid: index, lint and resolution",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The carried acceptance",
+      "3.2 The ledger shrinks in the same change",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/137-the-legacy-ledger-is-paid-index-and-lint/spec.md",
+    "status": "draft",
+    "summary": "10 specs filed before `verify` existed (003, 004, 010, 011, 016, 020, 022, 023, 024, 025) sit on the legacy ledger in `scripts/verify-sweep.sh` with no executable acceptance, although the tests that hold their behavior exist and pass. This spec carries that acceptance for them under `amends_verification`, the route spec 132 used, and deletes their ledger lines in the same change. Every command names its tests exactly and asserts the exact pass count, so a renamed or deleted test turns the block red instead of passing on an empty filter. The area is the codebase index, lint, section and symbol resolution, and sharding.\n",
+    "title": "The legacy ledger is paid: index, lint and resolution"
+  },
+  "shardHash": "0cec9e7df264f9ce032692b3c38475abb53bebc6fc1f52eed398a94607ab97a5",
+  "specVersion": "1.8.0"
+}

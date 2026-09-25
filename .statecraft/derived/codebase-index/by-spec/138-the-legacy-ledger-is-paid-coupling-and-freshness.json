@@ -1,0 +1,59 @@
+{
+  "mapping": {
+    "amends": [
+      "005-coupling-gate",
+      "008-coupling-floor-claim-precedence",
+      "027-cargo-workflow-dependency-waiver",
+      "028-registry-freshness-check",
+      "029-ownership-coverage",
+      "030-dependency-cycle-refusal",
+      "031-references-non-owning-paths",
+      "033-configured-corpus-root",
+      "035-registry-plan-ready-set",
+      "036-declared-state-dir"
+    ],
+    "dependsOn": [
+      "043-verify-declared-acceptance",
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "implementingPaths": [
+      {
+        "path": "scripts/verify-sweep.sh",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-sweep.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "138-the-legacy-ledger-is-paid-coupling-and-freshness",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "1c13d9e9ffa32bfff013c4135d2e768bd0b0f5f4b46e9a662a5e48cdab1ad753"
+}

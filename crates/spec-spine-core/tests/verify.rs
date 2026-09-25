@@ -306,16 +306,18 @@ fn an_amended_acceptance_resolves_to_its_holder() {
     assert!(plan.skipped.is_empty());
 }
 
-/// 041 declares acceptance in prose only, which is the majority shape in this
-/// corpus and the case spec 043 §1.2 says must stay distinguishable from a pass.
+/// 037 declares acceptance in prose only, the case spec 043 §1.2 says must stay
+/// distinguishable from a pass. It was 041 until spec 139 carried 041's
+/// acceptance; 037 stays prose-only by design (139 3.3), so it is the stable
+/// live example.
 #[test]
-fn spec_041_is_not_declared() {
+fn spec_037_is_not_declared() {
     let repo = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
         .parent()
         .unwrap();
-    let plan = verify_plan(&cfg(), repo, "041").unwrap();
+    let plan = verify_plan(&cfg(), repo, "037").unwrap();
     assert!(!plan.is_declared());
 }
 
@@ -498,7 +500,11 @@ fn every_superseded_verification_block_says_so_in_its_own_document() {
             .to_string();
         let text = fs::read_to_string(&md).expect("spec.md is readable");
         let plan = verify_plan(&cfg(), repo, &id).expect("the corpus plans");
-        let fence = text.find("```verify:cli");
+        // The fence is a line that opens with it, not the first mention: a
+        // spec may name the fence in prose or a table before its block (043
+        // does, in its grammar table), and a substring match would judge the
+        // note against that mention (spec 140 D-2).
+        let fence = text.find("\n```verify:cli").map(|at| at + 1);
         match (plan.acceptance_from.as_deref(), fence) {
             // A block that no longer runs, in a document that has one.
             (Some(holder), Some(at)) => {

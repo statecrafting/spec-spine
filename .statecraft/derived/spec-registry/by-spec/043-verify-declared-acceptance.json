@@ -103,7 +103,7 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "043-spec-spine-verify-id": "15332c12b495898cf5009fe98d1b3c66e1a64d927315e5f73cde6bd5a64dc4eb",
+      "043-spec-spine-verify-id": "c125eda212d600597fa9d6864e93b65363d4360cc8582ba3a6629ba36cd275fa",
       "1-1-the-adopters-closed-the-gap-four-times": "6f8c54ff5973775f1e1b6e9c86c0043008110009fbdc0d30e3453841b6a45c60",
       "1-2-what-a-verb-buys-that-a-script-does-not": "a268ed3c757363044be2c16df7fe3836357d5b323cfa3d73c82f96995db83800",
       "1-purpose": "4e5ab4a7beb4208f8c8e1fd0a52dd2f09c84791ce22bf875786a33557481a2de",
@@ -119,7 +119,7 @@
       "3-9-the-hand-written-runner-is-retired-not-kept-beside-the-verb": "52788117f0f148373079d6e71dbd5aa7678eab575e86c4c9a787d4dae19801a1",
       "3-behavior": "fc522763a6cfd9efccc4493f97ae5a59633eaa8f57f091a3e0b90e47177394a4",
       "4-out-of-scope": "a06fc8d94ce7f73c067860b4a9f8ead37b3514bdbba24394a1eb2e85b7ba46d8",
-      "5-verification": "247fbaff46d94047755ff585cba17f6d4c9f41bf97aa3627b506d930b8dca914"
+      "5-verification": "dcafdf2ceed38702f96f2da7a2093427822acfb5e8c48da642a864241ac621a4"
     },
     "sectionHeadings": [
       "043: `spec-spine verify <id>`",
@@ -145,6 +145,6 @@
     "summary": "A spec's `## Verification` section states what would make its claims true, and nothing runs it. Three adopters independently wrote the same 78-line `scripts/verify-spec.sh` to close that gap, and spec 093 added a fourth copy to this repository, so the kit now ships the workaround it exists to retire. Spec 040 4 named this \"the most substantial thing the adoption invented and the one most worth having\" and deferred filing it. This is that filing. `spec-spine verify <id>` reads the spec's `## Verification` section, runs each line of its `verify:cli` fences from the repository root in order, and stops at the first failure. Two things make it a spec-spine verb rather than a script: the parse becomes a typed, tested read of authored markdown that the library owns, and the outcome becomes a spec 034 verdict envelope instead of a sentence a caller must string-match. The engine never spawns a process. Core returns a `VerifyPlan`, the commands it found and the fence tags it declined, and the CLI executes it, which is the same seam `couple` already uses for `git`. Two behaviours diverge deliberately from the ported script, both to keep an older contract intact: a missing spec exits 1, not the script's 2, because 2 means stale; and a failing command exits 1 with its own code carried in the payload, rather than propagating a code the exit contract does not define. `not-declared` stays an honest zero and is distinguishable from a pass in the payload, never by parsing prose.\n",
     "title": "`spec-spine verify <id>`: run a spec's declared acceptance"
   },
-  "shardHash": "ef396d4e34b38517ff1d7d2e98e4ba2d20ee94e65de9c4e3d98ec47eecad3ce6",
+  "shardHash": "d0b7f941aae19138d093ba4d258c3b7adb834d57dac3775df93d1a3339ae44e3",
   "specVersion": "1.8.0"
 }
