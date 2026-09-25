@@ -1,0 +1,19 @@
+{
+  "mapping": {
+    "amends": [
+      "046-depends-on-ordinal-monotonicity",
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "dependsOn": [
+      "046-depends-on-ordinal-monotonicity",
+      "089-nothing-reruns-a-merged-acceptance",
+      "139-the-legacy-ledger-is-paid-verdicts-and-lifecycle",
+      "144-a-repository-path-is-one-type"
+    ],
+    "implementingPaths": [],
+    "specId": "146-carried-acceptance-follows-139-and-144",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "560d794364f7c8d54cf6b5f6fa4694f235bf2c84ee948b0559c13a627370030f"
+}

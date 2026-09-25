@@ -53,7 +53,7 @@
     ],
     "risk": "low",
     "sectionDigests": {
-      "046-a-dependency-points-backward-and-the-corpus-can-say-so": "34b50bce310670c89e8a1790152818c4bcce4d5620b77985d05a73f1a9aa4794",
+      "046-a-dependency-points-backward-and-the-corpus-can-say-so": "ca8667422c9593f25986722f5f29300abacec9e67b2f32f17d6b9ca1f765ae01",
       "1-purpose": "c389dd02a4bbeec0347b5cc435071af9006fd6a022a89a4a5bcc939cd3e5e103",
       "2-1-one-line-in-the-crate-root": "2f78137fbc833a0fd968b0af6641b8caea451affb636e09850285686923f4068",
       "2-territory": "9c58db928ca887a6fafb3344bf66ca618ed30af7560b0023eb83cc53d12bf1f6",
@@ -63,7 +63,7 @@
       "3-4-it-is-a-lint-not-a-validation": "823d05ecf39aaab4af9562a3941e25baf143b3d18ccf96e8e4b7ffc650df78c8",
       "3-behavior": "e7e293f5b770769a7811c4012c623c7e33c09b3f9b5f7468e89c7a493cf6d826",
       "4-out-of-scope": "1e2d82feda40896a8b8d8289b5df7882f10665faf9c5c89fe0c080905df638c6",
-      "5-verification": "7230e61f8d2af4f1ce5234ccf487778ff4ac0b1764f33302cbcf79cac5f82c65"
+      "5-verification": "23257fc3eb38ce1dcb8873312371d6b4265ebeb8129a4ca4a58fda29d2d580da"
     },
     "sectionHeadings": [
       "046: A dependency points backward, and the corpus can say so",
@@ -83,6 +83,6 @@
     "summary": "Three adopters independently wrote the same ninety-line `scripts/spec-dag.sh` to assert one thing the tool does not: that a `depends_on` entry names a lower ordinal than the spec declaring it. Spec 030 already ships the harder half of that graph check, refusing a cycle at compile time, and ordinal monotonicity is the cheap total order that makes a cycle impossible by construction rather than detectable after the fact. This spec adds `L-007`, an opt-in conformance lint gated on a new `[lint] require_ordinal_monotonic_depends_on` knob, defaulting off so no existing corpus changes verdict. It is deliberately a lint and not a `V-` code: a forward dependency is a corpus convention an adopter may reasonably not hold, not a structural defect that makes the registry unreadable.\n",
     "title": "A dependency points backward, and the corpus can say so"
   },
-  "shardHash": "29b5e55ccf164bc4ad84629c3bcc64cb464bf5b7659ffeaf318b70ede6182f0a",
+  "shardHash": "29cd5620c18a8b1662966d40c1309c7f77915db4066edec4d453ffb975ef06d6",
   "specVersion": "1.9.0"
 }
