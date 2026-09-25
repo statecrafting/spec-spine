@@ -482,6 +482,12 @@ and is red there. Four were green there only because they grepped or stat'd a
 path that did not exist yet; each now carries an existence precondition, so
 deleting the script or skipping the run cannot make them pass.
 
+> **Superseded acceptance (2026-09-25).** This block no longer runs.
+> `146-carried-acceptance-follows-139-and-144` declares this spec in
+> `amends_verification`, so `spec-spine verify 089` builds its plan from that
+> spec's block, where these commands are carried with one change and every
+> other line unchanged (spec 082 3.2 and 3.4).
+
 ```verify:cli
 cargo build --release --locked
 # --- the fixture corpus: repo inside, scratch outside (3.6) ---

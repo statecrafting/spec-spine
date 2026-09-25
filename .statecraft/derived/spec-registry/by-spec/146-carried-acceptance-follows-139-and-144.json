@@ -1,0 +1,54 @@
+{
+  "record": {
+    "amends": [
+      "046-depends-on-ordinal-monotonicity",
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "amendsVerification": [
+      "046-depends-on-ordinal-monotonicity",
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "046-depends-on-ordinal-monotonicity",
+      "089-nothing-reruns-a-merged-acceptance",
+      "139-the-legacy-ledger-is-paid-verdicts-and-lifecycle",
+      "144-a-repository-path-is-one-type"
+    ],
+    "id": "146-carried-acceptance-follows-139-and-144",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "2713e3f2f4720fa57287fda4c3dd05ec98c89aa42443dcfd4988a1f828234fae",
+      "146-carried-acceptance-follows-139-and-144": "9b7711790b9f4753681ae081305c60de1133c10969df3c15b553bd7fcb8f6314",
+      "2-territory": "b3d1fa71e709b0feed22a11b2b752db24583371d63724a20baa610767bb09fb0",
+      "3-1-046-s-acceptance-copies-the-corpus": "2c35c2b496df38f8652d2117a8b2dd9d08990d8aedf847e1d4b31a529f17a55a",
+      "3-2-089-s-acceptance-asks-about-a-spec-that-stays-exempt": "1184ca6da174a8f208d66c4ece0bb70fece9135129f03ee159768eb651ef7e69",
+      "3-3-the-amended-specs-say-so": "fe82d4332c53e53ad3094ae39feb0bb11d107112aa5fbb8d70676036acd33639",
+      "3-behavior": "2ef1df3a57b1ca4dcb72d2ce182e1569a5c83c768b38b2cfdbbb2dbca260d864",
+      "4-out-of-scope": "d52424ea987139c52c4d129027b72355d73add144781fe0cb583837fd3d60d66",
+      "5-resolved-decisions": "1224ac303c01bc586511154c7101bdb0868df0896a44b201492d55759a85623c",
+      "verification": "5de95da49ccc35c5bfad86da929e1039c4115eff3437f5c9dbf9191b3f2e2460"
+    },
+    "sectionHeadings": [
+      "146: Carried acceptance follows 139 and 144",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 046's acceptance copies the corpus",
+      "3.2 089's acceptance asks about a spec that stays exempt",
+      "3.3 The amended specs say so",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/146-carried-acceptance-follows-139-and-144/spec.md",
+    "status": "draft",
+    "summary": "The pre-release sweep of `e440b714` failed two approved specs' acceptance, both invalidated by specs merged this cycle rather than by a defect. Spec 046's block lints this corpus from a scratch root whose `specs` is a link to this repository's `specs/`, a link that resolves outside the scratch root, which spec 144 now refuses (exit 2). Spec 089's block asserts that the built-in legacy ledger reports spec 011 `exempt`, and spec 137 retired 011's line when it gave 011 an executable acceptance. This spec carries both blocks under `amends_verification`, unchanged except that 046's scratch root copies the corpus instead of linking it, and 089 asks the ledger about 019, which stays exempt by design (139 3.3).\n",
+    "title": "Carried acceptance follows 139 and 144"
+  },
+  "shardHash": "560d794364f7c8d54cf6b5f6fa4694f235bf2c84ee948b0559c13a627370030f",
+  "specVersion": "1.9.0"
+}

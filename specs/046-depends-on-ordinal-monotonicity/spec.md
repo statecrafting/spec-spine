@@ -238,6 +238,12 @@ exist, and `[lint]` is an unknown table to a `Config` whose every table is
 `deny_unknown_fields`, which is a hard config error (exit 3) rather than a
 silently ignored key.
 
+> **Superseded acceptance (2026-09-25).** This block no longer runs.
+> `146-carried-acceptance-follows-139-and-144` declares this spec in
+> `amends_verification`, so `spec-spine verify 046` builds its plan from that
+> spec's block, where these commands are carried with one change and every
+> other line unchanged (spec 082 3.2 and 3.4).
+
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
