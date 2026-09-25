@@ -1,0 +1,86 @@
+{
+  "record": {
+    "amends": [
+      "001-compile-registry",
+      "002-registry-query",
+      "009-registry-query-projection-flags",
+      "012-declared-extra-frontmatter-passthrough",
+      "013-edge-paths-grammar-sugar",
+      "014-establishes-wrapper-na-alias",
+      "015-short-id-resolution",
+      "017-constrains-discriminator-optional-unit",
+      "018-structured-partial-supersedes",
+      "026-references-provenance-derived-at"
+    ],
+    "amendsVerification": [
+      "001-compile-registry",
+      "002-registry-query",
+      "009-registry-query-projection-flags",
+      "012-declared-extra-frontmatter-passthrough",
+      "013-edge-paths-grammar-sugar",
+      "014-establishes-wrapper-na-alias",
+      "015-short-id-resolution",
+      "017-constrains-discriminator-optional-unit",
+      "018-structured-partial-supersedes",
+      "026-references-provenance-derived-at"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "043-verify-declared-acceptance",
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "089-nothing-reruns-a-merged-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      }
+    ],
+    "id": "136-the-legacy-ledger-is-paid-registry-and-grammar",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "1f2cc30eb9e70d69e458646f3f5793b9aee71cbc418417eddf16de951ad48ace",
+      "136-the-legacy-ledger-is-paid-registry-and-grammar": "9a52082adeed6fb90608af10727db40f4e3a58ee584236b5f73ea2eecfe21636",
+      "2-territory": "ac51968c7b653c95f5e293d3cb049697179d60f8ff6b1a97c0152bd25c1eee1c",
+      "3-1-the-carried-acceptance": "deaa9a7bd71e69b87a347d61eef34e5e492a0f1b4345820409180001a6226d5f",
+      "3-2-the-ledger-shrinks-in-the-same-change": "bc3329575b9a504c019b83a72bda36145def1e025b2dfc17a501c0dc57d1ae08",
+      "3-behavior": "70cfbf053cdd7144a92d035aa177c9dd5693ee25ec7f72d4ec3e0d206f986c4c",
+      "4-out-of-scope": "0a7ad102dd7d881cb630fbe9a37e1fb593523a95dcb07290f63e0d8507b25117",
+      "5-resolved-decisions": "bc5135e9725a356b59e1725688fbfe67da3e6738ac432a5e8d1d540a0296de7d",
+      "verification": "13c8b2aecb1536b6ade71a46cbd079fd7152ba94e85e631c7dc9ef60934d3e12"
+    },
+    "sectionHeadings": [
+      "136: The legacy ledger is paid: registry and grammar",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The carried acceptance",
+      "3.2 The ledger shrinks in the same change",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/136-the-legacy-ledger-is-paid-registry-and-grammar/spec.md",
+    "status": "draft",
+    "summary": "10 specs filed before `verify` existed (001, 002, 009, 012, 013, 014, 015, 017, 018, 026) sit on the legacy ledger in `scripts/verify-sweep.sh` with no executable acceptance, although the tests that hold their behavior exist and pass. This spec carries that acceptance for them under `amends_verification`, the route spec 132 used, and deletes their ledger lines in the same change. Every command names its tests exactly and asserts the exact pass count, so a renamed or deleted test turns the block red instead of passing on an empty filter. The area is the registry compiler, its query surface, and the frontmatter and edge grammar.\n",
+    "title": "The legacy ledger is paid: registry and grammar"
+  },
+  "shardHash": "0e5d551390452d4c2bedcf1df4c6d188adfd9cb21a0324d1e2aa4b7a1812550c",
+  "specVersion": "1.8.0"
+}

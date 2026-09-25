@@ -1,0 +1,59 @@
+{
+  "mapping": {
+    "amends": [
+      "003-conformance-lint",
+      "004-codebase-index",
+      "010-index-render-orphans",
+      "011-index-hash-slices",
+      "016-directory-crate-module-units",
+      "020-keypath-section-anchors",
+      "022-index-sharding",
+      "023-unresolved-unit-severity",
+      "024-resolution-discovery-fixes",
+      "025-symbol-resolution-feature-gate"
+    ],
+    "dependsOn": [
+      "043-verify-declared-acceptance",
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "implementingPaths": [
+      {
+        "path": "scripts/verify-sweep.sh",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-sweep.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "137-the-legacy-ledger-is-paid-index-and-lint",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "0cec9e7df264f9ce032692b3c38475abb53bebc6fc1f52eed398a94607ab97a5"
+}

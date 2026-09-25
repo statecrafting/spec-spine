@@ -1,0 +1,58 @@
+{
+  "mapping": {
+    "amends": [
+      "007-python-distribution",
+      "021-ledger-seal",
+      "032-stdout-closed-reader",
+      "034-machine-readable-verdicts",
+      "038-completion-held-to-claims",
+      "039-per-spec-attestation",
+      "040-governance-document-gaps",
+      "041-in-progress-is-in-flight",
+      "042-absent-implementation-defers-to-status"
+    ],
+    "dependsOn": [
+      "043-verify-declared-acceptance",
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "implementingPaths": [
+      {
+        "path": "scripts/verify-sweep.sh",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-sweep.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/05-remaining-waves-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "specId": "139-the-legacy-ledger-is-paid-verdicts-and-lifecycle",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "0137a8b006af0e85cf656071473a8f644925d543007172247dc22a84fab6eb7f"
+}
