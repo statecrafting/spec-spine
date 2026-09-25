@@ -1,7 +1,7 @@
 ---
 id: "138-the-legacy-ledger-is-paid-coupling-and-freshness"
 title: "The legacy ledger is paid: coupling, coverage and freshness"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-25"
 summary: >

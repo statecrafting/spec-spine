@@ -52,8 +52,8 @@
       }
     ],
     "specId": "138-the-legacy-ledger-is-paid-coupling-and-freshness",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "d5c4c7c2ff1ef7a048d6203735278d42cd9eb232123539c31523c3aec1c1eac6"
+  "shardHash": "abc504daa5621291b12fbb8979c4db571385571e7ae11853156c4b82942b1415"
 }
