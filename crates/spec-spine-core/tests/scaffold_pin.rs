@@ -6,8 +6,7 @@
 //! the output is unchanged, byte for byte.
 
 use spec_spine_core::{
-    ScaffoldOptions, scaffold_init, scaffold_init_json, scaffold_init_with_options,
-    scaffold_init_with_options_json,
+    ScaffoldOptions, scaffold_init, scaffold_init_json, scaffold_init_opts, scaffold_init_opts_json,
 };
 use spec_spine_types::{Config, Error, load_config};
 
@@ -40,8 +39,7 @@ fn pinned() -> ScaffoldOptions {
 #[test]
 fn the_pinned_scaffold_carries_an_active_exact_pin() {
     let out =
-        scaffold_init_with_options_json(STATECRAFT_CONFIG_JSON, r#"{"pinExactVersion":true}"#)
-            .unwrap();
+        scaffold_init_opts_json(STATECRAFT_CONFIG_JSON, r#"{"pinExactVersion":true}"#).unwrap();
     let toml = toml_of(&out);
     assert!(
         toml.contains("\n[meta]\n"),
@@ -60,7 +58,7 @@ fn the_pinned_scaffold_carries_an_active_exact_pin() {
 /// neighbours do not.
 #[test]
 fn the_pin_admits_only_the_producer_version() {
-    let files = scaffold_init_with_options(&Config::default(), &pinned()).unwrap();
+    let files = scaffold_init_opts(&Config::default(), &pinned()).unwrap();
     let cfg = load_config(&files.files[0].contents).unwrap();
     cfg.check_required_version(PRODUCER)
         .expect("the producer satisfies its own pin");
@@ -86,7 +84,7 @@ fn the_default_scaffold_is_unchanged() {
     let plain = scaffold_init_json(STATECRAFT_CONFIG_JSON).unwrap();
     for options in ["{}", r#"{"pinExactVersion":false}"#] {
         assert_eq!(
-            scaffold_init_with_options_json(STATECRAFT_CONFIG_JSON, options).unwrap(),
+            scaffold_init_opts_json(STATECRAFT_CONFIG_JSON, options).unwrap(),
             plain,
             "{options}"
         );
@@ -103,7 +101,7 @@ fn the_default_scaffold_is_unchanged() {
 fn the_pin_changes_only_the_meta_block() {
     let cfg = Config::default();
     let plain = scaffold_init(&cfg).unwrap();
-    let pin = scaffold_init_with_options(&cfg, &pinned()).unwrap();
+    let pin = scaffold_init_opts(&cfg, &pinned()).unwrap();
     assert_eq!(plain.files.len(), pin.files.len());
     for (a, b) in plain.files.iter().zip(&pin.files).skip(1) {
         assert_eq!(a, b, "{} must not change", a.rel_path);
@@ -120,15 +118,15 @@ fn the_pin_changes_only_the_meta_block() {
 /// refusal, not a silently unpinned file, and the configuration rules still run.
 #[test]
 fn unknown_options_and_invalid_configs_are_refused() {
-    let err = scaffold_init_with_options_json("{}", r#"{"pinExact":true}"#).unwrap_err();
+    let err = scaffold_init_opts_json("{}", r#"{"pinExact":true}"#).unwrap_err();
     assert!(matches!(err, Error::Config(_)), "{err:?}");
-    let err = scaffold_init_with_options_json("{}", "not json").unwrap_err();
+    let err = scaffold_init_opts_json("{}", "not json").unwrap_err();
     assert!(matches!(err, Error::Config(_)), "{err:?}");
     let bad = r#"{"layout":{"derived_dir":"../outside"}}"#;
     assert_eq!(
         format!(
             "{:?}",
-            scaffold_init_with_options_json(bad, r#"{"pinExactVersion":true}"#).unwrap_err()
+            scaffold_init_opts_json(bad, r#"{"pinExactVersion":true}"#).unwrap_err()
         ),
         format!("{:?}", scaffold_init_json(bad).unwrap_err()),
         "the same refusal as the unpinned entry"

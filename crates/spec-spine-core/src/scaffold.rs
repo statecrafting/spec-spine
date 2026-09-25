@@ -108,15 +108,12 @@ pub struct ScaffoldOptions {
 /// (spec 129 3.3): the first file this returns is a `spec-spine.toml`, and a
 /// producer must not hand its consumer one that every verb then refuses.
 pub fn scaffold_init(cfg: &Config) -> Result<Scaffold, Error> {
-    scaffold_init_with_options(cfg, &ScaffoldOptions::default())
+    scaffold_init_opts(cfg, &ScaffoldOptions::default())
 }
 
 /// [`scaffold_init`] under `options` (spec 131). With the default options the
 /// result is byte-identical to [`scaffold_init`]'s.
-pub fn scaffold_init_with_options(
-    cfg: &Config,
-    options: &ScaffoldOptions,
-) -> Result<Scaffold, Error> {
+pub fn scaffold_init_opts(cfg: &Config, options: &ScaffoldOptions) -> Result<Scaffold, Error> {
     validate_config(cfg)?;
     let ns = &cfg.manifest.metadata_namespace;
     let specs = cfg.layout.specs_dir.trim_end_matches('/');

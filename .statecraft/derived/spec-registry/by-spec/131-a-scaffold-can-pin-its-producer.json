@@ -76,16 +76,16 @@
     "risk": "low",
     "sectionDigests": {
       "1-purpose": "19336c80c652d93a982b9317d33dc22d0b3183232f5e54458ffd17c4bc76470e",
-      "131-a-scaffold-can-pin-its-producer": "a53b60831c120f4a896ffe93d39250b59a6df4d024f009b5128bca0ce08d91ea",
+      "131-a-scaffold-can-pin-its-producer": "da1edbe73203f21c260f11669ff48afbca2236d4f4cdc5fb19bd37499b97d06a",
       "2-territory": "5dfae869a4f88187616948f4f607531a059064bf778690eced85264634c4eabc",
       "3-1-the-option": "539fed9c7ff0044b4f14f101eec34db44696e99ebccf92841e6bb0e286b09a18",
       "3-2-the-default-is-unchanged": "bf2b5c409f894e2e56a02a4f71d1917dfcb0e18c13b48e14b83bfc779f7c7ebb",
-      "3-3-the-facade-entry": "22ab573a52d47223afe881bad5eabf9bc68ed638896516497cf30578b187d1de",
+      "3-3-the-facade-entry": "3e06bdc2e233dd75991987d1f7aa891e03765dde89bbf82e0a45a8da307322bb",
       "3-4-documentation": "d5d62464dd2c597e97acf3165f11d763d4ff378079fa6384c0ee545e8c2a8170",
-      "3-behavior": "e4f0b7bd83a59c9363e0828553809d106dc4a84d86c556b8a224ee557e3dd8b5",
+      "3-behavior": "70edcd959f7da487a3d0af44db5bfd4a3f38a0e5ffbbb08fe032ef8f1abfdadc",
       "4-out-of-scope": "018f90dc3d226349c1c1d545455bb8fcb328442f667394a5b017bb697ba8e779",
-      "5-resolved-decisions": "96bfb847ebc52907ed70782f3e8289d5416d6113b74bde3bde6526a7cc794a99",
-      "verification": "deb6b427b4b65a2f301e1ee058a0e1863f689fc42e86ee34e26f4c5e72ddd804"
+      "5-resolved-decisions": "5d1d8f8ff5e985e68bb5b03ed446c9e640c082f10a07d0fdf6c99940c41c2a76",
+      "verification": "c9a08d65ac83ae1f19f022b2859c14691772d24f90c43797896fbd420a600ed9"
     },
     "sectionHeadings": [
       "131: A scaffold can pin its producer",
@@ -102,9 +102,9 @@
     ],
     "specPath": "specs/131-a-scaffold-can-pin-its-producer/spec.md",
     "status": "approved",
-    "summary": "Statecraft writes the `spec-spine.toml` that `scaffold_init_json` returns byte for byte, and that file pins nothing: the `[meta]` header and the key are both commented out (055 §3.4), and the example is a caret range. A repository Statecraft initializes is therefore judged by whatever binary a hook finds. This spec adds an opt-in scaffold option, `pinExactVersion`, that emits an active `[meta]` table with `required_version = \"=<this producer's version>\"`, through a new facade entry `scaffold_init_with_options_json(config_json, options_json)` and its Rust form `scaffold_init_with_options`. Without the option the output is byte-identical to `scaffold_init_json`'s, measured against 0.25.0 for Statecraft's configuration and the default. The configuration is validated exactly as 129 requires, and an unknown option is refused rather than silently producing an unpinned file.\n",
+    "summary": "Statecraft writes the `spec-spine.toml` that `scaffold_init_json` returns byte for byte, and that file pins nothing: the `[meta]` header and the key are both commented out (055 §3.4), and the example is a caret range. A repository Statecraft initializes is therefore judged by whatever binary a hook finds. This spec adds an opt-in scaffold option, `pinExactVersion`, that emits an active `[meta]` table with `required_version = \"=<this producer's version>\"`, through a new facade entry `scaffold_init_opts_json(config_json, options_json)` and its Rust form `scaffold_init_opts`. Without the option the output is byte-identical to `scaffold_init_json`'s, measured against 0.25.0 for Statecraft's configuration and the default. The configuration is validated exactly as 129 requires, and an unknown option is refused rather than silently producing an unpinned file.\n",
     "title": "A scaffold can pin its producer"
   },
-  "shardHash": "10b581b5051c1d282548bbb680d7b4a92653015651b5dfdcea944e8439a7e650",
+  "shardHash": "88326d481728f4d223556df9f46361c62bee96555f3c759f63743ad9456a69b2",
   "specVersion": "1.8.0"
 }

@@ -119,9 +119,7 @@ pub use query::{
 };
 pub use read::{Versioning, read_document};
 pub use render::{OrphanReport, orphans, partition_orphans, render_markdown};
-pub use scaffold::{
-    Scaffold, ScaffoldFile, ScaffoldOptions, scaffold_init, scaffold_init_with_options,
-};
+pub use scaffold::{Scaffold, ScaffoldFile, ScaffoldOptions, scaffold_init, scaffold_init_opts};
 pub use scope::{
     Conflict, EvaluatedEntry, Finding, Role, ScopeComparison, ScopeConflictEntry, ScopeEvaluation,
     ScopeIdentity, ScopeRequest, SharedPath, compare_scopes, evaluate, evaluate_scope,
@@ -824,14 +822,11 @@ pub fn scaffold_init_json(config_json: &str) -> Result<String, Error> {
 /// `"{}"` is exactly [`scaffold_init_json`]. An unknown option key, or options
 /// that are not JSON, is `Error::Config`: a consumer asking for a pin must not
 /// silently receive an unpinned file. Equally pure.
-pub fn scaffold_init_with_options_json(
-    config_json: &str,
-    options_json: &str,
-) -> Result<String, Error> {
+pub fn scaffold_init_opts_json(config_json: &str, options_json: &str) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
     let options: ScaffoldOptions = serde_json::from_str(options_json)
         .map_err(|e| Error::Config(format!("invalid scaffold options JSON: {e}")))?;
-    to_json(&scaffold_init_with_options(&config, &options)?)
+    to_json(&scaffold_init_opts(&config, &options)?)
 }
 
 /// Compact the corpus under an authored plan (spec 096). `plan_yaml` is the
