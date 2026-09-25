@@ -45,10 +45,10 @@
       "Verification"
     ],
     "specPath": "specs/146-carried-acceptance-follows-139-and-144/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The pre-release sweep of `e440b714` failed two approved specs' acceptance, both invalidated by specs merged this cycle rather than by a defect. Spec 046's block lints this corpus from a scratch root whose `specs` is a link to this repository's `specs/`, a link that resolves outside the scratch root, which spec 144 now refuses (exit 2). Spec 089's block asserts that the built-in legacy ledger reports spec 011 `exempt`, and spec 137 retired 011's line when it gave 011 an executable acceptance. This spec carries both blocks under `amends_verification`, unchanged except that 046's scratch root copies the corpus instead of linking it, and 089 asks the ledger about 019, which stays exempt by design (139 3.3).\n",
     "title": "Carried acceptance follows 139 and 144"
   },
-  "shardHash": "560d794364f7c8d54cf6b5f6fa4694f235bf2c84ee948b0559c13a627370030f",
+  "shardHash": "2049df6b246842b1bda550dd2be4a9cff5df385b92d7c64283f42e738befa7dd",
   "specVersion": "1.9.0"
 }

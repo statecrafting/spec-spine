@@ -1,7 +1,7 @@
 ---
 id: "146-carried-acceptance-follows-139-and-144"
 title: "Carried acceptance follows 139 and 144"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-25"
 summary: >
