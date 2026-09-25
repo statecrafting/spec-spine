@@ -82,16 +82,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Install the declared rust-version
-        shell: bash
+      # No command substitution: spec 094's reader of `run:` scripts refuses
+      # one rather than guess at it.
+      - name: Read the declared rust-version
         run: |
-          set -euo pipefail
-          v=$(sed -n 's/^rust-version = "\(.*\)"$/\1/p' Cargo.toml)
-          test -n "$v" || { echo "::error::no rust-version in Cargo.toml"; exit 1; }
-          echo "RUST_VERSION=$v" >> "$GITHUB_ENV"
-          rustup toolchain install "$v" --profile minimal
+          grep -q '^rust-version = "' Cargo.toml
+          sed -n 's/^rust-version = "\(.*\)"$/RUST_VERSION=\1/p' Cargo.toml >> "$GITHUB_ENV"
+      - name: Install the declared rust-version
+        run: rustup toolchain install "$RUST_VERSION" --profile minimal
       - name: Build and test at the declared rust-version
-        run: cargo "+${RUST_VERSION}" test --workspace --locked
+        run: cargo "+$RUST_VERSION" test --workspace --locked
 
   # Spec 135: advisories, licenses, bans and sources, per deny.toml.
   deny:
