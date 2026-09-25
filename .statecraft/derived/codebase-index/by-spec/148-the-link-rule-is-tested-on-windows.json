@@ -42,8 +42,8 @@
       }
     ],
     "specId": "148-the-link-rule-is-tested-on-windows",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "0ba3ba2d2925f334448300e92a39d4764a1ac6fe33c4356dc551d2ed1f985ae1"
+  "shardHash": "62aa6d2aa8f5b3facd5b236479557dcac13560abb9edb694fa453929c9024391"
 }
