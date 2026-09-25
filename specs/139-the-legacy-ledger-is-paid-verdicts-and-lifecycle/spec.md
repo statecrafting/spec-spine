@@ -1,7 +1,7 @@
 ---
 id: "139-the-legacy-ledger-is-paid-verdicts-and-lifecycle"
 title: "The legacy ledger is paid: verdicts, attestation and lifecycle"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-25"
 summary: >
