@@ -1,12 +1,12 @@
 {
   "mapping": {
     "dependsOn": [
-      "089-nothing-reruns-a-merged-acceptance",
-      "099-a-merged-acceptance-is-asked-again"
+      "094-one-gate-and-the-boundaries-it-holds",
+      "134-the-suite-runs-on-windows"
     ],
     "implementingPaths": [
       {
-        "path": ".github/workflows/acceptance.yml",
+        "path": ".github/workflows/ci.yml",
         "source": "spec-edge"
       }
     ],
@@ -14,46 +14,46 @@
       {
         "locations": [
           {
-            "file": ".github/workflows/acceptance.yml"
+            "file": ".github/workflows/ci.yml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": ".github/workflows/acceptance.yml"
+          "path": ".github/workflows/ci.yml"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/release-candidate-0.22.0.md"
+            "file": "CONTRIBUTING.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/release-candidate-0.22.0.md"
+          "path": "CONTRIBUTING.md"
         }
       },
       {
         "locations": [
           {
-            "file": "scripts/verify-sweep.sh"
+            "file": "deny.toml"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "scripts/verify-sweep.sh"
+          "path": "deny.toml"
         }
       }
     ],
-    "specId": "120-a-scoped-sweep-judges-the-binary-the-blocks-name",
-    "specStatus": "approved"
+    "specId": "135-the-toolchain-floor-and-dependencies-are-checked",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "b50405a220a87ac7d25e308e243c92077df81dec74ce46352486d61161ff3b45"
+  "shardHash": "506fe3c8ea8ed249cc17dee1e1c41e7a9bee2c269fc4ad6c95bca8b959504a08"
 }
