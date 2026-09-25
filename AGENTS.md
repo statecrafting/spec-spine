@@ -89,6 +89,43 @@ This one reinforces it at the moment somebody actually has a shard open.
 
 If the two look redundant, the redundant-looking one is the one doing the work.
 
+## Owner delegation
+
+What an agent working here may decide on its own, and what stays with the
+owner. Governed by `specs/133-owner-delegation-is-declared/spec.md`. It widens
+no authority the rules above withhold: a waiver is still a human instrument, and
+an approved spec is still never edited to make code pass.
+
+**Agents decide, record and report afterwards:**
+
+- reversible choices inside a direction the owner has adopted;
+- relocation-only changes (text or code moved, nothing it requires changed);
+- test and evidence design;
+- repository hygiene;
+- unambiguous corrections of internal inconsistencies.
+
+"Record" means a dated decision entry in the spec the choice belongs to, or the
+pull request body when no spec owns it. "Report" means the next handoff names
+it.
+
+**Reserved to the owner:**
+
+- ratification (`status: draft` to `approved`);
+- waivers (`Spec-Drift-Waiver:`);
+- publication (tags, releases, registry uploads);
+- spending money or provider usage;
+- trust roots and signing keys;
+- changes to the gate, the check suite, or acceptance authority;
+- anything visible outside this repository, or affecting another adopter;
+- deleting anything remote (branches, tags, releases, artifacts, repositories).
+
+An agent that reaches a reserved decision stops that line of work, continues
+independent work, and presents the choice.
+
+**Every handoff ends with one decision table**: item, options, recommended
+default, and the consequence of taking the default. A handoff with no open
+decision says so in one line instead of an empty table.
+
 ## New Sessions
 
 Run `/prime` as the mandatory first action of every new session. The command reads this section to derive its execution plan dynamically: any item added here is automatically picked up on the next init. This file is the cross-agent authority (read by Claude Code, Codex CLI, Cursor, Copilot, and any future agent via the AAIF/Linux Foundation AGENTS.md standard).
