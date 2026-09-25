@@ -1,0 +1,49 @@
+{
+  "mapping": {
+    "amends": [
+      "144-a-repository-path-is-one-type"
+    ],
+    "dependsOn": [
+      "134-the-suite-runs-on-windows",
+      "144-a-repository-path-is-one-type"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/tests/repo_path.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/repo_path.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/repo_path.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/windows-findings.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/windows-findings.md"
+        }
+      }
+    ],
+    "specId": "148-the-link-rule-is-tested-on-windows",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "0ba3ba2d2925f334448300e92a39d4764a1ac6fe33c4356dc551d2ed1f985ae1"
+}

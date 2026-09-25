@@ -1,0 +1,69 @@
+{
+  "record": {
+    "amends": [
+      "144-a-repository-path-is-one-type"
+    ],
+    "amendsSections": [
+      "4"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "134-the-suite-runs-on-windows",
+      "144-a-repository-path-is-one-type"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "144-a-repository-path-is-one-type",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/repo_path.rs"
+        }
+      }
+    ],
+    "id": "148-the-link-rule-is-tested-on-windows",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/windows-findings.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "5bb344eb224ec18748c3877c584f0fd12cd10f1b2e6fe511b960754792797948",
+      "148-the-link-rule-is-tested-on-windows": "38a0360ee3a1a87f92deaff91c37e105c0cd563f3d12b8521df651db8aee6b7e",
+      "2-territory": "abe9da936369af44c0e9ec8863ae40d3164d377ead170f9c9c6ff0e0fd2f4b13",
+      "3-1-both-link-kinds-are-tested-on-windows": "16adf61b4f8bc3571b7d2b76d3548cbbfe58c8362eaa7db48e2a257720128f72",
+      "3-2-a-missing-privilege-is-reported-never-passed-silently": "c8560eec8df25432c3f4ad553f1160dc2644856dbe61c48255fee344a745241b",
+      "3-3-144-4-is-corrected": "b2e9b178ca52dc45e2ebe345efd2afdf70e95edd9518d61f01114619b38000ac",
+      "3-behavior": "5eb96be6effda9f3216bba72d9a5f87065d0bdd1897cdfe96f19e3341962f449",
+      "4-out-of-scope": "6ac7750dcc26c161ad9f25a3b5adee1d258a84ae6822cfa5694202dc5e587243",
+      "5-resolved-decisions": "7e1eb035ea8a4d20bac398129f4124023323b892aad7f039dd63953456dd80bd",
+      "verification": "b7c8faad4bc3eb592ca0f69a74d6809417cb438f01665c710f698ebce480e6aa"
+    },
+    "sectionHeadings": [
+      "148: The link rule is tested on Windows",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Both link kinds are tested on Windows",
+      "3.2 A missing privilege is reported, never passed silently",
+      "3.3 144 §4 is corrected",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/148-the-link-rule-is-tested-on-windows/spec.md",
+    "status": "draft",
+    "summary": "Spec 144's rule that no governed read leaves the repository through a link is tested only on Unix: both link tests in `tests/repo_path.rs` are `#[cfg(unix)]`, and 144 §4 puts Windows links and junctions out of scope. Windows is a shipped platform with a required `test (windows)` job (spec 134), and it has two link kinds 144's walk must see: symbolic links and directory junctions. This spec adds a Windows test for both, and records what a runner without the symbolic-link privilege does.\n",
+    "title": "The link rule is tested on Windows"
+  },
+  "shardHash": "0ba3ba2d2925f334448300e92a39d4764a1ac6fe33c4356dc551d2ed1f985ae1",
+  "specVersion": "1.9.0"
+}
