@@ -1,7 +1,7 @@
 ---
 id: "143-line-endings-do-not-stale-the-ledger"
 title: "Line endings do not stale the ledger"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-25"
 summary: >

@@ -117,8 +117,8 @@
       }
     ],
     "specId": "143-line-endings-do-not-stale-the-ledger",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "7bf47b90a41f05500e7311875b89e0a9a23a65a83b71572cdf263710ef7b2354"
+  "shardHash": "7f81adbc3b357e380734aecdf0f73834d169100cd0def5e49e1ea4b9256c5da4"
 }
