@@ -1,16 +1,11 @@
 {
   "mapping": {
-    "amends": [
-      "074-a-governed-read-names-its-version"
-    ],
     "dependsOn": [
-      "037-amendment-authoring",
-      "043-verify-declared-acceptance",
-      "074-a-governed-read-names-its-version"
+      "094-one-gate-and-the-boundaries-it-holds"
     ],
     "implementingPaths": [
       {
-        "path": "crates/spec-spine-cli/src/cmd_verify.rs",
+        "path": ".github/workflows/ci.yml",
         "source": "spec-edge"
       },
       {
@@ -18,35 +13,35 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/compile.rs",
+        "path": "crates/spec-spine-cli/tests/couple.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/verify.rs",
+        "path": "crates/spec-spine-core/src/compact.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/verify.rs",
+        "path": "crates/spec-spine-core/tests/ai_review_policy.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/frontmatter.rs",
+        "path": "crates/spec-spine-core/tests/commit_boundary.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/registry.rs",
+        "path": "crates/spec-spine-core/tests/gate.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/verify.rs",
+        "path": "crates/spec-spine-core/tests/gate_binary.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/src/version.rs",
+        "path": "crates/spec-spine-core/tests/harness_hooks.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/tests/dtos.rs",
+        "path": "crates/spec-spine-core/tests/reader_identity.rs",
         "source": "spec-edge"
       }
     ],
@@ -54,14 +49,14 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/cmd_verify.rs"
+            "file": ".github/workflows/ci.yml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/cmd_verify.rs"
+          "path": ".github/workflows/ci.yml"
         }
       },
       {
@@ -80,137 +75,124 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/compile.rs"
+            "file": "crates/spec-spine-cli/tests/couple.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/compile.rs"
+          "path": "crates/spec-spine-cli/tests/couple.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/verify.rs"
+            "file": "crates/spec-spine-core/src/compact.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/verify.rs"
+          "path": "crates/spec-spine-core/src/compact.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/verify.rs"
+            "file": "crates/spec-spine-core/tests/ai_review_policy.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/verify.rs"
+          "path": "crates/spec-spine-core/tests/ai_review_policy.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/frontmatter.rs"
+            "file": "crates/spec-spine-core/tests/commit_boundary.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/frontmatter.rs"
+          "path": "crates/spec-spine-core/tests/commit_boundary.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/registry.rs"
+            "file": "crates/spec-spine-core/tests/gate.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/registry.rs"
+          "path": "crates/spec-spine-core/tests/gate.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/verify.rs"
+            "file": "crates/spec-spine-core/tests/gate_binary.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/verify.rs"
+          "path": "crates/spec-spine-core/tests/gate_binary.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/version.rs"
+            "file": "crates/spec-spine-core/tests/harness_hooks.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/version.rs"
+          "path": "crates/spec-spine-core/tests/harness_hooks.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/tests/dtos.rs"
+            "file": "crates/spec-spine-core/tests/reader_identity.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/tests/dtos.rs"
+          "path": "crates/spec-spine-core/tests/reader_identity.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/design/05-remaining-waves-2026-09.md"
+            "file": "docs/windows-findings.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/05-remaining-waves-2026-09.md"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/schema-versioning.md"
-          }
-        ],
-        "ownership": false,
-        "sourceField": "references",
-        "unit": {
-          "kind": "file",
-          "path": "docs/schema-versioning.md"
+          "path": "docs/windows-findings.md"
         }
       }
     ],
-    "specId": "082-an-amended-acceptance-is-the-one-that-runs",
-    "specStatus": "approved"
+    "specId": "134-the-suite-runs-on-windows",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "ba3e6af477498504c87ef1807f03a8d054a74bcd9696418b3fe85c8b8cfc0d9b"
+  "shardHash": "1cb93a01b362c03c290bbe93fcd233dae942fa23aa9ee7c5d4bb6a7821fcf103"
 }

@@ -1,0 +1,134 @@
+{
+  "record": {
+    "created": "2026-09-24",
+    "dependsOn": [
+      "094-one-gate-and-the-boundaries-it-holds"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "091-an-unclassified-review-failure-blocks-the-merge",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/ai_review_policy.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "117-the-gate-resolves-the-binary-it-documents",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate_binary.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/harness_hooks.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "122-a-commit-refuses-an-unresolved-merge",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/commit_boundary.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "123-a-startup-verdict-names-its-reader",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/reader_identity.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "097-a-path-leaves-the-corpus-the-way-a-spec-does",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compact.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "071-a-change-is-classified-under-the-bases-rules",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "100-a-deleted-path-is-judged-where-it-lived",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/couple.rs"
+        }
+      }
+    ],
+    "id": "134-the-suite-runs-on-windows",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/windows-findings.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "f1b7d855e65f52e2000045ccd8c85089f402e9b9f4f51c4611b78f006567c454",
+      "134-the-suite-runs-on-windows": "64f969242ac58748d2c4dba1af1b2a38535674d601560edaa18a8f4bfd9cb421",
+      "2-territory": "c80e1d6056eaf501cc9d1d374519364df053c8599b55f7ba9fe32dc773ece246",
+      "3-1-a-windows-test-check-of-its-own": "689c07cc9f937757b6b2427d6e552d04e1dda1894862855e9c679f79a56ffbd5",
+      "3-2-nothing-is-skipped-silently": "855cd5b5c4b2e7cd56a7524c0237a6f5050ed7d8701d3eb15d82159df05d4888",
+      "3-3-wf-8-is-fixed": "3afc00f9c0568be99567a1a98290ed6f7a879df0fbb9f7232125a705dbf00158",
+      "3-behavior": "a373c6f62260ae76ee5f0370f4891abab632c8bf4bf039e9291d7af2906a26ce",
+      "4-out-of-scope": "70f3afa5ca642065beb5dd7ed90f24e51fec22fda263eeb05d19ef60dd822f95",
+      "5-resolved-decisions": "0fc971b860ea958247b284954c0c38b08806e94e4a9f2153b6dea981365851a8",
+      "verification": "06d51bfc504aa84a5b4b1d4e5593e5f071d5f71f671a498f6656e108dcdc06e1"
+    },
+    "sectionHeadings": [
+      "134: The suite runs on Windows",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A Windows test check of its own",
+      "3.2 Nothing is skipped silently",
+      "3.3 WF-8 is fixed",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/134-the-suite-runs-on-windows/spec.md",
+    "status": "draft",
+    "summary": "spec-spine ships a Windows binary and proves its shard trees byte-identical on Windows, but CI only ever built there: the workspace test suite ran on Linux alone, so a Windows behavior difference could ship with every check green. A `test (windows)` job now runs `cargo test --workspace` on `windows-latest` as a check of its own, required through `ci-gate`. A test that cannot run on Windows is gated or quarantined in its source with a tracked finding, never skipped by the workflow, and Windows results are reported apart from build results.\n",
+    "title": "The suite runs on Windows"
+  },
+  "shardHash": "0e086be6b2657c62d22374c81a94b0e2d9a5716cf7e1013c9d537565456575d4",
+  "specVersion": "1.8.0"
+}

@@ -26,6 +26,10 @@
 //! credential-shaped value is a literal that is not a credential, and no case
 //! makes a provider, GitHub or network call.
 
+// Spec 134: this suite runs POSIX shell (WF-1 in docs/windows-findings.md),
+// so it is compiled on Unix only; the Linux job runs it on every change.
+#![cfg(unix)]
+
 use std::collections::BTreeMap;
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
