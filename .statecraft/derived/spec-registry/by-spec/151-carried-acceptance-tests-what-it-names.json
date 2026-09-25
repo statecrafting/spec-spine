@@ -28,7 +28,7 @@
       "1-3-145-drives-one-verb": "500e183e4932f66c7c1574e79d5870cca04681e71df436767785cc33eb7b993d",
       "1-4-mutation-evidence": "92c049e53e72108f63a24204f116642e0e6d81be4c5811f97af879ee77f9bac8",
       "1-purpose": "e6106017458bf61206d284fbd39830209caae8bf3362dbf75f73b1f3df4b0df5",
-      "151-carried-acceptance-tests-what-it-names": "503b20c40bacb05cb851b5a42b5707e48f9b32ae044eef50f1492b66ebf9eff7",
+      "151-carried-acceptance-tests-what-it-names": "68490607e49361425d055f4cccfdc19d66f4b036f030a7e01983679002ad94b7",
       "2-territory": "5454aff26ef0e07afb23be6642bfc2011b1fef29b7beb8a537963bc8e6545c3d",
       "3-1-018-s-section-runs-the-hand-off": "a667a4a3f3c27a50e5199be4bb1b14b40970e5be3abda57399c7793385781637",
       "3-2-144-s-line-names-its-tests": "22c080d3307a95ef5d5a1b1397723845e557d291015e67b99b2af5272515933e",
@@ -37,7 +37,7 @@
       "3-behavior": "019cc80f14d0e4054317f9c83f121b2d0e2f087df6a44d7d53e0604933e5a9e8",
       "4-out-of-scope": "655735d01ad34c4d1acdf3284c5c07c20218c43ac54a46d232b7d728b97d32a1",
       "5-resolved-decisions": "9b52428c5e8407bff076c918f42127ac60ff5364bd558927d1158dc6d346a1da",
-      "verification": "f508cc46a00337dfbc9e2b277d3f215b3efb14a79c98a7d7bfa7dbb2b8a47c94"
+      "verification": "445129a4132a93524b91d8b99f06df82435fe3d8e24138518fae3f1e1e0e5b79"
     },
     "sectionHeadings": [
       "151: Carried acceptance tests what it names",
@@ -61,6 +61,6 @@
     "summary": "The 0.27.0 cross-reference of 136 to 146 found three acceptance plans that could pass without testing what their spec now says. 018's plan (carried by 136) never runs 142's amendment of it: its coupling tests build their index by hand, so they pass whether or not the index hands a partially superseded unit over. 144's link-rule line accepts any positive test count, so a link test that stops running still passes. 145's binary line drives only `index coverage`, while six other verbs read the same guard. This spec carries all three plans under `amends_verification`: 018's section gains the hand-off, run through `index` and the shipped binary; 144's line names its three tests; 145's block gains one fixture driven through all seven verbs. Each new line fails under a mutation the carried line it tightens passes.\n",
     "title": "Carried acceptance tests what it names"
   },
-  "shardHash": "e31501af139b691d19067d53e79bfb9e9be525003a30e471f8e361defcb87458",
+  "shardHash": "ffc377a50e4ed52d56d9f0c2cbd3e7396657879350c9f9bb2732d2c2992812b4",
   "specVersion": "1.9.0"
 }
