@@ -65,6 +65,22 @@ pub fn refuse_links_leaving(cfg: &Config, repo_root: &Path) -> Result<(), Error>
             let Ok(meta) = fs::symlink_metadata(&path) else {
                 continue;
             };
+            // The skipped roots are skipped whatever they are, a link included:
+            // a linked derived root is spec 127's refusal, on write, with its
+            // own message.
+            let rel = rel_posix(repo_root, &path);
+            // A root, or an ancestor of one: a link there is spec 127's to
+            // refuse, on write, naming the derived tree (spec 144 D-4).
+            let at_or_above_root = skip_rel
+                .iter()
+                .any(|s| *s == rel || s.strip_prefix(&rel).is_some_and(|r| r.starts_with('/')));
+            if name == ".git"
+                || cfg.index.resolver_exclusions.contains(&name)
+                || skip_rel.contains(&rel)
+                || (meta.file_type().is_symlink() && at_or_above_root)
+            {
+                continue;
+            }
             if meta.file_type().is_symlink() {
                 if let Ok(target) = fs::canonicalize(&path)
                     && !target.starts_with(&root)
@@ -80,17 +96,9 @@ pub fn refuse_links_leaving(cfg: &Config, repo_root: &Path) -> Result<(), Error>
                 }
                 continue;
             }
-            if !meta.is_dir() {
-                continue;
+            if meta.is_dir() {
+                stack.push(path);
             }
-            let rel = rel_posix(repo_root, &path);
-            if name == ".git"
-                || cfg.index.resolver_exclusions.iter().any(|ex| *ex == name)
-                || skip_rel.iter().any(|s| *s == rel)
-            {
-                continue;
-            }
-            stack.push(path);
         }
     }
     Ok(())

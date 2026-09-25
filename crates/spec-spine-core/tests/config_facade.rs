@@ -280,8 +280,12 @@ fn every_scaffolded_value_reads_back_as_given() {
     ] {
         let mut cfg = Config::default();
         cfg.manifest.metadata_namespace = value.to_string();
-        cfg.layout.specs_dir = format!("specs-{value}");
-        cfg.layout.standards_dir = format!("std-{value}");
+        // Spec 144: a layout root is a repository path, and `\` is a Windows
+        // separator it refuses, so the two roots carry the value with `\` made
+        // `_`. The escape itself is still exercised by every other key here.
+        let root_safe = value.replace('\\', "_");
+        cfg.layout.specs_dir = format!("specs-{root_safe}");
+        cfg.layout.standards_dir = format!("std-{root_safe}");
         cfg.layout.schemas_dir = format!("schemas-{value}");
         cfg.layout.cargo_workspace = format!("{value}/Cargo.toml");
         cfg.layout.npm_workspaces = vec![value.to_string()];

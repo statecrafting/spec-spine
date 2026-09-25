@@ -31,6 +31,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/config_facade.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/tests/repo_path.rs",
         "source": "spec-edge"
       },
@@ -146,6 +150,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/config_facade.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/config_facade.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/tests/retire.rs"
           }
         ],
@@ -187,5 +204,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "9cec4a1cbe7919a18b6ec938ac8a87104f7abe0bc3d1ccf2b37819b1da33cf9d"
+  "shardHash": "0463f232d55d538d3303d6fd93d5a43eeba1e7b956a2719aa95b199db58e6d3c"
 }

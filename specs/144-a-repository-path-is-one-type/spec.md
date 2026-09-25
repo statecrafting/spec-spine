@@ -40,6 +40,8 @@ extends:
   - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/pathutil.rs", nature: additive }
   - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/compile.rs", nature: additive }
   - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/index.rs", nature: additive }
+  # 3.2 spec 129's escape test put a `\` in two layout roots, which 3.1 refuses.
+  - { spec: "129-a-json-config-obeys-the-loaders-rules", unit: "crates/spec-spine-core/tests/config_facade.rs", nature: corrective }
 establishes:
   - { kind: file, path: "crates/spec-spine-types/src/repo_path.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/repo_path.rs" }
@@ -99,9 +101,10 @@ repository reached through a link works. A link resolving inside the
 repository, and a dangling link, are accepted. Links are checked, never
 followed.
 
-The walk skips `.git`, the derived and state roots (the tool's own output,
-whose links spec 127 refuses on write), and the `[index] resolver_exclusions`
-directory names, which no governed read enters.
+The walk skips `.git`, the derived and state roots and any link at or above
+either of them (the tool's own output, whose links spec 127 refuses on write;
+D-4), and the `[index] resolver_exclusions` directory names, which no governed
+read enters.
 
 ## 4. Out of scope
 
@@ -128,6 +131,13 @@ next one written. On this repository, `check` takes 0.6 s with the walk.
 **D-3 (2026-09-25): an empty historical entry is reported as empty.** A
 whitespace-only `historical_files` entry is caught by the empty-entry check
 before the path rule, which would call it a segment ending in a space.
+
+**D-4 (2026-09-25): a link at or above the derived or state root is spec
+127's.** Spec 127 refuses a write through a linked derived root or any
+ancestor of it, naming the derived tree, and its acceptance asserts that
+message. This rule leaves those links to it. A governed file stored under
+such an ancestor, outside both roots, is read through the link unchecked; no
+corpus in the family stores one there.
 
 ## Verification
 
