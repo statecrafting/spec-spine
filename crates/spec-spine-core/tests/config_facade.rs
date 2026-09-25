@@ -13,7 +13,7 @@ use spec_spine_core::{
     attest_json, attest_snapshot_json, attest_spec_json, check_freshness_json, check_json,
     check_registry_freshness_json, closure_json, compact_json, compile_json, couple_json,
     coverage_inventory_json, coverage_json, delta_json, index_json, lint_json, render_json,
-    scaffold_init, scaffold_init_json, scaffold_init_with_options_json, scope_json,
+    scaffold_init, scaffold_init_json, scaffold_init_opts_json, scope_json,
     verify_attestation_json, verify_plan_json, verify_snapshot_attestation_json,
     verify_spec_attestation_json,
 };
@@ -55,8 +55,8 @@ fn entries(config: &serde_json::Value) -> Vec<(&'static str, Result<String, Erro
         ("scaffold_init_json", scaffold_init_json(&c)),
         // Spec 131: the options entry runs the same rules.
         (
-            "scaffold_init_with_options_json",
-            scaffold_init_with_options_json(&c, r#"{"pinExactVersion":true}"#),
+            "scaffold_init_opts_json",
+            scaffold_init_opts_json(&c, r#"{"pinExactVersion":true}"#),
         ),
         ("compact_json", compact_json(&c, ROOT, "remove: []\n")),
         ("attest_json", attest_json(&c, ROOT, false)),
