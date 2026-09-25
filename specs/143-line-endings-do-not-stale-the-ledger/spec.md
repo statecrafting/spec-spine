@@ -28,6 +28,14 @@ amends:
   - "069-the-committed-index-is-compared-not-trusted"
   # 3.2: 134 listed WF-7 as quarantined; it is fixed.
   - "134-the-suite-runs-on-windows"
+extends:
+  # 3.1 the fold, and the three comparisons that use it.
+  - { spec: "022-index-sharding", unit: "crates/spec-spine-core/src/shard.rs", nature: corrective }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/compile.rs", nature: corrective }
+  - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/index.rs", nature: corrective }
+  # 3.2 the quarantine 134 placed, lifted.
+  - { spec: "134-the-suite-runs-on-windows", unit: "crates/spec-spine-cli/tests/cli.rs", nature: corrective }
+  - { spec: "134-the-suite-runs-on-windows", unit: "crates/spec-spine-cli/tests/couple.rs", nature: corrective }
 establishes:
   - { kind: file, path: "crates/spec-spine-core/tests/line_endings.rs" }
 ---

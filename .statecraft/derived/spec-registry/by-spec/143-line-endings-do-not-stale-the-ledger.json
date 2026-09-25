@@ -17,6 +17,48 @@
         "path": "crates/spec-spine-core/tests/line_endings.rs"
       }
     ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/shard.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "134-the-suite-runs-on-windows",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "134-the-suite-runs-on-windows",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/couple.rs"
+        }
+      }
+    ],
     "id": "143-line-endings-do-not-stale-the-ledger",
     "implementation": "complete",
     "kind": "tooling",
@@ -49,6 +91,6 @@
     "summary": "Every emitted derived file is canonical JSON with LF endings, and the freshness reads compare the committed bytes with the recompute exactly (spec 086). Git on Windows with `core.autocrlf=true` and no `.gitattributes` rule for the derived tree checks those files out with CRLF, so every shard read as `modified`: a false staleness that regenerating cannot cure, because the next checkout converts again. Spec 134 quarantined three tests for it as WF-7. This spec makes the comparison read a committed file whose only difference is CRLF for LF as the same text, in the registry, the index and the inputs sidecar, keeps every other byte significant, and lifts the quarantine so the Windows test job proves it.\n",
     "title": "Line endings do not stale the ledger"
   },
-  "shardHash": "869c33539d472a219229a4278b748893f48b08d75037cef72dc0c21619ed4d40",
+  "shardHash": "7bf47b90a41f05500e7311875b89e0a9a23a65a83b71572cdf263710ef7b2354",
   "specVersion": "1.8.0"
 }
