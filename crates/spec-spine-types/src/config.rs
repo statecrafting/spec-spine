@@ -730,6 +730,7 @@ pub fn load_config(toml_src: &str) -> Result<Config> {
 pub fn validate_config(config: &Config) -> Result<()> {
     validate_slices(config)?;
     validate_derived_dir(config)?;
+    validate_read_roots(config)?;
     validate_state_dir(config)
 }
 
@@ -746,25 +747,34 @@ pub fn validate_config(config: &Config) -> Result<()> {
 /// it (128 D-3).
 fn validate_derived_dir(config: &Config) -> Result<()> {
     let raw = &config.layout.derived_dir;
-    let why = if raw.starts_with('/') {
-        Some("is an absolute path")
-    } else if raw.split('/').any(|segment| segment == "..") {
-        Some("has a '..' segment")
-    } else if raw.contains('\\') {
-        Some("contains a '\\', which is a separator on Windows")
-    } else if raw.contains(':') {
-        Some("contains a ':', which is a drive or stream form on Windows")
-    } else {
-        None
-    };
-    match why {
+    match crate::repo_path::repo_path_problem(raw) {
         None => Ok(()),
         Some(why) => Err(Error::Config(format!(
             "layout.derived_dir '{raw}' must name a directory inside the repository, and it \
              {why}: compile, index and attest would write and prune outside it \
-             (spec 128). Use a relative path of plain segments, such as '.derived'"
+             (specs 128, 144). Use a relative path of plain segments, such as '.derived'"
         ))),
     }
+}
+
+/// `layout.specs_dir` and `layout.standards_dir` name directories inside the
+/// repository (spec 144 §3.2), by the rule `derived_dir` follows. Every verb
+/// reads the corpus through the first, and `delta` classifies a change under
+/// the second as constitutional, so a value leaving the repository made the
+/// engine read, and judge, a tree the repository does not hold.
+fn validate_read_roots(config: &Config) -> Result<()> {
+    for (key, raw) in [
+        ("specs_dir", &config.layout.specs_dir),
+        ("standards_dir", &config.layout.standards_dir),
+    ] {
+        if let Some(why) = crate::repo_path::repo_path_problem(raw) {
+            return Err(Error::Config(format!(
+                "layout.{key} '{raw}' must name a directory inside the repository, and it \
+                 {why} (spec 144). Use a relative path of plain segments"
+            )));
+        }
+    }
+    Ok(())
 }
 
 /// `layout.state_dir` may not overlap `specs_dir` or `derived_dir` in either
@@ -804,7 +814,9 @@ fn validate_state_dir(config: &Config) -> Result<()> {
     // separate spellings of it, so the check closes the class rather than
     // another instance of it.
     let traverses = raw.split('/').any(|segment| segment == "..");
-    if raw.starts_with('/') || traverses {
+    // Spec 144: the shared rule adds the Windows forms (`\`, `:`, a device-name
+    // segment) to the two this arm always refused.
+    if raw.starts_with('/') || traverses || crate::repo_path::repo_path_problem(raw).is_some() {
         return Err(Error::Config(format!(
             "layout.state_dir '{raw}' is not a repo-relative directory: an absolute path, or \
              one carrying a '..' segment, would match no path the gates test and would \
