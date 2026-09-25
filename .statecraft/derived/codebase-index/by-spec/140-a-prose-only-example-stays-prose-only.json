@@ -1,0 +1,37 @@
+{
+  "mapping": {
+    "amends": [
+      "043-verify-declared-acceptance"
+    ],
+    "dependsOn": [
+      "043-verify-declared-acceptance",
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "139-the-legacy-ledger-is-paid-verdicts-and-lifecycle"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/tests/verify.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/verify.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/verify.rs"
+        }
+      }
+    ],
+    "specId": "140-a-prose-only-example-stays-prose-only",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "ef566d988480e4059fec559a418038aad5772ac7133838a6630314d59e394cde"
+}

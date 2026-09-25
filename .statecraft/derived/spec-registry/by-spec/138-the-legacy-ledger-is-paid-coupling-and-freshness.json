@@ -1,0 +1,86 @@
+{
+  "record": {
+    "amends": [
+      "005-coupling-gate",
+      "008-coupling-floor-claim-precedence",
+      "027-cargo-workflow-dependency-waiver",
+      "028-registry-freshness-check",
+      "029-ownership-coverage",
+      "030-dependency-cycle-refusal",
+      "031-references-non-owning-paths",
+      "033-configured-corpus-root",
+      "035-registry-plan-ready-set",
+      "036-declared-state-dir"
+    ],
+    "amendsVerification": [
+      "005-coupling-gate",
+      "008-coupling-floor-claim-precedence",
+      "027-cargo-workflow-dependency-waiver",
+      "028-registry-freshness-check",
+      "029-ownership-coverage",
+      "030-dependency-cycle-refusal",
+      "031-references-non-owning-paths",
+      "033-configured-corpus-root",
+      "035-registry-plan-ready-set",
+      "036-declared-state-dir"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "043-verify-declared-acceptance",
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "089-nothing-reruns-a-merged-acceptance"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "089-nothing-reruns-a-merged-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      }
+    ],
+    "id": "138-the-legacy-ledger-is-paid-coupling-and-freshness",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/05-remaining-waves-2026-09.md"
+        }
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "b6fd2ea969206b139ced9c021ecb277d0756284df574682a6f865a36d91ea975",
+      "138-the-legacy-ledger-is-paid-coupling-coverage-and-freshness": "2c4a700fc31972cfb2bbee15ec484f8c390d357f9d573949b99c97c90ad89a55",
+      "2-territory": "77d1cfe40db71265ab5589dfbdaaff2ee3c4edc84919e346eee424ab841b436b",
+      "3-1-the-carried-acceptance": "34080925a082d27e05d74d06d58ad5476ddd5684aec7ffe3c7d7513bfba365b5",
+      "3-2-the-ledger-shrinks-in-the-same-change": "7aee5d205a2f980196a9094f71f409fe1f83c505286549e59d2dce2938ab11e3",
+      "3-behavior": "7b772cd3df088dd0c3d0b150b6c6c4bffec20ad5c8e343ea0aa74f814a000760",
+      "4-out-of-scope": "da8f54e73b5f8a60040dc062fe2773ff89e6672b088ce052de29b4a7ae5f7ed3",
+      "5-resolved-decisions": "dad78a869c7e5989cd0c137c7ccdfc3bd59f7f359e030ba8ed6781503014f602",
+      "verification": "af6518bea79a750fe193f38b6745a37e0d2a31fe4f3a3b84052fbb73048ee48b"
+    },
+    "sectionHeadings": [
+      "138: The legacy ledger is paid: coupling, coverage and freshness",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The carried acceptance",
+      "3.2 The ledger shrinks in the same change",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/138-the-legacy-ledger-is-paid-coupling-and-freshness/spec.md",
+    "status": "draft",
+    "summary": "10 specs filed before `verify` existed (005, 008, 027, 028, 029, 030, 031, 033, 035, 036) sit on the legacy ledger in `scripts/verify-sweep.sh` with no executable acceptance, although the tests that hold their behavior exist and pass. This spec carries that acceptance for them under `amends_verification`, the route spec 132 used, and deletes their ledger lines in the same change. Every command names its tests exactly and asserts the exact pass count, so a renamed or deleted test turns the block red instead of passing on an empty filter. The area is the coupling gate, ownership coverage, freshness and scheduling.\n",
+    "title": "The legacy ledger is paid: coupling, coverage and freshness"
+  },
+  "shardHash": "d5c4c7c2ff1ef7a048d6203735278d42cd9eb232123539c31523c3aec1c1eac6",
+  "specVersion": "1.8.0"
+}

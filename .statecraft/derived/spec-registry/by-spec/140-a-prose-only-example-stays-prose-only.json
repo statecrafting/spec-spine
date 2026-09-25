@@ -1,0 +1,61 @@
+{
+  "record": {
+    "amends": [
+      "043-verify-declared-acceptance"
+    ],
+    "amendsVerification": [
+      "043-verify-declared-acceptance"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "043-verify-declared-acceptance",
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "139-the-legacy-ledger-is-paid-verdicts-and-lifecycle"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "043-verify-declared-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/verify.rs"
+        }
+      }
+    ],
+    "id": "140-a-prose-only-example-stays-prose-only",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "4c11f184d44db2a2176a98617ecdb9c7250a1d75712b3798e31903fcbdb02832",
+      "140-a-prose-only-example-stays-prose-only": "cc06d7a1a8ee4b7c0fa14c8f3fe9efc5695d2764638460eeaa89d7e8e11551f1",
+      "2-territory": "35843db2dc7c6ef0247499473653006b442f3d23f7927f762065d43bcb35ed1a",
+      "3-1-043-s-acceptance-names-a-spec-that-stays-prose-only": "d2ab91ae890e47747aa37f80f0ddc63a920a91826ee7f48a474fc41eba38c310",
+      "3-2-the-test-reads-the-same-spec": "05215dc9867b8f557ae1216631fd0ff971dd1e46ba7c972a8d82b476c18514fd",
+      "3-3-043-says-its-block-no-longer-runs": "be8f12b0b5d471f9d1b2ca9ad36dab8c17f4fa3e5a8a8a51c05cbf98abc784da",
+      "3-behavior": "a5f6dcff5eb2baf84a740865818d762a956d131420aaaa6c61f71fd4007f4eae",
+      "4-out-of-scope": "40bf4ecf1bf663b1a9be5d0183f3d45892f4fdfa0a0280cc1c82f73006e73c82",
+      "5-resolved-decisions": "ec59a384bfbc981b878f137d715bc3418541aa20584d720e8b48c6bc5976fcb5",
+      "verification": "c19a9560ef5569248c461c3ce69b05b2bf847570b989fc43f0a07afb8dafefb4"
+    },
+    "sectionHeadings": [
+      "140: A prose-only example stays prose-only",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 043's acceptance names a spec that stays prose-only",
+      "3.2 The test reads the same spec",
+      "3.3 043 says its block no longer runs",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/140-a-prose-only-example-stays-prose-only/spec.md",
+    "status": "draft",
+    "summary": "Spec 043's acceptance, and one of its tests, use spec 041 as the corpus's standing example of a spec whose acceptance is prose only: `verify 041` must report `not-declared`. Spec 139 carries 041's acceptance, which makes that example false while the rule it illustrates still holds. This spec carries 043's block unchanged except that the example is 037, which stays prose-only by design (139 3.3), and moves the test's example the same way.\n",
+    "title": "A prose-only example stays prose-only"
+  },
+  "shardHash": "84f729ea7847436dd0e011d083c31e7542a2fbdd3b356f384a9ef31bfce48a2e",
+  "specVersion": "1.8.0"
+}
