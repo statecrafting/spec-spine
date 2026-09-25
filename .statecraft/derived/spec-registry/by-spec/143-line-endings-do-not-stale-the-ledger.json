@@ -87,10 +87,10 @@
       "Verification"
     ],
     "specPath": "specs/143-line-endings-do-not-stale-the-ledger/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Every emitted derived file is canonical JSON with LF endings, and the freshness reads compare the committed bytes with the recompute exactly (spec 086). Git on Windows with `core.autocrlf=true` and no `.gitattributes` rule for the derived tree checks those files out with CRLF, so every shard read as `modified`: a false staleness that regenerating cannot cure, because the next checkout converts again. Spec 134 quarantined three tests for it as WF-7. This spec makes the comparison read a committed file whose only difference is CRLF for LF as the same text, in the registry, the index and the inputs sidecar, keeps every other byte significant, and lifts the quarantine so the Windows test job proves it.\n",
     "title": "Line endings do not stale the ledger"
   },
-  "shardHash": "7bf47b90a41f05500e7311875b89e0a9a23a65a83b71572cdf263710ef7b2354",
+  "shardHash": "7f81adbc3b357e380734aecdf0f73834d169100cd0def5e49e1ea4b9256c5da4",
   "specVersion": "1.9.0"
 }
