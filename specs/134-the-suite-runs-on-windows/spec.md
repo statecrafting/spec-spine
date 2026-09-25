@@ -1,7 +1,7 @@
 ---
 id: "134-the-suite-runs-on-windows"
 title: "The suite runs on Windows"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-24"
 summary: >

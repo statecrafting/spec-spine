@@ -125,10 +125,10 @@
       "Verification"
     ],
     "specPath": "specs/134-the-suite-runs-on-windows/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "spec-spine ships a Windows binary and proves its shard trees byte-identical on Windows, but CI only ever built there: the workspace test suite ran on Linux alone, so a Windows behavior difference could ship with every check green. A `test (windows)` job now runs `cargo test --workspace` on `windows-latest` as a check of its own, required through `ci-gate`. A test that cannot run on Windows is gated or quarantined in its source with a tracked finding, never skipped by the workflow, and Windows results are reported apart from build results.\n",
     "title": "The suite runs on Windows"
   },
-  "shardHash": "0e086be6b2657c62d22374c81a94b0e2d9a5716cf7e1013c9d537565456575d4",
+  "shardHash": "2b2465f762ff1aca280106573141956f96942fa14e6283c2ad781361b063faf8",
   "specVersion": "1.8.0"
 }
