@@ -145,7 +145,7 @@ def main():
     repeated = line.group(0) if line.group(0).endswith(",") else line.group(0) + ","
     dup = text[:line.start()] + repeated + "\n" + text[line.start():]
     write_case("duplicate-key", dup.encode(),
-               dict(base("duplicate-key", "authored", "duplicate-key", 3, False),
+               dict(base("duplicate-key", "authored", "duplicate-key", 4, False),
                     authoredBecause="no JSON serializer emits a duplicate key, so this cannot be "
                                     "produced by mutating through a JSON library"))
 
@@ -170,7 +170,7 @@ def main():
                  payloadSchemaVersion="(absent)"))
 
     write_case("unreadable-json", b"{ this is not json\n",
-               dict(base("unreadable-json", "authored", "unreadable-json", 3, False,
+               dict(base("unreadable-json", "authored", "unreadable-json", 4, False,
                          subject=none_subject, payloadSchemaVersion="(absent)"),
                     authoredBecause="attest cannot emit invalid JSON, so this payload has no "
                                     "producer form to derive from"))

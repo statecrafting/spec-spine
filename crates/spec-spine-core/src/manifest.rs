@@ -69,15 +69,15 @@ fn discover_rust(
         manifests.push(root_manifest.clone());
         if let Ok(doc) = toml::from_str::<toml::Value>(&src) {
             // A root [package], if present, is itself a crate.
-            if doc.get("package").is_some() {
-                if let Some(rec) = parse_cargo(
+            if doc.get("package").is_some()
+                && let Some(rec) = parse_cargo(
                     repo_root,
                     &root_manifest,
                     &cfg.manifest.metadata_namespace,
                     diags,
-                ) {
-                    packages.push(rec);
-                }
+                )
+            {
+                packages.push(rec);
             }
             if let Some(arr) = doc
                 .get("workspace")
@@ -210,12 +210,11 @@ fn discover_npm(
                     );
                 }
                 // The root package.json that declares workspaces is itself a record.
-                if doc.get("name").is_some() {
-                    if let Some(rec) =
+                if doc.get("name").is_some()
+                    && let Some(rec) =
                         npm_record(repo_root, &decl_path, &cfg.manifest.metadata_namespace)
-                    {
-                        packages.push(rec);
-                    }
+                {
+                    packages.push(rec);
                 }
             }
         } else {

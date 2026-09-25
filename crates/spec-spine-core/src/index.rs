@@ -844,10 +844,10 @@ pub fn authorities(index: &CodebaseIndex, unit: &Unit) -> Vec<String> {
                 owners.insert(mapping.spec_id.clone());
             }
         }
-        if let Unit::File { path, .. } = unit {
-            if mapping.implementing_paths.iter().any(|p| &p.path == path) {
-                owners.insert(mapping.spec_id.clone());
-            }
+        if let Unit::File { path, .. } = unit
+            && mapping.implementing_paths.iter().any(|p| &p.path == path)
+        {
+            owners.insert(mapping.spec_id.clone());
         }
     }
     owners.into_iter().collect()
@@ -1416,12 +1416,12 @@ pub fn near_miss_headers_in(
         .take(COMMENT_HEADER_CLAIM_WINDOW)
         .enumerate()
     {
-        if let Some(rest) = line.trim_start().strip_prefix("//!") {
-            if let Some(reference) = rest.trim_start().strip_prefix("Spec:") {
-                let id = spec_id_from_path(reference.trim(), all_ids);
-                out.push(miss(i + 1, NearMissReason::DocCommentMarker, id));
-                continue;
-            }
+        if let Some(rest) = line.trim_start().strip_prefix("//!")
+            && let Some(reference) = rest.trim_start().strip_prefix("Spec:")
+        {
+            let id = spec_id_from_path(reference.trim(), all_ids);
+            out.push(miss(i + 1, NearMissReason::DocCommentMarker, id));
+            continue;
         }
         if let Some(reference) = header_attempt(line) {
             match spec_id_from_path(reference, all_ids) {
