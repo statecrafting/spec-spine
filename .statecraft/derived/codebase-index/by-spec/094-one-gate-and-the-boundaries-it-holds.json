@@ -82,6 +82,6 @@
     "specId": "094-one-gate-and-the-boundaries-it-holds",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "af6d5399865e3064dabc07f1ada138661a0717e83f511ee842b33d379d91d853"
+  "schemaVersion": "1.2.0",
+  "shardHash": "59a10f98a550810994c295ab4cd698f624b988166150bbb317704e2fa5ecbc71"
 }

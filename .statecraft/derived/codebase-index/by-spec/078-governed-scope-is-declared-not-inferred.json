@@ -283,6 +283,6 @@
     "specId": "078-governed-scope-is-declared-not-inferred",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "f1fbfc893d1492edf37a33ee0f72c7562c52fc2a41e6d43d5f1335a2a2d3d88f"
+  "schemaVersion": "1.2.0",
+  "shardHash": "97010b1a9c2fa3d09b038af92bdd5854af33ea21b2327698efda4d0b14ae7752"
 }

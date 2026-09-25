@@ -63,6 +63,6 @@
     "specId": "095-the-corpus-describes-what-exists",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "90f4eb1faa346a15611d7f137e6c553483cf97bd25450819873ca583c33fc27a"
+  "schemaVersion": "1.2.0",
+  "shardHash": "4cdbd9f8a5fd23183fce81b9b62dddb50596478676056129cd60f4a70ed1d2c6"
 }

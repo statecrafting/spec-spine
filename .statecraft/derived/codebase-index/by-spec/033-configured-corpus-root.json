@@ -65,6 +65,6 @@
     "specId": "033-configured-corpus-root",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "57dcbaa598ea5232a1f5f848c8bfbe690dbf045c11c09f059a327b52b2655925"
+  "schemaVersion": "1.2.0",
+  "shardHash": "3266252dd0da0797a670cb36a4ed189c53b399345299e438d55dd5ebaec3ab92"
 }

@@ -128,6 +128,6 @@
     "specId": "079-a-blocking-claim-is-not-a-stale-shard",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "9670609e8049a372a26f1de3fbb36f20933dffa5ee476513b92949013a9fafc7"
+  "schemaVersion": "1.2.0",
+  "shardHash": "62d2aad617389c01419ab7971e0c7c6a229572c08cefd78edb17c7000d2e6ea5"
 }

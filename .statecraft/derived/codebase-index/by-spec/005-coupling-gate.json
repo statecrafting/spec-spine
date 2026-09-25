@@ -131,6 +131,6 @@
     "specId": "005-coupling-gate",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "810fbe20bdf525323d493c6cf1ce9f301a68800b7f14308eaea0b464666dee9c"
+  "schemaVersion": "1.2.0",
+  "shardHash": "adb2d69ff136f41bf31e5e1c7a14a3f92ea453000d86121039fcc76098bb34bc"
 }

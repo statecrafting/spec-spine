@@ -140,6 +140,6 @@
     "specId": "044-index-diagnostics-reach-a-gate",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "6ddba2c1f7b207a4849a3ad819ae3fdc5b40485b28e05c8a54f56e8af73723ba"
+  "schemaVersion": "1.2.0",
+  "shardHash": "f7c8acdc9b2312536eac93a70307d85c73d26cf677d4ef81d42493ce3bfa0561"
 }

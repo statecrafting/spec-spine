@@ -40,6 +40,6 @@
     "specId": "133-owner-delegation-is-declared",
     "specStatus": "draft"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "3f1be3001639354eca909cb294044ce294741154e183f0702c63bb18b0f920a5"
+  "schemaVersion": "1.2.0",
+  "shardHash": "df754c5885aeda447cc198f819e6dedf66d24aab2b2ab94df59caa118206a28d"
 }

@@ -157,6 +157,6 @@
     "specId": "047-effective-config-is-a-governed-read",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "4c60b20ca5d9e3d45bc894b8803be3630c1cd165c46408fa52c58e1736e02d23"
+  "schemaVersion": "1.2.0",
+  "shardHash": "aa139e351a0201055036fd00ff07027b84869861851bcf9caafd72812264eea2"
 }

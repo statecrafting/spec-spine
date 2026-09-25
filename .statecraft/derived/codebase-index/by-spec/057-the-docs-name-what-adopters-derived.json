@@ -90,6 +90,6 @@
     "specId": "057-the-docs-name-what-adopters-derived",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "b2afa695e1f6a91de5d6711f8b009b0da9450fddf5a2e1ac4c043f02dc97f9cd"
+  "schemaVersion": "1.2.0",
+  "shardHash": "501fe8b87a3e91232d28dbfa7da758b823fe96f427da9e5ea5b7df4602ad4ceb"
 }

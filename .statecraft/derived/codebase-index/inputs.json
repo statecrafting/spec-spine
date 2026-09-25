@@ -1,0 +1,176 @@
+{
+  "inputs": {
+    ".claude/agents/architect.md": {
+      "contentHash": "f630f4896c37aef757993df86302dfba547fe66c093f09dc2124baa69337d033"
+    },
+    ".claude/agents/explorer.md": {
+      "contentHash": "001234406d9ade7a49467a536857ba217a4cde8061bbb0054280aaeac82f467c"
+    },
+    ".claude/agents/implementer.md": {
+      "contentHash": "3bfd3ee1dc59f99ade686a1f66bff7ac05d66733809bed7e696032586931ff32"
+    },
+    ".claude/agents/reviewer.md": {
+      "contentHash": "e085d59287b151443cee7749073f5c7798a4a3c3ea7273a65f095f4f8575904a"
+    },
+    ".claude/settings.json": {
+      "contentHash": "01a9698659f3ac4b183d50210d1c70647c6f0b2f7298ad7e28afafcacaeafe94"
+    },
+    ".claude/skills/build/SKILL.md": {
+      "contentHash": "cf1103eba3d0a312774b60e93a4e6dc0a524d04688c6a460060848c99610e4df"
+    },
+    ".claude/skills/code-review/SKILL.md": {
+      "contentHash": "c4141e1036ab4bae355250cbebc38ddbf9a412c2cbfcadc8b647d48dac4fff6c"
+    },
+    ".claude/skills/commit/SKILL.md": {
+      "contentHash": "bb32bc494d19b9e636c203b811619b0a85dc0f8e63e9f8ac2a2e88f2d342cb61"
+    },
+    ".claude/skills/next/SKILL.md": {
+      "contentHash": "75d276c8a7b935ff7ff6342d613c63af99dd8b445f676339d66572e9c59bf33f"
+    },
+    ".claude/skills/prime/SKILL.md": {
+      "contentHash": "290fc74439c6c4042e06fb8b9e26a5dc17b351b96943154f9a3967cb02483932"
+    },
+    ".claude/skills/setup/SKILL.md": {
+      "contentHash": "10a4bd020e3592fa515fb042e588c2c4b9bd6a36e4629d25dc06e10960951890"
+    },
+    ".claude/skills/shepherd/SKILL.md": {
+      "contentHash": "fc3f089dbc31e9005a1b49dfd30c5a4eebb8ccd950fe9d0e782a3e3309822d73"
+    },
+    ".claude/skills/ship/SKILL.md": {
+      "contentHash": "6d479f041750523e3b99525d8f38b3ce5cf6c618fd1ce23f6214fb43837626b5"
+    },
+    ".claude/skills/spec/SKILL.md": {
+      "contentHash": "cb5d3e4dcfc111c5b1a6f0b12ff2c3de021af9abc70a993c48f4dc8d8d376983"
+    },
+    ".claude/skills/verify/SKILL.md": {
+      "contentHash": "15a20d03cdadb26980382d66f5469f3a7ff724b66b7eece20c3dc3bb09d1f7ad"
+    },
+    ".githooks/enable-hooks.sh": {
+      "contentHash": "46b24b33b09d9eed2098500acb80c1ef48e1d9a4212d2c8fc00e1eaced6f09b0"
+    },
+    ".githooks/enable-merge-driver.sh": {
+      "contentHash": "33c0cd72c9b4c6dfd6fcdcbdf7c7f6b02c757d40c6133051f27bb04ec4a8f70f"
+    },
+    ".githooks/merge-derived-index.sh": {
+      "contentHash": "8cba73f91d9be52f14be1982013fc0580f3869868facfcb67000db875134ab31"
+    },
+    ".githooks/pre-commit": {
+      "contentHash": "eb528990bd00e0c8f1866080661ee8d5d5cc7e2b6c72da84d3793cd111e79636"
+    },
+    ".github/workflows/acceptance.yml": {
+      "contentHash": "8a52036fc35e90e7af606a7992f697495d6e6d9eefa260797980c100ff800932"
+    },
+    ".github/workflows/ai-pr-review.yml": {
+      "contentHash": "22810b2659bc13b680315821d2f979b6381de54734faea19078c0b3070f0b727"
+    },
+    ".github/workflows/ci.yml": {
+      "contentHash": "f3f9c51ad31a4c43c3cdffa6ebd084ec4fc8ffc6c505a997da66390b4f7f57a2"
+    },
+    ".github/workflows/determinism.yml": {
+      "contentHash": "6ff492d05f29c65057c21cb02134ba9a909b75fcd3db4b79c7bf11bd67d113cf"
+    },
+    ".github/workflows/release.yml": {
+      "contentHash": "da2f0e4f1f8248ade7a92fcea2275abdb28be7e6a8fc853f69732be45934fff1"
+    },
+    "AGENTS.md": {
+      "contentHash": "32c8432b30c57d10a945688c05a97a37f377a11484f9244cb37b77d873e49d0c"
+    },
+    "CLAUDE.md": {
+      "contentHash": "504c0e96a0b34c08e9d594f4f7b691f35cdf235c9dbea491685d6ae244594a5d"
+    },
+    "Makefile": {
+      "contentHash": "d9522defec4533ca8a20df4fd6316f6274606fb77731815470e350be81f6a839"
+    },
+    "crates/spec-spine-types/schemas/build-meta.schema.json": {
+      "contentHash": "e3e05938056e626855a2211ec58a9cdef77163ace2f3af81c194e1ad845cdc83"
+    },
+    "crates/spec-spine-types/schemas/codebase-index-inputs.schema.json": {
+      "contentHash": "49feba2ddc7aa6a5393e20d85e058bfef6ac675bc06786e7930e3be99c7f70b6"
+    },
+    "crates/spec-spine-types/schemas/codebase-index-package-shard.schema.json": {
+      "contentHash": "6e9cc9bf3c1ced4699f5b177539bd98fee5f3f4c9a949d5062bb5e50e7f309e8"
+    },
+    "crates/spec-spine-types/schemas/codebase-index-spec-shard.schema.json": {
+      "contentHash": "d4b2e2b93c94e7c2e27719724c92d11932169e0c178e68a0e0cdee3f04f9bbb4"
+    },
+    "crates/spec-spine-types/schemas/codebase-index.schema.json": {
+      "contentHash": "2e415a74b666b21d114ef0aebb656e22b6b634f4d66b2fbc5f3c422b1a57ac3e"
+    },
+    "crates/spec-spine-types/schemas/registry-spec-shard.schema.json": {
+      "contentHash": "6b895a88e7195677c3a38d42e41d173b5674942eaa18d171d3cc808f6fc221f2"
+    },
+    "crates/spec-spine-types/schemas/registry.schema.json": {
+      "contentHash": "c917600cc3f06be61144a1b5ef46074bc162561a52dd122d071660ed27c86b48"
+    },
+    "docs/adoption-guide.md": {
+      "contentHash": "d3a20b10e0055fbc167e17e3a39cfafaf84ef7201d82a4e09c01373e6bc95f18"
+    },
+    "docs/api.md": {
+      "contentHash": "1065e33911616384bdcc039e86241c86352cc4f2bcb39f1980cd3cf578ffc3d2"
+    },
+    "docs/bindings-plan.md": {
+      "contentHash": "58aaef786b59662ab416f0ee5afe9c371a648449a81fc02afcd2d7a2b9f7b4e7"
+    },
+    "docs/corpus-map.md": {
+      "contentHash": "5ffb14e0ea10dbcc1e19234989a0fa3471df49a3a50b457ce36474a7d5d13a02"
+    },
+    "docs/overlay-contract.md": {
+      "contentHash": "68654c2933b9c34bc01673f53205f93028da4f789597e5675791662076118192"
+    },
+    "docs/releasing.md": {
+      "contentHash": "eec1bea982688c1eda66d5a0a0a8ee511d1b1770ad0d434ea02953b529b5df9d"
+    },
+    "docs/schema-versioning.md": {
+      "contentHash": "1b47daf81740f937e1f66d7ba520914e5f87b518754e69de7f9c15271efe81f3"
+    },
+    "docs/specify-first.md": {
+      "contentHash": "d983fd1bc596ba8463330c4be51ca00561645c53594f17e6355c5e664241d0b4"
+    },
+    "install.sh": {
+      "contentHash": "2050378e58698df5f1c0b3487b724b8a7dc2f703d43c04d0cce904e128d43203"
+    },
+    "py/scripts/generate_wheels.py": {
+      "contentHash": "402cb8e90619141b3fb8fdb7fcd4c33d0e0dc6c022d332c39c08e86db683a3c4"
+    },
+    "scripts/acceptance-report.py": {
+      "contentHash": "ae0c40e690afd41ae90a6bd7fb28abd3d6e0989e3b629d22afdc678bcb44dc9d"
+    },
+    "scripts/acceptance-scope.sh": {
+      "contentHash": "1e3a0e3731885468ba6ee1a25f132ef96326efedc2ff4afff5337d24379bb043"
+    },
+    "scripts/bump_version.py": {
+      "contentHash": "fe1e8243b1cf089d3bf9dfe261a30ad752377302be86644f68e28a27d7ee0e5a"
+    },
+    "scripts/reader-identity.sh": {
+      "contentHash": "14832b2db506c4ea0be832fee375db9f19384828303d1e8bb2d2c099d08a96e7"
+    },
+    "scripts/test-verify-sweep.py": {
+      "contentHash": "781e644012984776c3760b67345a5a9e242dc5a9d5b23e872727724afebe6eb3"
+    },
+    "scripts/verify-closed-consumer.py": {
+      "contentHash": "840b95139f9300ee2c1f9810f2c5a7567c622f253266752908ab618254069371"
+    },
+    "scripts/verify-packaged-producer.sh": {
+      "contentHash": "e4772242b7b7f303aed6d68142ef4312602355d96da600aac551de1d24b369a6"
+    },
+    "scripts/verify-sweep.sh": {
+      "contentHash": "34b2552cd24e02e4e8c15159e1405fdd9cfd626e7ff9abb25af1a30632dd9ea3"
+    },
+    "spec-spine.toml": {
+      "contentHash": "a7d58697520792b68b319d4f76ef84e2c1e566b5416301d0ff94774f997be0a3"
+    },
+    "standards/spec/constitution.md": {
+      "contentHash": "88f980bc94705c07851fdcb974c3fd0689fa431d46d9c708c707d2bf5eabbaca"
+    },
+    "standards/spec/contract.md": {
+      "contentHash": "bf272cae8792bbada6ff503cd3d0f1b819db974f1792abd7afc1d3af40d90334"
+    },
+    "standards/spec/templates/constitution-template.md": {
+      "contentHash": "9422c45aeea54a1765b9da797f6c7e958dd2e7d4e74a7e3b788f3ec281a97900"
+    },
+    "standards/spec/templates/spec-template.md": {
+      "contentHash": "9c8cec6c9010099802f7d335c7559c5464a1031e10ae457518409b9944b5fcb0"
+    }
+  },
+  "schemaVersion": "1.2.0"
+}

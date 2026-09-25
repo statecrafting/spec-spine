@@ -215,6 +215,6 @@
     "specId": "100-a-deleted-path-is-judged-where-it-lived",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "1cb0be4e2fdb623e52a8eb9983ba3a4b45a44963fd8d2891bc319a819d0dfc79"
+  "schemaVersion": "1.2.0",
+  "shardHash": "92deddec966ed40e749a690840fac270eb04185625ec4ef903bbcb7a1f858e51"
 }

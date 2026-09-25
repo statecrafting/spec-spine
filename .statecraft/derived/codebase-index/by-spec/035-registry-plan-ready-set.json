@@ -125,6 +125,6 @@
     "specId": "035-registry-plan-ready-set",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "bcbe814156223a25af77d8ac792524e32c8585851ef9a0e0a9432227d4e0439c"
+  "schemaVersion": "1.2.0",
+  "shardHash": "92971233a3dd70ea3de80eaacee1b3f9e364480b7a932cd7653919a198ce99f7"
 }

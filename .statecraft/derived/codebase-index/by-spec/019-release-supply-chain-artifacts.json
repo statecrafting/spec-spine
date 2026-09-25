@@ -44,6 +44,6 @@
     "specId": "019-release-supply-chain-artifacts",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "067a2af8b243947475eb6382925c7592f2ba31a3e97f126e9ee2f73dde5659da"
+  "schemaVersion": "1.2.0",
+  "shardHash": "071506c57cf34e757b7335b45dc48ee115b7ad67f3d73c77590a959a8b676c7d"
 }

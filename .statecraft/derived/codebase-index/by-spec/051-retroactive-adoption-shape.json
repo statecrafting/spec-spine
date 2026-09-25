@@ -98,6 +98,6 @@
     "specId": "051-retroactive-adoption-shape",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "d493c663dddef5aff452987dfbd3bd4f00c3631354c7c12445ce5c6eb84fb9e4"
+  "schemaVersion": "1.2.0",
+  "shardHash": "5d53953d8a0d39468a2af8b96d0eab91bbb3f377b803b211fc1ae508808685ca"
 }

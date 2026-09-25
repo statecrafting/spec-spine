@@ -95,6 +95,6 @@
     "specId": "010-index-render-orphans",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "4d3b483aca7c28d54ee53a40182dd390e4845e46feb0c0d15953b2afe3fd7ff1"
+  "schemaVersion": "1.2.0",
+  "shardHash": "4c397d19df675a0a8d8a899e26746ff2d354ad107dfb38288638bd9f089bb5a8"
 }

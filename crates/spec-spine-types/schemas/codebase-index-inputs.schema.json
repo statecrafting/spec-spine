@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spec-spine.dev/schemas/codebase-index-inputs.schema.json",
+  "title": "spec-spine codebase index, governance-inputs sidecar (spec 141)",
+  "description": "One file at <derived>/codebase-index/inputs.json recording a digest per global input: spec-spine.toml and every [index] extra_hashed_inputs match outside a declared state root. Compared byte for byte like a shard, and folded into the aggregate index content hash.",
+  "type": "object",
+  "required": ["schemaVersion", "inputs"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["contentHash"],
+        "additionalProperties": false,
+        "properties": {
+          "contentHash": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    }
+  }
+}

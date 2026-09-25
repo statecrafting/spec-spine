@@ -11,7 +11,7 @@
 | Artifact | Field | Current | Owner |
 |---|---|---|---|
 | registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.8.0` | library |
-| index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`) | `schemaVersion` | `1.1.0` | library |
+| index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`, `inputs.json`) | `schemaVersion` | `1.2.0` | library |
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
@@ -81,6 +81,13 @@ MINOR history:
   to its full id. Absent on every existing spec, so only `specVersion`
   restamps and no `shardHash` moves. A binary predating it meets the member
   as a schema mismatch (exit 4, `kind: schema`; exit 3 before 0.26.0).
+- index `1.2.0` (spec 141): the global inputs (`spec-spine.toml` and every
+  `[index] extra_hashed_inputs` match) leave every shard's `shardHash` and are
+  recorded one entry per file in a new committed sidecar,
+  `codebase-index/inputs.json`, which `index check` compares byte for byte and
+  the aggregate `contentHash` folds. Shard documents keep their shape; each
+  `shardHash` value changes once, so adopters regenerate once. A governance
+  edit then rewrites one file instead of every shard.
 
 MAJOR history:
 

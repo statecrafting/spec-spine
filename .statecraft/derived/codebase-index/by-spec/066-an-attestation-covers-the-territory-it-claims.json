@@ -93,6 +93,6 @@
     "specId": "066-an-attestation-covers-the-territory-it-claims",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "089ba3f21631d6a80e96ebc2a69fa0665698e276508e3d9f8751b2df6b3158b8"
+  "schemaVersion": "1.2.0",
+  "shardHash": "8810d1c4d122815b4582457389103a7e7f4a9edb12f0379b226d9f8e0d01fba0"
 }

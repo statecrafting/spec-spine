@@ -175,6 +175,6 @@
     "specId": "050-claimed-but-unwitnessed",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "f2fbcddcdf261c87e1094c06ddde40a161c761594833cafb9b8098044917d3d5"
+  "schemaVersion": "1.2.0",
+  "shardHash": "4c26b5f13a3b2e120d86916351a93e613370525298f75f74e078124d472f5d20"
 }

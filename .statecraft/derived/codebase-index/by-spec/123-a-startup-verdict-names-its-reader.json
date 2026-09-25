@@ -95,6 +95,6 @@
     "specId": "123-a-startup-verdict-names-its-reader",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "a199a10ce22e491c7af98485b117d5b323a5fa4bd0084ef81c2ce9e26b767325"
+  "schemaVersion": "1.2.0",
+  "shardHash": "4e672a57dbead646631e20fa272da6fab7ea105db28981b41cd1e0d8fc17dbbd"
 }

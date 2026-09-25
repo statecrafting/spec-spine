@@ -51,9 +51,9 @@ pub use attest::{
     ToolStamp, Verdicts,
 };
 pub use codebase::{
-    CodebaseIndex, Diagnostic, Diagnostics, ImplementingPath, IndexBuild, IndexPackageShard,
-    IndexSpecShard, LineSpan, PackageKind, PackageRecord, ResolvedLocation, ResolvedUnit,
-    SourceField, TraceMapping, TraceSource, Traceability,
+    CodebaseIndex, Diagnostic, Diagnostics, ImplementingPath, IndexBuild, IndexInputs,
+    IndexPackageShard, IndexSpecShard, InputDigest, LineSpan, PackageKind, PackageRecord,
+    ResolvedLocation, ResolvedUnit, SourceField, TraceMapping, TraceSource, Traceability,
 };
 pub use config::{
     AllowlistConfig, BrandingConfig, BypassEntry, BypassSource, Config, CouplingConfig,
@@ -91,8 +91,8 @@ pub use registry::{
     Violation,
 };
 pub use schema::{
-    BUILD_META_SCHEMA, INDEX_PACKAGE_SHARD_SCHEMA, INDEX_SCHEMA, INDEX_SPEC_SHARD_SCHEMA,
-    REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA,
+    BUILD_META_SCHEMA, INDEX_INPUTS_SCHEMA, INDEX_PACKAGE_SHARD_SCHEMA, INDEX_SCHEMA,
+    INDEX_SPEC_SHARD_SCHEMA, REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA,
 };
 pub use snapshot::{
     AuthoritySnapshot, CommittedTree, FRAME_DIGEST, NON_UTF8_DIRECT_CLAIM, SnapshotCommitted,

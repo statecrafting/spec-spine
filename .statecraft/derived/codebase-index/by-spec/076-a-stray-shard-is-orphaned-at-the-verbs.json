@@ -127,6 +127,6 @@
     "specId": "076-a-stray-shard-is-orphaned-at-the-verbs",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "0dc5a23f4b2df48bc99a2dbef4a37645723cee4efa40812579e6633555bbf973"
+  "schemaVersion": "1.2.0",
+  "shardHash": "769dfafaff08b3dfe9fcfcf40b4d06f089a30f294befa3388d7e2974f1552674"
 }

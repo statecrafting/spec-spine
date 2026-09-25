@@ -90,6 +90,6 @@
     "specId": "056-the-contract-records-the-lifecycle-table",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "a5714623513df26e109150b31c7df9cc5d9c3e97f052a48ffa5af5055b18d07a"
+  "schemaVersion": "1.2.0",
+  "shardHash": "4864f73f452f06f9fd5875dd3c3edc8c2790afa6955f41e83b4bfe03dae99966"
 }

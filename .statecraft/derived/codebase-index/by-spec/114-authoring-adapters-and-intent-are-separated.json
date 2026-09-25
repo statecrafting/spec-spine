@@ -325,6 +325,6 @@
     "specId": "114-authoring-adapters-and-intent-are-separated",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "5424a8ada1b1d79e363ce353d1ad166571c44155a6ec44695348335ba9ce4b37"
+  "schemaVersion": "1.2.0",
+  "shardHash": "2d1aa92cc23b0e20c36e4c7d45ed8299be211768b8ba4ad7874b4b0ee83c8ef3"
 }

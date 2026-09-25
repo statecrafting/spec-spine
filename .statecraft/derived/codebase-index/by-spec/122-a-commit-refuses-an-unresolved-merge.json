@@ -57,6 +57,6 @@
     "specId": "122-a-commit-refuses-an-unresolved-merge",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "784c3acbe58480b85d1b287bcecc31b9e7c5724ba8c05fdad048dbb8d27bbe35"
+  "schemaVersion": "1.2.0",
+  "shardHash": "acd25858ffe3581dae9cc52f440de67cc5b9b1ebd381fa4ad68969c63b407197"
 }

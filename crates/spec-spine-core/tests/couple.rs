@@ -1452,6 +1452,9 @@ mod governed_scope {
         let (by_spec, by_package) = index_shard_files(&outcome.shards).unwrap();
         shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec).unwrap();
         shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package).unwrap();
+        // Spec 141: the inputs sidecar, as `spec-spine index` writes it.
+        let (inputs_name, inputs) = spec_spine_core::index_inputs_file(&outcome.shards).unwrap();
+        std::fs::write(dir.join(inputs_name), inputs).unwrap();
         (tmp, cfg)
     }
 
@@ -1542,6 +1545,9 @@ mod governed_scope {
         let (by_spec, by_package) = index_shard_files(&outcome.shards).unwrap();
         shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec).unwrap();
         shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package).unwrap();
+        // Spec 141: the inputs sidecar, as `spec-spine index` writes it.
+        let (inputs_name, inputs) = spec_spine_core::index_inputs_file(&outcome.shards).unwrap();
+        std::fs::write(dir.join(inputs_name), inputs).unwrap();
         assert!(codes(&cfg, fx.path(), &["scripts/run.sh"]).is_empty());
     }
 }

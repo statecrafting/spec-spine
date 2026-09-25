@@ -371,7 +371,8 @@ A path can be on both, neither, or either, and neither implies the other:
 - `docs/` here is **bypassed and not hashed**: a documentation edit raises no
   `C-001`, and stales nothing.
 - `standards/**/*` here is **bypassed and hashed**: an edit to the constitution
-  raises no `C-001`, and does stale every shard.
+  raises no `C-001`, and does stale the ledger (since spec 141, the one
+  `codebase-index/inputs.json` record rather than every shard).
 
 Bypassed answers "will the gate refuse this change"; hashed answers "does this
 change make the ledger stale". They are different questions, and reading one as
@@ -408,6 +409,18 @@ the other is how a governance file ends up outside both.
 > reports each tree separately, so the protocol asks one question with one verb.
 > `compile --check` and `index check` are unchanged, keep their flags and their
 > contracts, and remain the right call when you regenerated only one tree.
+
+> **Upgrading across spec 141 (0.27.0).** The global inputs (`spec-spine.toml`
+> and every `[index] extra_hashed_inputs` match) no longer fold into every
+> shard's `shardHash`; each is recorded once in a new committed file,
+> `<derived_dir>/codebase-index/inputs.json`. Your next `spec-spine index`
+> rewrites every index shard once (each `shardHash` value moves, and
+> `INDEX_SCHEMA_VERSION` is now `1.2.0`) and writes the new file. Commit both.
+> From then on an edit to a hashed root document rewrites only
+> `inputs.json`, and two pull requests editing different hashed documents
+> merge cleanly. If you register the derived merge driver in
+> `.gitattributes`, add `<derived_dir>/codebase-index/inputs.json` to its
+> globs.
 
 > **Upgrading across spec 060.** A GitHub Actions workflow now folds into the
 > content hash as its **governance projection**: the parsed document with the

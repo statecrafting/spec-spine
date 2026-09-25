@@ -93,6 +93,6 @@
     "specId": "046-depends-on-ordinal-monotonicity",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "194169d085fa9d181bf5153b21991fb6a2937db5c39caae99c63f3b2cbb7cc92"
+  "schemaVersion": "1.2.0",
+  "shardHash": "29b5e55ccf164bc4ad84629c3bcc64cb464bf5b7659ffeaf318b70ede6182f0a"
 }

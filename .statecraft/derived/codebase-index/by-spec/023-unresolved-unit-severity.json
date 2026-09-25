@@ -96,6 +96,6 @@
     "specId": "023-unresolved-unit-severity",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "686e938a1822f16203fdde50446d1d67398758387a5174a2ada8474b51e9361e"
+  "schemaVersion": "1.2.0",
+  "shardHash": "7ae6a5d1565f246ce69bc4e96a7cb778c0e55a23387f7562ab5f79a0b8fda31d"
 }

@@ -48,6 +48,6 @@
     "specId": "031-references-non-owning-paths",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "9a85eb255560ede587758e6de15323a4c43f691585bb10f3183c546d8a503abe"
+  "schemaVersion": "1.2.0",
+  "shardHash": "0357ff750e5d2cc08ca1304c7dae75fbb5217f6fbeae2e7556a9e4d92ed41062"
 }

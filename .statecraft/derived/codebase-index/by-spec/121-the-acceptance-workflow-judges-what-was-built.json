@@ -89,6 +89,6 @@
     "specId": "121-the-acceptance-workflow-judges-what-was-built",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "a05c0a176a89b6a077f83396d8a604ff150824e7eba80886646411135957bc70"
+  "schemaVersion": "1.2.0",
+  "shardHash": "0d410906d8b76c8f820584045b5c18bc380415c1976828a055042a711ef9f5a3"
 }

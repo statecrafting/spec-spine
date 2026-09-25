@@ -266,6 +266,6 @@
     "specId": "070-an-authority-snapshot-says-what-it-read",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "cc3240d8762320309ca30f1fb04d6e9c0e5816cc1bab17b47cd867efde8befb0"
+  "schemaVersion": "1.2.0",
+  "shardHash": "87e082530ece8d7bbca3195601cac522ce362f3a0241f60fc427930a4e2b24f7"
 }

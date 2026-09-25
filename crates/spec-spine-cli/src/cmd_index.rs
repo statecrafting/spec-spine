@@ -15,7 +15,7 @@ use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
 use spec_spine_core::{
     DiagnosticCounts, Freshness, IndexCheckReport, UnwitnessedCounts, Versioning,
     annotate_unreadable, check_slice_freshness, committed_diagnostics, coverage_with_inventory,
-    empty_universe, index, index_dir, index_freshness_report, index_shard_files,
+    empty_universe, index, index_dir, index_freshness_report, index_inputs_file, index_shard_files,
     load_committed_index, load_committed_registry, partition_orphans, read_document,
     render_markdown, slices_path, verdict_tally,
 };
@@ -389,9 +389,11 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
             // either batch is written, so a refusal leaves no artifact root
             // and no half-written tree (spec 126 D-5).
             let (by_spec, by_package) = index_shard_files(&outcome.shards)?;
+            let (inputs_name, inputs) = index_inputs_file(&outcome.shards)?;
             let run = shard::DerivedWrites::new(repo)
                 .sync_dir(&dir.join(BY_SPEC_DIR), by_spec)
-                .sync_dir(&dir.join(BY_PACKAGE_DIR), by_package);
+                .sync_dir(&dir.join(BY_PACKAGE_DIR), by_package)
+                .write(&dir, &inputs_name, inputs);
             slices_output(run, &cfg, repo, &outcome.index.build.slice_hashes)?
                 .remove(&dir, "index.json")
                 .apply()?;

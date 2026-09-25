@@ -228,6 +228,6 @@
     "specId": "039-per-spec-attestation",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "e892efff1e6bc04d12dd8e1394dd57a3ca4fe7e328c652b6ada148f258a93a53"
+  "schemaVersion": "1.2.0",
+  "shardHash": "0d0193658cf0c7b9a598c62583a943058437bb0289167039b7cfbc6ef48d4daa"
 }
