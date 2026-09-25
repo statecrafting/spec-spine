@@ -8,6 +8,10 @@
       {
         "path": ".github/workflows/ci.yml",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/Cargo.toml",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
@@ -22,6 +26,19 @@
         "unit": {
           "kind": "file",
           "path": ".github/workflows/ci.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/Cargo.toml"
         }
       },
       {
@@ -55,5 +72,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "506fe3c8ea8ed249cc17dee1e1c41e7a9bee2c269fc4ad6c95bca8b959504a08"
+  "shardHash": "cd8c96f27a7037e5ba038408ca3b850399450e112460322e48650c49a27132d7"
 }

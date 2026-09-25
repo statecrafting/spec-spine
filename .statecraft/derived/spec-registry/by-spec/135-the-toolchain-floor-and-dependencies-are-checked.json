@@ -13,6 +13,14 @@
           "kind": "file",
           "path": ".github/workflows/ci.yml"
         }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/Cargo.toml"
+        }
       }
     ],
     "id": "135-the-toolchain-floor-and-dependencies-are-checked",
@@ -51,6 +59,6 @@
     "summary": "The workspace declares `rust-version = \"1.85\"` and nothing ever built it there; the code uses let-chains, stable only since 1.88, so the declaration was false. Dependencies were never checked for advisories, licenses or sources, and the dev tree carried two open RustSec advisories through `jsonschema`'s HTTP resolver, which no test uses. CI now builds and tests at the declared `rust-version`, read from `Cargo.toml`, and runs `cargo deny check` against a committed `deny.toml`; both are required through `ci-gate`. `jsonschema` drops its default features, which removes the whole HTTP and TLS dev tree and both advisories, and the declared `rust-version` is corrected to the measured floor. `CONTRIBUTING.md` states the loop.\n",
     "title": "The toolchain floor and the dependencies are checked"
   },
-  "shardHash": "9f0e5e9ef64d353a575a12d7da3e05c94e822756cd0c031d6f2675d38478edcb",
+  "shardHash": "169116da24f7d5dbabf33adac3ebe84a792abac52b532c77b2c017a7bd21425c",
   "specVersion": "1.8.0"
 }
