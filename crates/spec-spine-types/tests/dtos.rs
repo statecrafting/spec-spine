@@ -100,7 +100,7 @@ fn schema_versions_are_pinned() {
     assert_eq!(SPEC_ATTESTATION_SCHEMA_VERSION, "0.1.0");
     // Spec 071: the change-classification report, on its own axis for the same
     // reason.
-    assert_eq!(DELTA_SCHEMA_VERSION, "0.1.0");
+    assert_eq!(DELTA_SCHEMA_VERSION, "0.2.0");
 }
 
 /// Spec 071 §3.3 and §3.6: the class tokens and the verb token are the external
