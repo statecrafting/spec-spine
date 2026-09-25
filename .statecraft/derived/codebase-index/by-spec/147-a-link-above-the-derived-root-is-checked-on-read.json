@@ -46,8 +46,8 @@
       }
     ],
     "specId": "147-a-link-above-the-derived-root-is-checked-on-read",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "48b9aa72e0ab1a953869987ddcc06216d4fe6f9a93bd107e2d87b14d7222e2c1"
+  "shardHash": "57ec7afc3d6b9cd6db7a84b985a9ad24a4a14371f3b8fec23718b8738923d55a"
 }
