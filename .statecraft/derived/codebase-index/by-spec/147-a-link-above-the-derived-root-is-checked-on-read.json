@@ -1,0 +1,53 @@
+{
+  "mapping": {
+    "amends": [
+      "144-a-repository-path-is-one-type"
+    ],
+    "dependsOn": [
+      "127-a-derived-file-is-where-its-path-says",
+      "144-a-repository-path-is-one-type"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/src/pathutil.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/repo_path.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/pathutil.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/pathutil.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/repo_path.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/repo_path.rs"
+        }
+      }
+    ],
+    "specId": "147-a-link-above-the-derived-root-is-checked-on-read",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "48b9aa72e0ab1a953869987ddcc06216d4fe6f9a93bd107e2d87b14d7222e2c1"
+}

@@ -1,0 +1,66 @@
+{
+  "record": {
+    "amends": [
+      "144-a-repository-path-is-one-type"
+    ],
+    "amendsSections": [
+      "3.4"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "127-a-derived-file-is-where-its-path-says",
+      "144-a-repository-path-is-one-type"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "144-a-repository-path-is-one-type",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/pathutil.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "144-a-repository-path-is-one-type",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/repo_path.rs"
+        }
+      }
+    ],
+    "id": "147-a-link-above-the-derived-root-is-checked-on-read",
+    "implementation": "pending",
+    "kind": "security",
+    "owner": "The spec-spine Authors",
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "d24b2e88a224125e9e9bc219ad7a93c3caf9cb4e5dd0b99eee82c60dbe3a7961",
+      "147-a-link-above-the-derived-root-is-checked-on-read": "e00a2338e160ceb8453cec8b7a23e5242d9baf731133cc2728d635b5c26d8ac7",
+      "2-territory": "46004b334c441ce970c372d33624b1be4b8e8940ad7c2030a1345225a77b29f1",
+      "3-1-the-roots-and-their-ancestors-are-checked-not-entered-amends-144-3-4": "d746baab28f6f09991b02df74b30fb777c077770416befbe38c45157d23f7c73",
+      "3-2-the-message-says-which-read-it-guards": "bb17964ebe1443c325a9763f2a347e96e9fd2c2cf46f54f6b58375b1b5c936a6",
+      "3-behavior": "cdb607db78ee2fec21dcbbd5fb6772687f5f827d4438ff8e62dd1c300e3abb24",
+      "4-out-of-scope": "e3b5396a731a47c25ad332b08f28e7a5e118b5eb1d66f8f71682dde7def9d1d3",
+      "5-resolved-decisions": "011f29dea2bdd82aaf6ee65e73144aad9f3385bbc9f229884106ebea215ce2a3",
+      "verification": "624a85e02b6de503d141027f5a60098714280b8b6a85e04acd1b1b345e508039"
+    },
+    "sectionHeadings": [
+      "147: A link above the derived root is checked on read",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The roots and their ancestors are checked, not entered (amends 144 3.4)",
+      "3.2 The message says which read it guards",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/147-a-link-above-the-derived-root-is-checked-on-read/spec.md",
+    "status": "draft",
+    "summary": "Spec 144's link walk skips every symbolic link at or above the derived and state roots and leaves them to spec 127, whose refusal fires only on write. A read-only verb therefore reads through such a link unchecked: with `.statecraft` a link to a directory outside the repository, `check` reads the committed derived tree and a governed file stored beside it from outside and reports the repository fresh, exit 0. This spec checks those links on read with 144's own rule, while still not descending into either root.\n",
+    "title": "A link above the derived root is checked on read"
+  },
+  "shardHash": "48b9aa72e0ab1a953869987ddcc06216d4fe6f9a93bd107e2d87b14d7222e2c1",
+  "specVersion": "1.9.0"
+}
