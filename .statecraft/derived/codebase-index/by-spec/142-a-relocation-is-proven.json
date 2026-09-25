@@ -436,8 +436,8 @@
       }
     ],
     "specId": "142-a-relocation-is-proven",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "bab1e210bc636823bdcad174b6de7ae74d7a0bc654cfda2eb3a6d6b0b9ac39fc"
+  "shardHash": "4b5891b8d766c1e15815cb5f773e8599e1978120484688ae706a36de3679b5ac"
 }
