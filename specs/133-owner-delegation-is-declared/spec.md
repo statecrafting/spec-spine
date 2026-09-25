@@ -1,7 +1,7 @@
 ---
 id: "133-owner-delegation-is-declared"
 title: "Owner delegation is declared"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-24"
 summary: >
