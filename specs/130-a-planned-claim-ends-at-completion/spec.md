@@ -1,7 +1,7 @@
 ---
 id: "130-a-planned-claim-ends-at-completion"
 title: "A planned claim ends at completion"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-24"
 summary: >
