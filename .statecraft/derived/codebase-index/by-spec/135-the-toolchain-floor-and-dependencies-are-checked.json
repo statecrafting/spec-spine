@@ -1,55 +1,64 @@
 {
   "mapping": {
     "dependsOn": [
-      "005-coupling-gate"
+      "094-one-gate-and-the-boundaries-it-holds",
+      "134-the-suite-runs-on-windows"
     ],
     "implementingPaths": [
+      {
+        "path": ".github/workflows/ci.yml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "CLAUDE.md",
+        "source": "spec-edge"
+      },
       {
         "path": "crates/spec-spine-cli/src/cmd_couple.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/src/main.rs",
+        "path": "crates/spec-spine-cli/src/seal.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "path": "crates/spec-spine-cli/tests/spec_id.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/waiver.rs",
-        "source": "multiple"
+        "path": "crates/spec-spine-core/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/compile.rs",
+        "source": "spec-edge"
       },
       {
         "path": "crates/spec-spine-core/src/couple.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/lib.rs",
+        "path": "crates/spec-spine-core/src/index.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/waiver.rs",
-        "source": "multiple"
-      },
-      {
-        "path": "crates/spec-spine-core/tests/waiver.rs",
-        "source": "multiple"
-      },
-      {
-        "path": "crates/spec-spine-types/src/version.rs",
+        "path": "crates/spec-spine-core/src/lint.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-types/tests/dtos.rs",
+        "path": "crates/spec-spine-core/src/manifest.rs",
         "source": "spec-edge"
       },
       {
-        "path": "docs/api.md",
+        "path": "crates/spec-spine-core/src/sections.rs",
         "source": "spec-edge"
       },
       {
-        "path": "docs/schema-versioning.md",
+        "path": "crates/spec-spine-core/src/symbols.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/gate.rs",
         "source": "spec-edge"
       }
     ],
@@ -57,40 +66,27 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/waiver.rs"
+            "file": ".github/workflows/ci.yml"
           }
         ],
         "ownership": true,
-        "sourceField": "establishes",
+        "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/waiver.rs"
+          "path": ".github/workflows/ci.yml"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/waiver.rs"
+            "file": "CLAUDE.md"
           }
         ],
         "ownership": true,
-        "sourceField": "establishes",
+        "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/waiver.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/tests/waiver.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/waiver.rs"
+          "path": "CLAUDE.md"
         }
       },
       {
@@ -109,27 +105,53 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/src/main.rs"
+            "file": "crates/spec-spine-cli/src/seal.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/src/main.rs"
+          "path": "crates/spec-spine-cli/src/seal.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/cli.rs"
+            "file": "crates/spec-spine-cli/tests/spec_id.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/cli.rs"
+          "path": "crates/spec-spine-cli/tests/spec_id.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/compile.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
         }
       },
       {
@@ -148,98 +170,111 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/lib.rs"
+            "file": "crates/spec-spine-core/src/index.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/lib.rs"
+          "path": "crates/spec-spine-core/src/index.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/src/version.rs"
+            "file": "crates/spec-spine-core/src/lint.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/src/version.rs"
+          "path": "crates/spec-spine-core/src/lint.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-types/tests/dtos.rs"
+            "file": "crates/spec-spine-core/src/manifest.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-types/tests/dtos.rs"
+          "path": "crates/spec-spine-core/src/manifest.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/api.md"
+            "file": "crates/spec-spine-core/src/sections.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "docs/api.md"
+          "path": "crates/spec-spine-core/src/sections.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/schema-versioning.md"
+            "file": "crates/spec-spine-core/src/symbols.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "docs/schema-versioning.md"
+          "path": "crates/spec-spine-core/src/symbols.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/design/04-authority-evidence-extension.md"
+            "file": "crates/spec-spine-core/tests/gate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "CONTRIBUTING.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/04-authority-evidence-extension.md"
+          "path": "CONTRIBUTING.md"
         }
       },
       {
         "locations": [
           {
-            "file": "docs/design/09-disposition-2026-09-21.md"
+            "file": "deny.toml"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "docs/design/09-disposition-2026-09-21.md"
+          "path": "deny.toml"
         }
       }
     ],
-    "specId": "113-a-waiver-has-a-declared-lifecycle",
-    "specStatus": "approved"
+    "specId": "135-the-toolchain-floor-and-dependencies-are-checked",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "1fe28911f2a92279e81b1f181cfe06323ea3d6cff81aba9415cfc80be8745eff"
+  "shardHash": "dd092987cd8586b7d146cd5078b6170b84c5e1c0d96ef8488daeb47b5f7c41f1"
 }

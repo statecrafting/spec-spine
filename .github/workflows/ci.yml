@@ -74,6 +74,35 @@ jobs:
       - name: Test
         run: cargo test --workspace --locked --no-fail-fast
 
+  # Spec 135: the declared `rust-version` is a claim adopters build against, so
+  # the workspace is built and tested at exactly that version. The toolchain
+  # is read from Cargo.toml, never restated here.
+  msrv:
+    name: build · test (rust-version)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # No command substitution: spec 094's reader of `run:` scripts refuses
+      # one rather than guess at it.
+      - name: Read the declared rust-version
+        run: |
+          grep -q '^rust-version = "' Cargo.toml
+          sed -n 's/^rust-version = "\(.*\)"$/RUST_VERSION=\1/p' Cargo.toml >> "$GITHUB_ENV"
+      - name: Install the declared rust-version
+        run: rustup toolchain install "$RUST_VERSION" --profile minimal
+      - name: Build and test at the declared rust-version
+        run: cargo "+$RUST_VERSION" test --workspace --locked
+
+  # Spec 135: advisories, licenses, bans and sources, per deny.toml.
+  deny:
+    name: cargo-deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
+
   self_governance:
     name: self-governance (compile · index · lint · couple)
     runs-on: ubuntu-latest
@@ -165,15 +194,15 @@ jobs:
   ci-gate:
     name: ci-gate
     if: ${{ always() }}
-    needs: [test, test_windows, self_governance, determinism, ai-review]
+    needs: [test, test_windows, msrv, deny, self_governance, determinism, ai-review]
     runs-on: ubuntu-latest
     steps:
       - name: Require all CI jobs to have passed
         if: ${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}
         run: |
           echo "A required CI job failed or was cancelled:"
-          echo "  test=${{ needs.test.result }}  test_windows=${{ needs.test_windows.result }}  self_governance=${{ needs.self_governance.result }}  determinism=${{ needs.determinism.result }}  ai-review=${{ needs.ai-review.result }}"
+          echo "  test=${{ needs.test.result }}  test_windows=${{ needs.test_windows.result }}  msrv=${{ needs.msrv.result }}  deny=${{ needs.deny.result }}  self_governance=${{ needs.self_governance.result }}  determinism=${{ needs.determinism.result }}  ai-review=${{ needs.ai-review.result }}"
           exit 1
       - name: All required CI jobs passed
         run: |
-          echo "ci-gate passed: test, test_windows, self_governance, determinism, and ai-review are all green or skipped"
+          echo "ci-gate passed: test, test_windows, msrv, deny, self_governance, determinism, and ai-review are all green or skipped"

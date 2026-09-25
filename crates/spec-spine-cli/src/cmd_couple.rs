@@ -721,12 +721,11 @@ fn parse_unified_diff(diff_text: &str) -> DiffInput {
                 let entry = files.entry(path.clone()).or_default();
                 entry.deleted = deleted;
             }
-        } else if line.starts_with("@@") {
-            if let Some(path) = &current_path {
-                if let Some(span) = parse_hunk_header(line) {
-                    files.entry(path.clone()).or_default().hunks.push(span);
-                }
-            }
+        } else if line.starts_with("@@")
+            && let Some(path) = &current_path
+            && let Some(span) = parse_hunk_header(line)
+        {
+            files.entry(path.clone()).or_default().hunks.push(span);
         }
     }
 

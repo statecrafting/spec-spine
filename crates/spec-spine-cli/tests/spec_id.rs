@@ -259,7 +259,7 @@ fn no_match_is_one_refusal_at_every_argument_that_refuses_it() {
 /// falls through as given and the read fails exactly as it does today, which
 /// spec 039 §3.5 assigns to exit 3.
 #[test]
-fn verify_attestation_falls_through_to_exit_three_on_no_match() {
+fn verify_attestation_falls_through_to_a_failed_read_on_no_match() {
     let t = corpus();
     let out = run(
         t.path(),
