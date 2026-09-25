@@ -129,5 +129,5 @@ fn each_refusal_has_its_exit_code() {
     let spec = tmp.path().join("specs/001-a/spec.md");
     let text = fs::read_to_string(&spec).unwrap();
     fs::write(&spec, text.replace("Text.", "Edited.")).unwrap();
-    assert_eq!(code(REQUEST), Some(2), "stale");
+    assert_eq!(code(REQUEST), Some(1), "stale");
 }

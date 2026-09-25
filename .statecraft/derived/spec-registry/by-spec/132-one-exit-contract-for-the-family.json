@@ -1,0 +1,750 @@
+{
+  "record": {
+    "amends": [
+      "034-machine-readable-verdicts",
+      "055-a-version-pin-the-cli-can-check",
+      "061-shipped-is-not-the-same-as-working",
+      "062-one-name-one-freshness-verb",
+      "067-a-short-id-names-the-same-spec-at-every-verb",
+      "068-a-verifier-checks-the-bytes-it-was-given",
+      "069-the-committed-index-is-compared-not-trusted",
+      "070-an-authority-snapshot-says-what-it-read",
+      "079-a-blocking-claim-is-not-a-stale-shard",
+      "080-an-unresolved-claim-is-not-stale",
+      "093-the-harness-this-repository-runs",
+      "103-a-verifier-fixture-is-a-published-artifact",
+      "126-a-derived-file-stays-in-its-directory",
+      "127-a-derived-file-is-where-its-path-says",
+      "128-a-derived-tree-stays-in-its-repository",
+      "129-a-json-config-obeys-the-loaders-rules"
+    ],
+    "amendsVerification": [
+      "067-a-short-id-names-the-same-spec-at-every-verb",
+      "068-a-verifier-checks-the-bytes-it-was-given",
+      "069-the-committed-index-is-compared-not-trusted",
+      "070-an-authority-snapshot-says-what-it-read"
+    ],
+    "created": "2026-09-24",
+    "dependsOn": [
+      "034-machine-readable-verdicts",
+      "062-one-name-one-freshness-verb",
+      "080-an-unresolved-claim-is-not-stale",
+      "093-the-harness-this-repository-runs",
+      "128-a-derived-tree-stays-in-its-repository",
+      "129-a-json-config-obeys-the-loaders-rules"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/exit_contract.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/error.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "062-one-name-one-freshness-verb",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_check.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_index.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_compile.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_couple.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "021-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_attest.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "021-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/verify_attestation.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "021-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/seal.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "096-compaction-is-a-verb-not-a-session",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_compact.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "108-a-work-scope-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_scope.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "110-an-interface-reference-is-digest-pinned",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_interface.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/shard.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/query.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "021-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/attest.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "107-a-context-closure-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/closure.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "108-a-work-scope-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scope.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "109-impact-and-conflict-are-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/impact.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "071-a-change-is-classified-under-the-bases-rules",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/delta.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "110-an-interface-reference-is-digest-pinned",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/interface.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "113-a-waiver-has-a-declared-lifecycle",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/waiver.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "071-a-change-is-classified-under-the-bases-rules",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_delta.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "003-conformance-lint",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_lint.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "043-verify-declared-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_verify.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/canonical_json.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/couple.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "029-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/coverage.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "044-index-diagnostics-reach-a-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/diagnostics.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/read.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "067-a-short-id-names-the-same-spec-at-every-verb",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/spec_id.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "107-a-context-closure-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/closure.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "107-a-context-closure-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/closure_composed.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "047-effective-config-is-a-governed-read",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/couple.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "128-a-derived-tree-stays-in-its-repository",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/derived_dir_contained.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "126-a-derived-file-stays-in-its-directory",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/derived_paths.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "127-a-derived-file-is-where-its-path-says",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/derived_symlinks.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "110-an-interface-reference-is-digest-pinned",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/interface.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "110-an-interface-reference-is-digest-pinned",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/interface_composed.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "108-a-work-scope-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/scope.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "067-a-short-id-names-the-same-spec-at-every-verb",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/spec_id.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "103-a-verifier-fixture-is-a-published-artifact",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/verifier_fixtures.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "068-a-verifier-checks-the-bytes-it-was-given",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/verify_attestation_bytes.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "090-the-verdict-is-the-only-thing-on-stdout",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/verify_streams.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "113-a-waiver-has-a-declared-lifecycle",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/waiver.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-ledger-seal",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/attest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "107-a-context-closure-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/closure.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "096-compaction-is-a-verb-not-a-session",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/compact.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "071-a-change-is-classified-under-the-bases-rules",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/delta.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/harness_hooks.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "110-an-interface-reference-is-digest-pinned",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/interface.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/query.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "097-a-path-leaves-the-corpus-the-way-a-spec-does",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/retire.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "108-a-work-scope-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scope.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "113-a-waiver-has-a-declared-lifecycle",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/waiver.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "055-a-version-pin-the-cli-can-check",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-declared-extra-frontmatter-passthrough",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/frontmatter.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/adoption-guide.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "100-a-deleted-path-is-judged-where-it-lived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "115-bindings-are-designed-not-shipped",
+        "unit": {
+          "kind": "file",
+          "path": "docs/bindings-plan.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "055-a-version-pin-the-cli-can-check",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "103-a-verifier-fixture-is-a-published-artifact",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/code-review/SKILL.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/ship/SKILL.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/pre-commit"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "099-a-merged-acceptance-is-asked-again",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/acceptance-scope.sh"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "105-governed-scope-is-enabled-here",
+        "unit": {
+          "kind": "file",
+          "path": "CLAUDE.md"
+        }
+      }
+    ],
+    "id": "132-one-exit-contract-for-the-family",
+    "implementation": "complete",
+    "intent": {
+      "goal": "one exit and JSON vocabulary for spec-spine and Statecraft, in which a refusal, a usage error and a failure are three different answers and staleness is a finding",
+      "nonGoals": [
+        "changing any verdict: every refusal still refuses and every pass still passes; only the code and the envelope change (3.2)",
+        "a lock: spec-spine takes none, so `lock busy` has no call site here (4)",
+        "renaming diagnostic codes (V-, L-, C-, I-, W-): those are finding identities, not outcomes (4)"
+      ]
+    },
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/cli-reference.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-architecture.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionDigests": {
+      "1-1-two-vocabularies": "193c3beb1f9c476ec44753a7a4f5e325650c75da8956b6e8057fdd39e698db64",
+      "1-2-measured-before-the-change": "7f197e1b8a45ea0a914e5fb26d1346a21265d897d772226b1ce6ebe1a88f28c8",
+      "1-purpose": "d39723cf8b082ebc4022a090a900c56ea551d6bb6f92425d36ccf715c6039331",
+      "132-one-exit-contract-for-the-family": "64fda9a3542f5f394336c924902aa2b0cbd5f2abbe628e46c0907dd9be30185f",
+      "2-territory": "963e00ea4d7cb8f92fa1e40549c22dea307e59f93f600cd15ede4595af4edb15",
+      "3-1-the-contract": "8c58026ec504bba3f97a7d0672ec5ec5375e5b6905113b94bc60888e8ac91edb",
+      "3-2-where-each-case-lands": "41b55f13664d5aa334489c56f1be024cc456a7792c4325322884dca40c1b16f4",
+      "3-3-check-folds-by-the-higher-code-amends-062-3-3": "73f3a36aafc0e7c6977eb5df7c5ea053234fe5fa3d943dd29800d358eaba317b",
+      "3-4-the-family-envelope-amends-034-3-1-3-3-3-6": "587643b6a1925e636320b26bdc12d10314a2817039b24fe40ccdb6c1399f0fa1",
+      "3-5-verbs-whose-code-changed": "1e87f3b623bd0b7db801d4244ef52307a6032d60709bee9029483fbca2a48dd8",
+      "3-6-the-verifier-fixture-set-moves-to-1-0-0-amends-103-3-5": "18fe98d55ea8fa7d722f6cfd8026444da63b6bfe01c2d0784ef43e91b1ab8499",
+      "3-7-the-harness-reads-the-five-codes-amends-093-3-8-to-3-10": "3a59730175a5696608073e06407389c47dabf823a7ff1891540d83886c77e64e",
+      "3-8-the-acceptance-this-contract-changes-is-carried-here": "78f7fc10e41e26e590d50ae7e5f361629b916dfa2ffb62c700acbaf846be8731",
+      "3-behavior": "5fc82f44414c79de3f7187c8fdd5bf0cbaf57f28a02989a97f71b2be24bda246",
+      "4-out-of-scope": "d35038576f5855fdc7166348a22d6e21d8960a74366937e193065bea9f5d063a",
+      "5-resolved-decisions": "03f1bf69e9f26d8e6458640700c514631c7ff4826f20099b368ddd7b47b0ba1f",
+      "verification": "51e0c70ed999494baef1343706fe4f6c73fcd5313f3a6d644ab7de1415d23d7d"
+    },
+    "sectionHeadings": [
+      "132: One exit contract for the family",
+      "1. Purpose",
+      "1.1 Two vocabularies",
+      "1.2 Measured before the change",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The contract",
+      "3.2 Where each case lands",
+      "3.3 `check` folds by the higher code (amends 062 §3.3)",
+      "3.4 The family envelope (amends 034 §3.1, §3.3, §3.6)",
+      "3.5 Verbs whose code changed",
+      "3.6 The verifier fixture set moves to 1.0.0 (amends 103 §3.5)",
+      "3.7 The harness reads the five codes (amends 093 §3.8 to §3.10)",
+      "3.8 The acceptance this contract changes is carried here",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/132-one-exit-contract-for-the-family/spec.md",
+    "status": "draft",
+    "summary": "spec-spine and the Statecraft CLI answered in two exit vocabularies. spec-spine spent 2 on staleness and 3 on everything that went wrong, from a malformed `spec-spine.toml` to a failed read to a refused write, so a consumer could not tell \"you asked for something this tool will not do\" from \"the disk failed\", and a containment refusal was reported as I/O. This spec adopts the family contract the two tools share: 0 ok, 1 finding (validation, drift, stale, unresolved, not found, authored content that does not parse), 2 refused (an invalid configuration, a version pin not met, a containment refusal: nothing done), 3 usage, 4 failed (I/O, internal, a tool-produced artifact that fails its schema). `Error` gains `Refused`, `Usage` and `Internal`, and every call site is classified. The `--json` envelope becomes the family envelope, version 1.0.0: `schemaVersion`, `tool`, `verb`, `outcome`, `exitCode`, `summary`, then `report` or `error`, with `ok` removed and `error.kind` a closed set of ten tokens. It is a deliberate breaking change, accepted by the owner, taken once so the consumer migrates once.\n",
+    "title": "One exit contract for the family"
+  },
+  "shardHash": "2bb5122e20bfde08c0effc9e798e241518fbbadf95ce0bb7b97d43c7535628b6",
+  "specVersion": "1.8.0"
+}

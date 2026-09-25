@@ -316,5 +316,5 @@ fn a_stale_exporter_ledger_cannot_hide_a_change_and_a_stale_importer_ledger_refu
     fs::write(&ip, format!("{s}\nEdited.\n")).unwrap();
     let e = format!("upstream={}", exp.root().display());
     let out = run(imp.path(), &["interface", "verify", "--export", &e]);
-    assert_eq!(out.status.code(), Some(2), "{}", text(&out));
+    assert_eq!(out.status.code(), Some(1), "{}", text(&out));
 }

@@ -473,12 +473,12 @@ fn an_as_of_that_is_not_a_date_is_a_usage_error() {
         &as_of("23/09/2026"),
     );
     assert!(
-        matches!(err, Err(spec_spine_types::Error::Parse(_))),
+        matches!(err, Err(spec_spine_types::Error::Usage(_))),
         "the caller's input is refused, not compared as text"
     );
     assert!(matches!(
         as_of("23/09/2026").validate(),
-        Err(spec_spine_types::Error::Parse(_))
+        Err(spec_spine_types::Error::Usage(_))
     ));
 }
 

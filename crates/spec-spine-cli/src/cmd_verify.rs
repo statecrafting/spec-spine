@@ -345,7 +345,7 @@ pub fn run(repo: &Path, id: &str, json: bool, plan_only: bool) -> Result<u8, Err
     // to read the plan first is a safety affordance, not a convenience.
     if plan_only {
         if json {
-            let value = serde_json::to_value(&plan).map_err(|e| Error::Schema(e.to_string()))?;
+            let value = serde_json::to_value(&plan).map_err(|e| Error::Internal(e.to_string()))?;
             out::verdict(&Verdict::report(verb::VERIFY, 0, value))?;
         } else {
             for command in &plan.commands {
@@ -416,7 +416,7 @@ pub fn run(repo: &Path, id: &str, json: bool, plan_only: bool) -> Result<u8, Err
     };
 
     if json {
-        let value = serde_json::to_value(&report).map_err(|e| Error::Schema(e.to_string()))?;
+        let value = serde_json::to_value(&report).map_err(|e| Error::Internal(e.to_string()))?;
         out::verdict(&Verdict::report(verb::VERIFY, code, value))?;
         return Ok(code);
     }

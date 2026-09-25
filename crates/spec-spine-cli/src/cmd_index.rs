@@ -201,7 +201,8 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 })
             };
             // Freshness-guarded inside `coverage`: a stale index is `Error::Stale`
-            // (exit 2), so the report never describes the wrong ledger.
+            // (exit 1 since spec 132), so the report never describes the wrong
+            // ledger.
             let report = coverage_with_inventory(&cfg, repo, inventory.as_ref())?;
             if *json {
                 out!("{}", read_document(&report, Versioning::Stamp)?);
@@ -281,7 +282,8 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                     0
                 }
             } else {
-                2
+                // Spec 132 §3.2: staleness is a finding.
+                1
             };
 
             if *json {
@@ -294,7 +296,7 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                     counts.clone(),
                     unwitnessed,
                 ))
-                .map_err(|e| Error::Schema(e.to_string()))?;
+                .map_err(|e| Error::Internal(e.to_string()))?;
                 out::verdict(&Verdict::report(verb::INDEX_CHECK, code, report))?;
                 return Ok(code);
             }
@@ -639,7 +641,7 @@ fn slices_output(
         return Ok(run.remove(dir, name));
     }
     let json = serde_json::to_string_pretty(slice_hashes)
-        .map_err(|e| Error::Schema(e.to_string()))?
+        .map_err(|e| Error::Internal(e.to_string()))?
         + "\n";
     Ok(run.write(dir, name, json))
 }

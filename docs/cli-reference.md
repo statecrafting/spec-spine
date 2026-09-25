@@ -13,19 +13,25 @@ and the `--json` envelope all postdate the deleted pages.
 
 ## Exit codes
 
-Mapped in exactly one place, `crates/spec-spine-cli/src/main.rs` via
-`Error::exit_code()`. The contract is stable across releases.
+Mapped in exactly one place, `crates/spec-spine-types/src/error.rs`'s
+`Error::exit_code()`, applied by `crates/spec-spine-cli/src/main.rs`. Since
+spec 132 this is the **family contract** shared with the Statecraft CLI: five
+codes, ordered by severity, and the numeric order is the severity order.
 
-| Code | Meaning |
-|---|---|
-| `0` | ok |
-| `1` | validation failure, not found, or drift refused |
-| `2` | stale: the committed derived tree does not match its inputs |
-| `3` | I/O, parse, schema, config, or usage error |
+| Code | Outcome | Meaning |
+|---|---|---|
+| `0` | `ok` | the verb did what was asked and found nothing |
+| `1` | `finding` | validation failure, drift, staleness, an unresolved claim, not found, or authored content that does not parse |
+| `2` | `refused` | a precondition or policy was not met and nothing was done: invalid configuration, a `[meta] required_version` pin the binary does not satisfy, a containment refusal (specs 126-128) |
+| `3` | `usage` | a clap argument error, an argument combination a verb rejects, or a malformed request document the caller supplied |
+| `4` | `failed` | I/O, a tool-produced artifact that fails to parse or fails its schema, an internal serialization failure |
 
-Since spec 093 every usage error is `3`, so an exit `2` from any verb means
-staleness and nothing else. A binary older than that maps some usage errors to
-`2`; ask `spec-spine --version` before believing an exit code.
+Before spec 132 (releases through 0.25.x) the contract was `0` ok / `1`
+validation-failure-or-not-found-or-drift / `2` stale / `3`
+I/O-parse-schema-config-or-usage. Staleness moved from `2` to `1`; a
+containment or config refusal moved from `3` to `2`; I/O and schema failures
+moved from `3` to `4`. Ask `spec-spine --version` before believing an exit
+code: a binary built before 0.26.0 answers under the old contract.
 
 `delta` is the one verb with no refusal of its own: it exits `0` whenever a
 report was produced, whatever the report says.
@@ -40,15 +46,18 @@ report was produced, whatever the report says.
 ## The machine-readable verdict (`--json`)
 
 The verbs that render a *verdict* accept `--json` (spec 034). The flag changes
-what is written and never what is decided: `ok` and `exitCode` always agree
-with the code the process returns without it.
+what is written and never what is decided: `outcome` and `exitCode` always
+agree with the code the process returns without it, and `outcome` is derived
+from `exitCode`, never passed separately.
 
 ```json
 {
-  "schemaVersion": "0.3.0",
+  "schemaVersion": "1.0.0",
+  "tool": "spec-spine",
   "verb": "couple",
-  "ok": false,
+  "outcome": "finding",
   "exitCode": 1,
+  "summary": "couple: finding",
   "report": { "...": "the verb's facade payload" }
 }
 ```
@@ -60,9 +69,16 @@ failure carries `error` instead:
 { "kind": "stale", "message": "...", "violations": [] }
 ```
 
-`kind` is a closed lowercase set to branch on: `config`, `validation`,
-`not-found`, `stale`, `io`, `parse`, `schema`. `message` carries no stability
-promise. `violations` is present only when `kind` is `validation`.
+`kind` is a closed lowercase set to branch on: `validation`, `stale`,
+`not-found`, `drift`, `refused`, `config`, `io`, `schema`, `usage`,
+`internal`. `message` carries no stability promise; branch on `outcome` and
+`kind`, not on `summary` or `message`. `violations` is present only when
+`kind` is `validation`.
+
+Before spec 132 (schema `0.6.0` and earlier) the header carried `ok` (a
+boolean) instead of `outcome` and `summary`, had no `tool` member, and `kind`
+had no `refused`, `usage`, `internal` or `drift`, but did have `parse`:
+authored content that fails to parse now reports `kind: validation`.
 
 `verb` is a stable dotted command path, not the argv spelling:
 
@@ -97,7 +113,7 @@ Compiles `specs/*/spec.md` into the deterministic registry shard tree under
 
 | Flag | Meaning |
 |---|---|
-| `--check` | Verify the committed shards match the corpus, writing nothing. Exit `2` if stale. |
+| `--check` | Verify the committed shards match the corpus, writing nothing. Exit `1` if stale (exit `2` before 0.26.0). |
 | `--spec <ID>` | Validate exactly one spec and write nothing (spec 049). Accepts the short id (`056`). Incompatible with `--check`. |
 | `--fail-on-warn` | Exit `1` on any warning-tier violation (spec 064). Accepted on every form; changes only the exit code, never `validation.passed` and never an emitted byte. |
 | `--json` | Requires `--check` or `--spec`. The writing form's verdict is deliberately not machine-readable (spec 034 section 4). |
@@ -109,22 +125,24 @@ A shard is named after its spec's frontmatter `id`. If any id would not make
 one plain file name (empty, a leading `.`, a trailing `.` or space, or
 containing `/`, `\`, `:` or NUL, which covers `../` traversal and absolute
 paths; or a reserved Windows device name such as `CON`, `NUL.tar` or `COM1`, on
-every platform), the writing form refuses with exit `3` before it writes,
-prunes or creates anything, including the `spec-registry/` directory itself on
-a first build, and names the file name and directory (specs 126 and 127). This
-outranks the exit `1` the same id's `V-012` would earn. The refusal is about
-the file name, not the id grammar: an id that fails `V-012` but is a plain name
-(`001-Foo`) is still written and still exits `1`. `compile --check` reports the
-offending id without writing anything.
+every platform), the writing form refuses (exit `2`, a containment refusal
+under spec 132; exit `3` before 0.26.0) before it writes, prunes or creates
+anything, including the `spec-registry/` directory itself on a first build,
+and names the file name and directory (specs 126 and 127). This outranks the
+exit `1` the same id's `V-012` would earn. The refusal is about the file name,
+not the id grammar: an id that fails `V-012` but is a plain name (`001-Foo`)
+is still written and still exits `1`. `compile --check` reports the offending
+id without writing anything.
 
-The writing form also refuses, with exit `3` and nothing written, when any path
-it would write, create, remove or prune passes through a symbolic link below
-the repository root, or meets an existing component of the wrong kind (a file
-where a directory belongs), and names that path (spec 127). It does not replace
-the link. The repository root itself, and its ancestors, may be links. Not
-covered: another process replacing a path while the verb runs, a configured
-`derived_dir` that points outside the repository, and Windows links or
-junctions, which were not measured.
+The writing form also refuses, with exit `2` (exit `3` before 0.26.0) and
+nothing written, when any path it would write, create, remove or prune passes
+through a symbolic link below the repository root, or meets an existing
+component of the wrong kind (a file where a directory belongs), and names
+that path (spec 127). It does not replace the link. The repository root
+itself, and its ancestors, may be links. Not covered: another process
+replacing a path while the verb runs, a configured `derived_dir` that points
+outside the repository, and Windows links or junctions, which were not
+measured.
 
 ## check
 
@@ -134,9 +152,9 @@ spec-spine check [--fail-on-unresolved] [--fail-on-warn] [--json]
 
 Both freshness reads in one verb (spec 062): are the committed registry shards
 and the committed index shards current? It compiles in memory and compares
-without writing. The exit code is the more severe of the two halves, in the
-order `3`, `1`, `2`, `0`, and the two report lines under it say which tree
-answered what.
+without writing. The exit code is the higher of the two halves' codes,
+numerically (spec 132, amending spec 062's `3`-then-`1`-then-`2`-then-`0`
+order), and the two report lines under it say which tree answered what.
 
 | Flag | Forwarded to | Meaning |
 |---|---|---|
@@ -158,7 +176,7 @@ Read-only queries over the compiled registry. Every subcommand takes `--json`.
 | `registry status-report [--nonzero-only]` | Counts by status. `--nonzero-only` omits zero counts; the total still covers the corpus. |
 | `registry relationships <ID>` | A spec's relationship neighborhood: the typed edges in and out. |
 | `registry obligation <SPEC>#<ID>` | One declared obligation (spec 106): its kind, text, anchor and inputs, its section's digest, and the spec's content hash. The spec half accepts the short id; an unqualified id exits `3`, an unknown one `1`. |
-| `registry closure --request <FILE\|->` | Resolve a context closure (spec 107): every named spec, section and obligation with its identity, and one order-independent digest over them. Refuses a stale registry with exit `2`. |
+| `registry closure --request <FILE\|->` | Resolve a context closure (spec 107): every named spec, section and obligation with its identity, and one order-independent digest over them. Refuses a stale registry with exit `1` (exit `2` before 0.26.0). |
 | `registry impacts [--target <REF>] [--declared-by <SPEC>]` | Every declared impact and conflict against spec 106's obligations (spec 109), inverted so the target side can see them. `--target` is a spec id or a qualified `<spec-id>#<obligation-id>` reference; `--declared-by` is a spec id; both filters compose by intersection. An unqualified `#` reference exits `3`; an unknown spec or obligation exits `1`. |
 | `registry moves [<PATH>]` | Look up a path against every declared move (spec 111): a relocation, split, merge or removal a spec declared in its own frontmatter. Without a path, lists every declaration, flattened and sorted. Answers from the committed registry, like `show`; changes no verdict and infers nothing. Exits `0` on `unmapped`/`resolved`, `1` on `ambiguous`/`cycle` (the lookup refusing to guess, not an error). |
 | `registry plan [--next]` | Which specs can be worked on now and what blocks the rest (spec 035). `--next` prints only the first ready spec; an empty ready set is `(nothing ready)` at exit `0`, not a failure. |
@@ -186,9 +204,11 @@ nothing is written.
 | `missing` | the export has no such spec | `1` |
 | `unverified` | no `--export` was supplied for the corpus | `1` |
 
-A stale committed registry exits `2` before any export is read. A malformed
-`--export`, a corpus named twice, or an unreadable export directory exits `3`.
-`--spec` accepts the short id; an unknown one exits `1`. To pin a reference,
+A stale committed registry exits `1` (exit `2` before 0.26.0) before any
+export is read. A malformed `--export` or a corpus named twice exits `3`
+(usage); an unreadable export directory exits `4` (I/O; exit `3` before
+0.26.0); an export path that escapes its root (a symlink out) exits `2`
+(refused). `--spec` accepts the short id; an unknown one exits `1`. To pin a reference,
 run `spec-spine registry show <id> --json` in the cited corpus and copy
 `contentHash` (and any `sectionDigests` entry), each prefixed `sha256:`.
 
@@ -207,7 +227,7 @@ never in spec frontmatter; spec-spine only evaluates and compares one.
 
 | Subcommand | Answers |
 |---|---|
-| `scope evaluate --scope <FILE\|->` | Resolves each declared path's owners against the committed index and reports where the declaration and the ownership disagree: `S-001` unowned, `S-002` undeclared crossing (a `mutable` path another spec owns), `S-003` sharing mismatch (a `shared` path whose owners disagree with its declared `with`). `readOnly` paths are reported with no finding. Refuses a stale committed index with exit `2` before any path is resolved. A malformed document (unknown member, an absolute path or one carrying `..`, no path at all, one path under two roles) exits `3`; an unresolved `ownSpec` or `with` exits `1` naming every one. Otherwise exits `0` whether or not it found anything: a report, not a gate. |
+| `scope evaluate --scope <FILE\|->` | Resolves each declared path's owners against the committed index and reports where the declaration and the ownership disagree: `S-001` unowned, `S-002` undeclared crossing (a `mutable` path another spec owns), `S-003` sharing mismatch (a `shared` path whose owners disagree with its declared `with`). `readOnly` paths are reported with no finding. Refuses a stale committed index with exit `1` (exit `2` before 0.26.0) before any path is resolved. A malformed document (unknown member, an absolute path or one carrying `..`, no path at all, one path under two roles) exits `3`; an unresolved `ownSpec` or `with` exits `1` naming every one. Otherwise exits `0` whether or not it found anything: a report, not a gate. |
 | `scope compare <A> <B>` | Reports every overlapping declared path (equal, or one a subtree containing the other) whose roles conflict: `both-mutable`, `mutable-shared`, `changed-under-read`. Two `shared` or two `readOnly` entries never conflict. Reads no ledger and exits `0` whether or not a conflict is found; the same malformed-document refusal (exit `3`) applies to each document. |
 
 Either `--scope`, or one of `A` / `B`, may be `-` for stdin. Nothing here
@@ -223,15 +243,16 @@ spec-spine index [--repo DIR]
 Builds the code-as-source index into `<derived_dir>/codebase-index/{by-spec,by-package}/`.
 
 Per-spec shards are named after the spec's `id`, with the same refusal as
-`compile`: an id that is not one plain file name exits `3` before anything
-under `codebase-index/` is written, pruned or created, the directory itself
+`compile`: an id that is not one plain file name exits `2` (a containment
+refusal, spec 132; exit `3` before 0.26.0) before anything under
+`codebase-index/` is written, pruned or created, the directory itself
 included (spec 126). So does a symbolic link below the repository root on any
 path it writes, removes or prunes, `slices.json` and both shard directories
 included (spec 127).
 
 | Subcommand | Answers |
 |---|---|
-| `index check [--slice NAME] [--fail-on-unresolved] [--json]` | Is the committed index current? Exit `2` if stale. `--slice` gates one named `[index.slices]` group instead of the whole shard set. `--fail-on-unresolved` exits `1` on any `W-001` / `W-002`. |
+| `index check [--slice NAME] [--fail-on-unresolved] [--json]` | Is the committed index current? Exit `1` if stale (exit `2` before 0.26.0). `--slice` gates one named `[index.slices]` group instead of the whole shard set; naming an undeclared slice is usage, exit `3` (it was a config error, also `3`, before 0.26.0). `--fail-on-unresolved` exits `1` on any `W-001` / `W-002`. |
 | `index render` | The committed index as markdown. A projection; it never recomputes. |
 | `index orphans [--json]` | Specs the committed index records as owning nothing resolvable. |
 | `index diagnostics [--json]` | The diagnostics the committed index records (spec 044). Recomputes nothing and never refuses; the refusal lives on `check`. Empty output means none. |
@@ -361,12 +382,12 @@ Emits a reproducible attestation into `<derived_dir>/attestation/`.
 Exit `0` means an attestation was written. It is a record, not a gate.
 
 With `--spec`, the file is named after the resolved spec id. An id the corpus
-declares but that is not one plain file name (see `compile`) exits `3` before
-`by-spec/` is created and before the attestation or its seal is written (spec
-126). Every form refuses the same way when the attestation, the snapshot, the
-seal or a directory above them is a symbolic link below the repository root;
-the seal is made first, so a refused seal leaves the attestation unwritten too
-(spec 127).
+declares but that is not one plain file name (see `compile`) exits `2` (exit
+`3` before 0.26.0) before `by-spec/` is created and before the attestation or
+its seal is written (spec 126). Every form refuses the same way (exit `2`)
+when the attestation, the snapshot, the seal or a directory above them is a
+symbolic link below the repository root; the seal is made first, so a refused
+seal leaves the attestation unwritten too (spec 127).
 
 The document goes to the file, not to stdout: stdout carries a summary, and
 redirecting it publishes prose rather than the attestation.

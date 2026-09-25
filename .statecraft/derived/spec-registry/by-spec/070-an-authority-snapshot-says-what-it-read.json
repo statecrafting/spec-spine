@@ -131,7 +131,7 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "070-an-authority-snapshot-says-what-it-read": "66c03c38d5bcc983b6fa4ad8c6f5c3e0371a8509ec470f49c2b8e6c07898cdc1",
+      "070-an-authority-snapshot-says-what-it-read": "387357c0588fc2513517d64113b17091915bf131f993836152bcd05a717cd1e9",
       "1-purpose": "316b8c42f8f6a7a50082547009a114d5ba6b760332d95ebd1b51b9c5cef0dc64",
       "2-territory": "8fd3642c1bbc540154ad0a8930d3a1a5ee7691d276bd27b8586bd129b0bc9456",
       "3-1-the-payload": "aeb8a383abb65ffc7bc8fc9d872a3826344567e5f1594b5c7e7da6a4a112fc86",
@@ -146,7 +146,7 @@
       "3-behavior": "5b2107138e4caf0888abaa5ad7fe2f0b4ac7f64021378a3a65ac1437e954a4a6",
       "4-out-of-scope": "698f85f7c5470860079cc6987d127758ac2e2ef265a8a1db84b457ba88e8f030",
       "5-resolved-decisions": "80eacbe2ce5386f6c5ddd950684e4176fc94f27091a214e81272038b8335da86",
-      "verification": "e3cee1bce9ba289c9e429aed638cfe6a93fb2f5c701ca7b5759866b092fd2028"
+      "verification": "92fd03fc51a7bc6a1ce89d3ae23b64476d5f3090f397a0dcfba5eb87321dd323"
     },
     "sectionHeadings": [
       "070: An authority snapshot says what it read",
@@ -171,6 +171,6 @@
     "summary": "A consumer that binds spec-spine's authority results to a revision needs five separate outputs today and still cannot answer four questions from them: whether the committed ledger matched the corpus (attestations recompute and never read the committed shards, and `check --json` reports booleans without the digests it compared), which configuration and governance files were read, what every spec's territory hashed to, and how much source no spec claims. This spec adds a third attestation scope, `attest --snapshot`, emitting an `AuthoritySnapshot`: the tool and schema versions, a digest of `spec-spine.toml`, the existing corpus hashes, the committed registry and index trees with a digest each and whether each matches the recompute, the governance inputs by path and digest, the gate verdicts, the ownership counts, the exclusions in force, and each spec's lifecycle with a framed digest of its resolved territory (plus, for joining records issued earlier, the hash of the `SpecAttestation` spec 039 would emit for it, or a stated reason where that construction has no answer). New members use a framed digest that binds normalized text rather than exact bytes, a contract 3.3 states explicitly and distinguishes from spec 068's, because the existing fold does not frame content and two trees can share one hash; existing members and payloads keep their constructions. The payload is pure, on demand, gitignored, sealable and verified under spec 068's rules. It commits to no git revision: the consumer binds the tree.\n",
     "title": "An authority snapshot says what it read"
   },
-  "shardHash": "50bbb36c146635f23903eff64affd46ed25cb79055a289eb3bfe0bba644c2386",
+  "shardHash": "87e082530ece8d7bbca3195601cac522ce362f3a0241f60fc427930a4e2b24f7",
   "specVersion": "1.8.0"
 }

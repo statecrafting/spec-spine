@@ -195,7 +195,8 @@ evidence somebody wrote and can be stale, and the corpus source is immutable.
 It is built only when a deletion needs one, so a change with no deletion pays
 nothing and works in a shallow clone.
 
-**A required snapshot that cannot be obtained is a refusal**, exit `3`, naming
+**A required snapshot that cannot be obtained is a refusal**, exit `2` (exit
+`3` before 0.26.0), naming
 the cause and the remedy. The gate does not substitute another revision, does
 not ignore corrupt evidence, and does not treat a history it could not read as
 an empty diff. A path that is simply **absent** from a snapshot that *was* read
@@ -297,21 +298,33 @@ pub fn authorities(index: &CodebaseIndex, unit: &Unit) -> Vec<String>;  // → o
 ## 6. The `Error` enum → exit codes
 
 A single, stable, `#[non_exhaustive]` enum. The CLI is the **only** place that
-maps an `Error` to a process exit code.
+maps an `Error` to a process exit code. Since spec 132 the mapping is the
+family exit contract shared with the Statecraft CLI:
 
-| Variant | Meaning | Exit |
-|---|---|---|
-| `Error::Validation(Vec<Violation>)` | compile validation failed | **1** |
-| `Error::NotFound(String)` | spec id / view / path not found | **1** |
-| `Error::Stale { expected, actual }` | committed index out of date | **2** |
-| `Error::Config(String)` | malformed/invalid `spec-spine.toml` | **3** |
-| `Error::Io(String)` | filesystem / read failure | **3** |
-| `Error::Parse(String)` | frontmatter / TOML / JSON parse failure | **3** |
-| `Error::Schema(String)` | emitted/loaded JSON failed schema or version check | **3** |
+| Variant | Meaning | Exit | `error.kind` |
+|---|---|---|---|
+| `Error::Validation(Vec<Violation>)` | compile validation failed | **1** | `validation` |
+| `Error::NotFound(String)` | spec id / view / path not found | **1** | `not-found` |
+| `Error::Stale { expected, actual }` | committed ledger out of date | **1** | `stale` |
+| `Error::Parse(String)` | authored content (frontmatter, a corpus document) that does not parse | **1** | `validation` |
+| `Error::Config(String)` | malformed `spec-spine.toml`, or a config JSON the loader refuses | **2** | `config` |
+| `Error::Refused(String)` | a precondition or policy not met and nothing done: a version pin not satisfied, a containment refusal (specs 126-128) | **2** | `refused` |
+| `Error::Usage(String)` | an argument combination or request document the verb rejects | **3** | `usage` |
+| `Error::Io(String)` | filesystem / git / process failure | **4** | `io` |
+| `Error::Schema(String)` | a tool-produced artifact (a committed shard, an attestation) that fails to parse or fails its schema/version check | **4** | `schema` |
+| `Error::Internal(String)` | a defect in the tool itself, e.g. a value that will not serialize | **4** | `internal` |
+
+`Error::Refused` and `Error::Usage` are new in spec 132; `Error::Internal` is
+also new, taking cases that previously mapped `Error::Schema` to a
+serialization failure that was not really a schema problem. Before spec 132,
+`Config`/`Io`/`Parse`/`Schema` all mapped to exit `3`, `Stale` to `2`, and
+there was no `Refused`, `Usage` or `Internal` variant; a `Parse` failure
+carried `error.kind: "parse"`, which the closed set no longer has.
 
 Coupling **drift** is *not* an `Error` variant; it is carried in the
-`CoupleReport` and mapped to exit **1** by the CLI. `Error::exit_code(&self) ->
-u8` is the authoritative mapping.
+`CoupleReport` and mapped to exit **1** (`error.kind` equivalent `drift`) by
+the CLI. `Error::exit_code(&self) -> u8` and `Error::outcome(&self) ->
+&'static str` are the authoritative mapping.
 
 Per-subcommand exit-code table: see
 [design/00-architecture.md](design/00-architecture.md) §6.
@@ -323,7 +336,9 @@ Per-subcommand exit-code table: see
 Every top-level operation has a `&str → Result<String, Error>` facade function.
 This is the seam napi / pyo3 / cgo will wrap (see
 [bindings-plan.md](bindings-plan.md)); in Rust it returns a typed `Error`, which
-the binding layer maps to a uniform `{ok, data, error}` envelope.
+the binding layer maps to the same envelope `--json` already writes (spec 132:
+`schemaVersion`, `tool`, `verb`, `outcome`, `exitCode`, `summary`,
+`report`/`error`).
 
 ```rust
 pub fn compile_json        (config_json: &str, repo_root: &str) -> Result<String, Error>;
@@ -356,7 +371,8 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   one, is held to the rules `load_config` applies to a `spec-spine.toml`
   (the `[index.slices]` grammar, spec 128's `derived_dir` rule, spec 036's
   `state_dir` rule), through the public `spec_spine_types::validate_config`.
-  A configuration the loader would refuse is `Error::Config` (exit 3) with the
+  A configuration the loader would refuse is `Error::Config` (exit 2, exit 3
+  before 0.26.0) with the
   loader's message, before the entry reads anything. `scaffold_init` and
   `scaffold_init_json` refuse it too, and escape every value they write into
   the starter `spec-spine.toml`. `[meta] required_version` is not checked
@@ -382,8 +398,9 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   `obligation:<id>#<obligation-id>`), so reordering, repeating or short-naming
   a member changes nothing and editing a named member's content changes it; and
   `rationale`, carried and never digested. It checks registry freshness first
-  and refuses a stale ledger (exit 2); an empty or unqualified request is exit
-  3; every unresolved reference is named in one exit-1 refusal. A closure lives
+  and refuses a stale ledger (exit 1, exit 2 before 0.26.0); an empty or
+  unqualified request is exit 3; every unresolved reference is named in one
+  exit-1 refusal. A closure lives
   in the consumer's record; this only resolves one, and no gate reads it.
 - `scope_json` request (spec 108): a `ScopeRequest` document, `{ "id"?:
   string, "ownSpec": id, "mutable"?: [path], "shared"?: [{ "path", "with":
@@ -391,7 +408,7 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   path or `..` segment, a non-empty `with` for every `shared` entry, and no
   path (or subtree and a path inside it) named under two roles; unknown
   members refused (exit 3). It checks index freshness first and refuses a
-  stale index (exit 2); an unresolved `ownSpec` or `with` is one exit-1
+  stale index (exit 1, exit 2 before 0.26.0); an unresolved `ownSpec` or `with` is one exit-1
   refusal naming every one. The answer is a read document (read schema
   `0.7.0`): `ownSpec` and `indexHash` (the committed index's aggregate content
   hash), `entries`, one per declared path with its resolved `role`, `owners`
@@ -431,11 +448,13 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   An unknown `spec` is exit 1. The library form is
   `verify_interface_references(&Registry, &Exports, Option<&str>)`, and
   `interface_verify(&Config, repo_root, &BTreeMap<corpus, dir>, Option<&str>)`
-  adds the committed-ledger read (a stale registry is exit 2, refused before
-  any export is read) and `load_export`, which reads only
-  `<specs_dir>/<id>/spec.md` for the referenced ids and refuses a path that
-  resolves outside the export root. Nothing fetches, and nothing writes a pin:
-  an observed digest is reported for a human to copy.
+  adds the committed-ledger read (a stale registry is exit 1, exit 2 before
+  0.26.0, refused before any export is read) and `load_export`, which reads
+  only `<specs_dir>/<id>/spec.md` for the referenced ids and refuses (exit 2)
+  a path that resolves outside the export root, a containment refusal
+  distinct from an unreadable export directory (I/O, exit 4). Nothing
+  fetches, and nothing writes a pin: an observed digest is reported for a
+  human to copy.
 - `query_json` request: `{ "registry": "<registry.json text>", "op":
   "list" | "show" | "status-report" | "relationships" | "plan" |
   "obligation" | "impacts" | "moves", "id"?: string,
@@ -447,7 +466,8 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   under `items`. `obligation` (spec 106) takes `id` as a qualified
   `<spec-id>#<obligation-id>` and returns `{ "spec", "specPath",
   "obligation", "sectionDigest", "schemaVersion" }`; an unqualified `id` is a
-  parse error (exit 3), never resolved against a spec. It carries no
+  usage error (exit 3; `error.kind` was `parse`, now `usage`), never resolved
+  against a spec. It carries no
   `contentHash`, because registry text has none; the CLI's `registry
   obligation` adds it from the committed shard, as `show` does.
 
@@ -462,9 +482,10 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   by `(target, declaredBy)`. `target` and `declaredBy` in each entry are full
   ids; `target` is the full qualified obligation reference regardless of the
   short form a filter or an author used. A `target` carrying `#` that is not a
-  qualified reference (an empty or blank half, or a second `#`) is a parse
-  error (exit 3), never resolved against a spec; a target spec, target
-  obligation or declaring spec that does not exist is `NotFound` (exit 1).
+  qualified reference (an empty or blank half, or a second `#`) is a usage
+  error (exit 3; `error.kind` was `parse`, now `usage`), never resolved
+  against a spec; a target spec, target obligation or declaring spec that
+  does not exist is `NotFound` (exit 1).
   None of these three is answered as an empty result: an empty `impacts` and
   `conflicts` pair means every filter resolved and nothing matched, never that
   a filter failed to resolve.

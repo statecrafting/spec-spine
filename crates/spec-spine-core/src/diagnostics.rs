@@ -330,7 +330,7 @@ pub struct RegistryCheckReport {
 /// Each half keeps the shape its own primitive emits, unsummarized and
 /// unmerged: spec 028 §3.3 makes the registry stale report's structure
 /// contractual because a protocol reads the drifted shard names back to an
-/// operator, and exit 2 alone cannot say which shard moved. A composed verb
+/// operator, and exit 1 alone cannot say which shard moved. A composed verb
 /// that flattened the two would break a contract that already exists.
 #[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]

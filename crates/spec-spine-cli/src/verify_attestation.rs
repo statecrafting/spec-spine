@@ -49,17 +49,17 @@ pub struct VerifyArgs {
 
 /// Exit `0` only if every selected mode passes; `1` on any mismatch or version
 /// mismatch (a named, non-pass outcome). A missing mode or missing key is a
-/// visible config error (exit 3), never a silent pass.
+/// visible usage error (exit 3), never a silent pass.
 pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
     if !args.recompute && !args.signature {
-        return Err(Error::Config(
+        return Err(Error::Usage(
             "verify-attestation requires at least one mode: --recompute and/or --signature"
                 .to_string(),
         ));
     }
 
     if args.snapshot && args.spec.is_some() {
-        return Err(Error::Config(
+        return Err(Error::Usage(
             "verify-attestation --snapshot cannot combine with --spec: each names a different \
              record (spec 070 3.5)"
                 .to_string(),
@@ -187,7 +187,7 @@ pub fn run(repo: &Path, args: &VerifyArgs) -> Result<u8, Error> {
 
     if args.signature {
         let pk_path = args.public_key.as_ref().ok_or_else(|| {
-            Error::Config(
+            Error::Usage(
                 "verify-attestation --signature requires --public-key <path> (a 32-byte ed25519 public key)"
                     .to_string(),
             )
@@ -258,14 +258,14 @@ fn default_attestation_path(repo: &Path, cfg: &Config, spec: Option<&str>) -> Pa
 /// Resolve `--spec` against the per-spec attestation files (spec 067 3.2).
 ///
 /// Step 4 of 067 3.1 does **not** refuse here. The argument falls through as
-/// given and the read fails exactly as it does today: exit 3, with the hint to
-/// run `attest --spec` first. A missing attestation file is I/O, which spec 039
-/// 3.5 assigns to exit 3, and refusing at exit 1 to match the other five would
+/// given and the read fails as I/O: exit 4 since spec 132 (it was 3), with the
+/// hint to run `attest --spec` first. A missing attestation file is I/O, and
+/// refusing at exit 1 to match the other five would
 /// change that verb's code for a missing file (067 D-4). Only an argument that
 /// resolves is newly accepted, and only an ambiguous one is newly refused.
 ///
 /// A `by-spec/` that does not exist is an empty set, not an error: that is the
-/// state before the first `attest --spec`, and it must reach the same exit 3.
+/// state before the first `attest --spec`, and it must reach the same exit 4.
 fn resolve_attested_spec(repo: &Path, cfg: &Config, id: &str) -> Result<String, Error> {
     let dir = repo
         .join(&cfg.layout.derived_dir)
@@ -308,7 +308,7 @@ fn validate_spec_id(id: &str) -> Result<(), Error> {
         || id == ".."
         || id.contains('\0');
     if bad {
-        return Err(Error::Config(format!(
+        return Err(Error::Usage(format!(
             "verify-attestation --spec '{id}' is not a spec id: an id is one path segment, \
              and pointing at another file is what --attestation is for"
         )));
@@ -352,5 +352,5 @@ fn parse_artifact<T: serde::de::DeserializeOwned>(
     what: &str,
 ) -> Result<T, Error> {
     serde_json::from_slice(bytes)
-        .map_err(|e| Error::Parse(format!("invalid {what} {}: {e}", path.display())))
+        .map_err(|e| Error::Schema(format!("invalid {what} {}: {e}", path.display())))
 }

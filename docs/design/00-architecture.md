@@ -405,21 +405,27 @@ pub fn authorities(index: &CodebaseIndex, unit: &Unit) -> Vec<String>;  // → o
 ```rust
 #[non_exhaustive]
 pub enum Error {
-    Config(String),       // malformed/invalid spec-spine.toml          → exit 3
-    Validation(Vec<Violation>),  // compile validation failed            → exit 1
-    NotFound(String),     // spec id / view / path not found            → exit 1
-    Stale { expected: String, actual: String },  // index out of date    → exit 2
+    Config(String),       // malformed spec-spine.toml, or a config JSON the loader refuses   → exit 2
+    Refused(String),      // a precondition/policy not met and nothing done (spec 132)         → exit 2
+    Validation(Vec<Violation>),  // compile validation failed                                  → exit 1
+    NotFound(String),     // spec id / view / path not found                                   → exit 1
+    Stale { expected: String, actual: String },  // ledger out of date                          → exit 1
     // (coupling drift is NOT an Error variant; it is carried as a CoupleReport
     //  so the JSON facade returns the structured report even on drift; the CLI
-    //  maps report.has_blocking_drift() → exit 1.)
-    Io(String),           // filesystem / git / read failure            → exit 3
-    Parse(String),        // frontmatter / TOML / JSON parse failure     → exit 3
-    Schema(String),       // emitted/loaded JSON fails schema/version    → exit 3
+    //  maps report.exit_code() → exit 1.)
+    Io(String),           // filesystem / git / process failure                                → exit 4
+    Parse(String),        // authored content (frontmatter, a corpus document) that does not
+                           // parse: a finding about the corpus                                 → exit 1
+    Schema(String),       // a tool-produced artifact that fails to parse or fails schema/
+                           // version checks                                                    → exit 4
+    Usage(String),        // an argument combination or request document the verb rejects       → exit 3
+    Internal(String),     // a defect in the tool itself (e.g. a value that will not serialize) → exit 4
 }
 ```
 
 `#[non_exhaustive]` so new variants are additive. Each variant documents its exit
-code; the CLI is the only place that maps `Error` → process exit.
+code under spec 132's family contract; the CLI is the only place that maps
+`Error` → process exit (`Error::exit_code()` in `spec-spine-types`).
 
 ---
 
@@ -428,8 +434,10 @@ code; the CLI is the only place that maps `Error` → process exit.
 ### 5.1 JSON-in / JSON-out facade (the FFI seam)
 
 One facade fn per top-level operation, all `&str → Result<String, Error>`. The
-binding layer (later) wraps each into a uniform `{ok, data, error}` envelope; in
-Rust they return typed `Error`. Documented explicitly in `docs/bindings-plan.md`.
+binding layer (later) wraps each into the same envelope `--json` already writes
+(spec 132: `schemaVersion`, `tool`, `verb`, `outcome`, `exitCode`, `summary`,
+`report`/`error`); in Rust they return typed `Error`. Documented explicitly in
+`docs/bindings-plan.md`.
 
 ```rust
 pub fn compile_json        (config_json: &str, repo_root: &str) -> Result<String, Error>;
@@ -465,21 +473,34 @@ The CLI is a pure translation of API result → stdout/stderr + exit code. It ow
 
 ## 6. Exit-code table
 
-The reference table is `0` ok / `1` validation-failure-or-not-found / `2` stale /
-`3` IO-parse-schema. **One reconciliation:** OAP's coupling check overloads `2`
-for operational/load errors, which collides with `2 = stale`. spec-spine routes
-coupling load/IO errors to `3` and reserves `2` strictly for staleness. The
-unified table:
+Spec 132 fixes the exit contract as the family contract shared with the
+Statecraft CLI: five codes, ordered by severity, and the order *is* the
+numeric order (no rank table between them):
 
-| Subcommand | `0` | `1` | `2` | `3` |
-|---|---|---|---|---|
-| `compile` | validation passed | validation failed | n/a | IO / parse / schema |
-| `index` (write) | ok | n/a | n/a | IO / parse / schema |
-| `index check` | fresh | n/a | **stale** | IO / parse |
-| `registry *` | ok | not found | n/a | IO / parse / schema |
-| `lint` | clean | error-tier (always) or warn-tier w/ `--fail-on-warn` | n/a | IO / parse |
-| `couple` | no drift, or waived | **drift** (uncovered paths) | index stale (recompute first) | IO / parse / load |
-| `init` | scaffolded | target exists w/o `--force` | n/a | IO write error |
+| code | outcome | meaning |
+|---|---|---|
+| `0` | ok | the verb did what was asked and found nothing |
+| `1` | finding | validation failure, drift, staleness, an unresolved claim, not found, or authored content that does not parse |
+| `2` | refused | a precondition or policy was not met and nothing was done: invalid configuration, a `[meta] required_version` pin the binary does not satisfy, a containment refusal (specs 126-128) |
+| `3` | usage | the invocation itself is wrong: a clap argument error, an argument combination a verb rejects, or a malformed request document the caller supplied |
+| `4` | failed | the tool could not do its work: I/O, a tool-produced artifact that fails to parse or fails its schema, an internal serialization failure |
+
+The per-verb table:
+
+| Subcommand | `0` | `1` | `2` | `3` | `4` |
+|---|---|---|---|---|---|
+| `compile` | validation passed | validation failed | invalid config, version pin, containment | `--json` without `--check`, `--spec` with `--check` | IO / schema |
+| `compile --check` | fresh | **stale** | invalid config, version pin | n/a | IO / schema |
+| `index` (write) | ok | n/a | invalid config, version pin, containment | n/a | IO / schema |
+| `index check` | fresh | **stale** | invalid config, version pin | `--slice` naming an undeclared slice | IO / schema |
+| `registry *` | ok | not found, stale (`closure`) | invalid config | malformed request document | IO / schema |
+| `lint` | clean | error-tier (always) or warn-tier w/ `--fail-on-warn` | invalid config, version pin | n/a | IO |
+| `couple` | no drift, or waived | **drift**, uncovered paths | invalid config, a prior snapshot whose config/corpus cannot be read | `--include-uncommitted` with `--paths-from`, malformed waiver flags | IO |
+
+Before spec 132 the table read `0` ok / `1` validation-failure-or-not-found /
+`2` stale / `3` IO-parse-schema-config, with clap usage errors also routed to
+`3`. There is no `init` row: that verb was removed by spec 092, which moved
+project initialization to the Statecraft CLI (`design/07-statecraft-realignment-2026-09.md`).
 
 ---
 

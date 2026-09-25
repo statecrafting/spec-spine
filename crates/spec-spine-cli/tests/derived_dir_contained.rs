@@ -140,7 +140,7 @@ fn an_escaping_derived_dir_refuses_every_verb_and_changes_nothing() {
             let stderr = String::from_utf8_lossy(&out.stderr);
             assert_eq!(
                 code(&out),
-                3,
+                2,
                 "derived_dir '{layout}', `{}` must exit 3; stderr:\n{stderr}",
                 verb.join(" ")
             );

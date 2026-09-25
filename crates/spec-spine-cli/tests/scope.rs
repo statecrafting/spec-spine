@@ -218,7 +218,7 @@ fn each_evaluate_refusal_has_its_exit_code() {
     let spec = tmp.path().join("specs/100-a/spec.md");
     let src = fs::read_to_string(&spec).unwrap();
     fs::write(&spec, src.replace("# a", "# a, edited")).unwrap();
-    assert_eq!(code_for(SELF_OWNED), 2, "stale");
+    assert_eq!(code_for(SELF_OWNED), 1, "stale");
 }
 
 #[test]

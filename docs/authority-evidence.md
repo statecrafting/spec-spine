@@ -10,6 +10,21 @@
 > and not yet in a release; draft 087 is still a proposal, and is marked as one
 > wherever it appears.
 
+> **This page's measurements predate spec 132 (ships in 0.26.0).** Every
+> exit code, JSON envelope member and `error.kind`/reason value below is
+> exactly what was recorded at the cited commit and tool version, and is kept
+> as measured: none of it is rewritten to match a later contract. Spec 132
+> fixes the exit contract as the family contract shared with the Statecraft
+> CLI: `0` ok / `1` finding (was: validation, not found, drift, and staleness
+> moves here from `2`) / `2` refused (config and containment refusals move
+> here from `3`; new) / `3` usage (unchanged) / `4` failed (I/O, schema,
+> internal move here from `3`). The envelope gains `tool`, `outcome` and
+> `summary` and loses `ok`; `error.kind`'s closed set drops `parse` (authored
+> content that does not parse now reports `validation`) and adds `refused`,
+> `usage`, `internal` and `drift`. A consumer reusing the tables or JSON below
+> as a reference for a current binary should read every exit code and
+> envelope member through that mapping rather than verbatim.
+
 **Measured state.** Every output below was produced on 2026-09-11 at commit
 `75181a5` (main) by a binary built from that commit. The binary reports
 `spec-spine 0.18.0`, and so does the released `v0.18.0`, which is eight commits

@@ -344,7 +344,7 @@ fn what_a_tolerant_read_accepts_cannot_enter_a_closure() {
     let out = c.closure(r#"{"obligations":["001#R-1"]}"#);
     assert_eq!(
         out.status.code(),
-        Some(2),
+        Some(1),
         "a stale ledger was digested: {}",
         text(&out)
     );
@@ -371,7 +371,7 @@ fn what_a_tolerant_read_accepts_cannot_enter_a_closure() {
     let out = c.closure(r#"{"obligations":["001#R-1"]}"#);
     assert_eq!(
         out.status.code(),
-        Some(2),
+        Some(1),
         "an absent digest entered a closure: {}",
         text(&out)
     );
