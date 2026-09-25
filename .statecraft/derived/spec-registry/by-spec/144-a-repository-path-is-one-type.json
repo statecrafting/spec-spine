@@ -126,10 +126,10 @@
       "Verification"
     ],
     "specPath": "specs/144-a-repository-path-is-one-type/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Paths the engine joins onto the repository root were checked key by key, or not at all. `derived_dir` refused `/`, `..`, `\\` and `:` (spec 128); `specs_dir` and `standards_dir` accepted anything, so a corpus could be read from outside the repository; a compact plan refused a leading slash (WF-8) and let the drive-relative `C:foo` through; no key refused a Windows device-name segment; and a link inside the repository could point any governed read outside it. This spec gives one rule for a repository-relative path, applies it to every layout root and to compact plan paths, and refuses a run whose tree holds a link that resolves outside the repository, exit 2, while a repository reached through a link keeps working.\n",
     "title": "A repository path is one type"
   },
-  "shardHash": "0463f232d55d538d3303d6fd93d5a43eeba1e7b956a2719aa95b199db58e6d3c",
+  "shardHash": "0762a62e7cb0d87cea76035f7e583c70688174d0ae1d20e28e5bf3934e028bfd",
   "specVersion": "1.9.0"
 }
