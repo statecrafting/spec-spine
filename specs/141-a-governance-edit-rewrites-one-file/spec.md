@@ -80,6 +80,11 @@ extends:
   - { spec: "108-a-work-scope-is-declared", unit: "crates/spec-spine-core/tests/scope.rs", nature: additive }
   # same
   - { spec: "070-an-authority-snapshot-says-what-it-read", unit: "crates/spec-spine-core/tests/snapshot.rs", nature: additive }
+  # 3.7 the root instruction's paragraph on hashed inputs, the adopter
+  # migration note, and the schema history line.
+  - { spec: "105-governed-scope-is-enabled-here", unit: "CLAUDE.md", nature: additive }
+  - { spec: "057-the-docs-name-what-adopters-derived", unit: "docs/adoption-guide.md", nature: additive }
+  - { spec: "055-a-version-pin-the-cli-can-check", unit: "docs/schema-versioning.md", nature: additive }
 establishes:
   - { kind: file, path: "crates/spec-spine-types/schemas/codebase-index-inputs.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/tests/governance_inputs.rs" }
