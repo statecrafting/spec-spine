@@ -1,7 +1,7 @@
 ---
 id: "137-the-legacy-ledger-is-paid-index-and-lint"
 title: "The legacy ledger is paid: index, lint and resolution"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-25"
 summary: >
