@@ -1,7 +1,7 @@
 ---
 id: "135-the-toolchain-floor-and-dependencies-are-checked"
 title: "The toolchain floor and the dependencies are checked"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-24"
 summary: >
