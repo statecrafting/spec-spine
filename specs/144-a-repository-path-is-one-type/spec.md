@@ -27,6 +27,19 @@ amends:
   # 3.2: 128's derived_dir rule becomes the shared rule, which also refuses a
   # device-name segment and a segment ending in '.' or a space.
   - "128-a-derived-tree-stays-in-its-repository"
+extends:
+  # 3.2 every layout root, and the export of the rule.
+  - { spec: "128-a-derived-tree-stays-in-its-repository", unit: "crates/spec-spine-types/src/config.rs", nature: corrective }
+  - { spec: "022-index-sharding", unit: "crates/spec-spine-types/src/lib.rs", nature: additive }
+  # 3.1 the device-name check now delegates to the shared one.
+  - { spec: "022-index-sharding", unit: "crates/spec-spine-core/src/shard.rs", nature: additive }
+  # 3.3 plan paths, and their cases beside WF-8's.
+  - { spec: "096-compaction-is-a-verb-not-a-session", unit: "crates/spec-spine-core/src/compact.rs", nature: corrective }
+  - { spec: "097-a-path-leaves-the-corpus-the-way-a-spec-does", unit: "crates/spec-spine-core/tests/retire.rs", nature: additive }
+  # 3.4 the walk, and the two entry points that call it.
+  - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/pathutil.rs", nature: additive }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/compile.rs", nature: additive }
+  - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/index.rs", nature: additive }
 establishes:
   - { kind: file, path: "crates/spec-spine-types/src/repo_path.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/repo_path.rs" }

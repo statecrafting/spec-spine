@@ -20,6 +20,72 @@
         "path": "crates/spec-spine-core/tests/repo_path.rs"
       }
     ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "128-a-derived-tree-stays-in-its-repository",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/shard.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "096-compaction-is-a-verb-not-a-session",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compact.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "097-a-path-leaves-the-corpus-the-way-a-spec-does",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/retire.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/pathutil.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      }
+    ],
     "id": "144-a-repository-path-is-one-type",
     "implementation": "complete",
     "kind": "tooling",
@@ -56,6 +122,6 @@
     "summary": "Paths the engine joins onto the repository root were checked key by key, or not at all. `derived_dir` refused `/`, `..`, `\\` and `:` (spec 128); `specs_dir` and `standards_dir` accepted anything, so a corpus could be read from outside the repository; a compact plan refused a leading slash (WF-8) and let the drive-relative `C:foo` through; no key refused a Windows device-name segment; and a link inside the repository could point any governed read outside it. This spec gives one rule for a repository-relative path, applies it to every layout root and to compact plan paths, and refuses a run whose tree holds a link that resolves outside the repository, exit 2, while a repository reached through a link keeps working.\n",
     "title": "A repository path is one type"
   },
-  "shardHash": "e8cb25a3efa7678257aa8b1fc6ebeb98c926d7135268942450fc6fc72c771ca8",
+  "shardHash": "9cec4a1cbe7919a18b6ec938ac8a87104f7abe0bc3d1ccf2b37819b1da33cf9d",
   "specVersion": "1.9.0"
 }
