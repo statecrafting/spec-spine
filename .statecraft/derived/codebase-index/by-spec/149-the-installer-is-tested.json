@@ -1,0 +1,47 @@
+{
+  "mapping": {
+    "amends": [
+      "006-distribution",
+      "139-the-legacy-ledger-is-paid-verdicts-and-lifecycle"
+    ],
+    "dependsOn": [
+      "006-distribution",
+      "089-nothing-reruns-a-merged-acceptance",
+      "139-the-legacy-ledger-is-paid-verdicts-and-lifecycle"
+    ],
+    "implementingPaths": [
+      {
+        "path": "scripts/verify-sweep.sh",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/test-install.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-sweep.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      }
+    ],
+    "specId": "149-the-installer-is-tested",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "850cef7ce4ebd96ab45eefcf3f2aebd3fb5693e7e6a578260cab91ab17c08b04"
+}
