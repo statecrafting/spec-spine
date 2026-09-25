@@ -161,6 +161,10 @@ pub struct SpecRecord {
     /// way of spec 015). Omitted when empty.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub moves: Vec<MoveDeclaration>,
+    /// Declared section relocations (spec 142 §3.2), `spec` normalized to its
+    /// full id. Omitted when empty.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub relocates: Vec<crate::Relocation>,
 
     // --- overflow ---
     /// Declared keys carry any JSON value (spec 012); undeclared keys are

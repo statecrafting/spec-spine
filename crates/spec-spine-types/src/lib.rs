@@ -34,6 +34,7 @@ pub mod impact;
 pub mod intent;
 pub mod interface;
 pub mod moves;
+pub mod relocation;
 pub mod obligation;
 pub mod registry;
 pub mod schema;
@@ -67,7 +68,7 @@ pub use coverage::{
 };
 pub use delta::{
     AuthorityDelta, ChangeKind, DeltaChange, DeltaClass, DeltaCommits, DeltaReport, PriorPolicy,
-    ValueChange, VerificationDelta,
+    RelocationCheck, ValueChange, VerificationDelta,
 };
 pub use edges::{
     CoAuthorityItem, ConstrainItem, ExtendItem, Origin, Provenance, ReferenceItem, RefineItem,
@@ -85,6 +86,7 @@ pub use interface::{
     SectionResult, Summary, valid_corpus_name, valid_digest, valid_obtained_date,
 };
 pub use moves::{MoveDeclaration, MoveKind, MovePaths};
+pub use relocation::Relocation;
 pub use obligation::{Obligation, ObligationKind, split_obligation_ref, valid_obligation_id};
 pub use registry::{
     Build, BuildMeta, Registry, RegistrySpecShard, Severity, SpecRecord, ValidationReport,

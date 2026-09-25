@@ -296,6 +296,88 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         }
     }
 
+    // L-017 (spec 142 §3.4): an `amends_sections` entry that names no section of
+    // any spec the declaring spec amends. The list is one flat list shared by
+    // every target (spec 132's note), so an entry is judged against all of
+    // them: it names a section when it is a heading's number (`3.1` for
+    // `### 3.1 The rule`) or its anchor, in at least one amended spec. Before
+    // 142 the key was accepted with any text, so a typo pointed a reader at a
+    // section that does not exist.
+    let by_id: std::collections::BTreeMap<&str, &SpecRecord> =
+        registry.specs.iter().map(|s| (s.id.as_str(), s)).collect();
+    for spec in &registry.specs {
+        for entry in &spec.amends_sections {
+            let named = spec.amends.iter().filter_map(|a| by_id.get(a.as_str())).any(|t| {
+                t.section_headings
+                    .iter()
+                    .any(|h| heading_number(h) == Some(entry.as_str()) || crate::sections::anchor_of(h) == *entry)
+            });
+            if !named {
+                violations.push(warn(
+                    "L-017",
+                    format!(
+                        "spec '{}' amends_sections names '{entry}', which is the number or anchor \
+                         of no section in the spec(s) it amends ({})",
+                        spec.id,
+                        spec.amends.join(", ")
+                    ),
+                    Some(spec.spec_path.clone()),
+                ));
+            }
+        }
+    }
+
+    // L-018 (spec 142 §3.5): two live specs that both `establishes` one unit.
+    // Before 142 a split could leave the unit claimed by the old spec and the
+    // new one alike, and both cleared the gate. The hand-off that makes one of
+    // them the owner is a partial `supersedes` (§3.1), which removes the
+    // predecessor's claim, so a pair joined by one is not reported.
+    let mut establishers: std::collections::BTreeMap<String, Vec<&SpecRecord>> =
+        std::collections::BTreeMap::new();
+    for spec in registry
+        .specs
+        .iter()
+        .filter(|s| !matches!(s.status, Status::Superseded | Status::Retired))
+    {
+        for unit in &spec.establishes {
+            if let Ok(key) = serde_json::to_string(&unit.subject()) {
+                establishers.entry(key).or_default().push(spec);
+            }
+        }
+    }
+    for (key, specs) in &establishers {
+        if specs.len() < 2 {
+            continue;
+        }
+        let handed_over = |a: &SpecRecord, b: &SpecRecord| {
+            a.supersedes.iter().any(|s| {
+                s.spec() == b.id
+                    && s.partial_unit()
+                        .and_then(|u| serde_json::to_string(&u.subject()).ok())
+                        .is_some_and(|k| k == *key)
+            })
+        };
+        let unresolved: Vec<&str> = specs
+            .iter()
+            .filter(|a| !specs.iter().any(|b| handed_over(b, a)))
+            .map(|s| s.id.as_str())
+            .collect();
+        if unresolved.len() >= 2 {
+            for id in &unresolved {
+                violations.push(warn(
+                    "L-018",
+                    format!(
+                        "unit {key} is established by more than one live spec ({}); a split \
+                         hands a unit over with a partial `supersedes` naming it, which leaves \
+                         one owner",
+                        unresolved.join(", ")
+                    ),
+                    by_id.get(id).map(|s| s.spec_path.clone()),
+                ));
+            }
+        }
+    }
+
     // L-008 (spec 050): a claimed path that exists and that no content hash
     // covers. Its contents can be rewritten end to end with `index check` and
     // `compile --check` both reporting fresh, which is the sentence this
@@ -544,6 +626,16 @@ fn title_heading_ordinal(src: &str) -> Option<&str> {
             None
         }
     })
+}
+
+/// The leading section number of a heading's text (`3.1` for `3.1 The rule`,
+/// `4` for `4. Out of scope`), without a trailing dot, if it has one.
+fn heading_number(heading: &str) -> Option<&str> {
+    let end = heading
+        .find(|c: char| !(c.is_ascii_digit() || c == '.'))
+        .unwrap_or(heading.len());
+    let number = heading[..end].trim_end_matches('.');
+    (!number.is_empty() && number.starts_with(|c: char| c.is_ascii_digit())).then_some(number)
 }
 
 fn has_ownership_edge(spec: &SpecRecord) -> bool {

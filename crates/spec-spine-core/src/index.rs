@@ -1067,6 +1067,9 @@ fn discover_specs(
     })?;
     let mut dirs: Vec<PathBuf> = entries.filter_map(|e| e.ok().map(|e| e.path())).collect();
     dirs.sort();
+    // Spec 142 §3.1: every unit a live spec takes over from a predecessor with a
+    // partial `supersedes`, as `(predecessor as written, unit subject)`.
+    let mut handed_over: Vec<(String, Unit)> = Vec::new();
     for dir in dirs {
         let spec_md = dir.join("spec.md");
         if !spec_md.is_file() {
@@ -1117,6 +1120,14 @@ fn discover_specs(
         for s in &fm.supersedes {
             if let Some(u) = s.partial_unit() {
                 units.push((SourceField::Supersedes, u.clone(), true));
+                // Spec 142 §3.1: only a live successor takes the unit away; a
+                // superseded or retired one no longer holds anything.
+                if !matches!(
+                    fm.status,
+                    spec_spine_types::Status::Superseded | spec_spine_types::Status::Retired
+                ) {
+                    handed_over.push((s.spec().to_string(), u.subject()));
+                }
             }
         }
         out.push(SpecInfo {
@@ -1127,6 +1138,30 @@ fn discover_specs(
             amends: fm.amends,
             units,
         });
+    }
+    // Spec 142 §3.1, amending spec 018 §4.3: the hand-off is exclusive. The
+    // predecessor's own claim on a unit a live successor partially supersedes
+    // stops owning it: it stays in the predecessor's mapping as a resolved unit
+    // with `ownership: false`, so the history is visible, and it seeds no
+    // implementing path, so the gate, `index owner` and coverage all name the
+    // successor alone. A predecessor named by a short id matches by ordinal,
+    // as compile resolves it (spec 015).
+    if !handed_over.is_empty() {
+        let ids: BTreeSet<String> = out.iter().map(|s| s.id.clone()).collect();
+        for spec in &mut out {
+            for (field, unit, ownership) in &mut spec.units {
+                if !*ownership || matches!(field, SourceField::Supersedes | SourceField::References)
+                {
+                    continue;
+                }
+                let subject = unit.subject();
+                if handed_over.iter().any(|(pred, u)| {
+                    *u == subject && crate::spec_id::resolve_spec_ref(pred, &ids) == spec.id
+                }) {
+                    *ownership = false;
+                }
+            }
+        }
     }
     Ok(out)
 }

@@ -113,6 +113,13 @@ fn markdown_sections(content: &str) -> Vec<(String, LineSpan)> {
     out
 }
 
+/// Every markdown section of `body` as `(anchor, span)`, in source order,
+/// duplicates included: the spans [`markdown_section_texts`] cuts its texts
+/// from. Public for spec 142, which removes relocated sections by span.
+pub fn markdown_section_spans(body: &str) -> Vec<(String, LineSpan)> {
+    markdown_sections(body)
+}
+
 /// Every markdown section of `body` as `(anchor, text)`, in source order,
 /// duplicates included (spec 106 §3.5). A section's text is its lines, from
 /// the heading to the line before the next heading of the same or a shallower

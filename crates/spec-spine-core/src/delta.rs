@@ -26,8 +26,9 @@ use sha2::{Digest, Sha256};
 use spec_spine_types::delta::CLASSIFIED_UNDER_BASE;
 use spec_spine_types::{
     AuthorityDelta, ChangeKind, CodebaseIndex, Config, DELTA_SCHEMA_VERSION, DeltaChange,
-    DeltaClass, DeltaCommits, DeltaReport, Error, Frontmatter, PriorPolicy, ToolStamp, ValueChange,
-    VerificationDelta, load_config, parse_frontmatter_with, split_frontmatter,
+    DeltaClass, DeltaCommits, DeltaReport, Error, Frontmatter, PriorPolicy, RelocationCheck,
+    ToolStamp, ValueChange, VerificationDelta, load_config, parse_frontmatter_with,
+    split_frontmatter,
 };
 
 use crate::canonical_json;
@@ -117,7 +118,8 @@ pub fn delta(
     let base_index = load_committed_index(cfg, base_root)?;
     let head_index = index(cfg, head_root)?.index;
     let base_superseders = build_superseders(&compile(cfg, base_root)?.registry);
-    let head_superseders = build_superseders(&compile(cfg, head_root)?.registry);
+    let head_registry = compile(cfg, head_root)?.registry;
+    let head_superseders = build_superseders(&head_registry);
     let base = Side {
         root: base_root,
         index: &base_index,
@@ -131,9 +133,27 @@ pub fn delta(
 
     let policy_inputs = hashed_input_paths(cfg, &[base_root, head_root]);
 
+    // Spec 142 §3.3: every declared relocation this change touches, checked
+    // against the merge base, and the anchors proven to have left each source.
+    let relocations = check_relocations(cfg, base_root, head_root, &head_registry, &paths)?;
+    let mut proven_from: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for r in relocations.iter().filter(|r| r.proven) {
+        proven_from
+            .entry(r.from_spec.clone())
+            .or_default()
+            .insert(r.from.clone());
+    }
+
     let mut changes = Vec::with_capacity(paths.len());
     for path in &paths {
-        changes.push(classify_path(cfg, &base, &head, &policy_inputs, path)?);
+        changes.push(classify_path(
+            cfg,
+            &base,
+            &head,
+            &policy_inputs,
+            &proven_from,
+            path,
+        )?);
     }
 
     let mut counts: BTreeMap<DeltaClass, usize> = DeltaClass::ALL.iter().map(|c| (*c, 0)).collect();
@@ -163,7 +183,73 @@ pub fn delta(
             required: !prior.is_empty(),
             classes: prior.into_iter().collect(),
         },
+        relocations,
     })
+}
+
+/// Spec 142 §3.3: each head spec's declared relocations whose source or
+/// receiving `spec.md` is among the changed paths, each checked by comparing the
+/// source section at the merge base with the receiving section at head through
+/// [`relocation_digest`](crate::relocation::relocation_digest). Sorted by
+/// receiver, then source, then anchor.
+fn check_relocations(
+    cfg: &Config,
+    base_root: &Path,
+    head_root: &Path,
+    head_registry: &spec_spine_types::Registry,
+    changed: &BTreeSet<String>,
+) -> Result<Vec<RelocationCheck>, Error> {
+    let specs_dir = cfg.layout.specs_dir.as_str();
+    let md = |id: &str| format!("{}/{id}/spec.md", specs_dir.trim_end_matches('/'));
+    let body_at = |root: &Path, id: &str| -> Result<Option<String>, Error> {
+        let Some(bytes) = read_side(root, &md(id))? else {
+            return Ok(None);
+        };
+        let Ok(text) = String::from_utf8(bytes) else {
+            return Ok(None);
+        };
+        Ok(Some(
+            split_frontmatter(&text).map_or(text.clone(), |(_, body)| body.to_string()),
+        ))
+    };
+    let mut out = Vec::new();
+    for record in &head_registry.specs {
+        for rel in &record.relocates {
+            if !changed.contains(&md(&record.id)) && !changed.contains(&md(&rel.spec)) {
+                continue;
+            }
+            let to = rel.to_anchor().to_string();
+            let source = body_at(base_root, &rel.spec)?
+                .and_then(|b| crate::relocation::section_relocation_digest(&b, &rel.from));
+            let received = body_at(head_root, &record.id)?
+                .and_then(|b| crate::relocation::section_relocation_digest(&b, &to));
+            let reason = match (&source, &received) {
+                (None, _) => Some(format!(
+                    "the merge base has no section '{}' in {}",
+                    rel.from, rel.spec
+                )),
+                (_, None) => Some(format!("{} has no section '{to}' at head", record.id)),
+                (Some(a), Some(b)) if a != b => Some(
+                    "the text differs: the receiving section is not the source section as it \
+                     was at the merge base"
+                        .to_string(),
+                ),
+                _ => None,
+            };
+            out.push(RelocationCheck {
+                spec: record.id.clone(),
+                from_spec: rel.spec.clone(),
+                from: rel.from.clone(),
+                to,
+                proven: reason.is_none(),
+                reason,
+            });
+        }
+    }
+    out.sort_by(|a, b| {
+        (&a.spec, &a.from_spec, &a.from).cmp(&(&b.spec, &b.from_spec, &b.from))
+    });
+    Ok(out)
 }
 
 /// The changed paths, sorted and deduplicated, each a plain repo-relative path.
@@ -194,6 +280,7 @@ fn classify_path(
     base: &Side<'_>,
     head: &Side<'_>,
     policy_inputs: &BTreeSet<String>,
+    proven_from: &BTreeMap<String, BTreeSet<String>>,
     path: &str,
 ) -> Result<DeltaChange, Error> {
     let base_bytes = read_side(base.root, path)?;
@@ -227,7 +314,9 @@ fn classify_path(
     let mut verification = None;
     let mut lifecycle = None;
     if let Some(id) = spec_id {
-        let spec = classify_spec_md(cfg, id, base_bytes.as_deref(), head_bytes.as_deref())?;
+        let empty = BTreeSet::new();
+        let proven = proven_from.get(id).unwrap_or(&empty);
+        let spec = classify_spec_md(cfg, id, proven, base_bytes.as_deref(), head_bytes.as_deref())?;
         classes.extend(&spec.classes);
         verification = spec.verification;
         if !spec.lifecycle.is_empty() {
@@ -408,6 +497,7 @@ impl SpecSide {
 fn classify_spec_md(
     cfg: &Config,
     id: &str,
+    proven_relocated: &BTreeSet<String>,
     base: Option<&[u8]>,
     head: Option<&[u8]>,
 ) -> Result<SpecDelta, Error> {
@@ -462,8 +552,17 @@ fn classify_spec_md(
         side.as_ref()
             .map(|s| without_verification_section(s.body.as_deref().unwrap_or("")))
     };
-    if body_outside(&base_side) != body_outside(&head_side) {
-        out.classes.insert(DeltaClass::Requirement);
+    let (base_body, head_body) = (body_outside(&base_side), body_outside(&head_side));
+    if base_body != head_body {
+        // Spec 142 §3.3: a body that lost exactly the sections another spec
+        // proved it received, and changed in no other way, is a relocation.
+        let relocated = matches!((&base_body, &head_body), (Some(b), Some(h))
+            if crate::relocation::relocation_only(b, h, proven_relocated));
+        out.classes.insert(if relocated {
+            DeltaClass::Relocation
+        } else {
+            DeltaClass::Requirement
+        });
     }
 
     let null = serde_yaml::Value::Null;

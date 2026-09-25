@@ -158,5 +158,5 @@
     "title": "`attest --spec <id>`: a signed record scoped to one spec"
   },
   "shardHash": "0d0193658cf0c7b9a598c62583a943058437bb0289167039b7cfbc6ef48d4daa",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

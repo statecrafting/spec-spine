@@ -70,5 +70,5 @@
     "title": "Registry query: --ids-only and --nonzero-only projection flags"
   },
   "shardHash": "512daca4eeeeca0b54cb010056645d88a9295d2593cd078cb8e913dd2fca3538",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

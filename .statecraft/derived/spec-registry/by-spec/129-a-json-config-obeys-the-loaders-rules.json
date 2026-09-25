@@ -137,5 +137,5 @@
     "title": "A configuration passed as JSON obeys the loader's rules"
   },
   "shardHash": "37498a2fa9f40b1c571d4b79647e44b449fe8aac638acea230725c6b7ed20e04",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

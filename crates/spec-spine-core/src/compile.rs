@@ -38,6 +38,9 @@ const CROSS_SPEC_CODES: &[&str] = &[
     // A warning, like `depends_on`'s V-010, not an error (D-3): informational,
     // never authority-moving.
     "V-041",
+    // Spec 142 §3.2: a relocation whose source spec is not in the corpus, or is
+    // the declaring spec itself.
+    "V-043",
 ];
 
 /// The cap on **undeclared** `extra_frontmatter` keys before `V-007` fires.
@@ -206,6 +209,10 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
                 *by = resolve_spec_ref(by, &all_ids);
             }
         }
+        // Spec 142 §3.2: a relocation's source spec, likewise.
+        for r in &mut p.fm.relocates {
+            r.spec = resolve_spec_ref(&r.spec, &all_ids);
+        }
     }
 
     // --- per-spec validation + record construction ---
@@ -225,6 +232,7 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
         validate_interface_references(&p.spec_path, &p.fm, &mut violations);
         validate_intent(&p.spec_path, &p.fm, &mut violations);
         validate_moves_local(&p.spec_path, &p.fm, &mut violations);
+        validate_relocations_local(&p.spec_path, &p.fm, &p.body, &mut violations);
         records.push(build_record(p.fm, p.spec_path, &p.body));
     }
     records.sort_by(|a, b| a.id.cmp(&b.id));
@@ -247,6 +255,8 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
     // Spec 111 §3.2: a move's `answered_by` that must resolve a spec id
     // against the corpus.
     detect_move_cross_spec(&records, &mut violations);
+    // Spec 142 §3.2: a relocation's source spec must exist and be another spec.
+    detect_relocation_cross_spec(&records, &mut violations);
 
     // --- shard projection + aggregate content hash (spec 022) ---
     // One shard per spec, each carrying its compiled record, its corpus-
@@ -838,6 +848,7 @@ fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
         interface_references: fm.interface_references,
         intent: fm.intent.map(Into::into),
         moves: fm.moves,
+        relocates: fm.relocates,
         extra_frontmatter: fm.extra_frontmatter,
     }
 }
@@ -1302,6 +1313,79 @@ fn detect_move_cross_spec(records: &[SpecRecord], out: &mut Vec<Violation>) {
                     format!(
                         "spec '{}' move answered_by '{by}' does not resolve to an existing spec",
                         r.id
+                    ),
+                    Some(r.spec_path.clone()),
+                ));
+            }
+        }
+    }
+}
+
+/// Spec 142 §3.2: a relocation's shape, a pure function of one spec. `from`
+/// must name an anchor, and the receiving section (`to`, or `from` when `to` is
+/// absent) must be exactly one heading in this spec's body, because that is the
+/// text `delta` compares with the source.
+fn validate_relocations_local(spec_path: &str, fm: &Frontmatter, body: &str, out: &mut Vec<Violation>) {
+    if fm.relocates.is_empty() {
+        return;
+    }
+    let mut anchor_counts: BTreeMap<String, usize> = BTreeMap::new();
+    for (anchor, _) in crate::sections::markdown_section_texts(body) {
+        *anchor_counts.entry(anchor).or_default() += 1;
+    }
+    for r in &fm.relocates {
+        if r.from.trim().is_empty() {
+            out.push(error(
+                "V-042",
+                format!("relocation from '{}' names no section: 'from' is empty", r.spec),
+                Some(spec_path.to_string()),
+            ));
+            continue;
+        }
+        let to = r.to_anchor();
+        match anchor_counts.get(to).copied().unwrap_or(0) {
+            1 => {}
+            0 => out.push(error(
+                "V-042",
+                format!(
+                    "relocation from '{}#{}' names receiving section '{to}', which is no heading \
+                     in this spec's body",
+                    r.spec, r.from
+                ),
+                Some(spec_path.to_string()),
+            )),
+            n => out.push(error(
+                "V-042",
+                format!(
+                    "relocation from '{}#{}' names receiving section '{to}', which {n} headings \
+                     in this spec's body share, so the text it names is ambiguous",
+                    r.spec, r.from
+                ),
+                Some(spec_path.to_string()),
+            )),
+        }
+    }
+}
+
+/// Spec 142 §3.2: a relocation's source spec must be another spec in the
+/// corpus. Corpus-wide, so `V-043` is in [`CROSS_SPEC_CODES`].
+fn detect_relocation_cross_spec(records: &[SpecRecord], out: &mut Vec<Violation>) {
+    let all_ids: std::collections::BTreeSet<&str> = records.iter().map(|r| r.id.as_str()).collect();
+    for r in records {
+        for rel in &r.relocates {
+            let why = if rel.spec == r.id {
+                Some("is this spec itself")
+            } else if !all_ids.contains(rel.spec.as_str()) {
+                Some("does not resolve to an existing spec")
+            } else {
+                None
+            };
+            if let Some(why) = why {
+                out.push(error(
+                    "V-043",
+                    format!(
+                        "spec '{}' relocates section '{}' from '{}', which {why}",
+                        r.id, rel.from, rel.spec
                     ),
                     Some(r.spec_path.clone()),
                 ));
@@ -1829,6 +1913,7 @@ fn recompute_cross_spec_violations(records: &[SpecRecord]) -> Vec<Violation> {
     detect_amends_verification(records, &mut out);
     detect_impact_cross_spec(records, &mut out);
     detect_move_cross_spec(records, &mut out);
+    detect_relocation_cross_spec(records, &mut out);
     out
 }
 

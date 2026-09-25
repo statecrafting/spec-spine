@@ -203,7 +203,8 @@ fn resolution_footer(cfg: &Config, report: &CoupleReport, diff: &DiffInput) -> S
         "  2. Declare an `extends` edge in your OWN spec, naming the owning spec\n\
          \x20    and the unit you touched. That makes your spec a legitimate owner of\n\
          \x20    the unit, so the gate clears on the next run. It amends nobody and\n\
-         \x20    needs no waiver.\n\n",
+         \x20    needs no waiver. An `amends` edge does not do this: it changes what\n\
+         \x20    the amended spec requires, never who owns its code (spec 142).\n\n",
     );
     f.push_str(&extends_guidance(cfg, &drift, diff));
 
