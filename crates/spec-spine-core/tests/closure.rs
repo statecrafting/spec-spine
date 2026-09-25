@@ -195,7 +195,7 @@ fn an_empty_request_and_an_unqualified_obligation_are_parse_errors() {
     assert_eq!(empty.exit_code(), 3, "{empty}");
     // Refused before anything else, even beside a reference that is missing.
     let unq = resolve_closure(&reg.0, &reg.1, &request(&["999"], &[], &["R-1"])).unwrap_err();
-    assert!(matches!(unq, Error::Parse(_)), "{unq}");
+    assert!(matches!(unq, Error::Usage(_)), "{unq}");
     assert!(unq.to_string().contains("a qualified form"), "{unq}");
 }
 
@@ -292,7 +292,7 @@ fn a_stale_ledger_is_refused_before_anything_is_digested() {
     )
     .unwrap();
     let err = closure(&Config::default(), tmp.path(), &standard()).unwrap_err();
-    assert_eq!(err.exit_code(), 2, "{err}");
+    assert_eq!(err.exit_code(), 1, "{err}");
 }
 
 /// D-9: the two guards a valid ledger never reaches, asserted on a ledger that

@@ -240,20 +240,20 @@ fn makefile_sections(content: &str) -> Vec<(String, LineSpan)> {
         }
 
         // A target: `name:` at column 0, not an assignment, not a dot-directive.
-        if !line.starts_with([' ', '\t']) {
-            if let Some(target) = target_name(line) {
-                let start = i + 1;
-                let mut end = start;
-                let mut j = i + 1;
-                // Recipe lines are tab-indented; consume them.
-                while j < lines.len() && lines[j].starts_with('\t') {
-                    end = j + 1;
-                    j += 1;
-                }
-                out.push((target.clone(), LineSpan::new(start, end)));
-                for tag in pending_tags.drain(..) {
-                    out.push((tag, LineSpan::new(start, end)));
-                }
+        if !line.starts_with([' ', '\t'])
+            && let Some(target) = target_name(line)
+        {
+            let start = i + 1;
+            let mut end = start;
+            let mut j = i + 1;
+            // Recipe lines are tab-indented; consume them.
+            while j < lines.len() && lines[j].starts_with('\t') {
+                end = j + 1;
+                j += 1;
+            }
+            out.push((target.clone(), LineSpan::new(start, end)));
+            for tag in pending_tags.drain(..) {
+                out.push((tag, LineSpan::new(start, end)));
             }
         }
         i += 1;
@@ -366,13 +366,14 @@ fn ci_job_sections(content: &str) -> Vec<(String, LineSpan)> {
         if !is_blank && indent(line) == 0 {
             break; // left the jobs block
         }
-        if !is_blank && indent(line) == job_indent {
-            if let Some(name) = yaml_key(line) {
-                if let Some((prev, start)) = current.take() {
-                    out.push((prev, LineSpan::new(start, i))); // end before this job
-                }
-                current = Some((name, i + 1));
+        if !is_blank
+            && indent(line) == job_indent
+            && let Some(name) = yaml_key(line)
+        {
+            if let Some((prev, start)) = current.take() {
+                out.push((prev, LineSpan::new(start, i))); // end before this job
             }
+            current = Some((name, i + 1));
         }
         i += 1;
     }
@@ -596,13 +597,13 @@ fn collect_toml(
                 }
                 min_start = Some(min_start.map_or(st, |m: usize| m.min(st)));
             }
-        } else if item.is_value() {
-            if let Some(s) = own_span {
-                if depth == 1 {
-                    leaves.push((prefix.clone(), s.clone()));
-                }
-                min_start = Some(min_start.map_or(s.start, |m: usize| m.min(s.start)));
+        } else if item.is_value()
+            && let Some(s) = own_span
+        {
+            if depth == 1 {
+                leaves.push((prefix.clone(), s.clone()));
             }
+            min_start = Some(min_start.map_or(s.start, |m: usize| m.min(s.start)));
         }
         // Array-of-tables: not addressable by keypath (no array indexing).
         prefix.pop();
@@ -693,19 +694,11 @@ fn package_json_sections(content: &str) -> Vec<(String, LineSpan)> {
             }
             b',' => {
                 if let Some(Frame::Obj(o)) = stack.last_mut() {
-                    if let Some(m) = o.member.take() {
-                        if array_depth == 0 {
-                            if let Some(end) = m.value_end_line {
-                                push_member(
-                                    &mut out,
-                                    &o.path,
-                                    &m.key,
-                                    m.start_line,
-                                    end,
-                                    MAX_DEPTH,
-                                );
-                            }
-                        }
+                    if let Some(m) = o.member.take()
+                        && array_depth == 0
+                        && let Some(end) = m.value_end_line
+                    {
+                        push_member(&mut out, &o.path, &m.key, m.start_line, end, MAX_DEPTH);
                     }
                     o.expecting_value = false;
                 }
@@ -735,40 +728,24 @@ fn package_json_sections(content: &str) -> Vec<(String, LineSpan)> {
                 i += 1;
             }
             b'}' => {
-                if let Some(Frame::Obj(o)) = stack.last_mut() {
-                    if let Some(m) = o.member.take() {
-                        if array_depth == 0 {
-                            if let Some(end) = m.value_end_line {
-                                push_member(
-                                    &mut out,
-                                    &o.path,
-                                    &m.key,
-                                    m.start_line,
-                                    end,
-                                    MAX_DEPTH,
-                                );
-                            }
-                        }
-                    }
+                if let Some(Frame::Obj(o)) = stack.last_mut()
+                    && let Some(m) = o.member.take()
+                    && array_depth == 0
+                    && let Some(end) = m.value_end_line
+                {
+                    push_member(&mut out, &o.path, &m.key, m.start_line, end, MAX_DEPTH);
                 }
                 stack.pop();
                 // The popped object was the value of the parent's member.
-                if let Some(Frame::Obj(po)) = stack.last_mut() {
-                    if po.expecting_value {
-                        if let Some(m) = po.member.take() {
-                            if array_depth == 0 {
-                                push_member(
-                                    &mut out,
-                                    &po.path,
-                                    &m.key,
-                                    m.start_line,
-                                    line,
-                                    MAX_DEPTH,
-                                );
-                            }
-                        }
-                        po.expecting_value = false;
+                if let Some(Frame::Obj(po)) = stack.last_mut()
+                    && po.expecting_value
+                {
+                    if let Some(m) = po.member.take()
+                        && array_depth == 0
+                    {
+                        push_member(&mut out, &po.path, &m.key, m.start_line, line, MAX_DEPTH);
                     }
+                    po.expecting_value = false;
                 }
                 i += 1;
             }
@@ -776,35 +753,26 @@ fn package_json_sections(content: &str) -> Vec<(String, LineSpan)> {
                 array_depth = array_depth.saturating_sub(1);
                 stack.pop();
                 // The popped array was the value of the parent's member.
-                if let Some(Frame::Obj(po)) = stack.last_mut() {
-                    if po.expecting_value {
-                        if let Some(m) = po.member.take() {
-                            if array_depth == 0 {
-                                push_member(
-                                    &mut out,
-                                    &po.path,
-                                    &m.key,
-                                    m.start_line,
-                                    line,
-                                    MAX_DEPTH,
-                                );
-                            }
-                        }
-                        po.expecting_value = false;
+                if let Some(Frame::Obj(po)) = stack.last_mut()
+                    && po.expecting_value
+                {
+                    if let Some(m) = po.member.take()
+                        && array_depth == 0
+                    {
+                        push_member(&mut out, &po.path, &m.key, m.start_line, line, MAX_DEPTH);
                     }
+                    po.expecting_value = false;
                 }
                 i += 1;
             }
             c => {
                 // A scalar value token (number / true / false / null) under a key.
-                if !c.is_ascii_whitespace() {
-                    if let Some(Frame::Obj(o)) = stack.last_mut() {
-                        if o.expecting_value {
-                            if let Some(m) = o.member.as_mut() {
-                                m.value_end_line = Some(line);
-                            }
-                        }
-                    }
+                if !c.is_ascii_whitespace()
+                    && let Some(Frame::Obj(o)) = stack.last_mut()
+                    && o.expecting_value
+                    && let Some(m) = o.member.as_mut()
+                {
+                    m.value_end_line = Some(line);
                 }
                 i += 1;
             }

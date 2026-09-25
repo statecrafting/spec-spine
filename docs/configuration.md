@@ -6,8 +6,8 @@ effective values for a repository, with the bypass floor merged and attributed
 to its source.
 
 The model is `spec_spine_types::Config`. Every table is
-`deny_unknown_fields`, so a misspelled key is a config error at exit `3`
-rather than a silently ignored line.
+`deny_unknown_fields`, so a misspelled key is a config error at exit `2`
+(exit `3` before 0.26.0) rather than a silently ignored line.
 
 This document is part of the D-3 retention of the deleted documentation site
 (`docs/design/09-disposition-2026-09-21.md` section 8), which was the only
@@ -33,7 +33,7 @@ Path conventions. Nothing in the engine hardcodes `specs/` or `.derived/`.
 | Key | Default | Meaning |
 |---|---|---|
 | `specs_dir` | `specs` | Where `NNN-slug/spec.md` lives. |
-| `derived_dir` | `.derived` | The compiled shard trees. Whatever it is set to, the gate adds it to the bypass floor itself (spec 092 section 3.8). It must name a directory inside the repository: an absolute path, a `..` segment, a `\` or a `:` is a configuration error (exit 3) at every verb (spec 128). |
+| `derived_dir` | `.derived` | The compiled shard trees. Whatever it is set to, the gate adds it to the bypass floor itself (spec 092 section 3.8). It must name a directory inside the repository: an absolute path, a `..` segment, a `\` or a `:` is a configuration error (exit 2; exit 3 before 0.26.0) at every verb (spec 128). |
 | `standards_dir` | `standards/spec` | Constitution, contract, templates. |
 | `schemas_dir` | `standards/schemas` | Adopter-side schemas. |
 | `cargo_workspace` | `Cargo.toml` | The root Cargo workspace manifest. |
@@ -60,18 +60,18 @@ and `state/journal.db` and never `stateful/x`.
 ### Recovering from a base whose `derived_dir` escapes
 
 Since spec 128, a committed `derived_dir` that is absolute, has a `..`
-segment, or contains `\` or `:` is a configuration error (exit 3) at every
-verb. Older binaries wrote the derived tree wherever such a value pointed, so
-a repository can have one committed on its default branch. The pull request
-that corrects it is judged against that base, and two verbs read the base's
-configuration:
+segment, or contains `\` or `:` is a configuration error, exit `2` (exit `3`
+before 0.26.0), at every verb. Older binaries wrote the derived tree wherever
+such a value pointed, so a repository can have one committed on its default
+branch. The pull request that corrects it is judged against that base, and two
+verbs read the base's configuration:
 
 | Verb on the correcting pull request | Exit | Why |
 |---|---|---|
 | `check`, `lint`, `index coverage` (read head only) | as usual | head's configuration loads |
 | `couple`, when the diff deletes no path | 0 | no deletion asks for the base snapshot (spec 100 3.4) |
-| `couple`, when the diff deletes any path | 3 | the merge-base snapshot's configuration cannot load |
-| `delta` | 3 | it always classifies by the merge-base's rules |
+| `couple`, when the diff deletes any path | 2 (was 3) | the merge-base snapshot's configuration cannot load, a refusal under spec 132 |
+| `delta` | 2 (was 3) | it always classifies by the merge-base's rules, and that read is a config refusal |
 
 The `couple` rows are for the ordinary `--base <ref> --head <ref>` run, the
 one a pull request's gate makes. With `--include-uncommitted`, a deletion that
@@ -79,16 +79,17 @@ exists only in the working tree is judged at the head commit instead, whose
 configuration loads.
 
 Measured with a build of spec 129's branch, whose CLI behaves here exactly as
-spec 128's does. A `Spec-Drift-Waiver:` does not
-change either exit 3: a waiver clears drift, and this is not drift. Do not use
-one, and do not run an older binary to get a pass, since an older binary is
-what writes outside the repository.
+spec 128's does (the exit codes above are restated under spec 132's
+contract). A `Spec-Drift-Waiver:` does not change either refusal: a waiver
+clears drift, and this is not drift. Do not use one, and do not run an older
+binary to get a pass, since an older binary is what writes outside the
+repository.
 
 The procedure:
 
 1. **Confirm the cause at the base.** `spec-spine config show` on the default
-   branch exits 3 and names `layout.derived_dir`. If it names anything else,
-   this procedure does not apply.
+   branch exits 2 (exit 3 before 0.26.0) and names `layout.derived_dir`. If it
+   names anything else, this procedure does not apply.
 2. **Account for what was written outside.** An older binary created, and
    pruned `*.json` files in, the directory the value pointed at. That
    directory is outside the repository; inspect it and decide what to remove
@@ -98,7 +99,7 @@ The procedure:
    compile` and `spec-spine index`, and commit the regenerated tree, which is
    all additions. Put no other change in it, and in particular no deletion:
    with none, `couple` judges the diff normally and exits 0 when it is clean.
-4. **If a required check runs `delta`, it stays at exit 3 on that pull
+4. **If a required check runs `delta`, it stays at exit 2 (was 3) on that pull
    request.** The repository's owner merges it by an explicit decision, with
    the `config show` output and the diff's file list recorded in the pull
    request body. That is a human override of one check on one pull request,

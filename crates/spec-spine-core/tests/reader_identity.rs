@@ -12,6 +12,10 @@
 //! the hook: the freshness half (spec 094) is skipped as "absent", and the
 //! formatting half sees only the shim this test writes.
 
+// Spec 134: this suite runs POSIX shell (WF-5 in docs/windows-findings.md),
+// so it is compiled on Unix only; the Linux job runs it on every change.
+#![cfg(unix)]
+
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};

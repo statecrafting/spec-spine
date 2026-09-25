@@ -58,7 +58,7 @@ fn missing_required_key_is_parse_error() {
     let src = "---\ntitle: \"no id\"\nstatus: draft\ncreated: \"2026-06-08\"\nsummary: x\n---\n";
     let e = parse_frontmatter(src).unwrap_err();
     assert!(matches!(e, Error::Parse(_)));
-    assert_eq!(e.exit_code(), 3);
+    assert_eq!(e.exit_code(), 1);
 }
 
 #[test]

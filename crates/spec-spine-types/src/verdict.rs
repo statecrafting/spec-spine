@@ -58,24 +58,40 @@ pub mod verb {
     pub const DELTA: &str = "delta";
 }
 
+/// The `tool` member of every envelope this binary writes (spec 132 §3.4).
+///
+/// Named because the envelope is the family contract Statecraft shares: a
+/// consumer reading documents from more than one tool branches on this before
+/// it branches on `verb`.
+pub const TOOL: &str = "spec-spine";
+
 /// One adjudicating verb's verdict, as written to stdout under `--json`.
 ///
 /// `report` and `error` are mutually exclusive and exactly one is present; the
 /// two constructors are the only way to build one, so that invariant cannot be
 /// violated by construction.
+///
+/// Spec 132 §3.4 fixed the header as the family contract: `schemaVersion`,
+/// `tool`, `verb`, `outcome`, `exitCode`, `summary`, then `report` or `error`.
+/// `ok` is gone: `outcome` says the same thing and four more.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Verdict {
     /// [`VERDICT_SCHEMA_VERSION`] at the time of emission.
     pub schema_version: String,
+    /// Always [`TOOL`].
+    pub tool: String,
     /// The stable dotted command path; see [`verb`].
     pub verb: String,
-    /// The verdict. Always equals `exit_code == 0`, redundantly on purpose: a
-    /// consumer holding the exit code and one holding only the document read
-    /// the same fact.
-    pub ok: bool,
+    /// The outcome the exit code names (`crate::outcome`): `ok`, `finding`,
+    /// `refused`, `usage` or `failed`. Derived from `exit_code`, never passed
+    /// separately, so the two cannot disagree.
+    pub outcome: String,
     /// The code the process will actually return.
     pub exit_code: u8,
+    /// One line of human text. Carries no stability promise; branch on
+    /// `outcome` and `error.kind`.
+    pub summary: String,
     /// The verb's facade payload.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub report: Option<serde_json::Value>,
@@ -105,14 +121,19 @@ pub struct VerdictError {
 }
 
 impl Verdict {
-    /// A verdict carrying the verb's payload. `ok` is derived from `exit_code`,
-    /// never passed separately, so the two cannot disagree.
+    /// A verdict carrying the verb's payload. `outcome` is derived from
+    /// `exit_code`, never passed separately, so the two cannot disagree. The
+    /// summary names the verb and the outcome; [`Verdict::with_summary`]
+    /// replaces it where a verb has something more specific to say.
     pub fn report(verb: &str, exit_code: u8, report: serde_json::Value) -> Self {
+        let outcome = crate::error::outcome::of(exit_code);
         Self {
             schema_version: VERDICT_SCHEMA_VERSION.to_string(),
+            tool: TOOL.to_string(),
             verb: verb.to_string(),
-            ok: exit_code == 0,
+            outcome: outcome.to_string(),
             exit_code,
+            summary: format!("{verb}: {outcome}"),
             report: Some(report),
             error: None,
         }
@@ -124,9 +145,11 @@ impl Verdict {
         let exit_code = error.exit_code();
         Self {
             schema_version: VERDICT_SCHEMA_VERSION.to_string(),
+            tool: TOOL.to_string(),
             verb: verb.to_string(),
-            ok: false,
+            outcome: error.outcome().to_string(),
             exit_code,
+            summary: error.to_string(),
             report: None,
             error: Some(VerdictError {
                 kind: error_kind(error).to_string(),
@@ -139,37 +162,70 @@ impl Verdict {
         }
     }
 
+    /// Replace the summary line.
+    pub fn with_summary(mut self, summary: impl Into<String>) -> Self {
+        self.summary = summary.into();
+        self
+    }
+
+    /// Whether the verb found nothing: `exit_code == 0`.
+    pub fn is_ok(&self) -> bool {
+        self.exit_code == 0
+    }
+
     /// Serialize to canonical JSON: sorted keys, 2-space pretty-print, LF, and
     /// a trailing newline, matching every other artifact this project emits, so
     /// `--json` output diffs cleanly and can be committed by a consumer that
     /// chooses to. Key sorting falls out of `serde_json::Map` being a
     /// `BTreeMap` (`preserve_order` is deliberately not enabled).
     pub fn to_canonical_json(&self) -> Result<String, Error> {
-        let value = serde_json::to_value(self).map_err(|e| Error::Schema(e.to_string()))?;
+        let value = serde_json::to_value(self).map_err(|e| Error::Internal(e.to_string()))?;
         let mut out =
-            serde_json::to_string_pretty(&value).map_err(|e| Error::Schema(e.to_string()))?;
+            serde_json::to_string_pretty(&value).map_err(|e| Error::Internal(e.to_string()))?;
         out.push('\n');
         Ok(out)
     }
 }
 
-/// The stable token for an [`Error`]'s class (spec 034 3.3).
+/// The closed set of `error.kind` tokens (spec 132 §3.4). A consumer may
+/// match on these exhaustively: a token outside this list is a MAJOR change to
+/// [`VERDICT_SCHEMA_VERSION`].
+pub const ERROR_KINDS: [&str; 10] = [
+    "validation",
+    "stale",
+    "not-found",
+    "drift",
+    "refused",
+    "config",
+    "io",
+    "schema",
+    "usage",
+    "internal",
+];
+
+/// The stable token for an [`Error`]'s class (spec 034 3.3, closed by spec 132
+/// §3.4).
 ///
 /// Spelled out rather than derived from the variant name. Deriving it would make
 /// an internal rename a silent breaking change to an external contract, with no
 /// gate to catch it. The match is exhaustive inside this crate even though
-/// `Error` is `#[non_exhaustive]`, so adding a variant fails the build here:
-/// that is what makes [`VERDICT_SCHEMA_VERSION`]'s promise (a new `kind` is a
-/// MINOR, a renamed or removed one a MAJOR) checkable rather than decorative.
+/// `Error` is `#[non_exhaustive]`, so adding a variant fails the build here.
+///
+/// `Parse` reports `validation`: since spec 132 it means authored content that
+/// does not parse, which is a finding about the corpus like any other
+/// validation failure. `drift` is `couple`'s, carried in its report rather than
+/// by an `Error`, and is in the set so a family consumer can name it.
 pub fn error_kind(error: &Error) -> &'static str {
     match error {
         Error::Config(_) => "config",
-        Error::Validation(_) => "validation",
+        Error::Refused(_) => "refused",
+        Error::Validation(_) | Error::Parse(_) => "validation",
         Error::NotFound(_) => "not-found",
         Error::Stale { .. } => "stale",
         Error::Io(_) => "io",
-        Error::Parse(_) => "parse",
         Error::Schema(_) => "schema",
+        Error::Usage(_) => "usage",
+        Error::Internal(_) => "internal",
     }
 }
 
@@ -186,17 +242,26 @@ mod tests {
     }
 
     #[test]
-    fn ok_always_agrees_with_the_exit_code() {
-        for code in 0u8..4 {
+    fn outcome_always_agrees_with_the_exit_code() {
+        for (code, outcome) in [
+            (0u8, "ok"),
+            (1, "finding"),
+            (2, "refused"),
+            (3, "usage"),
+            (4, "failed"),
+        ] {
             let v = Verdict::report(verb::COUPLE, code, serde_json::json!({}));
-            assert_eq!(v.ok, code == 0, "exit {code}");
+            assert_eq!(v.outcome, outcome, "exit {code}");
+            assert_eq!(v.is_ok(), code == 0);
+            assert_eq!(v.tool, "spec-spine");
         }
     }
 
     #[test]
     fn failure_carries_the_errors_own_exit_code() {
-        let cases: [(Error, u8, &str); 7] = [
-            (Error::Config("c".into()), 3, "config"),
+        let cases: [(Error, u8, &str); 10] = [
+            (Error::Config("c".into()), 2, "config"),
+            (Error::Refused("r".into()), 2, "refused"),
             (Error::Validation(Vec::new()), 1, "validation"),
             (Error::NotFound("n".into()), 1, "not-found"),
             (
@@ -204,18 +269,21 @@ mod tests {
                     expected: "a".into(),
                     actual: "b".into(),
                 },
-                2,
+                1,
                 "stale",
             ),
-            (Error::Io("i".into()), 3, "io"),
-            (Error::Parse("p".into()), 3, "parse"),
-            (Error::Schema("s".into()), 3, "schema"),
+            (Error::Io("i".into()), 4, "io"),
+            (Error::Parse("p".into()), 1, "validation"),
+            (Error::Schema("s".into()), 4, "schema"),
+            (Error::Usage("u".into()), 3, "usage"),
+            (Error::Internal("x".into()), 4, "internal"),
         ];
         for (error, code, kind) in cases {
             let v = Verdict::failure(verb::INDEX_CHECK, &error);
             assert_eq!(v.exit_code, code, "{kind}");
             assert_eq!(v.error.as_ref().unwrap().kind, kind);
-            assert!(!v.ok);
+            assert!(ERROR_KINDS.contains(&kind), "{kind} is in the closed set");
+            assert!(!v.is_ok());
         }
     }
 
@@ -225,8 +293,8 @@ mod tests {
             .to_canonical_json()
             .unwrap();
         assert!(out.ends_with("}\n"), "{out}");
-        // Envelope keys sort: exitCode < ok < report < schemaVersion < verb.
-        assert!(out.find("\"exitCode\"").unwrap() < out.find("\"ok\"").unwrap());
+        // Envelope keys sort: exitCode < outcome < report < schemaVersion.
+        assert!(out.find("\"exitCode\"").unwrap() < out.find("\"outcome\"").unwrap());
         assert!(out.find("\"report\"").unwrap() < out.find("\"schemaVersion\"").unwrap());
         // ...and so do the report's own keys.
         assert!(out.find("\"a\"").unwrap() < out.find("\"z\"").unwrap());

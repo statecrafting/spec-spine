@@ -56,7 +56,8 @@ pub fn run(
     // have to invent an answer for a spec with no shard.
     if let Some(id) = spec {
         if check {
-            let err = Error::Config(
+            // Spec 132 §3.2: an argument combination the verb rejects is usage.
+            let err = Error::Usage(
                 "compile --spec is incompatible with --check: --spec validates one spec \
                  against the committed registry, --check compares the whole shard tree \
                  (spec 049 3.1)"
@@ -77,7 +78,7 @@ pub fn run(
         // JSON still gets JSON and the envelope's verb is a local, documented
         // choice (`compile.check` is the only machine-readable form of this
         // command, and the message names the flag that reaches it).
-        let err = Error::Config(
+        let err = Error::Usage(
             "compile --json requires --check: the writing form has no machine-readable \
              verdict (spec 034 4); use `compile --check --json`"
                 .to_string(),
@@ -113,7 +114,8 @@ pub fn run(
             } else if matches!(freshness, Freshness::Fresh) {
                 0
             } else {
-                2
+                // Spec 132 §3.2: staleness is a finding.
+                1
             };
             out::verdict(&Verdict::report(
                 verb::COMPILE_CHECK,
@@ -143,7 +145,7 @@ pub fn run(
             Freshness::Stale { actual, .. } => {
                 eprintln!("{actual}");
                 eprintln!("spec-registry is STALE: run `spec-spine compile` and commit the result");
-                Ok(2)
+                Ok(1)
             }
         };
     }
@@ -159,7 +161,7 @@ pub fn run(
         compiler_version: env!("CARGO_PKG_VERSION").to_string(),
     };
     let meta_json =
-        serde_json::to_string_pretty(&meta).map_err(|e| Error::Schema(e.to_string()))? + "\n";
+        serde_json::to_string_pretty(&meta).map_err(|e| Error::Internal(e.to_string()))? + "\n";
 
     // Every output of the run is checked before any is written (spec 127 3.3):
     // the per-spec shards, whose sync prunes a removed spec's shard so the
@@ -288,7 +290,7 @@ fn run_one_spec(repo: &Path, id: &str, json: bool, fail_on_warn: bool) -> Result
     };
 
     if json {
-        let value = serde_json::to_value(&report).map_err(|e| Error::Schema(e.to_string()))?;
+        let value = serde_json::to_value(&report).map_err(|e| Error::Internal(e.to_string()))?;
         out::verdict(&Verdict::report(verb::COMPILE_SPEC, code, value))?;
         return Ok(code);
     }

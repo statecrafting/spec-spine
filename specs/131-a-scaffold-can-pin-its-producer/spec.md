@@ -12,8 +12,8 @@ summary: >
   hook finds. This spec adds an opt-in scaffold option, `pinExactVersion`,
   that emits an active `[meta]` table with `required_version =
   "=<this producer's version>"`, through a new facade entry
-  `scaffold_init_with_options_json(config_json, options_json)` and its Rust
-  form `scaffold_init_with_options`. Without the option the output is
+  `scaffold_init_opts_json(config_json, options_json)` and its Rust
+  form `scaffold_init_opts`. Without the option the output is
   byte-identical to `scaffold_init_json`'s, measured against 0.25.0 for
   Statecraft's configuration and the default. The configuration is validated
   exactly as 129 requires, and an unknown option is refused rather than
@@ -128,20 +128,20 @@ differs; every other line of that file and every other file is the same.
 
 ### 3.3 The facade entry
 
-`scaffold_init_with_options_json(config_json, options_json)` MUST validate the
+`scaffold_init_opts_json(config_json, options_json)` MUST validate the
 configuration exactly as 129 requires of every entry, with the same message as
 `scaffold_init_json` for the same configuration. `options_json` MUST be a JSON
 object matching `ScaffoldOptions`; an unknown key or text that is not JSON MUST
 be `Error::Config`, so a consumer asking for a pin never receives an unpinned
 file because it misspelled the option.
 
-The Rust form is `scaffold_init_with_options(&Config, &ScaffoldOptions)`, and
+The Rust form is `scaffold_init_opts(&Config, &ScaffoldOptions)`, and
 `scaffold_init(cfg)` is that function with default options.
 
 Statecraft's call shape with the option:
 
 ```rust
-spec_spine_core::scaffold_init_with_options_json(config_json, r#"{"pinExactVersion":true}"#)
+spec_spine_core::scaffold_init_opts_json(config_json, r#"{"pinExactVersion":true}"#)
 ```
 
 ### 3.4 Documentation
@@ -183,6 +183,15 @@ bytes were compared with 0.25.0's: identical for Statecraft's configuration
 through the CLI's mapping. The failure being prevented is a consumer that
 believes it asked for a pin and got none.
 
+**D-4 (2026-09-24): the entry points are `scaffold_init_opts` and
+`scaffold_init_opts_json`.** They were first merged as `scaffold_init_with_options`
+and `scaffold_init_with_options_json` (#347). 092's acceptance, which 055's
+block now carries, asserts `! grep -rqF 'scaffold_init_with' crates/` so that
+the removed kit selector cannot return under its old name, and the first names
+contain that string. The release acceptance sweep caught it before any release
+or consumer handoff; this spec's own block now runs the same assertion, so it
+fails here rather than only in another spec's acceptance.
+
 ## Verification
 
 ```verify:cli
@@ -193,4 +202,6 @@ cargo test -p spec-spine-core --test scaffold_pin --locked
 cargo test -p spec-spine-core --test config_facade --locked
 # 054's round-trip and 092's producer boundary still hold.
 cargo test -p spec-spine-core --test scaffold --locked
+# D-4: 092's removed kit selector name stays absent, new entries included.
+! grep -rqF 'scaffold_init_with' crates/
 ```

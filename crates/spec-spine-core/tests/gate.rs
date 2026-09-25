@@ -472,6 +472,8 @@ fn a_guarded_target_does_not_conflate_a_skip_with_a_failure() {
 /// `language_targets_probe_for_a_manifest_not_a_tool` passes for the broken
 /// shape and the fixed one alike, because both contain `test -f Cargo.toml`;
 /// an acceptance that never forces a command to fail cannot tell them apart.
+// Spec 134: runs the recipe through `sh` (WF-6 in docs/windows-findings.md).
+#[cfg(unix)]
 #[test]
 fn a_guarded_recipe_skips_when_absent_and_fails_when_the_command_fails() {
     let makefile = read("Makefile");
@@ -1039,11 +1041,11 @@ fn spec_spine_verbs(run: &str) -> Vec<String> {
         }
         let Some(verb) = toks.next() else { continue };
         let mut v = verb.to_string();
-        if let Some(sub) = toks.next() {
-            if !sub.starts_with('-') {
-                v.push(' ');
-                v.push_str(sub);
-            }
+        if let Some(sub) = toks.next()
+            && !sub.starts_with('-')
+        {
+            v.push(' ');
+            v.push_str(sub);
         }
         out.push(v);
     }

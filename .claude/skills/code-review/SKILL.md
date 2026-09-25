@@ -33,7 +33,7 @@ workflows), scripts, docs, derived shards.
 ## Step 1: the gate stays green
 
 ```sh
-spec-spine check                                # exit 2: either committed shard tree is stale
+spec-spine check                                # exit 1: a shard tree is stale or the corpus fails (the report says which)
 spec-spine lint --fail-on-warn
 spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
 spec-spine index coverage                       # ownership: unclaimed and floor-only files

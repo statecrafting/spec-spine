@@ -16,7 +16,7 @@
 //! ownership for drift and as **debt** for coverage.
 //!
 //! Pure function of `(config, index, file listing)`. The freshness-guarded
-//! form [`coverage`] refuses a stale committed index (exit 2) exactly as
+//! form [`coverage`] refuses a stale committed index (exit 1) exactly as
 //! `couple` does, so the report is always read against the ledger the corpus
 //! compiled to. Nothing here is committed: coverage is a read verb over the
 //! tree and the ledger, like `index check`, not a field of the index.
@@ -362,7 +362,7 @@ pub fn coverage_with_scope(
 }
 
 /// The freshness-guarded report: refuses a stale committed index
-/// ([`Error::Stale`], exit 2) exactly as `couple` does, loads the committed
+/// ([`Error::Stale`], exit 1) exactly as `couple` does, loads the committed
 /// shard set, enumerates the universe under `repo_root`, and classifies it.
 pub fn coverage(cfg: &Config, repo_root: &Path) -> Result<CoverageReport, Error> {
     coverage_with_inventory(cfg, repo_root, None)

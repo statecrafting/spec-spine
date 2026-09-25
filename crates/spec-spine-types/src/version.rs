@@ -117,7 +117,15 @@ pub const SPEC_ATTESTATION_SCHEMA_VERSION: &str = "0.1.0";
 /// evaluated with what it cleared, and `unattachedWaiverLines`. Both are
 /// omitted when empty, so a run that declares no waiver keeps its payload
 /// bytes, and no existing member changed meaning.
-pub const VERDICT_SCHEMA_VERSION: &str = "0.6.0";
+///
+/// 1.0.0 (spec 132) is the family contract shared with Statecraft, and a
+/// MAJOR: the header gains `tool`, `outcome` and `summary` and loses `ok`,
+/// `exitCode` takes the five-code contract (stale moves from 2 to 1, a refusal
+/// is 2, usage 3, a failure 4), and `error.kind` is the closed set
+/// `verdict::ERROR_KINDS`, which drops `parse` (authored content that does not
+/// parse reports `validation`) and adds `refused`, `usage`, `internal` and
+/// `drift`.
+pub const VERDICT_SCHEMA_VERSION: &str = "1.0.0";
 
 /// `schemaVersion` carried by a change-classification report (spec 071).
 ///

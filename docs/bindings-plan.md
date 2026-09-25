@@ -41,23 +41,35 @@ The facade functions to wrap:
 ## The uniform envelope
 
 In Rust the facade returns `Result<String, Error>`. The binding layer maps that
-to one envelope shape across all languages, so callers handle success and failure
-uniformly:
+to one envelope shape across all languages, so callers handle success and
+failure uniformly. Spec 132 fixes that shape as the same envelope `--json`
+already writes on the CLI, rather than a separate `{ok, data, error}` binding
+convention: a consumer reading documents from both the CLI and a binding
+branches on one header, not two.
 
 ```jsonc
 // success
-{ "ok": true,  "data": <the facade's returned JSON, parsed>, "error": null }
+{ "schemaVersion": "1.0.0", "tool": "spec-spine", "verb": "compile.check",
+  "outcome": "ok", "exitCode": 0, "summary": "compile.check: ok",
+  "report": <the facade's returned JSON, parsed> }
 // failure
-{ "ok": false, "data": null, "error": { "code": "Validation" | "NotFound" | "Stale"
-                                              | "Config" | "Io" | "Parse" | "Schema",
-                                         "message": "…", "exitCode": 1 | 2 | 3 } }
+{ "schemaVersion": "1.0.0", "tool": "spec-spine", "verb": "compile.check",
+  "outcome": "refused", "exitCode": 2, "summary": "config error: …",
+  "error": { "kind": "validation" | "stale" | "not-found" | "drift"
+                   | "refused" | "config" | "io" | "schema" | "usage" | "internal",
+             "message": "…" } }
 ```
 
-`error.code` is the `Error` variant name; `error.exitCode` is
-`Error::exit_code()`. Both are stable (the `Error` enum is `#[non_exhaustive]`,
-so new variants are additive; a binding should treat an unknown `code` as a
-generic failure). This is the only mapping logic a binding must implement; it is
-identical across napi/pyo3/cgo.
+`outcome` is derived from `exitCode` and never passed separately, so the two
+cannot disagree (`0` ok, `1` finding, `2` refused, `3` usage, `4` failed).
+`error.kind` is the `Error` variant's stable token (`crate::error_kind`), a
+closed set; a binding should treat an unknown `kind` as a generic failure,
+since the set can only grow under a MAJOR bump to the envelope schema. This is
+the only mapping logic a binding must implement; it is identical across
+napi/pyo3/cgo. Before spec 132, the sketch here was a `{ok, data, error}`
+shape with `error.code` the bare variant name and `exitCode` one of `1 | 2 |
+3`; nothing built against that sketch, so there is no compatibility surface to
+carry forward.
 
 ---
 
@@ -71,14 +83,15 @@ A `spec-spine-napi` crate using [`napi-rs`](https://napi.rs):
 pub fn compile(config_json: String, repo_root: String) -> napi::Result<String> {
     spec_spine_core::compile_json(&config_json, &repo_root).map_err(to_napi_err)
 }
-// … one #[napi] fn per facade fn; to_napi_err builds the {code,message,exitCode} envelope.
+// … one #[napi] fn per facade fn; to_napi_err builds the envelope's `error` member.
 ```
 
 - Ships as a prebuilt `.node` per platform via napi-rs's GitHub Actions matrix:
   the same triple matrix as the binary release.
 - The published npm package wraps each export to parse the returned JSON and
-  expose idiomatic JS (`await specSpine.compile(config, repoRoot)` returning the
-  parsed registry, throwing a typed `SpecSpineError` carrying `code`/`exitCode`).
+  expose idiomatic JS (`await specSpine.compile(config, repoRoot)` returning
+  the parsed `report`, throwing a typed `SpecSpineError` carrying
+  `outcome`/`exitCode`/`error.kind`).
 
 ## pyo3 (Python): sketch
 
@@ -97,8 +110,9 @@ fn spec_spine(m: &Bound<PyModule>) -> PyResult<()> { m.add_function(wrap_pyfunct
 
 - `maturin` builds wheels per platform (the same triple matrix); publishes to
   PyPI.
-- A thin Python layer parses the JSON and raises `SpecSpineError(code, exit_code,
-  message)` on `ok == false`, returning `dict`/dataclasses on success.
+- A thin Python layer parses the JSON and raises `SpecSpineError(kind,
+  exit_code, message)` when `exitCode != 0`, returning `dict`/dataclasses (the
+  `report` member) on success.
 
 ## cgo (Go): sketch
 
@@ -115,7 +129,7 @@ pub extern "C" fn spec_spine_string_free(p: *mut c_char) { … }   // caller fre
 - The C header is generated (`cbindgen`); the Go package wraps each `extern "C"`
   fn, marshals strings across cgo, and frees them via `spec_spine_string_free`.
 - Go callers get `func Compile(configJSON, repoRoot string) (Registry, error)`,
-  decoding the envelope and returning a typed error on `ok == false`.
+  decoding the envelope and returning a typed error whenever `exitCode != 0`.
 
 ---
 
@@ -127,8 +141,9 @@ pub extern "C" fn spec_spine_string_free(p: *mut c_char) { … }   // caller fre
   facade).
 - **Owned, `serde`-serializable DTOs**: everything crossing the boundary is
   already JSON-representable.
-- **A single, stable `Error` enum → stable exit codes**: the envelope's
-  `code`/`exitCode` are a direct, stable projection.
+- **A single, stable `Error` enum → stable exit codes** (spec 132's family
+  contract): the envelope's `outcome`/`exitCode`/`error.kind` are a direct,
+  stable projection.
 - **No `unsafe` in core**: the only `extern "C"`/`unsafe` lives in the (future)
   cgo binding crate, never in `spec-spine-core`.
 - **`publish = false` is set on none of the shipped crates**: bindings can

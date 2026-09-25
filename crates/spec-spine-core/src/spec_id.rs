@@ -124,7 +124,7 @@ pub fn ambiguous(arg: &str, candidates: &[String]) -> Error {
 /// The refusal for step 4, shared by the five arguments that refuse it.
 ///
 /// `verify-attestation` is the exception and does not call this: its argument
-/// falls through unresolved so a missing attestation file stays the exit 3 that
+/// falls through unresolved so a missing attestation file stays the exit 4 that
 /// spec 039 §3.5 assigns to I/O (084 §3.2, D-4).
 pub fn no_match(arg: &str) -> Error {
     Error::NotFound(format!("spec '{arg}'"))

@@ -224,7 +224,7 @@ fn refuse_dirty_tree(repo: &Path) -> Result<(), Error> {
     }
     let dirty = String::from_utf8_lossy(&out.stdout);
     if !dirty.trim().is_empty() {
-        return Err(Error::Config(format!(
+        return Err(Error::Refused(format!(
             "compact: the working tree is dirty, and a rewrite of the whole corpus \
              underneath an uncommitted edit is unreviewable. Commit or stash first, \
              or pass --force. If a previous run failed part way through, \

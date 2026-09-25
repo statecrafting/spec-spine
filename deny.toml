@@ -1,0 +1,35 @@
+# Spec 135: the dependency policy `cargo deny check` enforces in CI.
+# Advisories fail on any RustSec vulnerability or unsoundness notice; licenses
+# are an explicit allow-list of what the tree uses today; sources are
+# crates.io only; duplicate versions warn rather than fail.
+
+[graph]
+all-features = true
+
+[advisories]
+version = 2
+yanked = "deny"
+
+[licenses]
+version = 2
+confidence-threshold = 0.93
+allow = [
+    "Apache-2.0",
+    "BSD-1-Clause",
+    "BSD-3-Clause",
+    "BSL-1.0",
+    "MIT",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

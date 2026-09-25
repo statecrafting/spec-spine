@@ -183,7 +183,7 @@ fn a_stale_ledger_exits_2_before_the_export_is_read() {
     fs::write(&spec, s.replace("Text.", "Text, edited.")).unwrap();
     // The export points nowhere: reading it first would be exit 3.
     let o = verify(imp.path(), &exp.path().join("absent"), &[]);
-    assert_eq!(code(&o), 2, "{}", text(&o));
+    assert_eq!(code(&o), 1, "{}", text(&o));
 }
 
 #[test]
@@ -203,7 +203,7 @@ fn malformed_exports_and_an_unreadable_directory_are_exit_3() {
     assert!(text(&o).contains("twice"), "{}", text(&o));
 
     let o = verify(imp.path(), &exp.path().join("absent"), &[]);
-    assert_eq!(code(&o), 3, "{}", text(&o));
+    assert_eq!(code(&o), 4, "{}", text(&o));
 }
 
 #[test]

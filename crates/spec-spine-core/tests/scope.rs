@@ -600,7 +600,7 @@ fn a_stale_index_is_refused_before_anything_is_resolved() {
     fs::write(&spec, text.replace("# a", "# a, edited")).unwrap();
     let r = req("100-a", &["crates/a/src/lib.rs"], &[], &[]);
     let err = evaluate(&cfg, tmp.path(), &r).unwrap_err();
-    assert_eq!(err.exit_code(), 2, "{err}");
+    assert_eq!(err.exit_code(), 1, "{err}");
 }
 
 // ---- gate neutrality: no verb changes because a scope exists ---------------
