@@ -145,19 +145,24 @@ RS
 step lib-statecraft-shape cargo run --quiet --release --manifest-path "$T/sc/Cargo.toml" --target-dir "$T/sc/target"
 step lib-no-tree-sitter sh -c "! grep -q 'name = \"tree-sitter' '$T/sc/Cargo.lock'"
 
-# 4. An insufficient reader refuses by name (exit 3), never judges.
+# 4. An insufficient reader refuses by name, never judges. The refusal's exit
+# code is the reader's own contract: 3 before 0.26.0, 2 ("refused") from 0.26.0
+# on (spec 132). Each binary is judged by the contract of the version it is.
+floor_exit() { # version -> the exit code that version gives an unmet floor
+  printf '%s\n' "$1" | awk -F. '{ print (($1 > 0) || ($2 >= 26)) ? 2 : 3 }'
+}
 corpus_requiring() { # dir version
   mkdir -p "$1/specs/001-a"
   printf '[meta]\nrequired_version = ">=%s"\n' "$2" > "$1/spec-spine.toml"
   printf -- '---\nid: "001-a"\ntitle: "A"\nstatus: draft\ncreated: "2026-09-23"\nsummary: "s"\n---\n# A\n' > "$1/specs/001-a/spec.md"
 }
 corpus_requiring "$T/neg" 99.0.0
-step cli-floor-refuses-newer sh -c "cd '$T/neg' && \"$BIN\" compile >/dev/null 2>&1; test \$? -eq 3"
+step cli-floor-refuses-newer sh -c "cd '$T/neg' && \"$BIN\" compile >/dev/null 2>&1; test \$? -eq $(floor_exit "$V")"
 corpus_requiring "$T/pos" "$V"
 step cli-floor-admits-own sh -c "cd '$T/pos' && \"$BIN\" compile >/dev/null"
 if [ -n "$ARG2" ]; then
   step prev-install install_cli "$ARG2" "$T/prev"
-  step prev-refuses sh -c "cd '$T/pos' && '$T/prev/bin/spec-spine' compile >'$T/prev.out' 2>&1; rc=\$?; cat '$T/prev.out'; test \$rc -eq 3 && grep -qF '>=$V' '$T/prev.out'"
+  step prev-refuses sh -c "cd '$T/pos' && '$T/prev/bin/spec-spine' compile >'$T/prev.out' 2>&1; rc=\$?; cat '$T/prev.out'; test \$rc -eq $(floor_exit "$ARG2") && grep -qF '>=$V' '$T/prev.out'"
 fi
 
 # 5. npm and PyPI, the ordinary commands, fresh caches.
