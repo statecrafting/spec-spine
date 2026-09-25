@@ -1,0 +1,36 @@
+{
+  "mapping": {
+    "amends": [
+      "079-a-blocking-claim-is-not-a-stale-shard"
+    ],
+    "dependsOn": [
+      "079-a-blocking-claim-is-not-a-stale-shard",
+      "132-one-exit-contract-for-the-family"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/tests/unresolved_guard.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/unresolved_guard.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/unresolved_guard.rs"
+        }
+      }
+    ],
+    "specId": "145-an-unresolved-claim-is-not-called-stale",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "46b66cb701aff6ca8c76a9f887c74b71ff228624cd6f17224bcf774378146043"
+}
