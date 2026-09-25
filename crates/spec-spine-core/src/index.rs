@@ -266,6 +266,8 @@ impl SpecInfo {
 
 /// Build the codebase index under `repo_root`.
 pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOutcome, Error> {
+    // Spec 144 §3.4: no governed read may leave the repository through a link.
+    crate::pathutil::refuse_links_leaving(cfg, repo_root)?;
     let discovered = manifest::discover(cfg, repo_root);
     let mut diagnostics = Diagnostics {
         warnings: Vec::new(),

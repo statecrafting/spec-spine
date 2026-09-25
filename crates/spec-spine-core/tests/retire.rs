@@ -876,6 +876,31 @@ fn a_retired_path_outside_the_corpus_is_refused() {
     }
 }
 
+/// Spec 144 §3.3: the repository-path rule reaches plan paths. `C:foo` is
+/// drive-relative on Windows and not absolute there either, so the WF-8 test
+/// passed it; a `\` climbs on Windows; a device-name segment opens the device.
+#[test]
+fn a_retired_path_in_a_windows_form_is_refused() {
+    let tmp = fixture("x");
+    for bad in ["C:rules/one.md", "rules\\one.md", "con/one.md"] {
+        let mut e = retire_rules();
+        e.path = bad.into();
+        let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
+        assert_eq!(err.exit_code(), 2, "{bad}: {err}");
+        assert!(
+            format!("{err}").contains("as the corpus spells it"),
+            "{bad}: {err}"
+        );
+    }
+    for bad in ["C:docs/note.md", "docs\\note.md", "aux.md"] {
+        let mut e = retire_rules();
+        e.historical_files = vec![bad.to_string()];
+        let err = compact(&cfg(), tmp.path(), &plan_with(e)).unwrap_err();
+        assert_eq!(err.exit_code(), 2, "{bad}: {err}");
+        assert!(format!("{err}").contains("historical"), "{bad}: {err}");
+    }
+}
+
 /// §3.3: an empty `to` is the same mistake as an absent one; it writes a unit
 /// no corpus can resolve.
 #[test]

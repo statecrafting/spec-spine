@@ -37,6 +37,7 @@ pub mod moves;
 pub mod obligation;
 pub mod registry;
 pub mod relocation;
+pub mod repo_path;
 pub mod schema;
 pub mod snapshot;
 pub mod unit;
@@ -92,6 +93,7 @@ pub use registry::{
     Violation,
 };
 pub use relocation::Relocation;
+pub use repo_path::{RepoPath, is_device_name, repo_path_problem};
 pub use schema::{
     BUILD_META_SCHEMA, INDEX_INPUTS_SCHEMA, INDEX_PACKAGE_SHARD_SCHEMA, INDEX_SCHEMA,
     INDEX_SPEC_SHARD_SCHEMA, REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA,

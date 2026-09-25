@@ -238,19 +238,9 @@ pub fn check_file_name(name: &str, dir: &Path) -> Result<(), Error> {
 /// `LPT¹²³`, ignoring ASCII case. Windows treats `NUL.tar.gz` as `NUL`, hence
 /// the first dot, and strips trailing spaces, hence the trim.
 pub fn is_device_name(name: &str) -> bool {
-    let stem = name.split('.').next().unwrap_or(name).trim_end_matches(' ');
-    if ["CON", "PRN", "AUX", "NUL"]
-        .iter()
-        .any(|d| stem.eq_ignore_ascii_case(d))
-    {
-        return true;
-    }
-    let mut chars = stem.chars();
-    let prefix: String = chars.by_ref().take(3).collect();
-    let (digit, rest) = (chars.next(), chars.next());
-    (prefix.eq_ignore_ascii_case("COM") || prefix.eq_ignore_ascii_case("LPT"))
-        && rest.is_none()
-        && digit.is_some_and(|d| matches!(d, '1'..='9' | '\u{b9}' | '\u{b2}' | '\u{b3}'))
+    // Spec 144: one copy of the rule, beside the repository-path rule that
+    // also uses it.
+    spec_spine_types::is_device_name(name)
 }
 
 /// Write `files` (`(filename, content)`) into `dir`, creating it, and prune any
