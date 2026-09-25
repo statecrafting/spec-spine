@@ -1,7 +1,7 @@
 ---
 id: "131-a-scaffold-can-pin-its-producer"
 title: "A scaffold can pin its producer"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-24"
 summary: >
