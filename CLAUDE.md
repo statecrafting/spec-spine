@@ -24,7 +24,7 @@ target (spec 094); `.claude/` itself is spec 093's.
 ## Commands
 
 The toolchain is pinned in `rust-toolchain.toml` (channel `1.92.0`); MSRV is
-`1.85` / edition 2024. Always pass `--locked`; CI does, and the committed
+`1.90` / edition 2024 (spec 135: the floor the locked tree needs; CI builds and tests there). Always pass `--locked`; CI does, and the committed
 `Cargo.lock` is part of the determinism contract (tree-sitter grammars are
 pinned exact).
 
