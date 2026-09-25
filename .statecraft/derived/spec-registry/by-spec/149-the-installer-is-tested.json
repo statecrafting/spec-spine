@@ -37,15 +37,15 @@
     "risk": "low",
     "sectionDigests": {
       "1-purpose": "111162e99d6f8779cb8698b4504af881c530dd4492839254aa6f05511d52baf8",
-      "149-the-installer-is-tested": "084cf8362f98cf59794041bd50a11f2d1ea8756641b86b725edfd766fd83f447",
+      "149-the-installer-is-tested": "fd9092580b86666b9e315b57eeef47cea3fe7831c4584cbfe0c7833817af2835",
       "2-territory": "a25ce56c9b0c2ade575593779c46d9075a7b6f41f34602e31438ed23fd84a667",
-      "3-1-the-installer-runs-against-a-fixture-release": "413ee3593e84d29973d470b841d21be94632be6c129a260bacb2bed29700434b",
+      "3-1-the-installer-runs-against-a-fixture-release": "501bf237121fa4b5ffbcaaa6f7463b61e4ba38058069382fab0ca8dbae113e67",
       "3-2-006-has-an-executable-acceptance": "b2a4ccbdbcdf1281f45af44d2d018a4ac4f37de940bbb6c19e34d4da65d9ba1e",
       "3-3-the-ledger-shrinks-amends-139-3-3": "51dca44f8e9c413b5429fcb4fa085c108d3a35ffdc90c432c85879551e8dd2fb",
-      "3-behavior": "425a301b3d220548968c16c882e7a4e0bbb20eec3fea3da26af08973c6c327a6",
+      "3-behavior": "37bad6fed5e55ebbbc8e1c96c4a3af8f6db37b7c05b5020371c0dccd21046ebb",
       "4-out-of-scope": "59faeb20517b64fb103e55e4427b15ca73c48c733e5abe9577bc1e1a296a56e6",
       "5-resolved-decisions": "5bf149bf1d467e454a114a34dcd427c305f481c3db5fd4a37981a7e706e398af",
-      "verification": "35ceaadca6eafea226193a2ad1cf28cce801a482a3dc7d37cbfd1b0a2935b4ae"
+      "verification": "59a490fac1ded79e583ffd4e8ab1d6429fd483126ca257a7e202b38317fdbc7e"
     },
     "sectionHeadings": [
       "149: The installer is tested",
@@ -60,10 +60,10 @@
       "Verification"
     ],
     "specPath": "specs/149-the-installer-is-tested/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 006 is one of the four specs the pre-release sweep still reports `exempt`, because `install.sh`, the tag-gated release pipeline and npm publication \"run only in a release\" (139 3.3). Two of its three channels do not: `install.sh` is a shell script whose every decision (platform, tag, checksum, attestation policy, install directory) can be exercised offline against a local fixture release, and the npm shim already has an offline unit test and smoke test. This spec adds an offline test of `install.sh`, gives 006 an executable acceptance that runs it and the npm shim's tests, and removes 006's line from the legacy ledger. The release pipeline's publication steps stay unexercised by it, and it says so.\n",
     "title": "The installer is tested"
   },
-  "shardHash": "850cef7ce4ebd96ab45eefcf3f2aebd3fb5693e7e6a578260cab91ab17c08b04",
+  "shardHash": "a28972f588da420bbc7ece20ef82274df1378cf01fb4bb201f17350758d77018",
   "specVersion": "1.9.0"
 }
