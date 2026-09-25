@@ -118,10 +118,10 @@
       "Verification"
     ],
     "specPath": "specs/130-a-planned-claim-ends-at-completion/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 063's `planned: true` lets a spec claim territory it has not written, so a corpus gating on `--fail-on-unresolved` can ratify before it builds. 063 bound the flag to completion only through the lint (`L-011`): a spec at `implementation: complete` whose planned unit is absent passed `check`, `index check` and both with `--fail-on-unresolved`, exit 0, because the index dropped the diagnostic for a planned unit at every lifecycle. A consumer whose hooks run `check` alone never saw the contradiction. The flag now holds a claim open only until the spec says `complete`; after that the absent unit classifies like any settled claim, the natural `I-0xx` error, and `check` exits 1. `index coverage` also stops listing a planned unit that has resolved as \"not yet written\". Nothing changes for an unmarked claim or for a spec whose work is not complete.\n",
     "title": "A planned claim ends at completion"
   },
-  "shardHash": "1f8573370b85aaf05219cb63e760b9245a0e351c3453bfcd8a9ca4bad054acf8",
+  "shardHash": "02368fab9f23311e122fac393673dfdceefe2c4ee2b046bc1b83c754b25a7c7f",
   "specVersion": "1.8.0"
 }
