@@ -30,7 +30,7 @@ use spec_spine_types::{
 };
 
 use crate::couple::{claim_matches, is_bypassed_path};
-use crate::index::{Freshness, check_index_freshness, load_committed_index, walk_source};
+use crate::index::{load_committed_index, walk_source};
 use crate::pathutil::rel_posix;
 
 /// The source extensions the indexer treats as code: the set the comment-header
@@ -385,10 +385,7 @@ pub fn coverage_with_inventory(
     repo_root: &Path,
     inventory: Option<&Inventory>,
 ) -> Result<CoverageReport, Error> {
-    match check_index_freshness(cfg, repo_root)? {
-        Freshness::Stale { expected, actual } => return Err(Error::Stale { expected, actual }),
-        Freshness::Fresh => {}
-    }
+    crate::index::guard_committed_index(cfg, repo_root)?;
     let index = load_committed_index(cfg, repo_root)?;
     let files = enumerate_source_files(cfg, repo_root, &index);
     let mut report = if cfg.coverage.governed_scope.is_empty() {

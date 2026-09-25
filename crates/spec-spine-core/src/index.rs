@@ -107,6 +107,11 @@ pub struct IndexFreshnessReport {
     pub stale: Vec<String>,
     /// How many shards the recompute emitted, for the `expected` half.
     pub emitted: usize,
+    /// Drift lines for shards that are also blocked (spec 145): left out of
+    /// `stale` so a report does not name a shard twice (spec 079), and read by
+    /// [`Self::guard`], because a blocked shard whose bytes moved is still a
+    /// committed file that disagrees with the corpus.
+    pub blocked_drift: Vec<String>,
 }
 
 impl IndexFreshnessReport {
@@ -199,6 +204,63 @@ impl IndexFreshnessReport {
     pub fn stale_verdict(&self) -> Freshness {
         drift_verdict(self.stale.clone(), self.emitted)
     }
+
+    /// The refusal a verb that reads the committed index gives (spec 145 §3.1).
+    ///
+    /// Before spec 145 those verbs (`couple`, `index coverage`, `index owner`,
+    /// `scope`, and `delta` at the merge base) read [`Self::freshness`] and
+    /// called an unresolved claim "index is stale", with the remedy that does
+    /// not clear it. `check` and `index check` had said "not staleness" since
+    /// spec 079. Now every reader keeps the two apart: drifted shards are
+    /// [`Error::Stale`], naming only the shards that drifted, and an unresolved
+    /// claim alone is a validation finding naming the claim. Both exit 1.
+    pub fn guard(&self) -> Result<(), Error> {
+        // Any committed shard whose bytes moved, blocked or not, is staleness,
+        // and regenerating is the first step; the claim is reported on the
+        // next run if it is still there.
+        let mut moved = self.stale.clone();
+        moved.extend(self.blocked_drift.iter().cloned());
+        if let Freshness::Stale { expected, actual } = drift_verdict(moved, self.emitted) {
+            return Err(Error::Stale { expected, actual });
+        }
+        if self.blocking.is_empty() {
+            return Ok(());
+        }
+        Err(Error::Validation(
+            self.blocking
+                .iter()
+                .map(|c| {
+                    let mut v = spec_spine_types::Violation::new(
+                        c.code.clone(),
+                        spec_spine_types::Severity::Error,
+                        format!(
+                            "unresolved claim, not staleness: {}{}; regenerating the index \
+                             does not clear it, because the claim is recomputed from the corpus \
+                             on every run",
+                            c.message,
+                            if c.message.contains(&c.spec_id) {
+                                String::new()
+                            } else {
+                                format!(" (spec '{}')", c.spec_id)
+                            }
+                        ),
+                    );
+                    v.path = c.unit.clone();
+                    v
+                })
+                .collect(),
+        ))
+    }
+}
+
+/// Refuse to read a committed index that drifted from the corpus, or whose
+/// corpus holds an unresolved claim, with the refusal that says which (spec
+/// 145). Every freshness-guarded reader calls this.
+pub fn guard_committed_index(
+    cfg: &spec_spine_types::Config,
+    repo_root: &Path,
+) -> Result<(), Error> {
+    index_freshness_report(cfg, repo_root)?.guard()
 }
 
 /// A spec's ownership declarations, parsed from frontmatter.
@@ -796,6 +858,7 @@ pub fn index_freshness_report(
     let blocking: BTreeSet<String> = claims.iter().map(|c| c.shard.clone()).collect();
 
     let mut drift: Vec<String> = Vec::new();
+    let mut blocked_drift: Vec<String> = Vec::new();
     for line in committed_index_drift(cfg, repo_root, &outcome.shards)? {
         // One line per shard. A shard that blocks and also drifts would
         // otherwise be named twice, and the count line ("N stale shard(s)")
@@ -814,6 +877,7 @@ pub fn index_freshness_report(
             .split_once(' ')
             .is_some_and(|(_, file)| blocking.contains(file));
         if blocked {
+            blocked_drift.push(line);
             continue;
         }
         drift.push(line);
@@ -825,6 +889,7 @@ pub fn index_freshness_report(
         blocking: claims,
         stale: drift,
         emitted,
+        blocked_drift,
     })
 }
 
@@ -2103,10 +2168,7 @@ pub struct OwnerReport {
 /// An owner answer read off a stale ledger is the one kind of wrong answer this
 /// verb must never give, because its caller is deciding what to edit.
 pub fn owner(cfg: &Config, repo_root: &Path, path: &str) -> Result<OwnerReport, Error> {
-    match check_index_freshness(cfg, repo_root)? {
-        Freshness::Stale { expected, actual } => return Err(Error::Stale { expected, actual }),
-        Freshness::Fresh => {}
-    }
+    guard_committed_index(cfg, repo_root)?;
     let registry = crate::compile::load_committed_registry(cfg, repo_root)?;
     let index = load_committed_index(cfg, repo_root)?;
     Ok(owner_with(cfg, &registry, &index, path))

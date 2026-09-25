@@ -28,7 +28,7 @@ use spec_spine_types::{
 };
 
 use crate::coverage::{Ownership, classify, in_coverage_universe_with};
-use crate::index::{Freshness, check_index_freshness, spec_md_rel};
+use crate::index::spec_md_rel;
 use crate::waiver::{WaiverDeclaration, WaiverInputs, WaiverSet};
 
 /// The hardcoded generic bypass floor (spec 005 §3.5): the **single built-in
@@ -352,10 +352,7 @@ pub fn couple_snapshots_waived(
     prior: &PriorSnapshots<'_>,
 ) -> Result<CoupleReport, Error> {
     inputs.validate()?;
-    match check_index_freshness(cfg, repo_root)? {
-        Freshness::Stale { expected, actual } => return Err(Error::Stale { expected, actual }),
-        Freshness::Fresh => {}
-    }
+    crate::index::guard_committed_index(cfg, repo_root)?;
     let registry = load_committed_registry(cfg, repo_root)?;
     let index = load_committed_index(cfg, repo_root)?;
     // Spec 078 §3.3: the gate reads the universe the coverage report reads. The
