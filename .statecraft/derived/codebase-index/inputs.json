@@ -97,10 +97,10 @@
       "contentHash": "2e415a74b666b21d114ef0aebb656e22b6b634f4d66b2fbc5f3c422b1a57ac3e"
     },
     "crates/spec-spine-types/schemas/registry-spec-shard.schema.json": {
-      "contentHash": "6b895a88e7195677c3a38d42e41d173b5674942eaa18d171d3cc808f6fc221f2"
+      "contentHash": "22bbd344f7c6e3aa150012829ecdd43965ebe22186cd1f8fd2aad42a7e4e4e0b"
     },
     "crates/spec-spine-types/schemas/registry.schema.json": {
-      "contentHash": "c917600cc3f06be61144a1b5ef46074bc162561a52dd122d071660ed27c86b48"
+      "contentHash": "baeba0713160e7cd6b910f4bcd88d2780dcc506c95772ca7c569e6c33ee523eb"
     },
     "docs/adoption-guide.md": {
       "contentHash": "d3a20b10e0055fbc167e17e3a39cfafaf84ef7201d82a4e09c01373e6bc95f18"
@@ -121,7 +121,7 @@
       "contentHash": "eec1bea982688c1eda66d5a0a0a8ee511d1b1770ad0d434ea02953b529b5df9d"
     },
     "docs/schema-versioning.md": {
-      "contentHash": "1b47daf81740f937e1f66d7ba520914e5f87b518754e69de7f9c15271efe81f3"
+      "contentHash": "a32082185534018c1ca9d8ee46ab7c4e2474c6f95c4371ae49b651f0f80ff7c5"
     },
     "docs/specify-first.md": {
       "contentHash": "d983fd1bc596ba8463330c4be51ca00561645c53594f17e6355c5e664241d0b4"
@@ -169,7 +169,7 @@
       "contentHash": "9422c45aeea54a1765b9da797f6c7e958dd2e7d4e74a7e3b788f3ec281a97900"
     },
     "standards/spec/templates/spec-template.md": {
-      "contentHash": "9c8cec6c9010099802f7d335c7559c5464a1031e10ae457518409b9944b5fcb0"
+      "contentHash": "b2f63e696ebe464465d4ebc24838d5c4af781809a21787153435a7870c032382"
     }
   },
   "schemaVersion": "1.2.0"

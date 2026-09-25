@@ -127,5 +127,5 @@
     "title": "A verifier checks the bytes it was given"
   },
   "shardHash": "540bdb44cd67a65bf941040a86237110bfa09615a81d7c583d9fa7de1a631be5",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

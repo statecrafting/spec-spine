@@ -55,6 +55,10 @@ pub enum DeltaClass {
     /// `spec-spine.toml`, or a path matched by the base's
     /// `[index] extra_hashed_inputs`.
     Policy,
+    /// A `spec.md` whose body outside `## Verification` changed only by losing
+    /// sections another spec proved it received unchanged (spec 142 §3.3).
+    /// Carried instead of `requirement` for that body change, never with it.
+    Relocation,
     /// A `spec.md` whose body outside `## Verification` changed, or whose
     /// frontmatter changed in a key no other class names.
     Requirement,
@@ -70,7 +74,7 @@ pub enum DeltaClass {
 
 impl DeltaClass {
     /// Every class, in token order.
-    pub const ALL: [DeltaClass; 11] = [
+    pub const ALL: [DeltaClass; 12] = [
         DeltaClass::Authority,
         DeltaClass::Bypassed,
         DeltaClass::Constitutional,
@@ -78,6 +82,7 @@ impl DeltaClass {
         DeltaClass::Implementation,
         DeltaClass::Lifecycle,
         DeltaClass::Policy,
+        DeltaClass::Relocation,
         DeltaClass::Requirement,
         DeltaClass::Unknown,
         DeltaClass::Unowned,
@@ -149,6 +154,31 @@ pub struct DeltaReport {
     /// so a consumer reads a count rather than inferring one from absence.
     pub counts: BTreeMap<DeltaClass, usize>,
     pub prior_policy: PriorPolicy,
+    /// Every declared section relocation whose source or receiving `spec.md`
+    /// this change touches, and whether it was proven (spec 142 §3.3). Omitted
+    /// when there are none, so a report about a change with no relocation is
+    /// byte-identical to one before 0.2.0 except for `schemaVersion`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub relocations: Vec<RelocationCheck>,
+}
+
+/// One declared relocation, checked against the merge base (spec 142 §3.3).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RelocationCheck {
+    /// The spec declaring the relocation (the receiver).
+    pub spec: String,
+    /// The source spec and its section anchor, as at the merge base.
+    pub from_spec: String,
+    pub from: String,
+    /// The receiving section's anchor at head.
+    pub to: String,
+    /// True when the source section at the merge base and the receiving
+    /// section at head have the same relocation digest.
+    pub proven: bool,
+    /// Why it was not proven; absent when it was.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
 }
 
 /// One changed path and every class that applies to it.

@@ -34,6 +34,7 @@ pub mod moves;
 pub mod pathutil;
 pub mod query;
 pub mod read;
+pub mod relocation;
 pub mod render;
 pub mod scaffold;
 pub mod scope;

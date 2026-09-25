@@ -60,5 +60,5 @@
     "title": "Distribution: npm binary shim + the release pipeline"
   },
   "shardHash": "5de1056c4207d934466ce6f08a911b251c52acb4ef53dbbb7e8bb5ee2eb12b84",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

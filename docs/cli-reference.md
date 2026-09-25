@@ -330,9 +330,16 @@ spec-spine delta [--base BASE] [--head HEAD] [--json]
 ```
 
 Classifies every path a change touches under the **merge base's** rules (spec
-071): implementation, requirement, verification, authority, lifecycle,
-constitutional, policy, derived, bypassed, unowned or unknown. A path may carry
-several classes.
+071): implementation, requirement, relocation, verification, authority,
+lifecycle, constitutional, policy, derived, bypassed, unowned or unknown. A path
+may carry several classes.
+
+`relocation` (spec 142) replaces `requirement` for a `spec.md` whose body only
+lost sections that another spec declares it received (`relocates`) and that
+arrived unchanged, compared with the source as it was at the merge base.
+`relocations` lists every declared relocation the change touches, with
+`proven` and, when it is false, a `reason`. An unproven relocation leaves the
+change a `requirement`.
 
 The configuration and the index that classify are the merge base's, so a change
 cannot reclassify itself by editing `spec-spine.toml`.
