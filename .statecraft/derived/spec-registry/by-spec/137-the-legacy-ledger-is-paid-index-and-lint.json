@@ -77,10 +77,10 @@
       "Verification"
     ],
     "specPath": "specs/137-the-legacy-ledger-is-paid-index-and-lint/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "10 specs filed before `verify` existed (003, 004, 010, 011, 016, 020, 022, 023, 024, 025) sit on the legacy ledger in `scripts/verify-sweep.sh` with no executable acceptance, although the tests that hold their behavior exist and pass. This spec carries that acceptance for them under `amends_verification`, the route spec 132 used, and deletes their ledger lines in the same change. Every command names its tests exactly and asserts the exact pass count, so a renamed or deleted test turns the block red instead of passing on an empty filter. The area is the codebase index, lint, section and symbol resolution, and sharding.\n",
     "title": "The legacy ledger is paid: index, lint and resolution"
   },
-  "shardHash": "0cec9e7df264f9ce032692b3c38475abb53bebc6fc1f52eed398a94607ab97a5",
+  "shardHash": "8782c30f664fbd9f6644eb4aa2edfb3f8e5ac8c70b7e96b4af8cc851be376258",
   "specVersion": "1.9.0"
 }
