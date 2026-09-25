@@ -1,7 +1,7 @@
 ---
 id: "145-an-unresolved-claim-is-not-called-stale"
 title: "An unresolved claim is not called stale"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-25"
 summary: >

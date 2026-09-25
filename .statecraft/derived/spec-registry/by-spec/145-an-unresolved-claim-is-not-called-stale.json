@@ -100,10 +100,10 @@
       "Verification"
     ],
     "specPath": "specs/145-an-unresolved-claim-is-not-called-stale/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 079 taught `check` and `index check` to tell a stale shard from an unresolved claim, because the two have different remedies and regenerating cures only the first. The other verbs that read the committed index (`index coverage`, `index owner`, `couple`, `scope`, and `delta` at the merge base) kept the folded verdict and still said \"index is stale\" about a claim that resolves to nothing, naming a `blocking-diagnostics` shard and implying the wrong fix. This spec gives them one guard that keeps the two apart: a committed shard whose bytes moved is staleness, as before; an unresolved claim with byte-exact shards is a validation finding that names the claim and says regenerating does not clear it. The exit code stays 1; under `--json` the error kind becomes `validation`, with the claim in `violations`.\n",
     "title": "An unresolved claim is not called stale"
   },
-  "shardHash": "25d4665fa5747e9f18adef6c8a69182c25a9fc3d1ee9c11c9537a6e0732585db",
+  "shardHash": "1012889c24de4ff199f83d7dfff42d850bb34eb6dfecbcdd0f10eaafff85c905",
   "specVersion": "1.9.0"
 }
