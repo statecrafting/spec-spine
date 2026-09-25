@@ -1,0 +1,66 @@
+{
+  "record": {
+    "amends": [
+      "136-the-legacy-ledger-is-paid-registry-and-grammar",
+      "144-a-repository-path-is-one-type",
+      "145-an-unresolved-claim-is-not-called-stale"
+    ],
+    "amendsVerification": [
+      "136-the-legacy-ledger-is-paid-registry-and-grammar",
+      "144-a-repository-path-is-one-type",
+      "145-an-unresolved-claim-is-not-called-stale"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "136-the-legacy-ledger-is-paid-registry-and-grammar",
+      "142-a-relocation-is-proven",
+      "144-a-repository-path-is-one-type",
+      "145-an-unresolved-claim-is-not-called-stale"
+    ],
+    "id": "151-carried-acceptance-tests-what-it-names",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionDigests": {
+      "1-1-018-does-not-re-test-142-s-amendment": "33f52cdb38e2ecc4b366ee649688246e72c8d8d3e27d7cc81e81e247e2e06ebd",
+      "1-2-144-s-test-count-is-loose": "d02a57b7006151faa7099e8d5471b7672188ad4d412bfbe3dbd4abb8e9877869",
+      "1-3-145-drives-one-verb": "500e183e4932f66c7c1574e79d5870cca04681e71df436767785cc33eb7b993d",
+      "1-4-mutation-evidence": "92c049e53e72108f63a24204f116642e0e6d81be4c5811f97af879ee77f9bac8",
+      "1-purpose": "e6106017458bf61206d284fbd39830209caae8bf3362dbf75f73b1f3df4b0df5",
+      "151-carried-acceptance-tests-what-it-names": "503b20c40bacb05cb851b5a42b5707e48f9b32ae044eef50f1492b66ebf9eff7",
+      "2-territory": "5454aff26ef0e07afb23be6642bfc2011b1fef29b7beb8a537963bc8e6545c3d",
+      "3-1-018-s-section-runs-the-hand-off": "a667a4a3f3c27a50e5199be4bb1b14b40970e5be3abda57399c7793385781637",
+      "3-2-144-s-line-names-its-tests": "22c080d3307a95ef5d5a1b1397723845e557d291015e67b99b2af5272515933e",
+      "3-3-145-s-block-drives-every-reading-verb": "3de1d4e345a5bd0ed592ccc9c3c77308a1bca4ac66c130c14e43a3f619dc7456",
+      "3-4-the-amended-specs-say-so": "7db8fdba59b2dc09d130b66d58eb19cab264ed4c4ba7b9e78edbb27db18e3c89",
+      "3-behavior": "019cc80f14d0e4054317f9c83f121b2d0e2f087df6a44d7d53e0604933e5a9e8",
+      "4-out-of-scope": "655735d01ad34c4d1acdf3284c5c07c20218c43ac54a46d232b7d728b97d32a1",
+      "5-resolved-decisions": "9b52428c5e8407bff076c918f42127ac60ff5364bd558927d1158dc6d346a1da",
+      "verification": "f508cc46a00337dfbc9e2b277d3f215b3efb14a79c98a7d7bfa7dbb2b8a47c94"
+    },
+    "sectionHeadings": [
+      "151: Carried acceptance tests what it names",
+      "1. Purpose",
+      "1.1 018 does not re-test 142's amendment",
+      "1.2 144's test count is loose",
+      "1.3 145 drives one verb",
+      "1.4 Mutation evidence",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 018's section runs the hand-off",
+      "3.2 144's line names its tests",
+      "3.3 145's block drives every reading verb",
+      "3.4 The amended specs say so",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/151-carried-acceptance-tests-what-it-names/spec.md",
+    "status": "draft",
+    "summary": "The 0.27.0 cross-reference of 136 to 146 found three acceptance plans that could pass without testing what their spec now says. 018's plan (carried by 136) never runs 142's amendment of it: its coupling tests build their index by hand, so they pass whether or not the index hands a partially superseded unit over. 144's link-rule line accepts any positive test count, so a link test that stops running still passes. 145's binary line drives only `index coverage`, while six other verbs read the same guard. This spec carries all three plans under `amends_verification`: 018's section gains the hand-off, run through `index` and the shipped binary; 144's line names its three tests; 145's block gains one fixture driven through all seven verbs. Each new line fails under a mutation the carried line it tightens passes.\n",
+    "title": "Carried acceptance tests what it names"
+  },
+  "shardHash": "e31501af139b691d19067d53e79bfb9e9be525003a30e471f8e361defcb87458",
+  "specVersion": "1.9.0"
+}

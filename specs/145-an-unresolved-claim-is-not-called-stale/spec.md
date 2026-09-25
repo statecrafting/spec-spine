@@ -112,6 +112,11 @@ case that already has a name.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-25).** This block no longer runs.
+> `151-carried-acceptance-tests-what-it-names` declares this spec in
+> `amends_verification`, so `spec-spine verify 145` builds its plan from that
+> spec's block, where these commands are carried unchanged and followed by one new line (spec 082 3.2 and 3.4).
+
 ```verify:cli
 # 3.1: the readers name the claim; drift stays staleness and comes first; a
 # blocked shard that moved is stale; a resolved corpus reads. With the old

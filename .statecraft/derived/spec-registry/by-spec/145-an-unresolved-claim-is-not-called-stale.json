@@ -79,14 +79,14 @@
     "risk": "low",
     "sectionDigests": {
       "1-purpose": "aad0a56e89108d23b3b29d343065beb8df11d2e961e3f6f441e78d3a08330d15",
-      "145-an-unresolved-claim-is-not-called-stale": "66e772903e39f955e3386cc283dbeb50fb68c815fe72caf84482db237c290971",
+      "145-an-unresolved-claim-is-not-called-stale": "4cde660a5654743d97fd24b46d7c73c117fa8fe40cd3543eea088151fceb962b",
       "2-territory": "6f32bcbeed4fb1b28a06a3c9c40cccf4ffe6d70e4e3d3b433f350d9ae8842be9",
       "3-1-one-guard-two-refusals-amends-079": "8b6788fbfaa3476a039903b1bafc184b16961f429e4eb3817556b8648a409f7e",
       "3-2-a-validation-failure-names-what-failed": "34a54d1a7df275df2eb76020717d5561289a4548157edb88efd378f783fdebb4",
       "3-behavior": "55dec9b0fa2568559ccb92db141556c106fa6cfe36bf5a64a06d9087a4a5801e",
       "4-out-of-scope": "421d84084ddadee11af0157bdc3aeb83eba037bc0bd3c758e686a30cd028ff94",
       "5-resolved-decisions": "e8bc0516b53f2c330b8012e3d258febf81644bea6810cb12404ab4d42f0a8ed6",
-      "verification": "9b5a47af9f4a73001bc7632d8c1f14f177bd13b3b917d20c6ca39c32e8345a7b"
+      "verification": "677a2f8fc49fd01c7f9ae40bc9d12a21d88cb0beb6b1398137a54e6808fb5176"
     },
     "sectionHeadings": [
       "145: An unresolved claim is not called stale",
@@ -104,6 +104,6 @@
     "summary": "Spec 079 taught `check` and `index check` to tell a stale shard from an unresolved claim, because the two have different remedies and regenerating cures only the first. The other verbs that read the committed index (`index coverage`, `index owner`, `couple`, `scope`, and `delta` at the merge base) kept the folded verdict and still said \"index is stale\" about a claim that resolves to nothing, naming a `blocking-diagnostics` shard and implying the wrong fix. This spec gives them one guard that keeps the two apart: a committed shard whose bytes moved is staleness, as before; an unresolved claim with byte-exact shards is a validation finding that names the claim and says regenerating does not clear it. The exit code stays 1; under `--json` the error kind becomes `validation`, with the claim in `violations`.\n",
     "title": "An unresolved claim is not called stale"
   },
-  "shardHash": "1012889c24de4ff199f83d7dfff42d850bb34eb6dfecbcdd0f10eaafff85c905",
+  "shardHash": "5af5bb14019170f115a87772351c15d2f6e9c82e56cd31265e753bf602c3a71f",
   "specVersion": "1.9.0"
 }

@@ -56,14 +56,14 @@
     "risk": "low",
     "sectionDigests": {
       "1-purpose": "1f2cc30eb9e70d69e458646f3f5793b9aee71cbc418417eddf16de951ad48ace",
-      "136-the-legacy-ledger-is-paid-registry-and-grammar": "9a52082adeed6fb90608af10727db40f4e3a58ee584236b5f73ea2eecfe21636",
+      "136-the-legacy-ledger-is-paid-registry-and-grammar": "d86c8ad4f6ce2d381529c19c261ac1d22fd19a754d9cbd94986c1fc6318922fe",
       "2-territory": "ac51968c7b653c95f5e293d3cb049697179d60f8ff6b1a97c0152bd25c1eee1c",
       "3-1-the-carried-acceptance": "deaa9a7bd71e69b87a347d61eef34e5e492a0f1b4345820409180001a6226d5f",
       "3-2-the-ledger-shrinks-in-the-same-change": "bc3329575b9a504c019b83a72bda36145def1e025b2dfc17a501c0dc57d1ae08",
       "3-behavior": "70cfbf053cdd7144a92d035aa177c9dd5693ee25ec7f72d4ec3e0d206f986c4c",
       "4-out-of-scope": "0a7ad102dd7d881cb630fbe9a37e1fb593523a95dcb07290f63e0d8507b25117",
       "5-resolved-decisions": "bc5135e9725a356b59e1725688fbfe67da3e6738ac432a5e8d1d540a0296de7d",
-      "verification": "13c8b2aecb1536b6ade71a46cbd079fd7152ba94e85e631c7dc9ef60934d3e12"
+      "verification": "e0fdaac0ea38d167fbefd5da127862a88eb01570bacc49e29e2770b9fabf1691"
     },
     "sectionHeadings": [
       "136: The legacy ledger is paid: registry and grammar",
@@ -81,6 +81,6 @@
     "summary": "10 specs filed before `verify` existed (001, 002, 009, 012, 013, 014, 015, 017, 018, 026) sit on the legacy ledger in `scripts/verify-sweep.sh` with no executable acceptance, although the tests that hold their behavior exist and pass. This spec carries that acceptance for them under `amends_verification`, the route spec 132 used, and deletes their ledger lines in the same change. Every command names its tests exactly and asserts the exact pass count, so a renamed or deleted test turns the block red instead of passing on an empty filter. The area is the registry compiler, its query surface, and the frontmatter and edge grammar.\n",
     "title": "The legacy ledger is paid: registry and grammar"
   },
-  "shardHash": "961047dbf52ec8f2db2f2f2c7ae2575a2d8ebe7afc4b014374b1259c12410f42",
+  "shardHash": "52f4029d2d6ed2ae1047fd225e8480a28d8d8a4c17e9f1ec8322687b1fa08f73",
   "specVersion": "1.9.0"
 }
