@@ -414,7 +414,7 @@ fn a_location_that_resolves_but_cannot_be_read_is_an_error() {
         // uid lookup would need it.
         if fs::read(tmp.path().join("code.txt")).is_err() {
             let err = attest_spec(&cfg, tmp.path(), "001-a").unwrap_err();
-            assert_eq!(err.exit_code(), 3, "an unreadable input is an I/O error");
+            assert_eq!(err.exit_code(), 4, "an unreadable input is an I/O error");
             let message = err.to_string();
             assert!(message.contains("code.txt"), "names the file: {message}");
             assert!(message.contains("001-a"), "and the spec: {message}");

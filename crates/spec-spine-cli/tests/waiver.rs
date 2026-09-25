@@ -138,8 +138,8 @@ fn report(out: &Output) -> Value {
     let v: Value = serde_json::from_slice(&out.stdout).expect("one JSON envelope on stdout");
     assert_eq!(v["schemaVersion"], spec_spine_types::VERDICT_SCHEMA_VERSION);
     assert_eq!(
-        v["schemaVersion"], "0.6.0",
-        "spec 113 §3.8: the verdict MINOR"
+        v["schemaVersion"], "1.0.0",
+        "spec 132: the family envelope, a MAJOR over spec 113's 0.6.0"
     );
     v["report"].clone()
 }
@@ -327,6 +327,6 @@ fn the_facade_and_the_cli_agree() {
     });
     assert!(matches!(
         spec_spine_core::couple_json(&both_sources.to_string()),
-        Err(spec_spine_types::Error::Parse(_))
+        Err(spec_spine_types::Error::Usage(_))
     ));
 }

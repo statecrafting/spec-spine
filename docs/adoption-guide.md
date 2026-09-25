@@ -186,8 +186,9 @@ jobs:
           fetch-depth: 0          # full history so the gate can diff the merge base
       - run: cargo install spec-spine-cli   # or download the prebuilt binary
       # `compile --check` validates the frontmatter AND proves the committed
-      # registry shards match the corpus, without writing (exit 1 invalid,
-      # 2 stale). Never run it after a plain `spec-spine compile` in the same
+      # registry shards match the corpus, without writing (exit 1 either way,
+      # invalid or stale, under spec 132; stale was exit 2 before 0.26.0).
+      # Never run it after a plain `spec-spine compile` in the same
       # job: it would compare the shards against files that run just overwrote
       # and pass unconditionally.
       - run: spec-spine check               # both trees: validation + freshness
@@ -246,7 +247,7 @@ no spec claims. `spec-spine index coverage` (spec 029) answers that, per
 source file, against the committed index:
 
 ```sh
-spec-spine index coverage                      # the report (exit 2 if the index is stale)
+spec-spine index coverage                      # the report (exit 1 if the index is stale; was exit 2)
 spec-spine index coverage --json               # the same as a CoverageReport
 spec-spine index coverage --fail-on-untraced   # exit 1 unless every source file is claimed
 ```

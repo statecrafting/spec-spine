@@ -78,7 +78,7 @@ fn malformed_config_is_clean_error_not_panic() {
     // Unknown top-level section.
     let e = load_config("[bogus_section]\nx = 1\n").unwrap_err();
     assert!(matches!(e, Error::Config(_)));
-    assert_eq!(e.exit_code(), 3);
+    assert_eq!(e.exit_code(), 2);
 
     // Unknown key in a known section (the typo'd-knob failure class).
     let e = load_config("[manifest]\nmetadata_namspace = \"x\"\n").unwrap_err();
@@ -162,7 +162,7 @@ fn state_dir_may_not_overlap_a_governed_root_in_either_direction() {
             matches!(err, Error::Config(_)),
             "state_dir '{value}' must be refused, got {err:?}"
         );
-        assert_eq!(err.exit_code(), 3, "a bad config is exit 3");
+        assert_eq!(err.exit_code(), 2, "a bad config is exit 2");
     }
     // A value escaping the repo, or an absolute one, matches no path the gates
     // ever test, so it would declare a root that silences nothing while the
@@ -309,7 +309,7 @@ fn check_required_version_names_requirement_running_and_location() {
         "where the pin lives: {msg}"
     );
     // §3.2: exit 3. Not 1 (nothing was validated), not 2 (nothing is stale).
-    assert_eq!(err.exit_code(), 3);
+    assert_eq!(err.exit_code(), 2);
 }
 
 /// §3.1: `CONFIG_VERSION` does not move, and a config written before this spec

@@ -1041,11 +1041,11 @@ fn spec_spine_verbs(run: &str) -> Vec<String> {
         }
         let Some(verb) = toks.next() else { continue };
         let mut v = verb.to_string();
-        if let Some(sub) = toks.next() {
-            if !sub.starts_with('-') {
-                v.push(' ');
-                v.push_str(sub);
-            }
+        if let Some(sub) = toks.next()
+            && !sub.starts_with('-')
+        {
+            v.push(' ');
+            v.push_str(sub);
         }
         out.push(v);
     }

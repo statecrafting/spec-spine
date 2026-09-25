@@ -160,19 +160,19 @@ pub fn lint(cfg: &Config, repo_root: &Path) -> Result<LintReport, Error> {
         // `--fail-on-warn`) for one decision.
         if cfg.lint.require_ordinal_monotonic_depends_on {
             for target in &spec.depends_on {
-                if let Some((mine, theirs)) = ordinal_pair(&spec.id, target) {
-                    if theirs >= mine {
-                        violations.push(error(
-                            "L-007",
-                            format!(
-                                "spec '{}' depends_on '{target}', which is not a lower \
+                if let Some((mine, theirs)) = ordinal_pair(&spec.id, target)
+                    && theirs >= mine
+                {
+                    violations.push(error(
+                        "L-007",
+                        format!(
+                            "spec '{}' depends_on '{target}', which is not a lower \
                                  ordinal ({theirs:03} >= {mine:03}): a dependency points \
                                  backward in filing order",
-                                spec.id
-                            ),
-                            at(),
-                        ));
-                    }
+                            spec.id
+                        ),
+                        at(),
+                    ));
                 }
             }
         }
@@ -606,10 +606,10 @@ fn claimed_paths(spec: &SpecRecord) -> Vec<String> {
         }
     }
     for item in &spec.supersedes {
-        if let spec_spine_types::SupersedeItem::Scoped(scoped) = item {
-            if let Some(u) = &scoped.unit {
-                push(u);
-            }
+        if let spec_spine_types::SupersedeItem::Scoped(scoped) = item
+            && let Some(u) = &scoped.unit
+        {
+            push(u);
         }
     }
     for item in &spec.co_authority {

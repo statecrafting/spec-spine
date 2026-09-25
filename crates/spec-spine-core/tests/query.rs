@@ -38,7 +38,7 @@ fn load_registry_rejects_unknown_major() {
     let bad = r#"{"specVersion":"9.0.0","build":{"compilerId":"x","compilerVersion":"0.1.0","inputRoot":".","contentHash":"0000000000000000000000000000000000000000000000000000000000000000"},"specs":[],"validation":{"passed":true,"violations":[]}}"#;
     let err = load_registry(bad.as_bytes()).unwrap_err();
     assert!(matches!(err, Error::Schema(_)));
-    assert_eq!(err.exit_code(), 3);
+    assert_eq!(err.exit_code(), 4);
 }
 
 #[test]

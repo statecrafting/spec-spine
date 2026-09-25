@@ -53,7 +53,7 @@ pub const ITEMS_MEMBER: &str = "items";
 ///
 /// A pure function of `(value, mode)`: no clock, environment or filesystem.
 pub fn read_document<T: Serialize + ?Sized>(value: &T, mode: Versioning) -> Result<String, Error> {
-    let value = serde_json::to_value(value).map_err(|e| Error::Schema(e.to_string()))?;
+    let value = serde_json::to_value(value).map_err(|e| Error::Internal(e.to_string()))?;
     let mut object = match value {
         Value::Object(map) => map,
         Value::Array(items) => {

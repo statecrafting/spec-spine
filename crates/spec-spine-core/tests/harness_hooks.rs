@@ -609,6 +609,19 @@ fn run_pr_gate_with_stand_in(check_exit: i32, version: &str) -> (i32, String) {
 /// clap spends exit 2 on the unrecognised subcommand: the case spec 093 3.1
 /// separates from staleness.
 fn run_pr_gate_with_stand_in_help(check_exit: i32, help_exit: i32, version: &str) -> (i32, String) {
+    run_pr_gate_with_report(check_exit, help_exit, version, "")
+}
+
+/// As [`run_pr_gate_with_stand_in_help`], with the stand-in's `check` printing
+/// `report` first. Spec 132 made the report the thing that tells a stale tree
+/// from an invalid one (both exit 1), so a gate test that means "stale" passes
+/// the report that says so.
+fn run_pr_gate_with_report(
+    check_exit: i32,
+    help_exit: i32,
+    version: &str,
+    report: &str,
+) -> (i32, String) {
     use std::io::Write;
     use std::os::unix::fs::PermissionsExt;
     use std::process::{Command, Stdio};
@@ -639,6 +652,8 @@ fn run_pr_gate_with_stand_in_help(check_exit: i32, help_exit: i32, version: &str
     ]);
 
     let stand_in = root.join("stand-in-spec-spine");
+    let report_file = root.join("report.txt");
+    fs::write(&report_file, report).unwrap();
     // `check --help` is matched BEFORE `check`, because the gate's probe and the
     // gate's read differ only by that argument and the whole point of spec 093
     // is that they are different questions.
@@ -646,8 +661,9 @@ fn run_pr_gate_with_stand_in_help(check_exit: i32, help_exit: i32, version: &str
         &stand_in,
         format!(
             "#!/bin/sh\ncase \"$*\" in\n  *--version*) echo '{version}'; exit 0 ;;\n\
-             \x20 *'check --help'*) exit {help_exit} ;;\n  *check*) exit {check_exit} ;;\n\
-             \x20 *couple*) exit 0 ;;\nesac\nexit 0\n"
+             \x20 *'check --help'*) exit {help_exit} ;;\n  *check*) cat '{}'; exit {check_exit} ;;\n\
+             \x20 *couple*) exit 0 ;;\nesac\nexit 0\n",
+            report_file.display()
         ),
     )
     .unwrap();
@@ -720,19 +736,51 @@ fn the_pr_gate_reports_a_read_it_could_not_perform_as_that_and_not_as_stale() {
     );
 }
 
-/// The other half of the pair: exit 2 is still reported as stale, with the
-/// remedy unchanged, so the distinction is pinned rather than the refusal.
+/// The other half of the pair: a stale tree is still reported as stale, with
+/// the remedy unchanged, so the distinction is pinned rather than the refusal.
+/// Since spec 132 it is exit 1 with the report's `STALE` line.
 #[test]
 fn the_pr_gate_still_reports_a_stale_tree_as_stale() {
-    let (code, err) = run_pr_gate_with_stand_in(2, "spec-spine 0.18.0-stand-in");
+    let (code, err) = run_pr_gate_with_report(1, 0, "spec-spine 0.26.0-stand-in", STALE_ONLY);
     assert_eq!(code, 2, "{err}");
     assert!(err.contains("stale"), "{err}");
     assert!(err.contains("compile and index"), "{err}");
     assert!(!err.contains("not performed"), "{err}");
     assert!(
-        !err.contains("0.18.0-stand-in"),
+        !err.contains("0.26.0-stand-in"),
         "--version is not asked on an answered exit (3.2): {err}"
     );
+}
+
+/// Spec 132 §3.2: exit 2 with no stale report is a refusal (an invalid
+/// configuration or an unmet version pin). The tree was not read, so it is
+/// neither stale nor invalid, and the gate says what it was told.
+#[test]
+fn spec132_the_pr_gate_reports_a_refusal_as_one() {
+    let (code, err) = run_pr_gate_with_report(
+        2,
+        0,
+        "spec-spine 0.26.0-stand-in",
+        "spec-spine: refused: this repository requires spec-spine =9.9.9\n",
+    );
+    assert_eq!(code, 2, "{err}");
+    assert!(err.contains("REFUSED"), "{err}");
+    assert!(
+        err.contains("requires spec-spine =9.9.9"),
+        "relays what it said: {err}"
+    );
+    assert!(!err.contains("is stale"), "{err}");
+    assert!(!err.contains("does not validate"), "{err}");
+}
+
+/// Spec 132 §3.2: exit 4 is a read that failed, reported like exit 3.
+#[test]
+fn spec132_the_pr_gate_reports_exit_4_as_a_read_not_performed() {
+    let (code, err) = run_pr_gate_with_stand_in(4, "spec-spine 0.26.0-stand-in");
+    assert_eq!(code, 2, "{err}");
+    assert!(err.contains("not performed"), "{err}");
+    assert!(err.contains("exit 4"), "{err}");
+    assert!(!err.to_lowercase().contains("stale"), "{err}");
 }
 
 /// Spec 093 3.1: exit 1 is a corpus that does not validate, which is neither
@@ -1278,6 +1326,36 @@ fn the_stop_hook_guesses_no_remedy_for_a_report_it_cannot_read() {
     assert!(!out.contains("UNRESOLVED CLAIM"), "{out}");
 }
 
+/// Spec 132: the stale finding is exit 1 now; the report line still names it,
+/// and the wording is unchanged.
+#[test]
+fn spec132_the_stop_hook_reports_exit_1_stale_as_stale() {
+    let (code, out) = run_stop(1, STALE_ONLY);
+    assert_eq!(code, 0, "{out}");
+    assert!(
+        out.contains("[freshness] STALE: run `spec-spine compile` and `index`"),
+        "{out}"
+    );
+    assert!(
+        !out.contains("INVALID"),
+        "a stale report is not invalid: {out}"
+    );
+}
+
+/// Spec 132: exit 2 with no report line is a refusal, and exit 4 a failed
+/// read; neither is staleness.
+#[test]
+fn spec132_the_stop_hook_reports_a_refusal_and_a_failed_read() {
+    let (code, out) = run_stop(2, "spec-spine: config error: unknown field `nope`\n");
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("REFUSED"), "{out}");
+    assert!(!out.contains("[freshness] STALE"), "{out}");
+    let (code, out) = run_stop(4, NOT_READ);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("NOT READ"), "{out}");
+    assert!(out.contains("exit 4"), "{out}");
+}
+
 #[test]
 fn the_stop_hook_says_nothing_when_both_trees_are_fresh() {
     let (code, out) = run_stop(0, HEALTHY);
@@ -1349,6 +1427,22 @@ fn the_session_banner_reports_both_halves_of_a_mixed_verdict() {
     );
 }
 
+/// Spec 132: the banner reads a stale report at exit 1, a refusal at exit 2
+/// and a failed read at exit 4, each in its own words.
+#[test]
+fn spec132_the_session_banner_reads_the_five_codes() {
+    let (_, out) = run_session_start(1, STALE_ONLY);
+    assert!(
+        out.contains("codebase index: STALE, run spec-spine index"),
+        "{out}"
+    );
+    let (_, out) = run_session_start(2, "spec-spine: refused: pin\n");
+    assert!(out.contains("REFUSED (check exit 2"), "{out}");
+    assert!(!out.contains("unknown (check exit"), "{out}");
+    let (_, out) = run_session_start(4, "spec-spine: io error: x\n");
+    assert!(out.contains("NOT READ (check exit 4"), "{out}");
+}
+
 #[test]
 fn the_session_banner_still_reports_a_healthy_tree() {
     let (code, out) = run_session_start(0, HEALTHY);
@@ -1365,7 +1459,9 @@ fn the_session_banner_still_reports_a_healthy_tree() {
 /// staleness, and the message is unchanged.
 #[test]
 fn spec104_exit_2_from_a_current_binary_is_still_stale() {
-    let (code, err) = run_pr_gate_with_stand_in_help(2, 0, "spec-spine 0.19.0-stand-in");
+    // A binary before 0.26.0 (spec 132) still spends exit 2 on staleness, and
+    // its report says so.
+    let (code, err) = run_pr_gate_with_report(2, 0, "spec-spine 0.19.0-stand-in", STALE_ONLY);
     assert_eq!(code, 2, "{err}");
     assert!(err.contains("a committed shard tree is stale"), "{err}");
     assert!(err.contains("spec-spine compile and index"), "{err}");

@@ -145,10 +145,11 @@ fn extract_inline_mods(src: &str) -> Vec<(String, LineSpan)> {
     let mut out = Vec::new();
     let mut cursor = root.walk();
     for child in root.named_children(&mut cursor) {
-        if child.kind() == "mod_item" && child.child_by_field_name("body").is_some() {
-            if let Some(sym) = symbol_of(child, src) {
-                out.push(sym);
-            }
+        if child.kind() == "mod_item"
+            && child.child_by_field_name("body").is_some()
+            && let Some(sym) = symbol_of(child, src)
+        {
+            out.push(sym);
         }
     }
     out
@@ -339,10 +340,10 @@ fn extract(src: &str, language: Language, kinds: &[&str]) -> Vec<(String, LineSp
         } else {
             child
         };
-        if kinds.contains(&decl.kind()) {
-            if let Some(sym) = symbol_of(decl, src) {
-                out.push(sym);
-            }
+        if kinds.contains(&decl.kind())
+            && let Some(sym) = symbol_of(decl, src)
+        {
+            out.push(sym);
         }
     }
     out

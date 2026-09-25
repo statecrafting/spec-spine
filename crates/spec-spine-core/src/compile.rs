@@ -335,24 +335,24 @@ fn validate_spec(
         ));
     }
     // V-005: domain allowlist (only when configured non-empty).
-    if let Some(domain) = &fm.domain {
-        if !cfg.domains.permits(domain) {
-            out.push(error(
-                "V-005",
-                format!("domain '{domain}' is not in domains.allowed"),
-                at(),
-            ));
-        }
+    if let Some(domain) = &fm.domain
+        && !cfg.domains.permits(domain)
+    {
+        out.push(error(
+            "V-005",
+            format!("domain '{domain}' is not in domains.allowed"),
+            at(),
+        ));
     }
     // V-006: kind allowlist (only when configured non-empty).
-    if let Some(kind) = &fm.kind {
-        if !cfg.kind.permits(kind) {
-            out.push(error(
-                "V-006",
-                format!("kind '{kind}' is not in kind.allowed"),
-                at(),
-            ));
-        }
+    if let Some(kind) = &fm.kind
+        && !cfg.kind.permits(kind)
+    {
+        out.push(error(
+            "V-006",
+            format!("kind '{kind}' is not in kind.allowed"),
+            at(),
+        ));
     }
     // V-007: undeclared extra_frontmatter count cap.
     let undeclared = fm
@@ -1743,7 +1743,7 @@ fn read_committed_registry_shards(
     let mut shards = Vec::new();
     for (name, bytes) in shard::read_shard_files(&dir)? {
         let sh: RegistrySpecShard = serde_json::from_slice(&bytes)
-            .map_err(|e| Error::Parse(format!("invalid registry shard {name}: {e}")))?;
+            .map_err(|e| Error::Schema(format!("invalid registry shard {name}: {e}")))?;
         shard::check_major("registry", &sh.spec_version, REGISTRY_SCHEMA_VERSION)?;
         shards.push(sh);
     }

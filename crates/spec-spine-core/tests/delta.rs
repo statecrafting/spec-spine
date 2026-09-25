@@ -504,6 +504,6 @@ fn the_facade_matches_the_typed_call() {
     escaping["changed"] = serde_json::json!(["../outside"]);
     assert!(matches!(
         delta_json(&escaping.to_string()),
-        Err(Error::Parse(_))
+        Err(Error::Usage(_))
     ));
 }
