@@ -141,6 +141,11 @@ corpus in the family stores one there.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-25).** This block no longer runs.
+> `151-carried-acceptance-tests-what-it-names` declares this spec in
+> `amends_verification`, so `spec-spine verify 144` builds its plan from that
+> spec's block, where these commands are carried with the `repo_path` line made exact and every other line unchanged (spec 082 3.2 and 3.4).
+
 ```verify:cli
 # 3.1: the rule and the type.
 sh -c 'cargo test -p spec-spine-types --locked --lib -- --exact repo_path::tests::plain_relative_paths_pass repo_path::tests::every_escape_and_windows_hazard_is_refused repo_path::tests::the_type_refuses_what_the_rule_refuses 2>&1 | grep -q "test result: ok. 3 passed; 0 failed"'
