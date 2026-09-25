@@ -26,6 +26,16 @@ amends:
   # 3.1: 079 §3.1 left the guarded readers on the folded verdict; they move
   # onto the partition.
   - "079-a-blocking-claim-is-not-a-stale-shard"
+extends:
+  # 3.1 the guard and the readers that call it.
+  - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/index.rs", nature: corrective }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
+  - { spec: "005-coupling-gate", unit: "crates/spec-spine-core/src/couple.rs", nature: corrective }
+  - { spec: "029-ownership-coverage", unit: "crates/spec-spine-core/src/coverage.rs", nature: corrective }
+  - { spec: "071-a-change-is-classified-under-the-bases-rules", unit: "crates/spec-spine-core/src/delta.rs", nature: corrective }
+  - { spec: "108-a-work-scope-is-declared", unit: "crates/spec-spine-core/src/scope.rs", nature: corrective }
+  # 3.2 a validation failure prints its violations.
+  - { spec: "132-one-exit-contract-for-the-family", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
 establishes:
   - { kind: file, path: "crates/spec-spine-core/tests/unresolved_guard.rs" }
 ---
@@ -105,7 +115,7 @@ case that already has a name.
 ```verify:cli
 # 3.1: the readers name the claim; drift stays staleness and comes first; a
 # blocked shard that moved is stale; a resolved corpus reads. With the old
-# folded guard restored, 2 of 4 fail (recorded in the PR).
+# folded guard restored, 3 of 4 fail (recorded in the PR).
 sh -c 'cargo test -p spec-spine-core --locked --test unresolved_guard 2>&1 | grep -q "test result: ok. 4 passed; 0 failed"'
 # 3.1 and 3.2 at the binary: coverage names the claim and does not say stale.
 cargo build --release --locked
