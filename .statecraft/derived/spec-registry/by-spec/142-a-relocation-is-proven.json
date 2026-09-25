@@ -247,10 +247,10 @@
       "Verification"
     ],
     "specPath": "specs/142-a-relocation-is-proven/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Splitting an approved spec had no honest path. A partial `supersedes` added the new spec as an owner of a unit and left the old one owning it too, so an edit to either spec cleared a change to the code. Moving a section of text out of an approved spec read as a requirement change, whatever the text said, because a section's digest is keyed by its spec's path. `amends_sections` accepted any string, and nothing said whether `amends` grants code ownership. This spec makes a partial `supersedes` an exclusive hand-off of its unit; adds a `relocates` declaration that `delta` proves against the merge base, classing a proven move `relocation` instead of `requirement`; validates `amends_sections` against the amended specs' headings (L-017); warns when two live specs establish one unit (L-018); and states the rule that `amends` changes what a spec requires and never who owns its code.\n",
     "title": "A relocation is proven"
   },
-  "shardHash": "bab1e210bc636823bdcad174b6de7ae74d7a0bc654cfda2eb3a6d6b0b9ac39fc",
+  "shardHash": "4b5891b8d766c1e15815cb5f773e8599e1978120484688ae706a36de3679b5ac",
   "specVersion": "1.9.0"
 }
