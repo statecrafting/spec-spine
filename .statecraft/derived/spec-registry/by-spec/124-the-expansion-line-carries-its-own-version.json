@@ -87,17 +87,17 @@
       "1-2-the-floor-could-not-help-either": "680847b0afbba859b929161a259eaff0f7c8ec614f21d832dcf3fa369481145f",
       "1-3-why-a-spec-rather-than-a-waiver": "3ccc4d8b3e2c366584549ef89da0643f87d77b07607e5cdc638ed537bdacea5c",
       "1-purpose": "0173820f337dd4302dc06e0de05f492e6dcb0490c0f538879f6cdb29cd93de1f",
-      "124-the-expansion-line-carries-its-own-version": "4884fd77fabb9dd70697e9a56058d88f9f06abfae4445129d22781a195478a60",
+      "124-the-expansion-line-carries-its-own-version": "93c88f2d4786671c58ef4ca031d5a30b13ca33efd3b1dadaca112270c9d134ac",
       "2-territory": "ada405f3dade0a8c22764f39f155a4d4a43f3099c06dc388ae01c35e82006a7b",
       "3-1-a-version-names-one-behavior": "a24167409a5258225c572379886cd582a9821260d3257ede9faa939377a8ef37",
-      "3-2-the-floor-moves-with-the-version": "f588666bf7ac77b26e6bc33c560726d781fce4df7288ea71d4a0e5866cf0a377",
+      "3-2-the-floor-moves-with-the-version": "79d470ce75c40d527c38df6776f87434203ead811c3017d7c42e5d769615d0f7",
       "3-3-both-are-standing-steps": "0ffaad3f9e53f0264e1c1ff06116c20bb06a2e83b52d821711cef0e4bc438c96",
       "3-4-a-binary-s-identity-is-recorded-from-evidence": "e6701f41f77bfd45d36345ba823aa7e95ba09c7048671ffe36362daa39f8dc10",
       "3-5-the-verifier-fixtures-follow-the-producer": "c9e70587e6be6bedeb85b5e50860c9ddd8733ce20edea8ff59f34ed708053eb9",
-      "3-behavior": "9ecc2cd27a0433f205eeacf81d270a409464284e62101984ea124f9a4c4145ce",
+      "3-behavior": "93faffa58fe91dfecc4b30192eef1d9f808c1e8509e81b66481d0401e756fec0",
       "4-out-of-scope": "e97ccd6e279ba6203b4410c57572ed138c0b5b151271be4ff4e5e50639b87f97",
-      "5-resolved-decisions": "f0034b4b856f8e5f89258a6521fd73d40cd596cbca2b951f6ecbccf12acb288c",
-      "verification": "086e4aba1cc3a61e5612bcdce49af0a102a1a614d54448ee0dca7ee06ce6ec06"
+      "5-resolved-decisions": "97474fc0be09ec14fd3e1707406757c11a72cd3fa1704d22d3b2d7799e89af45",
+      "verification": "eb6194da63c39365318d2595e2069980a15942d32c1de12edc441f764aac2ddb"
     },
     "sectionHeadings": [
       "124: The expansion line carries its own version",
@@ -118,9 +118,9 @@
     ],
     "specPath": "specs/124-the-expansion-line-carries-its-own-version/spec.md",
     "status": "approved",
-    "summary": "The frozen 0.22.0 candidate (`f9fa6a8f`) and `main` both answered `spec-spine 0.22.0` while emitting different registry, read and verdict schemas, so the version string could not say which engine a verdict came from, and an older reader judged a newer corpus invalid instead of refusing it. `main` carries the version the next release will be cut at (0.23.0 when filed, 0.24.0 since D-3, 0.25.0 since D-4, 0.26.0 since D-5, 0.27.0 since D-6), in all three package manifests; this repository's version floor moves with it, so a reader older than the corpus's grammar refuses by name (exit 3); the release runbook makes both a standing step; and a script records a binary's identity from evidence (path, digest, revision, whether it is that checkout's current build, and the schema axes it emits) rather than from `--version`. The frozen candidate is not recut.\n",
+    "summary": "The frozen 0.22.0 candidate (`f9fa6a8f`) and `main` both answered `spec-spine 0.22.0` while emitting different registry, read and verdict schemas, so the version string could not say which engine a verdict came from, and an older reader judged a newer corpus invalid instead of refusing it. `main` carries the version the next release will be cut at (0.23.0 when filed, 0.24.0 since D-3, 0.25.0 since D-4, 0.26.0 since D-5, 0.27.0 since D-6, 0.28.0 since D-7), in all three package manifests; this repository's version floor moves with it, so a reader older than the corpus's grammar refuses by name (exit 3); the release runbook makes both a standing step; and a script records a binary's identity from evidence (path, digest, revision, whether it is that checkout's current build, and the schema axes it emits) rather than from `--version`. The frozen candidate is not recut.\n",
     "title": "The expansion line carries its own version"
   },
-  "shardHash": "86a6317bff2bb914c80b9cf8ab98ea67b817bbedd3223f7b06b5f6718d700a93",
+  "shardHash": "f02bebb4e7e90174ab381b2f3ec8acaa643862dfa97e2e2f2ae14d80d7cbbd23",
   "specVersion": "1.9.0"
 }
