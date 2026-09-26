@@ -54,7 +54,7 @@
     "risk": "low",
     "sectionDigests": {
       "1-purpose": "456bb703188ddf42b8eaf13862eb5842c5d826155eb8e8165a291887babbdc81",
-      "139-the-legacy-ledger-is-paid-verdicts-attestation-and-lifecycle": "79d2623a948435e34484bd753eff2b4defe4e0c2596632c056dee4b55402f668",
+      "139-the-legacy-ledger-is-paid-verdicts-attestation-and-lifecycle": "ebfa67ac0b6f3cb753a49e47e80ac80da014310e99411164806285084f13bd12",
       "2-territory": "92afb27ea99c60351f866456dc19ae96aea556b5557ed4e076c5009bf74a2e57",
       "3-1-the-carried-acceptance": "4e348292760d48f08a1ed95078dc21dbb4657dc1aa4378ca4aee1354faae1ccb",
       "3-2-the-ledger-shrinks-in-the-same-change": "3cd17ab8d96515aa9a3529fba682070d4b49c58ac14a55b4facc552bdeb339c9",
@@ -62,7 +62,7 @@
       "3-behavior": "5af10ff48d9137b06b890851b48c0523cf66cd832512988a1d92bf71adf47da9",
       "4-out-of-scope": "7a24f3cf1a812929424778a01cf0e9893c4cd8f066c646c2d6a4b9017399b154",
       "5-resolved-decisions": "7f6267ef23860fb4ac519c853154d2b6030cbbebb785a8818990742dfe1f3a1d",
-      "verification": "050629baa593d4bc6a11085381f1c66f623818391e60eb37a4b3443737f4b4c6"
+      "verification": "734e6b5845ee8d70889f73ef012c071c5dec9d169c466e0318bdc2adcf485ab3"
     },
     "sectionHeadings": [
       "139: The legacy ledger is paid: verdicts, attestation and lifecycle",
@@ -81,6 +81,6 @@
     "summary": "9 specs filed before `verify` existed (007, 021, 032, 034, 038, 039, 040, 041, 042) sit on the legacy ledger in `scripts/verify-sweep.sh` with no executable acceptance, although the tests that hold their behavior exist and pass. This spec carries that acceptance for them under `amends_verification`, the route spec 132 used, and deletes their ledger lines in the same change. Every command names its tests exactly and asserts the exact pass count, so a renamed or deleted test turns the block red instead of passing on an empty filter. The area is verdicts, attestation, lifecycle leniency, governance documents and the PyPI shim.\n",
     "title": "The legacy ledger is paid: verdicts, attestation and lifecycle"
   },
-  "shardHash": "739a0ea3d8e1e639c535c1aacdfb84bc19ad3de61dd6cd17cfb418b2e4af0fb7",
+  "shardHash": "003ec0ddfa868bb9d229b7a17ebfdee4b6decfa68b2093e6a7490867ab86d4b1",
   "specVersion": "1.9.0"
 }
