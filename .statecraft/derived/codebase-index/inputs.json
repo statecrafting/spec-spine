@@ -144,6 +144,9 @@
     "scripts/reader-identity.sh": {
       "contentHash": "14832b2db506c4ea0be832fee375db9f19384828303d1e8bb2d2c099d08a96e7"
     },
+    "scripts/test-install.sh": {
+      "contentHash": "0784f57c841e6f1db23f5dde84c2374b11e388a9218cb5a4a22d952f4c538604"
+    },
     "scripts/test-verify-sweep.py": {
       "contentHash": "781e644012984776c3760b67345a5a9e242dc5a9d5b23e872727724afebe6eb3"
     },
@@ -154,7 +157,7 @@
       "contentHash": "e4772242b7b7f303aed6d68142ef4312602355d96da600aac551de1d24b369a6"
     },
     "scripts/verify-sweep.sh": {
-      "contentHash": "9316e88588c6c9df234e1dddd9079f6000e341a8ce263f22eacadc4c6989ddb5"
+      "contentHash": "1f44b8679a1e13bc6418761800c11f42ca1ef808a916777478f761d4954ab376"
     },
     "spec-spine.toml": {
       "contentHash": "1e2872624d916db3e9885c926dc7a70cab94eb274ab3d79bfe3b5fad5c73f6fd"

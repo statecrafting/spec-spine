@@ -11,13 +11,21 @@
     ],
     "implementingPaths": [
       {
+        "path": "scripts/test-install.sh",
+        "source": "spec-edge"
+      },
+      {
         "path": "scripts/verify-sweep.sh",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "scripts/test-install.sh"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -43,5 +51,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "a28972f588da420bbc7ece20ef82274df1378cf01fb4bb201f17350758d77018"
+  "shardHash": "b240e897b0e2aa7b7ad202ad51476161e42090ce0deb6caa213856af676fe059"
 }

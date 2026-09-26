@@ -94,11 +94,10 @@ legacy_ledger() {
 # Filed before spec 043 built `verify`; no acceptance was declarable. Five of
 # the original 48 were removed by spec 095's collapse and are gone from here.
 # Specs 136 to 139 carried acceptance for 39 more under amends_verification
-# and deleted their lines. The four below remain, each with its reason.
+# and deleted their lines. Spec 149 gave 006 an offline acceptance and deleted
+# its line. The three below remain, each with its reason.
 # exempt: tier-1 constitution, whose claims the whole gate chain and determinism.yml test (139 3.3)
 000-spec-spine-bootstrap
-# exempt: install.sh, the tag-gated release pipeline and npm publication run only in a release (139 3.3)
-006-distribution
 # exempt: SBOM and SLSA provenance are produced only by a tag-triggered release run (139 3.3)
 019-release-supply-chain-artifacts
 # exempt: a process rule on pull-request edits; its descendants 082, 083, 095 and 118 carry acceptance (139 3.3)

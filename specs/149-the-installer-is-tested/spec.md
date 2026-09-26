@@ -15,7 +15,7 @@ summary: >
   gives 006 an executable acceptance that runs it and the npm shim's tests,
   and removes 006's line from the legacy ledger. The release pipeline's
   publication steps stay unexercised by it, and it says so.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -28,7 +28,7 @@ amends:
 amends_verification:
   - "006-distribution"
 establishes:
-  - { kind: file, path: "scripts/test-install.sh", planned: true }
+  - { kind: file, path: "scripts/test-install.sh" }
 extends:
   - { spec: "089-nothing-reruns-a-merged-acceptance", unit: "scripts/verify-sweep.sh", nature: corrective }
 ---
@@ -108,7 +108,39 @@ or `failed`, never `exempt`.
 
 ## 5. Resolved decisions
 
-None yet.
+**D-1 (2026-09-25): the installer's PATH is built, not inherited.** 3.1 asks
+for stubs on `PATH` and, in case 6, a `PATH` holding no `gh`; a host that has
+`gh` or `wget` installed would otherwise reach the installer. Every case runs
+`install.sh` under `env -i` with `PATH` set to the stub directory (plus the
+case's `uname` stub, in cases 4 and 5) followed by a toolbox of symlinks to the
+host tools the installer calls (`sh`, `cat`, `grep`, `sed`, `awk`, `tr`,
+`mktemp`, `tar`, `gzip`, `chmod`, `mkdir`, `mv`, `rm`, `uname`, and whichever
+of `sha256sum`, `shasum`, `openssl`, `perl`, `ldd`, `env` exist). No `gh` and
+no `wget` are ever on it, and no host `SPEC_SPINE_*` variable leaks in. Case 6
+also refuses to run if a `gh` appears in either directory.
+
+**D-2 (2026-09-25): `SPEC_SPINE_INSTALLER` selects the installer under test.**
+It defaults to the repository's `install.sh`; a mutation harness points it at
+an edited copy so `install.sh` itself is never modified to prove a case can
+fail. The seven mutations (install step removed, checksum comparison removed,
+missing-binary guard removed, unsupported-OS arm falling through, unsupported
+architecture arm falling through, required-attestation refusal removed, latest
+resolution ignoring the API) each fail the case that guards it, and the script
+exits 1.
+
+**D-3 (2026-09-25): each refusal case also asserts its message.** Exit code and
+an empty install directory alone cannot tell case 3's guard from `set -e`
+failing at the following `chmod`, or cases 4 and 5's refusals from an unset
+variable. So case 3 asserts `checksum verified` (the installer reached
+extraction) and `archive did not contain spec-spine`, cases 4 and 5 assert the
+named OS or architecture, case 6 asserts the unverified-attestation refusal,
+and case 7 asserts the installer announced the resolved tag and installed that
+tag's binary.
+
+**D-4 (2026-09-25): the host triple is mapped in the test, and case 1 checks
+the mapping.** The test repeats the installer's `uname` case arms. If the two
+drifted, the fixture archive's name would not be the one the installer asks
+for, and case 1 would fail on the download.
 
 ## Verification
 
