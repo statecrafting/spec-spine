@@ -113,9 +113,9 @@ usage: $PROG [options]
   --trusted-ref <ref>   <rev> must be an ancestor of this (default: the
                         repository's origin/HEAD, else origin/main)
   --repo <dir>          repository to sweep (default: the current directory)
-  --only <id,...>       sweep only these spec ids, as a full `NNN-slug` or the
-                        3-digit ordinal `NNN` (the short form spec-spine itself
-                        resolves; `49` is not one, `049` is)
+  --only <id,...>       sweep only these spec ids, as a full 'NNN-slug' or the
+                        3-digit ordinal 'NNN' (the short form spec-spine itself
+                        resolves; '49' is not one, '049' is)
   --out <dir>           run directory for the worktree, logs and report
                         (default: a new directory per run,
                         \${XDG_CACHE_HOME:-\$HOME/.cache}/spec-spine/sweeps/
