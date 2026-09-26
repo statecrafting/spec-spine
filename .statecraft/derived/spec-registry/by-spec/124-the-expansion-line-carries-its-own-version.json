@@ -87,7 +87,7 @@
       "1-2-the-floor-could-not-help-either": "680847b0afbba859b929161a259eaff0f7c8ec614f21d832dcf3fa369481145f",
       "1-3-why-a-spec-rather-than-a-waiver": "3ccc4d8b3e2c366584549ef89da0643f87d77b07607e5cdc638ed537bdacea5c",
       "1-purpose": "0173820f337dd4302dc06e0de05f492e6dcb0490c0f538879f6cdb29cd93de1f",
-      "124-the-expansion-line-carries-its-own-version": "277879699cc09dc74afb0580c7c5d1f204efbd247f6f33e5b4471ca8d4ca55b6",
+      "124-the-expansion-line-carries-its-own-version": "93c88f2d4786671c58ef4ca031d5a30b13ca33efd3b1dadaca112270c9d134ac",
       "2-territory": "ada405f3dade0a8c22764f39f155a4d4a43f3099c06dc388ae01c35e82006a7b",
       "3-1-a-version-names-one-behavior": "a24167409a5258225c572379886cd582a9821260d3257ede9faa939377a8ef37",
       "3-2-the-floor-moves-with-the-version": "79d470ce75c40d527c38df6776f87434203ead811c3017d7c42e5d769615d0f7",
@@ -97,7 +97,7 @@
       "3-behavior": "93faffa58fe91dfecc4b30192eef1d9f808c1e8509e81b66481d0401e756fec0",
       "4-out-of-scope": "e97ccd6e279ba6203b4410c57572ed138c0b5b151271be4ff4e5e50639b87f97",
       "5-resolved-decisions": "97474fc0be09ec14fd3e1707406757c11a72cd3fa1704d22d3b2d7799e89af45",
-      "verification": "86273ae4f1e399069210eaa9759aa11f5fea65901c319101b3025bebbf44e833"
+      "verification": "eb6194da63c39365318d2595e2069980a15942d32c1de12edc441f764aac2ddb"
     },
     "sectionHeadings": [
       "124: The expansion line carries its own version",
@@ -121,6 +121,6 @@
     "summary": "The frozen 0.22.0 candidate (`f9fa6a8f`) and `main` both answered `spec-spine 0.22.0` while emitting different registry, read and verdict schemas, so the version string could not say which engine a verdict came from, and an older reader judged a newer corpus invalid instead of refusing it. `main` carries the version the next release will be cut at (0.23.0 when filed, 0.24.0 since D-3, 0.25.0 since D-4, 0.26.0 since D-5, 0.27.0 since D-6, 0.28.0 since D-7), in all three package manifests; this repository's version floor moves with it, so a reader older than the corpus's grammar refuses by name (exit 3); the release runbook makes both a standing step; and a script records a binary's identity from evidence (path, digest, revision, whether it is that checkout's current build, and the schema axes it emits) rather than from `--version`. The frozen candidate is not recut.\n",
     "title": "The expansion line carries its own version"
   },
-  "shardHash": "9a5081c6ff366eaae6a1cfaa9353976c768be00a8dca98445c4544b7035175e8",
+  "shardHash": "f02bebb4e7e90174ab381b2f3ec8acaa643862dfa97e2e2f2ae14d80d7cbbd23",
   "specVersion": "1.9.0"
 }

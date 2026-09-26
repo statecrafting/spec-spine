@@ -296,7 +296,7 @@ grep -qF 'The floor moves with the version' docs/releasing.md
 grep -qF 'A version names one behavior' docs/releasing.md
 # 3.4: the identity record measures every line from the binary itself.
 scripts/reader-identity.sh target/release/spec-spine . > "${TMPDIR:-/tmp}/ss124.txt"
-grep -qE '^answers +spec-spine 0\.27\.0$' "${TMPDIR:-/tmp}/ss124.txt"
+grep -qE '^answers +spec-spine 0\.28\.0$' "${TMPDIR:-/tmp}/ss124.txt"
 grep -qE '^sha256 +[0-9a-f]{64}$' "${TMPDIR:-/tmp}/ss124.txt"
 grep -qE '^registry schema +[0-9]+\.[0-9]+\.[0-9]+$' "${TMPDIR:-/tmp}/ss124.txt"
 grep -qE '^read schema +[0-9]+\.[0-9]+\.[0-9]+$' "${TMPDIR:-/tmp}/ss124.txt"
