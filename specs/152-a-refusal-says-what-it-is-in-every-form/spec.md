@@ -1,7 +1,7 @@
 ---
 id: "152-a-refusal-says-what-it-is-in-every-form"
 title: "A refusal says what it is in every form"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-25"
 summary: >
@@ -150,9 +150,9 @@ reason. The exit code stays 2.
 
 ### 3.4 The verdict version moves (D-1)
 
-The verdict schema version MUST move and `docs/schema-versioning.md` MUST
-record what changed and why a consumer reading `fresh` alone was wrong
-before and after.
+The verdict schema version MUST move from `1.0.0` to `1.1.0` (MINOR, D-1),
+and `docs/schema-versioning.md` MUST record what changed and why a consumer
+reading `fresh` alone was wrong before and after.
 
 ## 4. Out of scope
 
@@ -164,15 +164,16 @@ before and after.
 
 ## 5. Resolved decisions
 
-**D-1 (open, owner): MINOR or MAJOR.** 3.1 changes the value of `fresh` for
-one input (an unresolved claim alone, `false` to `true`) and adds a member;
-3.2 adds output where there was none. The exit code, `outcome` and every other
-input's bytes are unchanged, and the documented contract is that a consumer
-decides on `exitCode`/`outcome` ("`--json` changes what is written and never
-what is decided"). **Recommended: MINOR, verdict `1.1.0`,** with the handoff
-naming the one reader it breaks: a consumer that gated on `fresh` alone and
-ignored `exitCode`. MAJOR `2.0.0` would make every 1.x reader (Statecraft
-included) refuse every envelope for a change that moves no verdict.
+**D-1 (decided by the owner, 2026-09-25): MINOR, verdict `1.1.0`.** 3.1
+changes the value of `fresh` for one input (an unresolved claim alone, `false`
+to `true`) and adds a member; 3.2 adds output where there was none. The exit
+code, `outcome` and every other input's bytes are unchanged, and the
+documented contract is that a consumer decides on `exitCode`/`outcome`
+("`--json` changes what is written and never what is decided"). The handoff
+names the one reader it breaks: a consumer that gated on `fresh` alone and
+ignored `exitCode`. MAJOR `2.0.0` was considered and not taken: it would make
+every 1.x reader (Statecraft included) refuse every envelope for a change that
+moves no verdict. 3.4 and the Verification block pin `1.1.0`.
 
 ## Verification
 
@@ -188,6 +189,8 @@ sh -c 'T="${TMPDIR:-/tmp}/ss152b"; B="$PWD/target/release/spec-spine"; rm -rf "$
 sh -c 'T="${TMPDIR:-/tmp}/ss152c"; B="$PWD/target/release/spec-spine"; rm -rf "$T" "$T.s" && mkdir -p "$T/specs/001-a" "$T/src" && printf -- "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-09-25\"\nimplementation: complete\nsummary: \"s\"\nestablishes:\n  - \"src/missing.rs\"\n---\n# a\n" > "$T/specs/001-a/spec.md" && printf "{\"id\": \"W-1\", \"ownSpec\": \"001\", \"mutable\": [\"src/missing.rs\"]}\n" > "$T.s" && "$B" --repo "$T" compile >/dev/null 2>&1 && "$B" --repo "$T" index >/dev/null 2>&1 || exit 1; r=0; e() { verb=$1; kind=$2; shift 2; "$B" --repo "$T" "$@" > "$T.o" 2>/dev/null; rc=$?; python3 -c "import json,sys; d=json.load(open(sys.argv[1])); sys.exit(0 if d[\"outcome\"] == \"finding\" and d[\"exitCode\"] == 1 and d[\"verb\"] == sys.argv[2] and d[\"error\"][\"kind\"] == sys.argv[3] else 1)" "$T.o" "$verb" "$kind" 2>/dev/null && test $rc -eq 1 || { echo "$verb: exit $rc, no $kind envelope on stdout"; r=1; }; }; e index.coverage validation index coverage --json; e index.owner validation index owner src/missing.rs --json; e scope.evaluate validation scope evaluate --scope "$T.s" --json; e registry.show not-found registry show 999 --json; rm -rf "$T" "$T.s" "$T.o"; exit $r'
 # 3.3: the compact refusal names the ':' rule, and still exits 2.
 sh -c 'T="${TMPDIR:-/tmp}/ss152d"; B="$PWD/target/release/spec-spine"; g() { git -C "$T" -c user.name=v -c user.email=v@v -c commit.gpgsign=false "$@"; }; rm -rf "$T" && mkdir -p "$T/specs/000-a" "$T/rules" "$T/docs" && printf "r\n" > "$T/rules/one.md" && printf "see \140rules/one.md\140\n" > "$T/docs/note.md" && printf -- "---\nid: \"000-a\"\ntitle: \"A\"\nstatus: approved\ncreated: \"2026-09-25\"\nimplementation: complete\nsummary: \"s\"\n---\n# a\n\nBody.\n" > "$T/specs/000-a/spec.md" && printf "retire:\n  - path: \"C:rules/one.md\"\n    kind: file\n    forms:\n      citation: \"x\"\n" > "$T/plan.yaml" && g init -q && g add -A && g commit -qm base || exit 1; "$B" --repo "$T" compact --plan-file "$T/plan.yaml" --plan > /dev/null 2> "$T.e"; rc=$?; grep -q "C:rules/one.md.*a drive, drive-relative or stream form on Windows" "$T.e"; g=$?; test $g -eq 0 || cat "$T.e"; rm -rf "$T" "$T.e"; test $rc -eq 2 && test $g -eq 0'
+# 3.4 (D-1): the envelope says verdict 1.1.0; on the 0.27.0 binary it says 1.0.0.
+sh -c '"$PWD/target/release/spec-spine" check --json 2>/dev/null | python3 -c "import json,sys; sys.exit(0 if json.load(sys.stdin)[\"schemaVersion\"] == \"1.1.0\" else 1)"'
 # 3.4: the conformance test still holds every envelope to the embedded schema.
 cargo test -p spec-spine-core --locked --test conformance
 ```
