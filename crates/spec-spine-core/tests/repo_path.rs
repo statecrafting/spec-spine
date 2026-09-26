@@ -188,5 +188,10 @@ fn a_linked_ancestor_of_the_derived_root_is_checked_on_read() {
             "{link}: a link inside is read"
         );
         assert!(index(&cfg, &repo).is_ok(), "{link}: a link inside is read");
+        // The freshness read reaches the walk too: whatever it answers about
+        // an unbuilt tree, it is not this refusal.
+        if let Err(e) = check_index_freshness(&cfg, &repo) {
+            assert!(!format!("{e}").contains("spec 147"), "{link}: {e}");
+        }
     }
 }

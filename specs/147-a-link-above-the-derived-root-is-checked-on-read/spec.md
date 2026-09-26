@@ -118,6 +118,14 @@ linked outside the repository they still exit 0 on the outside bytes. They
 render the ledger rather than judge freshness, and §3.1 names the walk, not
 the verbs that call it; whether they should refuse too is left to the owner.
 
+**D-4 (2026-09-25, review): a plain ancestor named as a resolver exclusion is
+still not walked.** A root configured under a directory whose name is an
+`[index] resolver_exclusions` entry (`build/derived`, say) sits below a
+directory the walk skips by name, so a link at the root itself is not reached.
+Walking that directory would walk the whole build tree and refuse links no
+governed read enters. The walk keeps the skip; a link AT an excluded name that
+is itself a root or an ancestor is still checked (D-2).
+
 ## Verification
 
 ```verify:cli
