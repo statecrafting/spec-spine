@@ -13,8 +13,8 @@
     ],
     "implementingPaths": [],
     "specId": "151-carried-acceptance-tests-what-it-names",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "ffc377a50e4ed52d56d9f0c2cbd3e7396657879350c9f9bb2732d2c2992812b4"
+  "shardHash": "0d6df31f92a7b082ec609abbb0034ccee4f4bc05ee10f65c12642754a458e1e7"
 }
