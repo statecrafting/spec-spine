@@ -242,7 +242,9 @@ silently ignored key.
 > `146-carried-acceptance-follows-139-and-144` declares this spec in
 > `amends_verification`, so `spec-spine verify 046` builds its plan from that
 > spec's block, where these commands are carried with one change and every
-> other line unchanged (spec 082 3.2 and 3.4).
+> other line unchanged (spec 082 3.2 and 3.4). Since 2026-09-26 146's block
+> is itself carried by `154-the-pre-merge-sweep-is-a-skill-step`, so `verify
+> 046` runs 154's block: 146's with one skills line restated for spec 150.
 
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
