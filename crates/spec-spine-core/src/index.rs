@@ -218,38 +218,55 @@ impl IndexFreshnessReport {
         // Any committed shard whose bytes moved, blocked or not, is staleness,
         // and regenerating is the first step; the claim is reported on the
         // next run if it is still there.
-        let mut moved = self.stale.clone();
-        moved.extend(self.blocked_drift.iter().cloned());
-        if let Freshness::Stale { expected, actual } = drift_verdict(moved, self.emitted) {
+        if let Freshness::Stale { expected, actual } = self.drift_verdict() {
             return Err(Error::Stale { expected, actual });
         }
         if self.blocking.is_empty() {
             return Ok(());
         }
-        Err(Error::Validation(
-            self.blocking
-                .iter()
-                .map(|c| {
-                    let mut v = spec_spine_types::Violation::new(
-                        c.code.clone(),
-                        spec_spine_types::Severity::Error,
-                        format!(
-                            "unresolved claim, not staleness: {}{}; regenerating the index \
-                             does not clear it, because the claim is recomputed from the corpus \
-                             on every run",
-                            c.message,
-                            if c.message.contains(&c.spec_id) {
-                                String::new()
-                            } else {
-                                format!(" (spec '{}')", c.spec_id)
-                            }
-                        ),
-                    );
-                    v.path = c.unit.clone();
-                    v
-                })
-                .collect(),
-        ))
+        Err(Error::Validation(self.unresolved_claims()))
+    }
+
+    /// Each unresolved claim as the violation the verbs' validation refusal
+    /// carries (spec 145 §3.1), in its words and order. [`Self::guard`]
+    /// refuses with exactly this list, and the `--json` freshness report
+    /// carries it as `unresolvedClaims` (spec 152 §3.1), so the two cannot say
+    /// different things about one claim.
+    pub fn unresolved_claims(&self) -> Vec<spec_spine_types::Violation> {
+        self.blocking
+            .iter()
+            .map(|c| {
+                let mut v = spec_spine_types::Violation::new(
+                    c.code.clone(),
+                    spec_spine_types::Severity::Error,
+                    format!(
+                        "unresolved claim, not staleness: {}{}; regenerating the index \
+                         does not clear it, because the claim is recomputed from the corpus \
+                         on every run",
+                        c.message,
+                        if c.message.contains(&c.spec_id) {
+                            String::new()
+                        } else {
+                            format!(" (spec '{}')", c.spec_id)
+                        }
+                    ),
+                );
+                v.path = c.unit.clone();
+                v
+            })
+            .collect()
+    }
+
+    /// Drift alone: every committed shard whose bytes differ from the
+    /// recompute, blocked or not, and no `blocking-diagnostics` line (spec 152
+    /// §3.1). What the `--json` freshness report's `fresh`, `expected` and
+    /// `actual` answer; an unresolved claim is carried beside it, not folded
+    /// into it. [`Self::freshness`] keeps the folded verdict for the callers
+    /// that read it.
+    pub fn drift_verdict(&self) -> Freshness {
+        let mut moved = self.stale.clone();
+        moved.extend(self.blocked_drift.iter().cloned());
+        drift_verdict(moved, self.emitted)
     }
 }
 

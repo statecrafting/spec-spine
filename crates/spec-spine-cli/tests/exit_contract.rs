@@ -82,7 +82,7 @@ fn assert_header(v: &serde_json::Value, verb: &str, exit: i32, outcome: &str) {
     ];
     want.sort_unstable();
     assert_eq!(keys, want, "{v}");
-    assert_eq!(v["schemaVersion"], "1.0.0", "{v}");
+    assert_eq!(v["schemaVersion"], "1.1.0", "{v}");
     assert_eq!(v["tool"], "spec-spine", "{v}");
     assert_eq!(v["verb"], verb, "{v}");
     assert_eq!(v["exitCode"], exit, "{v}");

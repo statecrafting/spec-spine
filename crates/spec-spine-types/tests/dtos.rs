@@ -92,8 +92,10 @@ fn schema_versions_are_pinned() {
     // adding `couple`'s `deletions` block, which is omitted when empty and so
     // additive in the same sense. Spec 113 took it to 0.6.0 by adding
     // `couple`'s `waivers` and `unattachedWaiverLines`, omitted when empty.
-    // Spec 132 took it to 1.0.0, a MAJOR: the family envelope.
-    assert_eq!(VERDICT_SCHEMA_VERSION, "1.0.0");
+    // Spec 132 took it to 1.0.0, a MAJOR: the family envelope. Spec 152 took
+    // it to 1.1.0: `unresolvedClaims` beside a drift-only index verdict, and an
+    // envelope for every `--json` read's failure, under new verb tokens.
+    assert_eq!(VERDICT_SCHEMA_VERSION, "1.1.0");
     // Spec 039: the per-spec attestation, independent of the ledger versions so
     // a consumer pins the evidence shape it verifies without pinning the ledger
     // it was derived from.

@@ -454,8 +454,8 @@ pub fn check_report_full(
     };
 
     let freshness_report = index_freshness_report(config, repo_root)?;
-    let index = IndexCheckReport::with_unwitnessed(
-        &freshness_report.freshness(),
+    let index = IndexCheckReport::from_freshness_report(
+        &freshness_report,
         verdict_tally(config, repo_root),
         unwitnessed_counts(config, repo_root),
     );
@@ -472,13 +472,13 @@ pub fn check_report_full(
 pub fn check_freshness_json(config_json: &str, repo_root: &str) -> Result<String, Error> {
     let config = config_from_json(config_json)?;
     let root = std::path::Path::new(repo_root);
-    let freshness = check_index_freshness(&config, root)?;
+    let report = index_freshness_report(&config, root)?;
     let counts = verdict_tally(&config, root);
     // Spec 050 §3.3: the facade and the CLI emit one shape. `cli.rs` pins them
     // against each other, and it caught this: a payload member added on one
     // side only is exactly the drift that test exists to refuse.
-    to_json(&IndexCheckReport::with_unwitnessed(
-        &freshness,
+    to_json(&IndexCheckReport::from_freshness_report(
+        &report,
         counts,
         unwitnessed_counts(&config, root),
     ))

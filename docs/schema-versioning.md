@@ -15,7 +15,7 @@
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
-| verdict envelope (any `--json` verdict verb) | `schemaVersion` | `1.0.0` | library |
+| verdict envelope (any `--json` verdict verb, and every `--json` read's failure) | `schemaVersion` | `1.1.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.2.0` | library |
 | read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.8.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
@@ -112,6 +112,7 @@ MAJOR history:
   spec 011 `[index.slices]` hashes move to a small `codebase-index/slices.json`
   sidecar.
 - verdict envelope `1.0.0` (spec 132): see "Verdict `1.0.0` (spec 132)" below.
+- verdict envelope `1.1.0` (spec 152): see "Verdict `1.1.0` (spec 152)" below.
 - verifier fixture set `1.0.0` (spec 132, formerly `0.1.0` since spec 103):
   every case's recorded `expect.exit` moves to the five-code contract; a case
   whose payload fails to load (an unreadable, missing-`schemaVersion` or
@@ -405,6 +406,36 @@ gone (authored content that does not parse now reports `validation`, since
 it is a finding about the corpus like any other), and `refused`, `usage`,
 `internal` and `drift` are new. A reader gates on the MAJOR: a `0.x` verdict
 reader must refuse a `1.x` envelope.
+
+**Verdict `1.1.0` (spec 152), MINOR.** Three changes, none of which moves an
+exit code or an `outcome`:
+
+- The index half of `check --json` (`report.index`), the `index check --json`
+  report, and the `check_freshness_json` facade answer drift alone. `fresh` is
+  `true` exactly when no committed shard differs from the recompute, and
+  `expected`/`actual` name drifted shards only, never a
+  `blocking-diagnostics <shard>` line. Each unresolved claim moves to a new
+  member, `unresolvedClaims`, one violation each (`code`, `severity`,
+  `message`, `path`) in the words and order the other verbs' validation refusal
+  uses (spec 145). It is omitted when there is none, so a report on a corpus
+  without one is byte-identical to `1.0.0`'s.
+- Every read that takes `--json` (`registry`, `index orphans`, `index
+  diagnostics`, `index owner`, `index coverage`, `config show`, `interface
+  verify`, `scope evaluate`, `scope compare`) answers a failure with this
+  envelope on stdout, `verb` naming the read in dotted form (`index.coverage`,
+  `registry.show`, ...), and nothing on stderr. Before, stdout was empty and
+  the failure was prose on stderr. A successful read still writes its bare read
+  document, not an envelope.
+- New `verb` tokens for those reads, which is the additive case.
+
+**Who this breaks.** A consumer that gated on `report.index.fresh` alone and
+ignored `exitCode` read an unresolved claim as "not fresh" under `1.0.0`; under
+`1.1.0` it reads `fresh: true` for the same corpus while the process still
+exits `1` with `outcome: finding`. That consumer was already wrong before this
+change: `fresh: false` said "regenerate", and regenerating never clears an
+unresolved claim, so it looped. Under both versions the decision is `exitCode`
+or `outcome`; `fresh` answers only whether regenerating would change a shard,
+and `unresolvedClaims` says what does not resolve.
 
 **The guarantee that makes migrating safe:** `--json` changes what is written
 and never what is decided. Every exit code is identical with and without it. A

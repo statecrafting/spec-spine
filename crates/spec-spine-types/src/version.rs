@@ -133,7 +133,16 @@ pub const SPEC_ATTESTATION_SCHEMA_VERSION: &str = "0.1.0";
 /// `verdict::ERROR_KINDS`, which drops `parse` (authored content that does not
 /// parse reports `validation`) and adds `refused`, `usage`, `internal` and
 /// `drift`.
-pub const VERDICT_SCHEMA_VERSION: &str = "1.0.0";
+///
+/// 1.1.0 (spec 152), a MINOR: the index freshness report under `--json`
+/// answers drift alone (`fresh`, `expected`, `actual`) and carries each
+/// unresolved claim in a new `unresolvedClaims` member, omitted when empty;
+/// every read taking `--json` answers a failure with this envelope, under new
+/// `verb` tokens. No exit code or `outcome` moves for any input. The one value
+/// that changes is `fresh` for a corpus whose only finding is an unresolved
+/// claim (`false` to `true`), and the contract has always been that a consumer
+/// decides on `exitCode`/`outcome`, never on `fresh`.
+pub const VERDICT_SCHEMA_VERSION: &str = "1.1.0";
 
 /// `schemaVersion` carried by a change-classification report (spec 071).
 ///

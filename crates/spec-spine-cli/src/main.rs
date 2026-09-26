@@ -525,6 +525,47 @@ impl Command {
             Command::Index {
                 action: Some(cmd_index::IndexAction::Check { json: true, .. }),
             } => Some(verb::INDEX_CHECK),
+            // Spec 152 §3.2: every read that takes `--json` answers a failure
+            // with the envelope too. Its success is still the bare read
+            // document, written by the command; only the `Err` arm uses this.
+            Command::Index {
+                action: Some(action),
+            } => {
+                use cmd_index::IndexAction as A;
+                match action {
+                    A::Orphans { json: true, .. } => Some(verb::INDEX_ORPHANS),
+                    A::Diagnostics { json: true, .. } => Some(verb::INDEX_DIAGNOSTICS),
+                    A::Owner { json: true, .. } => Some(verb::INDEX_OWNER),
+                    A::Coverage { json: true, .. } => Some(verb::INDEX_COVERAGE),
+                    _ => None,
+                }
+            }
+            Command::Registry { query } => {
+                use cmd_registry::RegistryQuery as Q;
+                match query {
+                    Q::List { json: true, .. } => Some(verb::REGISTRY_LIST),
+                    Q::Show { json: true, .. } => Some(verb::REGISTRY_SHOW),
+                    Q::StatusReport { json: true, .. } => Some(verb::REGISTRY_STATUS_REPORT),
+                    Q::Relationships { json: true, .. } => Some(verb::REGISTRY_RELATIONSHIPS),
+                    Q::Obligation { json: true, .. } => Some(verb::REGISTRY_OBLIGATION),
+                    Q::Closure { json: true, .. } => Some(verb::REGISTRY_CLOSURE),
+                    Q::Impacts { json: true, .. } => Some(verb::REGISTRY_IMPACTS),
+                    Q::Moves { json: true, .. } => Some(verb::REGISTRY_MOVES),
+                    Q::Plan { json: true, .. } => Some(verb::REGISTRY_PLAN),
+                    _ => None,
+                }
+            }
+            Command::Config {
+                action: cmd_config::ConfigAction::Show { json: true, .. },
+            } => Some(verb::CONFIG_SHOW),
+            Command::Interface {
+                action: cmd_interface::InterfaceAction::Verify { json: true, .. },
+            } => Some(verb::INTERFACE_VERIFY),
+            Command::Scope { action } => match action {
+                cmd_scope::ScopeAction::Evaluate { json: true, .. } => Some(verb::SCOPE_EVALUATE),
+                cmd_scope::ScopeAction::Compare { json: true, .. } => Some(verb::SCOPE_COMPARE),
+                _ => None,
+            },
             _ => None,
         }
     }

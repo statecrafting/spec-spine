@@ -289,6 +289,17 @@ pub struct IndexCheckReport {
     /// stale verdict: the files it counts are drift by spec 069's comparison.
     #[serde(default, skip_serializing_if = "is_zero")]
     pub skipped_shards: usize,
+    /// Each unresolved claim, as the violation the verbs' validation refusal
+    /// carries, in its words and order (spec 152 §3.1, amending spec 145).
+    ///
+    /// Beside the drift verdict, not folded into it: `fresh`, `expected` and
+    /// `actual` answer whether a committed shard differs from the recompute,
+    /// and this answers whether the corpus claims something that does not
+    /// resolve. Omitted when empty, so a report on a corpus without one is
+    /// byte-identical to what a pre-152 producer wrote. A report built from a
+    /// bare [`crate::index::Freshness`] (a `--slice` check) never carries one.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unresolved_claims: Vec<spec_spine_types::Violation>,
 }
 
 fn is_zero(n: &usize) -> bool {
@@ -371,6 +382,7 @@ impl IndexCheckReport {
                 skipped_shards: counts.unreadable.len(),
                 diagnostics: counts,
                 unwitnessed,
+                unresolved_claims: Vec::new(),
             },
             crate::index::Freshness::Stale { expected, actual } => Self {
                 fresh: false,
@@ -379,7 +391,24 @@ impl IndexCheckReport {
                 skipped_shards: counts.unreadable.len(),
                 diagnostics: counts,
                 unwitnessed,
+                unresolved_claims: Vec::new(),
             },
+        }
+    }
+
+    /// The whole-index report (spec 152 §3.1): `fresh`, `expected` and
+    /// `actual` from the drift alone, and each unresolved claim in
+    /// `unresolvedClaims`. `check --json`, `index check --json` and the
+    /// `check_freshness_json` facade all build it here, so the three cannot
+    /// disagree about one tree.
+    pub fn from_freshness_report(
+        report: &crate::index::IndexFreshnessReport,
+        counts: DiagnosticCounts,
+        unwitnessed: UnwitnessedCounts,
+    ) -> Self {
+        Self {
+            unresolved_claims: report.unresolved_claims(),
+            ..Self::with_unwitnessed(&report.drift_verdict(), counts, unwitnessed)
         }
     }
 }
