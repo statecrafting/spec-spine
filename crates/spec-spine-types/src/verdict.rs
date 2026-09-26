@@ -56,6 +56,47 @@ pub mod verb {
     /// base's rules. A record rather than a gate, so its `exitCode` is 0
     /// whenever a report was produced, whatever the report says.
     pub const DELTA: &str = "delta";
+
+    // Spec 152 §3.2: the reads. A read that succeeds writes its bare read
+    // document, never an envelope ("A read is not a verdict",
+    // docs/schema-versioning.md); these tokens name it only in the envelope a
+    // failure writes, so a consumer's error path has one shape across every
+    // `--json` verb. Each is the invocation's own dotted command path.
+
+    /// `spec-spine registry list`.
+    pub const REGISTRY_LIST: &str = "registry.list";
+    /// `spec-spine registry show <id>`.
+    pub const REGISTRY_SHOW: &str = "registry.show";
+    /// `spec-spine registry status-report`.
+    pub const REGISTRY_STATUS_REPORT: &str = "registry.status-report";
+    /// `spec-spine registry relationships <id>`.
+    pub const REGISTRY_RELATIONSHIPS: &str = "registry.relationships";
+    /// `spec-spine registry obligation`.
+    pub const REGISTRY_OBLIGATION: &str = "registry.obligation";
+    /// `spec-spine registry closure`.
+    pub const REGISTRY_CLOSURE: &str = "registry.closure";
+    /// `spec-spine registry impacts`.
+    pub const REGISTRY_IMPACTS: &str = "registry.impacts";
+    /// `spec-spine registry moves`.
+    pub const REGISTRY_MOVES: &str = "registry.moves";
+    /// `spec-spine registry plan`.
+    pub const REGISTRY_PLAN: &str = "registry.plan";
+    /// `spec-spine index orphans`.
+    pub const INDEX_ORPHANS: &str = "index.orphans";
+    /// `spec-spine index diagnostics`.
+    pub const INDEX_DIAGNOSTICS: &str = "index.diagnostics";
+    /// `spec-spine index owner <path>`.
+    pub const INDEX_OWNER: &str = "index.owner";
+    /// `spec-spine index coverage`.
+    pub const INDEX_COVERAGE: &str = "index.coverage";
+    /// `spec-spine config show`.
+    pub const CONFIG_SHOW: &str = "config.show";
+    /// `spec-spine interface verify`.
+    pub const INTERFACE_VERIFY: &str = "interface.verify";
+    /// `spec-spine scope evaluate`.
+    pub const SCOPE_EVALUATE: &str = "scope.evaluate";
+    /// `spec-spine scope compare`.
+    pub const SCOPE_COMPARE: &str = "scope.compare";
 }
 
 /// The `tool` member of every envelope this binary writes (spec 132 §3.4).

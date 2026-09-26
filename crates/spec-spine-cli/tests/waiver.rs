@@ -138,8 +138,8 @@ fn report(out: &Output) -> Value {
     let v: Value = serde_json::from_slice(&out.stdout).expect("one JSON envelope on stdout");
     assert_eq!(v["schemaVersion"], spec_spine_types::VERDICT_SCHEMA_VERSION);
     assert_eq!(
-        v["schemaVersion"], "1.0.0",
-        "spec 132: the family envelope, a MAJOR over spec 113's 0.6.0"
+        v["schemaVersion"], "1.1.0",
+        "spec 132: the family envelope, a MAJOR over spec 113's 0.6.0; spec 152's MINOR"
     );
     v["report"].clone()
 }

@@ -1,6 +1,8 @@
 {
   "mapping": {
     "amends": [
+      "079-a-blocking-claim-is-not-a-stale-shard",
+      "080-an-unresolved-claim-is-not-stale",
       "145-an-unresolved-claim-is-not-called-stale"
     ],
     "dependsOn": [
@@ -23,11 +25,35 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/exit_contract.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs",
+        "source": "multiple"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/waiver.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/compact.rs",
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/diagnostics.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/index.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/lib.rs",
         "source": "spec-edge"
       },
       {
@@ -39,11 +65,28 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-types/tests/dtos.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "docs/schema-versioning.md",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
+        }
+      },
       {
         "locations": [
           {
@@ -86,6 +129,45 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-cli/tests/cli.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/exit_contract.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/exit_contract.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/waiver.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/waiver.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/src/compact.rs"
           }
         ],
@@ -99,6 +181,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/src/diagnostics.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/diagnostics.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/src/index.rs"
           }
         ],
@@ -107,6 +202,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
         }
       },
       {
@@ -138,6 +246,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-types/tests/dtos.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/schema-versioning.md"
           }
         ],
@@ -153,5 +274,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "a53158ea819b7147361be027b90be7c655b0307a1ffa0af18a1613adc840acae"
+  "shardHash": "71f16e5a5bafc8a075883b14213a1bbf5b8b09e77998908108862d2e19c26912"
 }

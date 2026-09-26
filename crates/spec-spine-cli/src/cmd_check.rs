@@ -163,7 +163,10 @@ fn report_registry(report: &CheckReport, fail_on_warn: bool) {
 /// unchanged, wording included (FR-008).
 fn report_index(report: &CheckReport, freshness: &IndexFreshnessReport, fail_on_unresolved: bool) {
     let i = &report.index;
-    if !i.fresh {
+    // Spec 152 §3.1: `i.fresh` answers drift alone, so an unresolved claim on
+    // an undrifted tree reads `fresh` there. The human report still names the
+    // claim, unchanged since spec 145.
+    if !i.fresh || !freshness.blocking.is_empty() {
         if !freshness.stale.is_empty() {
             eprintln!("codebase-index: STALE (run `spec-spine index`)");
             if let Freshness::Stale { actual, .. } = freshness.stale_verdict() {

@@ -1,6 +1,8 @@
 {
   "record": {
     "amends": [
+      "079-a-blocking-claim-is-not-a-stale-shard",
+      "080-an-unresolved-claim-is-not-stale",
       "145-an-unresolved-claim-is-not-called-stale"
     ],
     "created": "2026-09-25",
@@ -10,7 +12,29 @@
       "144-a-repository-path-is-one-type",
       "145-an-unresolved-claim-is-not-called-stale"
     ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
+      }
+    ],
     "extends": [
+      {
+        "nature": "additive",
+        "spec": "044-index-diagnostics-reach-a-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/diagnostics.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
       {
         "nature": "corrective",
         "spec": "004-codebase-index",
@@ -74,10 +98,42 @@
           "kind": "file",
           "path": "docs/schema-versioning.md"
         }
+      },
+      {
+        "nature": "corrective",
+        "spec": "132-one-exit-contract-for-the-family",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/exit_contract.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "079-a-blocking-claim-is-not-a-stale-shard",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/cli.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "113-a-waiver-has-a-declared-lifecycle",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/waiver.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "011-index-hash-slices",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
       }
     ],
     "id": "152-a-refusal-says-what-it-is-in-every-form",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "risk": "medium",
@@ -86,7 +142,7 @@
       "1-2-four-reads-print-nothing-when-they-refuse-under-json": "02128ab31b33d6ea7360829a62192976b32e43ec782759696cdd78e84680b9f1",
       "1-3-the-compact-refusal-names-rules-the-path-did-not-break": "4051914f0df73c54952ecff29fdc5004c085b0195e45dcd916d5848931eb4a8b",
       "1-purpose": "347e752350a985f0b55d2247d0d5fadd606f1673bb287059f1a091ac3574cf3e",
-      "152-a-refusal-says-what-it-is-in-every-form": "122b3a9f01db695db73ce020b15e53286353be10f65c5ba08e281f716dc84621",
+      "152-a-refusal-says-what-it-is-in-every-form": "12a83c7579512baa1ffafd6b49a0b7b4dd1d051d75d542110c89d5c191b18888",
       "2-territory": "88d9b6596de88bc8b75adc53668dcee27ec2f37d1701cb0d0967b352a9597424",
       "3-1-the-index-half-answers-drift-claims-are-their-own-member-amends-145": "eaeb406b01b1a2945f954eb31577de4ee179290acc37085b833e2fd5961a332c",
       "3-2-every-json-verb-answers-a-failure-with-an-envelope": "90936254b60d88e035cd58385ef2111d7b079b100a155d28ce649848f319d916",
@@ -94,7 +150,7 @@
       "3-4-the-verdict-version-moves-d-1": "e99d649701524dce61e6664b73ff5a9ac342e86e55ded1dc2e1b4ed4a0880c00",
       "3-behavior": "2a82d2d3aaea79f5a20b9d6cb6613d7cb8d7f1f42b2185c4858b822f074b9943",
       "4-out-of-scope": "3c82324b49f1ca3730eb7b7f0e7ea828a887e3c2e7aeba89e431ca0b0951e6be",
-      "5-resolved-decisions": "0e4dc9ba30d5d56122b86216b0382e5f9b4209631286167f7df09c08fa37e597",
+      "5-resolved-decisions": "80fec16f547bb3ec58bfda444259fdd7f127bb851fb6ff5d9aebd793233e11f5",
       "verification": "aa18fc7a053a774688d66a6f9f8e6678c1477ea35c42c7dcf67c91b14336973a"
     },
     "sectionHeadings": [
@@ -118,6 +174,6 @@
     "summary": "Three consumer-visible inconsistencies survived 0.27.0, each documented in its handoff with a workaround. `check --json` and `index check --json` still report an unresolved claim as `fresh: false` with a `stale shard` line, where the human output and every other verb say validation, not staleness (spec 145). `index coverage`, `index owner`, `scope evaluate` and `registry show` print nothing on stdout under `--json` when they refuse, so a consumer gets an empty document where the verdict verbs give an error envelope. And a compact plan path refused for a `:` is told to drop `.`, `..` and a leading slash, none of which it has. This spec makes the index half of the JSON freshness report answer drift alone and carry the claims separately, gives every `--json` verb an error envelope on failure, and makes the compact refusal name the rule the path broke.\n",
     "title": "A refusal says what it is in every form"
   },
-  "shardHash": "a53158ea819b7147361be027b90be7c655b0307a1ffa0af18a1613adc840acae",
+  "shardHash": "71f16e5a5bafc8a075883b14213a1bbf5b8b09e77998908108862d2e19c26912",
   "specVersion": "1.9.0"
 }

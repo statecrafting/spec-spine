@@ -1571,6 +1571,16 @@ fn validate_retire(
         // never have named would be matched as a string across every scanned
         // file.
         let candidate = Path::new(&e.path);
+        // Spec 152 §3.3: a path spec 144's rule refuses is refused with that
+        // rule's own reason. Before this, `C:rules/one.md` was told to drop a
+        // `.`, a `..` and a leading slash, none of which it has.
+        if let Some(why) = spec_spine_types::repo_path_problem(&e.path) {
+            return Err(Error::Config(format!(
+                "compact: the plan retires `{}`, which {why} (spec 144); write it as the corpus \
+                 spells it: a relative path of plain segments",
+                e.path
+            )));
+        }
         // `..` leaves the corpus. A `.` does not, and is worse for it:
         // `rules/./one.md` resolves, the existence check succeeds, and then the
         // LITERAL string is searched and matches nothing, so the run rewrites

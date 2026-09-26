@@ -17,7 +17,7 @@ summary: >
   freshness report answer drift alone and carry the claims separately, gives
   every `--json` verb an error envelope on failure, and makes the compact
   refusal name the rule the path broke.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -26,9 +26,15 @@ depends_on:
   - "144-a-repository-path-is-one-type"
   - "145-an-unresolved-claim-is-not-called-stale"
 amends:
+  - "079-a-blocking-claim-is-not-a-stale-shard"
+  - "080-an-unresolved-claim-is-not-stale"
   - "145-an-unresolved-claim-is-not-called-stale"
+establishes:
+  - "crates/spec-spine-cli/tests/refusal_envelopes.rs"
 extends:
   # 3.1 the freshness report's JSON halves
+  - { spec: "044-index-diagnostics-reach-a-gate", unit: "crates/spec-spine-core/src/diagnostics.rs", nature: additive }
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-core/src/lib.rs", nature: corrective }
   - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/index.rs", nature: corrective }
   - { spec: "062-one-name-one-freshness-verb", unit: "crates/spec-spine-cli/src/cmd_check.rs", nature: corrective }
   - { spec: "004-codebase-index", unit: "crates/spec-spine-cli/src/cmd_index.rs", nature: corrective }
@@ -40,6 +46,10 @@ extends:
   # 3.4 the version and its history
   - { spec: "022-index-sharding", unit: "crates/spec-spine-types/src/version.rs", nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: "docs/schema-versioning.md", nature: additive }
+  - { spec: "132-one-exit-contract-for-the-family", unit: "crates/spec-spine-cli/tests/exit_contract.rs", nature: corrective }
+  - { spec: "079-a-blocking-claim-is-not-a-stale-shard", unit: "crates/spec-spine-cli/tests/cli.rs", nature: corrective }
+  - { spec: "113-a-waiver-has-a-declared-lifecycle", unit: "crates/spec-spine-cli/tests/waiver.rs", nature: corrective }
+  - { spec: "011-index-hash-slices", unit: "crates/spec-spine-types/tests/dtos.rs", nature: corrective }
 ---
 
 # 152: A refusal says what it is in every form
@@ -174,6 +184,37 @@ names the one reader it breaks: a consumer that gated on `fresh` alone and
 ignored `exitCode`. MAJOR `2.0.0` was considered and not taken: it would make
 every 1.x reader (Statecraft included) refuse every envelope for a change that
 moves no verdict. 3.4 and the Verification block pin `1.1.0`.
+
+**D-2 (2026-09-25, build): 152 also amends 079 and 080.** Spec 079 FR-009 held
+`check --json`'s index members still, and spec 080 §4 kept `actual`'s
+`blocking-diagnostics` line as that hold; `cli.rs` pinned both
+(`check_json_is_unchanged_by_the_message_fix`,
+`spec101_json_carries_the_new_code_and_keeps_its_shape`). §3.1 ends the hold, so
+the edges record it, the two tests now assert §3.1's shape under their old
+names, and neither amended spec is edited (spec 037).
+
+**D-3 (2026-09-25, build): one constructor for the three JSON reports.**
+`IndexCheckReport::from_freshness_report` builds `check --json`'s index half,
+the `index check --json` report and the `check_freshness_json` facade from
+`IndexFreshnessReport::drift_verdict` and `unresolved_claims`, the list
+`guard` refuses with, so the facade parity test (spec 034) and 145's words
+hold by construction. A `--slice` check has no claims and keeps its bare
+verdict. The human reports keep the folded `freshness()`, unchanged (§4).
+
+**D-4 (2026-09-25, build): "every other read" is the seventeen.** §3.2 covers
+every subcommand that takes `--json` and was not already a verdict verb:
+`registry` `list`, `show`, `status-report`, `relationships`, `obligation`,
+`closure`, `impacts`, `moves`, `plan`; `index` `orphans`, `diagnostics`,
+`owner`, `coverage`; `config show`; `interface verify`; `scope` `evaluate`,
+`compare`. Each verb token is its dotted command path. The version-pin refusal
+(spec 055) reaches them through the same routing, so it is an envelope too.
+`crates/spec-spine-cli/tests/refusal_envelopes.rs` drives all seventeen.
+
+**D-5 (2026-09-25, build): library surface.** `IndexCheckReport` gains a
+public field, `unresolved_claims`, which breaks a caller building the struct
+with a literal; `IndexFreshnessReport` gains `unresolved_claims()` and
+`drift_verdict()`; `spec_spine_types::verdict::verb` gains seventeen
+constants. No signature changes.
 
 ## Verification
 

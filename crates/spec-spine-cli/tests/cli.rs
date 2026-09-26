@@ -3654,10 +3654,12 @@ fn check_json_is_unchanged_by_the_message_fix() {
     // other member and the nesting are what spec 079 left them. The version is
     // pinned by literal so an unintended bump fails here; spec 100 §3.7 moved
     // it to 0.5.0 deliberately, by adding `couple`'s `deletions` block, and
-    // spec 113 §3.8 to 0.6.0, by adding `couple`'s `waivers`.
+    // spec 113 §3.8 to 0.6.0, by adding `couple`'s `waivers`. Spec 152 moved
+    // it to 1.1.0 and ended this hold for the index half: `fresh` answers drift
+    // alone and the claim is carried in `unresolvedClaims`.
     assert_eq!(code(&out), 1);
     let json = envelope(&out);
-    assert_eq!(json["schemaVersion"], "1.0.0", "{json}");
+    assert_eq!(json["schemaVersion"], "1.1.0", "{json}");
     assert_eq!(json["exitCode"], 1, "{json}");
     assert_ne!(json["outcome"], "ok", "{json}");
     let members: Vec<&str> = json
@@ -3688,14 +3690,14 @@ fn check_json_is_unchanged_by_the_message_fix() {
         .collect();
     assert_eq!(
         index_members,
-        ["actual", "diagnostics", "expected", "fresh", "unwitnessed"],
+        ["diagnostics", "fresh", "unresolvedClaims", "unwitnessed"],
         "{json}"
     );
     assert_eq!(index["diagnostics"]["byCode"]["I-004"], 1, "{json}");
-    assert_eq!(
-        index["actual"], "1 stale shard(s):\n  blocking-diagnostics by-spec/001-missing.json",
-        "the payload text is the one this spec deliberately does not move: {json}"
-    );
+    // Spec 152 §3.1: no committed shard drifted, so the index half is fresh
+    // and names no `blocking-diagnostics` line; the claim is its own member.
+    assert_eq!(index["fresh"], true, "{json}");
+    assert_eq!(index["unresolvedClaims"][0]["code"], "I-004", "{json}");
 }
 
 #[test]
@@ -3890,7 +3892,7 @@ fn spec101_json_carries_the_new_code_and_keeps_its_shape() {
     let json = envelope(&out);
     assert_eq!(json["exitCode"], 1, "{json}");
     assert_ne!(json["outcome"], "ok", "{json}");
-    assert_eq!(json["schemaVersion"], "1.0.0", "{json}");
+    assert_eq!(json["schemaVersion"], "1.1.0", "{json}");
     let members: Vec<&str> = json
         .as_object()
         .unwrap()
@@ -3916,7 +3918,8 @@ fn spec101_json_carries_the_new_code_and_keeps_its_shape() {
         json["report"]["index"]["diagnostics"]["byCode"]["I-004"], 1,
         "{json}"
     );
-    assert_eq!(json["report"]["index"]["fresh"], false, "{json}");
+    // Spec 152 §3.1: the exit code still refuses; `fresh` answers drift alone.
+    assert_eq!(json["report"]["index"]["fresh"], true, "{json}");
 }
 
 /// Spec 080 §3.3: `--fail-on-unresolved` is a different axis and is untouched.

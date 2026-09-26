@@ -291,12 +291,19 @@ pub fn run(repo: &Path, action: Option<&IndexAction>) -> Result<u8, Error> {
                 // and this arm cannot drift; spec 034 pins them against each
                 // other. `compile --check` keeps the bare freshness object:
                 // index diagnostics are meaningless for the registry (3.1).
-                let report = serde_json::to_value(IndexCheckReport::with_unwitnessed(
-                    &freshness,
-                    counts.clone(),
-                    unwitnessed,
-                ))
-                .map_err(|e| Error::Internal(e.to_string()))?;
+                // Spec 152 §3.1: the whole-index report answers drift alone and
+                // carries each unresolved claim beside it; a `--slice` check has
+                // no claims and keeps its bare verdict.
+                let built = match &partition {
+                    Some(p) => {
+                        IndexCheckReport::from_freshness_report(p, counts.clone(), unwitnessed)
+                    }
+                    None => {
+                        IndexCheckReport::with_unwitnessed(&freshness, counts.clone(), unwitnessed)
+                    }
+                };
+                let report =
+                    serde_json::to_value(built).map_err(|e| Error::Internal(e.to_string()))?;
                 out::verdict(&Verdict::report(verb::INDEX_CHECK, code, report))?;
                 return Ok(code);
             }
