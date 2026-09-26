@@ -16,7 +16,7 @@ summary: >
   on references alone would not have been narrower than the corpus, and would
   have caught 046 only through its generic `lint` line, so the selector falls
   back to the whole corpus when engine source changes.
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -139,6 +139,37 @@ minutes per engine change, sequentially; its runner cost could be carried by
 self-hosted runners paid with cloud credits. That option stays open for a later
 spec if session time becomes the constraint; adopting it is a change to the
 check suite and so the owner's.
+
+**D-2 (2026-09-25, build): `Cargo.toml` in the engine-source rule is the
+workspace manifest and each `crates/<crate>/Cargo.toml`.** 3.1 names
+`Cargo.toml` without a path; a crate's own manifest changes what that crate
+builds, so it selects every spec too. `Cargo.lock` is the root one.
+
+**D-3 (2026-09-25, build): how a plan "names" something.** The plan is the
+text `verify <id> --plan` prints at the revision under test. It names a spec
+when it contains the full id, or the id's three-digit ordinal as a token not
+joined to a letter or digit (`verify 046`, the short form spec-spine
+resolves); a path when it contains the changed path as written from the
+repository root; a test when a line runs `cargo test` whose `-p`/`--package`
+(if any) names the changed file's crate and whose `--test` (if any) names its
+target, where `crates/<crate>/tests/<name>.rs` is target `<name>` and any
+other file under `tests/` (a fixture, a shared module) reaches every target
+of the crate. Each selected spec reports one rule, the first that
+matched in the order engine-source, changed-spec, names-spec, names-path,
+names-test.
+
+**D-4 (2026-09-25, build): what the selector refuses.** A plan it cannot read
+is a spec it cannot rule out, so `--affected-by` refuses (exit 3) rather than
+leave it out; `--only` and `--affected-by` together are refused as two
+selections; a base that does not resolve or shares no history with `--rev`
+is refused before anything is created. An empty selection is a true answer:
+nothing runs and the sweep exits 0.
+
+**D-5 (2026-09-25, build): the report.** An `--affected-by` run writes report
+schema 1.2.0: 1.1.0 plus `affectedBy` (base, its revision, the merge base,
+the changed paths, corpus size, number selected) and a `selectedBy` rule on
+each row, and a "Selection" table in `sweep.md`. Every other run writes the
+1.1.0 report it wrote before, unchanged.
 
 ## Verification
 
