@@ -34,10 +34,10 @@
       "contentHash": "10a4bd020e3592fa515fb042e588c2c4b9bd6a36e4629d25dc06e10960951890"
     },
     ".claude/skills/shepherd/SKILL.md": {
-      "contentHash": "fc3f089dbc31e9005a1b49dfd30c5a4eebb8ccd950fe9d0e782a3e3309822d73"
+      "contentHash": "04f2d6af98174f423d53cb7fa71453e3d2ebb06dd4ca49a1213fb585dd454779"
     },
     ".claude/skills/ship/SKILL.md": {
-      "contentHash": "6d479f041750523e3b99525d8f38b3ce5cf6c618fd1ce23f6214fb43837626b5"
+      "contentHash": "72581af8625e9a2fe5dcef5c344b355e9502d9678a7d659d12045e589d72fba9"
     },
     ".claude/skills/spec/SKILL.md": {
       "contentHash": "cb5d3e4dcfc111c5b1a6f0b12ff2c3de021af9abc70a993c48f4dc8d8d376983"
@@ -73,7 +73,7 @@
       "contentHash": "da2f0e4f1f8248ade7a92fcea2275abdb28be7e6a8fc853f69732be45934fff1"
     },
     "AGENTS.md": {
-      "contentHash": "32c8432b30c57d10a945688c05a97a37f377a11484f9244cb37b77d873e49d0c"
+      "contentHash": "2dadd2bf3092c20e45bd3fb66d5f6bbad3c6e25ec293b2c006d1c22a0752c9a6"
     },
     "CLAUDE.md": {
       "contentHash": "504c0e96a0b34c08e9d594f4f7b691f35cdf235c9dbea491685d6ae244594a5d"
@@ -145,7 +145,7 @@
       "contentHash": "14832b2db506c4ea0be832fee375db9f19384828303d1e8bb2d2c099d08a96e7"
     },
     "scripts/test-verify-sweep.py": {
-      "contentHash": "781e644012984776c3760b67345a5a9e242dc5a9d5b23e872727724afebe6eb3"
+      "contentHash": "8dbfa5ff185003a86b977cfe4e38fb3bfdb5b90d864596ef1df502bca41898e7"
     },
     "scripts/verify-closed-consumer.py": {
       "contentHash": "840b95139f9300ee2c1f9810f2c5a7567c622f253266752908ab618254069371"
@@ -154,7 +154,7 @@
       "contentHash": "e4772242b7b7f303aed6d68142ef4312602355d96da600aac551de1d24b369a6"
     },
     "scripts/verify-sweep.sh": {
-      "contentHash": "9316e88588c6c9df234e1dddd9079f6000e341a8ce263f22eacadc4c6989ddb5"
+      "contentHash": "98ff7d8d1f2764aee24d864d4d17fa610c93ad395cf3a07edcd7778ebd59a9f0"
     },
     "spec-spine.toml": {
       "contentHash": "1e2872624d916db3e9885c926dc7a70cab94eb274ab3d79bfe3b5fad5c73f6fd"
