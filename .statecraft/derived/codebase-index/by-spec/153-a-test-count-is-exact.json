@@ -1,0 +1,49 @@
+{
+  "mapping": {
+    "amends": [
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "084-an-acceptance-outlives-the-output-it-was-written-against",
+      "085-a-version-pin-is-not-a-contract",
+      "086-an-exact-key-set-refuses-what-the-rule-allows",
+      "088-the-template-teaches-the-whole-grammar",
+      "091-an-unclassified-review-failure-blocks-the-merge",
+      "092-the-engine-ships-governance-not-an-environment",
+      "093-the-harness-this-repository-runs",
+      "094-one-gate-and-the-boundaries-it-holds",
+      "096-compaction-is-a-verb-not-a-session",
+      "097-a-path-leaves-the-corpus-the-way-a-spec-does",
+      "098-a-citation-the-renumber-could-not-see",
+      "099-a-merged-acceptance-is-asked-again",
+      "102-a-ready-spec-carries-its-status",
+      "137-the-legacy-ledger-is-paid-index-and-lint",
+      "138-the-legacy-ledger-is-paid-coupling-and-freshness",
+      "139-the-legacy-ledger-is-paid-verdicts-and-lifecycle",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "dependsOn": [
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "084-an-acceptance-outlives-the-output-it-was-written-against",
+      "085-a-version-pin-is-not-a-contract",
+      "086-an-exact-key-set-refuses-what-the-rule-allows",
+      "088-the-template-teaches-the-whole-grammar",
+      "091-an-unclassified-review-failure-blocks-the-merge",
+      "092-the-engine-ships-governance-not-an-environment",
+      "093-the-harness-this-repository-runs",
+      "094-one-gate-and-the-boundaries-it-holds",
+      "096-compaction-is-a-verb-not-a-session",
+      "097-a-path-leaves-the-corpus-the-way-a-spec-does",
+      "098-a-citation-the-renumber-could-not-see",
+      "099-a-merged-acceptance-is-asked-again",
+      "102-a-ready-spec-carries-its-status",
+      "137-the-legacy-ledger-is-paid-index-and-lint",
+      "138-the-legacy-ledger-is-paid-coupling-and-freshness",
+      "139-the-legacy-ledger-is-paid-verdicts-and-lifecycle",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "153-a-test-count-is-exact",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "8fc90bad79d81f88792577281a1222a99ac8f6c8a2bc290a0c6e6174b64725ea"
+}
