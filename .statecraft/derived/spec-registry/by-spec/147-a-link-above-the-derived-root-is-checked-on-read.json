@@ -36,13 +36,13 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "d24b2e88a224125e9e9bc219ad7a93c3caf9cb4e5dd0b99eee82c60dbe3a7961",
-      "147-a-link-above-the-derived-root-is-checked-on-read": "96ff265701e6cf33298ed19d2a6d6bed948cafdd499504c92fd16cb50a2f8023",
+      "147-a-link-above-the-derived-root-is-checked-on-read": "de6b1a6c4e571883ee4273fbb2c80ae22a0dc8f876d99087658feec698deb3d7",
       "2-territory": "069f0eef6818ef313bb555a274825cf64f9f44868c208d8313b36891624af7d5",
       "3-1-the-roots-and-their-ancestors-are-checked-not-entered-amends-144-3-4": "d746baab28f6f09991b02df74b30fb777c077770416befbe38c45157d23f7c73",
       "3-2-the-message-says-which-read-it-guards": "bb17964ebe1443c325a9763f2a347e96e9fd2c2cf46f54f6b58375b1b5c936a6",
       "3-behavior": "cdb607db78ee2fec21dcbbd5fb6772687f5f827d4438ff8e62dd1c300e3abb24",
       "4-out-of-scope": "285749a58f4ddbd7ca2c4b049554c34e14cea5e14c9d09efca28e8afbe26073a",
-      "5-resolved-decisions": "d675e72f252cc15e364a509c0d85f353272cb070b25193696305a1431307628a",
+      "5-resolved-decisions": "dfc8c3c9379f1b917b9e30ccc67685268ddc38152f6bd496182c6773d64388c0",
       "verification": "26d30b71ad4d61db914cb25161659af5b69236a162ea569d459fe7bbff02d606"
     },
     "sectionHeadings": [
@@ -61,6 +61,6 @@
     "summary": "Spec 144's link walk skips every symbolic link at or above the derived and state roots and leaves them to spec 127, whose refusal fires only on write. A read-only verb therefore reads through such a link unchecked: with `.statecraft` a link to a directory outside the repository, `check` reads the committed derived tree and a governed file stored beside it from outside and reports the repository fresh, exit 0. This spec checks those links on read with 144's own rule, while still not descending into either root.\n",
     "title": "A link above the derived root is checked on read"
   },
-  "shardHash": "fe1445e173f84274618d6ba92280b517de2e37d4a2fc38c989116fd311fc467f",
+  "shardHash": "4a41ec4e0843bce54be04b6f82aeaac2af3d2ec33eca60d1f4ea6feea3ee016f",
   "specVersion": "1.9.0"
 }

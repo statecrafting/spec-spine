@@ -79,6 +79,10 @@ pub fn refuse_links_leaving(cfg: &Config, repo_root: &Path) -> Result<(), Error>
             let at_or_above_root = skip_rel
                 .iter()
                 .any(|s| *s == rel || s.strip_prefix(&rel).is_some_and(|r| r.starts_with('/')));
+            // A plain directory above a root whose NAME is a resolver exclusion
+            // (a root configured under `build/`, say) is still skipped, as it
+            // was before spec 147: walking it would walk the whole build tree.
+            // A link at that name is checked all the same.
             if !(meta.file_type().is_symlink() && at_or_above_root)
                 && (name == ".git" || cfg.index.resolver_exclusions.contains(&name))
             {
@@ -92,9 +96,9 @@ pub fn refuse_links_leaving(cfg: &Config, repo_root: &Path) -> Result<(), Error>
                         format!(
                             "refused to read the repository: '{rel}' is a link to {}, outside \
                              it, and the derived tree or a governed file beside it is read \
-                             through that link (spec 147). Every verb refuses it, read-only \
-                             ones included, because a verdict read through it would judge \
-                             content the repository does not hold; nothing was written. \
+                             through that link (spec 147). It is refused on read as well as \
+                             on write, because a verdict read through it would judge content \
+                             the repository does not hold; nothing was written. \
                              Remove the link or point it inside the repository (a link there \
                              that stays inside is spec 127's to judge, on write)",
                             target.display()
