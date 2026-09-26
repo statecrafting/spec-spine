@@ -145,6 +145,13 @@ the same change, moves the example to 037.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-25).** This block no longer runs.
+> `149-the-installer-is-tested` declares this spec in `amends_verification`,
+> so `spec-spine verify 139` builds its plan from that spec's block, where
+> these commands are carried with the ledger count made three and the 006
+> exemption line replaced by 149's absence check, every other line unchanged
+> (spec 082 3.2 and 3.4).
+
 ```verify:cli
 # 3.2: every target's line is gone from the legacy ledger (the sweep also refuses a stale entry).
 sh -c '! grep -Eqx "(007-python-distribution|021-ledger-seal|032-stdout-closed-reader|034-machine-readable-verdicts|038-completion-held-to-claims|039-per-spec-attestation|040-governance-document-gaps|041-in-progress-is-in-flight|042-absent-implementation-defers-to-status)" scripts/verify-sweep.sh'
