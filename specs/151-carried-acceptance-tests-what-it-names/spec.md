@@ -1,7 +1,7 @@
 ---
 id: "151-carried-acceptance-tests-what-it-names"
 title: "Carried acceptance tests what it names"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-25"
 summary: >

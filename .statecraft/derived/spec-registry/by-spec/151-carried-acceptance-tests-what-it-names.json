@@ -57,10 +57,10 @@
       "Verification"
     ],
     "specPath": "specs/151-carried-acceptance-tests-what-it-names/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The 0.27.0 cross-reference of 136 to 146 found three acceptance plans that could pass without testing what their spec now says. 018's plan (carried by 136) never runs 142's amendment of it: its coupling tests build their index by hand, so they pass whether or not the index hands a partially superseded unit over. 144's link-rule line accepts any positive test count, so a link test that stops running still passes. 145's binary line drives only `index coverage`, while six other verbs read the same guard. This spec carries all three plans under `amends_verification`: 018's section gains the hand-off, run through `index` and the shipped binary; 144's line names its three tests; 145's block gains one fixture driven through all seven verbs. Each new line fails under a mutation the carried line it tightens passes.\n",
     "title": "Carried acceptance tests what it names"
   },
-  "shardHash": "ffc377a50e4ed52d56d9f0c2cbd3e7396657879350c9f9bb2732d2c2992812b4",
+  "shardHash": "0d6df31f92a7b082ec609abbb0034ccee4f4bc05ee10f65c12642754a458e1e7",
   "specVersion": "1.9.0"
 }
