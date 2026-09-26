@@ -1,7 +1,7 @@
 ---
 id: "154-the-pre-merge-sweep-is-a-skill-step"
 title: "The pre-merge sweep is a skill step, not a gate step"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-26"
 summary: >
