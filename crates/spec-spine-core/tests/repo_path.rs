@@ -117,3 +117,204 @@ fn a_linked_root_and_the_derived_tree_are_not_this_rules_business() {
         assert!(!format!("{e}").contains("spec 144"), "{e}");
     }
 }
+
+/// Spec 147 §3.1, §3.2: a link AT a derived or state root, or at an ancestor
+/// of one, is checked on read like any other link. One resolving outside the
+/// repository refuses every read, exit 2, naming the link and saying the
+/// derived tree is read through it; one resolving inside is still read.
+#[cfg(unix)]
+#[test]
+fn a_linked_ancestor_of_the_derived_root_is_checked_on_read() {
+    use std::os::unix::fs::symlink;
+    for (toml, link, below) in [
+        // The managed layout: `.statecraft` above `.statecraft/derived`.
+        (
+            "[layout]\nderived_dir = \".statecraft/derived\"\n",
+            ".statecraft",
+            "derived",
+        ),
+        // A deeper ancestor, two levels above the root.
+        (
+            "[layout]\nderived_dir = \"gov/out/derived\"\n",
+            "gov",
+            "out/derived",
+        ),
+        // The default root itself, which is also a resolver exclusion by name.
+        ("", ".derived", ""),
+        // The state root.
+        (
+            "[layout]\nstate_dir = \".statecraft/state\"\n",
+            ".statecraft",
+            "state",
+        ),
+    ] {
+        let tmp = tempfile::tempdir().unwrap();
+        let repo = tmp.path().join("repo");
+        corpus(&repo);
+        let cfg = load_config(toml).unwrap();
+        // Outside: the refusal.
+        let away = tmp.path().join("away");
+        fs::create_dir_all(away.join(below)).unwrap();
+        write(&away, "notes.md", "n\n");
+        symlink(&away, repo.join(link)).unwrap();
+        let errs = [
+            compile(&cfg, &repo).err().expect("compile refuses"),
+            index(&cfg, &repo).err().expect("index refuses"),
+            check_index_freshness(&cfg, &repo).expect_err("the freshness read refuses"),
+        ];
+        for err in errs {
+            let msg = format!("{err}");
+            assert_eq!(err.exit_code(), 2, "{link}: {msg}");
+            assert!(msg.starts_with("refused: "), "{link}: {msg}");
+            assert!(
+                msg.contains(&format!("'{link}' is a link")),
+                "{link}: {msg}"
+            );
+            assert!(
+                msg.contains(
+                    "the derived tree or a governed file beside it is read through that link"
+                ),
+                "{link}: {msg}"
+            );
+            assert!(msg.contains("spec 147"), "{link}: {msg}");
+        }
+        // Inside: the walk accepts it, and does not enter it.
+        fs::remove_file(repo.join(link)).unwrap();
+        let store = repo.join("store/sc");
+        fs::create_dir_all(store.join(below)).unwrap();
+        symlink(Path::new("store/sc"), repo.join(link)).unwrap();
+        assert!(
+            compile(&cfg, &repo).is_ok(),
+            "{link}: a link inside is read"
+        );
+        assert!(index(&cfg, &repo).is_ok(), "{link}: a link inside is read");
+        // The freshness read reaches the walk too: whatever it answers about
+        // an unbuilt tree, it is not this refusal.
+        if let Err(e) = check_index_freshness(&cfg, &repo) {
+            assert!(!format!("{e}").contains("spec 147"), "{link}: {e}");
+        }
+    }
+}
+
+/// Spec 148: create a directory junction at `link` pointing to `target`, with
+/// `mklink /J`, the only junction creator the standard library does not wrap.
+/// A junction needs no privilege, so a failure here is a test failure.
+///
+/// `cmd` reads a `/` inside an argument as a switch (`src/inside` is `src`
+/// and the switch `/inside`), so both paths are handed over with `\`.
+#[cfg(windows)]
+fn junction(target: &Path, link: &Path) {
+    let win = |p: &Path| p.to_string_lossy().replace('/', "\\");
+    let out = std::process::Command::new("cmd")
+        .args(["/C", "mklink", "/J"])
+        .arg(win(link))
+        .arg(win(target))
+        .output()
+        .expect("cmd runs");
+    assert!(
+        out.status.success(),
+        "mklink /J {} {}: {}",
+        link.display(),
+        target.display(),
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
+
+/// Spec 148 §3.1: the cases the Unix tests assert, for one Windows link kind.
+/// `make` creates a directory link of that kind at its second argument,
+/// pointing to its first.
+#[cfg(windows)]
+fn the_link_rule_holds_for(kind: &str, make: &dyn Fn(&Path, &Path)) {
+    let tmp = tempfile::tempdir().unwrap();
+    let repo = tmp.path().join("repo");
+    let outside = tmp.path().join("outside");
+    corpus(&repo);
+    write(&outside, "secret.rs", "pub fn secret() {}\n");
+    let cfg = Config::default();
+
+    // Inside: a link to another directory of the repository is read.
+    write(&repo, "lib/b.rs", "pub fn b() {}\n");
+    make(&repo.join("lib"), &repo.join("src/inside"));
+    assert!(
+        compile(&cfg, &repo).is_ok(),
+        "{kind}: a link inside is read"
+    );
+    assert!(index(&cfg, &repo).is_ok(), "{kind}: a link inside is read");
+
+    // Dangling: a link whose target is gone reads nothing and is fine.
+    let gone = tmp.path().join("gone");
+    fs::create_dir_all(&gone).unwrap();
+    make(&gone, &repo.join("src/dangling"));
+    fs::remove_dir(&gone).unwrap();
+    assert!(
+        compile(&cfg, &repo).is_ok(),
+        "{kind}: a dangling link is read"
+    );
+    assert!(
+        index(&cfg, &repo).is_ok(),
+        "{kind}: a dangling link is read"
+    );
+
+    // Outside: compile and index refuse, exit 2, naming the link.
+    make(&outside, &repo.join("src/leak"));
+    for (verb, res) in [
+        ("compile", compile(&cfg, &repo).err()),
+        ("index", index(&cfg, &repo).err()),
+    ] {
+        let err = res.unwrap_or_else(|| panic!("{kind}: {verb} refuses a link outside"));
+        assert_eq!(err.exit_code(), 2, "{kind}: {verb}: {err}");
+        assert!(
+            format!("{err}").contains("src/leak"),
+            "{kind}: {verb}: {err}"
+        );
+    }
+    fs::remove_dir(repo.join("src/leak")).unwrap();
+
+    // A repository reached through a link of this kind works.
+    let alias = tmp.path().join("alias");
+    make(&repo, &alias);
+    assert!(
+        compile(&cfg, &alias).is_ok(),
+        "{kind}: a linked repository works"
+    );
+    assert!(
+        index(&cfg, &alias).is_ok(),
+        "{kind}: a linked repository works"
+    );
+}
+
+/// Spec 148 §3.1: a directory junction follows spec 144's link rule.
+#[cfg(windows)]
+#[test]
+fn a_junction_follows_the_link_rule() {
+    the_link_rule_holds_for("junction", &|target, link| junction(target, link));
+}
+
+/// Spec 148 §3.1, §3.2: a directory symbolic link follows spec 144's link
+/// rule. Creating one needs a privilege (or Developer Mode) a runner may lack:
+/// `ERROR_PRIVILEGE_NOT_HELD` (1314) is reported as not run, never passed, and
+/// under `CI=true` it fails, so the required job cannot go green without
+/// having created a link.
+#[cfg(windows)]
+#[test]
+fn a_windows_symbolic_link_follows_the_link_rule() {
+    const ERROR_PRIVILEGE_NOT_HELD: i32 = 1314;
+    let probe = tempfile::tempdir().unwrap();
+    if let Err(e) = std::os::windows::fs::symlink_dir(probe.path(), probe.path().join("probe")) {
+        if e.raw_os_error() == Some(ERROR_PRIVILEGE_NOT_HELD) {
+            let why = format!(
+                "a_windows_symbolic_link_follows_the_link_rule: NOT RUN: creating a \
+                 symbolic link failed with ERROR_PRIVILEGE_NOT_HELD (1314): {e}"
+            );
+            if std::env::var("CI").as_deref() == Ok("true") {
+                panic!("{why}; CI=true, so this fails rather than skips (spec 148 3.2)");
+            }
+            eprintln!("{why}");
+            return;
+        }
+        panic!("creating a symbolic link failed: {e}");
+    }
+    the_link_rule_holds_for("symbolic link", &|target, link| {
+        std::os::windows::fs::symlink_dir(target, link).unwrap()
+    });
+}
