@@ -22,7 +22,7 @@
       }
     ],
     "id": "148-the-link-rule-is-tested-on-windows",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "owner": "The spec-spine Authors",
     "references": [
@@ -37,14 +37,14 @@
     "risk": "low",
     "sectionDigests": {
       "1-purpose": "5bb344eb224ec18748c3877c584f0fd12cd10f1b2e6fe511b960754792797948",
-      "148-the-link-rule-is-tested-on-windows": "181f3c519ec84d64471e5ec9e408ca297acd74ee219a744c950ca5561a0ac3da",
+      "148-the-link-rule-is-tested-on-windows": "9750268581c818238a50b7d160fe084c728d36086b60a09592577679f586dd46",
       "2-territory": "2be746ff13d99fe52c6f490331d95b72e0bcaa93802a39868ed485e7ab356166",
       "3-1-both-link-kinds-are-tested-on-windows": "148ad9f9c7b5cd928290750e6745d360bfb34ef127d9d5b896e280cb42b68d3c",
       "3-2-a-missing-privilege-is-reported-never-passed-silently": "4b2790e79bfafd4e7597e18ca8b0f2d497ed7450071483302dd51f9a7611ab68",
       "3-3-144-4-is-corrected": "b2e9b178ca52dc45e2ebe345efd2afdf70e95edd9518d61f01114619b38000ac",
       "3-behavior": "2b9739e5f9401e6a863ac20e179f5b28e49e9e11e1e48009f6f233ddd1990cde",
       "4-out-of-scope": "6ac7750dcc26c161ad9f25a3b5adee1d258a84ae6822cfa5694202dc5e587243",
-      "5-resolved-decisions": "7e1eb035ea8a4d20bac398129f4124023323b892aad7f039dd63953456dd80bd",
+      "5-resolved-decisions": "1c90b245856cd98271a62df4cb4c54144543d456e25b8641f7c0c4edaef74c15",
       "verification": "0f16682720f23ebf84b3c04fe984008ea4111f93cb74c9ed81fe91b764c3d866"
     },
     "sectionHeadings": [
@@ -64,6 +64,6 @@
     "summary": "Spec 144's rule that no governed read leaves the repository through a link is tested only on Unix: both link tests in `tests/repo_path.rs` are `#[cfg(unix)]`, and 144 §4 puts Windows links and junctions out of scope. Windows is a shipped platform with a required `test (windows)` job (spec 134), and it has two link kinds 144's walk must see: symbolic links and directory junctions. This spec adds a Windows test for both, and records what a runner without the symbolic-link privilege does.\n",
     "title": "The link rule is tested on Windows"
   },
-  "shardHash": "62aa6d2aa8f5b3facd5b236479557dcac13560abb9edb694fa453929c9024391",
+  "shardHash": "ff5eebca0c681b8ddda3bd42b1519d8ea18533d0321b2208f3d18b32bb205111",
   "specVersion": "1.9.0"
 }
