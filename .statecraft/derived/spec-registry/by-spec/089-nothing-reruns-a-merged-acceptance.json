@@ -48,7 +48,7 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "089-nothing-reruns-a-merged-acceptance": "954a3ecc243d8f9ba1da0f5d789dc142c5b008842f39485f5e3561543536f3e5",
+      "089-nothing-reruns-a-merged-acceptance": "b828a7d4d4f2be01ea9ee101232447c7b78533b2d8cf0a4529492c30ecec2fef",
       "1-1-the-gap-in-the-corpus-s-own-record": "0501ecb69a1b0e86e88a623d8b659f2c7d85fbf1c3636ef10799ed58d419b60a",
       "1-2-what-the-corpus-declares-today-measured": "c70a608f133b050ec50b70cc761040606a5fc8c0a8fc30d30d15db06243768f5",
       "1-3-why-this-is-not-verify-all": "495b87c7df98ef87c11c269cd946c1cab98b2ca254333b2dda025d485d9e5052",
@@ -68,7 +68,7 @@
       "4-out-of-scope": "5108a0bbd1c347ad413148d0708245cb5b29f77944717cf591b45f3561cca937",
       "5-resolved-decisions": "334b142640a330db083be44831ae593fe3d884275c142ba50887cd170130aeaa",
       "implementation-review-2026-09-17": "85498fdc6e3bf662e95d6da9849e71cba66adfea42e0bac87d86c4c785baa5eb",
-      "verification": "7c27351b375c3adf49183c855e8ee54793cc38cf401ddb2108c3f7c94c547c59"
+      "verification": "13b5bd8d092f3ffdc688dacf8d3f1911f773e9d35c0740a176bb47f06d6c34cf"
     },
     "sectionHeadings": [
       "089: Nothing reruns a merged acceptance",
@@ -98,6 +98,6 @@
     "summary": "A `## Verification` block is run once, by the session that writes it, and then never again. `verify` is outside the gate chain on purpose, so a block that a later approved spec legitimately invalidates goes red silently and stays red: specs 084 through 110 each exist to repair one such block, and each was found by hand. Spec 083 §4 named the remedy, \"a periodic sweep a maintainer runs, not a gate step\", and left naming its home as its own work. This spec is that home. It establishes `scripts/verify-sweep.sh`, a maintainer-invoked sweep that runs the whole corpus's declared acceptance against one already-merged revision in an isolated worktree, accounts for every spec under five outcomes of which only two are success, and closes the 000-047 population as a ledger that can only shrink and that no future spec can enter.\n",
     "title": "Nothing reruns a merged acceptance"
   },
-  "shardHash": "7876de1fbf7bb76e516af359daa72492a802133f0b1d386c3c1e41a5f1a84f43",
+  "shardHash": "8542a1be762c7224ffe94e0045524a8b84b428d71925bf380d41630e450d5a0d",
   "specVersion": "1.9.0"
 }

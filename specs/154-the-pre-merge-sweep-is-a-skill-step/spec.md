@@ -1,105 +1,88 @@
 ---
-id: "146-carried-acceptance-follows-139-and-144"
-title: "Carried acceptance follows 139 and 144"
-status: approved
+id: "154-the-pre-merge-sweep-is-a-skill-step"
+title: "The pre-merge sweep is a skill step, not a gate step"
+status: draft
 kind: "tooling"
-created: "2026-09-25"
+created: "2026-09-26"
 summary: >
-  The pre-release sweep of `e440b714` failed two approved specs' acceptance,
-  both invalidated by specs merged this cycle rather than by a defect. Spec
-  046's block lints this corpus from a scratch root whose `specs` is a link to
-  this repository's `specs/`, a link that resolves outside the scratch root, which
-  spec 144 now refuses (exit 2). Spec 089's block asserts that the built-in
-  legacy ledger reports spec 011 `exempt`, and spec 137 retired 011's line when it
-  gave 011 an executable acceptance. This spec carries both blocks under
-  `amends_verification`, unchanged except that 046's scratch root copies the
-  corpus instead of linking it, and 089 asks the ledger about 019, which stays
-  exempt by design (139 3.3).
+  Spec 150 put the pre-merge `verify-sweep.sh --affected-by` run into the
+  `/ship` and `/shepherd` skills, as its 3.2 requires. Spec 089's acceptance,
+  carried for 046 and 089 by spec 146, asserts that no skill mentions
+  `verify-sweep` at all, so 046, 089 and 146 fail from 150's merge on. 150's
+  own sweep did not show it: those three failed earlier in the same block, on
+  the stale 006 ledger entry. This spec carries 146's block under
+  `amends_verification`, unchanged except that the one line asserts what 089
+  meant and 150 keeps: every mention of the sweep in a skill is the pre-merge
+  `--affected-by` step, and the gate list names no sweep.
 implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
-  - "046-depends-on-ordinal-monotonicity"
   - "089-nothing-reruns-a-merged-acceptance"
-  - "139-the-legacy-ledger-is-paid-verdicts-and-lifecycle"
-  - "144-a-repository-path-is-one-type"
+  - "146-carried-acceptance-follows-139-and-144"
+  - "150-a-change-runs-the-acceptance-it-can-break"
 amends_verification:
-  - "046-depends-on-ordinal-monotonicity"
-  - "089-nothing-reruns-a-merged-acceptance"
+  - "146-carried-acceptance-follows-139-and-144"
 amends:
-  - "046-depends-on-ordinal-monotonicity"
   - "089-nothing-reruns-a-merged-acceptance"
+  - "146-carried-acceptance-follows-139-and-144"
 ---
 
-# 146: Carried acceptance follows 139 and 144
+# 154: The pre-merge sweep is a skill step, not a gate step
 
 ## 1. Purpose
 
-Measured by `scripts/verify-sweep.sh --rev e440b714` (the 0.27.0 bump on
-`main`), before any 0.27.0 release was cut: `passed=140 failed=2`.
+Measured by `verify-sweep.sh --affected-by origin/main` on spec 149's head
+`a93e682a` (which merges `main` at `4818eb50`, after 150 merged as
+`9bd301fd`), 2026-09-26: 046 fails at command 67, the line
+`! grep -rqF 'verify-sweep' .claude/skills/`. `verify 089` and `verify 146`
+run the same block (146 holds 046 and 089) and fail on the same line.
 
-| Spec | Failing command | Cause |
-|---|---|---|
-| 046 | the scratch-root lint of this corpus (command 5) | the scratch root's `specs` is a link to this repository's `specs/`, outside the scratch root; spec 144 §3.4 refuses a read through such a link (exit 2) |
-| 089 | the built-in-ledger check (command 47) | it asserts `[('011-index-hash-slices', 'exempt')]`; spec 137 gave 011 carried acceptance and deleted its ledger line, so the sweep reports it `passed` |
+The line comes from spec 089 3.1 and 3.2: the sweep "is in no skill's gate
+floor". Spec 150 3.2 (approved) makes the sweep a step of `/ship` and
+`/shepherd`, before merge, outside the gate floor: `.claude/skills/ship/SKILL.md`
+names `verify-sweep.sh --affected-by` twice. Neither 150 nor 146 declared an
+edge on the other's acceptance, so nothing carried the change.
 
-Neither rule changed: 046's convention still holds on this corpus, and 089's
-built-in ledger still answers and is still closed, live and shrink-only. Each
-block tested its rule through a detail a later spec legitimately moved.
+150's own pre-merge sweep (`8657aaa4`) did not show this. 046, 089 and 146 each
+failed there at command 53, the built-in-ledger run that refused on the stale
+`006-distribution` entry (fixed by 149), and a block stops at its first failing
+command.
 
 ## 2. Territory
 
-This spec establishes nothing and edits no amended spec's file beyond the
-superseded-acceptance note spec 082 §3.4 requires.
+None of its own: this spec carries acceptance only.
 
 ## 3. Behavior
 
-### 3.1 046's acceptance copies the corpus
+### 3.1 146's block is carried with one line restated
 
-`spec-spine verify 046` MUST run this spec's block. 046's commands are carried
-unchanged except the scratch-root line, which copies `specs/` (`cp -R`) instead
-of linking it, so spec 144's link rule does not refuse the read.
+This spec's block MUST be 146's block, every line verbatim except
+`! grep -rqF 'verify-sweep' .claude/skills/`, which MUST be replaced by two
+lines:
 
-### 3.2 089's acceptance asks about a spec that stays exempt
+- every line in `.claude/skills/` that names `verify-sweep` also names
+  `--affected-by`, the pre-merge step spec 150 defines;
+- the gate list in `AGENTS.md` "Working the backlog" step 5, which every
+  skill's gate floor is asserted to be a subset of (`harness_skills.rs`, spec
+  093), names no `verify-sweep`.
 
-`spec-spine verify 089` MUST run this spec's block. 089's commands are carried
-unchanged except the built-in-ledger pair, which runs `--only 019` and expects
-`[('019-release-supply-chain-artifacts', 'exempt')]`. 019 is one of the four
-entries spec 139 §3.3 keeps exempt by design, because its acceptance is the
-release run itself.
-
-### 3.3 The amended specs say so
-
-046 and 089 each carry spec 082 §3.4's superseded-acceptance note naming this
-spec above their own block.
+The restated lines fail where the old one failed for the reason 089 gave: a
+sweep that entered a skill as anything but the pre-merge step, or entered the
+gate list.
 
 ## 4. Out of scope
 
-**Why the sweep did not catch this before the merges.** 137's pre-merge check
-ran 089's command that sweeps `--only 011` and saw exit 0; it did not run the
-next command, which read that sweep's report. 144's review did not run 046's
-block. Both were caught by the pre-release sweep, which is the check spec 089
-exists to provide.
+- The two other assertions of 089 3.1 carried in the same block (no `sweep`
+  subcommand; no `verify-sweep` in `ci.yml`), which hold unchanged.
 
 ## 5. Resolved decisions
 
-**D-1 (2026-09-25): carry, do not edit.** Both specs are approved, so their
-blocks are replaced through `amends_verification` (spec 082), as 084 and 132
-did, not edited in place.
-
-**D-2 (2026-09-25): 019, not 000.** Any of the four remaining entries would
-do. 019 is a single-spec sweep whose outcome is fixed by the ledger alone; 000
-is the constitution, and pinning its exemption into another spec's acceptance
-adds a reader of it for no gain.
+**D-1 (2026-09-26): filed and built together, as a draft.** Carried acceptance
+is only meaningful built (spec 113), and 146 is red on `main` until it lands.
+Ratification stays the owner's.
 
 ## Verification
-
-> **Superseded acceptance (2026-09-26).** This block no longer runs.
-> `154-the-pre-merge-sweep-is-a-skill-step` declares this spec in
-> `amends_verification`, so `spec-spine verify 146` builds its plan from that
-> spec's block, where these commands are carried with the skills line restated
-> for spec 150's pre-merge step and every other line unchanged (spec 082 3.2
-> and 3.4).
 
 ```verify:cli
 # ---- carried for 046-depends-on-ordinal-monotonicity (amends_verification), the scratch root copies the corpus (3.1) ----
@@ -225,7 +208,12 @@ test -f "${TMPDIR:-/tmp}/ss112/precious/keepme"
 # The `test -f` guard is load-bearing: a bare `! grep` on a file that is not
 # there passes, and would assert nothing if the workflow were deleted.
 ! target/release/spec-spine --help 2>&1 | grep -qE '^[[:space:]]+sweep'
-! grep -rqF 'verify-sweep' .claude/skills/
+# Amended by 154 (was `! grep -rqF 'verify-sweep' .claude/skills/`): spec 150
+# 3.2 puts the pre-merge `--affected-by` run in /ship and /shepherd. Every
+# mention of the sweep in a skill is that step, and the gate list AGENTS.md
+# step 5 defines (every skill's gate floor, harness_skills.rs) names no sweep.
+sh -c '! grep -rhF "verify-sweep" .claude/skills/ | grep -vqF -- "--affected-by"'
+sh -c 'g=$(sed -n "/^5\. \*\*Run the gate/,/^6\. /p" AGENTS.md); printf "%s\n" "$g" | grep -qF "spec-spine couple" && ! printf "%s\n" "$g" | grep -qF "verify-sweep"'
 ! grep -qF 'verify-sweep' .github/workflows/ci.yml
 test -f .github/workflows/acceptance.yml && ! grep -qE '^[[:space:]]*(pull_request|pull_request_target|merge_group):' .github/workflows/acceptance.yml
 # It reads the corpus through the governed verbs only.
