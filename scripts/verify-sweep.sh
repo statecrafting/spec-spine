@@ -113,11 +113,10 @@ legacy_ledger() {
 # Filed before spec 043 built `verify`; no acceptance was declarable. Five of
 # the original 48 were removed by spec 095's collapse and are gone from here.
 # Specs 136 to 139 carried acceptance for 39 more under amends_verification
-# and deleted their lines. The four below remain, each with its reason.
+# and deleted their lines. Spec 149 gave 006 an offline acceptance and deleted
+# its line. The three below remain, each with its reason.
 # exempt: tier-1 constitution, whose claims the whole gate chain and determinism.yml test (139 3.3)
 000-spec-spine-bootstrap
-# exempt: install.sh, the tag-gated release pipeline and npm publication run only in a release (139 3.3)
-006-distribution
 # exempt: SBOM and SLSA provenance are produced only by a tag-triggered release run (139 3.3)
 019-release-supply-chain-artifacts
 # exempt: a process rule on pull-request edits; its descendants 082, 083, 095 and 118 carry acceptance (139 3.3)
@@ -133,9 +132,9 @@ usage: $PROG [options]
   --trusted-ref <ref>   <rev> must be an ancestor of this (default: the
                         repository's origin/HEAD, else origin/main)
   --repo <dir>          repository to sweep (default: the current directory)
-  --only <id,...>       sweep only these spec ids, as a full `NNN-slug` or the
-                        3-digit ordinal `NNN` (the short form spec-spine itself
-                        resolves; `49` is not one, `049` is)
+  --only <id,...>       sweep only these spec ids, as a full 'NNN-slug' or the
+                        3-digit ordinal 'NNN' (the short form spec-spine itself
+                        resolves; '49' is not one, '049' is)
   --out <dir>           run directory for the worktree, logs and report
                         (default: a new directory per run,
                         \${XDG_CACHE_HOME:-\$HOME/.cache}/spec-spine/sweeps/
