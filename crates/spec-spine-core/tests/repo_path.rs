@@ -199,12 +199,16 @@ fn a_linked_ancestor_of_the_derived_root_is_checked_on_read() {
 /// Spec 148: create a directory junction at `link` pointing to `target`, with
 /// `mklink /J`, the only junction creator the standard library does not wrap.
 /// A junction needs no privilege, so a failure here is a test failure.
+///
+/// `cmd` reads a `/` inside an argument as a switch (`src/inside` is `src`
+/// and the switch `/inside`), so both paths are handed over with `\`.
 #[cfg(windows)]
 fn junction(target: &Path, link: &Path) {
+    let win = |p: &Path| p.to_string_lossy().replace('/', "\\");
     let out = std::process::Command::new("cmd")
         .args(["/C", "mklink", "/J"])
-        .arg(link)
-        .arg(target)
+        .arg(win(link))
+        .arg(win(target))
         .output()
         .expect("cmd runs");
     assert!(
