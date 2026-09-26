@@ -16,7 +16,7 @@ summary: >
   on references alone would not have been narrower than the corpus, and would
   have caught 046 only through its generic `lint` line, so the selector falls
   back to the whole corpus when engine source changes.
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:

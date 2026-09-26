@@ -41,7 +41,7 @@
       }
     ],
     "id": "150-a-change-runs-the-acceptance-it-can-break",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "process",
     "owner": "The spec-spine Authors",
     "references": [
@@ -87,6 +87,6 @@
     "summary": "Specs 144 and 137 each broke an approved spec's acceptance (046 and 089), and nothing noticed until the pre-release sweep of `e440b714`, after both had merged; spec 146 repaired them. The sweep runs only on a merged revision (specs 089, 099), and no pre-merge step runs any acceptance other than the changed spec's own. This spec adds a pre-merge acceptance run: a selector that names every spec whose acceptance a change can break, and a step that runs those blocks on the pull request's head before it merges, with the counts recorded in the pull request. Measured on 136 to 146, a selector keyed on references alone would not have been narrower than the corpus, and would have caught 046 only through its generic `lint` line, so the selector falls back to the whole corpus when engine source changes.\n",
     "title": "A change runs the acceptance it can break"
   },
-  "shardHash": "82b7f65d4f7f4a5c6769dd1bb3393b811db4156dc619c1f7545d49092e941b1f",
+  "shardHash": "a9c311695efbe3d4f4df6a416f86381127dddd6ffbf39fea1afb1cc27be335cc",
   "specVersion": "1.9.0"
 }
