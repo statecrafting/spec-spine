@@ -39,10 +39,10 @@
       "Verification"
     ],
     "specPath": "specs/154-the-pre-merge-sweep-is-a-skill-step/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 150 put the pre-merge `verify-sweep.sh --affected-by` run into the `/ship` and `/shepherd` skills, as its 3.2 requires. Spec 089's acceptance, carried for 046 and 089 by spec 146, asserts that no skill mentions `verify-sweep` at all, so 046, 089 and 146 fail from 150's merge on. 150's own sweep did not show it: those three failed earlier in the same block, on the stale 006 ledger entry. This spec carries 146's block under `amends_verification`, unchanged except that the one line asserts what 089 meant and 150 keeps: every mention of the sweep in a skill is the pre-merge `--affected-by` step, and the gate list names no sweep.\n",
     "title": "The pre-merge sweep is a skill step, not a gate step"
   },
-  "shardHash": "ceaa2341588b271ed8bba543d58ca94a6bde4f6b1bd956b7c38d913f3755889f",
+  "shardHash": "d233de23f5d34d7a00e4f23fe1f6e3667c3294c5f85a1f8007e6f75d9f3e2f35",
   "specVersion": "1.9.0"
 }
