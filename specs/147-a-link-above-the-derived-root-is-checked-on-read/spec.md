@@ -12,7 +12,7 @@ summary: >
   committed derived tree and a governed file stored beside it from outside and
   reports the repository fresh, exit 0. This spec checks those links on read
   with 144's own rule, while still not descending into either root.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -94,7 +94,29 @@ read-only verb.
 
 ## 5. Resolved decisions
 
-None yet.
+**D-1 (2026-09-25, build): one refusal on read and on write, carrying both
+citations.** A link at or above a root that leaves the repository now refuses
+in the link walk, which `compile` and `index` run before spec 127's write
+preflight, so a write verb meets this refusal first. Spec 127's own test
+(`derived_symlinks.rs`, `a_linked_ancestor_refuses`) requires its refusal to
+carry `nothing was written` and `spec 127`. The spec was silent on which words
+a write verb shows when both rules apply; the message says both truthfully (no
+verb has written anything when the walk refuses, and 127 still judges a link
+there that stays inside), and 127's test is unchanged.
+
+**D-2 (2026-09-25, build): the root check runs before the name skips.** The
+default derived root, `.derived`, is also an `[index] resolver_exclusions`
+name, so the walk's name skip reached it first and a `.derived` linked out of
+the repository was never checked on read. A link at or above a root is now
+checked before the `.git` and resolver-exclusion skips; everything else keeps
+its order. The library test covers the default root for this reason.
+
+**D-3 (2026-09-25, measured, not decided here): reads that never walk.**
+`registry list`, `registry plan`, `index render` and `index diagnostics` read
+the committed shards without calling the link walk, so with `.statecraft`
+linked outside the repository they still exit 0 on the outside bytes. They
+render the ledger rather than judge freshness, and §3.1 names the walk, not
+the verbs that call it; whether they should refuse too is left to the owner.
 
 ## Verification
 

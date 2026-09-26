@@ -38,9 +38,13 @@ pub fn is_excluded(repo_root: &Path, path: &Path, exclusions: &[String]) -> bool
 /// a directory link cannot loop the walk.
 ///
 /// Not walked: `.git`, the derived and state roots (the tool's own output and
-/// state, whose links spec 127 already refuses on write), and the
-/// `[index] resolver_exclusions` directory names (build output and installed
-/// dependencies, which no governed read enters).
+/// state), and the `[index] resolver_exclusions` directory names (build output
+/// and installed dependencies, which no governed read enters).
+///
+/// A link AT a derived or state root, or at an ancestor of one, is checked
+/// like any other and never entered (spec 147 §3.1): read-only verbs read the
+/// committed derived tree through it, and spec 127's refusal runs only on
+/// write. A link there that stays inside the repository is 127's to judge.
 ///
 /// The root is resolved first, so a repository reached through a link (a
 /// symlinked checkout, macOS's `/tmp` alias) is compared with where it really
@@ -65,19 +69,18 @@ pub fn refuse_links_leaving(cfg: &Config, repo_root: &Path) -> Result<(), Error>
             let Ok(meta) = fs::symlink_metadata(&path) else {
                 continue;
             };
-            // The skipped roots are skipped whatever they are, a link included:
-            // a linked derived root is spec 127's refusal, on write, with its
-            // own message.
             let rel = rel_posix(repo_root, &path);
-            // A root, or an ancestor of one: a link there is spec 127's to
-            // refuse, on write, naming the derived tree (spec 144 D-4).
+            // A root, or an ancestor of one. A link there is checked like any
+            // other and never entered (spec 147 §3.1): every read-only verb
+            // reads the committed derived tree through it, and spec 127's
+            // refusal runs only on write. One resolving inside the repository
+            // stays 127's to judge, on write. Checked before the name skips,
+            // because the default derived root is itself a resolver exclusion.
             let at_or_above_root = skip_rel
                 .iter()
                 .any(|s| *s == rel || s.strip_prefix(&rel).is_some_and(|r| r.starts_with('/')));
-            if name == ".git"
-                || cfg.index.resolver_exclusions.contains(&name)
-                || skip_rel.contains(&rel)
-                || (meta.file_type().is_symlink() && at_or_above_root)
+            if !(meta.file_type().is_symlink() && at_or_above_root)
+                && (name == ".git" || cfg.index.resolver_exclusions.contains(&name))
             {
                 continue;
             }
@@ -85,15 +88,32 @@ pub fn refuse_links_leaving(cfg: &Config, repo_root: &Path) -> Result<(), Error>
                 if let Ok(target) = fs::canonicalize(&path)
                     && !target.starts_with(&root)
                 {
-                    return Err(Error::Refused(format!(
-                        "refused to read the repository: '{}' is a link to {}, outside it \
-                         (spec 144). A governed read through it would judge content the \
-                         repository does not hold; remove the link or point it inside the \
-                         repository",
-                        rel_posix(repo_root, &path),
-                        target.display()
-                    )));
+                    return Err(Error::Refused(if at_or_above_root {
+                        format!(
+                            "refused to read the repository: '{rel}' is a link to {}, outside \
+                             it, and the derived tree or a governed file beside it is read \
+                             through that link (spec 147). Every verb refuses it, read-only \
+                             ones included, because a verdict read through it would judge \
+                             content the repository does not hold; nothing was written. \
+                             Remove the link or point it inside the repository (a link there \
+                             that stays inside is spec 127's to judge, on write)",
+                            target.display()
+                        )
+                    } else {
+                        format!(
+                            "refused to read the repository: '{rel}' is a link to {}, outside \
+                             it (spec 144). A governed read through it would judge content the \
+                             repository does not hold; remove the link or point it inside the \
+                             repository",
+                            target.display()
+                        )
+                    }));
                 }
+                continue;
+            }
+            // The roots themselves are the tool's own output and state: not
+            // walked.
+            if skip_rel.contains(&rel) {
                 continue;
             }
             if meta.is_dir() {
