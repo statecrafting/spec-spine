@@ -261,7 +261,20 @@ corpus in step 1 and step 6. One spec per PR, then stop.
 6. **Ship, then ratify.** `/verify <id>` runs the spec's `## Verification`
    block through `spec-spine verify <id>` (spec 043). `/ship` opens the PR with
    `implementation: complete` set once that block holds, and `/shepherd`
-   drives the PR to a merge confirmed on disk. After merge, a
+   drives the PR to a merge confirmed on disk. Before the merge, the session
+   runs every other acceptance the change can break (spec 150), on the PR's
+   head, locally:
+
+   ```sh
+   base="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)"
+   head="$(git rev-parse HEAD)"
+   scripts/verify-sweep.sh --affected-by "$base" --rev "$head" --trusted-ref "$head"
+   ```
+
+   and records the head SHA and the counts in the PR body. A `failed` or
+   `not-run` blocks the merge until it is fixed or a spec is filed for it;
+   the step never marks a block exempt. It is skipped only when the diff
+   touches nothing but `docs/`, `website/`, or Markdown outside `specs/`. After merge, a
    second PR flips `status: draft` to `approved` (the ratify PR), and the
    corpus count moves. A `Spec-Drift-Waiver:` line needs explicit human
    approval and is cited in the PR body.

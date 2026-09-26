@@ -12,7 +12,7 @@ summary: >
   134), and it has two link kinds 144's walk must see: symbolic links and
   directory junctions. This spec adds a Windows test for both, and records
   what a runner without the symbolic-link privilege does.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
@@ -86,7 +86,20 @@ own §1 is the record, since 144 is not edited (spec 037).
 
 ## 5. Resolved decisions
 
-None yet.
+**D-1 (2026-09-25, build): one body, two link makers.** Both tests run the same
+cases through one helper, `the_link_rule_holds_for`, given a function that
+creates a directory link of their kind: `mklink /J` through `cmd` for the
+junction (the standard library creates no junctions, and a junction needs no
+privilege), `std::os::windows::fs::symlink_dir` for the symbolic link. The
+symbolic-link test probes the privilege once before any case, so a missing
+privilege is reported (or, under `CI=true`, fails) before a partial run.
+
+**D-2 (2026-09-25, build): links are directory links throughout.** The inside,
+dangling and outside cases each link a directory (§4: the rule is
+kind-agnostic), so the dangling case removes the target directory after the
+link is made. The tests were type-checked locally for
+`x86_64-pc-windows-msvc` (`cargo check --tests --no-default-features`); they
+run only on the `test (windows)` job.
 
 ## Verification
 

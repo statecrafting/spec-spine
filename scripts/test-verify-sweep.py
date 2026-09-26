@@ -4,8 +4,9 @@
 
 The first four are spec 089's post-ratification review regressions. Then spec
 119's: the release verdict, the lifecycle it reads, and the default run
-directory. The last are spec 121's: the Acceptance workflow's report step,
-driven by real release-mode sweeps.
+directory. Then spec 121's: the Acceptance workflow's report step, driven by
+real release-mode sweeps. The last are spec 150's: one case per rule of the
+--affected-by selector, and one proving it is narrower than the corpus.
 
 Build target/release/spec-spine first, then run python3 scripts/test-verify-sweep.py.
 Use --sweep-script PATH to test an exported historical script as a negative
@@ -561,6 +562,108 @@ class SweepRegressions(unittest.TestCase):
         rendered, notes, _ = self.render(0)
         self.assertEqual(rendered.returncode, 1)
         self.assertIn("exited 0 but its report's release verdict is 'not-clean'", notes["error"][0])
+
+    # --- spec 150: the selector ---------------------------------------------
+
+    def change(self, files):
+        # One commit on top of the fixture: writes each file (relative path to
+        # text), regenerates the ledger so no plan read is stale, and commits.
+        # Returns the base the change is measured from.
+        base = self.sha
+        for rel, text in files.items():
+            path = self.repo / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text, encoding="utf-8")
+        checked([BIN, "--repo", self.repo, "compile"])
+        checked([BIN, "--repo", self.repo, "index"])
+        self.commit()
+        return base
+
+    def affected(self, base, expected):
+        # Sweeps with --affected-by and checks the selection is exactly
+        # `expected` ({id: rule}), in the report, the summary and on stderr.
+        result = self.sweep(extra=("--affected-by", base))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads((self.out / "sweep.json").read_text(encoding="utf-8"))
+        self.assertEqual(report["schemaVersion"], "1.2.0")
+        self.assertEqual(report["selection"], f"affected-by {base}")
+        self.assertEqual(report["affectedBy"]["base"], base)
+        self.assertEqual(report["affectedBy"]["selected"], len(expected))
+        self.assertEqual({row["id"]: row["selectedBy"] for row in report["specs"]}, expected)
+        self.assertEqual(report["counts"]["passed"], len(expected))
+        summary = (self.out / "sweep.md").read_text(encoding="utf-8")
+        for sid, rule in expected.items():
+            self.assertIn(f"| {sid} | {rule} | passed |", summary)
+            self.assertIn(f"  selected      {sid} ({rule})", result.stderr)
+        return report
+
+    def test_affected_by_engine_source_selects_every_spec(self):
+        self.fixture({"001-a": ["true"], "002-b": ["true"], "003-c": ["true"]})
+        self.commit()
+        base = self.change({"crates/demo/src/lib.rs": "pub fn f() {}\n"})
+        report = self.affected(base, dict.fromkeys(("001-a", "002-b", "003-c"), "engine-source"))
+        self.assertIn("crates/demo/src/lib.rs", report["affectedBy"]["changedPaths"])
+        self.assertEqual(report["affectedBy"]["corpusSize"], 3)
+
+    def test_affected_by_a_changed_spec_selects_itself(self):
+        self.fixture({"001-a": ["true"], "002-b": ["true"], "003-c": ["true"]})
+        self.commit()
+        spec = (self.repo / "specs/002-b/spec.md").read_text(encoding="utf-8")
+        base = self.change({"specs/002-b/spec.md": spec + "\nAmended prose.\n"})
+        self.affected(base, {"002-b": "changed-spec"})
+
+    def test_affected_by_a_named_spec_is_selected(self):
+        # 001 names 002 by id, 003 by its short ordinal; neither names a path.
+        self.fixture({
+            "001-a": ["true see 002-b"],
+            "002-b": ["true"],
+            "003-c": ["true verify 002 --plan"],
+            "004-d": ["true 0020 x002"],
+        })
+        self.commit()
+        spec = (self.repo / "specs/002-b/spec.md").read_text(encoding="utf-8")
+        base = self.change({"specs/002-b/spec.md": spec + "\nAmended prose.\n"})
+        self.affected(base, {"001-a": "names-spec", "002-b": "changed-spec",
+                             "003-c": "names-spec"})
+
+    def test_affected_by_a_named_path_is_selected(self):
+        self.fixture({"001-a": ["test -f tools/helper.sh"], "002-b": ["true"]})
+        (self.repo / "tools").mkdir()
+        (self.repo / "tools/helper.sh").write_text("echo one\n", encoding="utf-8")
+        self.commit()
+        base = self.change({"tools/helper.sh": "echo two\n"})
+        self.affected(base, {"001-a": "names-path"})
+
+    def test_affected_by_a_named_test_is_selected(self):
+        # 001 runs the changed target, 002 the whole crate; 003 another target
+        # of the same crate, 004 the same target name in another crate.
+        self.fixture({
+            "001-a": ["true cargo test -p demo --test widget --locked"],
+            "002-b": ["true cargo test -p demo --locked"],
+            "003-c": ["true cargo test -p demo --test other --locked"],
+            "004-d": ["true cargo test -p elsewhere --test widget"],
+        })
+        self.commit()
+        base = self.change({"crates/demo/tests/widget.rs": "#[test]\nfn t() {}\n"})
+        self.affected(base, {"001-a": "names-test", "002-b": "names-test"})
+
+    def test_affected_by_an_unrelated_spec_is_not_selected(self):
+        # Outside engine source the selection is narrower than the corpus: a
+        # change reaching one spec runs that spec's block and no other.
+        self.fixture({
+            "001-a": ["test -f tools/helper.sh"],
+            "002-b": ["true"],
+            "003-c": ["cargo --version >/dev/null || true", "test -f README"],
+        })
+        (self.repo / "tools").mkdir()
+        (self.repo / "tools/helper.sh").write_text("echo one\n", encoding="utf-8")
+        self.commit()
+        base = self.change({"tools/helper.sh": "echo two\n"})
+        report = self.affected(base, {"001-a": "names-path"})
+        self.assertEqual(report["affectedBy"]["corpusSize"], 3)
+        self.assertLess(len(report["specs"]), report["affectedBy"]["corpusSize"])
+        self.assertFalse((self.out / "logs/002-b.log").exists())
+        self.assertFalse((self.out / "logs/003-c.log").exists())
 
     def fixture_reset(self):
         # A second fixture in the same test: the repository is rebuilt from

@@ -26,6 +26,25 @@
 #   AGAINST WHAT  a revision that is already an ancestor of the trusted ref.
 #                 A PR branch is a stranger's code; this script refuses one.
 #
+# PRE-MERGE (spec 150). `--affected-by <base>` selects only the specs whose
+# acceptance the change `<base>...<rev>` can break, and says which rule
+# selected each:
+#
+#   engine-source  the change touches crates/*/src/**, crates/*/schemas/**,
+#                  scripts/verify-sweep.sh or a Cargo.toml / Cargo.lock:
+#                  every spec is selected, because a verb every plan runs
+#                  may have moved (spec 150 1.2)
+#   changed-spec   the spec's own spec.md changed
+#   names-spec     its effective plan names a spec whose spec.md changed
+#   names-path     its effective plan names a changed path
+#   names-test     its effective plan runs a changed test file
+#
+# The plan read is `verify <id> --plan` at <rev>, so a block carried under
+# `amends_verification` counts as the plan of the spec that owns it. The
+# session that authored a pull request runs this on the pull request's head
+# with `--rev <head> --trusted-ref <head>`: the explicit override below, which
+# the report records, and never a stranger's branch (spec 150 3.2, D-1).
+#
 # Every selected spec gets exactly one of five outcomes, and only two of them
 # are success:
 #
@@ -121,6 +140,12 @@ usage: $PROG [options]
                         (default: a new directory per run,
                         \${XDG_CACHE_HOME:-\$HOME/.cache}/spec-spine/sweeps/
                         <shortsha>-<UTC time>-<pid>)
+  --affected-by <base>  sweep only the specs whose acceptance the change
+                        <base>...<rev> can break, and report the rule that
+                        selected each (engine-source, changed-spec,
+                        names-spec, names-path, names-test; spec 150).
+                        Pre-merge, on a pull request's head:
+                        --affected-by <base> --rev <head> --trusted-ref <head>
   --release             exit with the release verdict: judged over the specs
                         whose implementation is built, with pending work
                         reported and not counted (spec 119)
@@ -145,6 +170,7 @@ rev="HEAD"
 trusted_ref=""
 repo="."
 only=""
+affected_by=""
 out=""
 exempt_file=""
 timeout_s=900
@@ -157,6 +183,7 @@ while [ $# -gt 0 ]; do
     --trusted-ref)  shift; [ $# -gt 0 ] || die "--trusted-ref needs a value"; trusted_ref="$1" ;;
     --repo)         shift; [ $# -gt 0 ] || die "--repo needs a value"; repo="$1" ;;
     --only)         shift; [ $# -gt 0 ] || die "--only needs a value"; only="$1" ;;
+    --affected-by)  shift; [ $# -gt 0 ] || die "--affected-by needs a value"; affected_by="$1" ;;
     --out)          shift; [ $# -gt 0 ] || die "--out needs a value"; out="$1" ;;
     --exempt-file)  shift; [ $# -gt 0 ] || die "--exempt-file needs a value"; exempt_file="$1" ;;
     --timeout)      shift; [ $# -gt 0 ] || die "--timeout needs a value"; timeout_s="$1" ;;
@@ -171,6 +198,9 @@ done
 command -v git >/dev/null 2>&1 || die "git is not on PATH"
 command -v python3 >/dev/null 2>&1 || die "python3 is not on PATH (the report writer needs it)"
 case "$timeout_s" in *[!0-9]*|"") die "--timeout takes a whole number of seconds: $timeout_s" ;; esac
+# Two selections cannot both be the report's `selection`; neither narrows the
+# other silently.
+[ -z "$only" ] || [ -z "$affected_by" ] || die "--only and --affected-by are two selections; name one"
 
 root=$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null) || die "not a git repository: $repo"
 # Physical paths on both sides of the containment test below: on macOS
@@ -198,6 +228,18 @@ git -C "$root" merge-base --is-ancestor "$sha" "$trusted_ref" \
   against a revision that is already merged. Name a merged revision with
   --rev, or, if you genuinely trust another line of history, name it with
   --trusted-ref."
+
+# --- the change under --affected-by (spec 150) -----------------------------
+#
+# Resolved before anything is created, so a base that does not resolve refuses
+# with nothing to clean up. The change is `<base>...<rev>`: what <rev> changed
+# since it left <base>, which is what a pull request's diff shows.
+if [ -n "$affected_by" ]; then
+  base_sha=$(git -C "$root" rev-parse --verify --quiet "$affected_by^{commit}") \
+    || die "--affected-by base '$affected_by' does not resolve; fetch it, or name another"
+  merge_base=$(git -C "$root" merge-base "$base_sha" "$sha" 2>/dev/null) \
+    || die "--affected-by: $affected_by and $rev share no history, so there is no change to select by"
+fi
 
 short=$(git -C "$root" rev-parse --short "$sha")
 # The default run directory is outside the operating system's temporary tree
@@ -461,6 +503,119 @@ $hit
   selected=$(printf '%s' "$picked")
 fi
 
+# --- selection by the change (spec 150 3.1) --------------------------------
+#
+# Writes <out>/selection.tsv, one `<id>\t<rule>` per selected spec in corpus
+# order, naming the first rule that selected it in the order engine-source,
+# changed-spec, names-spec, names-path, names-test. The plans are read at <rev>
+# through `verify <id> --plan`, which prints the effective plan, carried blocks
+# included; the layout through `config show --json`. Both are the CLI's
+# answers, never the ledger files (AGENTS.md "Governed artifact reads").
+read -r -d '' SELECTOR <<'SELECTOR'
+import json, os, re, sys
+
+paths = [p for p in open(os.environ["SWEEP_CHANGED"], "rb").read()
+         .decode("utf-8", "surrogateescape").split("\0") if p]
+
+def engine(p):
+    # crates/*/src/**, crates/*/schemas/**, the sweep itself, and the
+    # workspace's manifests and lockfile (D-2: a crate's own Cargo.toml too).
+    q = p.split("/")
+    if p in ("Cargo.toml", "Cargo.lock", "scripts/verify-sweep.sh"):
+        return True
+    if q[0] == "crates" and len(q) >= 4 and q[2] in ("src", "schemas"):
+        return True
+    return q[0] == "crates" and len(q) == 3 and q[2] == "Cargo.toml"
+
+if sys.argv[1] == "engine":
+    sys.exit(0 if any(engine(p) for p in paths) else 1)
+
+corpus = os.environ["SWEEP_CORPUS"].split()
+specs_dir = ((json.load(sys.stdin).get("layout") or {}).get("specs_dir") or "specs").strip("/")
+
+# changed-spec: a changed `<specs_dir>/<id>/spec.md` of a spec in the corpus.
+prefix = specs_dir + "/"
+changed_specs = sorted({p[len(prefix):-len("/spec.md")] for p in paths
+                        if p.startswith(prefix) and p.endswith("/spec.md")} & set(corpus))
+
+# names-spec: the full id anywhere, or its three-digit ordinal as a token
+# (`verify 046`, `registry show 089`), the short form spec-spine resolves (D-3).
+spec_patterns = [
+    re.compile(re.escape(sid) + "|(?<![0-9A-Za-z])" + re.escape(sid.split("-", 1)[0])
+               + "(?![0-9A-Za-z])")
+    for sid in changed_specs
+]
+
+# names-test: a changed file under crates/<crate>/tests/. `tests/<name>.rs` is
+# the integration test target `<name>`; anything else there (a fixture, a
+# shared module, a directory target) may be read by any test target of the
+# crate, so it is reached by every one of them (D-3).
+tests = []
+for p in paths:
+    q = p.split("/")
+    if q[0] == "crates" and len(q) >= 4 and q[2] == "tests":
+        target = q[3][:-3] if len(q) == 4 and q[3].endswith(".rs") else None
+        tests.append((q[1], target))
+
+CARGO_TEST = re.compile(r"(?<![0-9A-Za-z_-])cargo\s+(?:\+\S+\s+)?test(?![0-9A-Za-z_-])")
+PACKAGE = re.compile(r"(?:\s-p|--package)(?:\s+|=)([A-Za-z0-9_-]+)")
+TEST = re.compile(r"--test(?:\s+|=)([A-Za-z0-9_-]+)")
+
+def runs_test(line, crate, target):
+    if not CARGO_TEST.search(line):
+        return False
+    packages = PACKAGE.findall(line)
+    if packages and crate not in packages:
+        return False
+    named = TEST.findall(line)
+    return not (named and target is not None and target not in named)
+
+for sid in corpus:
+    if sid in changed_specs:
+        print(sid + "\tchanged-spec")
+        continue
+    plan = open(os.path.join(os.environ["SWEEP_PLANS"], sid), encoding="utf-8",
+                errors="surrogateescape").read()
+    if any(pat.search(plan) for pat in spec_patterns):
+        print(sid + "\tnames-spec")
+    elif any(p in plan for p in paths):
+        print(sid + "\tnames-path")
+    elif any(runs_test(line, c, t) for line in plan.splitlines() for c, t in tests):
+        print(sid + "\tnames-test")
+SELECTOR
+
+selected_by=""
+if [ -n "$affected_by" ]; then
+  selection="affected-by $affected_by"
+  changed_z="$out/changed.z"
+  git -C "$root" diff --name-only --no-renames -z "$merge_base" "$sha" > "$changed_z" \
+    || die "cannot diff $affected_by...$rev"
+  if SWEEP_CHANGED="$changed_z" python3 -c "$SELECTOR" engine; then
+    for id in $corpus; do printf '%s\tengine-source\n' "$id"; done > "$out/selection.tsv" \
+      || die "cannot write $out/selection.tsv"
+  else
+    config_json=$("$ss" --repo "$tree" config show --json) \
+      || die "cannot read the configuration at $short (config show)"
+    mkdir -p "$out/plans" || die "cannot create $out/plans"
+    # A plan that cannot be read is a spec the selector cannot rule out, so the
+    # selection refuses rather than silently leaving it out (D-4).
+    for id in $corpus; do
+      "$ss" --repo "$tree" verify "$id" --plan > "$out/plans/$id" 2>/dev/null \
+        || die "cannot read the plan of $id at $short (verify --plan exited $?); the selector cannot rule it out"
+    done
+    printf '%s' "$config_json" \
+      | SWEEP_CHANGED="$changed_z" SWEEP_PLANS="$out/plans" SWEEP_CORPUS="$corpus" \
+        python3 -c "$SELECTOR" select > "$out/selection.tsv" \
+      || die "cannot compute the --affected-by selection at $short"
+  fi
+  selected=$(cut -f1 "$out/selection.tsv")
+  selected_by="$out/selection.tsv"
+  say "$PROG: --affected-by $affected_by ($(git -C "$root" rev-parse --short "$merge_base")...$short): $(grep -c . "$out/selection.tsv" | tr -d ' ') of $(printf '%s\n' $corpus | grep -c . | tr -d ' ') specs selected"
+  while IFS="$(printf '\t')" read -r sel_id sel_rule; do
+    say "  selected      $sel_id ($sel_rule)"
+  done < "$out/selection.tsv"
+fi
+
 # --- the ledger, validated before anything runs ---------------------------
 if [ -n "$exempt_file" ]; then
   [ -f "$exempt_file" ] || die "--exempt-file not found: $exempt_file"
@@ -619,6 +774,11 @@ SWEEP_TIMEOUT="$timeout_s" \
 SWEEP_STARTED="$started_at" \
 SWEEP_ENDED="$ended_at" \
 SWEEP_MODE="$([ "$release" -eq 1 ] && echo release || echo corpus)" \
+SWEEP_SELECTED_BY="$selected_by" \
+SWEEP_AFFECTED_BY="$affected_by" \
+SWEEP_BASE_SHA="${base_sha:-}" \
+SWEEP_MERGE_BASE="${merge_base:-}" \
+SWEEP_CORPUS_SIZE="$(printf '%s\n' $corpus | grep -c . | tr -d ' ')" \
 python3 - <<'PY' || die "cannot write the report to $out"
 import json, os, pathlib
 
@@ -651,6 +811,16 @@ for line in pathlib.Path(env["SWEEP_ROWS"]).read_text().splitlines():
     log = out / "logs" / f"{row['id']}.log"
     row["log"] = f"logs/{row['id']}.log" if log.is_file() else None
     specs.append(row)
+
+# Spec 150: under --affected-by, each row says which rule selected it.
+selected_by = {}
+if env["SWEEP_SELECTED_BY"]:
+    for line in pathlib.Path(env["SWEEP_SELECTED_BY"]).read_text().splitlines():
+        if line.strip():
+            sid, rule = line.split("\t", 1)
+            selected_by[sid] = rule
+    for row in specs:
+        row["selectedBy"] = selected_by.get(row["id"])
 
 counts = {k: 0 for k in ("passed", "failed", "not-declared", "exempt", "not-run")}
 for s in specs:
@@ -688,6 +858,20 @@ report = {
     "counts": counts,
     "specs": specs,
 }
+if env["SWEEP_AFFECTED_BY"]:
+    # 1.2.0 (spec 150): additive, and written only by an --affected-by run, so
+    # every other run's report is the 1.1.0 document it was.
+    report["schemaVersion"] = "1.2.0"
+    changed = pathlib.Path(env["SWEEP_OUT"], "changed.z").read_bytes().decode(
+        "utf-8", "surrogateescape").split("\0")
+    report["affectedBy"] = {
+        "base": env["SWEEP_AFFECTED_BY"],
+        "baseRevision": env["SWEEP_BASE_SHA"],
+        "mergeBase": env["SWEEP_MERGE_BASE"],
+        "changedPaths": sorted(p for p in changed if p),
+        "corpusSize": int(env["SWEEP_CORPUS_SIZE"]),
+        "selected": len(specs),
+    }
 (out / "sweep.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
 
 not_passing = [s for s in specs if s["outcome"] in ("failed", "not-declared", "not-run")]
@@ -696,7 +880,9 @@ md = [
     "",
     f"- revision: `{env['SWEEP_SHA']}` (ancestor of `{env['SWEEP_TRUSTED']}`)",
     f"- binary: `{env['SWEEP_VERSION']}` ({env['SWEEP_ORIGIN']})",
-    f"- selection: {env['SWEEP_SELECTION']}",
+    f"- selection: {env['SWEEP_SELECTION']}"
+    + (f" ({len(specs)} of {env['SWEEP_CORPUS_SIZE']} specs; change "
+       f"`{env['SWEEP_MERGE_BASE'][:9]}...{env['SWEEP_SHORT']}`)" if env["SWEEP_AFFECTED_BY"] else ""),
     f"- ledger: {env['SWEEP_LEDGER']}, closed at ordinal {env['SWEEP_CLOSED_AT']}",
     f"- per-spec limit: {str(timeout) + 's' if timeout else 'none (--timeout 0)'}",
     f"- ran: {env['SWEEP_STARTED']} .. {env['SWEEP_ENDED']}",
@@ -750,6 +936,15 @@ if not_passing:
         if s["log"]:
             line += f" (`{s['log']}`)"
         md.append(line)
+    md.append("")
+if env["SWEEP_AFFECTED_BY"]:
+    md += ["## Selection", "",
+           "Each spec the change can reach, and the rule that selected it (spec 150).", ""]
+    if specs:
+        md += ["| spec | selected by | outcome |", "|---|---|---|"]
+        md += [f"| {s['id']} | {s['selectedBy']} | {s['outcome']} |" for s in specs]
+    else:
+        md.append("No spec's acceptance can be reached by this change.")
     md.append("")
 dirty = [s["id"] for s in specs if s["leftTreeDirty"]]
 if dirty:

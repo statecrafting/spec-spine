@@ -95,6 +95,10 @@ gh pr create --title "<type>(<ordinal>): <subject>" --body "$(cat <<'EOF'
 
 ## Testing
 <the gate as run; the spec's Verification block via /verify>
+
+## Pre-merge acceptance
+<head <sha>: passed <n> failed <n> not-declared <n> exempt <n> not-run <n>,
+ from verify-sweep.sh --affected-by (AGENTS.md step 6), or "skipped: docs only">
 EOF
 )"
 ```
@@ -104,6 +108,11 @@ EOF
   when the derived directory has uncommitted changes, and when the gate is
   red without an inline `Spec-Drift-Waiver:` after `--body`. It never
   writes: fix, commit, and retry rather than routing around it.
+- The pre-merge acceptance section is AGENTS.md "Working the backlog" step
+  6 (spec 150): run the `verify-sweep.sh --affected-by` command listed
+  there on the head you push and copy its head SHA and counts in. A
+  `failed` or `not-run` count is fixed, or a spec is filed for it, before
+  the PR is handed to `/shepherd`.
 - CI re-runs the same gate. A local pass should mean a clean CI run; if
   CI fails a gate the local run passed, halt and present the divergence.
 
