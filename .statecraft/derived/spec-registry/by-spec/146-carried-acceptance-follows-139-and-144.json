@@ -22,7 +22,7 @@
     "risk": "low",
     "sectionDigests": {
       "1-purpose": "2713e3f2f4720fa57287fda4c3dd05ec98c89aa42443dcfd4988a1f828234fae",
-      "146-carried-acceptance-follows-139-and-144": "9b7711790b9f4753681ae081305c60de1133c10969df3c15b553bd7fcb8f6314",
+      "146-carried-acceptance-follows-139-and-144": "d7a5e553f7551c3832675fdbb5db6a1e9027cf9e427f9dcbdb933c23f5e3aa47",
       "2-territory": "b3d1fa71e709b0feed22a11b2b752db24583371d63724a20baa610767bb09fb0",
       "3-1-046-s-acceptance-copies-the-corpus": "2c35c2b496df38f8652d2117a8b2dd9d08990d8aedf847e1d4b31a529f17a55a",
       "3-2-089-s-acceptance-asks-about-a-spec-that-stays-exempt": "1184ca6da174a8f208d66c4ece0bb70fece9135129f03ee159768eb651ef7e69",
@@ -30,7 +30,7 @@
       "3-behavior": "2ef1df3a57b1ca4dcb72d2ce182e1569a5c83c768b38b2cfdbbb2dbca260d864",
       "4-out-of-scope": "d52424ea987139c52c4d129027b72355d73add144781fe0cb583837fd3d60d66",
       "5-resolved-decisions": "1224ac303c01bc586511154c7101bdb0868df0896a44b201492d55759a85623c",
-      "verification": "5de95da49ccc35c5bfad86da929e1039c4115eff3437f5c9dbf9191b3f2e2460"
+      "verification": "2d9d6edab88b4f5d3dbc2a0fe1172bebb61d677cdb9a6f6edbd08cdccf261626"
     },
     "sectionHeadings": [
       "146: Carried acceptance follows 139 and 144",
@@ -49,6 +49,6 @@
     "summary": "The pre-release sweep of `e440b714` failed two approved specs' acceptance, both invalidated by specs merged this cycle rather than by a defect. Spec 046's block lints this corpus from a scratch root whose `specs` is a link to this repository's `specs/`, a link that resolves outside the scratch root, which spec 144 now refuses (exit 2). Spec 089's block asserts that the built-in legacy ledger reports spec 011 `exempt`, and spec 137 retired 011's line when it gave 011 an executable acceptance. This spec carries both blocks under `amends_verification`, unchanged except that 046's scratch root copies the corpus instead of linking it, and 089 asks the ledger about 019, which stays exempt by design (139 3.3).\n",
     "title": "Carried acceptance follows 139 and 144"
   },
-  "shardHash": "2049df6b246842b1bda550dd2be4a9cff5df385b92d7c64283f42e738befa7dd",
+  "shardHash": "e47ee6d7eab1734d495293f5dfaf968ddabe210568b3d0ee2d9edfbe99eea8ec",
   "specVersion": "1.9.0"
 }

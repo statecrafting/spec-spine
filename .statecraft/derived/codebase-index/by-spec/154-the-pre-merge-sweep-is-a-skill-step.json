@@ -1,0 +1,18 @@
+{
+  "mapping": {
+    "amends": [
+      "089-nothing-reruns-a-merged-acceptance",
+      "146-carried-acceptance-follows-139-and-144"
+    ],
+    "dependsOn": [
+      "089-nothing-reruns-a-merged-acceptance",
+      "146-carried-acceptance-follows-139-and-144",
+      "150-a-change-runs-the-acceptance-it-can-break"
+    ],
+    "implementingPaths": [],
+    "specId": "154-the-pre-merge-sweep-is-a-skill-step",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "ceaa2341588b271ed8bba543d58ca94a6bde4f6b1bd956b7c38d913f3755889f"
+}

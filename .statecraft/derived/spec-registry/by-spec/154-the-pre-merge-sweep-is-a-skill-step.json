@@ -1,0 +1,48 @@
+{
+  "record": {
+    "amends": [
+      "089-nothing-reruns-a-merged-acceptance",
+      "146-carried-acceptance-follows-139-and-144"
+    ],
+    "amendsVerification": [
+      "146-carried-acceptance-follows-139-and-144"
+    ],
+    "created": "2026-09-26",
+    "dependsOn": [
+      "089-nothing-reruns-a-merged-acceptance",
+      "146-carried-acceptance-follows-139-and-144",
+      "150-a-change-runs-the-acceptance-it-can-break"
+    ],
+    "id": "154-the-pre-merge-sweep-is-a-skill-step",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "a3a41683dadd304f5362b75aad9656b2b8d3642a33121959eb033a7ff8055ef0",
+      "154-the-pre-merge-sweep-is-a-skill-step-not-a-gate-step": "b7a2aa1fb08430093f1c7fdd1203045e1c9062cc839620a417ccc32d2320942e",
+      "2-territory": "3c838f8b1e0ef9d8f25136aa02a7e9b2383f21af0d3be71fb9bf06ec1bdfa155",
+      "3-1-146-s-block-is-carried-with-one-line-restated": "d295e25cf6cd4ea14bc3d5a912a606d986e55cbeb4fe56f39bea04e09718d130",
+      "3-behavior": "e53302acd2aba3dbd77b0796dd041a9da6b2b480f1fe49e69b8887168c0fc3d6",
+      "4-out-of-scope": "5ea2d4547a4c86b160d17ab629a1bb2f877cf1537b207f86dd0ddbb3b5cb4bfe",
+      "5-resolved-decisions": "46c8573e714e11088aae6b78787e1b01b306a0da5adf58b728900b4b6af70b69",
+      "verification": "3a62afa1d8d9873e09ac9f0148acdbcb529272b230509a997f93597535126d60"
+    },
+    "sectionHeadings": [
+      "154: The pre-merge sweep is a skill step, not a gate step",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 146's block is carried with one line restated",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/154-the-pre-merge-sweep-is-a-skill-step/spec.md",
+    "status": "draft",
+    "summary": "Spec 150 put the pre-merge `verify-sweep.sh --affected-by` run into the `/ship` and `/shepherd` skills, as its 3.2 requires. Spec 089's acceptance, carried for 046 and 089 by spec 146, asserts that no skill mentions `verify-sweep` at all, so 046, 089 and 146 fail from 150's merge on. 150's own sweep did not show it: those three failed earlier in the same block, on the stale 006 ledger entry. This spec carries 146's block under `amends_verification`, unchanged except that the one line asserts what 089 meant and 150 keeps: every mention of the sweep in a skill is the pre-merge `--affected-by` step, and the gate list names no sweep.\n",
+    "title": "The pre-merge sweep is a skill step, not a gate step"
+  },
+  "shardHash": "ceaa2341588b271ed8bba543d58ca94a6bde4f6b1bd956b7c38d913f3755889f",
+  "specVersion": "1.9.0"
+}
