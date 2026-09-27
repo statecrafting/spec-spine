@@ -1,7 +1,8 @@
 //! `spec-spine content select`: bind selected content to a verified Git tree.
 
+use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 use clap::Subcommand;
 use spec_spine_core::{Versioning, read_document, selected_content};
@@ -9,7 +10,7 @@ use spec_spine_types::{
     ContentDirtyState, ContentRequest, ContentSnapshot, ContentSnapshotBinding, Error, RepoPath,
 };
 
-use crate::{cmd_delta::export_tree, load_repo_config};
+use crate::load_repo_config;
 
 #[derive(Subcommand)]
 pub enum ContentAction {
@@ -65,8 +66,6 @@ fn run_select(
     let commit = resolve_object(repo, commitish, "commit")?;
     let tree = resolve_object(repo, &commit, "tree")?;
     let export = TempExport::create()?;
-    let index = export.root.join("index");
-    export_tree(repo, &commit, &index, &export.checkout)?;
     materialize_tree(repo, &tree, &export.tree)?;
     let cfg = load_repo_config(&export.tree)?;
     let snapshot = ContentSnapshot {
@@ -98,6 +97,7 @@ fn materialize_tree(repo: &Path, tree: &str, export: &Path) -> Result<(), Error>
     if !listed.status.success() {
         return Err(Error::Io("could not enumerate exported revision".into()));
     }
+    let mut entries: Vec<(String, RepoPath)> = Vec::new();
     for entry in listed.stdout.split(|b| *b == 0).filter(|e| !e.is_empty()) {
         let Some(tab) = entry.iter().position(|b| *b == b'\t') else {
             return Err(Error::Io("invalid git ls-tree output".into()));
@@ -117,15 +117,91 @@ fn materialize_tree(repo: &Path, tree: &str, export: &Path) -> Result<(), Error>
             .map_err(|_| Error::Io("non-UTF-8 path in exported revision".into()))?;
         let path = RepoPath::parse(path)
             .map_err(|why| Error::Io(format!("unsafe path in exported revision: {why}")))?;
-        let blob = Command::new("git")
-            .arg("-C")
-            .arg(repo)
-            .args(["cat-file", "blob", object])
-            .output()
-            .map_err(|e| Error::Io(format!("spawn git cat-file: {e}")))?;
-        if !blob.status.success() {
+        entries.push((object.to_string(), path));
+    }
+    if entries.is_empty() {
+        return Ok(());
+    }
+
+    // One `cat-file --batch` for the whole tree rather than a process per
+    // blob. The object ids are written from a separate thread so a full
+    // stdout pipe can never stall a writer blocked on a full stdin pipe.
+    let mut child = Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .args(["cat-file", "--batch"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|e| Error::Io(format!("spawn git cat-file: {e}")))?;
+    let mut stdin = child
+        .stdin
+        .take()
+        .ok_or_else(|| Error::Io("git cat-file has no stdin".into()))?;
+    let ids: Vec<String> = entries.iter().map(|(id, _)| id.clone()).collect();
+    let writer = std::thread::spawn(move || -> std::io::Result<()> {
+        for id in ids {
+            writeln!(stdin, "{id}")?;
+        }
+        Ok(())
+    });
+    let stdout = child
+        .stdout
+        .take()
+        .ok_or_else(|| Error::Io("git cat-file has no stdout".into()))?;
+    let read = read_batch(BufReader::new(stdout), &entries, export);
+    // Reap the child and the writer on every path, success or not.
+    if read.is_err() {
+        let _ = child.kill();
+    }
+    let status = child.wait();
+    let written = writer.join();
+    read?;
+    match (status, written) {
+        (Ok(status), Ok(Ok(()))) if status.success() => Ok(()),
+        _ => Err(Error::Io("git cat-file did not complete the export".into())),
+    }
+}
+
+/// Read one `cat-file --batch` record per entry, in request order, and write
+/// its exact bytes under `export`.
+fn read_batch(
+    mut out: impl BufRead,
+    entries: &[(String, RepoPath)],
+    export: &Path,
+) -> Result<(), Error> {
+    for (object, path) in entries {
+        let mut header = String::new();
+        out.read_line(&mut header)
+            .map_err(|e| Error::Io(format!("read git cat-file: {e}")))?;
+        let mut fields = header.split_whitespace();
+        let (Some(id), Some("blob"), Some(size)) = (fields.next(), fields.next(), fields.next())
+        else {
             return Err(Error::Io(format!(
                 "could not read exported blob for '{}'",
+                path.as_str()
+            )));
+        };
+        let size: u64 = size
+            .parse()
+            .map_err(|_| Error::Io("invalid git cat-file size".into()))?;
+        if id != object {
+            return Err(Error::Io(format!(
+                "git cat-file answered {id} for '{}'",
+                path.as_str()
+            )));
+        }
+        let mut bytes = Vec::new();
+        out.by_ref()
+            .take(size)
+            .read_to_end(&mut bytes)
+            .map_err(|e| Error::Io(format!("read git cat-file: {e}")))?;
+        let mut newline = [0u8; 1];
+        if bytes.len() as u64 != size || out.read_exact(&mut newline).is_err() || newline != *b"\n"
+        {
+            return Err(Error::Io(format!(
+                "truncated exported blob for '{}'",
                 path.as_str()
             )));
         }
@@ -135,7 +211,7 @@ fn materialize_tree(repo: &Path, tree: &str, export: &Path) -> Result<(), Error>
             .ok_or_else(|| Error::Io("exported path has no parent".into()))?;
         std::fs::create_dir_all(parent)
             .map_err(|e| Error::Io(format!("create {}: {e}", parent.display())))?;
-        std::fs::write(&materialized, &blob.stdout).map_err(|e| {
+        std::fs::write(&materialized, &bytes).map_err(|e| {
             Error::Io(format!(
                 "write exported path {}: {e}",
                 materialized.display()
@@ -184,7 +260,6 @@ fn require_clean(repo: &Path) -> Result<(), Error> {
 
 struct TempExport {
     root: PathBuf,
-    checkout: PathBuf,
     tree: PathBuf,
 }
 
@@ -201,19 +276,14 @@ impl TempExport {
         );
         for attempt in 0..16 {
             let root = parent.join(format!("spec-spine-content-{seed}-{attempt}"));
-            match std::fs::create_dir(&root) {
+            match private_dir(&root) {
                 Ok(()) => {
-                    let checkout = root.join("checkout");
                     let tree = root.join("tree");
-                    for dir in [&checkout, &tree] {
-                        std::fs::create_dir(dir)
-                            .map_err(|e| Error::Io(format!("create {}: {e}", dir.display())))?;
-                    }
-                    return Ok(Self {
-                        root,
-                        checkout,
-                        tree,
-                    });
+                    // Owned before the next fallible step, so Drop removes it.
+                    let export = Self { root, tree };
+                    private_dir(&export.tree)
+                        .map_err(|e| Error::Io(format!("create {}: {e}", export.tree.display())))?;
+                    return Ok(export);
                 }
                 Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => continue,
                 Err(e) => return Err(Error::Io(format!("create {}: {e}", root.display()))),
@@ -223,6 +293,16 @@ impl TempExport {
             "could not create content export directory".into(),
         ))
     }
+}
+
+/// Create a directory only its owner can enter: the export holds every
+/// tracked file of the revision, and the system temporary directory may be
+/// shared with other users.
+fn private_dir(path: &Path) -> std::io::Result<()> {
+    let mut builder = std::fs::DirBuilder::new();
+    #[cfg(unix)]
+    std::os::unix::fs::DirBuilderExt::mode(&mut builder, 0o700);
+    builder.create(path)
 }
 
 impl Drop for TempExport {

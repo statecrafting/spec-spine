@@ -791,8 +791,13 @@ fn obligation_entry(
         .take(frontmatter_end)
         .skip(start0 + 1)
     {
+        if line.trim().is_empty() {
+            // A blank line belongs to the entry only when a deeper line follows
+            // it, so a blank separating two entries never ends the selection.
+            continue;
+        }
         let line_indent = line.len() - line.trim_start().len();
-        if !line.trim().is_empty() && line_indent <= indent {
+        if line_indent <= indent {
             break;
         }
         end0 = i;
@@ -1071,6 +1076,33 @@ mod tests {
                 end_line: 8
             }
         );
+    }
+
+    #[test]
+    fn a_blank_separator_line_is_not_part_of_the_obligation() {
+        let source = "---\nobligations:\n  - id: R-1\n    kind: requirement\n\n    text: first\n\n  - id: V-1\n    text: last\n\nintent:\n  goal: x\n---\n";
+        let selected = Selected {
+            path: RepoPath::parse("specs/001/spec.md").unwrap(),
+            span: ContentSpan {
+                start_line: 1,
+                end_line: 13,
+            },
+            content: source.into(),
+        };
+        let first = obligation_entry(selected.clone(), "R-1").unwrap();
+        assert_eq!(
+            first.content,
+            "  - id: R-1\n    kind: requirement\n\n    text: first"
+        );
+        assert_eq!(
+            first.span,
+            ContentSpan {
+                start_line: 3,
+                end_line: 6
+            }
+        );
+        let last = obligation_entry(selected, "V-1").unwrap();
+        assert_eq!(last.content, "  - id: V-1\n    text: last");
     }
 
     #[test]
