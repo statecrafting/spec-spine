@@ -92,7 +92,7 @@
       }
     ],
     "id": "155-selected-content-accessor",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "intent": {
       "goal": "return bounded deterministic source and specification content from one immutable repository snapshot",
       "nonGoals": [
@@ -215,6 +215,6 @@
     "summary": "Adds a deterministic, read-only selected-content request and response over one explicitly identified repository snapshot. Callers may select a whole spec, spec section, obligation, owned source unit, explicit file, explicit directory member, symbol, module, or deterministically supported test, with bounded projections, stable spans and digests, canonical ordering, continuation, explicit omissions, and no execution or authority effect.\n",
     "title": "Select bounded content from one repository snapshot"
   },
-  "shardHash": "8fbb17485ec287a4ce610897329e9892dcad6c91bcd4f9edb3c37d484615e04d",
+  "shardHash": "09abe0146ce172bf6f928ff3e7aaf6e0fdcbc370546a9dec8f6b2bbf17c999a9",
   "specVersion": "1.9.0"
 }

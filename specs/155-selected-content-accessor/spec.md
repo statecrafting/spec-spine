@@ -4,7 +4,7 @@ title: "Select bounded content from one repository snapshot"
 status: draft
 kind: "governance"
 created: "2026-09-26"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
