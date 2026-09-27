@@ -10,17 +10,15 @@
 # in-tree `target/release/spec-spine` that predates the checkout, and this
 # repository was not using it.
 #
-# A FLOOR, not an exact pin. The failure guarded is one-directional (a binary
-# older than the corpus it judges), and `scripts/bump_version.py` does not touch
-# this key, so `= "0.17.0"` would turn the next release bump into a self-
-# inflicted exit 3 on every command. `>=` catches what 3.8 names and nothing
-# else.
+# Spec 156 adopts Statecraft Profile 10, whose managed installer and gate
+# require one exact released engine identity. A later engine bump moves this
+# pin and requalifies the Statecraft plan in the same change.
 #
 # `Config` derives `deny_unknown_fields`, so a binary predating spec 055 fails
 # to deserialize this key and exits 3 with a config error, never 2. The signal
 # is unambiguous in both directions.
 [meta]
-required_version = ">=0.28.0"
+required_version = "=0.28.0"
 
 [manifest]
 # Our own crates carry `[package.metadata.spec-spine].spec = "NNN-slug"`.
@@ -80,6 +78,11 @@ extra_hashed_inputs = [
   "Makefile",
   # Governance and harness files specs claim (spec 050).
   "AGENTS.md",
+  # Spec 156: Statecraft's committed instruction, environment and policy
+  # records are governance inputs. An edit must stale the ledger.
+  ".statecraft/AGENTS.md",
+  ".statecraft/environment.json",
+  ".statecraft/setup/github-actions-rust.json",
   "CLAUDE.md",
   ".claude/settings.json",
   ".githooks/*.sh",
@@ -88,7 +91,10 @@ extra_hashed_inputs = [
   # to it should stale the ledger like any other.
   ".githooks/pre-commit",
   "scripts/*.sh",
+  # Spec 156: the managed Profile 10 scripts are the local and CI gate.
+  "scripts/statecraft/*.sh",
   "install.sh",
+  "README.md",
   "docs/adoption-guide.md",
   # Spec 101 3.3: the governed description of the `plan` read document. L-008
   # requires a claimed file to be in some content hash, and a sentence about

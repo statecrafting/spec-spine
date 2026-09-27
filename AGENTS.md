@@ -1,3 +1,5 @@
+@.statecraft/AGENTS.md
+
 # AGENTS.md: spec-spine
 
 > Governed by `specs/093-the-harness-this-repository-runs/spec.md`.
@@ -228,36 +230,31 @@ corpus in step 1 and step 6. One spec per PR, then stop.
    `establishes` (or a `// Spec:` header when the file already has an
    owner). Touching a unit another spec owns is an `extends` edge on that
    unit. Never edit `.statecraft/derived/` by hand.
-5. **Run the gate before every commit.** The governance floor, in this
-   order (`compile` and `index` write; the checks follow):
+5. **Run the gate before every commit.** Regenerate first, then run Profile
+   11's canonical local governance, coupling and code modes:
 
    ```sh
    spec-spine compile
    spec-spine index
-   spec-spine check --fail-on-unresolved --fail-on-warn
-   spec-spine lint --fail-on-warn
-   spec-spine index coverage --fail-on-untraced
-   spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
+   sh scripts/statecraft/gate.sh governance
+   BASE_SHA="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" HEAD_SHA=HEAD PR_BODY= sh scripts/statecraft/gate.sh couple
+   sh scripts/statecraft/gate.sh code
    ```
 
    The base ref is resolved from the repository rather than assumed to be
    `origin/main` (spec 093). Set `$SPEC_SPINE_DEFAULT_BRANCH` to override
-   the branch the push gate protects and the root `Makefile` compares against.
-   `make gate` runs exactly this list, read-only, and CI calls that target
-   rather than restating the chain (spec 092 3.6).
+   the branch the push gate protects. The managed gate uses only the exact
+   repository-local engine installed under `.tooling/`; run
+   `scripts/statecraft/install-spec-spine.sh` when it is absent. The root
+   `Makefile` remains a repository-owned developer and compatibility
+   interface, but it does not define what Profile 11's `ci-gate` runs.
+   The managed `couple` mode is the sole gate-floor invocation of
+   `spec-spine couple`.
 
-   then the stack's own gate: `cargo test --workspace --locked`,
-   `cargo clippy --workspace --all-targets --locked -- -D warnings`,
-   `cargo fmt --all --check`. Commit the regenerated shards with the code
-   they describe. The skills call this list "the gate as `AGENTS.md` lists
-   it", and `harness_skills.rs` asserts each skill's inlined floor is a subset
-   of it (spec 093), so a step added here reaches every skill. The binary
-   is `target/release/spec-spine` (or `cargo run -p spec-spine-cli --`),
-   never `npx spec-spine`.
-
-   Every step above is enforced by CI's `self_governance` job. CI runs
-   `check` in place of `compile` and `index`, because a gate must never
-   repair the tree it is judging.
+   Commit the regenerated shards with the code they describe. The skills call
+   this list "the gate as `AGENTS.md` lists it", and `harness_skills.rs`
+   asserts that contract (spec 093 as amended by spec 156). CI calls the same
+   managed modes and never repairs the committed trees it judges.
 6. **Ship, then ratify.** `/verify <id>` runs the spec's `## Verification`
    block through `spec-spine verify <id>` (spec 043). `/ship` opens the PR with
    `implementation: complete` set once that block holds, and `/shepherd`

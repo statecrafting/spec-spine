@@ -281,6 +281,17 @@ recut.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-27).** This block no longer runs.
+> `156-statecraft-profile-10-governs-this-repository` declares this spec in
+> `amends_verification`, so `spec-spine verify 124` builds its plan from that
+> spec's block, where Profile 11's exact consumer pin replaces the moving
+> version floor while the remaining release identity checks are carried
+> (spec 082 3.2 and 3.4).
+>
+> The commands below are kept **verbatim**. A predecessor is amended, never
+> edited (spec 037 3.1): this block is the record of what was asserted when
+> this spec was ratified.
+
 Written to fail against the tree this spec is filed on: the version is 0.22.0,
 the floor is `>=0.17.0`, and the script does not exist.
 

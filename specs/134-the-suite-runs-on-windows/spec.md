@@ -115,6 +115,16 @@ costs nothing today and catches the next Windows regression.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-27).** This block no longer runs.
+> `156-statecraft-profile-10-governs-this-repository` declares this spec in
+> `amends_verification`, so `spec-spine verify 134` builds its plan from that
+> spec's block, where the Windows job is carried in Profile 11's required
+> reusable workflow (spec 082 3.2 and 3.4).
+>
+> The commands below are kept **verbatim**. A predecessor is amended, never
+> edited (spec 037 3.1): this block is the record of what was asserted when
+> this spec was ratified.
+
 ```verify:cli
 # 3.1: the job exists under its own name and the gate requires it.
 grep -q 'name: test (windows)' .github/workflows/ci.yml

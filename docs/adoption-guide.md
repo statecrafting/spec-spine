@@ -227,7 +227,7 @@ it on once the graph is closed. Bare `compile` is unchanged either way, so
 upgrading the binary cannot break an existing job.
 
 This repo dogfoods exactly this pattern; see
-[`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
+[`scripts/statecraft/gate.sh`](../scripts/statecraft/gate.sh).
 
 ### Waivers
 

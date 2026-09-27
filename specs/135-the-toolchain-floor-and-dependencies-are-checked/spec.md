@@ -131,6 +131,16 @@ unused, so removing it closes both advisories and shrinks every dev build.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-27).** This block no longer runs.
+> `156-statecraft-profile-10-governs-this-repository` declares this spec in
+> `amends_verification`, so `spec-spine verify 135` builds its plan from that
+> spec's block, where the MSRV and dependency-audit jobs are carried in
+> Profile 11's required reusable workflow (spec 082 3.2 and 3.4).
+>
+> The commands below are kept **verbatim**. A predecessor is amended, never
+> edited (spec 037 3.1): this block is the record of what was asserted when
+> this spec was ratified.
+
 ```verify:cli
 # 3.1 and 3.2: both jobs exist under their names and the gate requires them.
 grep -q 'name: build · test (rust-version)' .github/workflows/ci.yml

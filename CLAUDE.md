@@ -18,8 +18,9 @@ AGENTS.md standard), it holds the session protocol `/prime` executes, and its
 "Working the backlog" section is the operating loop. **The gate chain is
 defined there, not here**, and `harness_skills.rs` asserts every skill's inlined
 gate floor is a subset of that list, so a step added to `AGENTS.md` reaches
-every skill. The executable form of that list is the root `Makefile`'s `gate`
-target (spec 094); `.claude/` itself is spec 093's.
+every skill. The executable form is Statecraft's managed
+`scripts/statecraft/gate.sh`; the root `Makefile` is a developer compatibility
+interface (spec 094 as amended by spec 156). `.claude/` itself is spec 093's.
 
 ## Commands
 
@@ -53,10 +54,10 @@ cargo build --release -p spec-spine-cli                # what the harness drives
 ```
 
 **Run the gate from `AGENTS.md`'s fenced list, not from here.** That block is
-the one spelling, flags included, and `harness_skills.rs` asserts CI's flags are
-a subset of it, so the two cannot drift. The executable form of that list is the
-root `Makefile`'s `gate` target, which CI calls rather than restates (spec 092
-§3.6). Nothing tests a copy in this file, which
+the one spelling, modes included, and `harness_skills.rs` cross-checks it
+against the managed workflow and gate script. The executable form is
+`scripts/statecraft/gate.sh`, which CI reads from the trusted base and calls by
+mode (spec 156). Nothing tests a copy in this file, which
 is why there is no longer one: an earlier revision restated the chain and
 silently dropped `--fail-on-unresolved` and `--fail-on-warn` from `check` and
 `--fail-on-untraced` from `index coverage`, leaving three refusals off a list
@@ -208,8 +209,8 @@ locally. If you change emission, expect that gate to be the real test.
 
 ## Self-governance (dogfood): why `.statecraft/derived/` is committed
 
-This repo runs its own gates against its own corpus in CI (`.github/workflows/ci.yml`
-`self_governance` job). Consequences:
+This repo runs its own gates against its own corpus through the reusable
+`.github/workflows/spec-spine-required.yml` `self_governance` job. Consequences:
 
 - The `.statecraft/derived/spec-registry/by-spec/` and `.statecraft/derived/codebase-index/{by-spec,by-package}/`
   shard trees are **committed** (only `build-meta.json` is gitignored). After any

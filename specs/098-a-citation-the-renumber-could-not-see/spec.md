@@ -388,13 +388,13 @@ why the repair is a reviewed edit and not a verb.
 comparison of §1.1 got stronger twice while this spec was being built, and each
 step found more:
 
-1. **the line's commit** (`git blame`) — misses everything the collapse's own
+1. **the line's commit** (`git blame`): misses everything the collapse's own
    squashed pull request wrote (D-8);
-2. **the line's content** — misses a line that was *reflowed* since, which is
+2. **the line's content**: misses a line that was *reflowed* since, which is
    how `ci.yml` and five lines of `docs/design/05-...` kept a stale ordinal
    through a prose rewrap;
 3. **the sentence's normalized context**, comment markers and line breaks
-   removed — what the final figure is measured with.
+   removed, which is what the final figure is measured with.
 
 The mode none of them decides is a citation an author **carried by hand into a
 sentence they rewrote**. `standards/spec/contract.md` and

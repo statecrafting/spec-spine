@@ -232,7 +232,7 @@ fn the_loop_skills_wrap_the_tool_verbs_they_exist_for() {
         // wraps is the composed freshness read rather than either primitive.
         ("prime", "spec-spine check"),
         ("setup", "registry plan"),
-        ("code-review", "spec-spine check"),
+        ("code-review", "scripts/statecraft/gate.sh governance"),
         ("commit", "session_"),
         ("commit", "U+2014"),
     ];
@@ -375,52 +375,27 @@ fn fail_flags(cmd: &str) -> Vec<String> {
         .collect()
 }
 
-/// The `spec-spine ...` lines inside the fenced block under "Run the gate
-/// before every commit".
-fn agents_md_gate_commands(root: &Path) -> Vec<String> {
-    let text = fs::read_to_string(root.join("AGENTS.md")).unwrap();
-    // Anchoring on the first occurrence is only safe while there is exactly
-    // one. A usage example quoting the phrase would silently move the anchor,
-    // and a decoy fence of governance verbs would then pass the guard below.
-    assert_eq!(
-        text.matches("Run the gate before every commit").count(),
-        1,
-        "AGENTS.md must name the gate step exactly once, or this parse anchors on the wrong one"
-    );
-    let start = text
-        .find("Run the gate before every commit")
-        .expect("AGENTS.md names the gate step");
-    let tail = &text[start..];
-    let open = tail
-        .find("```sh")
-        .expect("the gate list is a fenced sh block");
-    let body = &tail[open + "```sh".len()..];
-    let close = body.find("```").expect("the fence closes");
-    body[..close]
+/// The governance commands Profile 11's canonical managed gate runs.
+fn managed_governance_commands(root: &Path) -> Vec<String> {
+    fs::read_to_string(root.join("scripts/statecraft/gate.sh"))
+        .unwrap()
         .lines()
-        .filter_map(|l| l.trim().strip_prefix("spec-spine "))
-        .map(|c| c.trim().to_string())
+        .filter_map(|line| line.trim().strip_prefix("spec_spine "))
+        .filter(|cmd| GOVERNANCE_VERBS.contains(&cmd.split_whitespace().next().unwrap_or("")))
+        .map(str::to_string)
         .collect()
 }
 
-/// The governance verbs CI actually runs, however the binary is spelled there.
-fn ci_governance_commands(root: &Path) -> Vec<String> {
-    let text = fs::read_to_string(root.join(".github/workflows/ci.yml")).unwrap();
-    let mut out = Vec::new();
-    for line in text.lines() {
-        let trimmed = line.trim();
-        if trimmed.starts_with('#') {
-            continue;
-        }
-        if let Some(i) = trimmed.find("spec-spine ") {
-            let cmd = trimmed[i + "spec-spine ".len()..].trim();
-            let head = cmd.split_whitespace().next().unwrap_or("");
-            if GOVERNANCE_VERBS.contains(&head) {
-                out.push(cmd.to_string());
-            }
-        }
-    }
-    out
+fn gate_modes(body: &str, invocation: &str) -> BTreeSet<String> {
+    body.lines()
+        .filter_map(|line| {
+            line.trim()
+                .split_once(invocation)
+                .map(|(_, rest)| rest.split_whitespace().next().unwrap_or(""))
+        })
+        .filter(|mode| !mode.is_empty())
+        .map(str::to_string)
+        .collect()
 }
 
 /// Spec 093 3.3. Every skill tells its reader to run "the gate as `AGENTS.md`
@@ -431,38 +406,67 @@ fn ci_governance_commands(root: &Path) -> Vec<String> {
 #[test]
 fn agents_md_gate_list_names_every_step_ci_enforces() {
     let root = repo_root();
-    let listed = agents_md_gate_commands(&root);
-    assert!(
-        !listed.is_empty(),
-        "AGENTS.md must carry a fenced gate list"
-    );
-    // Guard the parse itself: `find` takes the first match, so a fence added
-    // above the gate list would be read as the gate list, and every assertion
-    // below would go vacuous without failing. Every line of the real block is
-    // a governance verb, so anything else means we read the wrong fence.
-    for cmd in &listed {
-        let head = cmd.split_whitespace().next().unwrap_or("");
+    let agents = fs::read_to_string(root.join("AGENTS.md")).unwrap();
+    let workflow = fs::read_to_string(root.join(".github/workflows/statecraft-ci.yml")).unwrap();
+    let documented = gate_modes(&agents, "sh scripts/statecraft/gate.sh ");
+    let expected = ["code", "couple", "governance"]
+        .into_iter()
+        .map(str::to_string)
+        .collect::<BTreeSet<_>>();
+    assert_eq!(documented, expected, "AGENTS.md canonical local gate modes");
+
+    let ci_modes = gate_modes(&workflow, "run: sh \"${STATECRAFT_GATE:?}\" ");
+    for mode in &documented {
         assert!(
-            GOVERNANCE_VERBS.contains(&head),
-            "AGENTS.md gate-list parse read the wrong block: got `{cmd}`"
+            ci_modes.contains(mode),
+            "statecraft-ci.yml does not run AGENTS.md mode {mode}: {ci_modes:?}"
         );
     }
 
-    for ci in ci_governance_commands(&root) {
-        // CI runs `compile --check` where a local session runs `compile`: a
-        // gate must never repair the tree it is judging. Comparing verb paths
-        // makes the two the same step, which is what they are.
-        let path = verb_path(&ci);
-        let matching: Vec<&String> = listed.iter().filter(|l| verb_path(l) == path).collect();
-        assert!(
-            !matching.is_empty(),
-            "CI runs `spec-spine {ci}` but AGENTS.md's gate list names no `{path}` step"
-        );
-        for flag in fail_flags(&ci) {
-            assert!(
-                matching.iter().any(|l| l.contains(&flag)),
-                "CI runs `spec-spine {ci}` but AGENTS.md's `{path}` step omits {flag}"
-            );
+    let managed = managed_governance_commands(&root);
+    let actual = managed
+        .iter()
+        .map(|cmd| verb_path(cmd))
+        .collect::<BTreeSet<_>>();
+    let expected = ["check", "couple", "index coverage", "index check", "lint"]
+        .into_iter()
+        .map(str::to_string)
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        actual, expected,
+        "the managed gate's parsed governance and coupling verbs drifted"
+    );
+}
+
+#[test]
+fn skills_do_not_bypass_the_managed_gate_floor() {
+    let [(_, dir)] = skill_dirs();
+    let forbidden = [
+        "spec-spine check",
+        "spec-spine lint",
+        "spec-spine couple",
+        "spec-spine index coverage",
+    ];
+    for name in SKILLS {
+        let body = read_skill(&dir, name);
+        let mut fenced_shell = false;
+        for line in body.lines() {
+            if line.trim() == "```sh" {
+                fenced_shell = true;
+                continue;
+            }
+            if line.trim() == "```" {
+                fenced_shell = false;
+                continue;
+            }
+            if fenced_shell {
+                for invocation in forbidden {
+                    assert!(
+                        !line.contains(invocation),
+                        "{name}: bypasses scripts/statecraft/gate.sh with {invocation:?}: {line}"
+                    );
+                }
+            }
         }
     }
 }
@@ -472,7 +476,7 @@ fn agents_md_gate_list_names_every_step_ci_enforces() {
 #[test]
 fn no_skill_names_a_gate_flag_agents_md_omits() {
     let root = repo_root();
-    let listed = agents_md_gate_commands(&root);
+    let managed = managed_governance_commands(&root);
     for (label, dir) in skill_dirs() {
         for name in SKILLS {
             let body = read_skill(&dir, name);
@@ -480,8 +484,8 @@ fn no_skill_names_a_gate_flag_agents_md_omits() {
                 let cmd = verb.join(" ");
                 for flag in fail_flags(&cmd) {
                     assert!(
-                        listed.iter().any(|l| l.contains(&flag)),
-                        "{label}/{name}: names {flag}, which AGENTS.md's gate list omits"
+                        managed.iter().any(|l| l.contains(&flag)),
+                        "{label}/{name}: names {flag}, which Profile 11's managed gate omits"
                     );
                 }
             }
