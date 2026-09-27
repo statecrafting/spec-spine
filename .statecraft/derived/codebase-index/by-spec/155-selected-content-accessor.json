@@ -18,6 +18,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-cli/tests/scope.rs",
         "source": "spec-edge"
       },
@@ -27,6 +31,10 @@
       },
       {
         "path": "crates/spec-spine-core/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/symbols.rs",
         "source": "spec-edge"
       },
       {
@@ -47,6 +55,10 @@
       },
       {
         "path": "crates/spec-spine-types/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/verdict.rs",
         "source": "spec-edge"
       },
       {
@@ -148,6 +160,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-cli/tests/scope.rs"
           }
         ],
@@ -169,6 +194,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/symbols.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/symbols.rs"
         }
       },
       {
@@ -208,6 +246,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/verdict.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
         }
       },
       {
@@ -283,19 +334,6 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/symbols.rs"
-          }
-        ],
-        "ownership": false,
-        "sourceField": "references",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/symbols.rs"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "docs/design/09-disposition-2026-09-21.md"
           }
         ],
@@ -311,5 +349,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "2b3a39e02b534823105147fc33353defa745e7927c8a0586d506720d77d4d22c"
+  "shardHash": "99b3a5a1600b9461ce0ad1074317378c4e87ae05b5d306d11069a334d7c4e4f6"
 }

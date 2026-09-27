@@ -525,7 +525,7 @@ impl Command {
             Command::Check { json: true, .. } => Some(verb::CHECK),
             Command::Content {
                 action: cmd_content::ContentAction::Select { json: true, .. },
-            } => Some("content.select"),
+            } => Some(verb::CONTENT_SELECT),
             Command::Lint { json: true, .. } => Some(verb::LINT),
             Command::Couple { json: true, .. } => Some(verb::COUPLE),
             Command::Delta { json: true, .. } => Some(verb::DELTA),

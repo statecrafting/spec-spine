@@ -203,3 +203,71 @@ fn invalid_bounds_and_stale_continuation_are_refused() {
         2
     );
 }
+
+#[test]
+fn line_endings_produce_identical_content_spans_and_digests() {
+    let tmp = tempfile::tempdir().unwrap();
+    let request = ContentRequest {
+        selectors: vec![file("a.txt")],
+        default_projection: ContentProjection::Full,
+        max_bytes: 100,
+        max_items: 1,
+        continuation: None,
+    };
+    let mut answers = Vec::new();
+    for content in ["one\ntwo\n", "one\r\ntwo\r\n", "one\rtwo\r"] {
+        fs::write(tmp.path().join("a.txt"), content).unwrap();
+        let response =
+            selected_content(&Config::default(), tmp.path(), &request, &snapshot()).unwrap();
+        answers.push((
+            response.items[0].content.clone(),
+            response.items[0].span,
+            response.items[0].digest.clone(),
+        ));
+    }
+    assert_eq!(answers[0], answers[1]);
+    assert_eq!(answers[1], answers[2]);
+}
+
+#[cfg(unix)]
+#[test]
+fn directory_member_symlink_leaving_the_named_directory_is_refused() {
+    use std::os::unix::fs::symlink;
+
+    let tmp = tempfile::tempdir().unwrap();
+    fs::create_dir(tmp.path().join("docs")).unwrap();
+    fs::write(tmp.path().join("outside.txt"), "outside\n").unwrap();
+    symlink("../outside.txt", tmp.path().join("docs/out.txt")).unwrap();
+    let request = ContentRequest {
+        selectors: vec![ContentSelector::DirectoryMember {
+            directory: RepoPath::parse("docs").unwrap(),
+            member: RepoPath::parse("out.txt").unwrap(),
+            projection: None,
+            required: true,
+        }],
+        default_projection: ContentProjection::Full,
+        max_bytes: 100,
+        max_items: 1,
+        continuation: None,
+    };
+    assert_eq!(
+        selected_content(&Config::default(), tmp.path(), &request, &snapshot())
+            .unwrap_err()
+            .exit_code(),
+        2
+    );
+}
+
+#[test]
+fn unsupported_test_selector_is_an_explicit_omission() {
+    let tmp = tempfile::tempdir().unwrap();
+    let request: ContentRequest = serde_json::from_value(serde_json::json!({
+        "selectors": [{"kind":"test", "id":"crate::tests::works"}]
+    }))
+    .unwrap();
+    let response = selected_content(&Config::default(), tmp.path(), &request, &snapshot()).unwrap();
+    assert_eq!(
+        response.omissions[0].reason,
+        ContentOmissionReason::UnsupportedSelector
+    );
+}

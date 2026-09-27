@@ -14,7 +14,7 @@ use crate::index::Freshness;
 use crate::snapshot::{PieceKind, PieceSet};
 use crate::{
     Versioning, canonical_json, check_registry_freshness, guard_committed_index, hash,
-    load_committed_index, load_committed_registry, read_document, resolve_spec_id,
+    load_committed_index, load_committed_registry, read_document,
 };
 
 #[derive(Clone)]
@@ -36,6 +36,19 @@ struct Selected {
 
 type Selection = Result<Selected, (ContentOmissionReason, String)>;
 
+struct SelectorContext<'a> {
+    cfg: &'a Config,
+    root: &'a Path,
+    root_real: &'a Path,
+    registry: Option<&'a spec_spine_types::Registry>,
+    index: Option<&'a spec_spine_types::CodebaseIndex>,
+    max_bytes: usize,
+    #[cfg(feature = "symbol-resolution")]
+    symbol_index: Option<&'a crate::symbols::SymbolIndex>,
+    #[cfg(feature = "symbol-resolution")]
+    module_index: Option<&'a crate::symbols::ModuleIndex>,
+}
+
 /// Resolve a bounded content request without Git, network access, execution, or writes.
 pub fn selected_content(
     cfg: &Config,
@@ -45,6 +58,7 @@ pub fn selected_content(
 ) -> Result<ContentResponse, Error> {
     validate(request, snapshot)?;
     crate::pathutil::refuse_links_leaving(cfg, repo_root)?;
+    let root_real = fs::canonicalize(repo_root).map_err(|error| Error::Io(error.to_string()))?;
 
     let needs_registry = request.selectors.iter().any(|s| {
         matches!(
@@ -59,10 +73,8 @@ pub fn selected_content(
         matches!(
             s,
             ContentSelector::OwnedUnit { .. }
-                | ContentSelector::SpecSection { .. }
                 | ContentSelector::Symbol { .. }
                 | ContentSelector::Module { .. }
-                | ContentSelector::Test { .. }
         )
     });
 
@@ -81,18 +93,50 @@ pub fn selected_content(
         None
     };
 
+    #[cfg(feature = "symbol-resolution")]
+    let symbol_index = request
+        .selectors
+        .iter()
+        .any(|s| matches!(s, ContentSelector::Symbol { .. }))
+        .then(|| {
+            let idx = index.as_ref().expect("index loaded");
+            crate::symbols::build_symbol_index(
+                repo_root,
+                &idx.packages,
+                &cfg.index.resolver_exclusions,
+                &cfg.layout,
+            )
+        });
+    #[cfg(feature = "symbol-resolution")]
+    let module_index = request
+        .selectors
+        .iter()
+        .any(|s| matches!(s, ContentSelector::Module { .. }))
+        .then(|| {
+            let idx = index.as_ref().expect("index loaded");
+            crate::symbols::build_module_index(
+                repo_root,
+                &idx.packages,
+                &cfg.index.resolver_exclusions,
+                &cfg.layout,
+            )
+        });
     let mut candidates = Vec::new();
+    let context = SelectorContext {
+        cfg,
+        root: repo_root,
+        root_real: &root_real,
+        registry: registry.as_ref(),
+        index: index.as_ref(),
+        max_bytes: request.max_bytes,
+        #[cfg(feature = "symbol-resolution")]
+        symbol_index: symbol_index.as_ref(),
+        #[cfg(feature = "symbol-resolution")]
+        module_index: module_index.as_ref(),
+    };
     for (position, selector) in request.selectors.iter().enumerate() {
         let projection = selector.projection(request.default_projection);
-        let (identity, resolved) = resolve_selector(
-            cfg,
-            repo_root,
-            selector,
-            projection,
-            registry.as_ref(),
-            index.as_ref(),
-            request.max_bytes,
-        )?;
+        let (identity, resolved) = resolve_selector(&context, selector, projection)?;
         candidates.push(Candidate {
             position,
             identity,
@@ -258,14 +302,19 @@ fn validate(request: &ContentRequest, snapshot: &ContentSnapshot) -> Result<(), 
 }
 
 fn resolve_selector(
-    cfg: &Config,
-    root: &Path,
+    context: &SelectorContext<'_>,
     selector: &ContentSelector,
     projection: ContentProjection,
-    registry: Option<&spec_spine_types::Registry>,
-    index: Option<&spec_spine_types::CodebaseIndex>,
-    max_bytes: usize,
 ) -> Result<(String, Selection), Error> {
+    let SelectorContext {
+        cfg,
+        root,
+        root_real,
+        registry,
+        index,
+        max_bytes,
+        ..
+    } = context;
     let missing = |m: String| Err((ContentOmissionReason::MissingContent, m));
     let unsupported = |m: String| Err((ContentOmissionReason::UnsupportedProjection, m));
     match selector {
@@ -278,7 +327,10 @@ fn resolve_selector(
                     unsupported("explicit files support only the full projection".into()),
                 ));
             }
-            Ok((identity, read_path(cfg, root, &path, None, Some(max_bytes))))
+            Ok((
+                identity,
+                read_path(cfg, root, root_real, &path, None, Some(*max_bytes)),
+            ))
         }
         ContentSelector::DirectoryMember {
             directory, member, ..
@@ -302,23 +354,39 @@ fn resolve_selector(
                     unsupported("directory members support only the full projection".into()),
                 ));
             }
-            Ok((identity, read_path(cfg, root, &path, None, Some(max_bytes))))
+            require_directory_member(root, &directory, &path)?;
+            Ok((
+                identity,
+                read_path(cfg, root, root_real, &path, None, Some(*max_bytes)),
+            ))
         }
         ContentSelector::Spec { spec, .. } => {
-            let record = resolve_record(spec, registry.expect("registry loaded"))?;
+            let Some(record) = resolve_record(spec, registry.expect("registry loaded"))? else {
+                return Ok((
+                    format!("spec:{spec}"),
+                    missing(format!("spec '{spec}' does not exist")),
+                ));
+            };
             let identity = format!("spec:{}", record.id);
             let path = RepoPath::parse(&record.spec_path).map_err(Error::Internal)?;
             let selected = match projection {
-                ContentProjection::Full => read_path(cfg, root, &path, None, Some(max_bytes)),
+                ContentProjection::Full => {
+                    read_path(cfg, root, root_real, &path, None, Some(*max_bytes))
+                }
                 ContentProjection::Body => {
-                    read_path(cfg, root, &path, None, None).and_then(spec_body)
+                    read_path(cfg, root, root_real, &path, None, None).and_then(spec_body)
                 }
                 _ => unsupported("a spec supports only full and body projections".into()),
             };
             Ok((identity, selected))
         }
         ContentSelector::SpecSection { spec, anchor, .. } => {
-            let record = resolve_record(spec, registry.expect("registry loaded"))?;
+            let Some(record) = resolve_record(spec, registry.expect("registry loaded"))? else {
+                return Ok((
+                    format!("section:{spec}#{anchor}"),
+                    missing(format!("spec '{spec}' does not exist")),
+                ));
+            };
             let identity = format!("section:{}#{anchor}", record.id);
             if !matches!(
                 projection,
@@ -330,7 +398,7 @@ fn resolve_selector(
                 ));
             }
             let path = RepoPath::parse(&record.spec_path).map_err(Error::Internal)?;
-            let full = read_path(cfg, root, &path, None, None);
+            let full = read_path(cfg, root, root_real, &path, None, None);
             let selected = full.and_then(|s| {
                 let span = crate::sections::resolve_section(&s.content, path.as_str(), anchor)
                     .ok_or((
@@ -352,7 +420,12 @@ fn resolve_selector(
                     "invalid qualified obligation '{obligation}'"
                 )));
             };
-            let record = resolve_record(spec, registry.expect("registry loaded"))?;
+            let Some(record) = resolve_record(spec, registry.expect("registry loaded"))? else {
+                return Ok((
+                    format!("obligation:{spec}#{id}"),
+                    missing(format!("spec '{spec}' does not exist")),
+                ));
+            };
             let identity = format!("obligation:{}#{id}", record.id);
             let Some(item) = record
                 .obligations
@@ -374,14 +447,19 @@ fn resolve_selector(
                 ));
             }
             let path = RepoPath::parse(&record.spec_path).map_err(Error::Internal)?;
-            let selected =
-                read_path(cfg, root, &path, None, None).and_then(|s| obligation_entry(s, &item.id));
+            let selected = read_path(cfg, root, root_real, &path, None, None)
+                .and_then(|s| obligation_entry(s, &item.id));
             Ok((identity, selected))
         }
         ContentSelector::OwnedUnit { spec, unit, .. } => {
-            let record = resolve_record(spec, registry.expect("registry loaded"))?;
-            let unit_json = serde_json::to_string(&unit.subject())
-                .map_err(|e| Error::Internal(e.to_string()))?;
+            let Some(record) = resolve_record(spec, registry.expect("registry loaded"))? else {
+                let unit_json = canonical_json::to_string(&unit.subject())?;
+                return Ok((
+                    format!("owned-unit:{spec}#{unit_json}"),
+                    missing(format!("spec '{spec}' does not exist")),
+                ));
+            };
+            let unit_json = canonical_json::to_string(&unit.subject())?;
             let identity = format!("owned-unit:{}#{unit_json}", record.id);
             if projection != ContentProjection::Full {
                 return Ok((
@@ -402,44 +480,47 @@ fn resolve_selector(
                 .flat_map(|r| r.locations.clone())
                 .collect();
             if locations.len() > 1 {
-                return Err(Error::Refused(format!(
-                    "owned unit selector '{identity}' is ambiguous"
-                )));
+                return Ok((
+                    identity,
+                    Err((
+                        ContentOmissionReason::UnsupportedSelector,
+                        "owned unit resolves to more than one textual location".into(),
+                    )),
+                ));
             }
             let selected = locations.first().map_or_else(
                 || missing("owned unit does not resolve".into()),
-                |l| read_location(cfg, root, l, max_bytes),
+                |l| read_location(cfg, root, root_real, l, *max_bytes),
             );
             Ok((identity, selected))
         }
-        ContentSelector::Symbol { id, .. }
-        | ContentSelector::Module { id, .. }
-        | ContentSelector::Test { id, .. } => {
+        ContentSelector::Test { id, .. } => Ok((
+            format!("test:{id}"),
+            Err((
+                ContentOmissionReason::UnsupportedSelector,
+                "test selectors require a resolver that binds test attributes to nested functions"
+                    .into(),
+            )),
+        )),
+        ContentSelector::Symbol { id, .. } | ContentSelector::Module { id, .. } => {
             let kind = match selector {
                 ContentSelector::Symbol { .. } => "symbol",
                 ContentSelector::Module { .. } => "module",
-                _ => "test",
+                _ => unreachable!(),
             };
             let identity = format!("{kind}:{id}");
             #[cfg(feature = "symbol-resolution")]
             let locations = {
-                let idx = index.expect("index loaded");
                 if kind == "module" {
-                    crate::symbols::build_module_index(
-                        root,
-                        &idx.packages,
-                        &cfg.index.resolver_exclusions,
-                        &cfg.layout,
-                    )
-                    .resolve(id)
+                    context
+                        .module_index
+                        .expect("module index built")
+                        .resolve(id)
                 } else {
-                    crate::symbols::build_symbol_index(
-                        root,
-                        &idx.packages,
-                        &cfg.index.resolver_exclusions,
-                        &cfg.layout,
-                    )
-                    .resolve(id)
+                    context
+                        .symbol_index
+                        .expect("symbol index built")
+                        .resolve(id)
                 }
             };
             #[cfg(not(feature = "symbol-resolution"))]
@@ -453,16 +534,12 @@ fn resolve_selector(
                 return Ok((
                     identity,
                     Err((
-                        if kind == "test" {
-                            ContentOmissionReason::UnsupportedSelector
-                        } else {
-                            ContentOmissionReason::MissingContent
-                        },
+                        ContentOmissionReason::MissingContent,
                         format!("{kind} '{id}' does not resolve"),
                     )),
                 ));
             };
-            let selected = read_structural(cfg, root, location, projection, kind == "test");
+            let selected = read_structural(cfg, root, root_real, location, projection);
             Ok((identity, selected))
         }
     }
@@ -481,26 +558,59 @@ fn normalize_repo_path(path: &RepoPath) -> Result<RepoPath, Error> {
 fn resolve_record<'a>(
     id: &str,
     registry: &'a spec_spine_types::Registry,
-) -> Result<&'a spec_spine_types::SpecRecord, Error> {
-    let full = resolve_spec_id(id, registry.specs.iter().map(|s| s.id.as_str()))?;
-    registry
-        .specs
-        .iter()
-        .find(|s| s.id == full)
-        .ok_or(Error::NotFound(full))
+) -> Result<Option<&'a spec_spine_types::SpecRecord>, Error> {
+    match crate::spec_id::match_spec_id(id, registry.specs.iter().map(|s| s.id.as_str())) {
+        crate::spec_id::SpecIdMatch::Resolved(full) => {
+            Ok(registry.specs.iter().find(|s| s.id == full))
+        }
+        crate::spec_id::SpecIdMatch::Ambiguous(candidates) => Err(Error::Refused(format!(
+            "spec '{id}' is ambiguous: {} specs share that ordinal ({})",
+            candidates.len(),
+            candidates.join(", ")
+        ))),
+        crate::spec_id::SpecIdMatch::NoMatch => Ok(None),
+    }
+}
+
+fn require_directory_member(
+    root: &Path,
+    directory: &RepoPath,
+    path: &RepoPath,
+) -> Result<(), Error> {
+    let Ok(directory) = fs::canonicalize(root.join(directory.as_str())) else {
+        return Ok(());
+    };
+    let Ok(target) = fs::canonicalize(root.join(path.as_str())) else {
+        return Ok(());
+    };
+    if !target.starts_with(directory) {
+        return Err(Error::Refused(format!(
+            "path-escape: directory member '{}' leaves its named directory",
+            path.as_str()
+        )));
+    }
+    Ok(())
 }
 
 fn read_location(
     cfg: &Config,
     root: &Path,
+    root_real: &Path,
     location: &ResolvedLocation,
     max_bytes: usize,
 ) -> Result<Selected, (ContentOmissionReason, String)> {
     let path =
         RepoPath::parse(&location.file).map_err(|m| (ContentOmissionReason::MissingContent, m))?;
+    if root.join(path.as_str()).is_dir() {
+        return Err((
+            ContentOmissionReason::UnsupportedSelector,
+            "directory owned units require a directory-member selector".into(),
+        ));
+    }
     read_path(
         cfg,
         root,
+        root_real,
         &path,
         location.span.map(|s| (s.start_line, s.end_line)),
         location.span.is_none().then_some(max_bytes),
@@ -510,6 +620,7 @@ fn read_location(
 fn read_path(
     cfg: &Config,
     root: &Path,
+    root_real: &Path,
     path: &RepoPath,
     span: Option<(usize, usize)>,
     whole_item_budget: Option<usize>,
@@ -518,25 +629,24 @@ fn read_path(
     if path.as_str().is_empty()
         || path.as_str() == "."
         || crate::pathutil::is_excluded(root, &target, &cfg.index.resolver_exclusions)
-        || path
-            .as_str()
-            .split('/')
-            .any(|component| matches!(component, ".git" | ".statecraft"))
+        || path.as_str().split('/').any(|component| {
+            component.eq_ignore_ascii_case(".git")
+                || (!cfg.layout.state_dir.is_empty()
+                    && component.eq_ignore_ascii_case(cfg.layout.state_dir.trim_matches('/')))
+        })
     {
         return Err((
             ContentOmissionReason::MissingContent,
             format!("path '{}' is excluded", path.as_str()),
         ));
     }
-    let root_real = fs::canonicalize(root)
-        .map_err(|e| (ContentOmissionReason::MissingContent, e.to_string()))?;
     let target_real = fs::canonicalize(&target).map_err(|_| {
         (
             ContentOmissionReason::MissingContent,
             format!("path '{}' does not exist", path.as_str()),
         )
     })?;
-    if !target_real.starts_with(&root_real) {
+    if !target_real.starts_with(root_real) {
         return Err((
             ContentOmissionReason::MissingContent,
             "path escapes the repository".into(),
@@ -548,7 +658,20 @@ fn read_path(
             format!("path '{}' is not a file", path.as_str()),
         ));
     }
-    if let Some(max_bytes) = whole_item_budget {
+    if span.is_some() {
+        let raw_len = fs::metadata(&target_real)
+            .map_err(|e| (ContentOmissionReason::MissingContent, e.to_string()))?
+            .len();
+        if raw_len > 8 * 1024 * 1024 {
+            return Err((
+                ContentOmissionReason::ItemExceedsByteBudget,
+                format!(
+                    "path '{}' exceeds the structural read ceiling",
+                    path.as_str()
+                ),
+            ));
+        }
+    } else if let Some(max_bytes) = whole_item_budget {
         let raw_len = fs::metadata(&target_real)
             .map_err(|e| (ContentOmissionReason::MissingContent, e.to_string()))?
             .len();
@@ -623,11 +746,37 @@ fn obligation_entry(
     id: &str,
 ) -> Result<Selected, (ContentOmissionReason, String)> {
     let lines: Vec<&str> = selected.content.lines().collect();
+    let Some(frontmatter_end) = lines
+        .iter()
+        .enumerate()
+        .skip(1)
+        .find_map(|(i, line)| (*line == "---").then_some(i))
+    else {
+        return Err((
+            ContentOmissionReason::MissingContent,
+            "spec frontmatter is malformed".into(),
+        ));
+    };
+    let Some(obligations_start) = lines[..frontmatter_end]
+        .iter()
+        .position(|line| line.trim() == "obligations:")
+    else {
+        return Err((
+            ContentOmissionReason::MissingContent,
+            "spec has no obligations".into(),
+        ));
+    };
     let needle = format!("- id: \"{id}\"");
     let alt = format!("- id: '{id}'");
     let Some(start0) = lines
         .iter()
-        .position(|l| l.trim() == needle || l.trim() == alt || l.trim() == format!("- id: {id}"))
+        .enumerate()
+        .take(frontmatter_end)
+        .skip(obligations_start + 1)
+        .find_map(|(i, l)| {
+            (l.trim() == needle || l.trim() == alt || l.trim() == format!("- id: {id}"))
+                .then_some(i)
+        })
     else {
         return Err((
             ContentOmissionReason::MissingContent,
@@ -635,8 +784,15 @@ fn obligation_entry(
         ));
     };
     let mut end0 = start0;
-    for (i, line) in lines.iter().enumerate().skip(start0 + 1) {
-        if line.starts_with("  - id:") || *line == "---" {
+    let indent = lines[start0].len() - lines[start0].trim_start().len();
+    for (i, line) in lines
+        .iter()
+        .enumerate()
+        .take(frontmatter_end)
+        .skip(start0 + 1)
+    {
+        let line_indent = line.len() - line.trim_start().len();
+        if !line.trim().is_empty() && line_indent <= indent {
             break;
         }
         end0 = i;
@@ -652,48 +808,56 @@ fn obligation_entry(
 fn structural_projection(
     selected: Selected,
     projection: ContentProjection,
-    test: bool,
+    structural_spans: Option<(
+        Option<spec_spine_types::LineSpan>,
+        Option<spec_spine_types::LineSpan>,
+    )>,
 ) -> Result<Selected, (ContentOmissionReason, String)> {
     if projection == ContentProjection::Full {
-        return if test && !has_test_attribute(&selected) {
-            Err((
-                ContentOmissionReason::UnsupportedSelector,
-                "test function lacks a supported test attribute".into(),
-            ))
-        } else {
-            Ok(selected)
-        };
+        return Ok(selected);
     }
-    if test && !has_test_attribute(&selected) {
-        return Err((
-            ContentOmissionReason::UnsupportedSelector,
-            "test function lacks a supported test attribute".into(),
-        ));
-    }
-    let lines: Vec<&str> = selected.content.lines().collect();
     match projection {
-        ContentProjection::Declaration | ContentProjection::Signature => {
-            let end = lines
-                .iter()
-                .position(|l| l.contains('{') || l.trim_end().ends_with(';'))
-                .unwrap_or(0);
-            Ok(relative_lines(&selected, 0, end))
+        ContentProjection::Declaration => Err((
+            ContentOmissionReason::UnsupportedProjection,
+            "structural declarations are not separately defined".into(),
+        )),
+        ContentProjection::Signature => {
+            let Some((Some(span), _)) = structural_spans else {
+                return Err((
+                    ContentOmissionReason::UnsupportedProjection,
+                    "the grammar does not expose a line-bounded signature".into(),
+                ));
+            };
+            let mut signature = select_lines(
+                selected.path,
+                &selected.content,
+                1,
+                span.end_line - span.start_line + 1,
+            );
+            signature.span = ContentSpan {
+                start_line: span.start_line,
+                end_line: span.end_line,
+            };
+            Ok(signature)
         }
         ContentProjection::Documentation => {
             unreachable!("documentation projection is handled before structural projection")
         }
         ContentProjection::Body => {
-            let Some(open) = lines.iter().position(|l| l.contains('{')) else {
+            let Some((_, Some(span))) = structural_spans else {
                 return Err((
                     ContentOmissionReason::UnsupportedProjection,
-                    "item has no structural body".into(),
+                    "the grammar does not expose a line-bounded body".into(),
                 ));
             };
-            Ok(relative_lines(
-                &selected,
-                open,
-                lines.len().saturating_sub(1),
-            ))
+            let start = span.start_line - selected.span.start_line + 1;
+            let end = span.end_line - selected.span.start_line + 1;
+            let mut body = select_lines(selected.path, &selected.content, start, end);
+            body.span = ContentSpan {
+                start_line: span.start_line,
+                end_line: span.end_line,
+            };
+            Ok(body)
         }
         ContentProjection::Full => unreachable!(),
     }
@@ -702,20 +866,26 @@ fn structural_projection(
 fn read_structural(
     cfg: &Config,
     root: &Path,
+    root_real: &Path,
     location: &ResolvedLocation,
     projection: ContentProjection,
-    test: bool,
 ) -> Result<Selected, (ContentOmissionReason, String)> {
     let path =
         RepoPath::parse(&location.file).map_err(|m| (ContentOmissionReason::MissingContent, m))?;
-    let span = location.span.ok_or((
-        ContentOmissionReason::UnsupportedProjection,
-        "structural selector has no bounded span".into(),
-    ))?;
-    let whole = read_path(cfg, root, &path, None, None)?;
+    let Some(span) = location.span else {
+        return if projection == ContentProjection::Full {
+            read_path(cfg, root, root_real, &path, None, Some(1_048_576))
+        } else {
+            Err((
+                ContentOmissionReason::UnsupportedProjection,
+                "a file module supports only the full projection".into(),
+            ))
+        };
+    };
+    let whole = read_path(cfg, root, root_real, &path, None, Some(8 * 1024 * 1024))?;
     let lines: Vec<&str> = whole.content.lines().collect();
     if projection == ContentProjection::Documentation {
-        let Some((start, end)) = attached_documentation_span(&lines, span.start_line, test) else {
+        let Some((start, end)) = attached_documentation_span(&lines, span.start_line) else {
             return Err((
                 ContentOmissionReason::MissingContent,
                 "no attached documentation comments".into(),
@@ -723,64 +893,51 @@ fn read_structural(
         };
         return Ok(select_lines(path, &whole.content, start, end));
     }
-    let mut start = span.start_line;
-    if test {
-        while start > 1
-            && lines
-                .get(start - 2)
-                .is_some_and(|l| l.trim_start().starts_with("#["))
-        {
-            start -= 1;
-        }
-    }
-    let selected = select_lines(path, &whole.content, start, span.end_line);
-    structural_projection(selected, projection, test)
+    let selected = select_lines(path.clone(), &whole.content, span.start_line, span.end_line);
+    #[cfg(feature = "symbol-resolution")]
+    let spans = crate::symbols::structural_spans(
+        &whole.content,
+        path.as_str()
+            .rsplit_once('.')
+            .map(|(_, ext)| ext)
+            .unwrap_or(""),
+        span.start_line,
+    );
+    #[cfg(not(feature = "symbol-resolution"))]
+    let spans = None;
+    structural_projection(selected, projection, spans)
 }
 
-fn attached_documentation_span(
-    lines: &[&str],
-    item_start_line: usize,
-    skip_attributes: bool,
-) -> Option<(usize, usize)> {
+fn attached_documentation_span(lines: &[&str], item_start_line: usize) -> Option<(usize, usize)> {
     let mut cursor = item_start_line.saturating_sub(1);
-    if skip_attributes {
-        while cursor > 0 && lines[cursor - 1].trim_start().starts_with("#[") {
-            cursor -= 1;
-        }
-    }
-    let end = cursor;
+    let mut attribute_depth = 0isize;
     while cursor > 0 {
-        let line = lines[cursor - 1].trim_start();
-        if line.starts_with("///")
-            || line.starts_with("//!")
-            || line.starts_with("/**")
-            || line.starts_with('*')
-            || line.starts_with("*/")
-        {
+        let line = lines[cursor - 1].trim();
+        attribute_depth += line.matches(']').count() as isize;
+        attribute_depth -= line.matches('[').count() as isize;
+        if attribute_depth > 0 || line.starts_with("#[") {
             cursor -= 1;
         } else {
             break;
         }
     }
+    let end = cursor;
+    let mut in_doc_block = false;
+    while cursor > 0 {
+        let line = lines[cursor - 1].trim_start();
+        if line.starts_with("///") {
+            cursor -= 1;
+        } else if line.starts_with("*/") || (in_doc_block && line.starts_with('*')) {
+            in_doc_block = true;
+            cursor -= 1;
+        } else if in_doc_block && line.starts_with("/**") {
+            cursor -= 1;
+            in_doc_block = false;
+        } else {
+            break;
+        }
+    }
     (cursor < end).then_some((cursor + 1, end))
-}
-
-fn relative_lines(selected: &Selected, start_offset: usize, end_offset: usize) -> Selected {
-    let mut relative = select_lines(
-        selected.path.clone(),
-        &selected.content,
-        start_offset + 1,
-        end_offset + 1,
-    );
-    relative.span = ContentSpan {
-        start_line: selected.span.start_line + start_offset,
-        end_line: selected.span.start_line + end_offset,
-    };
-    relative
-}
-
-fn has_test_attribute(selected: &Selected) -> bool {
-    selected.content.contains("#[test]") || selected.content.contains("#[tokio::test]")
 }
 
 fn make_item(
@@ -889,17 +1046,44 @@ fn continuation_start(
 
 #[cfg(test)]
 mod tests {
-    use super::attached_documentation_span;
+    use super::*;
 
     #[test]
-    fn test_documentation_skips_attached_attributes() {
+    fn last_obligation_stops_before_the_next_frontmatter_key() {
+        let source = "---\nobligations:\n  - id: R-1\n    kind: requirement\n    text: first\n  - id: V-1\n    kind: verification\n    text: last\nintent:\n  goal: no bleed\n---\n# Body\n";
+        let selected = Selected {
+            path: RepoPath::parse("specs/001/spec.md").unwrap(),
+            span: ContentSpan {
+                start_line: 1,
+                end_line: 13,
+            },
+            content: source.into(),
+        };
+        let entry = obligation_entry(selected, "V-1").unwrap();
+        assert_eq!(
+            entry.content,
+            "  - id: V-1\n    kind: verification\n    text: last"
+        );
+        assert_eq!(
+            entry.span,
+            ContentSpan {
+                start_line: 6,
+                end_line: 8
+            }
+        );
+    }
+
+    #[test]
+    fn documentation_skips_attributes_and_rejects_non_doc_comments() {
         let lines = [
-            "/// Explains the test.",
-            "#[cfg(unix)]",
-            "#[test]",
-            "fn works() {}",
+            "/// docs",
+            "#[derive(Clone)]",
+            "pub struct A;",
+            "",
+            "/* license */",
+            "pub struct B;",
         ];
-        assert_eq!(attached_documentation_span(&lines, 4, true), Some((1, 1)));
-        assert_eq!(attached_documentation_span(&lines, 4, false), None);
+        assert_eq!(attached_documentation_span(&lines, 3), Some((1, 1)));
+        assert_eq!(attached_documentation_span(&lines, 6), None);
     }
 }

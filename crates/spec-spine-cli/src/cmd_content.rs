@@ -6,8 +6,7 @@ use std::process::Command;
 use clap::Subcommand;
 use spec_spine_core::{Versioning, read_document, selected_content};
 use spec_spine_types::{
-    ContentDirtyState, ContentRequest, ContentSelector, ContentSnapshot, ContentSnapshotBinding,
-    Error,
+    ContentDirtyState, ContentRequest, ContentSnapshot, ContentSnapshotBinding, Error, RepoPath,
 };
 
 use crate::{cmd_delta::export_tree, load_repo_config};
@@ -26,7 +25,7 @@ pub enum ContentAction {
         #[arg(long)]
         revision: Option<String>,
         /// Emit the canonical read document.
-        #[arg(long)]
+        #[arg(long, required = true)]
         json: bool,
     },
 }
@@ -57,178 +56,91 @@ fn run_select(
     let request: ContentRequest = serde_json::from_str(&text)
         .map_err(|e| Error::Usage(format!("invalid content request: {e}")))?;
 
-    let (response, _guard) = if let Some(rev) = revision {
-        let commit = resolve_object(repo, rev, "commit")?;
-        let tree = resolve_object(repo, &commit, "tree")?;
-        let export = TempExport::create()?;
-        let index = export.root.join("index");
-        export_tree(repo, &commit, &index, &export.tree)?;
-        verify_export(repo, &tree, &index, &export.tree)?;
-        let cfg = load_repo_config(&export.tree)?;
-        let snapshot = ContentSnapshot {
-            repository: repository.to_string(),
-            revision: commit,
-            tree,
-            dirty_state: ContentDirtyState::CleanExport,
-            binding: ContentSnapshotBinding::CallerSupplied,
-        };
-        let response = selected_content(&cfg, &export.tree, &request, &snapshot)?;
-        (response, Some(export))
+    let (commitish, dirty_state) = if let Some(rev) = revision {
+        (rev, ContentDirtyState::CleanExport)
     } else {
         require_clean(repo)?;
-        refuse_ignored_explicit_paths(repo, &request)?;
-        let commit = resolve_object(repo, "HEAD", "commit")?;
-        let tree = resolve_object(repo, "HEAD", "tree")?;
-        let cfg = load_repo_config(repo)?;
-        let snapshot = ContentSnapshot {
-            repository: repository.to_string(),
-            revision: commit.clone(),
-            tree: tree.clone(),
-            dirty_state: ContentDirtyState::CleanWorkingTree,
-            binding: ContentSnapshotBinding::CallerSupplied,
-        };
-        let response = selected_content(&cfg, repo, &request, &snapshot)?;
-        require_clean(repo)?;
-        if resolve_object(repo, "HEAD", "commit")? != commit
-            || resolve_object(repo, "HEAD", "tree")? != tree
-        {
-            return Err(Error::Refused(
-                "snapshot-changed: HEAD or its tree changed during selection".into(),
-            ));
-        }
-        (response, None)
+        ("HEAD", ContentDirtyState::CleanWorkingTree)
     };
+    let commit = resolve_object(repo, commitish, "commit")?;
+    let tree = resolve_object(repo, &commit, "tree")?;
+    let export = TempExport::create()?;
+    let index = export.root.join("index");
+    export_tree(repo, &commit, &index, &export.checkout)?;
+    materialize_tree(repo, &tree, &export.tree)?;
+    let cfg = load_repo_config(&export.tree)?;
+    let snapshot = ContentSnapshot {
+        repository: repository.to_string(),
+        revision: commit,
+        tree,
+        dirty_state,
+        binding: ContentSnapshotBinding::CallerSupplied,
+    };
+    let response = selected_content(&cfg, &export.tree, &request, &snapshot)?;
+    let _guard = export;
     let document = read_document(&response, Versioning::Stamp)?;
     out!("{document}");
     Ok(0)
 }
 
-fn refuse_ignored_explicit_paths(repo: &Path, request: &ContentRequest) -> Result<(), Error> {
-    for selector in &request.selectors {
-        let path = match selector {
-            ContentSelector::File { path, .. } => Some(normalize_repo_path(path.as_str())),
-            ContentSelector::DirectoryMember {
-                directory, member, ..
-            } => Some(normalize_repo_path(&format!(
-                "{}/{}",
-                directory.as_str(),
-                member.as_str()
-            ))),
-            _ => None,
+/// Materialize the exact blob bytes named by `tree` without checkout filters.
+///
+/// `checkout-index` is not suitable here: attributes such as `eol=crlf` and
+/// configured smudge filters can change or execute while materializing. Every
+/// regular file and symlink is instead represented by its Git blob bytes.
+fn materialize_tree(repo: &Path, tree: &str, export: &Path) -> Result<(), Error> {
+    let listed = Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .args(["ls-tree", "-r", "-z", "--full-tree", tree])
+        .output()
+        .map_err(|e| Error::Io(format!("spawn git ls-tree: {e}")))?;
+    if !listed.status.success() {
+        return Err(Error::Io("could not enumerate exported revision".into()));
+    }
+    for entry in listed.stdout.split(|b| *b == 0).filter(|e| !e.is_empty()) {
+        let Some(tab) = entry.iter().position(|b| *b == b'\t') else {
+            return Err(Error::Io("invalid git ls-tree output".into()));
         };
-        let Some(path) = path else { continue };
-        let status = Command::new("git")
+        let header = String::from_utf8_lossy(&entry[..tab]);
+        let mut fields = header.split_whitespace();
+        let _mode = fields.next().unwrap_or_default();
+        let kind = fields.next().unwrap_or_default();
+        let object = fields.next().unwrap_or_default();
+        if kind == "commit" {
+            continue;
+        }
+        if kind != "blob" {
+            return Err(Error::Io(format!("unsupported tree entry type '{kind}'")));
+        }
+        let path = std::str::from_utf8(&entry[tab + 1..])
+            .map_err(|_| Error::Io("non-UTF-8 path in exported revision".into()))?;
+        let path = RepoPath::parse(path)
+            .map_err(|why| Error::Io(format!("unsafe path in exported revision: {why}")))?;
+        let blob = Command::new("git")
             .arg("-C")
             .arg(repo)
-            .args(["check-ignore", "--quiet", "--"])
-            .arg(&path)
-            .status()
-            .map_err(|e| Error::Io(format!("spawn git check-ignore: {e}")))?;
-        match status.code() {
-            Some(0) => {
-                return Err(Error::Refused(format!(
-                    "ignored-content: selector names ignored path '{path}'"
-                )));
-            }
-            Some(1) => {}
-            code => {
-                return Err(Error::Io(format!(
-                    "git check-ignore exited {code:?} for '{path}'"
-                )));
-            }
+            .args(["cat-file", "blob", object])
+            .output()
+            .map_err(|e| Error::Io(format!("spawn git cat-file: {e}")))?;
+        if !blob.status.success() {
+            return Err(Error::Io(format!(
+                "could not read exported blob for '{}'",
+                path.as_str()
+            )));
         }
-    }
-    Ok(())
-}
-
-fn normalize_repo_path(path: &str) -> String {
-    path.split('/')
-        .filter(|component| !component.is_empty() && *component != ".")
-        .collect::<Vec<_>>()
-        .join("/")
-}
-
-fn verify_export(repo: &Path, tree: &str, index: &Path, export: &Path) -> Result<(), Error> {
-    let written = Command::new("git")
-        .arg("-C")
-        .arg(repo)
-        .env("GIT_INDEX_FILE", index)
-        .arg("write-tree")
-        .output()
-        .map_err(|e| Error::Io(format!("spawn git write-tree: {e}")))?;
-    if !written.status.success() || String::from_utf8_lossy(&written.stdout).trim() != tree {
-        return Err(Error::Io(
-            "exported revision index does not match the expected tree".into(),
-        ));
-    }
-    let materialized_index = index.with_extension("materialized");
-    let materialized_objects = index.with_extension("objects");
-    std::fs::create_dir(&materialized_objects).map_err(|e| {
-        Error::Io(format!(
-            "create export verification object directory {}: {e}",
-            materialized_objects.display()
-        ))
-    })?;
-    let object_path = Command::new("git")
-        .arg("-C")
-        .arg(repo)
-        .args(["rev-parse", "--git-path", "objects"])
-        .output()
-        .map_err(|e| Error::Io(format!("spawn git rev-parse: {e}")))?;
-    if !object_path.status.success() {
-        return Err(Error::Io(
-            "could not resolve repository object directory".into(),
-        ));
-    }
-    let object_path = PathBuf::from(String::from_utf8_lossy(&object_path.stdout).trim());
-    let object_path = if object_path.is_absolute() {
-        object_path
-    } else {
-        repo.join(object_path)
-    };
-    let empty = Command::new("git")
-        .arg("-C")
-        .arg(repo)
-        .arg(format!("--work-tree={}", export.display()))
-        .env("GIT_INDEX_FILE", &materialized_index)
-        .env("GIT_OBJECT_DIRECTORY", &materialized_objects)
-        .env("GIT_ALTERNATE_OBJECT_DIRECTORIES", &object_path)
-        .args(["read-tree", "--empty"])
-        .status()
-        .map_err(|e| Error::Io(format!("spawn git read-tree: {e}")))?;
-    if !empty.success() {
-        return Err(Error::Io(
-            "could not initialize exported revision verification".into(),
-        ));
-    }
-    let added = Command::new("git")
-        .arg("-C")
-        .arg(repo)
-        .arg(format!("--work-tree={}", export.display()))
-        .env("GIT_INDEX_FILE", &materialized_index)
-        .env("GIT_OBJECT_DIRECTORY", &materialized_objects)
-        .env("GIT_ALTERNATE_OBJECT_DIRECTORIES", &object_path)
-        .args(["add", "--all", "--force", "--"])
-        .status()
-        .map_err(|e| Error::Io(format!("spawn git add: {e}")))?;
-    if !added.success() {
-        return Err(Error::Io("could not index exported revision files".into()));
-    }
-    let materialized = Command::new("git")
-        .arg("-C")
-        .arg(repo)
-        .env("GIT_INDEX_FILE", &materialized_index)
-        .env("GIT_OBJECT_DIRECTORY", &materialized_objects)
-        .env("GIT_ALTERNATE_OBJECT_DIRECTORIES", &object_path)
-        .arg("write-tree")
-        .output()
-        .map_err(|e| Error::Io(format!("spawn git write-tree: {e}")))?;
-    if !materialized.status.success()
-        || String::from_utf8_lossy(&materialized.stdout).trim() != tree
-    {
-        return Err(Error::Io(
-            "exported revision files do not match the expected tree".into(),
-        ));
+        let materialized = export.join(path.as_str());
+        let parent = materialized
+            .parent()
+            .ok_or_else(|| Error::Io("exported path has no parent".into()))?;
+        std::fs::create_dir_all(parent)
+            .map_err(|e| Error::Io(format!("create {}: {e}", parent.display())))?;
+        std::fs::write(&materialized, &blob.stdout).map_err(|e| {
+            Error::Io(format!(
+                "write exported path {}: {e}",
+                materialized.display()
+            ))
+        })?;
     }
     Ok(())
 }
@@ -272,6 +184,7 @@ fn require_clean(repo: &Path) -> Result<(), Error> {
 
 struct TempExport {
     root: PathBuf,
+    checkout: PathBuf,
     tree: PathBuf,
 }
 
@@ -290,10 +203,17 @@ impl TempExport {
             let root = parent.join(format!("spec-spine-content-{seed}-{attempt}"));
             match std::fs::create_dir(&root) {
                 Ok(()) => {
+                    let checkout = root.join("checkout");
                     let tree = root.join("tree");
-                    std::fs::create_dir(&tree)
-                        .map_err(|e| Error::Io(format!("create {}: {e}", tree.display())))?;
-                    return Ok(Self { root, tree });
+                    for dir in [&checkout, &tree] {
+                        std::fs::create_dir(dir)
+                            .map_err(|e| Error::Io(format!("create {}: {e}", dir.display())))?;
+                    }
+                    return Ok(Self {
+                        root,
+                        checkout,
+                        tree,
+                    });
                 }
                 Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => continue,
                 Err(e) => return Err(Error::Io(format!("create {}: {e}", root.display()))),
