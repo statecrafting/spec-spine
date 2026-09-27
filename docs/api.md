@@ -175,6 +175,24 @@ code with `report.has_blocking_drift()` (the CLI does exactly this → exit 1).
 `DEFAULT_BYPASS_PREFIXES` is exported so callers can see the always-applied
 bypass floor that `coupling.bypass_prefixes` adds to.
 
+### Selected content
+
+`selected_content(&Config, repo_root, &ContentRequest, &ContentSnapshot)`
+returns bounded normalized UTF-8 content from one caller-bound snapshot. Its
+selectors cover specs, sections, obligations, owned units, explicit files and
+directory members, symbols, modules, and structurally recognized Rust tests.
+The response carries stable identities, inclusive line spans, framed digests,
+explicit omissions, deduplication records, and continuation state. The core
+does not run Git or verify that the supplied directory has the asserted object
+identity. The CLI performs that binding.
+
+`selected_content_json(config_json, repo_root, request_json, snapshot_json)`
+is the JSON facade. `snapshot_json` includes `repository`, `revision`, `tree`,
+`dirtyState`, and `binding: "caller-supplied"`. The successful answer is a read
+document on `READ_SCHEMA_VERSION`; invalid request shape is usage, stale
+ledgers are findings, and containment or stale-continuation failures are
+refusals.
+
 ---
 
 ### Deletions and the prior snapshot (spec 100)

@@ -4,7 +4,7 @@ title: "Select bounded content from one repository snapshot"
 status: draft
 kind: "governance"
 created: "2026-09-26"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -18,11 +18,11 @@ summary: >
   bounded projections, stable spans and digests, canonical ordering,
   continuation, explicit omissions, and no execution or authority effect.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/content.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/src/content.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/content.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/src/cmd_content.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/content.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/content.rs" }
+  - { kind: file, path: "crates/spec-spine-core/src/content.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/content.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/src/cmd_content.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/content.rs" }
 extends:
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
@@ -31,6 +31,9 @@ extends:
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: section, file: "docs/cli-reference.md", anchor: "cli-reference" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
+  - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-core/tests/read.rs" }, nature: additive }
+  - { spec: "108-a-work-scope-is-declared", unit: { kind: file, path: "crates/spec-spine-core/tests/scope.rs" }, nature: additive }
+  - { spec: "108-a-work-scope-is-declared", unit: { kind: file, path: "crates/spec-spine-cli/tests/scope.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap" }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/sections.rs" }, role: "existing section resolver" }
@@ -405,18 +408,7 @@ heuristics in the accessor.
 
 ## Verification
 
-Draft-time validation, before implementation:
-
 ```verify:cli
-target/release/spec-spine registry show 155-selected-content-accessor --json | grep -q '"status": "draft"'
-target/release/spec-spine registry show 155-selected-content-accessor --json | grep -q '"implementation": "pending"'
-target/release/spec-spine registry show 155-selected-content-accessor --json | grep -q '"planned": true'
-```
-
-Implementation acceptance, deliberately not runnable while
-`implementation: pending`:
-
-```acceptance:implementation
 cargo test -p spec-spine-core --test content --locked
 cargo test -p spec-spine-cli --test content --locked
 cargo test --workspace --locked

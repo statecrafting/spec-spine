@@ -25,6 +25,7 @@
 pub mod attest;
 pub mod codebase;
 pub mod config;
+pub mod content;
 pub mod coverage;
 pub mod delta;
 pub mod edges;
@@ -62,6 +63,11 @@ pub use config::{
     CoverageConfig, EffectiveConfig, EffectiveCouplingConfig, FrontmatterConfig, IndexConfig,
     LayoutConfig, LintConfig, ManifestConfig, MetaConfig, ProvenanceConfig, VersionReq,
     load_config, validate_config,
+};
+pub use content::{
+    CoalescedSelector, ContentCompleteness, ContentContinuation, ContentDirtyState, ContentItem,
+    ContentOmission, ContentOmissionReason, ContentProjection, ContentRequest, ContentResolution,
+    ContentResponse, ContentSelector, ContentSnapshot, ContentSnapshotBinding, ContentSpan,
 };
 pub use coverage::{
     CoverageReport, Enumeration, Inventory, InventoryProvenance, NearMissHeader, NearMissReason,

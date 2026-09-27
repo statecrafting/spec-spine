@@ -8,28 +8,23 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-types/src/content.rs",
-        "planned": true
+        "path": "crates/spec-spine-types/src/content.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/src/content.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/src/content.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/content.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/content.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/src/cmd_content.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/src/cmd_content.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/content.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/content.rs"
       }
     ],
     "extends": [
@@ -89,10 +84,34 @@
           "kind": "file",
           "path": "docs/schema-versioning.md"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "108-a-work-scope-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scope.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "108-a-work-scope-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/scope.rs"
+        }
       }
     ],
     "id": "155-selected-content-accessor",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "intent": {
       "goal": "return bounded deterministic source and specification content from one immutable repository snapshot",
       "nonGoals": [
@@ -166,7 +185,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "f71b2b0af2107906fce8b9d0daddca3bfa6c1c812dab377ebdd9e06cc9cf4c11",
-      "155-select-bounded-content-from-one-repository-snapshot": "b235ee1e242d6ecbfc549590aba58af822096e26da0db4b8a2aee42535f36283",
+      "155-select-bounded-content-from-one-repository-snapshot": "541bdea512bc43115257607744d2bb0a259c284811e1b693fb1db7cbb05f70d9",
       "2-territory": "0cad9b6c248a4c633dcf6cf3b67b6ab81bde8e365df4fb80c65d82a6c66553fc",
       "3-1-one-request-names-one-repository": "5589d4ac141343661fbe82edad59acc1a9077048c3e148d0c638e2be7c2faceb",
       "3-10-completeness-and-omissions": "c13f74007f08b24f56e8f1cd8491d24862597fe942bdaa13fe3aa21a2f63e05f",
@@ -185,7 +204,7 @@
       "4-acceptance-criteria": "8e8c26c3d7c4258d386eef2b134b77a91038f73157b9b13f40aaf91e0fbaf14a",
       "5-out-of-scope": "07504fa5553645bea1acf2726de1ebf19bee7427bd5849aab9e37d9242a452d5",
       "6-resolved-decisions": "ed32be3542464fba5de9c8562099bd435a55238aad1254d2f66e9cbdb4170c31",
-      "verification": "0162271180758a2b9e91481e34c3163895d2e6a1931769e6cb334aa37bc37bea"
+      "verification": "087f1d202909882e2993e602694da47c0ff31390d2dc269ab75fb4323477d964"
     },
     "sectionHeadings": [
       "155: Select bounded content from one repository snapshot",
@@ -215,6 +234,6 @@
     "summary": "Adds a deterministic, read-only selected-content request and response over one explicitly identified repository snapshot. Callers may select a whole spec, spec section, obligation, owned source unit, explicit file, explicit directory member, symbol, module, or deterministically supported test, with bounded projections, stable spans and digests, canonical ordering, continuation, explicit omissions, and no execution or authority effect.\n",
     "title": "Select bounded content from one repository snapshot"
   },
-  "shardHash": "09abe0146ce172bf6f928ff3e7aaf6e0fdcbc370546a9dec8f6b2bbf17c999a9",
+  "shardHash": "285e2a59afe3dcbb427f8f225394da7d99331dff2e1fc1f56ff50b79180f02cb",
   "specVersion": "1.9.0"
 }

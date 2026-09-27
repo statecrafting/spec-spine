@@ -18,6 +18,7 @@ mod canonical_json;
 pub mod closure;
 pub mod compact;
 pub mod compile;
+pub mod content;
 pub mod couple;
 pub mod coverage;
 pub mod delta;
@@ -75,6 +76,7 @@ pub use compile::{
     check_registry_freshness, compare_committed_registry, compile, compile_spec,
     load_committed_registry, registry_dir, registry_shard_files,
 };
+pub use content::{selected_content, selected_content_json};
 pub use couple::{
     CoupleReport, DEFAULT_BYPASS_PREFIXES, DeletionProvenance, DiffFile, DiffInput, PriorOwnership,
     PriorSnapshots, SNAPSHOT_HEAD_COMMIT, SNAPSHOT_HEAD_TREE, SNAPSHOT_MERGE_BASE, Waiver,

@@ -23,6 +23,7 @@ mod cmd_check;
 mod cmd_compact;
 mod cmd_compile;
 mod cmd_config;
+mod cmd_content;
 mod cmd_couple;
 mod cmd_delta;
 mod cmd_index;
@@ -114,6 +115,11 @@ enum Command {
     Config {
         #[command(subcommand)]
         action: cmd_config::ConfigAction,
+    },
+    /// Select bounded text from one clean repository snapshot.
+    Content {
+        #[command(subcommand)]
+        action: cmd_content::ContentAction,
     },
     /// Read-only queries over the compiled registry.
     Registry {
@@ -351,6 +357,7 @@ fn main() -> ExitCode {
             json,
         } => cmd_check::run(&repo, *fail_on_unresolved, *fail_on_warn, *json),
         Command::Config { action } => cmd_config::run(&repo, action),
+        Command::Content { action } => cmd_content::run(&repo, action),
         Command::Registry { query } => cmd_registry::run(&repo, query),
         Command::Index { action } => cmd_index::run(&repo, action.as_ref()),
         Command::Interface { action } => cmd_interface::run(&repo, action),
@@ -516,6 +523,9 @@ impl Command {
                 ..
             } => Some(verb::COMPILE_SPEC),
             Command::Check { json: true, .. } => Some(verb::CHECK),
+            Command::Content {
+                action: cmd_content::ContentAction::Select { json: true, .. },
+            } => Some("content.select"),
             Command::Lint { json: true, .. } => Some(verb::LINT),
             Command::Couple { json: true, .. } => Some(verb::COUPLE),
             Command::Delta { json: true, .. } => Some(verb::DELTA),
