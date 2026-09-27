@@ -414,24 +414,26 @@ fn resolve_selector(
                 _ => "test",
             };
             let identity = format!("{kind}:{id}");
-            let idx = index.expect("index loaded");
             #[cfg(feature = "symbol-resolution")]
-            let locations = if kind == "module" {
-                crate::symbols::build_module_index(
-                    root,
-                    &idx.packages,
-                    &cfg.index.resolver_exclusions,
-                    &cfg.layout,
-                )
-                .resolve(id)
-            } else {
-                crate::symbols::build_symbol_index(
-                    root,
-                    &idx.packages,
-                    &cfg.index.resolver_exclusions,
-                    &cfg.layout,
-                )
-                .resolve(id)
+            let locations = {
+                let idx = index.expect("index loaded");
+                if kind == "module" {
+                    crate::symbols::build_module_index(
+                        root,
+                        &idx.packages,
+                        &cfg.index.resolver_exclusions,
+                        &cfg.layout,
+                    )
+                    .resolve(id)
+                } else {
+                    crate::symbols::build_symbol_index(
+                        root,
+                        &idx.packages,
+                        &cfg.index.resolver_exclusions,
+                        &cfg.layout,
+                    )
+                    .resolve(id)
+                }
             };
             #[cfg(not(feature = "symbol-resolution"))]
             let locations: Vec<ResolvedLocation> = Vec::new();
