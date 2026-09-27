@@ -69,9 +69,10 @@ fn a_stamped_document_carries_the_read_axis_version() {
     // flattened move list. Pinned, so the next move is a decision someone
     // writes down rather than a constant that drifts.
     assert_eq!(
-        READ_SCHEMA_VERSION, "0.8.0",
+        READ_SCHEMA_VERSION, "0.9.0",
         "0.1.0 at spec 074, 0.2.0 at spec 102, 0.3.0 at spec 106, 0.4.0 at spec 107, \
-         0.5.0 at spec 109, 0.6.0 at spec 110, 0.7.0 at spec 108, 0.8.0 at spec 111"
+         0.5.0 at spec 109, 0.6.0 at spec 110, 0.7.0 at spec 108, 0.8.0 at spec 111, \
+         0.9.0 at spec 155"
     );
 }
 

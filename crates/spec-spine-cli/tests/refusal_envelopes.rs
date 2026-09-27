@@ -171,6 +171,18 @@ fn every_json_read_answers_a_failure_with_an_envelope() {
     let a = tmp.path().join("a.json");
     let a = a.to_str().unwrap();
     let cases: &[(&str, &[&str])] = &[
+        (
+            "content.select",
+            &[
+                "content",
+                "select",
+                "--request",
+                request,
+                "--repository",
+                "test",
+                "--json",
+            ],
+        ),
         ("registry.list", &["registry", "list", "--json"]),
         ("registry.show", &["registry", "show", "001", "--json"]),
         (

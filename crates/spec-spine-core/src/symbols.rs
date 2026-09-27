@@ -362,6 +362,57 @@ fn symbol_of(node: Node, src: &str) -> Option<(String, LineSpan)> {
     ))
 }
 
+/// Return line-bounded signature and body spans for the item beginning on
+/// `start_line`. A projection whose grammar boundary shares a line is omitted:
+/// the selected-content contract cannot represent byte-column fragments.
+#[cfg(feature = "symbol-resolution")]
+pub fn structural_spans(
+    src: &str,
+    extension: &str,
+    start_line: usize,
+) -> Option<(Option<LineSpan>, Option<LineSpan>)> {
+    let language: Language = match extension {
+        "rs" => tree_sitter_rust::LANGUAGE.into(),
+        "ts" | "tsx" => tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
+        _ => return None,
+    };
+    let mut parser = Parser::new();
+    parser.set_language(&language).ok()?;
+    let tree = parser.parse(src, None)?;
+    let node = find_node_starting_on(tree.root_node(), start_line.saturating_sub(1))?;
+    let body = node.child_by_field_name("body")?;
+    let item_start = node.start_position().row + 1;
+    let body_start = body.start_position().row + 1;
+    let body_end = body.end_position().row + 1;
+    let signature = (body_start > item_start).then(|| LineSpan::new(item_start, body_start - 1));
+    let body = (body_end > body_start).then(|| LineSpan::new(body_start, body_end));
+    Some((signature, body))
+}
+
+#[cfg(feature = "symbol-resolution")]
+fn find_node_starting_on(node: Node<'_>, row: usize) -> Option<Node<'_>> {
+    let mut cursor = node.walk();
+    for child in node.named_children(&mut cursor) {
+        let candidate = if child.kind() == "export_statement" {
+            child.child_by_field_name("declaration").unwrap_or(child)
+        } else {
+            child
+        };
+        if candidate.start_position().row == row
+            && (RUST_KINDS.contains(&candidate.kind()) || TS_KINDS.contains(&candidate.kind()))
+        {
+            return Some(candidate);
+        }
+        if candidate.start_position().row <= row
+            && candidate.end_position().row >= row
+            && let Some(found) = find_node_starting_on(candidate, row)
+        {
+            return Some(found);
+        }
+    }
+    None
+}
+
 /// Recursively collect files with one of `exts` under `root`, sorted, skipping
 /// excluded directories.
 #[cfg(feature = "symbol-resolution")]

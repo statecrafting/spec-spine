@@ -1,0 +1,256 @@
+{
+  "record": {
+    "created": "2026-09-26",
+    "dependsOn": [
+      "106-obligations-are-declared-constraints",
+      "152-a-refusal-says-what-it-is-in-every-form"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/content.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/content.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/content.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_content.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/content.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "anchor": "cli-reference",
+          "file": "docs/cli-reference.md",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "108-a-work-scope-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scope.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "108-a-work-scope-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/scope.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/symbols.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "152-a-refusal-says-what-it-is-in-every-form",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
+        }
+      }
+    ],
+    "id": "155-selected-content-accessor",
+    "implementation": "complete",
+    "intent": {
+      "goal": "return bounded deterministic source and specification content from one immutable repository snapshot",
+      "nonGoals": [
+        "putting arbitrary content inside ContextClosure",
+        "semantic program understanding or inferred dependencies",
+        "cross-repository snapshot composition",
+        "remote fetching, source execution, editing, admission, or authority"
+      ]
+    },
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-6-every-returned-item-is-self-identifying",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Every returned item identifies one repository snapshot, selector, projection, path, inclusive span, digest, resolution state, completeness state, and content."
+      },
+      {
+        "anchor": "3-9-ordering-budgets-and-continuation",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "Selection order, serialization, budgets, omissions, and continuation are deterministic for the same request and snapshot."
+      },
+      {
+        "anchor": "3-11-refusals-and-explicit-omissions",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "An ambiguous, stale, escaping, changed, or unsupported selection is explicit and never silently resolves to different content."
+      },
+      {
+        "anchor": "3-13-authority-security-and-privacy-boundary",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "Selected content is untrusted data and selection never executes it, fetches a repository, composes repositories, edits a file, or grants authority."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/content.rs",
+          "crates/spec-spine-cli/tests/content.rs"
+        ],
+        "kind": "verification",
+        "text": "The implemented accessor is checked for stable ordering, canonical JSON, immutable snapshot bytes, ambiguity, budgets, continuation, unsupported projections, spans, path containment, and dirty-tree refusal."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "roadmap",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      },
+      {
+        "role": "existing section resolver",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/sections.rs"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "f71b2b0af2107906fce8b9d0daddca3bfa6c1c812dab377ebdd9e06cc9cf4c11",
+      "155-select-bounded-content-from-one-repository-snapshot": "a9d2b70efb618787a00bb1b43f245034ee9a2cc4e2e0fa66f27bb1f8237e9018",
+      "2-territory": "0cad9b6c248a4c633dcf6cf3b67b6ab81bde8e365df4fb80c65d82a6c66553fc",
+      "3-1-one-request-names-one-repository": "5589d4ac141343661fbe82edad59acc1a9077048c3e148d0c638e2be7c2faceb",
+      "3-10-completeness-and-omissions": "8b4986deb12226cabb418f63a158e4d596a3b0fd29c90e9a6efe7e7c4de32672",
+      "3-11-refusals-and-explicit-omissions": "5351ad3817797e51448437daa2af12d16fdb7e8571109d861b427c1c0e1f8f94",
+      "3-12-schema-and-compatibility": "53b7dac63f07eadf35e3cd19f02b3371ab2c03e0ada3732cf72416cb7b2d16c6",
+      "3-13-authority-security-and-privacy-boundary": "ef86276c38eddccac274baf373aab8e1ec57a91568b1c3c4d66f4e5ae92aedd4",
+      "3-2-snapshot-identity-is-explicit": "7093bf9f777a942ac161f63809210756b16d03a73bf801876be92d70078b7c4b",
+      "3-3-selector-vocabulary": "74ecaa02ed45e12ecdf980042198a7e7983d5851f63cdd520ee67f199ad14a46",
+      "3-4-resolution-uses-current-typed-contracts": "dd578bc5e93e37878b1d8ad711a945f94e3cef9694402d04d7949552003dc0df",
+      "3-5-projections-are-closed-and-conservative": "dc68433f906bfecbeebea476480ffa817c22b567f61817211baf3100ab000438",
+      "3-6-every-returned-item-is-self-identifying": "b840a41b7fefec5aef164111d89630bf2224d0ffcfc154621354ffe7bb042a9c",
+      "3-7-spans-are-portable-and-inclusive": "246f33f1c2d24bd5ae6080649fe7cd534898f6beff6b740ea155afcc506c9b22",
+      "3-8-canonical-identities-and-deduplication": "adc5958696fe406dbad9da77f07f957413f9687601f756bdd58bda2f27779896",
+      "3-9-ordering-budgets-and-continuation": "95271025b5176bce7ed2674bc012e08f2cc7810480e71056ebba284239f5d31e",
+      "3-behavior": "bff34e98938e87faad48f00d09008dbc763425cbc43690506b5fac26df1eae83",
+      "4-acceptance-criteria": "4f338e8bee7f0db2f196d4ebd6b09b92a36e6540b36a4d79cbdf5ed88b44cea8",
+      "5-out-of-scope": "07504fa5553645bea1acf2726de1ebf19bee7427bd5849aab9e37d9242a452d5",
+      "6-resolved-decisions": "5d9f3ba2fc6265d9e8d37bb05dd71a0ae3c1b5ce288f21b6be4d24445c227d9d",
+      "verification": "087f1d202909882e2993e602694da47c0ff31390d2dc269ab75fb4323477d964"
+    },
+    "sectionHeadings": [
+      "155: Select bounded content from one repository snapshot",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One request names one repository",
+      "3.2 Snapshot identity is explicit",
+      "3.3 Selector vocabulary",
+      "3.4 Resolution uses current typed contracts",
+      "3.5 Projections are closed and conservative",
+      "3.6 Every returned item is self-identifying",
+      "3.7 Spans are portable and inclusive",
+      "3.8 Canonical identities and deduplication",
+      "3.9 Ordering, budgets, and continuation",
+      "3.10 Completeness and omissions",
+      "3.11 Refusals and explicit omissions",
+      "3.12 Schema and compatibility",
+      "3.13 Authority, security, and privacy boundary",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/155-selected-content-accessor/spec.md",
+    "status": "draft",
+    "summary": "Adds a deterministic, read-only selected-content request and response over one explicitly identified repository snapshot. Callers may select a whole spec, spec section, obligation, owned source unit, explicit file, explicit directory member, symbol, module, or deterministically supported test, with bounded projections, stable spans and digests, canonical ordering, continuation, explicit omissions, and no execution or authority effect.\n",
+    "title": "Select bounded content from one repository snapshot"
+  },
+  "shardHash": "57c0595917fd551df38f25d25c943b91de1103307f8b2967e85311c331d56297",
+  "specVersion": "1.9.0"
+}

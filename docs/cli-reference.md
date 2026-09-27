@@ -165,6 +165,22 @@ Neither implies the other and either may be passed alone. This is the only form
 CI can call: the self-governance job runs `check` in place of `compile` and
 `index`.
 
+## content
+
+```text
+spec-spine content select --request <FILE> --repository <IDENTITY> [--revision <REV>] --json
+```
+
+Select bounded text from one repository snapshot. Without `--revision`, the
+command requires a clean index and working tree and binds the response to HEAD
+and its tree. With `--revision`, it resolves one commit and tree. Either way the
+content is read from a private temporary export of that tree's exact blob
+bytes, never from the working tree, so no check is repeated after selection. The opaque repository identity is carried through without
+discovering or exposing a remote URL. Complete, partial, and incomplete read
+documents all exit `0`; inspect `completeness`, `omissions`, and
+`continuation`. A dirty tree or index and a stale continuation exit `2`.
+Under `--json`, failures use the `content.select` verdict envelope.
+
 ## registry
 
 Read-only queries over the compiled registry. Every subcommand takes `--json`.

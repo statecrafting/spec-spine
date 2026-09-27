@@ -63,6 +63,9 @@ pub mod verb {
     // failure writes, so a consumer's error path has one shape across every
     // `--json` verb. Each is the invocation's own dotted command path.
 
+    /// `spec-spine content select`.
+    pub const CONTENT_SELECT: &str = "content.select";
+
     /// `spec-spine registry list`.
     pub const REGISTRY_LIST: &str = "registry.list";
     /// `spec-spine registry show <id>`.

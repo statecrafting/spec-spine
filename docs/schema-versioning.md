@@ -17,7 +17,7 @@
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb, and every `--json` read's failure) | `schemaVersion` | `1.1.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.2.0` | library |
-| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.8.0` | library |
+| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.9.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
 | verifier fixture set (`fixtures/verifier/`, spec 103) | `schemaVersion` | `1.0.0` | library (test data, not emitted at runtime) |
@@ -275,8 +275,8 @@ without breaking readers:
 `READ_SCHEMA_VERSION` versions **the shape of an answer**: the JSON a read verb
 emits with `--json` (`registry list`, `show`, `status-report`, `relationships`,
 `plan`, their projection flags, and `index owner`, `coverage`, `diagnostics`,
-`orphans`), and what the facades `query_json`, `coverage_json` and
-`orphans_json` return. It does not version the artifacts those answers are
+`orphans`, and `content select`), and what the facades `query_json`,
+`coverage_json`, `orphans_json` and `selected_content_json` return. It does not version the artifacts those answers are
 about, so it does not move when `REGISTRY_SCHEMA_VERSION` or
 `INDEX_SCHEMA_VERSION` does. MINOR adds a member; MAJOR removes, renames or
 changes the meaning of one.
@@ -347,6 +347,12 @@ member of an existing document moved.
 the flattened move list (`registry moves --json` with no path), `{ "items":
 [ { "from", "to"?, "kind", "declaredBy", "answeredBy"? } ], "schemaVersion" }`.
 No member of an existing document moved.
+
+**`0.9.0` (spec 155), additive.** A new read document, the bounded
+selected-content response (`content select --json`, `selected_content_json`):
+snapshot identity, completeness, selected `items`, explicit `omissions`,
+deduplication records, and optional continuation. No member of an existing
+document moved.
 
 ## Migration note: spec 034, the verdict envelope
 
