@@ -50,3 +50,30 @@ __pycache__/
 # learned memory is local, session-generated state (like the user's own memory
 # dir, which lives outside the repo), so it is not version-controlled.
 .claude/agent-memory/
+
+# >>> statecraft managed ignores >>>
+# Managed by Statecraft. Entries above and below this block are yours and are
+# never reordered, rewritten or removed. Delete the whole block to opt out.
+# spec-spine: transient metadata and runtime state
+#
+# spec-spine writes wall-clock metadata here. It is the one
+# non-deterministic artifact and is excluded from every determinism and
+# golden check, so it must never be committed.
+
+# The declared state root (spec 036): a tool's own working files,
+# ungoverned and outside every content hash.
+
+# NOT ignored, deliberately: .statecraft/derived/spec-registry/ and
+# .statecraft/derived/codebase-index/ are the committed shard trees.
+#
+# Committing them is what makes `compile --check` and `index check` a
+# freshness gate on a pull request: CI compares the corpus against what
+# the branch committed. Not committing them means regenerating in CI
+# before every gate step instead. Both are legitimate; the scaffold
+# takes neither, because opting you out of the gate silently would be a
+# decision made on your behalf. To choose the second, add:
+#
+#   .statecraft/derived/
+# The repository-local spec-spine the setup profile installs.
+.tooling/
+# <<< statecraft managed ignores <<<

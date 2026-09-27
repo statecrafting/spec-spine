@@ -338,6 +338,16 @@ command inside an echoed string. The reader is the assertion.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-27).** This block no longer runs.
+> `156-statecraft-profile-10-governs-this-repository` declares this spec in
+> `amends_verification`, so `spec-spine verify 094` builds its plan from that
+> spec's block, where the gate invariants are carried against Profile 11's
+> managed local and CI gate (spec 082 3.2 and 3.4).
+>
+> The commands below are kept **verbatim**. A predecessor is amended, never
+> edited (spec 037 3.1): this block is the record of what was asserted when
+> this spec was ratified.
+
 Each line is one command, run independently.
 
 **Fail-first evidence**, measured on 2026-09-20 at the parent of this branch:

@@ -1,13 +1,11 @@
-# The composite gate, and the ONE definition of the governed loop (spec 094,
-# moved here by spec 092 3.6).
+# The repository-owned developer and compatibility interface for the governed
+# loop (spec 094, amended by spec 156).
 #
 # It used to live in `kit/Makefile`, the copy this repository distributed to
 # adopters and then ran on itself. The kit is gone and the distribution is
-# Statecraft's; the gate is not, so the file moved to the repository root and
-# kept every semantic it had. `.github/workflows/ci.yml` calls this target
-# rather than restating the chain, which is the whole point of there being one
-# definition (spec 094 D-1 records what happened the one time a workflow
-# restated it).
+# Statecraft's. Profile 10 now owns the canonical local and CI gate in
+# `scripts/statecraft/gate.sh`; this file retains the repository's established
+# commands for developer use and compatibility.
 #
 # Variables, all overridable:
 #

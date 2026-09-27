@@ -1,0 +1,260 @@
+{
+  "record": {
+    "amends": [
+      "091-an-unclassified-review-failure-blocks-the-merge",
+      "094-one-gate-and-the-boundaries-it-holds",
+      "098-a-citation-the-renumber-could-not-see",
+      "124-the-expansion-line-carries-its-own-version",
+      "134-the-suite-runs-on-windows",
+      "135-the-toolchain-floor-and-dependencies-are-checked"
+    ],
+    "amendsSections": [
+      "3-3-class-2-secret-unset-unchanged",
+      "3-6-1-a-timeout-is-not-a-recognized-transient-signal",
+      "3-8-the-policy-test-executes-the-workflow-s-own-script",
+      "3-1-the-target",
+      "3-3-the-ownership-assertion-is-conditional-and-every-skip-is-announced",
+      "3-4-the-coupling-step-has-explicit-controls",
+      "3-5-the-gate-holds-on-a-corpus-with-no-code",
+      "4-1-the-pull-request-and-push-legs-call-the-target",
+      "5-resolved-decisions",
+      "3-2-the-floor-moves-with-the-version",
+      "3-1-a-windows-test-check-of-its-own",
+      "3-1-the-declared-floor-is-built-and-tested",
+      "3-2-the-dependencies-are-checked"
+    ],
+    "amendsVerification": [
+      "091-an-unclassified-review-failure-blocks-the-merge",
+      "094-one-gate-and-the-boundaries-it-holds",
+      "124-the-expansion-line-carries-its-own-version",
+      "134-the-suite-runs-on-windows",
+      "135-the-toolchain-floor-and-dependencies-are-checked"
+    ],
+    "created": "2026-09-27",
+    "dependsOn": [
+      "092-the-engine-ships-governance-not-an-environment",
+      "094-one-gate-and-the-boundaries-it-holds",
+      "124-the-expansion-line-carries-its-own-version",
+      "150-a-change-runs-the-acceptance-it-can-break"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": ".statecraft/AGENTS.md"
+      },
+      {
+        "kind": "file",
+        "path": ".statecraft/environment.json"
+      },
+      {
+        "kind": "file",
+        "path": ".statecraft/setup/github-actions-rust.json"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/statecraft-ci.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/statecraft-ai-review.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/spec-spine-required.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/ai-pr-review.yml"
+      },
+      {
+        "kind": "directory",
+        "path": "scripts/statecraft/"
+      },
+      {
+        "kind": "file",
+        "path": "scripts/check-authored-content.sh"
+      },
+      {
+        "kind": "file",
+        "path": "README.md"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "directory",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "061-shipped-is-not-the-same-as-working",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/ci.yml"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "091-an-unclassified-review-failure-blocks-the-merge",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/ai_review_policy.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/harness_skills.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "105-governed-scope-is-enabled-here",
+        "unit": {
+          "kind": "file",
+          "path": "CLAUDE.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/adoption-guide.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": "Makefile"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "135-the-toolchain-floor-and-dependencies-are-checked",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/Cargo.toml"
+        }
+      }
+    ],
+    "id": "156-statecraft-profile-10-governs-this-repository",
+    "implementation": "complete",
+    "intent": {
+      "goal": "Adopt Statecraft Profile 11 without weakening this repository's governed checks or transferring its product gate to generated policy.",
+      "nonGoals": [
+        "Ratifying this draft or publishing a spec-spine or Statecraft release.",
+        "Changing repository settings, secrets, environments or branch protection.",
+        "Replacing scheduled and pre-release acceptance sweeps."
+      ]
+    },
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "existing-authority-ownership",
+        "unit": {
+          "kind": "file",
+          "path": "CODEOWNERS"
+        }
+      },
+      {
+        "role": "required-extension",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/determinism.yml"
+        }
+      },
+      {
+        "role": "unchanged",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/acceptance.yml"
+        }
+      },
+      {
+        "role": "repository-owned-gate",
+        "unit": {
+          "kind": "file",
+          "path": "Makefile"
+        }
+      }
+    ],
+    "risk": "critical",
+    "sectionDigests": {
+      "1-1-the-owner-named-in-092-has-arrived": "a6bf37d69255bdbce71a6c81f30d35e363bbd166ff8582f313e979852e6cab46",
+      "1-2-adoption-must-not-narrow-the-gate": "c0b6dc20a198b718f7e3f8d6fc7e5a59ee0c292bd5e16c20da62c96fdac3a38b",
+      "1-3-the-pin-is-intentionally-different-here": "d49ec9f52f4ef53fe030154305d0dacce2ea6122eaa3bfacd393624d70a34ea5",
+      "1-purpose": "f3989359debcb459f218087355e14ba440e1774d4c1ceebea470aa6ae9227fb4",
+      "156-statecraft-profile-11-governs-this-repository": "b8ea350134befb9e73a0aca7e343b14254e3347f4b681088b4f485ff48d0333e",
+      "2-territory": "44e70a43aa2e35f7007790cfc47890a743d662ba6e7828f7eed9226b686891e2",
+      "3-1-one-recorded-profile-11-adoption": "4c3c6650b732cf0045f3f0b8a58d7b8dd7beb5c8992366b6dd00725beb8496e6",
+      "3-2-profile-11-owns-the-aggregate-and-the-local-gate": "eb640a6243e02e0c875c515ffe0686c640eb8f2c97398ef8efd4a2b5a064cb19",
+      "3-3-the-profile-pin-is-exact": "9817dc91476103305dc3dfcc7f6b34d4c87b8f5a39a6e6239707e094a5a66c9c",
+      "3-4-the-specialized-rust-matrix-remains-required": "f51a61820b75fc6182a058d32a41c50d11a8dc4e9242b3e1e082e67b3bf6ab8a",
+      "3-5-authored-content-rejects-the-two-publication-hazards": "1ae4a9cc380afcabd16e12933ca6bee49380fd5d0ecf9c5c19530339ce561091",
+      "3-6-the-instruction-bridge-preserves-local-authority": "18f28b94d97baac35062d3a262fcefda8fb4e48171493bd32e6aadaf3ae6fa77",
+      "3-7-local-qualification-precedes-remote-activation": "7145073a2a3a1172d1c079a7ee03b4277a7257a0548a9ef7040f2c47b0f1ea16",
+      "3-behavior": "ad51d734d2385896dd3fdba1a51f258291cb7f0bdf60f6d9d711326e901edac6",
+      "4-out-of-scope": "ff8d21a5a90a9ab242b5a6284bac1ccedcf5f86aeb5461c8bbcf8d74e56b0ea5",
+      "5-resolved-decisions": "25d75a23364e59539a51fadec108bb9643c68cb5d965f6a73464883c936e54c6",
+      "verification": "0a3c7f4e2171ca6206ea946e8321860c3f2b13ad4bc4314e230073fa23f3bfde"
+    },
+    "sectionHeadings": [
+      "156: Statecraft Profile 11 governs this repository",
+      "1. Purpose",
+      "1.1 The owner named in 092 has arrived",
+      "1.2 Adoption must not narrow the gate",
+      "1.3 The pin is intentionally different here",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One recorded Profile 11 adoption",
+      "3.2 Profile 11 owns the aggregate and the local gate",
+      "3.3 The profile pin is exact",
+      "3.4 The specialized Rust matrix remains required",
+      "3.5 Authored content rejects the two publication hazards",
+      "3.6 The instruction bridge preserves local authority",
+      "3.7 Local qualification precedes remote activation",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/156-statecraft-profile-10-governs-this-repository/spec.md",
+    "status": "draft",
+    "summary": "Statecraft is the adopted owner of the managed development environment, but this repository still carries its pre-adoption CI workflow, AI review and instruction surface. Profile 11 is adopted at one recorded identity, with its exact spec-spine pin and managed authority files, while the Windows, MSRV, cargo-deny, no-default-features, self-governance and determinism checks particular to this engine remain required behind the one ci-gate status.\n",
+    "title": "Statecraft Profile 11 governs this repository"
+  },
+  "shardHash": "898e6abde365fc324fc80f337f4397e531156d6f83263820bb612cd663f2eb66",
+  "specVersion": "1.9.0"
+}

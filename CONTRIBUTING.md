@@ -13,11 +13,11 @@ alike. In short:
    stated behavior it changes. An approved spec is never edited to make code
    pass.
 2. **One spec per pull request.** Build on a branch named after the spec id.
-3. **Run the gate before every commit:** `make gate`, then
-   `cargo test --workspace --locked`,
-   `cargo clippy --workspace --all-targets --locked -- -D warnings`, and
-   `cargo fmt --all --check`. Commit the regenerated `.statecraft/derived/`
-   shards with the change that made them stale.
+3. **Run the gate before every commit:** regenerate the derived trees, then
+   run the governance, coupling and code modes of
+   `scripts/statecraft/gate.sh` exactly as `AGENTS.md` lists them. Commit the
+   regenerated `.statecraft/derived/` shards with the change that made them
+   stale.
 4. **Ship, then ratify.** The build PR merges with the spec still `draft`;
    ratification (`draft` to `approved`) is a separate PR merged by a
    maintainer.

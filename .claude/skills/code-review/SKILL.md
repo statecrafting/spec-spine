@@ -12,7 +12,8 @@ correctness or edge-case bugs, does it still match its owning spec's
 contract, and does it hold the invariants the project's path-scoped rules
 name. Output is an evidence-oriented findings list, each line citing
 `file:line`. Nothing authored is modified. The gate's read-only forms
-(`spec-spine check`, which reads both committed trees) are used so the
+(`scripts/statecraft/gate.sh governance`, which includes the composed freshness
+read) are used so the
 review never dirties the tree; a stale verdict is itself a finding.
 
 ## Step 0: scope the diff
@@ -33,10 +34,9 @@ workflows), scripts, docs, derived shards.
 ## Step 1: the gate stays green
 
 ```sh
-spec-spine check                                # exit 1: a shard tree is stale or the corpus fails (the report says which)
-spec-spine lint --fail-on-warn
-spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
-spec-spine index coverage                       # ownership: unclaimed and floor-only files
+sh scripts/statecraft/gate.sh governance
+BASE_SHA="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" \
+  HEAD_SHA=HEAD PR_BODY="${PR_BODY:-}" sh scripts/statecraft/gate.sh couple
 ```
 
 then the stack's own build, tests, and lints as `AGENTS.md` lists them.
@@ -45,7 +45,7 @@ then the stack's own build, tests, and lints as `AGENTS.md` lists them.
   named and the owning spec whose declared edges fail to cover it.
 - An unclaimed file from `coverage` is a finding against the implementing
   spec's `establishes`.
-- A `lint` or freshness failure is a corpus finding: cite the diagnostic
+- A lint or freshness failure from governance mode is a corpus finding: cite the diagnostic
   verbatim. Stale shards mean the change forgot to run `compile` and
   `index` and commit the result; the fix is to do that, not to hide it.
 

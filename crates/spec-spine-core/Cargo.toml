@@ -45,8 +45,8 @@ glob = "0.3"
 
 [dev-dependencies]
 jsonschema = { version = "0.49", default-features = false }
-# Spec 094 3.4 (retargeted by spec 092 3.6): `tests/gate.rs` asserts over
-# `.github/workflows/ci.yml`'s parsed steps rather than over its text. Already a dependency of this crate above; an
+# Spec 094 3.4 (retargeted by specs 092 3.6 and 156 3.2): `tests/gate.rs`
+# asserts over `.github/workflows/statecraft-ci.yml`'s parsed steps rather than over its text. Already a dependency of this crate above; an
 # integration test under `tests/` cannot see that one, so it is declared again
 # here. Nothing new enters Cargo.lock and no shipped artifact gains a dependency.
 serde_yaml = { workspace = true }

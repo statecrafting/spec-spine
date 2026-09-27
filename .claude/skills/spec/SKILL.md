@@ -84,10 +84,10 @@ working tree, then the real tree:
 
 ```sh
 T=$(mktemp -d) && cp -R spec-spine.toml standards specs "$T"/ \
-  && spec-spine compile --repo "$T" && spec-spine lint --fail-on-warn --repo "$T"
+  && spec-spine compile --repo "$T"
 ```
 
-`--fail-on-warn` is what the gate runs. If `compile` complains about a
+If `compile` complains about a
 path referenced from outside `specs/` (a `references` edge into a docs
 directory), add that directory to the copy and re-run. Fix every
 diagnostic in the real file, re-copy, re-run, until both exit 0. A
@@ -96,7 +96,8 @@ dependency cycle is refused by `compile` itself (`V-014`).
 Then the real gate, which regenerates and checks the committed shards:
 
 ```sh
-spec-spine compile && spec-spine index && spec-spine lint --fail-on-warn && spec-spine check
+spec-spine compile && spec-spine index
+sh scripts/statecraft/gate.sh governance
 spec-spine registry plan
 ```
 

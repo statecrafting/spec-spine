@@ -1,0 +1,93 @@
+name: spec-spine required checks
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  no_default_features:
+    name: spec-spine-core without default features
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Build
+        run: cargo build -p spec-spine-core --no-default-features --locked
+      - name: Assert tree-sitter absent without the feature
+        run: |
+          if cargo tree -p spec-spine-core --no-default-features -i tree-sitter --locked 2>/dev/null | grep -q .; then
+            echo "::error::tree-sitter must not be in the --no-default-features dependency tree"
+            exit 1
+          fi
+      - name: Test
+        run: cargo test -p spec-spine-core --no-default-features --locked
+      - name: Clippy
+        run: cargo clippy -p spec-spine-core --no-default-features --all-targets --locked -- -D warnings
+
+  test_windows:
+    name: test (windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Show toolchain
+        run: rustc --version && cargo --version
+      - name: Test
+        run: cargo test --workspace --locked --no-fail-fast
+
+  msrv:
+    name: build and test (rust-version)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - name: Read the declared rust-version
+        run: |
+          grep -q '^rust-version = "' Cargo.toml
+          sed -n 's/^rust-version = "\(.*\)"$/RUST_VERSION=\1/p' Cargo.toml >> "$GITHUB_ENV"
+      - name: Install the declared rust-version
+        run: rustup toolchain install "$RUST_VERSION" --profile minimal
+      - name: Build and test at the declared rust-version
+        run: cargo "+$RUST_VERSION" test --workspace --locked
+
+  deny:
+    name: cargo-deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.0.4
+        with:
+          command: check
+
+  self_governance:
+    name: self-governance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Build CLI
+        run: cargo build --bin spec-spine --locked
+      - name: Stage the candidate-built engine
+        run: mkdir -p .tooling/bin && cp target/debug/spec-spine .tooling/bin/spec-spine
+      - name: Governance with the candidate-built engine
+        run: sh scripts/statecraft/gate.sh governance
+      - name: Coupling (pull request)
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: sh scripts/statecraft/gate.sh couple

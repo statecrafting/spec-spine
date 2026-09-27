@@ -7,7 +7,7 @@
 //! workflow calling it. The kit is gone; the two rules it was held to are not,
 //! and they are what these assertions are: a gate never writes, and the chain
 //! has one definition. The subjects are now `Makefile` and
-//! `.github/workflows/ci.yml`.
+//! `.github/workflows/statecraft-ci.yml`.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
@@ -115,7 +115,7 @@ fn is_read_only(cmd: &str) -> bool {
 /// renamed verb is exactly the drift spec 093 found in the skills.
 #[test]
 fn every_gate_invocation_names_a_real_verb() {
-    for rel in ["Makefile", ".github/workflows/ci.yml"] {
+    for rel in ["Makefile"] {
         for cmd in invocations(&read(rel)) {
             let head = cmd.split_whitespace().next().unwrap_or("");
             assert!(
@@ -160,164 +160,30 @@ fn target_body(makefile: &str, target: &str) -> String {
         .join("\n")
 }
 
-/// §3.4: the chain in `Makefile` is the chain `AGENTS.md` lists, in order.
-/// The same assertion spec 093 made for the skills: a step CI enforces and the
-/// gate omits is a step every adopter skips.
+/// Spec 156: AGENTS.md names Profile 10's canonical local modes, while the
+/// repository-owned Makefile remains an independently read-only compatibility
+/// interface.
 #[test]
 fn the_gate_chain_follows_agents_md() {
-    let listed: Vec<String> = agents_md_gate_commands();
-    let gate = invocations(&target_body(&read("Makefile"), "gate"));
-
-    // `compile --check` stands for `compile`: the kit's gate is read-only and
-    // CI substitutes the same way, because a gate must never repair the tree it
-    // is judging. The writing `index` has the same standing and lives in
-    // `refresh`.
-    let normalize = |c: &str| c.replace(" --check", "").trim().to_string();
-    let listed_heads: Vec<String> = listed.iter().map(|c| normalize(c)).collect();
-
-    let mut cursor = 0usize;
-    for cmd in &gate {
-        // Spec 094 3.2: `config show` is the ownership guard's PROBE, a
-        // configuration read that decides whether the next step runs. It is not
-        // a step of the governed chain and `AGENTS.md` does not list it, so the
-        // in-order walk skips it. It is not thereby unasserted: it still has to
-        // name a real, read-only verb (the two tests above), and
-        // `the_gate_reads_the_effective_config_before_asserting_ownership`
-        // below refuses a gate that stopped making it.
-        if normalize(cmd) == "config show" {
-            continue;
-        }
-        let n = normalize(cmd);
-        let found = listed_heads[cursor..]
-            .iter()
-            .position(|l| l.starts_with(n.split(" --base").next().unwrap_or(&n)));
-        let Some(pos) = found else {
-            panic!(
-                "`{cmd}` is not in AGENTS.md's gate list at or after position {cursor}: {listed_heads:?}"
-            );
-        };
-        cursor += pos + 1;
+    let agents = read("AGENTS.md");
+    for invocation in [
+        "sh scripts/statecraft/gate.sh governance",
+        "sh scripts/statecraft/gate.sh couple",
+        "sh scripts/statecraft/gate.sh code",
+    ] {
+        assert!(
+            agents.contains(invocation),
+            "AGENTS.md omits the canonical local gate invocation `{invocation}`"
+        );
     }
-    assert!(!gate.is_empty(), "the gate target must invoke spec-spine");
-}
-
-// ── spec 095: how a document's gate list is read ─────────────────────────
-//
-// Spec 095 §3.2 compared the gate list in two documents step for step: the one
-// the kit shipped and the one `scaffold.rs` generated. Spec 092 §3.3 and §3.4
-// removed both, so the comparison has no second document. The PARSER stays and
-// becomes the one `agents_md_gate_commands` uses, because what it carries is
-// not the comparison: it is the drop guard below, which refuses a fence line
-// that reads as an invocation and parses to nothing. A list this parser
-// silently dropped a step from would satisfy every assertion made over it.
-
-/// One step of a fenced gate list. `conditional` records whether the document
-/// renders the step commented out, which is how a protocol writes a step that
-/// belongs in the gate only under a given configuration: dropping that
-/// distinction would let an unconditional assertion match a conditional one.
-#[derive(Debug, PartialEq, Eq)]
-struct GateStep {
-    command: String,
-    conditional: bool,
-}
-
-/// The fenced `sh` block under a document's "Run the gate before every commit"
-/// step, as ordered `spec-spine` steps. A leading `# ` marks a conditional step
-/// and is stripped; a trailing ` # …` is that condition's prose, not part of the
-/// invocation.
-///
-/// Deliberately generic over the text rather than reading one path. It was
-/// written to run over two documents, the one the kit shipped and the one the
-/// scaffold generated; spec 092 3.3 and 3.4 removed both, and the parser stays
-/// generic because the property it reads is a property of a gate list, not of a
-/// filename.
-fn gate_steps(text: &str) -> Vec<GateStep> {
-    let start = text
-        .find("Run the gate before every commit")
-        .expect("the document names the gate step");
-    let tail = &text[start..];
-    let open = tail
-        .find("```sh")
-        .expect("the gate list is a fenced sh block");
-    let body = &tail[open + "```sh".len()..];
-    // The close is a fence on its own line, possibly indented: `AGENTS.md`
-    // carries the block inside a numbered list. A bare `find("```")` would also
-    // match a backtick run inside the block and truncate it, and the drop guard
-    // below could not see that, because it counts over the same truncated slice.
-    let close = body
-        .match_indices("```")
-        .find(|(i, _)| {
-            body[..*i]
-                .rsplit('\n')
-                .next()
-                .is_some_and(|indent| indent.chars().all(char::is_whitespace))
-        })
-        .map(|(i, _)| i)
-        .expect("the fence closes on a line of its own");
-    let fence = &body[..close];
-    let steps: Vec<GateStep> = fence
-        .lines()
-        .filter_map(|l| {
-            let t = l.trim();
-            let (conditional, t) = match t.strip_prefix("# ") {
-                Some(rest) => (true, rest.trim()),
-                None => (false, t),
-            };
-            let cmd = t.strip_prefix("spec-spine ")?;
-            // One space, not two: `AGENTS.md` is hand-maintained and is not
-            // held to the generator's spacing. Splitting on the wider separator
-            // would fold a single-spaced condition into the command, and two
-            // documents spelling it the same wrong way would compare equal.
-            let cmd = cmd.split(" #").next().unwrap_or(cmd).trim();
-            Some(GateStep {
-                command: cmd.to_string(),
-                conditional,
-            })
-        })
-        .collect();
-
-    // A line this parser drops is a step neither list would carry, so parity
-    // would hold over a gate with a missing step. Every line that reads as an
-    // invocation has to become one.
-    //
-    // Lenient about the comment marker where the parser is strict, which is
-    // exactly the gap being guarded: `#spec-spine check`, written without the
-    // space the parser requires, counts here and parses to nothing. Prose that
-    // merely mentions the binary ("# this replaces spec-spine compile --check")
-    // is an invocation under neither reading and is counted by neither, so the
-    // guard does not fire on a comment a future maintainer adds.
-    let named = fence
-        .lines()
-        .filter(|l| {
-            l.trim()
-                .trim_start_matches('#')
-                .trim_start()
-                .starts_with("spec-spine ")
-        })
-        .count();
-    assert_eq!(
-        steps.len(),
-        named,
-        "{named} fence line(s) name spec-spine and {} parsed as steps; a gate \
-         line this parser drops is invisible to the parity assertion",
-        steps.len()
+    let gate = invocations(&target_body(&read("Makefile"), "gate"));
+    for cmd in &gate {
+        assert!(is_read_only(cmd), "Makefile gate writes: spec-spine {cmd}");
+    }
+    assert!(
+        !gate.is_empty(),
+        "the compatibility gate must invoke spec-spine"
     );
-    steps
-}
-
-/// `AGENTS.md`'s gate list, unconditional steps only.
-///
-/// Read through [`gate_steps`] rather than with a second, simpler parser: the
-/// two used to coexist and the simpler one had no drop guard, so a fence line
-/// it failed to recognise was invisible to every assertion built on it. A
-/// conditional step is excluded here because the chain being compared is the
-/// one that always runs.
-fn agents_md_gate_commands() -> Vec<String> {
-    gate_steps(&read("AGENTS.md"))
-        .into_iter()
-        .filter(|s| !s.conditional)
-        .map(|s| s.command)
-        .collect()
 }
 
 /// §3.1: the language targets are guarded on a MANIFEST probe, not a command
@@ -349,7 +215,7 @@ fn language_targets_probe_for_a_manifest_not_a_tool() {
 /// asserted two tests above.
 #[test]
 fn the_pr_body_reaches_the_gate_as_a_file() {
-    let wf = read(".github/workflows/ci.yml");
+    let wf = read(".github/workflows/statecraft-ci.yml");
     // §3.2: the PR body reaches the gate through a file, not through shell
     // quoting, because a body carrying a waiver line has no safe quoting.
     //
@@ -359,15 +225,15 @@ fn the_pr_body_reaches_the_gate_as_a_file() {
     // header comment asks for. The property is unchanged and is asserted in
     // both halves: the workflow writes the file and passes its path, and the
     // target turns that path into `--pr-body`.
-    assert!(wf.contains("RUNNER_TEMP"), "{wf}");
     assert!(
-        wf.contains("PR_BODY="),
-        "the file's path is handed to the gate: {wf}"
+        wf.contains("PR_BODY: ${{ github.event.pull_request.body }}")
+            && wf.contains("sh \"${STATECRAFT_GATE:?}\" couple"),
+        "the pull-request body and frozen endpoints reach the managed gate: {wf}"
     );
-    let makefile = read("Makefile");
+    let gate = read("scripts/statecraft/gate.sh");
     assert!(
-        makefile.contains("--pr-body"),
-        "the one gate definition is where the flag is spelled: {makefile}"
+        gate.contains("statecraft-pr-body.txt") && gate.contains("--pr-body \"$body\""),
+        "the managed gate writes the body to a file before coupling: {gate}"
     );
 }
 
@@ -528,12 +394,11 @@ fn a_guarded_recipe_skips_when_absent_and_fails_when_the_command_fails() {
 ///
 /// Parsed rather than searched, because §3.4's property is about which commands
 /// run and a text search cannot tell a command from a sentence about one.
-/// `.github/workflows/ci.yml` names `make gate` twice and only one of
+/// `.github/workflows/statecraft-ci.yml` names the governance gate and only one of
 /// those is a step; the other is the header comment saying the workflow has one
 /// gate definition while the pull-request leg restated it (094 D-5).
 #[derive(Debug)]
 struct WorkflowStep {
-    name: Option<String>,
     cond: Option<String>,
     run: Option<String>,
 }
@@ -552,10 +417,6 @@ fn workflow_steps(yaml: &str) -> Vec<WorkflowStep> {
         };
         for step in steps {
             out.push(WorkflowStep {
-                name: step
-                    .get("name")
-                    .and_then(|v| v.as_str())
-                    .map(str::to_string),
                 cond: step.get("if").and_then(|v| v.as_str()).map(str::to_string),
                 run: step.get("run").and_then(|v| v.as_str()).map(str::to_string),
             });
@@ -1052,24 +913,7 @@ fn spec_spine_verbs(run: &str) -> Vec<String> {
     out
 }
 
-/// The verbs the one gate definition runs, read off `Makefile`'s `gate`
-/// target rather than listed here. A step added to the target is a step the
-/// workflow may not restate, without anyone remembering to extend a constant.
-fn one_gate_definition_verbs() -> BTreeSet<String> {
-    invocations(&target_body(&read("Makefile"), "gate"))
-        .iter()
-        .map(|c| {
-            let mut toks = c.split_whitespace();
-            let verb = toks.next().unwrap_or("").to_string();
-            match toks.next() {
-                Some(sub) if !sub.starts_with('-') => format!("{verb} {sub}"),
-                _ => verb,
-            }
-        })
-        .collect()
-}
-
-/// The steps of `.github/workflows/ci.yml` running on one event leg.
+/// The steps of `.github/workflows/statecraft-ci.yml` running on one event leg.
 fn legs_of(steps: &[WorkflowStep], want: Leg) -> Vec<&WorkflowStep> {
     steps
         .iter()
@@ -1082,51 +926,34 @@ fn legs_of(steps: &[WorkflowStep], want: Leg) -> Vec<&WorkflowStep> {
 /// it runs on.
 #[test]
 fn both_workflow_legs_invoke_the_one_gate_definition() {
-    let steps = workflow_steps(&read(".github/workflows/ci.yml"));
-    assert!(
-        !steps.is_empty(),
-        ".github/workflows/ci.yml parsed to no steps, so this test asserts nothing"
+    let wf = read(".github/workflows/statecraft-ci.yml");
+    assert!(wf.contains("  pull_request:"), "{wf}");
+    assert!(wf.contains("  push:\n    branches: [main]"), "{wf}");
+    assert!(wf.contains("  merge_group:"), "{wf}");
+    assert_eq!(
+        wf.matches("sh \"${STATECRAFT_GATE:?}\" governance").count(),
+        1,
+        "the managed workflow must have one governance invocation: {wf}"
     );
-    for want in [Leg::Push, Leg::PullRequest] {
-        let calling: Vec<_> = legs_of(&steps, want)
-            .into_iter()
-            .filter(|s| gate_invocation(s).is_some())
-            .collect();
-        assert_eq!(
-            calling.len(),
-            1,
-            "expected exactly one {want:?} step invoking the `gate` target, got {}. \
-             The workflow's own header says the gate has one definition; a leg that \
-             restates the chain instead is the drift spec 094 §3.4 closes. Steps: {:#?}",
-            calling.len(),
-            steps
-        );
-    }
+    assert_eq!(
+        wf.matches("sh \"${STATECRAFT_GATE:?}\" code").count(),
+        1,
+        "the managed workflow must have one code invocation: {wf}"
+    );
 }
 
 /// §3.4: and no step restates a verb that definition already runs. The header
 /// comment is not a step, and a verb named in one is not an invocation.
 #[test]
 fn no_workflow_step_restates_a_verb_the_one_gate_definition_runs() {
-    let chain = one_gate_definition_verbs();
-    assert!(
-        chain.contains("couple") && chain.contains("check"),
-        "the gate target's verbs parsed as {chain:?}, which is not the chain"
-    );
-    let mut restated: Vec<String> = Vec::new();
-    for step in workflow_steps(&read(".github/workflows/ci.yml")) {
-        let Some(run) = step.run.as_deref() else {
-            continue;
-        };
-        for v in spec_spine_verbs(run) {
-            if chain.contains(&v) {
-                restated.push(format!("{:?} runs `spec-spine {v}`", step.name));
-            }
-        }
-    }
+    let wf = read(".github/workflows/statecraft-ci.yml");
+    let restated: Vec<_> = [" check ", " lint ", " index coverage ", " couple --base "]
+        .into_iter()
+        .filter(|command| wf.contains(command))
+        .collect();
     assert!(
         restated.is_empty(),
-        "the workflow restates the chain instead of calling the one definition: {restated:?}"
+        "the workflow restates managed gate commands instead of calling gate.sh: {restated:?}"
     );
 }
 
@@ -1136,55 +963,22 @@ fn no_workflow_step_restates_a_verb_the_one_gate_definition_runs() {
 /// body file. Neither is inferred from the other: the control is explicit.
 #[test]
 fn the_one_gate_definition_serves_both_legs_through_explicit_controls() {
-    let steps = workflow_steps(&read(".github/workflows/ci.yml"));
-
-    let push = legs_of(&steps, Leg::Push)
-        .into_iter()
-        .find_map(gate_invocation)
-        .expect("a push step invoking the gate target");
-    assert_eq!(
-        push.get("COUPLE").map(String::as_str),
-        Some("0"),
-        "spec 094 §3.2: the shipped workflow runs `couple` on pull_request only, \
-         so the push leg must spend the explicit control: {push:?}"
-    );
-
-    let pr = legs_of(&steps, Leg::PullRequest)
-        .into_iter()
-        .find_map(gate_invocation)
-        .expect("a pull-request step invoking the gate target");
-    assert_ne!(
-        pr.get("COUPLE").map(String::as_str),
-        Some("0"),
-        "the pull-request leg is the one that must couple: {pr:?}"
-    );
-    let body = pr
-        .get("PR_BODY")
-        .expect("the pull-request leg hands the body file to the gate");
+    let wf = read(".github/workflows/statecraft-ci.yml");
     assert!(
-        !body.is_empty(),
-        "the body reaches the gate as a path: {pr:?}"
+        wf.contains("if: github.event_name == 'pull_request'")
+            && wf.contains("sh \"${STATECRAFT_GATE:?}\" couple"),
+        "coupling must be an explicit pull-request-only managed-gate mode: {wf}"
     );
-
-    // And it is the path the step just WROTE, not merely a path-shaped string.
-    // Tied to the step's own redirect rather than to the file's name, so
-    // renaming `pr-body.txt` cannot quietly turn this into an assertion about a
-    // filename; what spec 094 §3.2 requires is that the body travel as a file
-    // and that the gate be handed that file.
-    //
-    // Read off the parsed commands rather than searched for in the text. `> "x"`,
-    // `>"x"` and `1> "x"` all write the same file and all reduce to the same
-    // target here, while a `>` inside a quoted string writes nothing and is not
-    // one (094 D-17).
-    let run = legs_of(&steps, Leg::PullRequest)
-        .into_iter()
-        .find(|s| gate_invocation(s).is_some())
-        .and_then(|s| s.run.clone())
-        .expect("the pull-request step has a script");
-    let written = redirect_targets(&run);
     assert!(
-        written.contains(body),
-        "PR_BODY must name a file this step writes; it writes {written:?}: {run}"
+        wf.contains("if: github.event_name == 'merge_group'")
+            && wf.contains("sh \"${STATECRAFT_GATE:?}\" couple-group"),
+        "merge-queue coupling must use its explicit managed-gate mode: {wf}"
+    );
+    assert!(
+        wf.contains("BASE_SHA: ${{ github.event.pull_request.base.sha }}")
+            && wf.contains("HEAD_SHA: ${{ github.event.pull_request.head.sha }}")
+            && wf.contains("PR_BODY: ${{ github.event.pull_request.body }}"),
+        "the pull-request mode must receive frozen endpoints and its body: {wf}"
     );
 }
 
@@ -1343,7 +1137,6 @@ fn the_one_gate_definition_detector_reads_shell_quoting_not_raw_separators() {
         "make gate COUPLE=0 ; echo done",
     ] {
         let step = WorkflowStep {
-            name: None,
             cond: Some("github.event_name != 'pull_request'".to_string()),
             run: Some(real.to_string()),
         };
@@ -1370,7 +1163,6 @@ fn the_one_gate_definition_detector_reads_shell_quoting_not_raw_separators() {
     ];
     for run in mentions {
         let step = WorkflowStep {
-            name: None,
             cond: Some("github.event_name != 'pull_request'".to_string()),
             run: Some(run.to_string()),
         };
@@ -1488,21 +1280,6 @@ fn the_one_gate_definition_detector_refuses_a_script_it_cannot_read() {
         caught.is_err(),
         "script_commands must fail on a script it cannot read, not return {caught:?}"
     );
-
-    // The shipped workflow uses none of those forms, so the refusal costs it
-    // nothing: every one of its steps reads.
-    for step in workflow_steps(&read(".github/workflows/ci.yml")) {
-        if let Some(run) = step.run.as_deref() {
-            ScriptReader::new(&mask_expressions(run))
-                .parse()
-                .unwrap_or_else(|e| {
-                    panic!(
-                        ".github/workflows/ci.yml step {:?} does not read: {e}",
-                        step.name
-                    )
-                });
-        }
-    }
 }
 
 /// §3.4 + D-18: an output descriptor duplication is read by its operand, and an
@@ -1896,7 +1673,11 @@ fn the_acceptance_workflow_is_reachable_from_no_pull_request() {
 /// `ci.yml` growing a reference to it.
 #[test]
 fn the_acceptance_workflow_is_outside_the_required_check() {
-    let ci = read(".github/workflows/ci.yml");
+    let ci = read(".github/workflows/statecraft-ci.yml");
+    assert!(
+        ci.contains("  ci-gate:\n") && ci.contains("    name: ci-gate\n"),
+        "the Profile 10 workflow must preserve ci-gate as the required check name"
+    );
     assert!(
         !ci.contains("acceptance"),
         "ci.yml names the acceptance workflow, which would fold it into ci-gate (spec 099 §3.1)"

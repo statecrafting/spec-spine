@@ -1,0 +1,303 @@
+# Rendered by Statecraft from profile github-actions-rust revision 11
+# (identity 25e77bc9f95c2cef638d3b282b573b0c481572a9f72187c520f8caa956f56b6f). A managed file and a member of this
+# repository's authority set: an edit here changes the gate that judges every
+# pull request, and `statecraft doctor` names it. The policy the aggregate gate
+# enforces is .statecraft/setup/github-actions-rust.json, read at the base.
+name: statecraft-ci
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  # Revision 3: a required merge queue judges each queued entry here. The
+  # review is not re-run for it; ci-gate reads the verdict recorded for the
+  # entry's pull request.
+  merge_group:
+
+permissions:
+  contents: read
+
+jobs:
+  governance:
+    name: governance
+    runs-on: ubuntu-latest
+    # `pull-requests: read` is for the merge-queue steps, which read the
+    # queued pull request's changed files, title and body. Nothing here
+    # writes; the commit walk reads each commit's verification.
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      authority_change: ${{ steps.authority.outputs.authority_change }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Revision 5, rule 1: a candidate never judges itself with its own gate.
+      # gate.sh and install-spec-spine.sh are read at the base, as ci-gate.sh
+      # is; the candidate's copies run only when the base carries none (the
+      # adoption), and the step says which ran. A base commit that cannot be
+      # read stops the job rather than falling back.
+      - name: Read the gate at the base
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+        run: |
+          dir="${RUNNER_TEMP}/statecraft"
+          mkdir -p "$dir"
+          case "$BASE_SHA" in 0000000000000000000000000000000000000000) BASE_SHA="" ;; esac
+          if [ -n "$BASE_SHA" ] && ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "cannot read the base commit ${BASE_SHA}; the gate is never taken from the candidate in its place" >&2
+            exit 2
+          fi
+          for f in gate.sh install-spec-spine.sh; do
+            if [ -n "$BASE_SHA" ] && git show "${BASE_SHA}:scripts/statecraft/${f}" > "${dir}/${f}" 2>/dev/null; then
+              echo "${f}: read at the base ${BASE_SHA}"
+            else
+              cp "scripts/statecraft/${f}" "${dir}/${f}"
+              echo "${f}: the base carries none; the candidate's copy runs (adoption)"
+            fi
+          done
+          echo "STATECRAFT_GATE=${dir}/gate.sh" >> "$GITHUB_ENV"
+          echo "STATECRAFT_INSTALL=${dir}/install-spec-spine.sh" >> "$GITHUB_ENV"
+      # Revision 5, rule 2: whether this pull request changes the authority
+      # set, read from the base's policy. It only decides whether the owner
+      # exception job runs; ci-gate recomputes it at the base and never reads
+      # this output, so a candidate that skips the exception fails closed.
+      - name: Authority change
+        id: authority
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          policy=.statecraft/setup/github-actions-rust.json
+          work="${RUNNER_TEMP}/statecraft-authority"
+          mkdir -p "$work"
+          change=false
+          if ! git show "${BASE_SHA}:${policy}" > "${work}/policy.json" 2>/dev/null; then
+            echo "the base carries no policy (the adoption): ci-gate reports the authority change"
+          elif ! jq -e '.authority_rule' "${work}/policy.json" > /dev/null; then
+            echo "the base's policy predates revision 5: ci-gate reports an authority change and does not block it"
+          else
+            { jq -r '.files[].path, (.parameters.authored_content // empty)' "${work}/policy.json"; echo "$policy"; } | sort -u > "${work}/set"
+            git diff --name-only "${BASE_SHA}...${HEAD_SHA}" | sort -u > "${work}/changed"
+            { comm -12 "${work}/set" "${work}/changed"; grep '^scripts/statecraft/' "${work}/changed" || true; grep '^\.github/workflows/' "${work}/changed" || true; } | sort -u > "${work}/touched"
+            if [ -s "${work}/touched" ]; then
+              change=true
+              echo "authority change: the owner exception is required for this run:"
+              cat "${work}/touched"
+            else
+              echo "no authority change"
+            fi
+          fi
+          echo "authority_change=${change}" >> "$GITHUB_OUTPUT"
+      # Revision 4, rule 6: a cache, never a check. The key is the pin, so a
+      # pin bump is a miss; the install step still verifies the version.
+      - name: Read the spec-spine pin
+        id: pin
+        run: sh "${STATECRAFT_GATE:?}" pin >> "$GITHUB_OUTPUT"
+      - name: Cache spec-spine
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .tooling/bin/spec-spine
+          key: spec-spine-${{ steps.pin.outputs.version }}-${{ runner.os }}-${{ runner.arch }}
+      - name: Install the pinned spec-spine
+        run: sh "${STATECRAFT_INSTALL:?}"
+      # Revision 4, rule 5: a stacked pull request is never judged against
+      # the default branch, so it fails here (governance.require_default_base).
+      - name: The base is the default branch
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: sh "${STATECRAFT_GATE:?}" base
+      # The declared authored-content script is read at the base too, by the
+      # base's gate.sh (revision 5, rule 1).
+      - name: Governance
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+        run: sh "${STATECRAFT_GATE:?}" governance
+      # Revision 4, rule 3: the title and body become the merge commit's
+      # message (governance.authored_content_text).
+      - name: Authored-content rules (title and body)
+        if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          GROUP_HEAD_REF: ${{ github.event.merge_group.head_ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+        run: sh "${STATECRAFT_GATE:?}" text
+      # Revision 4, rules 3 and 4: every commit in the change, a step of this
+      # job so it cannot be skipped into a green gate.
+      - name: Every commit in the change
+        if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+        run: sh "${STATECRAFT_GATE:?}" commits
+      # A documented step-level inapplicability, not a job skip: coupling
+      # compares a pull request's two frozen endpoints, and a push has none.
+      - name: Coupling gate
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: sh "${STATECRAFT_GATE:?}" couple
+      # The queued candidate: the group's own endpoints, and the waiver of the
+      # entry's pull request only when the group changes nothing else.
+      - name: Coupling gate (merge queue)
+        if: github.event_name == 'merge_group'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.merge_group.head_sha }}
+          GROUP_HEAD_REF: ${{ github.event.merge_group.head_ref }}
+        run: sh "${STATECRAFT_GATE:?}" couple-group
+
+  code:
+    name: code
+    runs-on: ubuntu-latest
+    steps:
+      # The whole history, so the base commit the gate is read at is present.
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Revision 5, rule 1: a candidate never judges itself with its own gate.
+      # gate.sh and install-spec-spine.sh are read at the base, as ci-gate.sh
+      # is; the candidate's copies run only when the base carries none (the
+      # adoption), and the step says which ran. A base commit that cannot be
+      # read stops the job rather than falling back.
+      - name: Read the gate at the base
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+        run: |
+          dir="${RUNNER_TEMP}/statecraft"
+          mkdir -p "$dir"
+          case "$BASE_SHA" in 0000000000000000000000000000000000000000) BASE_SHA="" ;; esac
+          if [ -n "$BASE_SHA" ] && ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "cannot read the base commit ${BASE_SHA}; the gate is never taken from the candidate in its place" >&2
+            exit 2
+          fi
+          for f in gate.sh install-spec-spine.sh; do
+            if [ -n "$BASE_SHA" ] && git show "${BASE_SHA}:scripts/statecraft/${f}" > "${dir}/${f}" 2>/dev/null; then
+              echo "${f}: read at the base ${BASE_SHA}"
+            else
+              cp "scripts/statecraft/${f}" "${dir}/${f}"
+              echo "${f}: the base carries none; the candidate's copy runs (adoption)"
+            fi
+          done
+          echo "STATECRAFT_GATE=${dir}/gate.sh" >> "$GITHUB_ENV"
+          echo "STATECRAFT_INSTALL=${dir}/install-spec-spine.sh" >> "$GITHUB_ENV"
+      - name: Read the spec-spine pin
+        id: pin
+        run: sh "${STATECRAFT_GATE:?}" pin >> "$GITHUB_OUTPUT"
+      - name: Cache spec-spine
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .tooling/bin/spec-spine
+          key: spec-spine-${{ steps.pin.outputs.version }}-${{ runner.os }}-${{ runner.arch }}
+      - name: Install the pinned spec-spine
+        run: sh "${STATECRAFT_INSTALL:?}"
+      # The two inputs that invalidate a build; a source edit hits the cache
+      # and recompiles only this workspace's crates.
+      - name: Cache cargo registry, git and target
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: cargo-${{ runner.os }}-${{ hashFiles('Cargo.lock', 'rust-toolchain.toml') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-
+      - name: Build, test, clippy, fmt
+        run: sh "${STATECRAFT_GATE:?}" code
+
+  ai-review:
+    name: ai-review
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/statecraft-ai-review.yml
+    permissions:
+      contents: read
+      pull-requests: write
+    # Revision 8: both credentials, by name; the review prefers the API key.
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+  # A release candidate whose review was skipped needs an owner exception,
+  # recorded outside the candidate: an approval on this protected Environment,
+  # whose required reviewers the operator sets and the author cannot grant.
+  review-exception:
+    name: review-exception
+    needs: [governance, ai-review]
+    # The owner exception (S-1): a release candidate whose review was skipped,
+    # (revision 2, R2-1) any pull request whose review returned findings, and
+    # (revision 5, rule 2) any pull request that changes the authority set.
+    if: always() && github.event_name == 'pull_request' && (needs.governance.outputs.authority_change == 'true' || (needs.ai-review.outputs.release_candidate == 'true' && startsWith(needs.ai-review.outputs.result, 'skipped:')) || needs.ai-review.outputs.result == 'findings')
+    runs-on: ubuntu-latest
+    environment: statecraft-review-exception
+    steps:
+      - name: Record the owner exception
+        env:
+          RESULT: ${{ needs.ai-review.outputs.result }}
+          AUTHORITY_CHANGE: ${{ needs.governance.outputs.authority_change }}
+        run: echo "owner exception approved for a pull request whose review was ${RESULT} (authority change ${AUTHORITY_CHANGE})"
+
+  determinism:
+    name: determinism
+    uses: ./.github/workflows/determinism.yml
+
+  spec-spine-required:
+    name: spec-spine-required
+    uses: ./.github/workflows/spec-spine-required.yml
+
+  # Revision 7: every job the project declares in ci.extra_required_jobs is a
+  # call of its own reusable workflow, needed here and required by the policy
+  # exactly as the profile's jobs are: failed, cancelled and skipped all block.
+  ci-gate:
+    name: ci-gate
+    if: always()
+    needs: [governance, code, ai-review, review-exception, determinism, spec-spine-required]
+    runs-on: ubuntu-latest
+    # Read-only: on merge_group the gate reads the recorded review (the
+    # entry's pull request, its runs, their jobs and the evidence artifact).
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # The gate script itself is read from the base, as its policy is; the
+      # candidate's copy runs only when the base has none (the adoption).
+      - name: Aggregate
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha || github.sha }}
+          HEAD_REF: ${{ github.head_ref }}
+          GROUP_HEAD_REF: ${{ github.event.merge_group.head_ref }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          script="${RUNNER_TEMP}/statecraft-ci-gate.sh"
+          if git show "${BASE_SHA}:scripts/statecraft/ci-gate.sh" > "$script" 2>/dev/null; then
+            echo "ci-gate.sh: read at the base ${BASE_SHA}"
+          else
+            cp scripts/statecraft/ci-gate.sh "$script"
+            echo "ci-gate.sh: the base carries none; the candidate's copy runs (adoption)"
+          fi
+          bash "$script"

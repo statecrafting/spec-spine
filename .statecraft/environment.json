@@ -1,0 +1,204 @@
+{
+  "version": 2,
+  "pins": {
+    "product": "0.0.0",
+    "spec_spine": "0.28.0",
+    "adapters": {},
+    "producer": {
+      "name": "spec-spine-core",
+      "version": "0.27.0",
+      "checksum": "04c0165ed03496a5c0622ef5f7fab6ecb54d5ec404921f5ee3b3155d2602d9b5"
+    }
+  },
+  "entries": [
+    {
+      "path": ".github/workflows/statecraft-ai-review.yml",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@11"
+      },
+      "digest": "781c761148db5a27ae1e82bc2a80818aa5cb443cb9bd6b793743c6f7fa517491",
+      "bytes": 3209,
+      "written_at": "2026-09-27T17:20:23Z"
+    },
+    {
+      "path": ".github/workflows/statecraft-ci.yml",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@11"
+      },
+      "digest": "fb238749573724558ac90a2c3dda0c64a73b6130ef6bbc28d4624ab550a77303",
+      "bytes": 15118,
+      "written_at": "2026-09-27T17:20:23Z"
+    },
+    {
+      "path": ".statecraft/AGENTS.md",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-governance"
+      },
+      "digest": "2b41647b3dd483c8151846804a985b5d691c49b4418af34d8355830f917fc324",
+      "bytes": 1624,
+      "written_at": "2026-09-27T11:11:03Z"
+    },
+    {
+      "path": ".statecraft/setup/github-actions-rust.json",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@11"
+      },
+      "digest": "8114111a5c1dbe8fc556bea320a5f4c9d99c95a4c72e3fcdc81bfbd0d5ef3f20",
+      "bytes": 10270,
+      "written_at": "2026-09-27T17:20:23Z"
+    },
+    {
+      "path": "scripts/statecraft/ai-review.sh",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@11"
+      },
+      "digest": "1d781e7f21743b04845219063b6446e58ada023b97517bb219f9a713b36ee005",
+      "bytes": 13783,
+      "written_at": "2026-09-27T17:20:23Z"
+    },
+    {
+      "path": "scripts/statecraft/ci-gate.sh",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@11"
+      },
+      "digest": "6cee638d693a45cc3288bf9ceac5725b06fe1f04e52fcc57e770303c6bab5b40",
+      "bytes": 14012,
+      "written_at": "2026-09-27T17:20:23Z"
+    },
+    {
+      "path": "scripts/statecraft/gate.sh",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@11"
+      },
+      "digest": "854bfdddf210237ee44f3498bd2af89f209c67e683dd2a076d847f8b663c1261",
+      "bytes": 18996,
+      "written_at": "2026-09-27T17:20:23Z"
+    },
+    {
+      "path": "scripts/statecraft/install-spec-spine.sh",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@11"
+      },
+      "digest": "4b7fb8c96826558dc8b5192c54c18e2f2990278ad9022d8c3bb8ccc318db651a",
+      "bytes": 2057,
+      "written_at": "2026-09-27T17:20:23Z"
+    },
+    {
+      "path": "spec-spine.toml",
+      "class": "adopted",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-governance"
+      },
+      "digest": "2d246a1b1716b865da7d2d6a489324fff85e062278c07a2ee075c0d920192c15",
+      "bytes": 11765,
+      "written_at": "2026-09-27T11:11:03Z"
+    },
+    {
+      "path": "standards/spec/constitution.md",
+      "class": "adopted",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-governance"
+      },
+      "digest": "f31b3ee25fc8d364ac58b6287e989a4eb4d2b517946a0eacca558ccb23f4ac43",
+      "bytes": 6048,
+      "written_at": "2026-09-27T11:11:03Z"
+    },
+    {
+      "path": "standards/spec/contract.md",
+      "class": "adopted",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-governance"
+      },
+      "digest": "9c04d7e8cdf1e6cb8e87142cc2e59b06fe8c20de2d20ebf0c771f66339beef7f",
+      "bytes": 5726,
+      "written_at": "2026-09-27T11:11:03Z"
+    },
+    {
+      "path": "standards/spec/templates/constitution-template.md",
+      "class": "adopted",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-governance"
+      },
+      "digest": "882ffc058fc35cee7b588a4efafca2ca6d7b8086c21f16c7dc44580d92fce2c6",
+      "bytes": 821,
+      "written_at": "2026-09-27T11:11:03Z"
+    },
+    {
+      "path": "standards/spec/templates/spec-template.md",
+      "class": "adopted",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-governance"
+      },
+      "digest": "6ec53d12ab6d0608c5a83f9425ebed467a390546cfbbaa343733cf38e939865d",
+      "bytes": 14315,
+      "written_at": "2026-09-27T11:11:03Z"
+    }
+  ],
+  "modifications": [
+    {
+      "path": "AGENTS.md",
+      "kind": "import-bridge",
+      "line": "@.statecraft/AGENTS.md",
+      "digest_before": "29dceda8775a9179437e341188b6e3ba221b21da84b53eedecf8521cadebd250",
+      "digest_after": "7d8758bceacfd5f201eff87b65d36428faa9234738b8d213b77624c51ffa8b2a",
+      "written_at": "2026-09-27T11:11:03Z"
+    }
+  ],
+  "project": {
+    "requirements": {},
+    "overrides": {},
+    "shared_approval_required": [],
+    "enrollment": {
+      "kind": "solo"
+    },
+    "setup": {
+      "profile": "github-actions-rust",
+      "revision": 11,
+      "identity": "25e77bc9f95c2cef638d3b282b573b0c481572a9f72187c520f8caa956f56b6f",
+      "parameters": {
+        "ci.extra_required_jobs": [
+          {
+            "job": "determinism",
+            "workflow": ".github/workflows/determinism.yml"
+          },
+          {
+            "job": "spec-spine-required",
+            "workflow": ".github/workflows/spec-spine-required.yml"
+          }
+        ],
+        "governance.authored_content": "scripts/check-authored-content.sh",
+        "governance.authored_content_text": true,
+        "governance.enforce_coverage": true,
+        "governance.fail_on_unresolved": true,
+        "governance.gate_each_commit": true,
+        "governance.require_default_base": true,
+        "governance.require_signed_commits": true,
+        "review.code_owners": [
+          "@bartekus"
+        ],
+        "review.diff_cap": 3000
+      }
+    }
+  }
+}

@@ -730,6 +730,16 @@ against fails on it.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-27).** This block no longer runs.
+> `156-statecraft-profile-10-governs-this-repository` declares this spec in
+> `amends_verification`, so `spec-spine verify 091` builds its plan from that
+> spec's block, where the blocking policy is carried against Profile 11's
+> managed review script and workflow (spec 082 3.2 and 3.4).
+>
+> The commands below are kept **verbatim**. A predecessor is amended, never
+> edited (spec 037 3.1): this block is the record of what was asserted when
+> this spec was ratified.
+
 Each line runs from the repository root as its own `sh -c`, so no shell state
 carries between lines. AC-1 through AC-4, AC-7, AC-9 and AC-10 are red against the
 tree this spec is filed on; AC-5, AC-6 and AC-8 are preservation assertions that are

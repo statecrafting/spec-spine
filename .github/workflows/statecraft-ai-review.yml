@@ -1,0 +1,78 @@
+# Rendered by Statecraft from profile github-actions-rust revision 11
+# (identity 25e77bc9f95c2cef638d3b282b573b0c481572a9f72187c520f8caa956f56b6f). A managed file and a member of this
+# repository's authority set. Called by statecraft-ci.yml only; it declares
+# the two credentials it may use by name (revision 8: the API key when set,
+# else the OAuth token) and is never given `secrets: inherit`.
+name: statecraft-ai-review
+
+on:
+  workflow_call:
+    secrets:
+      ANTHROPIC_API_KEY:
+        required: false
+      CLAUDE_CODE_OAUTH_TOKEN:
+        required: false
+    outputs:
+      result:
+        description: findings, no-findings, or skipped:<class>
+        value: ${{ jobs.review.outputs.result }}
+      release_candidate:
+        description: whether the head ref matches the release branch pattern
+        value: ${{ jobs.review.outputs.release_candidate }}
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    name: review
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    outputs:
+      result: ${{ steps.review.outputs.result }}
+      release_candidate: ${{ steps.review.outputs.release_candidate }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      # Every value that carries contributor text is bound here, never spliced
+      # into the script. The script is read from the base, as the gate's is.
+      - name: Review
+        id: review
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          ACTOR: ${{ github.actor }}
+          IS_DRAFT: ${{ github.event.pull_request.draft }}
+          DIFF_CAP: '3000'
+          EXCLUDE: '.statecraft/derived'
+          RELEASE_PATTERN: 'release/*'
+          CLAUDE_CLI_VERSION: '2.1.116'
+          PROFILE_IDENTITY: '25e77bc9f95c2cef638d3b282b573b0c481572a9f72187c520f8caa956f56b6f'
+        run: |
+          script="${RUNNER_TEMP}/statecraft-ai-review.sh"
+          if git show "${BASE_SHA}:scripts/statecraft/ai-review.sh" > "$script" 2>/dev/null; then
+            echo "ai-review.sh: read at the base ${BASE_SHA}"
+          else
+            cp scripts/statecraft/ai-review.sh "$script"
+            echo "ai-review.sh: the base carries none; the candidate's copy runs (adoption)"
+          fi
+          bash "$script"
+      - name: Upload the evidence record
+        if: steps.review.outputs.evidence != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: statecraft-ai-review-${{ github.event.pull_request.head.sha }}
+          path: ${{ steps.review.outputs.evidence }}
+          if-no-files-found: error

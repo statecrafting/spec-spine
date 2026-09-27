@@ -54,10 +54,10 @@ Run the gate exactly as `AGENTS.md` "Working the backlog" lists it under
 ```sh
 spec-spine compile
 spec-spine index
-spec-spine lint --fail-on-warn
-spec-spine check
-spec-spine couple --base "$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" --head HEAD
-spec-spine index coverage --fail-on-untraced   # when [coupling] require_ownership is on
+sh scripts/statecraft/gate.sh governance
+BASE_SHA="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null || echo origin/main)" \
+  HEAD_SHA=HEAD sh scripts/statecraft/gate.sh couple
+sh scripts/statecraft/gate.sh code
 ```
 
 then the stack's own build, tests, and lints. On a clean checkout
@@ -72,7 +72,6 @@ Then the reads `/prime` will use:
 ```sh
 spec-spine registry status-report --json --nonzero-only
 spec-spine registry plan
-spec-spine index coverage
 ```
 
 ### 5. Emit summary
@@ -86,11 +85,9 @@ spec-spine index coverage
 **Governed loop:**
   - compile: {ok / failed}
   - index: {ok / regenerated, shards left for the session to commit}
-  - lint --fail-on-warn: {clean / N diagnostics}
-  - check: {registry fresh / stale, index fresh / stale}
+  - governance: {ok / failed at <command>}
   - couple: {clean / drift surfaced}
-  - coverage: {N claimed, M unclaimed / not enforced}
-  - stack gate: {ok / failed at <command> / none declared}
+  - code: {ok / failed at <command>}
 **Lifecycle:** {N specs across <statuses>}  (from registry status-report)
 **Ready:** {ids / (nothing ready)}  (from registry plan)
 
