@@ -91,6 +91,7 @@ pub fn selected_content(
             projection,
             registry.as_ref(),
             index.as_ref(),
+            request.max_bytes,
         )?;
         candidates.push(Candidate {
             position,
@@ -263,11 +264,13 @@ fn resolve_selector(
     projection: ContentProjection,
     registry: Option<&spec_spine_types::Registry>,
     index: Option<&spec_spine_types::CodebaseIndex>,
+    max_bytes: usize,
 ) -> Result<(String, Selection), Error> {
     let missing = |m: String| Err((ContentOmissionReason::MissingContent, m));
     let unsupported = |m: String| Err((ContentOmissionReason::UnsupportedProjection, m));
     match selector {
         ContentSelector::File { path, .. } => {
+            let path = normalize_repo_path(path)?;
             let identity = format!("file:{}", path.as_str());
             if projection != ContentProjection::Full {
                 return Ok((
@@ -275,17 +278,19 @@ fn resolve_selector(
                     unsupported("explicit files support only the full projection".into()),
                 ));
             }
-            Ok((identity, read_path(cfg, root, path, None)))
+            Ok((identity, read_path(cfg, root, &path, None, Some(max_bytes))))
         }
         ContentSelector::DirectoryMember {
             directory, member, ..
         } => {
-            let joined = format!(
-                "{}/{}",
-                directory.as_str().trim_end_matches('/'),
-                member.as_str().trim_start_matches("./")
-            );
-            let path = RepoPath::parse(joined.trim_start_matches('/')).map_err(Error::Refused)?;
+            let directory = normalize_repo_path(directory)?;
+            let member = normalize_repo_path(member)?;
+            let joined = [directory.as_str(), member.as_str()]
+                .into_iter()
+                .filter(|component| !component.is_empty())
+                .collect::<Vec<_>>()
+                .join("/");
+            let path = RepoPath::parse(&joined).map_err(Error::Refused)?;
             let identity = format!(
                 "directory-member:{}#{}",
                 directory.as_str(),
@@ -297,15 +302,17 @@ fn resolve_selector(
                     unsupported("directory members support only the full projection".into()),
                 ));
             }
-            Ok((identity, read_path(cfg, root, &path, None)))
+            Ok((identity, read_path(cfg, root, &path, None, Some(max_bytes))))
         }
         ContentSelector::Spec { spec, .. } => {
             let record = resolve_record(spec, registry.expect("registry loaded"))?;
             let identity = format!("spec:{}", record.id);
             let path = RepoPath::parse(&record.spec_path).map_err(Error::Internal)?;
             let selected = match projection {
-                ContentProjection::Full => read_path(cfg, root, &path, None),
-                ContentProjection::Body => read_path(cfg, root, &path, None).and_then(spec_body),
+                ContentProjection::Full => read_path(cfg, root, &path, None, Some(max_bytes)),
+                ContentProjection::Body => {
+                    read_path(cfg, root, &path, None, None).and_then(spec_body)
+                }
                 _ => unsupported("a spec supports only full and body projections".into()),
             };
             Ok((identity, selected))
@@ -323,7 +330,7 @@ fn resolve_selector(
                 ));
             }
             let path = RepoPath::parse(&record.spec_path).map_err(Error::Internal)?;
-            let full = read_path(cfg, root, &path, None);
+            let full = read_path(cfg, root, &path, None, None);
             let selected = full.and_then(|s| {
                 let span = crate::sections::resolve_section(&s.content, path.as_str(), anchor)
                     .ok_or((
@@ -368,7 +375,7 @@ fn resolve_selector(
             }
             let path = RepoPath::parse(&record.spec_path).map_err(Error::Internal)?;
             let selected =
-                read_path(cfg, root, &path, None).and_then(|s| obligation_entry(s, &item.id));
+                read_path(cfg, root, &path, None, None).and_then(|s| obligation_entry(s, &item.id));
             Ok((identity, selected))
         }
         ContentSelector::OwnedUnit { spec, unit, .. } => {
@@ -401,7 +408,7 @@ fn resolve_selector(
             }
             let selected = locations.first().map_or_else(
                 || missing("owned unit does not resolve".into()),
-                |l| read_location(cfg, root, l),
+                |l| read_location(cfg, root, l, max_bytes),
             );
             Ok((identity, selected))
         }
@@ -461,6 +468,16 @@ fn resolve_selector(
     }
 }
 
+fn normalize_repo_path(path: &RepoPath) -> Result<RepoPath, Error> {
+    let normalized = path
+        .as_str()
+        .split('/')
+        .filter(|component| !component.is_empty() && *component != ".")
+        .collect::<Vec<_>>()
+        .join("/");
+    RepoPath::parse(&normalized).map_err(Error::Refused)
+}
+
 fn resolve_record<'a>(
     id: &str,
     registry: &'a spec_spine_types::Registry,
@@ -477,6 +494,7 @@ fn read_location(
     cfg: &Config,
     root: &Path,
     location: &ResolvedLocation,
+    max_bytes: usize,
 ) -> Result<Selected, (ContentOmissionReason, String)> {
     let path =
         RepoPath::parse(&location.file).map_err(|m| (ContentOmissionReason::MissingContent, m))?;
@@ -485,6 +503,7 @@ fn read_location(
         root,
         &path,
         location.span.map(|s| (s.start_line, s.end_line)),
+        location.span.is_none().then_some(max_bytes),
     )
 }
 
@@ -493,13 +512,16 @@ fn read_path(
     root: &Path,
     path: &RepoPath,
     span: Option<(usize, usize)>,
+    whole_item_budget: Option<usize>,
 ) -> Result<Selected, (ContentOmissionReason, String)> {
     let target = root.join(path.as_str());
     if path.as_str().is_empty()
         || path.as_str() == "."
         || crate::pathutil::is_excluded(root, &target, &cfg.index.resolver_exclusions)
-        || path.as_str().starts_with(".git/")
-        || path.as_str().starts_with(".statecraft/")
+        || path
+            .as_str()
+            .split('/')
+            .any(|component| matches!(component, ".git" | ".statecraft"))
     {
         return Err((
             ContentOmissionReason::MissingContent,
@@ -526,6 +548,21 @@ fn read_path(
             format!("path '{}' is not a file", path.as_str()),
         ));
     }
+    if let Some(max_bytes) = whole_item_budget {
+        let raw_len = fs::metadata(&target_real)
+            .map_err(|e| (ContentOmissionReason::MissingContent, e.to_string()))?
+            .len();
+        let largest_raw_that_can_fit = max_bytes.saturating_mul(2).saturating_add(3) as u64;
+        if raw_len > largest_raw_that_can_fit {
+            return Err((
+                ContentOmissionReason::ItemExceedsByteBudget,
+                format!(
+                    "path '{}' cannot fit within maxBytes {max_bytes}",
+                    path.as_str()
+                ),
+            ));
+        }
+    }
     let bytes = fs::read(&target_real)
         .map_err(|e| (ContentOmissionReason::MissingContent, e.to_string()))?;
     let raw = String::from_utf8(bytes).map_err(|_| {
@@ -535,7 +572,8 @@ fn read_path(
         )
     })?;
     let content = hash::normalize(&raw);
-    let (start, end) = span.unwrap_or((1, content.lines().count().max(1)));
+    let line_count = content.lines().count().max(1);
+    let (start, end) = span.unwrap_or((1, line_count));
     Ok(select_lines(path.clone(), &content, start, end))
 }
 
@@ -642,25 +680,7 @@ fn structural_projection(
             Ok(relative_lines(&selected, 0, end))
         }
         ContentProjection::Documentation => {
-            let count = lines
-                .iter()
-                .take_while(|l| {
-                    let t = l.trim_start();
-                    t.starts_with("///")
-                        || t.starts_with("//!")
-                        || t.starts_with("/**")
-                        || t.starts_with('*')
-                        || t.starts_with("*/")
-                })
-                .count();
-            if count == 0 {
-                Err((
-                    ContentOmissionReason::MissingContent,
-                    "no attached documentation comments".into(),
-                ))
-            } else {
-                Ok(relative_lines(&selected, 0, count - 1))
-            }
+            unreachable!("documentation projection is handled before structural projection")
         }
         ContentProjection::Body => {
             let Some(open) = lines.iter().position(|l| l.contains('{')) else {
@@ -692,7 +712,7 @@ fn read_structural(
         ContentOmissionReason::UnsupportedProjection,
         "structural selector has no bounded span".into(),
     ))?;
-    let whole = read_path(cfg, root, &path, None)?;
+    let whole = read_path(cfg, root, &path, None, None)?;
     let lines: Vec<&str> = whole.content.lines().collect();
     if projection == ContentProjection::Documentation {
         let Some((start, end)) = attached_documentation_span(&lines, span.start_line, test) else {
@@ -746,21 +766,17 @@ fn attached_documentation_span(
 }
 
 fn relative_lines(selected: &Selected, start_offset: usize, end_offset: usize) -> Selected {
-    let content = selected
-        .content
-        .lines()
-        .skip(start_offset)
-        .take(end_offset.saturating_sub(start_offset) + 1)
-        .collect::<Vec<_>>()
-        .join("\n");
-    Selected {
-        path: selected.path.clone(),
-        span: ContentSpan {
-            start_line: selected.span.start_line + start_offset,
-            end_line: selected.span.start_line + end_offset,
-        },
-        content,
-    }
+    let mut relative = select_lines(
+        selected.path.clone(),
+        &selected.content,
+        start_offset + 1,
+        end_offset + 1,
+    );
+    relative.span = ContentSpan {
+        start_line: selected.span.start_line + start_offset,
+        end_line: selected.span.start_line + end_offset,
+    };
+    relative
 }
 
 fn has_test_attribute(selected: &Selected) -> bool {

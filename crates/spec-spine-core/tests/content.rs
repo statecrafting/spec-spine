@@ -4,8 +4,8 @@ use std::fs;
 
 use spec_spine_core::{selected_content, selected_content_json};
 use spec_spine_types::{
-    Config, ContentCompleteness, ContentDirtyState, ContentProjection, ContentRequest,
-    ContentSelector, ContentSnapshot, ContentSnapshotBinding, RepoPath,
+    Config, ContentCompleteness, ContentDirtyState, ContentOmissionReason, ContentProjection,
+    ContentRequest, ContentSelector, ContentSnapshot, ContentSnapshotBinding, RepoPath,
 };
 
 fn snapshot() -> ContentSnapshot {
@@ -53,6 +53,34 @@ fn normalizes_orders_deduplicates_and_pages_between_items() {
 }
 
 #[test]
+fn canonical_paths_coalesce_and_directory_members_use_the_same_spelling() {
+    let tmp = tempfile::tempdir().unwrap();
+    fs::create_dir(tmp.path().join("dir")).unwrap();
+    fs::write(tmp.path().join("dir/item.txt"), "item\n").unwrap();
+    let request = ContentRequest {
+        selectors: vec![
+            file("./dir//item.txt"),
+            file("dir/item.txt"),
+            ContentSelector::DirectoryMember {
+                directory: RepoPath::parse("./dir/").unwrap(),
+                member: RepoPath::parse("./item.txt").unwrap(),
+                projection: None,
+                required: true,
+            },
+        ],
+        default_projection: ContentProjection::Full,
+        max_bytes: 100,
+        max_items: 10,
+        continuation: None,
+    };
+    let response = selected_content(&Config::default(), tmp.path(), &request, &snapshot()).unwrap();
+    assert_eq!(response.items.len(), 2);
+    assert_eq!(response.items[0].identity, "directory-member:dir#item.txt");
+    assert_eq!(response.items[1].identity, "file:dir/item.txt");
+    assert_eq!(response.coalesced_selectors[0].positions, vec![0, 1]);
+}
+
+#[test]
 fn unsupported_binary_and_oversized_selections_are_explicit() {
     let tmp = tempfile::tempdir().unwrap();
     fs::write(tmp.path().join("binary"), [0xff, 0xfe]).unwrap();
@@ -86,6 +114,43 @@ fn unsupported_binary_and_oversized_selections_are_explicit() {
     assert!(reasons.contains(&"item-exceeds-byte-budget"));
     assert!(reasons.contains(&"unsupported-projection"));
     assert_eq!(value["completeness"], "incomplete");
+}
+
+#[test]
+fn a_whole_file_that_cannot_normalize_under_the_budget_is_omitted_before_reading() {
+    let tmp = tempfile::tempdir().unwrap();
+    fs::write(tmp.path().join("large"), "0123456789").unwrap();
+    let request = ContentRequest {
+        selectors: vec![file("large")],
+        default_projection: ContentProjection::Full,
+        max_bytes: 3,
+        max_items: 1,
+        continuation: None,
+    };
+    let response = selected_content(&Config::default(), tmp.path(), &request, &snapshot()).unwrap();
+    assert!(response.items.is_empty());
+    assert_eq!(
+        response.omissions[0].reason,
+        ContentOmissionReason::ItemExceedsByteBudget
+    );
+    assert!(response.omissions[0].message.contains("cannot fit"));
+}
+
+#[test]
+fn private_components_are_excluded_at_every_depth() {
+    let tmp = tempfile::tempdir().unwrap();
+    fs::create_dir_all(tmp.path().join("nested/.git")).unwrap();
+    fs::write(tmp.path().join("nested/.git/config"), "secret\n").unwrap();
+    let request = ContentRequest {
+        selectors: vec![file("nested/.git/config")],
+        default_projection: ContentProjection::Full,
+        max_bytes: 100,
+        max_items: 1,
+        continuation: None,
+    };
+    let response = selected_content(&Config::default(), tmp.path(), &request, &snapshot()).unwrap();
+    assert!(response.items.is_empty());
+    assert!(response.omissions[0].message.contains("excluded"));
 }
 
 #[test]

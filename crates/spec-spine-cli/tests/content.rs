@@ -117,3 +117,31 @@ fn ignored_content_is_refused_even_when_the_working_tree_is_clean() {
             .contains("ignored-content")
     );
 }
+
+#[test]
+fn normalized_directory_member_cannot_bypass_the_ignore_check() {
+    let repo = fixture();
+    fs::create_dir(repo.path().join("private")).unwrap();
+    fs::write(repo.path().join(".gitignore"), "private/secret.txt\n").unwrap();
+    git(repo.path(), &["add", ".gitignore"]);
+    git(repo.path(), &["commit", "-qm", "ignore directory member"]);
+    fs::write(repo.path().join("private/secret.txt"), "credential\n").unwrap();
+
+    let request_dir = tempfile::tempdir().unwrap();
+    let request = request_dir.path().join("request.json");
+    fs::write(
+        &request,
+        r#"{"selectors":[{"kind":"directory-member","directory":"./private/","member":"./secret.txt"}]}"#,
+    )
+    .unwrap();
+
+    let output = run(repo.path(), &request, None);
+    assert_eq!(output.status.code(), Some(2));
+    let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert!(
+        value["summary"]
+            .as_str()
+            .unwrap()
+            .contains("ignored-content")
+    );
+}

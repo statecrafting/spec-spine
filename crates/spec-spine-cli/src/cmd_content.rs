@@ -37,8 +37,8 @@ pub fn run(repo: &Path, action: &ContentAction) -> Result<u8, Error> {
             request,
             repository,
             revision,
-            json,
-        } => run_select(repo, request, repository, revision.as_deref(), *json),
+            json: _,
+        } => run_select(repo, request, repository, revision.as_deref()),
     }
 }
 
@@ -47,7 +47,6 @@ fn run_select(
     request_path: &Path,
     repository: &str,
     revision: Option<&str>,
-    _json: bool,
 ) -> Result<u8, Error> {
     let text = std::fs::read_to_string(request_path).map_err(|e| {
         Error::Io(format!(
@@ -62,11 +61,9 @@ fn run_select(
         let commit = resolve_object(repo, rev, "commit")?;
         let tree = resolve_object(repo, &commit, "tree")?;
         let export = TempExport::create()?;
-        export_tree(repo, &commit, &export.root.join("index"), &export.tree)?;
-        let exported_tree = resolve_object(repo, &commit, "tree")?;
-        if tree != exported_tree {
-            return Err(Error::Io("exported revision tree identity changed".into()));
-        }
+        let index = export.root.join("index");
+        export_tree(repo, &commit, &index, &export.tree)?;
+        verify_export(repo, &tree, &index, &export.tree)?;
         let cfg = load_repo_config(&export.tree)?;
         let snapshot = ContentSnapshot {
             repository: repository.to_string(),
@@ -109,14 +106,14 @@ fn run_select(
 fn refuse_ignored_explicit_paths(repo: &Path, request: &ContentRequest) -> Result<(), Error> {
     for selector in &request.selectors {
         let path = match selector {
-            ContentSelector::File { path, .. } => Some(path.as_str().to_string()),
+            ContentSelector::File { path, .. } => Some(normalize_repo_path(path.as_str())),
             ContentSelector::DirectoryMember {
                 directory, member, ..
-            } => Some(format!(
+            } => Some(normalize_repo_path(&format!(
                 "{}/{}",
-                directory.as_str().trim_end_matches('/'),
-                member.as_str().trim_start_matches('/')
-            )),
+                directory.as_str(),
+                member.as_str()
+            ))),
             _ => None,
         };
         let Some(path) = path else { continue };
@@ -140,6 +137,98 @@ fn refuse_ignored_explicit_paths(repo: &Path, request: &ContentRequest) -> Resul
                 )));
             }
         }
+    }
+    Ok(())
+}
+
+fn normalize_repo_path(path: &str) -> String {
+    path.split('/')
+        .filter(|component| !component.is_empty() && *component != ".")
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
+fn verify_export(repo: &Path, tree: &str, index: &Path, export: &Path) -> Result<(), Error> {
+    let written = Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .env("GIT_INDEX_FILE", index)
+        .arg("write-tree")
+        .output()
+        .map_err(|e| Error::Io(format!("spawn git write-tree: {e}")))?;
+    if !written.status.success() || String::from_utf8_lossy(&written.stdout).trim() != tree {
+        return Err(Error::Io(
+            "exported revision index does not match the expected tree".into(),
+        ));
+    }
+    let materialized_index = index.with_extension("materialized");
+    let materialized_objects = index.with_extension("objects");
+    std::fs::create_dir(&materialized_objects).map_err(|e| {
+        Error::Io(format!(
+            "create export verification object directory {}: {e}",
+            materialized_objects.display()
+        ))
+    })?;
+    let object_path = Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .args(["rev-parse", "--git-path", "objects"])
+        .output()
+        .map_err(|e| Error::Io(format!("spawn git rev-parse: {e}")))?;
+    if !object_path.status.success() {
+        return Err(Error::Io(
+            "could not resolve repository object directory".into(),
+        ));
+    }
+    let object_path = PathBuf::from(String::from_utf8_lossy(&object_path.stdout).trim());
+    let object_path = if object_path.is_absolute() {
+        object_path
+    } else {
+        repo.join(object_path)
+    };
+    let empty = Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .arg(format!("--work-tree={}", export.display()))
+        .env("GIT_INDEX_FILE", &materialized_index)
+        .env("GIT_OBJECT_DIRECTORY", &materialized_objects)
+        .env("GIT_ALTERNATE_OBJECT_DIRECTORIES", &object_path)
+        .args(["read-tree", "--empty"])
+        .status()
+        .map_err(|e| Error::Io(format!("spawn git read-tree: {e}")))?;
+    if !empty.success() {
+        return Err(Error::Io(
+            "could not initialize exported revision verification".into(),
+        ));
+    }
+    let added = Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .arg(format!("--work-tree={}", export.display()))
+        .env("GIT_INDEX_FILE", &materialized_index)
+        .env("GIT_OBJECT_DIRECTORY", &materialized_objects)
+        .env("GIT_ALTERNATE_OBJECT_DIRECTORIES", &object_path)
+        .args(["add", "--all", "--force", "--"])
+        .status()
+        .map_err(|e| Error::Io(format!("spawn git add: {e}")))?;
+    if !added.success() {
+        return Err(Error::Io("could not index exported revision files".into()));
+    }
+    let materialized = Command::new("git")
+        .arg("-C")
+        .arg(repo)
+        .env("GIT_INDEX_FILE", &materialized_index)
+        .env("GIT_OBJECT_DIRECTORY", &materialized_objects)
+        .env("GIT_ALTERNATE_OBJECT_DIRECTORIES", &object_path)
+        .arg("write-tree")
+        .output()
+        .map_err(|e| Error::Io(format!("spawn git write-tree: {e}")))?;
+    if !materialized.status.success()
+        || String::from_utf8_lossy(&materialized.stdout).trim() != tree
+    {
+        return Err(Error::Io(
+            "exported revision files do not match the expected tree".into(),
+        ));
     }
     Ok(())
 }
