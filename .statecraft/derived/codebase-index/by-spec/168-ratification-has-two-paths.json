@@ -1,0 +1,89 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "093-the-harness-this-repository-runs",
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".claude/skills/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "AGENTS.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".claude/skills/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "AGENTS.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/10-ratification-paths-2026-09.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/10-ratification-paths-2026-09.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/041-in-progress-is-in-flight/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/041-in-progress-is-in-flight/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "standards/spec/contract.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/contract.md"
+        }
+      }
+    ],
+    "specId": "168-ratification-has-two-paths",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "2a4fca863989d33ef317d730772ecf0562c9dd901c60e175abf5557c7e0a1994"
+}
