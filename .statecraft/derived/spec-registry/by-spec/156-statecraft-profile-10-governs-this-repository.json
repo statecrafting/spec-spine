@@ -251,10 +251,10 @@
       "Verification"
     ],
     "specPath": "specs/156-statecraft-profile-10-governs-this-repository/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Statecraft is the adopted owner of the managed development environment, but this repository still carries its pre-adoption CI workflow, AI review and instruction surface. Profile 11 is adopted at one recorded identity, with its exact spec-spine pin and managed authority files, while the Windows, MSRV, cargo-deny, no-default-features, self-governance and determinism checks particular to this engine remain required behind the one ci-gate status.\n",
     "title": "Statecraft Profile 11 governs this repository"
   },
-  "shardHash": "898e6abde365fc324fc80f337f4397e531156d6f83263820bb612cd663f2eb66",
+  "shardHash": "14c60594eea6f22af3d33b8620aa9057abfaa047a74fb796ded3bdc0772e1a88",
   "specVersion": "1.9.0"
 }

@@ -1,7 +1,7 @@
 ---
 id: "156-statecraft-profile-10-governs-this-repository"
 title: "Statecraft Profile 11 governs this repository"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-27"
 summary: >
