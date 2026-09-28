@@ -1,7 +1,7 @@
 ---
 id: "155-selected-content-accessor"
 title: "Select bounded content from one repository snapshot"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-26"
 implementation: complete

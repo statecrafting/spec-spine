@@ -346,8 +346,8 @@
       }
     ],
     "specId": "155-selected-content-accessor",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "60696c69c481484c720b66939e87b95b865cefc34f9bb07a57df9030df1cec1b"
+  "shardHash": "9da78def26ab0d53205818d0af0a86734b7354b8322f02a0134ba4aba249e812"
 }
