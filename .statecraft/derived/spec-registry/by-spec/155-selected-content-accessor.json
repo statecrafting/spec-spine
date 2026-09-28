@@ -247,10 +247,10 @@
       "Verification"
     ],
     "specPath": "specs/155-selected-content-accessor/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Adds a deterministic, read-only selected-content request and response over one explicitly identified repository snapshot. Callers may select a whole spec, spec section, obligation, owned source unit, explicit file, explicit directory member, symbol, module, or deterministically supported test, with bounded projections, stable spans and digests, canonical ordering, continuation, explicit omissions, and no execution or authority effect.\n",
     "title": "Select bounded content from one repository snapshot"
   },
-  "shardHash": "57c0595917fd551df38f25d25c943b91de1103307f8b2967e85311c331d56297",
+  "shardHash": "a4216029f4cebe556f40e8042dff35cee9f3cf128a1c42e2799d8b3e2a868010",
   "specVersion": "1.9.0"
 }
