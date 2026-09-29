@@ -16,7 +16,7 @@ summary: >
   run is not one sequential job, and the session step and the body record
   retire. The job belongs to the Statecraft profile, so every governed
   repository gets it; this repository declares it until the profile carries it.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -35,13 +35,15 @@ extends:
   - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".statecraft/environment.json", nature: additive }
   - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".statecraft/setup/github-actions-rust.json", nature: additive }
   - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".github/workflows/statecraft-ci.yml", nature: additive }
+  # D-7: 099 3.1's guard reads the file it names, not a substring.
+  - { spec: "094-one-gate-and-the-boundaries-it-holds", unit: "crates/spec-spine-core/tests/gate.rs", nature: corrective }
 establishes:
-  - { kind: file, path: ".github/workflows/affected-acceptance.yml", planned: true }
+  - { kind: file, path: ".github/workflows/affected-acceptance.yml" }
 references:
   - { unit: { kind: file, path: ".github/workflows/acceptance.yml" }, role: context }
   - { unit: { kind: file, path: ".github/workflows/spec-spine-required.yml" }, role: context }
 obligations:
-  - { id: "R-1", kind: requirement, text: "A queued change is merged only after the affected-acceptance sweep of the merge-group commit reports no failed and no not-run spec.", anchor: "3-1-the-sweep-is-a-merge-queue-check" }
+  - { id: "R-1", kind: requirement, text: "A queued change is merged only after every affected-acceptance shard reports a clean release verdict: no implemented or unreadable spec has a failed, not-declared or not-run release outcome; pending specs still run and remain reported but do not block.", anchor: "3-1-the-sweep-is-a-merge-queue-check" }
   - { id: "R-2", kind: requirement, text: "verify-sweep.sh --shard i/n runs exactly the i-th of n disjoint parts of its selection, and the n parts cover the selection once.", anchor: "3-2-the-selection-is-sharded" }
   - { id: "R-3", kind: requirement, text: "No step requires a session to run the affected sweep locally or to record its counts in the pull request body.", anchor: "3-3-the-session-step-retires" }
   - { id: "R-4", kind: requirement, text: "The sweep never runs on a pull_request event.", anchor: "3-4-the-trust-boundary-holds" }
@@ -108,11 +110,14 @@ answered by sharding (§3.2), which 150 §4 left out of scope, not rejected.
 ### 3.1 The sweep is a merge-queue check
 
 On every `merge_group` event, CI MUST run
-`verify-sweep.sh --affected-by <merge_group.base_sha> --rev <merge_group.head_sha> --trusted-ref <merge_group.head_sha>`
-over the affected selection, and the change MUST NOT merge unless every shard
-reports no `failed` and no `not-run` spec. An empty selection passes. The
-exemption of 150 §3.2 is kept: a change touching only `docs/`, `website/`, or
-Markdown outside `specs/` selects nothing to run and passes.
+`verify-sweep.sh --release --affected-by <merge_group.base_sha> --rev <merge_group.head_sha> --trusted-ref <merge_group.head_sha>`
+over the affected selection, and the change MUST NOT merge unless every
+shard's release verdict is clean: no implemented or unreadable spec has a
+`failed`, `not-declared` or `not-run` release outcome. Pending specs still run
+and their corpus outcomes remain reported, but their `pending` release outcome
+does not block. An empty selection passes. The exemption of 150 §3.2 is kept:
+a change touching only `docs/`, `website/`, or Markdown outside `specs/`
+selects nothing to run and passes.
 
 The job's result MUST reach the required aggregate (`ci-gate`) as a failure
 when any shard fails, is cancelled, or does not report. A skipped job on
@@ -226,6 +231,48 @@ cost-balanced assignment needs recorded timings, which would make the
 partition depend on a previous run. Position modulo `n` is a pure function of
 the selection, so every shard computes the same partition independently.
 
+**D-4 (2026-09-29, build): four shards, one list.** The matrix is `[1, 2, 3,
+4]` on `merge_group` and `[1]` on every other event, where the one job passes
+in a step without a checkout (§3.5). Four keeps a whole-corpus selection near
+a quarter of the 45 minutes 150 D-1 measured, plus one build per shard; `n` is
+the workflow's `SHARDS` and the list beside it, and changing it changes no
+requirement here.
+
+**D-5 (2026-09-29, build): a shard report is sweep report 1.3.0.** A `--shard`
+run adds `shard` (`index`, `count`, `selectionSize`, and the `specs` that shard
+ran) and is otherwise the 1.1.0 or 1.2.0 document it was. Under
+`--affected-by`, `affectedBy.selected` is the whole selection's size, not the
+shard's, so each shard names the same number; unsharded, it is unchanged.
+
+**D-6 (2026-09-29, build): the render is Profile 11's own.** The declaration
+was added to `.statecraft/environment.json` and `statecraft-ci.yml` and
+`.statecraft/setup/github-actions-rust.json` were re-rendered by `init apply`
+from statecraft-cli `7c59640`, the revision 11 producer, which first reproduced
+every managed file of the unchanged tree byte for byte. The render added the
+`affected-acceptance` call and its entry in `ci-gate`'s `needs`, and nothing
+else. Its policy states the job `required` on all three events, which is why
+§3.5's pass step exists.
+
+**D-7 (2026-09-29, build): 099's guard reads the workflow it names.** Spec 099
+§3.1 keeps `acceptance.yml`, the post-merge sweep, out of every `needs:` list.
+`gate.rs` asserted that by refusing the substring `acceptance` anywhere in
+`statecraft-ci.yml`, which the `affected-acceptance` job this spec requires
+also contains. The assertion now refuses `/acceptance.yml` and a job named
+`acceptance`, which is what 099 §3.1 requires; `acceptance.yml` is unchanged
+and still in no `needs:` list. Before the change the test failed on this
+tree, after it passes, and it still fails when `statecraft-ci.yml` calls
+`./.github/workflows/acceptance.yml`.
+
+**D-8 (2026-09-29, owner): the queue refuses on the release verdict.** 3.1
+names `failed` and `not-run`, and the sweep reports two verdicts (spec 119).
+Under the corpus verdict a pull request that files a draft is refused by the
+draft's own block, which fails by design until the spec is built; before this
+spec a session recorded that failure and a maintainer merged past it (#399), a
+judgment a required check cannot make. The job passes `--release`: every
+selected block still runs and is reported, a pending spec's outcome is not
+counted, and an implemented spec that fails or does not run refuses the
+change.
+
 ## Verification
 
 ```verify:cli
@@ -240,6 +287,7 @@ grep -qE '^  workflow_call:' .github/workflows/affected-acceptance.yml
 grep -qF "github.event_name == 'merge_group'" .github/workflows/affected-acceptance.yml
 grep -qF '.github/workflows/affected-acceptance.yml' .statecraft/environment.json
 grep -qF 'affected-acceptance' .github/workflows/statecraft-ci.yml
+grep -qF -- '--release' .github/workflows/affected-acceptance.yml
 grep -qF -- '--affected-by' .github/workflows/affected-acceptance.yml
 grep -qF -- '--shard' .github/workflows/affected-acceptance.yml
 grep -qF 'persist-credentials: false' .github/workflows/affected-acceptance.yml

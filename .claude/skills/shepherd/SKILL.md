@@ -238,12 +238,12 @@ session), which satisfies this checkpoint. A `Spec-Drift-Waiver:` in the
 PR body is never covered by standing authorization: if one is present and
 was not explicitly approved by a human in this session, stop.
 
-The PR body must record the pre-merge acceptance run of AGENTS.md
-"Working the backlog" step 6 (spec 150) for the head SHA being merged,
-unless the diff touches nothing but `docs/`, `website/`, or Markdown
-outside `specs/`. A remediation round moves the head, so rerun it and
-update the body. A `failed` or `not-run` count, or a recorded SHA that is
-not the head, is a stop: do not merge.
+The pre-merge acceptance run of AGENTS.md "Working the backlog" step 6
+runs in the merge queue (spec 157), so no body record is required and its
+absence is never a reason not to merge. A queue entry the
+`affected-acceptance` job refuses leaves the queue with `ci-gate` failed:
+read the shard's uploaded `sweep.md`, then classify and remediate it like
+any other red required check.
 
 ```sh
 gh pr view <number> --json mergeStateStatus,reviewDecision
@@ -292,7 +292,7 @@ Classification: <name>: <CRITICAL|HIGH|MEDIUM|LOW> ... | all green
 Review threads: <none | n addressed | n need a human | could not read <endpoint> | not read: stopped at CRITICAL>
 Thread reads: <pulls/comments: ok(n) | issues/comments: ok(n) | pulls/reviews: ok(n)>, all paginated
 Remediation: <none | round 1: <run-id> <cause> -> <fix> | round 2: ...>
-Pre-merge acceptance: head <sha>: passed <n> failed <n> not-declared <n> exempt <n> not-run <n> | skipped: docs only
+Merge queue: affected-acceptance <passed | refused: <spec ids> | not reached>
 Merge: <sha> squash, branch deleted | NOT merged: <reason, needs human>
 On disk: main contains <sha> | <divergence>
 ```

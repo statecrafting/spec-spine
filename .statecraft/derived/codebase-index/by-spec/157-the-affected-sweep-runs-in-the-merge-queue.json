@@ -16,6 +16,10 @@
         "source": "spec-edge"
       },
       {
+        "path": ".github/workflows/affected-acceptance.yml",
+        "source": "spec-edge"
+      },
+      {
         "path": ".github/workflows/statecraft-ci.yml",
         "source": "spec-edge"
       },
@@ -32,6 +36,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/gate.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "scripts/test-verify-sweep.py",
         "source": "spec-edge"
       },
@@ -42,7 +50,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": ".github/workflows/affected-acceptance.yml"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -118,6 +130,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/gate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "scripts/test-verify-sweep.py"
           }
         ],
@@ -172,5 +197,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "e0799e0b138826afd9b5fd8a658046b0adfc08e36b465ceb87bca41e5d19d4fe"
+  "shardHash": "cf1f56bf8872466fd0edae9481ee792f5abb8319d2ce178343672acc444852d8"
 }

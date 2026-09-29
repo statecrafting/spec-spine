@@ -78,7 +78,7 @@
   },
   "files": [
     {
-      "digest": "fb238749573724558ac90a2c3dda0c64a73b6130ef6bbc28d4624ab550a77303",
+      "digest": "078b906aeb0519744e4f567d85d37b34a30c7356e88fc80a0d411ce9c82693fc",
       "path": ".github/workflows/statecraft-ci.yml",
       "role": "workflow"
     },
@@ -111,6 +111,15 @@
   "id": "github-actions-rust",
   "identity": "25e77bc9f95c2cef638d3b282b573b0c481572a9f72187c520f8caa956f56b6f",
   "jobs": {
+    "affected-acceptance": {
+      "declared": "ci.extra_required_jobs",
+      "merge_group": "required",
+      "optional": false,
+      "pull_request": "required",
+      "push": "required",
+      "required": true,
+      "workflow": ".github/workflows/affected-acceptance.yml"
+    },
     "ai-review": {
       "merge_group": "recorded-review",
       "optional": false,
@@ -178,6 +187,10 @@
       {
         "job": "spec-spine-required",
         "workflow": ".github/workflows/spec-spine-required.yml"
+      },
+      {
+        "job": "affected-acceptance",
+        "workflow": ".github/workflows/affected-acceptance.yml"
       }
     ],
     "fail_on_unresolved": true,
