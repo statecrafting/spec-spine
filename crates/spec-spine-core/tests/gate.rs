@@ -1671,6 +1671,12 @@ fn the_acceptance_workflow_is_reachable_from_no_pull_request() {
 /// single required check aggregates the jobs of `ci.yml` (spec 094), so a
 /// separate workflow is outside it by construction; what could undo that is
 /// `ci.yml` growing a reference to it.
+///
+/// Spec 157 D-7: the check is on the file 099 §3.1 names, `acceptance.yml`.
+/// Spec 157's merge-queue job, `affected-acceptance.yml`, is a different
+/// workflow that `ci-gate` is required to need, so a bare `acceptance`
+/// substring would refuse the change 157 requires while guarding nothing 099
+/// does.
 #[test]
 fn the_acceptance_workflow_is_outside_the_required_check() {
     let ci = read(".github/workflows/statecraft-ci.yml");
@@ -1679,7 +1685,7 @@ fn the_acceptance_workflow_is_outside_the_required_check() {
         "the Profile 10 workflow must preserve ci-gate as the required check name"
     );
     assert!(
-        !ci.contains("acceptance"),
+        !ci.contains("/acceptance.yml") && !ci.contains("\n  acceptance:\n"),
         "ci.yml names the acceptance workflow, which would fold it into ci-gate (spec 099 §3.1)"
     );
 }

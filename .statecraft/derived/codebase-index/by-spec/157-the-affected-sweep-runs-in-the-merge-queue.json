@@ -36,6 +36,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/gate.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "scripts/test-verify-sweep.py",
         "source": "spec-edge"
       },
@@ -126,6 +130,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/gate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "scripts/test-verify-sweep.py"
           }
         ],
@@ -180,5 +197,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "042f17be2fa8914818bde33b5ee4407567680baae73cd7df459a4f910bb511d0"
+  "shardHash": "bb58bd1dd5782acc78ed88339865c141eca45d83feb6d49e32604354e2d823c6"
 }

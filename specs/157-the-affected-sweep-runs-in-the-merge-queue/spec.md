@@ -35,6 +35,8 @@ extends:
   - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".statecraft/environment.json", nature: additive }
   - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".statecraft/setup/github-actions-rust.json", nature: additive }
   - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".github/workflows/statecraft-ci.yml", nature: additive }
+  # D-7: 099 3.1's guard reads the file it names, not a substring.
+  - { spec: "094-one-gate-and-the-boundaries-it-holds", unit: "crates/spec-spine-core/tests/gate.rs", nature: corrective }
 establishes:
   - { kind: file, path: ".github/workflows/affected-acceptance.yml" }
 references:
@@ -247,6 +249,16 @@ every managed file of the unchanged tree byte for byte. The render added the
 `affected-acceptance` call and its entry in `ci-gate`'s `needs`, and nothing
 else. Its policy states the job `required` on all three events, which is why
 §3.5's pass step exists.
+
+**D-7 (2026-09-29, build): 099's guard reads the workflow it names.** Spec 099
+§3.1 keeps `acceptance.yml`, the post-merge sweep, out of every `needs:` list.
+`gate.rs` asserted that by refusing the substring `acceptance` anywhere in
+`statecraft-ci.yml`, which the `affected-acceptance` job this spec requires
+also contains. The assertion now refuses `/acceptance.yml` and a job named
+`acceptance`, which is what 099 §3.1 requires; `acceptance.yml` is unchanged
+and still in no `needs:` list. Before the change the test failed on this
+tree, after it passes, and it still fails when `statecraft-ci.yml` calls
+`./.github/workflows/acceptance.yml`.
 
 ## Verification
 
