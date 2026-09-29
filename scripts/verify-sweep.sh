@@ -39,6 +39,15 @@
 #   names-path     its effective plan names a changed path
 #   names-test     its effective plan runs a changed test file
 #
+# IN THE MERGE QUEUE (spec 157). The pre-merge run belongs to CI on
+# `merge_group`, not to the session: `.github/workflows/affected-acceptance.yml`
+# runs this script on the merge-group commit with `--shard <i>/<n>` across a job
+# matrix. `--shard` computes the selection exactly as it would without it, then
+# runs only the specs whose position in that selection, in corpus order, is
+# congruent to i - 1 modulo n, so the n shards partition one selection and each
+# computes the same partition on its own (157 D-3). A session may still run it
+# locally, `--shard` included, to find a failure before queuing.
+#
 # The plan read is `verify <id> --plan` at <rev>, so a block carried under
 # `amends_verification` counts as the plan of the spec that owns it. The
 # session that authored a pull request runs this on the pull request's head
@@ -145,6 +154,9 @@ usage: $PROG [options]
                         names-spec, names-path, names-test; spec 150).
                         Pre-merge, on a pull request's head:
                         --affected-by <base> --rev <head> --trusted-ref <head>
+  --shard <i>/<n>       run only the i-th of n disjoint parts of the
+                        selection: the specs whose position in it, in corpus
+                        order, is i - 1 modulo n (spec 157). Not with --only.
   --release             exit with the release verdict: judged over the specs
                         whose implementation is built, with pending work
                         reported and not counted (spec 119)
@@ -170,6 +182,8 @@ trusted_ref=""
 repo="."
 only=""
 affected_by=""
+shard=""
+shard_given=0
 out=""
 exempt_file=""
 timeout_s=900
@@ -183,6 +197,7 @@ while [ $# -gt 0 ]; do
     --repo)         shift; [ $# -gt 0 ] || die "--repo needs a value"; repo="$1" ;;
     --only)         shift; [ $# -gt 0 ] || die "--only needs a value"; only="$1" ;;
     --affected-by)  shift; [ $# -gt 0 ] || die "--affected-by needs a value"; affected_by="$1" ;;
+    --shard)        shift; [ $# -gt 0 ] || die "--shard needs a value"; shard="$1"; shard_given=1 ;;
     --out)          shift; [ $# -gt 0 ] || die "--out needs a value"; out="$1" ;;
     --exempt-file)  shift; [ $# -gt 0 ] || die "--exempt-file needs a value"; exempt_file="$1" ;;
     --timeout)      shift; [ $# -gt 0 ] || die "--timeout needs a value"; timeout_s="$1" ;;
@@ -200,6 +215,21 @@ case "$timeout_s" in *[!0-9]*|"") die "--timeout takes a whole number of seconds
 # Two selections cannot both be the report's `selection`; neither narrows the
 # other silently.
 [ -z "$only" ] || [ -z "$affected_by" ] || die "--only and --affected-by are two selections; name one"
+# Spec 157 3.2: refused before anything is created. A shard of a hand-picked
+# list partitions nothing a merge queue computes, so --only takes no shard.
+shard_i=""; shard_n=""
+if [ "$shard_given" -eq 1 ]; then
+  [ -z "$only" ] || die "--shard partitions the whole or the --affected-by selection, not an --only list"
+  case "$shard" in
+    */*) shard_i="${shard%%/*}"; shard_n="${shard#*/}" ;;
+    *) die "--shard takes <i>/<n>: $shard" ;;
+  esac
+  case "$shard_i" in ""|*[!0-9]*) die "--shard takes <i>/<n> with whole numbers: $shard" ;; esac
+  case "$shard_n" in ""|*[!0-9]*) die "--shard takes <i>/<n> with whole numbers: $shard" ;; esac
+  shard_i=$((10#$shard_i)); shard_n=$((10#$shard_n))
+  [ "$shard_n" -ge 1 ] || die "--shard needs n >= 1: $shard"
+  [ "$shard_i" -ge 1 ] && [ "$shard_i" -le "$shard_n" ] || die "--shard needs 1 <= i <= n: $shard"
+fi
 
 root=$(git -C "$repo" rev-parse --show-toplevel 2>/dev/null) || die "not a git repository: $repo"
 # Physical paths on both sides of the containment test below: on macOS
@@ -615,6 +645,25 @@ if [ -n "$affected_by" ]; then
   done < "$out/selection.tsv"
 fi
 
+# --- the shard (spec 157 3.2) ----------------------------------------------
+#
+# Applied after the selection is complete, so every shard sees the same
+# selection and the same order, and the union of the n shards is that
+# selection exactly once.
+selection_size=$(printf '%s\n' $selected | grep -c . | tr -d ' ')
+if [ -n "$shard_n" ]; then
+  pos=0; picked=""
+  for id in $selected; do
+    if [ $((pos % shard_n)) -eq $((shard_i - 1)) ]; then
+      picked="$picked$id
+"
+    fi
+    pos=$((pos + 1))
+  done
+  selected=$(printf '%s' "$picked")
+  say "$PROG: shard $shard_i/$shard_n: $(printf '%s\n' $selected | grep -c . | tr -d ' ') of $selection_size selected specs"
+fi
+
 # --- the ledger, validated before anything runs ---------------------------
 if [ -n "$exempt_file" ]; then
   [ -f "$exempt_file" ] || die "--exempt-file not found: $exempt_file"
@@ -778,6 +827,9 @@ SWEEP_AFFECTED_BY="$affected_by" \
 SWEEP_BASE_SHA="${base_sha:-}" \
 SWEEP_MERGE_BASE="${merge_base:-}" \
 SWEEP_CORPUS_SIZE="$(printf '%s\n' $corpus | grep -c . | tr -d ' ')" \
+SWEEP_SHARD_I="$shard_i" \
+SWEEP_SHARD_N="$shard_n" \
+SWEEP_SELECTION_SIZE="$selection_size" \
 python3 - <<'PY' || die "cannot write the report to $out"
 import json, os, pathlib
 
@@ -869,7 +921,19 @@ if env["SWEEP_AFFECTED_BY"]:
         "mergeBase": env["SWEEP_MERGE_BASE"],
         "changedPaths": sorted(p for p in changed if p),
         "corpusSize": int(env["SWEEP_CORPUS_SIZE"]),
-        "selected": len(specs),
+        # The whole selection, which under --shard is more than this run ran.
+        "selected": int(env["SWEEP_SELECTION_SIZE"]),
+    }
+if env["SWEEP_SHARD_N"]:
+    # 1.3.0 (spec 157): additive, and written only by a --shard run. The shard
+    # and the whole selection's size let the union of n reports be checked
+    # against one selection.
+    report["schemaVersion"] = "1.3.0"
+    report["shard"] = {
+        "index": int(env["SWEEP_SHARD_I"]),
+        "count": int(env["SWEEP_SHARD_N"]),
+        "selectionSize": int(env["SWEEP_SELECTION_SIZE"]),
+        "specs": [s["id"] for s in specs],
     }
 (out / "sweep.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
 
@@ -880,8 +944,11 @@ md = [
     f"- revision: `{env['SWEEP_SHA']}` (ancestor of `{env['SWEEP_TRUSTED']}`)",
     f"- binary: `{env['SWEEP_VERSION']}` ({env['SWEEP_ORIGIN']})",
     f"- selection: {env['SWEEP_SELECTION']}"
-    + (f" ({len(specs)} of {env['SWEEP_CORPUS_SIZE']} specs; change "
+    + (f" ({env['SWEEP_SELECTION_SIZE']} of {env['SWEEP_CORPUS_SIZE']} specs; change "
        f"`{env['SWEEP_MERGE_BASE'][:9]}...{env['SWEEP_SHORT']}`)" if env["SWEEP_AFFECTED_BY"] else ""),
+    *([f"- shard: {env['SWEEP_SHARD_I']} of {env['SWEEP_SHARD_N']}, "
+        f"{len(specs)} of the {env['SWEEP_SELECTION_SIZE']} selected specs"]
+      if env["SWEEP_SHARD_N"] else []),
     f"- ledger: {env['SWEEP_LEDGER']}, closed at ordinal {env['SWEEP_CLOSED_AT']}",
     f"- per-spec limit: {str(timeout) + 's' if timeout else 'none (--timeout 0)'}",
     f"- ran: {env['SWEEP_STARTED']} .. {env['SWEEP_ENDED']}",

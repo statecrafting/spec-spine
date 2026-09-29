@@ -29,9 +29,9 @@
         "kind": "template",
         "identity": "statecraft-setup:github-actions-rust@11"
       },
-      "digest": "fb238749573724558ac90a2c3dda0c64a73b6130ef6bbc28d4624ab550a77303",
-      "bytes": 15118,
-      "written_at": "2026-09-27T17:20:23Z"
+      "digest": "078b906aeb0519744e4f567d85d37b34a30c7356e88fc80a0d411ce9c82693fc",
+      "bytes": 15247,
+      "written_at": "2026-09-29T19:41:58Z"
     },
     {
       "path": ".statecraft/AGENTS.md",
@@ -51,9 +51,9 @@
         "kind": "template",
         "identity": "statecraft-setup:github-actions-rust@11"
       },
-      "digest": "8114111a5c1dbe8fc556bea320a5f4c9d99c95a4c72e3fcdc81bfbd0d5ef3f20",
-      "bytes": 10270,
-      "written_at": "2026-09-27T17:20:23Z"
+      "digest": "4ca18e59e79a052ea94eddfcfee92705e16475290c7a3e89a47469a4ff4040eb",
+      "bytes": 10673,
+      "written_at": "2026-09-29T19:41:58Z"
     },
     {
       "path": "scripts/statecraft/ai-review.sh",
@@ -185,6 +185,10 @@
           {
             "job": "spec-spine-required",
             "workflow": ".github/workflows/spec-spine-required.yml"
+          },
+          {
+            "job": "affected-acceptance",
+            "workflow": ".github/workflows/affected-acceptance.yml"
           }
         ],
         "governance.authored_content": "scripts/check-authored-content.sh",

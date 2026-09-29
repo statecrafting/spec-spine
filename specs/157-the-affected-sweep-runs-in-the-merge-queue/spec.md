@@ -16,7 +16,7 @@ summary: >
   run is not one sequential job, and the session step and the body record
   retire. The job belongs to the Statecraft profile, so every governed
   repository gets it; this repository declares it until the profile carries it.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -36,7 +36,7 @@ extends:
   - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".statecraft/setup/github-actions-rust.json", nature: additive }
   - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".github/workflows/statecraft-ci.yml", nature: additive }
 establishes:
-  - { kind: file, path: ".github/workflows/affected-acceptance.yml", planned: true }
+  - { kind: file, path: ".github/workflows/affected-acceptance.yml" }
 references:
   - { unit: { kind: file, path: ".github/workflows/acceptance.yml" }, role: context }
   - { unit: { kind: file, path: ".github/workflows/spec-spine-required.yml" }, role: context }
@@ -225,6 +225,28 @@ ships and the read after, with no change to what it requires.
 cost-balanced assignment needs recorded timings, which would make the
 partition depend on a previous run. Position modulo `n` is a pure function of
 the selection, so every shard computes the same partition independently.
+
+**D-4 (2026-09-29, build): four shards, one list.** The matrix is `[1, 2, 3,
+4]` on `merge_group` and `[1]` on every other event, where the one job passes
+in a step without a checkout (§3.5). Four keeps a whole-corpus selection near
+a quarter of the 45 minutes 150 D-1 measured, plus one build per shard; `n` is
+the workflow's `SHARDS` and the list beside it, and changing it changes no
+requirement here.
+
+**D-5 (2026-09-29, build): a shard report is sweep report 1.3.0.** A `--shard`
+run adds `shard` (`index`, `count`, `selectionSize`, and the `specs` that shard
+ran) and is otherwise the 1.1.0 or 1.2.0 document it was. Under
+`--affected-by`, `affectedBy.selected` is the whole selection's size, not the
+shard's, so each shard names the same number; unsharded, it is unchanged.
+
+**D-6 (2026-09-29, build): the render is Profile 11's own.** The declaration
+was added to `.statecraft/environment.json` and `statecraft-ci.yml` and
+`.statecraft/setup/github-actions-rust.json` were re-rendered by `init apply`
+from statecraft-cli `7c59640`, the revision 11 producer, which first reproduced
+every managed file of the unchanged tree byte for byte. The render added the
+`affected-acceptance` call and its entry in `ci-gate`'s `needs`, and nothing
+else. Its policy states the job `required` on all three events, which is why
+§3.5's pass step exists.
 
 ## Verification
 

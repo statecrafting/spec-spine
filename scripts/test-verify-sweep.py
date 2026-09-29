@@ -6,7 +6,8 @@ The first four are spec 089's post-ratification review regressions. Then spec
 119's: the release verdict, the lifecycle it reads, and the default run
 directory. Then spec 121's: the Acceptance workflow's report step, driven by
 real release-mode sweeps. The last are spec 150's: one case per rule of the
---affected-by selector, and one proving it is narrower than the corpus.
+--affected-by selector, and one proving it is narrower than the corpus. Then
+spec 157's: --shard partitions the selection, and refuses a bad value.
 
 Build target/release/spec-spine first, then run python3 scripts/test-verify-sweep.py.
 Use --sweep-script PATH to test an exported historical script as a negative
@@ -664,6 +665,68 @@ class SweepRegressions(unittest.TestCase):
         self.assertLess(len(report["specs"]), report["affectedBy"]["corpusSize"])
         self.assertFalse((self.out / "logs/002-b.log").exists())
         self.assertFalse((self.out / "logs/003-c.log").exists())
+
+    # Spec 157 3.2: --shard i/n runs the i-th of n disjoint parts of the
+    # selection, by position in corpus order, and the parts cover it once.
+    def shards(self, n, extra=()):
+        ran = []
+        for i in range(1, n + 1):
+            result = self.sweep(extra=(*extra, "--shard", f"{i}/{n}"))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            report = json.loads((self.out / "sweep.json").read_text(encoding="utf-8"))
+            self.assertEqual(report["schemaVersion"], "1.3.0")
+            shard = report["shard"]
+            self.assertEqual((shard["index"], shard["count"]), (i, n))
+            self.assertEqual(shard["specs"], [s["id"] for s in report["specs"]])
+            self.assertEqual(report["counts"]["passed"], len(shard["specs"]))
+            ran.append((shard["selectionSize"], shard["specs"]))
+        return ran
+
+    def test_shards_partition_the_selection(self):
+        ids = [f"00{k}-s" for k in range(1, 6)]
+        self.fixture({sid: ["true"] for sid in ids})
+        self.commit()
+        # n smaller than, equal to and larger than the selection of five.
+        for n in (2, 5, 7):
+            ran = self.shards(n)
+            self.assertEqual({size for size, _ in ran}, {5})
+            for i, (_, specs) in enumerate(ran):
+                self.assertEqual(specs, [sid for k, sid in enumerate(ids) if k % n == i])
+            flat = [sid for _, specs in ran for sid in specs]
+            self.assertEqual(sorted(flat), ids, f"n={n}: not one of each")
+        # The same partition over an --affected-by selection (two of five).
+        base = self.sha
+        spec = self.repo / "specs/002-s/spec.md"
+        spec.write_text(spec.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+        spec = self.repo / "specs/004-s/spec.md"
+        spec.write_text(spec.read_text(encoding="utf-8") + "\n", encoding="utf-8")
+        checked([BIN, "--repo", self.repo, "compile"])
+        checked([BIN, "--repo", self.repo, "index"])
+        self.commit()
+        ran = self.shards(3, extra=("--affected-by", base))
+        self.assertEqual({size for size, _ in ran}, {2})
+        self.assertEqual([specs for _, specs in ran], [["002-s"], ["004-s"], []])
+        report = json.loads((self.out / "sweep.json").read_text(encoding="utf-8"))
+        self.assertEqual(report["affectedBy"]["selected"], 2)
+
+    def test_shard_refuses_a_bad_value(self):
+        self.fixture({"001-a": ["true"]})
+        self.commit()
+        # The control: a script that refused --shard outright would pass every
+        # refusal below, so a valid value must run first.
+        result = self.sweep(extra=("--shard", "1/1"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        shutil.rmtree(self.out)
+        bad = ["", "1", "0/2", "3/2", "1/0", "a/2", "1/b", "1/2/3", "-1/2", "/2", "1/"]
+        for value in bad:
+            result = self.sweep(extra=("--shard", value))
+            self.assertEqual(result.returncode, 3, f"--shard {value!r}: {result.stderr}")
+            self.assertIn("--shard", result.stderr)
+            self.assertFalse(self.out.exists(), f"--shard {value!r} created the run directory")
+        result = self.sweep(extra=("--only", "001", "--shard", "1/2"))
+        self.assertEqual(result.returncode, 3, result.stderr)
+        self.assertIn("--shard", result.stderr)
+        self.assertFalse(self.out.exists())
 
     def fixture_reset(self):
         # A second fixture in the same test: the repository is rebuilt from

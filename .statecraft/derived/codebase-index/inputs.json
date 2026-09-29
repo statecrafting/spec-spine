@@ -34,10 +34,10 @@
       "contentHash": "2a97d3c6912373b23674cfb1b9620892c4efd1108c7e191abac97bc25d93e862"
     },
     ".claude/skills/shepherd/SKILL.md": {
-      "contentHash": "04f2d6af98174f423d53cb7fa71453e3d2ebb06dd4ca49a1213fb585dd454779"
+      "contentHash": "54d6e95fd223e460b194bb3c75e92ab0c65f5e2cbda832c302ed501a607557f4"
     },
     ".claude/skills/ship/SKILL.md": {
-      "contentHash": "2f1dca9003e70bf3694fb4226c4f54adc91858f83aec16949fbcaa6318c01415"
+      "contentHash": "b1d6fa0cc767ec578f68b5bd6d4f1dabd585e5f3f560ebacb2ac5c5d9fcfd91c"
     },
     ".claude/skills/spec/SKILL.md": {
       "contentHash": "37899706bd9045d2c15801d65e2101a8acc62d52db2d7d27e6c9fa5c29e3f1e0"
@@ -60,6 +60,9 @@
     ".github/workflows/acceptance.yml": {
       "contentHash": "8a52036fc35e90e7af606a7992f697495d6e6d9eefa260797980c100ff800932"
     },
+    ".github/workflows/affected-acceptance.yml": {
+      "contentHash": "d66e992ec67367d7a7b145465a0d4d671bbb74bc06dd710c1cf7bd121a358b17"
+    },
     ".github/workflows/ai-pr-review.yml": {
       "contentHash": "f82ae18771bb50d10f0e20dbaa20f6591793ad9f20bf279cca13d52dba2fe634"
     },
@@ -79,19 +82,19 @@
       "contentHash": "a9510fe128b34675329a767339f9bda66b57d70c1e196cdcdd2e378a601fb07c"
     },
     ".github/workflows/statecraft-ci.yml": {
-      "contentHash": "4ad43118d59561e9367ab42489f7664f229d50f46acdebdddf9c3af2336bd813"
+      "contentHash": "c66b12c7a319a966653f0a44d77e29b9f77a23bda7e0f785bc8d115d5331e74e"
     },
     ".statecraft/AGENTS.md": {
       "contentHash": "c6543d237a50d94a81935ccdcfc6fc15a162b30f133d7d251c4777ab8ad0f4d2"
     },
     ".statecraft/environment.json": {
-      "contentHash": "959a7e9f3d02cbcf7344c32d5c1df177e2f4685574737890c11a63613d2a52df"
+      "contentHash": "463461a55efb61d3bb7b2f682650c11e4bae202823bf18cd4929519c3339f7db"
     },
     ".statecraft/setup/github-actions-rust.json": {
-      "contentHash": "8cdcff5dad942d829a45a19f003826ec76b690626c890b97a41c3cd9d3969672"
+      "contentHash": "490375a00aad80029489f8a8138345d6cc32a1ed31d910db693ee771c19b7b57"
     },
     "AGENTS.md": {
-      "contentHash": "ca1a4b351171f27c37e20407e70c13ae09a13ad448491e741c1c4a4fe54c8be6"
+      "contentHash": "410f60a87224d8251c859a80dbaea665a09e59f7f3b91f782630f9461420df2a"
     },
     "CLAUDE.md": {
       "contentHash": "9f078177cb797c0ecc815e3d35a8d7a11d4fe8a8a9615d8a2c6300baff580600"
@@ -184,7 +187,7 @@
       "contentHash": "0784f57c841e6f1db23f5dde84c2374b11e388a9218cb5a4a22d952f4c538604"
     },
     "scripts/test-verify-sweep.py": {
-      "contentHash": "8dbfa5ff185003a86b977cfe4e38fb3bfdb5b90d864596ef1df502bca41898e7"
+      "contentHash": "23a1ce1d6cfcf6d7f45048a155049501bc45f6fa8a5d2440c3284791c29629ad"
     },
     "scripts/verify-closed-consumer.py": {
       "contentHash": "840b95139f9300ee2c1f9810f2c5a7567c622f253266752908ab618254069371"
@@ -193,7 +196,7 @@
       "contentHash": "e4772242b7b7f303aed6d68142ef4312602355d96da600aac551de1d24b369a6"
     },
     "scripts/verify-sweep.sh": {
-      "contentHash": "f53cedf83536902dd70f7f26cbb71eb2a83afe8e0f099ffdb37874256f1ade83"
+      "contentHash": "84e75385fda13857f759bc2eaac204468226cd9a559549714c904dceb4e3335d"
     },
     "spec-spine.toml": {
       "contentHash": "f0394882e73ae37cd7ecd7a91c4dbd937d5e15a56490d83e95caedc8395e9305"

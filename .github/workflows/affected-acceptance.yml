@@ -1,0 +1,88 @@
+name: affected-acceptance
+
+# Spec 157: the affected-acceptance sweep runs in the merge queue.
+#
+# Spec 150 ran this sweep in the session that drives a pull request, on its
+# head, at about 45 minutes per engine change and once more per review round.
+# It runs here instead, on the merge-group commit, which exists only because a
+# maintainer queued the change (the override spec 089 3.7 allows), and it is
+# split across a job matrix with `--shard <i>/<n>` so a whole-corpus selection
+# is not one sequential job (157 3.2, D-3).
+#
+# Called by statecraft-ci.yml as a Profile 11 `ci.extra_required_jobs` entry,
+# so `ci-gate` needs it and blocks on failed, cancelled and skipped (157 3.5).
+# Profile 11 calls an extra job on every event, and the sweep must run on
+# `merge_group` only (157 3.4). So on any other event the job still runs and
+# passes in a step that checks nothing out and runs nothing: a job-level `if:`
+# would be skipped, and `ci-gate` fails a skipped job. The declaration and this
+# file retire when a profile revision carries the job (Statecraft Profile 13).
+#
+# The sweep executes the declared acceptance of the change under test (spec
+# 043), so: never a pull_request trigger, `contents: read` and nothing else, no
+# secret, and no credential persisted in the checkout.
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  # 157 D-4: four shards.
+  SHARDS: "4"
+
+jobs:
+  sweep:
+    name: affected acceptance (shard ${{ matrix.shard }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        # One pass-through job on any other event; the shards on merge_group.
+        shard: ${{ fromJSON(github.event_name == 'merge_group' && '[1, 2, 3, 4]' || '[1]') }}
+    steps:
+      - name: Not a merge-group event
+        if: ${{ github.event_name != 'merge_group' }}
+        run: echo "The affected-acceptance sweep runs on merge_group only (spec 157 3.4); ${{ github.event_name }} passes without a checkout."
+
+      - uses: actions/checkout@v7
+        if: ${{ github.event_name == 'merge_group' }}
+        with:
+          # The sweep diffs base...head and checks out the revision into a
+          # worktree; both need the history, not a shallow tip.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Sweep this shard
+        id: sweep
+        if: ${{ github.event_name == 'merge_group' }}
+        # No SPEC_SPINE_BIN (spec 120): the sweep builds the binary from the
+        # revision inside its own worktree, where a block's
+        # `./target/release/spec-spine` resolves.
+        env:
+          BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          HEAD_SHA: ${{ github.event.merge_group.head_sha }}
+          SHARD: ${{ matrix.shard }}
+        run: |
+          set -uo pipefail
+          rc=0
+          scripts/verify-sweep.sh --affected-by "$BASE_SHA" --rev "$HEAD_SHA" --trusted-ref "$HEAD_SHA" \
+            --shard "$SHARD/$SHARDS" --out "${{ runner.temp }}/sweep" || rc=$?
+          echo "sweep exit: $rc"
+          # The step's status is the sweep's: failed, not-declared and not-run
+          # all exit 1, and a refusal exits 3.
+          exit $rc
+
+      - name: Upload the report
+        if: ${{ always() && github.event_name == 'merge_group' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: affected-acceptance-${{ github.sha }}-shard-${{ matrix.shard }}
+          path: |
+            ${{ runner.temp }}/sweep/sweep.json
+            ${{ runner.temp }}/sweep/sweep.md
+            ${{ runner.temp }}/sweep/logs/
+          if-no-files-found: warn
+          retention-days: 30

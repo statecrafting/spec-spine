@@ -261,13 +261,17 @@ jobs:
     name: spec-spine-required
     uses: ./.github/workflows/spec-spine-required.yml
 
+  affected-acceptance:
+    name: affected-acceptance
+    uses: ./.github/workflows/affected-acceptance.yml
+
   # Revision 7: every job the project declares in ci.extra_required_jobs is a
   # call of its own reusable workflow, needed here and required by the policy
   # exactly as the profile's jobs are: failed, cancelled and skipped all block.
   ci-gate:
     name: ci-gate
     if: always()
-    needs: [governance, code, ai-review, review-exception, determinism, spec-spine-required]
+    needs: [governance, code, ai-review, review-exception, determinism, spec-spine-required, affected-acceptance]
     runs-on: ubuntu-latest
     # Read-only: on merge_group the gate reads the recorded review (the
     # entry's pull request, its runs, their jobs and the evidence artifact).
