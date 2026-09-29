@@ -1,0 +1,113 @@
+{
+  "record": {
+    "constrains": [
+      {
+        "kind": "acceptance-invariant",
+        "note": "no live plan accepts an open-ended positive test count",
+        "target_specs": [
+          "082-an-amended-acceptance-is-the-one-that-runs",
+          "084-an-acceptance-outlives-the-output-it-was-written-against",
+          "085-a-version-pin-is-not-a-contract",
+          "086-an-exact-key-set-refuses-what-the-rule-allows",
+          "088-the-template-teaches-the-whole-grammar",
+          "092-the-engine-ships-governance-not-an-environment",
+          "093-the-harness-this-repository-runs",
+          "096-compaction-is-a-verb-not-a-session",
+          "097-a-path-leaves-the-corpus-the-way-a-spec-does",
+          "098-a-citation-the-renumber-could-not-see",
+          "099-a-merged-acceptance-is-asked-again",
+          "102-a-ready-spec-carries-its-status",
+          "137-the-legacy-ledger-is-paid-index-and-lint",
+          "138-the-legacy-ledger-is-paid-coupling-and-freshness",
+          "149-the-installer-is-tested",
+          "151-carried-acceptance-tests-what-it-names",
+          "156-statecraft-profile-10-governs-this-repository"
+        ]
+      }
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "id": "153-a-test-count-is-exact",
+    "implementation": "pending",
+    "intent": {
+      "goal": "Make every live acceptance line that runs cargo test fail when the tests it names stop running, without making one spec the acceptance of eighty.",
+      "nonGoals": [
+        "Narrowing what any filtered line selects (4.2).",
+        "Changing the sweep (4.3)."
+      ]
+    },
+    "kind": "test",
+    "obligations": [
+      {
+        "anchor": "3-1-the-rule",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "No command that verify <id> --plan prints, for any id in the corpus, accepts an open-ended positive test count."
+      },
+      {
+        "anchor": "3-2-one-spec-per-block",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "Each live block with a loose count is tightened by its own spec, which holds that block alone and names the tests each loose line ran."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "the exact form every tightened line takes",
+        "unit": {
+          "kind": "file",
+          "path": "specs/151-carried-acceptance-tests-what-it-names/spec.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-1-where-the-pattern-is": "37e23e41b4ab6e69b4bf4f499bb9aa16280375b6ef878f47f40b0d5c3b54a89e",
+      "1-2-the-live-lines": "3dd3ac06196fdd63ceddf5761d6a3b67f772df817f7f51116977574e695e0412",
+      "1-3-what-one-holder-would-cost": "788661040c3541fdd4cc43c314c844b3ced7e3d28159c8be4b2991ca4a0de4f5",
+      "1-purpose": "540e61d01ef59a3b330ef6a5e3e2180fbf97933d44a617cba9a30964af939a9f",
+      "153-a-test-count-is-exact": "bf91e94657fdf46a0a55af71b4a8847b296645b1bd0eb01069bbbe579d20aed1",
+      "2-territory": "54f91594cdfdf02bd9ecd99303f7a7bcd0c94e432c42a6a998d3d096b2a50026",
+      "3-1-the-rule": "193a2c55e44c3f54eaea68fa01a17c0a071e0222aa157b2e5bc845ae5c627508",
+      "3-2-one-spec-per-block": "d21ffa896232f7531746445fb6f963adce60f3c94cf79d81b021ba620757328f",
+      "3-3-platform-bound-counts": "7f94acb59c685556ff47aeb82fd86f464cc611f2eaa2b0396b763de3971269d5",
+      "3-4-this-spec-is-built-last": "93d0526c41a71a7e53324868150c34496575196f0367fe0f8a7ae3db4b14185f",
+      "3-behavior": "7056da24f173280b0f6826e18599bedf588825e26415e4ad97ed5fc5044788b5",
+      "4-1-other-weak-count-forms": "bc9dae3625a4b04bc3cf2e68316d0fa1873c7bf1c7b0761b239e59936ac3ddc2",
+      "4-2-narrowing-a-selection": "240731d5158c6e7a5c648014ebad539ce1a697edce0ed2c7b8193ea34aebc5c3",
+      "4-3-the-sweep": "2dddac44e3c0b28560894c9dfc48ca98b1d9da1672ec3eb968c3813baebbfb0f",
+      "4-out-of-scope": "b62199d73ff0a015bebab52831cd73d895eb3ae3a13f25b6ab7265d30e604a99",
+      "5-resolved-decisions": "a9782bf2f62dd925461ec067e7ef04c169e42e8a27b02e2fd8f3869a32ef55da",
+      "verification": "7d53fc49049807c25891f5590760379c9702a35bbcd2f8f70230751ae543854f"
+    },
+    "sectionHeadings": [
+      "153: A test count is exact",
+      "1. Purpose",
+      "1.1 Where the pattern is",
+      "1.2 The live lines",
+      "1.3 What one holder would cost",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The rule",
+      "3.2 One spec per block",
+      "3.3 Platform-bound counts",
+      "3.4 This spec is built last",
+      "4. Out of scope",
+      "4.1 Other weak count forms",
+      "4.2 Narrowing a selection",
+      "4.3 The sweep",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/153-a-test-count-is-exact/spec.md",
+    "status": "draft",
+    "summary": "Thirty-six live acceptance lines, in seventeen blocks that eighty specs' plans resolve to, accept `test result: ok. [1-9][0-9]* passed`: they pass while any one test in the target runs, so deleting, renaming, ignoring or platform-gating most of a test file still passes. This spec states the rule (no live plan accepts a loose count) and asserts it corpus-wide through `verify <id> --plan`. It holds no block itself: each of the seventeen is tightened by its own spec, in the form spec 151 gave 144, so no single spec becomes the acceptance of eighty. This spec is built last, when its rule holds.\n",
+    "title": "A test count is exact"
+  },
+  "shardHash": "71e066e97fa1f8e5684b2483c5ea6ca646db9c88e06d52e78ffa32ede346246e",
+  "specVersion": "1.9.0"
+}
