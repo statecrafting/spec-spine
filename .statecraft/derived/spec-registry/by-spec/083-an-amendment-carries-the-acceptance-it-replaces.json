@@ -27,7 +27,7 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "083-an-amendment-carries-the-acceptance-it-replaces": "3d27d8106993a3dbaf16ae6c6e57c3a1757a07ec68baef93c888e8281bf5607c",
+      "083-an-amendment-carries-the-acceptance-it-replaces": "7507573075b39ab09d68de34c3a74e0ae982af4e07339fe51c45fba72e331145",
       "1-1-two-defects-in-one-block-neither-reachable-by-the-gate": "18a23f5f3e252962ce09dcde5fdab42f9b3f32d5a595e0a3fb4a89d907e464b5",
       "1-2-why-spec-080-did-not-fix-this": "ab2419f6ecc5ae8168d455da40245583931dceeaa423fad12622dde46149fb90",
       "1-3-why-this-is-082-s-named-follow-on": "3c12c48b3b5626c7d2c48a00de31701a67de8f55f0f8f426044e1db6a2428ece",
@@ -41,7 +41,7 @@
       "3-behavior": "42d4648a7642c93e13ef3cfc4b3d6a09a4120b2e80a8d9d50e623508e863594d",
       "4-out-of-scope": "804f2bfa83efbc3a561ab8d3be90f513446b8c6fe2417845eb637fd5e8751af0",
       "5-resolved-decisions": "81155e64211414cd36b53657f316b7d38008548ab698dd505b56978bdd9f9901",
-      "verification": "034ecddeeca419d2073a3f952d8dbc093b9688bcc5bbf40bd5be4f443f09ca6e"
+      "verification": "ab11ca4a1bce36142451f39fa2543ffe31277294d5178d3a61a084ee2a5e0f60"
     },
     "sectionHeadings": [
       "083: An amendment carries the acceptance it replaces",
@@ -65,6 +65,6 @@
     "summary": "Spec 080 amended spec 079 so that an unresolved claim exits 1 rather than 2, and migrated the four assertions that live in Rust. Spec 079's own `## Verification` block was left as it was ratified, and five of its assertions still require the pre-amendment code, so `spec-spine verify 098` has been red since 101 merged. A sixth line is red for an unrelated reason: 079's AC-9 compares two `settings.json` files against a fixed commit to prove 098 did not edit them, which specs 093 and 104 then legitimately did. Spec 082 built the route an amendment needs to reach an acceptance block and landed after 101, naming the audit of the remaining blocks as its own work. This is that work for 098: this spec declares 079's acceptance replaced and carries the corrected block, without editing 079's file.\n",
     "title": "An amendment carries the acceptance it replaces"
   },
-  "shardHash": "101b2f6732462327c7ce2ce3dcc7ad73ebc654c155e777e6ff2126fd55e59041",
+  "shardHash": "86d3dde4613c34324819337e6364f9511d78aac1982e2be2f7eeed175ab0a154",
   "specVersion": "1.9.0"
 }

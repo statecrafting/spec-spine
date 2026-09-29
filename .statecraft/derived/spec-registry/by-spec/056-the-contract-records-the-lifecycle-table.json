@@ -55,7 +55,7 @@
     ],
     "risk": "low",
     "sectionDigests": {
-      "056-the-contract-records-the-lifecycle-table-and-the-extra-keys": "7d51b548b6bda9d2495feba27ca47a47e1223a4dc58aba833341de0df56bf127",
+      "056-the-contract-records-the-lifecycle-table-and-the-extra-keys": "66e59eecf59d3a02209b21b8a4d7f693c5ae84e4918b95c294e786ad64c26bc1",
       "1-purpose": "a44f93faa30bbaa5a137f088f3b6d218064c2ea426f0f2d41eec5acb205ef649",
       "2-territory": "b41d5a27bb14e8d18dde8aa09ec7db3be844aff574f0cb1ff402ae40156ecb9e",
       "3-1-lifecycle-as-scheduling": "8124d6427c03c81f2dfe80a2815502b92433cdfede8eef94421fd0f6c785d15c",
@@ -65,7 +65,7 @@
       "3-5-nothing-mechanical-changes": "bcd806879de0ce6b952e7b5c6c0cd2e443445854334cda6e3d907d8bb7b78d14",
       "3-behavior": "f0eed168ffa0c629c96aa52a71ad2b9b5755556d8c201f582f8bff237def9494",
       "4-out-of-scope": "3434ec68216b46b0e348d1f988d8ae5d34ea99699295d5fb29ebabd8b5193ada",
-      "5-verification": "c673891a760c50ec024b8aea735bcbf486ba2ad43f7672e417e92996d8e09be6"
+      "5-verification": "285040fb80c1af64b1f0121aa930449b875b9f0eb508104ca44a1114b84786a1"
     },
     "sectionHeadings": [
       "056: The contract records the lifecycle table and the extra keys",
@@ -85,6 +85,6 @@
     "summary": "`status` and `implementation` are the two keys every adopter reasons about daily, and the contract mentions `status` once, in a list of required frontmatter, and `implementation` not at all. The mechanical consequences are spread across four specs: 041 makes a `complete` claim checkable, 044 defines the in-flight window, 045 says an absent key takes its answer from `status`, and 038 reads both to build the ready set. Every specify-first adopter wrote the resulting table into its own contract by hand, and hqgit had to invent a section called \"Lifecycle as scheduling\" because ours has none. This spec adds that section and an \"Extra keys\" section telling adopters to document their `extra_known_keys`, and claims both as section units of the contract.\n",
     "title": "The contract records the lifecycle table and the extra keys"
   },
-  "shardHash": "4864f73f452f06f9fd5875dd3c3edc8c2790afa6955f41e83b4bfe03dae99966",
+  "shardHash": "da314573c6e3d572c7b9c967b30254f33bb2ea935c3d809bf7cd7cd896917e72",
   "specVersion": "1.9.0"
 }

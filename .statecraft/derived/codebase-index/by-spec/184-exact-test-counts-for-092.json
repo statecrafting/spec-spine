@@ -1,0 +1,38 @@
+{
+  "mapping": {
+    "amends": [
+      "092-the-engine-ships-governance-not-an-environment",
+      "118-the-renumber-is-history-not-a-standing-rule"
+    ],
+    "dependsOn": [
+      "092-the-engine-ships-governance-not-an-environment",
+      "118-the-renumber-is-history-not-a-standing-rule",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/tests/verify.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/verify.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/verify.rs"
+        }
+      }
+    ],
+    "specId": "184-exact-test-counts-for-092",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "e3da5e7a6038053f5809166941925c164a380fbcc20235056e22a165d033ba96"
+}

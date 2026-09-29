@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "dependsOn": [
+      "151-carried-acceptance-tests-what-it-names",
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "implementingPaths": [],
+    "specId": "187-exact-test-counts-for-156",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "5739b6e6e7f2d9d320378a93a6e26d7084a61bcebd58909eb2ca87a34ccd98bf"
+}

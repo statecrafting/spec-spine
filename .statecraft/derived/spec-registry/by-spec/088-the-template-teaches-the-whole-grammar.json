@@ -44,7 +44,7 @@
     ],
     "risk": "low",
     "sectionDigests": {
-      "088-the-template-teaches-the-whole-grammar": "a9fc3bfc265607105e9b4f6d2f07da5bbf4229a147ec771784bebd1a6965bf83",
+      "088-the-template-teaches-the-whole-grammar": "8052061bd94be1b7e6a9dafadcd8dafb5f50b4daab9ca6ed94f453ef133d9237",
       "1-1-a-gap-five-specs-recorded-and-none-could-close": "51d6eb0d19817ee92523832d245b79482da54f8b4cf055745e618781814ab1c0",
       "1-2-the-gap-is-five-keys-wide-not-one": "504197b37d90b1eeb67506bdf4d465a84c20d403944dec9e82a7e4457d70b1f4",
       "1-3-why-adding-one-key-leaves-the-mechanism-in-place": "6b64572cc65647ace336b846e2261bed6a5e6e7d53511c6491392fff08dc5bd9",
@@ -58,7 +58,7 @@
       "3-behavior": "681d85a802307d0003db6593815974a64dddbfa1d33227cac5e3fce607f9da1b",
       "4-out-of-scope": "557f9577674a90a030b9c313c8e848f8d5052573acd84f7255f919eb94ed2e5b",
       "5-resolved-decisions": "2b815ce8f0ce8d1ede0bdf199a4113e7b7b1a5484f676587e5098cf47e864503",
-      "verification": "36c91f79fe48e5dd60f205a4a091c09d54158231abc1f6ca32d56e4adf39bd9e"
+      "verification": "9ab695dc846eab85e2a726f18841ced250af1c92928b73b14d8616c980055edd"
     },
     "sectionHeadings": [
       "088: The template teaches the whole grammar",
@@ -82,6 +82,6 @@
     "summary": "`standards/spec/templates/spec-template.md` is the file `/spec` copies to start every spec, and it is the only place in the corpus where the frontmatter grammar is written down for an author. It has fallen behind the parser. Spec 082 added `amends_verification` and the template never gained it, a gap five specs have now recorded in their own section 4 with nobody able to close it, because no spec claims the file. Measured against `KNOWN_KEYS`, four more keys are missing for the same reason, and the `extends` example omits `nature`, which 96 of the 111 specs in this corpus write. This spec claims the template, completes it, and gives it an acceptance that reads the parser's own key list, so the next key added to the grammar cannot reach `main` without the document that teaches it.\n",
     "title": "The template teaches the whole grammar"
   },
-  "shardHash": "b22e873c59adbcaca4b4835d9b692fe60dbccee9b0b7d90bd02cf95199bba559",
+  "shardHash": "1b3f4f0f09783f6648146adf02d9d24032556b1f37a92b6e924e24f06ed817a8",
   "specVersion": "1.9.0"
 }

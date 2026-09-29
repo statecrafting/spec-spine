@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "088-the-template-teaches-the-whole-grammar"
+    ],
+    "dependsOn": [
+      "088-the-template-teaches-the-whole-grammar",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "183-exact-test-counts-for-088",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "a800e8c16841953f1f26979b32f73c09bcd461fb6494609cbfdaaa283933a414"
+}

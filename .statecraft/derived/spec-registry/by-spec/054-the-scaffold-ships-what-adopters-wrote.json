@@ -52,7 +52,7 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "054-the-scaffold-ships-what-every-adopter-wrote-by-hand": "f81bacc96b627698e3c728e53e06203383aa185f78ca91f1b6cbf9112c88feeb",
+      "054-the-scaffold-ships-what-every-adopter-wrote-by-hand": "c32a0837de65d50d34019107b9e682e94ce1d0843388105b0dd2bb6c334dd939",
       "1-purpose": "eec6c6ccb35ce307b2c2ae3a777a4c51c6e733f11e19acc9add8d475c7444d51",
       "2-territory": "65f307d8558676a16a82b7cd3a9f0699db99baf16f804eda68fd48d08468668b",
       "3-1-the-scaffold-writes-a-gitignore": "019b7f30a29bb244ae41a10dd8446064eb363f19974e3167c2406cdc9882de09",
@@ -61,7 +61,7 @@
       "3-4-purity-and-determinism": "c6fc94f8cc50d4c28410d61e06f428bcfa7ffc484a791c1799d5668fef6d3f35",
       "3-behavior": "1095946ecaa9614e822eabf56f95fd2d0487fce458bd061d367c19bac23ce08d",
       "4-out-of-scope": "5498a6a13de0ee1d80da907c4de2816cf9ed1a403c5966fef0c96cc45fb2d2b4",
-      "5-verification": "941d9821f6087731ef9df42642a790efa459826ea5ae44dae3e009b95b7ca856"
+      "5-verification": "d37ffc088f353f91cc04c35ea5d3bfec19bea4aa7f7386536c96d043d44f02a9"
     },
     "sectionHeadings": [
       "054: The scaffold ships what every adopter wrote by hand",
@@ -80,6 +80,6 @@
     "summary": "Four scaffold defects the audit measured, all in one generator. `init` writes no `.gitignore`, so every adopter independently learns that `.derived/**/build-meta.json` carries a wall clock and dirties the tree, and spec 036's `state_dir` has the same missing half: the live failure it fixed was a permanently dirty tree, not a classification. The scaffolded `spec-spine.toml` emits five knobs; adopters needed thirteen, and aicortex annotated each of its own with the diagnostic code that knob drives, which is the template to copy. And `CONSTITUTION_TEMPLATE` in `scaffold.rs` is still the two-bullet stub spec 040 complained about, while the real thirty-four-line document sits in `standards/spec/templates/constitution-template.md`: adopters get the stub, and two of them deleted it. This spec fixes all four in `scaffold_init`, which stays a pure function of `Config` performing no IO.\n",
     "title": "The scaffold ships what every adopter wrote by hand"
   },
-  "shardHash": "344dc825f5eea764628372f8c3e0bbb14272b6e762a65ed783e37b09a096fe25",
+  "shardHash": "4faa740068f3eaa8486053e4f457477224a8bccf09fde44a2010236f1d488afa",
   "specVersion": "1.9.0"
 }

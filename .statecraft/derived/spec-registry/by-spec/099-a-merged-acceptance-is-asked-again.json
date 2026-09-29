@@ -52,7 +52,7 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "099-a-merged-acceptance-is-asked-again": "04740f83b40090cb1b811a1028d94857cd4a23ba1412ef8bf6d3cd9f52a4e05e",
+      "099-a-merged-acceptance-is-asked-again": "b7198d15b151a3d064647e0e5dd883bf306d0fb7ee4e23e00d78cb6fe815eb0b",
       "1-1-the-window-spec-089-left-open": "adc54a2c67c0282fb78e6833dcd6cc08938ac43e0b8930b0a422db75492ec1e1",
       "1-2-the-boundary-the-never-ci-clause-was-protecting": "0fcb778c5bcdb4c30a68f19fe2933c89c670b1b7a94538183e34d3d0e9bb3241",
       "1-3-why-this-spec-is-its-own-witness": "7c4109ccb7ac458bb9eb0432a4e20e044444f4ac614372140970e551c9337a94",
@@ -68,7 +68,7 @@
       "3-behavior": "69781e9d85d48f66f202a529b9153d42d4ca8abb57f2c48f0a003465d027c384",
       "4-out-of-scope": "3e5efe82c72877aaf50856569f90e25b22bf31c94cc7833aa5d0de72df73e298",
       "5-resolved-decisions": "033ec2ec2e2bcab40b036b98f8a31669397ac7d0702666a57a2afffee36a23b8",
-      "verification": "7b1264fbbaf5974744936ed0778894bb2c6be7915acc93594dcfb1d81a34081e"
+      "verification": "6596bbefb6d93f9b1b48d74466e0223fa7c9d7cc1176e3664b3e445bc3f3d555"
     },
     "sectionHeadings": [
       "099: A merged acceptance is asked again",
@@ -94,6 +94,6 @@
     "summary": "`verify` is outside the gate chain because it executes what a spec declares and a pull request is a stranger's code. Spec 089 built the sweep that re-asks the corpus's acceptance and made it maintainer-invoked, which leaves the window it was built to close open between runs: spec 092's block was red on `main` from #277 until #278 with every required check green, and no light turned. This spec runs the sweep where the trust boundary already allows it, on the default branch after a merge and nightly, scoped after a merge to the specs that own a changed path. It amends spec 089's \"never CI\" to \"never on untrusted input\", which is the rule that clause was written to hold.\n",
     "title": "A merged acceptance is asked again"
   },
-  "shardHash": "eaf5a8eecdc9aa4bb444a37902ba989eb3d316903af99e81bf2e61df51a91103",
+  "shardHash": "cd6b61e84df551c14eaba8e88ab4d99d707235b26f3ec8fc12831aedb38ffecb",
   "specVersion": "1.9.0"
 }

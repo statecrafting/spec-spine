@@ -378,6 +378,9 @@ enforcement gained. The authority moved; the pointers did not need to.
 > path in one no longer exists. A predecessor is amended, never edited (spec
 > 037 3.1): this block is the record of what was asserted when this spec was
 > ratified, and the amending spec is where the assertion lives now.
+>
+> Since 2026-09-29, `184-exact-test-counts-for-092` holds 092's block in turn,
+> so this plan runs from that spec's block (spec 153 3.2).
 
 Each line below is one command: spec 043 section 3.2 makes a fence's body line a
 command, so no line may depend on a variable another line set.

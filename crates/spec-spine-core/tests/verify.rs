@@ -298,8 +298,8 @@ fn an_amended_acceptance_resolves_to_its_holder() {
     assert_eq!(plan.spec_id, "054-the-scaffold-ships-what-adopters-wrote");
     assert_eq!(
         plan.acceptance_from.as_deref(),
-        Some("092-the-engine-ships-governance-not-an-environment"),
-        "054's block is held by 092 (amends_verification)"
+        Some("184-exact-test-counts-for-092"),
+        "054's block is held by 092, whose block 184 holds (amends_verification)"
     );
     // The holder's block, not 054's own, and not empty.
     assert!(plan.commands.len() > 5, "{:?}", plan.commands);

@@ -140,6 +140,9 @@ unused, so removing it closes both advisories and shrinks every dev build.
 > The commands below are kept **verbatim**. A predecessor is amended, never
 > edited (spec 037 3.1): this block is the record of what was asserted when
 > this spec was ratified.
+>
+> Since 2026-09-29, `187-exact-test-counts-for-156` holds 156's block in turn,
+> so this plan runs from that spec's block (spec 153 3.2).
 
 ```verify:cli
 # 3.1 and 3.2: both jobs exist under their names and the gate requires them.

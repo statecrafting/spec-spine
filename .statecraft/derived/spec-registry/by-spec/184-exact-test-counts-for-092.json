@@ -1,0 +1,63 @@
+{
+  "record": {
+    "amends": [
+      "092-the-engine-ships-governance-not-an-environment",
+      "118-the-renumber-is-history-not-a-standing-rule"
+    ],
+    "amendsVerification": [
+      "092-the-engine-ships-governance-not-an-environment",
+      "118-the-renumber-is-history-not-a-standing-rule"
+    ],
+    "created": "2026-09-29",
+    "dependsOn": [
+      "092-the-engine-ships-governance-not-an-environment",
+      "118-the-renumber-is-history-not-a-standing-rule",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "082-an-amended-acceptance-is-the-one-that-runs",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/verify.rs"
+        }
+      }
+    ],
+    "id": "184-exact-test-counts-for-092",
+    "implementation": "complete",
+    "kind": "test",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "2bcf80b5b70d8a4efc3e1b35f1f47fd91217f6c0e507fd63bf23e8e018a38e66",
+      "184-exact-test-counts-for-092": "0088821a92d04be8c758b18e5e910d088eb86ec1af3bada8e89b11a949d48e79",
+      "2-territory": "25b4b6294ff4458c0d9e19501d9fe8fd8f4da825ec8686a102fd27a1d6704a4d",
+      "3-1-092-s-block-is-carried": "d165f77c4fa245d4d8f4bae4e23a3da4a37e74b36baf266db0b7f69ec17284a4",
+      "3-2-each-loose-line-names-its-tests": "98cbd096b1d60f098d64e206907cd8fa7d1942a60bc0a7c39f5f21a95f04c440",
+      "3-3-the-amended-specs-say-so": "9371318453fe9cbb9011c8a56bb2cc84f88e6c7d892615aeb00e36a4ff884fbb",
+      "3-behavior": "32ddc96e5e2bc26ba9b8a4dae70c6a4f077fb41cf82acfd640c96c024a1835d0",
+      "4-out-of-scope": "d3dd3f8c2525963008feeaa5345e86b610dcec49c9c54d3fed3fda20bb08980c",
+      "5-resolved-decisions": "8ed7bb7ba4a29a8bdc7c401c4c1dafba964281c7b295d08f13728e9b9fd76eef",
+      "verification": "e4b80a7c6dfaa5f4311edffe825b151cd56ce97591f1e59c8de638afbd063bc3"
+    },
+    "sectionHeadings": [
+      "184: Exact test counts for 092",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 092's block is carried",
+      "3.2 Each loose line names its tests",
+      "3.3 The amended specs say so",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/184-exact-test-counts-for-092/spec.md",
+    "status": "draft",
+    "summary": "Spec 092's acceptance block carries four lines that accept `test result: ok. [1-9][0-9]* passed`, which pass while any one test in the target runs. This spec holds 092's block, carries it byte-identical, and replaces each loose line with spec 151's form: the tests the line ran, named with `--exact`, and `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).\n",
+    "title": "Exact test counts for 092"
+  },
+  "shardHash": "e3da5e7a6038053f5809166941925c164a380fbcc20235056e22a165d033ba96",
+  "specVersion": "1.9.0"
+}

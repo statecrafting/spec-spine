@@ -167,6 +167,15 @@ this ordinal.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-29).** This block no longer runs.
+> `184-exact-test-counts-for-092` declares this spec in
+> `amends_verification`, so `spec-spine verify 118` (and, through this spec,
+> `spec-spine verify 095`) builds its plan from that spec's block, where these
+> commands are carried unchanged except that `184` joins the exempt prefixes of
+> the citation check (spec 082 3.2 and 3.4; spec 184 D-3).
+>
+> The commands below are kept verbatim and are not corrected (spec 037 3.1).
+
 This block replaces spec 095's (§3.1). The first part is 095's, command by
 command, except its command 9 and the two lines that existed only for it.
 

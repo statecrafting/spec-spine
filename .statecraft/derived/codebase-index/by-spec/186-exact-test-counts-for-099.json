@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "099-a-merged-acceptance-is-asked-again"
+    ],
+    "dependsOn": [
+      "099-a-merged-acceptance-is-asked-again",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "186-exact-test-counts-for-099",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "5077de3e0f98c821997577a6e26d08ea559ac6bbe16a7b974120b15af0b31e03"
+}

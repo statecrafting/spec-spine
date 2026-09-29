@@ -443,6 +443,9 @@ and no payload changes. The cost is one additive `extends` edge on spec 001's
 > path in one no longer exists. A predecessor is amended, never edited (spec
 > 037 3.1): this block is the record of what was asserted when this spec was
 > ratified, and the amending spec is where the assertion lives now.
+>
+> Since 2026-09-29, `184-exact-test-counts-for-092` holds 092's block in turn,
+> so this plan runs from that spec's block (spec 153 3.2).
 
 Each line is one command, run independently: no shell variable survives to the
 next line, so the fixture corpus under `${TMPDIR:-/tmp}/ss098` carries the

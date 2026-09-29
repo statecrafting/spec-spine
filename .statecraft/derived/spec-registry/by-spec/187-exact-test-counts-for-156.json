@@ -1,0 +1,50 @@
+{
+  "record": {
+    "amends": [
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "amendsVerification": [
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "created": "2026-09-29",
+    "dependsOn": [
+      "151-carried-acceptance-tests-what-it-names",
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "id": "187-exact-test-counts-for-156",
+    "implementation": "complete",
+    "kind": "test",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "aeb6a5085cf1ed5a70a33bc3a8d63dcd1ae98becf3bbf7b71360eb3bc28d26d6",
+      "187-exact-test-counts-for-156": "090edc8cf00198e523b153aae112c27b87ec43d2902394abe17c7f0d29a5945c",
+      "2-territory": "655644e55180b34a2baa4363fc082c994d06165b15eb851dbba54e57f8496ddf",
+      "3-1-156-s-block-is-carried": "cadbaef7bd68fbde12931b96804beda2b0afa501ec75ab6decec06caf0e5ea3e",
+      "3-2-each-loose-line-names-its-tests": "6fa8c095395dbc52186523a753705e4d6883bfb5b8ba9d816745209edb5e8d60",
+      "3-3-the-amended-specs-say-so": "1b275dae1e8475267d18afcfce83bf8ff764bfff8aade72304f1ac508dc5cc6e",
+      "3-behavior": "20dddc56793802421a15a4f7673a0f02def89847d719d11ea590e85c2639e18c",
+      "4-out-of-scope": "47f9ea54837f5b2ce5b17d6d699e88886b3b9a68a33454b802faac25050fc0aa",
+      "5-resolved-decisions": "a50b34e03020f984b78e76c39b7aba404e91d72e55685952c7698b7846a01f94",
+      "verification": "97fcb61e3f1414d989cc5123c5376a5dfe8b63cd04378938c48950d09f75ebab"
+    },
+    "sectionHeadings": [
+      "187: Exact test counts for 156",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 156's block is carried",
+      "3.2 Each loose line names its tests",
+      "3.3 The amended specs say so",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/187-exact-test-counts-for-156/spec.md",
+    "status": "draft",
+    "summary": "Spec 156's acceptance block carries four lines that accept `test result: ok. [1-9][0-9]* passed`, which pass while any one test in the target runs. This spec holds 156's block, carries it byte-identical, and replaces each loose line with spec 151's form: the tests the line ran, named with `--exact`, and `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).\n",
+    "title": "Exact test counts for 156"
+  },
+  "shardHash": "5739b6e6e7f2d9d320378a93a6e26d7084a61bcebd58909eb2ca87a34ccd98bf",
+  "specVersion": "1.9.0"
+}
