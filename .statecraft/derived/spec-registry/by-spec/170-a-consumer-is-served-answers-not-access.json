@@ -1,0 +1,187 @@
+{
+  "record": {
+    "created": "2026-09-29",
+    "dependsOn": [
+      "034-machine-readable-verdicts",
+      "104-a-producer-is-tested-as-published",
+      "132-one-exit-contract-for-the-family"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/capabilities.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_capabilities.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/capabilities.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/consumer_contract.rs",
+        "planned": true
+      },
+      {
+        "kind": "directory",
+        "path": "crates/spec-spine-cli/tests/consumers/",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "anchor": "cli-reference",
+          "file": "docs/cli-reference.md",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "id": "170-a-consumer-is-served-answers-not-access",
+    "implementation": "pending",
+    "intent": {
+      "goal": "A consumer gets the depth it needs from public answers and a tested compatibility promise, never from privileged access.",
+      "nonGoals": [
+        "a partner-only API tier, Cargo feature, or verb",
+        "new reading verbs (a non-writing snapshot, batch closure, revision-bound reads), each of which is its own spec"
+      ]
+    },
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-1-two-tiers-split-by-whose-version-decides",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "An answer about a repository is served only by the judging tier, from the binary that repository's own pin admits."
+      },
+      {
+        "anchor": "3-2-one-question-one-path",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "One question has one path: no second verb, flag, feature or library entry answers a question a judging verb already answers."
+      },
+      {
+        "anchor": "3-3-no-surface-belongs-to-a-consumer",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "No surface is gated to, shaped for, or named after one consumer; a consumer's name appears only as data in its declared contract."
+      },
+      {
+        "anchor": "3-4-a-consumer-contract-is-declared-and-tested",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "Every surface a declared consumer contract lists is asserted by this repository's own test suite, and changing one changes the contract in the same change."
+      },
+      {
+        "anchor": "3-5-a-binary-states-what-it-supports",
+        "id": "R-4",
+        "kind": "requirement",
+        "text": "The capabilities verb states every judging verb the binary supports with its schema axis and version, and writes nothing."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-cli/tests/capabilities.rs",
+          "crates/spec-spine-cli/tests/consumer_contract.rs",
+          "crates/spec-spine-cli/tests/consumers/statecraft-cli/contract.json"
+        ],
+        "kind": "verification",
+        "text": "The capabilities verb and every declared consumer contract, the statecraft-cli contract first, are exercised against the in-tree binary."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "the engine and environment boundary this spec serves",
+        "unit": {
+          "kind": "file",
+          "path": "specs/092-the-engine-ships-governance-not-an-environment/spec.md"
+        }
+      },
+      {
+        "role": "the closure whose binding needs one path per question",
+        "unit": {
+          "kind": "file",
+          "path": "specs/107-a-context-closure-is-declared/spec.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "979e573366a814160f364c755e55b8fd4cbbb117cae0645660f7428ee95f14e6",
+      "170-a-consumer-is-served-answers-not-access": "43bb0e7f8bbb93589a208dfd33fd4d201c8497f63e6d873c04cd33fc72971231",
+      "2-territory": "91b241a25b1dcf4c913f37d02e7178866ade69dd1caee05d84f4c4ee02158dc5",
+      "3-1-two-tiers-split-by-whose-version-decides": "8b188f54dd527358523c929626e65ebf55fd08272dd2462e0c547603b634bbf9",
+      "3-2-one-question-one-path": "96bd6a47c34c6158043cce4e09961d3831a7d7a0d0f3abe59b0b1d64ff574a15",
+      "3-3-no-surface-belongs-to-a-consumer": "2fbfd3d4229c7a1e2fb644bc5ecd51a265fb799ae81ec262d146a97ba6326e88",
+      "3-4-a-consumer-contract-is-declared-and-tested": "b58d6ecfa89a69fd71a5f6ab2ff766a4e8ba08d71d9d4479bb84236ff9ecf2d4",
+      "3-5-a-binary-states-what-it-supports": "653cccca7d572dbea3211e6e68e63d5eae71d84367350ed59d9455a26800961a",
+      "3-6-observable-negative-cases": "9d0e9a502b74f17cefbb1fa3bb47266b20a65a73b93c0c7f46a01257ae475705",
+      "3-behavior": "b55a887380d94a870217ecb97f5f45c36fd1df6ae34b553a6aaa18b4b4f27fed",
+      "4-out-of-scope": "595d8d7ee1be74aaa90ef5c207ef5d8a41a6394f5b3cfdf40d05060a2440936b",
+      "5-resolved-decisions": "25869260223b74eac00eccdf897b82828347bd230460928b798beac9ebef587c",
+      "verification": "f1fdbfab014b5f304eb7bc59821390274f8fb6d201aa6b7bbd71e3bc2942753b"
+    },
+    "sectionHeadings": [
+      "170: A consumer is served answers, not access",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Two tiers, split by whose version decides",
+      "3.2 One question, one path",
+      "3.3 No surface belongs to a consumer",
+      "3.4 A consumer contract is declared and tested",
+      "3.5 A binary states what it supports",
+      "3.6 Observable negative cases",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/170-a-consumer-is-served-answers-not-access/spec.md",
+    "status": "draft",
+    "summary": "Fixes how spec-spine serves a programmatic consumer, the Statecraft CLI first. There are two tiers, split by whose pinned version decides the answer rather than by who is asking: a judging tier (the CLI's JSON envelopes and the family exit contract, answered by the binary the judged repository's own pin admits) and a producer tier (pure library functions whose output the caller owns). No surface is shaped for, gated to, or named after one consumer. A consumer's depth comes from a declared consumer contract instead: the verbs, schema axes, envelope members and exit codes it relies on, asserted by this repository's own suite, plus one public `capabilities` verb that states what a binary supports so no consumer has to probe `--help`.\n",
+    "title": "A consumer is served answers, not access"
+  },
+  "shardHash": "4d0e6dacd787e91c0e3469968c8d79d4ca786b8412d738ce834b5f55b7df1268",
+  "specVersion": "1.9.0"
+}
