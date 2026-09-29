@@ -31,8 +31,8 @@
       }
     ],
     "specId": "184-exact-test-counts-for-092",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "f7b72aec44da6dce5e862960ad3bfe2139f50b7e2384bbddb6d6e7fb30623266"
+  "shardHash": "de5a7ab4dfa4fa77e03a7f12f9eceba395732fe2e3f12e94415d14e38fcb0612"
 }

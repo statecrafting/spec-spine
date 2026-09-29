@@ -41,10 +41,10 @@
       "Verification"
     ],
     "specPath": "specs/185-exact-test-counts-for-097/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 097's acceptance block carries one line that accepts `test result: ok. [1-9][0-9]* passed`, which passes while any one test in the target runs. This spec holds 097's block, carries it byte-identical, and replaces each loose line with spec 151's form: the tests the line ran, named with `--exact`, and `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).\n",
     "title": "Exact test counts for 097"
   },
-  "shardHash": "132ecaf091b6205f69162a3fdec7735de1599dcd58954a9e1ac5beab6700e307",
+  "shardHash": "754bfb99123830f780c56e577e35eb44072f0c90bf2c98bcd68a8f18ca88f9fc",
   "specVersion": "1.9.0"
 }
