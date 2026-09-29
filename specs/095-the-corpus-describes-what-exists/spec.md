@@ -293,6 +293,9 @@ gaps at 117 and, after spec 092's own build, nowhere else.
 > spec's own acceptance asserts that the superseded predicate is still here,
 > which is how the corpus proves this spec was amended rather than edited
 > (spec 037 3.1).
+>
+> Since 2026-09-29, `184-exact-test-counts-for-092` holds 118's block in turn,
+> so this plan runs from that spec's block (spec 184 D-3).
 
 ```verify:cli
 cargo build --release --locked

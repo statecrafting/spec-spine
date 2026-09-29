@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "097-a-path-leaves-the-corpus-the-way-a-spec-does"
+    ],
+    "dependsOn": [
+      "097-a-path-leaves-the-corpus-the-way-a-spec-does",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "185-exact-test-counts-for-097",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "132ecaf091b6205f69162a3fdec7735de1599dcd58954a9e1ac5beab6700e307"
+}

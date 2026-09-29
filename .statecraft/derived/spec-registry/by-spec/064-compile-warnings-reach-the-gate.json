@@ -129,7 +129,7 @@
     "owner": "The spec-spine Authors",
     "risk": "medium",
     "sectionDigests": {
-      "064-compile-warnings-reach-the-gate": "593be558081ccd337241e70c20e2cdd7cb05e40efacbb344a224369554011baf",
+      "064-compile-warnings-reach-the-gate": "dffb088e587af180f6389b3a2afd9ea4c94230622a7007e04c07dc980bf03cc4",
       "1-purpose": "298f044c663dda45a7772f21c46dea20a4f364e5e583f7f86a7a01ab9723c172",
       "2-territory": "cc472343369f81093a394c8011a4c079c876fcd35380ed86f5982c33d7fae4be",
       "3-1-v-010-keeps-its-warning-tier": "76a3bfe1e07c1858ae33f212553cf139387ea722350d5e46121cf2b9f357708c",
@@ -141,7 +141,7 @@
       "3-behavior": "76be3ac32e1fdbb2f5dc6731936f8c5fe4eec3d8e664d79ddc45dec3e5d5a01c",
       "4-out-of-scope": "e0e432c5cc43e6460d314cd80d655e4a22d04825441dce9b99b37344239d1d02",
       "5-resolved-decisions": "e113da17fc08b281daa46cd3c8aa4cefb77901a0a7815c89b435be87331510ed",
-      "verification": "0f123a37eaf850fc596feb15d2251e7f46954c45f314d4aacd3bd9168d661178"
+      "verification": "1ab7cae1c6803d6fd54fee7b79d9403c37d0808a8e1f64520f1cd7493c8d9144"
     },
     "sectionHeadings": [
       "064: Compile warnings reach the gate",
@@ -163,6 +163,6 @@
     "summary": "`V-010`, a `depends_on` naming a spec that does not exist, is the only warning-tier code the compiler emits, and no verb in the gate chain can be told to refuse it. `lint --fail-on-warn` cannot reach it: lint's codes are disjoint from compile's by design, and `lint()` keeps only the registry from the compile it runs. So a dangling dependency compiles clean, lints clean at every severity, and reaches the default branch unread. This spec adds `--fail-on-warn` to `compile` and forwards it through `check` into the compile half, the shape spec 044's `--fail-on-unresolved` already uses for the index half. The flag gates the CLI's exit code only; `validation.passed` keeps the meaning spec 001 fixed for it, and `V-010` keeps its warning tier, because a corpus that files specs forward must be able to name a dependency it has not written yet. Zero `V-010`s exist today: the gap is structural, and this spec closes it before it costs something.\n",
     "title": "Compile warnings reach the gate"
   },
-  "shardHash": "859c4b3868c91765ebe8e9d7ad7807949e28dd244efdac0752507b5243b3092e",
+  "shardHash": "2f8bc9d75b09605f6042acccaf750b0052653b2e09d63bff2632f33ca2abe4de",
   "specVersion": "1.9.0"
 }

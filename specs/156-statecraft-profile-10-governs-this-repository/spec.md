@@ -366,6 +366,14 @@ correction belongs in Statecraft Profile 12, followed by a fresh exact render.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-29).** This block no longer runs.
+> `187-exact-test-counts-for-156` declares this spec in
+> `amends_verification`, so `spec-spine verify 156` builds its plan from that
+> spec's block, where these commands are carried with each loose test count
+> replaced by the tests it ran (spec 082 3.2 and 3.4; spec 153 3.2).
+>
+> The commands below are kept verbatim and are not corrected (spec 037 3.1).
+
 ```verify:cli
 # 3.1 and 3.3: the committed environment names Profile 11 and the exact engine pin.
 grep -q '"identity": "statecraft-setup:github-actions-rust@11"' .statecraft/environment.json

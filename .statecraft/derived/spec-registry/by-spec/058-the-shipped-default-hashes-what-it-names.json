@@ -75,7 +75,7 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "058-the-shipped-default-hashes-what-it-names": "f7d6f4a32f5223a87b640009bf39e23af4a2ec88ff9e902ce3bb5534808f9960",
+      "058-the-shipped-default-hashes-what-it-names": "27eb741a5529b51a652f7a675c897c8e2516ab11e7fc45fde0c038f9d1a2679f",
       "1-purpose": "b43340932c14cd3cd80cec8fa87be311a812e563fd31e958cf4c1f13e79f2797",
       "2-territory": "f4f6ba84b152690fe413953f4e90ce3ff0d1a4e6a9b9487b1141c01744d65453",
       "3-1-the-default-matches-files": "47cd50a225cdbf72482a700d18efc31a034ee4bb3ca67e9400bc7b8f5fb8ce4e",
@@ -87,7 +87,7 @@
       "3-behavior": "18fc50f66e6dadb9d24363cb0f9842a4eccd325f68f96716481b87cd8593dc96",
       "4-out-of-scope": "a9a06f7b82c9e1d5d04d5880290167745e1e6b19168765effced8aa195a8c614",
       "5-resolved-decisions": "05a9b92d9d98a25a119160a12b8e474c137e8215f2c292befb02cea580ac5530",
-      "verification": "9ae2ef7bd2c5ef2dad2a8f3be95b09873372dc7eb06796ff4f19628cdadbb8c3"
+      "verification": "55e83760371a7a6a37bb87a6eba8a060efd0871f2253e66dd2cb41362c476d52"
     },
     "sectionHeadings": [
       "058: The shipped default hashes what it names",
@@ -109,6 +109,6 @@
     "summary": "`IndexConfig::default().extra_hashed_inputs` ships as `[\"standards/**\", \".github/workflows/**\"]`. In the glob crate `dir/**` enumerates directories, and the hasher keeps only entries that are files, so the shipped default matches nothing: every adopter who has not overridden it folds zero extra files into the content hash and is told nothing. Spec 050 found the form in this repository's own config and fixed it there; spec 054 found it in the default behind it, emitted the key at its real value with a comment naming the trap, and deferred the fix to its own spec on the grounds that changing it restales every adopter's committed index. This is that spec. The default becomes `[\"standards/**/*\", \".github/workflows/**/*\"]`, the working form 054's comment already tells adopters to write, so an adopter who followed that advice sees no change and one who did not gets a one-time restale and a governance surface that is finally in the ledger. A regression test pins the property that was never asserted: that the shipped default matches files.\n",
     "title": "The shipped default hashes what it names"
   },
-  "shardHash": "38059c608b472da3724d48829046638149b785d3164d73e0db2334aeb3d869d2",
+  "shardHash": "79d02e75489e43717958d26c93e1686e7c2a744ec7743ba5a85ed26321b24ac4",
   "specVersion": "1.9.0"
 }

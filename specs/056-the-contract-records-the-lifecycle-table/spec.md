@@ -198,6 +198,9 @@ of the page.
 > path in one no longer exists. A predecessor is amended, never edited (spec
 > 037 3.1): this block is the record of what was asserted when this spec was
 > ratified, and the amending spec is where the assertion lives now.
+>
+> Since 2026-09-29, `184-exact-test-counts-for-092` holds 092's block in turn,
+> so this plan runs from that spec's block (spec 153 3.2).
 
 Each line is one command (spec 043 §3.2). Both sections fail against pre-066
 state: neither existed, in this repository's contract or the scaffolded one.

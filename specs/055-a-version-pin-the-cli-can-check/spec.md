@@ -236,6 +236,9 @@ inputs. That property is worth more than the notification.
 > path in one no longer exists. A predecessor is amended, never edited (spec
 > 037 3.1): this block is the record of what was asserted when this spec was
 > ratified, and the amending spec is where the assertion lives now.
+>
+> Since 2026-09-29, `184-exact-test-counts-for-092` holds 092's block in turn,
+> so this plan runs from that spec's block (spec 153 3.2).
 
 Each line is one command (spec 043 §3.2), so the fixture lives at a fixed path
 rather than in a `$(mktemp -d)` that would not survive to the next line.
