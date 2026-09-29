@@ -1,0 +1,97 @@
+{
+  "record": {
+    "created": "2026-09-27",
+    "dependsOn": [
+      "093-the-harness-this-repository-runs",
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "directory",
+          "path": ".claude/skills/"
+        }
+      }
+    ],
+    "id": "168-ratification-has-two-paths",
+    "implementation": "pending",
+    "intent": {
+      "goal": "Make ratification an owner approval that a workflow records and applies, on one of two declared paths, instead of a hand-authored second pull request.",
+      "nonGoals": [
+        "letting any agent, bot or token ratify without the owner's approval",
+        "a spec-spine verb that edits frontmatter",
+        "changing what the lifecycle table in the contract schedules"
+      ]
+    },
+    "kind": "process",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "the lifecycle table: approved plus pending is a work order",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/contract.md"
+        }
+      },
+      {
+        "role": "section 1.2 records the build-as-draft practice this spec retires",
+        "unit": {
+          "kind": "file",
+          "path": "specs/041-in-progress-is-in-flight/spec.md"
+        }
+      },
+      {
+        "role": "the Statecraft-side workflow contract",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/10-ratification-paths-2026-09.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionDigests": {
+      "1-purpose": "56ac52eaa7670ae832418d6d723fdf97b2c3510c1f4fde15b2c8c90049d78d8a",
+      "168-ratification-has-two-paths-both-an-owner-approval": "ad65faf2a2b4347d3e671a335277f6d48a02062740cd92eb5fd8f3b712e2eb17",
+      "2-territory": "e2a2e12c80050c5fa2b74effcf92d3d12ebe747aa597dd69107bdf5edaa7d7ca",
+      "3-1-one-approval-authority": "a25213c1d9f9959da4688327865b0a3f9b60e7e0f52d942cd14a721e40032e2e",
+      "3-2-path-a-ratify-then-build": "f736009f56f044f9edb15b99d0a337056393ee0443033edc6b22b87a5ba94c9f",
+      "3-3-path-b-ratify-at-merge": "1858b5bbed76734fa9f4f0c908ae88fd32a7e6e913a633bc2ca68d1fc853892e",
+      "3-4-agents-md-names-the-two-paths": "1163dcdcde4e3b60c81a6e0bdc213a5bcdf80246dc1ac3816db01cd5ab408234",
+      "3-5-the-skills-agree": "e5e11cde4b4e41a44f80843a9befb45341e3c953710d162fc1fb5dfdcda032cb",
+      "3-behavior": "50c6f3dbec8e6d3a2fece54f2955e351e36775e4dcbb2ac33403be9527a51c8e",
+      "4-out-of-scope": "d615f28802b2926b47b7288383f025626b3a59f995bd826763eea51e1eaa7d11",
+      "5-resolved-decisions": "60f5ad0632f023dad839b85552784eacf0db7f2597748c356d4a97ed060f9b17",
+      "verification": "186757d24457c8e4d980881e406f9a813b3e7d4cea668790a83e7f2e58ab26f3"
+    },
+    "sectionHeadings": [
+      "168: Ratification has two paths, both an owner approval",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One approval authority",
+      "3.2 Path A: ratify then build",
+      "3.3 Path B: ratify at merge",
+      "3.4 `AGENTS.md` names the two paths",
+      "3.5 The skills agree",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/168-ratification-has-two-paths/spec.md",
+    "status": "draft",
+    "summary": "This repository builds a spec while it is still a draft and ratifies it in a second, hand-authored pull request. The owner has chosen ratify-then-build instead, with ratification as a triggerable action gated on an owner-only deployment environment, and a second path that ratifies at merge when a pull request lands a spec at draft and complete. Both paths flip only `status`, bind the approval to the exact bytes shown, and leave ratification owner-only.\n",
+    "title": "Ratification has two paths, both an owner approval"
+  },
+  "shardHash": "260b63d54a3306d6b094fd470270b9a719060cbe39d60bb298150f5dbd3baf86",
+  "specVersion": "1.9.0"
+}
