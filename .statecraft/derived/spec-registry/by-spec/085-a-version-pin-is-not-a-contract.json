@@ -27,7 +27,7 @@
     ],
     "risk": "low",
     "sectionDigests": {
-      "085-a-version-pin-is-not-a-contract": "8ca4ea420ebd1502e1e63fa9ccf11a36e7bf1eb70655e045a2c570a0809e860e",
+      "085-a-version-pin-is-not-a-contract": "76c0baf4168a4b323fc6b86fd223c465fc7c08aaaf95fbcfd992b550e1d5c90f",
       "1-1-one-red-assertion-no-defect-behind-it": "8ea58a69d5946e3121409610a02f0e1b3f56199653c59458e4e3220a2e28d7ce",
       "1-2-the-pin-asserted-neither-half-of-the-rule-it-stood-for": "1c45f5d400426b7c64408e9936ba07c8101810896cc3d9d3328c685cc5f22b24",
       "1-3-the-crossing-was-silent": "6053afc027515d1f2ec8c3886e9affe6e3d92d1053863b8a1add225c159b9d20",
@@ -42,7 +42,7 @@
       "3-behavior": "870ba262c83d7699d07b668b7c10bbe2a26feaa4a27fe3fc4c3d2301676e98fc",
       "4-out-of-scope": "048358368dc782ea821ac8a443334b942ae8044e860ebfa4dbd78b15c60ec8aa",
       "5-resolved-decisions": "465246b1d8e69a18b31513ed0827c771c9d2008a270aa5a21f280e73182fd01c",
-      "verification": "32040a7e1dec56d0dc600739614597356473b0c9dd0132bc5adbd5012e480d57"
+      "verification": "0573b1891f02320dd39ca28aeaf3163a1c7c5394d4e7e952a75dd1a28d6aa80f"
     },
     "sectionHeadings": [
       "085: A version pin is not a contract",
@@ -67,6 +67,6 @@
     "summary": "Spec 049's `## Verification` block pins the verdict envelope at the literal `0.3.0`, which spec 071 legitimately moved to `0.4.0`, so `spec-spine verify 056` has been red since 088 merged. The pin was never what 056 required: 056 3.4 states that `--spec` emits the spec 034 envelope with a `verb` token distinguishing it from `compile --check`, and records the bump it performed as a fact about that bump, not as a standing ceiling. A literal pin cannot assert either half, because it goes red for every move the rule permits and stays green for a verb token that collides. This spec declares 049's acceptance replaced and carries the corrected block, without editing 049's file. It is the first of the four follow-ons spec 084 4 named.\n",
     "title": "A version pin is not a contract"
   },
-  "shardHash": "a7180757e7555f3e36c2aac115c6ac6a730e3a4137487e3e23dd0fe9d70b366b",
+  "shardHash": "ef2d5a2ea0f88f036857b9f6d81a38d2ace5e2bff1317208f1dc757d722a9312",
   "specVersion": "1.9.0"
 }

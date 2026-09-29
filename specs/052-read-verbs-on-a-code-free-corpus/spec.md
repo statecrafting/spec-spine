@@ -230,6 +230,9 @@ honest, not a second scheduler.
 > that these exact lines are still here, which is how the corpus proves this
 > spec was amended rather than edited (spec 037 3.1). Editing them here is the
 > laundering move amendment exists to refuse, and it goes red.
+>
+> Since 2026-09-29, `174-exact-test-counts-for-086` holds 086's block in turn,
+> so this plan runs from that spec's block (spec 153 3.2).
 
 Both changes fail against pre-059 code: `orphans` emitted one flat array, and
 `--fail-on-untraced` exited 0 on an empty universe.

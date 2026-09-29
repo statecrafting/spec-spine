@@ -234,6 +234,14 @@ here should land on the spec it means (review of #314).
 
 ## Verification
 
+> **Superseded acceptance (2026-09-29).** This block no longer runs.
+> `175-exact-test-counts-for-102` declares this spec in
+> `amends_verification`, so `spec-spine verify 102` builds its plan from that
+> spec's block, where these commands are carried with each loose test count
+> replaced by the tests it ran (spec 082 3.2 and 3.4; spec 153 3.2).
+>
+> The commands below are kept verbatim and are not corrected (spec 037 3.1).
+
 Written to fail against the tree this spec is filed on: the field does not
 exist.
 

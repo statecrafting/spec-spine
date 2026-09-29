@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "086-an-exact-key-set-refuses-what-the-rule-allows"
+    ],
+    "dependsOn": [
+      "086-an-exact-key-set-refuses-what-the-rule-allows",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "174-exact-test-counts-for-086",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "05f8a55fba495e4e83e05b7a60956c748093de23584c3c2599a61d39a37b9f6d"
+}

@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "082-an-amended-acceptance-is-the-one-that-runs"
+    ],
+    "dependsOn": [
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "171-exact-test-counts-for-082",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "02bdb89ff944aa2fdb768127876c2541d9be158f8bb52194c32ce00e6f3ce116"
+}

@@ -118,7 +118,7 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "074-a-governed-read-names-its-version": "f61ab08009d6e46bf3e9429bd96ced27df5bb35fba3ef4519d6230c6ca005158",
+      "074-a-governed-read-names-its-version": "4bda5552199fc4163e4c23e21d1c389564e8b59a440f906cc3535c5496c87406",
       "1-1-two-guarantees-that-stop-at-the-verdict-verbs": "eacf6d0c80486ed0a0cada4dd6eeac8c53d6afc568996a57615b0492fdd93c1f",
       "1-2-what-an-unversioned-read-costs-a-consumer": "60808c7f1d0277b983ec1982e683af323c18248f7ca89ede77b46bc03a6a74c7",
       "1-3-a-read-is-not-a-verdict": "92acc99667ac5851a8c46ec5794ffc11ca89b1333c8a182fa85452264aadbe79",
@@ -135,7 +135,7 @@
       "3-behavior": "229c68d317b8073294d4998adf09dff5f7996ed1de2dd84e6b999ea0b6163a69",
       "4-out-of-scope": "4c8b4b04ffbe7eb38d56f942d66dc0b4bc59c4df66e52833289eeca7846ca78e",
       "5-resolved-decisions": "9b9d0221b76cefb947cf5d0945e82b5c11a6fa4c93afaa6886c491aa6f1dd0c1",
-      "verification": "df1f5418cb009e48714e09bbe46112101c715e75db43c0798eac08f7c0413b58"
+      "verification": "d787c4a699a1fb5821344bb7c2db18f66cd3b849c1855bc4e6a772cb26f1c8bd"
     },
     "sectionHeadings": [
       "074: A governed read names its version",
@@ -162,6 +162,6 @@
     "summary": "`docs/api.md` states that every JSON this tool emits is pretty-printed with sorted keys, and spec 034 gave every verdict verb a versioned envelope. The read verbs got neither. Measured at 0.19.0: thirteen read documents across ten verbs, of which twelve carry no version member at all and seven emit keys in struct declaration order, because they serialize with `serde_json::to_string_pretty` while every committed artifact goes through the canonical writer. A consumer therefore pins a document whose shape it cannot dispatch on and whose key order is an implementation detail of a Rust struct. This spec routes every read document through one emitter that sorts keys and stamps a new `READ_SCHEMA_VERSION`, and decides note 04's D7: the version is an additive member on an object document, and the documents that are not objects today become objects so they can carry one. Four documents across three verbs change shape breakingly, and two of the four are contracts approved specs state, so this spec carries `amends` edges to 010 and 060 rather than editing them.\n",
     "title": "A governed read names its version"
   },
-  "shardHash": "49af0d8bc3269bb1c884c273be7d127a2b222ace1cfa05d8d5721d847d7470d0",
+  "shardHash": "0688435efa6f3394059475e61f8b5ed0b56669510d64aeb9e6ff5b5846178a44",
   "specVersion": "1.9.0"
 }

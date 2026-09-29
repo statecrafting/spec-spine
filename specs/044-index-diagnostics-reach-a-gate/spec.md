@@ -290,6 +290,9 @@ corpus check into a tree-wide one.
 > that these exact lines are still here, which is how the corpus proves this
 > spec was amended rather than edited (spec 037 3.1). Editing them here is the
 > laundering move amendment exists to refuse, and it goes red.
+>
+> Since 2026-09-29, `172-exact-test-counts-for-084` holds 084's block in turn,
+> so this plan runs from that spec's block (spec 153 3.2).
 
 ```verify:cli
 # Self-contained: the commands below invoke the release binary.
