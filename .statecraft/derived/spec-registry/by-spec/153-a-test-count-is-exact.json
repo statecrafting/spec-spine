@@ -31,7 +31,7 @@
       "151-carried-acceptance-tests-what-it-names"
     ],
     "id": "153-a-test-count-is-exact",
-    "implementation": "pending",
+    "implementation": "complete",
     "intent": {
       "goal": "Make every live acceptance line that runs cargo test fail when the tests it names stop running, without making one spec the acceptance of eighty.",
       "nonGoals": [
@@ -108,6 +108,6 @@
     "summary": "Thirty-six live acceptance lines, in seventeen blocks that eighty specs' plans resolve to, accept `test result: ok. [1-9][0-9]* passed`: they pass while any one test in the target runs, so deleting, renaming, ignoring or platform-gating most of a test file still passes. This spec states the rule (no live plan accepts a loose count) and asserts it corpus-wide through `verify <id> --plan`. It holds no block itself: each of the seventeen is tightened by its own spec, in the form spec 151 gave 144, so no single spec becomes the acceptance of eighty. This spec is built last, when its rule holds.\n",
     "title": "A test count is exact"
   },
-  "shardHash": "0fd8d2651f0bc1a8b4bfbc603cdc29516481da77ac8fa8e8227fba23fa5891f2",
+  "shardHash": "ae797584d286619fba2cac72c8cde6fbdce8d446701ced6ea5535a3fc1a6e0eb",
   "specVersion": "1.9.0"
 }

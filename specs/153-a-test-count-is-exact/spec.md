@@ -14,7 +14,7 @@ summary: >
   tightened by its own spec, in the form spec 151 gave 144, so no single spec
   becomes the acceptance of eighty. This spec is built last, when its rule
   holds.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
