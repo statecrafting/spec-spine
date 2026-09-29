@@ -43,7 +43,7 @@ references:
   - { unit: { kind: file, path: ".github/workflows/acceptance.yml" }, role: context }
   - { unit: { kind: file, path: ".github/workflows/spec-spine-required.yml" }, role: context }
 obligations:
-  - { id: "R-1", kind: requirement, text: "A queued change is merged only after the affected-acceptance sweep of the merge-group commit reports no failed and no not-run spec.", anchor: "3-1-the-sweep-is-a-merge-queue-check" }
+  - { id: "R-1", kind: requirement, text: "A queued change is merged only after every affected-acceptance shard reports a clean release verdict: no implemented or unreadable spec has a failed, not-declared or not-run release outcome; pending specs still run and remain reported but do not block.", anchor: "3-1-the-sweep-is-a-merge-queue-check" }
   - { id: "R-2", kind: requirement, text: "verify-sweep.sh --shard i/n runs exactly the i-th of n disjoint parts of its selection, and the n parts cover the selection once.", anchor: "3-2-the-selection-is-sharded" }
   - { id: "R-3", kind: requirement, text: "No step requires a session to run the affected sweep locally or to record its counts in the pull request body.", anchor: "3-3-the-session-step-retires" }
   - { id: "R-4", kind: requirement, text: "The sweep never runs on a pull_request event.", anchor: "3-4-the-trust-boundary-holds" }
@@ -110,11 +110,14 @@ answered by sharding (§3.2), which 150 §4 left out of scope, not rejected.
 ### 3.1 The sweep is a merge-queue check
 
 On every `merge_group` event, CI MUST run
-`verify-sweep.sh --affected-by <merge_group.base_sha> --rev <merge_group.head_sha> --trusted-ref <merge_group.head_sha>`
-over the affected selection, and the change MUST NOT merge unless every shard
-reports no `failed` and no `not-run` spec. An empty selection passes. The
-exemption of 150 §3.2 is kept: a change touching only `docs/`, `website/`, or
-Markdown outside `specs/` selects nothing to run and passes.
+`verify-sweep.sh --release --affected-by <merge_group.base_sha> --rev <merge_group.head_sha> --trusted-ref <merge_group.head_sha>`
+over the affected selection, and the change MUST NOT merge unless every
+shard's release verdict is clean: no implemented or unreadable spec has a
+`failed`, `not-declared` or `not-run` release outcome. Pending specs still run
+and their corpus outcomes remain reported, but their `pending` release outcome
+does not block. An empty selection passes. The exemption of 150 §3.2 is kept:
+a change touching only `docs/`, `website/`, or Markdown outside `specs/`
+selects nothing to run and passes.
 
 The job's result MUST reach the required aggregate (`ci-gate`) as a failure
 when any shard fails, is cancelled, or does not report. A skipped job on
@@ -260,7 +263,7 @@ and still in no `needs:` list. Before the change the test failed on this
 tree, after it passes, and it still fails when `statecraft-ci.yml` calls
 `./.github/workflows/acceptance.yml`.
 
-**D-8 (2026-09-29, build): the queue refuses on the release verdict.** 3.1
+**D-8 (2026-09-29, owner): the queue refuses on the release verdict.** 3.1
 names `failed` and `not-run`, and the sweep reports two verdicts (spec 119).
 Under the corpus verdict a pull request that files a draft is refused by the
 draft's own block, which fails by design until the spec is built; before this
@@ -284,6 +287,7 @@ grep -qE '^  workflow_call:' .github/workflows/affected-acceptance.yml
 grep -qF "github.event_name == 'merge_group'" .github/workflows/affected-acceptance.yml
 grep -qF '.github/workflows/affected-acceptance.yml' .statecraft/environment.json
 grep -qF 'affected-acceptance' .github/workflows/statecraft-ci.yml
+grep -qF -- '--release' .github/workflows/affected-acceptance.yml
 grep -qF -- '--affected-by' .github/workflows/affected-acceptance.yml
 grep -qF -- '--shard' .github/workflows/affected-acceptance.yml
 grep -qF 'persist-credentials: false' .github/workflows/affected-acceptance.yml

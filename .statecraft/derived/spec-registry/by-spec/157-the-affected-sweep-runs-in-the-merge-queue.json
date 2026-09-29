@@ -98,7 +98,7 @@
         "anchor": "3-1-the-sweep-is-a-merge-queue-check",
         "id": "R-1",
         "kind": "requirement",
-        "text": "A queued change is merged only after the affected-acceptance sweep of the merge-group commit reports no failed and no not-run spec."
+        "text": "A queued change is merged only after every affected-acceptance shard reports a clean release verdict: no implemented or unreadable spec has a failed, not-declared or not-run release outcome; pending specs still run and remain reported but do not block."
       },
       {
         "anchor": "3-2-the-selection-is-sharded",
@@ -141,18 +141,18 @@
       "1-1-what-150-costs": "4ae59f79df638bf32b2199ed7ca844a73751fe206aef294cbb1f0d57c3e4d77e",
       "1-2-the-alternative-150-left-open": "23f8ccb6b13d1d184d21e768ee2acc9fd88f2641c36c6bee14ffb19d7030a4bf",
       "1-purpose": "12c825d271108aeb2641fb4ed0b314124a3815092132dedb9cd989bb7129fca7",
-      "157-the-affected-acceptance-sweep-runs-in-the-merge-queue": "1fe4feeb9a4eb9b33443bbdb6e16b1a5b3d76792ad0c1f0f44f6efacd30f89d6",
+      "157-the-affected-acceptance-sweep-runs-in-the-merge-queue": "4bebe7db8e5c77aa4e1e468fbb57a725efd1ef44637201fdd485d461124d2afd",
       "2-territory": "fcfa4f97777721f59d2027230357b7d781313bcb697d605d09265667413cdf36",
-      "3-1-the-sweep-is-a-merge-queue-check": "cc69707180fe6409cd6902701887d6b0fbeb6ff4c765314c3b577cd536da8b3f",
+      "3-1-the-sweep-is-a-merge-queue-check": "975c31133d946fd50a25afbfc80a069d92fbec864a182cf579e468269c824bb5",
       "3-2-the-selection-is-sharded": "62830c2423c7ae9e6a37cc4f2fe16f6d5bc82cff98f51ba92cace4d18b178b1b",
       "3-3-the-session-step-retires": "2cda6fdde2f186bd03e0956ce72f495e1980c0c5821a04d817011818b753739a",
       "3-4-the-trust-boundary-holds": "728076c7945bf118e806a9aed2e7befa1553f2e78a392988848c726659866c2c",
       "3-5-the-job-belongs-to-the-statecraft-profile": "0fcb85f8ecacf061950f934cd44e236725ce0e9bca13bad801d678892ded5c5d",
       "3-6-the-post-merge-sweeps-stay": "fcd40a0d8ce445d68552662b03bea6fcd7d96e9799f15aa6d01021bdbfaff9f3",
-      "3-behavior": "d78db22c36eac7bbb3816a5f4c18f04d36b36c0d109c0eb1570fe1e79ec0b5d2",
+      "3-behavior": "ab0805a515d119008794d611e1470db13ff1b9d139d06ea1125c9f41ffaf83e6",
       "4-out-of-scope": "3899e8e7db02cad8196a77e3313d6951d7bb7103d0ab24d39e44201fc0ccb2b8",
-      "5-resolved-decisions": "badc1acbb4608ada98d5baf4175b78580deccc5bfef4ee5ce4bdcc70dd778bad",
-      "verification": "d25a6b0ee47751dcc1318643d8af3cefde117c7a9a312743a09fa250fefb0b8b"
+      "5-resolved-decisions": "b6b8536bd4caa869b34cafa53acfccc0495a8471a41fa12df55c75b6017fff7a",
+      "verification": "ebab59f8d23771762cb744c3fcde9a4ac5ca40de668c0affef34c1f05461298f"
     },
     "sectionHeadings": [
       "157: The affected-acceptance sweep runs in the merge queue",
@@ -176,6 +176,6 @@
     "summary": "Spec 150 runs the affected-acceptance sweep in the session that drives a pull request, on its head, and records the counts in the pull request body (D-1). Any engine change selects the whole corpus, so each remediation round costs the session about 45 minutes and a fresh body record, and two pull requests swept at once share one machine. 150 D-1 named the alternative and left it to a later spec: run the sweep in CI on `merge_group`, which sweeps only a change a maintainer has queued. This spec takes it. The sweep becomes a required merge-queue check, sharded across a job matrix so a whole-corpus run is not one sequential job, and the session step and the body record retire. The job belongs to the Statecraft profile, so every governed repository gets it; this repository declares it until the profile carries it.\n",
     "title": "The affected-acceptance sweep runs in the merge queue"
   },
-  "shardHash": "dd0c7e2c6d0963aad39287a07d021f913bfaee5aba983dfbe313f5225daf9100",
+  "shardHash": "cf1f56bf8872466fd0edae9481ee792f5abb8319d2ce178343672acc444852d8",
   "specVersion": "1.9.0"
 }
