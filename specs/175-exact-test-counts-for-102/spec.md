@@ -55,6 +55,8 @@ superseded-acceptance note above 102's block, and the notes of 053 and 087 to na
 `spec-spine verify 102` and `verify` of 053 and 087 MUST run this
 spec's block, which carries 102's block in one section, every command and
 comment byte-identical except the lines 3.2 names.
+The block's last two commands keep 102's `./target/release/spec-spine`
+spelling for that reason; normalizing it would break the carry.
 
 ### 3.2 Each loose line names its tests
 
