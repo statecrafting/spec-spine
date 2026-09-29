@@ -1,0 +1,50 @@
+{
+  "record": {
+    "amends": [
+      "093-the-harness-this-repository-runs"
+    ],
+    "amendsVerification": [
+      "093-the-harness-this-repository-runs"
+    ],
+    "created": "2026-09-29",
+    "dependsOn": [
+      "093-the-harness-this-repository-runs",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "id": "176-exact-test-counts-for-093",
+    "implementation": "complete",
+    "kind": "test",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "59498a9ab5d4314b8da807980f0c728cd5586571000cda2a6a4dfeec1f123612",
+      "176-exact-test-counts-for-093": "c5bc41906a43316e1d1fca24f876bdf21a87e0371e4b2ce1069d09d139d97308",
+      "2-territory": "666c2c5b01761987f60ee48faf58f6d3d6b0fa9cabea750d2db186a0baa02446",
+      "3-1-093-s-block-is-carried": "65b89ee1624619582c30f87c997866cb7f1c2fc1ddb7a3c78b7a227ec28b2697",
+      "3-2-each-loose-line-names-its-tests": "20899d0d0d01ba85a1ee746a2a6499ffcffff27c838205158de46de1fb5e7bcc",
+      "3-3-the-amended-specs-say-so": "ef89a2c7c04b77ee1b00862ac66399e01c9aa2472b575189dc3c8e11072de4b8",
+      "3-behavior": "5a9ec5585fdd37113cd2a9a95fcbb1539e203769470e25545dc84ca1b3618574",
+      "4-out-of-scope": "aba7b96bd6091ee6ba1aee5283df1aa88c5658cf53181e06a0737f9ddfb9a3d8",
+      "5-resolved-decisions": "e2900f7b8aa77dfc8070b84d3da5adefb62ff74b1c96e706415f184f3a9ce684",
+      "verification": "42353d9b7a5a3fdd0563a9fb33e343a075cd3eaf47904a4d6941f27f5b4c2974"
+    },
+    "sectionHeadings": [
+      "176: Exact test counts for 093",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 093's block is carried",
+      "3.2 Each loose line names its tests",
+      "3.3 The amended specs say so",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/176-exact-test-counts-for-093/spec.md",
+    "status": "draft",
+    "summary": "Spec 093's acceptance block carries three lines that accept `test result: ok. [1-9][0-9]* passed`, which pass while any one test in the target runs. This spec holds 093's block, carries it byte-identical, and replaces each loose line with spec 151's form: the tests the line ran, named with `--exact`, and `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).\n",
+    "title": "Exact test counts for 093"
+  },
+  "shardHash": "e309cbf18e6c06fc3a1855a0943369fa76bdd691511aeee6ded0b82b513a3e03",
+  "specVersion": "1.9.0"
+}

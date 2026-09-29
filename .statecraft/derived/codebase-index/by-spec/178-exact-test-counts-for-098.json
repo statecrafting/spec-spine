@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "098-a-citation-the-renumber-could-not-see"
+    ],
+    "dependsOn": [
+      "098-a-citation-the-renumber-could-not-see",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "178-exact-test-counts-for-098",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "37b34e58b7aaf2c6bd9d09c21a7fad55e8733e8a0d96e7707d781221ccbafb4f"
+}
