@@ -72,8 +72,10 @@ it. Ratification stays on the owner's reserved list in `AGENTS.md`.
 
 ## 2. Territory
 
-This spec owns no new file in this repository. It extends two units spec 093
-establishes:
+This spec owns no new governed file in this repository. Design note 10,
+added with it, is documentation under the `docs/` bypass floor, which no spec
+claims; the frontmatter references it rather than establishing it. The spec
+extends two units spec 093 establishes:
 
 - `AGENTS.md`, whose "Working the backlog" steps 1, 2 and 6 are rewritten to
   describe the two paths (section 3.4);
@@ -92,7 +94,9 @@ the build claims the delivered file here (section 5, D-1).
 - The `ratification` environment MUST have the owner as its only required
   reviewer, with self-review prevention on, and MUST hold the credential the
   apply step uses as an environment secret, so no job that has not been
-  approved can read it.
+  approved can read it. A job that runs in it MUST name it in the scalar form
+  `environment: ratification` on one line, which the acceptance reads; the
+  object form (`environment:` with a nested `name:`) is not used.
 - No agent, bot, token or workflow may ratify without that approval. An
   agent MUST NOT approve a deployment to `ratification`, MUST NOT edit
   `status: draft` to `approved` by hand, and MUST NOT add itself or a bot as a

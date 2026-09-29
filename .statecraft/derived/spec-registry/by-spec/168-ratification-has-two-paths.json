@@ -61,14 +61,14 @@
     "risk": "high",
     "sectionDigests": {
       "1-purpose": "56ac52eaa7670ae832418d6d723fdf97b2c3510c1f4fde15b2c8c90049d78d8a",
-      "168-ratification-has-two-paths-both-an-owner-approval": "1da1630650dd63f76d8b3e5c40a3632f3c56098825a7498189774e5787377173",
-      "2-territory": "160aebd6a8b9a277b63cb66046caf3298e4bfc7ffe63d431ad903a3d82c35106",
-      "3-1-one-approval-authority": "de2d5c8e3a70324985bebf3f273dd4b53ff052ec4a71b9cd9daf8fdb67f0168a",
+      "168-ratification-has-two-paths-both-an-owner-approval": "ad65faf2a2b4347d3e671a335277f6d48a02062740cd92eb5fd8f3b712e2eb17",
+      "2-territory": "e2a2e12c80050c5fa2b74effcf92d3d12ebe747aa597dd69107bdf5edaa7d7ca",
+      "3-1-one-approval-authority": "a25213c1d9f9959da4688327865b0a3f9b60e7e0f52d942cd14a721e40032e2e",
       "3-2-path-a-ratify-then-build": "f736009f56f044f9edb15b99d0a337056393ee0443033edc6b22b87a5ba94c9f",
       "3-3-path-b-ratify-at-merge": "1858b5bbed76734fa9f4f0c908ae88fd32a7e6e913a633bc2ca68d1fc853892e",
       "3-4-agents-md-names-the-two-paths": "1163dcdcde4e3b60c81a6e0bdc213a5bcdf80246dc1ac3816db01cd5ab408234",
       "3-5-the-skills-agree": "e5e11cde4b4e41a44f80843a9befb45341e3c953710d162fc1fb5dfdcda032cb",
-      "3-behavior": "7f5233d558ef4a844e754d3acb013664a1d02393002963e6426490381961c5c5",
+      "3-behavior": "50c6f3dbec8e6d3a2fece54f2955e351e36775e4dcbb2ac33403be9527a51c8e",
       "4-out-of-scope": "d615f28802b2926b47b7288383f025626b3a59f995bd826763eea51e1eaa7d11",
       "5-resolved-decisions": "60f5ad0632f023dad839b85552784eacf0db7f2597748c356d4a97ed060f9b17",
       "verification": "186757d24457c8e4d980881e406f9a813b3e7d4cea668790a83e7f2e58ab26f3"
@@ -92,6 +92,6 @@
     "summary": "This repository builds a spec while it is still a draft and ratifies it in a second, hand-authored pull request. The owner has chosen ratify-then-build instead, with ratification as a triggerable action gated on an owner-only deployment environment, and a second path that ratifies at merge when a pull request lands a spec at draft and complete. Both paths flip only `status`, bind the approval to the exact bytes shown, and leave ratification owner-only.\n",
     "title": "Ratification has two paths, both an owner approval"
   },
-  "shardHash": "f856667cd09ff76b7da5f0bf7c7dea6caf29f3347a1f800c6cc13fd44fa57c1b",
+  "shardHash": "260b63d54a3306d6b094fd470270b9a719060cbe39d60bb298150f5dbd3baf86",
   "specVersion": "1.9.0"
 }

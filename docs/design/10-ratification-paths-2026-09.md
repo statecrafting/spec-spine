@@ -57,8 +57,8 @@ Triggers: `pull_request` (opened, synchronize, reopened) and `merge_group`.
 - Empty set: the check succeeds, no approval requested.
 - Non-empty set on `pull_request`: `detect` writes the set, each
   `contentHash`, and the head SHA to the step summary and job outputs.
-  `apply` reads the outputs (never the summary), runs in the
-  `ratification` environment, refuses if the pull request head is no longer
+  `apply` reads the outputs (never the summary), runs with
+  `environment: ratification` (the scalar form, spec 168 §3.1), refuses if the pull request head is no longer
   that SHA, flips `status` for exactly the listed specs, runs `compile`, and
   commits to the pull request branch through the API with the App token, so
   the push re-triggers the required workflows. The new run finds an empty set
