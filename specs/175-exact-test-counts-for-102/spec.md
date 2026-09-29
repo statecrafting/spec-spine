@@ -32,7 +32,7 @@ Measured on `ae079726`, 2026-09-29, with `cargo test -p <crate> --test <target> 
 
 Spec 153 §3.1 requires that no live plan accept an open-ended positive test
 count, and §3.2 assigns each live block to its own tightening spec (153 D-5).
-This is 102's. 102 holds 053 and 087, so their plans resolve here too, and their superseded notes name this spec.
+This is 102's. 102 holds 053 and 087, so their plans resolve here too; the superseded notes of 053 and 087 name this spec.
 
 | Block line | Target | Filter | Names |
 |---|---|---|---|

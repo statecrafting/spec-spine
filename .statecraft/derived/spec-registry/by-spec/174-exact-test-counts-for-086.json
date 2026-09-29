@@ -17,8 +17,8 @@
     "owner": "The spec-spine Authors",
     "risk": "low",
     "sectionDigests": {
-      "1-purpose": "2fc0258462fd53582ee401aa8adfe2f17083141d6ebef6a8d19b9836debacdbf",
-      "174-exact-test-counts-for-086": "c71bef7c5fd69c2a37a88048f69dd9f5cfe80b8492d1d76bfbb4865f0c5c1012",
+      "1-purpose": "1a8f8e644c1cb83e4d61320a58dd8dbc92ae277e01bcaea9e462e9c4df146248",
+      "174-exact-test-counts-for-086": "72578e65221395b81c8984bcd28b62028ad92c988df51808f65f9efa13868565",
       "2-territory": "cd443a8281f113ea6d3a19940da4a9d866cc9416a607ee3499dd84ba8940ff70",
       "3-1-086-s-block-is-carried": "868cb7ae07da7f84293f5318c367220cfd9254d723fd9fe0b532051786e398c4",
       "3-2-each-loose-line-names-its-tests": "8ecbc844f03d19e2014c0c6c4cdfbfa493bb996f3f5d57473d77e2188a013ece",
@@ -45,6 +45,6 @@
     "summary": "Spec 086's acceptance block carries one line that accepts `test result: ok. [1-9][0-9]* passed`, which passes while any one test in the target runs. This spec holds 086's block, carries it byte-identical, and replaces each loose line with spec 151's form: the tests the line ran, named with `--exact`, and `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).\n",
     "title": "Exact test counts for 086"
   },
-  "shardHash": "1042d564c47262b6d4ec54f56d993ddd947896d3d301bec7d12e36c29144d188",
+  "shardHash": "05f8a55fba495e4e83e05b7a60956c748093de23584c3c2599a61d39a37b9f6d",
   "specVersion": "1.9.0"
 }
