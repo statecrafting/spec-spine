@@ -250,5 +250,5 @@ is not vacuous.
 cargo build --release --locked
 # 3.1: no live plan accepts a loose count. Ids on the verify stack are skipped:
 # `verify` refuses them before honouring --plan, and their plan is this block (D-7).
-sh -c 'B="$PWD/target/release/spec-spine"; P="${TMPDIR:-/tmp}/ss153.plan"; r=0; for id in $("$B" registry list --ids-only); do case ",${SPEC_SPINE_VERIFY_STACK:-}," in *",$id,"*) continue ;; esac; "$B" verify "$id" --plan > "$P" 2>&1 || { echo "$id: verify --plan exited $?"; r=1; continue; }; if grep -q "[[]1-9[]][[]0-9[]][*] passed" "$P"; then echo "$id: its plan accepts any positive test count"; r=1; fi; done; rm -f "$P"; exit $r'
+sh -c 'B="$PWD/target/release/spec-spine"; P="$(mktemp)" || exit 1; r=0; for id in $("$B" registry list --ids-only); do case ",${SPEC_SPINE_VERIFY_STACK:-}," in *",$id,"*) continue ;; esac; "$B" verify "$id" --plan > "$P" 2>&1 || { echo "$id: verify --plan exited $?"; r=1; continue; }; if grep -q "[[]1-9[]][[]0-9[]][*] passed" "$P"; then echo "$id: its plan accepts any positive test count"; r=1; fi; done; rm -f "$P"; exit $r'
 ```
