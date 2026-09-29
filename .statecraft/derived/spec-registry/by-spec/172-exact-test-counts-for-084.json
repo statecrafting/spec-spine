@@ -1,0 +1,50 @@
+{
+  "record": {
+    "amends": [
+      "084-an-acceptance-outlives-the-output-it-was-written-against"
+    ],
+    "amendsVerification": [
+      "084-an-acceptance-outlives-the-output-it-was-written-against"
+    ],
+    "created": "2026-09-29",
+    "dependsOn": [
+      "084-an-acceptance-outlives-the-output-it-was-written-against",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "id": "172-exact-test-counts-for-084",
+    "implementation": "complete",
+    "kind": "test",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "594bb1f7f6ae88c922bd3dbae765e60185272a82d64c82990b385b6d813bf6fe",
+      "172-exact-test-counts-for-084": "425c4509b21b2bd9effdec894da460ad0bc72506628dc59fd1402c01800ef92e",
+      "2-territory": "8ec9f6ba627fc95e933abf51ecdc389ca96d14ce7afdad6dde923514886e9769",
+      "3-1-084-s-block-is-carried": "487c7b80d3cc52087007913fd7f2d17e7c83d0de337654f4501165e3ad6736ba",
+      "3-2-each-loose-line-names-its-tests": "5bd82037258caba100d7f7b460c09c40cfd8ffee14ccb4cfdc4e53176b29fcb9",
+      "3-3-the-amended-specs-say-so": "06faf2e8b1e3656a3e74a371f258c2a8f4bb516d51e359340d25d4294176d9d2",
+      "3-behavior": "528b4ad5b618511834d230d6a48f01e9bc2d6c1e6a3e84a41d31b4c15f1b62e9",
+      "4-out-of-scope": "5da23c38c7913b92a2260e6dea643211b0e18bb70e22b6be9e8c5b7d51b7a92e",
+      "5-resolved-decisions": "1308fff85ac8b8f0ef39b561af6e235c7e8b3b937da6a06138e4faa7447419c4",
+      "verification": "f7f0a3e7c72a027e6c62afbfceef3c9e7b3a317d4fc522dc1ba81f72d78db50d"
+    },
+    "sectionHeadings": [
+      "172: Exact test counts for 084",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 084's block is carried",
+      "3.2 Each loose line names its tests",
+      "3.3 The amended specs say so",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/172-exact-test-counts-for-084/spec.md",
+    "status": "draft",
+    "summary": "Spec 084's acceptance block carries one line that accepts `test result: ok. [1-9][0-9]* passed`, which passes while any one test in the target runs. This spec holds 084's block, carries it byte-identical, and replaces each loose line with spec 151's form: the tests the line ran, named with `--exact`, and `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).\n",
+    "title": "Exact test counts for 084"
+  },
+  "shardHash": "a7febbeee1c5839da7a281f0ab2ece3781be4c8524f6d696ca84dcb12e2105d0",
+  "specVersion": "1.9.0"
+}

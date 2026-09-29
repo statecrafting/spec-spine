@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "084-an-acceptance-outlives-the-output-it-was-written-against"
+    ],
+    "dependsOn": [
+      "084-an-acceptance-outlives-the-output-it-was-written-against",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "172-exact-test-counts-for-084",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "a7febbeee1c5839da7a281f0ab2ece3781be4c8524f6d696ca84dcb12e2105d0"
+}

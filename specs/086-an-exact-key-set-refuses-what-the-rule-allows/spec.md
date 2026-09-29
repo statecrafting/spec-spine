@@ -390,6 +390,14 @@ halves rather than a rule with a silent exception.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-29).** This block no longer runs.
+> `174-exact-test-counts-for-086` declares this spec in
+> `amends_verification`, so `spec-spine verify 086` builds its plan from that
+> spec's block, where these commands are carried with each loose test count
+> replaced by the tests it ran (spec 082 3.2 and 3.4; spec 153 3.2).
+>
+> The commands below are kept verbatim and are not corrected (spec 037 3.1).
+
 Each line is one command, run independently: no shell variable survives to the
 next line, so the fixture under `${TMPDIR:-/tmp}/ss059` and the captured
 documents beside it carry the state instead. This block is spec 052's acceptance

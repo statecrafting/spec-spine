@@ -434,6 +434,9 @@ and the next reader can run it.
 > here, which is how the corpus proves this spec was amended rather than
 > edited (spec 037 3.1). Editing them here is the laundering move amendment
 > exists to refuse, and it goes red.
+>
+> Since 2026-09-29, `175-exact-test-counts-for-102` holds 102's block in turn,
+> so this plan runs from that spec's block (spec 153 3.2).
 
 Each line is one command, run independently: no shell variable survives to the
 next line, so the fixture under `${TMPDIR:-/tmp}/ss060` and the documents

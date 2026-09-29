@@ -228,6 +228,9 @@ adds.
 > that these exact lines are still here, which is how the corpus proves this
 > spec was amended rather than edited (spec 037 3.1). Editing them here is the
 > laundering move amendment exists to refuse, and it goes red.
+>
+> Since 2026-09-29, `173-exact-test-counts-for-085` holds 085's block in turn,
+> so this plan runs from that spec's block (spec 153 3.2).
 
 Every assertion fails against pre-056 code: `--spec` is an unknown argument and
 clap refuses it with exit 2.

@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "102-a-ready-spec-carries-its-status"
+    ],
+    "dependsOn": [
+      "102-a-ready-spec-carries-its-status",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "175-exact-test-counts-for-102",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "123141bf3e3489c898b777fd3e44975104f85aa9260cc09b6e63c1b15ca959bd"
+}

@@ -219,6 +219,9 @@ the corpus.
 > that these exact lines are still here, which is how the corpus proves this
 > spec was amended rather than edited (spec 037 3.1). Editing them here is the
 > laundering move amendment exists to refuse, and it goes red.
+>
+> Since 2026-09-29, `175-exact-test-counts-for-102` holds 102's block in turn,
+> so this plan runs from that spec's block (spec 153 3.2).
 
 Each line is one command (spec 043 §3.2). The shape assertions run against a
 **scratch corpus** rather than against this repository's plan, because this

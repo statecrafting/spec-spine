@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "085-a-version-pin-is-not-a-contract"
+    ],
+    "dependsOn": [
+      "085-a-version-pin-is-not-a-contract",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "173-exact-test-counts-for-085",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "2c8aa52e5cab9d06ed6b01aa0091b21ecbe2647a8244d4d6c996872904549686"
+}

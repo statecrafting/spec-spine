@@ -116,7 +116,7 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "082-an-amended-acceptance-is-the-one-that-runs": "940a3e2452c37183d5e128197055fc5d3f965e11d3d3e4bf75fcff59651cf67a",
+      "082-an-amended-acceptance-is-the-one-that-runs": "89f4afb8ec1d8a8e167948c0af6803381db9eaea5105f4f32f9a5cbf15f496b4",
       "1-1-an-acceptance-line-that-asserted-a-fact-about-the-calendar": "93bc6421efb11fefeedced44a1744cbfb935107626f63301fc83c452b1af5645",
       "1-2-an-amendment-with-nowhere-to-land": "43f059bd92866c3cf7e3c5dddded34ac1dab917739d3a9f9a8e35c3226db3aba",
       "1-3-why-a-mechanism-rather-than-one-exception": "59dbc50d42144197cc9cdc865379f042b81bcdecacdbca810d928ee9a8b90dec",
@@ -131,7 +131,7 @@
       "3-behavior": "cf4aae8bcbc29d3dab0f29a1a2cbe27d9de7711f8f8ac9a8282746fa3fb18411",
       "4-out-of-scope": "542dc437cb510da393cd8ac2820f594affcb693c1381eaf3d3826a457da3f91a",
       "5-resolved-decisions": "1c30654859881b129e86fe123f5926d8d13a2597f4b76f87e2722169e8fb437d",
-      "verification": "649a2b5bcf317168a060757f8463ebed1d02fde11aacabb8c695b85a8252330a"
+      "verification": "98073a243ff418a6e7bd56916426a3f33c5e17ec1264902976a7935e1b350b2d"
     },
     "sectionHeadings": [
       "082: An amended acceptance is the one that runs",
@@ -156,6 +156,6 @@
     "summary": "Spec 074's `## Verification` line 13 asserts `d[\"next\"][\"id\"]` on `registry plan --next`, which is a claim about the corpus rather than about the code: it holds only while something is ready to build. The corpus finished, `next` became `null`, and `spec-spine verify 093` has been red ever since, failing an assertion that contradicts 074 §3.3's own requirement that an absent answer be a present `null` member. The line is wrong and 093 is approved, so correcting it is an amendment. Spec 037 forbids editing the amended file and `verify` executes that file, so until now an amendment could not reach an acceptance block at all. This spec gives it a route: a spec that `amends` another may declare that its own `## Verification` block replaces the amended spec's, and `verify` runs the replacement and says whose it ran.\n",
     "title": "An amended acceptance is the one that runs"
   },
-  "shardHash": "043671f8e3072049f16b8bdcb2e9a7c1f95ddff3bb90d4e7b5a826de441ff298",
+  "shardHash": "e38f35477919da97d7ac7a06f35cf6d22c08c2dbfbade2778e1b435f53b55c2e",
   "specVersion": "1.9.0"
 }
