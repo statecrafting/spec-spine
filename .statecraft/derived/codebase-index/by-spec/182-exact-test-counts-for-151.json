@@ -1,0 +1,15 @@
+{
+  "mapping": {
+    "amends": [
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "dependsOn": [
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "182-exact-test-counts-for-151",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "bdf9aa8125f519a9d711b190694ae65903219a47bec3235bac834de0d0efd44c"
+}

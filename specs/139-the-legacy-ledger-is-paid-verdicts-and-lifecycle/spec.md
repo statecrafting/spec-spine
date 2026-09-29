@@ -151,6 +151,9 @@ the same change, moves the example to 037.
 > these commands are carried with the ledger count made three and the 006
 > exemption line replaced by 149's absence check, every other line unchanged
 > (spec 082 3.2 and 3.4).
+>
+> Since 2026-09-29, `181-exact-test-counts-for-149` holds 149's block in turn,
+> so this plan runs from that spec's block (spec 153 3.2).
 
 ```verify:cli
 # 3.2: every target's line is gone from the legacy ledger (the sweep also refuses a stale entry).

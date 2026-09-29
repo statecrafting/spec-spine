@@ -153,6 +153,14 @@ line is replaced by 149's own absence check. Every other line is verbatim.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-29).** This block no longer runs.
+> `181-exact-test-counts-for-149` declares this spec in
+> `amends_verification`, so `spec-spine verify 149` builds its plan from that
+> spec's block, where these commands are carried with each loose test count
+> replaced by the tests it ran (spec 082 3.2 and 3.4; spec 153 3.2).
+>
+> The commands below are kept verbatim and are not corrected (spec 037 3.1).
+
 ```verify:cli
 # 3.1: all seven cases, counted exactly.
 sh -c 'sh scripts/test-install.sh > "${TMPDIR:-/tmp}/ss149.out" 2>&1; rc=$?; grep -qx "install.sh: 7 of 7 cases passed" "${TMPDIR:-/tmp}/ss149.out"; g=$?; rm -f "${TMPDIR:-/tmp}/ss149.out"; test $rc -eq 0 && test $g -eq 0'

@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "137-the-legacy-ledger-is-paid-index-and-lint"
+    ],
+    "dependsOn": [
+      "137-the-legacy-ledger-is-paid-index-and-lint",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "179-exact-test-counts-for-137",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "66eea6df38bfcb3e23cd4ed4f51cafccb02d5f6b5393ecb73c92018a284ce838"
+}

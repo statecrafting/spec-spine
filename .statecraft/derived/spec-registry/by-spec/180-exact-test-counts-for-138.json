@@ -1,0 +1,50 @@
+{
+  "record": {
+    "amends": [
+      "138-the-legacy-ledger-is-paid-coupling-and-freshness"
+    ],
+    "amendsVerification": [
+      "138-the-legacy-ledger-is-paid-coupling-and-freshness"
+    ],
+    "created": "2026-09-29",
+    "dependsOn": [
+      "138-the-legacy-ledger-is-paid-coupling-and-freshness",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "id": "180-exact-test-counts-for-138",
+    "implementation": "complete",
+    "kind": "test",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "0dc399e7e5a4d1a870b9c1aa7346b5e571940d4613044a84910b8a6dcbff4224",
+      "180-exact-test-counts-for-138": "f7517e77fa22805cc0d93e58cf0aeac6717b47c6ee05c92968b9593550036750",
+      "2-territory": "99b40a17847dc15642f2402894d69f56feb8610f3b12301d17ab6c4e30c2f9a1",
+      "3-1-138-s-block-is-carried": "a1c3e69f3057258d52771c4337e13b2cf52b8574c309dd19b8e9461de6ae674f",
+      "3-2-each-loose-line-names-its-tests": "b73bbf41f03602ea26403c81bd52c5964e8b8cc3129fe564ba243d5513315518",
+      "3-3-the-amended-specs-say-so": "5723897afc8b46e3be07cb5a2b3d33a0ab0b5c805de00b04a22d9ba4eb007621",
+      "3-behavior": "00ce2c35328b70f4f751f7cf58d9915a25e82f96a12c84810a5b958c77a2b663",
+      "4-out-of-scope": "1a6625a0fc3bf9abebfec160bcf6fbbb22dfbe04b1fd07af99902614520f6744",
+      "5-resolved-decisions": "4817054884e177c3f053da9e4234baba20dbb377dec178483fbe6c4f84ecdbf1",
+      "verification": "57e95eeb0dccacc458475de2d879d3fe5d837047a05e756b36a1646318f4e73f"
+    },
+    "sectionHeadings": [
+      "180: Exact test counts for 138",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 138's block is carried",
+      "3.2 Each loose line names its tests",
+      "3.3 The amended specs say so",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/180-exact-test-counts-for-138/spec.md",
+    "status": "draft",
+    "summary": "Spec 138's acceptance block carries two lines that accept `test result: ok. [1-9][0-9]* passed`, which pass while any one test in the target runs. This spec holds 138's block, carries it byte-identical, and replaces each loose line with spec 151's form: the tests the line ran, named with `--exact`, and `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).\n",
+    "title": "Exact test counts for 138"
+  },
+  "shardHash": "b4b68a140baaa36fe018dba5cea535a84fbcd0d9efe8bf5aa00da1f6bae6b949",
+  "specVersion": "1.9.0"
+}

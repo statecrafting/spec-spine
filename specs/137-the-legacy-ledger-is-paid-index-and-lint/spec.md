@@ -127,6 +127,14 @@ exit 1.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-29).** This block no longer runs.
+> `179-exact-test-counts-for-137` declares this spec in
+> `amends_verification`, so `spec-spine verify 137` builds its plan from that
+> spec's block, where these commands are carried with each loose test count
+> replaced by the tests it ran (spec 082 3.2 and 3.4; spec 153 3.2).
+>
+> The commands below are kept verbatim and are not corrected (spec 037 3.1).
+
 ```verify:cli
 # 3.2: every target's line is gone from the legacy ledger (the sweep also refuses a stale entry).
 sh -c '! grep -Eqx "(003-conformance-lint|004-codebase-index|010-index-render-orphans|011-index-hash-slices|016-directory-crate-module-units|020-keypath-section-anchors|022-index-sharding|023-unresolved-unit-severity|024-resolution-discovery-fixes|025-symbol-resolution-feature-gate)" scripts/verify-sweep.sh'

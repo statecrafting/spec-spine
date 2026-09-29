@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "138-the-legacy-ledger-is-paid-coupling-and-freshness"
+    ],
+    "dependsOn": [
+      "138-the-legacy-ledger-is-paid-coupling-and-freshness",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "180-exact-test-counts-for-138",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "b4b68a140baaa36fe018dba5cea535a84fbcd0d9efe8bf5aa00da1f6bae6b949"
+}

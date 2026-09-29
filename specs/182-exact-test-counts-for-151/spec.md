@@ -1,168 +1,101 @@
 ---
-id: "151-carried-acceptance-tests-what-it-names"
-title: "Carried acceptance tests what it names"
-status: approved
-kind: "tooling"
-created: "2026-09-25"
+id: "182-exact-test-counts-for-151"
+title: "Exact test counts for 151"
+status: draft
+kind: "test"
+created: "2026-09-29"
 summary: >
-  The 0.27.0 cross-reference of 136 to 146 found three acceptance plans that
-  could pass without testing what their spec now says. 018's plan (carried by
-  136) never runs 142's amendment of it: its coupling tests build their index by
-  hand, so they pass whether or not the index hands a partially superseded unit
-  over. 144's link-rule line accepts any positive test count, so a link test
-  that stops running still passes. 145's binary line drives only `index
-  coverage`, while six other verbs read the same guard. This spec carries all
-  three plans under `amends_verification`: 018's section gains the hand-off,
-  run through `index` and the shipped binary; 144's line names its three tests;
-  145's block gains one fixture driven through all seven verbs. Each new line
-  fails under a mutation the carried line it tightens passes.
+  Spec 151's acceptance block carries one line that accepts
+  `test result: ok. [1-9][0-9]* passed`, which passes while any one test in the
+  target runs. This
+  spec holds 151's block, carries it byte-identical, and replaces each loose
+  line with spec 151's form: the tests the line ran, named with `--exact`, and
+  `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).
 implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
-  - "136-the-legacy-ledger-is-paid-registry-and-grammar"
-  - "142-a-relocation-is-proven"
-  - "144-a-repository-path-is-one-type"
-  - "145-an-unresolved-claim-is-not-called-stale"
+  - "151-carried-acceptance-tests-what-it-names"
 amends_verification:
-  - "136-the-legacy-ledger-is-paid-registry-and-grammar"
-  - "144-a-repository-path-is-one-type"
-  - "145-an-unresolved-claim-is-not-called-stale"
+  - "151-carried-acceptance-tests-what-it-names"
 amends:
-  - "136-the-legacy-ledger-is-paid-registry-and-grammar"
-  - "144-a-repository-path-is-one-type"
-  - "145-an-unresolved-claim-is-not-called-stale"
+  - "151-carried-acceptance-tests-what-it-names"
 ---
 
-# 151: Carried acceptance tests what it names
+# 182: Exact test counts for 151
 
 ## 1. Purpose
 
-Measured on `baae17c9` (0.27.0 plus drafts 147 to 150), 2026-09-25.
+Measured on `ae079726`, 2026-09-29, with `cargo test -p <crate> --test <target> -- --list
+[<filter>]` on macOS with default features.
 
-### 1.1 018 does not re-test 142's amendment
+Spec 153 §3.1 requires that no live plan accept an open-ended positive test
+count, and §3.2 assigns each live block to its own tightening spec (153 D-5).
+This is 151's. 151 holds 001, 002, 009, 012, 013, 014, 015, 017, 018, 026, 136, 144 and 145, so their plans resolve here too, and their superseded notes name this spec.
 
-142 §3.1 amended 018 §4.3: a live partial `supersedes` now hands its unit over
-exclusively, and the index stops treating the predecessor's claim as ownership.
-018's plan is 136's block (136 holds 018 under `amends_verification`). Its three
-coupling tests (`partial_supersedes_scopes_transfer_to_the_named_unit` and two
-others) build the index as JSON by hand, with both specs owning the unit, so
-they exercise `couple` given an index and never the index that 142 changed.
-With the hand-off removed from `index.rs`, 018's plan still passes (1.4).
+| Block line | Target | Filter | Names |
+|---|---|---|---|
+| 151:7 | core `compile` | whole | 51 |
 
-018's plan can only change through its holder: `verify` follows the
-`amends_verification` chain (`018 -> 136`) and `compile` refuses a second
-holder of one target. So this spec holds 136, carries 136's block unchanged for
-the ten specs it holds, and adds 018's lines inside 018's section.
+"Block line" counts lines inside 151's `verify:cli` fence. The names each
+line ran:
 
-### 1.2 144's test count is loose
-
-144's second line runs all of `tests/repo_path.rs` and accepts
-`test result: ok. [1-9][0-9]* passed`. The file holds three tests, two of them
-the link rule's. A build that drops the refusal and loses its test (deleted,
-renamed, `#[ignore]`d or gated to another platform) still reports `2 passed`,
-and the line passes (1.4).
-
-### 1.3 145 drives one verb
-
-145's binary line runs `index coverage` only. Seven verbs read the committed
-index through `guard_committed_index` or the same partition, and each prints
-the claim on 0.27.0 (exit 1, `I-004`, "not staleness"): `check`, `index check`,
-`index coverage`, `index owner`, `couple`, `delta` and `scope evaluate`. 145's
-library tests cover `coverage` and `owner`. A verb that reverted to the pre-145
-read (the folded freshness verdict, "index is stale") at `couple`, `delta` or
-`scope` passes 145's block (1.4).
-
-### 1.4 Mutation evidence
-
-Run 2026-09-25 on `baae17c9` in a scratch checkout, one mutation at a time,
-each built with `cargo build --release --locked`; "old" is the plan `verify`
-runs on `baae17c9`, "new" is this spec's block. The mutation diffs are in the
-pull request.
-
-| Mutation | Old plan | New plan |
-|---|---|---|
-| M1: `index.rs`, the hand-off's `*ownership = false` removed | 018: passed (22 commands) | 018: FAILED at command 23, the `relocation` hand-off tests |
-| M2: `pathutil.rs`, the outside-link refusal disabled, and its test `a_link_leaving_the_repository_refuses_the_read` gated to `cfg(windows)` | 144: passed (5 commands) | 144: FAILED at command 27, the exact `repo_path` line |
-| M3: `couple.rs`, the 145 guard replaced by the pre-145 folded read | 145: passed (3 commands) | 145: FAILED at command 34, the seven-verb line (`couple`: exit 1, `index is stale ... blocking-diagnostics by-spec/001-a.json`) |
-
-Without a mutation, the new block passes for 151, 018, 144, 145 and 001 (34
-commands each).
+- `compile` (whole target): `a_cycle_written_with_short_ids_is_still_a_cycle`, `a_dangling_dependency_is_reported_once`, `a_dangling_dependency_is_v010_and_never_a_cycle`, `a_diamond_is_not_a_cycle`, `added_spec_without_recompiling_reads_as_missing`, `compile_spec_reports_a_duplicate_ordinal_and_names_the_holder`, `compile_spec_reports_only_the_named_specs_violations`, `compile_spec_resolves_the_short_id_and_refuses_an_unknown_one`, `compile_spec_validates_an_uncommitted_draft_and_writes_nothing`, `compile_spec_works_before_the_registry_exists`, `compiles_clean_corpus_deterministically`, `constrains_scoped_forms_compile_clean`, `content_hash_changes_with_content_but_is_stable_otherwise`, `cycle_reached_through_a_longer_chain_names_only_the_loop`, `dangling_depends_on_stays_warning_tier`, `dangling_short_id_is_left_unchanged_and_still_warns`, `declared_map_key_order_is_canonicalized`, `declared_nested_extra_roundtrips_deterministically`, `edited_spec_without_recompiling_reads_as_modified`, `establishes_wrapper_and_na_alias_are_byte_equivalent`, `extra_frontmatter_is_copied_into_the_registry`, `fail_on_warn_writes_identical_shards`, `freshness_check_passes_on_a_just_compiled_tree_and_writes_nothing`, `freshness_report_caps_the_named_shards`, `oap_dialect_refines_fixture_compiles_clean`, `paths_sugar_grammar_violations_are_v002`, `paths_sugar_is_byte_equivalent_to_single_unit_items`, `registry_freshness_facade_reports_both_verdicts`, `removed_spec_leaves_an_orphaned_shard`, `self_dependency_is_a_cycle`, `short_id_depends_on_resolves_to_full_id`, `short_id_superseded_by_resolves`, `supersedes_full_emits_bare_string_partial_emits_object`, `the_cycle_is_not_stored_in_a_shard_but_is_recomputed_on_read`, `the_reported_cycle_is_deterministic_across_runs`, `two_spec_dependency_cycle_is_an_error_naming_the_path`, `unbuilt_registry_is_stale_not_an_error`, `undeclared_nested_extra_keeps_pre013_guard`, `v001_directory_must_equal_id`, `v002_malformed_frontmatter_is_recorded_not_fatal`, `v003_duplicate_id`, `v004_duplicate_prefix`, `v004_ignores_a_multibyte_prefix_that_lands_on_a_boundary`, `v004_ignores_ids_with_no_numeric_prefix`, `v004_reads_a_non_ascii_id_without_panicking`, `v005_domain_allowlist_when_enabled`, `v007_cap_unchanged_in_presence_of_declared_keys`, `v007_extra_frontmatter_count_cap_with_exemption`, `v008_superseded_requires_resolvable_superseded_by`, `v011_constrains_item_must_scope_unit_or_target_specs`, `v013_unrepresentable_declared_value`.
 
 ## 2. Territory
 
-This spec establishes nothing. It edits 136, 144 and 145 only to add spec 082
-§3.4's superseded-acceptance note above each block.
+This spec establishes nothing. It edits 151 only to add spec 082 §3.4's
+superseded-acceptance note above 151's block, and the notes of 001, 002, 009, 012, 013, 014, 015, 017, 018, 026, 136, 144 and 145 to name this spec.
 
 ## 3. Behavior
 
-### 3.1 018's section runs the hand-off
+### 3.1 151's block is carried
 
-`spec-spine verify` for 136 and every spec 136 holds (018 among them) MUST run
-this spec's block. It carries 136's block unchanged and adds, in 018's section,
-142's two index-level hand-off tests by exact name, and a binary fixture in
-which a partial `supersedes` of `src/y.rs` leaves `index owner src/y.rs` naming
-the successor alone and `index owner src/x.rs` naming the predecessor alone.
+`spec-spine verify 151` and `verify` of 001, 002, 009, 012, 013, 014, 015, 017, 018, 026, 136, 144 and 145 MUST run this
+spec's block, which carries 151's block in one section, every command and
+comment byte-identical except the lines 3.2 names.
 
-### 3.2 144's line names its tests
+### 3.2 Each loose line names its tests
 
-`spec-spine verify 144` MUST run this spec's block. 144's commands are carried
-unchanged except the `repo_path` line, which runs the file's three tests with
-`--exact` and requires `3 passed`.
+Each loose line becomes one command,
+`sh -c 'cargo test -p <crate> --locked --test <target> -- --exact <names> 2>&1 | grep -q "test result: ok. N passed; 0 failed"'`,
+naming exactly the tests the original line selected (section 1), N their number. A
+writer-and-`grep` pair collapses into that command; the pair's `rm -f` stays.
+A line over a target with `cfg`-gated tests is exact on a Unix sweep host with
+default features and says so in a comment (153 3.3).
 
-### 3.3 145's block drives every reading verb
+### 3.3 The amended specs say so
 
-`spec-spine verify 145` MUST run this spec's block. 145's commands are carried
-unchanged, followed by one fixture (a complete spec claiming an absent file, in
-a git repository of two commits) driven through the seven verbs of 1.3. Each
-MUST exit 1, print `I-004`, the claimed path and "not staleness", and print
-none of `index is stale`, `STALE` or `stale shard`. The `--json` forms are out
-of scope here: `check --json` and `index check --json` still say
-`fresh: false` and `stale shard`, which spec 152 changes.
-
-### 3.4 The amended specs say so
-
-136, 144 and 145 each carry spec 082 §3.4's superseded-acceptance note naming
-this spec above their own block.
+151 carries spec 082 §3.4's note naming this spec above its block, and keeps
+the block unchanged below it. 001, 002, 009, 012, 013, 014, 015, 017, 018, 026, 136, 144 and 145 keep their notes and gain one line naming this spec.
 
 ## 4. Out of scope
 
-- The same loose count elsewhere: 21 spec files on `baae17c9` carry a
-  `[1-9][0-9]* passed` assertion (144's, superseded here, 147's draft, and
-  136's `--test compile` line, carried here unchanged). Tightening them is a
-  corpus-wide pass, left to a later spec.
-- Windows: 144's two link tests are `#[cfg(unix)]`; spec 148 owns the Windows
-  cases.
+Narrowing what a filtered line selects (153 4.2), and every other block (153
+3.2 gives each its own spec).
 
 ## 5. Resolved decisions
 
-**D-1 (2026-09-25): filed and built together.** A draft that declares
-`amends_verification` changes the plans of the specs it holds as soon as it
-merges, so its block must pass at the merge. The block needs no product code,
-so this spec is filed with `implementation: complete`, as 146 was.
+**D-1 (2026-09-29): filed and built together.** An `amends_verification` edge
+replaces 151's plan and that of 001, 002, 009, 012, 013, 014, 015, 017, 018, 026, 136, 144 and 145 the moment it merges, so the
+carried block lands with it and this spec is filed `complete` (153 D-3, as 146
+and 151 were).
 
-**D-2 (2026-09-25): hold 136, not 018.** 018 has no block of its own and 136
-holds it; a second holder of 018 is a fork `compile` refuses. Holding 136
-carries the other nine specs' lines byte-identical.
+**D-2 (2026-09-29): names measured at the base.** A later test added to a named
+target does not fail these lines; a named test removed, renamed, ignored or
+gated off does (153 D-6).
 
 ## Verification
 
-> **Superseded acceptance (2026-09-29).** This block no longer runs.
-> `182-exact-test-counts-for-151` declares this spec in
-> `amends_verification`, so `spec-spine verify 151` builds its plan from that
-> spec's block, where these commands are carried with each loose test count
-> replaced by the tests it ran (spec 082 3.2 and 3.4; spec 153 3.2).
->
-> The commands below are kept verbatim and are not corrected (spec 037 3.1).
-
 ```verify:cli
+# ---- carried for 151-carried-acceptance-tests-what-it-names (amends_verification), and through it 001, 002, 009, 012, 013, 014, 015, 017, 018, 026, 136, 144, 145; each loose test count names its tests (153 3.2) ----
 # Self-contained: the binary lines below use the release build.
 cargo build --release --locked
 # ---- carried for 136-the-legacy-ledger-is-paid-registry-and-grammar (amends_verification), and through it the ten specs it holds; 018's section gains 3.1 ----
 # 3.2: every target's line is gone from the legacy ledger (the sweep also refuses a stale entry).
 sh -c '! grep -Eqx "(001-compile-registry|002-registry-query|009-registry-query-projection-flags|012-declared-extra-frontmatter-passthrough|013-edge-paths-grammar-sugar|014-establishes-wrapper-na-alias|015-short-id-resolution|017-constrains-discriminator-optional-unit|018-structured-partial-supersedes|026-references-provenance-derived-at)" scripts/verify-sweep.sh'
 # ---- carried for 001-compile-registry (amends_verification) ----
-sh -c 'cargo test -p spec-spine-core --locked --test compile 2>&1 | grep -qE "test result: ok\. [1-9][0-9]* passed; 0 failed"'
+sh -c 'cargo test -p spec-spine-core --locked --test compile -- --exact a_cycle_written_with_short_ids_is_still_a_cycle a_dangling_dependency_is_reported_once a_dangling_dependency_is_v010_and_never_a_cycle a_diamond_is_not_a_cycle added_spec_without_recompiling_reads_as_missing compile_spec_reports_a_duplicate_ordinal_and_names_the_holder compile_spec_reports_only_the_named_specs_violations compile_spec_resolves_the_short_id_and_refuses_an_unknown_one compile_spec_validates_an_uncommitted_draft_and_writes_nothing compile_spec_works_before_the_registry_exists compiles_clean_corpus_deterministically constrains_scoped_forms_compile_clean content_hash_changes_with_content_but_is_stable_otherwise cycle_reached_through_a_longer_chain_names_only_the_loop dangling_depends_on_stays_warning_tier dangling_short_id_is_left_unchanged_and_still_warns declared_map_key_order_is_canonicalized declared_nested_extra_roundtrips_deterministically edited_spec_without_recompiling_reads_as_modified establishes_wrapper_and_na_alias_are_byte_equivalent extra_frontmatter_is_copied_into_the_registry fail_on_warn_writes_identical_shards freshness_check_passes_on_a_just_compiled_tree_and_writes_nothing freshness_report_caps_the_named_shards oap_dialect_refines_fixture_compiles_clean paths_sugar_grammar_violations_are_v002 paths_sugar_is_byte_equivalent_to_single_unit_items registry_freshness_facade_reports_both_verdicts removed_spec_leaves_an_orphaned_shard self_dependency_is_a_cycle short_id_depends_on_resolves_to_full_id short_id_superseded_by_resolves supersedes_full_emits_bare_string_partial_emits_object the_cycle_is_not_stored_in_a_shard_but_is_recomputed_on_read the_reported_cycle_is_deterministic_across_runs two_spec_dependency_cycle_is_an_error_naming_the_path unbuilt_registry_is_stale_not_an_error undeclared_nested_extra_keeps_pre013_guard v001_directory_must_equal_id v002_malformed_frontmatter_is_recorded_not_fatal v003_duplicate_id v004_duplicate_prefix v004_ignores_a_multibyte_prefix_that_lands_on_a_boundary v004_ignores_ids_with_no_numeric_prefix v004_reads_a_non_ascii_id_without_panicking v005_domain_allowlist_when_enabled v007_cap_unchanged_in_presence_of_declared_keys v007_extra_frontmatter_count_cap_with_exemption v008_superseded_requires_resolvable_superseded_by v011_constrains_item_must_scope_unit_or_target_specs v013_unrepresentable_declared_value 2>&1 | grep -q "test result: ok. 51 passed; 0 failed"'
 sh -c 'cargo test -p spec-spine-core --locked --test conformance -- --exact emitted_registry_shards_conform_to_embedded_schema 2>&1 | grep -q "test result: ok. 1 passed; 0 failed"'
 sh -c 'cargo test -p spec-spine-cli --locked --test cli -- --exact compile_ok_then_queries 2>&1 | grep -q "test result: ok. 1 passed; 0 failed"'
 # ---- carried for 002-registry-query (amends_verification) ----

@@ -56,14 +56,14 @@
     "risk": "low",
     "sectionDigests": {
       "1-purpose": "5876dd5ad603ceaecdc5c4b0b764d8318a99647cce89ff9baecc79340134ad5c",
-      "137-the-legacy-ledger-is-paid-index-lint-and-resolution": "a6ddd7a4c1e30de8e36152685f28beec31092c90eb5a581c204d95dbf8c6b6b1",
+      "137-the-legacy-ledger-is-paid-index-lint-and-resolution": "4b8cc79f0bdf54d1b8c23201d23c1971fb82827f4d3a5cf01d4f8d24c62ac173",
       "2-territory": "ee54f2bef2841ee01a6bfed3f0a56cb17fb02a55f5e9144fafa84890f0d1eef0",
       "3-1-the-carried-acceptance": "cb985f0545080af457a4ba42733623946160343b5fa0a836ab52e0bd8adb6cc7",
       "3-2-the-ledger-shrinks-in-the-same-change": "3e2e6f7587a26c6d586fe280bc8b1df9ceb0c064693daa19165b9d2ceec54213",
       "3-behavior": "3de5e1ecde0762856ee1d3c968695ebd9e2aa18ef9a050d90c5266d986d84057",
       "4-out-of-scope": "e2221f2cc69dca111535357144438cca042570ed91fb3a360339961eb85043a7",
       "5-resolved-decisions": "679a79dfdc85f3f24f61617d48e178f3b78586d9f6c4b930acf8674caee7ee46",
-      "verification": "13abc378af7b6b5927cb0e9c92c5587bbf1ab1cb42de23851e972422793ffb13"
+      "verification": "7e94514b42f173d2315de1ebc1dc9ef7358e527142e0f6149ccae30551d36465"
     },
     "sectionHeadings": [
       "137: The legacy ledger is paid: index, lint and resolution",
@@ -81,6 +81,6 @@
     "summary": "10 specs filed before `verify` existed (003, 004, 010, 011, 016, 020, 022, 023, 024, 025) sit on the legacy ledger in `scripts/verify-sweep.sh` with no executable acceptance, although the tests that hold their behavior exist and pass. This spec carries that acceptance for them under `amends_verification`, the route spec 132 used, and deletes their ledger lines in the same change. Every command names its tests exactly and asserts the exact pass count, so a renamed or deleted test turns the block red instead of passing on an empty filter. The area is the codebase index, lint, section and symbol resolution, and sharding.\n",
     "title": "The legacy ledger is paid: index, lint and resolution"
   },
-  "shardHash": "8782c30f664fbd9f6644eb4aa2edfb3f8e5ac8c70b7e96b4af8cc851be376258",
+  "shardHash": "7a49633bfce169cac91a94f98fc2a4f5703f3ca2b1da771e7335f17921845473",
   "specVersion": "1.9.0"
 }

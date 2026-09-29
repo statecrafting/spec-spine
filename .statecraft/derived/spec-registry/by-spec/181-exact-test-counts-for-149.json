@@ -1,0 +1,50 @@
+{
+  "record": {
+    "amends": [
+      "149-the-installer-is-tested"
+    ],
+    "amendsVerification": [
+      "149-the-installer-is-tested"
+    ],
+    "created": "2026-09-29",
+    "dependsOn": [
+      "149-the-installer-is-tested",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "id": "181-exact-test-counts-for-149",
+    "implementation": "complete",
+    "kind": "test",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "a1d35b6ea03ab769c5793aa5aff23f2aa0df76dbd0b8ac32337c9edff6f13759",
+      "181-exact-test-counts-for-149": "cf3a02e680bcb858f6079a88827bf572f917a0614b4dd56636b3f54e4c3bb37a",
+      "2-territory": "4dea53336eece222e9302a19e637bd51a0e3aeb8ff296aa26676b72802cdbe07",
+      "3-1-149-s-block-is-carried": "95736b39f844f88c6709a58bf46f54dfe094179f5808cc1e127fb9e162e806f1",
+      "3-2-each-loose-line-names-its-tests": "57d996dde2f79467b4d3d76d38508add9fd96766963797af2fdc9c99741f987a",
+      "3-3-the-amended-specs-say-so": "033e88e3b03363cf1ca3e82fdc5d8d46a577d01b041ee7a2b43ffcd77459baa7",
+      "3-behavior": "8898720559f9260161355a6c8be2c40433ba3e96ed9acd143178b6a6a964088d",
+      "4-out-of-scope": "9244baae3308c38586c9a832069c1fe04adc838f691d237434db7bb323cd6a8b",
+      "5-resolved-decisions": "73a13f06fd737113bfcd228b157d66b714ff19c642b73769721c3105a3d11039",
+      "verification": "4667485ae173b680267eb8e037c9400cca0480867dc71067f668cee209abf5f5"
+    },
+    "sectionHeadings": [
+      "181: Exact test counts for 149",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 149's block is carried",
+      "3.2 Each loose line names its tests",
+      "3.3 The amended specs say so",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/181-exact-test-counts-for-149/spec.md",
+    "status": "draft",
+    "summary": "Spec 149's acceptance block carries one line that accepts `test result: ok. [1-9][0-9]* passed`, which passes while any one test in the target runs. This spec holds 149's block, carries it byte-identical, and replaces each loose line with spec 151's form: the tests the line ran, named with `--exact`, and `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).\n",
+    "title": "Exact test counts for 149"
+  },
+  "shardHash": "9d51838e1a10e36c2a46a3dca81ec866c393e6d47f513efe4cad4da37e419c6d",
+  "specVersion": "1.9.0"
+}
