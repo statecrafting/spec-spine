@@ -1,0 +1,176 @@
+{
+  "mapping": {
+    "amends": [
+      "150-a-change-runs-the-acceptance-it-can-break"
+    ],
+    "dependsOn": [
+      "089-nothing-reruns-a-merged-acceptance",
+      "099-a-merged-acceptance-is-asked-again",
+      "150-a-change-runs-the-acceptance-it-can-break",
+      "154-the-pre-merge-sweep-is-a-skill-step",
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".claude/skills/",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".github/workflows/statecraft-ci.yml",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".statecraft/environment.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".statecraft/setup/github-actions-rust.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": "AGENTS.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/test-verify-sweep.py",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/verify-sweep.sh",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/affected-acceptance.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".claude/skills/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/skills/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/statecraft-ci.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/statecraft-ci.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".statecraft/environment.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/environment.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".statecraft/setup/github-actions-rust.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/setup/github-actions-rust.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "AGENTS.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/test-verify-sweep.py"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/test-verify-sweep.py"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/verify-sweep.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/acceptance.yml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/acceptance.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/spec-spine-required.yml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/spec-spine-required.yml"
+        }
+      }
+    ],
+    "specId": "157-the-affected-sweep-runs-in-the-merge-queue",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "e0799e0b138826afd9b5fd8a658046b0adfc08e36b465ceb87bca41e5d19d4fe"
+}
