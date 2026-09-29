@@ -17,13 +17,13 @@
     "owner": "The spec-spine Authors",
     "risk": "low",
     "sectionDigests": {
-      "1-purpose": "a1d35b6ea03ab769c5793aa5aff23f2aa0df76dbd0b8ac32337c9edff6f13759",
-      "181-exact-test-counts-for-149": "cf3a02e680bcb858f6079a88827bf572f917a0614b4dd56636b3f54e4c3bb37a",
-      "2-territory": "4dea53336eece222e9302a19e637bd51a0e3aeb8ff296aa26676b72802cdbe07",
+      "1-purpose": "ab92f0eb2a33b05ef178c6abafd6e5513e96e457344a30905185814040001b55",
+      "181-exact-test-counts-for-149": "75cc2db6b7546f6b3e205930f7980601c392687062181e43d83f294c40c42266",
+      "2-territory": "f98b9ebc12e813460ab7e1444a6abdc8e5d28afce9a417ba4e82b2fda7a670ff",
       "3-1-149-s-block-is-carried": "95736b39f844f88c6709a58bf46f54dfe094179f5808cc1e127fb9e162e806f1",
       "3-2-each-loose-line-names-its-tests": "57d996dde2f79467b4d3d76d38508add9fd96766963797af2fdc9c99741f987a",
-      "3-3-the-amended-specs-say-so": "033e88e3b03363cf1ca3e82fdc5d8d46a577d01b041ee7a2b43ffcd77459baa7",
-      "3-behavior": "8898720559f9260161355a6c8be2c40433ba3e96ed9acd143178b6a6a964088d",
+      "3-3-the-amended-specs-say-so": "a0780162beb97b9742b0d822ada677cfb7043d814fafff2eb577565bd603098f",
+      "3-behavior": "8b327b5d000a2f28fdfa79400100ea080942d1882f103c77be603a87233d8ab6",
       "4-out-of-scope": "9244baae3308c38586c9a832069c1fe04adc838f691d237434db7bb323cd6a8b",
       "5-resolved-decisions": "73a13f06fd737113bfcd228b157d66b714ff19c642b73769721c3105a3d11039",
       "verification": "4667485ae173b680267eb8e037c9400cca0480867dc71067f668cee209abf5f5"
@@ -45,6 +45,6 @@
     "summary": "Spec 149's acceptance block carries one line that accepts `test result: ok. [1-9][0-9]* passed`, which passes while any one test in the target runs. This spec holds 149's block, carries it byte-identical, and replaces each loose line with spec 151's form: the tests the line ran, named with `--exact`, and `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).\n",
     "title": "Exact test counts for 149"
   },
-  "shardHash": "9d51838e1a10e36c2a46a3dca81ec866c393e6d47f513efe4cad4da37e419c6d",
+  "shardHash": "e755c13614e011078f6491e426bac405019197542308f9ab9e09ae8accdd38c0",
   "specVersion": "1.9.0"
 }

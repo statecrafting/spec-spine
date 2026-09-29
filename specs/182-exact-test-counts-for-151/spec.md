@@ -31,7 +31,7 @@ Measured on `ae079726`, 2026-09-29, with `cargo test -p <crate> --test <target> 
 
 Spec 153 §3.1 requires that no live plan accept an open-ended positive test
 count, and §3.2 assigns each live block to its own tightening spec (153 D-5).
-This is 151's. 151 holds 001, 002, 009, 012, 013, 014, 015, 017, 018, 026, 136, 144 and 145, so their plans resolve here too, and their superseded notes name this spec.
+This is 151's. 151 holds 001, 002, 009, 012, 013, 014, 015, 017, 018, 026, 136, 144 and 145, so their plans resolve here too; the superseded notes of 136, 144 and 145 name this spec, and the others have no block of their own.
 
 | Block line | Target | Filter | Names |
 |---|---|---|---|
@@ -45,7 +45,7 @@ line ran:
 ## 2. Territory
 
 This spec establishes nothing. It edits 151 only to add spec 082 §3.4's
-superseded-acceptance note above 151's block, and the notes of 001, 002, 009, 012, 013, 014, 015, 017, 018, 026, 136, 144 and 145 to name this spec.
+superseded-acceptance note above 151's block, and the notes of 136, 144 and 145 to name this spec.
 
 ## 3. Behavior
 
@@ -67,7 +67,7 @@ default features and says so in a comment (153 3.3).
 ### 3.3 The amended specs say so
 
 151 carries spec 082 §3.4's note naming this spec above its block, and keeps
-the block unchanged below it. 001, 002, 009, 012, 013, 014, 015, 017, 018, 026, 136, 144 and 145 keep their notes and gain one line naming this spec.
+the block unchanged below it. 136, 144 and 145 keep their notes and gain one line naming this spec. 001, 002, 009, 012, 013, 014, 015, 017, 018 and 026 have no block of their own, so no note.
 
 ## 4. Out of scope
 
