@@ -54,6 +54,10 @@ __pycache__/
 # Retain the pre-migration installer directory for existing local worktrees.
 .tooling/
 
+.agents/
+.codex/
+docs/backlog.md
+
 # >>> statecraft managed ignores >>>
 # Managed by Statecraft. Entries above and below this block are yours and are
 # never reordered, rewritten or removed. Delete the whole block to opt out.
