@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "149-the-installer-is-tested"
+    ],
+    "dependsOn": [
+      "149-the-installer-is-tested",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "181-exact-test-counts-for-149",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "e755c13614e011078f6491e426bac405019197542308f9ab9e09ae8accdd38c0"
+}

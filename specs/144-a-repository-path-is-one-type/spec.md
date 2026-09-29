@@ -145,6 +145,9 @@ corpus in the family stores one there.
 > `151-carried-acceptance-tests-what-it-names` declares this spec in
 > `amends_verification`, so `spec-spine verify 144` builds its plan from that
 > spec's block, where these commands are carried with the `repo_path` line made exact and every other line unchanged (spec 082 3.2 and 3.4).
+>
+> Since 2026-09-29, `182-exact-test-counts-for-151` holds 151's block in turn,
+> so this plan runs from that spec's block (spec 153 3.2).
 
 ```verify:cli
 # 3.1: the rule and the type.

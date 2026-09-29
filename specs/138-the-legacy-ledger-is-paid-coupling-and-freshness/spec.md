@@ -127,6 +127,14 @@ exit 1.
 
 ## Verification
 
+> **Superseded acceptance (2026-09-29).** This block no longer runs.
+> `180-exact-test-counts-for-138` declares this spec in
+> `amends_verification`, so `spec-spine verify 138` builds its plan from that
+> spec's block, where these commands are carried with each loose test count
+> replaced by the tests it ran (spec 082 3.2 and 3.4; spec 153 3.2).
+>
+> The commands below are kept verbatim and are not corrected (spec 037 3.1).
+
 ```verify:cli
 # 3.2: every target's line is gone from the legacy ledger (the sweep also refuses a stale entry).
 sh -c '! grep -Eqx "(005-coupling-gate|008-coupling-floor-claim-precedence|027-cargo-workflow-dependency-waiver|028-registry-freshness-check|029-ownership-coverage|030-dependency-cycle-refusal|031-references-non-owning-paths|033-configured-corpus-root|035-registry-plan-ready-set|036-declared-state-dir)" scripts/verify-sweep.sh'
