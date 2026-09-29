@@ -9,8 +9,8 @@
     ],
     "implementingPaths": [],
     "specId": "175-exact-test-counts-for-102",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "d04f8fa2bc7240fb08cd74a2a80e480503c2ee46d7663f9521038dc64eb75e99"
+  "shardHash": "44ac70364eb7be6873af6fab0300ed4c181def88668b491ca4e145e3e1481a1d"
 }

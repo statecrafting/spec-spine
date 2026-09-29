@@ -1,7 +1,7 @@
 ---
 id: "186-exact-test-counts-for-099"
 title: "Exact test counts for 099"
-status: draft
+status: approved
 kind: "test"
 created: "2026-09-29"
 summary: >
