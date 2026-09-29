@@ -61,11 +61,12 @@ A line is **live** when it sits in the `verify:cli` block that
 holder carries them.
 
 - 36 lines are live, in 17 blocks (1.2).
-- 7 lines are dead: 087 (held by 102), 091's three and 094's one (held by
-  156, which carried 091's as four loose lines of its own and 094's as a
-  bare `cargo test` of the target), 136 (held by 151, carried verbatim), 139 (held by 149, carried),
-  144 (held by 151, replaced by an exact line).
-- 151:61 and 151:131 are prose, outside any block.
+- 8 lines are dead: 087's one (held by 102), 091's three and 094's one (held
+  by 156, which replaced 091's three with four loose lines of its own, and
+  094's with a bare `cargo test` of the target), 136's one (held by 151,
+  carried verbatim), 139's one (held by 149, carried), and 144's one (held by
+  151, replaced by an exact line).
+- 087:397, 151:61 and 151:131 are prose, outside any block.
 
 ### 1.2 The live lines
 
