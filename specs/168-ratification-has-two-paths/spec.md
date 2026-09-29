@@ -108,10 +108,11 @@ Triggered by `workflow_dispatch` with one input, a spec id.
    `status: draft`, and write to the run summary the spec's full id, title,
    `implementation` value and its registry `contentHash`
    (`spec-spine registry show <id> --json`). That summary is what the owner
-   approves.
+   approves. The job MUST also emit the id and `contentHash` as job outputs,
+   and the apply job MUST read them from there, never from the summary.
 2. The apply job MUST run in the `ratification` environment, and MUST refuse
    if the spec's `contentHash` on the default branch no longer equals the one
-   the first job printed. An approval ratifies the bytes that were shown.
+   the first job emitted. An approval ratifies the bytes that were shown.
 3. The apply job MUST change exactly one line of `specs/<id>/spec.md`,
    `status: draft` to `status: approved`, regenerate the derived registry with
    `spec-spine compile`, and propose both on a branch named `ratify/<id>`
@@ -137,7 +138,9 @@ on `pull_request` and `merge_group`.
    request that does not complete a draft, including a Path A ratify pull
    request and a spec filed as a draft.
 3. **Non-empty set.** An unprivileged job MUST list the set in the run
-   summary with each spec's `contentHash` and the head SHA. The apply job
+   summary with each spec's `contentHash` and the head SHA, and MUST emit the
+   same set, hashes and head SHA as job outputs; the apply job reads them from
+   the outputs, never from the summary. The apply job
    MUST run in the `ratification` environment, MUST refuse when the pull
    request's head has moved since the listing, and on approval MUST flip
    `status` for exactly the listed specs, regenerate the registry, and commit

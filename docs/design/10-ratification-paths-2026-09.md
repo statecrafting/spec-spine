@@ -56,7 +56,8 @@ Triggers: `pull_request` (opened, synchronize, reopened) and `merge_group`.
   <base>:specs/<id>/spec.md` and the registry at the head.
 - Empty set: the check succeeds, no approval requested.
 - Non-empty set on `pull_request`: `detect` writes the set, each
-  `contentHash`, and the head SHA to the summary. `apply` runs in the
+  `contentHash`, and the head SHA to the step summary and job outputs.
+  `apply` reads the outputs (never the summary), runs in the
   `ratification` environment, refuses if the pull request head is no longer
   that SHA, flips `status` for exactly the listed specs, runs `compile`, and
   commits to the pull request branch through the API with the App token, so
