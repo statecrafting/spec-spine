@@ -1,0 +1,50 @@
+{
+  "record": {
+    "amends": [
+      "096-compaction-is-a-verb-not-a-session"
+    ],
+    "amendsVerification": [
+      "096-compaction-is-a-verb-not-a-session"
+    ],
+    "created": "2026-09-29",
+    "dependsOn": [
+      "096-compaction-is-a-verb-not-a-session",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "id": "177-exact-test-counts-for-096",
+    "implementation": "complete",
+    "kind": "test",
+    "owner": "The spec-spine Authors",
+    "risk": "low",
+    "sectionDigests": {
+      "1-purpose": "57104ea0b2d0c658f35216d9ce9dea0eebd646e168457ae9271f22ab2b4895f7",
+      "177-exact-test-counts-for-096": "ceb03e2bb633eb39ff28fb2b1b9283f6ce37f33b01930b4362cca57e23d35273",
+      "2-territory": "a6ba617ba094fdd51ea3c162f2019e5632963daeab3b8f3d221a7ebaef40b8d8",
+      "3-1-096-s-block-is-carried": "8afb61ca6787d3b4ee88474a2f855fcdad85665cbcb35a89b313ce72f6ea5f06",
+      "3-2-each-loose-line-names-its-tests": "74e731538d0f796b0ac56fd511495cea6153caf50bb279763e6f4c2c0c5b3f5d",
+      "3-3-the-amended-specs-say-so": "62c00d3204a8f554b5394989a18789d980da7ab904ac322512ab9a22b0118532",
+      "3-behavior": "3c57054e5b383d34d3e35704996f53b57958a46da1be3c1a4f231a2cdf938e04",
+      "4-out-of-scope": "610c43fc4ca727969b3162d03c71a706542d9ec2aecbd871970862f8ca801120",
+      "5-resolved-decisions": "6dd4e2498e6b3115b2be6411c01c58413020125e2c6c9fc8dd210ca1d27a4974",
+      "verification": "5f5da6d4fcb744a70b9199df91e4df701eb18f448b155c5a37f10ab028041793"
+    },
+    "sectionHeadings": [
+      "177: Exact test counts for 096",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 096's block is carried",
+      "3.2 Each loose line names its tests",
+      "3.3 The amended specs say so",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/177-exact-test-counts-for-096/spec.md",
+    "status": "draft",
+    "summary": "Spec 096's acceptance block carries eight lines that accept `test result: ok. [1-9][0-9]* passed`, which pass while any one test in the target runs. This spec holds 096's block, carries it byte-identical, and replaces each loose line with spec 151's form: the tests the line ran, named with `--exact`, and `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).\n",
+    "title": "Exact test counts for 096"
+  },
+  "shardHash": "3413c9fd38bbe44fb995928ae5a4c16eebe4c8b11bd8c2a380e2b6bf4d6d0d9d",
+  "specVersion": "1.9.0"
+}

@@ -54,7 +54,7 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "096-compaction-is-a-verb-not-a-session": "b3b68216d0f5b5b1c15e38f47c63bcdc6b8569300883e45c78d496c4a8d79922",
+      "096-compaction-is-a-verb-not-a-session": "020a874504edc5c9c3593c1bd7385152186870c2f92dd9b3c9bba09aa85eacb5",
       "1-1-five-defects-one-family": "921368a7fda4c5cd4c8350a8ed45394286e1ef5cc1c322b12954657ba5256930",
       "1-2-what-caught-them-and-what-that-cost": "844d163c2ab1fc07b20aca9d08d1ef7999ac8004d2bb087584c5b8ad6d310701",
       "1-3-what-is-and-is-not-mechanizable": "881e3e2cda06f53041fc595d34e28eb18b8977abebea480de1847e95632fa327",
@@ -71,7 +71,7 @@
       "3-behavior": "4edb2178643851b15e054267532bad2068fda3fed71e4d819566ba09550a35b7",
       "4-out-of-scope": "bea7f25620082ddcacadd4da13c6896c556e8f54c416f856f7d5b1e24d9b9c90",
       "5-resolved-decisions": "31bcbd4de3dc9434de2cabcf65a4b2de381c7f2c9103326cabd3c6bb4f8531c4",
-      "verification": "4b5dfac4b47b2f782ea101b79871be64693c250ede9920f028aee67bf159eb8f"
+      "verification": "ab825100fff199a901f83c33d45cbd27b13b098a921339959f7d5b5bc0ff8a0d"
     },
     "sectionHeadings": [
       "096: Compaction is a verb, not a session",
@@ -98,6 +98,6 @@
     "summary": "Spec 095 removed 27 specs and renumbered 93, which meant rewriting about six thousand references by hand. Seven distinct defects were introduced doing it, every one a rewrite rule that matched more or less than its author meant, and every one silent: the corpus compiled, the gate passed, and the citations pointed at the wrong documents. Four were caught only because spec 089 built a sweep that runs every acceptance block, and the fifth was caught by the sweep finding a sixth. A corpus whose ids are the tool's own vocabulary should not need a session to renumber itself. This spec adds `spec-spine compact`: a plan in, a rewritten corpus out as data, idempotent, refusing every ambiguity the five defects came from, and reporting what it changed rather than leaving a six-thousand-line diff to read.\n",
     "title": "Compaction is a verb, not a session"
   },
-  "shardHash": "4b150b64d577b0ee825dc3aaff8802dc9ca933a6159d19b6d1f0c15a07051915",
+  "shardHash": "23520aade0daf27b6c9c767e8e2e979240ad3c0d9a776ad34a261a6198c73e49",
   "specVersion": "1.9.0"
 }

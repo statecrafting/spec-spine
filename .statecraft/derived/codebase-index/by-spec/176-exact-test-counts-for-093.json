@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "093-the-harness-this-repository-runs"
+    ],
+    "dependsOn": [
+      "093-the-harness-this-repository-runs",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "176-exact-test-counts-for-093",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "e309cbf18e6c06fc3a1855a0943369fa76bdd691511aeee6ded0b82b513a3e03"
+}

@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "096-compaction-is-a-verb-not-a-session"
+    ],
+    "dependsOn": [
+      "096-compaction-is-a-verb-not-a-session",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "specId": "177-exact-test-counts-for-096",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "3413c9fd38bbe44fb995928ae5a4c16eebe4c8b11bd8c2a380e2b6bf4d6d0d9d"
+}
