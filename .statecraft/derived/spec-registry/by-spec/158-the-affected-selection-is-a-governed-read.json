@@ -1,0 +1,155 @@
+{
+  "record": {
+    "amends": [
+      "150-a-change-runs-the-acceptance-it-can-break"
+    ],
+    "created": "2026-09-27",
+    "dependsOn": [
+      "043-verify-declared-acceptance",
+      "150-a-change-runs-the-acceptance-it-can-break",
+      "157-the-affected-sweep-runs-in-the-merge-queue"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/affected.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/affected.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "043-verify-declared-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_verify.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "043-verify-declared-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/verify.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "029-ownership-coverage",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-declared-extra-frontmatter-passthrough",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "092-the-engine-ships-governance-not-an-environment",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "089-nothing-reruns-a-merged-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/verify-sweep.sh"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "089-nothing-reruns-a-merged-acceptance",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/test-verify-sweep.py"
+        }
+      }
+    ],
+    "id": "158-the-affected-selection-is-a-governed-read",
+    "implementation": "pending",
+    "intent": {
+      "goal": "Give every Statecraft-governed repository the affected-acceptance selection as a spec-spine read, so a merge-queue job can shard and run it.",
+      "nonGoals": [
+        "Running acceptance: the read plans, `verify <id>` and the sweep execute.",
+        "Sharding: the caller partitions the returned plan."
+      ]
+    },
+    "kind": "tooling",
+    "obligations": [
+      {
+        "anchor": "3-1-the-read",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "verify --affected-by <base> --plan --json names every spec whose acceptance the change can break, the rule that selected it and its effective plan, and runs nothing."
+      },
+      {
+        "anchor": "3-2-selection-is-pure",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "Selection is a pure function of the configuration, the corpus at the head and the changed paths; the core runs no git."
+      },
+      {
+        "anchor": "3-3-the-whole-corpus-trigger-is-configured",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "The paths that select the whole corpus are configured, not built in."
+      },
+      {
+        "anchor": "3-5-one-selector",
+        "id": "R-4",
+        "kind": "requirement",
+        "text": "verify-sweep.sh --affected-by selects through this read and keeps no selector of its own."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "d157c618f282b321231eca000ad97cf7cc6f31752c3f0bf50830244d044b601e",
+      "158-the-affected-selection-is-a-governed-read": "173cf879173d23ec95e7ca70bb217c47cd2d8e55fe0a0340b55d9c7863e95e43",
+      "2-territory": "59d2d2fa2a5b1c2ae72e01a5a6df16103d6b909fe61afd66d0b2a23b5f16216c",
+      "3-1-the-read": "2fd1e42a655344188540b47a093a9f47b064233bf467c0a27d70b07dfd749d0f",
+      "3-2-selection-is-pure": "298b51b1ef30e6e8ca9cd4399bdccac64074f26445d88ffecc45f54e0c0352c6",
+      "3-3-the-whole-corpus-trigger-is-configured": "5f64c67d151157cacbd2155836bfae2d51098e254d9072af2e4792952e9bf3b0",
+      "3-4-the-read-is-versioned": "480281ec8869b1841015f8bfa8f47ffde2e570121efd11ddd0aa1a21d2fc945b",
+      "3-5-one-selector": "574c3d91e2442ee4984f25ff3e7c947a62433c445be31930e3a5810f54be12cb",
+      "3-behavior": "1660c592d4936c7fe3488a65bf48576f01e2abfcc46033449d7a4a8de62520d7",
+      "4-out-of-scope": "8bf71d61257e651a0177f5630da2390d7f6ed8aa6a833b7da69bd44a7011d30c",
+      "5-resolved-decisions": "9f81cacd1699a1cf5c61aacf6aa01aef4dda72f54238405acad9ab71c9132a30",
+      "verification": "7eade83257912ba779cceb8d50c7b91e98d3bbd11b14131a3d82b64b4e705da5"
+    },
+    "sectionHeadings": [
+      "158: The affected selection is a governed read",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The read",
+      "3.2 Selection is pure",
+      "3.3 The whole-corpus trigger is configured",
+      "3.4 The read is versioned",
+      "3.5 One selector",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/158-the-affected-selection-is-a-governed-read/spec.md",
+    "status": "draft",
+    "summary": "Spec 150's selector, which names every spec whose acceptance a change can break, lives in an embedded Python block of `scripts/verify-sweep.sh`, a script only this repository carries. Spec 157 moves the pre-merge sweep into the merge queue across every Statecraft-governed repository, and the Statecraft owner decided (2026-09-27) that spec-spine owns selection: the profile's sweep job calls a spec-spine read and shards the plan it returns. This spec adds that read, `verify --affected-by <base> --plan --json`: the CLI turns the Git range into changed paths, the core selects as a pure function of the configuration, the corpus and those paths, and the answer names each selected spec, the rule that selected it and its effective plan. The whole-corpus trigger becomes configuration rather than this repository's layout, and `verify-sweep.sh` calls the read instead of keeping a second selector.\n",
+    "title": "The affected selection is a governed read"
+  },
+  "shardHash": "eaca6487f6c587fcb295a1aed2d3754771cd7d2925c9a128bddd805e378b3564",
+  "specVersion": "1.9.0"
+}
