@@ -261,9 +261,11 @@ corpus in step 1 and step 6. One spec per PR, then stop.
    drives the PR to a merge confirmed on disk. Every other acceptance the
    change can break (spec 150) runs in the merge queue, not in the session
    (spec 157): the required `affected-acceptance` job sweeps the merge-group
-   commit, sharded, and a `failed` or `not-run` spec keeps the change out of
-   `main` until it is fixed or a spec is filed for it; the job never marks a
-   block exempt. A change touching nothing but `docs/`, `website/`, or
+   commit, sharded, and an implemented spec that is `failed` or `not-run`
+   keeps the change out of `main` until it is fixed or a spec is filed for
+   it; a pending spec's block runs and is reported without refusing the
+   change that files it (the release verdict, spec 119), and the job never
+   marks a block exempt. A change touching nothing but `docs/`, `website/`, or
    Markdown outside `specs/` selects nothing. Nothing is recorded in the PR
    body. A session may still run the sweep locally, on the PR's head, to find
    a failure before queuing, one shard at a time with `--shard <i>/<n>`:

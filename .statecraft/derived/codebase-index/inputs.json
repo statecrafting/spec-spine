@@ -61,7 +61,7 @@
       "contentHash": "8a52036fc35e90e7af606a7992f697495d6e6d9eefa260797980c100ff800932"
     },
     ".github/workflows/affected-acceptance.yml": {
-      "contentHash": "d66e992ec67367d7a7b145465a0d4d671bbb74bc06dd710c1cf7bd121a358b17"
+      "contentHash": "108625b013bd12ed147d31c0a663da86acc1a538339887cda7aefbb9ab68f5d9"
     },
     ".github/workflows/ai-pr-review.yml": {
       "contentHash": "f82ae18771bb50d10f0e20dbaa20f6591793ad9f20bf279cca13d52dba2fe634"
@@ -94,7 +94,7 @@
       "contentHash": "490375a00aad80029489f8a8138345d6cc32a1ed31d910db693ee771c19b7b57"
     },
     "AGENTS.md": {
-      "contentHash": "410f60a87224d8251c859a80dbaea665a09e59f7f3b91f782630f9461420df2a"
+      "contentHash": "86a596e1bddd473d852ca92616b418abbfe68ca1015ad407269b0ea5396803b2"
     },
     "CLAUDE.md": {
       "contentHash": "9f078177cb797c0ecc815e3d35a8d7a11d4fe8a8a9615d8a2c6300baff580600"

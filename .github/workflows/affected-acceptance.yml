@@ -68,11 +68,15 @@ jobs:
         run: |
           set -uo pipefail
           rc=0
-          scripts/verify-sweep.sh --affected-by "$BASE_SHA" --rev "$HEAD_SHA" --trusted-ref "$HEAD_SHA" \
+          # --release (157 D-8): the exit is the release verdict (spec 119). A
+          # pending spec's block still runs and is reported, but its fail-first
+          # outcome does not refuse the change that files it; an implemented
+          # spec that fails or does not run does.
+          scripts/verify-sweep.sh --release --affected-by "$BASE_SHA" --rev "$HEAD_SHA" --trusted-ref "$HEAD_SHA" \
             --shard "$SHARD/$SHARDS" --out "${{ runner.temp }}/sweep" || rc=$?
           echo "sweep exit: $rc"
-          # The step's status is the sweep's: failed, not-declared and not-run
-          # all exit 1, and a refusal exits 3.
+          # The step's status is the sweep's: a failed, not-declared or not-run
+          # implemented spec exits 1, and a refusal exits 3.
           exit $rc
 
       - name: Upload the report

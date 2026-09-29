@@ -260,6 +260,16 @@ and still in no `needs:` list. Before the change the test failed on this
 tree, after it passes, and it still fails when `statecraft-ci.yml` calls
 `./.github/workflows/acceptance.yml`.
 
+**D-8 (2026-09-29, build): the queue refuses on the release verdict.** 3.1
+names `failed` and `not-run`, and the sweep reports two verdicts (spec 119).
+Under the corpus verdict a pull request that files a draft is refused by the
+draft's own block, which fails by design until the spec is built; before this
+spec a session recorded that failure and a maintainer merged past it (#399), a
+judgment a required check cannot make. The job passes `--release`: every
+selected block still runs and is reported, a pending spec's outcome is not
+counted, and an implemented spec that fails or does not run refuses the
+change.
+
 ## Verification
 
 ```verify:cli
