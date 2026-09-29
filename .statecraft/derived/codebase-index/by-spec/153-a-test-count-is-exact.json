@@ -1,0 +1,28 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "082-an-amended-acceptance-is-the-one-that-runs",
+      "151-carried-acceptance-tests-what-it-names"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "specs/151-carried-acceptance-tests-what-it-names/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/151-carried-acceptance-tests-what-it-names/spec.md"
+        }
+      }
+    ],
+    "specId": "153-a-test-count-is-exact",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "0fd8d2651f0bc1a8b4bfbc603cdc29516481da77ac8fa8e8227fba23fa5891f2"
+}
