@@ -217,7 +217,7 @@
       "1-2-adoption-must-not-narrow-the-gate": "c0b6dc20a198b718f7e3f8d6fc7e5a59ee0c292bd5e16c20da62c96fdac3a38b",
       "1-3-the-pin-is-intentionally-different-here": "d49ec9f52f4ef53fe030154305d0dacce2ea6122eaa3bfacd393624d70a34ea5",
       "1-purpose": "f3989359debcb459f218087355e14ba440e1774d4c1ceebea470aa6ae9227fb4",
-      "156-statecraft-profile-11-governs-this-repository": "69a193bc2f0174c51b5d330ce0bf525a0b7fbd25862a071026794458473ede3c",
+      "156-statecraft-profile-11-governs-this-repository": "c8238f0f4c74d7fe50a4fcf85977c2ed9f7b3a1f1ab7a11b831c65a86d10c505",
       "2-territory": "44e70a43aa2e35f7007790cfc47890a743d662ba6e7828f7eed9226b686891e2",
       "3-1-one-recorded-profile-11-adoption": "4c3c6650b732cf0045f3f0b8a58d7b8dd7beb5c8992366b6dd00725beb8496e6",
       "3-2-profile-11-owns-the-aggregate-and-the-local-gate": "eb640a6243e02e0c875c515ffe0686c640eb8f2c97398ef8efd4a2b5a064cb19",
@@ -229,7 +229,7 @@
       "3-behavior": "ad51d734d2385896dd3fdba1a51f258291cb7f0bdf60f6d9d711326e901edac6",
       "4-out-of-scope": "ff8d21a5a90a9ab242b5a6284bac1ccedcf5f86aeb5461c8bbcf8d74e56b0ea5",
       "5-resolved-decisions": "25d75a23364e59539a51fadec108bb9643c68cb5d965f6a73464883c936e54c6",
-      "verification": "339dab361d1ae3d913186828947b2e0f2661dbeef88f209295d2fe5129eb2e4c"
+      "verification": "8c49bdd08eb7465f243abf652c57306e049618b57f086b5418d7e405faa2c4dc"
     },
     "sectionHeadings": [
       "156: Statecraft Profile 11 governs this repository",
@@ -255,6 +255,6 @@
     "summary": "Statecraft is the adopted owner of the managed development environment, but this repository still carries its pre-adoption CI workflow, AI review and instruction surface. Profile 11 is adopted at one recorded identity, with its exact spec-spine pin and managed authority files, while the Windows, MSRV, cargo-deny, no-default-features, self-governance and determinism checks particular to this engine remain required behind the one ci-gate status.\n",
     "title": "Statecraft Profile 11 governs this repository"
   },
-  "shardHash": "b3ec06d5b56ea049357ba0e3bc8d378dd94e34c663d2d3b66c22ef77fd311043",
+  "shardHash": "3afc4fc2bf736e27e984d46913845a933fc78aefbd28d23760d8092f54ea7c6b",
   "specVersion": "1.9.0"
 }

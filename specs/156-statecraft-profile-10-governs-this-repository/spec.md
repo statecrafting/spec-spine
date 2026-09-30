@@ -373,6 +373,9 @@ correction belongs in Statecraft Profile 12, followed by a fresh exact render.
 > replaced by the tests it ran (spec 082 3.2 and 3.4; spec 153 3.2).
 >
 > The commands below are kept verbatim and are not corrected (spec 037 3.1).
+>
+> Since 2026-09-29, `190-the-gate-requires-the-queue-sweep` holds 187's block in
+> turn, so this plan runs from that spec's block (spec 190 3.1).
 
 ```verify:cli
 # 3.1 and 3.3: the committed environment names Profile 11 and the exact engine pin.
