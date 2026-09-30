@@ -4,7 +4,7 @@ title: "A repository's pin selects the engine that runs"
 status: draft
 kind: "distribution"
 created: "2026-09-30"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -25,8 +25,11 @@ summary: >
   repository asked. A consumer asks `launcher resolve --json` and executes the
   absolute path it returns. The launcher never judges a repository.
 establishes:
-  - { kind: directory, path: "crates/spec-spine-launcher/", planned: true }
-  - { kind: file, path: "docs/launcher.md", planned: true }
+  - { kind: directory, path: "crates/spec-spine-launcher/" }
+  - { kind: file, path: "docs/launcher.md" }
+extends:
+  # D-14: the claim of docs/launcher.md puts the document into `[index] extra_hashed_inputs`.
+  - { spec: "092-the-engine-ships-governance-not-an-environment", unit: { kind: file, path: "spec-spine.toml" }, nature: additive }
 references:
   - { unit: { kind: file, path: "specs/092-the-engine-ships-governance-not-an-environment/spec.md" }, role: "section 1.4: the engine's own distribution stays here; the managed environment is Statecraft's" }
   - { unit: { kind: file, path: "specs/170-a-consumer-is-served-answers-not-access/spec.md" }, role: "section 3.1: a repository is judged only by a binary its own pin admits" }
@@ -233,7 +236,9 @@ so it cannot recurse.
 ### 3.7 A consumer asks for the resolution
 
 `spec-spine launcher resolve --json` answers one family envelope (spec 034,
-spec 132) with its own schema axis starting at `0.1.0`:
+spec 132) with its own schema axis starting at `0.1.0`. The members below are
+carried under the envelope's `report`, as every other `--json` verb carries its
+payload:
 
 | Member | Value |
 |---|---|
@@ -299,9 +304,122 @@ whenever a lock exists. Adding publisher-identity verification (the existing
 build-provenance attestation of spec 019, or a signed release manifest) chooses
 a trust root, which is reserved to the owner.
 
+**D-5 (2026-09-30, the digest is of the engine executable).** The lock's
+per-target digest, and the `<sha256>` directory name in the store, are the
+SHA-256 of the engine executable's bytes, not of the release archive. The
+archive's digest names a container that is discarded after extraction, and the
+lock must be checkable against the file that will run. Acquisition therefore
+verifies twice: the downloaded archive against the release's published `.sha256`
+sidecar (as `install.sh` does), then, after extraction, the engine against the
+lock's digest when a lock exists. A mismatch at either step names both digests
+and installs nothing. Rejected: locking the archive digest, which would let a
+store entry drift from its name unnoticed once the archive is gone.
+
+**D-6 (2026-09-30, acquisition follows `install.sh`).** Acquisition downloads with
+a `curl` subprocess and extracts with a `tar` subprocess, so the launcher links no
+HTTP client and no archive library. The release source base defaults to
+`https://github.com/statecrafting/spec-spine/releases/download` and
+`SPEC_SPINE_RELEASE_BASE` overrides it with an `http(s)` URL, a `file://` URL or a
+plain directory path, all laid out as `<base>/v<release>/<archive>`, so tests run
+with no network. Archive names are those `.github/workflows/release.yml`
+produces: `spec-spine-v<release>-<target>.tar.gz` (`.zip` on Windows), each with
+`<archive>.sha256`. Zip extraction uses `tar` where it reads zip and `unzip`
+otherwise; where neither does, Windows acquisition is refused as unsupported
+rather than approximated. A target whose archive the release does not publish
+(a local file that is absent, or an HTTP error from `curl -f`) reads as not
+published: `launcher lock` records the targets that are published, and `launcher
+install` refuses naming the supported targets.
+
+**D-7 (2026-09-30, where per-user state lives).** `SPEC_SPINE_HOME` replaces both
+roots: the store is `$SPEC_SPINE_HOME/engines/...` and the user's configuration is
+`$SPEC_SPINE_HOME/launcher.toml`. Otherwise the platform's per-user directories
+are computed by hand under a `spec-spine` subdirectory: `XDG_DATA_HOME` or
+`~/.local/share`, and `XDG_CONFIG_HOME` or `~/.config`, on Linux and other Unix;
+`~/Library/Application Support` on macOS; `%LOCALAPPDATA%` and `%APPDATA%` on
+Windows. Rejected: a directories crate, for two lookups the launcher can state.
+
+**D-8 (2026-09-30, quarantine).** A store entry whose bytes no longer match the
+digest it is named by is renamed to a sibling `<sha256>.quarantined-<n>` (the
+lowest free `n`) and the invocation is refused. The entry is kept for inspection,
+never deleted and never repaired. `launcher resolve` writes nothing, so it reports
+the same refusal and leaves the entry where it is.
+
+**D-9 (2026-09-30, the per-artifact install lock).** The lock is an exclusive create
+(`create_new`) of `.install.lock` in the `<release>/<target>` directory, beside
+the entries. The artifact is the release archive for a target, whose engine digest
+is not known before extraction, so the lock is keyed by release and target rather
+than by the entry name. The installer that creates the file writes; the others
+poll (50 ms, at most 180 s), re-resolving on each poll, and use the winner's entry
+when it appears. A lock file older than ten minutes is treated as abandoned and
+removed. The entry is staged in a scratch directory in the same parent and placed
+by one rename.
+
+**D-10 (2026-09-30, packaging of the crate).** The crate is a workspace member with
+`publish = false` for now: which channel ships the launcher is out of scope under
+section 4. It carries its own version, `0.1.0`, not the engine's workspace
+version (section 3.1: released with its own version). Its binary target is named
+`spec-spine-launcher`, because a target named `spec-spine` would collide with
+`spec-spine-cli`'s in the same workspace target directory. A channel installs it
+under the name `spec-spine`; `docs/launcher.md` says so. That renaming is the
+later spec section 2 already names.
+
+**D-11 (2026-09-30, `launcher install --build`).** `launcher install --build` is
+refused in this implementation, exit 2, saying it is not supported yet. Building
+from source is only ever explicit (section 3.5), and refusing it leaves that
+sentence true; the build path (toolchain discovery, a source checkout at the
+pinned release, a digest for a locally built engine that no published sidecar
+attests) is a separate piece of work and a trust question for the owner.
+
+**D-12 (2026-09-30, the envelope of `launcher resolve --json`).** Header members
+and ordering are spec 132 section 3.4's: `schemaVersion` (`0.1.0`, the launcher's
+own axis), `tool`, `verb`, `outcome`, `exitCode`, `summary`, then exactly one of
+`report` and `error`, written as canonical JSON (sorted keys, 2-space indent, LF,
+trailing newline). `tool` is `spec-spine-launcher`, not `spec-spine`, because a
+family consumer branches on `tool` before `verb` and this document is not the
+engine's; the `verb` is `launcher.resolve`. The launcher defines this envelope
+locally and depends on no engine crate. A resolution that does not succeed also
+writes an envelope on stdout, with `error` in place of `report` and the exit code
+of section 3.7: `not-found` for exit 1, `config` or `refused` for 2, `usage` for
+3. `digest` is written as `sha256:` followed by the hex digest, the spelling the
+lock uses, so a consumer can compare the two without converting.
+
+**D-13 (2026-09-30, resolution and invocation details section 3 left open).**
+(a) A project tool directory whose engine is absent falls through to the store; one
+that is present but fails the release or digest check is refused, not skipped,
+because a stale hermetic directory is a fault worth hearing about. (b) With no
+lock and more than one store entry for a release and target, the launcher refuses
+as ambiguous and names `launcher lock`; it does not choose. (c) A lock that
+records no digest for the host's target is refused. (d) The digest of an override
+or tool-directory candidate is checked against a lock before the file is run for
+its `--version` and `launcher --version` probes. (e) `launcher install` is
+explicit consent and does not depend on the acquisition policy, `SPEC_SPINE_FROZEN`
+included; the policy governs only acquisition inside an ordinary invocation.
+(f) `--acquire` is the launcher's own flag and is removed from the arguments passed
+on; `--repo` is shared with the engine and is passed on. (g) When the launcher
+found the repository somewhere other than the working directory (an ancestor, or
+`SPEC_SPINE_REPO`) and the invocation carries no `--repo`, it passes `--repo
+<root>` first, because the engine defaults its repository to the working
+directory and would otherwise judge a different tree than the one it was selected
+for. When the working directory is the root, or `--repo` was given, the arguments
+are passed exactly as received. (h) On Unix the launcher does not intercept
+signals: it replaces its process, so interruption is the engine's own. Elsewhere it
+waits and returns the engine's status.
+
+**D-14 (2026-09-30, the reference page is a hashed input).** `docs/launcher.md` is a
+claimed file that no span backs, so lint `L-008` requires it to be in some
+content hash. It joins `[index] extra_hashed_inputs` in `spec-spine.toml`, as
+`docs/overlay-contract.md` did under spec 112 D-3, and this spec declares an
+`additive` `extends` edge on that unit of spec 092. Only the one entry is added.
+
 ## Verification
 
-No implementation acceptance is declared while this spec is unratified. The
-`V-1` inputs name the fixture surface a later implementation adds: stub engines
-of two releases in a temporary store, a local release fixture for acquisition,
-and no network.
+The `V-1` inputs are the three test files below. They use stub engines of two
+releases in a temporary store, a local release fixture built with `tar` for
+acquisition, and no network.
+
+```verify:cli
+cargo test -p spec-spine-launcher --test resolve --locked
+cargo test -p spec-spine-launcher --test execute --locked
+cargo test -p spec-spine-launcher --test acquire --locked
+cargo test -p spec-spine-launcher --bins --locked
+```

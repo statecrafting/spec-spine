@@ -6,10 +6,51 @@
       "132-one-exit-contract-for-the-family",
       "170-a-consumer-is-served-answers-not-access"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-launcher",
+        "source": "manifest-metadata"
+      },
+      {
+        "path": "crates/spec-spine-launcher/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-launcher/src/main.rs",
+        "source": "comment-header"
+      },
+      {
+        "path": "crates/spec-spine-launcher/tests/acquire.rs",
+        "source": "comment-header"
+      },
+      {
+        "path": "crates/spec-spine-launcher/tests/common/mod.rs",
+        "source": "comment-header"
+      },
+      {
+        "path": "crates/spec-spine-launcher/tests/execute.rs",
+        "source": "comment-header"
+      },
+      {
+        "path": "crates/spec-spine-launcher/tests/resolve.rs",
+        "source": "comment-header"
+      },
+      {
+        "path": "docs/launcher.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "spec-spine.toml",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-launcher/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -18,12 +59,29 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "docs/launcher.md"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
           "path": "docs/launcher.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
         }
       },
       {
@@ -70,5 +128,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "ef9c037d75c0929f3e588b60e5adcd2b1650a443cf90af1ea8e56617e163b572"
+  "shardHash": "f64f31f30d2d8335f64f8c5b865c4d03f325a9e70b6afacdac280e1ec3965d21"
 }

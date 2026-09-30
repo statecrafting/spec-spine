@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-bin",
+    "name": "spec-spine-launcher",
+    "path": "crates/spec-spine-launcher",
+    "specRef": "188-a-repository-pin-selects-the-engine",
+    "version": "0.1.0"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "d2bb33bcc77a50ad4febcca54b25584ba9e3e98e21ca517bba31661f95f34494"
+}
