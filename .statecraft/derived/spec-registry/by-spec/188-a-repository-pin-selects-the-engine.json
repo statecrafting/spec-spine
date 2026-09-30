@@ -1,0 +1,147 @@
+{
+  "record": {
+    "created": "2026-09-30",
+    "dependsOn": [
+      "006-distribution",
+      "019-release-supply-chain-artifacts",
+      "132-one-exit-contract-for-the-family",
+      "170-a-consumer-is-served-answers-not-access"
+    ],
+    "establishes": [
+      {
+        "kind": "directory",
+        "path": "crates/spec-spine-launcher/",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "docs/launcher.md",
+        "planned": true
+      }
+    ],
+    "id": "188-a-repository-pin-selects-the-engine",
+    "implementation": "pending",
+    "intent": {
+      "goal": "Invoking `spec-spine` in any repository runs the engine that repository pins, with no manual installation step per project and no second resolver in any consumer.",
+      "nonGoals": [
+        "a governance verb, a daemon, or a background update",
+        "changing which name each distribution channel installs, which is its own spec"
+      ]
+    },
+    "kind": "distribution",
+    "obligations": [
+      {
+        "anchor": "3-1-launcher-and-engine-are-separate",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "The launcher is a separate executable whose contract is limited to finding the repository, reading the pin and the lock, resolving, verifying and executing an engine; it implements no governance verb."
+      },
+      {
+        "anchor": "3-2-what-the-launcher-reads",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "The launcher reads `[meta] required_version` with a reader that ignores every other key, so a newer configuration never prevents it from selecting the engine that understands it."
+      },
+      {
+        "anchor": "3-4-resolution",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "The engine that runs is the exact release the pin names, verified against the lock's digest when a lock is present; a missing release is never replaced by another."
+      },
+      {
+        "anchor": "3-5-acquisition",
+        "id": "R-4",
+        "kind": "requirement",
+        "text": "Acquisition happens only under a policy the user or CI set; a repository's files can select a release but can never enable a download."
+      },
+      {
+        "anchor": "3-7-a-consumer-asks-for-the-resolution",
+        "id": "R-5",
+        "kind": "requirement",
+        "text": "`launcher resolve --json` answers the engine's absolute path, release, target, digest and the rule that chose it, in the family envelope, and writes and downloads nothing."
+      },
+      {
+        "anchor": "3-6-execution",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "Execution preserves arguments, working directory, standard streams and exit status, and the launcher never executes itself or another launcher."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-launcher/tests/resolve.rs",
+          "crates/spec-spine-launcher/tests/execute.rs",
+          "crates/spec-spine-launcher/tests/acquire.rs"
+        ],
+        "kind": "verification",
+        "text": "Fixtures with two repositories pinning different releases, a newer configuration key, a corrupted store entry, a digest that disagrees with the lock, concurrent installs, and a frozen policy prove resolution, verification, refusal and exit-status preservation."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "section 1.4: the engine's own distribution stays here; the managed environment is Statecraft's",
+        "unit": {
+          "kind": "file",
+          "path": "specs/092-the-engine-ships-governance-not-an-environment/spec.md"
+        }
+      },
+      {
+        "role": "section 3.1: a repository is judged only by a binary its own pin admits",
+        "unit": {
+          "kind": "file",
+          "path": "specs/170-a-consumer-is-served-answers-not-access/spec.md"
+        }
+      },
+      {
+        "role": "the existing download, digest and attestation path the launcher's acquisition follows",
+        "unit": {
+          "kind": "file",
+          "path": "install.sh"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "d3ca9e0e84ed81070bf76d0c929a8422c78947209d343b2b740624bbd6e07519",
+      "188-a-repository-s-pin-selects-the-engine-that-runs": "cc972c888d217e8c0a448786ee930332e6443b23b028f7783fe4bedf525e07e7",
+      "2-territory": "1dfa8b77ef2a1718853a4439e8d51d962ec349e15a2dc48d8ef81d8c96da9292",
+      "3-1-launcher-and-engine-are-separate": "ca1144a2f9e456bc1f3e5d278a159cda21dded561ea16f5faf4ec236236591d7",
+      "3-2-what-the-launcher-reads": "27d35ce5a934e4012057e315575bd62dc968a61664e814023e5f143b7c6b8f83",
+      "3-3-the-lock": "7152c8bf9690e4eb371edbaa9538a081ab8985c001daa89243ad8effe3f29544",
+      "3-4-resolution": "c4f370cc312f121e0e0662609f6b22c2bfb55cc6150aaf3f468c8dcf3996561c",
+      "3-5-acquisition": "8cfa01286c464bdc967035b90f68671ebd7d25c859e4bd4a880a30c352a17c2a",
+      "3-6-execution": "b35ede3e9de45fcf6a995ddb0435d72eda98c94c8e6eed9b08a9758bef4cdf46",
+      "3-7-a-consumer-asks-for-the-resolution": "ee1483af67f8dc8061b5bbc8d1cdb1d73880e6f067d0e7377d6acceb6f429cd5",
+      "3-8-observable-negative-cases": "c3a9a6583d43d1194fdc2d8f8998d7415e0c8cd073bf2970534cf78834f32d69",
+      "3-behavior": "8420894995e8f7725ac02cf97cdbab64d0d059ded6c7733d27f5856584c535a9",
+      "4-out-of-scope": "480fc17abdb161b405131cb263e2c3cdb80055a28e4a40cfbc1c6c1ab9aa5d9d",
+      "5-resolved-decisions": "06da966927eb3096d6d867ccc3416d47565e1c8554f7340c650f8624dd821ef4",
+      "verification": "e5548e951964c7dc06f3601702df45023a8eb0180f71c81cf4837956fded8d94"
+    },
+    "sectionHeadings": [
+      "188: A repository's pin selects the engine that runs",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Launcher and engine are separate",
+      "3.2 What the launcher reads",
+      "3.3 The lock",
+      "3.4 Resolution",
+      "3.5 Acquisition",
+      "3.6 Execution",
+      "3.7 A consumer asks for the resolution",
+      "3.8 Observable negative cases",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/188-a-repository-pin-selects-the-engine/spec.md",
+    "status": "draft",
+    "summary": "Adds a launcher: a small executable, separate from the engine, that a user or a consumer invokes as `spec-spine`. It finds the repository, reads the engine pin from `spec-spine.toml` with a tolerant reader, resolves an installed engine of exactly that release, verifies its digest, and executes it with the original arguments, working directory, streams and exit status. Engines are stored once per user, content addressed, and a repository may instead declare a local tool directory. A committed `spec-spine.lock`, which no engine reads, records each target's engine digest. Acquisition of a missing engine happens only when the user or CI enabled it, never because a repository asked. A consumer asks `launcher resolve --json` and executes the absolute path it returns. The launcher never judges a repository.\n",
+    "title": "A repository's pin selects the engine that runs"
+  },
+  "shardHash": "ef9c037d75c0929f3e588b60e5adcd2b1650a443cf90af1ea8e56617e163b572",
+  "specVersion": "1.9.0"
+}

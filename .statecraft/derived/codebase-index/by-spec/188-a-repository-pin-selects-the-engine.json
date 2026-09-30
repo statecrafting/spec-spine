@@ -1,0 +1,74 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "006-distribution",
+      "019-release-supply-chain-artifacts",
+      "132-one-exit-contract-for-the-family",
+      "170-a-consumer-is-served-answers-not-access"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-launcher/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "docs/launcher.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "install.sh"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "install.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/092-the-engine-ships-governance-not-an-environment/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/092-the-engine-ships-governance-not-an-environment/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/170-a-consumer-is-served-answers-not-access/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/170-a-consumer-is-served-answers-not-access/spec.md"
+        }
+      }
+    ],
+    "specId": "188-a-repository-pin-selects-the-engine",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "ef9c037d75c0929f3e588b60e5adcd2b1650a443cf90af1ea8e56617e163b572"
+}
