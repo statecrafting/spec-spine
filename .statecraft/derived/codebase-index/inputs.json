@@ -138,6 +138,9 @@
     "docs/corpus-map.md": {
       "contentHash": "5ffb14e0ea10dbcc1e19234989a0fa3471df49a3a50b457ce36474a7d5d13a02"
     },
+    "docs/launcher.md": {
+      "contentHash": "4272fed5f76a1ba96ae953068f540fcd340272bdc1874d94a48c602f990ddfd5"
+    },
     "docs/overlay-contract.md": {
       "contentHash": "68654c2933b9c34bc01673f53205f93028da4f789597e5675791662076118192"
     },
@@ -199,7 +202,7 @@
       "contentHash": "84e75385fda13857f759bc2eaac204468226cd9a559549714c904dceb4e3335d"
     },
     "spec-spine.toml": {
-      "contentHash": "f0394882e73ae37cd7ecd7a91c4dbd937d5e15a56490d83e95caedc8395e9305"
+      "contentHash": "ae87b0eaef30ee1b68541bb0f6e0e32d4c847cb39bfe2820d4c9d09b939ba23a"
     },
     "standards/spec/constitution.md": {
       "contentHash": "88f980bc94705c07851fdcb974c3fd0689fa431d46d9c708c707d2bf5eabbaca"

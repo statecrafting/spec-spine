@@ -1085,6 +1085,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "spec-spine-launcher"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
+ "tempfile",
+ "toml",
+]
+
+[[package]]
 name = "spec-spine-types"
 version = "0.28.0"
 dependencies = [

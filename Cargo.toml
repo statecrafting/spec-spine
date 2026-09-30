@@ -7,6 +7,7 @@ members = [
     "crates/spec-spine-types",
     "crates/spec-spine-core",
     "crates/spec-spine-cli",
+    "crates/spec-spine-launcher",
 ]
 
 # Shared metadata inherited by member crates via `field.workspace = true`.

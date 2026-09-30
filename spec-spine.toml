@@ -111,6 +111,8 @@ extra_hashed_inputs = [
   "docs/specify-first.md",
   # Spec 112 D-3: the overlay contract, claimed by the spec that states it.
   "docs/overlay-contract.md",
+  # Spec 188 D-14: the launcher's reference page, claimed by the spec that states it.
+  "docs/launcher.md",
   # Spec 115 D-2: the bindings plan, claimed by the policy that governs it.
   "docs/bindings-plan.md",
   # Spec 095 3.5, narrowed by spec 092 3.5: the skill tree a session here loads.
