@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "187-exact-test-counts-for-156"
+    ],
+    "dependsOn": [
+      "157-the-affected-sweep-runs-in-the-merge-queue",
+      "187-exact-test-counts-for-156"
+    ],
+    "implementingPaths": [],
+    "specId": "190-the-gate-requires-the-queue-sweep",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "783a518de34ed4659c47a5c91f4e01b1d5c760a1cf445242814daa3445efd8f6"
+}

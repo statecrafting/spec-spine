@@ -1,108 +1,101 @@
 ---
-id: "187-exact-test-counts-for-156"
-title: "Exact test counts for 156"
-status: approved
+id: "190-the-gate-requires-the-queue-sweep"
+title: "The carried gate line names the queue sweep"
+status: draft
 kind: "test"
 created: "2026-09-29"
 summary: >
-  Spec 156's acceptance block carries four lines that accept
-  `test result: ok. [1-9][0-9]* passed`, which pass while any one test in the
-  target runs. This
-  spec holds 156's block, carries it byte-identical, and replaces each loose
-  line with spec 151's form: the tests the line ran, named with `--exact`, and
-  `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).
+  Spec 157 added `affected-acceptance` to `ci-gate`'s `needs:` in
+  `statecraft-ci.yml`, as its section 3.1 requires. Spec 187's carried block,
+  which is the plan of 156, 091, 094, 124, 134 and 135, still asserts the six-job
+  list byte for byte, so all seven plans fail at the same command on `main`
+  since 157 merged, and every queued change that selects them is refused. This
+  spec holds 187's block, carries it byte-identical, and replaces that one line
+  with the seven-job list 157 made true.
 implementation: complete
 owner: "The spec-spine Authors"
 risk: low
 depends_on:
-  - "151-carried-acceptance-tests-what-it-names"
-  - "156-statecraft-profile-10-governs-this-repository"
+  - "157-the-affected-sweep-runs-in-the-merge-queue"
+  - "187-exact-test-counts-for-156"
 amends_verification:
-  - "156-statecraft-profile-10-governs-this-repository"
+  - "187-exact-test-counts-for-156"
 amends:
-  - "156-statecraft-profile-10-governs-this-repository"
+  - "187-exact-test-counts-for-156"
 ---
 
-# 187: Exact test counts for 156
+# 190: The carried gate line names the queue sweep
 
 ## 1. Purpose
 
-Measured on `ae079726`, 2026-09-29, with `cargo test -p <crate> --test <target> -- --list
-[<filter>]` on macOS with default features.
+Measured on `9249d5ec` (the merge of #416, spec 157), 2026-09-29.
 
-Spec 153 §3.1 requires that no live plan accept an open-ended positive test
-count, and §3.2 assigns each live block to its own tightening spec (153 D-5).
-This is 156's. 156 holds 091, 094, 124, 134 and 135, so their plans resolve here too; the superseded notes of 091, 094, 124, 134 and 135 name this spec.
+`spec-spine verify` of 156, 187, 091, 094, 124, 134 and 135 fails at command 41
+of the plan all seven share:
 
-| Block line | Target | Filter | Names |
-|---|---|---|---|
-| 156:29 | core `ai_review_policy` | `access_refusal` | 1 |
-| 156:30 | core `ai_review_policy` | `publication_failure` | 1 |
-| 156:31 | core `ai_review_policy` | `unclassified_reviewer_failure` | 1 |
-| 156:32 | core `ai_review_policy` | `empty_successful_review` | 1 |
+```text
+grep -q 'needs: \[governance, code, ai-review, review-exception, determinism, spec-spine-required\]' .github/workflows/statecraft-ci.yml
+```
 
-"Block line" counts lines inside 156's `verify:cli` fence. The names each
-line ran:
+The file now reads
+`needs: [governance, code, ai-review, review-exception, determinism, spec-spine-required, affected-acceptance]`.
+Spec 157 section 3.1 requires that change: the sweep's result must reach
+`ci-gate` as a required job. The assertion is right about everything it was
+written to check (the six jobs are still required, in order) and wrong only in
+refusing a seventh.
 
-- `ai_review_policy` `access_refusal`: `access_refusal_outranks_other_failure_text`.
-- `ai_review_policy` `publication_failure`: `publication_failure_blocks`.
-- `ai_review_policy` `unclassified_reviewer_failure`: `unclassified_reviewer_failure_blocks`.
-- `ai_review_policy` `empty_successful_review`: `empty_successful_review_blocks`.
+157's own merge-queue run reported these failures. `ci-gate` on that run did
+not require `affected-acceptance` yet, so the change merged, and the failure
+moved to the next queued change whose selection reaches 156's plan (#418 and
+#417 were both removed from the queue by it). Every other command of the plan
+passes on `9249d5ec`.
 
 ## 2. Territory
 
-This spec establishes nothing. It edits 156 only to add spec 082 §3.4's
-superseded-acceptance note above 156's block, and the notes of 091, 094, 124, 134 and 135 to name this spec.
+This spec establishes nothing. It edits 187 only to add spec 082 section 3.4's
+superseded-acceptance note above 187's block, and the notes of 156, 091, 094,
+124, 134 and 135 to name this spec.
 
 ## 3. Behavior
 
-### 3.1 156's block is carried
+### 3.1 187's block is carried
 
-`spec-spine verify 156` and `verify` of 091, 094, 124, 134 and 135 MUST run this
-spec's block, which carries 156's block in one section, every command and
-comment byte-identical except the lines 3.2 names.
+`spec-spine verify 187` and `verify` of 156, 091, 094, 124, 134 and 135 MUST run
+this spec's block, which carries 187's block in one section, every command and
+comment byte-identical except the line 3.2 names.
 
-### 3.2 Each loose line names its tests
+### 3.2 The gate line names seven jobs
 
-Each loose line becomes one command,
-`sh -c 'cargo test -p <crate> --locked --test <target> -- --exact <names> 2>&1 | grep -q "test result: ok. N passed; 0 failed"'`,
-naming exactly the tests the original line selected (section 1), N their number. A
-writer-and-`grep` pair collapses into that command; the pair's `rm -f` stays.
-A line over a target with `cfg`-gated tests is exact on a Unix sweep host with
-default features and says so in a comment (153 3.3).
+The `needs:` line MUST assert the seven jobs `ci-gate` requires, in the order
+the workflow lists them, ending with `affected-acceptance`. It stays an exact
+line match, so a job dropped from or added to the aggregate still fails it.
 
 ### 3.3 The amended specs say so
 
-156 carries spec 082 §3.4's note naming this spec above its block, and keeps
-the block unchanged below it. 091, 094, 124, 134 and 135 keep their notes and gain one line naming this spec.
+187 carries spec 082 section 3.4's note naming this spec above its block, and
+keeps the block unchanged below it. 156, 091, 094, 124, 134 and 135 keep their
+notes and gain one line naming this spec.
 
 ## 4. Out of scope
 
-Narrowing what a filtered line selects (153 4.2), and every other block (153
-3.2 gives each its own spec).
+Why `ci-gate` on a queued change did not yet require the job that change adds
+(the aggregate a merge-queue run judges against), and every other block.
 
 ## 5. Resolved decisions
 
 **D-1 (2026-09-29): filed and built together.** An `amends_verification` edge
-replaces 156's plan and that of 091, 094, 124, 134 and 135 the moment it merges, so the
-carried block lands with it and this spec is filed `complete` (153 D-3, as 146
-and 151 were).
+replaces 187's plan and that of 156, 091, 094, 124, 134 and 135 the moment it
+merges, so the carried block lands with it and this spec is filed `complete`
+(153 D-3, as 187 was).
 
-**D-2 (2026-09-29): names measured at the base.** A later test added to a named
-target does not fail these lines; a named test removed, renamed, ignored or
-gated off does (153 D-6).
+**D-2 (2026-09-29): exact, not a prefix.** Matching only the six-job prefix
+would pass the seventh job's removal, which 157 R-1 forbids. The line stays a
+whole-list match.
 
 ## Verification
 
-> **Superseded acceptance (2026-09-29).** This block no longer runs.
-> `190-the-gate-requires-the-queue-sweep` declares this spec in
-> `amends_verification`, so `spec-spine verify 187` builds its plan from that
-> spec's block, where these commands are carried with the `ci-gate` needs line
-> naming `affected-acceptance`, which spec 157 added (spec 082 3.2 and 3.4).
->
-> The commands below are kept verbatim and are not corrected (spec 037 3.1).
-
 ```verify:cli
+# ---- carried for 187-exact-test-counts-for-156 (amends_verification), and through it 156, 091, 094, 124, 134, 135; the ci-gate needs line names affected-acceptance (190 3.2) ----
 # ---- carried for 156-statecraft-profile-10-governs-this-repository (amends_verification), and through it 091, 094, 124, 134, 135; each loose test count names its tests (153 3.2) ----
 # 3.1 and 3.3: the committed environment names Profile 11 and the exact engine pin.
 grep -q '"identity": "statecraft-setup:github-actions-rust@11"' .statecraft/environment.json
@@ -150,7 +143,7 @@ grep -q 'cargo test --workspace --locked --no-fail-fast' .github/workflows/spec-
 grep -q 'name: build and test (rust-version)' .github/workflows/spec-spine-required.yml
 grep -q 'cargo "+\$RUST_VERSION" test --workspace --locked' .github/workflows/spec-spine-required.yml
 grep -q 'name: cargo-deny' .github/workflows/spec-spine-required.yml
-grep -q 'needs: \[governance, code, ai-review, review-exception, determinism, spec-spine-required\]' .github/workflows/statecraft-ci.yml
+grep -q 'needs: \[governance, code, ai-review, review-exception, determinism, spec-spine-required, affected-acceptance\]' .github/workflows/statecraft-ci.yml
 grep -q '^rust-version = "1.90"$' Cargo.toml
 sh -c '! grep -q "1\\.90" .github/workflows/spec-spine-required.yml'
 grep -q 'jsonschema = { version = "0.49", default-features = false }' crates/spec-spine-core/Cargo.toml

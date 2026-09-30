@@ -127,6 +127,9 @@ costs nothing today and catches the next Windows regression.
 >
 > Since 2026-09-29, `187-exact-test-counts-for-156` holds 156's block in turn,
 > so this plan runs from that spec's block (spec 153 3.2).
+>
+> Since 2026-09-29, `190-the-gate-requires-the-queue-sweep` holds 187's block in
+> turn, so this plan runs from that spec's block (spec 190 3.1).
 
 ```verify:cli
 # 3.1: the job exists under its own name and the gate requires it.

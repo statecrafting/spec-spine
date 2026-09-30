@@ -350,6 +350,9 @@ command inside an echoed string. The reader is the assertion.
 >
 > Since 2026-09-29, `187-exact-test-counts-for-156` holds 156's block in turn,
 > so this plan runs from that spec's block (spec 153 3.2).
+>
+> Since 2026-09-29, `190-the-gate-requires-the-queue-sweep` holds 187's block in
+> turn, so this plan runs from that spec's block (spec 190 3.1).
 
 Each line is one command, run independently.
 
