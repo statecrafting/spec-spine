@@ -160,6 +160,13 @@ contradicted D-2. The agent trailers every tool writes carry an agent address,
 so the address alone decides; a trailer with an agent's name and a person's
 address passes.
 
+**D-5 (2026-09-29, review of #418): a session trailer's value is any eight
+non-space characters.** Sampling every form 3.2 names showed that a
+`Session-URL` or `Agent-Session-URL` trailer whose value is a URL passed: the
+value pattern admitted only identifier characters, and the scheme's colon ended
+the run. The self-test now carries a sample for every refused form, including
+the Codex footer and the Codex connector's trailer.
+
 ## Verification
 
 ```verify:cli
