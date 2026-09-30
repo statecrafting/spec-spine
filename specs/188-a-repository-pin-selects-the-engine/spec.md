@@ -426,6 +426,12 @@ script and workflow are rendered by Statecraft's setup profile, and they move
 to `.bin/` when this repository adopts the profile revision that renders them
 so. Until then this spec changes only the launcher.
 
+**D-16 (2026-09-30, V-1 runs on Unix hosts).** The V-1 fixtures are shell-script
+engines and `tar` archives, so the three integration test files are compiled on
+Windows but run only on Unix (`#![cfg(unix)]`). The Windows wait-and-return
+execution path (D-13h) has no fixture yet; one is follow-up work, not part of
+this acceptance.
+
 ## Verification
 
 The `V-1` inputs are the three test files below. They use stub engines of two

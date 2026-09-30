@@ -2,6 +2,11 @@
 //! V-1, execution: arguments, working directory and exit status reach the
 //! engine and come back unchanged, and the launcher never runs itself.
 
+// The fixtures are shell-script engines and `tar` archives, which exist on the
+// Unix hosts only. On Windows the crate and these files still compile; the
+// wait-and-return execution path there has no fixture yet.
+#![cfg(unix)]
+
 mod common;
 
 use std::fs;

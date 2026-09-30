@@ -113,7 +113,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "d3ca9e0e84ed81070bf76d0c929a8422c78947209d343b2b740624bbd6e07519",
-      "188-a-repository-s-pin-selects-the-engine-that-runs": "543e5e0b46bd814d86dbaa7ed4f783fd62f0923930141dad722c28c389f292ce",
+      "188-a-repository-s-pin-selects-the-engine-that-runs": "6f388e3adf4f7b2de3c76384028a2ad791a3459fb3c0f8ffcba140b7b7f17d2d",
       "2-territory": "1dfa8b77ef2a1718853a4439e8d51d962ec349e15a2dc48d8ef81d8c96da9292",
       "3-1-launcher-and-engine-are-separate": "ca1144a2f9e456bc1f3e5d278a159cda21dded561ea16f5faf4ec236236591d7",
       "3-2-what-the-launcher-reads": "27d35ce5a934e4012057e315575bd62dc968a61664e814023e5f143b7c6b8f83",
@@ -125,7 +125,7 @@
       "3-8-observable-negative-cases": "c3a9a6583d43d1194fdc2d8f8998d7415e0c8cd073bf2970534cf78834f32d69",
       "3-behavior": "1108163dcc04f1e5cbf94c1314c1dd34620bee259fa993fd90602ba8cd2b29f6",
       "4-out-of-scope": "480fc17abdb161b405131cb263e2c3cdb80055a28e4a40cfbc1c6c1ab9aa5d9d",
-      "5-resolved-decisions": "a06dd88dc391ad48e3b4982d87ae0b39120a78527b1b84361c36fb7ecd7bf774",
+      "5-resolved-decisions": "fefc07203054c385147470f26ea16b1f00b57df5219dc653c58f3ea2f0851afc",
       "verification": "645af42d8022ce76ffb51de212f082ff1148e18b83e728e141725c1245d33724"
     },
     "sectionHeadings": [
@@ -150,6 +150,6 @@
     "summary": "Adds a launcher: a small executable, separate from the engine, that a user or a consumer invokes as `spec-spine`. It finds the repository, reads the engine pin from `spec-spine.toml` with a tolerant reader, resolves an installed engine of exactly that release, verifies its digest, and executes it with the original arguments, working directory, streams and exit status. Engines are stored once per user, content addressed, and a repository may instead declare a local tool directory. A committed `spec-spine.lock`, which no engine reads, records each target's engine digest. Acquisition of a missing engine happens only when the user or CI enabled it, never because a repository asked. A consumer asks `launcher resolve --json` and executes the absolute path it returns. The launcher never judges a repository.\n",
     "title": "A repository's pin selects the engine that runs"
   },
-  "shardHash": "05714065e89180cef92dd0387196a8a520fc4d8098d87abe6bdefc2ca411de4e",
+  "shardHash": "7dc804c514d3684c0a26be44af0cd54aa4cfb1fcdf37179c6accc5f9fdd7d6c0",
   "specVersion": "1.9.0"
 }

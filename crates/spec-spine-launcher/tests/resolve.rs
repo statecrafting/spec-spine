@@ -2,6 +2,11 @@
 //! V-1, resolution and verification: which engine a repository's pin selects,
 //! and every refusal on the way. Stub engines in a temporary store; no network.
 
+// The fixtures are shell-script engines and `tar` archives, which exist on the
+// Unix hosts only. On Windows the crate and these files still compile; the
+// wait-and-return execution path there has no fixture yet.
+#![cfg(unix)]
+
 mod common;
 
 use std::fs;
