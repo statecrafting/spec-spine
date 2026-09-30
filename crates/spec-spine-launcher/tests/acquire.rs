@@ -292,14 +292,14 @@ fn lock_records_the_engine_digest_of_every_published_target() {
     let f = fx();
     fs::write(
         f.repo.join("spec-spine.lock"),
-        "[engine]\nrelease = \"0.28.0\"\ntool_dir = \".tooling/bin\"\n[engine.digests]\n",
+        "[engine]\nrelease = \"0.28.0\"\n[engine.digests]\n",
     )
     .unwrap();
     let o = f.cmd().args(["launcher", "lock"]).output().unwrap();
     assert_eq!(code(&o), 0, "{}", stderr(&o));
     let lock = fs::read_to_string(f.repo.join("spec-spine.lock")).unwrap();
     assert!(lock.contains(&format!("release = \"{RELEASE}\"")), "{lock}");
-    assert!(lock.contains("tool_dir = \".tooling/bin\""), "{lock}");
+    assert!(!lock.contains("tool_dir"), "{lock}");
     for t in UNIX_TARGETS {
         assert!(
             lock.contains(&format!("\"{t}\" = \"sha256:{}\"", f.digest)),

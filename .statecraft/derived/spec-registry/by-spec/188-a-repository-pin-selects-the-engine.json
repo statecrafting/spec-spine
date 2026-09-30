@@ -113,19 +113,19 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "d3ca9e0e84ed81070bf76d0c929a8422c78947209d343b2b740624bbd6e07519",
-      "188-a-repository-s-pin-selects-the-engine-that-runs": "9b3d4153ceb2c80ff9d1d077ca27d34a358f1c192053b0d8847a521359f99285",
+      "188-a-repository-s-pin-selects-the-engine-that-runs": "543e5e0b46bd814d86dbaa7ed4f783fd62f0923930141dad722c28c389f292ce",
       "2-territory": "1dfa8b77ef2a1718853a4439e8d51d962ec349e15a2dc48d8ef81d8c96da9292",
       "3-1-launcher-and-engine-are-separate": "ca1144a2f9e456bc1f3e5d278a159cda21dded561ea16f5faf4ec236236591d7",
       "3-2-what-the-launcher-reads": "27d35ce5a934e4012057e315575bd62dc968a61664e814023e5f143b7c6b8f83",
-      "3-3-the-lock": "7152c8bf9690e4eb371edbaa9538a081ab8985c001daa89243ad8effe3f29544",
-      "3-4-resolution": "c4f370cc312f121e0e0662609f6b22c2bfb55cc6150aaf3f468c8dcf3996561c",
+      "3-3-the-lock": "05bc6018a6daa90b6e5f3b5ad0d06d4f22320dbbdc4790f62cdf2c02470c81d0",
+      "3-4-resolution": "213152c0ceacafad8002f66ecd7ff2ed655c89ffd35e9710d3640b772c9e6aac",
       "3-5-acquisition": "8cfa01286c464bdc967035b90f68671ebd7d25c859e4bd4a880a30c352a17c2a",
       "3-6-execution": "b35ede3e9de45fcf6a995ddb0435d72eda98c94c8e6eed9b08a9758bef4cdf46",
       "3-7-a-consumer-asks-for-the-resolution": "1ad0ee71f3a7909b11f5316b553ba403b025117a154fd54d3be5ea0f5e82bcd7",
       "3-8-observable-negative-cases": "c3a9a6583d43d1194fdc2d8f8998d7415e0c8cd073bf2970534cf78834f32d69",
-      "3-behavior": "d54fa6ca58599db41357cd2779a142436b4559918b6b47e135c6c0d90e83cc1c",
+      "3-behavior": "1108163dcc04f1e5cbf94c1314c1dd34620bee259fa993fd90602ba8cd2b29f6",
       "4-out-of-scope": "480fc17abdb161b405131cb263e2c3cdb80055a28e4a40cfbc1c6c1ab9aa5d9d",
-      "5-resolved-decisions": "f9d1c56934f630feb0baa1863a8bdda99eea66b3df7d8daeb8cc27c49b0c8075",
+      "5-resolved-decisions": "a06dd88dc391ad48e3b4982d87ae0b39120a78527b1b84361c36fb7ecd7bf774",
       "verification": "645af42d8022ce76ffb51de212f082ff1148e18b83e728e141725c1245d33724"
     },
     "sectionHeadings": [
@@ -150,6 +150,6 @@
     "summary": "Adds a launcher: a small executable, separate from the engine, that a user or a consumer invokes as `spec-spine`. It finds the repository, reads the engine pin from `spec-spine.toml` with a tolerant reader, resolves an installed engine of exactly that release, verifies its digest, and executes it with the original arguments, working directory, streams and exit status. Engines are stored once per user, content addressed, and a repository may instead declare a local tool directory. A committed `spec-spine.lock`, which no engine reads, records each target's engine digest. Acquisition of a missing engine happens only when the user or CI enabled it, never because a repository asked. A consumer asks `launcher resolve --json` and executes the absolute path it returns. The launcher never judges a repository.\n",
     "title": "A repository's pin selects the engine that runs"
   },
-  "shardHash": "f64f31f30d2d8335f64f8c5b865c4d03f325a9e70b6afacdac280e1ec3965d21",
+  "shardHash": "05714065e89180cef92dd0387196a8a520fc4d8098d87abe6bdefc2ca411de4e",
   "specVersion": "1.9.0"
 }

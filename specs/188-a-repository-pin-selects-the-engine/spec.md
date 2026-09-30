@@ -151,7 +151,6 @@ repository.
 ```toml
 [engine]
 release = "0.29.0"                 # must equal the pin
-tool_dir = ".tooling/bin"          # optional; section 3.4
 [engine.digests]
 "aarch64-apple-darwin" = "sha256:..."
 "x86_64-unknown-linux-gnu" = "sha256:..."
@@ -175,9 +174,12 @@ a different release:
 1. **Override.** `SPEC_SPINE_ENGINE`, an absolute path. It must answer
    `--version` with the pinned release and, when a lock is present, match the
    lock's digest for this target; otherwise it is refused with no fallback.
-2. **Project tool directory.** When the lock declares `tool_dir`, the engine at
-   `<tool_dir>/spec-spine` when it answers the pinned release and matches the
-   lock's digest. A project uses this for hermetic or offline checkouts.
+2. **Project tool directory.** The engine at `.bin/spec-spine` in the
+   repository, when that file exists. It must answer the pinned release and,
+   when a lock is present, match the lock's digest; otherwise it is refused
+   with no fallback. The directory is fixed, not configured. A project uses it
+   for hermetic or offline checkouts, and it is where Statecraft's setup
+   profile installs the pinned engine.
 3. **User store.** `<data dir>/spec-spine/engines/<release>/<target>/<sha256>/spec-spine`,
    where `<data dir>` is the platform's per-user data directory. Entries are
    immutable and content addressed. When a lock is present, only the entry
@@ -410,6 +412,19 @@ claimed file that no span backs, so lint `L-008` requires it to be in some
 content hash. It joins `[index] extra_hashed_inputs` in `spec-spine.toml`, as
 `docs/overlay-contract.md` did under spec 112 D-3, and this spec declares an
 `additive` `extends` edge on that unit of spec 092. Only the one entry is added.
+
+**D-15 (2026-09-30, the project tool directory is `.bin/`).** The owner decided
+that neither spec-spine nor Statecraft uses `.tooling/bin`, and that the
+repository-local engine lives in `.bin/`. The lock's optional `tool_dir` key is
+removed rather than defaulted: a configurable directory is one more thing two
+tools must agree on, and Statecraft's resolution (its spec 028) and setup
+profile look in one fixed place. `.bin/spec-spine` is a candidate with or
+without a lock; without one it is put to the pin alone, as the override is. A
+`.tooling/bin/spec-spine` left in a checkout is not a candidate. This
+repository's own gate still installs into `.tooling/bin` because its gate
+script and workflow are rendered by Statecraft's setup profile, and they move
+to `.bin/` when this repository adopts the profile revision that renders them
+so. Until then this spec changes only the launcher.
 
 ## Verification
 

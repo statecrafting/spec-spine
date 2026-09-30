@@ -35,7 +35,6 @@ the launcher's own.
 ```toml
 [engine]
 release = "0.29.0"                 # must equal the pin
-tool_dir = ".tooling/bin"          # optional: a project tool directory
 [engine.digests]
 "aarch64-apple-darwin" = "sha256:..."
 "x86_64-unknown-linux-gnu" = "sha256:..."
@@ -45,7 +44,6 @@ tool_dir = ".tooling/bin"          # optional: a project tool directory
 - Each digest is the SHA-256 of the **engine executable** for that target, as
   `sha256:` followed by 64 lowercase hex digits. It is not the digest of the
   release archive (spec 188 D-5).
-- `tool_dir` is relative to the repository root and may not leave it.
 - A lock that records no digest for the host's target is refused, exit 2.
 - The lock is written only by `spec-spine launcher lock`, never as a side effect.
 
@@ -61,8 +59,9 @@ release, and `PATH` is never consulted.
    `--version` with the pinned release and, when a lock is present, match the
    lock's digest for the host's target. Otherwise it is refused, with no
    fallback.
-2. **Project tool directory.** When the lock declares `tool_dir` and
-   `<tool_dir>/spec-spine` exists, that file, under the same two conditions. A
+2. **Project tool directory.** When `.bin/spec-spine` exists in the
+   repository, that file, under the same two conditions. The directory is
+   fixed; the lock does not name it. A
    file that is present but fails them is refused rather than skipped (D-13).
 3. **User store.** `<data root>/engines/<release>/<target>/<sha256>/spec-spine`.
    Entries are immutable and named by the SHA-256 of the executable. When a lock
@@ -136,7 +135,7 @@ passed to the selected engine unchanged.
 |---|---|
 | `launcher resolve [--json]` | Answers which engine would run. Writes and downloads nothing, whatever the policy. |
 | `launcher install` | Resolves, and if nothing answers, acquires. Prints `installed <path>` or `present <path>`. |
-| `launcher lock` | Fetches each published target's archive, digests the engine inside, and writes `spec-spine.lock` (keeping an existing `tool_dir`). Places nothing in the store. |
+| `launcher lock` | Fetches each published target's archive, digests the engine inside, and writes `spec-spine.lock`. Places nothing in the store. |
 | `launcher --version` | `spec-spine-launcher <version>`. |
 
 ### `launcher resolve --json`

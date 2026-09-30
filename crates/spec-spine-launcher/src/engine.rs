@@ -13,7 +13,7 @@ use std::time::Duration;
 
 use crate::failure::{Failure, Res};
 use crate::hash;
-use crate::repo::{Lock, Repo};
+use crate::repo::{self, Lock, Repo};
 use crate::target;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -196,12 +196,14 @@ pub fn resolve(req: &Req<'_>) -> Res<Found> {
         return Ok(Found::Engine(s));
     }
 
-    if let Some(dir) = req.lock.and_then(|l| l.tool_dir.as_ref()) {
-        let path = req.repo.root.join(dir).join(target::exe_name(req.target));
-        if path.is_file() {
-            let s = check_external(&path, Rule::ToolDir, req.release, expected)?;
-            return Ok(Found::Engine(s));
-        }
+    let path = req
+        .repo
+        .root
+        .join(repo::TOOL_DIR)
+        .join(target::exe_name(req.target));
+    if path.is_file() {
+        let s = check_external(&path, Rule::ToolDir, req.release, expected)?;
+        return Ok(Found::Engine(s));
     }
 
     resolve_store(req, expected)

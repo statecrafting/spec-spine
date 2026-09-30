@@ -283,12 +283,8 @@ fn install_verb(parsed: &Parsed) -> Res<u8> {
 fn lock_verb(parsed: &Parsed) -> Res<u8> {
     let repo = discover(parsed)?;
     let release = repo::read_pin(&repo.root)?;
-    let tool_dir = repo::read_lock(&repo.root, None)
-        .ok()
-        .flatten()
-        .and_then(|l| l.tool_dir);
     let digests = acquire::compute_digests(&release)?;
-    let text = repo::render_lock(&release, tool_dir.as_deref(), &digests);
+    let text = repo::render_lock(&release, &digests);
     let dest = repo.root.join(repo::LOCK_FILE);
     let tmp = repo
         .root

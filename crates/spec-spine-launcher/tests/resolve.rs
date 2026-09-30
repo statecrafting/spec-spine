@@ -337,13 +337,19 @@ fn the_project_tool_directory_is_a_rule_and_is_verified_against_the_lock() {
     let w = World::new();
     let r = w.repo("r", "=0.28.0");
     let s = stub("0.28.0", "tool");
-    write_exec(&r.join(".tooling/bin/spec-spine"), &s);
-    w.write_lock(
-        &r,
-        "0.28.0",
-        &sha256_bytes(s.as_bytes()),
-        "tool_dir = \".tooling/bin\"\n",
-    );
+    write_exec(&r.join(".bin/spec-spine"), &s);
+
+    // With no lock, `.bin/spec-spine` is put to the pin alone.
+    let o = w
+        .cmd(&r)
+        .args(["launcher", "resolve", "--json"])
+        .output()
+        .unwrap();
+    assert_eq!(code(&o), 0, "{}", stderr(&o));
+    assert_eq!(json(&o)["report"]["rule"], "tool-dir");
+
+    // With a lock, it must also be the locked executable.
+    w.write_lock(&r, "0.28.0", &sha256_bytes(s.as_bytes()), "");
     let o = w
         .cmd(&r)
         .args(["launcher", "resolve", "--json"])
@@ -353,15 +359,23 @@ fn the_project_tool_directory_is_a_rule_and_is_verified_against_the_lock() {
     assert_eq!(json(&o)["report"]["rule"], "tool-dir");
 
     // A tool directory whose engine is not the locked one is refused.
-    w.write_lock(
-        &r,
-        "0.28.0",
-        &"b".repeat(64),
-        "tool_dir = \".tooling/bin\"\n",
-    );
+    w.write_lock(&r, "0.28.0", &"b".repeat(64), "");
     let o = w.cmd(&r).arg("check").output().unwrap();
     assert_eq!(code(&o), 2);
     assert!(!stdout(&o).contains("engine"));
+}
+
+#[test]
+fn a_retired_tool_directory_is_not_a_candidate() {
+    let w = World::new();
+    let r = w.repo("r", "=0.28.0");
+    write_exec(&r.join(".tooling/bin/spec-spine"), &stub("0.28.0", "old"));
+    let o = w
+        .cmd(&r)
+        .args(["launcher", "resolve", "--json"])
+        .output()
+        .unwrap();
+    assert_ne!(json(&o)["report"]["rule"], "tool-dir", "{}", stdout(&o));
 }
 
 #[test]

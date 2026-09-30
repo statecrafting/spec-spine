@@ -2,7 +2,7 @@
 //! (spec 188 sections 3.2 and 3.3), and nothing else.
 
 use std::collections::BTreeMap;
-use std::path::{Component, Path, PathBuf};
+use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 
@@ -11,6 +11,9 @@ use crate::hash;
 
 pub const CONFIG_FILE: &str = "spec-spine.toml";
 pub const LOCK_FILE: &str = "spec-spine.lock";
+/// The project tool directory (spec 188 section 3.4): a repository-local
+/// engine, when one is installed, is `.bin/spec-spine`.
+pub const TOOL_DIR: &str = ".bin";
 
 #[derive(Debug)]
 pub struct Repo {
@@ -127,14 +130,12 @@ struct RawLock {
 #[derive(Deserialize, Default)]
 struct RawEngine {
     release: Option<String>,
-    tool_dir: Option<String>,
     #[serde(default)]
     digests: BTreeMap<String, String>,
 }
 
 #[derive(Debug)]
 pub struct Lock {
-    pub tool_dir: Option<PathBuf>,
     /// Target triple to lowercase hex digest (without the `sha256:` prefix).
     pub digests: BTreeMap<String, String>,
 }
@@ -177,40 +178,17 @@ pub fn read_lock(root: &Path, pin: Option<&str>) -> Res<Option<Lock>> {
             })?;
         digests.insert(target, hex.to_string());
     }
-    let tool_dir = match engine.tool_dir {
-        None => None,
-        Some(d) => {
-            let p = PathBuf::from(&d);
-            let contained = !d.is_empty()
-                && p.components()
-                    .all(|c| matches!(c, Component::Normal(_) | Component::CurDir));
-            if !contained {
-                return Err(bad(format!(
-                    "tool_dir {d:?} must be a relative path inside the repository"
-                )));
-            }
-            Some(p)
-        }
-    };
-    Ok(Some(Lock { tool_dir, digests }))
+    Ok(Some(Lock { digests }))
 }
 
 /// The text of a lock for `release`; keys are sorted so the file is stable.
-pub fn render_lock(
-    release: &str,
-    tool_dir: Option<&Path>,
-    digests: &BTreeMap<String, String>,
-) -> String {
+pub fn render_lock(release: &str, digests: &BTreeMap<String, String>) -> String {
     let mut s = String::from(
         "# Written by `spec-spine launcher lock`. No engine reads this file.\n\
          # Digests are the SHA-256 of the engine executable for each target.\n\
          [engine]\n",
     );
     s.push_str(&format!("release = \"{release}\"\n"));
-    if let Some(d) = tool_dir {
-        let d = d.to_string_lossy().replace('\\', "/");
-        s.push_str(&format!("tool_dir = \"{d}\"\n"));
-    }
     s.push_str("[engine.digests]\n");
     for (target, hex) in digests {
         s.push_str(&format!("\"{target}\" = \"sha256:{hex}\"\n"));
@@ -246,11 +224,10 @@ mod tests {
         std::fs::create_dir_all(&dir).unwrap();
         let mut d = BTreeMap::new();
         d.insert("x86_64-unknown-linux-gnu".to_string(), "a".repeat(64));
-        let text = render_lock("0.29.0", Some(Path::new(".tooling/bin")), &d);
+        let text = render_lock("0.29.0", &d);
         std::fs::write(dir.join(LOCK_FILE), text).unwrap();
         let lock = read_lock(&dir, Some("0.29.0")).unwrap().unwrap();
         assert_eq!(lock.digests, d);
-        assert_eq!(lock.tool_dir.unwrap(), Path::new(".tooling/bin"));
         assert_eq!(read_lock(&dir, Some("0.30.0")).unwrap_err().code, 2);
         std::fs::remove_dir_all(&dir).unwrap();
     }
