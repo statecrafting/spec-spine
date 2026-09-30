@@ -1,0 +1,72 @@
+{
+  "record": {
+    "created": "2026-09-29",
+    "dependsOn": [
+      "093-the-harness-this-repository-runs",
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "156-statecraft-profile-10-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/check-authored-content.sh"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "093-the-harness-this-repository-runs",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      }
+    ],
+    "id": "189-agent-attribution-is-refused",
+    "implementation": "complete",
+    "intent": {
+      "goal": "Nothing an agent session writes carries agent attribution or an agent identity onto the default branch.",
+      "nonGoals": [
+        "Editing the Statecraft-rendered gate or workflows.",
+        "Rewriting any pull request's history.",
+        "Policing ordinary pull-request comments."
+      ]
+    },
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "5d1c827dee9be6ee769a2a5b504b996c4068cad65f7d78923ba7847b5f63c98b",
+      "189-agent-attribution-is-refused-in-commits-and-pull-requests": "39488740409f38c3c8d6c0bd2a40f100ccff6044ecc41d45d39d1c0921016d12",
+      "2-territory": "b9e24ad801c83956164bbe2445f4fdc606e93937a2c3ea5b8ca9e8b1a9fac4f7",
+      "3-1-the-project-settings-write-no-attribution": "a2af89c22092d067ffe5ac09b4b2b27289c532fadeade06db6fc433c65a5a09b",
+      "3-2-the-checker-refuses-agent-links-and-attribution": "34e67870c523cc4f5a0eb4e45406cf98d3f8177306c4d41fdd177a67cd1e4088",
+      "3-3-the-checker-refuses-an-agent-commit-identity": "9b2fdbf391009716b22f59c2950bf36f06cbefb789a54d52a833b6aca5eebe83",
+      "3-4-offline-evidence": "d9fa69b3853b9c54dedf15b3467124ceab5b5f26dc252e76027fe2d4fcd03a1d",
+      "3-behavior": "51cf1407c3e244a8b8ad05d536a96871036810b4b69fd27d069aa48a500ddf51",
+      "4-out-of-scope": "dc9d373e115f2a1eaadb34f56e1b690a7dc5b3758b36ff61e9f42a7feda564c7",
+      "5-resolved-decisions": "d7fa3b6c3dad246ccb0d265c09968414ab3e68f85dfc0b5b12b0a4e71eb1d727",
+      "verification": "370553ad8422de7fa3831fce57ef925e3c025a847c1e789ff0a7ed47c2c0f816"
+    },
+    "sectionHeadings": [
+      "189: Agent attribution is refused in commits and pull requests",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The project settings write no attribution",
+      "3.2 The checker refuses agent links and attribution",
+      "3.3 The checker refuses an agent commit identity",
+      "3.4 Offline evidence",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/189-agent-attribution-is-refused/spec.md",
+    "status": "draft",
+    "summary": "Pull request 417 reached a green ci-gate with four commits whose author and committer were an agent identity, an agent co-author trailer on every commit, and an agent footer, attribution marker and project-thread link in its body. The authored-content checker refused only the em dash and one session-link form, and nothing read commit identity. The checker now refuses agent-session links and agent attribution in every text it already reads, and refuses an agent author or committer on every commit the governance step judges. The project settings stop Claude Code from writing the attribution in the first place.\n",
+    "title": "Agent attribution is refused in commits and pull requests"
+  },
+  "shardHash": "e2b64dd3e7e481efbceddaf0b2cde4e936702db9793d21e43bf495ea1f658a9e",
+  "specVersion": "1.9.0"
+}

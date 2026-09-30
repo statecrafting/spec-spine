@@ -13,7 +13,7 @@
       "contentHash": "e085d59287b151443cee7749073f5c7798a4a3c3ea7273a65f095f4f8575904a"
     },
     ".claude/settings.json": {
-      "contentHash": "01a9698659f3ac4b183d50210d1c70647c6f0b2f7298ad7e28afafcacaeafe94"
+      "contentHash": "854b75afc930df4ab3414ef3f691c998ff3b64c8eacd32115b11fb81714e39f7"
     },
     ".claude/skills/build/SKILL.md": {
       "contentHash": "cf1103eba3d0a312774b60e93a4e6dc0a524d04688c6a460060848c99610e4df"
@@ -166,7 +166,7 @@
       "contentHash": "fe1e8243b1cf089d3bf9dfe261a30ad752377302be86644f68e28a27d7ee0e5a"
     },
     "scripts/check-authored-content.sh": {
-      "contentHash": "6ef43cef637a714cd10f91333d479b82af2b5ffff07a315277129903cc6182a6"
+      "contentHash": "dfa3a4daa5214f23ad5706204c533cfb662a97fbaab4950432627623bfe365c6"
     },
     "scripts/reader-identity.sh": {
       "contentHash": "14832b2db506c4ea0be832fee375db9f19384828303d1e8bb2d2c099d08a96e7"

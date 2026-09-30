@@ -1,0 +1,50 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "093-the-harness-this-repository-runs",
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".claude/settings.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/check-authored-content.sh",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": ".claude/settings.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/settings.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/check-authored-content.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/check-authored-content.sh"
+        }
+      }
+    ],
+    "specId": "189-agent-attribution-is-refused",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "e2b64dd3e7e481efbceddaf0b2cde4e936702db9793d21e43bf495ea1f658a9e"
+}
