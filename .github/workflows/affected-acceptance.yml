@@ -47,7 +47,7 @@ jobs:
         if: ${{ github.event_name != 'merge_group' }}
         run: echo "The affected-acceptance sweep runs on merge_group only (spec 157 3.4); ${{ github.event_name }} passes without a checkout."
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         if: ${{ github.event_name == 'merge_group' }}
         with:
           # The sweep diffs base...head and checks out the revision into a
