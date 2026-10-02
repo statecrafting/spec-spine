@@ -77,7 +77,10 @@ aggregate requires all seven jobs, including that sweep.
 The complete block of spec 190 is carried below. Only the recorded profile
 revision and identity, and the obsolete temporary .tooling installer fixture,
 change. Compiled acceptance paths resolve Cargo's configured target directory
-to support the required shared worktree target. The gate uses the already-installed `.bin/spec-spine` executable.
+to support the required shared worktree target. Before invoking the managed gate,
+acceptance stages the candidate-built engine at `.bin/spec-spine`. Isolated
+merge-queue checkouts do not inherit ignored local installations. This keeps
+acceptance on the exact candidate engine.
 
 ## Verification
 
@@ -148,7 +151,7 @@ test -d .githooks
 test -f crates/spec-spine-core/tests/gate.rs
 sh -c '"$(cargo metadata --no-deps --format-version 1 | python3 -c '"'"'import json,sys; print(json.load(sys.stdin)["target_directory"])'"'"')/release/spec-spine" index owner Makefile | grep -qF "094-one-gate-and-the-boundaries-it-holds"'
 cargo test -p spec-spine-core --locked --test gate
-sh scripts/statecraft/gate.sh governance
+sh -c 'engine="$(cargo metadata --no-deps --format-version 1 | python3 -c '"'"'import json,sys; print(json.load(sys.stdin)["target_directory"])'"'"')/release/spec-spine"; mkdir -p .bin && cp "$engine" .bin/spec-spine.acceptance && chmod +x .bin/spec-spine.acceptance && mv .bin/spec-spine.acceptance .bin/spec-spine && sh scripts/statecraft/gate.sh governance'
 grep -q 'run: sh "${STATECRAFT_GATE:?}" governance' .github/workflows/statecraft-ci.yml
 grep -q 'BASE_SHA' scripts/statecraft/gate.sh
 grep -q 'HEAD_SHA' scripts/statecraft/gate.sh
