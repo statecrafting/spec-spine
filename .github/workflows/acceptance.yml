@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
           # The sweep tests ancestry against the trusted ref and checks out the
           # revision into a worktree; both need the history, not a shallow tip.
