@@ -249,7 +249,7 @@ fn resolve_json_answers_the_family_envelope() {
     assert_eq!(rep["digest"], format!("sha256:{d}"));
     assert_eq!(rep["release"], "0.28.0");
     assert_eq!(rep["target"], host_target());
-    assert_eq!(rep["repo"], r.to_str().unwrap());
+    assert_eq!(rep["repo"], fs::canonicalize(&r).unwrap().to_str().unwrap());
     assert_eq!(rep["rule"], "store");
     assert_eq!(rep["lock"], "matched");
     assert_eq!(rep["trust"], "lock");

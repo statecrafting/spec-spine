@@ -94,6 +94,11 @@ whole-list match.
 
 ## Verification
 
+> **Superseded acceptance (2026-10-02).** This block no longer runs.
+> `191-profile-13-keeps-the-engine-local` carries the complete acceptance
+> through the existing amendment chain for profile 13. The commands below
+> remain unchanged.
+
 ```verify:cli
 # ---- carried for 187-exact-test-counts-for-156 (amends_verification), and through it 156, 091, 094, 124, 134, 135; the ci-gate needs line names affected-acceptance (190 3.2) ----
 # ---- carried for 156-statecraft-profile-10-governs-this-repository (amends_verification), and through it 091, 094, 124, 134, 135; each loose test count names its tests (153 3.2) ----

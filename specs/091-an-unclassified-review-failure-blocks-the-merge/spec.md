@@ -758,6 +758,11 @@ substitution, whose assignment carries `cargo`'s own exit status, and the
 captured text is then searched separately for the summary line proving the named
 case actually ran rather than being filtered out to zero tests.
 
+> **Superseded acceptance (2026-10-02).** This block no longer runs.
+> `191-profile-13-keeps-the-engine-local` carries the complete acceptance
+> through the existing amendment chain for profile 13. The commands below
+> remain unchanged.
+
 ```verify:cli
 test -f crates/spec-spine-core/tests/ai_review_policy.rs
 cargo test -p spec-spine-core --locked --test ai_review_policy

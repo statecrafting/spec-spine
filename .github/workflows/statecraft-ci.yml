@@ -1,5 +1,5 @@
-# Rendered by Statecraft from profile github-actions-rust revision 11
-# (identity 25e77bc9f95c2cef638d3b282b573b0c481572a9f72187c520f8caa956f56b6f). A managed file and a member of this
+# Rendered by Statecraft from profile github-actions-rust revision 13
+# (identity 6167a12e110b30ec27d37909344c7de0178ba477d5ad1ab91a0053430a89e17b). A managed file and a member of this
 # repository's authority set: an edit here changes the gate that judges every
 # pull request, and `statecraft doctor` names it. The policy the aggregate gate
 # enforces is .statecraft/setup/github-actions-rust.json, read at the base.
@@ -30,6 +30,7 @@ jobs:
       pull-requests: read
     outputs:
       authority_change: ${{ steps.authority.outputs.authority_change }}
+      ratification: ${{ steps.authority.outputs.ratification }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -93,6 +94,25 @@ jobs:
             fi
           fi
           echo "authority_change=${change}" >> "$GITHUB_OUTPUT"
+          # Revision 12 (spec 024): a changed spec.md that becomes approved is
+          # a ratification, which needs the owner exception too; ci-gate
+          # recomputes it from the two trees.
+          status_at() {
+            if git cat-file -e "$1:$2" 2>/dev/null; then
+              git show "$1:$2" > "${work}/spec.md"
+              awk 'NR == 1 && $0 != "---" { done = 1 } NR > 1 && $0 == "---" { done = 1 } !done && NR > 1 && /^status:/ { sub(/^status:[[:space:]]*/, ""); gsub(/["\047]/, ""); sub(/[[:space:]]+$/, ""); print; done = 1 }' "${work}/spec.md"
+            fi
+          }
+          ratification=false
+          git diff --name-only "${BASE_SHA}...${HEAD_SHA}" > "${work}/changed-all"
+          while IFS= read -r path; do
+            case "$path" in spec.md | */spec.md) ;; *) continue ;; esac
+            if [ "$(status_at "$HEAD_SHA" "$path")" = approved ] && [ "$(status_at "$BASE_SHA" "$path")" != approved ]; then
+              ratification=true
+              echo "ratification: ${path} becomes approved; the owner exception is required for this run"
+            fi
+          done < "${work}/changed-all"
+          echo "ratification=${ratification}" >> "$GITHUB_OUTPUT"
       # Revision 4, rule 6: a cache, never a check. The key is the pin, so a
       # pin bump is a miss; the install step still verifies the version.
       - name: Read the spec-spine pin
@@ -101,7 +121,7 @@ jobs:
       - name: Cache spec-spine
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: .tooling/bin/spec-spine
+          path: .bin/spec-spine
           key: spec-spine-${{ steps.pin.outputs.version }}-${{ runner.os }}-${{ runner.arch }}
       - name: Install the pinned spec-spine
         run: sh "${STATECRAFT_INSTALL:?}"
@@ -203,7 +223,7 @@ jobs:
       - name: Cache spec-spine
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: .tooling/bin/spec-spine
+          path: .bin/spec-spine
           key: spec-spine-${{ steps.pin.outputs.version }}-${{ runner.os }}-${{ runner.arch }}
       - name: Install the pinned spec-spine
         run: sh "${STATECRAFT_INSTALL:?}"
@@ -242,8 +262,9 @@ jobs:
     needs: [governance, ai-review]
     # The owner exception (S-1): a release candidate whose review was skipped,
     # (revision 2, R2-1) any pull request whose review returned findings, and
-    # (revision 5, rule 2) any pull request that changes the authority set.
-    if: always() && github.event_name == 'pull_request' && (needs.governance.outputs.authority_change == 'true' || (needs.ai-review.outputs.release_candidate == 'true' && startsWith(needs.ai-review.outputs.result, 'skipped:')) || needs.ai-review.outputs.result == 'findings')
+    # (revision 5, rule 2) any pull request that changes the authority set,
+    # and (revision 12) any pull request that ratifies a spec.
+    if: always() && github.event_name == 'pull_request' && (needs.governance.outputs.authority_change == 'true' || needs.governance.outputs.ratification == 'true' || (needs.ai-review.outputs.release_candidate == 'true' && startsWith(needs.ai-review.outputs.result, 'skipped:')) || needs.ai-review.outputs.result == 'findings')
     runs-on: ubuntu-latest
     environment: statecraft-review-exception
     steps:
@@ -251,7 +272,8 @@ jobs:
         env:
           RESULT: ${{ needs.ai-review.outputs.result }}
           AUTHORITY_CHANGE: ${{ needs.governance.outputs.authority_change }}
-        run: echo "owner exception approved for a pull request whose review was ${RESULT} (authority change ${AUTHORITY_CHANGE})"
+          RATIFICATION: ${{ needs.governance.outputs.ratification }}
+        run: echo "owner exception approved for a pull request whose review was ${RESULT} (authority change ${AUTHORITY_CHANGE}, ratification ${RATIFICATION})"
 
   determinism:
     name: determinism
@@ -298,7 +320,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           script="${RUNNER_TEMP}/statecraft-ci-gate.sh"
-          if git show "${BASE_SHA}:scripts/statecraft/ci-gate.sh" > "$script" 2>/dev/null; then
+          # Revision 12: only a readable base without the script is the
+          # adoption; an unreadable base stops before the candidate is read.
+          case "$BASE_SHA" in 0000000000000000000000000000000000000000) BASE_SHA="" ;; esac
+          if [ -n "$BASE_SHA" ] && ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "cannot read the base commit ${BASE_SHA}; ci-gate.sh is never taken from the candidate in its place" >&2
+            exit 2
+          fi
+          if [ -n "$BASE_SHA" ] && git show "${BASE_SHA}:scripts/statecraft/ci-gate.sh" > "$script" 2>/dev/null; then
             echo "ci-gate.sh: read at the base ${BASE_SHA}"
           else
             cp scripts/statecraft/ci-gate.sh "$script"

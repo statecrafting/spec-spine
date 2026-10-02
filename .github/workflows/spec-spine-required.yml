@@ -81,7 +81,7 @@ jobs:
       - name: Build CLI
         run: cargo build --bin spec-spine --locked
       - name: Stage the candidate-built engine
-        run: mkdir -p .tooling/bin && cp target/debug/spec-spine .tooling/bin/spec-spine
+        run: mkdir -p .bin && cp target/debug/spec-spine .bin/spec-spine
       - name: Governance with the candidate-built engine
         run: sh scripts/statecraft/gate.sh governance
       - name: Coupling (pull request)

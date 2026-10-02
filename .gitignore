@@ -51,6 +51,9 @@ __pycache__/
 # dir, which lives outside the repo), so it is not version-controlled.
 .claude/agent-memory/
 
+# Retain the pre-migration installer directory for existing local worktrees.
+.tooling/
+
 # >>> statecraft managed ignores >>>
 # Managed by Statecraft. Entries above and below this block are yours and are
 # never reordered, rewritten or removed. Delete the whole block to opt out.
@@ -75,5 +78,5 @@ __pycache__/
 #
 #   .statecraft/derived/
 # The repository-local spec-spine the setup profile installs.
-.tooling/
+.bin/
 # <<< statecraft managed ignores <<<

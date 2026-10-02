@@ -1,8 +1,8 @@
 #!/bin/sh
-# Rendered by Statecraft from profile github-actions-rust revision 11.
+# Rendered by Statecraft from profile github-actions-rust revision 13.
 # The one definition of this repository's gate: `make gate` and `make code`
 # run it locally, and CI runs the same script, so the two cannot drift. Only
-# the repository-local .tooling/bin/spec-spine is used; a spec-spine elsewhere
+# the repository-local .bin/spec-spine is used; a spec-spine elsewhere
 # on PATH never answers for this repository.
 #
 # In CI this script is read at the base commit and run against the candidate's
@@ -25,7 +25,7 @@ leave() {
 }
 trap 'rc=$?; if [ "$rc" -ne 0 ]; then echo "gate.sh: a command failed (exit $rc) and stopped the gate; reported as failed (4)" >&2; exit 4; fi' EXIT
 
-SS=.tooling/bin/spec-spine
+SS=.bin/spec-spine
 BASE_SHA="${BASE_SHA:-}"
 case "$BASE_SHA" in 0000000000000000000000000000000000000000) BASE_SHA="" ;; esac
 # This script's own path, for the commit walk, which judges each commit with
@@ -43,6 +43,7 @@ GATE_EACH_COMMIT=true
 REQUIRE_SIGNED_COMMITS=true
 REQUIRE_DEFAULT_BASE=true
 FAIL_ON_UNRESOLVED=true
+REQUIRE_RATIFIED=false
 
 usage() {
   echo "usage: gate.sh governance|code|couple|couple-group|base|text|commits|pin" >&2
@@ -199,6 +200,44 @@ pin_of() {
     /^[[:space:]]*\[/ { section = $0; gsub(/[[:space:]]/, "", section); next }
     section == "[meta]" && /^[[:space:]]*required_version[[:space:]]*=/ { print; exit }
   ' "$1" 2>/dev/null | sed -n 's/^[^=]*=[[:space:]]*"=\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\)"[[:space:]]*$/\1/p'
+}
+
+# Revision 12 (spec 024): ratification is a merge condition. Every path in
+# the file $1 names is looked up with the pinned spec-spine at the
+# candidate's tree (`index owner`, the coupling gate's own derivation), and a
+# path a `draft` spec owns is a finding (1). The pull request that moves the
+# spec to approved passes here; ci-gate requires the owner's exception for it.
+ratified() {
+  if [ "$REQUIRE_RATIFIED" != true ]; then
+    echo "gate.sh: governance.require_ratified is false; a path a draft spec owns is not refused"
+    return 0
+  fi
+  if ! command -v jq > /dev/null 2>&1; then
+    echo "gate.sh: jq is not on PATH; the ratification check reads spec-spine's JSON with it" >&2
+    leave 2
+  fi
+  rt="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
+  spec_spine registry list --json > "$rt/statecraft-registry.json"
+  jq -r '(.items // [])[] | select(.status == "draft") | .id' "$rt/statecraft-registry.json" > "$rt/statecraft-drafts"
+  if [ ! -s "$rt/statecraft-drafts" ]; then
+    echo "no spec is draft: every changed path's owner is ratified"
+    return 0
+  fi
+  unratified=0
+  while IFS= read -r path; do
+    [ -n "$path" ] || continue
+    spec_spine index owner "$path" --json > "$rt/statecraft-owner.json"
+    for id in $(jq -r '(.owners // [])[].specId' "$rt/statecraft-owner.json" | sort -u); do
+      if grep -qxF -- "$id" "$rt/statecraft-drafts"; then
+        echo "gate.sh: $path is owned by $id, which is draft: the owner ratifies it (status: approved) in this pull request, with the owner exception, before this change merges" >&2
+        unratified=1
+      fi
+    done
+  done < "$1"
+  if [ "$unratified" -ne 0 ]; then
+    leave 1
+  fi
+  echo "every changed path's owning specs are ratified"
 }
 
 # The pull request a merge-queue entry was built from, by its group ref.
@@ -385,8 +424,8 @@ case "$MODE" in
         # it, and spec-spine refuses to read a repository through a link that
         # leaves it (its spec 144, from 0.28.0). The copy is a regular file
         # inside the worktree, and it goes when the worktree does.
-        contained="$wt/.tooling/bin/spec-spine"
-        if [ -n "$bin" ] && mkdir -p "$wt/.tooling/bin" && rm -f "$contained" \
+        contained="$wt/.bin/spec-spine"
+        if [ -n "$bin" ] && mkdir -p "$wt/.bin" && rm -f "$contained" \
           && cp "$bin" "$contained" && chmod 755 "$contained" \
           && [ -f "$contained" ] && [ ! -L "$contained" ] \
           && (cd "$wt" && sh "$script" governance && cargo fmt --all --check) > "$log" 2>&1; then
@@ -413,6 +452,8 @@ case "$MODE" in
     body="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/statecraft-pr-body.txt"
     printf '%s' "${PR_BODY:-}" > "$body"
     spec_spine couple --base "$BASE_SHA" --head "$HEAD_SHA" --pr-body "$body"
+    git -c core.quotePath=false diff --name-only "$BASE_SHA...$HEAD_SHA" > "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/statecraft-pr-changed"
+    ratified "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/statecraft-pr-changed"
     ;;
   couple-group)
     # A merge-queue entry (revision 3): the group's own endpoints, which are
@@ -448,6 +489,7 @@ case "$MODE" in
       printf '%s\n' "$extra"
     fi
     spec_spine couple --base "$BASE_SHA" --head "$HEAD_SHA" --pr-body "$body"
+    ratified "$tmp/statecraft-group-paths"
     ;;
   *)
     usage

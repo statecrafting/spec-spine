@@ -131,6 +131,11 @@ costs nothing today and catches the next Windows regression.
 > Since 2026-09-29, `190-the-gate-requires-the-queue-sweep` holds 187's block in
 > turn, so this plan runs from that spec's block (spec 190 3.1).
 
+> **Superseded acceptance (2026-10-02).** This block no longer runs.
+> `191-profile-13-keeps-the-engine-local` carries the complete acceptance
+> through the existing amendment chain for profile 13. The commands below
+> remain unchanged.
+
 ```verify:cli
 # 3.1: the job exists under its own name and the gate requires it.
 grep -q 'name: test (windows)' .github/workflows/ci.yml
