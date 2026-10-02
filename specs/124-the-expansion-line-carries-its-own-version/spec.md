@@ -301,6 +301,11 @@ recut.
 Written to fail against the tree this spec is filed on: the version is 0.22.0,
 the floor is `>=0.17.0`, and the script does not exist.
 
+> **Superseded acceptance (2026-10-02).** This block no longer runs.
+> `191-profile-13-keeps-the-engine-local` carries the complete acceptance
+> through the existing amendment chain for profile 13. The commands below
+> remain unchanged.
+
 ```verify:cli
 cargo build --release --locked
 # 3.1: one version in all three manifests, and the build answers it.

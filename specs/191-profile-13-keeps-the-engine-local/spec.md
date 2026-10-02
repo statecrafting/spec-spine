@@ -1,125 +1,103 @@
 ---
-id: "187-exact-test-counts-for-156"
-title: "Exact test counts for 156"
-status: approved
-kind: "test"
-created: "2026-09-29"
-summary: >
-  Spec 156's acceptance block carries four lines that accept
-  `test result: ok. [1-9][0-9]* passed`, which pass while any one test in the
-  target runs. This
-  spec holds 156's block, carries it byte-identical, and replaces each loose
-  line with spec 151's form: the tests the line ran, named with `--exact`, and
-  `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).
+id: "191-profile-13-keeps-the-engine-local"
+title: "Profile 13 keeps the exact engine local"
+status: draft
 implementation: complete
-owner: "The spec-spine Authors"
-risk: low
-depends_on:
-  - "151-carried-acceptance-tests-what-it-names"
-  - "156-statecraft-profile-10-governs-this-repository"
-amends_verification:
-  - "156-statecraft-profile-10-governs-this-repository"
+kind: tooling
+created: "2026-10-02"
+summary: >
+  Adopts Statecraft revision 13 without narrowing the engine-specific checks
+  or retiring the repository-owned merge-queue acceptance sweep.
 amends:
   - "156-statecraft-profile-10-governs-this-repository"
+  - "157-the-affected-sweep-runs-in-the-merge-queue"
+  - "190-the-gate-requires-the-queue-sweep"
+amends_verification:
+  - "190-the-gate-requires-the-queue-sweep"
+depends_on:
+  - "190-the-gate-requires-the-queue-sweep"
+extends:
+  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".github/workflows/spec-spine-required.yml", nature: corrective }
+  - { spec: "188-a-repository-pin-selects-the-engine", unit: "crates/spec-spine-launcher/tests/", nature: corrective }
+  - { spec: "093-the-harness-this-repository-runs", unit: "crates/spec-spine-core/tests/harness_skills.rs", nature: corrective }
+  - { spec: "091-an-unclassified-review-failure-blocks-the-merge", unit: "crates/spec-spine-core/tests/ai_review_policy.rs", nature: corrective }
+  - { spec: "093-the-harness-this-repository-runs", unit: "AGENTS.md", nature: corrective }
+  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".statecraft/environment.json", nature: corrective }
+  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".statecraft/setup/github-actions-rust.json", nature: corrective }
+  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".github/workflows/statecraft-ci.yml", nature: corrective }
+  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".github/workflows/statecraft-ai-review.yml", nature: corrective }
+  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: "scripts/statecraft/", nature: corrective }
 ---
 
-# 187: Exact test counts for 156
+# 191: Profile 13 keeps the exact engine local
 
 ## 1. Purpose
 
-Measured on `ae079726`, 2026-09-29, with `cargo test -p <crate> --test <target> -- --list
-[<filter>]` on macOS with default features.
-
-Spec 153 §3.1 requires that no live plan accept an open-ended positive test
-count, and §3.2 assigns each live block to its own tightening spec (153 D-5).
-This is 156's. 156 holds 091, 094, 124, 134 and 135, so their plans resolve here too; the superseded notes of 091, 094, 124, 134 and 135 name this spec.
-
-| Block line | Target | Filter | Names |
-|---|---|---|---|
-| 156:29 | core `ai_review_policy` | `access_refusal` | 1 |
-| 156:30 | core `ai_review_policy` | `publication_failure` | 1 |
-| 156:31 | core `ai_review_policy` | `unclassified_reviewer_failure` | 1 |
-| 156:32 | core `ai_review_policy` | `empty_successful_review` | 1 |
-
-"Block line" counts lines inside 156's `verify:cli` fence. The names each
-line ran:
-
-- `ai_review_policy` `access_refusal`: `access_refusal_outranks_other_failure_text`.
-- `ai_review_policy` `publication_failure`: `publication_failure_blocks`.
-- `ai_review_policy` `unclassified_reviewer_failure`: `unclassified_reviewer_failure_blocks`.
-- `ai_review_policy` `empty_successful_review`: `empty_successful_review_blocks`.
+The owner requested the fleet upgrade on 2026-10-02. Approved spec 156
+records revision 11, while the adopted producer now renders revision 13.
+This amendment preserves the old contract and declares its replacement.
 
 ## 2. Territory
 
-This spec establishes nothing. It edits 156 only to add spec 082 §3.4's
-superseded-acceptance note above 156's block, and the notes of 091, 094, 124, 134 and 135 to name this spec.
+The managed profile, environment record and repository instructions change.
+The specialized self-governance job stages its candidate-built engine at
+`.bin/spec-spine` before invoking the same managed gate.
+The review regression fixture supplies the three budget inputs now required
+by the managed script, preserving its existing refusal and failure assertions. The harness gate inventory
+also names revision 13's ownership query and distinguishes command verbs from
+the query's positional path.
+The launcher fixture compares the discovered repository with its canonical
+path, including macOS's `/var` to `/private/var` alias, as the engine already
+does. No product API or engine behavior changes. Statecraft `8f718e2` renders
+all managed bytes with the previously recorded parameters.
 
 ## 3. Behavior
 
-### 3.1 156's block is carried
+The recorded profile is `github-actions-rust` revision 13. The exact engine
+pin remains `=0.28.0`; its regular executable lives at `.bin/spec-spine`.
+The managed governance, coupling and code modes remain canonical. Signed
+commits, authored-content checks, coverage and owner review remain required.
 
-`spec-spine verify 156` and `verify` of 091, 094, 124, 134 and 135 MUST run this
-spec's block, which carries 156's block in one section, every command and
-comment byte-identical except the lines 3.2 names.
+This repository builds draft specs and ratifies them in a separate PR.
+Revision 11 does not refuse draft-owned implementation. The revision 13
+parameter `governance.require_ratified` is therefore explicitly false here,
+preserving that approved working model rather than silently enabling a
+conflicting default. A status transition to approved still requires the
+owner Environment review.
 
-### 3.2 Each loose line names its tests
+The determinism, specialized Rust matrix and affected-acceptance reusable
+workflows remain extra required jobs. Revision 13 currently relocates the
+engine and does not supply spec 157's proposed per-event sweep replacement.
+Its interim affected-acceptance workflow therefore remains required until a
+producer revision actually carries equivalent acceptance. The unchanged
+aggregate requires all seven jobs, including that sweep.
 
-Each loose line becomes one command,
-`sh -c 'cargo test -p <crate> --locked --test <target> -- --exact <names> 2>&1 | grep -q "test result: ok. N passed; 0 failed"'`,
-naming exactly the tests the original line selected (section 1), N their number. A
-writer-and-`grep` pair collapses into that command; the pair's `rm -f` stays.
-A line over a target with `cfg`-gated tests is exact on a Unix sweep host with
-default features and says so in a comment (153 3.3).
+## 4. Acceptance amendment
 
-### 3.3 The amended specs say so
-
-156 carries spec 082 §3.4's note naming this spec above its block, and keeps
-the block unchanged below it. 091, 094, 124, 134 and 135 keep their notes and gain one line naming this spec.
-
-## 4. Out of scope
-
-Narrowing what a filtered line selects (153 4.2), and every other block (153
-3.2 gives each its own spec).
-
-## 5. Resolved decisions
-
-**D-1 (2026-09-29): filed and built together.** An `amends_verification` edge
-replaces 156's plan and that of 091, 094, 124, 134 and 135 the moment it merges, so the
-carried block lands with it and this spec is filed `complete` (153 D-3, as 146
-and 151 were).
-
-**D-2 (2026-09-29): names measured at the base.** A later test added to a named
-target does not fail these lines; a named test removed, renamed, ignored or
-gated off does (153 D-6).
+The complete block of spec 190 is carried below. Only the recorded profile
+revision and identity, and the obsolete temporary .tooling installer fixture,
+change. Compiled acceptance paths resolve Cargo's configured target directory
+to support the required shared worktree target. Before invoking the managed gate,
+acceptance stages the candidate-built engine at `.bin/spec-spine`. Isolated
+merge-queue checkouts do not inherit ignored local installations. This keeps
+acceptance on the exact candidate engine.
 
 ## Verification
 
-> **Superseded acceptance (2026-09-29).** This block no longer runs.
-> `190-the-gate-requires-the-queue-sweep` declares this spec in
-> `amends_verification`, so `spec-spine verify 187` builds its plan from that
-> spec's block, where these commands are carried with the `ci-gate` needs line
-> naming `affected-acceptance`, which spec 157 added (spec 082 3.2 and 3.4).
->
-> The commands below are kept verbatim and are not corrected (spec 037 3.1).
-
-> **Superseded acceptance (2026-10-02).** This block no longer runs.
-> `191-profile-13-keeps-the-engine-local` carries the complete acceptance
-> through the existing amendment chain for profile 13. The commands below
-> remain unchanged.
-
 ```verify:cli
+# ---- carried for 187-exact-test-counts-for-156 (amends_verification), and through it 156, 091, 094, 124, 134, 135; the ci-gate needs line names affected-acceptance (190 3.2) ----
 # ---- carried for 156-statecraft-profile-10-governs-this-repository (amends_verification), and through it 091, 094, 124, 134, 135; each loose test count names its tests (153 3.2) ----
-# 3.1 and 3.3: the committed environment names Profile 11 and the exact engine pin.
-grep -q '"identity": "statecraft-setup:github-actions-rust@11"' .statecraft/environment.json
-grep -q '25e77bc9f95c2cef638d3b282b573b0c481572a9f72187c520f8caa956f56b6f' .statecraft/environment.json
+# 3.1 and 3.3: the committed environment names Profile 13 and the exact engine pin.
+grep -q '"identity": "statecraft-setup:github-actions-rust@13"' .statecraft/environment.json
+grep -q '6167a12e110b30ec27d37909344c7de0178ba477d5ad1ab91a0053430a89e17b' .statecraft/environment.json
 grep -q '^required_version = "=0.28.0"$' spec-spine.toml
 # The exact pin amendment carries 124's package identity and release evidence.
 cargo build --release --locked
 python3 scripts/bump_version.py --check 0.28.0
-./target/release/spec-spine --version | grep -qx 'spec-spine 0.28.0'
+"$(cargo metadata --no-deps --format-version 1 | python3 -c 'import json,sys; print(json.load(sys.stdin)["target_directory"])')/release/spec-spine" --version | grep -qx 'spec-spine 0.28.0'
 grep -qF 'The floor moves with the version' docs/releasing.md
 grep -qF 'A version names one behavior' docs/releasing.md
-scripts/reader-identity.sh target/release/spec-spine . > "${TMPDIR:-/tmp}/ss156-reader.txt"
+scripts/reader-identity.sh "$(cargo metadata --no-deps --format-version 1 | python3 -c 'import json,sys; print(json.load(sys.stdin)["target_directory"])')/release/spec-spine" . > "${TMPDIR:-/tmp}/ss156-reader.txt"
 grep -qE '^answers +spec-spine 0\.28\.0$' "${TMPDIR:-/tmp}/ss156-reader.txt"
 grep -qE '^sha256 +[0-9a-f]{64}$' "${TMPDIR:-/tmp}/ss156-reader.txt"
 grep -qE '^registry schema +[0-9]+\.[0-9]+\.[0-9]+$' "${TMPDIR:-/tmp}/ss156-reader.txt"
@@ -155,7 +133,7 @@ grep -q 'cargo test --workspace --locked --no-fail-fast' .github/workflows/spec-
 grep -q 'name: build and test (rust-version)' .github/workflows/spec-spine-required.yml
 grep -q 'cargo "+\$RUST_VERSION" test --workspace --locked' .github/workflows/spec-spine-required.yml
 grep -q 'name: cargo-deny' .github/workflows/spec-spine-required.yml
-grep -q 'needs: \[governance, code, ai-review, review-exception, determinism, spec-spine-required\]' .github/workflows/statecraft-ci.yml
+grep -q 'needs: \[governance, code, ai-review, review-exception, determinism, spec-spine-required, affected-acceptance\]' .github/workflows/statecraft-ci.yml
 grep -q '^rust-version = "1.90"$' Cargo.toml
 sh -c '! grep -q "1\\.90" .github/workflows/spec-spine-required.yml'
 grep -q 'jsonschema = { version = "0.49", default-features = false }' crates/spec-spine-core/Cargo.toml
@@ -171,9 +149,9 @@ test -f Makefile
 test -f .github/workflows/ci.yml
 test -d .githooks
 test -f crates/spec-spine-core/tests/gate.rs
-sh -c 'target/release/spec-spine index owner Makefile | grep -qF "094-one-gate-and-the-boundaries-it-holds"'
+sh -c '"$(cargo metadata --no-deps --format-version 1 | python3 -c '"'"'import json,sys; print(json.load(sys.stdin)["target_directory"])'"'"')/release/spec-spine" index owner Makefile | grep -qF "094-one-gate-and-the-boundaries-it-holds"'
 cargo test -p spec-spine-core --locked --test gate
-sh -c 'made=; if [ ! -x .tooling/bin/spec-spine ]; then mkdir -p .tooling/bin && ln -s ../../target/release/spec-spine .tooling/bin/spec-spine && made=1; fi; sh scripts/statecraft/gate.sh governance; rc=$?; if [ "$made" = 1 ]; then rm -f .tooling/bin/spec-spine; rmdir .tooling/bin .tooling 2>/dev/null || true; fi; exit "$rc"'
+sh -c 'engine="$(cargo metadata --no-deps --format-version 1 | python3 -c '"'"'import json,sys; print(json.load(sys.stdin)["target_directory"])'"'"')/release/spec-spine"; mkdir -p .bin && cp "$engine" .bin/spec-spine.acceptance && chmod +x .bin/spec-spine.acceptance && mv .bin/spec-spine.acceptance .bin/spec-spine && sh scripts/statecraft/gate.sh governance'
 grep -q 'run: sh "${STATECRAFT_GATE:?}" governance' .github/workflows/statecraft-ci.yml
 grep -q 'BASE_SHA' scripts/statecraft/gate.sh
 grep -q 'HEAD_SHA' scripts/statecraft/gate.sh
@@ -197,7 +175,7 @@ scripts/check-authored-content.sh --self-test
 # 3.6: Statecraft's bridge is first and the local coherence guard remains.
 sh -c 'test "$(head -n 1 AGENTS.md)" = "@.statecraft/AGENTS.md"'
 grep -q 'Adversarial prompt refusal' AGENTS.md
-# 3.1 and 3.7: Profile 11 has a committed policy and no withheld managed file.
-grep -q '"revision": 11' .statecraft/setup/github-actions-rust.json
+# 3.1 and 3.7: Profile 13 has a committed policy and no withheld managed file.
+grep -q '"revision": 13' .statecraft/setup/github-actions-rust.json
 sh -c '! grep -q '"'"'"status"[[:space:]]*:[[:space:]]*"withheld"'"'"' .statecraft/setup/github-actions-rust.json'
 ```

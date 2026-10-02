@@ -363,7 +363,7 @@ const GOVERNANCE_VERBS: &[&str] = &["check", "compile", "index", "lint", "couple
 /// --fail-on-unresolved` has the verb path `index check`.
 fn verb_path(cmd: &str) -> String {
     cmd.split_whitespace()
-        .take_while(|w| !w.starts_with('-'))
+        .take(if cmd.starts_with("index ") { 2 } else { 1 })
         .collect::<Vec<_>>()
         .join(" ")
 }
@@ -375,7 +375,7 @@ fn fail_flags(cmd: &str) -> Vec<String> {
         .collect()
 }
 
-/// The governance commands Profile 11's canonical managed gate runs.
+/// The governance commands Profile 13's canonical managed gate runs.
 fn managed_governance_commands(root: &Path) -> Vec<String> {
     fs::read_to_string(root.join("scripts/statecraft/gate.sh"))
         .unwrap()
@@ -428,10 +428,17 @@ fn agents_md_gate_list_names_every_step_ci_enforces() {
         .iter()
         .map(|cmd| verb_path(cmd))
         .collect::<BTreeSet<_>>();
-    let expected = ["check", "couple", "index coverage", "index check", "lint"]
-        .into_iter()
-        .map(str::to_string)
-        .collect::<BTreeSet<_>>();
+    let expected = [
+        "check",
+        "couple",
+        "index coverage",
+        "index check",
+        "index owner",
+        "lint",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect::<BTreeSet<_>>();
     assert_eq!(
         actual, expected,
         "the managed gate's parsed governance and coupling verbs drifted"

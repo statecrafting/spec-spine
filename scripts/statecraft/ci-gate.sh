@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Rendered by Statecraft from profile github-actions-rust revision 11.
+# Rendered by Statecraft from profile github-actions-rust revision 13.
 # The aggregate gate. It passes only when every job the TRUSTED policy names
 # as required ended the way its event requires:
 #
@@ -28,6 +28,11 @@
 # entry's pull request. The gate computes this itself and reads no job's
 # claim about it, so a candidate workflow that skips the exception fails
 # closed. On push it is reported: the change was approved on its pull request.
+#
+# A ratification needs the owner exception by the same rule (revision 12,
+# spec 024): a changed spec.md whose frontmatter status is `approved` at the
+# head and anything else, or absent, at the base. The gate reads both trees
+# itself; the coupling steps refuse a changed path a `draft` spec still owns.
 #
 # Inputs, all from the environment: NEEDS_JSON (toJSON(needs)), EVENT_NAME,
 # HEAD_SHA, BASE_SHA (the pull request base, or the push's previous head),
@@ -74,6 +79,13 @@ trusted=no
 case "$BASE_SHA" in
   "" | 0000000000000000000000000000000000000000) ;;
   *)
+    # Revision 12 (spec 024 3.6): only a readable base without the policy is
+    # the adoption. A base that does not resolve to a commit (a shallow or
+    # failed fetch, a force-pushed `before`, a bad ref) refuses, and the
+    # candidate's policy never judges in its place.
+    if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+      stop "cannot read the base commit ${BASE_SHA}; the policy is never taken from the candidate in its place"
+    fi
     if git cat-file -e "${BASE_SHA}:${POLICY}" 2>/dev/null; then
       git show "${BASE_SHA}:${POLICY}" > "$work/policy.json"
       trusted=yes
@@ -127,6 +139,36 @@ if [ "$trusted" = yes ]; then
     authority=yes
   fi
 fi
+
+# Revision 12 (spec 024): the specs this candidate ratifies, read from the
+# two trees without spec-spine and without any job's claim.
+status_at() {
+  if git cat-file -e "$1:$2" 2> /dev/null; then
+    git show "$1:$2" > "$work/status-spec.md"
+    awk 'NR == 1 && $0 != "---" { done = 1 } NR > 1 && $0 == "---" { done = 1 }
+      !done && NR > 1 && /^status:/ { sub(/^status:[[:space:]]*/, ""); gsub(/["\047]/, ""); sub(/[[:space:]]+$/, ""); print; done = 1 }' \
+      "$work/status-spec.md"
+  fi
+}
+ratification=no
+: > "$work/ratified"
+case "$BASE_SHA" in
+  "" | 0000000000000000000000000000000000000000) ;;
+  *)
+    git diff --name-only "${BASE_SHA}...${HEAD_SHA}" > "$work/changed-all"
+    while IFS= read -r path; do
+      case "$path" in spec.md | */spec.md) ;; *) continue ;; esac
+      after="$(status_at "$HEAD_SHA" "$path")"
+      before="$(status_at "$BASE_SHA" "$path")"
+      if [ "$after" = approved ] && [ "$before" != approved ]; then
+        printf '%s (%s -> approved)\n' "$path" "${before:-absent}" >> "$work/ratified"
+      fi
+    done < "$work/changed-all"
+    if [ -s "$work/ratified" ]; then
+      ratification=yes
+    fi
+    ;;
+esac
 
 blocked=0
 recorded=no
@@ -204,6 +246,15 @@ while IFS=$'\t' read -r job rule; do
     if [ "$authority" = yes ] && [ "$EVENT_NAME" = pull_request ]; then
       if [ "$result" != success ]; then
         block "this candidate changes the authority set and the owner exception '${job}' was not approved for this run (it ended '${result}')"
+        continue
+      fi
+      rule=required
+    fi
+    # Revision 12: a ratification is the owner's act, so the exception is
+    # required for it too.
+    if [ "$ratification" = yes ] && [ "$EVENT_NAME" = pull_request ]; then
+      if [ "$result" != success ]; then
+        block "this candidate ratifies a spec and the owner exception '${job}' was not approved for this run (it ended '${result}')"
         continue
       fi
       rule=required
@@ -312,6 +363,32 @@ if [ "$authority" = yes ]; then
   esac
 elif [ "$trusted" = no ]; then
   say "authority change: this candidate adopts the gate; the base carries no policy, so it is reported"
+fi
+
+# A ratification is named, and needs the owner's exception on a pull request
+# or a queue entry (revision 12, spec 024).
+if [ "$ratification" = yes ]; then
+  say "ratification: this candidate moves a spec to approved:"
+  say "$(cat "$work/ratified")"
+  case "$EVENT_NAME" in
+    pull_request)
+      say "ratification: the owner exception is required for this run" ;;
+    merge_group)
+      if [ "$recorded" = no ] && recorded_review; then
+        recorded=yes
+      fi
+      if [ "$recorded" = yes ]; then
+        if [ "$recorded_exception" = success ]; then
+          say "ratification: admitted by the owner exception recorded for #${pr} at ${pr_head}"
+        else
+          block "the queued group ratifies a spec and the owner exception recorded for #${pr} was not approved (it ended '${recorded_exception}')"
+        fi
+      fi
+      # An unread record has already blocked with its reason, as above.
+      ;;
+    *)
+      say "ratification: reported on ${EVENT_NAME}; it was approved on its pull request" ;;
+  esac
 fi
 
 if [ "$blocked" -ne 0 ]; then

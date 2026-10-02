@@ -72,7 +72,10 @@ fn a_repository_found_in_an_ancestor_is_named_to_the_engine_and_the_cwd_is_kept(
     assert_eq!(code(&o), 0, "{}", stderr(&o));
     let seen = read_kv(&out);
     assert_eq!(seen[3], "arg=--repo");
-    assert_eq!(seen[4], format!("arg={}", r.display()));
+    assert_eq!(
+        seen[4],
+        format!("arg={}", fs::canonicalize(&r).unwrap().display())
+    );
     assert_eq!(seen[5], "arg=check");
     assert_eq!(
         seen[1],

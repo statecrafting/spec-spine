@@ -1,23 +1,36 @@
 {
   "mapping": {
+    "amends": [
+      "156-statecraft-profile-10-governs-this-repository",
+      "157-the-affected-sweep-runs-in-the-merge-queue",
+      "190-the-gate-requires-the-queue-sweep"
+    ],
     "dependsOn": [
-      "094-one-gate-and-the-boundaries-it-holds"
+      "190-the-gate-requires-the-queue-sweep"
     ],
     "implementingPaths": [
       {
-        "path": ".github/workflows/ci.yml",
+        "path": ".github/workflows/spec-spine-required.yml",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/cli.rs",
+        "path": ".github/workflows/statecraft-ai-review.yml",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-cli/tests/couple.rs",
+        "path": ".github/workflows/statecraft-ci.yml",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/src/compact.rs",
+        "path": ".statecraft/environment.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".statecraft/setup/github-actions-rust.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": "AGENTS.md",
         "source": "spec-edge"
       },
       {
@@ -25,23 +38,15 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/commit_boundary.rs",
+        "path": "crates/spec-spine-core/tests/harness_skills.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/gate.rs",
+        "path": "crates/spec-spine-launcher/tests/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/spec-spine-core/tests/gate_binary.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/tests/harness_hooks.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/spec-spine-core/tests/reader_identity.rs",
+        "path": "scripts/statecraft/",
         "source": "spec-edge"
       }
     ],
@@ -49,53 +54,79 @@
       {
         "locations": [
           {
-            "file": ".github/workflows/ci.yml"
+            "file": ".github/workflows/spec-spine-required.yml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": ".github/workflows/ci.yml"
+          "path": ".github/workflows/spec-spine-required.yml"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/cli.rs"
+            "file": ".github/workflows/statecraft-ai-review.yml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/cli.rs"
+          "path": ".github/workflows/statecraft-ai-review.yml"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-cli/tests/couple.rs"
+            "file": ".github/workflows/statecraft-ci.yml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-cli/tests/couple.rs"
+          "path": ".github/workflows/statecraft-ci.yml"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/compact.rs"
+            "file": ".statecraft/environment.json"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/src/compact.rs"
+          "path": ".statecraft/environment.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".statecraft/setup/github-actions-rust.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/setup/github-actions-rust.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "AGENTS.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
         }
       },
       {
@@ -114,85 +145,46 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/commit_boundary.rs"
+            "file": "crates/spec-spine-core/tests/harness_skills.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/commit_boundary.rs"
+          "path": "crates/spec-spine-core/tests/harness_skills.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/gate.rs"
+            "file": "crates/spec-spine-launcher/tests/"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/gate.rs"
+          "path": "crates/spec-spine-launcher/tests/"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/tests/gate_binary.rs"
+            "file": "scripts/statecraft/"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/spec-spine-core/tests/gate_binary.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/tests/harness_hooks.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/harness_hooks.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/spec-spine-core/tests/reader_identity.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/tests/reader_identity.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/windows-findings.md"
-          }
-        ],
-        "ownership": false,
-        "sourceField": "references",
-        "unit": {
-          "kind": "file",
-          "path": "docs/windows-findings.md"
+          "path": "scripts/statecraft/"
         }
       }
     ],
-    "specId": "134-the-suite-runs-on-windows",
-    "specStatus": "approved"
+    "specId": "191-profile-13-keeps-the-engine-local",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "a79c5ed4dab9f832f86cb2f62d6ad5141d9dcbedd50466a090086076a2ee6dc5"
+  "shardHash": "44a6ef8d4b72cea390e94da6d26db1f816e8fa4fed3daf9f2f1719c178ae2fd6"
 }

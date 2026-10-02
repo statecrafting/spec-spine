@@ -360,6 +360,11 @@ Each line is one command, run independently.
 `registry show 093` is red (not found, exit 1); the five predecessor directories
 exist and none reports a `supersededBy`.
 
+> **Superseded acceptance (2026-10-02).** This block no longer runs.
+> `191-profile-13-keeps-the-engine-local` carries the complete acceptance
+> through the existing amendment chain for profile 13. The commands below
+> remain unchanged.
+
 ```verify:cli
 cargo build --release --locked
 # 2: the territory, and that this spec owns it.

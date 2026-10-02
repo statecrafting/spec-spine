@@ -244,10 +244,10 @@ corpus in step 1 and step 6. One spec per PR, then stop.
    The base ref is resolved from the repository rather than assumed to be
    `origin/main` (spec 093). Set `$SPEC_SPINE_DEFAULT_BRANCH` to override
    the branch the push gate protects. The managed gate uses only the exact
-   repository-local engine installed under `.tooling/`; run
+   repository-local engine installed under `.bin/`; run
    `scripts/statecraft/install-spec-spine.sh` when it is absent. The root
    `Makefile` remains a repository-owned developer and compatibility
-   interface, but it does not define what Profile 11's `ci-gate` runs.
+   interface, but it does not define what Profile 13's `ci-gate` runs.
    The managed `couple` mode is the sole gate-floor invocation of
    `spec-spine couple`.
 
