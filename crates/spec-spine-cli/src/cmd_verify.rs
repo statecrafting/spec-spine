@@ -16,14 +16,18 @@
 //! contents are in the general case a stranger's.
 
 use std::io::{ErrorKind, Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, ExitStatus, Stdio};
 
-use spec_spine_core::verify;
+use spec_spine_core::{
+    AffectedCommits, AffectedSpec, affected_document, select_affected, spec_dir_ids, verify,
+};
 use spec_spine_types::{
     Error, Severity, Verdict, VerifyFailure, VerifyOutcome, VerifyReport, Violation, verdict::verb,
 };
 
+use crate::cmd_couple::{changed_path_names, merge_base};
+use crate::cmd_delta::{export_tree, resolve_commit};
 use crate::load_repo_config;
 use crate::out;
 
@@ -299,6 +303,137 @@ fn run_one(repo: &Path, command: &str, child_stack: &str, json: bool) -> Result<
     note_drain("stderr", command, &err_drained);
     let status = waited.map_err(|e| Error::Io(format!("cannot wait for `{command}`: {e}")))?;
     Ok(status)
+}
+
+/// What `spec-spine verify` was given.
+pub struct VerifyArgs<'a> {
+    pub id: Option<&'a str>,
+    pub plan: bool,
+    pub affected_by: Option<&'a str>,
+    pub head: Option<&'a str>,
+    pub json: bool,
+}
+
+/// Route `verify` to the one spec's acceptance or to the affected selection,
+/// refusing the combinations spec 158 §3.1 names as usage (exit 3).
+pub fn dispatch(repo: &Path, args: &VerifyArgs<'_>) -> Result<u8, Error> {
+    match (args.id, args.affected_by) {
+        (Some(_), Some(_)) => Err(Error::Usage(
+            "`verify <id>` and `--affected-by` are two questions; name one".to_string(),
+        )),
+        (None, None) => Err(Error::Usage(
+            "`verify` needs a spec id, or `--affected-by <base> --plan`".to_string(),
+        )),
+        (Some(id), None) => {
+            if args.head.is_some() {
+                return Err(Error::Usage(
+                    "`--head` belongs to `--affected-by`".to_string(),
+                ));
+            }
+            run(repo, id, args.json, args.plan)
+        }
+        (None, Some(base)) => {
+            if !args.plan {
+                return Err(Error::Usage(
+                    "`--affected-by` selects and plans, and runs nothing: add `--plan`".to_string(),
+                ));
+            }
+            affected(repo, base, args.head.unwrap_or("HEAD"), args.json)
+        }
+    }
+}
+
+/// A temporary directory removed when dropped.
+struct TempTree(PathBuf);
+
+impl TempTree {
+    fn create() -> Result<Self, Error> {
+        let parent = std::env::temp_dir();
+        let pid = std::process::id();
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_nanos())
+            .unwrap_or(0);
+        // `create_dir`, not `create_dir_all`: an existing directory is someone
+        // else's, so a collision tries the next name rather than reusing it.
+        for attempt in 0..16u32 {
+            let root = parent.join(format!("spec-spine-affected-{pid}-{nanos}-{attempt}"));
+            if std::fs::create_dir(&root).is_ok() {
+                return Ok(TempTree(root));
+            }
+        }
+        Err(Error::Io(
+            "could not create a temporary directory for the head tree".to_string(),
+        ))
+    }
+}
+
+impl Drop for TempTree {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
+/// `verify --affected-by <base> [--head <rev>] --plan` (spec 158 §3.1, §3.2).
+///
+/// The git half of the selection and nothing else: it resolves `base`, `head`
+/// and their merge base, lists the paths `merge-base...head` changes (renames
+/// disabled, so a move names both sides), exports the head tree and reads its
+/// configuration and corpus, then hands all three to the pure core. It
+/// executes nothing. A base that does not resolve, or shares no history with
+/// the head, is refused before anything is selected (exit 2).
+fn affected(repo: &Path, base: &str, head: &str, json: bool) -> Result<u8, Error> {
+    let refuse = |what: &str, e: Error| {
+        Error::Refused(format!(
+            "{what}: {e}. Nothing was selected; fetch the history, or name a base that \
+             shares one with the head"
+        ))
+    };
+    let commits_base = resolve_commit(repo, base).map_err(|e| refuse("base", e))?;
+    let commits_head = resolve_commit(repo, head).map_err(|e| refuse("head", e))?;
+    let commits_merge_base = merge_base(repo, &commits_base, &commits_head)
+        .map_err(|e| refuse("no merge base between base and head", e))?;
+    let changed = changed_path_names(repo, &commits_merge_base, &commits_head)?;
+
+    // The head's own configuration and corpus: the selection is a question
+    // about the revision under test, not about the working tree.
+    let tree = TempTree::create()?;
+    let root = tree.0.join("head");
+    std::fs::create_dir(&root).map_err(|e| Error::Io(format!("create {}: {e}", root.display())))?;
+    export_tree(repo, &commits_head, &tree.0.join("head.index"), &root)?;
+    let cfg = load_repo_config(&root)?;
+    let specs_dir = root.join(&cfg.layout.specs_dir);
+    let ids = if specs_dir.is_dir() {
+        spec_dir_ids(&specs_dir)?
+    } else {
+        Vec::new()
+    };
+    let corpus: Vec<AffectedSpec> = ids
+        .into_iter()
+        .map(|id| {
+            let markdown = std::fs::read_to_string(specs_dir.join(&id).join("spec.md")).ok();
+            AffectedSpec { id, markdown }
+        })
+        .collect();
+    let selection = select_affected(&cfg, &corpus, &changed)?;
+    drop(tree);
+
+    if json {
+        let doc = affected_document(
+            &selection,
+            &AffectedCommits {
+                base: commits_base,
+                merge_base: commits_merge_base,
+                head: commits_head,
+            },
+        )?;
+        out::line(format_args!("{}", doc.trim_end_matches('\n')));
+    } else {
+        for entry in &selection.selected {
+            outln!("{}\t{}", entry.id, entry.rule.as_str());
+        }
+    }
+    Ok(0)
 }
 
 /// Returns the exit code: `0` for `passed` and `not-declared`, `1` for

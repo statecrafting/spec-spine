@@ -139,6 +139,9 @@ fn render(e: &EffectiveConfig) {
         &e.coverage.governed_scope_exclusions,
     );
 
+    out::line(format_args!("\n[acceptance]"));
+    list("select_all_on", &e.acceptance.select_all_on);
+
     out::line(format_args!("\n[provenance.uri_schemes]"));
     for (k, v) in &e.provenance.uri_schemes {
         out::line(format_args!("  {k} = \"{v}\""));

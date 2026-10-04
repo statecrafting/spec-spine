@@ -6,7 +6,9 @@ The first four are spec 089's post-ratification review regressions. Then spec
 119's: the release verdict, the lifecycle it reads, and the default run
 directory. Then spec 121's: the Acceptance workflow's report step, driven by
 real release-mode sweeps. The last are spec 150's: one case per rule of the
---affected-by selector, and one proving it is narrower than the corpus. Then
+--affected-by selector, and one proving it is narrower than the corpus; spec
+158 moved the selector into `spec-spine verify --affected-by`, and these cases
+now drive it through the script. Then
 spec 157's: --shard partitions the selection, and refuses a bad value.
 
 Build target/release/spec-spine first, then run python3 scripts/test-verify-sweep.py.
@@ -68,13 +70,13 @@ class SweepRegressions(unittest.TestCase):
         self.repo = self.root / "repo"
         self.out = self.root / "run"
 
-    def fixture(self, specs, lifecycle=None):
+    def fixture(self, specs, lifecycle=None, config=""):
         # `lifecycle` maps an id to (status, implementation); implementation
         # None omits the key. Unlisted specs are draft / pending, as before.
         lifecycle = lifecycle or {}
         self.repo.mkdir()
         (self.repo / "spec-spine.toml").write_text(
-            '[layout]\nspecs_dir = "specs"\n', encoding="utf-8"
+            '[layout]\nspecs_dir = "specs"\n' + config, encoding="utf-8"
         )
         (self.repo / "sentinel").write_bytes(b"original\n")
         for sid, commands in specs.items():
@@ -599,10 +601,13 @@ class SweepRegressions(unittest.TestCase):
         return report
 
     def test_affected_by_engine_source_selects_every_spec(self):
-        self.fixture({"001-a": ["true"], "002-b": ["true"], "003-c": ["true"]})
+        # Spec 158 3.3: the trigger is configuration, so the fixture configures
+        # it, as this repository does for 150's engine-source list.
+        self.fixture({"001-a": ["true"], "002-b": ["true"], "003-c": ["true"]},
+                     config='[acceptance]\nselect_all_on = ["crates/*/src/**/*"]\n')
         self.commit()
         base = self.change({"crates/demo/src/lib.rs": "pub fn f() {}\n"})
-        report = self.affected(base, dict.fromkeys(("001-a", "002-b", "003-c"), "engine-source"))
+        report = self.affected(base, dict.fromkeys(("001-a", "002-b", "003-c"), "select-all"))
         self.assertIn("crates/demo/src/lib.rs", report["affectedBy"]["changedPaths"])
         self.assertEqual(report["affectedBy"]["corpusSize"], 3)
 

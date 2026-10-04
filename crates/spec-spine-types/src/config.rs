@@ -33,6 +33,8 @@ pub struct Config {
     pub lint: LintConfig,
     /// `[coverage]`: the declared governed scope (spec 078).
     pub coverage: CoverageConfig,
+    /// `[acceptance]`: what selects the whole corpus's acceptance (spec 158).
+    pub acceptance: AcceptanceConfig,
     pub meta: MetaConfig,
 }
 
@@ -374,6 +376,26 @@ pub struct CoverageConfig {
     pub governed_scope_exclusions: Vec<String>,
 }
 
+/// `[acceptance]`: how `verify --affected-by` selects acceptance (spec 158).
+///
+/// Empty by default, so a corpus that configures nothing selects by reference
+/// alone: a spec whose `spec.md` changed, or whose effective plan names a
+/// changed spec, a changed path or a changed test.
+#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct AcceptanceConfig {
+    /// Glob patterns over repo-relative POSIX paths. A change touching any path
+    /// one of them matches selects every spec, with rule `select-all` (spec 158
+    /// §3.3): the paths a corpus's plans run, so that any change to them may
+    /// have moved what every plan asserts.
+    ///
+    /// Matched with `*` and `?` stopping at `/`, and `**` spanning directories,
+    /// so `crates/*/src/**/*` is every file below any crate's `src`. The trap
+    /// of `[index] extra_hashed_inputs` applies: `dir/**` matches directories
+    /// and so no files.
+    pub select_all_on: Vec<String>,
+}
+
 /// `[meta]`: facts about the governed repository itself (spec 055).
 #[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 #[serde(default, deny_unknown_fields)]
@@ -675,6 +697,8 @@ pub struct EffectiveConfig {
     pub lint: LintConfig,
     /// `[coverage]`: the declared governed scope (spec 078).
     pub coverage: CoverageConfig,
+    /// `[acceptance]`: what selects the whole corpus's acceptance (spec 158).
+    pub acceptance: AcceptanceConfig,
     pub meta: MetaConfig,
 }
 
@@ -703,6 +727,7 @@ impl EffectiveConfig {
             frontmatter: config.frontmatter.clone(),
             lint: config.lint.clone(),
             coverage: config.coverage.clone(),
+            acceptance: config.acceptance.clone(),
             meta: config.meta.clone(),
         }
     }

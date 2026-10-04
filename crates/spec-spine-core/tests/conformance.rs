@@ -5,7 +5,7 @@ use std::fs;
 use std::path::Path;
 
 use spec_spine_core::{compile, registry_shard_files};
-use spec_spine_types::{Config, REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA};
+use spec_spine_types::{AFFECTED_SCHEMA, Config, REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA};
 
 fn write_spec(root: &Path, id: &str, extra: &str) {
     let spec_dir = root.join("specs").join(id);
@@ -148,5 +148,52 @@ fn schema_rejects_a_malformed_registry() {
     let schema: serde_json::Value = serde_json::from_str(REGISTRY_SCHEMA).unwrap();
     let bad = serde_json::json!({ "specVersion": "0.1.0", "specs": [], "validation": { "passed": true, "violations": [] } });
     let validator = jsonschema::validator_for(&schema).unwrap();
+    assert!(!validator.is_valid(&bad));
+}
+
+#[test]
+fn an_emitted_affected_read_conforms_to_the_embedded_schema() {
+    // Spec 158 3.4: the affected-acceptance read document validates against its
+    // embedded schema, so a DTO/schema drift fails the build.
+    use spec_spine_core::{AffectedCommits, AffectedSpec, affected_document, select_affected};
+    let corpus: Vec<AffectedSpec> = [("001-a", "tools/x"), ("002-b", "true")]
+        .iter()
+        .map(|(id, cmd)| AffectedSpec {
+            id: id.to_string(),
+            markdown: Some(format!(
+                "---\nid: \"{id}\"\ntitle: \"t\"\nstatus: draft\ncreated: \"2026-09-27\"\nsummary: \"s\"\n---\n# t\n\n## Verification\n\n```verify:cli\ntest -f {cmd}\n```\n"
+            )),
+        })
+        .collect();
+    let mut cfg = Config::default();
+    cfg.acceptance.select_all_on = vec!["crates/*/src/**/*".to_string()];
+    let schema: serde_json::Value =
+        serde_json::from_str(AFFECTED_SCHEMA).expect("embedded schema is JSON");
+    let validator = jsonschema::validator_for(&schema).expect("schema compiles");
+    let sha = "a".repeat(40);
+    let commits = AffectedCommits {
+        base: sha.clone(),
+        merge_base: sha.clone(),
+        head: sha,
+    };
+    // A selection by reference, a select-all selection and an empty one.
+    for changed in [
+        vec!["tools/x".to_string()],
+        vec!["crates/demo/src/lib.rs".to_string()],
+        vec![],
+    ] {
+        let affected = select_affected(&cfg, &corpus, &changed).unwrap();
+        let doc = affected_document(&affected, &commits).unwrap();
+        let instance: serde_json::Value = serde_json::from_str(&doc).unwrap();
+        if !validator.is_valid(&instance) {
+            let errors: Vec<String> = validator
+                .iter_errors(&instance)
+                .map(|e| e.to_string())
+                .collect();
+            panic!("affected read does not conform:\n{}", errors.join("\n"));
+        }
+    }
+    // And a document that drifts is refused.
+    let bad = serde_json::json!({ "schemaVersion": "0.10.0", "selected": [{ "id": "x", "rule": "engine-source", "plan": [] }] });
     assert!(!validator.is_valid(&bad));
 }

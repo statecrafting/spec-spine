@@ -576,7 +576,7 @@ fn the_committed_ledger_answers_and_nothing_is_written() {
     .unwrap();
     assert_eq!(doc["ownSpec"], "100-a");
     assert_eq!(doc["schemaVersion"], spec_spine_types::READ_SCHEMA_VERSION);
-    assert_eq!(spec_spine_types::READ_SCHEMA_VERSION, "0.9.0");
+    assert_eq!(spec_spine_types::READ_SCHEMA_VERSION, "0.10.0");
     assert_eq!(doc["findings"].as_array().unwrap().len(), 0);
 
     // The compare facade also carries the read axis version.

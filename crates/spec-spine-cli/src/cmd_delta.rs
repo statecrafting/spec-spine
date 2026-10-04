@@ -119,7 +119,7 @@ fn short(commit: &str) -> &str {
 }
 
 /// `<rev>^{commit}`, as a full commit id.
-fn resolve_commit(repo: &Path, rev: &str) -> Result<String, Error> {
+pub(crate) fn resolve_commit(repo: &Path, rev: &str) -> Result<String, Error> {
     let out = Command::new("git")
         .arg("-C")
         .arg(repo)

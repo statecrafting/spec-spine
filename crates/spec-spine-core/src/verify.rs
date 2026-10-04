@@ -69,17 +69,25 @@ pub fn plan(cfg: &Config, repo_root: &Path, id: &str) -> Result<VerifyPlan, Erro
 /// `verify` can run against a corpus nobody has compiled.
 fn resolve_acceptance_source(specs_dir: &Path, spec_id: &str) -> Result<Option<String>, Error> {
     let holders = acceptance_holders(specs_dir)?;
+    Ok(follow_holders(&holders, spec_id))
+}
+
+/// Follow the amended-acceptance chain from `spec_id` to its end.
+fn follow_holders(
+    holders: &std::collections::BTreeMap<String, String>,
+    spec_id: &str,
+) -> Option<String> {
     let mut seen: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
     let mut at = spec_id.to_string();
     while let Some(next) = holders.get(&at) {
         if !seen.insert(at.clone()) {
             // A cycle resolves to no block. Fall back to the spec's own rather
             // than looping; `compile` is where this is refused.
-            return Ok(None);
+            return None;
         }
         at = next.clone();
     }
-    Ok((at != spec_id).then_some(at))
+    (at != spec_id).then_some(at)
 }
 
 /// `amended spec id -> the live spec that replaces its acceptance`.
@@ -91,13 +99,21 @@ fn resolve_acceptance_source(specs_dir: &Path, spec_id: &str) -> Result<Option<S
 fn acceptance_holders(
     specs_dir: &Path,
 ) -> Result<std::collections::BTreeMap<String, String>, Error> {
-    let mut out: std::collections::BTreeMap<String, String> = std::collections::BTreeMap::new();
+    let mut sources: BTreeMap<String, String> = BTreeMap::new();
     for id in crate::spec_id::spec_dir_ids(specs_dir)? {
         let path = specs_dir.join(&id).join("spec.md");
-        let Ok(raw) = fs::read_to_string(&path) else {
-            continue;
-        };
-        let Ok(fm) = spec_spine_types::parse_frontmatter(&raw) else {
+        if let Ok(raw) = fs::read_to_string(&path) {
+            sources.insert(id, raw);
+        }
+    }
+    Ok(holders_of(&sources))
+}
+
+/// [`acceptance_holders`] over a corpus already read as text, in id order.
+fn holders_of(sources: &BTreeMap<String, String>) -> BTreeMap<String, String> {
+    let mut out: BTreeMap<String, String> = BTreeMap::new();
+    for (id, raw) in sources {
+        let Ok(fm) = spec_spine_types::parse_frontmatter(raw) else {
             continue;
         };
         if matches!(
@@ -110,7 +126,26 @@ fn acceptance_holders(
             out.entry(target.clone()).or_insert_with(|| id.clone());
         }
     }
-    Ok(out)
+    out
+}
+
+/// The effective plan of every spec in a corpus read as text (spec 158 §3.2).
+///
+/// `sources` maps each spec id to its `spec.md`. The answer for an id is what
+/// [`plan`] returns for it over the same files: an amended acceptance is read
+/// from the spec that holds it (spec 082). Pure: it opens nothing, so the
+/// affected-acceptance selector can plan a corpus read at any revision.
+pub fn plans_in_corpus(sources: &BTreeMap<String, String>) -> BTreeMap<String, VerifyPlan> {
+    let holders = holders_of(sources);
+    let mut out = BTreeMap::new();
+    for (id, own) in sources {
+        let source = follow_holders(&holders, id);
+        let raw = source.as_ref().and_then(|s| sources.get(s)).unwrap_or(own);
+        let mut p = plan_from_markdown(id, raw);
+        p.acceptance_from = source;
+        out.insert(id.clone(), p);
+    }
+    out
 }
 
 /// The whole grammar, as a pure function of the spec's markdown.
