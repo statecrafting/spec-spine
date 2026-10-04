@@ -63,11 +63,19 @@ re-index commit. The coupling gate is not the obstacle:
 waive exactly this change (specs 005 and 027). The ledger and the gate
 disagree, the same half-built state spec 060 described for workflows.
 
-The trigger is ordinary. A spec that claims a workspace manifest (as a file,
-or by section anchors) must have it hashed, or `lint --fail-on-warn` refuses
-with L-008. aicortex, an adopter, measured this on spec-spine 0.28.0: a
-simulated `base64` bump on a claimed, hashed root `Cargo.toml` left every
-shard fresh and staled `inputs.json`. Its interim mitigation, grouping every
+The trigger is ordinary. A spec that claims a workspace manifest as a file
+must have it hashed, or `lint --fail-on-warn` refuses with L-008. aicortex, an
+adopter, measured this on spec-spine 0.28.0: a simulated `base64` bump on a
+file-claimed, hashed root `Cargo.toml` left every shard fresh and staled
+`inputs.json`.
+
+A **section** claim on a manifest is a different path and this spec does not
+change it: a section unit's backing file folds its raw bytes into the claiming
+spec's own shard (`index.rs::span_files_for_mapping`, 004 3.5), so the same
+bump stales each claiming shard instead. aicortex's ten section claims on
+`[workspace]` and `[workspace.dependencies]` staled ten shards that way. Such
+an adopter gets this spec's relief by moving the claims to a file claim on the
+manifest and listing it in `extra_hashed_inputs` (3.3). Its interim mitigation, grouping every
 cargo bump into one weekly PR, reduces the manual re-index to once a week and
 does not remove it.
 
@@ -180,6 +188,10 @@ content mismatch, as spec 060 3.3 recorded for workflows.
 This repository hashes neither manifest, so its own committed tree does not
 move.
 
+The note MUST also tell an adopter that claims a manifest by section that the
+projection does not reach a section claim, and that the remedy is a file claim
+on the manifest plus an `extra_hashed_inputs` entry (section 1).
+
 ### 3.4 Tests (minimum)
 
 - The 3.2 matrices, both directions, and the pinned disagreement.
@@ -199,6 +211,12 @@ governed benefit.
 **Deriving the waivers from the projections.** As spec 060 4 says for
 workflows: attractive, and a rewrite of a classifier on the coupling path.
 The agreement test buys the same guarantee.
+
+**Span-backed manifests.** A section or symbol claim whose backing file is a
+manifest still folds raw bytes into the claiming spec's shard. Projecting
+there means deciding what a span over a dependency table governs, and a lint
+hint that names a section claim on a manifest is the cheaper first step. Both
+are a separate spec.
 
 **Lockfiles.** `Cargo.lock` and `package-lock.json` sit on the bypass floor
 and are not hashed by any shipped default. An adopter that hashes one opts in

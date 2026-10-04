@@ -451,6 +451,11 @@ the other is how a governance file ends up outside both.
 > your next `spec-spine index` rewrites that file's entry in `inputs.json`
 > once; no shard moves and no schema version changes. Commit the result. A
 > sealed attestation reports `VersionMismatch` on recompute, as for spec 060.
+>
+> The projection applies to a manifest hashed as an input, not to one a spec
+> claims **by section**: a section claim folds the manifest's raw bytes into
+> the claiming spec's shard, so a bump still stales that shard. To get the
+> relief, claim the manifest as a file and list it in `extra_hashed_inputs`.
 
 ## Directory units claim recursively
 
