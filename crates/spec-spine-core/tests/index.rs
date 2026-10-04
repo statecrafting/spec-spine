@@ -1872,3 +1872,75 @@ fn statecraft_derived_matching_is_separator_aware() {
             .is_derived_path(".statecraft/derived/x.json")
     );
 }
+
+// ── spec 192: a hashed manifest folds as its input projection ───────────────
+
+/// A root workspace manifest and package.json, both listed in
+/// `extra_hashed_inputs` the way an adopter that claims them must (L-008).
+fn hashed_manifest_fixture() -> (tempfile::TempDir, Config) {
+    let tmp = tempfile::tempdir().unwrap();
+    write(
+        tmp.path(),
+        "Cargo.toml",
+        "[workspace]\nmembers = []\n\n[workspace.dependencies]\nbase64 = \"0.22.0\"\ntokio = { version = \"1.40\", features = [\"rt\"] }\n",
+    );
+    write(
+        tmp.path(),
+        "package.json",
+        "{\n  \"name\": \"app\",\n  \"private\": true,\n  \"devDependencies\": { \"typescript\": \"5.4.0\" }\n}\n",
+    );
+    let mut cfg = Config::default();
+    cfg.index.extra_hashed_inputs = vec!["Cargo.toml".into(), "package.json".into()];
+    (tmp, cfg)
+}
+
+/// Spec 192 3.4: a Dependabot-class version bump in a hashed Cargo.toml or
+/// package.json leaves its recorded digest unchanged, so `inputs.json` stays
+/// fresh and the bot's PR needs no re-index.
+#[test]
+fn a_dependency_bump_leaves_a_hashed_manifest_digest_unchanged() {
+    let (tmp, cfg) = hashed_manifest_fixture();
+    let before = spec_spine_core::shard::input_digests(&cfg, tmp.path());
+    assert!(before.contains_key("Cargo.toml") && before.contains_key("package.json"));
+
+    let cargo = fs::read_to_string(tmp.path().join("Cargo.toml")).unwrap();
+    write(
+        tmp.path(),
+        "Cargo.toml",
+        &cargo
+            .replace("0.22.0", "0.22.1")
+            .replace("\"1.40\"", "\"1.41\""),
+    );
+    let npm = fs::read_to_string(tmp.path().join("package.json")).unwrap();
+    write(tmp.path(), "package.json", &npm.replace("5.4.0", "5.5.0"));
+
+    assert_eq!(
+        before,
+        spec_spine_core::shard::input_digests(&cfg, tmp.path())
+    );
+}
+
+/// Spec 192 3.4, the other direction: an added dependency is not forgiven by
+/// the waiver, so it moves each manifest's digest.
+#[test]
+fn an_added_dependency_changes_a_hashed_manifest_digest() {
+    let (tmp, cfg) = hashed_manifest_fixture();
+    let before = spec_spine_core::shard::input_digests(&cfg, tmp.path());
+
+    let cargo = fs::read_to_string(tmp.path().join("Cargo.toml")).unwrap();
+    write(
+        tmp.path(),
+        "Cargo.toml",
+        &cargo.replace("base64 = \"0.22.0\"", "base64 = \"0.22.0\"\nhex = \"0.4\""),
+    );
+    let npm = fs::read_to_string(tmp.path().join("package.json")).unwrap();
+    write(
+        tmp.path(),
+        "package.json",
+        &npm.replace("\"5.4.0\"", "\"5.4.0\", \"zod\": \"3.23.0\""),
+    );
+
+    let after = spec_spine_core::shard::input_digests(&cfg, tmp.path());
+    assert_ne!(before["Cargo.toml"], after["Cargo.toml"]);
+    assert_ne!(before["package.json"], after["package.json"]);
+}

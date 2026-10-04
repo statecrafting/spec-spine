@@ -351,6 +351,88 @@ pub fn workflow_hash_projection(content: &str) -> Option<String> {
     serde_json::to_string(&yaml_to_json(&doc)).ok()
 }
 
+/// The placeholder a forgiven dependency version folds as in the input
+/// projections (spec 192 3.1). Any fixed value works; this one cannot be
+/// mistaken for a real requirement.
+const INPUT_VERSION_PLACEHOLDER: &str = "<version>";
+
+/// The input projection of a Cargo manifest matched by `extra_hashed_inputs`
+/// (spec 192 3.1). Unlike [`cargo_hash_projection`], which drops whole
+/// dependency tables because discovery reads none of them, this blanks exactly
+/// what `dep_only::cargo_dependency_only_change` forgives: a bare-string
+/// dependency requirement and the string `version` of a table entry. An added
+/// or removed dependency, a shape flip, a feature / `git` / `path` edit and any
+/// change outside a dependency table all still move it, so the ledger and the
+/// waiver state one rule (spec 192 3.2). `None` (unparseable / not a table)
+/// tells the caller to fall back to raw bytes.
+pub fn cargo_input_projection(content: &str) -> Option<String> {
+    let mut doc: toml::Value = toml::from_str(content).ok()?;
+    doc.as_table()?;
+    blank_cargo_dep_versions(&mut doc);
+    serde_json::to_string(&toml_to_json(&doc)).ok()
+}
+
+/// Walk tables and arrays as `cargo_value_eq_except_versions` does; a table
+/// under a dependency-table key is blanked and not descended into further.
+fn blank_cargo_dep_versions(value: &mut toml::Value) {
+    match value {
+        toml::Value::Table(table) => {
+            for (key, v) in table.iter_mut() {
+                if crate::dep_only::CARGO_DEPENDENCY_TABLES.contains(&key.as_str()) {
+                    // A non-table value is kept verbatim: the waiver refuses
+                    // any change to it, and so does this (spec 192 3.2).
+                    if let toml::Value::Table(deps) = v {
+                        for (_, entry) in deps.iter_mut() {
+                            match entry {
+                                toml::Value::String(req) => {
+                                    *req = INPUT_VERSION_PLACEHOLDER.to_string();
+                                }
+                                toml::Value::Table(fields) => {
+                                    if let Some(toml::Value::String(req)) =
+                                        fields.get_mut("version")
+                                    {
+                                        *req = INPUT_VERSION_PLACEHOLDER.to_string();
+                                    }
+                                }
+                                _ => {}
+                            }
+                        }
+                    }
+                } else {
+                    blank_cargo_dep_versions(v);
+                }
+            }
+        }
+        toml::Value::Array(items) => items.iter_mut().for_each(blank_cargo_dep_versions),
+        _ => {}
+    }
+}
+
+/// The input projection of an npm manifest matched by `extra_hashed_inputs`
+/// (spec 192 3.1). Unlike [`npm_hash_projection`], which keeps only the fields
+/// discovery reads, this keeps the whole document and blanks exactly what
+/// `dep_only::dependency_only_change` forgives: a string value inside a
+/// top-level dependency table. `scripts`, `engines`, `overrides`, an added or
+/// removed package and a non-string specifier all still move it. `None`
+/// (unparseable / non-object) tells the caller to fall back to raw bytes.
+pub fn npm_input_projection(content: &str) -> Option<String> {
+    let mut doc: serde_json::Value = serde_json::from_str(content).ok()?;
+    let obj = doc.as_object_mut()?;
+    for (key, v) in obj.iter_mut() {
+        if !crate::dep_only::DEPENDENCY_TABLES.contains(&key.as_str()) {
+            continue;
+        }
+        if let serde_json::Value::Object(deps) = v {
+            for (_, spec) in deps.iter_mut() {
+                if spec.is_string() {
+                    *spec = serde_json::Value::String(INPUT_VERSION_PLACEHOLDER.to_string());
+                }
+            }
+        }
+    }
+    serde_json::to_string(&doc).ok()
+}
+
 /// Remove the pinned ref of every `uses:` scalar, at any nesting depth.
 ///
 /// A `uses:` whose value is not a string is left alone entirely, and not

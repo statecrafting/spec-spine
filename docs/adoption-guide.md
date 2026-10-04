@@ -439,6 +439,19 @@ the other is how a governance file ends up outside both.
 > `VersionMismatch` with the remedy in the message, never a content mismatch:
 > this reads as an upgrade, not as tampering.
 
+> **Upgrading across spec 192.** A `Cargo.toml` or `package.json` matched by
+> `[index] extra_hashed_inputs` (for example a workspace manifest a spec
+> claims, which L-008 then requires you to hash) now folds as an **input
+> projection**: the document with every dependency version string the
+> coupling gate's dependency-only waiver forgives replaced by a placeholder,
+> and everything else kept. A Dependabot version bump therefore leaves
+> `inputs.json` fresh and self-clears the gate, while an added or removed
+> dependency, a feature, `git` or `path` edit, a `scripts` edit and any change
+> outside a dependency table still stale it. If you hash either manifest,
+> your next `spec-spine index` rewrites that file's entry in `inputs.json`
+> once; no shard moves and no schema version changes. Commit the result. A
+> sealed attestation reports `VersionMismatch` on recompute, as for spec 060.
+
 ## Directory units claim recursively
 
 A `file` unit with a **trailing slash** is a subtree claim:
