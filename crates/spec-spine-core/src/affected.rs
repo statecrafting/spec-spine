@@ -31,6 +31,7 @@ use serde::{Deserialize, Serialize};
 use spec_spine_types::{Config, Error};
 
 use crate::read::{Versioning, read_document};
+use crate::spec_id::leading_segment;
 use crate::verify::plans_in_corpus;
 
 /// One spec of the corpus as read at the head.
@@ -163,7 +164,7 @@ pub fn select_affected(
         .collect();
     let named_specs: Vec<(&str, &str)> = changed_specs
         .iter()
-        .map(|id| (id.as_str(), id.split('-').next().unwrap_or(id.as_str())))
+        .map(|id| (id.as_str(), leading_segment(id)))
         .collect();
     let tests = changed_tests(&paths);
 

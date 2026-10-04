@@ -48,6 +48,7 @@ extends:
   - { spec: "108-a-work-scope-is-declared", unit: "crates/spec-spine-core/tests/scope.rs", nature: additive }
   - { spec: "155-selected-content-accessor", unit: "crates/spec-spine-cli/tests/content.rs", nature: additive }
   - { spec: "155-selected-content-accessor", unit: "crates/spec-spine-core/tests/content.rs", nature: additive }
+  - { spec: "067-a-short-id-names-the-same-spec-at-every-verb", unit: "crates/spec-spine-core/src/spec_id.rs", nature: additive }
 establishes:
   - { kind: file, path: "crates/spec-spine-core/src/affected.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/affected.rs" }
@@ -236,6 +237,14 @@ published and pinned, sets this repository's `select_all_on` to 150's list
 (recorded as a comment in `spec-spine.toml` until then) and flips
 `implementation` to `complete`. Until it lands, an engine-source change selects
 only the specs whose plans name it, not the whole corpus.
+
+**D-10 (2026-10-04, build): the names-spec rule takes the ordinal from
+`spec_id.rs`.** The rule matches a changed spec's ordinal as a token, so it
+needs the id's leading dash-segment. Spec 067 3.4 keeps that expression in
+`spec_id.rs` alone, and its single-copy acceptance line refused a private
+copy in `affected.rs` in the merge-queue sweep. `spec_id.rs` gains
+`leading_segment(id)`, which `match_spec_id` and the selector both call, so the
+segment is still taken in one place.
 
 ## Verification
 

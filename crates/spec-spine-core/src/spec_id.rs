@@ -27,6 +27,14 @@ use std::path::Path;
 
 use spec_spine_types::Error;
 
+/// An id's whole leading dash-segment, the part spec 015 §3.1 calls its short
+/// id: `070` for `070-a-slug`, and the id itself when it has no dash. The one
+/// place that splits an id, so a caller matching ordinals (the affected
+/// selection, spec 158) uses the same segment resolution does.
+pub fn leading_segment(id: &str) -> &str {
+    id.split_once('-').map_or(id, |(segment, _)| segment)
+}
+
 /// What an argument matched in a set of spec ids (spec 067 §3.1, steps 1-4).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SpecIdMatch {
@@ -59,7 +67,7 @@ where
         let id = id.as_ref();
         if id == arg {
             exact = true;
-        } else if id.split('-').next() == Some(arg) {
+        } else if leading_segment(id) == arg {
             candidates.push(id.to_string());
         }
     }

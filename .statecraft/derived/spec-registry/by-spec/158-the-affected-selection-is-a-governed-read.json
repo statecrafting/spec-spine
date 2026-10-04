@@ -183,6 +183,14 @@
           "kind": "file",
           "path": "crates/spec-spine-core/tests/content.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "067-a-short-id-names-the-same-spec-at-every-verb",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/spec_id.rs"
+        }
       }
     ],
     "id": "158-the-affected-selection-is-a-governed-read",
@@ -225,7 +233,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "d157c618f282b321231eca000ad97cf7cc6f31752c3f0bf50830244d044b601e",
-      "158-the-affected-selection-is-a-governed-read": "1afa11873cee8fa1cb93e40f1f42fd4bc99e21a5edbc12cc5b4858c96caae62d",
+      "158-the-affected-selection-is-a-governed-read": "2a3b6eb983f76624af3e830f051d01f562009db7579df360d4574f7cc8f4170a",
       "2-territory": "59d2d2fa2a5b1c2ae72e01a5a6df16103d6b909fe61afd66d0b2a23b5f16216c",
       "3-1-the-read": "2fd1e42a655344188540b47a093a9f47b064233bf467c0a27d70b07dfd749d0f",
       "3-2-selection-is-pure": "298b51b1ef30e6e8ca9cd4399bdccac64074f26445d88ffecc45f54e0c0352c6",
@@ -234,7 +242,7 @@
       "3-5-one-selector": "574c3d91e2442ee4984f25ff3e7c947a62433c445be31930e3a5810f54be12cb",
       "3-behavior": "1660c592d4936c7fe3488a65bf48576f01e2abfcc46033449d7a4a8de62520d7",
       "4-out-of-scope": "8bf71d61257e651a0177f5630da2390d7f6ed8aa6a833b7da69bd44a7011d30c",
-      "5-resolved-decisions": "b1866f44c21bcaccbc19a57678484573321dace3d426d6d46910a25838c7a3fa",
+      "5-resolved-decisions": "107592a5c4a5358a11e7e49107cfa3ba03aabf1f2eb573ac0d39ce914a12a3c3",
       "verification": "7eade83257912ba779cceb8d50c7b91e98d3bbd11b14131a3d82b64b4e705da5"
     },
     "sectionHeadings": [
@@ -256,6 +264,6 @@
     "summary": "Spec 150's selector, which names every spec whose acceptance a change can break, lives in an embedded Python block of `scripts/verify-sweep.sh`, a script only this repository carries. Spec 157 moves the pre-merge sweep into the merge queue across every Statecraft-governed repository, and the Statecraft owner decided (2026-09-27) that spec-spine owns selection: the profile's sweep job calls a spec-spine read and shards the plan it returns. This spec adds that read, `verify --affected-by <base> --plan --json`: the CLI turns the Git range into changed paths, the core selects as a pure function of the configuration, the corpus and those paths, and the answer names each selected spec, the rule that selected it and its effective plan. The whole-corpus trigger becomes configuration rather than this repository's layout, and `verify-sweep.sh` calls the read instead of keeping a second selector.\n",
     "title": "The affected selection is a governed read"
   },
-  "shardHash": "3cbfd9173a0a81414c6a323cace98c2669b19f8bba7df27054c6bec8501b1e6e",
+  "shardHash": "5fcdd71d50ffcf74a5aff750980bfd0d70f62ef15570733ca3ab77c861f7d376",
   "specVersion": "1.9.0"
 }

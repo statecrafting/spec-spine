@@ -42,6 +42,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/spec_id.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/verify.rs",
         "source": "spec-edge"
       },
@@ -236,6 +240,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/src/spec_id.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/spec_id.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/src/verify.rs"
           }
         ],
@@ -407,5 +424,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "3cbfd9173a0a81414c6a323cace98c2669b19f8bba7df27054c6bec8501b1e6e"
+  "shardHash": "5fcdd71d50ffcf74a5aff750980bfd0d70f62ef15570733ca3ab77c861f7d376"
 }
