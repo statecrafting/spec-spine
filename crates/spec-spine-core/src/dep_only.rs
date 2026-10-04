@@ -769,4 +769,226 @@ jobs:
         assert!(is_dependency_manifest(".github/workflows/ci.yml"));
         assert!(!is_dependency_manifest("src/lib.rs"));
     }
+
+    // ── spec 192: the input projections agree with the waivers ────────────
+
+    const CARGO_BASE: &str = r#"[workspace]
+members = ["a"]
+
+[workspace.dependencies]
+serde = "1.0.200"
+tokio = { version = "1.40", features = ["rt"] }
+local = { path = "crates/local" }
+
+[dependencies]
+base64 = "0.22.0"
+
+[target.'cfg(unix)'.dependencies]
+libc = { version = "0.2.150", default-features = false }
+
+[profile.release]
+lto = true
+"#;
+
+    fn cargo_cases() -> Vec<(&'static str, String, bool)> {
+        vec![
+            ("no change at all", CARGO_BASE.to_string(), true),
+            (
+                "a bare-string bump",
+                CARGO_BASE.replace("0.22.0", "0.22.1"),
+                true,
+            ),
+            (
+                "a workspace table version bump",
+                CARGO_BASE.replace("\"1.40\"", "\"1.41\""),
+                true,
+            ),
+            (
+                "a target table version bump",
+                CARGO_BASE.replace("0.2.150", "0.2.151"),
+                true,
+            ),
+            (
+                "a reformat",
+                CARGO_BASE.replace("serde = \"1.0.200\"", "serde   =   \"1.0.200\" # pinned"),
+                true,
+            ),
+            (
+                "an added dependency",
+                CARGO_BASE.replace("base64 = \"0.22.0\"", "base64 = \"0.22.0\"\nhex = \"0.4\""),
+                false,
+            ),
+            (
+                "a removed dependency",
+                CARGO_BASE.replace("base64 = \"0.22.0\"\n", ""),
+                false,
+            ),
+            (
+                "a shape flip",
+                CARGO_BASE.replace("base64 = \"0.22.0\"", "base64 = { version = \"0.22.0\" }"),
+                false,
+            ),
+            (
+                "a changed feature",
+                CARGO_BASE.replace("[\"rt\"]", "[\"rt\", \"macros\"]"),
+                false,
+            ),
+            (
+                "an added version field",
+                CARGO_BASE.replace(
+                    "{ path = \"crates/local\" }",
+                    "{ path = \"crates/local\", version = \"0.1\" }",
+                ),
+                false,
+            ),
+            (
+                "a path edit",
+                CARGO_BASE.replace("crates/local", "crates/other"),
+                false,
+            ),
+            (
+                "a changed default-features",
+                CARGO_BASE.replace("default-features = false", "default-features = true"),
+                false,
+            ),
+            (
+                "a change outside every dependency table",
+                CARGO_BASE.replace("lto = true", "lto = false"),
+                false,
+            ),
+            (
+                "a changed member list",
+                CARGO_BASE.replace("[\"a\"]", "[\"a\", \"b\"]"),
+                false,
+            ),
+        ]
+    }
+
+    /// Spec 192 3.2, both directions: a change the cargo waiver forgives leaves
+    /// the input projection alone, and a change to the projection refuses it.
+    #[test]
+    fn the_cargo_input_projection_and_the_cargo_waiver_agree() {
+        use crate::manifest::cargo_input_projection as proj;
+        let base_proj = proj(CARGO_BASE).expect("the base fixture parses");
+        for (label, head, waived) in cargo_cases() {
+            assert_eq!(
+                cargo_dependency_only_change(CARGO_BASE, &head),
+                waived,
+                "{label}: the waiver disagrees with the matrix"
+            );
+            let head_proj = proj(&head).expect("the head fixture parses");
+            assert_eq!(
+                base_proj == head_proj,
+                waived,
+                "{label}: waived={waived} but projection-unchanged={}",
+                base_proj == head_proj
+            );
+        }
+    }
+
+    const NPM_BASE: &str = r#"{
+  "name": "app",
+  "version": "1.0.0",
+  "scripts": { "build": "tsc" },
+  "dependencies": { "react": "^18.2.0", "local": { "nested": true } },
+  "devDependencies": { "typescript": "5.4.0" },
+  "engines": { "node": ">=20" }
+}
+"#;
+
+    fn npm_cases() -> Vec<(&'static str, String, bool)> {
+        vec![
+            ("no change at all", NPM_BASE.to_string(), true),
+            (
+                "a dependency bump",
+                NPM_BASE.replace("^18.2.0", "^18.3.1"),
+                true,
+            ),
+            (
+                "a devDependency bump",
+                NPM_BASE.replace("5.4.0", "5.5.0"),
+                true,
+            ),
+            (
+                "a reformat",
+                NPM_BASE.replace("\"name\": \"app\",", "\"name\":\"app\","),
+                true,
+            ),
+            (
+                "an added dependency",
+                NPM_BASE.replace("\"^18.2.0\",", "\"^18.2.0\", \"zod\": \"3\","),
+                false,
+            ),
+            (
+                "a removed dependency",
+                NPM_BASE.replace("\"typescript\": \"5.4.0\"", ""),
+                false,
+            ),
+            ("a scripts edit", NPM_BASE.replace("tsc", "tsc -b"), false),
+            ("an engines edit", NPM_BASE.replace(">=20", ">=22"), false),
+            (
+                "a non-string specifier change",
+                NPM_BASE.replace("\"nested\": true", "\"nested\": false"),
+                false,
+            ),
+            (
+                "a string to object flip",
+                NPM_BASE.replace("\"^18.2.0\"", "{ \"v\": \"^18.2.0\" }"),
+                false,
+            ),
+        ]
+    }
+
+    /// Spec 192 3.2 for npm, both directions.
+    #[test]
+    fn the_npm_input_projection_and_the_npm_waiver_agree() {
+        use crate::manifest::npm_input_projection as proj;
+        let base_proj = proj(NPM_BASE).expect("the base fixture parses");
+        for (label, head, waived) in npm_cases() {
+            assert_eq!(
+                dependency_only_change(NPM_BASE, &head),
+                waived,
+                "{label}: the waiver disagrees with the matrix"
+            );
+            let head_proj = proj(&head).expect("the head fixture parses");
+            assert_eq!(
+                base_proj == head_proj,
+                waived,
+                "{label}: waived={waived} but projection-unchanged={}",
+                base_proj == head_proj
+            );
+        }
+    }
+
+    /// The one permitted disagreement (spec 192 3.2), pinned: a key named like
+    /// a dependency table whose value is not a table or object. The waiver
+    /// refuses any change involving it, even none, and the projection keeps it
+    /// verbatim, so an edit to it still moves the projection. Both fail closed.
+    #[test]
+    fn a_non_table_dependency_key_is_refused_by_both() {
+        use crate::manifest::{cargo_input_projection, npm_input_projection};
+        let cargo = "[package]\nname = \"a\"\ndependencies = \"x\"\n";
+        let cargo_edit = cargo.replace("\"x\"", "\"y\"");
+        assert!(!cargo_dependency_only_change(cargo, cargo));
+        assert!(!cargo_dependency_only_change(cargo, &cargo_edit));
+        assert_ne!(
+            cargo_input_projection(cargo),
+            cargo_input_projection(&cargo_edit)
+        );
+        let npm = r#"{"name": "a", "dependencies": "x"}"#;
+        let npm_edit = npm.replace("\"x\"", "\"y\"");
+        assert!(!dependency_only_change(npm, &npm_edit));
+        assert_ne!(npm_input_projection(npm), npm_input_projection(&npm_edit));
+    }
+
+    /// Spec 192 3.1: an unparseable manifest has no projection, so the fold
+    /// site falls back to raw bytes and any edit moves its digest.
+    #[test]
+    fn an_unparseable_manifest_has_no_input_projection() {
+        use crate::manifest::{cargo_input_projection, npm_input_projection};
+        assert_eq!(cargo_input_projection("[package\nname ="), None);
+        assert_eq!(cargo_input_projection("= 1"), None);
+        assert_eq!(npm_input_projection("{ not json"), None);
+        assert_eq!(npm_input_projection("[1, 2]"), None);
+    }
 }

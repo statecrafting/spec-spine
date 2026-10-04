@@ -1,0 +1,103 @@
+{
+  "record": {
+    "amends": [
+      "004-codebase-index"
+    ],
+    "created": "2026-10-04",
+    "dependsOn": [
+      "004-codebase-index",
+      "005-coupling-gate",
+      "027-cargo-workflow-dependency-waiver",
+      "060-a-workflow-bump-is-not-a-governed-change",
+      "141-a-governance-edit-rewrites-one-file"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/manifest.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/shard.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/dep_only.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/adoption-guide.md"
+        }
+      }
+    ],
+    "id": "192-a-dependency-bump-in-a-hashed-manifest-is-not-governed",
+    "implementation": "complete",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionDigests": {
+      "1-purpose": "13271238f3e3ea98d31d68d2e6bfbf04e62c20824b03cdbec449b661ab799cb0",
+      "192-a-dependency-bump-in-a-hashed-manifest-is-not-a-governed-change": "aedde75bad3a06d389a45d27845e6040a5ecd7e43bb7b24e960a9921ed950541",
+      "2-territory": "2080a071f269ef9875fa39bff69a95a3152e81919d6f0a27d23e3cc0c3f7590d",
+      "3-1-a-hashed-manifest-folds-as-its-input-projection-amends-004-3-5": "c350fb3263532aaf9ed1aff40b1c0f1bb0704e2633fad47846a1c43029bb2bdd",
+      "3-2-the-projections-and-the-waivers-state-one-rule": "84838ec60d92c140c50c152c0ef85259ffada74272a585264c46ea27591d4ae6",
+      "3-3-the-upgrade-rewrites-one-file-once": "4ee688c0390752672ce06d55541cdc4e02b98f9a6aac3ea77e5d29b40edff570",
+      "3-4-tests-minimum": "1a00da52fce3b446187dbff373e0ebd034b80e79b98a109c42b4e7d0405d8784",
+      "3-behavior": "19c78108762cc784ea108b54931eb6f5c0c1674554743dae168c16ae712f9836",
+      "4-out-of-scope": "8477d93db1d8dd3ddc40510b4c30c6b0ce55cfe18af7725f74c8e21af9842641",
+      "5-resolved-decisions": "953f966d3d026db17832bb0d7b6a3c00c16e956d235037022f6da869a120dcb3",
+      "verification": "8a9527bbbf5f3af06d891061e1e99223ec144d695ec6633ac35a39886e10f80a"
+    },
+    "sectionHeadings": [
+      "192: A dependency bump in a hashed manifest is not a governed change",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A hashed manifest folds as its input projection (amends 004 3.5)",
+      "3.2 The projections and the waivers state one rule",
+      "3.3 The upgrade rewrites one file, once",
+      "3.4 Tests (minimum)",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/192-a-dependency-bump-in-a-hashed-manifest-is-not-governed/spec.md",
+    "status": "draft",
+    "summary": "A Cargo.toml or package.json that an adopter lists in `[index] extra_hashed_inputs`, typically because a spec claims it and L-008 then requires it to be hashed, enters the inputs record as raw bytes. A Dependabot version bump therefore stales `inputs.json`, and the bot cannot re-index its own PR, while the coupling gate would have waived the same change. Spec 060 closed this gap for workflows only. This spec closes it for the two package manifests: a hashed Cargo.toml or package.json folds as a projection that blanks exactly the version strings the dependency-only waiver forgives and keeps everything else, so the ledger and the waiver state one rule.\n",
+    "title": "A dependency bump in a hashed manifest is not a governed change"
+  },
+  "shardHash": "de19c6dacb1b27a0f6bbb18c57989e4046291aca2ab2c0c3a07279a8073ffb3f",
+  "specVersion": "1.9.0"
+}

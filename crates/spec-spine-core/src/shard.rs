@@ -54,7 +54,7 @@ pub const BY_PACKAGE_DIR: &str = "by-package";
 /// and deduplicated by path: `spec-spine.toml` and every
 /// `index.extra_hashed_inputs` match outside a declared state root. A workflow
 /// contributes its governance projection rather than its raw bytes (spec 060
-/// 3.1). Pure function of `(config, file contents)`.
+/// 3.1), and a Cargo.toml or package.json its input projection (spec 192 3.1). Pure function of `(config, file contents)`.
 ///
 /// Spec 141 moved these out of every shard's `shardHash`: they are recorded one
 /// entry per file in the `codebase-index/inputs.json` sidecar
@@ -84,8 +84,16 @@ pub fn global_input_pieces(cfg: &Config, repo_root: &Path) -> Vec<(String, Strin
                 // the ledger fresh and the bot that made it is not walled.
                 // Unparseable falls back to raw bytes, as the npm and cargo
                 // projections do.
+                // Spec 192 3.1: a hashed Cargo.toml or package.json folds as
+                // its input projection, which blanks exactly the dependency
+                // versions the coupling waiver forgives, so a bot's version
+                // bump leaves the inputs record fresh as well.
                 let piece = if crate::dep_only::is_workflow_yaml(&rel) {
                     crate::manifest::workflow_hash_projection(&content).unwrap_or(content)
+                } else if crate::dep_only::is_cargo_toml(&rel) {
+                    crate::manifest::cargo_input_projection(&content).unwrap_or(content)
+                } else if crate::dep_only::is_package_json(&rel) {
+                    crate::manifest::npm_input_projection(&content).unwrap_or(content)
                 } else {
                     content
                 };
