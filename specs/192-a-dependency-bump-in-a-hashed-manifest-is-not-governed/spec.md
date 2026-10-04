@@ -238,7 +238,7 @@ waiver forgives and nothing more.
 ## Verification
 
 ```verify:cli
-sh -c 'cargo test -p spec-spine-core --locked --lib -- --exact dep_only::tests::the_cargo_input_projection_and_the_cargo_waiver_agree dep_only::tests::the_npm_input_projection_and_the_npm_waiver_agree dep_only::tests::a_non_table_dependency_key_is_refused_by_both 2>&1 | grep -q "test result: ok. 3 passed; 0 failed"'
+sh -c 'cargo test -p spec-spine-core --locked --lib -- --exact dep_only::tests::the_cargo_input_projection_and_the_cargo_waiver_agree dep_only::tests::the_npm_input_projection_and_the_npm_waiver_agree dep_only::tests::a_non_table_dependency_key_is_refused_by_both dep_only::tests::an_unparseable_manifest_has_no_input_projection 2>&1 | grep -q "test result: ok. 4 passed; 0 failed"'
 sh -c 'cargo test -p spec-spine-core --locked --test index -- --exact a_dependency_bump_leaves_a_hashed_manifest_digest_unchanged an_added_dependency_changes_a_hashed_manifest_digest 2>&1 | grep -q "test result: ok. 2 passed; 0 failed"'
 grep -qF 'spec 192' docs/adoption-guide.md
 ```
