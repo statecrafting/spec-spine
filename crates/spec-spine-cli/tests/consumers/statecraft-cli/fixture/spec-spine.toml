@@ -1,0 +1,3 @@
+# The statecraft-cli consumer contract's fixture corpus (spec 170 3.4).
+[layout]
+specs_dir = "specs"

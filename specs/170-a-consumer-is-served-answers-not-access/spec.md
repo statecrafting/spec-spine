@@ -4,7 +4,7 @@ title: "A consumer is served answers, not access"
 status: draft
 kind: "governance"
 created: "2026-09-29"
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -24,11 +24,11 @@ summary: >
   `capabilities` verb that states what a binary supports so no consumer has to
   probe `--help`.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/capabilities.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/src/cmd_capabilities.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/capabilities.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/consumer_contract.rs", planned: true }
-  - { kind: directory, path: "crates/spec-spine-cli/tests/consumers/", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/capabilities.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/src/cmd_capabilities.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/capabilities.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/consumer_contract.rs" }
+  - { kind: directory, path: "crates/spec-spine-cli/tests/consumers/" }
 extends:
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
@@ -273,6 +273,50 @@ requirements are recorded here as test data, rather than fetched from the
 consumer, so the suite stays hermetic. Pinning the consumer's reader spec with
 an `interface_references` digest (spec 110) is left to the implementation,
 when the digest can be read from the consumer's corpus under its own pin.
+
+**D-4 (2026-09-29, build): a contract's versions are prefixes.** A declared
+version admits a document whose axis equals it or continues it at a `.`
+(`0.2` admits `0.2.x`, not `0.20.0`). statecraft-cli checks one axis, the
+delta report's, and accepts `0.1.x` and `0.2.x` (`delta.rs:54`); the contract
+declares exactly that. Every other invocation it makes reads no version, so the
+contract declares the MAJOR line its members were measured on (`0` for read,
+`1` for verdict): an additive MINOR keeps every listed member by the policy in
+`docs/schema-versioning.md`, and a MAJOR bump fails the suite naming the axis
+and both versions (3.6). Declaring exact versions was rejected: every additive
+read document would fail the contract of a consumer that does not read it.
+
+**D-5 (2026-09-29, build): the contract is what the readers read, 3.4's table
+and one more.** Measured from statecraft-cli `ee9f385`: the seven tabled
+invocations, plus `verify <id> --plan --json`
+(`statecraft-adapter/src/coverage.rs:302`), which the table omitted and whose
+reader requires `verb`, `exitCode` and `outcome` by value. Members the reader
+requires by value carry `equals`; members it treats as optional carry
+`optional`. The `verify <id> --json` reader locates the envelope by the bytes
+`{\n  "exitCode"`, so the contract holds that layout too (`stdoutContains`).
+`config show` (run only for a non-exact pin, stdout unread) and the `compile`
+and `index` runs (exit status only) are not listed.
+
+**D-6 (2026-09-29, build): the fixture is a directory, the history is made
+by the test.** `consumers/statecraft-cli/fixture/` holds a two-spec corpus (one
+ready spec with an obligation and a declined `verify:browser` block, one
+blocked draft). The test copies it, compiles and indexes it, commits it as the
+base, applies the contract's `change` and commits the head, so `delta` has a
+range to classify. Nothing in the fixture is Git state.
+
+**D-7 (2026-09-29, build): D-3's digest pin is not taken.** Pinning the
+consumer's reader spec with `interface_references` (spec 110) needs a digest
+read from statecraft-cli's corpus under its own pin, and statecraft-cli's
+readers are code, not a spec that names these members. The contract records
+the consumer revision it was measured from (`measuredAt`) and its dated
+`decisions` instead.
+
+**D-8 (2026-09-29, build): `capabilities` is answered before the pin.** 3.5
+says it reads no repository, and 3.6 that it answers outside one. `main`
+answers it before `[meta] required_version` is read, so neither a pin this
+binary does not meet nor an unreadable `spec-spine.toml` refuses it; the test
+asserts both. The verb list is walked from the clap tree the binary parses its
+arguments with; the one hand-kept table is each verb's `--json` schema axes,
+and a verb that takes `--json` and is missing from it fails the suite.
 
 ## Verification
 

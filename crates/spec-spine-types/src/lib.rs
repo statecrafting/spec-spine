@@ -23,6 +23,7 @@
 //! - [`error`]: the [`Error`] enum and its exit-code contract.
 
 pub mod attest;
+pub mod capabilities;
 pub mod codebase;
 pub mod config;
 pub mod content;
@@ -53,6 +54,7 @@ pub use attest::{
     CoupleVerdict, LedgerSeal, LintVerdict, ResolutionVerdict, SpecAttestation, SpecVerdicts,
     ToolStamp, Verdicts,
 };
+pub use capabilities::{Capabilities, SchemaAxis, VerbCapability};
 pub use codebase::{
     CodebaseIndex, Diagnostic, Diagnostics, ImplementingPath, IndexBuild, IndexInputs,
     IndexPackageShard, IndexSpecShard, InputDigest, LineSpan, PackageKind, PackageRecord,
@@ -114,7 +116,7 @@ pub use unit::Unit;
 pub use verdict::{Verdict, VerdictError, error_kind};
 pub use verify::{SkippedBlocks, VerifyFailure, VerifyOutcome, VerifyPlan, VerifyReport};
 pub use version::{
-    BUILD_META_SCHEMA_VERSION, CONFIG_VERSION, DELTA_SCHEMA_VERSION, INDEX_SCHEMA_VERSION,
-    READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, SNAPSHOT_SCHEMA_VERSION,
+    BUILD_META_SCHEMA_VERSION, CAPABILITIES_SCHEMA_VERSION, CONFIG_VERSION, DELTA_SCHEMA_VERSION,
+    INDEX_SCHEMA_VERSION, READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, SNAPSHOT_SCHEMA_VERSION,
     SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, parse_semver,
 };
