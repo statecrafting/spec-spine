@@ -61,10 +61,10 @@ pub use codebase::{
     ResolvedLocation, ResolvedUnit, SourceField, TraceMapping, TraceSource, Traceability,
 };
 pub use config::{
-    AllowlistConfig, BrandingConfig, BypassEntry, BypassSource, Config, CouplingConfig,
-    CoverageConfig, EffectiveConfig, EffectiveCouplingConfig, FrontmatterConfig, IndexConfig,
-    LayoutConfig, LintConfig, ManifestConfig, MetaConfig, ProvenanceConfig, VersionReq,
-    load_config, validate_config,
+    AcceptanceConfig, AllowlistConfig, BrandingConfig, BypassEntry, BypassSource, Config,
+    CouplingConfig, CoverageConfig, EffectiveConfig, EffectiveCouplingConfig, FrontmatterConfig,
+    IndexConfig, LayoutConfig, LintConfig, ManifestConfig, MetaConfig, ProvenanceConfig,
+    VersionReq, load_config, validate_config,
 };
 pub use content::{
     CoalescedSelector, ContentCompleteness, ContentContinuation, ContentDirtyState, ContentItem,
@@ -103,8 +103,8 @@ pub use registry::{
 pub use relocation::Relocation;
 pub use repo_path::{RepoPath, is_device_name, repo_path_problem};
 pub use schema::{
-    BUILD_META_SCHEMA, INDEX_INPUTS_SCHEMA, INDEX_PACKAGE_SHARD_SCHEMA, INDEX_SCHEMA,
-    INDEX_SPEC_SHARD_SCHEMA, REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA,
+    AFFECTED_SCHEMA, BUILD_META_SCHEMA, INDEX_INPUTS_SCHEMA, INDEX_PACKAGE_SHARD_SCHEMA,
+    INDEX_SCHEMA, INDEX_SPEC_SHARD_SCHEMA, REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA,
 };
 pub use snapshot::{
     AuthoritySnapshot, CommittedTree, FRAME_DIGEST, NON_UTF8_DIRECT_CLAIM, SnapshotCommitted,

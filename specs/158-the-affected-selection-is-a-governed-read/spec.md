@@ -18,7 +18,7 @@ summary: >
   The whole-corpus trigger becomes configuration rather than this repository's
   layout, and `verify-sweep.sh` calls the read instead of keeping a second
   selector.
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -35,9 +35,23 @@ extends:
   - { spec: "092-the-engine-ships-governance-not-an-environment", unit: "spec-spine.toml", nature: additive }
   - { spec: "089-nothing-reruns-a-merged-acceptance", unit: "scripts/verify-sweep.sh", nature: additive }
   - { spec: "089-nothing-reruns-a-merged-acceptance", unit: "scripts/test-verify-sweep.py", nature: additive }
+  - { spec: "043-verify-declared-acceptance", unit: "crates/spec-spine-cli/src/main.rs", nature: additive }
+  - { spec: "043-verify-declared-acceptance", unit: "crates/spec-spine-core/src/lib.rs", nature: additive }
+  - { spec: "043-verify-declared-acceptance", unit: "crates/spec-spine-types/src/lib.rs", nature: additive }
+  - { spec: "022-index-sharding", unit: "crates/spec-spine-types/src/schema.rs", nature: additive }
+  - { spec: "022-index-sharding", unit: "crates/spec-spine-core/tests/conformance.rs", nature: additive }
+  - { spec: "047-effective-config-is-a-governed-read", unit: "crates/spec-spine-cli/src/cmd_config.rs", nature: additive }
+  - { spec: "071-a-change-is-classified-under-the-bases-rules", unit: "crates/spec-spine-cli/src/cmd_delta.rs", nature: additive }
+  - { spec: "074-a-governed-read-names-its-version", unit: "crates/spec-spine-core/tests/read.rs", nature: additive }
+  - { spec: "074-a-governed-read-names-its-version", unit: "docs/schema-versioning.md", nature: additive }
+  - { spec: "108-a-work-scope-is-declared", unit: "crates/spec-spine-cli/tests/scope.rs", nature: additive }
+  - { spec: "108-a-work-scope-is-declared", unit: "crates/spec-spine-core/tests/scope.rs", nature: additive }
+  - { spec: "155-selected-content-accessor", unit: "crates/spec-spine-cli/tests/content.rs", nature: additive }
+  - { spec: "155-selected-content-accessor", unit: "crates/spec-spine-core/tests/content.rs", nature: additive }
 establishes:
-  - { kind: file, path: "crates/spec-spine-core/src/affected.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/affected.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/affected.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/affected.rs" }
+  - { kind: file, path: "crates/spec-spine-types/schemas/affected.schema.json" }
 obligations:
   - { id: "R-1", kind: requirement, text: "verify --affected-by <base> --plan --json names every spec whose acceptance the change can break, the rule that selected it and its effective plan, and runs nothing.", anchor: "3-1-the-read" }
   - { id: "R-2", kind: requirement, text: "Selection is a pure function of the configuration, the corpus at the head and the changed paths; the core runs no git.", anchor: "3-2-selection-is-pure" }
@@ -175,6 +189,53 @@ engine-source rule would select every spec on an adopter's `crates/` change
 for a reason that is only true here. Moving it to `spec-spine.toml` keeps this
 repository's selection byte-for-byte and gives every other corpus the default,
 which selects by reference alone.
+
+**D-4 (2026-10-04, build): the read has an embedded schema of its own.** 3.4
+says the conformance test validates an emitted document against the embedded
+schema, but the read axis had no schema file: spec 074 and its successors
+(155 included) version the shape by constant and pin it in tests. The document
+is therefore given `crates/spec-spine-types/schemas/affected.schema.json`,
+embedded as `AFFECTED_SCHEMA` and validated in `tests/conformance.rs`; other
+read documents are unchanged. The read axis moves to `0.10.0`.
+
+**D-5 (2026-10-04, build): `selectAll` is a boolean and its paths a sibling.**
+3.1 says `selectAll` is true when 3.3 fired "with the paths that fired it".
+The document carries `selectAll: bool` and `selectAllPaths`, the changed paths
+a `select_all_on` glob matched, sorted and empty when it did not fire.
+
+**D-6 (2026-10-04, build): the head's configuration decides the trigger.** The
+CLI exports the head tree and reads `spec-spine.toml` and the corpus from it,
+so `select_all_on` is the head's. The core takes the `Config` it is given. The
+globs match with `*` and `?` stopping at `/` and `**` spanning directories, so
+this repository's list reproduces 150's engine-source predicate exactly
+(`crates/*/Cargo.toml` is a crate's own manifest, not a nested one).
+
+**D-7 (2026-10-04, build): what refuses.** A base or head that does not resolve,
+or that share no merge base, is `Refused` (exit 2: nothing was selected). A
+`spec.md` the CLI cannot read at the head makes the core refuse with
+`NotFound` naming the spec (exit 1, 150 D-4). A `select_all_on` entry that is
+not a glob is a config error (exit 2). `--head` without `--affected-by`, no
+`<id>` and no `--affected-by`, `<id>` with `--affected-by`, and `--affected-by`
+without `--plan` are usage (exit 3). The text form prints `<id>\t<rule>`.
+
+**D-8 (2026-10-04, build): the sweep reads the document, not stderr.**
+`verify-sweep.sh --affected-by` runs the read against its isolated worktree,
+keeps the document as `<out>/affected.json`, and takes `selectedBy`, the
+selection table and `affectedBy.changedPaths` from it. The `config_version`
+does not move for the new optional `[acceptance]` table (precedent: 078's
+`[coverage]`).
+
+**D-9 (2026-10-04, build): this repository's trigger lands after a release.**
+The governance gate (Statecraft Profile 13, spec 191) runs the spec-spine
+release `[meta] required_version` pins, not the candidate, and that release
+refuses an `[acceptance]` table it does not know. Setting `select_all_on` in
+`spec-spine.toml` in the same change as the code that reads it therefore
+cannot pass the gate. The change is split: this one ships the read, the
+configuration key and the script; a follow-up, once a release carrying them is
+published and pinned, sets this repository's `select_all_on` to 150's list
+(recorded as a comment in `spec-spine.toml` until then) and flips
+`implementation` to `complete`. Until it lands, an engine-source change selects
+only the specs whose plans name it, not the whole corpus.
 
 ## Verification
 

@@ -102,7 +102,7 @@ fn unsupported_binary_and_oversized_selections_are_explicit() {
     )
     .unwrap();
     let value: serde_json::Value = serde_json::from_str(&json).unwrap();
-    assert_eq!(value["schemaVersion"], "0.9.0");
+    assert_eq!(value["schemaVersion"], "0.10.0");
     let reasons: Vec<&str> = value["omissions"]
         .as_array()
         .unwrap()

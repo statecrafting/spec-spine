@@ -172,14 +172,27 @@ enum Command {
     ///
     /// Runs code the corpus declares (spec 043), so it is deliberately not part
     /// of the gate chain. `<id>` accepts the short form (`049`).
+    ///
+    /// `--affected-by <base> --plan` is the one read here (spec 158): it names
+    /// every spec whose acceptance the change `<base>...<head>` can break, the
+    /// rule that selected it and its effective plan, and runs nothing.
     Verify {
-        /// Spec id, full (`049-slug`) or short (`049`).
-        id: String,
+        /// Spec id, full (`049-slug`) or short (`049`). Not given with
+        /// `--affected-by`.
+        id: Option<String>,
         /// Print the commands that would run, one per line, and run none of
         /// them. Reading the plan before executing it is the safety affordance
         /// for the one verb that runs what the corpus declares.
         #[arg(long)]
         plan: bool,
+        /// Select the specs whose acceptance the change `<base>...<head>` can
+        /// break (spec 158). Needs `--plan`; takes no `<id>`. With `--json` the
+        /// answer is a read document, not a verdict envelope.
+        #[arg(long, value_name = "BASE")]
+        affected_by: Option<String>,
+        /// The head of the change `--affected-by` selects for (default: HEAD).
+        #[arg(long, value_name = "REV")]
+        head: Option<String>,
         /// Emit the verdict as a JSON envelope on stdout (spec 034).
         #[arg(long)]
         json: bool,
@@ -390,7 +403,22 @@ fn main() -> ExitCode {
             fail_on_info,
             json,
         } => cmd_lint::run(&repo, *fail_on_warn, *fail_on_info, *json),
-        Command::Verify { id, plan, json } => cmd_verify::run(&repo, id, *json, *plan),
+        Command::Verify {
+            id,
+            plan,
+            affected_by,
+            head,
+            json,
+        } => cmd_verify::dispatch(
+            &repo,
+            &cmd_verify::VerifyArgs {
+                id: id.as_deref(),
+                plan: *plan,
+                affected_by: affected_by.as_deref(),
+                head: head.as_deref(),
+                json: *json,
+            },
+        ),
         Command::Couple {
             base,
             head,

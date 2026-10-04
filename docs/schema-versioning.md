@@ -17,7 +17,7 @@
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb, and every `--json` read's failure) | `schemaVersion` | `1.1.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.2.0` | library |
-| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.9.0` | library |
+| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.10.0` | library |
 | capabilities document (`capabilities --json`, spec 170) | `schemaVersion` | `0.1.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
@@ -276,8 +276,9 @@ without breaking readers:
 `READ_SCHEMA_VERSION` versions **the shape of an answer**: the JSON a read verb
 emits with `--json` (`registry list`, `show`, `status-report`, `relationships`,
 `plan`, their projection flags, and `index owner`, `coverage`, `diagnostics`,
-`orphans`, and `content select`), and what the facades `query_json`,
-`coverage_json`, `orphans_json` and `selected_content_json` return. It does not version the artifacts those answers are
+`orphans`, `content select`, and `verify --affected-by --plan`), and what the
+facades `query_json`, `coverage_json`, `orphans_json`, `selected_content_json`
+and `affected_json` return. It does not version the artifacts those answers are
 about, so it does not move when `REGISTRY_SCHEMA_VERSION` or
 `INDEX_SCHEMA_VERSION` does. MINOR adds a member; MAJOR removes, renames or
 changes the meaning of one.
@@ -353,6 +354,18 @@ No member of an existing document moved.
 selected-content response (`content select --json`, `selected_content_json`):
 snapshot identity, completeness, selected `items`, explicit `omissions`,
 deduplication records, and optional continuation. No member of an existing
+document moved.
+
+**`0.10.0` (spec 158), additive.** A new read document, the
+affected-acceptance selection (`verify --affected-by <base> [--head <rev>]
+--plan --json`, `affected_json`): `{ "base", "head", "mergeBase",
+"changedPaths", "corpusSize", "selectAll", "selectAllPaths", "selected": [ {
+"id", "rule", "plan" } ], "schemaVersion" }`, with `rule` one of `select-all`,
+`changed-spec`, `names-spec`, `names-path`, `names-test`. It has an embedded
+schema, `affected.schema.json`, which the conformance test validates an
+emitted document against. The `[acceptance] select_all_on` table is a new
+optional `spec-spine.toml` key (an older binary rejects it, as it does any
+unknown key); `config_version` does not move. No member of an existing
 document moved.
 
 ## Migration note: spec 034, the verdict envelope

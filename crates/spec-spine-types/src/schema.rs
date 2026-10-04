@@ -38,3 +38,8 @@ pub const INDEX_PACKAGE_SHARD_SCHEMA: &str =
 /// JSON Schema for the committed governance-inputs sidecar,
 /// `codebase-index/inputs.json` (spec 141).
 pub const INDEX_INPUTS_SCHEMA: &str = include_str!("../schemas/codebase-index-inputs.schema.json");
+
+/// JSON Schema for the affected-acceptance read document, `verify
+/// --affected-by <base> --plan --json` (spec 158). A read document, so its
+/// `schemaVersion` is [`crate::READ_SCHEMA_VERSION`].
+pub const AFFECTED_SCHEMA: &str = include_str!("../schemas/affected.schema.json");

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spec-spine.dev/schemas/affected.schema.json",
+  "title": "spec-spine affected-acceptance selection",
+  "description": "The read document `verify --affected-by <base> --plan --json` emits (spec 158): which specs' declared acceptance a change can break, the rule that selected each, and its effective plan. A read document on the read axis (READ_SCHEMA_VERSION); it runs nothing.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "base",
+    "head",
+    "mergeBase",
+    "changedPaths",
+    "corpusSize",
+    "selectAll",
+    "selectAllPaths",
+    "selected"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "base": { "type": "string", "pattern": "^[0-9a-f]{40,64}$" },
+    "head": { "type": "string", "pattern": "^[0-9a-f]{40,64}$" },
+    "mergeBase": { "type": "string", "pattern": "^[0-9a-f]{40,64}$" },
+    "changedPaths": { "type": "array", "items": { "type": "string" } },
+    "corpusSize": { "type": "integer", "minimum": 0 },
+    "selectAll": { "type": "boolean" },
+    "selectAllPaths": { "type": "array", "items": { "type": "string" } },
+    "selected": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "plan"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "rule": {
+            "enum": ["select-all", "changed-spec", "names-spec", "names-path", "names-test"]
+          },
+          "plan": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

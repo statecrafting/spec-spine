@@ -105,6 +105,9 @@
     "README.md": {
       "contentHash": "315209b7afee8841ea7440f5900e2e48722064faa7b295f48de2db54e1cf3099"
     },
+    "crates/spec-spine-types/schemas/affected.schema.json": {
+      "contentHash": "6bb433ce87647908831488436e29fc78e290dda3e739a15288d027a46c13a05a"
+    },
     "crates/spec-spine-types/schemas/build-meta.schema.json": {
       "contentHash": "e3e05938056e626855a2211ec58a9cdef77163ace2f3af81c194e1ad845cdc83"
     },
@@ -148,7 +151,7 @@
       "contentHash": "eec1bea982688c1eda66d5a0a0a8ee511d1b1770ad0d434ea02953b529b5df9d"
     },
     "docs/schema-versioning.md": {
-      "contentHash": "1f20f91a0296210b8b74784bb3580f3689b8deb5436f43eca985b0ca399f2f55"
+      "contentHash": "3aa35c8b3ae69f38640ddbbbfada89a4d43cc55a1573a6b0802e2558f91482ca"
     },
     "docs/specify-first.md": {
       "contentHash": "d983fd1bc596ba8463330c4be51ca00561645c53594f17e6355c5e664241d0b4"
@@ -190,7 +193,7 @@
       "contentHash": "0784f57c841e6f1db23f5dde84c2374b11e388a9218cb5a4a22d952f4c538604"
     },
     "scripts/test-verify-sweep.py": {
-      "contentHash": "23a1ce1d6cfcf6d7f45048a155049501bc45f6fa8a5d2440c3284791c29629ad"
+      "contentHash": "feb8f08453f5db7716e59e16ac5ff4ae8c982916b9c50a68f0e4980e29e26c2f"
     },
     "scripts/verify-closed-consumer.py": {
       "contentHash": "840b95139f9300ee2c1f9810f2c5a7567c622f253266752908ab618254069371"
@@ -199,10 +202,10 @@
       "contentHash": "e4772242b7b7f303aed6d68142ef4312602355d96da600aac551de1d24b369a6"
     },
     "scripts/verify-sweep.sh": {
-      "contentHash": "84e75385fda13857f759bc2eaac204468226cd9a559549714c904dceb4e3335d"
+      "contentHash": "6646f8e04a534675c0e450deb5892aef4049852e6b53832fc47750e03e43d179"
     },
     "spec-spine.toml": {
-      "contentHash": "ae87b0eaef30ee1b68541bb0f6e0e32d4c847cb39bfe2820d4c9d09b939ba23a"
+      "contentHash": "af893f35bae0c3acc43b90a4202bab264f01f01754fb2a67750148f0344b6c23"
     },
     "standards/spec/constitution.md": {
       "contentHash": "88f980bc94705c07851fdcb974c3fd0689fa431d46d9c708c707d2bf5eabbaca"

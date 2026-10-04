@@ -13,6 +13,7 @@
 //! [`lint_json`], [`couple_json`], [`coverage_json`], [`scaffold_init_json`], …) is the seam future
 //! FFI bindings wrap.
 
+pub mod affected;
 pub mod attest;
 mod canonical_json;
 pub mod closure;
@@ -57,6 +58,10 @@ pub use spec_spine_types::{
     SpecRecord, Unit, Violation,
 };
 
+pub use affected::{
+    Affected, AffectedCommits, AffectedEntry, AffectedRule, AffectedSpec, affected_document,
+    select_affected,
+};
 pub use attest::{
     AttestOptions, AttestOutcome, NON_CANONICAL_BYTES, SpecAttestOutcome, VerifyOutcome, attest,
     attest_spec, attestation_hash, check_attestation_major, check_spec_attestation_major,
@@ -617,6 +622,40 @@ pub fn verify_plan_json(
         std::path::Path::new(repo_root),
         spec_id,
     )?)
+}
+
+/// Select the specs whose declared acceptance a change can break (spec 158).
+/// `request_json`: `{ "config"?: Config, "commits": { "base", "mergeBase",
+/// "head" }, "changed": [string], "corpus": [{ "id", "markdown": string |
+/// null }] }`.
+///
+/// Pure: the caller supplies the corpus as read at the head and the changed
+/// paths, and nothing is read, run or executed here. `config` absent means the
+/// defaults, which select by reference alone. The answer is a read document
+/// (spec 074); a `markdown` of `null` is a spec whose plan could not be read,
+/// which refuses (exit 1) and names it rather than leave it out.
+pub fn affected_json(request_json: &str) -> Result<String, Error> {
+    #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase", deny_unknown_fields)]
+    struct Request {
+        #[serde(default)]
+        config: Option<Config>,
+        commits: AffectedCommits,
+        changed: Vec<String>,
+        corpus: Vec<AffectedSpec>,
+    }
+
+    let request: Request = serde_json::from_str(request_json)
+        .map_err(|e| Error::Usage(format!("invalid affected request: {e}")))?;
+    let config = match request.config {
+        Some(config) => {
+            validate_config(&config)?;
+            config
+        }
+        None => Config::default(),
+    };
+    let affected = select_affected(&config, &request.corpus, &request.changed)?;
+    affected_document(&affected, &request.commits)
 }
 
 /// Render the committed index as markdown (spec 010). `index_json` is the
