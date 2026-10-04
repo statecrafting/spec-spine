@@ -1,0 +1,141 @@
+{
+  "consumer": "statecraft-cli",
+  "measuredAt": "statecraft-cli ee9f385",
+  "note": "What statecraft-cli's readers take from each spec-spine invocation, from its source at ee9f385 (spec 170 3.4). Members are JSON Pointers from the document root; an optional member is checked for its type only when present. A schema's versions are prefixes at a component boundary: \"0\" admits every 0.x, \"0.2\" every 0.2.x. Where the consumer reads no version, the contract declares the MAJOR line its members were measured on, because a MINOR is additive (docs/schema-versioning.md). A change that breaks any of this updates this file and adds a dated entry to decisions.",
+  "decisions": [
+    {
+      "date": "2026-09-29",
+      "spec": "170-a-consumer-is-served-answers-not-access",
+      "text": "First declaration, measured from statecraft-cli ee9f385."
+    }
+  ],
+  "fixture": "fixture",
+  "change": {
+    "write": {
+      "docs/added.md": "# Added by the head commit\n"
+    }
+  },
+  "invocations": [
+    {
+      "name": "version",
+      "cite": "statecraft-run/src/report.rs:245, statecraft-home/src/spec_spine.rs:334",
+      "args": ["--version"],
+      "exit": [0],
+      "format": "version-token"
+    },
+    {
+      "name": "check",
+      "cite": "statecraft-environment/src/probe.rs:210, statecraft-run/src/report.rs:281",
+      "args": ["check"],
+      "exit": [0, 1, 2],
+      "format": "text"
+    },
+    {
+      "name": "registry list",
+      "cite": "statecraft-run/src/report.rs:425",
+      "args": ["registry", "list", "--json"],
+      "exit": [0],
+      "format": "json",
+      "schema": { "axis": "read", "pointer": "/schemaVersion", "versions": ["0"] },
+      "members": [
+        { "pointer": "/items", "type": "array" },
+        { "pointer": "/items/0/id", "type": "string" },
+        { "pointer": "/items/0/status", "type": "string" },
+        { "pointer": "/items/0/implementation", "type": "string", "optional": true },
+        { "pointer": "/items/0/obligations", "type": "array", "optional": true },
+        { "pointer": "/items/0/obligations/0/id", "type": "string", "optional": true },
+        { "pointer": "/items/0/obligations/0/withdrawn", "type": "boolean", "optional": true }
+      ]
+    },
+    {
+      "name": "registry plan",
+      "cite": "statecraft-run/src/report.rs:364",
+      "args": ["registry", "plan", "--json"],
+      "exit": [0],
+      "format": "json",
+      "schema": { "axis": "read", "pointer": "/schemaVersion", "versions": ["0"] },
+      "members": [
+        { "pointer": "/ready", "type": "array" },
+        { "pointer": "/ready/0/id", "type": "string" },
+        { "pointer": "/ready/0/title", "type": "string" },
+        { "pointer": "/ready/0/status", "type": "string", "optional": true }
+      ]
+    },
+    {
+      "name": "registry closure",
+      "cite": "statecraft-run/src/contract.rs:145",
+      "args": ["registry", "closure", "--request", "-", "--json"],
+      "stdin": "{\"specs\":[\"001-a\"],\"obligations\":[\"001-a#R-1\"]}",
+      "exit": [0, 1, 2],
+      "format": "json",
+      "schema": { "axis": "read", "pointer": "/schemaVersion", "versions": ["0"] },
+      "members": [
+        { "pointer": "/digest", "type": "string" },
+        { "pointer": "/members", "type": "array" }
+      ]
+    },
+    {
+      "name": "verify",
+      "cite": "statecraft-acceptance/src/suite.rs:62-109",
+      "args": ["verify", "001-a", "--json"],
+      "exit": [0, 1],
+      "format": "json",
+      "stdoutContains": "{\n  \"exitCode\"",
+      "schema": { "axis": "verdict", "pointer": "/schemaVersion", "versions": ["1"] },
+      "members": [
+        { "pointer": "/exitCode", "type": "number" },
+        { "pointer": "/report/outcome", "type": "string" },
+        { "pointer": "/report/declared", "type": "boolean", "optional": true },
+        { "pointer": "/report/ran", "type": "number", "optional": true },
+        { "pointer": "/report/total", "type": "number", "optional": true }
+      ]
+    },
+    {
+      "name": "verify --plan",
+      "cite": "statecraft-adapter/src/coverage.rs:227-320",
+      "args": ["verify", "001-a", "--plan", "--json"],
+      "exit": [0],
+      "format": "json",
+      "schema": { "axis": "verdict", "pointer": "/schemaVersion", "versions": ["1"] },
+      "members": [
+        { "pointer": "/verb", "type": "string", "equals": "verify" },
+        { "pointer": "/exitCode", "type": "number", "equals": 0 },
+        { "pointer": "/ok", "type": "boolean", "optional": true },
+        { "pointer": "/outcome", "type": "string", "equals": "ok" },
+        { "pointer": "/report/specId", "type": "string" },
+        { "pointer": "/report/commands", "type": "array" },
+        { "pointer": "/report/skipped", "type": "array" },
+        { "pointer": "/report/skipped/0/tag", "type": "string" },
+        { "pointer": "/report/skipped/0/count", "type": "number" },
+        { "pointer": "/report/acceptanceFrom", "type": "string", "optional": true }
+      ]
+    },
+    {
+      "name": "delta",
+      "cite": "statecraft-cli/src/accept.rs:173, statecraft-acceptance/src/delta.rs:172-249",
+      "args": ["delta", "--base", "{base}", "--head", "{head}", "--json"],
+      "exit": [0],
+      "format": "json",
+      "schema": { "axis": "delta", "pointer": "/report/schemaVersion", "versions": ["0.1", "0.2"] },
+      "members": [
+        { "pointer": "/verb", "type": "string", "equals": "delta" },
+        { "pointer": "/exitCode", "type": "number", "equals": 0 },
+        { "pointer": "/ok", "type": "boolean", "optional": true },
+        { "pointer": "/outcome", "type": "string", "equals": "ok" },
+        { "pointer": "/report/tool/name", "type": "string" },
+        { "pointer": "/report/tool/version", "type": "string" },
+        { "pointer": "/report/classifiedUnder", "type": "string", "equals": "base" },
+        { "pointer": "/report/base", "type": "string" },
+        { "pointer": "/report/mergeBase", "type": "string" },
+        { "pointer": "/report/head", "type": "string" },
+        { "pointer": "/report/changes", "type": "array" },
+        { "pointer": "/report/changes/0/path", "type": "string" },
+        { "pointer": "/report/changes/0/change", "type": "string" },
+        { "pointer": "/report/changes/0/classes", "type": "array" },
+        { "pointer": "/report/counts", "type": "object", "optional": true },
+        { "pointer": "/report/priorPolicy/required", "type": "boolean" },
+        { "pointer": "/report/priorPolicy/classes", "type": "array", "optional": true }
+      ]
+    }
+  ]
+}

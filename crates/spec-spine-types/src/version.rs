@@ -202,6 +202,10 @@ pub const READ_SCHEMA_VERSION: &str = "0.9.0";
 /// beside the DTO it versions and re-exported here with the others.
 pub use crate::snapshot::SNAPSHOT_SCHEMA_VERSION;
 
+/// `schemaVersion` of the `capabilities --json` document (spec 170 3.5): what
+/// a binary supports, on its own axis from `0.1.0`.
+pub const CAPABILITIES_SCHEMA_VERSION: &str = "0.1.0";
+
 /// The `spec-spine.toml` config schema version (optional `config_version` key).
 pub const CONFIG_VERSION: &str = "0.1.0";
 

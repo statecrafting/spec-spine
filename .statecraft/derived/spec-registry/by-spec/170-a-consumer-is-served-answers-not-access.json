@@ -9,28 +9,23 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-types/src/capabilities.rs",
-        "planned": true
+        "path": "crates/spec-spine-types/src/capabilities.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/src/cmd_capabilities.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/src/cmd_capabilities.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/capabilities.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/capabilities.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/consumer_contract.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/consumer_contract.rs"
       },
       {
         "kind": "directory",
-        "path": "crates/spec-spine-cli/tests/consumers/",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/consumers/"
       }
     ],
     "extends": [
@@ -77,7 +72,7 @@
       }
     ],
     "id": "170-a-consumer-is-served-answers-not-access",
-    "implementation": "pending",
+    "implementation": "complete",
     "intent": {
       "goal": "A consumer gets the depth it needs from public answers and a tested compatibility promise, never from privileged access.",
       "nonGoals": [
@@ -149,7 +144,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "979e573366a814160f364c755e55b8fd4cbbb117cae0645660f7428ee95f14e6",
-      "170-a-consumer-is-served-answers-not-access": "43bb0e7f8bbb93589a208dfd33fd4d201c8497f63e6d873c04cd33fc72971231",
+      "170-a-consumer-is-served-answers-not-access": "3663d357b6a896088617404fde5a19998fe64b3398b29c289b384450480a65b4",
       "2-territory": "91b241a25b1dcf4c913f37d02e7178866ade69dd1caee05d84f4c4ee02158dc5",
       "3-1-two-tiers-split-by-whose-version-decides": "8b188f54dd527358523c929626e65ebf55fd08272dd2462e0c547603b634bbf9",
       "3-2-one-question-one-path": "96bd6a47c34c6158043cce4e09961d3831a7d7a0d0f3abe59b0b1d64ff574a15",
@@ -159,7 +154,7 @@
       "3-6-observable-negative-cases": "9d0e9a502b74f17cefbb1fa3bb47266b20a65a73b93c0c7f46a01257ae475705",
       "3-behavior": "b55a887380d94a870217ecb97f5f45c36fd1df6ae34b553a6aaa18b4b4f27fed",
       "4-out-of-scope": "595d8d7ee1be74aaa90ef5c207ef5d8a41a6394f5b3cfdf40d05060a2440936b",
-      "5-resolved-decisions": "25869260223b74eac00eccdf897b82828347bd230460928b798beac9ebef587c",
+      "5-resolved-decisions": "ceaeafb6cffd7a1efed0679297a504c726fb6e968f8fbcac6964a3c15bb7e98b",
       "verification": "f1fdbfab014b5f304eb7bc59821390274f8fb6d201aa6b7bbd71e3bc2942753b"
     },
     "sectionHeadings": [
@@ -182,6 +177,6 @@
     "summary": "Fixes how spec-spine serves a programmatic consumer, the Statecraft CLI first. There are two tiers, split by whose pinned version decides the answer rather than by who is asking: a judging tier (the CLI's JSON envelopes and the family exit contract, answered by the binary the judged repository's own pin admits) and a producer tier (pure library functions whose output the caller owns). No surface is shaped for, gated to, or named after one consumer. A consumer's depth comes from a declared consumer contract instead: the verbs, schema axes, envelope members and exit codes it relies on, asserted by this repository's own suite, plus one public `capabilities` verb that states what a binary supports so no consumer has to probe `--help`.\n",
     "title": "A consumer is served answers, not access"
   },
-  "shardHash": "4d0e6dacd787e91c0e3469968c8d79d4ca786b8412d738ce834b5f55b7df1268",
+  "shardHash": "e0fde47d26e81527a79ee164befc79d7d2618ff8afd7a96ba4cb5de28be740a7",
   "specVersion": "1.9.0"
 }

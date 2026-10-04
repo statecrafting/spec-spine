@@ -19,6 +19,7 @@ macro_rules! out {
 }
 
 mod cmd_attest;
+mod cmd_capabilities;
 mod cmd_check;
 mod cmd_compact;
 mod cmd_compile;
@@ -39,7 +40,7 @@ mod verify_attestation;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
 use spec_spine_types::{Config, Error, Verdict, verdict::verb};
 
 #[derive(Parser)]
@@ -58,6 +59,14 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    /// State what this binary supports: every verb, its flags, and the schema
+    /// its `--json` output carries (spec 170). Reads no repository and writes
+    /// nothing.
+    Capabilities {
+        /// Emit the capabilities document as JSON on stdout.
+        #[arg(long)]
+        json: bool,
+    },
     /// Compile specs/*/spec.md into a deterministic registry.
     Compile {
         /// Verify the committed shards match the corpus without writing
@@ -328,6 +337,18 @@ fn main() -> ExitCode {
         None => std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
     };
 
+    // Spec 170 3.5: a fact about the binary alone, answered before anything
+    // reads the repository, so no pin or configuration can refuse it.
+    if let Command::Capabilities { json } = &cli.command {
+        return match cmd_capabilities::run(&Cli::command(), *json) {
+            Ok(code) => ExitCode::from(code),
+            Err(e) => {
+                eprintln!("spec-spine: {e}");
+                ExitCode::from(e.exit_code())
+            }
+        };
+    }
+
     let json_verb = cli.command.json_verb();
     // Spec 055 §3.2: the version pin is checked before any work. A read from a
     // mismatched binary is the quiet failure this exists to prevent: `registry
@@ -345,6 +366,8 @@ fn main() -> ExitCode {
     }
 
     let result = match &cli.command {
+        // Answered above, before the pin; never reached.
+        Command::Capabilities { json } => cmd_capabilities::run(&Cli::command(), *json),
         Command::Compile {
             check,
             json,

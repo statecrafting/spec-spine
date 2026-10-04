@@ -460,6 +460,35 @@ The effective configuration: every default resolved, and the built-in bypass
 floor merged with the adopter's list and attributed to its source. See
 `docs/configuration.md` for what each key means.
 
+## capabilities
+
+```sh
+spec-spine capabilities [--json]
+```
+
+What this binary supports (spec 170): every verb it wires, sorted by path,
+with its long flags and the schema axes its `--json` output carries (`verdict`,
+`read`, `delta`, `config`, or this document's own `capabilities` axis). Ask it,
+not a verb's `--help` or its exit status, whether a verb exists. It reads no
+repository and writes nothing, so it answers in any directory, including one
+whose `required_version` this binary does not meet; it always exits 0.
+
+```json
+{
+  "schemaVersion": "0.1.0",
+  "verbs": [
+    { "flags": ["json", "plan"], "json": [
+      { "axis": "verdict", "version": "1.1.0" }
+    ], "path": "verify" }
+  ],
+  "version": "0.28.0"
+}
+```
+
+A consumer that depends on particular members of a verb's output can declare
+them in a consumer contract (`crates/spec-spine-cli/tests/consumers/`), which
+this repository's own test suite then holds (spec 170 3.4).
+
 ## There is no `init`
 
 The deleted site documented `spec-spine init` and a `--with-kit` flag. Both
