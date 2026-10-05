@@ -1,7 +1,7 @@
 ---
 id: "188-a-repository-pin-selects-the-engine"
 title: "A repository's pin selects the engine that runs"
-status: draft
+status: approved
 kind: "distribution"
 created: "2026-09-30"
 implementation: complete

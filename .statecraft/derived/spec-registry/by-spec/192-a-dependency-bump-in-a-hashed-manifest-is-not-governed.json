@@ -94,10 +94,10 @@
       "Verification"
     ],
     "specPath": "specs/192-a-dependency-bump-in-a-hashed-manifest-is-not-governed/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "A Cargo.toml or package.json that an adopter lists in `[index] extra_hashed_inputs`, typically because a spec claims it and L-008 then requires it to be hashed, enters the inputs record as raw bytes. A Dependabot version bump therefore stales `inputs.json`, and the bot cannot re-index its own PR, while the coupling gate would have waived the same change. Spec 060 closed this gap for workflows only. This spec closes it for the two package manifests: a hashed Cargo.toml or package.json folds as a projection that blanks exactly the version strings the dependency-only waiver forgives and keeps everything else, so the ledger and the waiver state one rule.\n",
     "title": "A dependency bump in a hashed manifest is not a governed change"
   },
-  "shardHash": "de19c6dacb1b27a0f6bbb18c57989e4046291aca2ab2c0c3a07279a8073ffb3f",
+  "shardHash": "ca907255530b4bd3365a1de85d77e0b21719bfdfa8b477ea6dfbc5a89f4b28ba",
   "specVersion": "1.9.0"
 }

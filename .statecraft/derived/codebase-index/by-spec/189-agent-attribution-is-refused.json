@@ -43,8 +43,8 @@
       }
     ],
     "specId": "189-agent-attribution-is-refused",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "e2b64dd3e7e481efbceddaf0b2cde4e936702db9793d21e43bf495ea1f658a9e"
+  "shardHash": "841bba0349e8458e8602996d6b0898ca93c641d43d0a6ffdd73e4e18a99d0ffa"
 }

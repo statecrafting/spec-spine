@@ -1,7 +1,7 @@
 ---
 id: "189-agent-attribution-is-refused"
 title: "Agent attribution is refused in commits and pull requests"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-29"
 summary: >

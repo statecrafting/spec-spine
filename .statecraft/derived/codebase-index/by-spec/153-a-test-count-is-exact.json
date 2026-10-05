@@ -21,8 +21,8 @@
       }
     ],
     "specId": "153-a-test-count-is-exact",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "ae797584d286619fba2cac72c8cde6fbdce8d446701ced6ea5535a3fc1a6e0eb"
+  "shardHash": "37b2165b5e29283657ecbc75d643b72feef552886f2497717d3052ec32248dcf"
 }

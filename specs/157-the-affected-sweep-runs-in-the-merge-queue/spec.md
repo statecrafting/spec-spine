@@ -1,7 +1,7 @@
 ---
 id: "157-the-affected-sweep-runs-in-the-merge-queue"
 title: "The affected-acceptance sweep runs in the merge queue"
-status: draft
+status: approved
 kind: "process"
 created: "2026-09-27"
 summary: >

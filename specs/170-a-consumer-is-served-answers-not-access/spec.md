@@ -1,7 +1,7 @@
 ---
 id: "170-a-consumer-is-served-answers-not-access"
 title: "A consumer is served answers, not access"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-29"
 implementation: complete

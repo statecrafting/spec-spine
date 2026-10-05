@@ -1,7 +1,7 @@
 ---
 id: "192-a-dependency-bump-in-a-hashed-manifest-is-not-governed"
 title: "A dependency bump in a hashed manifest is not a governed change"
-status: draft
+status: approved
 implementation: complete
 kind: "tooling"
 created: "2026-10-04"
