@@ -490,6 +490,9 @@ deleting the script or skipping the run cannot make them pass.
 > is itself carried by `154-the-pre-merge-sweep-is-a-skill-step`, so `verify
 > 089` runs 154's block: 146's with one skills line restated for spec 150.
 
+> Since 2026-10-05, `194-the-ledger-probe-sweeps-the-candidate` holds 154's block in turn, so this plan runs
+> from that spec's block (spec 194 3.2).
+
 ```verify:cli
 cargo build --release --locked
 # --- the fixture corpus: repo inside, scratch outside (3.6) ---

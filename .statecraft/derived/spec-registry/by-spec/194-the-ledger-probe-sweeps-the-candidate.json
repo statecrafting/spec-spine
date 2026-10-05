@@ -1,0 +1,44 @@
+{
+  "record": {
+    "amends": [
+      "154-the-pre-merge-sweep-is-a-skill-step"
+    ],
+    "amendsVerification": [
+      "154-the-pre-merge-sweep-is-a-skill-step"
+    ],
+    "created": "2026-10-05",
+    "dependsOn": [
+      "154-the-pre-merge-sweep-is-a-skill-step",
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "id": "194-the-ledger-probe-sweeps-the-candidate",
+    "implementation": "complete",
+    "kind": "tooling",
+    "sectionDigests": {
+      "1-purpose": "5d766d03b048b0eb90faba294afb998656c5f79408abc133b5614dd307af49f3",
+      "194-the-built-in-ledger-probe-sweeps-the-candidate-not-origin-main": "3520303aa66f93913bc0ace577f6662461da11808fe84cac20275aa20fc2b3aa",
+      "2-territory": "85eb3d14c1ff2e45ca2941610ccc785bb09227ac09ecd14e09a4f3ac344843a1",
+      "3-1-the-probe-sweeps-the-candidate-s-own-revision": "9fea3a86f14752d15b8141169d59768d07b2b05de37dbd64b757a2fa89a6fc84",
+      "3-2-acceptance": "43242c8b3e3a33d626ad4243efe1b156ebb75b10abbf6ae5ce379ae4e9e8974f",
+      "3-behavior": "0501f303d98fdf570638129dad581e138a62d6688d60e47536f76ceac5c852d5",
+      "decisions": "d993185c4a80d585bf9d5e6283ed5ab68a2e6b503ff4f9f29910edaa2f45ac64",
+      "verification": "86e050ed9b6b1217921514fc4e6a8a1238d6f09a6a131514491340f983bc8434"
+    },
+    "sectionHeadings": [
+      "194: The built-in ledger probe sweeps the candidate, not origin/main",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The probe sweeps the candidate's own revision",
+      "3.2 Acceptance",
+      "Decisions",
+      "Verification"
+    ],
+    "specPath": "specs/194-the-ledger-probe-sweeps-the-candidate/spec.md",
+    "status": "draft",
+    "summary": "Spec 154's carried acceptance proves the built-in exempt ledger by sweeping spec 019 at `origin/main` with the candidate binary. Under an exact engine pin, a version bump makes the candidate refuse `origin/main`'s older pin, so 046, 089, 146 and 154 fail in the merge queue of every bump. The probe sweeps the candidate's own `HEAD` instead.\n",
+    "title": "The built-in ledger probe sweeps the candidate, not origin/main"
+  },
+  "shardHash": "77673e41ca1e33ca32c83289483b0b9687b7d8c0f9d596b138a2d888009295eb",
+  "specVersion": "1.9.0"
+}
