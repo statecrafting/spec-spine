@@ -18,7 +18,7 @@
     "risk": "low",
     "sectionDigests": {
       "1-purpose": "b00fd4da1539db34531df1ae622823d14767c50c2e73027abdffe94399486230",
-      "190-the-carried-gate-line-names-the-queue-sweep": "1a8d9320de754ee64c34d578bea5c9aed2ab163f6642ebce2a0800b08b481721",
+      "190-the-carried-gate-line-names-the-queue-sweep": "553147c9a972a40ccb738b93dcde4788be5176f8df8b0afe3f3c2936c3178357",
       "2-territory": "383a7fb247c4fb38358217ed20e19a513abc3d7c4ee5b506494e163ee25218bd",
       "3-1-187-s-block-is-carried": "9434274b4c08926a7bac1356d3a8b327baa30973598fecd59dd5b1f3797e060c",
       "3-2-the-gate-line-names-seven-jobs": "a8fd8bfd19419a7fef63be7bcb3f03e14859dc44d0ff2012da4ff8e1ff4c29ed",
@@ -26,7 +26,7 @@
       "3-behavior": "a4f3db109e5ed55573323af21525b62eb64712c62e2a52839327e0ee07465212",
       "4-out-of-scope": "d9f7378814422e24256fafa10c9290bb8aea0356334f1a24b21192279603b845",
       "5-resolved-decisions": "24b50be579b26298d04965f672b05a69e87648ae1779f9e5356e5b0c9b120815",
-      "verification": "2d10401b35a666d44a4c593b91aac96131671422115059073c9126bcff521ae3"
+      "verification": "e4a1421722dcda8878f082087feb62b7de3bf83fdf44e604306a5f65f6edde69"
     },
     "sectionHeadings": [
       "190: The carried gate line names the queue sweep",
@@ -45,6 +45,6 @@
     "summary": "Spec 157 added `affected-acceptance` to `ci-gate`'s `needs:` in `statecraft-ci.yml`, as its section 3.1 requires. Spec 187's carried block, which is the plan of 156, 091, 094, 124, 134 and 135, still asserts the six-job list byte for byte, so all seven plans fail at the same command on `main` since 157 merged, and every queued change that selects them is refused. This spec holds 187's block, carries it byte-identical, and replaces that one line with the seven-job list 157 made true.\n",
     "title": "The carried gate line names the queue sweep"
   },
-  "shardHash": "079da170a96e6ed547d4897e03e8dbea34a27abde643e2da5da2844b14c82285",
+  "shardHash": "c24b3eecd14b94299d791889d24c02bb6e221a63107442c10588c671f1fee4dd",
   "specVersion": "1.9.0"
 }

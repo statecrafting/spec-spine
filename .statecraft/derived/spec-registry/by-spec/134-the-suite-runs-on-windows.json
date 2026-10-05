@@ -102,7 +102,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "f1b7d855e65f52e2000045ccd8c85089f402e9b9f4f51c4611b78f006567c454",
-      "134-the-suite-runs-on-windows": "f3df62094c771acf50ce4f896ffc386ad786c19e6ee22d9658c9c9974eab75ed",
+      "134-the-suite-runs-on-windows": "b741f4987ab4f2dd849cc17f72b88f60b7ccac4d2768e290aaa5ab3f680ddc9e",
       "2-territory": "c80e1d6056eaf501cc9d1d374519364df053c8599b55f7ba9fe32dc773ece246",
       "3-1-a-windows-test-check-of-its-own": "689c07cc9f937757b6b2427d6e552d04e1dda1894862855e9c679f79a56ffbd5",
       "3-2-nothing-is-skipped-silently": "855cd5b5c4b2e7cd56a7524c0237a6f5050ed7d8701d3eb15d82159df05d4888",
@@ -110,7 +110,7 @@
       "3-behavior": "a373c6f62260ae76ee5f0370f4891abab632c8bf4bf039e9291d7af2906a26ce",
       "4-out-of-scope": "70f3afa5ca642065beb5dd7ed90f24e51fec22fda263eeb05d19ef60dd822f95",
       "5-resolved-decisions": "0fc971b860ea958247b284954c0c38b08806e94e4a9f2153b6dea981365851a8",
-      "verification": "5ccf0103f18c841be2820f1e674b09426e017c8977f9cfb008d7e6fb516245c4"
+      "verification": "be68fc5327cc6c0cb197c19603d28e0efc0a7668a61071ee5e89901375f4ad5d"
     },
     "sectionHeadings": [
       "134: The suite runs on Windows",
@@ -129,6 +129,6 @@
     "summary": "spec-spine ships a Windows binary and proves its shard trees byte-identical on Windows, but CI only ever built there: the workspace test suite ran on Linux alone, so a Windows behavior difference could ship with every check green. A `test (windows)` job now runs `cargo test --workspace` on `windows-latest` as a check of its own, required through `ci-gate`. A test that cannot run on Windows is gated or quarantined in its source with a tracked finding, never skipped by the workflow, and Windows results are reported apart from build results.\n",
     "title": "The suite runs on Windows"
   },
-  "shardHash": "a79c5ed4dab9f832f86cb2f62d6ad5141d9dcbedd50466a090086076a2ee6dc5",
+  "shardHash": "883079f4596f46585703176be46f57d2f8b5af362d6f78706e1adaa02cd62e65",
   "specVersion": "1.9.0"
 }

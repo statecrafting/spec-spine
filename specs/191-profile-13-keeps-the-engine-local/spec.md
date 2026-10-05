@@ -84,6 +84,11 @@ acceptance on the exact candidate engine.
 
 ## Verification
 
+> **Superseded acceptance (2026-10-05).** This block no longer runs.
+> `193-the-0-29-0-release-moves-the-pin` declares this spec in `amends_verification` and carries the
+> complete block with the package version and the exact pin at 0.29.0
+> (spec 193 3.3). The commands below remain unchanged.
+
 ```verify:cli
 # ---- carried for 187-exact-test-counts-for-156 (amends_verification), and through it 156, 091, 094, 124, 134, 135; the ci-gate needs line names affected-acceptance (190 3.2) ----
 # ---- carried for 156-statecraft-profile-10-governs-this-repository (amends_verification), and through it 091, 094, 124, 134, 135; each loose test count names its tests (153 3.2) ----

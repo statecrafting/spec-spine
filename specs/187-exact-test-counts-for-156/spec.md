@@ -107,6 +107,9 @@ gated off does (153 D-6).
 > through the existing amendment chain for profile 13. The commands below
 > remain unchanged.
 
+> Since 2026-10-05, `193-the-0-29-0-release-moves-the-pin` holds 191's block in turn, so this plan runs
+> from that spec's block (spec 193 3.3).
+
 ```verify:cli
 # ---- carried for 156-statecraft-profile-10-governs-this-repository (amends_verification), and through it 091, 094, 124, 134, 135; each loose test count names its tests (153 3.2) ----
 # 3.1 and 3.3: the committed environment names Profile 11 and the exact engine pin.
