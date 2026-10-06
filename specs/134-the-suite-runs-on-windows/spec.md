@@ -136,6 +136,9 @@ costs nothing today and catches the next Windows regression.
 > through the existing amendment chain for profile 13. The commands below
 > remain unchanged.
 
+> Since 2026-10-05, `193-the-0-29-0-release-moves-the-pin` holds 191's block in turn, so this plan runs
+> from that spec's block (spec 193 3.3).
+
 ```verify:cli
 # 3.1: the job exists under its own name and the gate requires it.
 grep -q 'name: test (windows)' .github/workflows/ci.yml

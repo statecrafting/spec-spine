@@ -2,7 +2,7 @@
   "version": 2,
   "pins": {
     "product": "0.0.0",
-    "spec_spine": "0.28.0",
+    "spec_spine": "0.29.0",
     "adapters": {},
     "producer": {
       "name": "spec-spine-core",

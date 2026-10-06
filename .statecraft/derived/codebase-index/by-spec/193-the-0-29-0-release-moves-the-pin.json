@@ -1,20 +1,20 @@
 {
   "mapping": {
+    "amends": [
+      "191-profile-13-keeps-the-engine-local"
+    ],
     "dependsOn": [
-      "006-distribution",
-      "061-shipped-is-not-the-same-as-working"
+      "124-the-expansion-line-carries-its-own-version",
+      "156-statecraft-profile-10-governs-this-repository",
+      "191-profile-13-keeps-the-engine-local"
     ],
     "implementingPaths": [
       {
-        "path": "CLAUDE.md",
+        "path": ".statecraft/environment.json",
         "source": "spec-edge"
       },
       {
         "path": "crates/spec-spine-core/fixtures/verifier/",
-        "source": "spec-edge"
-      },
-      {
-        "path": "docs/releasing.md",
         "source": "spec-edge"
       },
       {
@@ -26,28 +26,11 @@
         "source": "spec-edge"
       },
       {
-        "path": "scripts/reader-identity.sh",
-        "source": "spec-edge"
-      },
-      {
         "path": "spec-spine.toml",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
-      {
-        "locations": [
-          {
-            "file": "scripts/reader-identity.sh"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "scripts/reader-identity.sh"
-        }
-      },
       {
         "locations": [
           {
@@ -77,27 +60,14 @@
       {
         "locations": [
           {
-            "file": "CLAUDE.md"
+            "file": ".statecraft/environment.json"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "CLAUDE.md"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/releasing.md"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "docs/releasing.md"
+          "path": ".statecraft/environment.json"
         }
       },
       {
@@ -125,37 +95,11 @@
           "kind": "file",
           "path": "spec-spine.toml"
         }
-      },
-      {
-        "locations": [
-          {
-            "file": "docs/release-candidate-0.22.0.md"
-          }
-        ],
-        "ownership": false,
-        "sourceField": "references",
-        "unit": {
-          "kind": "file",
-          "path": "docs/release-candidate-0.22.0.md"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "scripts/bump_version.py"
-          }
-        ],
-        "ownership": false,
-        "sourceField": "references",
-        "unit": {
-          "kind": "file",
-          "path": "scripts/bump_version.py"
-        }
       }
     ],
-    "specId": "124-the-expansion-line-carries-its-own-version",
-    "specStatus": "approved"
+    "specId": "193-the-0-29-0-release-moves-the-pin",
+    "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "2bcc5b2f4b6094c0202f117168f630e7a0a99353ff41993ffcf7e8dbaa2ef81a"
+  "shardHash": "5057d2812b4a7deec777985ab8ccfe6b22a5c72d30d3e2f6ecf241f346a29410"
 }

@@ -382,6 +382,9 @@ correction belongs in Statecraft Profile 12, followed by a fresh exact render.
 > through the existing amendment chain for profile 13. The commands below
 > remain unchanged.
 
+> Since 2026-10-05, `193-the-0-29-0-release-moves-the-pin` holds 191's block in turn, so this plan runs
+> from that spec's block (spec 193 3.3).
+
 ```verify:cli
 # 3.1 and 3.3: the committed environment names Profile 11 and the exact engine pin.
 grep -q '"identity": "statecraft-setup:github-actions-rust@11"' .statecraft/environment.json

@@ -306,6 +306,9 @@ the floor is `>=0.17.0`, and the script does not exist.
 > through the existing amendment chain for profile 13. The commands below
 > remain unchanged.
 
+> Since 2026-10-05, `193-the-0-29-0-release-moves-the-pin` holds 191's block in turn, so this plan runs
+> from that spec's block (spec 193 3.3).
+
 ```verify:cli
 cargo build --release --locked
 # 3.1: one version in all three manifests, and the build answers it.

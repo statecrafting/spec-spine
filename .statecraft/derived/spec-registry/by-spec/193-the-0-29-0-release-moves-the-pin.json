@@ -1,0 +1,89 @@
+{
+  "record": {
+    "amends": [
+      "191-profile-13-keeps-the-engine-local"
+    ],
+    "amendsVerification": [
+      "191-profile-13-keeps-the-engine-local"
+    ],
+    "created": "2026-10-05",
+    "dependsOn": [
+      "124-the-expansion-line-carries-its-own-version",
+      "156-statecraft-profile-10-governs-this-repository",
+      "191-profile-13-keeps-the-engine-local"
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "006-distribution",
+        "unit": {
+          "kind": "file",
+          "path": "npm/package.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "007-python-distribution",
+        "unit": {
+          "kind": "directory",
+          "path": "py/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "061-shipped-is-not-the-same-as-working",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "103-a-verifier-fixture-is-a-published-artifact",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "156-statecraft-profile-10-governs-this-repository",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/environment.json"
+        }
+      }
+    ],
+    "id": "193-the-0-29-0-release-moves-the-pin",
+    "implementation": "complete",
+    "kind": "tooling",
+    "sectionDigests": {
+      "1-purpose": "f31dc3209279905a549ffb27103365616405e767746ace6391338f1a9f2f0920",
+      "193-the-0-29-0-release-moves-the-package-version-and-the-pin-together": "94ed73f9d19645fe10b592f352e3a3ac383851ffbd54ef28593d1ccaa33942a8",
+      "2-territory": "9df46dd875c40e88c597f0611273b710f1f52994916014b11a4012a3145fc497",
+      "3-1-one-version-one-pin": "77c7d83f2d731215e83e46ced5f0d08bd1ff9a3c53768f93ffd5287747bca49c",
+      "3-2-the-release-precedes-the-merge": "d7ff67a8fd7f7e4fd78f0499987e36a0e7edcba4e8e6a07fa7bfa5721c58c57d",
+      "3-3-acceptance": "92ad5d155a13c423d74920521d665b9c2adab6b4ceef512f7c2f4b0033a16abc",
+      "3-behavior": "dbf44f9dcca557ea92e48bf8df5b7e9d26e05c6cd5112cba935e8d0036a740eb",
+      "decisions": "276bdff2cc5239c9c7618dc48d9d487b34e3f9036284c21000075c646e734a22",
+      "verification": "32049d7e2b283150cacaf855010d61db8b01d58c5818515c3b000b16b576a788"
+    },
+    "sectionHeadings": [
+      "193: The 0.29.0 release moves the package version and the pin together",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One version, one pin",
+      "3.2 The release precedes the merge",
+      "3.3 Acceptance",
+      "Decisions",
+      "Verification"
+    ],
+    "specPath": "specs/193-the-0-29-0-release-moves-the-pin/spec.md",
+    "status": "draft",
+    "summary": "`main` moves from 0.28.0 to 0.29.0 and the exact engine pin moves with it in the same change, as spec 156 3.3 requires. The release is cut from this change's head before it merges, because the managed gate installs the pinned release and a pin to an unpublished version cannot pass it.\n",
+    "title": "The 0.29.0 release moves the package version and the pin together"
+  },
+  "shardHash": "5057d2812b4a7deec777985ab8ccfe6b22a5c72d30d3e2f6ecf241f346a29410",
+  "specVersion": "1.9.0"
+}

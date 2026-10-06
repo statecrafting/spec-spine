@@ -1,109 +1,113 @@
 ---
-id: "191-profile-13-keeps-the-engine-local"
-title: "Profile 13 keeps the exact engine local"
-status: approved
+id: "193-the-0-29-0-release-moves-the-pin"
+title: "The 0.29.0 release moves the package version and the pin together"
+status: draft
 implementation: complete
 kind: tooling
-created: "2026-10-02"
+created: "2026-10-05"
 summary: >
-  Adopts Statecraft revision 13 without narrowing the engine-specific checks
-  or retiring the repository-owned merge-queue acceptance sweep.
+  `main` moves from 0.28.0 to 0.29.0 and the exact engine pin moves with it in
+  the same change, as spec 156 3.3 requires. The release is cut from this
+  change's head before it merges, because the managed gate installs the pinned
+  release and a pin to an unpublished version cannot pass it.
 amends:
-  - "156-statecraft-profile-10-governs-this-repository"
-  - "157-the-affected-sweep-runs-in-the-merge-queue"
-  - "190-the-gate-requires-the-queue-sweep"
+  - "191-profile-13-keeps-the-engine-local"
 amends_verification:
-  - "190-the-gate-requires-the-queue-sweep"
+  - "191-profile-13-keeps-the-engine-local"
 depends_on:
-  - "190-the-gate-requires-the-queue-sweep"
+  - "124-the-expansion-line-carries-its-own-version"
+  - "156-statecraft-profile-10-governs-this-repository"
+  - "191-profile-13-keeps-the-engine-local"
 extends:
-  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".github/workflows/spec-spine-required.yml", nature: corrective }
-  - { spec: "188-a-repository-pin-selects-the-engine", unit: "crates/spec-spine-launcher/tests/", nature: corrective }
-  - { spec: "093-the-harness-this-repository-runs", unit: "crates/spec-spine-core/tests/harness_skills.rs", nature: corrective }
-  - { spec: "091-an-unclassified-review-failure-blocks-the-merge", unit: "crates/spec-spine-core/tests/ai_review_policy.rs", nature: corrective }
-  - { spec: "093-the-harness-this-repository-runs", unit: "AGENTS.md", nature: corrective }
-  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".statecraft/environment.json", nature: corrective }
-  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".statecraft/setup/github-actions-rust.json", nature: corrective }
-  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".github/workflows/statecraft-ci.yml", nature: corrective }
-  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".github/workflows/statecraft-ai-review.yml", nature: corrective }
-  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: "scripts/statecraft/", nature: corrective }
+  - { spec: "006-distribution", unit: { kind: file, path: "npm/package.json" }, nature: additive }
+  - { spec: "007-python-distribution", unit: { kind: directory, path: "py/" }, nature: additive }
+  - { spec: "061-shipped-is-not-the-same-as-working", unit: { kind: file, path: "spec-spine.toml" }, nature: additive }
+  - { spec: "103-a-verifier-fixture-is-a-published-artifact", unit: { kind: directory, path: "crates/spec-spine-core/fixtures/verifier/" }, nature: additive }
+  - { spec: "156-statecraft-profile-10-governs-this-repository", unit: ".statecraft/environment.json", nature: additive }
 ---
 
-# 191: Profile 13 keeps the exact engine local
+# 193: The 0.29.0 release moves the package version and the pin together
 
 ## 1. Purpose
 
-The owner requested the fleet upgrade on 2026-10-02. Approved spec 156
-records revision 11, while the adopted producer now renders revision 13.
-This amendment preserves the old contract and declares its replacement.
+0.28.0 was published from `854e5dea`. `main` has since merged engine changes
+that published 0.28.0 does not contain: 158 (#422, the affected selection as a
+governed read and the `[acceptance] select_all_on` key), 170 (#423, what a
+binary supports), 188 (#417, the launcher), 189 (#418) and 192 (#424, a
+hashed `Cargo.toml` or `package.json` folds as its input projection). Spec 124
+3.1 moves `main` to the version the next release is cut at.
+
+Spec 191 carries the acceptance for this repository's package identity and its
+exact engine pin, both at 0.28.0. Spec 156 3.3 requires a later bump to move
+the pin in the same change. Two adopters wait on this release: aicortex needs
+192 to stop staling `inputs.json` on every Dependabot cargo bump, and this
+repository needs 158's key in a released engine before it can set it (158
+D-9).
 
 ## 2. Territory
 
-The managed profile, environment record and repository instructions change.
-The specialized self-governance job stages its candidate-built engine at
-`.bin/spec-spine` before invoking the same managed gate.
-The review regression fixture supplies the three budget inputs now required
-by the managed script, preserving its existing refusal and failure assertions. The harness gate inventory
-also names revision 13's ownership query and distinguishes command verbs from
-the query's positional path.
-The launcher fixture compares the discovered repository with its canonical
-path, including macOS's `/var` to `/private/var` alias, as the engine already
-does. No product API or engine behavior changes. Statecraft `8f718e2` renders
-all managed bytes with the previously recorded parameters.
+The three package manifests and the workspace entries of `Cargo.lock`, the
+exact pin in `spec-spine.toml`, the declared pin in
+`.statecraft/environment.json`, and the verifier fixtures regenerated by
+`generate.py` from the 0.29.0 build. No engine source changes.
 
 ## 3. Behavior
 
-The recorded profile is `github-actions-rust` revision 13. The exact engine
-pin remains `=0.28.0`; its regular executable lives at `.bin/spec-spine`.
-The managed governance, coupling and code modes remain canonical. Signed
-commits, authored-content checks, coverage and owner review remain required.
+### 3.1 One version, one pin
 
-This repository builds draft specs and ratifies them in a separate PR.
-Revision 11 does not refuse draft-owned implementation. The revision 13
-parameter `governance.require_ratified` is therefore explicitly false here,
-preserving that approved working model rather than silently enabling a
-conflicting default. A status transition to approved still requires the
-owner Environment review.
+`Cargo.toml`, `npm/package.json` and `py/pyproject.toml` carry 0.29.0
+(`scripts/bump_version.py --check 0.29.0`). `spec-spine.toml` `[meta]
+required_version` is `=0.29.0`, and `.statecraft/environment.json`
+`pins.spec_spine` records the same version, which is what Statecraft's
+`declared_pin` reads from `spec-spine.toml` when it writes the record. The
+producer pin in that record names the spec-spine-core that Statecraft itself
+links, so it does not move here.
 
-The determinism, specialized Rust matrix and affected-acceptance reusable
-workflows remain extra required jobs. Revision 13 currently relocates the
-engine and does not supply spec 157's proposed per-event sweep replacement.
-Its interim affected-acceptance workflow therefore remains required until a
-producer revision actually carries equivalent acceptance. The unchanged
-aggregate requires all seven jobs, including that sweep.
+### 3.2 The release precedes the merge
 
-## 4. Acceptance amendment
+The managed gate installs the exact pinned release, and a 0.29.0 engine
+refuses a `=0.28.0` pin, so neither order of a two-step move passes the gate.
+The release is therefore tagged at this change's head, published on all four
+channels, and only then is this change merged. The tagged tree is the tree
+that merges, up to commits that change no engine source or schema; one that
+does moves this change off the published behavior and requires a new version
+(spec 124 "A version names one behavior").
 
-The complete block of spec 190 is carried below. Only the recorded profile
-revision and identity, and the obsolete temporary .tooling installer fixture,
-change. Compiled acceptance paths resolve Cargo's configured target directory
-to support the required shared worktree target. Before invoking the managed gate,
-acceptance stages the candidate-built engine at `.bin/spec-spine`. Isolated
-merge-queue checkouts do not inherit ignored local installations. This keeps
-acceptance on the exact candidate engine.
+### 3.3 Acceptance
+
+Spec 191's complete block is carried. Only the four version literals change,
+and two commands state 3.1 directly.
+
+## Decisions
+
+**D-1 (2026-10-05).** The owner approved the release on 2026-10-05 ("consider
+everything ratified and approved, proceed forward; unblock aicortex").
+
+**D-2 (2026-10-05).** The first merge-queue run (37377181300) failed 046, 089,
+146 and 154 on a probe that sweeps `origin/main` with the candidate binary,
+which an exact-pin bump always refuses. Spec 194 moved that probe to `HEAD`
+and merged first; this change then merged `main`, which adds acceptance text
+and shards only. The engine source and schemas are those tagged at
+`519e9d59`.
 
 ## Verification
 
-> **Superseded acceptance (2026-10-05).** This block no longer runs.
-> `193-the-0-29-0-release-moves-the-pin` declares this spec in `amends_verification` and carries the
-> complete block with the package version and the exact pin at 0.29.0
-> (spec 193 3.3). The commands below remain unchanged.
-
 ```verify:cli
+# ---- carried for 191-profile-13-keeps-the-engine-local (amends_verification), and through it 190, 187, 156, 091, 094, 124, 134, 135; the package version and the exact pin move to 0.29.0 together (193 3.1) ----
 # ---- carried for 187-exact-test-counts-for-156 (amends_verification), and through it 156, 091, 094, 124, 134, 135; the ci-gate needs line names affected-acceptance (190 3.2) ----
 # ---- carried for 156-statecraft-profile-10-governs-this-repository (amends_verification), and through it 091, 094, 124, 134, 135; each loose test count names its tests (153 3.2) ----
 # 3.1 and 3.3: the committed environment names Profile 13 and the exact engine pin.
 grep -q '"identity": "statecraft-setup:github-actions-rust@13"' .statecraft/environment.json
 grep -q '6167a12e110b30ec27d37909344c7de0178ba477d5ad1ab91a0053430a89e17b' .statecraft/environment.json
-grep -q '^required_version = "=0.28.0"$' spec-spine.toml
+grep -q '^required_version = "=0.29.0"$' spec-spine.toml
 # The exact pin amendment carries 124's package identity and release evidence.
 cargo build --release --locked
-python3 scripts/bump_version.py --check 0.28.0
-"$(cargo metadata --no-deps --format-version 1 | python3 -c 'import json,sys; print(json.load(sys.stdin)["target_directory"])')/release/spec-spine" --version | grep -qx 'spec-spine 0.28.0'
+python3 scripts/bump_version.py --check 0.29.0
+"$(cargo metadata --no-deps --format-version 1 | python3 -c 'import json,sys; print(json.load(sys.stdin)["target_directory"])')/release/spec-spine" --version | grep -qx 'spec-spine 0.29.0'
 grep -qF 'The floor moves with the version' docs/releasing.md
 grep -qF 'A version names one behavior' docs/releasing.md
 scripts/reader-identity.sh "$(cargo metadata --no-deps --format-version 1 | python3 -c 'import json,sys; print(json.load(sys.stdin)["target_directory"])')/release/spec-spine" . > "${TMPDIR:-/tmp}/ss156-reader.txt"
-grep -qE '^answers +spec-spine 0\.28\.0$' "${TMPDIR:-/tmp}/ss156-reader.txt"
+grep -qE '^answers +spec-spine 0\.29\.0$' "${TMPDIR:-/tmp}/ss156-reader.txt"
 grep -qE '^sha256 +[0-9a-f]{64}$' "${TMPDIR:-/tmp}/ss156-reader.txt"
 grep -qE '^registry schema +[0-9]+\.[0-9]+\.[0-9]+$' "${TMPDIR:-/tmp}/ss156-reader.txt"
 grep -qE '^read schema +[0-9]+\.[0-9]+\.[0-9]+$' "${TMPDIR:-/tmp}/ss156-reader.txt"
@@ -183,4 +187,7 @@ grep -q 'Adversarial prompt refusal' AGENTS.md
 # 3.1 and 3.7: Profile 13 has a committed policy and no withheld managed file.
 grep -q '"revision": 13' .statecraft/setup/github-actions-rust.json
 sh -c '! grep -q '"'"'"status"[[:space:]]*:[[:space:]]*"withheld"'"'"' .statecraft/setup/github-actions-rust.json'
+# 193 3.1: the package version and the exact pin name the same release, and the environment record agrees.
+grep -q '"spec_spine": "0.29.0"' .statecraft/environment.json
+sh -c 'test "$(sed -n "s/^required_version = \"=\\(.*\\)\"$/\\1/p" spec-spine.toml)" = "$(sed -n "s/^version = \"\\(.*\\)\"$/\\1/p" Cargo.toml | head -n 1)"'
 ```
