@@ -69,8 +69,9 @@ The managed gate installs the exact pinned release, and a 0.29.0 engine
 refuses a `=0.28.0` pin, so neither order of a two-step move passes the gate.
 The release is therefore tagged at this change's head, published on all four
 channels, and only then is this change merged. The tagged tree is the tree
-that merges; a commit added after the tag moves this change off the published
-behavior and requires a new version (spec 124 "A version names one behavior").
+that merges, up to commits that change no engine source or schema; one that
+does moves this change off the published behavior and requires a new version
+(spec 124 "A version names one behavior").
 
 ### 3.3 Acceptance
 
@@ -81,6 +82,13 @@ and two commands state 3.1 directly.
 
 **D-1 (2026-10-05).** The owner approved the release on 2026-10-05 ("consider
 everything ratified and approved, proceed forward; unblock aicortex").
+
+**D-2 (2026-10-05).** The first merge-queue run (37377181300) failed 046, 089,
+146 and 154 on a probe that sweeps `origin/main` with the candidate binary,
+which an exact-pin bump always refuses. Spec 194 moved that probe to `HEAD`
+and merged first; this change then merged `main`, which adds acceptance text
+and shards only. The engine source and schemas are those tagged at
+`519e9d59`.
 
 ## Verification
 

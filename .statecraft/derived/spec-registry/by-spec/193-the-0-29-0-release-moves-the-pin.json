@@ -59,13 +59,13 @@
     "kind": "tooling",
     "sectionDigests": {
       "1-purpose": "f31dc3209279905a549ffb27103365616405e767746ace6391338f1a9f2f0920",
-      "193-the-0-29-0-release-moves-the-package-version-and-the-pin-together": "958e2ed4913184159c5eb230b24131ad3be88e45d92cf5a12df1525e54475b73",
+      "193-the-0-29-0-release-moves-the-package-version-and-the-pin-together": "94ed73f9d19645fe10b592f352e3a3ac383851ffbd54ef28593d1ccaa33942a8",
       "2-territory": "9df46dd875c40e88c597f0611273b710f1f52994916014b11a4012a3145fc497",
       "3-1-one-version-one-pin": "77c7d83f2d731215e83e46ced5f0d08bd1ff9a3c53768f93ffd5287747bca49c",
-      "3-2-the-release-precedes-the-merge": "8709eac8986ea536c4e7ffbaada3b4170d2a385f17cc3ada42188493bae3385d",
+      "3-2-the-release-precedes-the-merge": "d7ff67a8fd7f7e4fd78f0499987e36a0e7edcba4e8e6a07fa7bfa5721c58c57d",
       "3-3-acceptance": "92ad5d155a13c423d74920521d665b9c2adab6b4ceef512f7c2f4b0033a16abc",
-      "3-behavior": "feb5cab09bf8734d68b4541a7326043d24047dbc1827a2c98be2ab0991633348",
-      "decisions": "fcb2d8bfe6e377daa078a0fefaf65cafab94491e32ef8866cd81a5bc068584a2",
+      "3-behavior": "dbf44f9dcca557ea92e48bf8df5b7e9d26e05c6cd5112cba935e8d0036a740eb",
+      "decisions": "276bdff2cc5239c9c7618dc48d9d487b34e3f9036284c21000075c646e734a22",
       "verification": "32049d7e2b283150cacaf855010d61db8b01d58c5818515c3b000b16b576a788"
     },
     "sectionHeadings": [
@@ -84,6 +84,6 @@
     "summary": "`main` moves from 0.28.0 to 0.29.0 and the exact engine pin moves with it in the same change, as spec 156 3.3 requires. The release is cut from this change's head before it merges, because the managed gate installs the pinned release and a pin to an unpublished version cannot pass it.\n",
     "title": "The 0.29.0 release moves the package version and the pin together"
   },
-  "shardHash": "e242438b448a6c4e5eedb4b1474b7628aea65c6601ea46110aa763bf49d47ca9",
+  "shardHash": "5057d2812b4a7deec777985ab8ccfe6b22a5c72d30d3e2f6ecf241f346a29410",
   "specVersion": "1.9.0"
 }
