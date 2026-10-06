@@ -181,15 +181,12 @@ require_ownership = true
 # non-manifest change falls straight through to the ordinary drift check.
 auto_waive_dependency_only = true
 
-# Spec 158 3.3 (D-9): this repository's `[acceptance] select_all_on` is set by
-# a follow-up change once a published spec-spine release reads the table and
-# `[meta] required_version` pins it. The governance gate runs the pinned
-# release, which refuses a table it does not know. The value it will carry is
-# spec 150's engine-source list:
-#
-#   [acceptance]
-#   select_all_on = ["crates/*/src/**/*", "crates/*/schemas/**/*", "Cargo.toml",
-#                    "Cargo.lock", "crates/*/Cargo.toml", "scripts/verify-sweep.sh"]
+# Spec 158 3.3 (D-9, D-11): a change touching any of these paths selects every
+# spec's acceptance rather than only the specs whose plans name a changed path.
+# The list is spec 150's engine-source set.
+[acceptance]
+select_all_on = ["crates/*/src/**/*", "crates/*/schemas/**/*", "Cargo.toml",
+                 "Cargo.lock", "crates/*/Cargo.toml", "scripts/verify-sweep.sh"]
 
 [provenance.uri_schemes]
 knowledge        = "knowledge://"
