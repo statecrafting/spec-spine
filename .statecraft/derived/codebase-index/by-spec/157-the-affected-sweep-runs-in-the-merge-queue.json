@@ -194,8 +194,8 @@
       }
     ],
     "specId": "157-the-affected-sweep-runs-in-the-merge-queue",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "cf1f56bf8872466fd0edae9481ee792f5abb8319d2ce178343672acc444852d8"
+  "shardHash": "18740c2120bb98846c872b5702cf99c0e7dfc1dde243967f89cb958c3f30cfc7"
 }

@@ -173,10 +173,10 @@
       "Verification"
     ],
     "specPath": "specs/170-a-consumer-is-served-answers-not-access/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Fixes how spec-spine serves a programmatic consumer, the Statecraft CLI first. There are two tiers, split by whose pinned version decides the answer rather than by who is asking: a judging tier (the CLI's JSON envelopes and the family exit contract, answered by the binary the judged repository's own pin admits) and a producer tier (pure library functions whose output the caller owns). No surface is shaped for, gated to, or named after one consumer. A consumer's depth comes from a declared consumer contract instead: the verbs, schema axes, envelope members and exit codes it relies on, asserted by this repository's own suite, plus one public `capabilities` verb that states what a binary supports so no consumer has to probe `--help`.\n",
     "title": "A consumer is served answers, not access"
   },
-  "shardHash": "e0fde47d26e81527a79ee164befc79d7d2618ff8afd7a96ba4cb5de28be740a7",
+  "shardHash": "c425276ff509d8a07b44b34c5c3c18ef425407ee8c080858b7089ec4f4720e11",
   "specVersion": "1.9.0"
 }

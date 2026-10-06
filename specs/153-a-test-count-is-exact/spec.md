@@ -1,7 +1,7 @@
 ---
 id: "153-a-test-count-is-exact"
 title: "A test count is exact"
-status: draft
+status: approved
 kind: "test"
 created: "2026-09-25"
 summary: >

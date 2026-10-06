@@ -1,7 +1,7 @@
 ---
 id: "158-the-affected-selection-is-a-governed-read"
 title: "The affected selection is a governed read"
-status: draft
+status: approved
 kind: "tooling"
 created: "2026-09-27"
 summary: >

@@ -63,10 +63,10 @@
       "Verification"
     ],
     "specPath": "specs/189-agent-attribution-is-refused/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Pull request 417 reached a green ci-gate with four commits whose author and committer were an agent identity, an agent co-author trailer on every commit, and an agent footer, attribution marker and project-thread link in its body. The authored-content checker refused only the em dash and one session-link form, and nothing read commit identity. The checker now refuses agent-session links and agent attribution in every text it already reads, and refuses an agent author or committer on every commit the governance step judges. The project settings stop Claude Code from writing the attribution in the first place.\n",
     "title": "Agent attribution is refused in commits and pull requests"
   },
-  "shardHash": "e2b64dd3e7e481efbceddaf0b2cde4e936702db9793d21e43bf495ea1f658a9e",
+  "shardHash": "841bba0349e8458e8602996d6b0898ca93c641d43d0a6ffdd73e4e18a99d0ffa",
   "specVersion": "1.9.0"
 }

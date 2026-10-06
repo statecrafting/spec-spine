@@ -113,8 +113,8 @@
       }
     ],
     "specId": "192-a-dependency-bump-in-a-hashed-manifest-is-not-governed",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "de19c6dacb1b27a0f6bbb18c57989e4046291aca2ab2c0c3a07279a8073ffb3f"
+  "shardHash": "ca907255530b4bd3365a1de85d77e0b21719bfdfa8b477ea6dfbc5a89f4b28ba"
 }
