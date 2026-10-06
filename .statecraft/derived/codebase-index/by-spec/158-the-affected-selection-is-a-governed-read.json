@@ -421,8 +421,8 @@
       }
     ],
     "specId": "158-the-affected-selection-is-a-governed-read",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "5fcdd71d50ffcf74a5aff750980bfd0d70f62ef15570733ca3ab77c861f7d376"
+  "shardHash": "58f2c3dfb3ce370c1b68beb2e273e0c00bdcc14dcbcf2ab8de9ae161e021430b"
 }

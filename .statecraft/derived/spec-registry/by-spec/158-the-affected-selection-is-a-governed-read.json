@@ -260,10 +260,10 @@
       "Verification"
     ],
     "specPath": "specs/158-the-affected-selection-is-a-governed-read/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 150's selector, which names every spec whose acceptance a change can break, lives in an embedded Python block of `scripts/verify-sweep.sh`, a script only this repository carries. Spec 157 moves the pre-merge sweep into the merge queue across every Statecraft-governed repository, and the Statecraft owner decided (2026-09-27) that spec-spine owns selection: the profile's sweep job calls a spec-spine read and shards the plan it returns. This spec adds that read, `verify --affected-by <base> --plan --json`: the CLI turns the Git range into changed paths, the core selects as a pure function of the configuration, the corpus and those paths, and the answer names each selected spec, the rule that selected it and its effective plan. The whole-corpus trigger becomes configuration rather than this repository's layout, and `verify-sweep.sh` calls the read instead of keeping a second selector.\n",
     "title": "The affected selection is a governed read"
   },
-  "shardHash": "5fcdd71d50ffcf74a5aff750980bfd0d70f62ef15570733ca3ab77c861f7d376",
+  "shardHash": "58f2c3dfb3ce370c1b68beb2e273e0c00bdcc14dcbcf2ab8de9ae161e021430b",
   "specVersion": "1.9.0"
 }

@@ -211,8 +211,8 @@
       }
     ],
     "specId": "170-a-consumer-is-served-answers-not-access",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "5348ee8535c5c6f798e5562af2b21097f39105781f79765b5cedd7ee8aa23493"
+  "shardHash": "4a2f9edb42a6fa055771467427f3262fac2b391c284a882538ad6f34fefc799a"
 }

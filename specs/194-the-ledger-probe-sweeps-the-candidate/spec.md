@@ -1,95 +1,71 @@
 ---
-id: "154-the-pre-merge-sweep-is-a-skill-step"
-title: "The pre-merge sweep is a skill step, not a gate step"
-status: approved
-kind: "tooling"
-created: "2026-09-26"
-summary: >
-  Spec 150 put the pre-merge `verify-sweep.sh --affected-by` run into the
-  `/ship` and `/shepherd` skills, as its 3.2 requires. Spec 089's acceptance,
-  carried for 046 and 089 by spec 146, asserts that no skill mentions
-  `verify-sweep` at all, so 046, 089 and 146 fail from 150's merge on. 150's
-  own sweep did not show it: those three failed earlier in the same block, on
-  the stale 006 ledger entry. This spec carries 146's block under
-  `amends_verification`, unchanged except that the one line asserts what 089
-  meant and 150 keeps: every mention of the sweep in a skill is the pre-merge
-  `--affected-by` step, and the gate list names no sweep.
+id: "194-the-ledger-probe-sweeps-the-candidate"
+title: "The built-in ledger probe sweeps the candidate, not origin/main"
+status: draft
 implementation: complete
-owner: "The spec-spine Authors"
-risk: low
-depends_on:
-  - "089-nothing-reruns-a-merged-acceptance"
-  - "146-carried-acceptance-follows-139-and-144"
-  - "150-a-change-runs-the-acceptance-it-can-break"
-amends_verification:
-  - "146-carried-acceptance-follows-139-and-144"
+kind: tooling
+created: "2026-10-05"
+summary: >
+  Spec 154's carried acceptance proves the built-in exempt ledger by sweeping
+  spec 019 at `origin/main` with the candidate binary. Under an exact engine
+  pin, a version bump makes the candidate refuse `origin/main`'s older pin, so
+  046, 089, 146 and 154 fail in the merge queue of every bump. The probe sweeps
+  the candidate's own `HEAD` instead.
 amends:
-  - "089-nothing-reruns-a-merged-acceptance"
-  - "146-carried-acceptance-follows-139-and-144"
+  - "154-the-pre-merge-sweep-is-a-skill-step"
+amends_verification:
+  - "154-the-pre-merge-sweep-is-a-skill-step"
+depends_on:
+  - "154-the-pre-merge-sweep-is-a-skill-step"
+  - "156-statecraft-profile-10-governs-this-repository"
 ---
 
-# 154: The pre-merge sweep is a skill step, not a gate step
+# 194: The built-in ledger probe sweeps the candidate, not origin/main
 
 ## 1. Purpose
 
-Measured by `verify-sweep.sh --affected-by origin/main` on spec 149's head
-`a93e682a` (which merges `main` at `4818eb50`, after 150 merged as
-`9bd301fd`), 2026-09-26: 046 fails at command 67, the line
-`! grep -rqF 'verify-sweep' .claude/skills/`. `verify 089` and `verify 146`
-run the same block (146 holds 046 and 089) and fail on the same line.
+Measured in the merge queue of PR #426 (spec 193, the 0.29.0 bump), run
+37377181300, 2026-10-05: 046, 089, 146 and 154 fail at command 53,
 
-The line comes from spec 089 3.1 and 3.2: the sweep "is in no skill's gate
-floor". Spec 150 3.2 (approved) makes the sweep a step of `/ship` and
-`/shepherd`, before merge, outside the gate floor: `.claude/skills/ship/SKILL.md`
-names `verify-sweep.sh --affected-by` twice. Neither 150 nor 146 declared an
-edge on the other's acceptance, so nothing carried the change.
+```text
+SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --rev origin/main --trusted-ref origin/main --only 019 ...; test $? -eq 0
+```
 
-150's own pre-merge sweep (`8657aaa4`) did not show this. 046, 089 and 146 each
-failed there at command 53, the built-in-ledger run that refused on the stale
-`006-distribution` entry (fixed by 149), and a block stops at its first failing
-command.
+`origin/main` pins `required_version = "=0.28.0"`; the candidate binary is
+0.29.0 and refuses that pin (exit 2), so the sweep exits non-zero. The line
+was written when the pin was a `>=` floor (spec 124), which any newer reader
+satisfied. Spec 156 made the pin exact, so the line now fails on every version
+bump and on nothing else. Reproduced locally with the 0.29.0 build at
+`519e9d59`.
 
 ## 2. Territory
 
-None of its own: this spec carries acceptance only.
+Acceptance only. No engine, script or configuration change.
 
 ## 3. Behavior
 
-### 3.1 146's block is carried with one line restated
+### 3.1 The probe sweeps the candidate's own revision
 
-This spec's block MUST be 146's block, every line verbatim except
-`! grep -rqF 'verify-sweep' .claude/skills/`, which MUST be replaced by two
-lines:
+The line asserts that, with no `--exempt-file`, `verify-sweep.sh` reads its
+built-in ledger and reports 019 as `exempt`. Any revision carrying spec 019 and
+the script answers that question. `HEAD` is the candidate itself, whose pin the
+candidate binary always satisfies, so the probe is `--rev HEAD --trusted-ref
+HEAD`. The assertion on its report is unchanged.
 
-- every line in `.claude/skills/` that names `verify-sweep` also names
-  `--affected-by`, the pre-merge step spec 150 defines;
-- the gate list in `AGENTS.md` "Working the backlog" step 5, which every
-  skill's gate floor is asserted to be a subset of (`harness_skills.rs`, spec
-  093), names no `verify-sweep`.
+### 3.2 Acceptance
 
-The restated lines fail where the old one failed for the reason 089 gave: a
-sweep that entered a skill as anything but the pre-merge step, or entered the
-gate list.
+Spec 154's complete block is carried; only that one line changes.
 
-## 4. Out of scope
+## Decisions
 
-- The two other assertions of 089 3.1 carried in the same block (no `sweep`
-  subcommand; no `verify-sweep` in `ci.yml`), which hold unchanged.
-
-## 5. Resolved decisions
-
-**D-1 (2026-09-26): filed and built together, as a draft.** Carried acceptance
-is only meaningful built (spec 113), and 146 is red on `main` until it lands.
-Ratification stays the owner's.
+**D-1 (2026-10-05).** Filed and built in one change under the owner's
+2026-10-05 approval, because it blocks the 0.29.0 bump (spec 193) in the merge
+queue.
 
 ## Verification
 
-> **Superseded acceptance (2026-10-05).** This block no longer runs.
-> `194-the-ledger-probe-sweeps-the-candidate` declares this spec in `amends_verification` and carries the
-> complete block with the built-in ledger probe sweeping `HEAD` (spec
-> 194 3.1). The commands below remain unchanged.
-
 ```verify:cli
+# ---- carried for 154-the-pre-merge-sweep-is-a-skill-step (amends_verification), and through it 146, 089, 046; the built-in ledger probe sweeps the candidate's own HEAD, not origin/main (194 3.1) ----
 # ---- carried for 046-depends-on-ordinal-monotonicity (amends_verification), the scratch root copies the corpus (3.1) ----
 # Self-contained: the commands below invoke the release binary.
 cargo build --release --locked
@@ -184,7 +160,7 @@ grep -qE '^0[0-4][0-9]-' scripts/verify-sweep.sh
 # line needs `origin/main` present in the checkout, which a maintainer's clone
 # has and a remote-less mirror does not; 3.1 makes that the only context this
 # block runs in.
-SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --rev origin/main --trusted-ref origin/main --only 019 --out "${TMPDIR:-/tmp}/ss112/builtin" >/dev/null 2>&1; test $? -eq 0
+SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --rev HEAD --trusted-ref HEAD --only 019 --out "${TMPDIR:-/tmp}/ss112/builtin" >/dev/null 2>&1; test $? -eq 0
 python3 -c "import json;d=json.load(open('${TMPDIR:-/tmp}/ss112/builtin/sweep.json'));assert d['ledgerOrigin']=='built into verify-sweep.sh';assert [(s['id'],s['outcome']) for s in d['specs']]==[('019-release-supply-chain-artifacts','exempt')]"
 # --- 3.7: the trust boundary is mechanical, and its override is visible ---
 SPEC_SPINE_BIN="$PWD/target/release/spec-spine" scripts/verify-sweep.sh --repo "${TMPDIR:-/tmp}/ss112/repo" --rev side --trusted-ref main --exempt-file "${TMPDIR:-/tmp}/ss112/exempt.txt" --out "${TMPDIR:-/tmp}/ss112/x" >/dev/null 2>&1; test $? -eq 3

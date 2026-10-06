@@ -172,10 +172,10 @@
       "Verification"
     ],
     "specPath": "specs/157-the-affected-sweep-runs-in-the-merge-queue/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 150 runs the affected-acceptance sweep in the session that drives a pull request, on its head, and records the counts in the pull request body (D-1). Any engine change selects the whole corpus, so each remediation round costs the session about 45 minutes and a fresh body record, and two pull requests swept at once share one machine. 150 D-1 named the alternative and left it to a later spec: run the sweep in CI on `merge_group`, which sweeps only a change a maintainer has queued. This spec takes it. The sweep becomes a required merge-queue check, sharded across a job matrix so a whole-corpus run is not one sequential job, and the session step and the body record retire. The job belongs to the Statecraft profile, so every governed repository gets it; this repository declares it until the profile carries it.\n",
     "title": "The affected-acceptance sweep runs in the merge queue"
   },
-  "shardHash": "cf1f56bf8872466fd0edae9481ee792f5abb8319d2ce178343672acc444852d8",
+  "shardHash": "18740c2120bb98846c872b5702cf99c0e7dfc1dde243967f89cb958c3f30cfc7",
   "specVersion": "1.9.0"
 }

@@ -114,10 +114,10 @@
       "Verification"
     ],
     "specPath": "specs/191-profile-13-keeps-the-engine-local/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Adopts Statecraft revision 13 without narrowing the engine-specific checks or retiring the repository-owned merge-queue acceptance sweep.\n",
     "title": "Profile 13 keeps the exact engine local"
   },
-  "shardHash": "bd15fe459a1eba04cb9d4ea8f26c406d9ed23682e571ecdb73a0f6b8c94218ab",
+  "shardHash": "200d254f87bb984dc3f44f0bac87233bd03d7e27a100d33dbbe961cd7576cd70",
   "specVersion": "1.9.0"
 }

@@ -9,8 +9,8 @@
     ],
     "implementingPaths": [],
     "specId": "190-the-gate-requires-the-queue-sweep",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "c24b3eecd14b94299d791889d24c02bb6e221a63107442c10588c671f1fee4dd"
+  "shardHash": "db1ca0835fa4249d0ad45b76576d0363612ca7e2116e6c1b85be20b96892196b"
 }

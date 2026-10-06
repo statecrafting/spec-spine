@@ -101,6 +101,9 @@ adds a reader of it for no gain.
 > for spec 150's pre-merge step and every other line unchanged (spec 082 3.2
 > and 3.4).
 
+> Since 2026-10-05, `194-the-ledger-probe-sweeps-the-candidate` holds 154's block in turn, so this plan runs
+> from that spec's block (spec 194 3.2).
+
 ```verify:cli
 # ---- carried for 046-depends-on-ordinal-monotonicity (amends_verification), the scratch root copies the corpus (3.1) ----
 # Self-contained: the commands below invoke the release binary.

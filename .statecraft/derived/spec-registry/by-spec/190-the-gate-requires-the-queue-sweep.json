@@ -41,10 +41,10 @@
       "Verification"
     ],
     "specPath": "specs/190-the-gate-requires-the-queue-sweep/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 157 added `affected-acceptance` to `ci-gate`'s `needs:` in `statecraft-ci.yml`, as its section 3.1 requires. Spec 187's carried block, which is the plan of 156, 091, 094, 124, 134 and 135, still asserts the six-job list byte for byte, so all seven plans fail at the same command on `main` since 157 merged, and every queued change that selects them is refused. This spec holds 187's block, carries it byte-identical, and replaces that one line with the seven-job list 157 made true.\n",
     "title": "The carried gate line names the queue sweep"
   },
-  "shardHash": "c24b3eecd14b94299d791889d24c02bb6e221a63107442c10588c671f1fee4dd",
+  "shardHash": "db1ca0835fa4249d0ad45b76576d0363612ca7e2116e6c1b85be20b96892196b",
   "specVersion": "1.9.0"
 }

@@ -1,0 +1,16 @@
+{
+  "mapping": {
+    "amends": [
+      "154-the-pre-merge-sweep-is-a-skill-step"
+    ],
+    "dependsOn": [
+      "154-the-pre-merge-sweep-is-a-skill-step",
+      "156-statecraft-profile-10-governs-this-repository"
+    ],
+    "implementingPaths": [],
+    "specId": "194-the-ledger-probe-sweeps-the-candidate",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "77673e41ca1e33ca32c83289483b0b9687b7d8c0f9d596b138a2d888009295eb"
+}

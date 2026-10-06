@@ -1,7 +1,7 @@
 ---
 id: "191-profile-13-keeps-the-engine-local"
 title: "Profile 13 keeps the exact engine local"
-status: draft
+status: approved
 implementation: complete
 kind: tooling
 created: "2026-10-02"

@@ -1,7 +1,7 @@
 ---
 id: "190-the-gate-requires-the-queue-sweep"
 title: "The carried gate line names the queue sweep"
-status: draft
+status: approved
 kind: "test"
 created: "2026-09-29"
 summary: >
