@@ -18,7 +18,7 @@ summary: >
   The whole-corpus trigger becomes configuration rather than this repository's
   layout, and `verify-sweep.sh` calls the read instead of keeping a second
   selector.
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -245,6 +245,11 @@ needs the id's leading dash-segment. Spec 067 3.4 keeps that expression in
 copy in `affected.rs` in the merge-queue sweep. `spec_id.rs` gains
 `leading_segment(id)`, which `match_spec_id` and the selector both call, so the
 segment is still taken in one place.
+
+**D-11 (2026-10-05): the trigger lands with 0.29.0.** 0.29.0, which reads
+`[acceptance]`, was published and pinned by spec 193. This repository's
+`spec-spine.toml` now sets `select_all_on` to spec 150's engine-source list, as
+D-9 recorded, and `implementation` moves to `complete`.
 
 ## Verification
 
