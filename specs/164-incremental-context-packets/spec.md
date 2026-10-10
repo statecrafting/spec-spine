@@ -269,7 +269,9 @@ the canonical delta with that field absent.
    `delta.predecessor.pageDigests`;
 2. build a member map from the predecessor, restamped as in 3.4, and replace
    or insert every record a change entry carries;
-3. assemble each target page from its layout, the map, and the closure;
+3. assemble each target page from its layout, the map, and the closure, which
+   is `delta.target.closure` when it is non-null and otherwise the closure
+   document the predecessor pages carry (3.6: null means it is reused);
 4. serialize each page with spec 159's canonical writer and recompute its
    `packetDigest`; and
 5. refuse unless each reproduced digest equals both the layout's recorded
@@ -509,6 +511,10 @@ criterion 5 was easy to read backwards. 3.1 now states the whole-set rule for
 both sides, 3.4 defines the comparison as byte equality with the target's
 omission record after the restamp, and criterion 5 names which bytes a delta
 reproduces from and which it refuses. Behavior is unchanged.
+
+**D-16 (2026-10-10, review): apply names where a reused closure comes from.**
+Review found that 3.7 step 3 used "the closure" without saying that a null
+`target.closure` means the predecessor's. Step 3 now says so, matching 3.6.
 
 ## Verification
 
