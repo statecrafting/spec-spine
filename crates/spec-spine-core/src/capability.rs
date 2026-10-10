@@ -13,12 +13,13 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 use spec_spine_types::{
     ATTESTATION_SCHEMA_VERSION, AddedEffects, BUILD_META_SCHEMA_VERSION, Bound, Budget,
-    CAPABILITIES_SCHEMA_VERSION, CATALOG_SCHEMA_VERSION, CONFIG_VERSION, CapabilitiesDiscovery,
-    CapabilityCatalog, CapabilityVerifyReport, CapabilityVerifyRequest, CatalogDiscovery,
-    CliBinding, ConditionalEffects, DELTA_SCHEMA_VERSION, Effects, Error, Example, ExitOutcome,
-    FacadeBinding, Flag, INDEX_SCHEMA_VERSION, InterfaceDiscovery, Operation, PinResult,
-    Precondition, READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, RequestRef, ResponseRef,
-    SNAPSHOT_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
+    CAPABILITIES_SCHEMA_VERSION, CATALOG_SCHEMA_VERSION, CONFIG_VERSION,
+    CONTEXT_PACKET_SCHEMA_VERSION, CapabilitiesDiscovery, CapabilityCatalog,
+    CapabilityVerifyReport, CapabilityVerifyRequest, CatalogDiscovery, CliBinding,
+    ConditionalEffects, DELTA_SCHEMA_VERSION, Effects, Error, Example, ExitOutcome, FacadeBinding,
+    Flag, INDEX_SCHEMA_VERSION, InterfaceDiscovery, Operation, PinResult, Precondition,
+    READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, RequestRef, ResponseRef, SNAPSHOT_SCHEMA_VERSION,
+    SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
 };
 
 use crate::canonical_json;
@@ -39,6 +40,7 @@ pub fn compatibility() -> BTreeMap<String, String> {
         ("capabilities", CAPABILITIES_SCHEMA_VERSION),
         ("catalog", CATALOG_SCHEMA_VERSION),
         ("config", CONFIG_VERSION),
+        ("context-packet", CONTEXT_PACKET_SCHEMA_VERSION),
         ("delta", DELTA_SCHEMA_VERSION),
         ("index", INDEX_SCHEMA_VERSION),
         ("read", READ_SCHEMA_VERSION),
