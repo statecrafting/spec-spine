@@ -463,7 +463,8 @@ floor merged with the adopter's list and attributed to its source. See
 ## capabilities
 
 ```sh
-spec-spine capabilities [--json]
+spec-spine capabilities [--json] [--operation <name>]
+spec-spine capabilities verify --expect <name>=sha256:<hex>... [--json]
 ```
 
 What this binary supports (spec 170): every verb it wires, sorted by path,
@@ -471,19 +472,33 @@ with its long flags and the schema axes its `--json` output carries (`verdict`,
 `read`, `delta`, `config`, or this document's own `capabilities` axis). Ask it,
 not a verb's `--help` or its exit status, whether a verb exists. It reads no
 repository and writes nothing, so it answers in any directory, including one
-whose `required_version` this binary does not meet; it always exits 0.
+whose `required_version` this binary does not meet.
+
+Since spec 162 the document also carries `catalog`, the capability catalog:
+one record per CLI invocation form and facade entry point, stating its
+effects (what it reads, writes and runs), its exit outcomes, its schemas, its
+bounds, its stability and runnable examples, each with an `operationDigest`.
+See `docs/capability-catalog.md`. `--operation <name>` prints one record
+(exit 1, `not-found`, for an unknown name).
 
 ```json
 {
-  "schemaVersion": "0.1.0",
+  "catalog": { "catalogDigest": "sha256:...", "operations": ["..."], "schemaVersion": "1.0.0" },
+  "schemaVersion": "0.2.0",
   "verbs": [
     { "flags": ["json", "plan"], "json": [
       { "axis": "verdict", "version": "1.1.0" }
     ], "path": "verify" }
   ],
-  "version": "0.28.0"
+  "version": "0.29.0"
 }
 ```
+
+`capabilities verify` checks the operation digests a consumer pinned against
+this binary: `current` (exit 0), `changed` or `missing` (exit 1). A malformed,
+repeated or absent `--expect` is usage (exit 3). The observed digest is
+printed for a human to copy; nothing writes a pin. Under `--json` the report is
+a verdict envelope with verb `capabilities.verify`.
 
 A consumer that depends on particular members of a verb's output can declare
 them in a consumer contract (`crates/spec-spine-cli/tests/consumers/`), which

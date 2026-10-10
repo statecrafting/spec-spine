@@ -17,6 +17,9 @@ pub struct Capabilities {
     pub version: String,
     /// Every verb the binary wires, sorted by path.
     pub verbs: Vec<VerbCapability>,
+    /// The capability catalog (spec 162 §3.12): every operation, described
+    /// once. Its CLI bindings name exactly the paths in `verbs`.
+    pub catalog: crate::CapabilityCatalog,
 }
 
 /// One runnable verb.

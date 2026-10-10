@@ -4,7 +4,7 @@ title: "Every operation is described once, and the description is tested"
 status: draft
 kind: "governance"
 created: "2026-09-27"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -29,9 +29,9 @@ establishes:
   - { kind: file, path: "crates/spec-spine-types/schemas/capability-catalog.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/capability.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/capability_catalog.rs" }
-  - { kind: file, path: "crates/spec-spine-cli/tests/capability_catalog.rs", planned: true }
-  - { kind: directory, path: "crates/spec-spine-cli/tests/fixtures/capability-catalog/", planned: true }
-  - { kind: file, path: "docs/capability-catalog.md", planned: true }
+  - { kind: file, path: "crates/spec-spine-cli/tests/capability_catalog.rs" }
+  - { kind: directory, path: "crates/spec-spine-cli/tests/fixtures/capability-catalog/" }
+  - { kind: section, file: "docs/capability-catalog.md", anchor: "the-capability-catalog" }
 extends:
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
@@ -611,6 +611,22 @@ attestation verifiers take the root inside their request document
 reading when its signature takes `repo_root` or its request struct carries a
 `repo_root` or `base_root` field, so the flag states what the function does.
 
+**D-13 (2026-10-10, build): the suite prepares each fixture with the binary
+under test.** Committing derived trees into the fixtures would restale them on
+every emission change. The CLI suite copies a fixture, compiles and indexes it
+with `CARGO_BIN_EXE_spec-spine`, and commits it (`history/` twice: `base/`,
+then `head/` laid over it), as spec 170's consumer-contract suite does. The
+`pinned/` fixture is never compiled. A fixture's package manifest is committed
+as `Cargo.toml.fixture` and copied without the suffix, because a manifest under
+this crate would be read by cargo as a package. Files are copied by read and
+write, not `fs::copy`, whose macOS form keeps the source mtime and so hides a
+same-size layered change from git. Examples run with the inherited `GIT_*`,
+`SPEC_SPINE_PR_BODY` and `SPEC_SPINE_VERIFY_STACK` variables removed, so a hook
+or an enclosing `spec-spine verify` cannot change what one observes. Every
+pinned operation's non-zero example is the shared pin refusal (exit 2); the
+operations with a natural finding (`compile.spec`, `registry.show`,
+`registry.obligation`, `couple`, `verify`, `index.coverage`) also exercise it.
+
 **D-14 (2026-10-10, build): `unversioned` and two default answers.** Several
 answers carry no schema axis (the compaction map, the rendered index, the
 scaffold), and `delta`'s envelope carries the delta axis inside the verdict
@@ -637,6 +653,14 @@ carried acceptance of spec 046 lints the corpus with
 forward in filing order (L-007). A merge-queue sweep that selected every spec
 caught it. The relation stays declared where it bites: the `extends` edges on
 170's three units, which carry the ownership the coupling gate reads.
+
+**D-17 (2026-10-10, build): the removal guard is the inventory assertion.**
+§3.8 refuses removing a non-deprecated operation. No list of published
+operations exists to compare against, so the CLI suite asserts the catalog's
+operation names equal §3.15's inventory: a removal fails it until the spec
+that removes the operation edits that list, which is where its deprecation is
+reviewed. Every operation is `stable` exactly where §3.8 allows: the two
+`capabilities` operations stay `experimental` while this spec is a draft.
 
 ## Verification
 

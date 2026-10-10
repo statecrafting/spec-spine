@@ -1,0 +1,3 @@
+# Requires a version no build meets, so every pinned verb refuses (exit 2).
+[meta]
+required_version = "=0.0.1"
