@@ -175,6 +175,9 @@ Each tool has exactly these members:
 - `invocation`: `{ argv, flags, stdin }`, the exact mapping of §3.5.
 - `answer`: the catalog `response` entries and `outcomes`, copied.
 - `budget` and `pagination`: copied from the catalog (§3.6).
+- `bounded`: `true` when the catalog `budget` is non-null and `false` when it
+  is `null`, derived from `budget` so an adapter can tell an unbounded answer
+  apart without reading the budget shape (§3.6).
 - `hints`: `{ readOnly: true, destructive: false, idempotent: true,
   openWorld: false }`. These are the same for every tool by construction of
   §3.2; they are stated so an adapter need not infer them.
@@ -246,7 +249,7 @@ operation declares `pagination: continuation` exposes `continuation` as a
 string property and passes it through unchanged; the verb validates it. The
 projection holds no session and never pages on the caller's behalf.
 
-A tool whose operation declares `budget: null` is marked `bounded: false`. Its
+A tool whose operation declares `budget: null` has `bounded: false` (§3.3). Its
 answer can be arbitrarily large. An adapter MUST enforce its own maximum
 result size and MUST answer an excess with the `result-too-large` error
 (§3.7). It MUST NOT truncate, summarize, or paginate an answer the verb did not
@@ -442,6 +445,11 @@ a flag that adds a forbidden effect, and §3.4 had no such rule; it now does,
 for optional and required flags alike. It also found that R-2 promised
 byte-for-byte parity without the §3.6 exception; R-2 now names
 `result-too-large` as the only alternative to the verb's bytes.
+
+**D-12 (2026-10-10, review): `bounded` is a descriptor member.** Review found
+that §3.6 marked unbounded tools `bounded: false` while §3.3's closed member
+list had no such member. §3.3 now lists `bounded`, derived from the copied
+`budget`.
 
 ## Verification
 
