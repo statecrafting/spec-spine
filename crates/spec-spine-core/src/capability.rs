@@ -660,6 +660,7 @@ fn operations() -> Vec<Operation> {
             1,
             &["\"kind\": \"not-found\""],
         )
+        .pinned_example(&["compile", "--spec", "001"])
         .done(),
         op(
             "config.show",
@@ -846,6 +847,7 @@ fn operations() -> Vec<Operation> {
             1,
             &["unclaimed"],
         )
+        .pinned_example(&["index", "coverage"])
         .done(),
         op(
             "index.diagnostics",
@@ -1017,6 +1019,7 @@ fn operations() -> Vec<Operation> {
             1,
             &["\"kind\": \"not-found\""],
         )
+        .pinned_example(&["registry", "obligation", "001-alpha#R-1"])
         .done(),
         op(
             "registry.plan",
@@ -1061,6 +1064,7 @@ fn operations() -> Vec<Operation> {
                 1,
                 &["\"kind\": \"not-found\""],
             )
+            .pinned_example(&["registry", "show", "001"])
             .done(),
         op(
             "registry.status-report",
@@ -1133,6 +1137,7 @@ fn operations() -> Vec<Operation> {
         .verdict()
         .example("verify-pass", Some("corpus"), &["verify", "001", "--json"], 0, &["\"verb\": \"verify\""])
         .example("verify-fail", Some("corpus"), &["verify", "002", "--json"], 1, &["\"outcome\": \"finding\""])
+        .pinned_example(&["verify", "001"])
         .done(),
         op(
             "verify.affected",
