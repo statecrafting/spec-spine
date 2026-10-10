@@ -44,9 +44,7 @@ struct SelectorContext<'a> {
     index: Option<&'a spec_spine_types::CodebaseIndex>,
     max_bytes: usize,
     #[cfg(feature = "symbol-resolution")]
-    symbol_index: Option<&'a crate::symbols::SymbolIndex>,
-    #[cfg(feature = "symbol-resolution")]
-    module_index: Option<&'a crate::symbols::ModuleIndex>,
+    resolver: Option<&'a crate::symbols::Resolver>,
 }
 
 /// Resolve a bounded content request without Git, network access, execution, or writes.
@@ -94,27 +92,18 @@ pub fn selected_content(
     };
 
     #[cfg(feature = "symbol-resolution")]
-    let symbol_index = request
+    let resolver = request
         .selectors
         .iter()
-        .any(|s| matches!(s, ContentSelector::Symbol { .. }))
-        .then(|| {
-            let idx = index.as_ref().expect("index loaded");
-            crate::symbols::build_symbol_index(
-                repo_root,
-                &idx.packages,
-                &cfg.index.resolver_exclusions,
-                &cfg.layout,
+        .any(|s| {
+            matches!(
+                s,
+                ContentSelector::Symbol { .. } | ContentSelector::Module { .. }
             )
-        });
-    #[cfg(feature = "symbol-resolution")]
-    let module_index = request
-        .selectors
-        .iter()
-        .any(|s| matches!(s, ContentSelector::Module { .. }))
+        })
         .then(|| {
             let idx = index.as_ref().expect("index loaded");
-            crate::symbols::build_module_index(
+            crate::symbols::build_resolver(
                 repo_root,
                 &idx.packages,
                 &cfg.index.resolver_exclusions,
@@ -130,9 +119,7 @@ pub fn selected_content(
         index: index.as_ref(),
         max_bytes: request.max_bytes,
         #[cfg(feature = "symbol-resolution")]
-        symbol_index: symbol_index.as_ref(),
-        #[cfg(feature = "symbol-resolution")]
-        module_index: module_index.as_ref(),
+        resolver: resolver.as_ref(),
     };
     for (position, selector) in request.selectors.iter().enumerate() {
         let projection = selector.projection(request.default_projection);
@@ -511,17 +498,12 @@ fn resolve_selector(
             let identity = format!("{kind}:{id}");
             #[cfg(feature = "symbol-resolution")]
             let locations = {
-                if kind == "module" {
-                    context
-                        .module_index
-                        .expect("module index built")
-                        .resolve(id)
+                let ns = if kind == "module" {
+                    crate::symbols::Namespace::Module
                 } else {
-                    context
-                        .symbol_index
-                        .expect("symbol index built")
-                        .resolve(id)
-                }
+                    crate::symbols::Namespace::Symbol
+                };
+                context.resolver.expect("resolver built").resolve(ns, id)
             };
             #[cfg(not(feature = "symbol-resolution"))]
             let locations: Vec<ResolvedLocation> = Vec::new();
