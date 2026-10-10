@@ -13,7 +13,8 @@
 
 use spec_spine_types::{
     CAPABILITIES_SCHEMA_VERSION, CONFIG_VERSION, Capabilities, DELTA_SCHEMA_VERSION, Error,
-    READ_SCHEMA_VERSION, SchemaAxis, VERDICT_SCHEMA_VERSION, VerbCapability,
+    READ_SCHEMA_VERSION, SchemaAxis, TRACEABILITY_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
+    VerbCapability,
 };
 
 /// Flags every verb has that say nothing about the verb: clap's help, and the
@@ -127,6 +128,9 @@ pub fn json_axes(path: &str) -> Vec<SchemaAxis> {
         | "registry status-report"
         | "scope compare"
         | "scope evaluate" => vec![read()],
+        // Spec 169 §3.9: a read document carrying its own axis beside the
+        // read stamp.
+        "registry traceability" => vec![read(), axis("traceability", TRACEABILITY_SCHEMA_VERSION)],
         "config show" => vec![axis("config", CONFIG_VERSION)],
         "capabilities" => vec![axis("capabilities", CAPABILITIES_SCHEMA_VERSION)],
         _ => Vec::new(),

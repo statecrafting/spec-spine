@@ -129,11 +129,14 @@
     "crates/spec-spine-types/schemas/registry.schema.json": {
       "contentHash": "b212ff512e2b09ce2ac840b56bb63f82bdb591d8d6ba00069af26a3e0941f712"
     },
+    "crates/spec-spine-types/schemas/traceability.schema.json": {
+      "contentHash": "122eaed6a19eb2837691c3d6929e8266efb34bbebe0760d8d1f87c2f0dc0a7c8"
+    },
     "docs/adoption-guide.md": {
       "contentHash": "9529eaebd687bed492660e37bb2958efb43c90194248fd78a8dcaf414cad8284"
     },
     "docs/api.md": {
-      "contentHash": "9b214623d67b382f5d9ad3a6c374abfa86f9d24c0c706317b5a8c9c39986ab9b"
+      "contentHash": "8ccc433a87c19409839e37828dbff50b1f71fd7ebb75da1ae4648a310fca91f0"
     },
     "docs/bindings-plan.md": {
       "contentHash": "58aaef786b59662ab416f0ee5afe9c371a648449a81fc02afcd2d7a2b9f7b4e7"
@@ -151,10 +154,13 @@
       "contentHash": "eec1bea982688c1eda66d5a0a0a8ee511d1b1770ad0d434ea02953b529b5df9d"
     },
     "docs/schema-versioning.md": {
-      "contentHash": "0814878f07705904bb5ffad8d5d7a19c22fc08accea6dda1b93b3f40ee1e0569"
+      "contentHash": "6b6c91553c662331bc1539f73bcf741159f23f9fe3f864b3588655ff948dc278"
     },
     "docs/specify-first.md": {
       "contentHash": "d983fd1bc596ba8463330c4be51ca00561645c53594f17e6355c5e664241d0b4"
+    },
+    "docs/traceability.md": {
+      "contentHash": "930373ec61a3cc6cbcce7827332411db03ccc0e998b2071ca7652b8aa92f7f2f"
     },
     "install.sh": {
       "contentHash": "2050378e58698df5f1c0b3487b724b8a7dc2f703d43c04d0cce904e128d43203"
@@ -205,7 +211,7 @@
       "contentHash": "6646f8e04a534675c0e450deb5892aef4049852e6b53832fc47750e03e43d179"
     },
     "spec-spine.toml": {
-      "contentHash": "687e257d4302b06a3bb8a2144fe0395b07cbb46265a4dfae94d6c710481bb41f"
+      "contentHash": "22de38e2e43926e2bdc0d916f64c194284df83f864b228bed4140ea85e352d22"
     },
     "standards/spec/constitution.md": {
       "contentHash": "88f980bc94705c07851fdcb974c3fd0689fa431d46d9c708c707d2bf5eabbaca"
@@ -217,7 +223,7 @@
       "contentHash": "9422c45aeea54a1765b9da797f6c7e958dd2e7d4e74a7e3b788f3ec281a97900"
     },
     "standards/spec/templates/spec-template.md": {
-      "contentHash": "d4029dfb6b1efc7e7aa9a33d91c8482db44d4d3d2bafb9ce20f2e3bdc7b7c680"
+      "contentHash": "9b343607d00cbf7e0cb944add75531597442a4bc49ab3759a2c5819ba1b9b942"
     }
   },
   "schemaVersion": "1.2.0"

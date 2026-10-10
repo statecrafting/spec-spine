@@ -11,7 +11,7 @@ use spec_spine_core::{
     load_committed_registry, lookup_move, plan, read_document, relationships, shard_content_hash,
     show, status_report,
 };
-use spec_spine_types::{Error, Status};
+use spec_spine_types::{Error, Status, TraceState, TraceabilityRequest};
 
 use crate::load_repo_config;
 
@@ -76,6 +76,24 @@ pub enum RegistryQuery {
         target: Option<String>,
         #[arg(long, value_name = "SPEC")]
         declared_by: Option<String>,
+        #[arg(long)]
+        json: bool,
+    },
+    /// Every declared obligation traceability relation (spec 169) and the
+    /// state its target resolves to. A declaration is not evidence: `resolved`
+    /// means the target binds structurally, never that anything ran or
+    /// passed. Filters intersect. Exits 0 whatever the states are.
+    Traceability {
+        /// A spec id, full or short: only relations this spec declares.
+        #[arg(long, value_name = "SPEC")]
+        declared_by: Option<String>,
+        /// A qualified `<spec-id>#<obligation-id>`: only relations from it.
+        #[arg(long, value_name = "REF")]
+        obligation: Option<String>,
+        /// One of resolved, unresolved, ambiguous, unsupported, unknown,
+        /// withdrawn.
+        #[arg(long, value_name = "STATE")]
+        state: Option<String>,
         #[arg(long)]
         json: bool,
     },
@@ -316,6 +334,52 @@ pub fn run(repo: &Path, query: &RegistryQuery) -> Result<u8, Error> {
                         } else {
                             ""
                         }
+                    );
+                }
+            }
+        }
+        RegistryQuery::Traceability {
+            declared_by,
+            obligation,
+            state,
+            json,
+        } => {
+            let state = state
+                .as_deref()
+                .map(|raw| {
+                    TraceState::parse(raw).ok_or_else(|| {
+                        Error::Usage(format!(
+                            "--state '{raw}' is not one of resolved, unresolved, ambiguous, \
+                             unsupported, unknown, withdrawn"
+                        ))
+                    })
+                })
+                .transpose()?;
+            let request = TraceabilityRequest {
+                declared_by: declared_by.clone(),
+                obligation: obligation.clone(),
+                state,
+            };
+            let index = spec_spine_core::committed_index_if_fresh(&cfg, repo)?;
+            let report =
+                spec_spine_core::traceability(&cfg, repo, &registry, index.as_ref(), &request)?;
+            if *json {
+                print_json(&report)?;
+            } else if report.relations.is_empty() {
+                outln!("(no declarations)");
+            } else {
+                for r in &report.relations {
+                    outln!(
+                        "{:<11}  {}  {} {} -> {}{}",
+                        r.state.as_str(),
+                        r.identity,
+                        r.obligation,
+                        r.relation.as_str(),
+                        r.target_identity,
+                        r.detail
+                            .as_deref()
+                            .map(|d| format!("  ({d})"))
+                            .unwrap_or_default()
                     );
                 }
             }

@@ -7,8 +7,28 @@
     ],
     "implementingPaths": [
       {
+        "path": "crates/spec-spine-cli/src/cmd_capabilities.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-cli/src/cmd_registry.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/capabilities.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/content.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/scope.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/traceability.rs",
+        "source": "multiple"
       },
       {
         "path": "crates/spec-spine-core/fixtures/verifier/",
@@ -19,12 +39,24 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/content.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/lib.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/spec-spine-core/src/traceability.rs",
         "source": "multiple"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/content.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/fixtures/traceability/",
+        "source": "spec-edge"
       },
       {
         "path": "crates/spec-spine-core/tests/impacts.rs",
@@ -43,6 +75,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/scope.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/tests/traceability.rs",
         "source": "multiple"
       },
@@ -55,6 +91,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-types/schemas/traceability.schema.json",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/src/frontmatter.rs",
         "source": "spec-edge"
       },
@@ -64,6 +104,10 @@
       },
       {
         "path": "crates/spec-spine-types/src/registry.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/schema.rs",
         "source": "spec-edge"
       },
       {
@@ -91,13 +135,25 @@
         "source": "spec-edge"
       },
       {
+        "path": "docs/traceability.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "spec-spine.toml",
+        "source": "spec-edge"
+      },
+      {
         "path": "standards/spec/templates/spec-template.md",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/fixtures/traceability/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -106,7 +162,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/traceability.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -141,7 +201,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/schemas/traceability.schema.json"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -163,7 +227,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "docs/traceability.md"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -187,6 +255,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-cli/src/cmd_capabilities.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_capabilities.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-cli/src/cmd_registry.rs"
           }
         ],
@@ -195,6 +276,45 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/capabilities.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capabilities.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/content.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/content.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/scope.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/scope.rs"
         }
       },
       {
@@ -213,6 +333,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/src/content.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/content.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/src/lib.rs"
           }
         ],
@@ -221,6 +354,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/content.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/content.rs"
         }
       },
       {
@@ -273,6 +419,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/scope.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scope.rs"
         }
       },
       {
@@ -343,6 +502,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-types/src/schema.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/schema.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-types/src/version.rs"
           }
         ],
@@ -395,6 +567,19 @@
       {
         "locations": [
           {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "standards/spec/templates/spec-template.md"
           }
         ],
@@ -410,7 +595,7 @@
           {
             "file": "docs/cli-reference.md",
             "span": {
-              "endLine": 499,
+              "endLine": 500,
               "startLine": 1
             }
           }
@@ -454,5 +639,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "1092aa649abfdd1e4d176815e68ac4b9dbe3f2d35735588f3c0e208ab1be55bf"
+  "shardHash": "f70d739e215d298ff49bbf7330e51636473fbd66190e33cfd8873e021576ea75"
 }

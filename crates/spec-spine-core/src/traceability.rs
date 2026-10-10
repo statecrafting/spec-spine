@@ -1,17 +1,25 @@
 // Spec: specs/169-declared-obligation-traceability/spec.md
 //! Declared obligation traceability (spec 169): the compile-time checks on an
-//! authored relation and its canonical identities.
+//! authored relation, its canonical identities, and the read that resolves
+//! each declared target structurally.
 //!
 //! Nothing here infers a relation. Ownership, names, paths, imports and prose
 //! never create one (§3.5, §3.10); a relation exists only because an author
-//! wrote it.
+//! wrote it, and a target resolves only through the closed checks below.
+//! `resolved` never means executed, passed or accepted (§3.8).
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::path::Path;
 
 use spec_spine_types::{
-    ContentSelector, Error, Frontmatter, InterfaceRole, Severity, SpecRecord, TraceDeclaration,
-    TraceRelationKind, TraceTarget, Unit, Violation, split_obligation_ref, valid_obligation_id,
+    CodebaseIndex, Config, ContentOmissionReason, ContentSelector, Error, Frontmatter,
+    InterfaceRole, ObligationKind, Registry, Severity, SpecRecord, TRACEABILITY_SCHEMA_VERSION,
+    TraceDeclaration, TraceRelation, TraceRelationKind, TraceState, TraceTarget,
+    TraceabilityReport, TraceabilityRequest, Unit, Violation, parse_semver, split_obligation_ref,
+    valid_obligation_id,
 };
+
+use crate::{Versioning, read_document};
 
 /// The local shape rules of §3.1, §3.2 and §4 that need no other spec.
 pub const LOCAL_CODE: &str = "V-044";
@@ -286,6 +294,472 @@ pub(crate) fn detect_cross_spec(records: &[SpecRecord], out: &mut Vec<Violation>
             }
         }
     }
+}
+
+/// The inputs a resolution may consult. `index` is `None` when no fresh
+/// committed index is available; every target that needs one is then
+/// `unknown`, never guessed.
+struct Inputs<'a> {
+    cfg: &'a Config,
+    repo_root: &'a Path,
+    registry: &'a Registry,
+    index: Option<&'a CodebaseIndex>,
+}
+
+/// Resolve every declared relation in `registry` (§3.5, §3.6), filtered by
+/// `request` (§3.9). Reads the working tree only through spec 155's
+/// selector resolver; executes nothing.
+pub fn traceability(
+    cfg: &Config,
+    repo_root: &Path,
+    registry: &Registry,
+    index: Option<&CodebaseIndex>,
+    request: &TraceabilityRequest,
+) -> Result<TraceabilityReport, Error> {
+    let ids = registry.specs.iter().map(|s| s.id.as_str());
+    let declared_by = match &request.declared_by {
+        Some(raw) => Some(resolve_filter_spec(raw, ids.clone())?),
+        None => None,
+    };
+    let obligation = match &request.obligation {
+        Some(raw) => {
+            let Some((spec, ob)) = split_obligation_ref(raw) else {
+                return Err(Error::Usage(format!(
+                    "--obligation '{raw}' is not a qualified <spec-id>#<obligation-id> reference"
+                )));
+            };
+            Some(format!("{}#{ob}", resolve_filter_spec(spec, ids)?))
+        }
+        None => None,
+    };
+
+    // Spec 144 §3.4, once for the read: a link leaving the repository
+    // refuses the whole read rather than reading as one relation's state.
+    crate::pathutil::refuse_links_leaving(cfg, repo_root)?;
+    let inputs = Inputs {
+        cfg,
+        repo_root,
+        registry,
+        index,
+    };
+    let mut relations = Vec::new();
+    for record in &registry.specs {
+        if declared_by.as_deref().is_some_and(|d| d != record.id) {
+            continue;
+        }
+        for decl in &record.traceability {
+            if obligation.as_deref().is_some_and(|o| o != decl.obligation) {
+                continue;
+            }
+            let (state, detail) = resolve(&inputs, record, decl)?;
+            if request.state.is_some_and(|s| s != state) {
+                continue;
+            }
+            relations.push(TraceRelation {
+                identity: relation_identity(&record.id, &decl.id),
+                declared_by: record.id.clone(),
+                id: decl.id.clone(),
+                obligation: decl.obligation.clone(),
+                relation: decl.relation,
+                target: decl.target.clone(),
+                target_identity: target_identity(&decl.target, &record.id)?,
+                withdrawn: decl.withdrawn,
+                state,
+                detail,
+            });
+        }
+    }
+    relations.sort_by(|a, b| {
+        (&a.declared_by, &a.id, a.state, &a.target_identity).cmp(&(
+            &b.declared_by,
+            &b.id,
+            b.state,
+            &b.target_identity,
+        ))
+    });
+    let mut summary: BTreeMap<TraceState, usize> =
+        TraceState::ALL.into_iter().map(|s| (s, 0)).collect();
+    for r in &relations {
+        *summary.entry(r.state).or_default() += 1;
+    }
+    Ok(TraceabilityReport {
+        traceability_version: TRACEABILITY_SCHEMA_VERSION.to_string(),
+        relations,
+        summary,
+    })
+}
+
+/// A filter's spec id, short or full; an unknown one is `NotFound`, an
+/// ambiguous one refused, as every other registry read answers.
+fn resolve_filter_spec<'a>(
+    raw: &str,
+    ids: impl IntoIterator<Item = &'a str>,
+) -> Result<String, Error> {
+    match crate::spec_id::match_spec_id(raw, ids) {
+        crate::spec_id::SpecIdMatch::Resolved(full) => Ok(full.to_string()),
+        crate::spec_id::SpecIdMatch::Ambiguous(candidates) => Err(Error::Refused(format!(
+            "spec '{raw}' is ambiguous: {} specs share that ordinal ({})",
+            candidates.len(),
+            candidates.join(", ")
+        ))),
+        crate::spec_id::SpecIdMatch::NoMatch => {
+            Err(Error::NotFound(format!("no spec '{raw}' in the registry")))
+        }
+    }
+}
+
+type Resolution = (TraceState, Option<String>);
+
+/// One resolved location: a file and its optional inclusive line span.
+type Located = (String, Option<(usize, usize)>);
+
+fn resolve(
+    inputs: &Inputs<'_>,
+    record: &SpecRecord,
+    decl: &TraceDeclaration,
+) -> Result<Resolution, Error> {
+    // §3.7: a withdrawn relation is never bound.
+    if decl.withdrawn {
+        return Ok((
+            TraceState::Withdrawn,
+            Some("the relation is withdrawn".into()),
+        ));
+    }
+    // §3.5's first check: the source resolves and is not withdrawn. Compile
+    // refuses both; a registry this read did not compile is still answered.
+    match lookup_obligation(inputs.registry, &decl.obligation) {
+        None => {
+            return Ok((
+                TraceState::Unresolved,
+                Some(format!("source '{}' does not resolve", decl.obligation)),
+            ));
+        }
+        Some(o) if o.withdrawn => {
+            return Ok((
+                TraceState::Withdrawn,
+                Some(format!("source '{}' is withdrawn", decl.obligation)),
+            ));
+        }
+        Some(_) => {}
+    }
+    Ok(match &decl.target {
+        TraceTarget::Unit { spec, unit } => resolve_unit(inputs, spec, unit),
+        TraceTarget::Interface {
+            spec,
+            unit: Some(unit),
+            corpus: None,
+            ..
+        } => resolve_unit(inputs, spec, unit),
+        TraceTarget::Interface {
+            spec,
+            unit: None,
+            corpus: Some(corpus),
+            ..
+        } => {
+            let n = record
+                .interface_references
+                .iter()
+                .filter(|r| r.corpus == *corpus && r.spec == *spec)
+                .count();
+            match n {
+                1 => (TraceState::Resolved, None),
+                0 => (
+                    TraceState::Unresolved,
+                    Some(format!(
+                        "'{}' declares no interface reference to '{corpus}' / '{spec}'",
+                        record.id
+                    )),
+                ),
+                n => (
+                    TraceState::Ambiguous,
+                    Some(format!(
+                        "'{}' declares {n} interface references to '{corpus}' / '{spec}'",
+                        record.id
+                    )),
+                ),
+            }
+        }
+        TraceTarget::Interface { .. } => (
+            TraceState::Unknown,
+            Some("the interface names neither or both of its forms".into()),
+        ),
+        TraceTarget::Invariant { obligation } => {
+            match lookup_obligation(inputs.registry, obligation) {
+                None => (
+                    TraceState::Unresolved,
+                    Some(format!("invariant '{obligation}' does not resolve")),
+                ),
+                Some(o) if o.withdrawn => (
+                    TraceState::Withdrawn,
+                    Some(format!("invariant '{obligation}' is withdrawn")),
+                ),
+                Some(o) if o.kind != ObligationKind::Invariant => (
+                    TraceState::Unresolved,
+                    Some(format!(
+                        "'{obligation}' resolves to a {} obligation, not an invariant",
+                        kind_label(o.kind)
+                    )),
+                ),
+                Some(_) => (TraceState::Resolved, None),
+            }
+        }
+        // §3.3: a test target reuses spec 155's `test` selector unchanged.
+        TraceTarget::Test { selector } => resolve_selector(
+            inputs,
+            &ContentSelector::Test {
+                id: selector.clone(),
+                projection: None,
+                required: true,
+            },
+        )?,
+        TraceTarget::Documentation { selector } => resolve_selector(inputs, selector)?,
+    })
+}
+
+fn kind_label(kind: ObligationKind) -> &'static str {
+    match kind {
+        ObligationKind::Requirement => "requirement",
+        ObligationKind::Invariant => "invariant",
+        ObligationKind::Verification => "verification",
+    }
+}
+
+fn lookup_obligation<'a>(
+    registry: &'a Registry,
+    reference: &str,
+) -> Option<&'a spec_spine_types::Obligation> {
+    let (spec, id) = split_obligation_ref(reference)?;
+    registry
+        .specs
+        .iter()
+        .find(|r| r.id == spec)?
+        .obligations
+        .iter()
+        .find(|o| o.id == id)
+}
+
+/// A unit target binds when the named spec claims exactly that unit and the
+/// index resolves it (§3.5). The claim is checked, and is never proof of
+/// behavior: ownership answers only which spec, not what the unit does.
+fn resolve_unit(inputs: &Inputs<'_>, spec: &str, unit: &Unit) -> Resolution {
+    let Some(record) = inputs.registry.specs.iter().find(|r| r.id == spec) else {
+        return (
+            TraceState::Unresolved,
+            Some(format!("no spec '{spec}' in the registry")),
+        );
+    };
+    let Some(index) = inputs.index else {
+        return (
+            TraceState::Unknown,
+            Some("no fresh committed codebase index is available".into()),
+        );
+    };
+    let subject = unit.subject();
+    let entries: Vec<&spec_spine_types::ResolvedUnit> = index
+        .traceability
+        .mappings
+        .iter()
+        .filter(|m| m.spec_id == record.id)
+        .flat_map(|m| &m.resolved_units)
+        .filter(|r| r.ownership && r.unit.subject() == subject)
+        .collect();
+    if entries.is_empty() {
+        return (
+            TraceState::Unresolved,
+            Some(format!("'{}' does not claim this unit", record.id)),
+        );
+    }
+    let bound: BTreeSet<Vec<Located>> = entries
+        .iter()
+        .filter(|r| !r.locations.is_empty())
+        .map(|r| {
+            r.locations
+                .iter()
+                .map(|l| (l.file.clone(), l.span.map(|s| (s.start_line, s.end_line))))
+                .collect()
+        })
+        .collect();
+    match bound.len() {
+        0 => (
+            TraceState::Unresolved,
+            Some(if unit_is_planned(record, &subject) {
+                format!(
+                    "'{}' claims this unit as planned; it is not present",
+                    record.id
+                )
+            } else {
+                "the claimed unit does not resolve in the index".into()
+            }),
+        ),
+        1 => (TraceState::Resolved, None),
+        n => (
+            TraceState::Ambiguous,
+            Some(format!(
+                "the claimed unit binds {n} distinct indexed targets"
+            )),
+        ),
+    }
+}
+
+fn unit_is_planned(record: &SpecRecord, subject: &Unit) -> bool {
+    record
+        .establishes
+        .iter()
+        .chain(record.extends.iter().filter_map(|e| e.unit.as_ref()))
+        .any(|u| u.is_planned() && u.subject() == *subject)
+}
+
+/// A selector target binds through spec 155's resolver (§3.5). Its omission
+/// reasons map onto the closed states: missing is `unresolved`, a form or
+/// projection outside the matrix (including every test form today, §3.3) is
+/// `unsupported`, and a bound item larger than any request budget is still
+/// bound.
+fn resolve_selector(inputs: &Inputs<'_>, selector: &ContentSelector) -> Result<Resolution, Error> {
+    let needs_index = matches!(
+        selector,
+        ContentSelector::OwnedUnit { .. }
+            | ContentSelector::Symbol { .. }
+            | ContentSelector::Module { .. }
+    );
+    // A build without the `symbol-resolution` feature (spec 025) resolves no
+    // symbol or module: the form is outside this build's matrix, which is
+    // `unsupported`, not a target found missing.
+    #[cfg(not(feature = "symbol-resolution"))]
+    if matches!(
+        selector,
+        ContentSelector::Symbol { .. } | ContentSelector::Module { .. }
+    ) {
+        return Ok((
+            TraceState::Unsupported,
+            Some("this build resolves no symbols or modules (symbol-resolution is off)".into()),
+        ));
+    }
+    if needs_index && inputs.index.is_none() {
+        return Ok((
+            TraceState::Unknown,
+            Some("no fresh committed codebase index is available".into()),
+        ));
+    }
+    // A selector naming a spec by an ordinal two specs share is ambiguous.
+    // Decided here, on the id set, rather than by reading the resolver's
+    // refusal text.
+    if let Some(spec) = selector_spec(selector)
+        && let crate::spec_id::SpecIdMatch::Ambiguous(candidates) =
+            crate::spec_id::match_spec_id(spec, inputs.registry.specs.iter().map(|s| s.id.as_str()))
+    {
+        return Ok((
+            TraceState::Ambiguous,
+            Some(format!(
+                "spec '{spec}' names {} specs ({})",
+                candidates.len(),
+                candidates.join(", ")
+            )),
+        ));
+    }
+    let bound = match crate::content::bind_selector(
+        inputs.cfg,
+        inputs.repo_root,
+        inputs.registry,
+        inputs.index,
+        selector,
+    ) {
+        Ok(bound) => bound,
+        // Spec 155 refuses an ambiguous structural selector rather than
+        // choosing; here that is a state, not a refusal of the whole read.
+        // Its only refusal for these two kinds is that one (the link
+        // containment check it also runs already passed in `traceability`).
+        Err(Error::Refused(m))
+            if matches!(
+                selector,
+                ContentSelector::Symbol { .. } | ContentSelector::Module { .. }
+            ) =>
+        {
+            return Ok((TraceState::Ambiguous, Some(m)));
+        }
+        Err(Error::Usage(m)) => return Ok((TraceState::Unresolved, Some(m))),
+        Err(e) => return Err(e),
+    };
+    Ok(match bound {
+        Ok(()) => (TraceState::Resolved, None),
+        Err((ContentOmissionReason::MissingContent, m)) => (TraceState::Unresolved, Some(m)),
+        Err((ContentOmissionReason::ItemExceedsByteBudget, _)) => (TraceState::Resolved, None),
+        Err((
+            ContentOmissionReason::UnsupportedSelector
+            | ContentOmissionReason::UnsupportedProjection
+            | ContentOmissionReason::BinaryContent,
+            m,
+        )) => (TraceState::Unsupported, Some(m)),
+    })
+}
+
+/// The spec a selector names, if it names one.
+fn selector_spec(selector: &ContentSelector) -> Option<&str> {
+    match selector {
+        ContentSelector::Spec { spec, .. }
+        | ContentSelector::SpecSection { spec, .. }
+        | ContentSelector::OwnedUnit { spec, .. } => Some(spec),
+        ContentSelector::Obligation { obligation, .. } => {
+            split_obligation_ref(obligation).map(|(spec, _)| spec)
+        }
+        _ => None,
+    }
+}
+
+/// JSON facade for [`traceability`]: loads the committed registry, and the
+/// committed index when it is fresh, from `repo_root`. `request_json` is a
+/// [`TraceabilityRequest`]; unknown members are refused.
+pub fn traceability_json(
+    config_json: &str,
+    repo_root: &str,
+    request_json: &str,
+) -> Result<String, Error> {
+    let cfg: Config = serde_json::from_str(config_json)
+        .map_err(|e| Error::Usage(format!("invalid config JSON: {e}")))?;
+    let request: TraceabilityRequest = serde_json::from_str(request_json)
+        .map_err(|e| Error::Usage(format!("invalid traceability request: {e}")))?;
+    let root = Path::new(repo_root);
+    let registry = crate::load_committed_registry(&cfg, root)?;
+    let index = committed_index_if_fresh(&cfg, root)?;
+    let report = traceability(&cfg, root, &registry, index.as_ref(), &request)?;
+    read_document(&report, Versioning::Stamp)
+}
+
+/// The committed index, or `None` when it is stale or absent, so a unit
+/// target reads `unknown` rather than binding against a stale tree. Any other
+/// failure keeps its exit contract.
+pub fn committed_index_if_fresh(
+    cfg: &Config,
+    repo_root: &Path,
+) -> Result<Option<CodebaseIndex>, Error> {
+    if !crate::index::index_dir(cfg, repo_root).exists() {
+        return Ok(None);
+    }
+    match crate::guard_committed_index(cfg, repo_root) {
+        Ok(()) => Ok(Some(crate::load_committed_index(cfg, repo_root)?)),
+        Err(Error::Stale { .. } | Error::NotFound(_) | Error::Validation(_)) => Ok(None),
+        Err(e) => Err(e),
+    }
+}
+
+/// Read a traceability document (§3.9): accept any MINOR of the supported
+/// MAJOR, and refuse another MAJOR. An unknown relation, target kind or
+/// state is a parse failure, never downcast.
+pub fn parse_traceability_report(json: &str) -> Result<TraceabilityReport, Error> {
+    let value: serde_json::Value =
+        serde_json::from_str(json).map_err(|e| Error::Parse(format!("traceability: {e}")))?;
+    let version = value
+        .get("traceabilityVersion")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| Error::Parse("traceability: no traceabilityVersion".into()))?;
+    let (major, _, _) = parse_semver(version)
+        .ok_or_else(|| Error::Parse(format!("traceability: version '{version}'")))?;
+    let (supported, _, _) = parse_semver(TRACEABILITY_SCHEMA_VERSION).expect("valid const");
+    if major != supported {
+        return Err(Error::Refused(format!(
+            "traceability document is version {version}; this reader supports {supported}.x"
+        )));
+    }
+    serde_json::from_value(value).map_err(|e| Error::Parse(format!("traceability: {e}")))
 }
 
 #[cfg(test)]

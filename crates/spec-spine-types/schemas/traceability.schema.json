@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spec-spine.dev/schemas/traceability.schema.json",
+  "title": "spec-spine obligation traceability report",
+  "description": "The read document `registry traceability --json` and `traceability_json` emit (spec 169): every declared relation from an obligation to a typed target, and the state its target resolves to. A read document on the read axis (READ_SCHEMA_VERSION) that also carries its own traceabilityVersion axis. A state is a structural binding, never evidence that anything ran or passed. Additional members are admitted, since a new optional member is a MINOR of traceabilityVersion (spec 169 D-7); the relation, target kind and state enums and the summary keys are closed, since adding to them is a MAJOR.",
+  "type": "object",
+  "required": ["schemaVersion", "traceabilityVersion", "relations", "summary"],
+  "$defs": {
+    "state": {
+      "enum": ["resolved", "unresolved", "ambiguous", "unsupported", "unknown", "withdrawn"]
+    }
+  },
+  "properties": {
+    "schemaVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "traceabilityVersion": { "type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$" },
+    "relations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "identity",
+          "declaredBy",
+          "id",
+          "obligation",
+          "relation",
+          "target",
+          "targetIdentity",
+          "withdrawn",
+          "state"
+        ],
+        "properties": {
+          "identity": { "type": "string", "pattern": "^[^#\\s]+#trace:[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9]+)*$" },
+          "declaredBy": { "type": "string", "minLength": 1 },
+          "id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9]+)*$" },
+          "obligation": { "type": "string", "pattern": "^[^#\\s]+#[^#\\s]+$" },
+          "relation": {
+            "enum": ["implemented-by", "tested-by", "enforced-by", "documented-by", "produced-by", "consumed-by"]
+          },
+          "target": {
+            "type": "object",
+            "required": ["kind"],
+            "properties": {
+              "kind": { "enum": ["unit", "test", "invariant", "documentation", "interface"] }
+            }
+          },
+          "targetIdentity": { "type": "string", "pattern": "^(unit|test|invariant|documentation|interface):" },
+          "withdrawn": { "type": "boolean" },
+          "state": { "$ref": "#/$defs/state" },
+          "detail": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["resolved", "unresolved", "ambiguous", "unsupported", "unknown", "withdrawn"],
+      "additionalProperties": false,
+      "properties": {
+        "resolved": { "type": "integer", "minimum": 0 },
+        "unresolved": { "type": "integer", "minimum": 0 },
+        "ambiguous": { "type": "integer", "minimum": 0 },
+        "unsupported": { "type": "integer", "minimum": 0 },
+        "unknown": { "type": "integer", "minimum": 0 },
+        "withdrawn": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}
