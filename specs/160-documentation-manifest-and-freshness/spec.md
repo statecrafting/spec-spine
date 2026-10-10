@@ -327,8 +327,11 @@ The result status is:
   unchanged;
 - `unverified` when at least one identity cannot be checked and no stronger
   condition exists;
-- `stale` when at least one digest, region, output byte, packet identity,
-  generator identity, or interface pin changed; or
+- `stale` when any finding is `changed`, `region-shifted`, or
+  `output-changed`, or an optional identity is `missing`, `removed`,
+  `withdrawn`, `unresolved`, `ambiguous`, or `unsupported`: a digest, a
+  region's content or its span, an output byte, the packet identity, the
+  generator identity, or an interface pin moved; or
 - `incomplete` when a required identity is missing, removed, withdrawn,
   unresolved, ambiguous, or unsupported.
 
@@ -532,6 +535,12 @@ contract that owns the identity (spec 159's omission reason, spec 110's
 verification result, or the caller's external resolution), so an evaluator
 has no choice to make. `depends_on` also gains spec 155, whose selected-content
 identities 3.4 uses directly, not only through 159.
+
+**D-11 (2026-10-10, review): `stale` names its finding reasons.** Review
+found that 3.11 described `stale` by what changed without naming the 3.10
+reasons, so a span-only `region-shifted` could be read as not stale. 3.11 now
+lists the reasons that make a result `stale`, `region-shifted` among them, and
+keeps the optional-input rule that follows the list.
 
 ## Verification
 
