@@ -65,6 +65,9 @@ pub mod verb {
 
     /// `spec-spine content select`.
     pub const CONTENT_SELECT: &str = "content.select";
+    /// `spec-spine context packet` (spec 159). Its success is the bare packet
+    /// document; an incomplete packet is a finding whose envelope reports it.
+    pub const CONTEXT_PACKET: &str = "context.packet";
 
     /// `spec-spine registry list`.
     pub const REGISTRY_LIST: &str = "registry.list";

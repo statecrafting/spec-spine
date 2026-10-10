@@ -305,7 +305,7 @@
           {
             "file": "docs/cli-reference.md",
             "span": {
-              "endLine": 499,
+              "endLine": 516,
               "startLine": 1
             }
           }
@@ -349,5 +349,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "b6c5dc50467c855f564909dc34a8a60af882155224b5d4995378ba938ff7b50f"
+  "shardHash": "f3bfc86c35ad7b5ea7203a03d30d3cf60365633f16f61981257db5a481607e42"
 }
