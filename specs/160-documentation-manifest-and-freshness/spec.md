@@ -8,6 +8,7 @@ implementation: pending
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
+  - "074-a-governed-read-names-its-version"
   - "110-an-interface-reference-is-digest-pinned"
   - "155-selected-content-accessor"
   - "159-repository-scoped-context-packet"
@@ -252,6 +253,12 @@ line span, digest, and ordered `inputIds`. V1 kinds are `generated` and
 and byte-backed by the supplied output. A generated region MUST cite at least
 one declared input. A human-authored region MAY cite inputs but is never
 represented as generated.
+
+Citations are reciprocal and MUST agree: input `i`'s `uses` names output `O`
+exactly when at least one region of `O` lists `i` in `inputIds`, and names
+example `E` exactly when `E` lists `i` among its declared inputs. Every id in
+`uses`, `inputIds`, and an example's inputs MUST name a declared output,
+example, or input. A disagreement or a dangling id refuses validation.
 
 Bytes outside all declared regions are forbidden. Adjacent regions are valid.
 Line endings normalize under the repository text contract before spans and
@@ -563,6 +570,12 @@ introduced `repositoryTreeChanged` with no result document to hold it. 3.10
 now reports a changed packet as one `changed` finding, and states that the
 generator record is not compared because freshness takes no current generator
 input. 3.11 defines the closed result document.
+
+**D-13 (2026-10-10, review): `uses` and `inputIds` must agree.** Review found
+that 3.4's `uses` and 3.8's `inputIds` cite each other with no rule requiring
+agreement, so a manifest could claim a provenance it contradicts. 3.8 now
+requires them to agree and every cited id to exist. `depends_on` also names
+spec 074, whose `version.rs` this spec extends with a new axis.
 
 ## Verification
 

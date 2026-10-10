@@ -1,6 +1,7 @@
 {
   "mapping": {
     "dependsOn": [
+      "074-a-governed-read-names-its-version",
       "110-an-interface-reference-is-digest-pinned",
       "155-selected-content-accessor",
       "159-repository-scoped-context-packet"
@@ -235,5 +236,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "08d176d0025d29dd2ced414a1a3c7bf0ebe3e9b7c48d0f527b7ad660aa125f1b"
+  "shardHash": "6edd14c7f164f193ba0813a5f6e5474eae3d54525774f9ab8de6f7f226df5cb4"
 }
