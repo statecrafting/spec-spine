@@ -386,9 +386,10 @@ embedded instructions, or widens its reads. Consumers own publication.
    release triples.
 3. A spec summary containing `<!-- spec-spine:end generated id="header" -->`,
    `|`, and backtick runs renders escaped and does not break region parsing.
-4. Authored `notes` bytes survive regeneration verbatim; a malformed or
-   duplicated authored region, and an orphaned page with notes, refuse without
-   writing.
+4. Authored `notes` bytes survive regeneration verbatim after LF
+   normalization (§3.6), so CRLF and LF commits of the same notes yield
+   identical pages; a malformed or duplicated authored region, and an orphaned
+   page with notes, refuse without writing.
 5. `reference check` exits 0 on a fresh tree, and exits 1 with the exact
    finding for a missing, edited, orphaned, or malformed page and for a stale
    ledger; it writes nothing in any case.
