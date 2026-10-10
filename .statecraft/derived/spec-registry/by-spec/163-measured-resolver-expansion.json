@@ -15,8 +15,7 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/resolver_matrix.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/resolver_matrix.rs"
       },
       {
         "kind": "file",
@@ -131,7 +130,7 @@
       }
     ],
     "id": "163-measured-resolver-expansion",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "intent": {
       "goal": "give impl members, nested module items, and tests stable structural identities without changing any identity that resolves today",
       "nonGoals": [
@@ -225,7 +224,7 @@
       "1-1-measured-matrix-2026-09-27-spec-spine-0-28-0-main-c0c1256d": "7a2b3270645e8c93e85ab03bd07a4e3ecde0276afa8fbdff8c8a9b035c036020",
       "1-2-what-the-measurement-decides": "d2ce475cf471ec2b84a4734db1baad5d7aecb240a4413bf797c6756c07c09703",
       "1-purpose": "5d98e40e7096ecdf04ad922eee903ad4f994a292d5449476cafb415e802763c5",
-      "163-expand-structural-resolution-only-where-measurement-proves-it-deterministic": "b092205a8814c29bdab53fdde9bd9c8624f14590fa6963b9b21ae555faa6dc75",
+      "163-expand-structural-resolution-only-where-measurement-proves-it-deterministic": "9aad277011544fc10b0e89ae26b442d4d0af002542a8d7b3e5810a2e1b7bb6c4",
       "2-territory": "3f4735ec87030057199a8ff3cd37d3c008d311bb21895fe8bcf7db287fb3fac0",
       "3-1-scope-of-the-walk": "f027039118eeb5cd95aadfa007c0db32be7ff66910690099d7e45f097e6f2b9f",
       "3-10-no-semantic-claims": "d14c37c0e05534f931d0d57c15efede84bca698abcb3913f08b716bf5c790dc2",
@@ -240,7 +239,7 @@
       "3-behavior": "e1ccf74d840be841b564b1a4a5d8a8586aee7de70daa77363778baa3414d2ad4",
       "4-acceptance-criteria": "ed9deb8c540d80f7c0665fe69020408ca744c150b05f561cfce9e72071fd2a3f",
       "5-out-of-scope": "014367c857ffd34a83d4920de6dab331889e48d1a9f0407b56ea83d4895cd3a7",
-      "6-resolved-decisions": "7e117e7217ff5c215edacb4db3772179bfdd329ee669a45c23928c6bae8f4bd2",
+      "6-resolved-decisions": "8cd03bc6266bb5db53ff7ede440891f1f1f3a973769cbe481ea37ddba9042bbb",
       "verification": "06608058d017a44fcbfe907c021539a44d263fbaaa83bceeec12626869e9b6cc"
     },
     "sectionHeadings": [
@@ -270,6 +269,6 @@
     "summary": "Publishes a measured construct matrix for the Rust and TypeScript structural resolver and adds only the constructs whose identity and span are a pure function of the pinned grammars: items inside inline modules, Rust impl and trait members, macro_rules definitions, integration-test roots, TypeScript class methods and top-level variables, and a Rust test identity bound to its #[test] attribute, which lifts spec 155's test-selector reservation. Every other construct reports a closed unsupported or unknown reason instead of an absence. No identity that resolves today changes meaning; the index schema advances one MINOR, staged with the engine pin that first carries it, and dependency edges stay out of scope.\n",
     "title": "Expand structural resolution only where measurement proves it deterministic"
   },
-  "shardHash": "7cb273aa22dbd24dc43c66d230905a9bccddaa7a5490756c9060f18418291f05",
+  "shardHash": "05925ec05fee4cbb950fa6e343858182c237de191b17ea9618edd15270ae2c8c",
   "specVersion": "1.9.0"
 }

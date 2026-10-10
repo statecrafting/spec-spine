@@ -23,7 +23,7 @@ use crate::manifest;
 use crate::pathutil::{is_excluded, rel_posix};
 use crate::sections;
 use crate::shard;
-use crate::symbols::{ModuleIndex, SymbolIndex};
+use crate::symbols::{Lookup, Namespace, Resolver};
 use crate::{canonical_json, hash};
 
 /// Resolver hard-error codes (`I-003`..`I-009`) that fail `index check`.
@@ -359,54 +359,31 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
     // Comment-header linkage: file path -> spec id.
     let comment_links = scan_comment_headers(cfg, repo_root, &discovered.packages, &all_ids);
 
-    // Symbol index, built only if some spec declares a symbol unit (avoids
-    // parsing all source for corpora that use only file/section units). When the
-    // `symbol-resolution` feature is compiled out (spec 025), tree-sitter is not
-    // linked: no index is built and symbol units resolve to nothing (the same
-    // result a corpus declaring no symbol units already yields).
+    // Structural index (specs 004, 016, 163), built only if some spec declares
+    // a symbol or module unit (avoids parsing all source for corpora that use
+    // only file/section units). When the `symbol-resolution` feature is
+    // compiled out (spec 025), tree-sitter is not linked and every lookup
+    // answers `unknown` / `resolver-disabled` (spec 163 §3.5).
     #[cfg(feature = "symbol-resolution")]
-    let symbol_index = {
-        let needs_symbols = specs.iter().any(|s| {
+    let resolver = {
+        let needs_resolver = specs.iter().any(|s| {
             s.units
                 .iter()
-                .any(|(_, u, _)| matches!(u, Unit::Symbol { .. }))
+                .any(|(_, u, _)| matches!(u, Unit::Symbol { .. } | Unit::Module { .. }))
         });
-        if needs_symbols {
-            crate::symbols::build_symbol_index(
+        if needs_resolver {
+            crate::symbols::build_resolver(
                 repo_root,
                 &discovered.packages,
                 &cfg.index.resolver_exclusions,
                 &cfg.layout,
             )
         } else {
-            SymbolIndex::default()
+            Resolver::default()
         }
     };
     #[cfg(not(feature = "symbol-resolution"))]
-    let symbol_index = SymbolIndex::default();
-
-    // Module index, built only if some spec declares a module unit (spec 016).
-    // Tree-sitter-backed, so likewise gated behind `symbol-resolution` (spec 025).
-    #[cfg(feature = "symbol-resolution")]
-    let module_index = {
-        let needs_modules = specs.iter().any(|s| {
-            s.units
-                .iter()
-                .any(|(_, u, _)| matches!(u, Unit::Module { .. }))
-        });
-        if needs_modules {
-            crate::symbols::build_module_index(
-                repo_root,
-                &discovered.packages,
-                &cfg.index.resolver_exclusions,
-                &cfg.layout,
-            )
-        } else {
-            ModuleIndex::default()
-        }
-    };
-    #[cfg(not(feature = "symbol-resolution"))]
-    let module_index = ModuleIndex::default();
+    let resolver = Resolver::disabled();
 
     // Spec 141: the global inputs (config + extra_hashed_inputs) are recorded
     // once, one entry per file, in the inputs sidecar, and folded only into the
@@ -446,8 +423,7 @@ pub fn index(cfg: &spec_spine_types::Config, repo_root: &Path) -> Result<IndexOu
                 repo_root,
                 unit,
                 &discovered.packages,
-                &symbol_index,
-                &module_index,
+                &resolver,
                 &spec.id,
                 &mut unit_diags,
             );
@@ -1360,8 +1336,7 @@ fn resolve_unit(
     repo_root: &Path,
     unit: &Unit,
     packages: &[spec_spine_types::PackageRecord],
-    symbols: &SymbolIndex,
-    modules: &ModuleIndex,
+    resolver: &Resolver,
     spec_id: &str,
     diagnostics: &mut Diagnostics,
 ) -> Vec<ResolvedLocation> {
@@ -1428,15 +1403,18 @@ fn resolve_unit(
         // A Rust module by `::`-qualified path (spec 016; I-008 = unresolved,
         // distinct from the symbol band's I-005).
         Unit::Module { id, .. } => {
-            let locations = modules.resolve(id);
-            if locations.is_empty() {
+            let lookup = resolver.lookup(Namespace::Module, id);
+            if !matches!(lookup, Lookup::Resolved(_)) {
                 diagnostics.errors.push(Diagnostic {
                     code: "I-008".to_string(),
-                    message: format!("spec '{spec_id}' module unit '{id}' did not resolve"),
+                    message: format!(
+                        "spec '{spec_id}' module unit '{id}' did not resolve{}",
+                        lookup.diagnostic_suffix()
+                    ),
                     path: None,
                 });
             }
-            locations
+            lookup.locations()
         }
         Unit::Section { file, anchor, .. } => {
             let abs = repo_root.join(file);
@@ -1461,15 +1439,18 @@ fn resolve_unit(
             }
         }
         Unit::Symbol { id, .. } => {
-            let locations = symbols.resolve(id);
-            if locations.is_empty() {
+            let lookup = resolver.lookup(Namespace::Symbol, id);
+            if !matches!(lookup, Lookup::Resolved(_)) {
                 diagnostics.errors.push(Diagnostic {
                     code: "I-005".to_string(),
-                    message: format!("spec '{spec_id}' symbol unit '{id}' did not resolve"),
+                    message: format!(
+                        "spec '{spec_id}' symbol unit '{id}' did not resolve{}",
+                        lookup.diagnostic_suffix()
+                    ),
                     path: None,
                 });
             }
-            locations
+            lookup.locations()
         }
     }
 }
