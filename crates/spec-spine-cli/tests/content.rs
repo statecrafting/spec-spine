@@ -76,7 +76,7 @@ fn clean_head_and_exported_revision_are_bound_to_git_objects() {
         let value: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
         assert_eq!(value["items"][0]["content"], "selected\n");
         assert_eq!(value["repository"], "example/repo");
-        assert_eq!(value["schemaVersion"], "0.10.0");
+        assert_eq!(value["schemaVersion"], "0.11.0");
     }
 }
 

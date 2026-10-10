@@ -1,13 +1,18 @@
 // Spec: specs/169-declared-obligation-traceability/spec.md
 //! Spec 169: declared obligation traceability. Every rule runs over a
-//! disposable corpus through the real `compile`, so a refusal that cannot
-//! fire fails here.
+//! disposable corpus through the real `compile` and `index`, so a refusal
+//! that cannot fire, or a state that cannot be reached, fails here.
 
 use std::fs;
 use std::path::Path;
 
-use spec_spine_core::compile;
-use spec_spine_types::{Config, REGISTRY_SCHEMA_VERSION, Registry};
+use spec_spine_core::{
+    Versioning, compile, index, parse_traceability_report, read_document, traceability,
+};
+use spec_spine_types::{
+    CodebaseIndex, Config, REGISTRY_SCHEMA_VERSION, Registry, TRACEABILITY_SCHEMA_VERSION,
+    TraceRelation, TraceState, TraceabilityRequest,
+};
 
 const BODY: &str = "# spec\n\n## 1. Purpose\n\nWhy.\n\n## 3. Behavior\n\n### 3.1 The rule\n\nThe rule text.\n\n### 3.2 The invariant\n\nAlways.\n\n### 3.3 The old rule\n\nOld.\n\n## Verification\n\nChecks.\n";
 
@@ -89,14 +94,26 @@ fn full_corpus(order: &[usize]) -> tempfile::TempDir {
     corpus_with(&relations_block(order))
 }
 
-fn compiled_registry(root: &Path) -> Registry {
+fn registry_and_index(root: &Path) -> (Registry, CodebaseIndex) {
     let out = compile(&Config::default(), root).unwrap();
     assert!(
         out.validation_passed,
         "{:?}",
         out.registry.validation.violations
     );
-    out.registry
+    let idx = index(&Config::default(), root).unwrap().index;
+    (out.registry, idx)
+}
+
+fn report(root: &Path, request: &TraceabilityRequest) -> spec_spine_types::TraceabilityReport {
+    let (registry, idx) = registry_and_index(root);
+    traceability(&Config::default(), root, &registry, Some(&idx), request).unwrap()
+}
+
+fn by_id<'a>(rels: &'a [TraceRelation], id: &str) -> &'a TraceRelation {
+    rels.iter()
+        .find(|r| r.id == id)
+        .unwrap_or_else(|| panic!("no relation {id}"))
 }
 
 fn all() -> Vec<usize> {
@@ -131,7 +148,7 @@ fn one(relation: &str) -> String {
 #[test]
 fn declarations_compile_with_every_spec_reference_normalized() {
     let tmp = full_corpus(&all());
-    let registry = compiled_registry(tmp.path());
+    let (registry, _) = registry_and_index(tmp.path());
     let b = registry.specs.iter().find(|s| s.id == "002-b").unwrap();
     assert_eq!(b.traceability.len(), RELATIONS.len());
     let impl_ = b.traceability.iter().find(|t| t.id == "t-impl").unwrap();
@@ -232,6 +249,297 @@ fn an_absent_declaration_is_omitted_and_keeps_the_shard_hash() {
         .unwrap();
     assert_eq!(a1.shard_hash, a2.shard_hash, "an untouched spec's hash");
     assert_eq!(a1, a2, "an untouched spec's shard is byte-identical");
+}
+
+#[test]
+fn an_obligation_without_relations_is_not_reported() {
+    let tmp = corpus_with("");
+    let r = report(tmp.path(), &TraceabilityRequest::default());
+    assert!(r.relations.is_empty());
+    assert!(r.summary.values().all(|n| *n == 0));
+    assert_eq!(r.summary.len(), 6, "every state is counted");
+}
+
+// ---- 3.5, 3.6: every state, every relation kind, every target kind --------
+
+#[test]
+fn every_state_is_reached_and_none_stands_in_for_another() {
+    let tmp = full_corpus(&all());
+    let r = report(tmp.path(), &TraceabilityRequest::default());
+    let state = |id: &str| by_id(&r.relations, id).state;
+    assert_eq!(state("t-impl"), TraceState::Resolved);
+    assert_eq!(state("t-inv"), TraceState::Resolved);
+    assert_eq!(state("t-doc"), TraceState::Resolved);
+    assert_eq!(state("t-doc-section"), TraceState::Resolved);
+    assert_eq!(state("t-prod"), TraceState::Resolved);
+    assert_eq!(state("t-cons"), TraceState::Resolved);
+    assert_eq!(state("t-unowned"), TraceState::Unresolved);
+    assert_eq!(state("t-doc-missing"), TraceState::Unresolved);
+    assert_eq!(state("t-planned"), TraceState::Unresolved);
+    assert_eq!(state("t-inv-kind"), TraceState::Unresolved);
+    assert_eq!(state("t-inv-gone"), TraceState::Withdrawn);
+    assert_eq!(state("t-gone"), TraceState::Withdrawn);
+    assert_eq!(state("t-test"), TraceState::Unsupported);
+    assert_eq!(state("t-doc-proj"), TraceState::Unsupported);
+    #[cfg(feature = "symbol-resolution")]
+    assert_eq!(state("t-sym"), TraceState::Ambiguous);
+    #[cfg(not(feature = "symbol-resolution"))]
+    assert_eq!(state("t-sym"), TraceState::Unsupported);
+
+    // Every state but `resolved` says why.
+    for rel in &r.relations {
+        assert_eq!(
+            rel.detail.is_none(),
+            rel.state == TraceState::Resolved,
+            "{}",
+            rel.id
+        );
+    }
+    // The summary counts what the relations say.
+    for s in TraceState::ALL {
+        assert_eq!(
+            r.summary[&s],
+            r.relations.iter().filter(|x| x.state == s).count()
+        );
+    }
+}
+
+#[test]
+fn the_planned_unit_resolves_once_it_exists() {
+    let tmp = full_corpus(&all());
+    fs::write(tmp.path().join("src/later.rs"), "pub fn later() {}\n").unwrap();
+    let r = report(tmp.path(), &TraceabilityRequest::default());
+    assert_eq!(by_id(&r.relations, "t-planned").state, TraceState::Resolved);
+}
+
+#[test]
+fn without_a_fresh_index_a_unit_target_is_unknown() {
+    let tmp = full_corpus(&all());
+    let out = compile(&Config::default(), tmp.path()).unwrap();
+    let r = traceability(
+        &Config::default(),
+        tmp.path(),
+        &out.registry,
+        None,
+        &TraceabilityRequest::default(),
+    )
+    .unwrap();
+    for id in ["t-impl", "t-unowned", "t-planned", "t-prod"] {
+        assert_eq!(by_id(&r.relations, id).state, TraceState::Unknown, "{id}");
+    }
+    // A target that needs no index is unaffected.
+    assert_eq!(by_id(&r.relations, "t-inv").state, TraceState::Resolved);
+    assert_eq!(by_id(&r.relations, "t-doc").state, TraceState::Resolved);
+}
+
+// ---- 3.5, 3.10: ownership is never proof, and nothing is inferred ---------
+
+#[test]
+fn ownership_alone_produces_no_relation_and_no_resolution() {
+    // 001-a claims src/lib.rs and docs/a.md, and declares nothing: the read
+    // reports no relation for either, however exactly the claim resolves.
+    let tmp = full_corpus(&all());
+    let r = report(
+        tmp.path(),
+        &TraceabilityRequest {
+            declared_by: Some("001".into()),
+            ..TraceabilityRequest::default()
+        },
+    );
+    assert!(r.relations.is_empty());
+
+    // 002-b names src/lib.rs as a unit of 002-b, which does not claim it. The
+    // file resolves and 001-a owns it, and the relation is still unresolved:
+    // the claim is checked against the spec named, never substituted.
+    let all = report(tmp.path(), &TraceabilityRequest::default());
+    let unowned = by_id(&all.relations, "t-unowned");
+    assert_eq!(unowned.state, TraceState::Unresolved);
+    assert!(
+        unowned
+            .detail
+            .as_deref()
+            .unwrap()
+            .contains("does not claim")
+    );
+
+    // Every reported relation is one the corpus declares, and only those.
+    let declared: Vec<&str> = RELATIONS
+        .iter()
+        .map(|r| r.split('"').nth(1).unwrap())
+        .collect();
+    assert_eq!(all.relations.len(), declared.len());
+    for rel in &all.relations {
+        assert!(declared.contains(&rel.id.as_str()), "{}", rel.id);
+    }
+}
+
+// ---- 3.4: canonical identity and order, whatever the authoring order ------
+
+#[test]
+fn output_bytes_do_not_depend_on_authoring_order() {
+    let forward = full_corpus(&all());
+    let mut rev = all();
+    rev.reverse();
+    let backward = full_corpus(&rev);
+    let a = read_document(
+        &report(forward.path(), &TraceabilityRequest::default()),
+        Versioning::Stamp,
+    )
+    .unwrap();
+    let b = read_document(
+        &report(backward.path(), &TraceabilityRequest::default()),
+        Versioning::Stamp,
+    )
+    .unwrap();
+    assert_eq!(a, b);
+
+    let r = report(forward.path(), &TraceabilityRequest::default());
+    let ids: Vec<&str> = r.relations.iter().map(|x| x.id.as_str()).collect();
+    let mut sorted = ids.clone();
+    sorted.sort();
+    assert_eq!(ids, sorted, "declaring spec, then relation id");
+}
+
+#[test]
+fn the_report_matches_its_committed_fixture() {
+    let tmp = full_corpus(&all());
+    let doc = read_document(
+        &report(tmp.path(), &TraceabilityRequest::default()),
+        Versioning::Stamp,
+    )
+    .unwrap();
+    let fixture =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join(if cfg!(feature = "symbol-resolution") {
+            "tests/fixtures/traceability/report.json"
+        } else {
+            "tests/fixtures/traceability/report-no-symbols.json"
+        });
+    if std::env::var_os("SPEC_SPINE_BLESS").is_some() {
+        fs::create_dir_all(fixture.parent().unwrap()).unwrap();
+        fs::write(&fixture, &doc).unwrap();
+    }
+    let expected = fs::read_to_string(&fixture).unwrap().replace("\r\n", "\n");
+    assert_eq!(doc, expected);
+}
+
+#[test]
+fn target_identities_have_the_canonical_forms() {
+    let tmp = full_corpus(&all());
+    let r = report(tmp.path(), &TraceabilityRequest::default());
+    let ident = |id: &str| by_id(&r.relations, id).target_identity.clone();
+    assert_eq!(
+        ident("t-impl"),
+        r#"unit:001-a:{"kind":"file","path":"src/lib.rs"}"#
+    );
+    assert_eq!(
+        ident("t-planned"),
+        r#"unit:001-a:{"kind":"file","path":"src/later.rs"}"#,
+        "planned never enters an identity"
+    );
+    assert_eq!(
+        ident("t-test"),
+        r#"test:{"id":"demo::tests::orders_relations","kind":"test"}"#
+    );
+    assert_eq!(ident("t-inv"), "invariant:001-a#I-1");
+    assert_eq!(
+        ident("t-doc"),
+        r#"documentation:{"kind":"file","path":"docs/a.md"}"#
+    );
+    assert_eq!(
+        ident("t-prod"),
+        r#"interface:producer:local:001-a:{"kind":"file","path":"src/lib.rs"}"#
+    );
+    assert_eq!(
+        ident("t-cons"),
+        "interface:consumer:external:002-b:other:010-x"
+    );
+    assert_eq!(by_id(&r.relations, "t-impl").identity, "002-b#trace:t-impl");
+}
+
+// ---- 3.9: filters intersect ------------------------------------------------
+
+#[test]
+fn filters_intersect() {
+    let tmp = full_corpus(&all());
+    let r = report(
+        tmp.path(),
+        &TraceabilityRequest {
+            declared_by: Some("002".into()),
+            obligation: Some("001#R-1".into()),
+            state: Some(TraceState::Resolved),
+        },
+    );
+    let ids: Vec<&str> = r.relations.iter().map(|x| x.id.as_str()).collect();
+    assert_eq!(ids, ["t-doc", "t-impl", "t-inv"]);
+
+    let none = report(
+        tmp.path(),
+        &TraceabilityRequest {
+            declared_by: Some("001".into()),
+            obligation: Some("001#R-1".into()),
+            state: None,
+        },
+    );
+    assert!(none.relations.is_empty());
+}
+
+#[test]
+fn an_unqualified_or_unknown_filter_is_refused() {
+    let tmp = full_corpus(&all());
+    let (registry, idx) = registry_and_index(tmp.path());
+    let run = |req: TraceabilityRequest| {
+        traceability(&Config::default(), tmp.path(), &registry, Some(&idx), &req)
+    };
+    assert!(matches!(
+        run(TraceabilityRequest {
+            obligation: Some("R-1".into()),
+            ..Default::default()
+        }),
+        Err(spec_spine_types::Error::Usage(_))
+    ));
+    assert!(matches!(
+        run(TraceabilityRequest {
+            declared_by: Some("999".into()),
+            ..Default::default()
+        }),
+        Err(spec_spine_types::Error::NotFound(_))
+    ));
+}
+
+// ---- 3.9: the document's own axis ------------------------------------------
+
+#[test]
+fn a_reader_accepts_a_minor_and_refuses_another_major() {
+    let tmp = full_corpus(&all());
+    let doc = read_document(
+        &report(tmp.path(), &TraceabilityRequest::default()),
+        Versioning::Stamp,
+    )
+    .unwrap();
+    let parsed = parse_traceability_report(&doc).unwrap();
+    assert_eq!(parsed.traceability_version, TRACEABILITY_SCHEMA_VERSION);
+
+    let mut value: serde_json::Value = serde_json::from_str(&doc).unwrap();
+    value["traceabilityVersion"] = "1.7.0".into();
+    value["relations"][0]["addedLater"] = true.into();
+    assert!(parse_traceability_report(&value.to_string()).is_ok());
+
+    value["traceabilityVersion"] = "2.0.0".into();
+    assert!(matches!(
+        parse_traceability_report(&value.to_string()),
+        Err(spec_spine_types::Error::Refused(_))
+    ));
+
+    // An unknown state is a parse failure, never downcast to `unresolved`.
+    let mut value: serde_json::Value = serde_json::from_str(&doc).unwrap();
+    value["relations"][0]["state"] = "maybe".into();
+    assert!(matches!(
+        parse_traceability_report(&value.to_string()),
+        Err(spec_spine_types::Error::Parse(_))
+    ));
+    let mut value: serde_json::Value = serde_json::from_str(&doc).unwrap();
+    value["relations"][0]["relation"] = "verified-by".into();
+    assert!(parse_traceability_report(&value.to_string()).is_err());
 }
 
 // ---- 4: the negative cases compile refuses ---------------------------------
@@ -397,4 +705,33 @@ fn a_well_formed_unresolvable_declaration_still_compiles() {
     // Unresolved, unsupported and withdrawn are data, not compile failures.
     let v = violations(&relations_block(&all()));
     assert!(v.is_empty(), "{v:?}");
+}
+
+// ---- 3.9: the read document validates against its embedded schema --------
+
+#[test]
+fn the_report_conforms_to_its_embedded_schema() {
+    let tmp = full_corpus(&all());
+    let doc = read_document(
+        &report(tmp.path(), &TraceabilityRequest::default()),
+        Versioning::Stamp,
+    )
+    .unwrap();
+    let value: serde_json::Value = serde_json::from_str(&doc).unwrap();
+    let schema: serde_json::Value =
+        serde_json::from_str(spec_spine_types::TRACEABILITY_SCHEMA).unwrap();
+    let validator = jsonschema::validator_for(&schema).unwrap();
+    let errors: Vec<String> = validator
+        .iter_errors(&value)
+        .map(|e| e.to_string())
+        .collect();
+    assert!(errors.is_empty(), "{errors:?}");
+
+    // And the schema can refuse: an unknown state does not validate.
+    let mut bad = value.clone();
+    bad["relations"][0]["state"] = "maybe".into();
+    assert!(!validator.is_valid(&bad));
+    let mut bad = value;
+    bad["traceabilityVersion"] = "2.0.0".into();
+    assert!(!validator.is_valid(&bad));
 }

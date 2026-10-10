@@ -106,6 +106,7 @@ pub use repo_path::{RepoPath, is_device_name, repo_path_problem};
 pub use schema::{
     AFFECTED_SCHEMA, BUILD_META_SCHEMA, INDEX_INPUTS_SCHEMA, INDEX_PACKAGE_SHARD_SCHEMA,
     INDEX_SCHEMA, INDEX_SPEC_SHARD_SCHEMA, REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA,
+    TRACEABILITY_SCHEMA,
 };
 pub use snapshot::{
     AuthoritySnapshot, CommittedTree, FRAME_DIGEST, NON_UTF8_DIRECT_CLAIM, SnapshotCommitted,
@@ -113,7 +114,10 @@ pub use snapshot::{
     SnapshotGovernanceInputs, SnapshotOwnership, SnapshotResolutionVerdict, SnapshotSchemas,
     SnapshotSpec, SnapshotUnwitnessed, SnapshotVerdicts,
 };
-pub use traceability::{InterfaceRole, TraceDeclaration, TraceRelationKind, TraceTarget};
+pub use traceability::{
+    InterfaceRole, TRACEABILITY_SCHEMA_VERSION, TraceDeclaration, TraceRelation, TraceRelationKind,
+    TraceState, TraceTarget, TraceabilityReport, TraceabilityRequest,
+};
 pub use unit::Unit;
 pub use verdict::{Verdict, VerdictError, error_kind};
 pub use verify::{SkippedBlocks, VerifyFailure, VerifyOutcome, VerifyPlan, VerifyReport};

@@ -146,6 +146,9 @@ pub use waiver::{
 // non-library arguments (the attestation file name, and the attestation
 // directory `verify-attestation` resolves against) call it directly.
 pub use spec_id::{SpecIdMatch, match_spec_id, resolve_spec_id, resolve_spec_ref, spec_dir_ids};
+pub use traceability::{
+    committed_index_if_fresh, parse_traceability_report, traceability, traceability_json,
+};
 pub use verify::{plan as verify_plan, plan_from_markdown, without_verification_section};
 
 // ===== JSON-in / JSON-out facade (the FFI seam) =====

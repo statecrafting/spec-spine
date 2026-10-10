@@ -4,7 +4,7 @@ title: "Declare qualified obligation traceability"
 status: draft
 kind: "governance"
 created: "2026-09-28"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -20,12 +20,12 @@ summary: >
   explicit, and ownership is never behavioral proof.
 establishes:
   - { kind: file, path: "crates/spec-spine-types/src/traceability.rs" }
-  - { kind: file, path: "crates/spec-spine-types/schemas/traceability.schema.json", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/schemas/traceability.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/traceability.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/traceability.rs" }
-  - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/traceability/", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/traceability.rs", planned: true }
-  - { kind: file, path: "docs/traceability.md", planned: true }
+  - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/traceability/" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/traceability.rs" }
+  - { kind: file, path: "docs/traceability.md" }
 extends:
   - { spec: "000-spec-spine-bootstrap", unit: { kind: file, path: "crates/spec-spine-types/src/frontmatter.rs" }, nature: additive }
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/registry.rs" }, nature: additive }
@@ -44,8 +44,17 @@ extends:
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: section, file: "docs/cli-reference.md", anchor: "cli-reference" }, nature: additive }
   - { spec: "103-a-verifier-fixture-is-a-published-artifact", unit: { kind: directory, path: "crates/spec-spine-core/fixtures/verifier/" }, nature: corrective }
+  - { spec: "155-selected-content-accessor", unit: { kind: file, path: "crates/spec-spine-core/src/content.rs" }, nature: additive }
+  - { spec: "155-selected-content-accessor", unit: { kind: file, path: "crates/spec-spine-core/tests/content.rs" }, nature: corrective }
+  - { spec: "155-selected-content-accessor", unit: { kind: file, path: "crates/spec-spine-cli/tests/content.rs" }, nature: corrective }
+  - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_capabilities.rs" }, nature: additive }
   - { spec: "111-a-move-is-a-reviewed-mapping", unit: { kind: file, path: "crates/spec-spine-core/tests/moves.rs" }, nature: corrective }
   - { spec: "109-impact-and-conflict-are-declared", unit: { kind: file, path: "crates/spec-spine-core/tests/impacts.rs" }, nature: corrective }
+  - { spec: "108-a-work-scope-is-declared", unit: { kind: file, path: "crates/spec-spine-core/tests/scope.rs" }, nature: corrective }
+  - { spec: "108-a-work-scope-is-declared", unit: { kind: file, path: "crates/spec-spine-cli/tests/scope.rs" }, nature: corrective }
+  - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/tests/capabilities.rs" }, nature: corrective }
+  - { spec: "022-index-sharding", unit: { kind: file, path: "crates/spec-spine-types/src/schema.rs" }, nature: additive }
+  - { spec: "061-shipped-is-not-the-same-as-working", unit: { kind: file, path: "spec-spine.toml" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap" }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/symbols.rs" }, role: "test identity feasibility measurement" }
@@ -483,6 +492,30 @@ refusal belongs to a later spec over two registries.
 insignificant whitespace) with sorted keys, so an identity is one line.
 `planned` never enters a unit's identity (spec 063 §3.4), and a selector's
 `required`, a spec 155 request member, never enters a documentation target's.
+
+**D-5: resolution inputs.** The read binds unit and local interface targets
+against the committed index only when it is fresh; a stale or absent index
+makes them `unknown`, never `resolved` against a moved tree. Selector targets
+bind through spec 155's resolver with no snapshot and no content leaving it:
+missing content is `unresolved`, a form or projection outside the matrix is
+`unsupported`, a refused ambiguous symbol or module is `ambiguous`, and an
+item larger than any request budget is still bound. A build without
+`symbol-resolution` (spec 025) reports a symbol or module selector
+`unsupported`, since the form is outside that build's matrix.
+
+**D-6: the document's axes.** The report is a read document stamped on the
+read axis (`0.11.0`, spec 074) and carries its own `traceabilityVersion`,
+starting at `1.0.0`, which `parse_traceability_report` reads: any `1.x` is
+accepted and another major refused (§3.9). `capabilities` lists both axes for
+the verb.
+
+**D-7: what moves the document's axis.** §3.9 says a reader ignores no
+unknown relation or target kind and is silent on how such a kind arrives.
+Adding, removing, or reinterpreting a relation kind, target kind, or state
+moves `traceabilityVersion` MAJOR, so a reader that refuses an unknown kind
+never meets one under the major it supports. A new optional member is MINOR.
+The registry axis keeps its existing policy: an additive member is MINOR and an
+older binary fails closed on it.
 
 ## Verification
 

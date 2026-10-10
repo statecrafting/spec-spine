@@ -193,6 +193,23 @@ document on `READ_SCHEMA_VERSION`; invalid request shape is usage, stale
 ledgers are findings, and containment or stale-continuation failures are
 refusals.
 
+### Obligation traceability
+
+`traceability(&Config, repo_root, &Registry, Option<&CodebaseIndex>,
+&TraceabilityRequest)` reports every declared traceability relation (spec 169)
+with its canonical identities and one of six resolution states. Unit and local
+interface targets need the committed index, and read `unknown` when it is
+`None` (`committed_index_if_fresh` returns `None` for a stale or absent
+index); selector targets bind through the selected-content resolver without a
+snapshot, and never return content. The request filters (`declaredBy`,
+`obligation`, `state`) intersect. `parse_traceability_report` reads a document
+back, accepting any `1.x` `traceabilityVersion` and refusing another major.
+
+`traceability_json(config_json, repo_root, request_json)` is the JSON facade:
+it loads the committed registry and, when fresh, the committed index, and
+answers the read document `registry traceability --json` prints, byte for
+byte.
+
 ---
 
 ### Deletions and the prior snapshot (spec 100)

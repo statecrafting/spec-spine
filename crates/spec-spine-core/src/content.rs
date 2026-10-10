@@ -255,6 +255,59 @@ pub fn selected_content(
     })
 }
 
+/// Bind one selector structurally, through the resolver [`selected_content`]
+/// uses, without a snapshot, a budget, or any content leaving this function
+/// (spec 169 §3.5). `Ok(Ok(()))` binds; `Ok(Err(..))` carries the omission
+/// reason a request would have reported. The caller supplies the committed
+/// registry, and the committed index when the selector needs one.
+pub(crate) fn bind_selector(
+    cfg: &Config,
+    repo_root: &Path,
+    registry: &spec_spine_types::Registry,
+    index: Option<&spec_spine_types::CodebaseIndex>,
+    selector: &ContentSelector,
+) -> Result<Result<(), (ContentOmissionReason, String)>, Error> {
+    crate::pathutil::refuse_links_leaving(cfg, repo_root)?;
+    let root_real = fs::canonicalize(repo_root).map_err(|error| Error::Io(error.to_string()))?;
+    #[cfg(feature = "symbol-resolution")]
+    let symbol_index = match (selector, index) {
+        (ContentSelector::Symbol { .. }, Some(idx)) => Some(crate::symbols::build_symbol_index(
+            repo_root,
+            &idx.packages,
+            &cfg.index.resolver_exclusions,
+            &cfg.layout,
+        )),
+        _ => None,
+    };
+    #[cfg(feature = "symbol-resolution")]
+    let module_index = match (selector, index) {
+        (ContentSelector::Module { .. }, Some(idx)) => Some(crate::symbols::build_module_index(
+            repo_root,
+            &idx.packages,
+            &cfg.index.resolver_exclusions,
+            &cfg.layout,
+        )),
+        _ => None,
+    };
+    let context = SelectorContext {
+        cfg,
+        root: repo_root,
+        root_real: &root_real,
+        registry: Some(registry),
+        index,
+        // The largest budget a request may name (spec 155), so a bind reads no
+        // more than a request could.
+        max_bytes: 1_048_576,
+        #[cfg(feature = "symbol-resolution")]
+        symbol_index: symbol_index.as_ref(),
+        #[cfg(feature = "symbol-resolution")]
+        module_index: module_index.as_ref(),
+    };
+    let projection = selector.projection(ContentProjection::Full);
+    let (_, selected) = resolve_selector(&context, selector, projection)?;
+    Ok(selected.map(|_| ()))
+}
+
 /// JSON facade for [`selected_content`].
 pub fn selected_content_json(
     config_json: &str,
