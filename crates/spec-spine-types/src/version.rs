@@ -210,6 +210,11 @@ pub use crate::snapshot::SNAPSHOT_SCHEMA_VERSION;
 /// a binary supports, on its own axis from `0.1.0`.
 pub const CAPABILITIES_SCHEMA_VERSION: &str = "0.1.0";
 
+/// `schemaVersion` of the capability catalog (spec 162 §3.13), on its own
+/// axis from `1.0.0`: a vocabulary token or optional member is MINOR; removing
+/// or renaming one, or changing the digest construction, is MAJOR.
+pub const CATALOG_SCHEMA_VERSION: &str = "1.0.0";
+
 /// The `spec-spine.toml` config schema version (optional `config_version` key).
 pub const CONFIG_VERSION: &str = "0.1.0";
 

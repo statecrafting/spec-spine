@@ -43,3 +43,8 @@ pub const INDEX_INPUTS_SCHEMA: &str = include_str!("../schemas/codebase-index-in
 /// --affected-by <base> --plan --json` (spec 158). A read document, so its
 /// `schemaVersion` is [`crate::READ_SCHEMA_VERSION`].
 pub const AFFECTED_SCHEMA: &str = include_str!("../schemas/affected.schema.json");
+
+/// JSON Schema for the capability catalog (spec 162 §3.13), the `catalog`
+/// member of `capabilities --json` and `capability_catalog_json()`'s answer.
+pub const CAPABILITY_CATALOG_SCHEMA: &str =
+    include_str!("../schemas/capability-catalog.schema.json");

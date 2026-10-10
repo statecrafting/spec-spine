@@ -100,6 +100,11 @@ pub mod verb {
     pub const SCOPE_EVALUATE: &str = "scope.evaluate";
     /// `spec-spine scope compare`.
     pub const SCOPE_COMPARE: &str = "scope.compare";
+    /// `spec-spine capabilities` (spec 170; its failures under `--json`,
+    /// spec 162 §3.12).
+    pub const CAPABILITIES: &str = "capabilities";
+    /// `spec-spine capabilities verify` (spec 162 §3.11).
+    pub const CAPABILITIES_VERIFY: &str = "capabilities.verify";
 }
 
 /// The `tool` member of every envelope this binary writes (spec 132 §3.4).

@@ -16,6 +16,7 @@
 pub mod affected;
 pub mod attest;
 mod canonical_json;
+pub mod capability;
 pub mod closure;
 pub mod compact;
 pub mod compile;
@@ -67,6 +68,9 @@ pub use attest::{
     attest_spec, attestation_hash, check_attestation_major, check_spec_attestation_major,
     payload_schema_version, spec_attestation_hash, stored_bytes_hash, verify_recompute,
     verify_spec_recompute, with_stored_bytes, with_stored_bytes_spec,
+};
+pub use capability::{
+    capability_catalog, capability_operation, capability_verify, catalog_digest, operation_digest,
 };
 pub use closure::{
     ClosureMember, ClosureRequest, ResolvedClosure, SectionRef, closure, committed_content_hashes,
@@ -1170,4 +1174,22 @@ fn config_from_json(config_json: &str) -> Result<Config, Error> {
 
 fn to_json<T: serde::Serialize>(value: &T) -> Result<String, Error> {
     serde_json::to_string(value).map_err(|e| Error::Internal(e.to_string()))
+}
+
+/// The capability catalog (spec 162 §3.1): every operation this binary
+/// performs, described once, as canonical JSON on the catalog axis. Static
+/// data: reads nothing and takes nothing.
+pub fn capability_catalog_json() -> Result<String, Error> {
+    canonical_json::to_string(&capability_catalog()?)
+}
+
+/// Check pinned operation digests against this build's catalog (spec 162
+/// §3.11). `request_json`: `{ "expect": { "<operation>": "sha256:<hex>" } }`,
+/// unknown members refused. Answers the report, one result per pin sorted by
+/// name; a malformed request or digest is [`Error::Usage`]. The caller maps a
+/// `changed` or `missing` result to exit 1.
+pub fn capability_verify_json(request_json: &str) -> Result<String, Error> {
+    let request: spec_spine_types::CapabilityVerifyRequest = serde_json::from_str(request_json)
+        .map_err(|e| Error::Usage(format!("invalid capability verify request: {e}")))?;
+    canonical_json::to_string(&capability_verify(&request)?)
 }
