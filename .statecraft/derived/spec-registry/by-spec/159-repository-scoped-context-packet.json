@@ -8,13 +8,11 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-types/src/context_packet.rs",
-        "planned": true
+        "path": "crates/spec-spine-types/src/context_packet.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-types/schemas/context-packet.schema.json",
-        "planned": true
+        "path": "crates/spec-spine-types/schemas/context-packet.schema.json"
       },
       {
         "kind": "file",
@@ -42,8 +40,9 @@
         "planned": true
       },
       {
-        "kind": "file",
-        "path": "docs/context-packets.md",
+        "anchor": "context-packets",
+        "file": "docs/context-packets.md",
+        "kind": "section",
         "planned": true
       }
     ],
@@ -104,10 +103,66 @@
           "kind": "file",
           "path": "docs/schema-versioning.md"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/schema.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "155-selected-content-accessor",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/content.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "155-selected-content-accessor",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_content.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_capabilities.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capabilities.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "152-a-refusal-says-what-it-is-in-every-form",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
+        }
       }
     ],
     "id": "159-repository-scoped-context-packet",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "intent": {
       "goal": "assemble bounded deterministic context from one immutable repository snapshot",
       "nonGoals": [
@@ -173,7 +228,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "8a09bb43d7b44d88f7248ab716683e67fa52b78cfc6a344343eb171ee29f31af",
-      "159-assemble-one-repository-context-packet": "7872c7b3fa3896fd6ec21e6007d62b1901663f5dae816269de130e684d737d75",
+      "159-assemble-one-repository-context-packet": "4a8b402b7b1d7650b67a5d555fef95e512a5e4ccd8f4ea249abdeb0a0dc770dc",
       "2-territory": "88ae18471b6ada3151f8a63758d639dd77662da3b74c3031bc177209b943dcfd",
       "3-1-one-packet-one-repository-snapshot": "51b4af534207454f9373efda02a83838986b428d7eaef5da6fe0c8dd16eab9e5",
       "3-10-ordering-budgets-continuation-and-digest": "9d76faa1a6a0366a5812811f1c9401223e1141bfb1bafb5b5196d21c629745f2",
@@ -191,7 +246,7 @@
       "3-behavior": "4ef848e810192888edab419622cbafbc86a9b497d3495025259edebb7e80bae6",
       "4-acceptance-criteria": "7fc3a2bcf41bafc7775371ee09012f96ed0c7028d3f71709d3de7e3e24897699",
       "5-out-of-scope": "ed63906bbf867b89b30bdd9bb68c752f2acf044cb47d0a55313fae278330ac9d",
-      "6-resolved-decisions": "4b7f9677f3c8f3442b2bda407276b1853e0e21d253ee9be57c28ce9360929400",
+      "6-resolved-decisions": "39927d0a6623fd4d79fc7ba6261fd7a1306cf359f85934aabb4ca1d66138823c",
       "verification": "12fbb4d099630b3a098db7332b2dfbca402bb6976fee24f08de221ed2d721a67"
     },
     "sectionHeadings": [
@@ -222,6 +277,6 @@
     "summary": "Adds a deterministic, read-only context-packet request and response for one immutable repository snapshot. A packet combines a declared context closure with required and optional selected-content members under explicit byte and item budgets, records every omission and warning, binds continuation to the request and snapshot, and carries a canonical packet digest without creating cross-repository authority.\n",
     "title": "Assemble one repository context packet"
   },
-  "shardHash": "7a98576cfc9decea9b780c6682ba8208a2ad8dea6a9a168e3831963e9b920596",
+  "shardHash": "b07c1d181a272e8537c5aadbb2634438b5c73f228cbb0730819e27512ea1eeca",
   "specVersion": "1.9.0"
 }
