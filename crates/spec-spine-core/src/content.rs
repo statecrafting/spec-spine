@@ -28,13 +28,13 @@ struct Candidate {
 }
 
 #[derive(Clone)]
-struct Selected {
-    path: RepoPath,
-    span: ContentSpan,
-    content: String,
+pub(crate) struct Selected {
+    pub(crate) path: RepoPath,
+    pub(crate) span: ContentSpan,
+    pub(crate) content: String,
 }
 
-type Selection = Result<Selected, (ContentOmissionReason, String)>;
+pub(crate) type Selection = Result<Selected, (ContentOmissionReason, String)>;
 
 struct SelectorContext<'a> {
     cfg: &'a Config,
@@ -57,95 +57,25 @@ pub fn selected_content(
     snapshot: &ContentSnapshot,
 ) -> Result<ContentResponse, Error> {
     validate(request, snapshot)?;
-    crate::pathutil::refuse_links_leaving(cfg, repo_root)?;
-    let root_real = fs::canonicalize(repo_root).map_err(|error| Error::Io(error.to_string()))?;
-
-    let needs_registry = request.selectors.iter().any(|s| {
-        matches!(
-            s,
-            ContentSelector::Spec { .. }
-                | ContentSelector::SpecSection { .. }
-                | ContentSelector::Obligation { .. }
-                | ContentSelector::OwnedUnit { .. }
-        )
-    });
-    let needs_index = request.selectors.iter().any(|s| {
-        matches!(
-            s,
-            ContentSelector::OwnedUnit { .. }
-                | ContentSelector::Symbol { .. }
-                | ContentSelector::Module { .. }
-        )
-    });
-
-    let registry = if needs_registry {
-        match check_registry_freshness(cfg, repo_root)? {
-            Freshness::Fresh => Some(load_committed_registry(cfg, repo_root)?),
-            Freshness::Stale { expected, actual } => return Err(Error::Stale { expected, actual }),
-        }
-    } else {
-        None
-    };
-    let index = if needs_index {
-        guard_committed_index(cfg, repo_root)?;
-        Some(load_committed_index(cfg, repo_root)?)
-    } else {
-        None
-    };
-
-    #[cfg(feature = "symbol-resolution")]
-    let symbol_index = request
-        .selectors
-        .iter()
-        .any(|s| matches!(s, ContentSelector::Symbol { .. }))
-        .then(|| {
-            let idx = index.as_ref().expect("index loaded");
-            crate::symbols::build_symbol_index(
-                repo_root,
-                &idx.packages,
-                &cfg.index.resolver_exclusions,
-                &cfg.layout,
-            )
-        });
-    #[cfg(feature = "symbol-resolution")]
-    let module_index = request
-        .selectors
-        .iter()
-        .any(|s| matches!(s, ContentSelector::Module { .. }))
-        .then(|| {
-            let idx = index.as_ref().expect("index loaded");
-            crate::symbols::build_module_index(
-                repo_root,
-                &idx.packages,
-                &cfg.index.resolver_exclusions,
-                &cfg.layout,
-            )
-        });
-    let mut candidates = Vec::new();
-    let context = SelectorContext {
+    let resolutions = resolve_selectors(
         cfg,
-        root: repo_root,
-        root_real: &root_real,
-        registry: registry.as_ref(),
-        index: index.as_ref(),
-        max_bytes: request.max_bytes,
-        #[cfg(feature = "symbol-resolution")]
-        symbol_index: symbol_index.as_ref(),
-        #[cfg(feature = "symbol-resolution")]
-        module_index: module_index.as_ref(),
-    };
-    for (position, selector) in request.selectors.iter().enumerate() {
-        let projection = selector.projection(request.default_projection);
-        let (identity, resolved) = resolve_selector(&context, selector, projection)?;
-        candidates.push(Candidate {
+        repo_root,
+        &request.selectors,
+        request.default_projection,
+        request.max_bytes,
+    )?;
+    let mut candidates: Vec<Candidate> = resolutions
+        .into_iter()
+        .enumerate()
+        .map(|(position, r)| Candidate {
             position,
-            identity,
-            projection,
-            required: selector.required(),
-            selector: selector.clone(),
-            resolved,
-        });
-    }
+            required: r.selector.required(),
+            identity: r.identity,
+            projection: r.projection,
+            selector: r.selector,
+            resolved: r.outcome,
+        })
+        .collect();
     candidates.sort_by(|a, b| {
         (&a.identity, a.projection, a.position).cmp(&(&b.identity, b.projection, b.position))
     });
@@ -272,6 +202,115 @@ pub fn selected_content_json(
     read_document(&response, Versioning::Stamp)
 }
 
+/// One selector resolved against a repository export: the seam the context
+/// packet (spec 159) shares with [`selected_content`], so a packet member and
+/// a selected item can never name or read one selector differently.
+pub(crate) struct Resolution {
+    pub(crate) identity: String,
+    pub(crate) projection: ContentProjection,
+    pub(crate) selector: ContentSelector,
+    pub(crate) outcome: Selection,
+}
+
+/// Resolve each selector, in the order given, against the export at
+/// `repo_root`. Loads the committed registry and index only when a selector
+/// needs them, refusing a stale ledger. `max_bytes` bounds every whole-file
+/// read before it happens.
+pub(crate) fn resolve_selectors(
+    cfg: &Config,
+    repo_root: &Path,
+    selectors: &[ContentSelector],
+    default_projection: ContentProjection,
+    max_bytes: usize,
+) -> Result<Vec<Resolution>, Error> {
+    crate::pathutil::refuse_links_leaving(cfg, repo_root)?;
+    let root_real = fs::canonicalize(repo_root).map_err(|error| Error::Io(error.to_string()))?;
+
+    let needs_registry = selectors.iter().any(|s| {
+        matches!(
+            s,
+            ContentSelector::Spec { .. }
+                | ContentSelector::SpecSection { .. }
+                | ContentSelector::Obligation { .. }
+                | ContentSelector::OwnedUnit { .. }
+        )
+    });
+    let needs_index = selectors.iter().any(|s| {
+        matches!(
+            s,
+            ContentSelector::OwnedUnit { .. }
+                | ContentSelector::Symbol { .. }
+                | ContentSelector::Module { .. }
+        )
+    });
+
+    let registry = if needs_registry {
+        match check_registry_freshness(cfg, repo_root)? {
+            Freshness::Fresh => Some(load_committed_registry(cfg, repo_root)?),
+            Freshness::Stale { expected, actual } => return Err(Error::Stale { expected, actual }),
+        }
+    } else {
+        None
+    };
+    let index = if needs_index {
+        guard_committed_index(cfg, repo_root)?;
+        Some(load_committed_index(cfg, repo_root)?)
+    } else {
+        None
+    };
+
+    #[cfg(feature = "symbol-resolution")]
+    let symbol_index = selectors
+        .iter()
+        .any(|s| matches!(s, ContentSelector::Symbol { .. }))
+        .then(|| {
+            let idx = index.as_ref().expect("index loaded");
+            crate::symbols::build_symbol_index(
+                repo_root,
+                &idx.packages,
+                &cfg.index.resolver_exclusions,
+                &cfg.layout,
+            )
+        });
+    #[cfg(feature = "symbol-resolution")]
+    let module_index = selectors
+        .iter()
+        .any(|s| matches!(s, ContentSelector::Module { .. }))
+        .then(|| {
+            let idx = index.as_ref().expect("index loaded");
+            crate::symbols::build_module_index(
+                repo_root,
+                &idx.packages,
+                &cfg.index.resolver_exclusions,
+                &cfg.layout,
+            )
+        });
+    let context = SelectorContext {
+        cfg,
+        root: repo_root,
+        root_real: &root_real,
+        registry: registry.as_ref(),
+        index: index.as_ref(),
+        max_bytes,
+        #[cfg(feature = "symbol-resolution")]
+        symbol_index: symbol_index.as_ref(),
+        #[cfg(feature = "symbol-resolution")]
+        module_index: module_index.as_ref(),
+    };
+    let mut out = Vec::with_capacity(selectors.len());
+    for selector in selectors {
+        let projection = selector.projection(default_projection);
+        let (identity, outcome) = resolve_selector(&context, selector, projection)?;
+        out.push(Resolution {
+            identity,
+            projection,
+            selector: selector.clone(),
+            outcome,
+        });
+    }
+    Ok(out)
+}
+
 fn validate(request: &ContentRequest, snapshot: &ContentSnapshot) -> Result<(), Error> {
     if request.selectors.is_empty() {
         return Err(Error::Usage("content selectors must not be empty".into()));
@@ -284,6 +323,11 @@ fn validate(request: &ContentRequest, snapshot: &ContentSnapshot) -> Result<(), 
     if !(1..=256).contains(&request.max_items) {
         return Err(Error::Usage("maxItems must be from 1 through 256".into()));
     }
+    validate_snapshot(snapshot)
+}
+
+/// A snapshot names one repository and full lowercase object identities.
+pub(crate) fn validate_snapshot(snapshot: &ContentSnapshot) -> Result<(), Error> {
     if snapshot.repository.trim().is_empty() {
         return Err(Error::Usage("snapshot repository must not be empty".into()));
     }
@@ -950,16 +994,33 @@ fn make_item(
     selected: &Selected,
     snapshot: &ContentSnapshot,
 ) -> ContentItem {
+    content_item(
+        &candidate.identity,
+        candidate.projection,
+        &candidate.selector,
+        selected,
+        snapshot,
+    )
+}
+
+/// The item one resolved selector yields, with its framed digest (spec 155).
+pub(crate) fn content_item(
+    identity: &str,
+    projection: ContentProjection,
+    selector: &ContentSelector,
+    selected: &Selected,
+    snapshot: &ContentSnapshot,
+) -> ContentItem {
     let mut set = PieceSet::new();
     set.insert(
         "identity".into(),
         PieceKind::Text,
-        candidate.identity.as_bytes().to_vec(),
+        identity.as_bytes().to_vec(),
     );
     set.insert(
         "projection".into(),
         PieceKind::Text,
-        serde_json::to_string(&candidate.projection)
+        serde_json::to_string(&projection)
             .unwrap_or_default()
             .into_bytes(),
     );
@@ -981,13 +1042,13 @@ fn make_item(
         selected.content.as_bytes().to_vec(),
     );
     ContentItem {
-        identity: candidate.identity.clone(),
+        identity: identity.to_string(),
         repository: snapshot.repository.clone(),
         revision: snapshot.revision.clone(),
         tree: snapshot.tree.clone(),
         dirty_state: snapshot.dirty_state,
-        selector: candidate.selector.clone(),
-        requested_projection: candidate.projection,
+        selector: selector.clone(),
+        requested_projection: projection,
         path: selected.path.clone(),
         span: selected.span,
         digest: format!("sha256:{}", set.digest().expect("nonempty framed item")),
@@ -1003,7 +1064,7 @@ fn request_digest(request: &ContentRequest) -> Result<String, Error> {
     request.continuation = None;
     digest_json("request", &request)
 }
-fn snapshot_digest(snapshot: &ContentSnapshot) -> Result<String, Error> {
+pub(crate) fn snapshot_digest(snapshot: &ContentSnapshot) -> Result<String, Error> {
     digest_json(
         "snapshot",
         &serde_json::json!({

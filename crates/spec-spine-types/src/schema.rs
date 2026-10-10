@@ -48,3 +48,8 @@ pub const AFFECTED_SCHEMA: &str = include_str!("../schemas/affected.schema.json"
 /// member of `capabilities --json` and `capability_catalog_json()`'s answer.
 pub const CAPABILITY_CATALOG_SCHEMA: &str =
     include_str!("../schemas/capability-catalog.schema.json");
+
+/// JSON Schema for one context-packet page, `context packet --json` (spec
+/// 159). Its own axis: `schemaVersion` is
+/// [`crate::CONTEXT_PACKET_SCHEMA_VERSION`].
+pub const CONTEXT_PACKET_SCHEMA: &str = include_str!("../schemas/context-packet.schema.json");

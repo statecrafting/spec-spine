@@ -1,0 +1,235 @@
+{
+  "record": {
+    "created": "2026-09-26",
+    "dependsOn": [
+      "074-a-governed-read-names-its-version",
+      "110-an-interface-reference-is-digest-pinned",
+      "155-selected-content-accessor",
+      "159-repository-scoped-context-packet"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/documentation_manifest.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/schemas/documentation-manifest.schema.json",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/documentation_manifest.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/documentation_manifest.rs",
+        "planned": true
+      },
+      {
+        "kind": "directory",
+        "path": "crates/spec-spine-core/tests/fixtures/documentation-manifest/",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_documentation.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/documentation_manifest.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "docs/documentation-manifests.md",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "anchor": "cli-reference",
+          "file": "docs/cli-reference.md",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "id": "160-documentation-manifest-and-freshness",
+    "implementation": "pending",
+    "intent": {
+      "goal": "make declared documentation provenance and freshness deterministic",
+      "nonGoals": [
+        "narrative generation, semantic truth judgment, or documentation acceptance",
+        "running generators, examples, tests, commands, or provider workflows",
+        "evidence admission, wire-evidence semantics, or invalidation disposition"
+      ]
+    },
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-1-one-manifest-one-packet-and-generator-run",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "A documentation manifest binds declared inputs, generator identity, outputs, regions, and examples to one repository-scoped packet."
+      },
+      {
+        "anchor": "3-10-freshness-evaluation",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "Freshness deterministically names every changed, missing, unresolved, unsupported, or unverified declared identity without emitting its content."
+      },
+      {
+        "anchor": "3-13-ordering-limits-canonical-bytes-and-schema-evolution",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "Manifest and freshness bytes, ordering, identities, digests, limits, and schema evolution are deterministic and versioned."
+      },
+      {
+        "anchor": "3-16-authority-security-and-disclosure-boundary",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "Manifest freshness never establishes narrative correctness, execution, evidence admission, acceptance, release, adoption, or authority."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/documentation_manifest.rs",
+          "crates/spec-spine-cli/tests/documentation_manifest.rs"
+        ],
+        "kind": "verification",
+        "text": "The implemented manifest contract is checked for identity binding, region integrity, canonical bytes, freshness findings, stale snapshots, containment, and lifecycle boundaries."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "roadmap",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      },
+      {
+        "role": "digest-pinned external interface verification",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/interface.rs"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "24ca2dd0032410028aa616fb743ef93beeb7bbfddc471646030676e563682f1e",
+      "160-declare-documentation-inputs-and-freshness": "40d2acebb86233895e0e8c4cd451e23a8576606161680221328fcda870b55774",
+      "2-territory": "644ec21ed99e1f7417de2aece544efe415ac2991059212195015f0535cb352ac",
+      "3-1-one-manifest-one-packet-and-generator-run": "be66e5ec02df7688c916db2f64b9a90a6603593575afee416ff4b1158b5634f1",
+      "3-10-freshness-evaluation": "29b6ce10aa2472e752d92c1ddc7ed12748ac37590f8615a53a59e83b15960a61",
+      "3-11-freshness-status-and-precedence": "a2623c2a51e9b0b7c1d76e499fb21d482005ac6c38778156e7110189c4a80199",
+      "3-12-ambiguity-omissions-and-completeness": "ceab168167e841bb34057dbd8f972f4ad0db2edf4e31dbc534710c4ffed4f857",
+      "3-13-ordering-limits-canonical-bytes-and-schema-evolution": "725142ed56832756b0160a00215246124df268c62c3f3495ca26c96a21495c4e",
+      "3-14-snapshot-and-stale-manifest-behavior": "f5355dc337d7932a22f6b667731b3ea0a9640b8500cf73beca2acf5a10cf256d",
+      "3-15-error-and-exit-behavior": "afa20c9990ee1c6f09a17b66db20039963ea146c4ee8b84ec0f272ca47d759f1",
+      "3-16-authority-security-and-disclosure-boundary": "5b5894326611b3c5a7520a29c846e134fd7bcb9540ade32d1da598965088564f",
+      "3-2-closed-manifest-document": "f6a10a5b91018d0af536e0a12a37727d00cd82161a0a5c6b446cd2497ba6c45b",
+      "3-3-packet-identity": "794fba5a35f56f385e4c726e2157ee2b2c043ad1eb82d0cc28398b26f547cf64",
+      "3-4-repository-local-inputs": "2706ac018a69b4e7b1524e137c769c349df751013c1e3e29f1fc699c095ecbc7",
+      "3-5-external-interface-inputs": "d1100d78aafb176ff3208f7469671768b8a5b00f006b2f7bb082cc8656a8bd35",
+      "3-6-opaque-external-references": "e72ddeb255bbd932d60462b7826f18a4643c963094bf1a144943813af47b6a16",
+      "3-7-generator-identity": "b309b4466e8e360ea6c262eb68cca086d6696fa0d8259305b42d4fc1839bdce4",
+      "3-8-outputs-and-regions": "41f8b528f88624818288caa5b90ba50f7e35d3e878a802fbf68703fd14dc0129",
+      "3-9-executable-example-identities": "d49631f8d0cf98714c8e19e437454a4cb1d2e1a68c501db079f9cd6d866af988",
+      "3-behavior": "b7130a225cce77d4e8e3e4eae6f1f2e44cfda334b463ee2256cbde6128f71be1",
+      "4-acceptance-criteria": "9290b3708db07afef6c48918f1cec5ae18bd969818f893a0b7715dd8d378b9a5",
+      "5-out-of-scope": "ffe1303c4782c97e7b32310519b61771d33a0eb982906fea25c17a21e95b076f",
+      "6-resolved-decisions": "73cc03f0128edccfa4a70d7b4f382f6eaccef16b1f67fa2899d9c9dd64a77634",
+      "verification": "566f2e31c6775fa3ee58b82ba584de9121fadc44e4507ed7c89064b8b3c857e5"
+    },
+    "sectionHeadings": [
+      "160: Declare documentation inputs and freshness",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One manifest, one packet and generator run",
+      "3.2 Closed manifest document",
+      "3.3 Packet identity",
+      "3.4 Repository-local inputs",
+      "3.5 External interface inputs",
+      "3.6 Opaque external references",
+      "3.7 Generator identity",
+      "3.8 Outputs and regions",
+      "3.9 Executable-example identities",
+      "3.10 Freshness evaluation",
+      "3.11 Freshness status and precedence",
+      "3.12 Ambiguity, omissions, and completeness",
+      "3.13 Ordering, limits, canonical bytes, and schema evolution",
+      "3.14 Snapshot and stale-manifest behavior",
+      "3.15 Error and exit behavior",
+      "3.16 Authority, security, and disclosure boundary",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/160-documentation-manifest-and-freshness/spec.md",
+    "status": "draft",
+    "summary": "Adds a deterministic documentation-manifest document and a read-only freshness evaluation. A manifest binds one repository-scoped context packet, declared local and external inputs, generator identity, output bytes, generated and human-authored regions, and executable-example identities. Freshness names every changed, missing, unresolved, or unverified declared input without claiming that unchanged inputs make narrative text correct.\n",
+    "title": "Declare documentation inputs and freshness"
+  },
+  "shardHash": "95317ac95ebc232a331c26b0a0a6c59f3c439e9dc47251508fd8aa9136e8f875",
+  "specVersion": "1.9.0"
+}
