@@ -4,7 +4,7 @@ title: "Expand structural resolution only where measurement proves it determinis
 status: draft
 kind: "governance"
 created: "2026-09-27"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -35,7 +35,7 @@ amends:
   # §3.7 changes what its structural projections return.
   - "155-selected-content-accessor"
 establishes:
-  - { kind: file, path: "crates/spec-spine-core/tests/resolver_matrix.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/tests/resolver_matrix.rs" }
   - { kind: file, path: "crates/spec-spine-cli/tests/resolver_matrix.rs", planned: true }
 extends:
   - { spec: "004-codebase-index", unit: { kind: file, path: "crates/spec-spine-core/src/symbols.rs" }, nature: additive }
@@ -495,6 +495,46 @@ draft wrote `<Type as TraitPath>` in the same placeholder notation as `<Type>`,
 which left open whether the brackets are literal. They are: Rust's qualified
 path is `<Type as Trait>::name`, and without the brackets a `TraitPath` such
 as `fmt::Display` would be split by the `::` that §3.5's scope prefix walks.
+
+**D-11 (2026-10-10): two tokens have no CLI surface.** `legacy-collision`
+names an id that resolves to its legacy owner, so no lookup can return it, and
+`resolver-disabled` needs a binary built without `symbol-resolution`, which the
+CLI test does not build. Both are asserted in the core resolver_matrix test
+(the recorded-site list and the `--no-default-features` run). Every other
+token reaches the CLI test through an `index` message or a `content select`
+omission.
+
+**D-12 (2026-10-10): any non-bare attribute ending in `test` is a framework
+attribute.** §3.4 binds only a bare `#[test]` with no arguments. An attribute
+whose path's last segment is `test` but which is not that form
+(`#[tokio::test]`, and `#[test(...)]`) records `framework-test-attribute`; an
+attribute whose last segment is anything else (`#[rstest]`, `#[test_case]`)
+records nothing, so the function is "not a test function".
+
+**D-13 (2026-10-10): §3.7's documentation grammar runs only where 0.28.0's
+found nothing.** The 0.28.0 scan runs first and its span is returned as is;
+only when it returns nothing do the one-line `/** … */` block, a multi-line
+block whose closing line carries text, and the `#[doc = …]` report apply. That
+is the cheapest construction that provably keeps every 0.28.0 span.
+
+**D-14 (2026-10-10): a leading BOM is stripped before parsing.** Removing it
+moves no row, so no span changes; measured on the 0.29.0 release, a BOM'd CRLF
+file already resolved its legacy items at the LF spans, and the golden keeps
+asserting that.
+
+**D-15 (2026-10-10): a test's signature and body come from its function
+node.** A test span opens on its attribute run, so the projection finds the
+function item ending on the span's last line rather than one starting on its
+first.
+
+Status (2026-10-10): built in two changes so each stays reviewable. The
+first carries the resolver, the index messages, the determinism step and the
+core resolver_matrix lookups and index outcomes. The second carries the
+`content select` surface (test selectors, `indeterminate-selector`, the §3.7
+projections), the read constant, the template note and the CLI resolver_matrix
+test. The index constant and its restamp wait for the pin move (D-9), so
+`implementation` stays `in-progress` and the Verification block's `1.3.0` line
+fails until then.
 
 ## Verification
 
