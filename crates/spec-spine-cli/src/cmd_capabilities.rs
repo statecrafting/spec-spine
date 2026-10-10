@@ -10,18 +10,159 @@
 //! Reads no repository and writes nothing: `main` answers it before the
 //! version pin is read, so it answers in any directory, including one whose
 //! `required_version` this binary does not meet (170 3.6).
+//!
+//! Spec 162 rides the same answer rather than adding a second one (162 D-8):
+//! the document carries the capability catalog under `catalog`,
+//! `--operation <name>` shows one of its records, and `capabilities verify`
+//! checks pinned operation digests against it (162 §3.11, §3.12).
 
+use std::collections::BTreeMap;
+
+use clap::Subcommand;
 use spec_spine_types::{
-    CAPABILITIES_SCHEMA_VERSION, CONFIG_VERSION, Capabilities, DELTA_SCHEMA_VERSION, Error,
-    READ_SCHEMA_VERSION, SchemaAxis, VERDICT_SCHEMA_VERSION, VerbCapability,
+    CAPABILITIES_SCHEMA_VERSION, CATALOG_SCHEMA_VERSION, CONFIG_VERSION, Capabilities,
+    CapabilityVerifyRequest, DELTA_SCHEMA_VERSION, Error, Operation, READ_SCHEMA_VERSION,
+    SchemaAxis, VERDICT_SCHEMA_VERSION, VerbCapability, Verdict, verdict::verb,
 };
+
+#[derive(Subcommand)]
+pub enum CapabilitiesAction {
+    /// Check pinned operation digests against this binary's catalog (spec
+    /// 162). Reads no repository and writes nothing
+    ///
+    /// Exit 0 when every pin is `current`, 1 when any is `changed` or
+    /// `missing`. The observed digest is printed for a human to copy; nothing
+    /// writes a pin.
+    Verify {
+        /// `<operation>=sha256:<hex>`, the digest a consumer pinned. Repeat
+        /// once per operation.
+        #[arg(long, value_name = "NAME=DIGEST", required = true)]
+        expect: Vec<String>,
+        /// Emit the report as a verdict envelope on stdout (spec 034).
+        #[arg(long)]
+        json: bool,
+    },
+}
+
+/// Route `capabilities`: the document, one record, or the pin check.
+pub fn dispatch(
+    cli: &clap::Command,
+    json: bool,
+    operation: Option<&str>,
+    action: Option<&CapabilitiesAction>,
+) -> Result<u8, Error> {
+    match (action, operation) {
+        (Some(CapabilitiesAction::Verify { expect, json }), _) => verify(expect, *json),
+        (None, Some(name)) => show_operation(name, json),
+        (None, None) => run(cli, json),
+    }
+}
+
+/// `--operation <name>`: one catalog record (162 §3.12).
+fn show_operation(name: &str, json: bool) -> Result<u8, Error> {
+    let record = spec_spine_core::capability_operation(name)?;
+    if json {
+        #[derive(serde::Serialize)]
+        #[serde(rename_all = "camelCase")]
+        struct OneOperation {
+            schema_version: &'static str,
+            operation: Operation,
+        }
+        out!(
+            "{}",
+            spec_spine_core::read_document(
+                &OneOperation {
+                    schema_version: CATALOG_SCHEMA_VERSION,
+                    operation: record,
+                },
+                spec_spine_core::Versioning::Preexisting("schemaVersion")
+            )?
+        );
+    } else {
+        outln!(
+            "{}  {}  {}",
+            record.name,
+            record.stability,
+            effects_line(&record)
+        );
+    }
+    Ok(0)
+}
+
+/// A compact effects string for the human projection.
+fn effects_line(op: &Operation) -> String {
+    let e = &op.effects;
+    let mut parts = Vec::new();
+    for (label, items) in [
+        ("reads", &e.reads),
+        ("writes", &e.writes),
+        ("executes", &e.executes),
+        ("env", &e.environment),
+        ("authority", &e.authority),
+    ] {
+        if !items.is_empty() {
+            parts.push(format!("{label}={}", items.join(",")));
+        }
+    }
+    parts.push(format!("network={}", e.network));
+    parts.join(" ")
+}
+
+/// Parse `--expect` arguments (162 §3.11): no `=`, an empty name or a name
+/// given twice is usage (exit 3); the digest's form is checked by the core.
+fn parse_expect(expect: &[String]) -> Result<CapabilityVerifyRequest, Error> {
+    let mut pins = BTreeMap::new();
+    for raw in expect {
+        let Some((name, digest)) = raw.split_once('=') else {
+            return Err(Error::Usage(format!(
+                "`--expect {raw}`: expected `<operation>=sha256:<hex>`"
+            )));
+        };
+        if name.is_empty() {
+            return Err(Error::Usage(format!(
+                "`--expect {raw}`: the operation name is empty"
+            )));
+        }
+        if pins.insert(name.to_string(), digest.to_string()).is_some() {
+            return Err(Error::Usage(format!(
+                "`--expect`: `{name}` is pinned twice"
+            )));
+        }
+    }
+    Ok(CapabilityVerifyRequest { expect: pins })
+}
+
+/// `capabilities verify` (162 §3.11).
+fn verify(expect: &[String], json: bool) -> Result<u8, Error> {
+    let request = parse_expect(expect)?;
+    let report = spec_spine_core::capability_verify(&request)?;
+    let code = report.exit_code();
+    if json {
+        let value = serde_json::to_value(&report).map_err(|e| Error::Internal(e.to_string()))?;
+        crate::out::verdict(&Verdict::report(verb::CAPABILITIES_VERIFY, code, value))?;
+    } else {
+        for r in &report.results {
+            match (r.outcome.as_str(), &r.observed) {
+                ("changed", Some(observed)) => {
+                    outln!(
+                        "{}: changed (pinned {}, observed {observed})",
+                        r.name,
+                        r.expected
+                    )
+                }
+                (outcome, _) => outln!("{}: {outcome}", r.name),
+            }
+        }
+    }
+    Ok(code)
+}
 
 /// Flags every verb has that say nothing about the verb: clap's help, and the
 /// global `--repo`.
 const UNLISTED_FLAGS: &[&str] = &["help", "repo"];
 
-pub fn run(cli: &clap::Command, json: bool) -> Result<u8, Error> {
-    let doc = document(cli);
+fn run(cli: &clap::Command, json: bool) -> Result<u8, Error> {
+    let doc = document(cli)?;
     if json {
         // The document names its own axis under `schemaVersion`, so the read
         // emitter sorts and lays it out without stamping the read axis over it.
@@ -51,17 +192,18 @@ pub fn run(cli: &clap::Command, json: bool) -> Result<u8, Error> {
 }
 
 /// The document for the command tree `cli`.
-pub fn document(cli: &clap::Command) -> Capabilities {
+pub fn document(cli: &clap::Command) -> Result<Capabilities, Error> {
     let mut verbs = Vec::new();
     for sub in cli.get_subcommands() {
         collect(sub, &mut Vec::new(), &mut verbs);
     }
     verbs.sort_by(|a, b| a.path.cmp(&b.path));
-    Capabilities {
+    Ok(Capabilities {
         schema_version: CAPABILITIES_SCHEMA_VERSION.to_string(),
         version: env!("CARGO_PKG_VERSION").to_string(),
         verbs,
-    }
+        catalog: spec_spine_core::capability_catalog()?,
+    })
 }
 
 /// Add `cmd` (under `parents`) and its runnable descendants. A command is a
@@ -129,6 +271,7 @@ pub fn json_axes(path: &str) -> Vec<SchemaAxis> {
         | "scope evaluate" => vec![read()],
         "config show" => vec![axis("config", CONFIG_VERSION)],
         "capabilities" => vec![axis("capabilities", CAPABILITIES_SCHEMA_VERSION)],
+        "capabilities verify" => vec![verdict()],
         _ => Vec::new(),
     }
 }

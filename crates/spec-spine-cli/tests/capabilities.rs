@@ -167,7 +167,8 @@ fn the_document_names_the_binary_and_its_own_axis() {
         doc["schemaVersion"],
         spec_spine_types::CAPABILITIES_SCHEMA_VERSION
     );
-    assert_eq!(spec_spine_types::CAPABILITIES_SCHEMA_VERSION, "0.1.0");
+    // Spec 162 §3.12: `0.2.0` added `catalog`, additively.
+    assert_eq!(spec_spine_types::CAPABILITIES_SCHEMA_VERSION, "0.2.0");
     let (_, version) = run(tmp.path(), &["--version"]);
     assert_eq!(
         version.split_whitespace().last(),

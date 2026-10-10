@@ -208,7 +208,10 @@ pub use crate::snapshot::SNAPSHOT_SCHEMA_VERSION;
 
 /// `schemaVersion` of the `capabilities --json` document (spec 170 3.5): what
 /// a binary supports, on its own axis from `0.1.0`.
-pub const CAPABILITIES_SCHEMA_VERSION: &str = "0.1.0";
+///
+/// `0.2.0` (spec 162 §3.12): additive. The document gains `catalog`, the
+/// capability catalog; `version` and `verbs` are unchanged.
+pub const CAPABILITIES_SCHEMA_VERSION: &str = "0.2.0";
 
 /// `schemaVersion` of the capability catalog (spec 162 §3.13), on its own
 /// axis from `1.0.0`: a vocabulary token or optional member is MINOR; removing

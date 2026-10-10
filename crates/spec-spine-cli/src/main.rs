@@ -66,6 +66,12 @@ enum Command {
         /// Emit the capabilities document as JSON on stdout.
         #[arg(long)]
         json: bool,
+        /// Show one operation record from the capability catalog (spec 162)
+        /// instead of the whole document.
+        #[arg(long, value_name = "NAME")]
+        operation: Option<String>,
+        #[command(subcommand)]
+        action: Option<cmd_capabilities::CapabilitiesAction>,
     },
     /// Compile specs/*/spec.md into a deterministic registry.
     Compile {
@@ -352,11 +358,28 @@ fn main() -> ExitCode {
 
     // Spec 170 3.5: a fact about the binary alone, answered before anything
     // reads the repository, so no pin or configuration can refuse it.
-    if let Command::Capabilities { json } = &cli.command {
-        return match cmd_capabilities::run(&Cli::command(), *json) {
+    // Spec 162 §3.12: `--operation` and `verify` read no repository either,
+    // so they are answered here too, and under `--json` a failure is the
+    // family envelope like any other verb's.
+    if let Command::Capabilities {
+        json,
+        operation,
+        action,
+    } = &cli.command
+    {
+        let verb = cli.command.json_verb();
+        return match cmd_capabilities::dispatch(
+            &Cli::command(),
+            *json,
+            operation.as_deref(),
+            action.as_ref(),
+        ) {
             Ok(code) => ExitCode::from(code),
             Err(e) => {
-                eprintln!("spec-spine: {e}");
+                match verb {
+                    Some(v) => emit_error_envelope(v, &e),
+                    None => eprintln!("spec-spine: {e}"),
+                }
                 ExitCode::from(e.exit_code())
             }
         };
@@ -380,7 +403,16 @@ fn main() -> ExitCode {
 
     let result = match &cli.command {
         // Answered above, before the pin; never reached.
-        Command::Capabilities { json } => cmd_capabilities::run(&Cli::command(), *json),
+        Command::Capabilities {
+            json,
+            operation,
+            action,
+        } => cmd_capabilities::dispatch(
+            &Cli::command(),
+            *json,
+            operation.as_deref(),
+            action.as_ref(),
+        ),
         Command::Compile {
             check,
             json,
@@ -574,6 +606,15 @@ impl Command {
                 ..
             } => Some(verb::COMPILE_SPEC),
             Command::Check { json: true, .. } => Some(verb::CHECK),
+            Command::Capabilities {
+                action: Some(cmd_capabilities::CapabilitiesAction::Verify { json: true, .. }),
+                ..
+            } => Some(verb::CAPABILITIES_VERIFY),
+            Command::Capabilities {
+                json: true,
+                action: None,
+                ..
+            } => Some(verb::CAPABILITIES),
             Command::Content {
                 action: cmd_content::ContentAction::Select { json: true, .. },
             } => Some(verb::CONTENT_SELECT),
@@ -753,6 +794,126 @@ mod tests {
              and must be driven by the matrix in \
              `crates/spec-spine-cli/tests/spec_id.rs`. Add it to both lists, or \
              to neither."
+        );
+    }
+
+    /// Spec 162 §3.10 item 1: the clap tree and the capability catalog's CLI
+    /// bindings describe the same commands and the same arguments, and each
+    /// command's `about` is the summary of every operation bound to it.
+    ///
+    /// The catalog is static data in the core (162 D-1); this is what keeps it
+    /// true. Adding, removing or renaming a subcommand or an argument, or
+    /// changing its value name, required-ness or repeatability, fails here
+    /// until the catalog record moves with it.
+    #[test]
+    fn capability_census() {
+        use std::collections::BTreeMap;
+
+        type Row = (String, bool, Option<String>, bool, bool, Vec<String>);
+
+        fn walk(
+            cmd: &clap::Command,
+            path: Vec<String>,
+            out: &mut BTreeMap<String, (String, Vec<Row>)>,
+        ) {
+            if cmd.get_name() == "help" {
+                return;
+            }
+            let runnable = cmd.get_subcommands().all(|s| s.get_name() == "help")
+                || !cmd.is_subcommand_required_set();
+            if runnable && !path.is_empty() {
+                let about = cmd.get_about().map(|a| a.to_string()).unwrap_or_default();
+                let mut rows: Vec<Row> = cmd
+                    .get_arguments()
+                    .filter(|a| a.get_id() != "help" && a.get_id() != "version")
+                    .map(|a| {
+                        let name = match a.get_long() {
+                            Some(long) => format!("--{long}"),
+                            None => a.get_id().to_string(),
+                        };
+                        let value_name = if a.get_action().takes_values() {
+                            a.get_value_names()
+                                .and_then(|v| v.first())
+                                .map(|v| v.to_string())
+                        } else {
+                            None
+                        };
+                        let mut conflicts: Vec<String> = cmd
+                            .get_arg_conflicts_with(a)
+                            .iter()
+                            .map(|c| c.get_id().to_string())
+                            .collect();
+                        conflicts.sort();
+                        (
+                            name,
+                            a.is_positional(),
+                            value_name,
+                            a.is_required_set(),
+                            matches!(a.get_action(), clap::ArgAction::Append),
+                            conflicts,
+                        )
+                    })
+                    .collect();
+                rows.sort();
+                out.insert(path.join(" "), (about, rows));
+            }
+            for sub in cmd.get_subcommands() {
+                let mut p = path.clone();
+                p.push(sub.get_name().to_string());
+                walk(sub, p, out);
+            }
+        }
+
+        let mut cmd = super::Cli::command();
+        cmd.build();
+        let mut clap_tree = BTreeMap::new();
+        walk(&cmd, Vec::new(), &mut clap_tree);
+        assert!(
+            clap_tree.len() > 30,
+            "the walk found {} commands",
+            clap_tree.len()
+        );
+
+        let catalog = spec_spine_core::capability_catalog().unwrap();
+        let mut bound: BTreeMap<String, Vec<String>> = BTreeMap::new();
+        for op in &catalog.operations {
+            let Some(cli) = &op.cli else { continue };
+            let path = cli.argv.join(" ");
+            bound.entry(path.clone()).or_default().push(op.name.clone());
+            let Some((about, rows)) = clap_tree.get(&path) else {
+                panic!("{} is bound to `{path}`, which clap does not wire", op.name);
+            };
+            let mut flags: Vec<Row> = cli
+                .flags
+                .iter()
+                .map(|f| {
+                    (
+                        f.name.clone(),
+                        f.positional,
+                        f.value_name.clone(),
+                        f.required,
+                        f.repeatable,
+                        f.conflicts_with.clone(),
+                    )
+                })
+                .collect();
+            flags.sort();
+            assert_eq!(
+                &flags, rows,
+                "{}: the catalog's arguments for `{path}` differ from clap's",
+                op.name
+            );
+            assert_eq!(
+                &op.summary, about,
+                "{}: summary differs from `{path}`'s clap about",
+                op.name
+            );
+        }
+        let wired: Vec<&String> = clap_tree.keys().collect();
+        let cataloged: Vec<&String> = bound.keys().collect();
+        assert_eq!(
+            wired, cataloged,
+            "a command clap wires has no catalog operation, or the reverse (spec 162 §3.10)"
         );
     }
 }

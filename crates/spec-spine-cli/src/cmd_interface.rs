@@ -24,7 +24,7 @@ pub enum InterfaceAction {
     /// Recompute every declared interface reference (spec 110) against local
     /// checkouts of the cited corpora. Exit 0 when every checked reference is
     /// `current` or `sections-current`, 1 when any is `stale`, `missing` or
-    /// `unverified`, 2 when the committed registry is stale.
+    /// `unverified`, and 1 when the committed registry is stale (spec 132).
     ///
     /// Reads only the directories named by `--export`; fetches nothing and
     /// writes nothing. A corpus with no `--export` is `unverified`, which
