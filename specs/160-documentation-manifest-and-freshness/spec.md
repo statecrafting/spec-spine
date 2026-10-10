@@ -309,6 +309,12 @@ by the evaluator's own judgment:
   is `missing`, and no supplied export for its corpus is `unverified`.
 - An external reference with no matching caller resolution is `unverified`,
   and one whose resolved digest differs is `changed`.
+- A current packet page set whose ordered page digests differ from the
+  recorded ones is one `changed` finding whose identity is the packet; each
+  member difference behind it is also reported under its own input.
+- The generator record is not compared: freshness takes no current generator
+  input, so a changed generator surfaces only through the inputs and outputs
+  it changed.
 - An output whose whole-file digest differs is `output-changed`. Within it, a
   region whose content digest is equal but whose span moved is
   `region-shifted`, and a region whose content digest differs is `changed`
@@ -330,10 +336,17 @@ The result status is:
 - `stale` when any finding is `changed`, `region-shifted`, or
   `output-changed`, or an optional identity is `missing`, `removed`,
   `withdrawn`, `unresolved`, `ambiguous`, or `unsupported`: a digest, a
-  region's content or its span, an output byte, the packet identity, the
-  generator identity, or an interface pin moved; or
+  region's content or its span, an output byte, the packet identity, or an
+  interface pin moved; or
 - `incomplete` when a required identity is missing, removed, withdrawn,
   unresolved, ambiguous, or unsupported.
+
+The freshness result is a closed document with exactly these members:
+`schemaVersion`; `manifestDigest`, the manifest evaluated;
+`recordedSnapshot` and `currentSnapshot`, each a spec-155 snapshot identity;
+`repositoryTreeChanged`, a required boolean (3.14); `status`; `findings`, the
+ordered 3.10 records, empty when `fresh`; and `freshnessDigest`, computed as
+3.13 states.
 
 Precedence is `incomplete`, `stale`, `unverified`, then `fresh`. An optional
 missing identity is `stale`, not `incomplete`, because the recorded output was
@@ -382,8 +395,9 @@ is refused, never truncated.
 
 The schema begins at `1.0.0` on its own documentation-manifest axis. Canonical
 JSON uses sorted keys, LF, and one trailing newline. `manifestDigest` hashes
-the canonical manifest with `manifestDigest` absent. A freshness result carries
-its own digest over the canonical result with that field absent.
+the canonical manifest with `manifestDigest` absent. A freshness result
+carries `freshnessDigest`, its own digest over the canonical result with that
+field absent.
 
 Adding optional members moves MINOR. Removing or reinterpreting a member,
 ordering rule, limit, digest input, status, or enum value moves MAJOR. PATCH is
@@ -541,6 +555,14 @@ found that 3.11 described `stale` by what changed without naming the 3.10
 reasons, so a span-only `region-shifted` could be read as not stale. 3.11 now
 lists the reasons that make a result `stale`, `region-shifted` among them, and
 keeps the optional-input rule that follows the list.
+
+**D-12 (2026-10-10, review): the freshness result has a shape, and the
+generator is not compared.** Review found that 3.11 called a changed packet or
+generator identity stale without a 3.10 reason for either, and that 3.14
+introduced `repositoryTreeChanged` with no result document to hold it. 3.10
+now reports a changed packet as one `changed` finding, and states that the
+generator record is not compared because freshness takes no current generator
+input. 3.11 defines the closed result document.
 
 ## Verification
 

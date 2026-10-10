@@ -174,13 +174,13 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "24ca2dd0032410028aa616fb743ef93beeb7bbfddc471646030676e563682f1e",
-      "160-declare-documentation-inputs-and-freshness": "79b43b5a3a1c2d6ff79e11d34bd041bc815b846b225965c06f946c284e845999",
+      "160-declare-documentation-inputs-and-freshness": "8a529639596b1e67459be1e7eafd3d240e00ad9c7246bb28f854e82bf47fbf87",
       "2-territory": "644ec21ed99e1f7417de2aece544efe415ac2991059212195015f0535cb352ac",
       "3-1-one-manifest-one-packet-and-generator-run": "be66e5ec02df7688c916db2f64b9a90a6603593575afee416ff4b1158b5634f1",
-      "3-10-freshness-evaluation": "0c1e62e13634979151a4a2166024f3602a36c8ff8e84940dfbe96534213259ba",
-      "3-11-freshness-status-and-precedence": "c970e9096b969be2ac98a0fe3b0e3aaa22d57a429abe7a7306b3f11578237a05",
+      "3-10-freshness-evaluation": "29b6ce10aa2472e752d92c1ddc7ed12748ac37590f8615a53a59e83b15960a61",
+      "3-11-freshness-status-and-precedence": "a2623c2a51e9b0b7c1d76e499fb21d482005ac6c38778156e7110189c4a80199",
       "3-12-ambiguity-omissions-and-completeness": "ceab168167e841bb34057dbd8f972f4ad0db2edf4e31dbc534710c4ffed4f857",
-      "3-13-ordering-limits-canonical-bytes-and-schema-evolution": "6c1f1843b928833911b34ad29b2e434d07ad5fbfed9c8c1092dd6400ee9e7062",
+      "3-13-ordering-limits-canonical-bytes-and-schema-evolution": "725142ed56832756b0160a00215246124df268c62c3f3495ca26c96a21495c4e",
       "3-14-snapshot-and-stale-manifest-behavior": "f5355dc337d7932a22f6b667731b3ea0a9640b8500cf73beca2acf5a10cf256d",
       "3-15-error-and-exit-behavior": "afa20c9990ee1c6f09a17b66db20039963ea146c4ee8b84ec0f272ca47d759f1",
       "3-16-authority-security-and-disclosure-boundary": "5b5894326611b3c5a7520a29c846e134fd7bcb9540ade32d1da598965088564f",
@@ -192,10 +192,10 @@
       "3-7-generator-identity": "b309b4466e8e360ea6c262eb68cca086d6696fa0d8259305b42d4fc1839bdce4",
       "3-8-outputs-and-regions": "9851191da86394c373134949af6c4f30097ebe2177292803b33dffb6eb1a03a4",
       "3-9-executable-example-identities": "d49631f8d0cf98714c8e19e437454a4cb1d2e1a68c501db079f9cd6d866af988",
-      "3-behavior": "1944dc92e4d620a042fb8df872789d81114f964dd431878035e971460ea68aa2",
+      "3-behavior": "5dfd79e9f8597abd0bd78bb8dcad2efa6b918424c87f0757e6cab57dcfa4bc7e",
       "4-acceptance-criteria": "9290b3708db07afef6c48918f1cec5ae18bd969818f893a0b7715dd8d378b9a5",
       "5-out-of-scope": "ffe1303c4782c97e7b32310519b61771d33a0eb982906fea25c17a21e95b076f",
-      "6-resolved-decisions": "8163f55b78d99afef0d64d47331098441c0f6023ec6b78e6cafda1c3c34af6dc",
+      "6-resolved-decisions": "a190a9f03801e26bb91ffc4e35fc8dec0cb173a6708f4c5508e5a6c4b6ccba73",
       "verification": "566f2e31c6775fa3ee58b82ba584de9121fadc44e4507ed7c89064b8b3c857e5"
     },
     "sectionHeadings": [
@@ -229,6 +229,6 @@
     "summary": "Adds a deterministic documentation-manifest document and a read-only freshness evaluation. A manifest binds one repository-scoped context packet, declared local and external inputs, generator identity, output bytes, generated and human-authored regions, and executable-example identities. Freshness names every changed, missing, unresolved, or unverified declared input without claiming that unchanged inputs make narrative text correct.\n",
     "title": "Declare documentation inputs and freshness"
   },
-  "shardHash": "c2c50ffe14f59350c434d0ddff59e2f9f52e408f82a3eae42caf30112d297c71",
+  "shardHash": "4b194b98989bf0510d70d67dd3b204ea293569a646002469eb003834809faf80",
   "specVersion": "1.9.0"
 }
