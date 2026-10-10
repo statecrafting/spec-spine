@@ -485,8 +485,8 @@ writes `temporary` (`gate-verdict`, `waiver-evaluation`); `delta` executes
 `declared-commands` and reads `SPEC_SPINE_VERIFY_STACK`; the two
 `capabilities` operations read nothing.
 
-Facade functions: the 30 `pub fn *_json` defined in `lib.rs`, spec 155's
-re-exported `selected_content_json`, and this spec's two, 33 in all. Those
+Facade functions: the 29 `pub fn *_json` defined in `lib.rs`, spec 155's
+re-exported `selected_content_json`, and this spec's two, 32 in all. Those
 without a CLI form become `library.*` operations, as the census finds them.
 
 ## 4. Acceptance criteria
@@ -586,7 +586,7 @@ each one's non-zero exit stops the gate.
 **D-10 (2026-10-10, refile): the inventory is remeasured.** Since the draft,
 spec 158 added `verify --affected-by <base> --plan`, a git-reading,
 non-executing form that is its own operation (`verify.affected`) by §3.2's
-flag rule, and the facade gained `affected_json` and lost nothing; 30
+flag rule, and the facade gained `affected_json` and lost nothing; 29
 `*_json` functions are defined in `lib.rs`, not 28. Global `--repo` and
 positional arguments are listed with a `positional` member so a consumer can
 build an argv from the record alone.
@@ -601,7 +601,9 @@ exists.
 Before the build, the first three lines fail (the two test targets do not
 exist; the census is absent from the binary's test list) and so does the last
 (`capabilities verify` is not a subcommand: clap usage, exit 3). The fourth
-runs the census by name, and the fifth builds the binary the last line drives.
+runs the census by name once it exists; before the build its filter matches no
+test and cargo exits 0, which is why the third line asserts the census is
+listed. The fifth builds the binary the last line drives.
 
 ```verify:cli
 cargo test -p spec-spine-core --test capability_catalog --locked
