@@ -68,20 +68,19 @@ fn run_packet(
     )?;
     confirm_unchanged(repo, &bound.snapshot, revision)?;
 
-    let document = context_packet_document(&packet)?;
     if packet.completeness == ContentCompleteness::Incomplete {
         // Spec 159 3.8, 3.12: a required omission is a finding. The envelope
         // carries the whole deterministic packet, so the caller can see which
-        // member is missing and why.
-        let value: serde_json::Value =
-            serde_json::from_str(&document).map_err(|e| Error::Internal(e.to_string()))?;
+        // member is missing and why. The envelope writer sorts and lays it
+        // out, so the packet is serialized once, here.
+        let value = serde_json::to_value(&packet).map_err(|e| Error::Internal(e.to_string()))?;
         out::verdict(
             &Verdict::report(verb::CONTEXT_PACKET, 1, value)
                 .with_summary("context.packet: incomplete; a required member is omitted"),
         )?;
         return Ok(1);
     }
-    out!("{document}");
+    out!("{}", context_packet_document(&packet)?);
     Ok(0)
 }
 
