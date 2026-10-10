@@ -4,7 +4,6 @@
     "dependsOn": [
       "155-selected-content-accessor",
       "160-documentation-manifest-and-freshness",
-      "169-declared-obligation-traceability",
       "162-capability-catalog"
     ],
     "establishes": [
@@ -201,7 +200,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "7a34dda8679b8e15d3cd6906f80727196243450318ba6614971f651beaa114d2",
-      "166-generate-one-deterministic-reference-page-per-spec": "e43e4aa113f5cee5f51265bedc8f2349e0f527ae6ec8a84c60196d23896ce5fb",
+      "166-generate-one-deterministic-reference-page-per-spec": "6c36117e4d44598dbd6c3722aa9f079c5267e54b174bac28cc7cb6f85945724e",
       "2-territory": "2643be50fa8c3558d8bd59e0ceb16ab5b8057c1df270f9c875fc72975da3b1c8",
       "3-1-one-export-one-page-kind": "50c7deb50a24d7818f51e88f81fd6da80330513e9d9cd56e2bc76a72c12d4f29",
       "3-10-the-regeneration-check": "63dce924aa14fa05a4c919501ee2e6eb4a2d497fe0a8a7d1f3fe2d4cebec0ac0",
@@ -220,7 +219,7 @@
       "3-behavior": "2ad4d919ec3c552a57bbcc6f931ea14d9353e2bc0a2a20e45aa6d30bd56d3a0d",
       "4-acceptance-criteria": "7cf8cbe1c59e2f24eccb803d524d22edd4d3b7c42e17002fc10590076e51de7e",
       "5-out-of-scope": "f53261f7dc5897c0ece8da7f55a06b657ef100d10be5a460777d23fdfe1efcde",
-      "6-resolved-decisions": "787c5afa60f26ff5ec7716bca657e468f38ac5177ce3cd96f149b759057d69a9",
+      "6-resolved-decisions": "273483672bcad1397b37f869d74c1a3f2e21a78910dfd9651811f423336e4367",
       "verification": "777d3f3df29b18e259c9ca02ae8c684fe455309762c13c58018e16cac3ffc538"
     },
     "sectionHeadings": [
@@ -252,6 +251,6 @@
     "summary": "Adds one bounded, fixed-export reference product: one Markdown page per exported spec, projected from a typed page model whose every field comes from a named ledger source (registry, index, selected content, declared traceability, capability catalog). Pages have fixed generated regions and one human-authored region, canonical bytes, declared-not-run executable examples, and a read-only regeneration check that exits 1 when committed pages differ. Narrative documentation stays outside the product.\n",
     "title": "Generate one deterministic reference page per spec"
   },
-  "shardHash": "73d32f9e86edeef8942dc52d11438c05fddddfdbee39aae610787eac2fb79f78",
+  "shardHash": "31b5fcb2399f7c1869492136c3dc8cb97c052bc15e6b43522243b268df32030a",
   "specVersion": "1.9.0"
 }

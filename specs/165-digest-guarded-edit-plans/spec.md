@@ -13,7 +13,6 @@ depends_on:
   - "108-a-work-scope-is-declared"
   - "155-selected-content-accessor"
   - "160-documentation-manifest-and-freshness"
-  - "169-declared-obligation-traceability"
 summary: >
   Adds a pure, read-only edit-plan producer: a closed list of governed
   operations, each guarded by the digest of the target it was planned
@@ -547,6 +546,17 @@ the same paragraph said compose, and that additions had no pre-image span for
 the intersection test. §3.11 now gives them the frontmatter block as their
 span and applies the same-target rule only when at least one operation is not
 a frontmatter addition.
+
+**D-16 (2026-10-10, refile correction): no `depends_on` on spec 169.** The
+refile declared one, but 169 has the higher ordinal, and this repository's
+carried acceptance of spec 046 (and of 089, 146, 154 and 194) lints the corpus
+with `require_ordinal_monotonic_depends_on`, which refuses a dependency that
+points forward in filing order (L-007). Since this spec merged, every
+merge-queue sweep selecting those specs failed on `main`. The relation is not
+dropped: spec 169's traceability declarations remain a build prerequisite of
+this spec, and its build MUST NOT start before 169 is implemented. That
+ordering is now this decision's to state, because `registry plan` can no longer
+derive it from an edge. Specs 162 D-18 and 167 D-13 made the same correction.
 
 ## Verification
 

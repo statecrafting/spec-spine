@@ -3,7 +3,6 @@
     "dependsOn": [
       "155-selected-content-accessor",
       "160-documentation-manifest-and-freshness",
-      "169-declared-obligation-traceability",
       "162-capability-catalog"
     ],
     "implementingPaths": [
@@ -258,5 +257,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "1f1dd5d2793768d9f5e41f3c2162a5202ec394e301acf100f4a0fbefbe252572"
+  "shardHash": "74ff7ca50be91df393810a985bb91fbf24a66026baf7b7c25c97b61be84b9c35"
 }
