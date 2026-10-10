@@ -314,11 +314,25 @@ Operations are ordered canonically by target path, operation kind, then
 canonical operation identity: the canonical JSON bytes (§3.15) of the
 operation object's value, `expected` included, after canonicalization, so
 the whitespace and key order a request was written with never change it;
-compared bytewise. Two operations overlap, and the plan is refused
-`overlapping-operations` naming both, when they name the same target identity,
-when a `replace-unit` span intersects another operation's pre-image lines, or
-when one replaces a file another changes. Several frontmatter additions to one
-spec do not overlap; they compose in canonical order into one post-image.
+compared bytewise.
+
+`add-claim` and `add-trace-relation` are frontmatter additions: their target
+identity is the subject's `spec.md`, and their pre-image span is that file's
+frontmatter block, from the opening `---` line through the closing one. Every
+other operation's span is its resolved unit (`replace-unit`) or the whole file
+(`update-manifest`, and the new file of `propose-amendment`).
+
+Two operations overlap, and the plan is refused `overlapping-operations`
+naming both, when:
+
+- they name the same target identity and at least one is not a frontmatter
+  addition;
+- a `replace-unit` span intersects another operation's span; or
+- one replaces a whole file another changes.
+
+Several frontmatter additions to one spec therefore do not overlap; they
+compose in canonical order into one post-image. A `replace-unit` of a section
+does not overlap them, since a section lies outside the frontmatter block.
 
 `conflicts` also carries non-refusing records from a closed set:
 `shared-ownership` (a claimed path has other owners, listed) and
@@ -526,6 +540,13 @@ found that the rule against touching the amended spec in the same plan had no
 refusal reason when the subject is the amended spec itself. §3.6 now maps each
 of its checks to one existing §3.14 reason, the last to
 `overlapping-operations` whatever the subject. No reason was added.
+
+**D-15 (2026-10-10, review): frontmatter additions have a span and compose.**
+Review found that §3.11's same-target rule refused the frontmatter additions
+the same paragraph said compose, and that additions had no pre-image span for
+the intersection test. §3.11 now gives them the frontmatter block as their
+span and applies the same-target rule only when at least one operation is not
+a frontmatter addition.
 
 ## Verification
 
