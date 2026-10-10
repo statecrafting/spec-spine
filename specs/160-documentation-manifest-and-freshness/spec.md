@@ -9,6 +9,7 @@ owner: "The spec-spine Authors"
 risk: medium
 depends_on:
   - "110-an-interface-reference-is-digest-pinned"
+  - "155-selected-content-accessor"
   - "159-repository-scoped-context-packet"
 summary: >
   Adds a deterministic documentation-manifest document and a read-only
@@ -293,6 +294,26 @@ returns one finding per difference. The closed finding reasons are:
 - `region-shifted`; or
 - `output-changed`.
 
+Each reason is decided by the contract that owns the declared identity, never
+by the evaluator's own judgment:
+
+- A repository-local input absent from the current packet takes the spec-159
+  omission reason that packet records for its key: `missing`, `removed`,
+  `withdrawn`, `unresolved`, or `ambiguous` as 159 assigns them, and
+  `unsupported` for 159's `unsupported-selector`, `unsupported-projection`, or
+  `non-text`. A budget omission (`oversized-member`, `item-budget`, or
+  `byte-budget`) is `unverified`, because the current bytes were not read. An
+  input present with a different content digest is `changed`.
+- An interface input takes its spec-110 verification result: a changed spec or
+  section digest is `changed`, a producer spec absent from the supplied export
+  is `missing`, and no supplied export for its corpus is `unverified`.
+- An external reference with no matching caller resolution is `unverified`,
+  and one whose resolved digest differs is `changed`.
+- An output whose whole-file digest differs is `output-changed`. Within it, a
+  region whose content digest is equal but whose span moved is
+  `region-shifted`, and a region whose content digest differs is `changed`
+  naming that region.
+
 Each finding contains only kind, declared identity, requirement, recorded
 digest, safe current digest when available, and affected output, region, or
 example identities from `uses`. It MUST NOT include selected content, output
@@ -503,6 +524,14 @@ code: both read `caller-file` and `source-tree`, `freshness` also reads
 connection. The edit to 162's planned files is an `extends` declared by the
 build that makes it, not by this filing, because a planned unit cannot be
 extended before it exists.
+
+**D-10 (2026-10-10, review): each freshness reason has one owner.** Review of
+the filing found that 3.10 listed `missing`, `removed`, and `withdrawn` without
+saying which condition produces each. 3.10 now takes every reason from the
+contract that owns the identity (spec 159's omission reason, spec 110's
+verification result, or the caller's external resolution), so an evaluator
+has no choice to make. `depends_on` also gains spec 155, whose selected-content
+identities 3.4 uses directly, not only through 159.
 
 ## Verification
 

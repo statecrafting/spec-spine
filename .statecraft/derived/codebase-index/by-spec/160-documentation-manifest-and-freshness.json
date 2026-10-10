@@ -2,6 +2,7 @@
   "mapping": {
     "dependsOn": [
       "110-an-interface-reference-is-digest-pinned",
+      "155-selected-content-accessor",
       "159-repository-scoped-context-packet"
     ],
     "implementingPaths": [
@@ -234,5 +235,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "4d28115e59c89141dfb1c1a5e79fb988776afd6c09a30388a083599dff9af23c"
+  "shardHash": "34f7e012f1a170ba00e8c9042da1af0b24aaa4801cacc2b15fb43f9e0a197c11"
 }
