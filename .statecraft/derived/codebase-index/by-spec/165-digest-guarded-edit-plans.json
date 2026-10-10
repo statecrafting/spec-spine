@@ -5,8 +5,7 @@
       "106-obligations-are-declared-constraints",
       "108-a-work-scope-is-declared",
       "155-selected-content-accessor",
-      "160-documentation-manifest-and-freshness",
-      "169-declared-obligation-traceability"
+      "160-documentation-manifest-and-freshness"
     ],
     "implementingPaths": [
       {
@@ -307,5 +306,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "b39398f4cc527da00357254d424db4dbce50b4b1449a9f348cbbb07895cb0834"
+  "shardHash": "3b357faca54e82866ec59a057d6b741fa198ebd56a0317c34f7f6ee3713990d1"
 }

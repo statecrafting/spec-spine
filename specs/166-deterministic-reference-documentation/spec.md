@@ -10,7 +10,6 @@ risk: medium
 depends_on:
   - "155-selected-content-accessor"
   - "160-documentation-manifest-and-freshness"
-  - "169-declared-obligation-traceability"
   - "162-capability-catalog"
 summary: >
   Adds one bounded, fixed-export reference product: one Markdown page per
@@ -504,6 +503,17 @@ authored-region refusal matched only an unindented prefix. A delimiter is now
 byte-exact with no surrounding whitespace, and the authored refusal ignores
 leading spaces and tabs, so the refusal is strictly wider than what the parser
 accepts.
+
+**D-17 (2026-10-10, refile correction): no `depends_on` on spec 169.** The
+refile declared one, but 169 has the higher ordinal, and this repository's
+carried acceptance of spec 046 (and of 089, 146, 154 and 194) lints the corpus
+with `require_ordinal_monotonic_depends_on`, which refuses a dependency that
+points forward in filing order (L-007). Since this spec merged, every
+merge-queue sweep selecting those specs failed on `main`. The relation is not
+dropped: spec 169's traceability declarations remain a build prerequisite of
+this spec, and its build MUST NOT start before 169 is implemented. That
+ordering is now this decision's to state, because `registry plan` can no longer
+derive it from an edge. Specs 162 D-18 and 167 D-13 made the same correction.
 
 ## Verification
 
