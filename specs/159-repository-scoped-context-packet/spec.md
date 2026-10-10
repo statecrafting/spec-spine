@@ -193,6 +193,13 @@ array: `["additional"]` for those selectors, `["closure"]` for closure-derived
 members, and `["closure", "additional"]` for one named both ways (3.4). There is
 no singular `origin` member.
 
+Every closure-derived member is `required`. The closure is the caller's
+declared context, so omitting any of it makes the packet `incomplete` (3.8); a
+caller that wants exploratory context names it as an `optional` additional
+member instead. Requirement can only rise: when the same key is also named
+explicitly, `required` wins (3.4), so an explicit `optional` request can never
+downgrade a closure member.
+
 ### 3.4 Member identity and deduplication
 
 The canonical member key is the spec-155 selected-content identity plus its
