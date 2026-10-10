@@ -288,11 +288,24 @@
           "kind": "file",
           "path": "docs/design/09-disposition-2026-09-21.md"
         }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/162-capability-catalog/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/162-capability-catalog/spec.md"
+        }
       }
     ],
     "specId": "165-digest-guarded-edit-plans",
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "39e19fcd6ed8ea12670487248674de8ea24cd3c240ab4eb390da4b00a7f427fe"
+  "shardHash": "7a4e9d448d142a4a0d74d67a59e6b6f71947456548da779d8e58d4679868acea"
 }

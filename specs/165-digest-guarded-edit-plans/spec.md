@@ -44,6 +44,7 @@ references:
   - { unit: { kind: file, path: "crates/spec-spine-types/src/moves.rs" }, role: "authored moves, distinct from plans" }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/scope.rs" }, role: "work scope evaluation" }
   - { unit: { kind: file, path: "AGENTS.md" }, role: "adversarial prompt refusal and the two legitimate edits" }
+  - { unit: { kind: file, path: "specs/162-capability-catalog/spec.md" }, role: "the catalog this verb's record joins (D-9)" }
 obligations:
   - id: "R-1"
     kind: requirement
@@ -503,6 +504,12 @@ backward. The edge stays because `registry plan` must not offer this spec as
 ready before 169 is complete, which a `references` entry would not prevent.
 It cannot form a cycle: 169 depends only on 106, 110 and 155. Spec 046's
 `L-007` would refuse it, and this repository has not enabled that opt-in rule.
+
+**D-13 (2026-10-10, review): the catalog is referenced, not depended on.**
+Review asked that spec 162, which D-9 coordinates with, appear in the
+frontmatter. It is now a `references` entry, not a `depends_on`: the planner
+needs nothing from the catalog to work, and whichever spec is built second
+adds the record, so neither has to be complete before the other.
 
 ## Verification
 

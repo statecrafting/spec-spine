@@ -214,13 +214,20 @@
           "kind": "file",
           "path": "AGENTS.md"
         }
+      },
+      {
+        "role": "the catalog this verb's record joins (D-9)",
+        "unit": {
+          "kind": "file",
+          "path": "specs/162-capability-catalog/spec.md"
+        }
       }
     ],
     "risk": "high",
     "sectionDigests": {
       "1-1-why-spec-spine-and-not-statecraft": "a263fc98188d016fbbbb2e3acba9a9cd790cdf66e16303af94bada26321131ef",
       "1-purpose": "c8280af450042d2c118ef6a66407ecd8f1be6b802e3b50bca6f426d257fab8a8",
-      "165-plan-a-governed-edit-without-applying-it": "8757120fca3bf3715e40f2b408ab2dd3038cf46b4ec2e395f0a3c0b6a15b760a",
+      "165-plan-a-governed-edit-without-applying-it": "4e7302012f6dcc5145664fc3e3f48a1020f94bf072412d50fe9062287c185244",
       "2-territory": "4ff731200375d04312b86e66d03b8d130af76f1a475ac112578c3f09af18c71f",
       "3-1-one-request-one-snapshot-one-subject": "5c5b47dfba9beca28d11437172d5758121e841001af0a2913bcc304d206f2956",
       "3-10-authority-is-checked-before-a-preview-exists": "bbdc3181694310d462b476d9c7f05c5f35847336766a594efb56c2a0ae856409",
@@ -241,7 +248,7 @@
       "3-behavior": "9982f4f774632b6a6e3730c50fcc0f4da2d55cd050c906bcc930721008b4442d",
       "4-acceptance-criteria": "034ef0fea52fd7221d8753e86590bcf9ef82e19517a7abe8e353cf2160bddf72",
       "5-out-of-scope": "1ac3db9a56392ea9529ea6dab32e1c871f3ce68951b901e9d64a7c01fdffc01d",
-      "6-resolved-decisions": "ff59ba2047df9a35e6389290c1690e6ea32b147a0082f39275815a2f847c25ef",
+      "6-resolved-decisions": "1b8e78c9d2d4103fe0d2ce96034181bcf081bc5bc34ec7f0cccd392a86aa2b8e",
       "verification": "08958d5f8531da5a2479625438afc8c3e868a71803b3d9afbfed47e2567cbd38"
     },
     "sectionHeadings": [
@@ -276,6 +283,6 @@
     "summary": "Adds a pure, read-only edit-plan producer: a closed list of governed operations, each guarded by the digest of the target it was planned against, checked against ownership, a work scope and the amendment rules, previewed as exact post-image bytes, and classified by authority effect. Refusals come from a closed set. Nothing in spec-spine applies a plan.\n",
     "title": "Plan a governed edit without applying it"
   },
-  "shardHash": "5002a290357024cf5f08f1c9d3a3f696fc3a980ac20d5c0382056fc6d834ae2e",
+  "shardHash": "e3018690ad8998fa1704968949e04263328716b83a7a47d9697d30e1e6033f76",
   "specVersion": "1.9.0"
 }
