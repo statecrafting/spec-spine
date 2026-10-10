@@ -1,0 +1,281 @@
+{
+  "record": {
+    "created": "2026-09-27",
+    "dependsOn": [
+      "037-amendment-authoring",
+      "106-obligations-are-declared-constraints",
+      "108-a-work-scope-is-declared",
+      "155-selected-content-accessor",
+      "160-documentation-manifest-and-freshness",
+      "169-declared-obligation-traceability"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/edit_plan.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/schemas/edit-plan.schema.json",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/edit_plan.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/edit_plan.rs",
+        "planned": true
+      },
+      {
+        "kind": "directory",
+        "path": "crates/spec-spine-core/tests/fixtures/edit-plan/",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_edit_plan.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/edit_plan.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "docs/edit-plans.md",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "anchor": "cli-reference",
+          "file": "docs/cli-reference.md",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "152-a-refusal-says-what-it-is-in-every-form",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
+        }
+      }
+    ],
+    "id": "165-digest-guarded-edit-plans",
+    "implementation": "pending",
+    "intent": {
+      "goal": "let an agent obtain a reviewable, digest-guarded, authority-classified proposal for a governed edit without spec-spine ever applying it",
+      "nonGoals": [
+        "a general patch language or edits to source code",
+        "applying, formatting, committing, or recovering edits",
+        "deciding whether an edit is correct or approving one",
+        "replacing couple, delta, or human ratification as the judge of a change"
+      ]
+    },
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-9-every-target-is-digest-guarded",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Every operation names one target identity and the digest it was planned against, and a target whose current digest differs is refused, never rebased."
+      },
+      {
+        "anchor": "3-6-propose-amendment-creates-a-new-spec",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "An amendment is proposed only as a new draft spec carrying an amends edge, and no operation changes the requirement text of an approved spec."
+      },
+      {
+        "anchor": "3-13-authority-effect-classification",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "Every accepted operation carries exactly one authority effect from a closed ordered set, and the plan carries the greatest of them."
+      },
+      {
+        "anchor": "3-14-refusal-reasons-are-closed",
+        "id": "R-4",
+        "kind": "requirement",
+        "text": "A refused plan lists every refusal of every operation from a closed reason set and carries no preview."
+      },
+      {
+        "anchor": "3-11-overlap-and-conflicts",
+        "id": "R-5",
+        "kind": "requirement",
+        "text": "Two operations whose target identities or pre-image line ranges intersect refuse the plan as overlapping."
+      },
+      {
+        "anchor": "3-16-nothing-applies-a-plan",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "Planning never writes, formats, executes, applies, approves, waives, grants authority, or performs recovery."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/edit_plan.rs",
+          "crates/spec-spine-cli/tests/edit_plan.rs"
+        ],
+        "kind": "verification",
+        "text": "The implemented producer is checked for every operation, authority effect, refusal reason, overlap rule, digest guard, canonical byte rule, and the no-write boundary."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "roadmap row K",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      },
+      {
+        "role": "plan and apply precedent",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compact.rs"
+        }
+      },
+      {
+        "role": "authored moves, distinct from plans",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/moves.rs"
+        }
+      },
+      {
+        "role": "work scope evaluation",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/scope.rs"
+        }
+      },
+      {
+        "role": "adversarial prompt refusal and the two legitimate edits",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionDigests": {
+      "1-1-why-spec-spine-and-not-statecraft": "a263fc98188d016fbbbb2e3acba9a9cd790cdf66e16303af94bada26321131ef",
+      "1-purpose": "c8280af450042d2c118ef6a66407ecd8f1be6b802e3b50bca6f426d257fab8a8",
+      "165-plan-a-governed-edit-without-applying-it": "6c8758ca4154e2532406194f3edc7f703bbb23f3fc58b015559631eb7ff74897",
+      "2-territory": "4ff731200375d04312b86e66d03b8d130af76f1a475ac112578c3f09af18c71f",
+      "3-1-one-request-one-snapshot-one-subject": "5c5b47dfba9beca28d11437172d5758121e841001af0a2913bcc304d206f2956",
+      "3-10-authority-is-checked-before-a-preview-exists": "4fa2e3deb51e6d3e4e36f944e8c5ebb48773638e29f1ff0280012b557cddd104",
+      "3-11-overlap-and-conflicts": "0f5f48a781e63ca3353b739b2b5aef11c6a44f429aa2dfd745105f72cfed4e6a",
+      "3-12-previews-are-exact-bytes": "39e2a56df3049815d4eb7067ae84eb6f25b4412410365ffadeb2fa7abec41d24",
+      "3-13-authority-effect-classification": "8ab3783b288b14e6bba1a5c81a97b5601f242aa50b2c35336eecccfa6072308a",
+      "3-14-refusal-reasons-are-closed": "e49c5fb4c9259321268076b7ea7fd422dd252864b47bae0b40cf3ecfa9907b1c",
+      "3-15-canonical-bytes-limits-and-schema": "f88026c0263e3a0ef6c7de45827627c2469bf7e8b021871674c5a6151e20a57a",
+      "3-16-nothing-applies-a-plan": "31de3207811c7f65e4bc72e1d9ba3399d5bab2f78fce5161f606ec5d996223d8",
+      "3-2-the-request-document": "5adf37fd5948a33cc0c53cf7fe8bef8a9acab601eb4950b5a0f69bb536e08516",
+      "3-3-the-closed-operation-vocabulary": "f098f3aac243909e352a2031561228a14c4a8cb309030e7991ef327e36ccbf78",
+      "3-4-add-claim": "85d8548d95b7df0e9c78566a4c9f242598dd11464bf30d77e14f0d022e73e67c",
+      "3-5-add-trace-relation": "1a1b22c0ab609a736d156186a2eba90eb20d23f1a82c0a6d06b00c77b62b577d",
+      "3-6-propose-amendment-creates-a-new-spec": "3991b71868d32495bd378b8028604f84230e24721d5a1a9290e050f4a4e6b5f3",
+      "3-7-update-manifest": "4caeafa32aa5091fd0e6f1638196a23adf3624e180363398f125852313559a66",
+      "3-8-replace-unit": "5124e4a6d9078f1e6e47291d586b2333fee36489219c527324eb48af2bdc49a7",
+      "3-9-every-target-is-digest-guarded": "82b8a5dafb4ec6cdca287cc25cc8090d065f11a53ee02a6b680d4a0f3676ab02",
+      "3-behavior": "effba6e6185edeee743f81b427bea5f213eb58811cd9492adeea02a73277a596",
+      "4-acceptance-criteria": "034ef0fea52fd7221d8753e86590bcf9ef82e19517a7abe8e353cf2160bddf72",
+      "5-out-of-scope": "1ac3db9a56392ea9529ea6dab32e1c871f3ce68951b901e9d64a7c01fdffc01d",
+      "6-resolved-decisions": "bd1656bb52c705764f1fbb98c54cc90d3022d7578b1c8e641260a4d5771710a0",
+      "verification": "08958d5f8531da5a2479625438afc8c3e868a71803b3d9afbfed47e2567cbd38"
+    },
+    "sectionHeadings": [
+      "165: Plan a governed edit without applying it",
+      "1. Purpose",
+      "1.1 Why spec-spine and not Statecraft",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One request one snapshot one subject",
+      "3.2 The request document",
+      "3.3 The closed operation vocabulary",
+      "3.4 add-claim",
+      "3.5 add-trace-relation",
+      "3.6 propose-amendment creates a new spec",
+      "3.7 update-manifest",
+      "3.8 replace-unit",
+      "3.9 Every target is digest guarded",
+      "3.10 Authority is checked before a preview exists",
+      "3.11 Overlap and conflicts",
+      "3.12 Previews are exact bytes",
+      "3.13 Authority effect classification",
+      "3.14 Refusal reasons are closed",
+      "3.15 Canonical bytes limits and schema",
+      "3.16 Nothing applies a plan",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/165-digest-guarded-edit-plans/spec.md",
+    "status": "draft",
+    "summary": "Adds a pure, read-only edit-plan producer: a closed list of governed operations, each guarded by the digest of the target it was planned against, checked against ownership, a work scope and the amendment rules, previewed as exact post-image bytes, and classified by authority effect. Refusals come from a closed set. Nothing in spec-spine applies a plan.\n",
+    "title": "Plan a governed edit without applying it"
+  },
+  "shardHash": "b1582b48914aa170a5788a66bfd72197a02194ff96f87bfe003020b40e74c54e",
+  "specVersion": "1.9.0"
+}
