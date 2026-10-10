@@ -40,5 +40,5 @@
     "title": "The built-in ledger probe sweeps the candidate, not origin/main"
   },
   "shardHash": "77673e41ca1e33ca32c83289483b0b9687b7d8c0f9d596b138a2d888009295eb",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

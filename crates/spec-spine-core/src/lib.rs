@@ -45,6 +45,7 @@ pub mod shard;
 pub mod snapshot;
 pub mod spec_id;
 pub mod symbols;
+pub mod traceability;
 pub mod verify;
 pub mod waiver;
 

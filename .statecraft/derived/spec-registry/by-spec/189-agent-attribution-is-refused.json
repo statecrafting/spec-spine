@@ -68,5 +68,5 @@
     "title": "Agent attribution is refused in commits and pull requests"
   },
   "shardHash": "841bba0349e8458e8602996d6b0898ca93c641d43d0a6ffdd73e4e18a99d0ffa",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

@@ -99,5 +99,5 @@
     "title": "A dependency bump in a hashed manifest is not a governed change"
   },
   "shardHash": "ca907255530b4bd3365a1de85d77e0b21719bfdfa8b477ea6dfbc5a89f4b28ba",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

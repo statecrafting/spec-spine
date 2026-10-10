@@ -217,6 +217,35 @@ implementation: pending        # pending | in-progress | complete | n-a | deferr
 # which makes this spec its only owner.
 # relocates:
 #   - { spec: "NNN-source", from: "3-2-the-rule", to: "3-1-the-rule" }
+# --- declared obligation traceability (spec 169) ---
+# `traceability` records which unit, test, invariant, documentation or
+# interface an author connects to one obligation (spec 106). Optional; a spec
+# may declare none, and absence never means untested or unimplemented. Each
+# entry has exactly these members:
+#   - `id`: unique within this spec, in the obligation id grammar (`V-044`);
+#     qualified as `<spec-id>#trace:<id>`. Never reused.
+#   - `obligation`: a qualified `<spec-id>#<obligation-id>`, which may be THIS
+#     spec's; it must resolve and not be withdrawn (`V-045`).
+#   - `relation` and `target.kind`, paired exactly so (`V-044`):
+#     `implemented-by` + `unit` (`spec`, `unit`), `tested-by` + `test`
+#     (`selector`, a test id), `enforced-by` + `invariant` (`obligation`),
+#     `documented-by` + `documentation` (`selector`, a selected-content
+#     selector of any kind but `test`), and `produced-by`/`consumed-by` +
+#     `interface` (`role` producer/consumer, `spec`, and exactly one of `unit`
+#     or a `corpus` naming one of this spec's `interface_references`).
+#   - `withdrawn: true`: retire a relation IN PLACE; its other members stay.
+# The same (obligation, relation, target) twice is `V-046`. A declaration is
+# not evidence that anything ran or passed, and ownership alone never creates
+# a relation.
+# traceability:
+#   - id: "R-1-impl"
+#     obligation: "NNN-this-spec#R-1"
+#     relation: implemented-by
+#     target: { kind: unit, spec: "NNN-this-spec", unit: "src/thing.rs" }
+#   - id: "R-1-doc"
+#     obligation: "NNN-this-spec#R-1"
+#     relation: documented-by
+#     target: { kind: documentation, selector: { kind: file, path: "docs/thing.md" } }
 # --- bootstrap marker (NOT an edge) ---
 # `origin.retroactive` declares authority held since before the graph existed:
 # code that predates its governing spec is evidence, not a violation, and a

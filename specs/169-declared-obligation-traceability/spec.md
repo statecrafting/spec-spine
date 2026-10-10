@@ -4,7 +4,7 @@ title: "Declare qualified obligation traceability"
 status: draft
 kind: "governance"
 created: "2026-09-28"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -19,10 +19,10 @@ summary: >
   every unsupported, unknown, ambiguous, withdrawn, or unresolved target is
   explicit, and ownership is never behavioral proof.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/traceability.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/traceability.rs" }
   - { kind: file, path: "crates/spec-spine-types/schemas/traceability.schema.json", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/src/traceability.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/traceability.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/traceability.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/traceability.rs" }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/traceability/", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/tests/traceability.rs", planned: true }
   - { kind: file, path: "docs/traceability.md", planned: true }
@@ -44,6 +44,8 @@ extends:
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: section, file: "docs/cli-reference.md", anchor: "cli-reference" }, nature: additive }
   - { spec: "103-a-verifier-fixture-is-a-published-artifact", unit: { kind: directory, path: "crates/spec-spine-core/fixtures/verifier/" }, nature: corrective }
+  - { spec: "111-a-move-is-a-reviewed-mapping", unit: { kind: file, path: "crates/spec-spine-core/tests/moves.rs" }, nature: corrective }
+  - { spec: "109-impact-and-conflict-are-declared", unit: { kind: file, path: "crates/spec-spine-core/tests/impacts.rs" }, nature: corrective }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap" }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/symbols.rs" }, role: "test identity feasibility measurement" }
@@ -443,6 +445,44 @@ it exists. As spec 193 §3.2 records for the pin itself, the release is tagged
 at the build change's head and moves the exact pin in the same change. Cutting
 that release is owner authority; the build is complete when its tests and
 acceptance pass, and it waits for that release to merge.
+
+### 2026-10-10: Decisions taken during the build
+
+The build lands as two changes, each under the review-size limit: first the
+grammar, the compile checks and the registry member (§§3.1–3.4, §3.7, §4),
+then the read (§§3.5, 3.6, 3.8, 3.9's read). The spec stays `in-progress`
+between them.
+
+**D-1: the target shapes.** §3.2 names each kind's identity without spelling
+its members. A `test` target is `{ kind: test, selector: "<test id>" }`, the
+id spec 155's `test` selector carries. A `documentation` target's `selector`
+is one spec 155 selector object of any kind but `test` (a test selector there
+is `V-044`). An interface is `{ kind: interface, role, spec }` plus exactly
+one of `unit` (the local form) or `corpus` (the cross-corpus form, `spec` then
+naming the cited spec in that corpus); the declaring spec of §3.4's external
+identity is the spec that declares the relation.
+
+**D-2: the codes.** `V-044` is every single-spec rule of §3.1, §3.2 and §4
+(id grammar and uniqueness, an unqualified source, a disallowed pairing, a
+test selector used as documentation, an interface's role or form, and a
+cross-corpus interface naming other than one declaration). `V-045` is a source
+obligation that is dangling, ambiguous, or withdrawn while the relation is
+live, and `V-046` a duplicate normalized tuple; both resolve spec ids against
+the corpus, so both are cross-spec codes. An unknown member, relation, or
+target kind is the existing malformed-frontmatter `V-002`. A withdrawn
+relation may keep a source that was withdrawn after it (§3.7).
+
+**D-3: what compile cannot see.** §4's last case, a withdrawn relation whose
+identity-bearing fields changed after approval, needs the approved revision.
+Compile is a pure function of the current files and never runs Git, so it
+cannot compare against one; within a revision it refuses a reused id, and an
+approved spec's edit is reviewed under spec 037 like any other. A diff-aware
+refusal belongs to a later spec over two registries.
+
+**D-4: target identity encoding.** §3.4's canonical JSON is compact (no
+insignificant whitespace) with sorted keys, so an identity is one line.
+`planned` never enters a unit's identity (spec 063 §3.4), and a selector's
+`required`, a spec 155 request member, never enters a documentation target's.
 
 ## Verification
 
