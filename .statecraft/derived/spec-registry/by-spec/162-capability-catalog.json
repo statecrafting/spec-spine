@@ -1,0 +1,294 @@
+{
+  "record": {
+    "created": "2026-09-27",
+    "dependsOn": [
+      "034-machine-readable-verdicts",
+      "074-a-governed-read-names-its-version",
+      "110-an-interface-reference-is-digest-pinned",
+      "132-one-exit-contract-for-the-family",
+      "152-a-refusal-says-what-it-is-in-every-form",
+      "155-selected-content-accessor",
+      "170-a-consumer-is-served-answers-not-access"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/capability.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/schemas/capability-catalog.schema.json",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/capability.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/capability_catalog.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/capability_catalog.rs",
+        "planned": true
+      },
+      {
+        "kind": "directory",
+        "path": "crates/spec-spine-cli/tests/fixtures/capability-catalog/",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "docs/capability-catalog.md",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/schema.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/capabilities.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_capabilities.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capabilities.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "110-an-interface-reference-is-digest-pinned",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_interface.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "anchor": "cli-reference",
+          "file": "docs/cli-reference.md",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "id": "162-capability-catalog",
+    "implementation": "pending",
+    "intent": {
+      "goal": "describe every spec-spine operation once, machine-readably, and keep that description true by test",
+      "nonGoals": [
+        "generating reference prose or transport descriptions (spec 166 and a later read-only projection)",
+        "authorizing, sandboxing or rate-limiting any operation",
+        "a dynamic plugin registry or runtime operation discovery beyond this binary",
+        "adding budgets or pagination to operations that have none today"
+      ]
+    },
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-10-the-catalog-is-held-to-the-code",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Every CLI invocation form and every public facade function is described by exactly one catalog operation record, and no record describes an operation that does not exist."
+      },
+      {
+        "anchor": "3-4-effects-are-declared-exactly",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "Each operation states its read, write, execute, network, environment and authority-sensitive effects in closed vocabularies, and never understates an effect the code performs."
+      },
+      {
+        "anchor": "3-5-preconditions-and-outcomes",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "Each operation's declared outcomes follow spec 132's exit contract, and every example exits with a code its operation declares."
+      },
+      {
+        "anchor": "3-11-digests-discovery-and-verification",
+        "id": "R-4",
+        "kind": "requirement",
+        "text": "The catalog and each operation carry a canonical sha256 digest, and a consumer can verify pinned operation digests against the running binary."
+      },
+      {
+        "anchor": "3-14-trust-boundary",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "The catalog is static data compiled into the binary: showing it reads no repository content, runs no example, opens no network connection, and grants no authority."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/capability_catalog.rs",
+          "crates/spec-spine-cli/tests/capability_catalog.rs",
+          "crates/spec-spine-cli/src/main.rs"
+        ],
+        "kind": "verification",
+        "text": "The catalog is checked for canonical bytes, schema conformance, facade and clap census, verdict-verb names, gate agreement, effect audit, stability rule, digest verification, and every example against the built binary."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "roadmap (item H, CC-01)",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      },
+      {
+        "role": "the managed gate whose spec-spine invocations the gate census reads",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/statecraft/gate.sh"
+        }
+      },
+      {
+        "role": "Error::exit_code, the one mapping",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/error.rs"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "6e5e804b708e568065d9fc4cd49dbc3b7e05e6cec1e2fb546777214ab6ea2755",
+      "162-every-operation-is-described-once-and-the-description-is-tested": "7d0ce921001609a5595221afa8d2af2894b28a24b3f5894ad44b3a10b3520152",
+      "2-territory": "41f8733fd003c3f9fa40adaf8c27798699c82efb02f60b171abb5230a54a2df2",
+      "3-1-one-catalog-one-definition-per-operation": "036ea63bb4d9f4d1c9e75b58010e73907a2b0395ebfa5bab0b1c59b65d327e92",
+      "3-10-the-catalog-is-held-to-the-code": "174dc8a5022e0c1f61a05c533d7b282f182b3bd76da679b650f609261f22d38f",
+      "3-11-digests-discovery-and-verification": "f873bcc3a0bbac499e9724f5ef95709f04cdbff58e8d802244b0fb766e7d0354",
+      "3-12-the-verb-the-facade-and-the-exit-contract": "17b0b1dfd58f34562634de5ce53ce28d52de385c521389e509b2ce19d9169fad",
+      "3-13-determinism-and-the-schema-axis": "4746cdf75705ca1349b84105f76d7d4eab572feab9af1182a57e7c136108023b",
+      "3-14-trust-boundary": "3dd24abf4bd46e5b4c913e5e0f45f13407c61069f6c1d36310dcf6d183d74e90",
+      "3-15-inventory": "7998126ce6468fe81a6492d1be9e15ca2e7dcee2b148268f3d17c8e020e8aa0e",
+      "3-2-operation-names": "0410d9dc44fb86f19f0e22f69166d1f68b8117973daecd1c6a69607871c43cbc",
+      "3-3-the-operation-record": "9368857f80f5544a4a4815190a1fd96d5faa02352a81cfea408eaa94d62b1553",
+      "3-4-effects-are-declared-exactly": "923de6fd473eb2ac1e6813567e5f15f74c72802a973b9b9e75e009b33ac7e308",
+      "3-5-preconditions-and-outcomes": "7d3a56f9a192b16809278ecd90dc0b76274106d5ffae6e7901ebc86d6ec03041",
+      "3-6-request-and-response-schemas-and-versions": "20d5a8475154eb462578fc6215324ab0c144a151d37d07bd86c8b2e1578671a8",
+      "3-7-budgets-and-pagination": "bcdc9c84be757f535b30538691369cffe45af88041c28661db3e2d0f581ceb0f",
+      "3-8-stability-deprecation-and-compatibility": "3006be0cf91f833beb5e5b1071733eb3f1e225bc38890a4e59d21108dac81932",
+      "3-9-examples-run-against-the-built-binary": "d8b00dbfa894bdd04968955c66a049bf403b4056850b846a87ab690e4e1105fd",
+      "3-behavior": "7efb0aef35f16c9ec39e846eea622d421183e7e2b7bdcbce6fa662950f6876de",
+      "4-acceptance-criteria": "85986bd922d001149426fc96fe8590cc5545ad50a2de7e9c6ca7baad889215c6",
+      "5-out-of-scope": "012e8be207d45867645f7cc49b8a908a87ff95506fb3ff876ea008b50a6c9dc0",
+      "6-resolved-decisions": "b31e77c6d5e2bbef40b0b5d255ad0f7f47d4d0d64d5d522cff08a859558bcfbb",
+      "verification": "8a19eaa64c89afffe153bf551437d6959ee6adbb8fdd2d113905f57132b9cc00"
+    },
+    "sectionHeadings": [
+      "162: Every operation is described once, and the description is tested",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One catalog, one definition per operation",
+      "3.2 Operation names",
+      "3.3 The operation record",
+      "3.4 Effects are declared exactly",
+      "3.5 Preconditions and outcomes",
+      "3.6 Request and response schemas and versions",
+      "3.7 Budgets and pagination",
+      "3.8 Stability, deprecation and compatibility",
+      "3.9 Examples run against the built binary",
+      "3.10 The catalog is held to the code",
+      "3.11 Digests, discovery and verification",
+      "3.12 The verb, the facade and the exit contract",
+      "3.13 Determinism and the schema axis",
+      "3.14 Trust boundary",
+      "3.15 Inventory",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/162-capability-catalog/spec.md",
+    "status": "draft",
+    "summary": "Adds a versioned, canonical, digest-bearing capability catalog compiled into the binary: every CLI and facade operation with its summary, schema references, exact effects, preconditions, exit outcomes, budgets, pagination, stability, deprecation and examples. The catalog rides the one `capabilities` answer spec 170 established, as an additive member, so a binary still states what it supports through one path. Census tests hold it to the clap tree, the facade, the verdict verbs and the managed gate; the examples run against the built binary. `capabilities verify` checks pinned operation digests. The catalog describes; it authorizes nothing.\n",
+    "title": "Every operation is described once, and the description is tested"
+  },
+  "shardHash": "3e7ee75e88cd06c2ed2b202017464450ad331a9b2c90d91e49a174fe3eaab25e",
+  "specVersion": "1.9.0"
+}
