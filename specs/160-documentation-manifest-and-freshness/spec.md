@@ -8,7 +8,9 @@ implementation: pending
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
+  - "074-a-governed-read-names-its-version"
   - "110-an-interface-reference-is-digest-pinned"
+  - "155-selected-content-accessor"
   - "159-repository-scoped-context-packet"
 summary: >
   Adds a deterministic documentation-manifest document and a read-only
@@ -252,6 +254,12 @@ and byte-backed by the supplied output. A generated region MUST cite at least
 one declared input. A human-authored region MAY cite inputs but is never
 represented as generated.
 
+Citations are reciprocal and MUST agree: input `i`'s `uses` names output `O`
+exactly when at least one region of `O` lists `i` in `inputIds`, and names
+example `E` exactly when `E` lists `i` among its declared inputs. Every id in
+`uses`, `inputIds`, and an example's inputs MUST name a declared output,
+example, or input. A disagreement or a dangling id refuses validation.
+
 Bytes outside all declared regions are forbidden. Adjacent regions are valid.
 Line endings normalize under the repository text contract before spans and
 digests are computed. Binary outputs and invalid UTF-8 are unsupported in v1
@@ -293,6 +301,32 @@ returns one finding per difference. The closed finding reasons are:
 - `region-shifted`; or
 - `output-changed`.
 
+Each reason is decided by the contract that owns the declared identity, never
+by the evaluator's own judgment:
+
+- A repository-local input absent from the current packet takes the spec-159
+  omission reason that packet records for its key: `missing`, `removed`,
+  `withdrawn`, `unresolved`, or `ambiguous` as 159 assigns them, and
+  `unsupported` for 159's `unsupported-selector`, `unsupported-projection`, or
+  `non-text`. A budget omission (`oversized-member`, `item-budget`, or
+  `byte-budget`) is `unverified`, because the current bytes were not read. An
+  input present with a different content digest is `changed`.
+- An interface input takes its spec-110 verification result: a changed spec or
+  section digest is `changed`, a producer spec absent from the supplied export
+  is `missing`, and no supplied export for its corpus is `unverified`.
+- An external reference with no matching caller resolution is `unverified`,
+  and one whose resolved digest differs is `changed`.
+- A current packet page set whose ordered page digests differ from the
+  recorded ones is one `changed` finding whose identity is the packet; each
+  member difference behind it is also reported under its own input.
+- The generator record is not compared: freshness takes no current generator
+  input, so a changed generator surfaces only through the inputs and outputs
+  it changed.
+- An output whose whole-file digest differs is `output-changed`. Within it, a
+  region whose content digest is equal but whose span moved is
+  `region-shifted`, and a region whose content digest differs is `changed`
+  naming that region.
+
 Each finding contains only kind, declared identity, requirement, recorded
 digest, safe current digest when available, and affected output, region, or
 example identities from `uses`. It MUST NOT include selected content, output
@@ -306,10 +340,20 @@ The result status is:
   unchanged;
 - `unverified` when at least one identity cannot be checked and no stronger
   condition exists;
-- `stale` when at least one digest, region, output byte, packet identity,
-  generator identity, or interface pin changed; or
+- `stale` when any finding is `changed`, `region-shifted`, or
+  `output-changed`, or an optional identity is `missing`, `removed`,
+  `withdrawn`, `unresolved`, `ambiguous`, or `unsupported`: a digest, a
+  region's content or its span, an output byte, the packet identity, or an
+  interface pin moved; or
 - `incomplete` when a required identity is missing, removed, withdrawn,
   unresolved, ambiguous, or unsupported.
+
+The freshness result is a closed document with exactly these members:
+`schemaVersion`; `manifestDigest`, the manifest evaluated;
+`recordedSnapshot` and `currentSnapshot`, each a spec-155 snapshot identity;
+`repositoryTreeChanged`, a required boolean (3.14); `status`; `findings`, the
+ordered 3.10 records, empty when `fresh`; and `freshnessDigest`, computed as
+3.13 states.
 
 Precedence is `incomplete`, `stale`, `unverified`, then `fresh`. An optional
 missing identity is `stale`, not `incomplete`, because the recorded output was
@@ -358,8 +402,9 @@ is refused, never truncated.
 
 The schema begins at `1.0.0` on its own documentation-manifest axis. Canonical
 JSON uses sorted keys, LF, and one trailing newline. `manifestDigest` hashes
-the canonical manifest with `manifestDigest` absent. A freshness result carries
-its own digest over the canonical result with that field absent.
+the canonical manifest with `manifestDigest` absent. A freshness result
+carries `freshnessDigest`, its own digest over the canonical result with that
+field absent.
 
 Adding optional members moves MINOR. Removing or reinterpreting a member,
 ordering rule, limit, digest input, status, or enum value moves MAJOR. PATCH is
@@ -503,6 +548,34 @@ code: both read `caller-file` and `source-tree`, `freshness` also reads
 connection. The edit to 162's planned files is an `extends` declared by the
 build that makes it, not by this filing, because a planned unit cannot be
 extended before it exists.
+
+**D-10 (2026-10-10, review): each freshness reason has one owner.** Review of
+the filing found that 3.10 listed `missing`, `removed`, and `withdrawn` without
+saying which condition produces each. 3.10 now takes every reason from the
+contract that owns the identity (spec 159's omission reason, spec 110's
+verification result, or the caller's external resolution), so an evaluator
+has no choice to make. `depends_on` also gains spec 155, whose selected-content
+identities 3.4 uses directly, not only through 159.
+
+**D-11 (2026-10-10, review): `stale` names its finding reasons.** Review
+found that 3.11 described `stale` by what changed without naming the 3.10
+reasons, so a span-only `region-shifted` could be read as not stale. 3.11 now
+lists the reasons that make a result `stale`, `region-shifted` among them, and
+keeps the optional-input rule that follows the list.
+
+**D-12 (2026-10-10, review): the freshness result has a shape, and the
+generator is not compared.** Review found that 3.11 called a changed packet or
+generator identity stale without a 3.10 reason for either, and that 3.14
+introduced `repositoryTreeChanged` with no result document to hold it. 3.10
+now reports a changed packet as one `changed` finding, and states that the
+generator record is not compared because freshness takes no current generator
+input. 3.11 defines the closed result document.
+
+**D-13 (2026-10-10, review): `uses` and `inputIds` must agree.** Review found
+that 3.4's `uses` and 3.8's `inputIds` cite each other with no rule requiring
+agreement, so a manifest could claim a provenance it contradicts. 3.8 now
+requires them to agree and every cited id to exist. `depends_on` also names
+spec 074, whose `version.rs` this spec extends with a new axis.
 
 ## Verification
 
