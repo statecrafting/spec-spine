@@ -236,7 +236,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "6e5e804b708e568065d9fc4cd49dbc3b7e05e6cec1e2fb546777214ab6ea2755",
-      "162-every-operation-is-described-once-and-the-description-is-tested": "c0af415d5b238d706445e6cbeb5ea790e49bbd6944897e6d38a7fbf3c81d0a1b",
+      "162-every-operation-is-described-once-and-the-description-is-tested": "52d28a5d873f2e5faffa3dacd2d5d92990350989b4ac7c7e3387813d800f7940",
       "2-territory": "41f8733fd003c3f9fa40adaf8c27798699c82efb02f60b171abb5230a54a2df2",
       "3-1-one-catalog-one-definition-per-operation": "036ea63bb4d9f4d1c9e75b58010e73907a2b0395ebfa5bab0b1c59b65d327e92",
       "3-10-the-catalog-is-held-to-the-code": "174dc8a5022e0c1f61a05c533d7b282f182b3bd76da679b650f609261f22d38f",
@@ -245,7 +245,7 @@
       "3-13-determinism-and-the-schema-axis": "4746cdf75705ca1349b84105f76d7d4eab572feab9af1182a57e7c136108023b",
       "3-14-trust-boundary": "3dd24abf4bd46e5b4c913e5e0f45f13407c61069f6c1d36310dcf6d183d74e90",
       "3-15-inventory": "dfc05a95a271b9a67e7ca809159c7202a58a2f7c7561a133ee890babf783be4c",
-      "3-2-operation-names": "0410d9dc44fb86f19f0e22f69166d1f68b8117973daecd1c6a69607871c43cbc",
+      "3-2-operation-names": "e40e6579ad751a5149a270f8def69f44ea277ed8bc9af7882c1ce6502950ef73",
       "3-3-the-operation-record": "9368857f80f5544a4a4815190a1fd96d5faa02352a81cfea408eaa94d62b1553",
       "3-4-effects-are-declared-exactly": "923de6fd473eb2ac1e6813567e5f15f74c72802a973b9b9e75e009b33ac7e308",
       "3-5-preconditions-and-outcomes": "7d3a56f9a192b16809278ecd90dc0b76274106d5ffae6e7901ebc86d6ec03041",
@@ -253,7 +253,7 @@
       "3-7-budgets-and-pagination": "bcdc9c84be757f535b30538691369cffe45af88041c28661db3e2d0f581ceb0f",
       "3-8-stability-deprecation-and-compatibility": "3006be0cf91f833beb5e5b1071733eb3f1e225bc38890a4e59d21108dac81932",
       "3-9-examples-run-against-the-built-binary": "d8b00dbfa894bdd04968955c66a049bf403b4056850b846a87ab690e4e1105fd",
-      "3-behavior": "d9eddbd973926d141379e614f95aadcfcd2a4c59e4dd18c738ee76f88ed535ae",
+      "3-behavior": "a40731fa09dfd96d3b2311f2fde0e3323b0d14771af93b914b60d613a51f49bb",
       "4-acceptance-criteria": "85986bd922d001149426fc96fe8590cc5545ad50a2de7e9c6ca7baad889215c6",
       "5-out-of-scope": "012e8be207d45867645f7cc49b8a908a87ff95506fb3ff876ea008b50a6c9dc0",
       "6-resolved-decisions": "9790610c7d737fd1a9a236e9ec3d09642cf029aba25b16ac59ae9c469f2de199",
@@ -289,6 +289,6 @@
     "summary": "Adds a versioned, canonical, digest-bearing capability catalog compiled into the binary: every CLI and facade operation with its summary, schema references, exact effects, preconditions, exit outcomes, budgets, pagination, stability, deprecation and examples. The catalog rides the one `capabilities` answer spec 170 established, as an additive member, so a binary still states what it supports through one path. Census tests hold it to the clap tree, the facade, the verdict verbs and the managed gate; the examples run against the built binary. `capabilities verify` checks pinned operation digests. The catalog describes; it authorizes nothing.\n",
     "title": "Every operation is described once, and the description is tested"
   },
-  "shardHash": "6c47256e30e0a1ee2f634e9eccd213d248d7a76238a60b03a9afd30a99ad72b7",
+  "shardHash": "3d5518a403000e0fa100a424914dae46088ad86e153b773948c95d28e4d92067",
   "specVersion": "1.9.0"
 }

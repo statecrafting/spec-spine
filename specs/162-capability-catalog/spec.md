@@ -167,10 +167,12 @@ Every operation has a unique `name`, `^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$`:
   branches on the envelope `verb` keys the catalog the same way.
 - Otherwise the name is the argv path joined by `.` (`index.render`,
   `compile`), and the bare `index` invocation is `index.build`.
-- A flag that removes the operation's write or execute effects forms its own
-  operation, named with a suffix: `verify.plan`, `compact.plan`, and
-  `verify.affected` (`verify --affected-by <base> --plan`, spec 158). A flag
-  that adds an effect (`attest --sign`) is a conditional effect (§3.4), and a
+- A flag that turns an operation which rewrites the corpus or the ledger, or
+  runs declared commands, into one that does neither forms its own operation,
+  named with a suffix: `verify.plan`, `compact.plan`, and `verify.affected`
+  (`verify --affected-by <base> --plan`, spec 158). A flag that only narrows
+  an operation's inputs, as `index coverage --paths-from` skips `git`, does not
+  split it (§3.4: a flag never subtracts). A flag that adds an effect (`attest --sign`) is a conditional effect (§3.4), and a
   flag that selects another response document (`attest --snapshot`,
   `attest --spec`) is a conditional response (§3.6), of one operation.
 - A facade function with no CLI form is named `library.<stem>`, the function
