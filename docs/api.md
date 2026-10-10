@@ -193,6 +193,35 @@ document on `READ_SCHEMA_VERSION`; invalid request shape is usage, stale
 ledgers are findings, and containment or stale-continuation failures are
 refusals.
 
+### Context packets
+
+`context_packet(&Config, repo_root, &PacketRequest, &ContentSnapshot,
+producer_build)` assembles one page of a repository-scoped context packet
+(spec 159): a spec 107 closure, named by `root` or by `digest` with the
+closure document it recomputes to, plus explicit spec 155 selectors, each
+`required` or `optional`. Members are keyed by their selected-content identity
+and projection, deduplicated with `required` winning, and ordered bytewise.
+Byte and item budgets page between whole members, and the opaque continuation
+is bound by checksum to the request, snapshot, closure, schema major and
+budgets.
+
+The result is a `ContextPacket`. Its `completeness` is `complete`, `partial`
+(a continuation remains), or `incomplete` (a required member is omitted).
+An incomplete packet is still returned; deciding that it is a finding belongs to
+the binding (spec 159 3.8).
+`producer_build` is the binding's `sha256:<hex>` build digest, or `None` to
+record `unverified` (`build_digest(bytes)` computes one). Malformed requests
+are `Usage`, an unsupported consumer schema, a closure document that does not
+recompute, and a stale continuation are `Refused`, a stale ledger is `Stale`,
+and a closure root that does not resolve is `NotFound`.
+
+`context_packet_document(&ContextPacket)` writes the canonical document under
+its own `schemaVersion` (`CONTEXT_PACKET_SCHEMA_VERSION`, schema
+`CONTEXT_PACKET_SCHEMA`). `context_packet_json(config_json, repo_root,
+request_json, snapshot_json)` is the JSON facade; it has no build identity to
+supply, so its packets record `unverified`. `packet_digest(&ContextPacket)`
+recomputes `packetDigest`.
+
 ---
 
 ### Deletions and the prior snapshot (spec 100)
