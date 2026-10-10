@@ -251,12 +251,13 @@ Each region is delimited by two full lines:
 <!-- spec-spine:end generated id="lifecycle" -->
 ```
 
-A delimiter is recognized only as a whole line outside every fenced code
-block. The parser tracks backtick fences as CommonMark does, and §3.5 sizes
+A delimiter is recognized only as a whole line, byte-equal to the form above
+with no leading or trailing whitespace, outside every fenced code block. The parser tracks backtick fences as CommonMark does, and §3.5 sizes
 each generated fence one longer than any backtick run in its body, so a
 signature or command line that itself reads `<!-- spec-spine:` sits inside a
 fence and is content, not a delimiter. The authored region needs no such rule:
-§3.6 refuses any authored line that begins with `<!-- spec-spine:`.
+§3.6 refuses any authored line that begins with `<!-- spec-spine:`, leading
+whitespace ignored, so no authored line can resemble a delimiter at all.
 
 The authored region uses `authored` in place of `generated`. A region's span
 runs from its begin line through its end line plus one following blank line,
@@ -272,8 +273,8 @@ Generated regions are always rewritten from the model; hand edits inside them
 do not survive.
 
 A committed page is malformed, and generation refuses without writing any
-page, when its authored region contains a line beginning with
-`<!-- spec-spine:`, is not valid UTF-8, exceeds 65536 bytes, or appears more
+page, when its authored region contains a line that begins with
+`<!-- spec-spine:` after any leading spaces or tabs, is not valid UTF-8, exceeds 65536 bytes, or appears more
 or fewer than once. An existing file under `outputDir` that matches the page
 name pattern but whose spec is no longer exported is an orphaned page; if its
 `notes` region is non-empty, generation refuses rather than delete human text,
@@ -495,6 +496,13 @@ makes unambiguous, and acceptance criterion 3 already exercises a hostile
 summary. The same review asked whether `inputs` covers the `spec.md` body
 behind `evidence`. It does, through the registry `shardHash`, and §3.4 now
 says so.
+
+**D-16 (2026-10-10, review): whitespace is settled on both sides.** Review
+found that the delimiter parser's whitespace tolerance was unstated while the
+authored-region refusal matched only an unindented prefix. A delimiter is now
+byte-exact with no surrounding whitespace, and the authored refusal ignores
+leading spaces and tabs, so the refusal is strictly wider than what the parser
+accepts.
 
 ## Verification
 
