@@ -626,6 +626,10 @@ fn render(locations: &[spec_spine_types::ResolvedLocation]) -> String {
 mod resolved {
     use super::*;
     use spec_spine_core::symbols::{Lookup, Namespace, Resolver, build_resolver};
+    use spec_spine_types::{
+        ContentDirtyState, ContentOmissionReason, ContentProjection, ContentRequest,
+        ContentSnapshot, ContentSnapshotBinding,
+    };
 
     fn resolver(root: &Path) -> Resolver {
         let cfg = Config::default();
@@ -758,6 +762,236 @@ mod resolved {
                 "{name}"
             );
         }
+    }
+
+    fn snapshot() -> ContentSnapshot {
+        ContentSnapshot {
+            repository: "example/repo".into(),
+            revision: "1".repeat(40),
+            tree: "2".repeat(40),
+            dirty_state: ContentDirtyState::CleanExport,
+            binding: ContentSnapshotBinding::CallerSupplied,
+        }
+    }
+
+    /// Commit the fixture's index as `spec-spine index` writes it, so the
+    /// content read finds a fresh ledger.
+    fn commit_index(root: &Path) {
+        let cfg = Config::default();
+        let outcome = index(&cfg, root).unwrap();
+        let dir = spec_spine_core::index_dir(&cfg, root);
+        let (by_spec, by_package) = spec_spine_core::index_shard_files(&outcome.shards).unwrap();
+        spec_spine_core::shard::sync_dir(&dir.join(spec_spine_core::shard::BY_SPEC_DIR), &by_spec)
+            .unwrap();
+        spec_spine_core::shard::sync_dir(
+            &dir.join(spec_spine_core::shard::BY_PACKAGE_DIR),
+            &by_package,
+        )
+        .unwrap();
+        let (name, inputs) = spec_spine_core::index_inputs_file(&outcome.shards).unwrap();
+        fs::write(dir.join(name), inputs).unwrap();
+    }
+
+    /// One selector's result: the item's span and content, or the omission.
+    fn select(root: &Path, kind: &str, id: &str, projection: &str) -> String {
+        let request: ContentRequest = serde_json::from_value(serde_json::json!({
+            "selectors": [{"kind": kind, "id": id, "projection": projection}]
+        }))
+        .unwrap();
+        let response =
+            spec_spine_core::selected_content(&Config::default(), root, &request, &snapshot())
+                .unwrap();
+        if let Some(item) = response.items.first() {
+            return format!(
+                "{}-{} {:?}",
+                item.span.start_line, item.span.end_line, item.content
+            );
+        }
+        let omission = &response.omissions[0];
+        format!(
+            "{} {}",
+            serde_json::to_value(omission.reason)
+                .unwrap()
+                .as_str()
+                .unwrap(),
+            omission.message
+        )
+    }
+
+    #[test]
+    fn projections_follow_the_grammar_and_tests_select() {
+        let repo = fixture();
+        commit_index(repo.path());
+        let root = repo.path();
+        let cases = [
+            // §3.7: every 0.28.0 documentation span is unchanged.
+            (
+                "symbol",
+                "demo::docs::doc_then_attr",
+                "documentation",
+                "1-1 \"/// Line doc.\"",
+            ),
+            (
+                "symbol",
+                "demo::docs::multi_block",
+                "documentation",
+                "26-28 \"/**\\n * multi\\n */\"",
+            ),
+            // §3.7: a one-line block and an attribute are no longer called absent.
+            (
+                "symbol",
+                "demo::docs::block_doc",
+                "documentation",
+                "5-5 \"/** block doc */\"",
+            ),
+            (
+                "symbol",
+                "demo::docs::attr_doc",
+                "documentation",
+                "unsupported-projection attribute documentation",
+            ),
+            (
+                "symbol",
+                "demo::docs::blank_separated",
+                "documentation",
+                "missing-content no attached documentation comments",
+            ),
+            // §3.7: a body sharing a line with signature text has neither projection.
+            (
+                "symbol",
+                "demo::docs::multi_line_sig",
+                "signature",
+                "unsupported-projection the grammar does not expose a line-bounded signature",
+            ),
+            (
+                "symbol",
+                "demo::docs::multi_line_sig",
+                "body",
+                "unsupported-projection the grammar does not expose a line-bounded body",
+            ),
+            (
+                "symbol",
+                "demo::top_fn",
+                "body",
+                "unsupported-projection the grammar does not expose a line-bounded body",
+            ),
+            (
+                "symbol",
+                "demo::docs::allman",
+                "signature",
+                "21-21 \"pub fn allman()\"",
+            ),
+            (
+                "symbol",
+                "demo::docs::allman",
+                "body",
+                "22-24 \"{\\n    let _x = 1;\\n}\"",
+            ),
+            // §3.2: new constructs select.
+            (
+                "symbol",
+                "demo::TopStruct::inherent_method",
+                "full",
+                "33-33 \"    pub fn inherent_method(&self) {}\"",
+            ),
+            (
+                "symbol",
+                "web::src::util::arrowFn",
+                "body",
+                "unsupported-projection the grammar does not expose a line-bounded body",
+            ),
+            // §3.4: a test selects its attribute run; documentation sits above it.
+            (
+                "test",
+                "demo::tests::unit_test_in_src",
+                "full",
+                "121-125 \"    #[test]\\n    #[should_panic]\\n    fn unit_test_in_src() {\\n        panic!(\\\"x\\\");\\n    }\"",
+            ),
+            (
+                "test",
+                "demo::tests::unit_test_in_src",
+                "documentation",
+                "120-120 \"    /// Documented test.\"",
+            ),
+            (
+                "test",
+                "demo::tests::unit_test_in_src",
+                "body",
+                "unsupported-projection the grammar does not expose a line-bounded body",
+            ),
+            (
+                "test",
+                "demo/tests/integration::integration_test_fn",
+                "full",
+                "1-2 \"#[test]\\nfn integration_test_fn() {}\"",
+            ),
+            (
+                "test",
+                "demo::tests::helper_not_test",
+                "full",
+                "missing-content test 'demo::tests::helper_not_test' is not a test function",
+            ),
+            (
+                "test",
+                "demo::absent",
+                "full",
+                "missing-content test 'demo::absent' does not resolve",
+            ),
+            // §3.5: the outcomes map to omission reasons, each naming its token.
+            (
+                "test",
+                "demo::tests::tokio_test",
+                "full",
+                "unsupported-selector test 'demo::tests::tokio_test' is unsupported: framework-test-attribute",
+            ),
+            (
+                "test",
+                "web::src::util::does a thing",
+                "full",
+                "unsupported-selector test 'web::src::util::does a thing' is unsupported: typescript-test",
+            ),
+            (
+                "symbol",
+                "demo::generated::macro_generated",
+                "full",
+                "indeterminate-selector symbol 'demo::generated::macro_generated' is unknown: item-macro-in-scope",
+            ),
+            (
+                "module",
+                "demo/tests/common/mod",
+                "full",
+                "unsupported-selector module 'demo/tests/common/mod' is unsupported: unrooted-test-file",
+            ),
+            (
+                "symbol",
+                "demo::absent",
+                "full",
+                "missing-content symbol 'demo::absent' does not resolve",
+            ),
+        ];
+        let mut failures = Vec::new();
+        for (kind, id, projection, expected) in cases {
+            let actual = select(root, kind, id, projection);
+            if actual != expected {
+                failures.push(format!(
+                    "{kind} {id} {projection}:\n  expected {expected}\n  actual   {actual}"
+                ));
+            }
+        }
+        assert!(failures.is_empty(), "{}", failures.join("\n"));
+        let request: ContentRequest = serde_json::from_value(serde_json::json!({
+            "selectors": [{"kind": "symbol", "id": "demo::cfg_twin"}]
+        }))
+        .unwrap();
+        assert!(
+            spec_spine_core::selected_content(&Config::default(), root, &request, &snapshot())
+                .is_err(),
+            "row 13: a two-location id still refuses"
+        );
+        let _ = (
+            ContentOmissionReason::IndeterminateSelector,
+            ContentProjection::Full,
+        );
     }
 }
 

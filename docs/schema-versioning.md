@@ -17,7 +17,7 @@
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb, and every `--json` read's failure) | `schemaVersion` | `1.1.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.2.0` | library |
-| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.10.0` | library |
+| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.11.0` | library |
 | capabilities document (`capabilities --json`, spec 170) | `schemaVersion` | `0.1.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
@@ -367,6 +367,18 @@ emitted document against. The `[acceptance] select_all_on` table is a new
 optional `spec-spine.toml` key (an older binary rejects it, as it does any
 unknown key); `config_version` does not move. No member of an existing
 document moved.
+
+**`0.11.0` (spec 163), additive.** The selected-content response's omission
+`reason` gains `indeterminate-selector`: a `symbol`, `module` or `test`
+selector whose scope the structural resolver cannot enumerate (an item-position
+macro, a grammar error, the nesting limit, or a build without
+`symbol-resolution`). `test` selectors now resolve to the test identities spec
+163 §3.4 binds instead of always reporting `unsupported-selector`, and an
+`unsupported-selector` or `indeterminate-selector` message names its closed
+reason token. The resolver's index MINOR (`1.3.0`) is not part of this step: it
+lands with the change that moves this repository's engine pin to the first
+release carrying the resolver (spec 163 D-9), and adopters then re-run `index`
+once. No member of an existing document moved.
 
 ## Migration note: spec 034, the verdict envelope
 

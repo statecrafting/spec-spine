@@ -102,7 +102,7 @@ fn unsupported_binary_and_oversized_selections_are_explicit() {
     )
     .unwrap();
     let value: serde_json::Value = serde_json::from_str(&json).unwrap();
-    assert_eq!(value["schemaVersion"], "0.10.0");
+    assert_eq!(value["schemaVersion"], "0.11.0");
     let reasons: Vec<&str> = value["omissions"]
         .as_array()
         .unwrap()
@@ -258,16 +258,37 @@ fn directory_member_symlink_leaving_the_named_directory_is_refused() {
     );
 }
 
+/// Spec 163 §3.4 lifted the blanket reservation: a test selector resolves
+/// against the committed index, and a form it cannot bind (here a string-named
+/// TypeScript test) is still an explicit `unsupported-selector` omission.
 #[test]
 fn unsupported_test_selector_is_an_explicit_omission() {
     let tmp = tempfile::tempdir().unwrap();
+    fs::create_dir_all(tmp.path().join("specs")).unwrap();
+    fs::write(tmp.path().join("package.json"), r#"{ "name": "web" }"#).unwrap();
+    fs::write(tmp.path().join("util.ts"), "it(\"works\", () => {});\n").unwrap();
+    let cfg = Config::default();
+    let outcome = spec_spine_core::index(&cfg, tmp.path()).unwrap();
+    let dir = spec_spine_core::index_dir(&cfg, tmp.path());
+    let (by_spec, by_package) = spec_spine_core::index_shard_files(&outcome.shards).unwrap();
+    spec_spine_core::shard::sync_dir(&dir.join(spec_spine_core::shard::BY_SPEC_DIR), &by_spec)
+        .unwrap();
+    spec_spine_core::shard::sync_dir(
+        &dir.join(spec_spine_core::shard::BY_PACKAGE_DIR),
+        &by_package,
+    )
+    .unwrap();
+    let (name, inputs) = spec_spine_core::index_inputs_file(&outcome.shards).unwrap();
+    fs::write(dir.join(name), inputs).unwrap();
     let request: ContentRequest = serde_json::from_value(serde_json::json!({
-        "selectors": [{"kind":"test", "id":"crate::tests::works"}]
+        "selectors": [{"kind":"test", "id":"web::util::works"}]
     }))
     .unwrap();
-    let response = selected_content(&Config::default(), tmp.path(), &request, &snapshot()).unwrap();
-    assert_eq!(
-        response.omissions[0].reason,
+    let response = selected_content(&cfg, tmp.path(), &request, &snapshot()).unwrap();
+    let expected = if cfg!(feature = "symbol-resolution") {
         ContentOmissionReason::UnsupportedSelector
-    );
+    } else {
+        ContentOmissionReason::IndeterminateSelector
+    };
+    assert_eq!(response.omissions[0].reason, expected, "{response:?}");
 }

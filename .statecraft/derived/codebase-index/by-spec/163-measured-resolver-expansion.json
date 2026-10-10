@@ -17,6 +17,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/tests/resolver_matrix.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-cli/tests/scope.rs",
         "source": "spec-edge"
       },
@@ -71,7 +75,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/resolver_matrix.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -305,5 +313,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "05925ec05fee4cbb950fa6e343858182c237de191b17ea9618edd15270ae2c8c"
+  "shardHash": "33e83d39060fe174732d4555c4f6510b18c060ca0897d03658fcf65e38e7e162"
 }

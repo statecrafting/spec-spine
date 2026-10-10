@@ -28,6 +28,12 @@ implementation: pending        # pending | in-progress | complete | n-a | deferr
 #   - "src/whole_file.rs"      # bare string == { kind: file, path: ... }
 #   - "src/subtree/"           # trailing slash == the subtree rooted there
 #   - { kind: symbol, id: "crate::module::function" }
+#   # A symbol id is syntactic (spec 163): `crate::Type::method`,
+#   # `crate::<Type as Trait>::method`, `crate::Trait::method`, `crate::my_macro!`,
+#   # an item in an inline module at any depth, and `my_crate/tests/<target>::item`
+#   # in an integration-test root all resolve. An id the resolver recognizes but
+#   # does not support reports why, as `(unsupported: <reason>)` or
+#   # `(unknown: <reason>)` on its index diagnostic.
 #   - { kind: section, file: "Makefile", anchor: "build-target" }
 #   - { kind: directory, path: "crates/my-crate/" }
 #   - { kind: crate, id: "my-crate" }

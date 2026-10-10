@@ -200,7 +200,12 @@ pub const DELTA_SCHEMA_VERSION: &str = "0.2.0";
 /// `0.10.0` (spec 158): additive. A new read document, the affected-acceptance
 /// selection (`verify --affected-by <base> --plan --json`, `affected_json`).
 /// Existing read documents are unchanged.
-pub const READ_SCHEMA_VERSION: &str = "0.10.0";
+///
+/// `0.11.0` (spec 163): additive. The selected-content response gains one
+/// omission reason, `indeterminate-selector`, and `test` selectors resolve to
+/// the test identities the structural resolver binds. Existing read documents
+/// are otherwise unchanged.
+pub const READ_SCHEMA_VERSION: &str = "0.11.0";
 
 /// `schemaVersion` of an authority snapshot (spec 070): its own axis, defined
 /// beside the DTO it versions and re-exported here with the others.

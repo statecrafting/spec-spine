@@ -12,6 +12,7 @@ use spec_spine_types::{
 
 use crate::index::Freshness;
 use crate::snapshot::{PieceKind, PieceSet};
+use crate::symbols::{Lookup, Namespace};
 use crate::{
     Versioning, canonical_json, check_registry_freshness, guard_committed_index, hash,
     load_committed_index, load_committed_registry, read_document,
@@ -43,7 +44,6 @@ struct SelectorContext<'a> {
     registry: Option<&'a spec_spine_types::Registry>,
     index: Option<&'a spec_spine_types::CodebaseIndex>,
     max_bytes: usize,
-    #[cfg(feature = "symbol-resolution")]
     resolver: Option<&'a crate::symbols::Resolver>,
 }
 
@@ -73,6 +73,7 @@ pub fn selected_content(
             ContentSelector::OwnedUnit { .. }
                 | ContentSelector::Symbol { .. }
                 | ContentSelector::Module { .. }
+                | ContentSelector::Test { .. }
         )
     });
 
@@ -91,25 +92,29 @@ pub fn selected_content(
         None
     };
 
+    // One structural walk answers symbol, module and test selectors (spec
+    // 163 §3.6); built without `symbol-resolution`, every lookup is
+    // `unknown` / `resolver-disabled`.
+    let needs_resolver = request.selectors.iter().any(|s| {
+        matches!(
+            s,
+            ContentSelector::Symbol { .. }
+                | ContentSelector::Module { .. }
+                | ContentSelector::Test { .. }
+        )
+    });
     #[cfg(feature = "symbol-resolution")]
-    let resolver = request
-        .selectors
-        .iter()
-        .any(|s| {
-            matches!(
-                s,
-                ContentSelector::Symbol { .. } | ContentSelector::Module { .. }
-            )
-        })
-        .then(|| {
-            let idx = index.as_ref().expect("index loaded");
-            crate::symbols::build_resolver(
-                repo_root,
-                &idx.packages,
-                &cfg.index.resolver_exclusions,
-                &cfg.layout,
-            )
-        });
+    let resolver = needs_resolver.then(|| {
+        let idx = index.as_ref().expect("index loaded");
+        crate::symbols::build_resolver(
+            repo_root,
+            &idx.packages,
+            &cfg.index.resolver_exclusions,
+            &cfg.layout,
+        )
+    });
+    #[cfg(not(feature = "symbol-resolution"))]
+    let resolver = needs_resolver.then(crate::symbols::Resolver::disabled);
     let mut candidates = Vec::new();
     let context = SelectorContext {
         cfg,
@@ -118,7 +123,6 @@ pub fn selected_content(
         registry: registry.as_ref(),
         index: index.as_ref(),
         max_bytes: request.max_bytes,
-        #[cfg(feature = "symbol-resolution")]
         resolver: resolver.as_ref(),
     };
     for (position, selector) in request.selectors.iter().enumerate() {
@@ -481,49 +485,78 @@ fn resolve_selector(
             );
             Ok((identity, selected))
         }
-        ContentSelector::Test { id, .. } => Ok((
-            format!("test:{id}"),
-            Err((
-                ContentOmissionReason::UnsupportedSelector,
-                "test selectors require a resolver that binds test attributes to nested functions"
-                    .into(),
-            )),
-        )),
+        ContentSelector::Test { id, .. } => {
+            let identity = format!("test:{id}");
+            let resolver = context.resolver.expect("resolver built");
+            let location = match resolver.lookup(Namespace::Test, id) {
+                Lookup::Resolved(locations) => {
+                    if locations.len() > 1 {
+                        return Err(Error::Refused(format!("test selector '{id}' is ambiguous")));
+                    }
+                    locations.into_iter().next()
+                }
+                Lookup::Unresolved
+                    if matches!(resolver.lookup(Namespace::Symbol, id), Lookup::Resolved(_)) =>
+                {
+                    return Ok((
+                        identity,
+                        missing(format!("test '{id}' is not a test function")),
+                    ));
+                }
+                other => return Ok((identity, Err(unresolved_outcome("test", id, &other)))),
+            };
+            let Some(location) = location else {
+                return Ok((identity, missing(format!("test '{id}' does not resolve"))));
+            };
+            let selected = read_structural(cfg, root, root_real, &location, projection, true);
+            Ok((identity, selected))
+        }
         ContentSelector::Symbol { id, .. } | ContentSelector::Module { id, .. } => {
-            let kind = match selector {
-                ContentSelector::Symbol { .. } => "symbol",
-                ContentSelector::Module { .. } => "module",
+            let (kind, ns) = match selector {
+                ContentSelector::Symbol { .. } => ("symbol", Namespace::Symbol),
+                ContentSelector::Module { .. } => ("module", Namespace::Module),
                 _ => unreachable!(),
             };
             let identity = format!("{kind}:{id}");
-            #[cfg(feature = "symbol-resolution")]
-            let locations = {
-                let ns = if kind == "module" {
-                    crate::symbols::Namespace::Module
-                } else {
-                    crate::symbols::Namespace::Symbol
-                };
-                context.resolver.expect("resolver built").resolve(ns, id)
+            let lookup = context.resolver.expect("resolver built").lookup(ns, id);
+            let locations = match lookup {
+                Lookup::Resolved(locations) => locations,
+                other => return Ok((identity, Err(unresolved_outcome(kind, id, &other)))),
             };
-            #[cfg(not(feature = "symbol-resolution"))]
-            let locations: Vec<ResolvedLocation> = Vec::new();
             if locations.len() > 1 {
                 return Err(Error::Refused(format!(
                     "{kind} selector '{id}' is ambiguous"
                 )));
             }
             let Some(location) = locations.first() else {
-                return Ok((
-                    identity,
-                    Err((
-                        ContentOmissionReason::MissingContent,
-                        format!("{kind} '{id}' does not resolve"),
-                    )),
-                ));
+                return Ok((identity, missing(format!("{kind} '{id}' does not resolve"))));
             };
-            let selected = read_structural(cfg, root, root_real, location, projection);
+            let selected = read_structural(cfg, root, root_real, location, projection, false);
             Ok((identity, selected))
         }
+    }
+}
+
+/// The omission an unresolved structural lookup maps to (spec 163 §3.5):
+/// `unsupported` to `unsupported-selector`, `unknown` to
+/// `indeterminate-selector`, and a plain unresolved to `missing-content`, each
+/// naming its reason. No outcome is mapped to another. Every caller handles
+/// `Resolved` before calling; the arm exists so the match is exhaustive
+/// without a panic on this read path, and it reports a plain miss.
+fn unresolved_outcome(kind: &str, id: &str, lookup: &Lookup) -> (ContentOmissionReason, String) {
+    match lookup {
+        Lookup::Unsupported(reason) => (
+            ContentOmissionReason::UnsupportedSelector,
+            format!("{kind} '{id}' is unsupported: {reason}"),
+        ),
+        Lookup::Unknown(reason) => (
+            ContentOmissionReason::IndeterminateSelector,
+            format!("{kind} '{id}' is unknown: {reason}"),
+        ),
+        Lookup::Resolved(_) | Lookup::Unresolved => (
+            ContentOmissionReason::MissingContent,
+            format!("{kind} '{id}' does not resolve"),
+        ),
     }
 }
 
@@ -856,6 +889,7 @@ fn read_structural(
     root_real: &Path,
     location: &ResolvedLocation,
     projection: ContentProjection,
+    test: bool,
 ) -> Result<Selected, (ContentOmissionReason, String)> {
     let path =
         RepoPath::parse(&location.file).map_err(|m| (ContentOmissionReason::MissingContent, m))?;
@@ -872,27 +906,138 @@ fn read_structural(
     let whole = read_path(cfg, root, root_real, &path, None, Some(8 * 1024 * 1024))?;
     let lines: Vec<&str> = whole.content.lines().collect();
     if projection == ContentProjection::Documentation {
-        let Some((start, end)) = attached_documentation_span(&lines, span.start_line) else {
-            return Err((
+        return match documentation(&lines, span.start_line) {
+            Documentation::Span(start, end) => Ok(select_lines(path, &whole.content, start, end)),
+            Documentation::Attribute => Err((
+                ContentOmissionReason::UnsupportedProjection,
+                "attribute documentation".into(),
+            )),
+            Documentation::Absent => Err((
                 ContentOmissionReason::MissingContent,
                 "no attached documentation comments".into(),
-            ));
+            )),
         };
-        return Ok(select_lines(path, &whole.content, start, end));
     }
     let selected = select_lines(path.clone(), &whole.content, span.start_line, span.end_line);
     #[cfg(feature = "symbol-resolution")]
-    let spans = crate::symbols::structural_spans(
-        &whole.content,
-        path.as_str()
+    let spans = {
+        let extension = path
+            .as_str()
             .rsplit_once('.')
             .map(|(_, ext)| ext)
-            .unwrap_or(""),
-        span.start_line,
-    );
+            .unwrap_or("");
+        if test {
+            // A test span opens on its attribute run; signature and body come
+            // from the function node itself (spec 163 §3.4).
+            crate::symbols::structural_spans_ending(
+                &whole.content,
+                extension,
+                span.start_line,
+                span.end_line,
+            )
+        } else {
+            crate::symbols::structural_spans(&whole.content, extension, span.start_line)
+        }
+    };
     #[cfg(not(feature = "symbol-resolution"))]
-    let spans = None;
+    let spans = {
+        let _ = test;
+        None
+    };
     structural_projection(selected, projection, spans)
+}
+
+/// What the `documentation` projection finds above an item.
+enum Documentation {
+    Span(usize, usize),
+    /// Only a `#[doc = …]` attribute documents the item (spec 163 §3.7).
+    Attribute,
+    Absent,
+}
+
+/// The documentation attached to the item beginning on `item_start_line`.
+/// Every span the 0.28.0 scan returns is returned unchanged; only where it
+/// found nothing does spec 163 §3.7's grammar apply: a `/** … */` block on one
+/// line, and a multi-line block whose closing line carries text, are
+/// recognized, and a `#[doc = …]` attribute is reported rather than called
+/// absent. A blank line still ends the run (D-6).
+fn documentation(lines: &[&str], item_start_line: usize) -> Documentation {
+    if let Some((start, end)) = attached_documentation_span(lines, item_start_line) {
+        return Documentation::Span(start, end);
+    }
+    let mut cursor = item_start_line.saturating_sub(1);
+    let mut attribute_depth = 0isize;
+    let mut doc_attribute = false;
+    while cursor > 0 {
+        let line = lines[cursor - 1].trim();
+        // Outside an attribute, a comment line ends the run: its brackets are
+        // prose. Brackets inside a string literal (`#[serde(rename = "[v")]`)
+        // are not attribute structure either, and an unbalanced line can never
+        // leave the depth negative for an unrelated line above to cancel.
+        if attribute_depth == 0 && (line.starts_with("//") || line.starts_with("/*")) {
+            break;
+        }
+        attribute_depth = (attribute_depth + bracket_delta(line)).max(0);
+        if attribute_depth > 0 || line.starts_with("#[") {
+            doc_attribute |= line.starts_with("#[doc");
+            cursor -= 1;
+        } else {
+            break;
+        }
+    }
+    let end = cursor;
+    while cursor > 0 {
+        let line = lines[cursor - 1].trim();
+        let single_block = line.starts_with("/**") && line.ends_with("*/") && line.len() > 4;
+        if line.starts_with("///") || single_block {
+            cursor -= 1;
+        } else if line.ends_with("*/") && !line.starts_with("/*") {
+            // A multi-line block: it is documentation only if it opens `/**`.
+            let mut open = cursor - 1;
+            while open > 0 && !lines[open - 1].trim_start().starts_with("/*") {
+                open -= 1;
+            }
+            if open == 0 || !lines[open - 1].trim_start().starts_with("/**") {
+                break;
+            }
+            cursor = open - 1;
+        } else {
+            break;
+        }
+    }
+    if cursor < end {
+        Documentation::Span(cursor + 1, end)
+    } else if doc_attribute {
+        Documentation::Attribute
+    } else {
+        Documentation::Absent
+    }
+}
+
+/// `]` minus `[` on one line, read upward, ignoring brackets inside string
+/// literals.
+fn bracket_delta(line: &str) -> isize {
+    let mut delta = 0isize;
+    let mut in_string = false;
+    let mut escaped = false;
+    for c in line.chars() {
+        if in_string {
+            match (escaped, c) {
+                (true, _) => escaped = false,
+                (false, '\\') => escaped = true,
+                (false, '"') => in_string = false,
+                _ => {}
+            }
+            continue;
+        }
+        match c {
+            '"' => in_string = true,
+            ']' => delta += 1,
+            '[' => delta -= 1,
+            _ => {}
+        }
+    }
+    delta
 }
 
 fn attached_documentation_span(lines: &[&str], item_start_line: usize) -> Option<(usize, usize)> {
@@ -1099,5 +1244,26 @@ mod tests {
         ];
         assert_eq!(attached_documentation_span(&lines, 3), Some((1, 1)));
         assert_eq!(attached_documentation_span(&lines, 6), None);
+    }
+
+    /// Spec 163 §3.7's fallback reads attribute structure, not raw brackets:
+    /// a `[` inside a string literal must not leave the depth negative so
+    /// that `]]` on the doc line above swallows it as an attribute. The 0.28.0
+    /// scan has exactly that flaw and finds nothing here, so the fallback runs.
+    #[test]
+    fn documentation_fallback_ignores_brackets_in_string_literals() {
+        let lines = [
+            "fn other() {}",
+            "/// arr]]",
+            "#[serde(rename = \"[v\")]",
+            "pub fn f() {}",
+        ];
+        assert_eq!(attached_documentation_span(&lines, 4), None);
+        assert!(matches!(
+            documentation(&lines, 4),
+            Documentation::Span(2, 2)
+        ));
+        assert_eq!(bracket_delta("#[serde(rename = \"[v\")]"), 0);
+        assert_eq!(bracket_delta(r#"#[doc = "a \" ] b"]"#), 0);
     }
 }
