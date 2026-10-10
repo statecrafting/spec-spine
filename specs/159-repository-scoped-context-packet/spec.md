@@ -175,8 +175,10 @@ be converted to a bare file selector or inferred substitute.
 The packet carries the complete closure document and `closureDigest`. The
 closure bytes do not spend the content byte budget, but every selected content
 item derived from it spends item and byte budgets. A caller MAY add selectors
-outside the closure. Their packet members record `origin: "additional"`;
-closure-derived members record `origin: "closure"`.
+outside the closure. Every member and omission carries `origins`, always an
+array: `["additional"]` for those selectors, `["closure"]` for closure-derived
+members, and `["closure", "additional"]` for one named both ways (3.4). There is
+no singular `origin` member.
 
 ### 3.4 Member identity and deduplication
 
