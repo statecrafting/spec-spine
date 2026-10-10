@@ -498,7 +498,8 @@ against the committed index only when it is fresh; a stale or absent index
 makes them `unknown`, never `resolved` against a moved tree. Selector targets
 bind through spec 155's resolver with no snapshot and no content leaving it:
 missing content is `unresolved`, a form or projection outside the matrix is
-`unsupported`, a refused ambiguous symbol or module is `ambiguous`, and an
+`unsupported`, a refused ambiguous symbol or module, or a selector
+naming a spec ordinal two specs share, is `ambiguous`, and an
 item larger than any request budget is still bound. A build without
 `symbol-resolution` (spec 025) reports a symbol or module selector
 `unsupported`, since the form is outside that build's matrix.

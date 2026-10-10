@@ -333,6 +333,9 @@ pub fn traceability(
         None => None,
     };
 
+    // Spec 144 §3.4, once for the read: a link leaving the repository
+    // refuses the whole read rather than reading as one relation's state.
+    crate::pathutil::refuse_links_leaving(cfg, repo_root)?;
     let inputs = Inputs {
         cfg,
         repo_root,
@@ -637,6 +640,22 @@ fn resolve_selector(inputs: &Inputs<'_>, selector: &ContentSelector) -> Result<R
             Some("no fresh committed codebase index is available".into()),
         ));
     }
+    // A selector naming a spec by an ordinal two specs share is ambiguous.
+    // Decided here, on the id set, rather than by reading the resolver's
+    // refusal text.
+    if let Some(spec) = selector_spec(selector)
+        && let crate::spec_id::SpecIdMatch::Ambiguous(candidates) =
+            crate::spec_id::match_spec_id(spec, inputs.registry.specs.iter().map(|s| s.id.as_str()))
+    {
+        return Ok((
+            TraceState::Ambiguous,
+            Some(format!(
+                "spec '{spec}' names {} specs ({})",
+                candidates.len(),
+                candidates.join(", ")
+            )),
+        ));
+    }
     let bound = match crate::content::bind_selector(
         inputs.cfg,
         inputs.repo_root,
@@ -647,11 +666,13 @@ fn resolve_selector(inputs: &Inputs<'_>, selector: &ContentSelector) -> Result<R
         Ok(bound) => bound,
         // Spec 155 refuses an ambiguous structural selector rather than
         // choosing; here that is a state, not a refusal of the whole read.
+        // Its only refusal for these two kinds is that one (the link
+        // containment check it also runs already passed in `traceability`).
         Err(Error::Refused(m))
             if matches!(
                 selector,
                 ContentSelector::Symbol { .. } | ContentSelector::Module { .. }
-            ) || m.contains("is ambiguous") =>
+            ) =>
         {
             return Ok((TraceState::Ambiguous, Some(m)));
         }
@@ -669,6 +690,19 @@ fn resolve_selector(inputs: &Inputs<'_>, selector: &ContentSelector) -> Result<R
             m,
         )) => (TraceState::Unsupported, Some(m)),
     })
+}
+
+/// The spec a selector names, if it names one.
+fn selector_spec(selector: &ContentSelector) -> Option<&str> {
+    match selector {
+        ContentSelector::Spec { spec, .. }
+        | ContentSelector::SpecSection { spec, .. }
+        | ContentSelector::OwnedUnit { spec, .. } => Some(spec),
+        ContentSelector::Obligation { obligation, .. } => {
+            split_obligation_ref(obligation).map(|(spec, _)| spec)
+        }
+        _ => None,
+    }
 }
 
 /// JSON facade for [`traceability`]: loads the committed registry, and the

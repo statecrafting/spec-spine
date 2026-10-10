@@ -727,6 +727,12 @@ fn the_report_conforms_to_its_embedded_schema() {
         .collect();
     assert!(errors.is_empty(), "{errors:?}");
 
+    // A later MINOR's optional member validates (D-7).
+    let mut later = value.clone();
+    later["addedLater"] = true.into();
+    later["relations"][0]["addedLater"] = true.into();
+    assert!(validator.is_valid(&later));
+
     // And the schema can refuse: an unknown state does not validate.
     let mut bad = value.clone();
     bad["relations"][0]["state"] = "maybe".into();
@@ -734,4 +740,31 @@ fn the_report_conforms_to_its_embedded_schema() {
     let mut bad = value;
     bad["traceabilityVersion"] = "2.0.0".into();
     assert!(!validator.is_valid(&bad));
+}
+
+#[test]
+fn a_selector_naming_a_shared_ordinal_is_ambiguous() {
+    // Two specs share the ordinal 003, so a section of "003" names neither.
+    let tmp = full_corpus(&[1]);
+    write_spec(tmp.path(), "003-c", "");
+    write_spec(tmp.path(), "003-d", "");
+    let extra = "  - id: \"t-amb\"\n    obligation: \"001#R-1\"\n    relation: documented-by\n    target: { kind: documentation, selector: { kind: spec-section, spec: \"003\", anchor: \"3-1-the-rule\" } }\n";
+    write_spec(
+        tmp.path(),
+        "002-b",
+        &format!("{B_HEAD}{}{extra}", relations_block(&[1])),
+    );
+    let out = compile(&Config::default(), tmp.path()).unwrap();
+    let idx = index(&Config::default(), tmp.path()).unwrap().index;
+    let r = traceability(
+        &Config::default(),
+        tmp.path(),
+        &out.registry,
+        Some(&idx),
+        &TraceabilityRequest::default(),
+    )
+    .unwrap();
+    let amb = by_id(&r.relations, "t-amb");
+    assert_eq!(amb.state, TraceState::Ambiguous, "{:?}", amb.detail);
+    assert!(amb.detail.as_deref().unwrap().contains("003-c, 003-d"));
 }
