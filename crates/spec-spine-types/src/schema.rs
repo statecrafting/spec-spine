@@ -43,3 +43,8 @@ pub const INDEX_INPUTS_SCHEMA: &str = include_str!("../schemas/codebase-index-in
 /// --affected-by <base> --plan --json` (spec 158). A read document, so its
 /// `schemaVersion` is [`crate::READ_SCHEMA_VERSION`].
 pub const AFFECTED_SCHEMA: &str = include_str!("../schemas/affected.schema.json");
+
+/// JSON Schema for one context-packet page, `context packet --json` (spec
+/// 159). Its own axis: `schemaVersion` is
+/// [`crate::CONTEXT_PACKET_SCHEMA_VERSION`].
+pub const CONTEXT_PACKET_SCHEMA: &str = include_str!("../schemas/context-packet.schema.json");

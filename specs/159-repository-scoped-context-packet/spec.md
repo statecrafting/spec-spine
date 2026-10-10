@@ -4,7 +4,7 @@ title: "Assemble one repository context packet"
 status: draft
 kind: "governance"
 created: "2026-09-26"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -18,14 +18,14 @@ summary: >
   request and snapshot, and carries a canonical packet digest without creating
   cross-repository authority.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/context_packet.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-types/schemas/context-packet.schema.json", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/context_packet.rs" }
+  - { kind: file, path: "crates/spec-spine-types/schemas/context-packet.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/context_packet.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-core/tests/context_packet.rs", planned: true }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/context-packet/", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/src/cmd_context.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/tests/context_packet.rs", planned: true }
-  - { kind: file, path: "docs/context-packets.md", planned: true }
+  - { kind: section, file: "docs/context-packets.md", anchor: "context-packets", planned: true }
 extends:
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
@@ -34,6 +34,13 @@ extends:
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: section, file: "docs/cli-reference.md", anchor: "cli-reference" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
+  - { spec: "022-index-sharding", unit: "crates/spec-spine-types/src/schema.rs", nature: additive }
+  - { spec: "034-machine-readable-verdicts", unit: { kind: file, path: "crates/spec-spine-types/src/verdict.rs" }, nature: additive }
+  - { spec: "155-selected-content-accessor", unit: { kind: file, path: "crates/spec-spine-core/src/content.rs" }, nature: additive }
+  - { spec: "155-selected-content-accessor", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_content.rs" }, nature: additive }
+  - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_capabilities.rs" }, nature: additive }
+  - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/tests/capabilities.rs" }, nature: additive }
+  - { spec: "152-a-refusal-says-what-it-is-in-every-form", unit: { kind: file, path: "crates/spec-spine-cli/tests/refusal_envelopes.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap" }
   - { unit: { kind: file, path: "crates/spec-spine-core/src/closure.rs" }, role: "closure identities and digest" }
@@ -441,6 +448,55 @@ reveal the selected private text.
 ordinals 156 through 158 were taken on `main` first; refiled as 159 with its
 content unchanged except for spec 155 as merged and a Verification block that
 fails before the build.
+
+**D-8 (2026-10-10): the closure forms map onto spec 107 as merged.** Spec 107's
+request has no `root` member. A packet `root` resolves as the closure request
+naming that one spec. A `digest` form carries the resolved closure document;
+the producer reads back the request it was made from (its members' identities
+and rationale), resolves that against the snapshot, and refuses
+`closure-mismatch` unless the result equals the document byte for byte and
+carries the stated digest. `closureDigest` is spec 107's digest, unprefixed, so
+the packet reuses the closure identity rather than defining a second one. The
+packet's `rationale` is its own and is not the closure's.
+
+**D-9 (2026-10-10): the omission vocabulary maps from spec 155 and reserves
+four reasons.** A spec 155 `missing-content` is `unresolved` at a symbol,
+module or owned-unit selector and `missing` everywhere else;
+`unsupported-selector`, `unsupported-projection`, `binary-content` and
+`item-exceeds-byte-budget` map to `unsupported-selector`,
+`unsupported-projection`, `non-text` and `oversized-member`. A withdrawn
+closure obligation is `withdrawn`. `removed` would need history, which 3.9
+forbids reading; ambiguity refuses under 3.6; and a budget ends a page with a
+continuation under 3.10. So `removed`, `ambiguous`, `item-budget` and
+`byte-budget` stay in the schema 1.0 enum, reserved, and this producer never
+emits them.
+
+**D-10 (2026-10-10): omissions do not depend on the page.** Every member is
+resolved before paging, and a member larger than `maxBytes` is omitted as
+`oversized-member` up front, whatever its requirement, since no page could ever
+hold it (3.8). Every page therefore carries the same omissions, and any page
+tells a caller whether the packet is usable. Only selected members that fit a
+page are paged.
+
+**D-11 (2026-10-10): requirement lives on the packet member.** A member request
+is `{ selector, requirement }`, and the spec 155 selector's own `required` flag
+must be left at its default. A selector that sets `required: false` is a usage
+error, so one member cannot carry two conflicting requirements. Closure-derived
+members are required: they are the declared context.
+
+**D-12 (2026-10-10): the CLI checks the snapshot after the read as well.**
+`content select` binds before it reads. `context packet` binds the same way
+through a shared `bind_snapshot`, and afterwards confirms that the requested
+commit still resolves to the bound revision and that a working-tree binding is
+still clean. Anything else is refused as `snapshot-changed`. The CLI supplies
+the SHA-256 of its own executable as the producer build. The JSON facade has no
+build to hash and records `unverified`.
+
+**D-13 (2026-10-10): an incomplete packet is a finding at the CLI and data at
+the library.** `context_packet` returns the incomplete packet as `Ok`. The CLI
+writes it as the `context.packet` envelope's `report`, at exit `1`.
+`context_packet_json` returns the document, and the caller reads
+`completeness`.
 
 ## Verification
 

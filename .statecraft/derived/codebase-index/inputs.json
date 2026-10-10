@@ -123,6 +123,9 @@
     "crates/spec-spine-types/schemas/codebase-index.schema.json": {
       "contentHash": "2e415a74b666b21d114ef0aebb656e22b6b634f4d66b2fbc5f3c422b1a57ac3e"
     },
+    "crates/spec-spine-types/schemas/context-packet.schema.json": {
+      "contentHash": "23f9f02489907b499068d47539aa7c3c16a371687788e2a3dbd78faefcd83c19"
+    },
     "crates/spec-spine-types/schemas/registry-spec-shard.schema.json": {
       "contentHash": "22bbd344f7c6e3aa150012829ecdd43965ebe22186cd1f8fd2aad42a7e4e4e0b"
     },
