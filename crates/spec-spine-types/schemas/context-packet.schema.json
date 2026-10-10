@@ -1,0 +1,548 @@
+{
+  "$id": "https://spec-spine.dev/schemas/context-packet.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One page of a repository-scoped context packet: a spec 107 closure and spec 155 selected-content members bound to one snapshot. Untrusted repository data; carries no authority.",
+  "properties": {
+    "closure": {
+      "properties": {
+        "digest": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "members": {
+          "type": "array"
+        },
+        "rationale": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "digest",
+        "members"
+      ],
+      "type": "object"
+    },
+    "closureDigest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "completeness": {
+      "enum": [
+        "complete",
+        "partial",
+        "incomplete"
+      ]
+    },
+    "continuation": {
+      "pattern": "^[A-Za-z0-9_-]+$",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "members": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "identity": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "item": {
+            "additionalProperties": false,
+            "properties": {
+              "completeness": {
+                "const": "complete"
+              },
+              "content": {
+                "type": "string"
+              },
+              "digest": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "dirtyState": {
+                "enum": [
+                  "clean-working-tree",
+                  "clean-export"
+                ]
+              },
+              "identity": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "repository": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "requestedProjection": {
+                "enum": [
+                  "full",
+                  "declaration",
+                  "signature",
+                  "documentation",
+                  "body"
+                ]
+              },
+              "resolution": {
+                "const": "resolved"
+              },
+              "revision": {
+                "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+                "type": "string"
+              },
+              "schemaVersion": {
+                "type": "string"
+              },
+              "selector": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "spec",
+                      "spec-section",
+                      "obligation",
+                      "owned-unit",
+                      "file",
+                      "directory-member",
+                      "symbol",
+                      "module",
+                      "test"
+                    ]
+                  },
+                  "projection": {
+                    "enum": [
+                      "full",
+                      "declaration",
+                      "signature",
+                      "documentation",
+                      "body"
+                    ]
+                  },
+                  "required": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "kind"
+                ],
+                "type": "object"
+              },
+              "span": {
+                "additionalProperties": false,
+                "properties": {
+                  "endLine": {
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "startLine": {
+                    "minimum": 0,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "startLine",
+                  "endLine"
+                ],
+                "type": "object"
+              },
+              "tree": {
+                "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "identity",
+              "repository",
+              "revision",
+              "tree",
+              "dirtyState",
+              "selector",
+              "requestedProjection",
+              "path",
+              "span",
+              "digest",
+              "content",
+              "resolution",
+              "completeness",
+              "schemaVersion"
+            ],
+            "type": "object"
+          },
+          "origins": {
+            "items": {
+              "enum": [
+                "closure",
+                "additional"
+              ]
+            },
+            "maxItems": 2,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "projection": {
+            "enum": [
+              "full",
+              "declaration",
+              "signature",
+              "documentation",
+              "body"
+            ]
+          },
+          "requirement": {
+            "enum": [
+              "required",
+              "optional"
+            ]
+          }
+        },
+        "required": [
+          "identity",
+          "projection",
+          "requirement",
+          "origins",
+          "item"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "omissions": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "type": "string"
+          },
+          "identity": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "origins": {
+            "items": {
+              "enum": [
+                "closure",
+                "additional"
+              ]
+            },
+            "maxItems": 2,
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "projection": {
+            "enum": [
+              "full",
+              "declaration",
+              "signature",
+              "documentation",
+              "body"
+            ]
+          },
+          "reason": {
+            "enum": [
+              "missing",
+              "removed",
+              "withdrawn",
+              "unresolved",
+              "ambiguous",
+              "unsupported-selector",
+              "unsupported-projection",
+              "non-text",
+              "oversized-member",
+              "item-budget",
+              "byte-budget"
+            ]
+          },
+          "requirement": {
+            "enum": [
+              "required",
+              "optional"
+            ]
+          }
+        },
+        "required": [
+          "identity",
+          "projection",
+          "requirement",
+          "origins",
+          "reason",
+          "detail"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "packetDigest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "producer": {
+      "additionalProperties": false,
+      "properties": {
+        "build": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "const": "unverified"
+            }
+          ]
+        },
+        "package": {
+          "const": "spec-spine"
+        },
+        "version": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "package",
+        "version",
+        "build"
+      ],
+      "type": "object"
+    },
+    "request": {
+      "additionalProperties": false,
+      "properties": {
+        "closure": {
+          "additionalProperties": false,
+          "oneOf": [
+            {
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "digest"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "document"
+                    ]
+                  }
+                ]
+              },
+              "required": [
+                "root"
+              ]
+            },
+            {
+              "not": {
+                "required": [
+                  "root"
+                ]
+              },
+              "required": [
+                "digest",
+                "document"
+              ]
+            }
+          ],
+          "properties": {
+            "digest": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "document": {
+              "type": "object"
+            },
+            "root": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "consumerSchemaVersion": {
+          "pattern": "^1\\.0\\.[0-9]+$",
+          "type": "string"
+        },
+        "continuation": {
+          "type": "null"
+        },
+        "maxBytes": {
+          "maximum": 4194304,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "maxItems": {
+          "maximum": 512,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "members": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "requirement": {
+                "enum": [
+                  "required",
+                  "optional"
+                ]
+              },
+              "selector": {
+                "properties": {
+                  "kind": {
+                    "enum": [
+                      "spec",
+                      "spec-section",
+                      "obligation",
+                      "owned-unit",
+                      "file",
+                      "directory-member",
+                      "symbol",
+                      "module",
+                      "test"
+                    ]
+                  },
+                  "projection": {
+                    "enum": [
+                      "full",
+                      "declaration",
+                      "signature",
+                      "documentation",
+                      "body"
+                    ]
+                  },
+                  "required": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "kind"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "selector",
+              "requirement"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "rationale": {
+          "maxLength": 1024,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "workIdentity": {
+          "maxLength": 1024,
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "closure",
+        "members",
+        "maxBytes",
+        "maxItems",
+        "continuation",
+        "rationale",
+        "workIdentity",
+        "consumerSchemaVersion"
+      ],
+      "type": "object"
+    },
+    "requestDigest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "schemaVersion": {
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$",
+      "type": "string"
+    },
+    "snapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "dirtyState": {
+          "enum": [
+            "clean-working-tree",
+            "clean-export"
+          ]
+        },
+        "repository": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "revision": {
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "tree": {
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "repository",
+        "revision",
+        "tree",
+        "dirtyState"
+      ],
+      "type": "object"
+    },
+    "warnings": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "enum": [
+              "closure-member-unsupported",
+              "optional-member-omitted",
+              "unverified-producer-build"
+            ]
+          },
+          "identity": {
+            "type": "string"
+          },
+          "projection": {
+            "enum": [
+              "full",
+              "declaration",
+              "signature",
+              "documentation",
+              "body"
+            ]
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "producer",
+    "snapshot",
+    "request",
+    "requestDigest",
+    "closure",
+    "closureDigest",
+    "members",
+    "omissions",
+    "warnings",
+    "completeness",
+    "continuation",
+    "packetDigest"
+  ],
+  "title": "spec-spine context packet (spec 159)",
+  "type": "object"
+}
