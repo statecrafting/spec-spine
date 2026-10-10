@@ -57,7 +57,7 @@ obligations:
     anchor: "3-5-markdown-projection-and-canonical-bytes"
   - id: "R-4"
     kind: requirement
-    text: "The regeneration check never writes and exits 1 naming every missing, changed, orphaned, or malformed page."
+    text: "The regeneration check never writes and exits 1 naming every missing, changed, orphaned, or malformed page and a stale ledger."
     anchor: "3-10-the-regeneration-check"
   - id: "I-1"
     kind: invariant
@@ -465,6 +465,10 @@ and `reference.model` and the two facades. Effects: all three read `config`,
 `caller-path` (the output directory), and with `--manifest` also executes `git`
 for spec 160's clean-snapshot rule; `check` and `model` write nothing. None
 executes `declared-commands` or opens a connection.
+
+**D-13 (2026-10-10, review): R-4 names all five findings.** Review of the
+filing found that R-4 listed four of §3.10's five exit-1 findings and omitted
+`ledger-stale`. The obligation text now names it, matching §3.10.
 
 ## Verification
 
