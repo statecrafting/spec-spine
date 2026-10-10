@@ -14,7 +14,6 @@ depends_on:
   - "132-one-exit-contract-for-the-family"
   - "152-a-refusal-says-what-it-is-in-every-form"
   - "155-selected-content-accessor"
-  - "170-a-consumer-is-served-answers-not-access"
 summary: >
   Adds a versioned, canonical, digest-bearing capability catalog compiled into
   the binary: every CLI and facade operation with its summary, schema
@@ -597,6 +596,14 @@ build an argv from the record alone.
 167 as the read-only projection; no such spec is filed, so the text names
 the consumer without an ordinal. Spec 166 keeps its name because its draft
 exists.
+
+**D-18 (2026-10-10, refile correction): no `depends_on` on spec 170.** The
+refile declared one, but 170 has the higher ordinal, and this repository's
+carried acceptance of spec 046 lints the corpus with
+`require_ordinal_monotonic_depends_on`, which refuses a dependency that points
+forward in filing order (L-007). A merge-queue sweep that selected every spec
+caught it. The relation stays declared where it bites: the `extends` edges on
+170's three units, which carry the ownership the coupling gate reads.
 
 ## Verification
 
