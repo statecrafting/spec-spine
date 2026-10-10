@@ -287,3 +287,42 @@ pub(crate) fn detect_cross_spec(records: &[SpecRecord], out: &mut Vec<Violation>
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// §3.4 and D-4: identities sort object keys whatever the field order of
+    /// the type that produced them. This holds because `preserve_order` is
+    /// not enabled for this crate's `serde_json` (tree-sitter enables it only
+    /// for its own build script, which resolver 2 keeps separate), and this
+    /// test fails if a dependency change ever unifies it in.
+    #[test]
+    fn compact_sorts_keys_regardless_of_field_order() {
+        #[derive(serde::Serialize)]
+        struct Unsorted {
+            zebra: u8,
+            apple: u8,
+            mango: u8,
+        }
+        assert_eq!(
+            compact(&Unsorted {
+                zebra: 1,
+                apple: 2,
+                mango: 3
+            })
+            .unwrap(),
+            r#"{"apple":2,"mango":3,"zebra":1}"#
+        );
+        let selector = ContentSelector::DirectoryMember {
+            directory: spec_spine_types::RepoPath::parse("docs").unwrap(),
+            member: spec_spine_types::RepoPath::parse("docs/a.md").unwrap(),
+            projection: None,
+            required: true,
+        };
+        assert_eq!(
+            selector_json(&selector).unwrap(),
+            r#"{"directory":"docs","kind":"directory-member","member":"docs/a.md"}"#
+        );
+    }
+}
