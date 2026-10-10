@@ -24,6 +24,7 @@
 
 pub mod attest;
 pub mod capabilities;
+pub mod capability;
 pub mod codebase;
 pub mod config;
 pub mod content;
@@ -55,6 +56,12 @@ pub use attest::{
     ToolStamp, Verdicts,
 };
 pub use capabilities::{Capabilities, SchemaAxis, VerbCapability};
+pub use capability::{
+    AddedEffects, Bound, Budget, CapabilitiesDiscovery, CapabilityCatalog, CapabilityVerifyReport,
+    CapabilityVerifyRequest, CatalogDiscovery, CliBinding, ConditionalEffects, Deprecation,
+    Effects, Example, ExitOutcome, FacadeBinding, Flag, InterfaceDiscovery, Operation, PinResult,
+    Precondition, RequestRef, ResponseRef,
+};
 pub use codebase::{
     CodebaseIndex, Diagnostic, Diagnostics, ImplementingPath, IndexBuild, IndexInputs,
     IndexPackageShard, IndexSpecShard, InputDigest, LineSpan, PackageKind, PackageRecord,
@@ -103,8 +110,9 @@ pub use registry::{
 pub use relocation::Relocation;
 pub use repo_path::{RepoPath, is_device_name, repo_path_problem};
 pub use schema::{
-    AFFECTED_SCHEMA, BUILD_META_SCHEMA, INDEX_INPUTS_SCHEMA, INDEX_PACKAGE_SHARD_SCHEMA,
-    INDEX_SCHEMA, INDEX_SPEC_SHARD_SCHEMA, REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA,
+    AFFECTED_SCHEMA, BUILD_META_SCHEMA, CAPABILITY_CATALOG_SCHEMA, INDEX_INPUTS_SCHEMA,
+    INDEX_PACKAGE_SHARD_SCHEMA, INDEX_SCHEMA, INDEX_SPEC_SHARD_SCHEMA, REGISTRY_SCHEMA,
+    REGISTRY_SPEC_SHARD_SCHEMA,
 };
 pub use snapshot::{
     AuthoritySnapshot, CommittedTree, FRAME_DIGEST, NON_UTF8_DIRECT_CLAIM, SnapshotCommitted,
@@ -116,7 +124,7 @@ pub use unit::Unit;
 pub use verdict::{Verdict, VerdictError, error_kind};
 pub use verify::{SkippedBlocks, VerifyFailure, VerifyOutcome, VerifyPlan, VerifyReport};
 pub use version::{
-    BUILD_META_SCHEMA_VERSION, CAPABILITIES_SCHEMA_VERSION, CONFIG_VERSION, DELTA_SCHEMA_VERSION,
-    INDEX_SCHEMA_VERSION, READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, SNAPSHOT_SCHEMA_VERSION,
-    SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, parse_semver,
+    BUILD_META_SCHEMA_VERSION, CAPABILITIES_SCHEMA_VERSION, CATALOG_SCHEMA_VERSION, CONFIG_VERSION,
+    DELTA_SCHEMA_VERSION, INDEX_SCHEMA_VERSION, READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION,
+    SNAPSHOT_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, parse_semver,
 };

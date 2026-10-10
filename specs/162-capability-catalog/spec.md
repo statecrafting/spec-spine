@@ -4,7 +4,7 @@ title: "Every operation is described once, and the description is tested"
 status: draft
 kind: "governance"
 created: "2026-09-27"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -25,9 +25,9 @@ summary: >
   examples run against the built binary. `capabilities verify` checks pinned
   operation digests. The catalog describes; it authorizes nothing.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/capability.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-types/schemas/capability-catalog.schema.json", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/src/capability.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/capability.rs" }
+  - { kind: file, path: "crates/spec-spine-types/schemas/capability-catalog.schema.json" }
+  - { kind: file, path: "crates/spec-spine-core/src/capability.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/capability_catalog.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/tests/capability_catalog.rs", planned: true }
   - { kind: directory, path: "crates/spec-spine-cli/tests/fixtures/capability-catalog/", planned: true }
@@ -271,12 +271,15 @@ observed behavior.
 `document` (a JSON or YAML request: `content select --request`, `registry
 closure`, `scope evaluate`, `compact --plan-file`, and every facade function's
 `request_json`). `response` is a list, sorted with the `null` entry first, of
-`{ when, axis, version, document, schema }`, where `when` is `null` for the
-default answer or the flag that selects another (`attest --snapshot` answers
+`{ when, axis, version, document, schema }`, sorted by `when` and then
+`axis`, where `when` is `null` for the default answer (an envelope that
+carries a second axis inside it, as `delta` does, lists both) or the flag that
+selects another (`attest --snapshot` answers
 on the snapshot axis):
 
 - `axis` names a schema axis and `version` is its constant at build time,
-  read from the constant, never restated as a literal.
+  read from the constant, never restated as a literal. A document that
+  carries no axis names `unversioned` with an empty version (D-14).
 - `document` is a stable name for the shape (`registry-show`,
   `content-selection`, `verdict-envelope`).
 - `schema` is the embedded JSON Schema's `$id` where one exists (registry,
@@ -488,7 +491,9 @@ writes `temporary` (`gate-verdict`, `waiver-evaluation`); `delta` executes
 
 Facade functions: the 29 `pub fn *_json` defined in `lib.rs`, spec 155's
 re-exported `selected_content_json`, and this spec's two, 32 in all. Those
-without a CLI form become `library.*` operations, as the census finds them.
+without a CLI form become `library.*` operations, as the census finds them:
+`library.load-config`, `library.scaffold-init` and
+`library.scaffold-init-opts` (D-16). The catalog holds 40 operations.
 
 ## 4. Acceptance criteria
 
@@ -596,6 +601,25 @@ build an argv from the record alone.
 167 as the read-only projection; no such spec is filed, so the text names
 the consumer without an ordinal. Spec 166 keeps its name because its draft
 exists.
+
+**D-14 (2026-10-10, build): `unversioned` and two default answers.** Several
+answers carry no schema axis (the compaction map, the rendered index, the
+scaffold), and `delta`'s envelope carries the delta axis inside the verdict
+axis. Rather than leave such an answer out, the response names `unversioned`
+with an empty version, and an operation may list more than one `when: null`
+entry, sorted by axis.
+
+**D-15 (2026-10-10, build, owner to confirm): `capabilities.verify` is
+`since: 0.30.0`.** It is the one operation this spec adds, and 0.30.0 is the
+release after the 0.29.0 that `main` pins. If the next release is cut at
+another version, the release that ships it corrects the record.
+
+**D-16 (2026-10-10, build): the inventory as built.** `coverage_inventory_json`
+is "the facade half of `index coverage --paths-from`", so it binds to
+`index.coverage` rather than becoming `library.coverage-inventory`; the three
+attestation verifiers bind to `verify-attestation`. 29 functions are defined
+in `lib.rs`, not 30 as the refile counted. The facade-only operations carry a
+success example and a refusal example each, run by the core suite.
 
 **D-18 (2026-10-10, refile correction): no `depends_on` on spec 170.** The
 refile declared one, but 170 has the higher ordinal, and this repository's

@@ -111,6 +111,9 @@
     "crates/spec-spine-types/schemas/build-meta.schema.json": {
       "contentHash": "e3e05938056e626855a2211ec58a9cdef77163ace2f3af81c194e1ad845cdc83"
     },
+    "crates/spec-spine-types/schemas/capability-catalog.schema.json": {
+      "contentHash": "c918bfefb7b7affe3cf75818ad450560ec33bbe85e0db4246d0805da4242c9ce"
+    },
     "crates/spec-spine-types/schemas/codebase-index-inputs.schema.json": {
       "contentHash": "49feba2ddc7aa6a5393e20d85e058bfef6ac675bc06786e7930e3be99c7f70b6"
     },
@@ -151,7 +154,7 @@
       "contentHash": "eec1bea982688c1eda66d5a0a0a8ee511d1b1770ad0d434ea02953b529b5df9d"
     },
     "docs/schema-versioning.md": {
-      "contentHash": "3aa35c8b3ae69f38640ddbbbfada89a4d43cc55a1573a6b0802e2558f91482ca"
+      "contentHash": "f2b2d0d2bbb419320c8ffed9517155c5c72f8e9699ae41dd7e77ecf5e13a458d"
     },
     "docs/specify-first.md": {
       "contentHash": "d983fd1bc596ba8463330c4be51ca00561645c53594f17e6355c5e664241d0b4"

@@ -19,6 +19,7 @@
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.2.0` | library |
 | read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.10.0` | library |
 | capabilities document (`capabilities --json`, spec 170) | `schemaVersion` | `0.1.0` | library |
+| capability catalog (`capability_catalog_json()`, spec 162) | `schemaVersion` | `1.0.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
 | verifier fixture set (`fixtures/verifier/`, spec 103) | `schemaVersion` | `1.0.0` | library (test data, not emitted at runtime) |
@@ -37,6 +38,11 @@ aggregate DTOs (`Registry`, `CodebaseIndex`) are unchanged and carry the same
 version.
 
 MINOR history:
+
+- capability catalog `1.0.0` (spec 162): the axis begins. A new vocabulary
+  token or optional member is MINOR; removing or renaming one, or changing the
+  digest construction, is MAJOR. Its schema is embedded as
+  `capability-catalog.schema.json`.
 
 - `index.json` `0.2.0` (spec 011): additive `build.sliceHashes` -- per-slice
   content hashes for `index check --slice <name>`.
