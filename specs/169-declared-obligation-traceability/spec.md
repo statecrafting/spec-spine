@@ -182,8 +182,8 @@ cross-corpus form is present.
 
 ### 3.3 Test identity is deliberately narrow
 
-The current 0.28.0 structural index scans top-level Rust items under crate
-`src/`, does not scan integration-test roots as tests, and does not preserve
+The structural index, as measured at 0.28.0 and unchanged through 0.29.0,
+scans top-level Rust items under crate `src/`, does not scan integration-test roots as tests, and does not preserve
 test attributes as identity. A generic function symbol therefore cannot prove
 that a function is a test.
 

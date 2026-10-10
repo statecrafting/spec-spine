@@ -256,7 +256,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "92a0ef92d6f0d42bddeefd51f3b3c3e6f5543829761292fd8b2a643cccb30c34",
-      "169-declare-qualified-obligation-traceability": "9808bedcc61ea71cf41d917f85a6f7325adb124d57458f9e1f07dee10bbecc2a",
+      "169-declare-qualified-obligation-traceability": "9f577896f703138378c7a7d7eaf942971b7c7578bdf52b0fc68241196b749f2a",
       "2-territory": "121fd5a30d2fe1ebb8f5203565b471153b532955ad58a595c4ab96dc8e534331",
       "2026-09-26-keep-the-declaration-optional-and-source-it-from-obligations": "69a61dde2e7e041017da79b7ca8917aaa125d54e10ae975226eb8b7702653cbc",
       "2026-09-26-preserve-withdrawn-relation-identity-as-a-tombstone": "8ac9cf5261cc12a4a1e1a5abb47ab15be78434c51dfdb637b459fc8b14296ea5",
@@ -268,14 +268,14 @@
       "3-1-declaration-shape-and-identity": "707ddc75cff5e5587ef164f8f9cdebccaa26b643ba3e1f4de8da99372e578ae1",
       "3-10-authority-and-security-boundary": "6045b0cfad863d8312aa8b3a9f2d69c44ed5f9517e7ea6780ef83bd3406e27ab",
       "3-2-typed-targets-and-allowed-relations": "50ffaaafeb476c45cc89e56168dd1421614bc28b95acd628059b5e516a7f09dc",
-      "3-3-test-identity-is-deliberately-narrow": "2dd2c5787817bbb69bacd832148c59f93c8abc1cf4cea5244cc4053b50b58a6e",
+      "3-3-test-identity-is-deliberately-narrow": "2aab3068864e1f60642c91627f9ca8fd8783b806cebb89551c5004392214634a",
       "3-4-canonical-target-identity-and-ordering": "b56a644fef75c79a2595ec409cca97482d83e6a2d3dc9fa2d0a56bb92764e9a7",
       "3-5-resolution-is-structural-and-qualified": "2be4fad02435ebb324adc249697066e9b126d02b405e70d4f1db8ab9b3f471f8",
       "3-6-resolution-states-are-exhaustive": "06e70da22e92cba72fc7a5e896953fcb3bf3d8f6cbdb333361c00be459f75d25",
       "3-7-withdrawal-preserves-identity": "7240e0b696a88c1fbe51aebf1f517a6d7d038ae461a92a9cb35bc1d74cf8703d",
       "3-8-declaration-is-not-evidence-or-acceptance": "6ffd7b92111217573a1264f567d4425d446c3f77e29a5aa70389c60c60886061",
       "3-9-incremental-adoption-and-compatibility": "f05d39519660ba9c657effd098cdebb12d1b4a74a2e9ffea76b5e7cee0b26d50",
-      "3-behavior": "e50bbc1c6a0e9adb47118b9062b875a2de1082670c012d6bde57cfda464c0264",
+      "3-behavior": "4224883985040a2bae27a8eb3dc3374819992e3dc25b993ecad56b0a746de22a",
       "4-negative-cases": "ecc3ad51ce96954a4aa032a83f56cb497ae26eaf201f654e6d81f1e8ce4a3b33",
       "5-acceptance-criteria": "594ada641ea2458e3014c37500d662a45c32f474bac2dc3737e3189bc865801d",
       "6-out-of-scope": "8ac04ee807a204f578110c07a8fd66f9c7ecd075144c3ea693aa9918d5d28006",
@@ -315,6 +315,6 @@
     "summary": "Adds optional, qualified relations from declared obligations to implementation units, tests, invariants, documentation sources, and producer or consumer interfaces. Declarations and their deterministic resolution remain distinct from execution, evidence, acceptance, release, adoption, and observation; every unsupported, unknown, ambiguous, withdrawn, or unresolved target is explicit, and ownership is never behavioral proof.\n",
     "title": "Declare qualified obligation traceability"
   },
-  "shardHash": "3d877b28c9dffa5c85afc4a36c484e77bcec99a5c2f88782112768a8f326a2fc",
+  "shardHash": "219fa8ca7cf3c276c7a0df07555100003e09791e45d640b18e61dd9237303bf2",
   "specVersion": "1.9.0"
 }
