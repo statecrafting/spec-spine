@@ -220,28 +220,28 @@
     "sectionDigests": {
       "1-1-why-spec-spine-and-not-statecraft": "a263fc98188d016fbbbb2e3acba9a9cd790cdf66e16303af94bada26321131ef",
       "1-purpose": "c8280af450042d2c118ef6a66407ecd8f1be6b802e3b50bca6f426d257fab8a8",
-      "165-plan-a-governed-edit-without-applying-it": "6c8758ca4154e2532406194f3edc7f703bbb23f3fc58b015559631eb7ff74897",
+      "165-plan-a-governed-edit-without-applying-it": "032d7291878e394e0e40cc1c2ad261d737f6f49b191740763c5105a7b384c705",
       "2-territory": "4ff731200375d04312b86e66d03b8d130af76f1a475ac112578c3f09af18c71f",
       "3-1-one-request-one-snapshot-one-subject": "5c5b47dfba9beca28d11437172d5758121e841001af0a2913bcc304d206f2956",
       "3-10-authority-is-checked-before-a-preview-exists": "4fa2e3deb51e6d3e4e36f944e8c5ebb48773638e29f1ff0280012b557cddd104",
-      "3-11-overlap-and-conflicts": "0f5f48a781e63ca3353b739b2b5aef11c6a44f429aa2dfd745105f72cfed4e6a",
+      "3-11-overlap-and-conflicts": "d4963b0ef32e7f83ef1aa24cedeea11fcab790a498bd97cb83ebab1ba6a82ce5",
       "3-12-previews-are-exact-bytes": "39e2a56df3049815d4eb7067ae84eb6f25b4412410365ffadeb2fa7abec41d24",
       "3-13-authority-effect-classification": "8ab3783b288b14e6bba1a5c81a97b5601f242aa50b2c35336eecccfa6072308a",
       "3-14-refusal-reasons-are-closed": "e49c5fb4c9259321268076b7ea7fd422dd252864b47bae0b40cf3ecfa9907b1c",
       "3-15-canonical-bytes-limits-and-schema": "f88026c0263e3a0ef6c7de45827627c2469bf7e8b021871674c5a6151e20a57a",
       "3-16-nothing-applies-a-plan": "31de3207811c7f65e4bc72e1d9ba3399d5bab2f78fce5161f606ec5d996223d8",
-      "3-2-the-request-document": "5adf37fd5948a33cc0c53cf7fe8bef8a9acab601eb4950b5a0f69bb536e08516",
+      "3-2-the-request-document": "98303cf754a45c9eca5b406d82c53e44229e8b0e75434eca1d30ccef5740f794",
       "3-3-the-closed-operation-vocabulary": "f098f3aac243909e352a2031561228a14c4a8cb309030e7991ef327e36ccbf78",
       "3-4-add-claim": "85d8548d95b7df0e9c78566a4c9f242598dd11464bf30d77e14f0d022e73e67c",
       "3-5-add-trace-relation": "1a1b22c0ab609a736d156186a2eba90eb20d23f1a82c0a6d06b00c77b62b577d",
       "3-6-propose-amendment-creates-a-new-spec": "3991b71868d32495bd378b8028604f84230e24721d5a1a9290e050f4a4e6b5f3",
-      "3-7-update-manifest": "4caeafa32aa5091fd0e6f1638196a23adf3624e180363398f125852313559a66",
+      "3-7-update-manifest": "db3db8e80ec49fc349f73de525b73f9a203335092aec3d64f565c835df2c1fbf",
       "3-8-replace-unit": "5124e4a6d9078f1e6e47291d586b2333fee36489219c527324eb48af2bdc49a7",
       "3-9-every-target-is-digest-guarded": "82b8a5dafb4ec6cdca287cc25cc8090d065f11a53ee02a6b680d4a0f3676ab02",
-      "3-behavior": "effba6e6185edeee743f81b427bea5f213eb58811cd9492adeea02a73277a596",
+      "3-behavior": "2e088b156ed14c89377c5c31195a242892e40f4d52ea06a6d0f90b06743247af",
       "4-acceptance-criteria": "034ef0fea52fd7221d8753e86590bcf9ef82e19517a7abe8e353cf2160bddf72",
       "5-out-of-scope": "1ac3db9a56392ea9529ea6dab32e1c871f3ce68951b901e9d64a7c01fdffc01d",
-      "6-resolved-decisions": "bd1656bb52c705764f1fbb98c54cc90d3022d7578b1c8e641260a4d5771710a0",
+      "6-resolved-decisions": "e3acf7d7c25214fea671b41030c1a097d69b6b78ab6609577c8fbcda6b3f5544",
       "verification": "08958d5f8531da5a2479625438afc8c3e868a71803b3d9afbfed47e2567cbd38"
     },
     "sectionHeadings": [
@@ -276,6 +276,6 @@
     "summary": "Adds a pure, read-only edit-plan producer: a closed list of governed operations, each guarded by the digest of the target it was planned against, checked against ownership, a work scope and the amendment rules, previewed as exact post-image bytes, and classified by authority effect. Refusals come from a closed set. Nothing in spec-spine applies a plan.\n",
     "title": "Plan a governed edit without applying it"
   },
-  "shardHash": "b1582b48914aa170a5788a66bfd72197a02194ff96f87bfe003020b40e74c54e",
+  "shardHash": "a3e5392a64fac44618a95e7dcd309d5daf0e30962dfcd8867c5f470cddc7932e",
   "specVersion": "1.9.0"
 }

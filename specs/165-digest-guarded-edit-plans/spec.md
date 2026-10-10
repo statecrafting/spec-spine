@@ -149,7 +149,8 @@ subject is the `ownSpec` of a spec-108 work scope carried in the request.
 ```
 
 `scope` is a spec-108 scope document, parsed by 108's rules. `operations` is
-non-empty and at most 64 entries. `manifests` optionally carries spec-160
+non-empty and at most 64 entries; an empty array is a usage error (exit 3), and
+more than 64 is `plan-too-large` (§3.15). `manifests` optionally carries spec-160
 manifest documents the caller asserts describe outputs in this snapshot; they
 are used only to identify generated regions (§3.10). Unknown members, an
 unsupported consumer schema major, or an operation of unknown kind are usage
@@ -229,7 +230,13 @@ caller wrote it and checked by the existing compile rules.
 The target is one repository path holding a spec-160 manifest, and `expected`
 is its recorded `manifestDigest`. The replacement is a complete manifest the
 caller supplies, normally produced by a generator run. The planner MUST
-validate it under spec 160 and refuse `manifest-invalid` otherwise. The
+validate it under spec 160 against the plan's snapshot and refuse
+`manifest-invalid` otherwise. That validation recomputes `manifestDigest` and
+checks every recorded packet and repository-local input digest against the
+snapshot (160 §3.3, §3.4), so a manifest whose input digests were invented is
+refused here. Output digests describe files the change itself writes, which
+the snapshot does not yet hold; they are checked after application by spec
+160's freshness read, which reports a mismatch as `output-changed`. The
 planner MUST NOT compute, copy or rewrite a digest inside a manifest: a plan
 that updated recorded digests without a generator run would launder
 freshness.
@@ -285,7 +292,9 @@ A scope is not a permission (108 §3.7): it can only refuse.
 ### 3.11 Overlap and conflicts
 
 Operations are ordered canonically by target path, operation kind, then
-canonical operation identity. Two operations overlap, and the plan is refused
+canonical operation identity: the canonical JSON bytes (§3.15) of the
+operation object as the request carries it, `expected` included, compared
+bytewise. Two operations overlap, and the plan is refused
 `overlapping-operations` naming both, when they name the same target identity,
 when a `replace-unit` span intersects another operation's pre-image lines, or
 when one replaces a file another changes. Several frontmatter additions to one
@@ -459,6 +468,15 @@ form and facade function to one catalog record (162 R-1). Whichever of 165 and
 `caller-file`, `config`, `corpus`, `derived-ledger` and `source-tree`; executes
 `git` for the snapshot binding exactly as `content select` does; writes
 nothing; no network; authority empty, since a plan grants none (§3.16).
+
+**D-10 (2026-10-10, review): three gaps in the filed text closed.** Review of
+the filing found that an empty `operations` array had no stated outcome, that
+§3.11's tiebreaker "canonical operation identity" was undefined, and that
+§3.7 did not say whether a manifest with invented digests could pass. §3.2 now
+makes an empty array a usage error; §3.11 defines the identity as the
+operation's canonical JSON bytes; §3.7 states which digests spec 160's
+validation checks at plan time (manifest, packet, and inputs) and which only
+freshness can check after application (outputs).
 
 ## Verification
 
