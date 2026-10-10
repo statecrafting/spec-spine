@@ -221,6 +221,16 @@ that:
   naming a successor obligation the new spec declares; and
 - no operation in the same plan targets the amended spec's file.
 
+Each failure has one reason. An existing path is `stale-target`; an ordinal
+that is used or not next free is `unauthorized-target`; a file that does not
+parse or compile, is not `draft` and `pending`, or lacks the `amends`,
+`amends_sections`, or `impacts` entries above is `post-image-invalid` naming
+the rule; the third and fifth bullets name their own reasons; and another
+operation on the amended spec's file is `overlapping-operations`, naming both,
+whichever spec is the subject. That last rule holds even when the subject is
+the amended spec itself, so a decision append (§3.8) cannot ride beside its
+own amendment.
+
 The planner MUST NOT emit any byte change to the amended spec. It never
 proposes editing an approved spec, marking it superseded, or rewriting its
 Verification block; `amends_verification` in the new file is carried as the
@@ -510,6 +520,12 @@ Review asked that spec 162, which D-9 coordinates with, appear in the
 frontmatter. It is now a `references` entry, not a `depends_on`: the planner
 needs nothing from the catalog to work, and whichever spec is built second
 adds the record, so neither has to be complete before the other.
+
+**D-14 (2026-10-10, review): every §3.6 check names its refusal.** Review
+found that the rule against touching the amended spec in the same plan had no
+refusal reason when the subject is the amended spec itself. §3.6 now maps each
+of its checks to one existing §3.14 reason, the last to
+`overlapping-operations` whatever the subject. No reason was added.
 
 ## Verification
 
