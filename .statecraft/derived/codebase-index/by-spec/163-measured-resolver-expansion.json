@@ -1,0 +1,301 @@
+{
+  "mapping": {
+    "amends": [
+      "004-codebase-index",
+      "016-directory-crate-module-units",
+      "155-selected-content-accessor"
+    ],
+    "dependsOn": [
+      "004-codebase-index",
+      "016-directory-crate-module-units",
+      "025-symbol-resolution-feature-gate",
+      "155-selected-content-accessor"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-cli/tests/content.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/scope.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/content.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/index.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/symbols.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/content.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/read.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/scope.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/content.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/version.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/tests/dtos.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/schema-versioning.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "standards/spec/templates/spec-template.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/resolver_matrix.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/resolver_matrix.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/content.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/content.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/scope.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/scope.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/content.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/content.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/index.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/symbols.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/symbols.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/content.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/content.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/read.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/scope.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scope.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/content.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/content.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/version.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/tests/dtos.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/schema-versioning.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "standards/spec/templates/spec-template.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/templates/spec-template.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/determinism.yml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/determinism.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/manifest.rs"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/manifest.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/09-disposition-2026-09-21.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      }
+    ],
+    "specId": "163-measured-resolver-expansion",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "7cb273aa22dbd24dc43c66d230905a9bccddaa7a5490756c9060f18418291f05"
+}
