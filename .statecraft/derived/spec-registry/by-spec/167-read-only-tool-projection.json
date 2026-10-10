@@ -1,0 +1,232 @@
+{
+  "record": {
+    "created": "2026-10-10",
+    "dependsOn": [
+      "074-a-governed-read-names-its-version",
+      "132-one-exit-contract-for-the-family",
+      "152-a-refusal-says-what-it-is-in-every-form",
+      "155-selected-content-accessor",
+      "159-repository-scoped-context-packet",
+      "162-capability-catalog",
+      "170-a-consumer-is-served-answers-not-access"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/projection.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/schemas/tool-projection.schema.json",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/projection.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/projection.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/projection.rs",
+        "planned": true
+      },
+      {
+        "kind": "directory",
+        "path": "crates/spec-spine-cli/tests/fixtures/projection/",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "docs/read-only-projection.md",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_capabilities.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "170-a-consumer-is-served-answers-not-access",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/capabilities.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "anchor": "cli-reference",
+          "file": "docs/cli-reference.md",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "id": "167-read-only-tool-projection",
+    "implementation": "pending",
+    "intent": {
+      "goal": "let any tool transport, MCP first, offer spec-spine's read-only answers without inventing descriptions or a second path to an answer",
+      "nonGoals": [
+        "a server, daemon, session, or transport implementation inside spec-spine",
+        "write, edit, execute, sign, or network tools of any kind",
+        "authorization, rate limiting, or disclosure policy for a host",
+        "a second route to an answer the judging tier already gives (spec 170)"
+      ]
+    },
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-2-which-operations-are-projected",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Every catalog operation is either projected as exactly one tool or excluded with exactly one reason from a closed set, decided by one eligibility rule over its declared effects."
+      },
+      {
+        "anchor": "3-5-a-call-is-one-invocation-of-the-existing-verb",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "A tool call maps to exactly one argv of the operation's existing verb, and its answer is that verb's --json stdout and exit code byte for byte, or the adapter's result-too-large error, never a modified answer."
+      },
+      {
+        "anchor": "3-9-canonical-bytes-digest-and-schema",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "Tool descriptors, the error vocabulary, and the projection digest are deterministic, versioned, and carry the source operation digest."
+      },
+      {
+        "anchor": "3-10-authority-security-and-disclosure-boundary",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "No projected tool writes, executes declared commands, opens a connection, reads a credential, names a host path, or grants authority, and every answer is marked as untrusted repository data."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/projection.rs",
+          "crates/spec-spine-cli/tests/projection.rs"
+        ],
+        "kind": "verification",
+        "text": "The projection is checked for the eligibility census, input-schema to argv round trips, byte parity with the direct verb on every catalog example, error mapping, canonical bytes, and the absence of any write tool."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "roadmap row R, MCP-01",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      },
+      {
+        "role": "the `--request -` stdin form a document tool maps to",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "f714a4fc432d73f4af52a16ffa63fe9ba6695a35da0496a55ce43d7b83e667ea",
+      "167-project-cataloged-reads-as-read-only-tools": "c2fb3d3617586786aeb1468032e5f460711129ae5382097f3b52afc3aa68155e",
+      "2-territory": "a2fa93fb6b531739a9b4752aba6fea570cd8e6f2183e78fd632884c6ce42c1bd",
+      "3-1-the-projection-is-derived-never-authored": "1c3c758fa28e88aa66af9651608a911c4fc3ee65396ad19c1f424e2e9071207e",
+      "3-10-authority-security-and-disclosure-boundary": "a903efa00eb88c57f37bd65166283a6413ef6fb3d4467dd508366b0c2e7ed40d",
+      "3-11-the-projection-is-held-to-the-catalog-and-the-binary": "d464565768f280535d43c4dd333f16a855a39e04f49297b2591b8ffb06542a54",
+      "3-2-which-operations-are-projected": "d0669dbfdb57eb7b5a7f7e2de3ff0411ff07464d24bcf3301a23b3a4e0830c50",
+      "3-3-the-tool-descriptor": "f5acfda49ff1b43dd5d7a18640a3c67518086b8a8f8e87cbca5d9d8c1c34f6fe",
+      "3-4-input-schemas-are-closed-and-never-name-a-host-path": "5980132fc159720dd9066e8ccddb50883052e76c4d0ff0456f82666c86f98a34",
+      "3-5-a-call-is-one-invocation-of-the-existing-verb": "49373cf33bc936b27f27a1ee2016326071601cbe50f7dc6cf68f55f18e045e09",
+      "3-6-budgets-pagination-and-unbounded-answers": "bac2a2ea9a5720fc81a35c45e8b9434cc47401003a1822919a8b0509639b0c48",
+      "3-7-the-error-vocabulary-is-closed": "ca33b7adbbb9e3541da593d85c64570d6db306f6f10da3d622c24d88d418114d",
+      "3-8-how-the-projection-is-served": "2629518546dd91f422c205202d25cd569f54bf54380a16e720876abea8941070",
+      "3-9-canonical-bytes-digest-and-schema": "db6aa6a8501f6e00a4a98fffe95d39df1059e8c18e1eb631ccd96a608c862cd4",
+      "3-behavior": "10fa69a18244bb1f231a8aab7fc69699d6fdc7ff52ce642c45e5583378241a30",
+      "4-acceptance-criteria": "efe802fc3dd7dc5270e53564d734639b9903851ccb52e933f0cf64c307002b2a",
+      "5-out-of-scope": "dea4a18be1b125b4c970f5b491e933524bd980d8caca25a40a24cd1f80c7a364",
+      "6-resolved-decisions": "b4a1ea46a0dec0a9c3f047c43941dede6ecf910e5cb32ff89c326a1bb992b4b3",
+      "verification": "61784cfb41b4469953879ef8ea25ed17db309fcfca8aadf75e84c8b9c26aa5fe"
+    },
+    "sectionHeadings": [
+      "167: Project cataloged reads as read-only tools",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The projection is derived, never authored",
+      "3.2 Which operations are projected",
+      "3.3 The tool descriptor",
+      "3.4 Input schemas are closed and never name a host path",
+      "3.5 A call is one invocation of the existing verb",
+      "3.6 Budgets, pagination, and unbounded answers",
+      "3.7 The error vocabulary is closed",
+      "3.8 How the projection is served",
+      "3.9 Canonical bytes, digest, and schema",
+      "3.10 Authority, security, and disclosure boundary",
+      "3.11 The projection is held to the catalog and the binary",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/167-read-only-tool-projection/spec.md",
+    "status": "draft",
+    "summary": "Adds a transport-neutral, read-only tool projection derived from the spec-162 capability catalog: one tool descriptor per eligible judging-tier read, with a closed input schema, the exact argv it maps to, budget and pagination members, trust marking, and a closed error vocabulary. A tool call is one invocation of the pinned binary's existing verb, so its answer is that verb's bytes. spec-spine ships the descriptors and their tests; it runs no server, holds no session, and adds no write tool.\n",
+    "title": "Project cataloged reads as read-only tools"
+  },
+  "shardHash": "c5dbdd107e39f2962491842f15673b77fb2b20f66cd45f39353bd23704e02dce",
+  "specVersion": "1.9.0"
+}
