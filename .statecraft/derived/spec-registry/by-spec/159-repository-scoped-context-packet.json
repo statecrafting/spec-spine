@@ -28,19 +28,16 @@
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/src/cmd_context.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/src/cmd_context.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-cli/tests/context_packet.rs",
-        "planned": true
+        "path": "crates/spec-spine-cli/tests/context_packet.rs"
       },
       {
         "anchor": "context-packets",
         "file": "docs/context-packets.md",
-        "kind": "section",
-        "planned": true
+        "kind": "section"
       }
     ],
     "extends": [
@@ -159,7 +156,7 @@
       }
     ],
     "id": "159-repository-scoped-context-packet",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "intent": {
       "goal": "assemble bounded deterministic context from one immutable repository snapshot",
       "nonGoals": [
@@ -274,6 +271,6 @@
     "summary": "Adds a deterministic, read-only context-packet request and response for one immutable repository snapshot. A packet combines a declared context closure with required and optional selected-content members under explicit byte and item budgets, records every omission and warning, binds continuation to the request and snapshot, and carries a canonical packet digest without creating cross-repository authority.\n",
     "title": "Assemble one repository context packet"
   },
-  "shardHash": "aaedc740fbda6c8fb9e890c5a5b9489f4a5fb5212a56160e01592bd55c8f1aa1",
+  "shardHash": "d68423e0308510687ed3038df75e6cde24f567876e69f4814a5835e927a59e67",
   "specVersion": "1.9.0"
 }
