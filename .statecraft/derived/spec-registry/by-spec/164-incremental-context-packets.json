@@ -1,0 +1,267 @@
+{
+  "record": {
+    "created": "2026-09-27",
+    "dependsOn": [
+      "107-a-context-closure-is-declared",
+      "110-an-interface-reference-is-digest-pinned",
+      "155-selected-content-accessor",
+      "159-repository-scoped-context-packet",
+      "160-documentation-manifest-and-freshness"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/context_packet_delta.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/schemas/context-packet-delta.schema.json",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/context_packet_delta.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/context_packet_delta.rs",
+        "planned": true
+      },
+      {
+        "kind": "directory",
+        "path": "crates/spec-spine-core/tests/fixtures/context-packet-delta/",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_context_delta.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/context_packet_delta.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "034-machine-readable-verdicts",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "152-a-refusal-says-what-it-is-in-every-form",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/refusal_envelopes.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "anchor": "cli-reference",
+          "file": "docs/cli-reference.md",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "id": "164-incremental-context-packets",
+    "implementation": "pending",
+    "intent": {
+      "goal": "let a long-running consumer refresh a context packet from bytes it already holds with a provably exact, content-minimal delta",
+      "nonGoals": [
+        "session state, caches, or packet storage inside spec-spine",
+        "evidence admission, invalidation policy, lifecycle grading, or disposition",
+        "path-level review classification, which spec 071 owns"
+      ]
+    },
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-4-member-states-and-the-closed-change-vocabulary",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Every member difference between a verified predecessor page set and its target is exactly one of six closed change kinds, decided by one total transition table."
+      },
+      {
+        "anchor": "3-7-the-reproduction-law-and-continuation",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "Applying a delta to its named predecessor reproduces every named target page byte for byte, including packetDigest, or refuses and emits nothing."
+      },
+      {
+        "anchor": "3-3-predecessor-verification-and-fallback",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "A predecessor from another repository, request, budget, or schema, or one that cannot be verified, yields an explicit full-packet fallback, never a partial delta."
+      },
+      {
+        "anchor": "3-8-conservative-selection",
+        "id": "R-4",
+        "kind": "requirement",
+        "text": "Where interface or manifest dependency information is incomplete, the delta over-selects and records the basis of each over-selection."
+      },
+      {
+        "anchor": "3-9-invalidation-candidates",
+        "id": "R-5",
+        "kind": "requirement",
+        "text": "Invalidation candidates are a deterministic list of manifest-input identities and never carry disposition, admission, policy, or lifecycle."
+      },
+      {
+        "anchor": "3-13-authority-security-and-disclosure-boundary",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "spec-spine keeps no session state, trusts no predecessor content, and never emits content of a member the target did not select."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/context_packet_delta.rs",
+          "crates/spec-spine-cli/tests/context_packet_delta.rs"
+        ],
+        "kind": "verification",
+        "text": "The implemented delta is checked for the transition table, the reproduction law over chained deltas, every fallback reason, forged predecessors, conservative bases, candidate order, and non-disclosure."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "roadmap rows L and M",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      },
+      {
+        "role": "path-level change classifier, distinguished in 3.11",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/delta.rs"
+        }
+      },
+      {
+        "role": "digest-pinned interface identities",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/interface.rs"
+        }
+      },
+      {
+        "role": "closure member digests",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/closure.rs"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "700c711f65101c6deaa63d4a5c174ddec5478ba7982a9b2015a414934cff543e",
+      "164-a-packet-delta-reproduces-the-packet-it-names": "d75e505482deda8323e87afa18190c8318ec203c6ed66b6469e1e8f9b1faef24",
+      "2-territory": "c5ecc4a65a5ddea87920c9174fcbfd6c1ac891b4bb36f08f67470386ff3502f5",
+      "3-1-a-delta-relates-two-complete-page-sets-of-one-request": "7cf10ee029dc3d9acd4de6f1ec5c84ea2c4fe807419a3863bd450ae87932fb21",
+      "3-10-ordering-limits-canonical-bytes-and-schema": "829353abbbc3e042650d9199e37589aa83203426b6551b6c7769ac3c271cd921",
+      "3-11-relation-to-the-change-classifier-and-declared-impact": "ecfb8f4b304754122206202b4db46dd672c53c71edae6aa2df06c68fbbef106f",
+      "3-12-exit-and-error-behavior": "e6870a3e58f74eb143732702b3095a27a94160dd492d21557ada858c4d9d83c0",
+      "3-13-authority-security-and-disclosure-boundary": "e71d00215ef919d80d766df2ad70559dced28d81ce195e09e8e9aad10988dbfa",
+      "3-2-the-delta-request": "4dffbd81012707bad24372113c0fc4dfdfa8d2af84d27fa70abc559451f95486",
+      "3-3-predecessor-verification-and-fallback": "3e590a44efcb8195f38469d35fa88cb408b1e9802612bbbb39335a6d07e7969f",
+      "3-4-member-states-and-the-closed-change-vocabulary": "e7aa2ba2e999d9c4bb7f9a547b5aa7926acf42ec2d868016f31e4d2656dcd79c",
+      "3-5-interface-digests": "16f5dacb3a66c043b8c881df5dafbbdbeda6e48d2945abf6ac66ba6a244ad7cc",
+      "3-6-the-delta-document": "1c4fbeb7cd6ee62c9e59876c50b5ebbfb137d8c15f9830c0c61bc7dcadfd4617",
+      "3-7-the-reproduction-law-and-continuation": "17249b8ffa21de3f7449724fa4c41d0fb6c7c753c9c069fbb89a90dbd0699d3d",
+      "3-8-conservative-selection": "e20c004e544f48e42405f47ad452129c3f4db83048fd5cdcbe79b5a7cd77a1db",
+      "3-9-invalidation-candidates": "25da833198081f08022b4c2d308efd0d4554e05ab048f871e2445e8ceb848df0",
+      "3-behavior": "daaa57c59a696da5ea049f4029487a1be41d0aece134c71bc968d0216bee9fab",
+      "4-acceptance-criteria": "92d6ae5054d86fd38847255ffd20981d0ddad581144e7d660512866e52d37f08",
+      "5-out-of-scope": "191e63a5661d535c1272886eecf2e499bda2ab128b51ddf021d06d1c8906c831",
+      "6-resolved-decisions": "a2fa2e2298b0da37490aaf024f743872de6a7d67b3551a0dda971197601263c8",
+      "verification": "c02969c322a97857511077ae27e2fef7f2af6cffd1f697339a6b9bc288a28e15"
+    },
+    "sectionHeadings": [
+      "164: A packet delta reproduces the packet it names",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A delta relates two complete page sets of one request",
+      "3.2 The delta request",
+      "3.3 Predecessor verification and fallback",
+      "3.4 Member states and the closed change vocabulary",
+      "3.5 Interface digests",
+      "3.6 The delta document",
+      "3.7 The reproduction law and continuation",
+      "3.8 Conservative selection",
+      "3.9 Invalidation candidates",
+      "3.10 Ordering, limits, canonical bytes, and schema",
+      "3.11 Relation to the change classifier and declared impact",
+      "3.12 Exit and error behavior",
+      "3.13 Authority, security, and disclosure boundary",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/164-incremental-context-packets/spec.md",
+    "status": "draft",
+    "summary": "A deterministic delta from caller-supplied predecessor packet pages to spec 159's pages on a target snapshot, in six closed change kinds, that reproduces the target byte for byte or falls back explicitly, plus pure invalidation candidates over spec-160 manifests. No session state.\n",
+    "title": "A packet delta reproduces the packet it names"
+  },
+  "shardHash": "c0484fb06d88450514dfd864c86e4747fd8c5172753c2d6a213cb9630d899f6c",
+  "specVersion": "1.9.0"
+}
