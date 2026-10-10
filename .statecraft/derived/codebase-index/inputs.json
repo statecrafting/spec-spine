@@ -70,7 +70,7 @@
       "contentHash": "76eeffad38ae8546599d8fe6740fa5e3e67b20c6acd0cd4ce8828bf7dcc50187"
     },
     ".github/workflows/determinism.yml": {
-      "contentHash": "37ac7831b3b4dadf1ee70c2e77f4851364f65f54a433039b104d4dbe3d18a9eb"
+      "contentHash": "6ff492d05f29c65057c21cb02134ba9a909b75fcd3db4b79c7bf11bd67d113cf"
     },
     ".github/workflows/release.yml": {
       "contentHash": "da2f0e4f1f8248ade7a92fcea2275abdb28be7e6a8fc853f69732be45934fff1"
@@ -122,6 +122,9 @@
     },
     "crates/spec-spine-types/schemas/codebase-index.schema.json": {
       "contentHash": "2e415a74b666b21d114ef0aebb656e22b6b634f4d66b2fbc5f3c422b1a57ac3e"
+    },
+    "crates/spec-spine-types/schemas/context-packet.schema.json": {
+      "contentHash": "8a7058f0573a9e78e225b046646326639a2bb3d332d14f8509beb15047e402ed"
     },
     "crates/spec-spine-types/schemas/registry-spec-shard.schema.json": {
       "contentHash": "22bbd344f7c6e3aa150012829ecdd43965ebe22186cd1f8fd2aad42a7e4e4e0b"

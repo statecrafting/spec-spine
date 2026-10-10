@@ -527,15 +527,15 @@ node.** A test span opens on its attribute run, so the projection finds the
 function item ending on the span's last line rather than one starting on its
 first.
 
-Status (2026-10-10): built in four changes so each stays reviewable (the
-first two-change split timed out in review). They are: (1) the resolver, its
-Rust `src/` constructs and reasons, the index messages, the determinism step
-and the core resolver_matrix test; (2) integration-test roots and test
-identities; (3) the TypeScript constructs; (4) the `content select` surface,
-the read constant, the template note and the CLI resolver_matrix test. The
-index constant and its restamp wait for the pin move (D-9), so
-`implementation` stays `in-progress` and the Verification block's `1.3.0` line
-fails until then.
+Status (2026-10-10): built in five changes so each stays reviewable (ai-review
+timed out at its 15-minute limit on the larger splits). They are: (1) the
+resolver, its Rust `src/` constructs and reasons, and the index messages, with
+focused assertions; (2) the measured-matrix golden and its determinism step;
+(3) integration-test roots and test identities; (4) the TypeScript constructs;
+(5) the `content select` surface, the read constant, the template note and the
+CLI resolver_matrix test. The index constant and its restamp wait for the pin
+move (D-9), so `implementation` stays `in-progress` and the Verification
+block's `1.3.0` line fails until then.
 
 ## Verification
 
