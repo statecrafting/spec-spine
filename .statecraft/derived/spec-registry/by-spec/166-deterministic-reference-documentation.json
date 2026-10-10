@@ -201,7 +201,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "7a34dda8679b8e15d3cd6906f80727196243450318ba6614971f651beaa114d2",
-      "166-generate-one-deterministic-reference-page-per-spec": "6865fcb1b9ea5707a417c69c5444b7aac4dc259838bea8d4e68802526c53715b",
+      "166-generate-one-deterministic-reference-page-per-spec": "0092496501dc80157b8e786777237f7c9443f9022d10861d24091dea2cf894aa",
       "2-territory": "2643be50fa8c3558d8bd59e0ceb16ab5b8057c1df270f9c875fc72975da3b1c8",
       "3-1-one-export-one-page-kind": "50c7deb50a24d7818f51e88f81fd6da80330513e9d9cd56e2bc76a72c12d4f29",
       "3-10-the-regeneration-check": "63dce924aa14fa05a4c919501ee2e6eb4a2d497fe0a8a7d1f3fe2d4cebec0ac0",
@@ -214,13 +214,13 @@
       "3-4-fields-and-their-sources": "7f1fec7bc2fc1f87c3b61e3bc0f9afe91f2c9aa5759bd03ed84b84b80f331310",
       "3-5-markdown-projection-and-canonical-bytes": "42f39219206507fe3326e1f13a05d1c4fbb3dc0003d39bfdd58c00628b66d1ba",
       "3-6-generated-and-authored-regions": "b0a2c633fe5bb9c980c61954143ca1dfe2f8a34c0d313ebdbf6257d22767a1ca",
-      "3-7-executable-examples-are-declared-not-run": "c96a449b3be7e234199a10062c1bb28e7fb29309a53ff95826bb27b5e24d6ad9",
+      "3-7-executable-examples-are-declared-not-run": "3f81f8adf140108fef7c485a90914f0e75f3561b26b469778e79df566c81a482",
       "3-8-inputs-are-explicit-and-ambient-reads-are-forbidden": "e63cb8824c60f8b109432e7ee1e5992d50464a921ab3909db3622bb34bff4548",
       "3-9-generation": "0885e9135f8d1231a79312eab0aee49a948d0128891d4903130bad1cb6032316",
-      "3-behavior": "e2f8751b77e1a37884e6b4728472937182c6639adf7b31a1d0f39b65b3afceca",
+      "3-behavior": "e6d0c84faa58ee968fdbeaf4deed8b59a66ad5f95276f62ecb4fde759f10df9c",
       "4-acceptance-criteria": "f5e45026b768eebc54e9a2f660c62017cb1e76f602056e4de54a4eb43e02c3c6",
       "5-out-of-scope": "f53261f7dc5897c0ece8da7f55a06b657ef100d10be5a460777d23fdfe1efcde",
-      "6-resolved-decisions": "e79eda8dbd52eecf2e52231f80bee9ce22e6b946d4bba6f44e391bffdf284663",
+      "6-resolved-decisions": "c7cf43db9c3ef0eda1ce141582f70f2208ec6a0f53616996833b440d17fcb114",
       "verification": "777d3f3df29b18e259c9ca02ae8c684fe455309762c13c58018e16cac3ffc538"
     },
     "sectionHeadings": [
@@ -252,6 +252,6 @@
     "summary": "Adds one bounded, fixed-export reference product: one Markdown page per exported spec, projected from a typed page model whose every field comes from a named ledger source (registry, index, selected content, declared traceability, capability catalog). Pages have fixed generated regions and one human-authored region, canonical bytes, declared-not-run executable examples, and a read-only regeneration check that exits 1 when committed pages differ. Narrative documentation stays outside the product.\n",
     "title": "Generate one deterministic reference page per spec"
   },
-  "shardHash": "4e4f6ede5fa8573781878bc4485e13cf7c052531fad3fec9d5f51eeab8068179",
+  "shardHash": "f205956b10fe6b9735c8de2370e762bcc1ca5a26113035ed5d873e630e268e77",
   "specVersion": "1.9.0"
 }

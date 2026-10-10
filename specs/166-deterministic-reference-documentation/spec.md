@@ -292,8 +292,8 @@ Neither `reference generate`, `reference check`, nor `reference model` runs
 an example, spawns a process for one, or records success. Running examples is
 the separate acceptance step in `crates/spec-spine-cli/tests/reference_examples.rs`:
 it runs every example of the fixture catalog against the built binary
-(`CARGO_BIN_EXE_spec-spine`) inside a copied fixture corpus and compares exit
-class and output with the declared expectation. `verify` remains the one
+(`CARGO_BIN_EXE_spec-spine`) inside a copied fixture corpus and asserts the
+example's `exitCode` and each of its `stdoutIncludes` substrings. `verify` remains the one
 executing verb of the CLI (D-5).
 
 ### 3.8 Inputs are explicit and ambient reads are forbidden
@@ -452,7 +452,8 @@ the `relations` field uses. Spec 162 as filed names an operation by `name`,
 lists its governing specs in `governedBy`, and shapes examples as
 `{ id, fixture, argv, stdin, exitCode, stdoutIncludes }` (162 §3.3, §3.9);
 §3.4, §3.5 and §3.7 now use those members instead of the draft's "operation
-id", "governing spec" and "exit class". Acceptance criteria were renumbered
+id", "governing spec" and "exit class" (one leftover in §3.7 was corrected on
+review the same day). Acceptance criteria were renumbered
 from 1 to 9, closing a gap where criterion 2 was missing; no criterion was
 added or removed.
 
