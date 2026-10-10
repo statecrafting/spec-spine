@@ -281,10 +281,14 @@ not spend the content budget. A member is atomic and never split.
 
 Continuation is opaque canonical base64url carrying the schema major, snapshot
 identity digest, request digest, closure digest, budgets, and last emitted
-member key. It is authenticated by a SHA-256 checksum over its canonical
-payload, not by a secret. Changed request, snapshot, closure, schema major, or
-budgets is `stale-continuation`. A valid continuation resumes strictly after
-the last key and MUST NOT repeat or skip a member.
+member key. It is integrity checked by a SHA-256 checksum over its canonical
+payload, not authenticated by a secret. Changed request, snapshot, closure,
+schema major, or budgets is `stale-continuation`. A valid continuation resumes
+strictly after the last key and MUST NOT repeat or skip a member. Because the
+checksum is public, a caller can construct a well-formed token for its own
+request naming any resume point (D-4); the no-skip guarantee holds for tokens
+the producer issued, and a consumer that must prove an unbroken page sequence
+checks each page's continuation against the token the previous page returned.
 
 `requestDigest` hashes the canonical normalized request without continuation.
 `packetDigest` hashes the canonical response with `packetDigest` absent and
@@ -384,9 +388,16 @@ or stop. Silent omission and endless continuation are both forbidden.
 packet adds composition metadata only. It does not define competing selector,
 span, content-digest, or closure-digest semantics.
 
-**D-4 (2026-09-26): continuation is integrity checked but not secret.** It
-prevents accidental or adversarial substitution from being accepted as another
-request, but it is not an authorization token and carries no server state.
+**D-4 (2026-09-26, corrected 2026-10-10): continuation is integrity checked
+but not secret.** The checksum detects a corrupted token and a token replayed
+against another request, snapshot, closure, schema major or budget. It does not
+resist a caller who forges a token for its own request: SHA-256 without a key
+is computable by anyone holding the payload. That is accepted, not defended
+against. The holder of a request can already ask for any page, so a forged
+resume point deceives only the caller who made it, and spec-spine keeps no
+server state or key to sign with. The token is not an authorization token. The
+2026-09-26 text claimed it also stopped adversarial substitution; that claim
+was wrong and is withdrawn.
 
 **D-5 (2026-09-26): producer build identity is explicit.** Package version
 alone cannot distinguish local builds. A binding supplies a digest or records

@@ -173,10 +173,10 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "8a09bb43d7b44d88f7248ab716683e67fa52b78cfc6a344343eb171ee29f31af",
-      "159-assemble-one-repository-context-packet": "c3ebe0f815813721ea97df0dd6f2e8869fe54f1ebc4c5f921f2d033874901a91",
+      "159-assemble-one-repository-context-packet": "8080e74a67cf59092fbffe71897164967eeb2a82c4b479759b58eb05e7c34cb8",
       "2-territory": "88ae18471b6ada3151f8a63758d639dd77662da3b74c3031bc177209b943dcfd",
       "3-1-one-packet-one-repository-snapshot": "51b4af534207454f9373efda02a83838986b428d7eaef5da6fe0c8dd16eab9e5",
-      "3-10-ordering-budgets-continuation-and-digest": "c0be4a908274fb1e42a82c37821e8645c806ed66571aead8c4a0eb5e9dbeab73",
+      "3-10-ordering-budgets-continuation-and-digest": "88d778cea169356808c904401dc603fc2dd09b3ebad47ced0dd7800344c60d16",
       "3-11-canonical-json-and-schema-evolution": "3e6a7b8a725aebb83b67ccb5dacd3346d57fa34bc7172640553e7265819e6331",
       "3-12-refusal-and-error-behavior": "8541e3320bfa8f61100bda8e339988f426659ea616dac05f55b545a89a6a571b",
       "3-13-authority-security-and-disclosure-boundary": "5d1669900fa34890898951382b92272ae9d33ed8f651ca96321c3c10c2dd96d7",
@@ -188,10 +188,10 @@
       "3-7-warnings": "0877baa5a133faed1f5bf8e24635fee6c1f43bc5108b02c81e1b877b5e756794",
       "3-8-required-members-optional-members-and-completeness": "0140865b0b34070cef89d33bf74a02f150349e3a6537abed9d3da9fdc1f6df8b",
       "3-9-empty-and-missing-results": "aca9b27caa33bea8cb82ff1ae0174ea0bd5e64d02d3ad29d2389b30c3e93d80b",
-      "3-behavior": "ddd042e76f35c8162f9f1ecfab341284de5062008bf72e812140cebe157d6692",
+      "3-behavior": "419ea351e4fa81b54f33b2a915d20cf4205e904b69511132ee85deaf6f35230d",
       "4-acceptance-criteria": "7fc3a2bcf41bafc7775371ee09012f96ed0c7028d3f71709d3de7e3e24897699",
       "5-out-of-scope": "ed63906bbf867b89b30bdd9bb68c752f2acf044cb47d0a55313fae278330ac9d",
-      "6-resolved-decisions": "ae21718e066e5cbe52505ae59510ea2da8794890163e2f9eb36fbe7f8b740b40",
+      "6-resolved-decisions": "4b7f9677f3c8f3442b2bda407276b1853e0e21d253ee9be57c28ce9360929400",
       "verification": "12fbb4d099630b3a098db7332b2dfbca402bb6976fee24f08de221ed2d721a67"
     },
     "sectionHeadings": [
@@ -222,6 +222,6 @@
     "summary": "Adds a deterministic, read-only context-packet request and response for one immutable repository snapshot. A packet combines a declared context closure with required and optional selected-content members under explicit byte and item budgets, records every omission and warning, binds continuation to the request and snapshot, and carries a canonical packet digest without creating cross-repository authority.\n",
     "title": "Assemble one repository context packet"
   },
-  "shardHash": "ef4de9e0e6ed2f82e2eff4a938f858832e0828c63d72c97ab13db36172a18ed6",
+  "shardHash": "ef9d24d65149db985cd21c4bd96ae2ed704f27770681e3fcf295a2fb7304bacc",
   "specVersion": "1.9.0"
 }
