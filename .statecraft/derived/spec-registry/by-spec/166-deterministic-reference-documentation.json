@@ -1,0 +1,257 @@
+{
+  "record": {
+    "created": "2026-09-27",
+    "dependsOn": [
+      "155-selected-content-accessor",
+      "160-documentation-manifest-and-freshness",
+      "169-declared-obligation-traceability",
+      "162-capability-catalog"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/reference.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/schemas/reference-page.schema.json",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/reference.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/reference.rs",
+        "planned": true
+      },
+      {
+        "kind": "directory",
+        "path": "crates/spec-spine-core/tests/fixtures/reference/",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_reference.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/reference.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/reference_examples.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "docs/reference-documentation.md",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "anchor": "cli-reference",
+          "file": "docs/cli-reference.md",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "id": "166-deterministic-reference-documentation",
+    "implementation": "pending",
+    "intent": {
+      "goal": "publish a fixed, byte-reproducible reference of what each spec declares, owns, and relates to",
+      "nonGoals": [
+        "tutorials, explanations, navigation, migrations, or any other narrative documentation",
+        "claims of correctness, test success, acceptance, release, adoption, or observation",
+        "executing examples, generators, or tests during generation or checking",
+        "reading Git history, environment, secrets, providers, or the network"
+      ]
+    },
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-1-one-export-one-page-kind",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "An export produces exactly one reference page per exported spec at a fixed path, and no other page kind."
+      },
+      {
+        "anchor": "3-4-fields-and-their-sources",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "Every page field is drawn from one named typed source, and an absent, unsupported, or unsupplied source is rendered explicitly, never inferred."
+      },
+      {
+        "anchor": "3-5-markdown-projection-and-canonical-bytes",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "Identical inputs produce byte-identical page models and Markdown pages on every supported platform."
+      },
+      {
+        "anchor": "3-10-the-regeneration-check",
+        "id": "R-4",
+        "kind": "requirement",
+        "text": "The regeneration check never writes and exits 1 naming every missing, changed, orphaned, or malformed page and a stale ledger."
+      },
+      {
+        "anchor": "3-8-inputs-are-explicit-and-ambient-reads-are-forbidden",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "Generation and checking read only declared repository inputs and never read environment, secrets, providers, network, Git history, or undeclared paths."
+      },
+      {
+        "anchor": "3-7-executable-examples-are-declared-not-run",
+        "id": "I-2",
+        "kind": "invariant",
+        "text": "Generation and checking never execute an example; examples run only in a separate acceptance step against the built binary."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/reference.rs",
+          "crates/spec-spine-cli/tests/reference.rs",
+          "crates/spec-spine-cli/tests/reference_examples.rs"
+        ],
+        "kind": "verification",
+        "text": "The implementation is checked for field sourcing, canonical bytes, region preservation, regeneration findings, containment, limits, and examples run against the built binary."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "roadmap unit DG-01 and the documentation product boundary (13.5)",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      },
+      {
+        "role": "existing index projection, distinguished in D-2",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/render.rs"
+        }
+      },
+      {
+        "role": "verify:cli block parser reused read-only",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/verify.rs"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "7a34dda8679b8e15d3cd6906f80727196243450318ba6614971f651beaa114d2",
+      "166-generate-one-deterministic-reference-page-per-spec": "0092496501dc80157b8e786777237f7c9443f9022d10861d24091dea2cf894aa",
+      "2-territory": "2643be50fa8c3558d8bd59e0ceb16ab5b8057c1df270f9c875fc72975da3b1c8",
+      "3-1-one-export-one-page-kind": "50c7deb50a24d7818f51e88f81fd6da80330513e9d9cd56e2bc76a72c12d4f29",
+      "3-10-the-regeneration-check": "63dce924aa14fa05a4c919501ee2e6eb4a2d497fe0a8a7d1f3fe2d4cebec0ac0",
+      "3-11-manifest-binding": "f643e8a5702a749334f5bcae070a09135605a20d1bdf36decb694ecab144a9d1",
+      "3-12-limits-errors-and-exit-codes": "385bdd6edcd459ac504d64de19aa42cce65a581b6d77713347a2c5d235b7ddc1",
+      "3-13-schema-evolution": "8684d3f922f29977a462915ad4095bfe3db5ecd55c96cd4d55b795aa4daff30f",
+      "3-14-authority-and-disclosure-boundary": "aa66f01148fe2a0e7687451a3d8f4f9bddfcddaa7139694d535053adad82ee7b",
+      "3-2-export-request": "7a7948984374f59e862cdb6430793d8af7d272b630fe553e697d4339fc4231f3",
+      "3-3-page-model-and-output-schema": "ec7d61e936f191f0a6b537b1272ffb2fe900842751cdafb0eb25750e9f595dd4",
+      "3-4-fields-and-their-sources": "7f1fec7bc2fc1f87c3b61e3bc0f9afe91f2c9aa5759bd03ed84b84b80f331310",
+      "3-5-markdown-projection-and-canonical-bytes": "42f39219206507fe3326e1f13a05d1c4fbb3dc0003d39bfdd58c00628b66d1ba",
+      "3-6-generated-and-authored-regions": "b0a2c633fe5bb9c980c61954143ca1dfe2f8a34c0d313ebdbf6257d22767a1ca",
+      "3-7-executable-examples-are-declared-not-run": "3f81f8adf140108fef7c485a90914f0e75f3561b26b469778e79df566c81a482",
+      "3-8-inputs-are-explicit-and-ambient-reads-are-forbidden": "e63cb8824c60f8b109432e7ee1e5992d50464a921ab3909db3622bb34bff4548",
+      "3-9-generation": "0885e9135f8d1231a79312eab0aee49a948d0128891d4903130bad1cb6032316",
+      "3-behavior": "e6d0c84faa58ee968fdbeaf4deed8b59a66ad5f95276f62ecb4fde759f10df9c",
+      "4-acceptance-criteria": "f5e45026b768eebc54e9a2f660c62017cb1e76f602056e4de54a4eb43e02c3c6",
+      "5-out-of-scope": "f53261f7dc5897c0ece8da7f55a06b657ef100d10be5a460777d23fdfe1efcde",
+      "6-resolved-decisions": "c7cf43db9c3ef0eda1ce141582f70f2208ec6a0f53616996833b440d17fcb114",
+      "verification": "777d3f3df29b18e259c9ca02ae8c684fe455309762c13c58018e16cac3ffc538"
+    },
+    "sectionHeadings": [
+      "166: Generate one deterministic reference page per spec",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One export, one page kind",
+      "3.2 Export request",
+      "3.3 Page model and output schema",
+      "3.4 Fields and their sources",
+      "3.5 Markdown projection and canonical bytes",
+      "3.6 Generated and authored regions",
+      "3.7 Executable examples are declared, not run",
+      "3.8 Inputs are explicit and ambient reads are forbidden",
+      "3.9 Generation",
+      "3.10 The regeneration check",
+      "3.11 Manifest binding",
+      "3.12 Limits, errors, and exit codes",
+      "3.13 Schema evolution",
+      "3.14 Authority and disclosure boundary",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/166-deterministic-reference-documentation/spec.md",
+    "status": "draft",
+    "summary": "Adds one bounded, fixed-export reference product: one Markdown page per exported spec, projected from a typed page model whose every field comes from a named ledger source (registry, index, selected content, declared traceability, capability catalog). Pages have fixed generated regions and one human-authored region, canonical bytes, declared-not-run executable examples, and a read-only regeneration check that exits 1 when committed pages differ. Narrative documentation stays outside the product.\n",
+    "title": "Generate one deterministic reference page per spec"
+  },
+  "shardHash": "f205956b10fe6b9735c8de2370e762bcc1ca5a26113035ed5d873e630e268e77",
+  "specVersion": "1.9.0"
+}
