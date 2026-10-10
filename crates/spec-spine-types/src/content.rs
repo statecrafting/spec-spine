@@ -208,6 +208,8 @@ pub enum ContentOmissionReason {
     UnsupportedProjection,
     BinaryContent,
     ItemExceedsByteBudget,
+    /// A structural lookup whose scope cannot be enumerated (spec 163 §3.5).
+    IndeterminateSelector,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

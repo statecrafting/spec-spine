@@ -36,7 +36,7 @@ amends:
   - "155-selected-content-accessor"
 establishes:
   - { kind: file, path: "crates/spec-spine-core/tests/resolver_matrix.rs" }
-  - { kind: file, path: "crates/spec-spine-cli/tests/resolver_matrix.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-cli/tests/resolver_matrix.rs" }
 extends:
   - { spec: "004-codebase-index", unit: { kind: file, path: "crates/spec-spine-core/src/symbols.rs" }, nature: additive }
   - { spec: "004-codebase-index", unit: { kind: file, path: "crates/spec-spine-core/src/index.rs" }, nature: additive }
@@ -532,9 +532,9 @@ first carries the resolver, the index messages, the determinism step and the
 core resolver_matrix lookups and index outcomes. The second carries the
 `content select` surface (test selectors, `indeterminate-selector`, the §3.7
 projections), the read constant, the template note and the CLI resolver_matrix
-test. The index constant and its restamp wait for the pin move (D-9), so
-`implementation` stays `in-progress` and the Verification block's `1.3.0` line
-fails until then.
+test. Both are built. The index constant and its restamp wait for the pin
+move (D-9), so `implementation` stays `in-progress` and the Verification
+block's `1.3.0` line fails until then.
 
 ## Verification
 
