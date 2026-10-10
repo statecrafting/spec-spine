@@ -1,0 +1,275 @@
+{
+  "record": {
+    "amends": [
+      "004-codebase-index",
+      "016-directory-crate-module-units",
+      "155-selected-content-accessor"
+    ],
+    "created": "2026-09-27",
+    "dependsOn": [
+      "004-codebase-index",
+      "016-directory-crate-module-units",
+      "025-symbol-resolution-feature-gate",
+      "155-selected-content-accessor"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/resolver_matrix.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/resolver_matrix.rs",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/symbols.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/index.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "155-selected-content-accessor",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/content.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "155-selected-content-accessor",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/content.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "155-selected-content-accessor",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/content.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "155-selected-content-accessor",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/content.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "108-a-work-scope-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/scope.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "108-a-work-scope-is-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/scope.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "088-the-template-teaches-the-whole-grammar",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/templates/spec-template.md"
+        }
+      }
+    ],
+    "id": "163-measured-resolver-expansion",
+    "implementation": "pending",
+    "intent": {
+      "goal": "give impl members, nested module items, and tests stable structural identities without changing any identity that resolves today",
+      "nonGoals": [
+        "semantic program understanding, macro expansion, or cfg evaluation",
+        "import, call, or package dependency graphs",
+        "a test authority-unit kind in frontmatter",
+        "languages other than Rust and TypeScript"
+      ]
+    },
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-2-supported-constructs-and-identity-grammar",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "The resolver supports exactly the constructs in the §3.2 matrix, each with the identity grammar and span that section gives, and nothing else."
+      },
+      {
+        "anchor": "3-4-test-identity",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "A Rust test identity binds one function to a bare #[test] attribute in a src/ file or an integration-test root, and spec 155's test selector resolves exactly those identities."
+      },
+      {
+        "anchor": "3-5-unsupported-and-unknown-are-reported-not-absent",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "A lookup that does not resolve reports unsupported or unknown with one closed reason whenever §3.5 applies, and plain unresolved only otherwise."
+      },
+      {
+        "anchor": "3-7-projections-follow-the-grammar",
+        "id": "R-4",
+        "kind": "requirement",
+        "text": "Structural projections obey spec 155's whole-line rule and documentation recognizes every outer doc-comment form in §3.7."
+      },
+      {
+        "anchor": "3-8-compatibility-gate",
+        "id": "R-5",
+        "kind": "requirement",
+        "text": "The read schema advances to 0.11.0, the index schema advances to 1.3.0 in the change that moves the engine pin to the first release carrying this resolver, and any later matrix change follows the §3.8 compatibility rule."
+      },
+      {
+        "anchor": "3-3-existing-identities-never-change-meaning",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "Every id the 0.28.0 resolver (unchanged through 0.29.0) resolves keeps a byte-identical location list; a new construct never adds a location to it."
+      },
+      {
+        "anchor": "3-10-no-semantic-claims",
+        "id": "I-2",
+        "kind": "invariant",
+        "text": "Resolution is syntactic: no name resolution, macro expansion, type inference, cfg evaluation, import following, or dependency graph."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/resolver_matrix.rs",
+          "crates/spec-spine-cli/tests/resolver_matrix.rs"
+        ],
+        "kind": "verification",
+        "text": "Every matrix row, reason token, legacy golden, projection correction, and version constant is asserted by the resolver_matrix tests on each release triple."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "roadmap (RS-01, row J)",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      },
+      {
+        "role": "unowned; §3.9 adds one step",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/determinism.yml"
+        }
+      },
+      {
+        "role": "dependency-table strip that rules out manifest dependency edges",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/manifest.rs"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-1-measured-matrix-2026-09-27-spec-spine-0-28-0-main-c0c1256d": "7a2b3270645e8c93e85ab03bd07a4e3ecde0276afa8fbdff8c8a9b035c036020",
+      "1-2-what-the-measurement-decides": "d2ce475cf471ec2b84a4734db1baad5d7aecb240a4413bf797c6756c07c09703",
+      "1-purpose": "5d98e40e7096ecdf04ad922eee903ad4f994a292d5449476cafb415e802763c5",
+      "163-expand-structural-resolution-only-where-measurement-proves-it-deterministic": "b092205a8814c29bdab53fdde9bd9c8624f14590fa6963b9b21ae555faa6dc75",
+      "2-territory": "3f4735ec87030057199a8ff3cd37d3c008d311bb21895fe8bcf7db287fb3fac0",
+      "3-1-scope-of-the-walk": "f027039118eeb5cd95aadfa007c0db32be7ff66910690099d7e45f097e6f2b9f",
+      "3-10-no-semantic-claims": "d14c37c0e05534f931d0d57c15efede84bca698abcb3913f08b716bf5c790dc2",
+      "3-2-supported-constructs-and-identity-grammar": "0bd1093938635b062164f55b44b3b77d67791ed9c2c07b855f3a9b5edfb54903",
+      "3-3-existing-identities-never-change-meaning": "fd4e16b59e3a5f96830984b67b4eec49b4fa193c880afe66c9c4afb6f3df9cc8",
+      "3-4-test-identity": "9bde6920db7821c43fdc1c1c1d9ff9343926e345258432029283ec53f83e8412",
+      "3-5-unsupported-and-unknown-are-reported-not-absent": "94c0982862edfdedbed63881eb6dfa1f683875f0ea7c5b93ec6932f3cd551170",
+      "3-6-nothing-is-walked-that-is-not-needed": "38af927cea2295c4196d8cf7f49b27091f4dee6a87346d322c1eefc49480d420",
+      "3-7-projections-follow-the-grammar": "7d9ad2ffa4db406f4e34de8f3bdef369671800f15dc23ee950ee45a4c9943fd0",
+      "3-8-compatibility-gate": "7ff44bf84651e1cbe8cfb9325bd2ef8c5ca65decec4e1f33a25cc00835d7e95d",
+      "3-9-determinism-across-the-four-release-triples": "e173ecc0fa0fb0b6b8a751e447e2030af3588d6260244e4ebcb367d7d0abda02",
+      "3-behavior": "e1ccf74d840be841b564b1a4a5d8a8586aee7de70daa77363778baa3414d2ad4",
+      "4-acceptance-criteria": "ed9deb8c540d80f7c0665fe69020408ca744c150b05f561cfce9e72071fd2a3f",
+      "5-out-of-scope": "014367c857ffd34a83d4920de6dab331889e48d1a9f0407b56ea83d4895cd3a7",
+      "6-resolved-decisions": "7e117e7217ff5c215edacb4db3772179bfdd329ee669a45c23928c6bae8f4bd2",
+      "verification": "06608058d017a44fcbfe907c021539a44d263fbaaa83bceeec12626869e9b6cc"
+    },
+    "sectionHeadings": [
+      "163: Expand structural resolution only where measurement proves it deterministic",
+      "1. Purpose",
+      "1.1 Measured matrix (2026-09-27, spec-spine 0.28.0, main `c0c1256d`)",
+      "1.2 What the measurement decides",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Scope of the walk",
+      "3.2 Supported constructs and identity grammar",
+      "3.3 Existing identities never change meaning",
+      "3.4 Test identity",
+      "3.5 Unsupported and unknown are reported, not absent",
+      "3.6 Nothing is walked that is not needed",
+      "3.7 Projections follow the grammar",
+      "3.8 Compatibility gate",
+      "3.9 Determinism across the four release triples",
+      "3.10 No semantic claims",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/163-measured-resolver-expansion/spec.md",
+    "status": "draft",
+    "summary": "Publishes a measured construct matrix for the Rust and TypeScript structural resolver and adds only the constructs whose identity and span are a pure function of the pinned grammars: items inside inline modules, Rust impl and trait members, macro_rules definitions, integration-test roots, TypeScript class methods and top-level variables, and a Rust test identity bound to its #[test] attribute, which lifts spec 155's test-selector reservation. Every other construct reports a closed unsupported or unknown reason instead of an absence. No identity that resolves today changes meaning; the index schema advances one MINOR, staged with the engine pin that first carries it, and dependency edges stay out of scope.\n",
+    "title": "Expand structural resolution only where measurement proves it deterministic"
+  },
+  "shardHash": "7cb273aa22dbd24dc43c66d230905a9bccddaa7a5490756c9060f18418291f05",
+  "specVersion": "1.9.0"
+}
