@@ -30,7 +30,19 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/context_packet.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/context_packet.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/fixtures/context-packet/",
         "source": "spec-edge"
       },
       {
@@ -72,7 +84,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/fixtures/context-packet/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -99,7 +115,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/context_packet.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -108,7 +128,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/context_packet.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -370,5 +394,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "21f58ca47d5ea96e1228246bf82dedbd356a13bbf43edace1751fbf95cfcab0b"
+  "shardHash": "c07c4f1505b005ca1cee964db349f8b58e58ccc1051e16bea0b3528abd46ed94"
 }

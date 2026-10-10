@@ -20,6 +20,7 @@ pub mod closure;
 pub mod compact;
 pub mod compile;
 pub mod content;
+pub mod context_packet;
 pub mod couple;
 pub mod coverage;
 pub mod delta;
@@ -82,6 +83,10 @@ pub use compile::{
     load_committed_registry, registry_dir, registry_shard_files,
 };
 pub use content::{selected_content, selected_content_json};
+pub use context_packet::{
+    UNVERIFIED_BUILD, build_digest, context_packet, context_packet_document, context_packet_json,
+    packet_digest,
+};
 pub use couple::{
     CoupleReport, DEFAULT_BYPASS_PREFIXES, DeletionProvenance, DiffFile, DiffInput, PriorOwnership,
     PriorSnapshots, SNAPSHOT_HEAD_COMMIT, SNAPSHOT_HEAD_TREE, SNAPSHOT_MERGE_BASE, Waiver,

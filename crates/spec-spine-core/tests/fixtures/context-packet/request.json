@@ -1,0 +1,19 @@
+{
+  "closure": { "root": "002" },
+  "members": [
+    {
+      "selector": { "kind": "file", "path": "notes/z.txt" },
+      "requirement": "optional"
+    },
+    {
+      "selector": { "kind": "spec-section", "spec": "001", "anchor": "3-1-the-rule" },
+      "requirement": "required"
+    }
+  ],
+  "maxBytes": 524288,
+  "maxItems": 96,
+  "continuation": null,
+  "rationale": "fixture: the documented request shape",
+  "workIdentity": null,
+  "consumerSchemaVersion": "1.0.0"
+}
