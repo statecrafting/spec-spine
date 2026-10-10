@@ -527,6 +527,14 @@ node.** A test span opens on its attribute run, so the projection finds the
 function item ending on the span's last line rather than one starting on its
 first.
 
+**D-16 (2026-10-10): the fallback reads attribute structure, not raw
+brackets.** Review of the second change found that the 0.28.0 attribute scan
+counts every `[` and `]`, so a `[` inside a string literal can leave the depth
+unbalanced for a line above to cancel. The 0.28.0 scan is kept as it is
+(D-13), but the §3.7 fallback ignores brackets inside string literals, never
+lets the depth go negative, and stops at a comment line when it is outside an
+attribute.
+
 Status (2026-10-10): built in two changes so each stays reviewable. The
 first carries the resolver, the index messages, the determinism step and the
 core resolver_matrix lookups and index outcomes. The second carries the

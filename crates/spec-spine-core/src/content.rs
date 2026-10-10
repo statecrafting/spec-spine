@@ -540,7 +540,9 @@ fn resolve_selector(
 /// The omission an unresolved structural lookup maps to (spec 163 §3.5):
 /// `unsupported` to `unsupported-selector`, `unknown` to
 /// `indeterminate-selector`, and a plain unresolved to `missing-content`, each
-/// naming its reason. No outcome is mapped to another.
+/// naming its reason. No outcome is mapped to another. Every caller handles
+/// `Resolved` before calling; the arm exists so the match is exhaustive
+/// without a panic on this read path, and it reports a plain miss.
 fn unresolved_outcome(kind: &str, id: &str, lookup: &Lookup) -> (ContentOmissionReason, String) {
     match lookup {
         Lookup::Unsupported(reason) => (
@@ -968,8 +970,14 @@ fn documentation(lines: &[&str], item_start_line: usize) -> Documentation {
     let mut doc_attribute = false;
     while cursor > 0 {
         let line = lines[cursor - 1].trim();
-        attribute_depth += line.matches(']').count() as isize;
-        attribute_depth -= line.matches('[').count() as isize;
+        // Outside an attribute, a comment line ends the run: its brackets are
+        // prose. Brackets inside a string literal (`#[serde(rename = "[v")]`)
+        // are not attribute structure either, and an unbalanced line can never
+        // leave the depth negative for an unrelated line above to cancel.
+        if attribute_depth == 0 && (line.starts_with("//") || line.starts_with("/*")) {
+            break;
+        }
+        attribute_depth = (attribute_depth + bracket_delta(line)).max(0);
         if attribute_depth > 0 || line.starts_with("#[") {
             doc_attribute |= line.starts_with("#[doc");
             cursor -= 1;
@@ -1004,6 +1012,32 @@ fn documentation(lines: &[&str], item_start_line: usize) -> Documentation {
     } else {
         Documentation::Absent
     }
+}
+
+/// `]` minus `[` on one line, read upward, ignoring brackets inside string
+/// literals.
+fn bracket_delta(line: &str) -> isize {
+    let mut delta = 0isize;
+    let mut in_string = false;
+    let mut escaped = false;
+    for c in line.chars() {
+        if in_string {
+            match (escaped, c) {
+                (true, _) => escaped = false,
+                (false, '\\') => escaped = true,
+                (false, '"') => in_string = false,
+                _ => {}
+            }
+            continue;
+        }
+        match c {
+            '"' => in_string = true,
+            ']' => delta += 1,
+            '[' => delta -= 1,
+            _ => {}
+        }
+    }
+    delta
 }
 
 fn attached_documentation_span(lines: &[&str], item_start_line: usize) -> Option<(usize, usize)> {
@@ -1210,5 +1244,26 @@ mod tests {
         ];
         assert_eq!(attached_documentation_span(&lines, 3), Some((1, 1)));
         assert_eq!(attached_documentation_span(&lines, 6), None);
+    }
+
+    /// Spec 163 §3.7's fallback reads attribute structure, not raw brackets:
+    /// a `[` inside a string literal must not leave the depth negative so
+    /// that `]]` on the doc line above swallows it as an attribute. The 0.28.0
+    /// scan has exactly that flaw and finds nothing here, so the fallback runs.
+    #[test]
+    fn documentation_fallback_ignores_brackets_in_string_literals() {
+        let lines = [
+            "fn other() {}",
+            "/// arr]]",
+            "#[serde(rename = \"[v\")]",
+            "pub fn f() {}",
+        ];
+        assert_eq!(attached_documentation_span(&lines, 4), None);
+        assert!(matches!(
+            documentation(&lines, 4),
+            Documentation::Span(2, 2)
+        ));
+        assert_eq!(bracket_delta("#[serde(rename = \"[v\")]"), 0);
+        assert_eq!(bracket_delta(r#"#[doc = "a \" ] b"]"#), 0);
     }
 }
