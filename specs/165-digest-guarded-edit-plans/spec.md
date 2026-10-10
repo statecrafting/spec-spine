@@ -250,8 +250,13 @@ any path outside Markdown documentation and spec files is refused
 `unsupported-target-kind`. The replacement is the complete new bytes of that
 span, which MUST end at a line boundary.
 
-On an approved subject spec, only an append to its resolved-decisions section
-is admissible: the old section bytes MUST be a prefix of the new. Any other
+On an approved subject spec, only an append to its decisions section is
+admissible. That section is the one level-2 heading whose text, after any
+leading `N.` ordinal, begins with `Resolved decisions`, `Design decisions`,
+or `Decisions` (every heading form the corpus uses), selected as a spec-155
+`spec-section` by its anchor. A spec with no such heading, or with more than
+one, has no admissible append, and the edit is refused `approved-spec-text`.
+For the append: the old section bytes MUST be a prefix of the new. Any other
 change to an approved spec's text is refused `approved-spec-text`, and the
 refusal names `propose-amendment` as the governed route.
 
@@ -276,7 +281,10 @@ it could not be both normalized and faithful.
 
 ### 3.10 Authority is checked before a preview exists
 
-For every file a plan changes, in this order:
+For every file a plan changes or creates, in this order (a file
+`propose-amendment` creates passes all four: check 3 exempts it from
+`unauthorized-target`, and check 4 does not apply because a `spec.md` is not a
+documentation path):
 
 1. A path under the configured `derived_dir` or `state_dir`, or inside a
    `generated` region of a supplied manifest, is `generated-target`.
@@ -293,8 +301,9 @@ A scope is not a permission (108 §3.7): it can only refuse.
 
 Operations are ordered canonically by target path, operation kind, then
 canonical operation identity: the canonical JSON bytes (§3.15) of the
-operation object as the request carries it, `expected` included, compared
-bytewise. Two operations overlap, and the plan is refused
+operation object's value, `expected` included, after canonicalization, so
+the whitespace and key order a request was written with never change it;
+compared bytewise. Two operations overlap, and the plan is refused
 `overlapping-operations` naming both, when they name the same target identity,
 when a `replace-unit` span intersects another operation's pre-image lines, or
 when one replaces a file another changes. Several frontmatter additions to one
@@ -477,6 +486,23 @@ makes an empty array a usage error; §3.11 defines the identity as the
 operation's canonical JSON bytes; §3.7 states which digests spec 160's
 validation checks at plan time (manifest, packet, and inputs) and which only
 freshness can check after application (outputs).
+
+**D-11 (2026-10-10, review): three definitions completed.** Review of D-10's
+change found that §3.11's identity still read as the request's raw bytes, that
+§3.8 never said how the decisions section is found, and that §3.10's checks did
+not say whether they apply to a file `propose-amendment` creates. §3.11 now
+canonicalizes the operation's value first; §3.8 identifies the section by its
+heading forms in this corpus and refuses when there is not exactly one; §3.10
+applies all four checks to created files and says how checks 3 and 4 treat the
+new spec.
+
+**D-12 (2026-10-10, refile): a forward `depends_on`, kept on purpose.** This
+spec depends on 169, a higher ordinal, because traceability was refiled at 169
+after this draft took 165. Every other `depends_on` in the corpus points
+backward. The edge stays because `registry plan` must not offer this spec as
+ready before 169 is complete, which a `references` entry would not prevent.
+It cannot form a cycle: 169 depends only on 106, 110 and 155. Spec 046's
+`L-007` would refuse it, and this repository has not enabled that opt-in rule.
 
 ## Verification
 
