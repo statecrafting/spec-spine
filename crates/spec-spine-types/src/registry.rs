@@ -166,6 +166,14 @@ pub struct SpecRecord {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub relocates: Vec<crate::Relocation>,
 
+    // --- declared obligation traceability (spec 169) ---
+    /// Declared relations from an obligation to a typed target (spec 169
+    /// §3.1), every spec reference normalized to its full id. Omitted when
+    /// empty, so a corpus that declares none keeps its shard bytes apart from
+    /// `specVersion` (§3.9).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub traceability: Vec<crate::TraceDeclaration>,
+
     // --- overflow ---
     /// Declared keys carry any JSON value (spec 012); undeclared keys are
     /// scalars or string arrays.

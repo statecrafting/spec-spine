@@ -10,7 +10,7 @@
 
 | Artifact | Field | Current | Owner |
 |---|---|---|---|
-| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.9.0` | library |
+| registry shards (`spec-registry/by-spec/<id>.json`) | `specVersion` | `1.10.0` | library |
 | index shards (`codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`, `inputs.json`) | `schemaVersion` | `1.2.0` | library |
 | corpus attestation (`attestation/attestation.json`) | `schemaVersion` | `0.1.0` | library |
 | per-spec attestation (`attestation/by-spec/<id>.json`) | `schemaVersion` | `0.1.0` | library |
@@ -92,6 +92,11 @@ MINOR history:
 - registry `1.9.0` (spec 142): additive `relocates` on a record, a spec's
   declared section relocations from another spec (`spec`, `from`, `to`?),
   `spec` normalized to its full id. Absent on every existing spec, so only
+  `specVersion` restamps and no `shardHash` moves.
+- registry `1.10.0` (spec 169): additive `traceability` on a record, a spec's
+  declared relations from an obligation to a typed target (`id`,
+  `obligation`, `relation`, `target`, `withdrawn`?), every spec reference
+  normalized to its full id. Absent on every existing spec, so only
   `specVersion` restamps and no `shardHash` moves.
 - delta report `0.2.0` (spec 142): additive. A twelfth class, `relocation`, for
   a `spec.md` body that only lost sections another spec proved it received

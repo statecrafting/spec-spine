@@ -271,5 +271,5 @@
     "title": "Expand structural resolution only where measurement proves it deterministic"
   },
   "shardHash": "7cb273aa22dbd24dc43c66d230905a9bccddaa7a5490756c9060f18418291f05",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

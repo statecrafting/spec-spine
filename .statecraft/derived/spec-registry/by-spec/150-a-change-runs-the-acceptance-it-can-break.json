@@ -88,5 +88,5 @@
     "title": "A change runs the acceptance it can break"
   },
   "shardHash": "a9c311695efbe3d4f4df6a416f86381127dddd6ffbf39fea1afb1cc27be335cc",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

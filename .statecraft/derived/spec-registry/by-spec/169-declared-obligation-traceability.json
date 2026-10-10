@@ -9,8 +9,7 @@
     "establishes": [
       {
         "kind": "file",
-        "path": "crates/spec-spine-types/src/traceability.rs",
-        "planned": true
+        "path": "crates/spec-spine-types/src/traceability.rs"
       },
       {
         "kind": "file",
@@ -19,13 +18,11 @@
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/src/traceability.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/src/traceability.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/traceability.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/traceability.rs"
       },
       {
         "kind": "directory",
@@ -180,10 +177,26 @@
           "kind": "directory",
           "path": "crates/spec-spine-core/fixtures/verifier/"
         }
+      },
+      {
+        "nature": "corrective",
+        "spec": "111-a-move-is-a-reviewed-mapping",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/moves.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "109-impact-and-conflict-are-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/impacts.rs"
+        }
       }
     ],
     "id": "169-declared-obligation-traceability",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "intent": {
       "goal": "make authored obligation-to-artifact relations deterministic and inspectable without confusing declarations with proof",
       "nonGoals": [
@@ -256,7 +269,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "92a0ef92d6f0d42bddeefd51f3b3c3e6f5543829761292fd8b2a643cccb30c34",
-      "169-declare-qualified-obligation-traceability": "9f577896f703138378c7a7d7eaf942971b7c7578bdf52b0fc68241196b749f2a",
+      "169-declare-qualified-obligation-traceability": "4b98f3f32047718251620c3c7ad2028de696a2a1863a87f4527a56f3e53aa08b",
       "2-territory": "121fd5a30d2fe1ebb8f5203565b471153b532955ad58a595c4ab96dc8e534331",
       "2026-09-26-keep-the-declaration-optional-and-source-it-from-obligations": "69a61dde2e7e041017da79b7ca8917aaa125d54e10ae975226eb8b7702653cbc",
       "2026-09-26-preserve-withdrawn-relation-identity-as-a-tombstone": "8ac9cf5261cc12a4a1e1a5abb47ab15be78434c51dfdb637b459fc8b14296ea5",
@@ -264,6 +277,7 @@
       "2026-09-26-separate-validity-resolution-and-lifecycle-evidence": "687b7adc702c6682c333a5b43ff17e9b58b5381f6bf4d1ef62ab74f540fcc531",
       "2026-09-26-treat-ownership-as-a-structural-check-only": "6dae2e112f10536c6429925e7049c886a879258ad3f9ec3b16b83d93db9cb089",
       "2026-09-28-refiled-under-the-first-collision-free-identity": "b64e2d8dc0151da4401e2b740609c1c4b3270d598db2f81ce941613b02b78f1f",
+      "2026-10-10-decisions-taken-during-the-build": "20e4b6363ebad30281aa2fe1437f2ec9e2147a53b00f3ad5268cea1619cfaf8c",
       "2026-10-10-the-registry-member-lands-with-the-release-that-carries-it": "3f79ea6240304f59b2c75efa5a4747d43fe0d7547e8a3714b26d038862ad16fa",
       "3-1-declaration-shape-and-identity": "707ddc75cff5e5587ef164f8f9cdebccaa26b643ba3e1f4de8da99372e578ae1",
       "3-10-authority-and-security-boundary": "6045b0cfad863d8312aa8b3a9f2d69c44ed5f9517e7ea6780ef83bd3406e27ab",
@@ -279,7 +293,7 @@
       "4-negative-cases": "ecc3ad51ce96954a4aa032a83f56cb497ae26eaf201f654e6d81f1e8ce4a3b33",
       "5-acceptance-criteria": "594ada641ea2458e3014c37500d662a45c32f474bac2dc3737e3189bc865801d",
       "6-out-of-scope": "8ac04ee807a204f578110c07a8fd66f9c7ecd075144c3ea693aa9918d5d28006",
-      "7-decisions": "3de9632412b0954dfb247d7b9e3729561672275e222dcbfd9509e6ac155a5d46",
+      "7-decisions": "e24ae66033be5e2d8a25ae3136827dd9546bea3f83e79ba9bef62d23bddf895d",
       "verification": "5ed2bf74e1ce7e48fa8a6b34055eb02c09f845422ab18d99e8c6ce61ff0b9f81"
     },
     "sectionHeadings": [
@@ -308,6 +322,7 @@
       "2026-09-26: Preserve withdrawn relation identity as a tombstone",
       "2026-09-28: Refiled under the first collision-free identity",
       "2026-10-10: The registry member lands with the release that carries it",
+      "2026-10-10: Decisions taken during the build",
       "Verification"
     ],
     "specPath": "specs/169-declared-obligation-traceability/spec.md",
@@ -315,6 +330,6 @@
     "summary": "Adds optional, qualified relations from declared obligations to implementation units, tests, invariants, documentation sources, and producer or consumer interfaces. Declarations and their deterministic resolution remain distinct from execution, evidence, acceptance, release, adoption, and observation; every unsupported, unknown, ambiguous, withdrawn, or unresolved target is explicit, and ownership is never behavioral proof.\n",
     "title": "Declare qualified obligation traceability"
   },
-  "shardHash": "219fa8ca7cf3c276c7a0df07555100003e09791e45d640b18e61dd9237303bf2",
-  "specVersion": "1.9.0"
+  "shardHash": "50356f3c7415f4d919a6b5b752bd6df45dfa7aa81333a5d0be2434a3008a874e",
+  "specVersion": "1.10.0"
 }

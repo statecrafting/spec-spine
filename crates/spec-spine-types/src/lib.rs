@@ -42,6 +42,7 @@ pub mod relocation;
 pub mod repo_path;
 pub mod schema;
 pub mod snapshot;
+pub mod traceability;
 pub mod unit;
 pub mod verdict;
 pub mod verify;
@@ -112,6 +113,7 @@ pub use snapshot::{
     SnapshotGovernanceInputs, SnapshotOwnership, SnapshotResolutionVerdict, SnapshotSchemas,
     SnapshotSpec, SnapshotUnwitnessed, SnapshotVerdicts,
 };
+pub use traceability::{InterfaceRole, TraceDeclaration, TraceRelationKind, TraceTarget};
 pub use unit::Unit;
 pub use verdict::{Verdict, VerdictError, error_kind};
 pub use verify::{SkippedBlocks, VerifyFailure, VerifyOutcome, VerifyPlan, VerifyReport};

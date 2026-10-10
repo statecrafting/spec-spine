@@ -178,5 +178,5 @@
     "title": "A consumer is served answers, not access"
   },
   "shardHash": "c425276ff509d8a07b44b34c5c3c18ef425407ee8c080858b7089ec4f4720e11",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

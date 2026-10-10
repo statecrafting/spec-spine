@@ -68,5 +68,5 @@
     "title": "A version pin is not a contract"
   },
   "shardHash": "ef2d5a2ea0f88f036857b9f6d81a38d2ace5e2bff1317208f1dc757d722a9312",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

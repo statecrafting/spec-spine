@@ -73,5 +73,5 @@
     "title": "An exact key set refuses what the rule allows"
   },
   "shardHash": "4cd3014ebdb3bd09a4dfe70c233ad1cb09c8d60ea18563e82eb4569171118a64",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

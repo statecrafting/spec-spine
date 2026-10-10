@@ -177,5 +177,5 @@
     "title": "The affected-acceptance sweep runs in the merge queue"
   },
   "shardHash": "18740c2120bb98846c872b5702cf99c0e7dfc1dde243967f89cb958c3f30cfc7",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

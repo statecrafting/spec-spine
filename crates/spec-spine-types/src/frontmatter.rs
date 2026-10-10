@@ -137,6 +137,8 @@ pub const KNOWN_KEYS: &[&str] = &[
     "moves",
     // Spec 142 3.2: declared section relocations.
     "relocates",
+    // Spec 169 3.1: declared obligation traceability.
+    "traceability",
 ];
 
 /// The typed, parsed frontmatter of a `spec.md`.
@@ -238,6 +240,10 @@ pub struct Frontmatter {
     // --- declared section relocations (spec 142) ---
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub relocates: Vec<crate::Relocation>,
+
+    // --- declared obligation traceability (spec 169) ---
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub traceability: Vec<crate::TraceDeclaration>,
 
     // --- overflow (populated by parse_frontmatter, never by serde) ---
     #[serde(skip)]
