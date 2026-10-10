@@ -50,7 +50,7 @@ obligations:
     anchor: "3-2-which-operations-are-projected"
   - id: "R-2"
     kind: requirement
-    text: "A tool call maps to exactly one argv of the operation's existing verb, and its answer is that verb's --json stdout and exit code byte for byte."
+    text: "A tool call maps to exactly one argv of the operation's existing verb, and its answer is that verb's --json stdout and exit code byte for byte, or the adapter's result-too-large error, never a modified answer."
     anchor: "3-5-a-call-is-one-invocation-of-the-existing-verb"
   - id: "R-3"
     kind: requirement
@@ -198,6 +198,10 @@ binding's `flags` and positionals:
   `request`, of type object, passed on stdin (§3.5). An operation whose verb
   does not accept `-` for its request path is excluded `caller-path` until it
   does;
+- a flag that an `effectsWhen` entry pairs with an effect §3.2 rules 2 to 6
+  forbid is left out of the schema when it is optional, so no call can add
+  that effect, and makes the operation excluded, under the reason of that
+  effect, when it is required;
 - any other argument whose value is a filesystem path on the host (an output
   directory, a paths-from file, an export directory, a key) is left out of the
   schema when it is optional, and makes the operation excluded `caller-path`
@@ -431,6 +435,13 @@ The edge stays because this spec extends 170's `capabilities` verb and must
 not be offered as ready before it, which a `references` entry would not
 prevent. It cannot form a cycle: 170 does not depend on this spec. Spec 046's
 `L-007` would refuse it, and this repository has not enabled that opt-in rule.
+
+**D-11 (2026-10-10, review): §3.2 rule 7's mechanism is in §3.4, and R-2
+names the size limit.** Review found that rule 7 deferred to §3.4 for dropping
+a flag that adds a forbidden effect, and §3.4 had no such rule; it now does,
+for optional and required flags alike. It also found that R-2 promised
+byte-for-byte parity without the §3.6 exception; R-2 now names
+`result-too-large` as the only alternative to the verb's bytes.
 
 ## Verification
 

@@ -137,7 +137,7 @@
         "anchor": "3-5-a-call-is-one-invocation-of-the-existing-verb",
         "id": "R-2",
         "kind": "requirement",
-        "text": "A tool call maps to exactly one argv of the operation's existing verb, and its answer is that verb's --json stdout and exit code byte for byte."
+        "text": "A tool call maps to exactly one argv of the operation's existing verb, and its answer is that verb's --json stdout and exit code byte for byte, or the adapter's result-too-large error, never a modified answer."
       },
       {
         "anchor": "3-9-canonical-bytes-digest-and-schema",
@@ -182,23 +182,23 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "f714a4fc432d73f4af52a16ffa63fe9ba6695a35da0496a55ce43d7b83e667ea",
-      "167-project-cataloged-reads-as-read-only-tools": "60ae46d578fbe8776646cde28216b1ef5e899c23801a2dc4da95620fb90afea2",
+      "167-project-cataloged-reads-as-read-only-tools": "a67638f1f5d3a5ab4c89d7ac2f97dc9d88163ad76ce8f07b3c40af47d835e3b3",
       "2-territory": "a2fa93fb6b531739a9b4752aba6fea570cd8e6f2183e78fd632884c6ce42c1bd",
       "3-1-the-projection-is-derived-never-authored": "1c3c758fa28e88aa66af9651608a911c4fc3ee65396ad19c1f424e2e9071207e",
       "3-10-authority-security-and-disclosure-boundary": "a903efa00eb88c57f37bd65166283a6413ef6fb3d4467dd508366b0c2e7ed40d",
       "3-11-the-projection-is-held-to-the-catalog-and-the-binary": "d464565768f280535d43c4dd333f16a855a39e04f49297b2591b8ffb06542a54",
       "3-2-which-operations-are-projected": "d0669dbfdb57eb7b5a7f7e2de3ff0411ff07464d24bcf3301a23b3a4e0830c50",
       "3-3-the-tool-descriptor": "3511927cd3f79f0f1860b32ad4526651f8f7ab6a21afe4bf0bbcf238bfea0c98",
-      "3-4-input-schemas-are-closed-and-never-name-a-host-path": "87b6958cee16f067f496b188fdf6e947e91ca5a9624b98c46098961e0c1a3624",
+      "3-4-input-schemas-are-closed-and-never-name-a-host-path": "5980132fc159720dd9066e8ccddb50883052e76c4d0ff0456f82666c86f98a34",
       "3-5-a-call-is-one-invocation-of-the-existing-verb": "49373cf33bc936b27f27a1ee2016326071601cbe50f7dc6cf68f55f18e045e09",
       "3-6-budgets-pagination-and-unbounded-answers": "05f696416c34c3f9b2af0fc36278f0036524a19634846fd2a299be992100f62d",
       "3-7-the-error-vocabulary-is-closed": "ca33b7adbbb9e3541da593d85c64570d6db306f6f10da3d622c24d88d418114d",
       "3-8-how-the-projection-is-served": "2629518546dd91f422c205202d25cd569f54bf54380a16e720876abea8941070",
       "3-9-canonical-bytes-digest-and-schema": "db6aa6a8501f6e00a4a98fffe95d39df1059e8c18e1eb631ccd96a608c862cd4",
-      "3-behavior": "4a91b522c57954b7493ca68cbdee36df5c48cf71206e01e7123208237a458b93",
+      "3-behavior": "162c0bb010b7b1d89fd0440305eaefb30d9a3d0904bd2c14a22422fcdffc005d",
       "4-acceptance-criteria": "efe802fc3dd7dc5270e53564d734639b9903851ccb52e933f0cf64c307002b2a",
       "5-out-of-scope": "dea4a18be1b125b4c970f5b491e933524bd980d8caca25a40a24cd1f80c7a364",
-      "6-resolved-decisions": "4419a895c3c08d760eeef7026691df8b6e95938668267aa50af022db840a5c5f",
+      "6-resolved-decisions": "f352e43e840a57b2bc92b87b9b78870df143ec470db3f70658ae72e501d06c4d",
       "verification": "61784cfb41b4469953879ef8ea25ed17db309fcfca8aadf75e84c8b9c26aa5fe"
     },
     "sectionHeadings": [
@@ -227,6 +227,6 @@
     "summary": "Adds a transport-neutral, read-only tool projection derived from the spec-162 capability catalog: one tool descriptor per eligible judging-tier read, with a closed input schema, the exact argv it maps to, budget and pagination members, trust marking, and a closed error vocabulary. A tool call is one invocation of the pinned binary's existing verb, so its answer is that verb's bytes. spec-spine ships the descriptors and their tests; it runs no server, holds no session, and adds no write tool.\n",
     "title": "Project cataloged reads as read-only tools"
   },
-  "shardHash": "c5040ef80882ab7786e11b9f6278dd711e43d69583fb23b446c65c3f8efbb5fe",
+  "shardHash": "9dbf1f076d26a8cfb2ca2ce18eff9abe8cc93772412dda1081731ebda09cf0aa",
   "specVersion": "1.9.0"
 }
