@@ -349,7 +349,7 @@
           ],
           "properties": {
             "digest": {
-              "minLength": 1,
+              "pattern": "^[0-9a-f]{64}$",
               "type": "string"
             },
             "document": {
