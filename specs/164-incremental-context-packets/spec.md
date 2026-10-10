@@ -364,11 +364,17 @@ name keys, digests, positions, and reasons, never content.
 spec-spine holds no session, cache, or predecessor between calls; the caller
 supplies predecessor bytes each time.
 
-Predecessor bytes are untrusted and are only compared, never emitted and never
-taken as the target's. A record is reused only when it equals the target's, so
-applying a delta to a forged, self-consistent predecessor still yields the
-true target, and applying it to other bytes refuses. Digest recomputation is an
-integrity check, not authentication.
+Predecessor bytes are untrusted. `context delta` only compares them: no
+predecessor byte appears in a delta, and none is taken as the target's.
+`context apply` does carry predecessor records into its output, but only the
+records the delta producer found equal to the target's, and only through
+3.7's two checks: the predecessor pages must have the digests the delta names
+(step 1), and every reproduced page must have the `packetDigest` the delta
+recorded (step 5), or apply writes nothing. Every record the producer found
+different travels in the delta, so applying a delta to a forged,
+self-consistent predecessor still yields the true target, and applying it to
+other bytes refuses. Digest recomputation is an integrity check, not
+authentication.
 
 Content and interfaces are compared and emitted only for keys the target
 presents; other keys compare state and omission records only, so a forged
@@ -418,6 +424,10 @@ Comparing restamped records makes the law hold for any predecessor bytes.
 **D-3 (2026-09-27): a fallback is an answer.** Rows 2 through 8 occur in normal
 use, so a fallback exits 0 and names its reason.
 
+**D-4: not used.** The 2026-09-27 draft carried no D-4. The number is left
+unused, not reassigned, so the identifiers other entries cite (D-5 in D-10)
+keep their meaning (noted 2026-10-10, review).
+
 **D-5 (draft, owner to confirm): any schema-version difference falls back.**
 Row 5 includes MINOR differences because reused records must equal the
 target's bytes. Tolerating a MINOR needs a per-member projection rule.
@@ -462,6 +472,13 @@ across pages). Row 3 falls back on a set that fails it. The 3.7 law is
 unaffected: reuse is by record equality against the target spec 159 assembles,
 so a predecessor that silently skipped a member yields that member as
 `newly-available` and the target still reproduces.
+
+**D-13 (2026-10-10, review): apply's reuse is stated as what it is.** Review
+of the filing found that 3.13 said predecessor bytes are "never emitted",
+while `context apply` builds its pages from predecessor records. 3.13 now
+separates the verbs: `context delta` emits no predecessor byte, and `context
+apply` carries forward only records the producer matched, under 3.7's
+predecessor-digest and reproduction checks. Behavior is unchanged.
 
 ## Verification
 
