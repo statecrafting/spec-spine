@@ -1,0 +1,320 @@
+{
+  "record": {
+    "created": "2026-09-28",
+    "dependsOn": [
+      "106-obligations-are-declared-constraints",
+      "110-an-interface-reference-is-digest-pinned",
+      "155-selected-content-accessor"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/traceability.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/schemas/traceability.schema.json",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/traceability.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/traceability.rs",
+        "planned": true
+      },
+      {
+        "kind": "directory",
+        "path": "crates/spec-spine-core/tests/fixtures/traceability/",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/traceability.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "docs/traceability.md",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "000-spec-spine-bootstrap",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/frontmatter.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/registry-spec-shard.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compile.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/cmd_registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-index-sharding",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/dtos.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/read.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "106-obligations-are-declared-constraints",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/obligations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "088-the-template-teaches-the-whole-grammar",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/templates/spec-template.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "anchor": "cli-reference",
+          "file": "docs/cli-reference.md",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "103-a-verifier-fixture-is-a-published-artifact",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
+      }
+    ],
+    "id": "169-declared-obligation-traceability",
+    "implementation": "pending",
+    "intent": {
+      "goal": "make authored obligation-to-artifact relations deterministic and inspectable without confusing declarations with proof",
+      "nonGoals": [
+        "retrofitting trace declarations into the historical corpus",
+        "semantic inference, coverage inference, or guessed dependency graphs",
+        "test execution, evidence admission, acceptance, release, adoption, or observation",
+        "changing ownership, lifecycle, waiver, or gate authority"
+      ]
+    },
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-1-declaration-shape-and-identity",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Every trace relation has a stable qualified identity, one qualified obligation source, one typed target, a closed relation kind, and canonical order."
+      },
+      {
+        "anchor": "3-6-resolution-states-are-exhaustive",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "Resolution reports resolved, unresolved, ambiguous, unsupported, unknown, or withdrawn explicitly and never substitutes ownership or inference for behavioral proof."
+      },
+      {
+        "anchor": "3-9-incremental-adoption-and-compatibility",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "Traceability is optional and incremental, so a corpus without declarations remains valid and no historical declaration is inferred or required."
+      },
+      {
+        "anchor": "3-8-declaration-is-not-evidence-or-acceptance",
+        "id": "R-4",
+        "kind": "requirement",
+        "text": "Declaration validity and target resolution are distinct from execution evidence, implementation acceptance, release, adoption, and observation."
+      },
+      {
+        "anchor": "3-10-authority-and-security-boundary",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "Traceability never executes a target, infers a semantic relation, guesses a dependency graph, changes authority, or gates implementation acceptance."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/traceability.rs",
+          "crates/spec-spine-cli/tests/traceability.rs"
+        ],
+        "kind": "verification",
+        "text": "The implementation is checked for every relation kind, target kind, resolution state, schema rule, canonical ordering rule, withdrawal rule, and negative case in this spec."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "roadmap",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      },
+      {
+        "role": "test identity feasibility measurement",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/symbols.rs"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "92a0ef92d6f0d42bddeefd51f3b3c3e6f5543829761292fd8b2a643cccb30c34",
+      "169-declare-qualified-obligation-traceability": "9808bedcc61ea71cf41d917f85a6f7325adb124d57458f9e1f07dee10bbecc2a",
+      "2-territory": "121fd5a30d2fe1ebb8f5203565b471153b532955ad58a595c4ab96dc8e534331",
+      "2026-09-26-keep-the-declaration-optional-and-source-it-from-obligations": "69a61dde2e7e041017da79b7ca8917aaa125d54e10ae975226eb8b7702653cbc",
+      "2026-09-26-preserve-withdrawn-relation-identity-as-a-tombstone": "8ac9cf5261cc12a4a1e1a5abb47ab15be78434c51dfdb637b459fc8b14296ea5",
+      "2026-09-26-reuse-selected-content-identity-instead-of-inventing-test-ids": "2a1bfbc72945d24604e217c9432bd141ef394ac21e25c9b96fa0f892676b948a",
+      "2026-09-26-separate-validity-resolution-and-lifecycle-evidence": "687b7adc702c6682c333a5b43ff17e9b58b5381f6bf4d1ef62ab74f540fcc531",
+      "2026-09-26-treat-ownership-as-a-structural-check-only": "6dae2e112f10536c6429925e7049c886a879258ad3f9ec3b16b83d93db9cb089",
+      "2026-09-28-refiled-under-the-first-collision-free-identity": "b64e2d8dc0151da4401e2b740609c1c4b3270d598db2f81ce941613b02b78f1f",
+      "2026-10-10-the-registry-member-lands-with-the-release-that-carries-it": "3f79ea6240304f59b2c75efa5a4747d43fe0d7547e8a3714b26d038862ad16fa",
+      "3-1-declaration-shape-and-identity": "707ddc75cff5e5587ef164f8f9cdebccaa26b643ba3e1f4de8da99372e578ae1",
+      "3-10-authority-and-security-boundary": "6045b0cfad863d8312aa8b3a9f2d69c44ed5f9517e7ea6780ef83bd3406e27ab",
+      "3-2-typed-targets-and-allowed-relations": "50ffaaafeb476c45cc89e56168dd1421614bc28b95acd628059b5e516a7f09dc",
+      "3-3-test-identity-is-deliberately-narrow": "2dd2c5787817bbb69bacd832148c59f93c8abc1cf4cea5244cc4053b50b58a6e",
+      "3-4-canonical-target-identity-and-ordering": "b56a644fef75c79a2595ec409cca97482d83e6a2d3dc9fa2d0a56bb92764e9a7",
+      "3-5-resolution-is-structural-and-qualified": "2be4fad02435ebb324adc249697066e9b126d02b405e70d4f1db8ab9b3f471f8",
+      "3-6-resolution-states-are-exhaustive": "06e70da22e92cba72fc7a5e896953fcb3bf3d8f6cbdb333361c00be459f75d25",
+      "3-7-withdrawal-preserves-identity": "7240e0b696a88c1fbe51aebf1f517a6d7d038ae461a92a9cb35bc1d74cf8703d",
+      "3-8-declaration-is-not-evidence-or-acceptance": "6ffd7b92111217573a1264f567d4425d446c3f77e29a5aa70389c60c60886061",
+      "3-9-incremental-adoption-and-compatibility": "f05d39519660ba9c657effd098cdebb12d1b4a74a2e9ffea76b5e7cee0b26d50",
+      "3-behavior": "e50bbc1c6a0e9adb47118b9062b875a2de1082670c012d6bde57cfda464c0264",
+      "4-negative-cases": "ecc3ad51ce96954a4aa032a83f56cb497ae26eaf201f654e6d81f1e8ce4a3b33",
+      "5-acceptance-criteria": "594ada641ea2458e3014c37500d662a45c32f474bac2dc3737e3189bc865801d",
+      "6-out-of-scope": "8ac04ee807a204f578110c07a8fd66f9c7ecd075144c3ea693aa9918d5d28006",
+      "7-decisions": "3de9632412b0954dfb247d7b9e3729561672275e222dcbfd9509e6ac155a5d46",
+      "verification": "5ed2bf74e1ce7e48fa8a6b34055eb02c09f845422ab18d99e8c6ce61ff0b9f81"
+    },
+    "sectionHeadings": [
+      "169: Declare qualified obligation traceability",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Declaration shape and identity",
+      "3.2 Typed targets and allowed relations",
+      "3.3 Test identity is deliberately narrow",
+      "3.4 Canonical target identity and ordering",
+      "3.5 Resolution is structural and qualified",
+      "3.6 Resolution states are exhaustive",
+      "3.7 Withdrawal preserves identity",
+      "3.8 Declaration is not evidence or acceptance",
+      "3.9 Incremental adoption and compatibility",
+      "3.10 Authority and security boundary",
+      "4. Negative cases",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Decisions",
+      "2026-09-26: Keep the declaration optional and source it from obligations",
+      "2026-09-26: Separate validity, resolution, and lifecycle evidence",
+      "2026-09-26: Reuse selected-content identity instead of inventing test ids",
+      "2026-09-26: Treat ownership as a structural check only",
+      "2026-09-26: Preserve withdrawn relation identity as a tombstone",
+      "2026-09-28: Refiled under the first collision-free identity",
+      "2026-10-10: The registry member lands with the release that carries it",
+      "Verification"
+    ],
+    "specPath": "specs/169-declared-obligation-traceability/spec.md",
+    "status": "draft",
+    "summary": "Adds optional, qualified relations from declared obligations to implementation units, tests, invariants, documentation sources, and producer or consumer interfaces. Declarations and their deterministic resolution remain distinct from execution, evidence, acceptance, release, adoption, and observation; every unsupported, unknown, ambiguous, withdrawn, or unresolved target is explicit, and ownership is never behavioral proof.\n",
+    "title": "Declare qualified obligation traceability"
+  },
+  "shardHash": "3d877b28c9dffa5c85afc4a36c484e77bcec99a5c2f88782112768a8f326a2fc",
+  "specVersion": "1.9.0"
+}
