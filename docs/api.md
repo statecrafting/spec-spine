@@ -618,6 +618,14 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   `orphans_json` (spec 010) takes only the index JSON text and returns the
   orphaned-spec ids under `items` in a read document (spec 074).
 
+- `capability_catalog_json()` (spec 162) returns the capability catalog:
+  every operation this build performs, described once, with its effects,
+  outcomes, schemas, bounds, stability, examples and `operationDigest`. Static
+  data: it takes nothing and reads nothing. `capability_verify_json(request)`
+  takes `{ "expect": { "<operation>": "sha256:<hex>" } }` and answers one
+  `current`, `changed` or `missing` result per pin, sorted by name; a malformed
+  request or digest is `Error::Usage`. See `docs/capability-catalog.md`.
+
 All emitted JSON is **pretty-printed with sorted keys, LF line endings, and a
 trailing newline** (diffability over compactness; see
 [design/00-architecture.md](design/00-architecture.md) §10.1). For the read
