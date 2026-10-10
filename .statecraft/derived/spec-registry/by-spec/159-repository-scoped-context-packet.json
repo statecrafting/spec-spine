@@ -16,18 +16,15 @@
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/src/context_packet.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/src/context_packet.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/context_packet.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/context_packet.rs"
       },
       {
         "kind": "directory",
-        "path": "crates/spec-spine-core/tests/fixtures/context-packet/",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/fixtures/context-packet/"
       },
       {
         "kind": "file",
@@ -277,6 +274,6 @@
     "summary": "Adds a deterministic, read-only context-packet request and response for one immutable repository snapshot. A packet combines a declared context closure with required and optional selected-content members under explicit byte and item budgets, records every omission and warning, binds continuation to the request and snapshot, and carries a canonical packet digest without creating cross-repository authority.\n",
     "title": "Assemble one repository context packet"
   },
-  "shardHash": "b07c1d181a272e8537c5aadbb2634438b5c73f228cbb0730819e27512ea1eeca",
+  "shardHash": "aaedc740fbda6c8fb9e890c5a5b9489f4a5fb5212a56160e01592bd55c8f1aa1",
   "specVersion": "1.9.0"
 }

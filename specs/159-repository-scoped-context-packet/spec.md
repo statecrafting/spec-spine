@@ -20,9 +20,9 @@ summary: >
 establishes:
   - { kind: file, path: "crates/spec-spine-types/src/context_packet.rs" }
   - { kind: file, path: "crates/spec-spine-types/schemas/context-packet.schema.json" }
-  - { kind: file, path: "crates/spec-spine-core/src/context_packet.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/context_packet.rs", planned: true }
-  - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/context-packet/", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/context_packet.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/context_packet.rs" }
+  - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/context-packet/" }
   - { kind: file, path: "crates/spec-spine-cli/src/cmd_context.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/tests/context_packet.rs", planned: true }
   - { kind: section, file: "docs/context-packets.md", anchor: "context-packets", planned: true }
