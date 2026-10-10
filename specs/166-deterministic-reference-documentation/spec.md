@@ -209,7 +209,8 @@ Absence rules are exhaustive:
   are not sources. `changes` is the typed-edge record only.
 
 The `inputs` field is the page's freshness basis: the spec's registry
-`shardHash`, the `shardHash` of every index shard for its owned units, each
+`shardHash` (a hash over the whole `spec.md` source bytes, so it moves when
+the `verify:cli` block behind `evidence` changes), the `shardHash` of every index shard for its owned units, each
 selected-content item digest used, the canonical digest of the traceability
 read restricted to this spec, and the catalog document digest. It states the
 basis only; freshness is decided by §3.10 and by spec 160, never asserted by
@@ -249,6 +250,13 @@ Each region is delimited by two full lines:
 <!-- spec-spine:begin generated id="lifecycle" -->
 <!-- spec-spine:end generated id="lifecycle" -->
 ```
+
+A delimiter is recognized only as a whole line outside every fenced code
+block. The parser tracks backtick fences as CommonMark does, and §3.5 sizes
+each generated fence one longer than any backtick run in its body, so a
+signature or command line that itself reads `<!-- spec-spine:` sits inside a
+fence and is content, not a delimiter. The authored region needs no such rule:
+§3.6 refuses any authored line that begins with `<!-- spec-spine:`.
 
 The authored region uses `authored` in place of `generated`. A region's span
 runs from its begin line through its end line plus one following blank line,
@@ -477,6 +485,15 @@ backward. The edge stays because `registry plan` must not offer this spec as
 ready before 169 is complete, which a `references` entry would not prevent.
 It cannot form a cycle: 169 depends only on 106, 110 and 155. Spec 046's
 `L-007` would refuse it, and this repository has not enabled that opt-in rule.
+
+**D-15 (2026-10-10, review): delimiters are not read inside fences.** Review
+found that signature and command bodies are rendered verbatim inside fences,
+so a source line reading like a delimiter could split a region. §3.6 now
+recognizes delimiters only outside fenced blocks, which §3.5's fence sizing
+makes unambiguous, and acceptance criterion 3 already exercises a hostile
+summary. The same review asked whether `inputs` covers the `spec.md` body
+behind `evidence`. It does, through the registry `shardHash`, and §3.4 now
+says so.
 
 ## Verification
 
