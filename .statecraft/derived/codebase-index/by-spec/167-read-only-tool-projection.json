@@ -6,8 +6,7 @@
       "152-a-refusal-says-what-it-is-in-every-form",
       "155-selected-content-accessor",
       "159-repository-scoped-context-packet",
-      "162-capability-catalog",
-      "170-a-consumer-is-served-answers-not-access"
+      "162-capability-catalog"
     ],
     "implementingPaths": [
       {
@@ -247,5 +246,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "b44e24aa12367ba39cbbfda0c5e816d89f0945a6d37d1a9ec7416594e9d74b31"
+  "shardHash": "ba93e6610d36ec980aa6718bb77c53394d49ff9b8c3b5e950fc2cec2284221a1"
 }

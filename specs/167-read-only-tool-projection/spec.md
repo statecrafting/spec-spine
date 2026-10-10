@@ -14,7 +14,6 @@ depends_on:
   - "155-selected-content-accessor"
   - "159-repository-scoped-context-packet"
   - "162-capability-catalog"
-  - "170-a-consumer-is-served-answers-not-access"
 summary: >
   Adds a transport-neutral, read-only tool projection derived from the spec-162
   capability catalog: one tool descriptor per eligible judging-tier read, with
@@ -450,6 +449,16 @@ byte-for-byte parity without the §3.6 exception; R-2 now names
 that §3.6 marked unbounded tools `bounded: false` while §3.3's closed member
 list had no such member. §3.3 now lists `bounded`, derived from the copied
 `budget`.
+
+**D-13 (2026-10-10, correction to D-10): no `depends_on` on spec 170.** D-10
+kept the forward edge on the belief that `L-007` is not enforced here. It is:
+the carried acceptance of spec 046 (and of 089, 146, 154 and 194, which carry
+the same command) lints the whole corpus with
+`require_ordinal_monotonic_depends_on`, so every merge-queue sweep that
+selected those specs failed once this spec merged. The readiness concern D-10
+named does not arise, because spec 170 is already implemented. The relation
+stays declared where ownership needs it, in the `extends` edges on 170's two
+units, as spec 162 D-18 did for the same edge.
 
 ## Verification
 
