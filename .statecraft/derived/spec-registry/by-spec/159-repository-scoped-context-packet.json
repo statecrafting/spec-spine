@@ -1,0 +1,227 @@
+{
+  "record": {
+    "created": "2026-09-26",
+    "dependsOn": [
+      "107-a-context-closure-is-declared",
+      "155-selected-content-accessor"
+    ],
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/src/context_packet.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-types/schemas/context-packet.schema.json",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/src/context_packet.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-core/tests/context_packet.rs",
+        "planned": true
+      },
+      {
+        "kind": "directory",
+        "path": "crates/spec-spine-core/tests/fixtures/context-packet/",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/src/cmd_context.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "crates/spec-spine-cli/tests/context_packet.rs",
+        "planned": true
+      },
+      {
+        "kind": "file",
+        "path": "docs/context-packets.md",
+        "planned": true
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "074-a-governed-read-names-its-version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/version.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-compile-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/api.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "anchor": "cli-reference",
+          "file": "docs/cli-reference.md",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "057-the-docs-name-what-adopters-derived",
+        "unit": {
+          "kind": "file",
+          "path": "docs/schema-versioning.md"
+        }
+      }
+    ],
+    "id": "159-repository-scoped-context-packet",
+    "implementation": "pending",
+    "intent": {
+      "goal": "assemble bounded deterministic context from one immutable repository snapshot",
+      "nonGoals": [
+        "cross-repository snapshot composition or orchestration",
+        "remote fetching, mutable sessions, execution, editing, or evidence admission",
+        "consumer authorization, redaction, prompt policy, or correctness judgment"
+      ]
+    },
+    "kind": "governance",
+    "obligations": [
+      {
+        "anchor": "3-1-one-packet-one-repository-snapshot",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "A context packet binds one closure and ordered selected-content members to one explicitly identified repository snapshot."
+      },
+      {
+        "anchor": "3-8-required-members-optional-members-and-completeness",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "Required members never disappear silently, and every optional omission records its identity and reason."
+      },
+      {
+        "anchor": "3-10-ordering-budgets-continuation-and-digest",
+        "id": "R-3",
+        "kind": "requirement",
+        "text": "Packet ordering, budgets, continuation, canonical bytes, and digest are deterministic for one request and snapshot."
+      },
+      {
+        "anchor": "3-13-authority-security-and-disclosure-boundary",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "A packet is untrusted repository data and never composes repositories, executes content, admits evidence, or grants authority."
+      },
+      {
+        "anchor": "verification",
+        "id": "V-1",
+        "inputs": [
+          "crates/spec-spine-core/tests/context_packet.rs",
+          "crates/spec-spine-cli/tests/context_packet.rs"
+        ],
+        "kind": "verification",
+        "text": "The implemented packet contract is checked for identity binding, ordering, budgets, required omissions, continuation, stale snapshots, canonical JSON, and containment."
+      }
+    ],
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "roadmap",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/09-disposition-2026-09-21.md"
+        }
+      },
+      {
+        "role": "closure identities and digest",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/closure.rs"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "1-purpose": "8a09bb43d7b44d88f7248ab716683e67fa52b78cfc6a344343eb171ee29f31af",
+      "159-assemble-one-repository-context-packet": "7872c7b3fa3896fd6ec21e6007d62b1901663f5dae816269de130e684d737d75",
+      "2-territory": "88ae18471b6ada3151f8a63758d639dd77662da3b74c3031bc177209b943dcfd",
+      "3-1-one-packet-one-repository-snapshot": "51b4af534207454f9373efda02a83838986b428d7eaef5da6fe0c8dd16eab9e5",
+      "3-10-ordering-budgets-continuation-and-digest": "9d76faa1a6a0366a5812811f1c9401223e1141bfb1bafb5b5196d21c629745f2",
+      "3-11-canonical-json-and-schema-evolution": "3e6a7b8a725aebb83b67ccb5dacd3346d57fa34bc7172640553e7265819e6331",
+      "3-12-refusal-and-error-behavior": "8541e3320bfa8f61100bda8e339988f426659ea616dac05f55b545a89a6a571b",
+      "3-13-authority-security-and-disclosure-boundary": "5d1669900fa34890898951382b92272ae9d33ed8f651ca96321c3c10c2dd96d7",
+      "3-2-request-document": "4d923c5ce0c1b3858b4fcc4497c615e6adf1ba7a051804d46fa07e3e0dead04a",
+      "3-3-closure-members-are-selected-explicitly": "2ca7ed42d244b7ca7fbb697d49da03aea70b26ee21ab57f56ed422ca61875de7",
+      "3-4-member-identity-and-deduplication": "1286051d7e10bb575a4f50a18907af57b9c237e5fd06394aa426cce6df25ae46",
+      "3-5-response-document": "960625f3c4d009973dac2bdc15e891a1a30ba59a2c16dbd4e8b2b30a58ed89ca",
+      "3-6-omission-vocabulary": "e96afa198f5eed49a1d3caeb8b7f07fd667313ea24124771e83831498705d495",
+      "3-7-warnings": "56d384364c239e29162336303af54dc56240ee809aae2cf5db527e421a9c1f44",
+      "3-8-required-members-optional-members-and-completeness": "0140865b0b34070cef89d33bf74a02f150349e3a6537abed9d3da9fdc1f6df8b",
+      "3-9-empty-and-missing-results": "aca9b27caa33bea8cb82ff1ae0174ea0bd5e64d02d3ad29d2389b30c3e93d80b",
+      "3-behavior": "4ef848e810192888edab419622cbafbc86a9b497d3495025259edebb7e80bae6",
+      "4-acceptance-criteria": "7fc3a2bcf41bafc7775371ee09012f96ed0c7028d3f71709d3de7e3e24897699",
+      "5-out-of-scope": "ed63906bbf867b89b30bdd9bb68c752f2acf044cb47d0a55313fae278330ac9d",
+      "6-resolved-decisions": "4b7f9677f3c8f3442b2bda407276b1853e0e21d253ee9be57c28ce9360929400",
+      "verification": "12fbb4d099630b3a098db7332b2dfbca402bb6976fee24f08de221ed2d721a67"
+    },
+    "sectionHeadings": [
+      "159: Assemble one repository context packet",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One packet, one repository snapshot",
+      "3.2 Request document",
+      "3.3 Closure members are selected explicitly",
+      "3.4 Member identity and deduplication",
+      "3.5 Response document",
+      "3.6 Omission vocabulary",
+      "3.7 Warnings",
+      "3.8 Required members, optional members, and completeness",
+      "3.9 Empty and missing results",
+      "3.10 Ordering, budgets, continuation, and digest",
+      "3.11 Canonical JSON and schema evolution",
+      "3.12 Refusal and error behavior",
+      "3.13 Authority, security, and disclosure boundary",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/159-repository-scoped-context-packet/spec.md",
+    "status": "draft",
+    "summary": "Adds a deterministic, read-only context-packet request and response for one immutable repository snapshot. A packet combines a declared context closure with required and optional selected-content members under explicit byte and item budgets, records every omission and warning, binds continuation to the request and snapshot, and carries a canonical packet digest without creating cross-repository authority.\n",
+    "title": "Assemble one repository context packet"
+  },
+  "shardHash": "7a98576cfc9decea9b780c6682ba8208a2ad8dea6a9a168e3831963e9b920596",
+  "specVersion": "1.9.0"
+}
