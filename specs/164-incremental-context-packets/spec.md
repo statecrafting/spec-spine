@@ -190,6 +190,10 @@ this table alone:
 | present, absent, or omitted with another record | omitted for a selection reason | `newly-omitted` |
 | omitted or absent | present | `newly-available` |
 
+The rows are read top to bottom and the first that matches decides, so a key
+whose interface and record both differ is `interface-changed`, never also
+`changed`; the entry's record shows the record difference.
+
 Otherwise a key yields no entry. `removed` means the key left the request's resolved set; a
 unit deleted from the repository while still requested is a spec-159
 `removed` omission and therefore `newly-unresolved`.
@@ -269,7 +273,9 @@ predecessor bytes MUST yield, page by page, documents byte-identical to those
 spec 159 emits for that request on that snapshot. The producer MUST check this
 on its own output before emitting; a failure is exit 4, never a delta. A layout
 key missing from the map, an entry no layout uses, or a duplicate key is a
-malformed delta, and apply emits nothing unless every page reproduces.
+malformed delta, which apply refuses without emitting anything. A well-formed
+delta also emits nothing unless every page reproduces: apply writes all pages
+or none.
 
 A delta is atomic: it has no continuation and is never paginated; a set too
 large for one delta falls back under row 8. The target pages' spec-159
@@ -479,6 +485,13 @@ while `context apply` builds its pages from predecessor records. 3.13 now
 separates the verbs: `context delta` emits no predecessor byte, and `context
 apply` carries forward only records the producer matched, under 3.7's
 predecessor-digest and reproduction checks. Behavior is unchanged.
+
+**D-14 (2026-10-10, review): two ambiguities in 3.4 and 3.7 resolved.**
+Review found that 3.4's first two rows both matched a key whose interface and
+record differ, and that 3.7's malformed-delta sentence read as conditional.
+3.4 now decides by the first matching row, so `interface-changed` wins; 3.7
+states that a malformed delta is refused outright and that a well-formed one
+writes every page or none.
 
 ## Verification
 
