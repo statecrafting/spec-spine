@@ -3,10 +3,10 @@
 //! locations via tree-sitter, for Rust (`.rs`) and TypeScript (`.ts`/`.tsx`).
 //!
 //! The construct matrix is spec 163 §3.2: items at any inline-module depth,
-//! inline modules as modules, impl and trait members, and `macro_rules!`
-//! definitions. Integration-test roots and test identities (§3.4), and the
-//! TypeScript constructs, arrive in the following changes; until then a test
-//! lookup resolves nothing and TypeScript resolves its legacy kinds.
+//! inline modules as modules, integration-test roots, impl and trait members,
+//! `macro_rules!` definitions, and Rust test functions bound to a bare
+//! `#[test]` (§3.4). The TypeScript constructs arrive in the next change;
+//! until then TypeScript resolves its legacy kinds.
 //! Everything the walk recognizes but does not support is recorded with a
 //! closed reason, so a lookup answers `unsupported` or `unknown` instead of
 //! looking like an absence (§3.5). The 0.28.0 construct set (top-level items of
@@ -261,6 +261,18 @@ pub fn split_id(id: &str) -> Vec<&str> {
 
 // ===== building =====
 
+/// Where a walked file's ids go: resolved, or recorded unsupported whole.
+#[cfg(feature = "symbol-resolution")]
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Sink {
+    /// A `src/` file: its top level is the legacy set.
+    Source,
+    /// An integration-test root: every id is a new construct.
+    TestRoot,
+    /// Every id is recorded unsupported with this reason.
+    Unsupported(&'static str),
+}
+
 #[cfg(feature = "symbol-resolution")]
 #[derive(Default)]
 struct Builder {
@@ -297,7 +309,11 @@ impl Builder {
         }
     }
 
-    fn put(&mut self, ns: Namespace, legacy: bool, id: String, loc: ResolvedLocation) {
+    fn put(&mut self, ns: Namespace, legacy: bool, sink: Sink, id: String, loc: ResolvedLocation) {
+        if let Sink::Unsupported(why) = sink {
+            self.site(ns, id, why);
+            return;
+        }
         let map = match (ns, legacy) {
             (Namespace::Symbol, true) => &mut self.legacy_symbols,
             (Namespace::Symbol, false) => &mut self.new_symbols,
@@ -434,6 +450,24 @@ fn name_of<'a>(node: Node, src: &'a str) -> Option<&'a str> {
         .filter(|n| !n.is_empty())
 }
 
+/// Whether a package's manifest takes its test targets off the directory
+/// convention (`autotests = false` or any `[[test]]` table, spec 163 §3.4).
+#[cfg(feature = "symbol-resolution")]
+fn declares_test_targets(pkg_dir: &Path) -> bool {
+    let Ok(src) = fs::read_to_string(pkg_dir.join("Cargo.toml")) else {
+        return false;
+    };
+    let Ok(doc) = toml::from_str::<toml::Value>(&src) else {
+        return false;
+    };
+    doc.get("test").is_some_and(toml::Value::is_array)
+        || doc
+            .get("package")
+            .and_then(|p| p.get("autotests"))
+            .and_then(toml::Value::as_bool)
+            == Some(false)
+}
+
 #[cfg(feature = "symbol-resolution")]
 fn index_rust_package(
     b: &mut Builder,
@@ -450,7 +484,43 @@ fn index_rust_package(
             continue;
         };
         let module = rust_module_path(&src_dir, &file);
-        index_rust_file(b, repo_root, &file, &content, &crate_name, &module);
+        index_rust_file(
+            b,
+            repo_root,
+            &file,
+            &content,
+            &crate_name,
+            &module,
+            Sink::Source,
+        );
+    }
+
+    // Integration-test roots (§3.1): `tests/<stem>.rs` and `tests/<dir>/main.rs`.
+    let tests_dir = pkg_dir.join("tests");
+    let declared = declares_test_targets(pkg_dir);
+    for file in walk_files(&tests_dir, &["rs"], repo_root, exclusions, layout) {
+        let Ok(content) = fs::read_to_string(&file) else {
+            continue;
+        };
+        let rel = file.strip_prefix(&tests_dir).unwrap_or(&file);
+        let parts: Vec<String> = rel
+            .components()
+            .map(|c| c.as_os_str().to_string_lossy().into_owned())
+            .collect();
+        let (target, rooted) = match parts.as_slice() {
+            [stem] => (stem.trim_end_matches(".rs").to_string(), true),
+            [dir, main] if main == "main.rs" => (dir.clone(), true),
+            _ => (parts.join("/").trim_end_matches(".rs").to_string(), false),
+        };
+        let root = format!("{crate_name}/tests/{target}");
+        let sink = if declared {
+            Sink::Unsupported(reason::DECLARED_TEST_TARGETS)
+        } else if rooted {
+            Sink::TestRoot
+        } else {
+            Sink::Unsupported(reason::UNROOTED_TEST_FILE)
+        };
+        index_rust_file(b, repo_root, &file, &content, &root, &[], sink);
     }
 }
 
@@ -459,6 +529,7 @@ fn index_rust_package(
 struct RustFile<'a> {
     src: &'a str,
     rel: String,
+    sink: Sink,
 }
 
 #[cfg(feature = "symbol-resolution")]
@@ -479,35 +550,44 @@ fn index_rust_file(
     content: &str,
     root: &str,
     module: &[String],
+    sink: Sink,
 ) {
     let rel = rel_posix(repo_root, file);
     let file_mod_id = qualify_module(root, module);
-    // File module: whole file (the crate root resolves to the bare crate name).
+    // File module: whole file (the crate root resolves to the bare crate name,
+    // a test root to `<crate>/tests/<target>`).
     b.put(
         Namespace::Module,
-        true,
+        sink == Sink::Source,
+        sink,
         file_mod_id.clone(),
         ResolvedLocation {
             file: rel.clone(),
             span: None,
         },
     );
-    b.scopes.insert(file_mod_id.clone());
+    if !matches!(sink, Sink::Unsupported(_)) {
+        b.scopes.insert(file_mod_id.clone());
+    }
     let Some(tree) = parse(content, tree_sitter_rust::LANGUAGE.into()) else {
         return;
     };
     let f = RustFile {
         src: content.strip_prefix('\u{feff}').unwrap_or(content),
         rel,
+        sink,
     };
     let root_node = tree.root_node();
-    mark_scope(b, root_node, &file_mod_id);
+    mark_scope(b, &f, root_node, &file_mod_id);
     walk_rust_items(b, &f, root_node, root, module, 0);
 }
 
 /// Record why a scope cannot be enumerated, if it cannot (§3.5).
 #[cfg(feature = "symbol-resolution")]
-fn mark_scope(b: &mut Builder, container: Node, scope: &str) {
+fn mark_scope(b: &mut Builder, f: &RustFile, container: Node, scope: &str) {
+    if matches!(f.sink, Sink::Unsupported(_)) {
+        return;
+    }
     if container.has_error() {
         b.unknown(scope, reason::PARSE_ERROR_IN_SCOPE);
     }
@@ -535,7 +615,7 @@ fn walk_rust_items(
     module: &[String],
     depth: usize,
 ) {
-    let top = depth == 0;
+    let top = depth == 0 && f.sink == Sink::Source;
     let mut cursor = container.walk();
     for child in container.named_children(&mut cursor) {
         let kind = child.kind();
@@ -573,34 +653,45 @@ fn walk_rust_items(
         let span = span_of(child);
         match kind {
             "macro_definition" => {
-                b.put(Namespace::Symbol, false, format!("{id}!"), f.loc(span));
+                b.put(
+                    Namespace::Symbol,
+                    false,
+                    f.sink,
+                    format!("{id}!"),
+                    f.loc(span),
+                );
             }
             "mod_item" => {
-                b.put(Namespace::Symbol, top, id.clone(), f.loc(span));
+                b.put(Namespace::Symbol, top, f.sink, id.clone(), f.loc(span));
                 let Some(body) = child.child_by_field_name("body") else {
                     continue;
                 };
-                b.put(Namespace::Module, top, id.clone(), f.loc(span));
-                b.scopes.insert(id.clone());
+                b.put(Namespace::Module, top, f.sink, id.clone(), f.loc(span));
+                if !matches!(f.sink, Sink::Unsupported(_)) {
+                    b.scopes.insert(id.clone());
+                }
                 if depth + 1 > MAX_CONTAINER_DEPTH {
                     b.unknown(&id, reason::NESTING_LIMIT);
                     continue;
                 }
-                mark_scope(b, body, &id);
+                mark_scope(b, f, body, &id);
                 let mut path = module.to_vec();
                 path.push(name.to_string());
                 walk_rust_items(b, f, body, root, &path, depth + 1);
             }
             k if RUST_KINDS.contains(&k) => {
-                b.put(Namespace::Symbol, top, id.clone(), f.loc(span));
+                b.put(Namespace::Symbol, top, f.sink, id.clone(), f.loc(span));
                 match k {
                     "function_item" => {
+                        test_identity(b, f, child, &id);
                         nested_items(b, child, &id, f.src, 0);
                     }
                     "struct_item" | "union_item" | "enum_item" => {
-                        b.scopes.insert(id.clone());
-                        if child.has_error() {
-                            b.unknown(&id, reason::PARSE_ERROR_IN_SCOPE);
+                        if !matches!(f.sink, Sink::Unsupported(_)) {
+                            b.scopes.insert(id.clone());
+                            if child.has_error() {
+                                b.unknown(&id, reason::PARSE_ERROR_IN_SCOPE);
+                            }
                         }
                         members(b, child, &id, f.src);
                     }
@@ -719,13 +810,13 @@ fn walk_impl(
     let Some(body) = item.child_by_field_name("body") else {
         return;
     };
-    if supported {
+    if supported && !matches!(f.sink, Sink::Unsupported(_)) {
         b.scopes.insert(scope.clone());
         if depth + 1 > MAX_CONTAINER_DEPTH {
             b.unknown(&scope, reason::NESTING_LIMIT);
             return;
         }
-        mark_scope(b, body, &scope);
+        mark_scope(b, f, body, &scope);
     }
     let mut cursor = body.walk();
     for member in body.named_children(&mut cursor) {
@@ -737,7 +828,13 @@ fn walk_impl(
         };
         let id = format!("{scope}::{name}");
         if supported {
-            b.put(Namespace::Symbol, false, id.clone(), f.loc(span_of(member)));
+            b.put(
+                Namespace::Symbol,
+                false,
+                f.sink,
+                id.clone(),
+                f.loc(span_of(member)),
+            );
         } else {
             b.site(Namespace::Symbol, id.clone(), reason::IMPL_TYPE_FORM);
         }
@@ -750,15 +847,19 @@ fn walk_impl(
 /// A trait body's members: provided and required `fn`, `const`, `type` (§3.2).
 #[cfg(feature = "symbol-resolution")]
 fn walk_trait(b: &mut Builder, f: &RustFile, item: Node, id: &str, depth: usize) {
-    b.scopes.insert(id.to_string());
+    if !matches!(f.sink, Sink::Unsupported(_)) {
+        b.scopes.insert(id.to_string());
+    }
     let Some(body) = item.child_by_field_name("body") else {
         return;
     };
-    if depth + 1 > MAX_CONTAINER_DEPTH {
-        b.unknown(id, reason::NESTING_LIMIT);
-        return;
+    if !matches!(f.sink, Sink::Unsupported(_)) {
+        if depth + 1 > MAX_CONTAINER_DEPTH {
+            b.unknown(id, reason::NESTING_LIMIT);
+            return;
+        }
+        mark_scope(b, f, body, id);
     }
-    mark_scope(b, body, id);
     let mut cursor = body.walk();
     for member in body.named_children(&mut cursor) {
         if !matches!(
@@ -774,6 +875,7 @@ fn walk_trait(b: &mut Builder, f: &RustFile, item: Node, id: &str, depth: usize)
         b.put(
             Namespace::Symbol,
             false,
+            f.sink,
             member_id.clone(),
             f.loc(span_of(member)),
         );
@@ -810,6 +912,53 @@ fn nested_items(b: &mut Builder, node: Node, fn_id: &str, src: &str, depth: usiz
             continue;
         }
         nested_items(b, child, fn_id, src, depth + 1);
+    }
+}
+
+/// Bind a test identity to a function preceded by a bare `#[test]` (§3.4).
+/// The span runs from the first attribute of the contiguous run to the end of
+/// the function. Any other attribute whose path ends in `test` records a
+/// `framework-test-attribute` site.
+#[cfg(feature = "symbol-resolution")]
+fn test_identity(b: &mut Builder, f: &RustFile, item: Node, id: &str) {
+    let mut first = item;
+    let mut bare = false;
+    let mut framework = false;
+    let mut cursor = item.prev_named_sibling();
+    while let Some(attr) = cursor.filter(|n| n.kind() == "attribute_item") {
+        first = attr;
+        if let Some(attribute) = attr.named_child(0).filter(|n| n.kind() == "attribute") {
+            let path = attribute.named_child(0);
+            let has_args = attribute.child_by_field_name("arguments").is_some()
+                || attribute.child_by_field_name("value").is_some();
+            match path.map(|p| (p.kind(), p)) {
+                Some(("identifier", p)) if text(p, f.src) == "test" => {
+                    if has_args {
+                        framework = true;
+                    } else {
+                        bare = true;
+                    }
+                }
+                Some(("scoped_identifier", p))
+                    if p.child_by_field_name("name")
+                        .is_some_and(|n| text(n, f.src) == "test") =>
+                {
+                    framework = true;
+                }
+                _ => {}
+            }
+        }
+        cursor = attr.prev_named_sibling();
+    }
+    if bare {
+        let span = LineSpan::new(first.start_position().row + 1, item.end_position().row + 1);
+        b.put(Namespace::Test, false, f.sink, id.to_string(), f.loc(span));
+    } else if framework {
+        b.site(
+            Namespace::Test,
+            id.to_string(),
+            reason::FRAMEWORK_TEST_ATTRIBUTE,
+        );
     }
 }
 
@@ -892,7 +1041,7 @@ fn index_ts_package(
                     file: rel.clone(),
                     span: Some(span_of(decl)),
                 };
-                b.put(Namespace::Symbol, true, id, loc);
+                b.put(Namespace::Symbol, true, Sink::Source, id, loc);
             }
         }
     }
