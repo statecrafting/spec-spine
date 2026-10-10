@@ -470,6 +470,14 @@ executes `declared-commands` or opens a connection.
 filing found that R-4 listed four of §3.10's five exit-1 findings and omitted
 `ledger-stale`. The obligation text now names it, matching §3.10.
 
+**D-14 (2026-10-10, review): a forward `depends_on`, kept on purpose.** This
+spec depends on 169, a higher ordinal, because traceability was refiled at 169
+after this draft took 166. Every other `depends_on` in the corpus points
+backward. The edge stays because `registry plan` must not offer this spec as
+ready before 169 is complete, which a `references` entry would not prevent.
+It cannot form a cycle: 169 depends only on 106, 110 and 155. Spec 046's
+`L-007` would refuse it, and this repository has not enabled that opt-in rule.
+
 ## Verification
 
 Each named test target fails before the build, because it does not exist while
