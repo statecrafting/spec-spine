@@ -213,25 +213,25 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "700c711f65101c6deaa63d4a5c174ddec5478ba7982a9b2015a414934cff543e",
-      "164-a-packet-delta-reproduces-the-packet-it-names": "e88ae33e6f1f1c2743088d96503e1e0b4a38d4b06049701fabb69a6615983ec8",
+      "164-a-packet-delta-reproduces-the-packet-it-names": "22b1639d8f9d8d85a21a0d004b463d5260763e4e95b21e7af8cf1b8e2246d2cb",
       "2-territory": "c5ecc4a65a5ddea87920c9174fcbfd6c1ac891b4bb36f08f67470386ff3502f5",
-      "3-1-a-delta-relates-two-complete-page-sets-of-one-request": "54cf6f94996ee533b4a6a7b340c5769454281d5f9a105cfa9820cd36b4f883d8",
+      "3-1-a-delta-relates-two-complete-page-sets-of-one-request": "7cf10ee029dc3d9acd4de6f1ec5c84ea2c4fe807419a3863bd450ae87932fb21",
       "3-10-ordering-limits-canonical-bytes-and-schema": "829353abbbc3e042650d9199e37589aa83203426b6551b6c7769ac3c271cd921",
       "3-11-relation-to-the-change-classifier-and-declared-impact": "ecfb8f4b304754122206202b4db46dd672c53c71edae6aa2df06c68fbbef106f",
       "3-12-exit-and-error-behavior": "e6870a3e58f74eb143732702b3095a27a94160dd492d21557ada858c4d9d83c0",
       "3-13-authority-security-and-disclosure-boundary": "e71d00215ef919d80d766df2ad70559dced28d81ce195e09e8e9aad10988dbfa",
       "3-2-the-delta-request": "4dffbd81012707bad24372113c0fc4dfdfa8d2af84d27fa70abc559451f95486",
       "3-3-predecessor-verification-and-fallback": "3e590a44efcb8195f38469d35fa88cb408b1e9802612bbbb39335a6d07e7969f",
-      "3-4-member-states-and-the-closed-change-vocabulary": "fdb7a6b6c2ce9100710a979275612be41c3c6c70798ad4c798bc44e10ef8c3dd",
+      "3-4-member-states-and-the-closed-change-vocabulary": "e7aa2ba2e999d9c4bb7f9a547b5aa7926acf42ec2d868016f31e4d2656dcd79c",
       "3-5-interface-digests": "16f5dacb3a66c043b8c881df5dafbbdbeda6e48d2945abf6ac66ba6a244ad7cc",
       "3-6-the-delta-document": "1c4fbeb7cd6ee62c9e59876c50b5ebbfb137d8c15f9830c0c61bc7dcadfd4617",
       "3-7-the-reproduction-law-and-continuation": "69f9d62383bffe99238e51d473959f4bca9468eef98a895fb06093ec4bc61470",
       "3-8-conservative-selection": "e20c004e544f48e42405f47ad452129c3f4db83048fd5cdcbe79b5a7cd77a1db",
       "3-9-invalidation-candidates": "25da833198081f08022b4c2d308efd0d4554e05ab048f871e2445e8ceb848df0",
-      "3-behavior": "c35c42692c5e7e2af4cb2918318b296c28dee6e23b11c3092db42e893f54c0b1",
-      "4-acceptance-criteria": "216a3db1175fc4674894e8927b57b88f0481738a02cb8cde44bb976adf909042",
+      "3-behavior": "4735fe36a1eb9a9a90cd2bdaf310afb7a70bd4daef6b0ac364e8235f89e454b6",
+      "4-acceptance-criteria": "92d6ae5054d86fd38847255ffd20981d0ddad581144e7d660512866e52d37f08",
       "5-out-of-scope": "191e63a5661d535c1272886eecf2e499bda2ab128b51ddf021d06d1c8906c831",
-      "6-resolved-decisions": "25987b0fc29dc5534730b774758c760c8f5f129053e3e6b92dbbcf72fc109404",
+      "6-resolved-decisions": "02a271c558c6d7dc88bfba2695bb8a6bdf2b0c4fd5d2f89eb8af8c6670b049ba",
       "verification": "c02969c322a97857511077ae27e2fef7f2af6cffd1f697339a6b9bc288a28e15"
     },
     "sectionHeadings": [
@@ -262,6 +262,6 @@
     "summary": "A deterministic delta from caller-supplied predecessor packet pages to spec 159's pages on a target snapshot, in six closed change kinds, that reproduces the target byte for byte or falls back explicitly, plus pure invalidation candidates over spec-160 manifests. No session state.\n",
     "title": "A packet delta reproduces the packet it names"
   },
-  "shardHash": "d50e974e4ef7dcd3728464482993bdd537257d10b6822f883a14fa0eb7616bc9",
+  "shardHash": "222e8e6f0ed6d2e16de79d86f9d5c637960937506772f5a0114aa655e299ee05",
   "specVersion": "1.9.0"
 }

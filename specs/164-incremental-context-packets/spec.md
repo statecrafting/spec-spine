@@ -128,8 +128,10 @@ page's last (D-12). One page with no continuation is a complete set. The target 
 request, on the named target snapshot, by the running producer.
 
 Predecessor and target MAY name any two revisions of one repository; ancestry
-is not checked, because the law of 3.7 is about bytes. A delta never starts or
-ends at one page of a multi-page set.
+is not checked, because the law of 3.7 is about bytes. `predecessorPages`
+MUST hold a whole set and the target is always a whole set: a single page of a
+multi-page set is not a predecessor, and a delta never describes one page of a
+target on its own.
 
 ### 3.2 The delta request
 
@@ -193,6 +195,11 @@ this table alone:
 The rows are read top to bottom and the first that matches decides, so a key
 whose interface and record both differ is `interface-changed`, never also
 `changed`; the entry's record shows the record difference.
+
+In rows 4 and 5, "omitted with another record" means the key is omitted in the
+predecessor with an omission record that is not byte-equal, after the 3.4
+restamp, to the target's omission record for it. A key omitted on both sides
+with equal records yields no entry.
 
 Otherwise a key yields no entry. `removed` means the key left the request's resolved set; a
 unit deleted from the repository while still requested is a spec-159
@@ -399,9 +406,11 @@ authority; candidates are findings for Statecraft to adjudicate.
 4. A changed anchor section under an obligation, a changed signature under a
    symbol `body` projection, and a span-only shift yield `interface-changed`,
    `interface-changed`, and `changed` with `span`.
-5. A forged self-consistent predecessor yields a delta that reproduces the true
-   target from the forged bytes and refuses on genuine bytes; no entry reveals
-   content of an unselected key.
+5. A delta computed from a forged, self-consistent predecessor reproduces the
+   true target when applied to those forged bytes. Applying that same delta to
+   any other bytes, including the true predecessor pages, refuses, because
+   their digests are not the ones the delta names. No entry reveals content of
+   an unselected key.
 6. Bound, unbound, and closure-changed manifests yield candidates with the
    right basis, in an order invariant to manifest input order.
 7. LF, CRLF, and CR fixtures yield equal deltas; CLI and facade bytes match;
@@ -492,6 +501,14 @@ record differ, and that 3.7's malformed-delta sentence read as conditional.
 3.4 now decides by the first matching row, so `interface-changed` wins; 3.7
 states that a malformed delta is refused outright and that a well-formed one
 writes every page or none.
+
+**D-15 (2026-10-10, review): three phrasings made exact.** Review found that
+3.1's "never starts or ends at one page" read as positional, that rows 4 and 5
+of 3.4 did not say what "another record" is compared with, and that acceptance
+criterion 5 was easy to read backwards. 3.1 now states the whole-set rule for
+both sides, 3.4 defines the comparison as byte equality with the target's
+omission record after the restamp, and criterion 5 names which bytes a delta
+reproduces from and which it refuses. Behavior is unchanged.
 
 ## Verification
 
