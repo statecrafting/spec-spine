@@ -52,15 +52,12 @@ pub fn compatibility() -> BTreeMap<String, String> {
     .collect()
 }
 
-/// The version an axis carries in this build. Only axes [`compatibility`]
-/// lists, plus `unversioned` for a document that carries none.
+/// The version an axis carries in this build: its [`compatibility`] entry, or
+/// empty for `unversioned` and for an axis no entry names. An undeclared axis
+/// is refused by [`capability_catalog`] as an internal error rather than
+/// panicking here, so a typo in the static data cannot abort the process.
 fn axis_version(axis: &str) -> String {
-    if axis == "unversioned" {
-        return String::new();
-    }
-    compatibility()
-        .remove(axis)
-        .unwrap_or_else(|| panic!("axis {axis} is not declared in compatibility()"))
+    compatibility().remove(axis).unwrap_or_default()
 }
 
 fn strings(items: &[&str]) -> Vec<String> {
@@ -1261,7 +1258,18 @@ fn operations() -> Vec<Operation> {
 /// answers the same bytes everywhere.
 pub fn capability_catalog() -> Result<CapabilityCatalog, Error> {
     let mut ops = operations();
+    let axes = compatibility();
     for o in &mut ops {
+        if let Some(r) = o
+            .response
+            .iter()
+            .find(|r| r.axis != "unversioned" && !axes.contains_key(&r.axis))
+        {
+            return Err(Error::Internal(format!(
+                "operation `{}` answers on axis `{}`, which compatibility() does not declare",
+                o.name, r.axis
+            )));
+        }
         o.operation_digest = operation_digest(o)?;
     }
     ops.sort_by(|a, b| a.name.cmp(&b.name));
