@@ -213,7 +213,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "700c711f65101c6deaa63d4a5c174ddec5478ba7982a9b2015a414934cff543e",
-      "164-a-packet-delta-reproduces-the-packet-it-names": "d75e505482deda8323e87afa18190c8318ec203c6ed66b6469e1e8f9b1faef24",
+      "164-a-packet-delta-reproduces-the-packet-it-names": "3b9f4b0834b64a41dfbce76a8079a34fef1c4360d5ab1910f56a8e5c63c80322",
       "2-territory": "c5ecc4a65a5ddea87920c9174fcbfd6c1ac891b4bb36f08f67470386ff3502f5",
       "3-1-a-delta-relates-two-complete-page-sets-of-one-request": "7cf10ee029dc3d9acd4de6f1ec5c84ea2c4fe807419a3863bd450ae87932fb21",
       "3-10-ordering-limits-canonical-bytes-and-schema": "829353abbbc3e042650d9199e37589aa83203426b6551b6c7769ac3c271cd921",
@@ -231,7 +231,7 @@
       "3-behavior": "daaa57c59a696da5ea049f4029487a1be41d0aece134c71bc968d0216bee9fab",
       "4-acceptance-criteria": "92d6ae5054d86fd38847255ffd20981d0ddad581144e7d660512866e52d37f08",
       "5-out-of-scope": "191e63a5661d535c1272886eecf2e499bda2ab128b51ddf021d06d1c8906c831",
-      "6-resolved-decisions": "a2fa2e2298b0da37490aaf024f743872de6a7d67b3551a0dda971197601263c8",
+      "6-resolved-decisions": "80950c82d783f5cb51df1be51ad5902d4c2771b88ef6567e7310dfbf9fa8c023",
       "verification": "c02969c322a97857511077ae27e2fef7f2af6cffd1f697339a6b9bc288a28e15"
     },
     "sectionHeadings": [
@@ -262,6 +262,6 @@
     "summary": "A deterministic delta from caller-supplied predecessor packet pages to spec 159's pages on a target snapshot, in six closed change kinds, that reproduces the target byte for byte or falls back explicitly, plus pure invalidation candidates over spec-160 manifests. No session state.\n",
     "title": "A packet delta reproduces the packet it names"
   },
-  "shardHash": "c0484fb06d88450514dfd864c86e4747fd8c5172753c2d6a213cb9630d899f6c",
+  "shardHash": "8bf17f5d540b704c9ab41e810e98c5410c4a0a812a170117b2f4b43f629fc30f",
   "specVersion": "1.9.0"
 }

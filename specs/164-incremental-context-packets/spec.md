@@ -453,9 +453,10 @@ target's bytes. Tolerating a MINOR needs a per-member projection rule.
 and a non-reproducing page leave nothing done. Exit 1 would read as a finding
 about the repository, exit 4 as an internal failure.
 
-**D-7 (draft, owner to confirm): `interface` lands on 159's axis.** If spec 159
-is unbuilt when this is approved, folding the member into its `1.0.0` avoids a
-MINOR on day one. Superseded by D-10.
+**D-7 (draft; superseded by D-10, so no longer open): `interface` lands on
+159's axis.** If spec 159 is unbuilt when this is approved, folding the member
+into its `1.0.0` avoids a MINOR on day one. D-10 records why that condition
+does not hold.
 
 **D-8 (draft, owner to confirm): candidates cover packet members only.**
 Covering spec-160 interface inputs would duplicate its freshness read; deferred
