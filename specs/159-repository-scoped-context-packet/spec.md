@@ -146,8 +146,21 @@ A request has this closed shape:
 
 `closure` MUST contain exactly one of `root` or `digest`. `root` is a spec id
 accepted by the closure resolver. `digest` is a previously resolved closure
-digest accompanied by the exact closure document in the request; the producer
-MUST recompute and compare it and MUST NOT discover a closure by digest.
+digest, and it MUST be accompanied by the exact resolved closure document under
+`document`; `document` without `digest`, or with `root`, is a usage error. The
+producer MUST recompute and compare it and MUST NOT discover a closure by
+digest. The digest form is:
+
+```json
+{
+  "closure": {
+    "digest": "<the spec 107 closure digest>",
+    "document": { "digest": "<the same digest>", "members": [] }
+  }
+}
+```
+
+where `document` is the closure document exactly as spec 107 resolved it.
 
 `members` is an ordered request set before canonical sorting. Each entry reuses
 one selected-content selector and projection and adds `requirement`, either
@@ -237,7 +250,13 @@ error message.
 ### 3.7 Warnings
 
 Warnings are ordered typed records. V1 supports `unverified-producer-build`,
-`closure-member-unsupported`, and `optional-member-omitted`. Warnings MUST NOT
+`closure-member-unsupported`, and `optional-member-omitted`. A condition that
+omits a member is always reported as the omission, and a warning only adds to
+it: a closure member with no supported textual projection is one omission
+(`withdrawn`, `unsupported-selector`, `unsupported-projection`, or `non-text`)
+plus one `closure-member-unsupported` warning naming the same key, and an
+omitted optional member is one omission plus one `optional-member-omitted`
+warning. Warnings MUST NOT
 change `complete` to `incomplete` unless the same condition also creates a
 required omission. Consumers MUST use `completeness`, omissions, and the exit
 contract, not warning text, to decide whether a packet is usable.
@@ -289,8 +308,10 @@ schema major, or budgets is `stale-continuation`. A valid continuation resumes
 strictly after the last key and MUST NOT repeat or skip a member. Because the
 checksum is public, a caller can construct a well-formed token for its own
 request naming any resume point (D-4); the no-skip guarantee holds for tokens
-the producer issued, and a consumer that must prove an unbroken page sequence
-checks each page's continuation against the token the previous page returned.
+the producer issued. A consumer verifies for itself that it fetched an unbroken
+sequence by checking each request's continuation against the token the
+previous page returned. That check is the consumer's own record, not proof a
+third party can verify, since any caller can produce a well-formed token.
 
 `requestDigest` hashes the canonical normalized request without continuation.
 `packetDigest` hashes the canonical response with `packetDigest` absent and
