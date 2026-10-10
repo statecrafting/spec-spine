@@ -6,8 +6,7 @@
       "110-an-interface-reference-is-digest-pinned",
       "132-one-exit-contract-for-the-family",
       "152-a-refusal-says-what-it-is-in-every-form",
-      "155-selected-content-accessor",
-      "170-a-consumer-is-served-answers-not-access"
+      "155-selected-content-accessor"
     ],
     "implementingPaths": [
       {
@@ -345,5 +344,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "ebef7264d1dd7737782f92614af9ebb2ecd4583fb62c27f17059796879bf0e37"
+  "shardHash": "d4b68d858b6e0772e0bb5090c6076a6f9d85279fe4e7573f3f2cb53f52f1593a"
 }
