@@ -473,7 +473,16 @@ fn operations() -> Vec<Operation> {
         .reads(&[])
         .before_the_pin()
         .finding(&["not-found"])
+        // The document carries the catalog inside it (162 §3.12), so both
+        // axes are default answers (D-14), and the catalog's is what the
+        // facade `capability_catalog_json` returns.
         .response(None, "capabilities", "capabilities", None)
+        .response(
+            None,
+            "catalog",
+            "capability-catalog",
+            schema_id("capability-catalog.schema.json"),
+        )
         .response(Some("--operation"), "catalog", "catalog-operation", None)
         .facade("capability_catalog_json", None, false)
         .experimental()
