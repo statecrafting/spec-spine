@@ -181,6 +181,23 @@ documents all exit `0`; inspect `completeness`, `omissions`, and
 `continuation`. A dirty tree or index and a stale continuation exit `2`.
 Under `--json`, failures use the `content.select` verdict envelope.
 
+## context
+
+```text
+spec-spine context packet --request <FILE> --repository <IDENTITY> [--revision <REV>] --json
+```
+
+Assemble one page of a repository-scoped context packet (spec 159; see
+`docs/context-packets.md`). The snapshot is bound exactly as `content select`
+binds it, and checked again after the packet is read: a working tree that
+became dirty or a revision that moved is refused. The packet records the
+running executable's SHA-256 as its producer build. A complete or partial
+packet is written as the bare document at exit `0`. An incomplete packet (a
+required member omitted) exits `1` with the `context.packet` verdict envelope,
+whose `report` is the whole packet. A malformed request or continuation exits
+`3`; a dirty tree, an unsupported consumer schema, a closure document that does
+not recompute and a stale continuation exit `2`.
+
 ## registry
 
 Read-only queries over the compiled registry. Every subcommand takes `--json`.

@@ -207,8 +207,7 @@ budgets.
 
 The result is a `ContextPacket`. Its `completeness` is `complete`, `partial`
 (a continuation remains), or `incomplete` (a required member is omitted).
-An incomplete packet is still returned; deciding that it is a finding belongs to
-the binding (spec 159 3.8).
+An incomplete packet is still returned; the CLI turns it into exit `1`.
 `producer_build` is the binding's `sha256:<hex>` build digest, or `None` to
 record `unverified` (`build_digest(bytes)` computes one). Malformed requests
 are `Usage`, an unsupported consumer schema, a closure document that does not
@@ -220,7 +219,7 @@ its own `schemaVersion` (`CONTEXT_PACKET_SCHEMA_VERSION`, schema
 `CONTEXT_PACKET_SCHEMA`). `context_packet_json(config_json, repo_root,
 request_json, snapshot_json)` is the JSON facade; it has no build identity to
 supply, so its packets record `unverified`. `packet_digest(&ContextPacket)`
-recomputes `packetDigest`.
+recomputes `packetDigest`. See `docs/context-packets.md`.
 
 ---
 
