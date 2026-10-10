@@ -1,6 +1,7 @@
 {
   "mapping": {
     "dependsOn": [
+      "074-a-governed-read-names-its-version",
       "132-one-exit-contract-for-the-family",
       "152-a-refusal-says-what-it-is-in-every-form",
       "155-selected-content-accessor",
@@ -246,5 +247,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "dcac7f4c3424e238a2eb057c91aabaf68cd56c6af096c0616c10b710f44478b1"
+  "shardHash": "f0863a2b6a85f1abfd8fb081a44c358851f9e35af995be103e415b99a405329f"
 }

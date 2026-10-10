@@ -8,6 +8,7 @@ implementation: pending
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
+  - "074-a-governed-read-names-its-version"
   - "132-one-exit-contract-for-the-family"
   - "152-a-refusal-says-what-it-is-in-every-form"
   - "155-selected-content-accessor"
@@ -221,10 +222,17 @@ projection never computes an answer itself: there is no facade route, cache, or
 transformation between the verb and the caller, so a tool answer and the verb's
 answer cannot differ (170 §3.2).
 
-An adapter MUST present the answer as follows. Exit `0` and `1` are answers:
-`1` is a finding (stale, not found, drift), which the verb's envelope already
-describes, and the caller receives the envelope with the exit code. Exit `2`,
-`3` and `4` are tool errors that carry the verb's spec-152 envelope unchanged.
+When the verb ran, an adapter MUST present its answer as follows, subject
+only to the size limit of §3.6. Exit `0` and `1` are answers: `1` is a finding
+(stale, not found, drift), which the verb's envelope already describes, and
+the caller receives the envelope with the exit code. Exit `2`, `3` and `4` are
+tool errors that carry the verb's spec-152 envelope unchanged. An answer over
+the adapter's size limit is replaced by `result-too-large` whatever its exit
+code, because a truncated answer is never presented (§3.6).
+
+When the verb did not run (the tool is unknown, the arguments fail the schema,
+or no admitted binary can be started), there is no verb envelope; the adapter
+raises its own §3.7 error instead.
 
 ### 3.6 Budgets, pagination, and unbounded answers
 
@@ -406,6 +414,23 @@ sees it there. Its effects are 162's for `capabilities`: none.
 records, so this spec is built after spec 162's build has merged. The census
 then measures the real projected set and records it here as a decision entry,
 as 162 §3.15 does for its inventory.
+
+**D-9 (2026-10-10, review): which error wins, and from where.** Review of the
+filing found that §3.5 presented every exit 0 or 1 as an answer while §3.6
+replaced an oversized answer with an error, and that §3.5 promised a verb
+envelope for an adapter error raised before any verb ran. §3.5 now applies the
+size limit first and separates the two cases: a verb that ran is presented by
+its exit code with its own envelope, and a verb that never ran yields the
+adapter's §3.7 envelope. `depends_on` also names spec 074, whose `version.rs`
+this spec extends with a new axis.
+
+**D-10 (2026-10-10): a forward `depends_on`, kept on purpose.** This spec
+depends on 170, a higher ordinal: spec 170 was filed while 167 was reserved for
+this projection (D-6). Every other `depends_on` in the corpus points backward.
+The edge stays because this spec extends 170's `capabilities` verb and must
+not be offered as ready before it, which a `references` entry would not
+prevent. It cannot form a cycle: 170 does not depend on this spec. Spec 046's
+`L-007` would refuse it, and this repository has not enabled that opt-in rule.
 
 ## Verification
 
