@@ -97,7 +97,6 @@ fn op(name: &str, summary: &str, governed_by: &[&str]) -> Op {
         response: Vec::new(),
         effects: Effects {
             reads: strings(&["config", "corpus", "derived-ledger"]),
-            network: "none".to_string(),
             ..Effects::default()
         },
         effects_when: Vec::new(),
@@ -1292,6 +1291,19 @@ pub fn capability_catalog() -> Result<CapabilityCatalog, Error> {
         operations: ops,
         catalog_digest: String::new(),
     };
+    // 162 §3.11: discovery names operations, so each name must be one.
+    let d = &catalog.discovery;
+    for name in [
+        &d.interface_references.declared_by,
+        &d.interface_references.verified_by,
+        &d.capabilities.verified_by,
+    ] {
+        if !catalog.operations.iter().any(|o| &o.name == name) {
+            return Err(Error::Internal(format!(
+                "discovery names `{name}`, which is not an operation in the catalog"
+            )));
+        }
+    }
     catalog.catalog_digest = catalog_digest(&catalog)?;
     Ok(catalog)
 }

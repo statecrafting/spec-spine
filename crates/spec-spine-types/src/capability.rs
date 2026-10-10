@@ -156,7 +156,7 @@ pub struct ResponseRef {
 }
 
 /// 162 §3.4. Every list is sorted.
-#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Effects {
     pub reads: Vec<String>,
@@ -166,6 +166,23 @@ pub struct Effects {
     pub network: String,
     pub environment: Vec<String>,
     pub authority: Vec<String>,
+}
+
+/// No effect at all: every list empty and `network: none`, the one value of
+/// the closed vocabulary that claims nothing. Written out rather than derived,
+/// because a derived default would leave `network` empty, which the schema
+/// refuses.
+impl Default for Effects {
+    fn default() -> Self {
+        Self {
+            reads: Vec::new(),
+            writes: Vec::new(),
+            executes: Vec::new(),
+            network: "none".to_string(),
+            environment: Vec::new(),
+            authority: Vec::new(),
+        }
+    }
 }
 
 /// Effects a flag adds to the base (162 §3.4). `network` is omitted: no flag
