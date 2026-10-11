@@ -57,6 +57,36 @@ fn run_select(
     let request: ContentRequest = serde_json::from_str(&text)
         .map_err(|e| Error::Usage(format!("invalid content request: {e}")))?;
 
+    let bound = bind_snapshot(repo, repository, revision)?;
+    let response = selected_content(&bound.config, bound.tree(), &request, &bound.snapshot)?;
+    let document = read_document(&response, Versioning::Stamp)?;
+    out!("{document}");
+    Ok(0)
+}
+
+/// One verified Git tree materialized in a private directory, with the
+/// snapshot identity it was bound to and the configuration it carries. Shared
+/// with `context packet` (spec 159 3.1), so both reads bind a snapshot one way.
+pub(crate) struct BoundSnapshot {
+    export: TempExport,
+    pub(crate) snapshot: ContentSnapshot,
+    pub(crate) config: spec_spine_types::Config,
+}
+
+impl BoundSnapshot {
+    /// The exported tree.
+    pub(crate) fn tree(&self) -> &Path {
+        &self.export.tree
+    }
+}
+
+/// Bind `revision`, or the clean working tree at `HEAD` when it is `None`,
+/// and export its exact blob bytes. A dirty tree is refused.
+pub(crate) fn bind_snapshot(
+    repo: &Path,
+    repository: &str,
+    revision: Option<&str>,
+) -> Result<BoundSnapshot, Error> {
     let (commitish, dirty_state) = if let Some(rev) = revision {
         (rev, ContentDirtyState::CleanExport)
     } else {
@@ -67,7 +97,7 @@ fn run_select(
     let tree = resolve_object(repo, &commit, "tree")?;
     let export = TempExport::create()?;
     materialize_tree(repo, &tree, &export.tree)?;
-    let cfg = load_repo_config(&export.tree)?;
+    let config = load_repo_config(&export.tree)?;
     let snapshot = ContentSnapshot {
         repository: repository.to_string(),
         revision: commit,
@@ -75,11 +105,31 @@ fn run_select(
         dirty_state,
         binding: ContentSnapshotBinding::CallerSupplied,
     };
-    let response = selected_content(&cfg, &export.tree, &request, &snapshot)?;
-    let _guard = export;
-    let document = read_document(&response, Versioning::Stamp)?;
-    out!("{document}");
-    Ok(0)
+    Ok(BoundSnapshot {
+        export,
+        snapshot,
+        config,
+    })
+}
+
+/// The after-read half of the binding (spec 159 3.1): the commit the
+/// request named still resolves to the bound revision, and a working-tree
+/// binding is still clean. Anything else is a changed snapshot.
+pub(crate) fn confirm_unchanged(
+    repo: &Path,
+    snapshot: &ContentSnapshot,
+    revision: Option<&str>,
+) -> Result<(), Error> {
+    if revision.is_none() {
+        require_clean(repo)?;
+    }
+    let commit = resolve_object(repo, revision.unwrap_or("HEAD"), "commit")?;
+    if commit != snapshot.revision {
+        return Err(Error::Refused(
+            "snapshot-changed: the repository moved while the packet was read".into(),
+        ));
+    }
+    Ok(())
 }
 
 /// Materialize the exact blob bytes named by `tree` without checkout filters.

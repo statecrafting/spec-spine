@@ -12,9 +12,9 @@
 //! `required_version` this binary does not meet (170 3.6).
 
 use spec_spine_types::{
-    CAPABILITIES_SCHEMA_VERSION, CONFIG_VERSION, Capabilities, DELTA_SCHEMA_VERSION, Error,
-    READ_SCHEMA_VERSION, SchemaAxis, TRACEABILITY_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
-    VerbCapability,
+    CAPABILITIES_SCHEMA_VERSION, CONFIG_VERSION, CONTEXT_PACKET_SCHEMA_VERSION, Capabilities,
+    DELTA_SCHEMA_VERSION, Error, READ_SCHEMA_VERSION, SchemaAxis, TRACEABILITY_SCHEMA_VERSION,
+    VERDICT_SCHEMA_VERSION, VerbCapability,
 };
 
 /// Flags every verb has that say nothing about the verb: clap's help, and the
@@ -133,6 +133,7 @@ pub fn json_axes(path: &str) -> Vec<SchemaAxis> {
         "registry traceability" => vec![read(), axis("traceability", TRACEABILITY_SCHEMA_VERSION)],
         "config show" => vec![axis("config", CONFIG_VERSION)],
         "capabilities" => vec![axis("capabilities", CAPABILITIES_SCHEMA_VERSION)],
+        "context packet" => vec![axis("context-packet", CONTEXT_PACKET_SCHEMA_VERSION)],
         _ => Vec::new(),
     }
 }

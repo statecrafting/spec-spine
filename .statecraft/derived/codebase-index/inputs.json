@@ -111,6 +111,9 @@
     "crates/spec-spine-types/schemas/build-meta.schema.json": {
       "contentHash": "e3e05938056e626855a2211ec58a9cdef77163ace2f3af81c194e1ad845cdc83"
     },
+    "crates/spec-spine-types/schemas/capability-catalog.schema.json": {
+      "contentHash": "c918bfefb7b7affe3cf75818ad450560ec33bbe85e0db4246d0805da4242c9ce"
+    },
     "crates/spec-spine-types/schemas/codebase-index-inputs.schema.json": {
       "contentHash": "49feba2ddc7aa6a5393e20d85e058bfef6ac675bc06786e7930e3be99c7f70b6"
     },
@@ -122,6 +125,9 @@
     },
     "crates/spec-spine-types/schemas/codebase-index.schema.json": {
       "contentHash": "2e415a74b666b21d114ef0aebb656e22b6b634f4d66b2fbc5f3c422b1a57ac3e"
+    },
+    "crates/spec-spine-types/schemas/context-packet.schema.json": {
+      "contentHash": "8a7058f0573a9e78e225b046646326639a2bb3d332d14f8509beb15047e402ed"
     },
     "crates/spec-spine-types/schemas/registry-spec-shard.schema.json": {
       "contentHash": "d6c8f74046544df93527f2a9ebc971a28ed74c221d7881760f33f5ee0cd4b592"
@@ -136,7 +142,7 @@
       "contentHash": "9529eaebd687bed492660e37bb2958efb43c90194248fd78a8dcaf414cad8284"
     },
     "docs/api.md": {
-      "contentHash": "8ccc433a87c19409839e37828dbff50b1f71fd7ebb75da1ae4648a310fca91f0"
+      "contentHash": "05a6c0f702b921b26cc2a49a444f3023cbf763f2f88ca89cf5b3f24550a466d4"
     },
     "docs/bindings-plan.md": {
       "contentHash": "58aaef786b59662ab416f0ee5afe9c371a648449a81fc02afcd2d7a2b9f7b4e7"
@@ -154,7 +160,7 @@
       "contentHash": "eec1bea982688c1eda66d5a0a0a8ee511d1b1770ad0d434ea02953b529b5df9d"
     },
     "docs/schema-versioning.md": {
-      "contentHash": "6b6c91553c662331bc1539f73bcf741159f23f9fe3f864b3588655ff948dc278"
+      "contentHash": "762c37ad05ec116dbaa057cb5f34aa21d5a38871b1e3f39e1f546af39355afb3"
     },
     "docs/specify-first.md": {
       "contentHash": "d983fd1bc596ba8463330c4be51ca00561645c53594f17e6355c5e664241d0b4"

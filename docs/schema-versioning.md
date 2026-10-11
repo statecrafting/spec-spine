@@ -20,6 +20,8 @@
 | read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.11.0` | library |
 | traceability report (`registry traceability --json`, `traceability_json`; spec 169) | `traceabilityVersion` | `1.0.0` | library (beside the read stamp) |
 | capabilities document (`capabilities --json`, spec 170) | `schemaVersion` | `0.1.0` | library |
+| capability catalog (`capability_catalog_json()`, spec 162) | `schemaVersion` | `1.0.0` | library |
+| context packet (`context packet --json`, `context_packet_json`, spec 159) | `schemaVersion` | `1.0.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
 | verifier fixture set (`fixtures/verifier/`, spec 103) | `schemaVersion` | `1.0.0` | library (test data, not emitted at runtime) |
@@ -38,6 +40,11 @@ aggregate DTOs (`Registry`, `CodebaseIndex`) are unchanged and carry the same
 version.
 
 MINOR history:
+
+- capability catalog `1.0.0` (spec 162): the axis begins. A new vocabulary
+  token or optional member is MINOR; removing or renaming one, or changing the
+  digest construction, is MAJOR. Its schema is embedded as
+  `capability-catalog.schema.json`.
 
 - `index.json` `0.2.0` (spec 011): additive `build.sliceHashes` -- per-slice
   content hashes for `index check --slice <name>`.
@@ -384,6 +391,24 @@ at `1.0.0`: a reader accepts any `1.x` and refuses another major, and an
 unknown relation, target kind or state is a parse failure, never downcast, and
 adding one moves `traceabilityVersion` MAJOR. No
 member of an existing document moved.
+
+## The context-packet axis: spec 159
+
+A context packet is a document with its own axis, not a read document: it
+carries `schemaVersion` = `CONTEXT_PACKET_SCHEMA_VERSION`, starting at
+`1.0.0`, and the read axis is never stamped over it. Its schema is embedded as
+`CONTEXT_PACKET_SCHEMA` (`schemas/context-packet.schema.json`).
+
+**`1.0.0` (spec 159).** The first packet document: producer identity, snapshot,
+normalized request and `requestDigest`, the spec 107 closure and its digest,
+ordered members carrying complete spec 155 items, omissions, warnings,
+`completeness`, an opaque `continuation`, and `packetDigest`.
+
+The axis moves MINOR for an added optional member, and MAJOR for a removed or
+reinterpreted member, ordering rule, digest input or enum value. PATCH changes
+only descriptions or constraints and accepts and emits the same instances. A
+request names the version it reads in `consumerSchemaVersion`; the producer
+refuses another major or a minor above its own.
 
 ## Migration note: spec 034, the verdict envelope
 
