@@ -1066,6 +1066,36 @@ fn operations() -> Vec<Operation> {
         .pinned_example(&["registry", "obligation", "001-alpha#R-1"])
         .done(),
         op(
+            "registry.traceability",
+            "Every declared obligation traceability relation and the state its target resolves to (spec 169). A declaration is not evidence",
+            &["169-declared-obligation-traceability"],
+        )
+        .cli(
+            "registry traceability",
+            "read-document",
+            &["--declared-by=SPEC", "--obligation=REF", "--state=STATE", "--json"],
+        )
+        .experimental()
+        .finding(&["not-found", "stale", "validation"])
+        .response(None, "read", "traceability", schema_id("traceability.schema.json"))
+        .facade("traceability_json", None, true)
+        .example(
+            "registry-traceability",
+            Some("corpus"),
+            &["registry", "traceability", "--json"],
+            0,
+            &["\"traceabilityVersion\""],
+        )
+        .example(
+            "registry-traceability-bad-state",
+            Some("corpus"),
+            &["registry", "traceability", "--state", "nope", "--json"],
+            3,
+            &[],
+        )
+        .pinned_example(&["registry", "traceability"])
+        .done(),
+        op(
             "registry.plan",
             "Which specs can be worked on now, and what blocks the rest (spec 035)",
             &["035-registry-plan-ready-set"],

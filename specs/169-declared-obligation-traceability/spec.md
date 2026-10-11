@@ -518,6 +518,14 @@ never meets one under the major it supports. A new optional member is MINOR.
 The registry axis keeps its existing policy: an additive member is MINOR and an
 older binary fails closed on it.
 
+**D-8 (2026-10-11, integration): the verb has a catalog record.** Spec 162's
+capability catalog landed on `main` while this spec was in review, and its
+census refuses a facade the catalog does not bind. `registry traceability`
+is cataloged as `registry.traceability`, bound to `traceability_json` (which
+reads the repository), stamped on the read axis with this spec's schema, and
+`experimental` while this spec is a draft (162 §3.8). 162 §3.15's counts move
+with it.
+
 ## Verification
 
 Each named test target fails before the build, because it does not exist while
