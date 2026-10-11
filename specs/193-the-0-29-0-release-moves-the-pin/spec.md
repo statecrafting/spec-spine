@@ -1,7 +1,7 @@
 ---
 id: "193-the-0-29-0-release-moves-the-pin"
 title: "The 0.29.0 release moves the package version and the pin together"
-status: draft
+status: approved
 implementation: complete
 kind: tooling
 created: "2026-10-05"

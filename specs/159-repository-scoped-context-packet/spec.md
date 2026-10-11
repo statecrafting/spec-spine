@@ -1,7 +1,7 @@
 ---
 id: "159-repository-scoped-context-packet"
 title: "Assemble one repository context packet"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-26"
 implementation: complete

@@ -226,10 +226,10 @@
       "Verification"
     ],
     "specPath": "specs/160-documentation-manifest-and-freshness/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Adds a deterministic documentation-manifest document and a read-only freshness evaluation. A manifest binds one repository-scoped context packet, declared local and external inputs, generator identity, output bytes, generated and human-authored regions, and executable-example identities. Freshness names every changed, missing, unresolved, or unverified declared input without claiming that unchanged inputs make narrative text correct.\n",
     "title": "Declare documentation inputs and freshness"
   },
-  "shardHash": "95317ac95ebc232a331c26b0a0a6c59f3c439e9dc47251508fd8aa9136e8f875",
+  "shardHash": "c44ca3d17b529df80ebdc4c4d342bec3c3697cd7cbd569a727649fb0384ba916",
   "specVersion": "1.9.0"
 }

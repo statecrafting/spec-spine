@@ -80,10 +80,10 @@
       "Verification"
     ],
     "specPath": "specs/193-the-0-29-0-release-moves-the-pin/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "`main` moves from 0.28.0 to 0.29.0 and the exact engine pin moves with it in the same change, as spec 156 3.3 requires. The release is cut from this change's head before it merges, because the managed gate installs the pinned release and a pin to an unpublished version cannot pass it.\n",
     "title": "The 0.29.0 release moves the package version and the pin together"
   },
-  "shardHash": "5057d2812b4a7deec777985ab8ccfe6b22a5c72d30d3e2f6ecf241f346a29410",
+  "shardHash": "2f4328651b2359fa8508b800d72d2c05e08ed83d25f98eb6a9cc93921a7c776e",
   "specVersion": "1.9.0"
 }

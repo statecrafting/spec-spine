@@ -419,8 +419,8 @@
       }
     ],
     "specId": "159-repository-scoped-context-packet",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "38b47ecf3cbe11c765e6220a431687f765bc1d7c0bbeedf9b8235cd890cb31b1"
+  "shardHash": "9f2be6e5c0aee4142d7ad6b9630a4f1886a85ebfc664942470ff19012841a24f"
 }

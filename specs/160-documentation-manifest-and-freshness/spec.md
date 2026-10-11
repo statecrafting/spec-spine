@@ -1,7 +1,7 @@
 ---
 id: "160-documentation-manifest-and-freshness"
 title: "Declare documentation inputs and freshness"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-26"
 implementation: pending
