@@ -92,6 +92,11 @@ and shards only. The engine source and schemas are those tagged at
 
 ## Verification
 
+> **Superseded acceptance (2026-10-10).** This block no longer runs.
+> `195-the-0-30-0-release-moves-the-pin` declares this spec in `amends_verification` and carries the
+> complete block with the package version and the exact pin at 0.30.0
+> (spec 195 3.3). The commands below remain unchanged.
+
 ```verify:cli
 # ---- carried for 191-profile-13-keeps-the-engine-local (amends_verification), and through it 190, 187, 156, 091, 094, 124, 134, 135; the package version and the exact pin move to 0.29.0 together (193 3.1) ----
 # ---- carried for 187-exact-test-counts-for-156 (amends_verification), and through it 156, 091, 094, 124, 134, 135; the ci-gate needs line names affected-acceptance (190 3.2) ----

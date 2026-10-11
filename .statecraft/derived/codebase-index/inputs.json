@@ -88,7 +88,7 @@
       "contentHash": "c6543d237a50d94a81935ccdcfc6fc15a162b30f133d7d251c4777ab8ad0f4d2"
     },
     ".statecraft/environment.json": {
-      "contentHash": "6d47078df4b92c5fd0a726d4ab5d482a5e0b7992cec666f79fc63797dbc153d1"
+      "contentHash": "3d5505ef30116e920991b3bc784b0816cda5855f87d2ede68d9a6fc849abdfb0"
     },
     ".statecraft/setup/github-actions-rust.json": {
       "contentHash": "3156689240db231f0b17f6d930606d07f047711cbbafb98f08b65c8fb3d1679e"
@@ -211,7 +211,7 @@
       "contentHash": "6646f8e04a534675c0e450deb5892aef4049852e6b53832fc47750e03e43d179"
     },
     "spec-spine.toml": {
-      "contentHash": "687e257d4302b06a3bb8a2144fe0395b07cbb46265a4dfae94d6c710481bb41f"
+      "contentHash": "69eaf00cc78e7ddced694c00c9a0589bd1316393a2514dc605b7e1b21d22fecb"
     },
     "standards/spec/constitution.md": {
       "contentHash": "88f980bc94705c07851fdcb974c3fd0689fa431d46d9c708c707d2bf5eabbaca"

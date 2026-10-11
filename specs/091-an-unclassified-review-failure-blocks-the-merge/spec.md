@@ -766,6 +766,9 @@ case actually ran rather than being filtered out to zero tests.
 > Since 2026-10-05, `193-the-0-29-0-release-moves-the-pin` holds 191's block in turn, so this plan runs
 > from that spec's block (spec 193 3.3).
 
+> Since 2026-10-10, `195-the-0-30-0-release-moves-the-pin` holds 193's block in turn, so this plan runs
+> from that spec's block (spec 195 3.3).
+
 ```verify:cli
 test -f crates/spec-spine-core/tests/ai_review_policy.rs
 cargo test -p spec-spine-core --locked --test ai_review_policy
