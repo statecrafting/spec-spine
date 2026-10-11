@@ -267,10 +267,10 @@
       "Verification"
     ],
     "specPath": "specs/159-repository-scoped-context-packet/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Adds a deterministic, read-only context-packet request and response for one immutable repository snapshot. A packet combines a declared context closure with required and optional selected-content members under explicit byte and item budgets, records every omission and warning, binds continuation to the request and snapshot, and carries a canonical packet digest without creating cross-repository authority.\n",
     "title": "Assemble one repository context packet"
   },
-  "shardHash": "d68423e0308510687ed3038df75e6cde24f567876e69f4814a5835e927a59e67",
+  "shardHash": "a9b28300e9d85afad7c3653e0128fa8b921955817d794dd75379b73ba2187ad8",
   "specVersion": "1.9.0"
 }

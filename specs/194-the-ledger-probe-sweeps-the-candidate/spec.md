@@ -1,7 +1,7 @@
 ---
 id: "194-the-ledger-probe-sweeps-the-candidate"
 title: "The built-in ledger probe sweeps the candidate, not origin/main"
-status: draft
+status: approved
 implementation: complete
 kind: tooling
 created: "2026-10-05"
