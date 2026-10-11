@@ -1,0 +1,347 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spec-spine.dev/schemas/capability-catalog.schema.json",
+  "title": "spec-spine capability catalog",
+  "description": "Every operation a spec-spine binary performs, described once (spec 162): effects, outcomes, schemas, budgets, stability, examples and per-operation digests. The `catalog` member of `capabilities --json` and the answer of `capability_catalog_json()`. Versioned on its own axis (CATALOG_SCHEMA_VERSION). A description, not a permission.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "tool",
+    "toolVersion",
+    "compatibility",
+    "discovery",
+    "operations",
+    "catalogDigest"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "$ref": "#/$defs/semver" },
+    "tool": { "const": "spec-spine" },
+    "toolVersion": { "$ref": "#/$defs/semver" },
+    "compatibility": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/semver" }
+    },
+    "discovery": {
+      "type": "object",
+      "required": ["interfaceReferences", "capabilities"],
+      "additionalProperties": false,
+      "properties": {
+        "interfaceReferences": {
+          "type": "object",
+          "required": ["declaredBy", "member", "pinSources", "verifiedBy"],
+          "additionalProperties": false,
+          "properties": {
+            "declaredBy": { "$ref": "#/$defs/operationName" },
+            "member": { "type": "string" },
+            "pinSources": { "type": "array", "items": { "type": "string" } },
+            "verifiedBy": { "$ref": "#/$defs/operationName" }
+          }
+        },
+        "capabilities": {
+          "type": "object",
+          "required": ["verifiedBy"],
+          "additionalProperties": false,
+          "properties": {
+            "verifiedBy": { "$ref": "#/$defs/operationName" }
+          }
+        }
+      }
+    },
+    "operations": { "type": "array", "items": { "$ref": "#/$defs/operation" } },
+    "catalogDigest": { "$ref": "#/$defs/digest" }
+  },
+  "$defs": {
+    "semver": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "operationName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*(\\.[a-z][a-z0-9-]*)*$"
+    },
+    "specId": { "type": "string", "pattern": "^[0-9]{3}-[a-z0-9-]+$" },
+    "readToken": {
+      "enum": [
+        "attestation",
+        "caller-file",
+        "clock",
+        "config",
+        "corpus",
+        "derived-ledger",
+        "export-directory",
+        "key-material",
+        "source-tree",
+        "stdin"
+      ]
+    },
+    "writeToken": {
+      "enum": ["attestation", "caller-path", "corpus", "delegated", "derived-ledger", "temporary"]
+    },
+    "executeToken": { "enum": ["declared-commands", "git"] },
+    "authorityToken": {
+      "enum": [
+        "code-execution",
+        "corpus-rewrite",
+        "gate-verdict",
+        "ledger-rewrite",
+        "signature-verification",
+        "signing",
+        "waiver-evaluation"
+      ]
+    },
+    "envName": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+    "errorKind": {
+      "enum": [
+        "validation",
+        "stale",
+        "not-found",
+        "drift",
+        "refused",
+        "config",
+        "io",
+        "schema",
+        "usage",
+        "internal"
+      ]
+    },
+    "effects": {
+      "type": "object",
+      "required": ["reads", "writes", "executes", "network", "environment", "authority"],
+      "additionalProperties": false,
+      "properties": {
+        "reads": { "type": "array", "items": { "$ref": "#/$defs/readToken" } },
+        "writes": { "type": "array", "items": { "$ref": "#/$defs/writeToken" } },
+        "executes": { "type": "array", "items": { "$ref": "#/$defs/executeToken" } },
+        "network": { "enum": ["none", "delegated"] },
+        "environment": { "type": "array", "items": { "$ref": "#/$defs/envName" } },
+        "authority": { "type": "array", "items": { "$ref": "#/$defs/authorityToken" } }
+      }
+    },
+    "addedEffects": {
+      "type": "object",
+      "required": ["reads", "writes", "executes", "environment", "authority"],
+      "additionalProperties": false,
+      "properties": {
+        "reads": { "type": "array", "items": { "$ref": "#/$defs/readToken" } },
+        "writes": { "type": "array", "items": { "$ref": "#/$defs/writeToken" } },
+        "executes": { "type": "array", "items": { "$ref": "#/$defs/executeToken" } },
+        "environment": { "type": "array", "items": { "$ref": "#/$defs/envName" } },
+        "authority": { "type": "array", "items": { "$ref": "#/$defs/authorityToken" } }
+      }
+    },
+    "bound": {
+      "type": "object",
+      "required": ["default", "min", "max"],
+      "additionalProperties": false,
+      "properties": {
+        "default": { "type": "integer", "minimum": 0 },
+        "min": { "type": "integer", "minimum": 0 },
+        "max": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "operation": {
+      "type": "object",
+      "required": [
+        "name",
+        "summary",
+        "governedBy",
+        "cli",
+        "facade",
+        "request",
+        "response",
+        "effects",
+        "effectsWhen",
+        "preconditions",
+        "outcomes",
+        "budget",
+        "pagination",
+        "stability",
+        "since",
+        "deprecation",
+        "examples",
+        "operationDigest"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "$ref": "#/$defs/operationName" },
+        "summary": { "type": "string", "minLength": 1 },
+        "governedBy": { "type": "array", "items": { "$ref": "#/$defs/specId" } },
+        "cli": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["argv", "flags", "output"],
+              "additionalProperties": false,
+              "properties": {
+                "argv": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+                "flags": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "name",
+                      "positional",
+                      "valueName",
+                      "required",
+                      "repeatable",
+                      "conflictsWith"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "name": { "type": "string", "minLength": 1 },
+                      "positional": { "type": "boolean" },
+                      "valueName": { "type": ["string", "null"] },
+                      "required": { "type": "boolean" },
+                      "repeatable": { "type": "boolean" },
+                      "conflictsWith": { "type": "array", "items": { "type": "string" } }
+                    }
+                  }
+                },
+                "output": { "enum": ["verdict-envelope", "read-document", "text", "files"] }
+              }
+            }
+          ]
+        },
+        "facade": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["function", "selector", "readsRepository"],
+            "additionalProperties": false,
+            "properties": {
+              "function": { "type": "string", "pattern": "^[a-z][a-z0-9_]*_json$" },
+              "selector": { "type": ["string", "null"] },
+              "readsRepository": { "type": "boolean" }
+            }
+          }
+        },
+        "request": {
+          "type": "object",
+          "required": ["kind", "schema"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "enum": ["argv", "document"] },
+            "schema": { "type": ["string", "null"] }
+          }
+        },
+        "response": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["when", "axis", "version", "document", "schema"],
+            "additionalProperties": false,
+            "properties": {
+              "when": { "type": ["string", "null"] },
+              "axis": { "type": "string", "minLength": 1 },
+              "version": { "type": "string" },
+              "document": { "type": "string", "minLength": 1 },
+              "schema": { "type": ["string", "null"] }
+            }
+          }
+        },
+        "effects": { "$ref": "#/$defs/effects" },
+        "effectsWhen": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["flag", "effects"],
+            "additionalProperties": false,
+            "properties": {
+              "flag": { "type": "string", "pattern": "^--[a-z][a-z0-9-]*$" },
+              "effects": { "$ref": "#/$defs/addedEffects" }
+            }
+          }
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "exitCodes"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "enum": [
+                  "clean-tree",
+                  "config-loadable",
+                  "git-repository",
+                  "refs-resolvable",
+                  "registry-fresh",
+                  "version-pin-met"
+                ]
+              },
+              "exitCodes": {
+                "type": "array",
+                "items": { "type": "integer", "minimum": 1, "maximum": 4 },
+                "minItems": 1
+              }
+            }
+          }
+        },
+        "outcomes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["exitCode", "outcome", "kinds"],
+            "additionalProperties": false,
+            "properties": {
+              "exitCode": { "type": "integer", "minimum": 0, "maximum": 4 },
+              "outcome": { "enum": ["ok", "finding", "refused", "usage", "failed"] },
+              "kinds": { "type": "array", "items": { "$ref": "#/$defs/errorKind" } }
+            }
+          }
+        },
+        "budget": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["maxBytes", "maxItems"],
+              "additionalProperties": false,
+              "properties": {
+                "maxBytes": { "$ref": "#/$defs/bound" },
+                "maxItems": { "$ref": "#/$defs/bound" }
+              }
+            }
+          ]
+        },
+        "pagination": { "enum": ["none", "continuation"] },
+        "stability": { "enum": ["stable", "experimental", "deprecated"] },
+        "since": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/semver" }] },
+        "deprecation": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["since", "replacement", "note"],
+              "additionalProperties": false,
+              "properties": {
+                "since": { "$ref": "#/$defs/semver" },
+                "replacement": {
+                  "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/operationName" }]
+                },
+                "note": { "type": "string" }
+              }
+            }
+          ]
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "fixture", "argv", "stdin", "exitCode", "stdoutIncludes"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string", "pattern": "^[a-z][a-z0-9.-]*$" },
+              "fixture": { "type": ["string", "null"] },
+              "argv": { "type": "array", "items": { "type": "string" } },
+              "stdin": { "type": ["string", "null"] },
+              "exitCode": { "type": "integer", "minimum": 0, "maximum": 4 },
+              "stdoutIncludes": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "operationDigest": { "$ref": "#/$defs/digest" }
+      }
+    }
+  }
+}

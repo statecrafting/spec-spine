@@ -512,6 +512,30 @@ mod resolved {
     }
 
     #[test]
+    fn use_list_self_names_the_prefix_binding() {
+        let repo = fixture(&[]);
+        write(
+            repo.path(),
+            "demo/src/lib.rs",
+            &format!(
+                "{LIB}\npub mod imports {{\n    use crate::outer_mod::{{self}};\n    use crate::outer_mod::{{inner::{{self, deep}}}};\n    use crate::outer_mod::{{self as renamed}};\n}}\n"
+            ),
+        );
+        let r = resolver(repo.path());
+        for name in ["outer_mod", "inner", "deep", "renamed"] {
+            assert_eq!(
+                r.lookup(Namespace::Symbol, &format!("demo::imports::{name}")),
+                Lookup::Unsupported(reason::RE_EXPORT),
+                "{name}"
+            );
+        }
+        assert_eq!(
+            r.lookup(Namespace::Symbol, "demo::imports::self"),
+            Lookup::Unresolved
+        );
+    }
+
+    #[test]
     fn index_messages_name_the_outcome_and_leave_plain_unresolved_alone() {
         let repo = fixture();
         let actual = index_outcomes(repo.path()).join("\n");

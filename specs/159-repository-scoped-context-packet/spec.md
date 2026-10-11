@@ -4,7 +4,7 @@ title: "Assemble one repository context packet"
 status: draft
 kind: "governance"
 created: "2026-09-26"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -23,9 +23,9 @@ establishes:
   - { kind: file, path: "crates/spec-spine-core/src/context_packet.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/context_packet.rs" }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/context-packet/" }
-  - { kind: file, path: "crates/spec-spine-cli/src/cmd_context.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/context_packet.rs", planned: true }
-  - { kind: section, file: "docs/context-packets.md", anchor: "context-packets", planned: true }
+  - { kind: file, path: "crates/spec-spine-cli/src/cmd_context.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/context_packet.rs" }
+  - { kind: section, file: "docs/context-packets.md", anchor: "context-packets" }
 extends:
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
