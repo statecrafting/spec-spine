@@ -513,19 +513,17 @@ mod resolved {
 
     #[test]
     fn use_list_self_names_the_prefix_binding() {
-        let repo = fixture(&[]);
+        let repo = fixture();
         write(
             repo.path(),
             "demo/src/lib.rs",
-            &format!(
-                "{LIB}\npub mod imports {{\n    use crate::outer_mod::{{self}};\n    use crate::outer_mod::{{inner::{{self, deep}}}};\n    use crate::outer_mod::{{self as renamed}};\n}}\n"
-            ),
+            "pub mod outer_mod { pub mod inner { pub fn deep() {} } }\npub mod imports {\n    use crate::outer_mod::{self};\n    use crate::outer_mod::{inner::{self, deep}};\n    use crate::outer_mod::{self as renamed};\n}\n",
         );
         let r = resolver(repo.path());
         for name in ["outer_mod", "inner", "deep", "renamed"] {
             assert_eq!(
                 r.lookup(Namespace::Symbol, &format!("demo::imports::{name}")),
-                Lookup::Unsupported(reason::RE_EXPORT),
+                Lookup::Unsupported(spec_spine_core::symbols::reason::RE_EXPORT),
                 "{name}"
             );
         }
