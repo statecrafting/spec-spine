@@ -252,5 +252,5 @@
     "title": "Generate one deterministic reference page per spec"
   },
   "shardHash": "31b5fcb2399f7c1869492136c3dc8cb97c052bc15e6b43522243b268df32030a",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

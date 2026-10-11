@@ -1,0 +1,279 @@
+{
+  "relations": [
+    {
+      "declaredBy": "002-b",
+      "id": "t-cons",
+      "identity": "002-b#trace:t-cons",
+      "obligation": "002-b#R-9",
+      "relation": "consumed-by",
+      "state": "resolved",
+      "target": {
+        "corpus": "other",
+        "kind": "interface",
+        "role": "consumer",
+        "spec": "010-x"
+      },
+      "targetIdentity": "interface:consumer:external:002-b:other:010-x",
+      "withdrawn": false
+    },
+    {
+      "declaredBy": "002-b",
+      "id": "t-doc",
+      "identity": "002-b#trace:t-doc",
+      "obligation": "001-a#R-1",
+      "relation": "documented-by",
+      "state": "resolved",
+      "target": {
+        "kind": "documentation",
+        "selector": {
+          "kind": "file",
+          "path": "docs/a.md",
+          "required": true
+        }
+      },
+      "targetIdentity": "documentation:{\"kind\":\"file\",\"path\":\"docs/a.md\"}",
+      "withdrawn": false
+    },
+    {
+      "declaredBy": "002-b",
+      "detail": "path 'docs/missing.md' does not exist",
+      "id": "t-doc-missing",
+      "identity": "002-b#trace:t-doc-missing",
+      "obligation": "001-a#R-1",
+      "relation": "documented-by",
+      "state": "unresolved",
+      "target": {
+        "kind": "documentation",
+        "selector": {
+          "kind": "file",
+          "path": "docs/missing.md",
+          "required": true
+        }
+      },
+      "targetIdentity": "documentation:{\"kind\":\"file\",\"path\":\"docs/missing.md\"}",
+      "withdrawn": false
+    },
+    {
+      "declaredBy": "002-b",
+      "detail": "explicit files support only the full projection",
+      "id": "t-doc-proj",
+      "identity": "002-b#trace:t-doc-proj",
+      "obligation": "001-a#R-1",
+      "relation": "documented-by",
+      "state": "unsupported",
+      "target": {
+        "kind": "documentation",
+        "selector": {
+          "kind": "file",
+          "path": "docs/a.md",
+          "projection": "signature",
+          "required": true
+        }
+      },
+      "targetIdentity": "documentation:{\"kind\":\"file\",\"path\":\"docs/a.md\",\"projection\":\"signature\"}",
+      "withdrawn": false
+    },
+    {
+      "declaredBy": "002-b",
+      "id": "t-doc-section",
+      "identity": "002-b#trace:t-doc-section",
+      "obligation": "002-b#R-9",
+      "relation": "documented-by",
+      "state": "resolved",
+      "target": {
+        "kind": "documentation",
+        "selector": {
+          "anchor": "3-1-the-rule",
+          "kind": "spec-section",
+          "required": true,
+          "spec": "001-a"
+        }
+      },
+      "targetIdentity": "documentation:{\"anchor\":\"3-1-the-rule\",\"kind\":\"spec-section\",\"spec\":\"001-a\"}",
+      "withdrawn": false
+    },
+    {
+      "declaredBy": "002-b",
+      "detail": "the relation is withdrawn",
+      "id": "t-gone",
+      "identity": "002-b#trace:t-gone",
+      "obligation": "002-b#R-9",
+      "relation": "implemented-by",
+      "state": "withdrawn",
+      "target": {
+        "kind": "unit",
+        "spec": "001-a",
+        "unit": {
+          "kind": "file",
+          "path": "src/lib.rs"
+        }
+      },
+      "targetIdentity": "unit:001-a:{\"kind\":\"file\",\"path\":\"src/lib.rs\"}",
+      "withdrawn": true
+    },
+    {
+      "declaredBy": "002-b",
+      "id": "t-impl",
+      "identity": "002-b#trace:t-impl",
+      "obligation": "001-a#R-1",
+      "relation": "implemented-by",
+      "state": "resolved",
+      "target": {
+        "kind": "unit",
+        "spec": "001-a",
+        "unit": {
+          "kind": "file",
+          "path": "src/lib.rs"
+        }
+      },
+      "targetIdentity": "unit:001-a:{\"kind\":\"file\",\"path\":\"src/lib.rs\"}",
+      "withdrawn": false
+    },
+    {
+      "declaredBy": "002-b",
+      "id": "t-inv",
+      "identity": "002-b#trace:t-inv",
+      "obligation": "001-a#R-1",
+      "relation": "enforced-by",
+      "state": "resolved",
+      "target": {
+        "kind": "invariant",
+        "obligation": "001-a#I-1"
+      },
+      "targetIdentity": "invariant:001-a#I-1",
+      "withdrawn": false
+    },
+    {
+      "declaredBy": "002-b",
+      "detail": "invariant '001-a#R-2' is withdrawn",
+      "id": "t-inv-gone",
+      "identity": "002-b#trace:t-inv-gone",
+      "obligation": "002-b#R-9",
+      "relation": "enforced-by",
+      "state": "withdrawn",
+      "target": {
+        "kind": "invariant",
+        "obligation": "001-a#R-2"
+      },
+      "targetIdentity": "invariant:001-a#R-2",
+      "withdrawn": false
+    },
+    {
+      "declaredBy": "002-b",
+      "detail": "'001-a#R-1' resolves to a requirement obligation, not an invariant",
+      "id": "t-inv-kind",
+      "identity": "002-b#trace:t-inv-kind",
+      "obligation": "002-b#R-9",
+      "relation": "enforced-by",
+      "state": "unresolved",
+      "target": {
+        "kind": "invariant",
+        "obligation": "001-a#R-1"
+      },
+      "targetIdentity": "invariant:001-a#R-1",
+      "withdrawn": false
+    },
+    {
+      "declaredBy": "002-b",
+      "detail": "'001-a' claims this unit as planned; it is not present",
+      "id": "t-planned",
+      "identity": "002-b#trace:t-planned",
+      "obligation": "001-a#R-1",
+      "relation": "implemented-by",
+      "state": "unresolved",
+      "target": {
+        "kind": "unit",
+        "spec": "001-a",
+        "unit": {
+          "kind": "file",
+          "path": "src/later.rs",
+          "planned": true
+        }
+      },
+      "targetIdentity": "unit:001-a:{\"kind\":\"file\",\"path\":\"src/later.rs\"}",
+      "withdrawn": false
+    },
+    {
+      "declaredBy": "002-b",
+      "id": "t-prod",
+      "identity": "002-b#trace:t-prod",
+      "obligation": "002-b#R-9",
+      "relation": "produced-by",
+      "state": "resolved",
+      "target": {
+        "kind": "interface",
+        "role": "producer",
+        "spec": "001-a",
+        "unit": {
+          "kind": "file",
+          "path": "src/lib.rs"
+        }
+      },
+      "targetIdentity": "interface:producer:local:001-a:{\"kind\":\"file\",\"path\":\"src/lib.rs\"}",
+      "withdrawn": false
+    },
+    {
+      "declaredBy": "002-b",
+      "detail": "symbol selector 'demo::twice' is ambiguous",
+      "id": "t-sym",
+      "identity": "002-b#trace:t-sym",
+      "obligation": "002-b#R-9",
+      "relation": "documented-by",
+      "state": "ambiguous",
+      "target": {
+        "kind": "documentation",
+        "selector": {
+          "id": "demo::twice",
+          "kind": "symbol",
+          "required": true
+        }
+      },
+      "targetIdentity": "documentation:{\"id\":\"demo::twice\",\"kind\":\"symbol\"}",
+      "withdrawn": false
+    },
+    {
+      "declaredBy": "002-b",
+      "detail": "test selectors require a resolver that binds test attributes to nested functions",
+      "id": "t-test",
+      "identity": "002-b#trace:t-test",
+      "obligation": "001-a#R-1",
+      "relation": "tested-by",
+      "state": "unsupported",
+      "target": {
+        "kind": "test",
+        "selector": "demo::tests::orders_relations"
+      },
+      "targetIdentity": "test:{\"id\":\"demo::tests::orders_relations\",\"kind\":\"test\"}",
+      "withdrawn": false
+    },
+    {
+      "declaredBy": "002-b",
+      "detail": "'002-b' does not claim this unit",
+      "id": "t-unowned",
+      "identity": "002-b#trace:t-unowned",
+      "obligation": "001-a#R-1",
+      "relation": "implemented-by",
+      "state": "unresolved",
+      "target": {
+        "kind": "unit",
+        "spec": "002-b",
+        "unit": {
+          "kind": "file",
+          "path": "src/lib.rs"
+        }
+      },
+      "targetIdentity": "unit:002-b:{\"kind\":\"file\",\"path\":\"src/lib.rs\"}",
+      "withdrawn": false
+    }
+  ],
+  "schemaVersion": "0.11.0",
+  "summary": {
+    "ambiguous": 1,
+    "resolved": 6,
+    "unknown": 0,
+    "unresolved": 4,
+    "unsupported": 2,
+    "withdrawn": 2
+  },
+  "traceabilityVersion": "1.0.0"
+}

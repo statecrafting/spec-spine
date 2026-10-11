@@ -35,10 +35,10 @@
       "Verification"
     ],
     "specPath": "specs/194-the-ledger-probe-sweeps-the-candidate/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 154's carried acceptance proves the built-in exempt ledger by sweeping spec 019 at `origin/main` with the candidate binary. Under an exact engine pin, a version bump makes the candidate refuse `origin/main`'s older pin, so 046, 089, 146 and 154 fail in the merge queue of every bump. The probe sweeps the candidate's own `HEAD` instead.\n",
     "title": "The built-in ledger probe sweeps the candidate, not origin/main"
   },
-  "shardHash": "77673e41ca1e33ca32c83289483b0b9687b7d8c0f9d596b138a2d888009295eb",
-  "specVersion": "1.9.0"
+  "shardHash": "85a12683f8b83b6387059b559164066e55982e8a697b60c7b1d190270cdd1272",
+  "specVersion": "1.10.0"
 }

@@ -192,7 +192,7 @@
           {
             "file": "docs/cli-reference.md",
             "span": {
-              "endLine": 516,
+              "endLine": 517,
               "startLine": 1
             }
           }
@@ -233,8 +233,8 @@
       }
     ],
     "specId": "160-documentation-manifest-and-freshness",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "3d3fd62af03ec5da952577f43e2cff2c3c6a934d9c0fffdaf2969cb6368b2331"
+  "shardHash": "3bb71b2aaab47c0e2c73deb978c6c50032c1df1a0052013197a239e1a8e16cb2"
 }

@@ -378,7 +378,7 @@
           {
             "file": "docs/cli-reference.md",
             "span": {
-              "endLine": 516,
+              "endLine": 517,
               "startLine": 1
             }
           }
@@ -419,8 +419,8 @@
       }
     ],
     "specId": "159-repository-scoped-context-packet",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "38b47ecf3cbe11c765e6220a431687f765bc1d7c0bbeedf9b8235cd890cb31b1"
+  "shardHash": "a251eb6e7ff0f1c09bc2a85df2e790647296f719efa55e29a56103f5f27033ea"
 }

@@ -28,7 +28,7 @@ establishes:
   - { kind: file, path: "crates/spec-spine-types/src/capability.rs" }
   - { kind: file, path: "crates/spec-spine-types/schemas/capability-catalog.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/capability.rs" }
-  - { kind: file, path: "crates/spec-spine-core/tests/capability_catalog.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/tests/capability_catalog.rs" }
   - { kind: file, path: "crates/spec-spine-cli/tests/capability_catalog.rs", planned: true }
   - { kind: directory, path: "crates/spec-spine-cli/tests/fixtures/capability-catalog/", planned: true }
   - { kind: file, path: "docs/capability-catalog.md", planned: true }
@@ -242,9 +242,10 @@ flag is present (`attest --sign` adds `reads: [key-material]` and `authority:
 Facade bindings carry no effects list of their own. The core invariant applies
 to every facade function: it writes nothing, executes nothing, opens no
 connection, reads no environment or clock, and reads files only when it takes
-a `repo_root` argument, in which case it reads `config`, `corpus`,
-`derived-ledger` and `source-tree` under that root. Each binding states this
-once as `readsRepository: true|false`.
+a repository root, as a `repo_root` argument or as a root in its request
+document (D-12), in which case it reads `config`, `corpus`, `derived-ledger`
+and `source-tree` under that root. Each binding states this once as
+`readsRepository: true|false`.
 
 ### 3.5 Preconditions and outcomes
 
@@ -464,14 +465,14 @@ Measured against `main.rs` and `lib.rs` at the 2026-10-10 refile, then
 reconciled with spec 159 as recorded in D-19. The build MUST reconcile this
 with the censuses and record any difference as a decision entry.
 
-CLI operations (38): `attest`, `capabilities`, `capabilities.verify`,
+CLI operations (39): `attest`, `capabilities`, `capabilities.verify`,
 `check`, `compact`, `compact.plan`, `compile`, `compile.check`,
 `compile.spec`, `config.show`, `content.select`, `context.packet`, `couple`, `delta`,
 `index.build`, `index.check`, `index.coverage`, `index.diagnostics`,
 `index.orphans`, `index.owner`, `index.render`, `interface.verify`, `lint`,
 `registry.closure`, `registry.impacts`, `registry.list`, `registry.moves`,
 `registry.obligation`, `registry.plan`, `registry.relationships`,
-`registry.show`, `registry.status-report`, `scope.compare`, `scope.evaluate`,
+`registry.show`, `registry.status-report`, `registry.traceability`, `scope.compare`, `scope.evaluate`,
 `verify`, `verify.affected`, `verify.plan`, `verify-attestation`.
 
 Effects that are not `reads: [config, corpus, derived-ledger]` alone:
@@ -491,10 +492,11 @@ writes `temporary` (`gate-verdict`, `waiver-evaluation`); `delta` executes
 `capabilities` operations read nothing.
 
 Facade functions: the 31 `pub fn *_json` defined in `lib.rs`, including
-this spec's two, plus the re-exported `selected_content_json` and
-`context_packet_json`, 33 in all. Those without a CLI form become `library.*` operations, as the census finds them:
+this spec's two, plus the re-exported `selected_content_json`,
+`context_packet_json` and `traceability_json` (spec 169), 34 in all. Those without a CLI form become `library.*` operations, as the census finds them:
 `library.load-config`, `library.scaffold-init` and
-`library.scaffold-init-opts` (D-16). The catalog holds 41 operations.
+`library.scaffold-init-opts` (D-16). The catalog holds 42 operations;
+spec 169 adds `registry.traceability`.
 
 ## 4. Acceptance criteria
 
@@ -602,6 +604,14 @@ build an argv from the record alone.
 167 as the read-only projection; no such spec is filed, so the text names
 the consumer without an ordinal. Spec 166 keeps its name because its draft
 exists.
+
+**D-12 (2026-10-10, build): a repository root in a request reads the
+repository.** §3.4 tied `readsRepository` to a `repo_root` argument, but
+`coverage_inventory_json`, `couple_json`, `delta_json` and the three
+attestation verifiers take the root inside their request document
+(`repoRoot`, `baseRoot`) and read under it. The census marks a function as
+reading when its signature takes `repo_root` or its request struct carries a
+`repo_root` or `base_root` field, so the flag states what the function does.
 
 **D-14 (2026-10-10, build): `unversioned` and two default answers.** Several
 answers carry no schema axis (the compaction map, the rendered index, the

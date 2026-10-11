@@ -92,5 +92,5 @@
     "title": "Line endings do not stale the ledger"
   },
   "shardHash": "7f81adbc3b357e380734aecdf0f73834d169100cd0def5e49e1ea4b9256c5da4",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

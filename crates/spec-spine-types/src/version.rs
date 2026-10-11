@@ -73,7 +73,11 @@
 /// section relocations from another spec (`spec`, `from`, `to`?), `spec`
 /// normalized to its full id. Absent on every existing spec, so only
 /// `specVersion` restamps and no `shardHash` moves.
-pub const REGISTRY_SCHEMA_VERSION: &str = "1.9.0";
+/// `1.10.0` (spec 169): additive `traceability` on a record, a spec's declared
+/// relations from an obligation to a typed target, every spec reference
+/// normalized to its full id. Absent on every existing spec, so only
+/// `specVersion` restamps and no `shardHash` moves.
+pub const REGISTRY_SCHEMA_VERSION: &str = "1.10.0";
 
 /// `schemaVersion` emitted in the codebase index, carried by each index shard.
 /// `0.2.0`: additive `build.sliceHashes` (spec 011).
@@ -200,7 +204,12 @@ pub const DELTA_SCHEMA_VERSION: &str = "0.2.0";
 /// `0.10.0` (spec 158): additive. A new read document, the affected-acceptance
 /// selection (`verify --affected-by <base> --plan --json`, `affected_json`).
 /// Existing read documents are unchanged.
-pub const READ_SCHEMA_VERSION: &str = "0.10.0";
+///
+/// `0.11.0` (spec 169): additive. A new read document, the traceability
+/// report (`registry traceability --json`, `traceability_json`), which also
+/// carries its own `traceabilityVersion` axis. Existing read documents are
+/// unchanged.
+pub const READ_SCHEMA_VERSION: &str = "0.11.0";
 
 /// `schemaVersion` of an authority snapshot (spec 070): its own axis, defined
 /// beside the DTO it versions and re-exported here with the others.

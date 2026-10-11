@@ -174,5 +174,5 @@
     "title": "The toolchain floor and the dependencies are checked"
   },
   "shardHash": "b084c0e65497be3478174a90bc598f51ab197c549e677df790a3f5bb7f0bfe74",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

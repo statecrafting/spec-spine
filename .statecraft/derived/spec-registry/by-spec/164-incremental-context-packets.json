@@ -263,5 +263,5 @@
     "title": "A packet delta reproduces the packet it names"
   },
   "shardHash": "8bf17f5d540b704c9ab41e810e98c5410c4a0a812a170117b2f4b43f629fc30f",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }
