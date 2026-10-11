@@ -70,7 +70,7 @@
       "contentHash": "76eeffad38ae8546599d8fe6740fa5e3e67b20c6acd0cd4ce8828bf7dcc50187"
     },
     ".github/workflows/determinism.yml": {
-      "contentHash": "6ff492d05f29c65057c21cb02134ba9a909b75fcd3db4b79c7bf11bd67d113cf"
+      "contentHash": "37ac7831b3b4dadf1ee70c2e77f4851364f65f54a433039b104d4dbe3d18a9eb"
     },
     ".github/workflows/release.yml": {
       "contentHash": "da2f0e4f1f8248ade7a92fcea2275abdb28be7e6a8fc853f69732be45934fff1"

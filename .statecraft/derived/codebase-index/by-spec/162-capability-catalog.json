@@ -34,6 +34,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/capability_catalog.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/schemas/capability-catalog.schema.json",
         "source": "spec-edge"
       },
@@ -107,7 +111,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/capability_catalog.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -368,5 +376,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "a40ace6aa38893fdb7119360580740d9d61a1f863cd876ff316b513688deeb96"
+  "shardHash": "a57740ed961e96bd92219a5c7e0c7dbaa31fbf68ced30dce8da0afdc776dd09f"
 }
