@@ -721,6 +721,47 @@ fn operations() -> Vec<Operation> {
         ])
         .done(),
         op(
+            "context.packet",
+            "Assemble one bounded context packet from HEAD or one exported revision",
+            &["159-repository-scoped-context-packet"],
+        )
+        .cli(
+            "context packet",
+            "read-document",
+            &["--request=FILE!", "--repository=REPOSITORY!", "--revision=REVISION", "--json!"],
+        )
+        .reads(&["caller-file", "clock", "config", "corpus", "derived-ledger", "source-tree"])
+        .writes(&["temporary"])
+        .executes(&["git"])
+        .pre("clean-tree", &[2])
+        .pre("git-repository", &[4])
+        .finding(&["not-found", "stale", "validation"])
+        .request_document()
+        .response(None, "context-packet", "context-packet", schema_id("context-packet.schema.json"))
+        .verdict()
+        .bounded(
+            Bound {
+                default: spec_spine_types::PACKET_DEFAULT_MAX_BYTES as u64,
+                min: 1,
+                max: spec_spine_types::PACKET_MAX_BYTES_LIMIT as u64,
+            },
+            Bound {
+                default: spec_spine_types::PACKET_DEFAULT_MAX_ITEMS as u64,
+                min: 1,
+                max: spec_spine_types::PACKET_MAX_ITEMS_LIMIT as u64,
+            },
+        )
+        .facade("context_packet_json", None, true)
+        .example(
+            "context-packet",
+            Some("corpus"),
+            &["context", "packet", "--request", "packet-request.json", "--repository", "example/fixture", "--json"],
+            0,
+            &["\"packetDigest\"", "\"repository\": \"example/fixture\""],
+        )
+        .pinned_example(&["context", "packet", "--request", "packet-request.json", "--repository", "example/fixture", "--json"])
+        .done(),
+        op(
             "couple",
             "The PR-time coupling gate: refuse code that drifts from its owning spec",
             &["005-coupling-gate"],

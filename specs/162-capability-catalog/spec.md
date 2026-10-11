@@ -629,6 +629,13 @@ forward in filing order (L-007). A merge-queue sweep that selected every spec
 caught it. The relation stays declared where it bites: the `extends` edges on
 170's three units, which carry the ownership the coupling gate reads.
 
+**D-19 (2026-10-10, build integration): include spec 159's operation.**
+The catalog follows the operations delivered on main, including
+`context.packet` and `context_packet_json`. Its bounds come from the packet
+constants. Its default responses name both the packet axis and the verdict
+axis because a required omission returns an envelope carrying the packet.
+The CLI example fixture and module-effects census cover this operation too.
+
 ## Verification
 
 Before the build, the first three lines fail (the two test targets do not
