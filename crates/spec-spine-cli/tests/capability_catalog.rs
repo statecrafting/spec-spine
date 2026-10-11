@@ -267,7 +267,8 @@ fn detected_effects(source: &str) -> BTreeSet<String> {
     if code.contains("now_utc") || code.contains("SystemTime::now") {
         found.insert("reads:clock".to_string());
     }
-    if code.contains("temp_dir") {
+    // `std::env::temp_dir`, and the `tempfile` crate's directories and files.
+    if code.contains("temp_dir") || code.contains("tempfile::") {
         found.insert("writes:temporary".to_string());
     }
     for write in [
