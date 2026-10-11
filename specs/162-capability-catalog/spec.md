@@ -638,6 +638,8 @@ axis because a required omission returns an envelope carrying the packet.
 The CLI example fixture and module-effects census cover this operation too.
 The reconciled inventory has 38 CLI operations, three facade-only operations,
 and 33 facade bindings.
+The operation remains experimental under 3.8 while spec 159 is draft,
+including after its implementation becomes complete.
 
 ## Verification
 

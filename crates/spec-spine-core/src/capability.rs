@@ -725,6 +725,7 @@ fn operations() -> Vec<Operation> {
             "Assemble one bounded context packet from HEAD or one exported revision",
             &["159-repository-scoped-context-packet"],
         )
+        .experimental()
         .cli(
             "context packet",
             "read-document",
