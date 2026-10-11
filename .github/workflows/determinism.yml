@@ -49,6 +49,11 @@ jobs:
         run: rustc --version && cargo --version
       - name: Build CLI (locked)
         run: cargo build --bin spec-spine --locked
+      # Spec 163 3.9: this repository declares no symbol or module unit, so the
+      # digested trees below exercise no tree-sitter span. The resolver-matrix
+      # golden does: passing it on this triple proves the triple emits it.
+      - name: Resolver matrix golden
+        run: cargo test -p spec-spine-core --test resolver_matrix --locked
       - name: Compile + index this repo's own corpus
         shell: bash
         run: |

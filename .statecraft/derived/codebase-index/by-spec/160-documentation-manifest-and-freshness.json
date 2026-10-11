@@ -233,8 +233,8 @@
       }
     ],
     "specId": "160-documentation-manifest-and-freshness",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "c80adfb5646c50a680bb6d9e98ecef12df1ada944978f8b04fad3b53283e6f26"
+  "shardHash": "5c0b6094024d74aef351af77aa6c72a7aa10989599f9392cf21febe9890a783b"
 }
