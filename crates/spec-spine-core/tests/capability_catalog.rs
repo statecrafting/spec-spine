@@ -38,6 +38,7 @@ fn op<'a>(c: &'a CapabilityCatalog, name: &str) -> &'a Operation {
 
 /// The digest construction, restated without the core's helpers: canonical
 /// JSON (sorted keys, two-space pretty, trailing LF) with `member` removed.
+/// The runtime serde_json feature set uses BTreeMap objects (no preserve_order).
 fn independent_digest(value: &Value, member: &str) -> String {
     let mut v = value.clone();
     v.as_object_mut().unwrap().remove(member);
@@ -238,10 +239,9 @@ fn outcomes_follow_the_exit_contract() {
                 o.name
             );
             let pinned = o.preconditions.iter().any(|p| p.name == "version-pin-met");
-            assert_eq!(
-                pinned,
-                codes.contains(&2),
-                "{}: pin precondition and exit 2 disagree",
+            assert!(
+                !pinned || codes.contains(&2),
+                "{}: pin precondition lacks exit 2",
                 o.name
             );
         }
@@ -335,9 +335,27 @@ fn every_facade_function_is_cataloged_and_nothing_else_is() {
         })
         .filter(|w| !excluded.contains_key(w.as_str()))
         .collect::<BTreeSet<String>>();
-    // A re-exported entry point takes `repo_root` when its definition does.
+    // Re-exported facades are checked against their actual signatures.
+    // New re-exports must add their definition here rather than defaulting to reads.
     for name in reexports {
-        defined.entry(name).or_insert(true);
+        if defined.contains_key(&name) {
+            continue;
+        }
+        let source = match name.as_str() {
+            "selected_content_json" => "crates/spec-spine-core/src/content.rs",
+            "context_packet_json" => "crates/spec-spine-core/src/context_packet.rs",
+            other => panic!("no definition audit for re-exported facade {other}"),
+        };
+        let source = fs::read_to_string(repo_root().join(source)).unwrap();
+        let marker = format!("pub fn {name}(");
+        let signature = source
+            .split(&marker)
+            .nth(1)
+            .unwrap()
+            .split('{')
+            .next()
+            .unwrap();
+        defined.insert(name, signature.contains("repo_root"));
     }
 
     let c = catalog();
@@ -439,20 +457,16 @@ fn gate_verdict_marks_exactly_what_the_managed_gate_runs() {
 /// 162 §3.8 and §3.10 item 6, against the committed registry.
 #[test]
 fn stability_follows_the_committed_registry() {
-    let dir = repo_root().join(".statecraft/derived/spec-registry/by-spec");
-    let mut lifecycle: BTreeMap<String, (String, String)> = BTreeMap::new();
-    for entry in fs::read_dir(&dir).unwrap() {
-        let v: Value =
-            serde_json::from_str(&fs::read_to_string(entry.unwrap().path()).unwrap()).unwrap();
-        let spec = &v["record"];
-        lifecycle.insert(
-            spec["id"].as_str().unwrap().to_string(),
-            (
-                spec["status"].as_str().unwrap().to_string(),
-                spec["implementation"].as_str().unwrap_or("").to_string(),
-            ),
-        );
-    }
+    let root = repo_root();
+    let config =
+        spec_spine_types::load_config(&fs::read_to_string(root.join("spec-spine.toml")).unwrap())
+            .unwrap();
+    let registry = spec_spine_core::load_committed_registry(&config, &root).unwrap();
+    let lifecycle: BTreeMap<_, _> = registry
+        .specs
+        .into_iter()
+        .map(|spec| (spec.id, (spec.status, spec.implementation)))
+        .collect();
     assert!(lifecycle.len() > 100, "the registry was not read");
     for o in &catalog().operations {
         assert!(
@@ -472,8 +486,9 @@ fn stability_follows_the_committed_registry() {
                 for id in &o.governed_by {
                     let (status, implementation) = &lifecycle[id];
                     assert!(
-                        status == "approved" && implementation == "complete",
-                        "{} is stable but {id} is {status}/{implementation}",
+                        *status == spec_spine_types::Status::Approved
+                            && *implementation == Some(spec_spine_types::Implementation::Complete),
+                        "{} is stable but {id} is {status:?}/{implementation:?}",
                         o.name
                     );
                 }
@@ -499,7 +514,7 @@ fn the_compatibility_map_names_every_declared_axis() {
         .unwrap();
     let constants: BTreeSet<&str> = block
         .split(|c: char| !(c.is_ascii_alphanumeric() || c == '_'))
-        .filter(|w| w.ends_with("_VERSION") && *w != "parse_semver")
+        .filter(|w| w.ends_with("_VERSION"))
         .collect();
     // One axis per declared constant, plus the attestation axis declared
     // beside its DTO in `attest.rs`.

@@ -126,6 +126,9 @@
     "crates/spec-spine-types/schemas/codebase-index.schema.json": {
       "contentHash": "2e415a74b666b21d114ef0aebb656e22b6b634f4d66b2fbc5f3c422b1a57ac3e"
     },
+    "crates/spec-spine-types/schemas/context-packet.schema.json": {
+      "contentHash": "8a7058f0573a9e78e225b046646326639a2bb3d332d14f8509beb15047e402ed"
+    },
     "crates/spec-spine-types/schemas/registry-spec-shard.schema.json": {
       "contentHash": "22bbd344f7c6e3aa150012829ecdd43965ebe22186cd1f8fd2aad42a7e4e4e0b"
     },
@@ -136,7 +139,7 @@
       "contentHash": "9529eaebd687bed492660e37bb2958efb43c90194248fd78a8dcaf414cad8284"
     },
     "docs/api.md": {
-      "contentHash": "81775d8c4c55b5f404cd395dc7ade3f2e51282e2a2014cac9077dfee83d778df"
+      "contentHash": "b003bc6630396af1f7fd484f8f2f4be33ab8b1365c208b93e7af519def8c0bf8"
     },
     "docs/bindings-plan.md": {
       "contentHash": "58aaef786b59662ab416f0ee5afe9c371a648449a81fc02afcd2d7a2b9f7b4e7"
@@ -154,7 +157,7 @@
       "contentHash": "eec1bea982688c1eda66d5a0a0a8ee511d1b1770ad0d434ea02953b529b5df9d"
     },
     "docs/schema-versioning.md": {
-      "contentHash": "7864857a55ecd344b331723a7010f2fea05e287860c07fefc4f307211f82a3fb"
+      "contentHash": "9d66848979808eb234c4f9d3e272564b47d0ed346ddb85acc35c95679201bd02"
     },
     "docs/specify-first.md": {
       "contentHash": "d983fd1bc596ba8463330c4be51ca00561645c53594f17e6355c5e664241d0b4"

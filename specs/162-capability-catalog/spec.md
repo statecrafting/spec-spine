@@ -461,13 +461,13 @@ Examples are published as documentation; only `cargo test` executes them.
 
 ### 3.15 Inventory
 
-Measured against `main.rs` and `lib.rs` at the 2026-10-10 refile. The build
-MUST reconcile this with the censuses and record any difference as a decision
-entry.
+Measured against `main.rs` and `lib.rs` at the 2026-10-10 refile, then
+reconciled with spec 159 as recorded in D-19. The build MUST reconcile this
+with the censuses and record any difference as a decision entry.
 
-CLI operations (37): `attest`, `capabilities`, `capabilities.verify`,
+CLI operations (38): `attest`, `capabilities`, `capabilities.verify`,
 `check`, `compact`, `compact.plan`, `compile`, `compile.check`,
-`compile.spec`, `config.show`, `content.select`, `couple`, `delta`,
+`compile.spec`, `config.show`, `content.select`, `context.packet`, `couple`, `delta`,
 `index.build`, `index.check`, `index.coverage`, `index.diagnostics`,
 `index.orphans`, `index.owner`, `index.render`, `interface.verify`, `lint`,
 `registry.closure`, `registry.impacts`, `registry.list`, `registry.moves`,
@@ -484,17 +484,18 @@ Effects that are not `reads: [config, corpus, derived-ledger]` alone:
 `caller-file`, writes `corpus` and `caller-path` (`corpus-rewrite`);
 `couple` executes `git`, reads `SPEC_SPINE_PR_BODY` and a `caller-file`,
 writes `temporary` (`gate-verdict`, `waiver-evaluation`); `delta` executes
-`git` and writes `temporary`; `content.select` executes `git` and writes
-`temporary`; `verify.affected` executes `git` and writes `temporary`;
+`git` and writes `temporary`; `content.select` and `context.packet` execute
+`git` and write `temporary`; `verify.affected` executes `git` and writes
+`temporary`;
 `interface.verify` reads `export-directory`; `verify` executes
 `declared-commands` and reads `SPEC_SPINE_VERIFY_STACK`; the two
 `capabilities` operations read nothing.
 
-Facade functions: the 29 `pub fn *_json` defined in `lib.rs`, spec 155's
-re-exported `selected_content_json`, and this spec's two, 32 in all. Those
-without a CLI form become `library.*` operations, as the census finds them:
+Facade functions: the 31 `pub fn *_json` defined in `lib.rs`, including
+this spec's two, plus the re-exported `selected_content_json` and
+`context_packet_json`, 33 in all. Those without a CLI form become `library.*` operations, as the census finds them:
 `library.load-config`, `library.scaffold-init` and
-`library.scaffold-init-opts` (D-16). The catalog holds 40 operations.
+`library.scaffold-init-opts` (D-16). The catalog holds 41 operations.
 
 ## 4. Acceptance criteria
 
@@ -661,6 +662,17 @@ operation names equal §3.15's inventory: a removal fails it until the spec
 that removes the operation edits that list, which is where its deprecation is
 reviewed. Every operation is `stable` exactly where §3.8 allows: the two
 `capabilities` operations stay `experimental` while this spec is a draft.
+
+**D-19 (2026-10-10, build integration): include spec 159's operation.**
+The catalog follows the operations delivered on main, including
+`context.packet` and `context_packet_json`. Its bounds come from the packet
+constants. Its default responses name both the packet axis and the verdict
+axis because a required omission returns an envelope carrying the packet.
+The CLI example fixture and module-effects census cover this operation too.
+The reconciled inventory has 38 CLI operations, three facade-only operations,
+and 33 facade bindings.
+The operation remains experimental under 3.8 while spec 159 is draft,
+including after its implementation becomes complete.
 
 ## Verification
 

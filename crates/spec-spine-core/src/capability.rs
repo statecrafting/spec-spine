@@ -13,12 +13,13 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 use spec_spine_types::{
     ATTESTATION_SCHEMA_VERSION, AddedEffects, BUILD_META_SCHEMA_VERSION, Bound, Budget,
-    CAPABILITIES_SCHEMA_VERSION, CATALOG_SCHEMA_VERSION, CONFIG_VERSION, CapabilitiesDiscovery,
-    CapabilityCatalog, CapabilityVerifyReport, CapabilityVerifyRequest, CatalogDiscovery,
-    CliBinding, ConditionalEffects, DELTA_SCHEMA_VERSION, Effects, Error, Example, ExitOutcome,
-    FacadeBinding, Flag, INDEX_SCHEMA_VERSION, InterfaceDiscovery, Operation, PinResult,
-    Precondition, READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, RequestRef, ResponseRef,
-    SNAPSHOT_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
+    CAPABILITIES_SCHEMA_VERSION, CATALOG_SCHEMA_VERSION, CONFIG_VERSION,
+    CONTEXT_PACKET_SCHEMA_VERSION, CapabilitiesDiscovery, CapabilityCatalog,
+    CapabilityVerifyReport, CapabilityVerifyRequest, CatalogDiscovery, CliBinding,
+    ConditionalEffects, DELTA_SCHEMA_VERSION, Effects, Error, Example, ExitOutcome, FacadeBinding,
+    Flag, INDEX_SCHEMA_VERSION, InterfaceDiscovery, Operation, PinResult, Precondition,
+    READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, RequestRef, ResponseRef, SNAPSHOT_SCHEMA_VERSION,
+    SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
 };
 
 use crate::canonical_json;
@@ -39,6 +40,7 @@ pub fn compatibility() -> BTreeMap<String, String> {
         ("capabilities", CAPABILITIES_SCHEMA_VERSION),
         ("catalog", CATALOG_SCHEMA_VERSION),
         ("config", CONFIG_VERSION),
+        ("context-packet", CONTEXT_PACKET_SCHEMA_VERSION),
         ("delta", DELTA_SCHEMA_VERSION),
         ("index", INDEX_SCHEMA_VERSION),
         ("read", READ_SCHEMA_VERSION),
@@ -717,6 +719,48 @@ fn operations() -> Vec<Operation> {
             "example/fixture",
             "--json",
         ])
+        .done(),
+        op(
+            "context.packet",
+            "Assemble one bounded context packet from HEAD or one exported revision",
+            &["159-repository-scoped-context-packet"],
+        )
+        .experimental()
+        .cli(
+            "context packet",
+            "read-document",
+            &["--request=FILE!", "--repository=REPOSITORY!", "--revision=REVISION", "--json!"],
+        )
+        .reads(&["caller-file", "clock", "config", "corpus", "derived-ledger", "source-tree"])
+        .writes(&["temporary"])
+        .executes(&["git"])
+        .pre("clean-tree", &[2])
+        .pre("git-repository", &[4])
+        .finding(&["not-found", "stale", "validation"])
+        .request_document()
+        .response(None, "context-packet", "context-packet", schema_id("context-packet.schema.json"))
+        .verdict()
+        .bounded(
+            Bound {
+                default: spec_spine_types::PACKET_DEFAULT_MAX_BYTES as u64,
+                min: 1,
+                max: spec_spine_types::PACKET_MAX_BYTES_LIMIT as u64,
+            },
+            Bound {
+                default: spec_spine_types::PACKET_DEFAULT_MAX_ITEMS as u64,
+                min: 1,
+                max: spec_spine_types::PACKET_MAX_ITEMS_LIMIT as u64,
+            },
+        )
+        .facade("context_packet_json", None, true)
+        .example(
+            "context-packet",
+            Some("corpus"),
+            &["context", "packet", "--request", "packet-request.json", "--repository", "example/fixture", "--json"],
+            0,
+            &["\"packetDigest\"", "\"repository\": \"example/fixture\""],
+        )
+        .pinned_example(&["context", "packet", "--request", "packet-request.json", "--repository", "example/fixture", "--json"])
         .done(),
         op(
             "couple",
