@@ -642,7 +642,7 @@ fn use_bindings(node: Node, src: &str) -> Vec<String> {
             _ => None,
         }
     }
-    fn collect(node: Node, src: &str, out: &mut Vec<String>, depth: usize) {
+    fn collect(node: Node, src: &str, prefix: Option<&str>, out: &mut Vec<String>, depth: usize) {
         if depth > 64 {
             return;
         }
@@ -655,12 +655,20 @@ fn use_bindings(node: Node, src: &str) -> Vec<String> {
             "use_list" => {
                 let mut cursor = node.walk();
                 for child in node.named_children(&mut cursor) {
-                    collect(child, src, out, depth + 1);
+                    collect(child, src, prefix, out, depth + 1);
                 }
             }
             "scoped_use_list" => {
+                let name = node
+                    .child_by_field_name("path")
+                    .and_then(|path| last_segment(path, src));
                 if let Some(list) = node.child_by_field_name("list") {
-                    collect(list, src, out, depth + 1);
+                    collect(list, src, name.as_deref().or(prefix), out, depth + 1);
+                }
+            }
+            "self" => {
+                if let Some(name) = prefix {
+                    out.push(name.to_string());
                 }
             }
             "use_wildcard" => {}
@@ -673,7 +681,7 @@ fn use_bindings(node: Node, src: &str) -> Vec<String> {
     }
     let mut out = Vec::new();
     if let Some(argument) = node.child_by_field_name("argument") {
-        collect(argument, src, &mut out, 0);
+        collect(argument, src, None, &mut out, 0);
     }
     out
 }

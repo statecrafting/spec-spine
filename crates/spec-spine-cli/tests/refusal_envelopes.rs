@@ -183,6 +183,18 @@ fn every_json_read_answers_a_failure_with_an_envelope() {
                 "--json",
             ],
         ),
+        (
+            "context.packet",
+            &[
+                "context",
+                "packet",
+                "--request",
+                request,
+                "--repository",
+                "test",
+                "--json",
+            ],
+        ),
         ("registry.list", &["registry", "list", "--json"]),
         ("registry.show", &["registry", "show", "001", "--json"]),
         (
