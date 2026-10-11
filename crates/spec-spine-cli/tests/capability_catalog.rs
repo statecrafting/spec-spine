@@ -533,6 +533,19 @@ fn verify_answers_current_with_exit_zero() {
         .output()
         .unwrap();
     assert_eq!(out.status.code(), Some(3));
+    // `--operation` with `verify` is usage, never one silently dropped.
+    let out = command(bin(), tmp.path())
+        .args([
+            "capabilities",
+            "--operation",
+            "check",
+            "verify",
+            "--expect",
+            &format!("check={digest}"),
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(3));
 }
 
 /// 162 D-5: the new forms are answered before the pin, like 170's verb.

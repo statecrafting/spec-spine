@@ -53,7 +53,11 @@ pub fn dispatch(
     action: Option<&CapabilitiesAction>,
 ) -> Result<u8, Error> {
     match (action, operation) {
-        (Some(CapabilitiesAction::Verify { expect, json }), _) => verify(expect, *json),
+        (Some(CapabilitiesAction::Verify { .. }), Some(_)) => Err(Error::Usage(
+            "`--operation` shows one record and `verify` checks pins; give one, not both"
+                .to_string(),
+        )),
+        (Some(CapabilitiesAction::Verify { expect, json }), None) => verify(expect, *json),
         (None, Some(name)) => show_operation(name, json),
         (None, None) => run(cli, json),
     }
