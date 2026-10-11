@@ -9,8 +9,8 @@
     ],
     "implementingPaths": [],
     "specId": "194-the-ledger-probe-sweeps-the-candidate",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "77673e41ca1e33ca32c83289483b0b9687b7d8c0f9d596b138a2d888009295eb"
+  "shardHash": "85a12683f8b83b6387059b559164066e55982e8a697b60c7b1d190270cdd1272"
 }

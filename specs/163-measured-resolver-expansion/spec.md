@@ -537,6 +537,12 @@ CLI resolver_matrix test. The index constant and its restamp wait for the pin
 move (D-9), so `implementation` stays `in-progress` and the Verification
 block's `1.3.0` line fails until then.
 
+Status (2026-10-10, measured-matrix slice): the core golden now checks the
+fixture ids, locations, classified outcomes, legacy baseline and BOM/CRLF
+spans. The determinism workflow runs it on each release triple. The following
+slices extend this same matrix with integration-test identities, TypeScript
+constructs and the CLI content-selection surface.
+
 ## Verification
 
 Every line but the last fails before the build: the test targets do not exist and the
