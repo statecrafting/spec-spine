@@ -26,11 +26,23 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/capability.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/lib.rs",
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-types/schemas/capability-catalog.schema.json",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/src/capabilities.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/capability.rs",
         "source": "spec-edge"
       },
       {
@@ -82,7 +94,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/capability.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -100,7 +116,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/schemas/capability-catalog.schema.json"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -109,7 +129,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/capability.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -344,5 +368,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "5217eda4d2cc6ff1e45751fb293f13848b82a7bc3fcd3322fe94e0a1da2940a7"
+  "shardHash": "41cbf34ba27d7546bb8fd9f905ddbbdf4951dfdcdffb675b27f0e7d20ac37a62"
 }
