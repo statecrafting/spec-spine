@@ -133,9 +133,16 @@ the difference parity.
 as before: the dependency-only waiver clears the same pull requests, and the
 hashed projection of each manifest is unchanged.
 `crates/spec-spine-core/tests/yaml_workflow_parity.rs` pins both over every
-workflow in `.github/workflows/` and over fixtures for the cases below. The `on:` key, which YAML 1.1
-reads as boolean `true`, is the known hazard; `tests/gate.rs` already reads it
-both ways.
+workflow in `.github/workflows/` and over fixtures for these cases:
+
+- `on:` as a top-level key, in its scalar, sequence and mapping forms. YAML
+  1.1 reads the bare word as boolean `true`; this is the known hazard, and
+  `tests/gate.rs` already reads it both ways.
+- `uses:` references pinned to a full commit SHA, to a tag, and to a branch,
+  with and without a trailing `# vX.Y.Z` comment.
+- Anchors, aliases and merge keys (`<<: *defaults`) inside a workflow.
+- Multi-line `run:` blocks in literal (`|`), folded (`>`) and chomping
+  (`|-`, `>+`) forms.
 
 ### 3.5 The ignore goes
 
