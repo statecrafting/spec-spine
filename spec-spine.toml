@@ -18,7 +18,7 @@
 # to deserialize this key and exits 3 with a config error, never 2. The signal
 # is unambiguous in both directions.
 [meta]
-required_version = "=0.29.0"
+required_version = "=0.30.0"
 
 [manifest]
 # Our own crates carry `[package.metadata.spec-spine].spec = "NNN-slug"`.
@@ -108,6 +108,9 @@ extra_hashed_inputs = [
   "docs/corpus-map.md",
   "docs/releasing.md",
   "docs/schema-versioning.md",
+  # Spec 169: the governed description of what a traceability declaration and
+  # its states mean. Claimed, so L-008 requires it to be in a content hash.
+  "docs/traceability.md",
   "docs/specify-first.md",
   # Spec 112 D-3: the overlay contract, claimed by the spec that states it.
   "docs/overlay-contract.md",

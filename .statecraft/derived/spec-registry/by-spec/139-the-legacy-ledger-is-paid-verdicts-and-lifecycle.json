@@ -82,5 +82,5 @@
     "title": "The legacy ledger is paid: verdicts, attestation and lifecycle"
   },
   "shardHash": "408b93319fde53d5649e1f84f1c74ca2e7d6996a7325506746060a20400ee664",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

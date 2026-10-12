@@ -265,5 +265,5 @@
     "title": "The affected selection is a governed read"
   },
   "shardHash": "6d467fcd6ff31fa531696737d9cc9bc64ae1daa656ae4e1e32817059d05e6160",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

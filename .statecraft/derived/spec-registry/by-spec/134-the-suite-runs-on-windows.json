@@ -102,7 +102,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "f1b7d855e65f52e2000045ccd8c85089f402e9b9f4f51c4611b78f006567c454",
-      "134-the-suite-runs-on-windows": "b741f4987ab4f2dd849cc17f72b88f60b7ccac4d2768e290aaa5ab3f680ddc9e",
+      "134-the-suite-runs-on-windows": "0b1e046beb9676524dfcb2f4a91c4e48231f7bd1d44cc24662f2a9e5247e7779",
       "2-territory": "c80e1d6056eaf501cc9d1d374519364df053c8599b55f7ba9fe32dc773ece246",
       "3-1-a-windows-test-check-of-its-own": "689c07cc9f937757b6b2427d6e552d04e1dda1894862855e9c679f79a56ffbd5",
       "3-2-nothing-is-skipped-silently": "855cd5b5c4b2e7cd56a7524c0237a6f5050ed7d8701d3eb15d82159df05d4888",
@@ -110,7 +110,7 @@
       "3-behavior": "a373c6f62260ae76ee5f0370f4891abab632c8bf4bf039e9291d7af2906a26ce",
       "4-out-of-scope": "70f3afa5ca642065beb5dd7ed90f24e51fec22fda263eeb05d19ef60dd822f95",
       "5-resolved-decisions": "0fc971b860ea958247b284954c0c38b08806e94e4a9f2153b6dea981365851a8",
-      "verification": "be68fc5327cc6c0cb197c19603d28e0efc0a7668a61071ee5e89901375f4ad5d"
+      "verification": "e05dbd82b90a99215f25a7e8d1eab9825f4dcc0695e29eb90f441c33916f7d1b"
     },
     "sectionHeadings": [
       "134: The suite runs on Windows",
@@ -129,6 +129,6 @@
     "summary": "spec-spine ships a Windows binary and proves its shard trees byte-identical on Windows, but CI only ever built there: the workspace test suite ran on Linux alone, so a Windows behavior difference could ship with every check green. A `test (windows)` job now runs `cargo test --workspace` on `windows-latest` as a check of its own, required through `ci-gate`. A test that cannot run on Windows is gated or quarantined in its source with a tracked finding, never skipped by the workflow, and Windows results are reported apart from build results.\n",
     "title": "The suite runs on Windows"
   },
-  "shardHash": "883079f4596f46585703176be46f57d2f8b5af362d6f78706e1adaa02cd62e65",
-  "specVersion": "1.9.0"
+  "shardHash": "d7dbdf7efa11b87356c35ca4942c050d6c8030726dca20c49a68b0c4e79a0b0b",
+  "specVersion": "1.10.0"
 }
