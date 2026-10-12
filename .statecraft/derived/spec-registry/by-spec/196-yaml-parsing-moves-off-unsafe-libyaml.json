@@ -130,17 +130,17 @@
       "1-1-the-parser-is-unmaintained": "db7be1dad3da52a670211199743440f67de3052aa96f9a6a8a6e00f84d73e04f",
       "1-2-where-yaml-is-read": "5b92b1adbe9c0f60575994e3b0bf3d03fc048d9c95b1aebecf7f44e22aefee2f",
       "1-purpose": "4d61de42f1d0bbec0c8ad85ecb0d8b437b6d1ad7456ae2739d65599ff1dfb4b4",
-      "196-yaml-parsing-moves-off-unsafe-libyaml": "2c946fd95f87d29efb283e30983979944457670b84b2dc8f30427e62ca4312a3",
+      "196-yaml-parsing-moves-off-unsafe-libyaml": "c83f8e0504b80aeb6e5e9b452a9329a2be425d3b229336d21960bd6df842fb7f",
       "2-territory": "eb37eaf65eb7115cc57d7338ada1622ce5fa857682a83c9f9e16da167c4027ac",
       "3-1-the-parser": "9a9848487ec339fe91e625cb93974a37363e8b304ee5119ce8393ee645d626a3",
       "3-2-the-registry-and-index-do-not-move": "a7d085566085cd01e3221a131375a6dc127a6e189842a87131947e06df2b307e",
       "3-3-every-refusal-is-kept": "2a1977d98ce9b4c803c46e4abe3ca1e7b26f5abf6e73a2a677b38e6be7787943",
       "3-4-workflows": "8703be80167d3c835021103da960803384e18c805022a02406e70c5281f25ba8",
-      "3-5-the-ignore-goes": "3bf24e7d748a8c2c44f1d16474be8d93da258d9a5c5d49997e5dbb40195268a1",
-      "3-behavior": "4f2335b45512c27a42ad5e15bdc024cda7433b2f487430f707dfc3062287a4bd",
+      "3-5-the-ignore-goes": "1f8c399c48c1d4c3bb6e390793067b2e0e1bda6e3c4bdfdeb02a974e77803b14",
+      "3-behavior": "f22f3a1f77941ca66fb670590f4a003cf91e81d90c3f88cf627fe1e5bdc5280f",
       "4-out-of-scope": "6d9a9235edef173aa27da699e5afdfe0793d5d6bec3922799f53456f387d279c",
       "5-resolved-decisions": "8d6d374c860b70010b1092b040978ab622ab2bd5e5e864b03908b9b86eef3bde",
-      "verification": "e5a7ef5bde5ac5fe2cab1f805d042e2760697c7783a3ab7cc274ace2e08b70d2"
+      "verification": "24c9da38f7e30991bb1e7b26c9599e035a8d1564bda72a26fcd42631d64463c9"
     },
     "sectionHeadings": [
       "196: YAML parsing moves off unsafe-libyaml",
@@ -163,6 +163,6 @@
     "summary": "Every YAML read in the engine (spec frontmatter, compaction plans, the delta classifier, the dependency-only waiver, workflow manifests) goes through `serde_yaml` 0.9, which is deprecated and parses with `unsafe-libyaml`, a c2rust translation of libyaml that RUSTSEC-2024-0449 marks unmaintained. `deny.toml` ignores that advisory by id so `cargo-deny` can pass; this spec removes the reason for the ignore. The engine moves to a YAML crate written in safe Rust, the committed registry and index shard trees stay byte-identical, every refusal the current parser produces on authored frontmatter is kept, and the ignore entry is deleted in the same change.\n",
     "title": "YAML parsing moves off unsafe-libyaml"
   },
-  "shardHash": "c7e388f00e19104316a03672e9037044e30fafdb8594153a54a605e54c867ae3",
+  "shardHash": "0445bb87af55b600f267a8989586279831477871b580c7bc8437424b48cc08c6",
   "specVersion": "1.10.0"
 }

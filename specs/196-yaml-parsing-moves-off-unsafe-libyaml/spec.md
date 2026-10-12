@@ -160,6 +160,15 @@ workflow in `.github/workflows/` and over fixtures for these cases:
 The same change MUST delete the RUSTSEC-2024-0449 entry and its comment from
 `deny.toml`, and `cargo deny check` MUST pass without it.
 
+The witness for that pass, and for 3.1's "no new advisory" and license
+clauses, is the `cargo-deny` job that spec 135 made required, run on the
+build's own pull request. The acceptance block does not run `cargo deny`
+itself: the verdict depends on the advisory database on the day it is read,
+so a post-merge sweep would re-judge the spec against advisories published
+after it shipped (the same reason 135's block, now carried by 195, asserts
+the job rather than running it). The block asserts that the job is still
+required.
+
 ## 4. Out of scope
 
 **Writing YAML.** The engine emits JSON only. A test that renders YAML
@@ -183,8 +192,10 @@ None yet.
 ! grep -q '^name = "unsafe-libyaml"$' Cargo.lock
 ! grep -q 'serde_yaml' Cargo.toml crates/*/Cargo.toml
 ! grep -rh --include='*.rs' 'serde_yaml' crates | grep -qvE '^[[:space:]]*//'
-# 3.5: the ignore entry is gone.
+# 3.5: the ignore entry is gone, and the cargo-deny job that witnesses the
+# pass is still required.
 ! grep -q 'RUSTSEC-2024-0449' deny.toml
+grep -q 'name: cargo-deny' .github/workflows/spec-spine-required.yml
 # 3.2: the committed trees are fresh under the new parser.
 cargo build --release --locked -p spec-spine-cli
 target/release/spec-spine check
