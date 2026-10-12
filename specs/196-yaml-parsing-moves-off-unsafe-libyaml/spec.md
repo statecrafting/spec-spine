@@ -177,11 +177,12 @@ None yet.
 
 ```verify:cli
 # 3.1: neither crate is in the locked tree, no manifest depends on the old
-# one, and no source uses it (a comment may still name it).
+# one, and no Rust line outside a `//` comment names it, so a comment line
+# may still mention the old crate.
 ! grep -q '^name = "serde_yaml"$' Cargo.lock
 ! grep -q '^name = "unsafe-libyaml"$' Cargo.lock
 ! grep -q 'serde_yaml' Cargo.toml crates/*/Cargo.toml
-! grep -rqE 'serde_yaml::|use serde_yaml' crates
+! grep -rh --include='*.rs' 'serde_yaml' crates | grep -qvE '^[[:space:]]*//'
 # 3.5: the ignore entry is gone.
 ! grep -q 'RUSTSEC-2024-0449' deny.toml
 # 3.2: the committed trees are fresh under the new parser.
