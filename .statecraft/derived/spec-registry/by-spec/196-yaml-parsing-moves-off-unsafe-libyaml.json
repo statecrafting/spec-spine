@@ -1,0 +1,116 @@
+{
+  "record": {
+    "created": "2026-10-12",
+    "dependsOn": [
+      "135-the-toolchain-floor-and-dependencies-are-checked"
+    ],
+    "extends": [
+      {
+        "nature": "corrective",
+        "spec": "012-declared-extra-frontmatter-passthrough",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/frontmatter.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "096-compaction-is-a-verb-not-a-session",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compact.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "071-a-change-is-classified-under-the-bases-rules",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/delta.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "005-coupling-gate",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/dep_only.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "004-codebase-index",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/manifest.rs"
+        }
+      },
+      {
+        "spec": "135-the-toolchain-floor-and-dependencies-are-checked",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/Cargo.toml"
+        }
+      },
+      {
+        "spec": "135-the-toolchain-floor-and-dependencies-are-checked",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/Cargo.toml"
+        }
+      }
+    ],
+    "id": "196-yaml-parsing-moves-off-unsafe-libyaml",
+    "implementation": "pending",
+    "kind": "tooling",
+    "owner": "The spec-spine Authors",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "deny.toml"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionDigests": {
+      "1-1-the-parser-is-unmaintained": "db7be1dad3da52a670211199743440f67de3052aa96f9a6a8a6e00f84d73e04f",
+      "1-2-where-yaml-is-read": "3f5b4c0ef237f943b953fc1ecfbe0ad063ad06de4ec2c9dc9cc2388064fbcbb8",
+      "1-purpose": "a5aa445d9e659058c3bc12ed599f62d1c9e0199580aeeed43c31014da619d26f",
+      "196-yaml-parsing-moves-off-unsafe-libyaml": "bb5781039d1fa4df343186818a0e221e421df5462d6de7439a01c912370beaa7",
+      "2-territory": "e67e9cebcc28cdd5b7dc0ea62ce55b4b5140eedb55fe2335ab55a5617eb2b800",
+      "3-1-the-parser": "9a9848487ec339fe91e625cb93974a37363e8b304ee5119ce8393ee645d626a3",
+      "3-2-the-registry-and-index-do-not-move": "a7d085566085cd01e3221a131375a6dc127a6e189842a87131947e06df2b307e",
+      "3-3-every-refusal-is-kept": "8191dab80c72a27fee4a2481497719bcb013bf05153742f8bc23ee92ca59bf7b",
+      "3-4-workflows": "5ad9b78bbefab3cca18b46d11cdf963b09b5fdd59a174a4cee6bedba4c5c0b0d",
+      "3-5-the-ignore-goes": "3bf24e7d748a8c2c44f1d16474be8d93da258d9a5c5d49997e5dbb40195268a1",
+      "3-behavior": "04f61ab8e4eab0c9dc42752a796a9f7c003d1d0d41695cd5b3b44ec724c4e834",
+      "4-out-of-scope": "6d9a9235edef173aa27da699e5afdfe0793d5d6bec3922799f53456f387d279c",
+      "5-resolved-decisions": "8d6d374c860b70010b1092b040978ab622ab2bd5e5e864b03908b9b86eef3bde",
+      "verification": "b5f55d94a3bcfebadbedfc2eaee76cd51e74ab29da03793de5191d9aaf929b34"
+    },
+    "sectionHeadings": [
+      "196: YAML parsing moves off unsafe-libyaml",
+      "1. Purpose",
+      "1.1 The parser is unmaintained",
+      "1.2 Where YAML is read",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The parser",
+      "3.2 The registry and index do not move",
+      "3.3 Every refusal is kept",
+      "3.4 Workflows",
+      "3.5 The ignore goes",
+      "4. Out of scope",
+      "5. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/196-yaml-parsing-moves-off-unsafe-libyaml/spec.md",
+    "status": "draft",
+    "summary": "Every YAML read in the engine (spec frontmatter, compaction plans, the delta classifier, the dependency-only waiver, workflow manifests) goes through `serde_yaml` 0.9, which is deprecated and parses with `unsafe-libyaml`, a c2rust translation of libyaml that RUSTSEC-2024-0449 marks unmaintained. `deny.toml` ignores that advisory by id so `cargo-deny` can pass; this spec removes the reason for the ignore. The engine moves to a YAML crate written in safe Rust, the committed registry and index shard trees stay byte-identical, every refusal the current parser produces on authored frontmatter is kept, and the ignore entry is deleted in the same change.\n",
+    "title": "YAML parsing moves off unsafe-libyaml"
+  },
+  "shardHash": "762713c307ee5ee4b523d70f01601ec3f7931aece2da855d9880832902b6b42d",
+  "specVersion": "1.10.0"
+}
