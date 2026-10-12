@@ -9,6 +9,13 @@ all-features = true
 [advisories]
 version = 2
 yanked = "deny"
+# Unmaintained, not a vulnerability or unsoundness notice (spec 135 §3 fails
+# on those two). `unsafe-libyaml` comes in only through `serde_yaml`, the
+# frontmatter parser, and has no safe upgrade. Remove this entry when the
+# parser moves to a safe-Rust YAML crate.
+ignore = [
+    { id = "RUSTSEC-2024-0449", reason = "unsafe-libyaml is unmaintained; reached only via serde_yaml, replacement tracked by a follow-up spec" },
+]
 
 [licenses]
 version = 2
