@@ -1,6 +1,7 @@
 // Spec: specs/169-declared-obligation-traceability/spec.md
 //! Declared obligation traceability (spec 169): an authored relation from one
-//! qualified obligation (spec 106) to one typed target.
+//! qualified obligation (spec 106) to one typed target, and the read that
+//! reports whether each declared target binds structurally.
 //!
 //! A relation records only what an author declared (§3.1). Its resolution
 //! state (§3.6) says whether the target binds under a closed structural
@@ -10,9 +11,17 @@
 //! [`crate::Impact`]: the compiler normalizes every spec reference in place
 //! (spec 015) before the record is built.
 
+use std::collections::BTreeMap;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{ContentSelector, Unit};
+
+/// `traceabilityVersion` of the read document (§3.9): its own axis, beside
+/// the read axis stamp every read carries (spec 074). MAJOR moves when a
+/// relation kind, target kind, or state is added, removed, or reinterpreted
+/// (D-7), so a reader refusing an unknown one never meets it.
+pub const TRACEABILITY_SCHEMA_VERSION: &str = "1.0.0";
 
 /// The six relation kinds (§3.1). There is no seventh.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -131,4 +140,93 @@ pub struct TraceDeclaration {
     /// false.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub withdrawn: bool,
+}
+
+/// The six resolution states (§3.6), in their serialized order. There is no
+/// seventh, and none stands in for another.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum TraceState {
+    Resolved,
+    Unresolved,
+    Ambiguous,
+    Unsupported,
+    Unknown,
+    Withdrawn,
+}
+
+impl TraceState {
+    pub const ALL: [TraceState; 6] = [
+        Self::Resolved,
+        Self::Unresolved,
+        Self::Ambiguous,
+        Self::Unsupported,
+        Self::Unknown,
+        Self::Withdrawn,
+    ];
+
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Resolved => "resolved",
+            Self::Unresolved => "unresolved",
+            Self::Ambiguous => "ambiguous",
+            Self::Unsupported => "unsupported",
+            Self::Unknown => "unknown",
+            Self::Withdrawn => "withdrawn",
+        }
+    }
+
+    /// Parse the serialized spelling; `None` for anything else.
+    pub fn parse(raw: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|s| s.as_str() == raw)
+    }
+}
+
+/// The read's filters (§3.9). Absent filters select everything; present
+/// filters intersect.
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct TraceabilityRequest {
+    /// A spec id, full or short.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub declared_by: Option<String>,
+    /// A qualified `<spec>#<obligation-id>`; the spec half may be short.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub obligation: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<TraceState>,
+}
+
+/// One relation as the read reports it.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TraceRelation {
+    /// `<declaring-spec>#trace:<id>` (§3.1).
+    pub identity: String,
+    pub declared_by: String,
+    pub id: String,
+    /// The normalized source, `<full-spec-id>#<obligation-id>`.
+    pub obligation: String,
+    pub relation: TraceRelationKind,
+    /// The normalized target as declared.
+    pub target: TraceTarget,
+    /// The canonical target identity (§3.4).
+    pub target_identity: String,
+    pub withdrawn: bool,
+    pub state: TraceState,
+    /// Why the state is what it is, for every state but `resolved`. Names
+    /// identities only, never selected content.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
+}
+
+/// The read document (§3.9).
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TraceabilityReport {
+    pub traceability_version: String,
+    /// Every matching relation, sorted by declaring spec, then relation id.
+    pub relations: Vec<TraceRelation>,
+    /// A count per state for the matching relations; every state is present.
+    pub summary: BTreeMap<TraceState, usize>,
 }

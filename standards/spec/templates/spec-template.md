@@ -235,8 +235,9 @@ implementation: pending        # pending | in-progress | complete | n-a | deferr
 #     or a `corpus` naming one of this spec's `interface_references`).
 #   - `withdrawn: true`: retire a relation IN PLACE; its other members stay.
 # The same (obligation, relation, target) twice is `V-046`. A declaration is
-# not evidence that anything ran or passed, and ownership alone never creates
-# a relation.
+# not evidence: `spec-spine registry traceability` reports whether each target
+# binds (resolved, unresolved, ambiguous, unsupported, unknown, withdrawn),
+# never that anything ran or passed. Ownership alone never creates a relation.
 # traceability:
 #   - id: "R-1-impl"
 #     obligation: "NNN-this-spec#R-1"
