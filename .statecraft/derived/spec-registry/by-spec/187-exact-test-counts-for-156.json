@@ -18,7 +18,7 @@
     "risk": "low",
     "sectionDigests": {
       "1-purpose": "e496caf1dc3d8dc2445dfe03da8bbab62fc2716c4d7e32a29f3cde000681a68d",
-      "187-exact-test-counts-for-156": "1557860727c1b21ea0ebda25ba1cd0d646ae76c1ff41f48fd92260b4ba22659b",
+      "187-exact-test-counts-for-156": "7172258b779d56460fdc6e90f60ae4243971ccaf2a35fd19ab5f1a5c2d5b1929",
       "2-territory": "655644e55180b34a2baa4363fc082c994d06165b15eb851dbba54e57f8496ddf",
       "3-1-156-s-block-is-carried": "cadbaef7bd68fbde12931b96804beda2b0afa501ec75ab6decec06caf0e5ea3e",
       "3-2-each-loose-line-names-its-tests": "6fa8c095395dbc52186523a753705e4d6883bfb5b8ba9d816745209edb5e8d60",
@@ -26,7 +26,7 @@
       "3-behavior": "20dddc56793802421a15a4f7673a0f02def89847d719d11ea590e85c2639e18c",
       "4-out-of-scope": "47f9ea54837f5b2ce5b17d6d699e88886b3b9a68a33454b802faac25050fc0aa",
       "5-resolved-decisions": "a50b34e03020f984b78e76c39b7aba404e91d72e55685952c7698b7846a01f94",
-      "verification": "f02b20b56e4d312ef895c942be5aa88090bf27ebb9a6af02c1e1db45c0fb3a56"
+      "verification": "4abb920f5330c039d1591d67efb93a154db736b79726494b57339e8ebcb5713f"
     },
     "sectionHeadings": [
       "187: Exact test counts for 156",
@@ -45,6 +45,6 @@
     "summary": "Spec 156's acceptance block carries four lines that accept `test result: ok. [1-9][0-9]* passed`, which pass while any one test in the target runs. This spec holds 156's block, carries it byte-identical, and replaces each loose line with spec 151's form: the tests the line ran, named with `--exact`, and `N passed; 0 failed`. One of spec 153's per-block tightening specs (153 D-5).\n",
     "title": "Exact test counts for 156"
   },
-  "shardHash": "c6d136ed556eda887017fec83a399e36f798f68401625d7b015680e50a9a6a5c",
+  "shardHash": "664722ab3f991bba19479266c988034a245b63f2382c87c3c9d2458c45e80f75",
   "specVersion": "1.10.0"
 }

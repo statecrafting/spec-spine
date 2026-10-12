@@ -1,0 +1,105 @@
+{
+  "mapping": {
+    "amends": [
+      "193-the-0-29-0-release-moves-the-pin"
+    ],
+    "dependsOn": [
+      "124-the-expansion-line-carries-its-own-version",
+      "156-statecraft-profile-10-governs-this-repository",
+      "193-the-0-29-0-release-moves-the-pin"
+    ],
+    "implementingPaths": [
+      {
+        "path": ".statecraft/environment.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/fixtures/verifier/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "npm/package.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": "py/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "spec-spine.toml",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/fixtures/verifier/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/fixtures/verifier/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "py/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": "py/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".statecraft/environment.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/environment.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "npm/package.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "npm/package.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      }
+    ],
+    "specId": "195-the-0-30-0-release-moves-the-pin",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "979214f8374a93967c3d96992528e8d68104f070b5c07b5c942b187918a39b0d"
+}

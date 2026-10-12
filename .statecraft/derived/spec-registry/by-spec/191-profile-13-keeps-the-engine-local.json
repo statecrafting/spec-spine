@@ -99,11 +99,11 @@
     "kind": "tooling",
     "sectionDigests": {
       "1-purpose": "3ace3970e460be811d7f673000a188136d0c968adf3dc26225a3385203595d7e",
-      "191-profile-13-keeps-the-exact-engine-local": "b17599e946bba2c111510801c8b13e01195f1e74599769c0e4a66535f23302d8",
+      "191-profile-13-keeps-the-exact-engine-local": "b62c3934088ce06ef37d1c530edfca5b1165058636ca8cce4cb8e88359ed6677",
       "2-territory": "cad41669842119a6109df280315a0f2ba245bfd33641942c200a8dd07aa2c7ab",
       "3-behavior": "5e5e4bf35eabd04ca282bfe2e76bc2cdf4b0b3ab540a8dc2354e6d19817ec9dc",
       "4-acceptance-amendment": "751513351b3eabf64846ad4aca78aa55ddaff873a23a3a3db267b4fa6091f205",
-      "verification": "5b0e2f1315b08edb8650b6c7ed98a235014565f3e83485d599a0176d16f42f7f"
+      "verification": "054341e564df55e41cb1271c228a731568931637cdfc6e4f61d94d703659cf1a"
     },
     "sectionHeadings": [
       "191: Profile 13 keeps the exact engine local",
@@ -118,6 +118,6 @@
     "summary": "Adopts Statecraft revision 13 without narrowing the engine-specific checks or retiring the repository-owned merge-queue acceptance sweep.\n",
     "title": "Profile 13 keeps the exact engine local"
   },
-  "shardHash": "200d254f87bb984dc3f44f0bac87233bd03d7e27a100d33dbbe961cd7576cd70",
+  "shardHash": "464f63832dbeecccbfd3f27b6f2fe1965b9123997c641e19d33e606eb54211dc",
   "specVersion": "1.10.0"
 }

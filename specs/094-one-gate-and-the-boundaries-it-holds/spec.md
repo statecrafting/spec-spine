@@ -368,6 +368,9 @@ exist and none reports a `supersededBy`.
 > Since 2026-10-05, `193-the-0-29-0-release-moves-the-pin` holds 191's block in turn, so this plan runs
 > from that spec's block (spec 193 3.3).
 
+> Since 2026-10-10, `195-the-0-30-0-release-moves-the-pin` holds 193's block in turn, so this plan runs
+> from that spec's block (spec 195 3.3).
+
 ```verify:cli
 cargo build --release --locked
 # 2: the territory, and that this spec owns it.

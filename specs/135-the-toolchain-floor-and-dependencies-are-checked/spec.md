@@ -155,6 +155,9 @@ unused, so removing it closes both advisories and shrinks every dev build.
 > Since 2026-10-05, `193-the-0-29-0-release-moves-the-pin` holds 191's block in turn, so this plan runs
 > from that spec's block (spec 193 3.3).
 
+> Since 2026-10-10, `195-the-0-30-0-release-moves-the-pin` holds 193's block in turn, so this plan runs
+> from that spec's block (spec 195 3.3).
+
 ```verify:cli
 # 3.1 and 3.2: both jobs exist under their names and the gate requires them.
 grep -q 'name: build · test (rust-version)' .github/workflows/ci.yml
