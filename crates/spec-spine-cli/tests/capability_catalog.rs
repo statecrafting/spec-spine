@@ -540,8 +540,24 @@ fn verify_answers_current_with_exit_zero() {
         ])
         .output()
         .unwrap();
+    assert_eq!(out.status.code(), Some(3));
     let v: Value = serde_json::from_slice(&out.stdout).unwrap();
     assert_eq!(v["verb"], "capabilities.verify", "{v}");
+    assert_eq!(v["outcome"], "usage", "{v}");
+    // A well-formed pin that no longer matches is `changed`, exit 1.
+    let out = command(bin(), tmp.path())
+        .args([
+            "capabilities",
+            "--json",
+            "verify",
+            "--expect",
+            &format!("check=sha256:{}", "0".repeat(64)),
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(1));
+    let v: Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(v["report"]["results"][0]["outcome"], "changed", "{v}");
 
     // A repeated pin is usage.
     let out = command(bin(), tmp.path())
