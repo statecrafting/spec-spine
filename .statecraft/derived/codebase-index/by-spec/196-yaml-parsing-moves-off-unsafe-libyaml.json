@@ -35,6 +35,24 @@
     ],
     "resolvedUnits": [
       {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/yaml_workflow_parity.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/yaml_parity.rs"
+        }
+      },
+      {
         "locations": [
           {
             "file": "crates/spec-spine-core/Cargo.toml"
@@ -143,5 +161,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "762713c307ee5ee4b523d70f01601ec3f7931aece2da855d9880832902b6b42d"
+  "shardHash": "46986f21696ea0a406e6e17f570ff6f2a38dc572549e757ab15138b097830d98"
 }

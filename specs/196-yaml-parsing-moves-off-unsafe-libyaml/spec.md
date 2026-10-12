@@ -19,6 +19,11 @@ owner: "The spec-spine Authors"
 risk: high
 depends_on:
   - "135-the-toolchain-floor-and-dependencies-are-checked"
+establishes:
+  # 3.3: the refusal and acceptance parity table, run against both parsers.
+  - { kind: file, path: "crates/spec-spine-types/tests/yaml_parity.rs", planned: true }
+  # 3.4: workflow parity for the dependency-only waiver and the manifest projection.
+  - { kind: file, path: "crates/spec-spine-core/tests/yaml_workflow_parity.rs", planned: true }
 extends:
   # The frontmatter reader: the parse every registry shard is built from.
   - { spec: "012-declared-extra-frontmatter-passthrough", unit: "crates/spec-spine-types/src/frontmatter.rs", nature: corrective }
@@ -104,8 +109,9 @@ the four determinism triples: `determinism.yml` passes unchanged.
 
 Frontmatter the current parser refuses MUST stay refused, with the same
 diagnostic code and exit code, and frontmatter it accepts MUST compile to the
-same record. The build adds a fixture table run against both parsers before
-the old one is removed, covering at least:
+same record. The build adds a fixture table,
+`crates/spec-spine-types/tests/yaml_parity.rs`, run against both parsers before
+the old one is removed and against the new one after, covering at least:
 
 - duplicate mapping keys;
 - the YAML 1.1 words (`yes`, `no`, `on`, `off`, `y`, `n`) as keys and values;
@@ -125,7 +131,9 @@ the difference parity.
 
 `dep_only.rs` and `manifest.rs` MUST treat a GitHub Actions workflow exactly
 as before: the dependency-only waiver clears the same pull requests, and the
-hashed projection of each manifest is unchanged. The `on:` key, which YAML 1.1
+hashed projection of each manifest is unchanged.
+`crates/spec-spine-core/tests/yaml_workflow_parity.rs` pins both over every
+workflow in `.github/workflows/` and over fixtures for the cases below. The `on:` key, which YAML 1.1
 reads as boolean `true`, is the known hazard; `tests/gate.rs` already reads it
 both ways.
 
@@ -158,4 +166,8 @@ None yet.
 ! grep -q 'RUSTSEC-2024-0449' deny.toml
 # 3.2: the committed trees are fresh under the new parser.
 target/release/spec-spine check
+# 3.3 and 3.4: the parity tables run and pass. The build records each
+# target's exact test count here (spec 153).
+cargo test -p spec-spine-types --locked --test yaml_parity
+cargo test -p spec-spine-core --locked --test yaml_workflow_parity
 ```
