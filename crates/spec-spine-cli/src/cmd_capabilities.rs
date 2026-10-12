@@ -57,7 +57,15 @@ pub fn dispatch(
             "`--operation` shows one record and `verify` checks pins; give one, not both"
                 .to_string(),
         )),
-        (Some(CapabilitiesAction::Verify { expect, json }), None) => verify(expect, *json),
+        // `capabilities --json verify` asks for the same envelope as
+        // `capabilities verify --json` (162 D-20); neither spelling is dropped.
+        (
+            Some(CapabilitiesAction::Verify {
+                expect,
+                json: inner,
+            }),
+            None,
+        ) => verify(expect, json || *inner),
         (None, Some(name)) => show_operation(name, json),
         (None, None) => run(cli, json),
     }

@@ -515,6 +515,34 @@ fn verify_answers_current_with_exit_zero() {
     assert_eq!(v["verb"], "capabilities.verify");
     assert_eq!(v["report"]["results"][0]["outcome"], "current");
 
+    // The parent's `--json` asks for the same envelope (162 D-20), and a
+    // refusal under it is the envelope too, never plain stderr.
+    let out = command(bin(), tmp.path())
+        .args([
+            "capabilities",
+            "--json",
+            "verify",
+            "--expect",
+            &format!("check={digest}"),
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(0));
+    let v: Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(v["verb"], "capabilities.verify");
+    let out = command(bin(), tmp.path())
+        .args([
+            "capabilities",
+            "--json",
+            "verify",
+            "--expect",
+            "check=sha256:00",
+        ])
+        .output()
+        .unwrap();
+    let v: Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(v["verb"], "capabilities.verify", "{v}");
+
     // A repeated pin is usage.
     let out = command(bin(), tmp.path())
         .args([
