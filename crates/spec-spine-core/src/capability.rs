@@ -1067,7 +1067,10 @@ fn operations() -> Vec<Operation> {
         .done(),
         op(
             "registry.traceability",
-            "Every declared obligation traceability relation and the state its target resolves to (spec 169). A declaration is not evidence",
+            "Every declared obligation traceability relation (spec 169) and the state its target \
+             resolves to. A declaration is not evidence: `resolved` means the target binds \
+             structurally, never that anything ran or passed. Filters intersect. Exits 0 \
+             whatever the states are",
             &["169-declared-obligation-traceability"],
         )
         .cli(
