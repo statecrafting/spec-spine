@@ -4,7 +4,7 @@ title: "Declare documentation inputs and freshness"
 status: approved
 kind: "governance"
 created: "2026-09-26"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -20,8 +20,8 @@ summary: >
   Freshness names every changed, missing, unresolved, or unverified declared
   input without claiming that unchanged inputs make narrative text correct.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/documentation_manifest.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-types/schemas/documentation-manifest.schema.json", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/documentation_manifest.rs" }
+  - { kind: file, path: "crates/spec-spine-types/schemas/documentation-manifest.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/documentation_manifest.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-core/tests/documentation_manifest.rs", planned: true }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/documentation-manifest/", planned: true }
@@ -36,9 +36,9 @@ extends:
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: section, file: "docs/cli-reference.md", anchor: "cli-reference" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap" }
-  - { unit: { kind: file, path: "crates/spec-spine-core/src/interface.rs" }, role: "digest-pinned external interface verification" }
 obligations:
   - id: "R-1"
     kind: requirement
@@ -576,6 +576,33 @@ that 3.4's `uses` and 3.8's `inputIds` cite each other with no rule requiring
 agreement, so a manifest could claim a provenance it contradicts. 3.8 now
 requires them to agree and every cited id to exist. `depends_on` also names
 spec 074, whose `version.rs` this spec extends with a new axis.
+
+**D-14 (2026-10-10, build): the continuation state is `pageCompleteness`.**
+3.3 asks the packet record to carry the continuation state of every page
+without naming a member. `packet.pageCompleteness` lists each page's spec 159
+`completeness` in page order. Because a manifest packet may omit no required
+member, every page but the last is `partial` and the last is `complete`, so the
+list states exactly which pages carried a continuation without copying the
+opaque tokens into the manifest.
+
+**D-15 (2026-10-10, build): output and region digests are over normalized
+text.** 3.8 normalizes line endings before spans and digests are computed and
+also names a whole-file byte digest and byte length. Both are taken over the
+normalized text (the repository text contract: BOM stripped, CRLF and CR folded
+to LF), so a checkout with other line endings has the same digests. A line keeps
+its terminator, a region's digest is `sha256:` over its lines' bytes, and the
+regions, abutting from line 1, concatenate to exactly the text. An empty output
+has zero lines and no regions.
+
+**D-16 (2026-10-10, build): a finding's identity is typed.** 3.10 lists what a
+finding carries without spelling the identity. It is `input:<inputId>` for
+every kind of input, `packet`, `output:<outputId>` or
+`region:<outputId>#<regionId>`, so one string orders and cannot collide. The
+packet, an output and a region are always `required`. `affects` is the input's
+`uses`; for an output or region, the examples it contains; for the packet,
+nothing. The packet finding carries no digest, because 3.3 creates no aggregate
+packet identity to put there, and an input recorded as omitted has no recorded
+digest.
 
 ## Verification
 

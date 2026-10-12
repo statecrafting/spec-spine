@@ -231,6 +231,11 @@ pub const CATALOG_SCHEMA_VERSION: &str = "1.0.0";
 /// `context_packet_json`; spec 159 3.11): its own axis, from `1.0.0`.
 pub const CONTEXT_PACKET_SCHEMA_VERSION: &str = "1.0.0";
 
+/// `schemaVersion` of a documentation manifest and of a freshness result
+/// (`documentation manifest validate|freshness`, spec 160 3.13): one axis for
+/// both documents, from `1.0.0`.
+pub const DOCUMENTATION_MANIFEST_SCHEMA_VERSION: &str = "1.0.0";
+
 /// The `spec-spine.toml` config schema version (optional `config_version` key).
 pub const CONFIG_VERSION: &str = "0.1.0";
 

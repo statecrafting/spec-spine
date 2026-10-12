@@ -1,0 +1,725 @@
+{
+  "$defs": {
+    "example": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "exampleId": {
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+          "type": "string"
+        },
+        "expectedExit": {
+          "enum": [
+            "ok",
+            "finding",
+            "refused",
+            "usage",
+            "failed"
+          ]
+        },
+        "inputIds": {
+          "items": {
+            "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "regionId": {
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+          "type": "string"
+        },
+        "stderrDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "stdoutDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "workingDirectory": {
+          "minLength": 1,
+          "type": "string"
+        }
+      },
+      "required": [
+        "exampleId",
+        "regionId",
+        "arguments",
+        "workingDirectory",
+        "inputIds",
+        "expectedExit"
+      ],
+      "type": "object"
+    },
+    "externalReference": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "identity": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "inputId": {
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+          "type": "string"
+        },
+        "namespace": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "purpose": {
+          "enum": [
+            "evidence",
+            "policy",
+            "toolchain"
+          ]
+        },
+        "requirement": {
+          "enum": [
+            "required",
+            "optional"
+          ]
+        },
+        "schemaVersion": {
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "type": "string"
+        },
+        "uses": {
+          "items": {
+            "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "inputId",
+        "namespace",
+        "schemaVersion",
+        "identity",
+        "digest",
+        "requirement",
+        "uses",
+        "purpose"
+      ],
+      "type": "object"
+    },
+    "finding": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "identity": {
+                "const": "packet"
+              }
+            },
+            "required": [
+              "identity"
+            ]
+          },
+          "then": {
+            "properties": {
+              "affects": {
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "affects": {
+          "items": {
+            "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "currentDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "identity": {
+          "pattern": "^(packet|input:.+|output:.+|region:.+#.+)$",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "changed",
+            "missing",
+            "removed",
+            "withdrawn",
+            "unresolved",
+            "ambiguous",
+            "unsupported",
+            "unverified",
+            "region-shifted",
+            "output-changed"
+          ]
+        },
+        "recordedDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "requirement": {
+          "enum": [
+            "required",
+            "optional"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "identity",
+        "requirement",
+        "affects"
+      ],
+      "type": "object"
+    },
+    "freshness": {
+      "additionalProperties": false,
+      "description": "One documentation freshness result (spec 160): every declared identity that moved against one current snapshot. `fresh` proves only that declared digests and structure match; it is not narrative correctness or whole-repository freshness.",
+      "properties": {
+        "currentSnapshot": {
+          "$ref": "#/$defs/snapshot"
+        },
+        "findings": {
+          "items": {
+            "$ref": "#/$defs/finding"
+          },
+          "type": "array"
+        },
+        "freshnessDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "manifestDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "recordedSnapshot": {
+          "$ref": "#/$defs/snapshot"
+        },
+        "repositoryTreeChanged": {
+          "type": "boolean"
+        },
+        "schemaVersion": {
+          "pattern": "^1\\.[0-9]+\\.[0-9]+$",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "fresh",
+            "unverified",
+            "stale",
+            "incomplete"
+          ]
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "manifestDigest",
+        "recordedSnapshot",
+        "currentSnapshot",
+        "repositoryTreeChanged",
+        "status",
+        "findings",
+        "freshnessDigest"
+      ],
+      "type": "object"
+    },
+    "generator": {
+      "additionalProperties": false,
+      "properties": {
+        "arguments": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "buildDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "configurationDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version",
+        "buildDigest",
+        "arguments",
+        "configurationDigest"
+      ],
+      "type": "object"
+    },
+    "input": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "identity": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "inputId": {
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "projection": {
+          "enum": [
+            "full",
+            "declaration",
+            "signature",
+            "documentation",
+            "body"
+          ]
+        },
+        "requirement": {
+          "enum": [
+            "required",
+            "optional"
+          ]
+        },
+        "schemaVersion": {
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "type": "string"
+        },
+        "uses": {
+          "items": {
+            "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "inputId",
+        "identity",
+        "projection",
+        "schemaVersion",
+        "digest",
+        "requirement",
+        "uses"
+      ],
+      "type": "object"
+    },
+    "interface": {
+      "additionalProperties": false,
+      "description": "A spec 110 interface pin used as an input. Spec 160 3.5: it reuses 110's corpus, spec, sections and digest and adds only inputId, requirement and uses; 110 pins carry no schema version.",
+      "properties": {
+        "corpus": {
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "inputId": {
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+          "type": "string"
+        },
+        "requirement": {
+          "enum": [
+            "required",
+            "optional"
+          ]
+        },
+        "sections": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "anchor": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "digest": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "anchor",
+              "digest"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "spec": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "uses": {
+          "items": {
+            "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "inputId",
+        "corpus",
+        "spec",
+        "digest",
+        "sections",
+        "requirement",
+        "uses"
+      ],
+      "type": "object"
+    },
+    "manifest": {
+      "additionalProperties": false,
+      "description": "One documentation manifest (spec 160): the declared inputs, generator identity, outputs, regions and example identities of one generator invocation, bound to one complete context-packet page set. Structural provenance only; it establishes no narrative correctness, execution, admission or authority.",
+      "properties": {
+        "externalReferences": {
+          "items": {
+            "$ref": "#/$defs/externalReference"
+          },
+          "maxItems": 1024,
+          "type": "array"
+        },
+        "generator": {
+          "$ref": "#/$defs/generator"
+        },
+        "inputs": {
+          "items": {
+            "$ref": "#/$defs/input"
+          },
+          "maxItems": 4096,
+          "type": "array"
+        },
+        "interfaces": {
+          "items": {
+            "$ref": "#/$defs/interface"
+          },
+          "maxItems": 1024,
+          "type": "array"
+        },
+        "manifestDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "omissions": {
+          "items": {
+            "$ref": "#/$defs/omission"
+          },
+          "maxItems": 4096,
+          "type": "array"
+        },
+        "outputs": {
+          "items": {
+            "$ref": "#/$defs/output"
+          },
+          "maxItems": 256,
+          "type": "array"
+        },
+        "packet": {
+          "$ref": "#/$defs/packet"
+        },
+        "schemaVersion": {
+          "pattern": "^1\\.[0-9]+\\.[0-9]+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "packet",
+        "inputs",
+        "interfaces",
+        "externalReferences",
+        "generator",
+        "outputs",
+        "omissions",
+        "manifestDigest"
+      ],
+      "type": "object"
+    },
+    "omission": {
+      "additionalProperties": false,
+      "properties": {
+        "identity": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "inputId": {
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+          "type": "string"
+        },
+        "projection": {
+          "enum": [
+            "full",
+            "declaration",
+            "signature",
+            "documentation",
+            "body"
+          ]
+        },
+        "reason": {
+          "enum": [
+            "missing",
+            "removed",
+            "withdrawn",
+            "unresolved",
+            "ambiguous",
+            "unsupported-selector",
+            "unsupported-projection",
+            "non-text",
+            "oversized-member",
+            "item-budget",
+            "byte-budget"
+          ]
+        },
+        "uses": {
+          "items": {
+            "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array",
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "inputId",
+        "identity",
+        "projection",
+        "uses",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "output": {
+      "additionalProperties": false,
+      "properties": {
+        "byteLength": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "examples": {
+          "description": "Per-output ceiling. The v1 limit of 2048 examples is a total across every output, which validation enforces and JSON Schema cannot.",
+          "items": {
+            "$ref": "#/$defs/example"
+          },
+          "maxItems": 2048,
+          "type": "array"
+        },
+        "mediaType": {
+          "pattern": "^[a-z0-9][a-z0-9!#$&^_.+-]*/[a-z0-9][a-z0-9!#$&^_.+-]*$",
+          "type": "string"
+        },
+        "outputId": {
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+          "type": "string"
+        },
+        "path": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "regions": {
+          "description": "Per-output ceiling. The v1 limit of 4096 regions is a total across every output, which validation enforces and JSON Schema cannot.",
+          "items": {
+            "$ref": "#/$defs/region"
+          },
+          "maxItems": 4096,
+          "type": "array"
+        }
+      },
+      "required": [
+        "outputId",
+        "path",
+        "mediaType",
+        "digest",
+        "byteLength",
+        "regions",
+        "examples"
+      ],
+      "type": "object"
+    },
+    "packet": {
+      "additionalProperties": false,
+      "properties": {
+        "closureDigest": {
+          "description": "The spec 107 closure digest exactly as every spec 159 page records it: 64 lowercase hex with no sha256: prefix, unlike the digests this document computes.",
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "pageCompleteness": {
+          "items": {
+            "enum": [
+              "partial",
+              "complete"
+            ]
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "pageDigests": {
+          "items": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "requestDigest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "schemaVersion": {
+          "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+          "type": "string"
+        },
+        "snapshot": {
+          "$ref": "#/$defs/snapshot"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "snapshot",
+        "requestDigest",
+        "closureDigest",
+        "pageDigests",
+        "pageCompleteness"
+      ],
+      "type": "object"
+    },
+    "region": {
+      "additionalProperties": false,
+      "properties": {
+        "digest": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "inputIds": {
+          "items": {
+            "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "kind": {
+          "enum": [
+            "generated",
+            "human-authored"
+          ]
+        },
+        "regionId": {
+          "pattern": "^[A-Za-z][A-Za-z0-9._-]*$",
+          "type": "string"
+        },
+        "span": {
+          "$ref": "#/$defs/span"
+        }
+      },
+      "required": [
+        "regionId",
+        "kind",
+        "span",
+        "digest",
+        "inputIds"
+      ],
+      "type": "object"
+    },
+    "snapshot": {
+      "additionalProperties": false,
+      "description": "A spec 159 packet snapshot (PacketSnapshot). ContentDirtyState has exactly these two values: a dirty tree is refused before any document is produced.",
+      "properties": {
+        "dirtyState": {
+          "enum": [
+            "clean-working-tree",
+            "clean-export"
+          ]
+        },
+        "repository": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "revision": {
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        },
+        "tree": {
+          "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "repository",
+        "revision",
+        "tree",
+        "dirtyState"
+      ],
+      "type": "object"
+    },
+    "span": {
+      "additionalProperties": false,
+      "description": "An inclusive 1-based line span. endLine >= startLine, abutting regions and coverage of every line are checked by validation, which JSON Schema cannot express.",
+      "properties": {
+        "endLine": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "startLine": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "startLine",
+        "endLine"
+      ],
+      "type": "object"
+    }
+  },
+  "$id": "https://spec-spine.dev/schemas/documentation-manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "The two documents of spec 160 on one axis: a documentation manifest (`$defs/manifest`) and a freshness result (`$defs/freshness`). Untrusted repository data; carries no authority.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/manifest"
+    },
+    {
+      "$ref": "#/$defs/freshness"
+    }
+  ],
+  "title": "documentation manifest and freshness result"
+}

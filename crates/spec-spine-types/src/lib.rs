@@ -31,6 +31,7 @@ pub mod content;
 pub mod context_packet;
 pub mod coverage;
 pub mod delta;
+pub mod documentation_manifest;
 pub mod edges;
 pub mod error;
 pub mod frontmatter;
@@ -94,6 +95,15 @@ pub use delta::{
     AuthorityDelta, ChangeKind, DeltaChange, DeltaClass, DeltaCommits, DeltaReport, PriorPolicy,
     RelocationCheck, ValueChange, VerificationDelta,
 };
+pub use documentation_manifest::{
+    DOCUMENTATION_MANIFEST_SCHEMA, DocumentationFreshness, DocumentationManifest, ExampleExit,
+    ExternalPurpose, ExternalResolution, FreshnessFinding, FreshnessReason, FreshnessStatus,
+    MANIFEST_LABEL_LIMIT, MANIFEST_MAX_BYTES, MANIFEST_MAX_EXAMPLES,
+    MANIFEST_MAX_EXTERNAL_REFERENCES, MANIFEST_MAX_INPUTS, MANIFEST_MAX_INTERFACES,
+    MANIFEST_MAX_OUTPUTS, MANIFEST_MAX_REGIONS, ManifestExample, ManifestExternalReference,
+    ManifestGenerator, ManifestInput, ManifestInterface, ManifestOmission, ManifestOutput,
+    ManifestPacket, ManifestRegion, RegionKind, RegionSpan,
+};
 pub use edges::{
     CoAuthorityItem, ConstrainItem, ExtendItem, Origin, Provenance, ReferenceItem, RefineItem,
     SupersedeItem, SupersedeScope, SupersedeScoped,
@@ -137,7 +147,7 @@ pub use verdict::{Verdict, VerdictError, error_kind};
 pub use verify::{SkippedBlocks, VerifyFailure, VerifyOutcome, VerifyPlan, VerifyReport};
 pub use version::{
     BUILD_META_SCHEMA_VERSION, CAPABILITIES_SCHEMA_VERSION, CATALOG_SCHEMA_VERSION, CONFIG_VERSION,
-    CONTEXT_PACKET_SCHEMA_VERSION, DELTA_SCHEMA_VERSION, INDEX_SCHEMA_VERSION, READ_SCHEMA_VERSION,
-    REGISTRY_SCHEMA_VERSION, SNAPSHOT_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION,
-    VERDICT_SCHEMA_VERSION, parse_semver,
+    CONTEXT_PACKET_SCHEMA_VERSION, DELTA_SCHEMA_VERSION, DOCUMENTATION_MANIFEST_SCHEMA_VERSION,
+    INDEX_SCHEMA_VERSION, READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, SNAPSHOT_SCHEMA_VERSION,
+    SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, parse_semver,
 };
