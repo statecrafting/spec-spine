@@ -12,7 +12,19 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/capability.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/schemas/documentation-manifest.schema.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/documentation_manifest.rs",
         "source": "spec-edge"
       },
       {
@@ -83,7 +95,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/schemas/documentation-manifest.schema.json"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -92,7 +108,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/documentation_manifest.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -120,6 +140,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/capability.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/capability.rs"
         }
       },
       {
@@ -208,19 +241,6 @@
       {
         "locations": [
           {
-            "file": "crates/spec-spine-core/src/interface.rs"
-          }
-        ],
-        "ownership": false,
-        "sourceField": "references",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/interface.rs"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "docs/design/09-disposition-2026-09-21.md"
           }
         ],
@@ -236,5 +256,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "fb76dd4d7682b89821150533713ffb263e0af21b413db7f46f1301a945c5e219"
+  "shardHash": "c8bf0b8af87b9b179c8abf7b08124136643080ed241fdc088200224b03551205"
 }
