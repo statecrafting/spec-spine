@@ -1,0 +1,250 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "135-the-toolchain-floor-and-dependencies-are-checked"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/spec-spine-core/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/compact.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/delta.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/dep_only.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/manifest.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/ai_review_policy.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/gate.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/frontmatter.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/impact.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/moves.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/tests/grammar.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/yaml_workflow_parity.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/yaml_parity.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/compact.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/compact.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/delta.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/delta.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/dep_only.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/dep_only.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/manifest.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/manifest.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/ai_review_policy.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/ai_review_policy.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/gate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/frontmatter.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/frontmatter.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/impact.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/impact.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/moves.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/moves.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/tests/grammar.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/grammar.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "deny.toml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "deny.toml"
+        }
+      }
+    ],
+    "specId": "196-yaml-parsing-moves-off-unsafe-libyaml",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "0445bb87af55b600f267a8989586279831477871b580c7bc8437424b48cc08c6"
+}
