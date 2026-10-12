@@ -619,6 +619,11 @@ impl Command {
             } => Some(verb::CAPABILITIES_VERIFY),
             Command::Capabilities {
                 json: true,
+                action: Some(cmd_capabilities::CapabilitiesAction::Verify { .. }),
+                ..
+            } => Some(verb::CAPABILITIES_VERIFY),
+            Command::Capabilities {
+                json: true,
                 action: None,
                 ..
             } => Some(verb::CAPABILITIES),

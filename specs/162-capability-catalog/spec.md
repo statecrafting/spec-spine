@@ -674,6 +674,13 @@ and 33 facade bindings.
 The operation remains experimental under 3.8 while spec 159 is draft,
 including after its implementation becomes complete.
 
+**D-20 (2026-10-11, review): the parent's `--json` reaches `verify`.**
+§3.11 gives `capabilities verify` its own `--json`, and `capabilities` has one
+too. `capabilities --json verify` previously answered in prose and routed a
+refusal to plain stderr, dropping a flag the caller gave. Either spelling now
+selects the verdict envelope, for the answer and for a refusal alike, which
+changes what is written and never what is decided (spec 034).
+
 ## Verification
 
 Before the build, the first three lines fail (the two test targets do not

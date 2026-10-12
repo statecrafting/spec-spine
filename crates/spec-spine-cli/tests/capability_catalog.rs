@@ -515,6 +515,50 @@ fn verify_answers_current_with_exit_zero() {
     assert_eq!(v["verb"], "capabilities.verify");
     assert_eq!(v["report"]["results"][0]["outcome"], "current");
 
+    // The parent's `--json` asks for the same envelope (162 D-20), and a
+    // refusal under it is the envelope too, never plain stderr.
+    let out = command(bin(), tmp.path())
+        .args([
+            "capabilities",
+            "--json",
+            "verify",
+            "--expect",
+            &format!("check={digest}"),
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(0));
+    let v: Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(v["verb"], "capabilities.verify");
+    let out = command(bin(), tmp.path())
+        .args([
+            "capabilities",
+            "--json",
+            "verify",
+            "--expect",
+            "check=sha256:00",
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(3));
+    let v: Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(v["verb"], "capabilities.verify", "{v}");
+    assert_eq!(v["outcome"], "usage", "{v}");
+    // A well-formed pin that no longer matches is `changed`, exit 1.
+    let out = command(bin(), tmp.path())
+        .args([
+            "capabilities",
+            "--json",
+            "verify",
+            "--expect",
+            &format!("check=sha256:{}", "0".repeat(64)),
+        ])
+        .output()
+        .unwrap();
+    assert_eq!(out.status.code(), Some(1));
+    let v: Value = serde_json::from_slice(&out.stdout).unwrap();
+    assert_eq!(v["report"]["results"][0]["outcome"], "changed", "{v}");
+
     // A repeated pin is usage.
     let out = command(bin(), tmp.path())
         .args([
