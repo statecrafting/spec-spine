@@ -44,6 +44,12 @@ pub const INDEX_INPUTS_SCHEMA: &str = include_str!("../schemas/codebase-index-in
 /// `schemaVersion` is [`crate::READ_SCHEMA_VERSION`].
 pub const AFFECTED_SCHEMA: &str = include_str!("../schemas/affected.schema.json");
 
+/// JSON Schema for the obligation traceability read document, `registry
+/// traceability --json` (spec 169). A read document on
+/// [`crate::READ_SCHEMA_VERSION`], also carrying
+/// [`crate::TRACEABILITY_SCHEMA_VERSION`].
+pub const TRACEABILITY_SCHEMA: &str = include_str!("../schemas/traceability.schema.json");
+
 /// JSON Schema for the capability catalog (spec 162 §3.13), the `catalog`
 /// member of `capabilities --json` and `capability_catalog_json()`'s answer.
 pub const CAPABILITY_CATALOG_SCHEMA: &str =

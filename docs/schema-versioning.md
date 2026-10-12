@@ -17,7 +17,8 @@
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb, and every `--json` read's failure) | `schemaVersion` | `1.1.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.2.0` | library |
-| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.10.0` | library |
+| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.11.0` | library |
+| traceability report (`registry traceability --json`, `traceability_json`; spec 169) | `traceabilityVersion` | `1.0.0` | library (beside the read stamp) |
 | capabilities document (`capabilities --json`, spec 170) | `schemaVersion` | `0.2.0` | library |
 | capability catalog (the document's `catalog`, `capability_catalog_json()`, spec 162) | `schemaVersion` | `1.0.0` | library |
 | context packet (`context packet --json`, `context_packet_json`, spec 159) | `schemaVersion` | `1.0.0` | library |
@@ -381,6 +382,17 @@ emitted document against. The `[acceptance] select_all_on` table is a new
 optional `spec-spine.toml` key (an older binary rejects it, as it does any
 unknown key); `config_version` does not move. No member of an existing
 document moved.
+
+**`0.11.0` (spec 169), additive.** A new read document, the traceability
+report (`registry traceability [--declared-by] [--obligation] [--state]
+--json`, `traceability_json`): `{ "relations": [ { "identity", "declaredBy",
+"id", "obligation", "relation", "target", "targetIdentity", "withdrawn",
+"state", "detail"? } ], "summary": { <state>: <count> }, "traceabilityVersion",
+"schemaVersion" }`. `traceabilityVersion` is the document's own axis, starting
+at `1.0.0`: a reader accepts any `1.x` and refuses another major, and an
+unknown relation, target kind or state is a parse failure, never downcast, and
+adding one moves `traceabilityVersion` MAJOR. No
+member of an existing document moved.
 
 ## The context-packet axis: spec 159
 
