@@ -136,5 +136,5 @@
     "title": "Validate one draft without a temporary repository"
   },
   "shardHash": "0b45fbd9ec55f54cf2985caa07475ffeccee24feb8d5dd20ca88148d5437eaa3",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

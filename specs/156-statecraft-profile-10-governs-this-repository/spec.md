@@ -385,6 +385,9 @@ correction belongs in Statecraft Profile 12, followed by a fresh exact render.
 > Since 2026-10-05, `193-the-0-29-0-release-moves-the-pin` holds 191's block in turn, so this plan runs
 > from that spec's block (spec 193 3.3).
 
+> Since 2026-10-10, `195-the-0-30-0-release-moves-the-pin` holds 193's block in turn, so this plan runs
+> from that spec's block (spec 195 3.3).
+
 ```verify:cli
 # 3.1 and 3.3: the committed environment names Profile 11 and the exact engine pin.
 grep -q '"identity": "statecraft-setup:github-actions-rust@11"' .statecraft/environment.json

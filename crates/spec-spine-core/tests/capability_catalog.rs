@@ -344,6 +344,7 @@ fn every_facade_function_is_cataloged_and_nothing_else_is() {
         let source = match name.as_str() {
             "selected_content_json" => "crates/spec-spine-core/src/content.rs",
             "context_packet_json" => "crates/spec-spine-core/src/context_packet.rs",
+            "traceability_json" => "crates/spec-spine-core/src/traceability.rs",
             other => panic!("no definition audit for re-exported facade {other}"),
         };
         let source = fs::read_to_string(repo_root().join(source)).unwrap();

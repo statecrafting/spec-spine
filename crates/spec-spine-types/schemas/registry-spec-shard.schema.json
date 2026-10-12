@@ -138,6 +138,76 @@
             }
           }
         },
+        "traceability": {
+          "type": "array",
+          "description": "Declared obligation traceability (spec 169; first shipped in specVersion 1.10.0). Every spec reference is normalized to its full id. Omitted when empty.",
+          "items": {
+            "type": "object",
+            "required": ["id", "obligation", "relation", "target"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9]+)*$" },
+              "obligation": { "type": "string", "pattern": "^[^#\\s]+#[^#\\s]+$" },
+              "relation": {
+                "enum": ["implemented-by", "tested-by", "enforced-by", "documented-by", "produced-by", "consumed-by"]
+              },
+              "target": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "required": ["kind", "spec", "unit"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": { "const": "unit" },
+                      "spec": { "type": "string", "minLength": 1 },
+                      "unit": { "type": ["object", "string"] }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": ["kind", "selector"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": { "const": "test" },
+                      "selector": { "type": "string", "minLength": 1 }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": ["kind", "obligation"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": { "const": "invariant" },
+                      "obligation": { "type": "string", "pattern": "^[^#\\s]+#[^#\\s]+$" }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": ["kind", "selector"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": { "const": "documentation" },
+                      "selector": { "type": "object", "required": ["kind"] }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": ["kind", "role", "spec"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "kind": { "const": "interface" },
+                      "role": { "enum": ["producer", "consumer"] },
+                      "spec": { "type": "string", "minLength": 1 },
+                      "unit": { "type": ["object", "string"] },
+                      "corpus": { "type": "string", "minLength": 1 }
+                    }
+                  }
+                ]
+              },
+              "withdrawn": { "const": true }
+            }
+          }
+        },
         "moves": {
           "type": "array",
           "description": "Declared relocation, split, merge or removal of a path (spec 111; first shipped in specVersion 1.8.0). `answeredBy`'s spec half is normalized to its full id.",

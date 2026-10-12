@@ -41,6 +41,9 @@ const CROSS_SPEC_CODES: &[&str] = &[
     // Spec 142 §3.2: a relocation whose source spec is not in the corpus, or is
     // the declaring spec itself.
     "V-043",
+    // Spec 169 §3.1, §3.4: a trace relation's source obligation, and its
+    // normalized tuple, both resolve against the corpus.
+    "V-045", "V-046",
 ];
 
 /// The cap on **undeclared** `extra_frontmatter` keys before `V-007` fires.
@@ -215,6 +218,10 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
         for r in &mut p.fm.relocates {
             r.spec = resolve_spec_ref(&r.spec, &all_ids);
         }
+        // Spec 169 §3.4: every spec reference in a trace relation, likewise.
+        for t in &mut p.fm.traceability {
+            crate::traceability::normalize(t, &all_ids);
+        }
     }
 
     // --- per-spec validation + record construction ---
@@ -235,6 +242,7 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
         validate_intent(&p.spec_path, &p.fm, &mut violations);
         validate_moves_local(&p.spec_path, &p.fm, &mut violations);
         validate_relocations_local(&p.spec_path, &p.fm, &p.body, &mut violations);
+        crate::traceability::validate_local(&p.spec_path, &p.fm, &mut violations);
         records.push(build_record(p.fm, p.spec_path, &p.body));
     }
     records.sort_by(|a, b| a.id.cmp(&b.id));
@@ -259,6 +267,8 @@ pub fn compile(cfg: &Config, repo_root: &Path) -> Result<CompileOutcome, Error> 
     detect_move_cross_spec(&records, &mut violations);
     // Spec 142 §3.2: a relocation's source spec must exist and be another spec.
     detect_relocation_cross_spec(&records, &mut violations);
+    // Spec 169 §3.1, §3.4: trace relation sources and duplicate tuples.
+    crate::traceability::detect_cross_spec(&records, &mut violations);
 
     // --- shard projection + aggregate content hash (spec 022) ---
     // One shard per spec, each carrying its compiled record, its corpus-
@@ -851,6 +861,7 @@ fn build_record(fm: Frontmatter, spec_path: String, body: &str) -> SpecRecord {
         intent: fm.intent.map(Into::into),
         moves: fm.moves,
         relocates: fm.relocates,
+        traceability: fm.traceability,
         extra_frontmatter: fm.extra_frontmatter,
     }
 }
@@ -1925,6 +1936,7 @@ fn recompute_cross_spec_violations(records: &[SpecRecord]) -> Vec<Violation> {
     detect_impact_cross_spec(records, &mut out);
     detect_move_cross_spec(records, &mut out);
     detect_relocation_cross_spec(records, &mut out);
+    crate::traceability::detect_cross_spec(records, &mut out);
     out
 }
 

@@ -465,14 +465,14 @@ Measured against `main.rs` and `lib.rs` at the 2026-10-10 refile, then
 reconciled with spec 159 as recorded in D-19. The build MUST reconcile this
 with the censuses and record any difference as a decision entry.
 
-CLI operations (38): `attest`, `capabilities`, `capabilities.verify`,
+CLI operations (39): `attest`, `capabilities`, `capabilities.verify`,
 `check`, `compact`, `compact.plan`, `compile`, `compile.check`,
 `compile.spec`, `config.show`, `content.select`, `context.packet`, `couple`, `delta`,
 `index.build`, `index.check`, `index.coverage`, `index.diagnostics`,
 `index.orphans`, `index.owner`, `index.render`, `interface.verify`, `lint`,
 `registry.closure`, `registry.impacts`, `registry.list`, `registry.moves`,
 `registry.obligation`, `registry.plan`, `registry.relationships`,
-`registry.show`, `registry.status-report`, `scope.compare`, `scope.evaluate`,
+`registry.show`, `registry.status-report`, `registry.traceability`, `scope.compare`, `scope.evaluate`,
 `verify`, `verify.affected`, `verify.plan`, `verify-attestation`.
 
 Effects that are not `reads: [config, corpus, derived-ledger]` alone:
@@ -492,10 +492,11 @@ writes `temporary` (`gate-verdict`, `waiver-evaluation`); `delta` executes
 `capabilities` operations read nothing.
 
 Facade functions: the 31 `pub fn *_json` defined in `lib.rs`, including
-this spec's two, plus the re-exported `selected_content_json` and
-`context_packet_json`, 33 in all. Those without a CLI form become `library.*` operations, as the census finds them:
+this spec's two, plus the re-exported `selected_content_json`,
+`context_packet_json` and `traceability_json` (spec 169), 34 in all. Those without a CLI form become `library.*` operations, as the census finds them:
 `library.load-config`, `library.scaffold-init` and
-`library.scaffold-init-opts` (D-16). The catalog holds 41 operations.
+`library.scaffold-init-opts` (D-16). The catalog holds 42 operations;
+spec 169 adds `registry.traceability`.
 
 ## 4. Acceptance criteria
 
