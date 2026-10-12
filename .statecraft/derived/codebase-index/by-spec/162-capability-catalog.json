@@ -26,6 +26,14 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/tests/capability_catalog.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/fixtures/capability-catalog/",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/capability.rs",
         "source": "spec-edge"
       },
@@ -70,6 +78,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "docs/capability-catalog.md",
+        "source": "spec-edge"
+      },
+      {
         "path": "docs/cli-reference.md",
         "source": "spec-edge"
       },
@@ -80,7 +92,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/fixtures/capability-catalog/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -89,7 +105,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/capability_catalog.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -150,12 +170,21 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "docs/capability-catalog.md",
+            "span": {
+              "endLine": 83,
+              "startLine": 1
+            }
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
-          "kind": "file",
-          "path": "docs/capability-catalog.md"
+          "anchor": "the-capability-catalog",
+          "file": "docs/capability-catalog.md",
+          "kind": "section"
         }
       },
       {
@@ -319,7 +348,7 @@
           {
             "file": "docs/cli-reference.md",
             "span": {
-              "endLine": 516,
+              "endLine": 531,
               "startLine": 1
             }
           }
@@ -376,5 +405,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "cc3bf0055d397cc83e1e4a03f9a82b7532a7e9984106c40f38643f33f05c0cbc"
+  "shardHash": "e84d5a7e06443f3fb250978b739c1cee07b3c00168f4327446260149e1a669ac"
 }
