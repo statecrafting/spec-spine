@@ -31,6 +31,12 @@ extends:
   - { spec: "071-a-change-is-classified-under-the-bases-rules", unit: "crates/spec-spine-core/src/delta.rs", nature: corrective }
   - { spec: "005-coupling-gate", unit: "crates/spec-spine-core/src/dep_only.rs", nature: corrective }
   - { spec: "004-codebase-index", unit: "crates/spec-spine-core/src/manifest.rs", nature: corrective }
+  # Tests that call the old crate directly, on the spec that owns each file.
+  - { spec: "111-a-move-is-a-reviewed-mapping", unit: "crates/spec-spine-types/src/moves.rs", nature: corrective }
+  - { spec: "109-impact-and-conflict-are-declared", unit: "crates/spec-spine-types/src/impact.rs", nature: corrective }
+  - { spec: "013-edge-paths-grammar-sugar", unit: "crates/spec-spine-types/tests/grammar.rs", nature: corrective }
+  - { spec: "094-one-gate-and-the-boundaries-it-holds", unit: "crates/spec-spine-core/tests/gate.rs", nature: corrective }
+  - { spec: "091-an-unclassified-review-failure-blocks-the-merge", unit: "crates/spec-spine-core/tests/ai_review_policy.rs", nature: corrective }
   # The dependency swap.
   - { spec: "135-the-toolchain-floor-and-dependencies-are-checked", paths: ["crates/spec-spine-types/Cargo.toml", "crates/spec-spine-core/Cargo.toml"] }
 references:
@@ -67,8 +73,11 @@ maintains.
 | `crates/spec-spine-core/src/dep_only.rs` | a workflow at base and head, compared except for `uses:` refs |
 | `crates/spec-spine-core/src/manifest.rs` | workflow manifests, projected to JSON for hashing |
 
-Tests in `spec-spine-types` (`grammar.rs`, `moves.rs`, `impact.rs`) and
-`spec-spine-core` (`gate.rs`, `ai_review_policy.rs`) also parse YAML.
+Five more files call `serde_yaml` directly in tests: the unit tests inside
+`crates/spec-spine-types/src/moves.rs` and `crates/spec-spine-types/src/impact.rs`,
+and the integration tests `crates/spec-spine-types/tests/grammar.rs`,
+`crates/spec-spine-core/tests/gate.rs` and
+`crates/spec-spine-core/tests/ai_review_policy.rs`.
 
 ## 2. Territory
 
@@ -78,8 +87,10 @@ policy. The root `Cargo.toml` (the `[workspace.dependencies]` line) is claimed
 by no spec and hashed by none; claiming it would oblige an
 `extra_hashed_inputs` glob (L-008), so it stays unclaimed, as it is today.
 `deny.toml` is referenced rather than claimed, as in 135: a claimed file must
-be hashed (L-008), and a policy edit should not restamp every shard. Test files
-the build edits are claimed by the build, on the spec that owns each one.
+be hashed (L-008), and a policy edit should not restamp every shard. The five files
+whose tests call the old crate are `extends` crossings on the spec that
+establishes each (111, 109, 094, 091); `grammar.rs` has no establisher, so its
+crossing is on 013, the edge-grammar spec that first extended it.
 
 ## 3. Behavior
 

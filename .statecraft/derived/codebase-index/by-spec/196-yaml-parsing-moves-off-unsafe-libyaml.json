@@ -25,11 +25,31 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/ai_review_policy.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/gate.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/Cargo.toml",
         "source": "spec-edge"
       },
       {
         "path": "crates/spec-spine-types/src/frontmatter.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/impact.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/moves.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/tests/grammar.rs",
         "source": "spec-edge"
       }
     ],
@@ -120,6 +140,32 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/ai_review_policy.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/ai_review_policy.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/gate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-types/Cargo.toml"
           }
         ],
@@ -146,6 +192,45 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-types/src/impact.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/impact.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/moves.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/moves.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/tests/grammar.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/grammar.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "deny.toml"
           }
         ],
@@ -161,5 +246,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "825f1c21cb58672558beb1fe35ac072e9fd72765c24f458a803f402d421b2799"
+  "shardHash": "6cd295074669d3bc9a4a63b5dff5554f1bea11140a1d58b1f6b5de6f21f376c6"
 }

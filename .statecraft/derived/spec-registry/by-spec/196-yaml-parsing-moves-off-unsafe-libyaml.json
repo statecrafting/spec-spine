@@ -58,6 +58,46 @@
         }
       },
       {
+        "nature": "corrective",
+        "spec": "111-a-move-is-a-reviewed-mapping",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/moves.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "109-impact-and-conflict-are-declared",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/impact.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "013-edge-paths-grammar-sugar",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/tests/grammar.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "094-one-gate-and-the-boundaries-it-holds",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/gate.rs"
+        }
+      },
+      {
+        "nature": "corrective",
+        "spec": "091-an-unclassified-review-failure-blocks-the-merge",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/ai_review_policy.rs"
+        }
+      },
+      {
         "spec": "135-the-toolchain-floor-and-dependencies-are-checked",
         "unit": {
           "kind": "file",
@@ -88,10 +128,10 @@
     "risk": "high",
     "sectionDigests": {
       "1-1-the-parser-is-unmaintained": "db7be1dad3da52a670211199743440f67de3052aa96f9a6a8a6e00f84d73e04f",
-      "1-2-where-yaml-is-read": "3f5b4c0ef237f943b953fc1ecfbe0ad063ad06de4ec2c9dc9cc2388064fbcbb8",
-      "1-purpose": "a5aa445d9e659058c3bc12ed599f62d1c9e0199580aeeed43c31014da619d26f",
-      "196-yaml-parsing-moves-off-unsafe-libyaml": "8ee60bb3d647b28f66c356ee4d6778472eb761d11b64e94383425f9d2c12faa1",
-      "2-territory": "e67e9cebcc28cdd5b7dc0ea62ce55b4b5140eedb55fe2335ab55a5617eb2b800",
+      "1-2-where-yaml-is-read": "5b92b1adbe9c0f60575994e3b0bf3d03fc048d9c95b1aebecf7f44e22aefee2f",
+      "1-purpose": "4d61de42f1d0bbec0c8ad85ecb0d8b437b6d1ad7456ae2739d65599ff1dfb4b4",
+      "196-yaml-parsing-moves-off-unsafe-libyaml": "ed1d4317ec035a57a2c5f52e7aed50f62f542d806d3d629493096d04c547c241",
+      "2-territory": "eb37eaf65eb7115cc57d7338ada1622ce5fa857682a83c9f9e16da167c4027ac",
       "3-1-the-parser": "9a9848487ec339fe91e625cb93974a37363e8b304ee5119ce8393ee645d626a3",
       "3-2-the-registry-and-index-do-not-move": "a7d085566085cd01e3221a131375a6dc127a6e189842a87131947e06df2b307e",
       "3-3-every-refusal-is-kept": "2a1977d98ce9b4c803c46e4abe3ca1e7b26f5abf6e73a2a677b38e6be7787943",
@@ -123,6 +163,6 @@
     "summary": "Every YAML read in the engine (spec frontmatter, compaction plans, the delta classifier, the dependency-only waiver, workflow manifests) goes through `serde_yaml` 0.9, which is deprecated and parses with `unsafe-libyaml`, a c2rust translation of libyaml that RUSTSEC-2024-0449 marks unmaintained. `deny.toml` ignores that advisory by id so `cargo-deny` can pass; this spec removes the reason for the ignore. The engine moves to a YAML crate written in safe Rust, the committed registry and index shard trees stay byte-identical, every refusal the current parser produces on authored frontmatter is kept, and the ignore entry is deleted in the same change.\n",
     "title": "YAML parsing moves off unsafe-libyaml"
   },
-  "shardHash": "825f1c21cb58672558beb1fe35ac072e9fd72765c24f458a803f402d421b2799",
+  "shardHash": "6cd295074669d3bc9a4a63b5dff5554f1bea11140a1d58b1f6b5de6f21f376c6",
   "specVersion": "1.10.0"
 }
