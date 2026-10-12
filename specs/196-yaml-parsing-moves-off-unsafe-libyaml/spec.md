@@ -165,13 +165,16 @@ None yet.
 ## Verification
 
 ```verify:cli
-# 3.1: neither crate is in the locked tree, and no source names the old one.
+# 3.1: neither crate is in the locked tree, no manifest depends on the old
+# one, and no source uses it (a comment may still name it).
 ! grep -q '^name = "serde_yaml"$' Cargo.lock
 ! grep -q '^name = "unsafe-libyaml"$' Cargo.lock
-! grep -rq 'serde_yaml' Cargo.toml crates
+! grep -q 'serde_yaml' Cargo.toml crates/*/Cargo.toml
+! grep -rqE 'serde_yaml::|use serde_yaml' crates
 # 3.5: the ignore entry is gone.
 ! grep -q 'RUSTSEC-2024-0449' deny.toml
 # 3.2: the committed trees are fresh under the new parser.
+cargo build --release --locked -p spec-spine-cli
 target/release/spec-spine check
 # 3.3 and 3.4: the parity tables run and pass. The build records each
 # target's exact test count here (spec 153).
