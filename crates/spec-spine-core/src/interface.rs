@@ -84,6 +84,19 @@ pub fn verify_interface_references(
     })
 }
 
+/// One reference's recomputed outcome against `exports`, outside any
+/// registry: the same pure verifier [`verify_interface_references`] applies to
+/// each declared reference. Spec 160 checks a documentation manifest's
+/// interface inputs through it, so a manifest pin and a frontmatter pin
+/// cannot answer differently.
+pub fn verify_reference(
+    declared_by: &str,
+    r: &spec_spine_types::InterfaceReference,
+    exports: &Exports,
+) -> ReferenceResult {
+    verify_one(declared_by, r, exports)
+}
+
 /// One reference's recomputed outcome (spec 110 §3.3 table).
 fn verify_one(
     declared_by: &str,
