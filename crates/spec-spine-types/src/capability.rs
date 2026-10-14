@@ -106,6 +106,11 @@ pub struct CliBinding {
     pub flags: Vec<Flag>,
     /// `verdict-envelope`, `read-document`, `text` or `files`.
     pub output: String,
+    /// The flags whose presence selects this operation among those sharing
+    /// `argv` (spec 167 D-14), sorted. Empty for an operation no flag selects,
+    /// which is the one its siblings' selectors are all absent from.
+    #[serde(default)]
+    pub selector: Vec<String>,
 }
 
 /// One clap argument.

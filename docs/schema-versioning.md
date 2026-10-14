@@ -20,7 +20,7 @@
 | read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.12.0` | library |
 | traceability report (`registry traceability --json`, `traceability_json`; spec 169) | `traceabilityVersion` | `1.0.0` | library (beside the read stamp) |
 | capabilities document (`capabilities --json`, spec 170) | `schemaVersion` | `0.2.0` | library |
-| capability catalog (the document's `catalog`, `capability_catalog_json()`, spec 162) | `schemaVersion` | `1.0.0` | library |
+| capability catalog (the document's `catalog`, `capability_catalog_json()`, spec 162) | `schemaVersion` | `1.1.0` | library |
 | context packet (`context packet --json`, `context_packet_json`, spec 159) | `schemaVersion` | `1.0.0` | library |
 | documentation manifest and freshness result (`documentation manifest validate\|freshness --json`, spec 160) | `schemaVersion` | `1.0.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
@@ -48,6 +48,10 @@ MINOR history:
   token or optional member is MINOR; removing or renaming one, or changing the
   digest construction, is MAJOR. Its schema is embedded as
   `capability-catalog.schema.json`.
+- capability catalog `1.1.0` (spec 167 D-14): additive. A `cli` binding gains
+  `selector`, the flags whose presence selects that operation among those
+  sharing its argv (`verify.plan` is `verify --plan`). Every operation
+  digest, and so the catalog digest, moves.
 
 - `index.json` `0.2.0` (spec 011): additive `build.sliceHashes` -- per-slice
   content hashes for `index check --slice <name>`.

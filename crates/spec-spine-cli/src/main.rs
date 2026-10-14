@@ -833,7 +833,7 @@ mod tests {
 
     /// Spec 162 §3.10 item 1: the clap tree and the capability catalog's CLI
     /// bindings describe the same commands and the same arguments, and each
-    /// command's `about` is the summary of every operation bound to it.
+    /// command's `about` is the summary of the operation no flag selects.
     ///
     /// The catalog is static data in the core (162 D-1); this is what keeps it
     /// true. Adding, removing or renaming a subcommand or an argument, or
@@ -937,11 +937,15 @@ mod tests {
                 "{}: the catalog's arguments for `{path}` differ from clap's",
                 op.name
             );
-            assert_eq!(
-                &op.summary, about,
-                "{}: summary differs from `{path}`'s clap about",
-                op.name
-            );
+            // A variant a flag selects says what that flag makes it (spec 167
+            // D-14); the operation no flag selects carries the command's about.
+            if cli.selector.is_empty() {
+                assert_eq!(
+                    &op.summary, about,
+                    "{}: summary differs from `{path}`'s clap about",
+                    op.name
+                );
+            }
         }
         let wired: Vec<&String> = clap_tree.keys().collect();
         let cataloged: Vec<&String> = bound.keys().collect();

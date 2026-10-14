@@ -26,7 +26,7 @@ with no CLI form is `library.<stem>`.
 | Member | Meaning |
 |---|---|
 | `summary`, `governedBy` | One sentence (the clap `about`), and the specs that govern it |
-| `cli` | The argv path, every argument (`--long` or a positional id, value name, required, repeatable), and the output kind |
+| `cli` | The argv path, every argument (`--long` or a positional id, value name, required, repeatable), the output kind, and the `selector` flags that make this operation, rather than another sharing its argv, the one an invocation runs (`verify.plan` is `verify --plan`; spec 167 D-14) |
 | `facade` | The `*_json` functions serving it, and whether each reads under a repository root |
 | `request`, `response` | Argv or a request document; each answer's schema axis, version and embedded schema `$id` where one exists |
 | `effects`, `effectsWhen` | What the CLI form reads, writes and executes, its network and environment use, and its authority-sensitive effects; what a flag adds |

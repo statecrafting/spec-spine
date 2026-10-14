@@ -641,3 +641,96 @@ fn facade_only_examples_run() {
         }
     }
 }
+
+/// The operation an argv selects among those sharing its token path: the one
+/// whose selector flags are all present, with the most of them (spec 167
+/// D-14). `None` when no selector fits or two fit equally.
+fn selected_by<'a>(group: &[&'a Operation], argv: &[String]) -> Option<&'a Operation> {
+    let present: BTreeSet<&str> = argv
+        .iter()
+        .filter(|t| t.starts_with("--"))
+        .map(|t| t.split('=').next().unwrap_or(t))
+        .collect();
+    let mut fits: Vec<&Operation> = group
+        .iter()
+        .copied()
+        .filter(|o| {
+            let cli = o.cli.as_ref().unwrap();
+            cli.selector.iter().all(|f| present.contains(f.as_str()))
+        })
+        .collect();
+    fits.sort_by_key(|o| std::cmp::Reverse(o.cli.as_ref().unwrap().selector.len()));
+    match fits.as_slice() {
+        [only] => Some(only),
+        [a, b, ..]
+            if a.cli.as_ref().unwrap().selector.len() > b.cli.as_ref().unwrap().selector.len() =>
+        {
+            Some(a)
+        }
+        _ => None,
+    }
+}
+
+#[test]
+fn operations_sharing_an_argv_are_told_apart_by_their_selectors() {
+    // Spec 167 D-14: a projected variant (`verify.plan`) must say which flag
+    // makes it that variant, or a call could drop the flag and run the base
+    // operation instead.
+    let c = catalog();
+    let mut groups: BTreeMap<Vec<String>, Vec<&Operation>> = BTreeMap::new();
+    for o in &c.operations {
+        if let Some(cli) = &o.cli {
+            groups.entry(cli.argv.clone()).or_default().push(o);
+        }
+    }
+    let mut shared = 0;
+    for (argv, group) in &groups {
+        for o in group {
+            let cli = o.cli.as_ref().unwrap();
+            let mut sorted = cli.selector.clone();
+            sorted.sort();
+            assert_eq!(cli.selector, sorted, "{}: selector unsorted", o.name);
+            let names: BTreeSet<&str> = cli.flags.iter().map(|f| f.name.as_str()).collect();
+            for f in &cli.selector {
+                assert!(
+                    names.contains(f.as_str()),
+                    "{}: selector {f} is not a flag",
+                    o.name
+                );
+            }
+        }
+        if group.len() == 1 {
+            assert!(
+                group[0].cli.as_ref().unwrap().selector.is_empty(),
+                "{}: a selector on an argv no other operation shares",
+                group[0].name
+            );
+            continue;
+        }
+        shared += 1;
+        let empty = group
+            .iter()
+            .filter(|o| o.cli.as_ref().unwrap().selector.is_empty())
+            .count();
+        assert_eq!(
+            empty, 1,
+            "{argv:?}: exactly one operation is selected by no flag"
+        );
+        for o in group {
+            assert!(!o.examples.is_empty(), "{}: no example", o.name);
+            for e in &o.examples {
+                let picked = selected_by(group, &e.argv).map(|p| p.name.as_str());
+                assert_eq!(picked, Some(o.name.as_str()), "{} example {}", o.name, e.id);
+            }
+        }
+    }
+    assert_eq!(shared, 3, "compact, compile and verify each carry variants");
+    assert_eq!(
+        op(&c, "verify.plan").cli.as_ref().unwrap().selector,
+        ["--plan"]
+    );
+    assert_eq!(
+        op(&c, "verify.affected").cli.as_ref().unwrap().selector,
+        ["--affected-by", "--plan"]
+    );
+}
