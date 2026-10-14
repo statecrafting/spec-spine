@@ -22,13 +22,11 @@
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/documentation_manifest.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/documentation_manifest.rs"
       },
       {
         "kind": "directory",
-        "path": "crates/spec-spine-core/tests/fixtures/documentation-manifest/",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/fixtures/documentation-manifest/"
       },
       {
         "kind": "file",
@@ -236,6 +234,6 @@
     "summary": "Adds a deterministic documentation-manifest document and a read-only freshness evaluation. A manifest binds one repository-scoped context packet, declared local and external inputs, generator identity, output bytes, generated and human-authored regions, and executable-example identities. Freshness names every changed, missing, unresolved, or unverified declared input without claiming that unchanged inputs make narrative text correct.\n",
     "title": "Declare documentation inputs and freshness"
   },
-  "shardHash": "1d2265400b76ecfe0c044e358ce44fdec5baab3233277bacf032325a4920940d",
+  "shardHash": "5ada09d1e5bf6ec3bde7db36eea72a4ea7a81667049644a9ceb033f68346cedb",
   "specVersion": "1.10.0"
 }

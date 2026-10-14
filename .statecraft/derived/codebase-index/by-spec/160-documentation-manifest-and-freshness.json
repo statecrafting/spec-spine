@@ -28,6 +28,14 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/documentation_manifest.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/fixtures/documentation-manifest/",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/schemas/documentation-manifest.schema.json",
         "source": "spec-edge"
       },
@@ -58,7 +66,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/fixtures/documentation-manifest/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -98,7 +110,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/documentation_manifest.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -281,5 +297,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "2484df5d16ca0453e52192460014b9b2354dbf70569507595d215a1803d378a3"
+  "shardHash": "b0c06b1d7e14143c4c903ec0f07f632932553331ac813c6c114df108cc56af4e"
 }

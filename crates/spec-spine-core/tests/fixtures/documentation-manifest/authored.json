@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "1.0.0",
+  "packet": {
+    "schemaVersion": "1.0.0",
+    "snapshot": {
+      "repository": "example/repo",
+      "revision": "1111111111111111111111111111111111111111",
+      "tree": "2222222222222222222222222222222222222222",
+      "dirtyState": "clean-working-tree"
+    },
+    "requestDigest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "closureDigest": "4444444444444444444444444444444444444444444444444444444444444444",
+    "pageDigests": [
+      "sha256:5555555555555555555555555555555555555555555555555555555555555555"
+    ],
+    "pageCompleteness": ["complete"]
+  },
+  "inputs": [
+    {
+      "inputId": "zulu",
+      "identity": "file:notes/z.txt",
+      "projection": "full",
+      "schemaVersion": "0.10.0",
+      "digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+      "requirement": "optional",
+      "uses": ["out"]
+    },
+    {
+      "inputId": "alpha",
+      "identity": "file:notes/a.txt",
+      "projection": "full",
+      "schemaVersion": "0.10.0",
+      "digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+      "requirement": "required",
+      "uses": ["run-alpha", "out"],
+      "label": "alpha notes"
+    }
+  ],
+  "interfaces": [],
+  "externalReferences": [
+    {
+      "inputId": "toolchain",
+      "namespace": "statecraft",
+      "schemaVersion": "1.0.0",
+      "identity": "toolchain/rust",
+      "digest": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+      "requirement": "required",
+      "uses": ["out"],
+      "purpose": "toolchain"
+    }
+  ],
+  "generator": {
+    "name": "docgen",
+    "version": "1.2.3",
+    "buildDigest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+    "arguments": ["--z", "--a"],
+    "configurationDigest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "outputs": [
+    {
+      "outputId": "out",
+      "path": "docs/out.md",
+      "mediaType": "text/markdown",
+      "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "byteLength": 61,
+      "regions": [
+        {
+          "regionId": "zulu",
+          "kind": "generated",
+          "span": { "startLine": 3, "endLine": 3 },
+          "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "inputIds": ["zulu", "toolchain"]
+        },
+        {
+          "regionId": "alpha",
+          "kind": "generated",
+          "span": { "startLine": 1, "endLine": 2 },
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "inputIds": ["alpha"]
+        }
+      ],
+      "examples": [
+        {
+          "exampleId": "run-alpha",
+          "regionId": "alpha",
+          "arguments": ["docgen", "--check"],
+          "workingDirectory": ".",
+          "inputIds": ["alpha"],
+          "expectedExit": "ok"
+        }
+      ]
+    }
+  ],
+  "omissions": [],
+  "manifestDigest": "sha256:6a4a00c1bcacaee43fb5362874183efd08b4c35fff700e46779c01542af89629"
+}
