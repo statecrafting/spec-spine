@@ -18,8 +18,7 @@
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/src/documentation_manifest.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/src/documentation_manifest.rs"
       },
       {
         "kind": "file",
@@ -70,6 +69,14 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "110-an-interface-reference-is-digest-pinned",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/interface.rs"
         }
       },
       {
@@ -174,7 +181,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "24ca2dd0032410028aa616fb743ef93beeb7bbfddc471646030676e563682f1e",
-      "160-declare-documentation-inputs-and-freshness": "5cbc942480702435ada5aa9851cf62187989a560e0ffa416573945381c6a0e48",
+      "160-declare-documentation-inputs-and-freshness": "e959380dae89181571e72143e652c737e099a2503d89174918afc6d6cc8e45bc",
       "2-territory": "644ec21ed99e1f7417de2aece544efe415ac2991059212195015f0535cb352ac",
       "3-1-one-manifest-one-packet-and-generator-run": "be66e5ec02df7688c916db2f64b9a90a6603593575afee416ff4b1158b5634f1",
       "3-10-freshness-evaluation": "29b6ce10aa2472e752d92c1ddc7ed12748ac37590f8615a53a59e83b15960a61",
@@ -195,7 +202,7 @@
       "3-behavior": "b7130a225cce77d4e8e3e4eae6f1f2e44cfda334b463ee2256cbde6128f71be1",
       "4-acceptance-criteria": "9290b3708db07afef6c48918f1cec5ae18bd969818f893a0b7715dd8d378b9a5",
       "5-out-of-scope": "ffe1303c4782c97e7b32310519b61771d33a0eb982906fea25c17a21e95b076f",
-      "6-resolved-decisions": "d5fc8a936f5ef30a7fc51621e1b90c6ee6bd845d5aaf214255a65fbfde7a0184",
+      "6-resolved-decisions": "599cd67e824957f242a851db57d81a7d8a07158135bec53d3cf083ec74eca7c5",
       "verification": "566f2e31c6775fa3ee58b82ba584de9121fadc44e4507ed7c89064b8b3c857e5"
     },
     "sectionHeadings": [
@@ -229,6 +236,6 @@
     "summary": "Adds a deterministic documentation-manifest document and a read-only freshness evaluation. A manifest binds one repository-scoped context packet, declared local and external inputs, generator identity, output bytes, generated and human-authored regions, and executable-example identities. Freshness names every changed, missing, unresolved, or unverified declared input without claiming that unchanged inputs make narrative text correct.\n",
     "title": "Declare documentation inputs and freshness"
   },
-  "shardHash": "6f9103cc5d318f7ef5c6697112c972da204c822baa7fce4e40478ded33de3f6a",
+  "shardHash": "1d2265400b76ecfe0c044e358ce44fdec5baab3233277bacf032325a4920940d",
   "specVersion": "1.10.0"
 }

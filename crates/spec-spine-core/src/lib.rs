@@ -27,6 +27,7 @@ pub mod coverage;
 pub mod delta;
 pub mod dep_only;
 pub mod diagnostics;
+pub mod documentation_manifest;
 mod hash;
 pub mod impact;
 pub mod index;
@@ -115,6 +116,16 @@ pub use diagnostics::{
     UNRESOLVED_CODES, UnwitnessedCounts, annotate_unreadable, committed_counts,
     committed_diagnostics, count as count_diagnostics,
 };
+// Not yet re-exported here: the JSON facade (`documentation_manifest_json`,
+// `documentation_freshness_json`). Until its catalog records and CLI verbs
+// land (spec 160 D-19), it is reached as `documentation_manifest::<name>`; the
+// facade census refuses a crate-root `_json` function the catalog does not
+// record.
+pub use documentation_manifest::{
+    OutputBytes, canonical_manifest, documentation_freshness, documentation_freshness_document,
+    documentation_manifest_document, freshness_digest, manifest_digest, packet_snapshot,
+    parse_documentation_manifest, read_documentation_outputs, validate_documentation_manifest,
+};
 pub use impact::{ConflictEntry, ImpactEntry, ImpactSet, impacts};
 pub use index::{
     BlockingClaim, Freshness, INPUTS_FILE, IndexFreshnessReport, IndexOutcome, IndexShardSet,
@@ -125,6 +136,7 @@ pub use index::{
 };
 pub use interface::{
     ExportedSpec, Exports, interface_verify, load_export, verify_interface_references,
+    verify_reference,
 };
 pub use lint::{LintReport, lint};
 pub use moves::{

@@ -22,7 +22,7 @@ summary: >
 establishes:
   - { kind: file, path: "crates/spec-spine-types/src/documentation_manifest.rs" }
   - { kind: file, path: "crates/spec-spine-types/schemas/documentation-manifest.schema.json" }
-  - { kind: file, path: "crates/spec-spine-core/src/documentation_manifest.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/documentation_manifest.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/documentation_manifest.rs", planned: true }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/documentation-manifest/", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/src/cmd_documentation.rs", planned: true }
@@ -32,6 +32,7 @@ extends:
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
+  - { spec: "110-an-interface-reference-is-digest-pinned", unit: { kind: file, path: "crates/spec-spine-core/src/interface.rs" }, nature: additive }
   - { spec: "002-registry-query", unit: { kind: file, path: "crates/spec-spine-cli/src/main.rs" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: section, file: "docs/cli-reference.md", anchor: "cli-reference" }, nature: additive }
@@ -603,6 +604,33 @@ packet, an output and a region are always `required`. `affects` is the input's
 nothing. The packet finding carries no digest, because 3.3 creates no aggregate
 packet identity to put there, and an input recorded as omitted has no recorded
 digest.
+
+**D-17 (2026-10-10, build): the packet identity is compared at the recorded
+snapshot.** 3.10 makes differing page digests one `changed` finding, while 3.14
+and acceptance criterion 5 require unchanged declared inputs under another
+clean tree to be `fresh` with `repositoryTreeChanged: true`. A spec 159 page
+digest binds the snapshot, so under any other snapshot it differs by
+construction and the two statements cannot both hold. The evaluator compares
+page digests only when the current snapshot is the recorded one, where a
+difference is real; under another snapshot the drift is reported by
+`repositoryTreeChanged` and by each declared input's own finding, as 3.10's
+last clause for the packet already requires. This is the narrowest reading
+that keeps both explicit statements; ratification should confirm or replace
+it.
+
+**D-18 (2026-10-10, build): the remaining unstated choices.** Inputs of every
+kind (local, interface, external, omitted) share one `inputId` space, outputs
+and examples share the `uses` space, and a region id is unique within its
+output. Omissions count against the 4096-input limit. An interface pin whose
+spec 110 outcome is `sections-current` is `changed`, because 3.5 calls a
+changed spec digest stale. A local input absent from the current packet with no
+omission recorded is `missing`. A current output that is absent is `missing`
+and one that is not UTF-8 is `unsupported`, both required. Generator and
+example argument vectors keep their order; every other collection, `uses` and
+`inputIds` included, is sorted and refuses a duplicate. Two external
+resolutions for one key are a usage error. An output path is refused beneath
+`.git` and beneath the configured derived and state directories unless the
+caller's output root is itself inside that directory.
 
 ## Verification
 
