@@ -36,7 +36,8 @@ impl PartialEq for YamlValue {
         match (self, other) {
             (Null, Null) => true,
             (Bool(a), Bool(b)) => a == b,
-            (Float(a), Float(b)) => a == b,
+            // YAML has one NaN, equal to itself, as `serde_yaml`'s was.
+            (Float(a), Float(b)) => a == b || (a.is_nan() && b.is_nan()),
             (String(a), String(b)) => a == b,
             (Sequence(a), Sequence(b)) => a == b,
             (Mapping(a), Mapping(b)) => {
@@ -365,5 +366,18 @@ impl<'de> de::Deserializer<'de> for &'de YamlValue {
     serde::forward_to_deserialize_any! {
         bool i8 i16 i32 i64 i128 u8 u16 u32 u64 u128 f32 f64 char str string
         bytes byte_buf unit unit_struct tuple tuple_struct identifier
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::YamlValue;
+
+    #[test]
+    fn nan_equals_itself_as_serde_yaml_did() {
+        assert_eq!(YamlValue::Float(f64::NAN), YamlValue::Float(f64::NAN));
+        let m = |v| YamlValue::Mapping(vec![(YamlValue::String("k".into()), v)]);
+        assert_eq!(m(YamlValue::Float(f64::NAN)), m(YamlValue::Float(f64::NAN)));
+        assert_ne!(YamlValue::Float(f64::NAN), YamlValue::Float(0.0));
     }
 }

@@ -242,6 +242,12 @@ projections and waiver answers are what it gave. Every row where the two
 readers differ is D-3, D-4 or D-5, and a test asserts the differing rows are
 exactly those.
 
+**D-7 (2026-10-14): NaN is equal to itself.** `serde_yaml` 0.9 compared
+two NaN numbers as equal (YAML has one NaN), and `YamlValue`'s equality
+keeps that, so a value holding NaN still equals its own copy. The parser
+refuses an untagged non-finite float (D-4); this covers a value that reaches
+the comparison any other way. A unit test in `yaml.rs` pins it.
+
 ## Verification
 
 ```verify:cli
