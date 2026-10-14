@@ -17,7 +17,7 @@
 | authority snapshot (`attestation/snapshot.json`, spec 070) | `schemaVersion` | `0.1.0` | library |
 | verdict envelope (any `--json` verdict verb, and every `--json` read's failure) | `schemaVersion` | `1.1.0` | library |
 | change-classification report (`delta --json`, spec 071) | `schemaVersion` | `0.2.0` | library |
-| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.11.0` | library |
+| read documents (`--json` on the read verbs, and the facades behind them; spec 074) | `schemaVersion` | `0.12.0` | library |
 | traceability report (`registry traceability --json`, `traceability_json`; spec 169) | `traceabilityVersion` | `1.0.0` | library (beside the read stamp) |
 | capabilities document (`capabilities --json`, spec 170) | `schemaVersion` | `0.2.0` | library |
 | capability catalog (the document's `catalog`, `capability_catalog_json()`, spec 162) | `schemaVersion` | `1.0.0` | library |
@@ -394,6 +394,16 @@ at `1.0.0`: a reader accepts any `1.x` and refuses another major, and an
 unknown relation, target kind or state is a parse failure, never downcast, and
 adding one moves `traceabilityVersion` MAJOR. No
 member of an existing document moved.
+
+**`0.12.0` (spec 163), additive.** The selected-content omission reason
+gains `indeterminate-selector`, for a `symbol`, `module` or `test` id whose
+scope the resolver cannot enumerate, and a `test` selector resolves a Rust
+function bound to a bare `#[test]` instead of always answering
+`unsupported-selector`. Each `unsupported` or `unknown` omission names its
+reason token in `message`. A context packet records an indeterminate selector
+as `unresolved`, and the traceability report as `unsupported`; neither axis
+moves.
+No member of an existing document moved.
 
 ## The context-packet axis: spec 159
 

@@ -17,11 +17,23 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/tests/resolver_matrix.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-cli/tests/scope.rs",
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/tests/traceability.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/content.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/context_packet.rs",
         "source": "spec-edge"
       },
       {
@@ -33,7 +45,15 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/traceability.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/tests/content.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/fixtures/traceability/",
         "source": "spec-edge"
       },
       {
@@ -46,6 +66,10 @@
       },
       {
         "path": "crates/spec-spine-core/tests/scope.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/traceability.rs",
         "source": "spec-edge"
       },
       {
@@ -71,7 +95,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/resolver_matrix.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -90,6 +118,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/tests/resolver_matrix.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/fixtures/traceability/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "directory",
+          "path": "crates/spec-spine-core/tests/fixtures/traceability/"
         }
       },
       {
@@ -121,6 +162,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-cli/tests/traceability.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/traceability.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/src/content.rs"
           }
         ],
@@ -129,6 +183,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/content.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/context_packet.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/context_packet.rs"
         }
       },
       {
@@ -155,6 +222,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/symbols.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/traceability.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/traceability.rs"
         }
       },
       {
@@ -194,6 +274,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/tests/scope.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/traceability.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/traceability.rs"
         }
       },
       {
@@ -305,5 +398,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "6fc072af6de495d2c64cceb5a95cd233b6b45e392d01497e41cfad7a095be62a"
+  "shardHash": "08244f15c07db8811729979d09b3e55d183db7a2c40a8b3d0a5897454fb1061a"
 }
