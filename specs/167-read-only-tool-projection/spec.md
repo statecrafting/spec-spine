@@ -23,10 +23,10 @@ summary: >
   bytes. spec-spine ships the descriptors and their tests; it runs no server,
   holds no session, and adds no write tool.
 establishes:
-  - { kind: file, path: "crates/spec-spine-types/src/projection.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-types/schemas/tool-projection.schema.json", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/src/projection.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/projection.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/src/projection.rs" }
+  - { kind: file, path: "crates/spec-spine-types/schemas/tool-projection.schema.json" }
+  - { kind: file, path: "crates/spec-spine-core/src/projection.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/projection.rs" }
   - { kind: file, path: "crates/spec-spine-cli/tests/projection.rs", planned: true }
   - { kind: directory, path: "crates/spec-spine-cli/tests/fixtures/projection/", planned: true }
   - { kind: file, path: "docs/read-only-projection.md", planned: true }
@@ -494,6 +494,46 @@ operation's (`verify.plan` read "Run a spec's declared acceptance"), and §3.3
 makes the summary a tool's description, so a read-only tool would have
 described itself as running commands. 162 §3.10 item 1 now holds only the
 operation no flag selects to the command's clap `about`.
+
+**D-15 (2026-10-14, build): what the catalog does not say, the projection
+decides in two tables.** The catalog records each argument's value name but
+not whether its value is a path on the host, nor which document requests a
+verb reads from stdin. `crates/spec-spine-core/src/projection.rs` therefore
+holds two tables. `HOST_PATH_ARGUMENTS`: `--attestation`, `--export`, `--key`,
+`--manifest`, `--map-out`, `--output-root`, `--packet`, `--paths-from`,
+`--plan-file`, `--pr-body`, `--public-key`, `--request`, `--resolutions`,
+`--scope`, `--seal`, and `scope compare`'s positionals `a` and `b`.
+`STDIN_REQUESTS`: `registry closure --request` and `scope evaluate --scope`,
+the two whose verbs read `-` from stdin. The positional `path` of `index
+owner` and `registry moves` is repository-relative and read under the bound
+repository, so it stays a property. The core test restates both tables, and
+classifies every other valued argument the catalog binds with a reason, so a
+new valued argument fails the build until it is decided here. Three further
+choices the text left open: a string property's schema carries the pattern
+`^[^-]`, so no value can be read as a flag (a value an operation needs never
+begins with `-`); a positional's property is its catalog argument id (`id`,
+`path`, `reference`), which clap keeps unique, rather than its display value
+name; and `invocation.flags` lists the arguments in emission order, options in
+the catalog's flag order, then positionals, then the stdin request, so an
+adapter walks one list. A summary's trailing period is dropped before the
+fixed sentence is appended.
+
+**D-16 (2026-10-14, build): the measured projection.** Per D-8, against the
+catalog at this build: 27 tools, `capabilities`, `capabilities.verify`,
+`check`, `compile.check`, `compile.spec`, `config.show`, `delta`,
+`index.check`, `index.coverage`, `index.diagnostics`, `index.orphans`,
+`index.owner`, `interface.verify`, `lint`, the ten `registry.*` reads,
+`scope.evaluate`, `verify.affected` and `verify.plan`. Excluded:
+`no-json-answer` for `compact`, `compact.plan`, `compile`, `index.build`,
+`index.render` and the three `library.*`; `writes` for `attest` and `verify`;
+`environment` for `couple`; `key-material` for `verify-attestation`;
+`caller-path` for `content.select`, `context.packet`,
+`documentation.manifest.freshness`, `documentation.manifest.validate` and
+`scope.compare`, whose verbs read their request only from a file. No projected
+tool declares a budget, so §3.6's `maxBytes` and `maxItems` properties have
+no tool to appear on yet; `content.select` and `context.packet` carry their
+budgets inside the request document, and project once their verbs read it
+from stdin. The core test pins this list.
 
 ## Verification
 

@@ -40,6 +40,7 @@ pub mod intent;
 pub mod interface;
 pub mod moves;
 pub mod obligation;
+pub mod projection;
 pub mod registry;
 pub mod relocation;
 pub mod repo_path;
@@ -121,6 +122,11 @@ pub use interface::{
 };
 pub use moves::{MoveDeclaration, MoveKind, MovePaths};
 pub use obligation::{Obligation, ObligationKind, split_obligation_ref, valid_obligation_id};
+pub use projection::{
+    AdapterError, ArgumentMapping, EXCLUSION_REASONS, Exclusion, Invocation,
+    TOOL_DESCRIPTION_SUFFIX, TOOL_PROJECTION_SCHEMA, TOOL_TRUST, Tool, ToolAnswer, ToolHints,
+    ToolProjection,
+};
 pub use registry::{
     Build, BuildMeta, Registry, RegistrySpecShard, Severity, SpecRecord, ValidationReport,
     Violation,
@@ -149,5 +155,6 @@ pub use version::{
     BUILD_META_SCHEMA_VERSION, CAPABILITIES_SCHEMA_VERSION, CATALOG_SCHEMA_VERSION, CONFIG_VERSION,
     CONTEXT_PACKET_SCHEMA_VERSION, DELTA_SCHEMA_VERSION, DOCUMENTATION_MANIFEST_SCHEMA_VERSION,
     INDEX_SCHEMA_VERSION, READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, SNAPSHOT_SCHEMA_VERSION,
-    SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, parse_semver,
+    SPEC_ATTESTATION_SCHEMA_VERSION, TOOL_PROJECTION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
+    parse_semver,
 };

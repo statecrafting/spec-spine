@@ -22,6 +22,7 @@
 | capabilities document (`capabilities --json`, spec 170) | `schemaVersion` | `0.2.0` | library |
 | capability catalog (the document's `catalog`, `capability_catalog_json()`, spec 162) | `schemaVersion` | `1.1.0` | library |
 | context packet (`context packet --json`, `context_packet_json`, spec 159) | `schemaVersion` | `1.0.0` | library |
+| read-only tool projection (`capabilities --projection --json`, `tool_projection_json()`, spec 167) | `schemaVersion` | `1.0.0` | library |
 | documentation manifest and freshness result (`documentation manifest validate\|freshness --json`, spec 160) | `schemaVersion` | `1.0.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
@@ -52,6 +53,12 @@ MINOR history:
   `selector`, the flags whose presence selects that operation among those
   sharing its argv (`verify.plan` is `verify --plan`). Every operation
   digest, and so the catalog digest, moves.
+- read-only tool projection `1.0.0` (spec 167): the axis begins. A new
+  optional member, or a tool projected because the catalog gained an
+  operation, is MINOR; a change to the eligibility rule, the name rule, the
+  argv mapping, the hints, an exclusion reason or an error code is MAJOR. Its
+  schema is embedded as `tool-projection.schema.json`. The catalog's
+  `compatibility` map gains the axis, so the catalog digest moves.
 
 - `index.json` `0.2.0` (spec 011): additive `build.sliceHashes` -- per-slice
   content hashes for `index check --slice <name>`.

@@ -240,6 +240,14 @@ pub const CONTEXT_PACKET_SCHEMA_VERSION: &str = "1.0.0";
 /// both documents, from `1.0.0`.
 pub const DOCUMENTATION_MANIFEST_SCHEMA_VERSION: &str = "1.0.0";
 
+/// `schemaVersion` of the read-only tool projection (`capabilities
+/// --projection --json`, `tool_projection_json`; spec 167 §3.9): its own axis,
+/// from `1.0.0`. A new optional member, or a tool projected because the
+/// catalog gained an operation, is MINOR; a change to the eligibility rule,
+/// the name rule, the argv mapping, the hints, an exclusion reason or an
+/// error code is MAJOR.
+pub const TOOL_PROJECTION_SCHEMA_VERSION: &str = "1.0.0";
+
 /// The `spec-spine.toml` config schema version (optional `config_version` key).
 pub const CONFIG_VERSION: &str = "0.1.0";
 

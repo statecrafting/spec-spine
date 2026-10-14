@@ -19,7 +19,8 @@ use spec_spine_types::{
     ConditionalEffects, DELTA_SCHEMA_VERSION, DOCUMENTATION_MANIFEST_SCHEMA_VERSION, Effects,
     Error, Example, ExitOutcome, FacadeBinding, Flag, INDEX_SCHEMA_VERSION, InterfaceDiscovery,
     Operation, PinResult, Precondition, READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, RequestRef,
-    ResponseRef, SNAPSHOT_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
+    ResponseRef, SNAPSHOT_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION,
+    TOOL_PROJECTION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
 };
 
 use crate::canonical_json;
@@ -51,6 +52,7 @@ pub fn compatibility() -> BTreeMap<String, String> {
         ("registry", REGISTRY_SCHEMA_VERSION),
         ("snapshot", SNAPSHOT_SCHEMA_VERSION),
         ("spec-attestation", SPEC_ATTESTATION_SCHEMA_VERSION),
+        ("tool-projection", TOOL_PROJECTION_SCHEMA_VERSION),
         ("verdict", VERDICT_SCHEMA_VERSION),
     ]
     .into_iter()
@@ -401,7 +403,7 @@ fn parse_flag(spec: &str) -> Flag {
 
 /// `sha256:` plus the lowercase hex digest of `value`'s canonical JSON with
 /// `member` removed from the top-level object (162 §3.11).
-fn digest_without<T: Serialize>(value: &T, member: &str) -> Result<String, Error> {
+pub(crate) fn digest_without<T: Serialize>(value: &T, member: &str) -> Result<String, Error> {
     let mut v = serde_json::to_value(value).map_err(|e| Error::Internal(e.to_string()))?;
     if let Some(map) = v.as_object_mut() {
         map.remove(member);
@@ -502,6 +504,8 @@ fn operations() -> Vec<Operation> {
         )
         .response(Some("--operation"), "catalog", "catalog-operation", None)
         .facade("capability_catalog_json", None, false)
+        // Spec 167 D-7: the projection is an answer of this operation.
+        .facade("tool_projection_json", None, false)
         .experimental()
         .example("capabilities-json", None, &["capabilities", "--json"], 0, &["\"catalogDigest\"", "\"verbs\""])
         .example(
