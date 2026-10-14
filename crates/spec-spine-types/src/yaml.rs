@@ -374,7 +374,7 @@ mod tests {
     use super::YamlValue;
 
     #[test]
-    fn nan_equals_itself_as_serde_yaml_did() {
+    fn nan_equals_itself_as_the_old_reader_did() {
         assert_eq!(YamlValue::Float(f64::NAN), YamlValue::Float(f64::NAN));
         let m = |v| YamlValue::Mapping(vec![(YamlValue::String("k".into()), v)]);
         assert_eq!(m(YamlValue::Float(f64::NAN)), m(YamlValue::Float(f64::NAN)));
