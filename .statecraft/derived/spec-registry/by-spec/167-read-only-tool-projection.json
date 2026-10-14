@@ -226,7 +226,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "f714a4fc432d73f4af52a16ffa63fe9ba6695a35da0496a55ce43d7b83e667ea",
-      "167-project-cataloged-reads-as-read-only-tools": "ad76406707e70a5bc1bcd630931a7537641c19ac229e7d493022b438d14b691e",
+      "167-project-cataloged-reads-as-read-only-tools": "04b0d72fdf9378f3d3e00524cca22b2c780b5c99605164db52a7c364e6b96253",
       "2-territory": "a2fa93fb6b531739a9b4752aba6fea570cd8e6f2183e78fd632884c6ce42c1bd",
       "3-1-the-projection-is-derived-never-authored": "1c3c758fa28e88aa66af9651608a911c4fc3ee65396ad19c1f424e2e9071207e",
       "3-10-authority-security-and-disclosure-boundary": "a903efa00eb88c57f37bd65166283a6413ef6fb3d4467dd508366b0c2e7ed40d",
@@ -242,7 +242,7 @@
       "3-behavior": "10fa69a18244bb1f231a8aab7fc69699d6fdc7ff52ce642c45e5583378241a30",
       "4-acceptance-criteria": "efe802fc3dd7dc5270e53564d734639b9903851ccb52e933f0cf64c307002b2a",
       "5-out-of-scope": "dea4a18be1b125b4c970f5b491e933524bd980d8caca25a40a24cd1f80c7a364",
-      "6-resolved-decisions": "54cad8c4b967f146bae55ff75cc436d3f190edef1ab72bc81cdb63c51e00e56f",
+      "6-resolved-decisions": "7429ffb546e9df92803e8e2e3648cd3ed6d6878bef64ee151685754c2783ee61",
       "verification": "61784cfb41b4469953879ef8ea25ed17db309fcfca8aadf75e84c8b9c26aa5fe"
     },
     "sectionHeadings": [
@@ -271,6 +271,6 @@
     "summary": "Adds a transport-neutral, read-only tool projection derived from the spec-162 capability catalog: one tool descriptor per eligible judging-tier read, with a closed input schema, the exact argv it maps to, budget and pagination members, trust marking, and a closed error vocabulary. A tool call is one invocation of the pinned binary's existing verb, so its answer is that verb's bytes. spec-spine ships the descriptors and their tests; it runs no server, holds no session, and adds no write tool.\n",
     "title": "Project cataloged reads as read-only tools"
   },
-  "shardHash": "c0b5bc9d9899c6cd09be06b9ab6aa40440fa93c6a98fa4552aaebef90f23dd6b",
+  "shardHash": "bfff23ea8d74fd3cf23e0ce8ce9f6427acd4e343e72fcd7d5e9c28b57204222b",
   "specVersion": "1.10.0"
 }

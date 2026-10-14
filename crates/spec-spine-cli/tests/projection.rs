@@ -257,9 +257,17 @@ fn to_invocation(
                 }
             }
             "stdin" => {
+                let Some(request) = value else {
+                    return Err(adapter_error(
+                        doc,
+                        "invalid-arguments",
+                        name,
+                        "the stdin request is missing",
+                    ));
+                };
                 argv.push(flag);
                 argv.push("-".to_string());
-                let mut bytes = serde_json::to_string_pretty(value.unwrap()).unwrap();
+                let mut bytes = serde_json::to_string_pretty(request).unwrap();
                 bytes.push('\n');
                 stdin = Some(bytes);
             }

@@ -535,7 +535,7 @@ no tool to appear on yet; `content.select` and `context.packet` carry their
 budgets inside the request document, and project once their verbs read it
 from stdin. The core test pins this list.
 
-**D-17 (2026-10-14, build): what the CLI half had to decide.** Four choices
+**D-17 (2026-10-14, build): what the CLI half had to decide.** Five choices
 the text left open. (1) An adapter error's `kind` is its §3.7 code, as §3.7
 says, although the verdict's `error.kind` vocabulary (spec 132) is closed and
 does not hold those codes: the envelope's verb is `projection`, which no
@@ -549,8 +549,8 @@ the `capabilities` entry's `json` axes are unchanged; the catalog records the
 projection's axis as a conditional response of `capabilities` (D-7), and the
 facade census sees `tool_projection_json` on that operation. (4) The catalog
 gains the example `capabilities-projection`, so spec 162's example suite runs
-the new form against the built binary too. (5) `docs/read-only-projection.md` is claimed as its
-top section, as spec 162 claims its document, so the claim is hashed through
+the new form against the built binary too. (5)
+`docs/read-only-projection.md` is claimed as its top section, as spec 162 claims its document, so the claim is hashed through
 the section's span (`L-008`) rather than adding a governance input.
 
 ## Verification
