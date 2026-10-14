@@ -17,7 +17,7 @@ const FILES: &[(&str, &str)] = &[
     (
         "Cargo.toml",
         r#"[workspace]
-members = ["demo", "lf_twin", "crlf_twin"]
+members = ["demo", "declared", "lf_twin", "crlf_twin"]
 "#,
     ),
     (
@@ -83,6 +83,60 @@ pub fn allman()
  * multi
  */
 pub fn multi_block() {}
+"#,
+    ),
+    (
+        "demo/tests/integration.rs",
+        r#"#[test]
+fn integration_test_fn() {}
+
+fn helper() {}
+
+mod inner {
+    #[test]
+    fn inner_test() {}
+}
+"#,
+    ),
+    (
+        "demo/tests/dirtest/main.rs",
+        r#"mod support;
+
+#[test]
+fn in_dir() {}
+"#,
+    ),
+    (
+        "demo/tests/dirtest/support.rs",
+        r#"pub fn support() {}
+"#,
+    ),
+    (
+        "demo/tests/common/mod.rs",
+        r#"pub fn shared() {}
+"#,
+    ),
+    (
+        "declared/Cargo.toml",
+        r#"[package]
+name = "declared"
+version = "0.1.0"
+edition = "2024"
+
+[[test]]
+name = "x"
+path = "tests/x.rs"
+"#,
+    ),
+    (
+        "declared/src/lib.rs",
+        r#"pub fn d() {}
+"#,
+    ),
+    (
+        "declared/tests/x.rs",
+        r#"#[test]
+fn t() {}
 "#,
     ),
     (
@@ -637,6 +691,7 @@ symbol demo::docs::blank_separated = resolved demo/src/docs.rs:13-13\n\
 symbol demo::docs::multi_line_sig = resolved demo/src/docs.rs:15-19\n\
 symbol demo::docs::allman = resolved demo/src/docs.rs:21-24\n\
 symbol demo::docs::multi_block = resolved demo/src/docs.rs:29-29\n\
+symbol declared::d = resolved declared/src/lib.rs:1-1\n\
 symbol lf_twin::first = resolved lf_twin/src/lib.rs:1-1\n\
 symbol lf_twin::Twin = resolved lf_twin/src/lib.rs:7-7\n\
 symbol crlf_twin::first = resolved crlf_twin/src/lib.rs:1-1\n\
@@ -670,6 +725,12 @@ symbol demo::TopTrait::Out = resolved demo/src/lib.rs:27-27\n\
 symbol demo::make_fn! = resolved demo/src/lib.rs:88-92\n\
 symbol demo::exported_macro! = resolved demo/src/lib.rs:95-97\n\
 symbol demo::generated::written = resolved demo/src/lib.rs:101-101\n\
+symbol demo/tests/integration::integration_test_fn = resolved demo/tests/integration.rs:2-2\n\
+symbol demo/tests/integration::helper = resolved demo/tests/integration.rs:4-4\n\
+symbol demo/tests/integration::inner = resolved demo/tests/integration.rs:6-9\n\
+symbol demo/tests/integration::inner::inner_test = resolved demo/tests/integration.rs:8-8\n\
+symbol demo/tests/dirtest::in_dir = resolved demo/tests/dirtest/main.rs:4-4\n\
+symbol demo/tests/dirtest::support = resolved demo/tests/dirtest/main.rs:1-1\n\
 symbol lf_twin::Twin::m = resolved lf_twin/src/lib.rs:4-4\n\
 symbol crlf_twin::Twin::m = resolved crlf_twin/src/lib.rs:4-4\n\
 symbol demo::deep::{DEEP}::n32 = resolved demo/src/lib.rs:167-171\n\
@@ -681,6 +742,9 @@ symbol demo::TopStruct::field = unsupported: member\n\
 symbol demo::TopEnum::A = unsupported: member\n\
 symbol demo::TopUnion::a = unsupported: member\n\
 symbol demo::foreign_fn = unsupported: foreign-item\n\
+symbol demo/tests/common/mod::shared = unsupported: unrooted-test-file\n\
+symbol demo/tests/dirtest/support::support = unsupported: unrooted-test-file\n\
+symbol declared/tests/x::t = unsupported: declared-test-targets\n\
 symbol demo::generated::macro_generated = unknown: item-macro-in-scope\n\
 symbol demo::broken::missing = unknown: parse-error-in-scope\n\
 symbol demo::deep::{DEEP}::n32::n33 = unknown: nesting-limit\n\
@@ -699,10 +763,31 @@ module demo::tests = resolved demo/src/lib.rs:119-134\n\
 module demo::deep = resolved demo/src/lib.rs:135-203\n\
 module demo::inline_mod::deeper = resolved demo/src/lib.rs:79-81\n\
 module demo::deep::{DEEP}::n32 = resolved demo/src/lib.rs:167-171\n\
+module demo/tests/integration = resolved demo/tests/integration.rs\n\
+module demo/tests/integration::inner = resolved demo/tests/integration.rs:6-9\n\
+module demo/tests/dirtest = resolved demo/tests/dirtest/main.rs\n\
+module demo/tests/common/mod = unsupported: unrooted-test-file\n\
+module demo/tests/dirtest/support = unsupported: unrooted-test-file\n\
+module declared/tests/x = unsupported: declared-test-targets\n\
 module demo::deep::{DEEP}::n32::n33 = unknown: nesting-limit\n\
 module demo::absent = unresolved\n\
+test demo::top_level_test = resolved demo/src/lib.rs:115-116\n\
+test demo::tests::unit_test_in_src = resolved demo/src/lib.rs:121-125\n\
+test demo::tests::tokio_test = unsupported: framework-test-attribute\n\
+test demo::tests::test_with_args = unsupported: framework-test-attribute\n\
+test demo::tests::helper_not_test = unresolved\n\
+test demo/tests/integration::integration_test_fn = resolved demo/tests/integration.rs:1-2\n\
+test demo/tests/integration::inner::inner_test = resolved demo/tests/integration.rs:7-8\n\
+test demo/tests/dirtest::in_dir = resolved demo/tests/dirtest/main.rs:3-4\n\
+test demo/tests/common/mod::shared = unsupported: unrooted-test-file\n\
+test declared/tests/x::t = unsupported: declared-test-targets\n\
+test web::src::util::does a thing = unsupported: typescript-test\n\
 test demo::outer::nested = unsupported: nested-item\n\
+test demo::generated::macro_generated = unknown: item-macro-in-scope\n\
 test demo::absent = unresolved\n\
+site symbol declared/tests/x::t = declared-test-targets\n\
+site symbol demo/tests/common/mod::shared = unrooted-test-file\n\
+site symbol demo/tests/dirtest/support::support = unrooted-test-file\n\
 site symbol demo::<&Generic<u8> as TopTrait>::Out = impl-type-form\n\
 site symbol demo::<&Generic<u8> as TopTrait>::TC = impl-type-form\n\
 site symbol demo::<&Generic<u8> as TopTrait>::trait_method = impl-type-form\n\
@@ -715,6 +800,12 @@ site symbol demo::outer::nested = nested-item\n\
 site symbol demo::reexported = re-export\n\
 site symbol demo::sub::Helper::scoped = impl-type-form\n\
 site symbol demo::thing::run = legacy-collision\n\
+site module declared/tests/x = declared-test-targets\n\
+site module demo/tests/common/mod = unrooted-test-file\n\
+site module demo/tests/dirtest/support = unrooted-test-file\n\
+site test declared/tests/x::t = declared-test-targets\n\
+site test demo::tests::test_with_args = framework-test-attribute\n\
+site test demo::tests::tokio_test = framework-test-attribute\n\
 scope demo::broken = parse-error-in-scope\n\
 scope demo::deep::{DEEP}::n32 = nesting-limit\n\
 scope demo::generated = item-macro-in-scope\n";
@@ -734,6 +825,7 @@ module demo::tests = demo/src/lib.rs:119-134\n\
 module demo::thing = demo/src/thing.rs\n\
 symbol crlf_twin::Twin = crlf_twin/src/lib.rs:7-7\n\
 symbol crlf_twin::first = crlf_twin/src/lib.rs:1-1\n\
+symbol declared::d = declared/src/lib.rs:1-1\n\
 symbol demo::Generic = demo/src/lib.rs:54-54\n\
 symbol demo::TopEnum = demo/src/lib.rs:12-15\n\
 symbol demo::TopStruct = demo/src/lib.rs:8-10\n\
