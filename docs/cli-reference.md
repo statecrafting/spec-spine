@@ -198,6 +198,28 @@ whose `report` is the whole packet. A malformed request or continuation exits
 `3`; a dirty tree, an unsupported consumer schema, a closure document that does
 not recompute and a stale continuation exit `2`.
 
+## documentation
+
+```text
+spec-spine documentation manifest validate --manifest <FILE> --packet <FILE>... --repository <IDENTITY> [--revision <REV>] [--output-root <DIR>] --json
+spec-spine documentation manifest freshness --manifest <FILE> --packet <FILE>... --repository <IDENTITY> [--revision <REV>] [--output-root <DIR>] [--export <CORPUS>=<DIR>]... [--resolutions <FILE>] --json
+```
+
+Validate a documentation manifest against the snapshot it records, or evaluate
+its freshness against the current one (spec 160; see
+`docs/documentation-manifests.md`). The snapshot is bound as `context packet`
+binds it and checked again after the outputs are read. `--packet` names each
+page of the packet in page order; `--output-root` (default `.`) is the
+repository-relative directory every output must lie beneath. `validate` writes
+the canonical manifest at exit `0`. `freshness` writes the result at exit `0`
+when it is `fresh`, and otherwise exits `1` with the
+`documentation.manifest.freshness` verdict envelope whose `report` is the
+result. `--export` supplies a corpus an interface input cites, and
+`--resolutions` a JSON array of external resolutions; an input with neither is
+`unverified`. Malformed documents, unknown members, duplicate ids, invalid
+digests or regions and limit excesses exit `3`; a dirty or moving snapshot, a mismatched packet, input or output, and a
+path escape exit `2`. Nothing either verb names is run or fetched.
+
 ## registry
 
 Read-only queries over the compiled registry. Every subcommand takes `--json`.

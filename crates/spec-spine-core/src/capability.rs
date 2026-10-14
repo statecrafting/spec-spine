@@ -767,6 +767,99 @@ fn operations() -> Vec<Operation> {
         .pinned_example(&["context", "packet", "--request", "packet-request.json", "--repository", "example/fixture", "--json"])
         .done(),
         op(
+            "documentation.manifest.validate",
+            "Validate a documentation manifest against the snapshot it records: its packet pages, inputs, outputs and regions",
+            &["160-documentation-manifest-and-freshness"],
+        )
+        .experimental()
+        .cli(
+            "documentation manifest validate",
+            "read-document",
+            &[
+                "--manifest=FILE!",
+                "--packet=FILE!*",
+                "--repository=REPOSITORY!",
+                "--revision=REVISION",
+                "--output-root=DIR",
+                "--json!",
+            ],
+        )
+        .reads(&["caller-file", "clock", "config", "source-tree"])
+        .writes(&["temporary"])
+        .executes(&["git"])
+        .pre("clean-tree", &[2])
+        .pre("git-repository", &[4])
+        .request_document()
+        .response(
+            None,
+            "documentation-manifest",
+            "documentation-manifest",
+            schema_id("documentation-manifest.schema.json"),
+        )
+        .verdict()
+        .facade("documentation_manifest_json", None, true)
+        .pinned_example(&[
+            "documentation",
+            "manifest",
+            "validate",
+            "--manifest",
+            "manifest.json",
+            "--packet",
+            "page.json",
+            "--repository",
+            "example/fixture",
+            "--json",
+        ])
+        .done(),
+        op(
+            "documentation.manifest.freshness",
+            "Evaluate a documentation manifest's freshness against the current snapshot: exit 0 when fresh, 1 with the result when stale, incomplete or unverified",
+            &["160-documentation-manifest-and-freshness"],
+        )
+        .experimental()
+        .cli(
+            "documentation manifest freshness",
+            "read-document",
+            &[
+                "--manifest=FILE!",
+                "--packet=FILE!*",
+                "--repository=REPOSITORY!",
+                "--revision=REVISION",
+                "--output-root=DIR",
+                "--export=CORPUS=DIR*",
+                "--resolutions=FILE",
+                "--json!",
+            ],
+        )
+        .reads(&["caller-file", "clock", "config", "export-directory", "source-tree"])
+        .writes(&["temporary"])
+        .executes(&["git"])
+        .pre("clean-tree", &[2])
+        .pre("git-repository", &[4])
+        .finding(&[])
+        .request_document()
+        .response(
+            None,
+            "documentation-manifest",
+            "documentation-freshness",
+            schema_id("documentation-manifest.schema.json"),
+        )
+        .verdict()
+        .facade("documentation_freshness_json", None, true)
+        .pinned_example(&[
+            "documentation",
+            "manifest",
+            "freshness",
+            "--manifest",
+            "manifest.json",
+            "--packet",
+            "page.json",
+            "--repository",
+            "example/fixture",
+            "--json",
+        ])
+        .done(),
+        op(
             "couple",
             "The PR-time coupling gate: refuse code that drifts from its owning spec",
             &["005-coupling-gate"],

@@ -68,6 +68,13 @@ pub mod verb {
     /// `spec-spine context packet` (spec 159). Its success is the bare packet
     /// document; an incomplete packet is a finding whose envelope reports it.
     pub const CONTEXT_PACKET: &str = "context.packet";
+    /// `spec-spine documentation manifest validate` (spec 160). Its success is
+    /// the bare canonical manifest; a mismatch is a refusal.
+    pub const DOCUMENTATION_MANIFEST_VALIDATE: &str = "documentation.manifest.validate";
+    /// `spec-spine documentation manifest freshness` (spec 160). A `fresh`
+    /// result is the bare document; `stale`, `incomplete` or `unverified` is a
+    /// finding whose envelope reports the result.
+    pub const DOCUMENTATION_MANIFEST_FRESHNESS: &str = "documentation.manifest.freshness";
 
     /// `spec-spine registry list`.
     pub const REGISTRY_LIST: &str = "registry.list";

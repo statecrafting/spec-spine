@@ -28,6 +28,7 @@ mod cmd_content;
 mod cmd_context;
 mod cmd_couple;
 mod cmd_delta;
+mod cmd_documentation;
 mod cmd_index;
 mod cmd_interface;
 mod cmd_lint;
@@ -141,6 +142,12 @@ enum Command {
     Context {
         #[command(subcommand)]
         action: cmd_context::ContextAction,
+    },
+    /// Validate a documentation manifest, or evaluate its freshness, against
+    /// one clean repository snapshot (spec 160). Runs nothing it names.
+    Documentation {
+        #[command(subcommand)]
+        action: cmd_documentation::DocumentationAction,
     },
     /// Read-only queries over the compiled registry.
     Registry {
@@ -433,6 +440,7 @@ fn main() -> ExitCode {
         Command::Config { action } => cmd_config::run(&repo, action),
         Command::Content { action } => cmd_content::run(&repo, action),
         Command::Context { action } => cmd_context::run(&repo, action),
+        Command::Documentation { action } => cmd_documentation::run(&repo, action),
         Command::Registry { query } => cmd_registry::run(&repo, query),
         Command::Index { action } => cmd_index::run(&repo, action.as_ref()),
         Command::Interface { action } => cmd_interface::run(&repo, action),
@@ -633,6 +641,17 @@ impl Command {
             Command::Context {
                 action: cmd_context::ContextAction::Packet { json: true, .. },
             } => Some(verb::CONTEXT_PACKET),
+            Command::Documentation {
+                action: cmd_documentation::DocumentationAction::Manifest { action },
+            } => match action {
+                cmd_documentation::ManifestAction::Validate { json: true, .. } => {
+                    Some(verb::DOCUMENTATION_MANIFEST_VALIDATE)
+                }
+                cmd_documentation::ManifestAction::Freshness { json: true, .. } => {
+                    Some(verb::DOCUMENTATION_MANIFEST_FRESHNESS)
+                }
+                _ => None,
+            },
             Command::Lint { json: true, .. } => Some(verb::LINT),
             Command::Couple { json: true, .. } => Some(verb::COUPLE),
             Command::Delta { json: true, .. } => Some(verb::DELTA),
