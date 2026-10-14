@@ -102,7 +102,7 @@ fn unsupported_binary_and_oversized_selections_are_explicit() {
     )
     .unwrap();
     let value: serde_json::Value = serde_json::from_str(&json).unwrap();
-    assert_eq!(value["schemaVersion"], "0.11.0");
+    assert_eq!(value["schemaVersion"], "0.12.0");
     let reasons: Vec<&str> = value["omissions"]
         .as_array()
         .unwrap()
@@ -258,16 +258,122 @@ fn directory_member_symlink_leaving_the_named_directory_is_refused() {
     );
 }
 
-#[test]
-fn unsupported_test_selector_is_an_explicit_omission() {
+/// A crate whose `src/lib.rs` holds one bare test, one framework test and one
+/// plain function, with its committed index written as `spec-spine index`
+/// writes it (spec 163 §3.4).
+fn test_corpus() -> tempfile::TempDir {
+    use spec_spine_core::shard::{self, BY_PACKAGE_DIR, BY_SPEC_DIR};
     let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    let write = |rel: &str, content: &str| {
+        let path = root.join(rel);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, content).unwrap();
+    };
+    write(
+        "Cargo.toml",
+        "[package]\nname = \"demo\"\nversion = \"0.1.0\"\nedition = \"2024\"\n",
+    );
+    write(
+        "src/lib.rs",
+        "#[cfg(test)]\nmod tests {\n    /// Documented.\n    #[test]\n    fn works() {\n        assert!(true);\n    }\n\n    #[tokio::test]\n    async fn framework() {}\n\n    fn helper() {}\n}\n",
+    );
+    write(
+        "specs/001-a/spec.md",
+        "---\nid: \"001-a\"\ntitle: \"A\"\nstatus: draft\ncreated: \"2026-10-13\"\nimplementation: pending\nsummary: \"a\"\n---\n# A\n",
+    );
+    let cfg = Config::default();
+    let outcome = spec_spine_core::index(&cfg, root).unwrap();
+    let dir = spec_spine_core::index_dir(&cfg, root);
+    let (by_spec, by_package) = spec_spine_core::index_shard_files(&outcome.shards).unwrap();
+    shard::sync_dir(&dir.join(BY_SPEC_DIR), &by_spec).unwrap();
+    shard::sync_dir(&dir.join(BY_PACKAGE_DIR), &by_package).unwrap();
+    let (inputs_name, inputs) = spec_spine_core::index_inputs_file(&outcome.shards).unwrap();
+    fs::write(dir.join(inputs_name), inputs).unwrap();
+    tmp
+}
+
+/// Spec 163 §3.4: a bare `#[test]` resolves with its attribute run, a framework
+/// attribute is an unsupported form that names its reason, and a function
+/// with no test attribute is not a test function.
+#[cfg(feature = "symbol-resolution")]
+#[test]
+fn test_selectors_resolve_bare_tests_and_name_unsupported_forms() {
+    let tmp = test_corpus();
     let request: ContentRequest = serde_json::from_value(serde_json::json!({
-        "selectors": [{"kind":"test", "id":"crate::tests::works"}]
+        "selectors": [
+            {"kind":"test", "id":"demo::tests::works"},
+            {"kind":"test", "id":"demo::tests::works", "projection":"documentation"},
+            {"kind":"test", "id":"demo::tests::works", "projection":"signature"},
+            {"kind":"test", "id":"demo::tests::framework"},
+            {"kind":"test", "id":"demo::tests::helper"},
+        ]
+    }))
+    .unwrap();
+    let response = selected_content(&Config::default(), tmp.path(), &request, &snapshot()).unwrap();
+    let full = response
+        .items
+        .iter()
+        .find(|i| i.requested_projection == ContentProjection::Full)
+        .expect("the bare test resolves");
+    assert_eq!(full.identity, "test:demo::tests::works");
+    assert_eq!((full.span.start_line, full.span.end_line), (4, 7));
+    assert!(
+        full.content.starts_with("    #[test]\n"),
+        "{}",
+        full.content
+    );
+    let doc = response
+        .items
+        .iter()
+        .find(|i| i.requested_projection == ContentProjection::Documentation)
+        .expect("documentation above the attribute run");
+    assert_eq!(doc.content, "    /// Documented.");
+    let reasons: Vec<(ContentOmissionReason, &str)> = response
+        .omissions
+        .iter()
+        .map(|o| (o.reason, o.message.as_str()))
+        .collect();
+    assert!(
+        reasons.contains(&(
+            ContentOmissionReason::UnsupportedProjection,
+            "the grammar does not expose a line-bounded signature"
+        )),
+        "a body opening on the signature line has no signature: {reasons:?}"
+    );
+    assert!(
+        reasons.contains(&(
+            ContentOmissionReason::UnsupportedSelector,
+            "test 'demo::tests::framework' is unsupported: framework-test-attribute"
+        )),
+        "{reasons:?}"
+    );
+    assert!(
+        reasons.contains(&(
+            ContentOmissionReason::MissingContent,
+            "test 'demo::tests::helper' is not a test function"
+        )),
+        "{reasons:?}"
+    );
+}
+
+/// Without `symbol-resolution` (spec 025) a test selector is indeterminate,
+/// never a claim that the test is absent (spec 163 §3.5).
+#[cfg(not(feature = "symbol-resolution"))]
+#[test]
+fn test_selectors_are_indeterminate_without_the_resolver() {
+    let tmp = test_corpus();
+    let request: ContentRequest = serde_json::from_value(serde_json::json!({
+        "selectors": [{"kind":"test", "id":"demo::tests::works"}]
     }))
     .unwrap();
     let response = selected_content(&Config::default(), tmp.path(), &request, &snapshot()).unwrap();
     assert_eq!(
         response.omissions[0].reason,
-        ContentOmissionReason::UnsupportedSelector
+        ContentOmissionReason::IndeterminateSelector
+    );
+    assert_eq!(
+        response.omissions[0].message,
+        "test 'demo::tests::works' is unknown: resolver-disabled"
     );
 }

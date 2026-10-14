@@ -28,6 +28,10 @@ implementation: pending        # pending | in-progress | complete | n-a | deferr
 #   - "src/whole_file.rs"      # bare string == { kind: file, path: ... }
 #   - "src/subtree/"           # trailing slash == the subtree rooted there
 #   - { kind: symbol, id: "crate::module::function" }
+#   # Symbol ids (spec 163): items at any inline-module depth, members as
+#   # "crate::Type::method" or "crate::<Type as fmt::Display>::fmt", macros as
+#   # "crate::make_thing!", integration tests under "crate/tests/target::name",
+#   # TypeScript class methods as "pkg::src::file::Class::method".
 #   - { kind: section, file: "Makefile", anchor: "build-target" }
 #   - { kind: directory, path: "crates/my-crate/" }
 #   - { kind: crate, id: "my-crate" }

@@ -610,9 +610,14 @@ fn omission_reason(
         ContentOmissionReason::MissingContent => match selector {
             ContentSelector::Symbol { .. }
             | ContentSelector::Module { .. }
+            | ContentSelector::Test { .. }
             | ContentSelector::OwnedUnit { .. } => PacketOmissionReason::Unresolved,
             _ => PacketOmissionReason::Missing,
         },
+        // Spec 163 D-17: the packet vocabulary has no `unknown`, so an id
+        // whose scope cannot be enumerated is `unresolved`; the omission's
+        // detail carries the reason token.
+        ContentOmissionReason::IndeterminateSelector => PacketOmissionReason::Unresolved,
         ContentOmissionReason::UnsupportedSelector => PacketOmissionReason::UnsupportedSelector,
         ContentOmissionReason::UnsupportedProjection => PacketOmissionReason::UnsupportedProjection,
         ContentOmissionReason::BinaryContent => PacketOmissionReason::NonText,

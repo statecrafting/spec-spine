@@ -90,7 +90,8 @@ fn the_verb_answers_a_read_document_with_both_axes() {
         [
             ("t-doc", "unresolved"),
             ("t-impl", "resolved"),
-            ("t-test", "unsupported")
+            // Spec 163 resolves test identities; the corpus defines none.
+            ("t-test", "unresolved")
         ]
     );
     assert_eq!(d["summary"]["resolved"], 1);
@@ -135,7 +136,7 @@ fn filters_intersect_and_the_human_form_sorts_the_same() {
     assert_eq!(lines.len(), 3);
     assert!(lines[0].starts_with("unresolved") && lines[0].contains("002-b#trace:t-doc"));
     assert!(lines[1].starts_with("resolved") && lines[1].contains("002-b#trace:t-impl"));
-    assert!(lines[2].starts_with("unsupported") && lines[2].contains("002-b#trace:t-test"));
+    assert!(lines[2].starts_with("unresolved") && lines[2].contains("002-b#trace:t-test"));
     assert!(lines[1].contains("implemented-by"));
 }
 
@@ -179,8 +180,9 @@ fn an_empty_corpus_reports_no_declarations() {
 #[test]
 fn a_stale_index_makes_a_unit_target_unknown_not_resolved() {
     let tmp = corpus();
-    // A spec added after `index` stales the committed index; the unit target
-    // is then unknown, and the selector targets are answered as before.
+    // A spec added after `index` stales the committed index; the unit and
+    // test targets are then unknown, and the documentation target is answered
+    // as before.
     write(tmp.path(), "003-c", "establishes:\n  - \"src/lib.rs\"\n");
     ok(&run_in(tmp.path(), &["compile"]));
     let out = run_in(tmp.path(), &["registry", "traceability", "--json"]);
@@ -201,11 +203,12 @@ fn a_stale_index_makes_a_unit_target_unknown_not_resolved() {
         .unwrap();
     assert_eq!(doc_["state"], "unresolved");
 
-    // With no index at all, likewise unknown, and still exit 0.
+    // With no index at all, likewise unknown, and still exit 0. The test
+    // target needs the committed index too (spec 163 §3.4).
     fs::remove_dir_all(tmp.path().join(".derived/codebase-index")).unwrap();
     let out = run_in(tmp.path(), &["registry", "traceability", "--json"]);
     ok(&out);
-    assert_eq!(doc(&out)["summary"]["unknown"], 1);
+    assert_eq!(doc(&out)["summary"]["unknown"], 2);
 }
 
 #[test]

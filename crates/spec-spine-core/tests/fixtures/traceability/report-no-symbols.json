@@ -214,7 +214,7 @@
     },
     {
       "declaredBy": "002-b",
-      "detail": "this build resolves no symbols or modules (symbol-resolution is off)",
+      "detail": "this build resolves no symbols, modules or tests (symbol-resolution is off)",
       "id": "t-sym",
       "identity": "002-b#trace:t-sym",
       "obligation": "002-b#R-9",
@@ -233,7 +233,7 @@
     },
     {
       "declaredBy": "002-b",
-      "detail": "test selectors require a resolver that binds test attributes to nested functions",
+      "detail": "this build resolves no symbols, modules or tests (symbol-resolution is off)",
       "id": "t-test",
       "identity": "002-b#trace:t-test",
       "obligation": "001-a#R-1",
@@ -266,7 +266,7 @@
       "withdrawn": false
     }
   ],
-  "schemaVersion": "0.11.0",
+  "schemaVersion": "0.12.0",
   "summary": {
     "ambiguous": 0,
     "resolved": 6,

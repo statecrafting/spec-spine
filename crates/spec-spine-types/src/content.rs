@@ -208,6 +208,9 @@ pub enum ContentOmissionReason {
     UnsupportedProjection,
     BinaryContent,
     ItemExceedsByteBudget,
+    /// A structural selector whose scope cannot be enumerated (spec 163 §3.5,
+    /// `unknown`): the id may exist, and the resolver cannot say.
+    IndeterminateSelector,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

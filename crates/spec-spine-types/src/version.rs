@@ -209,7 +209,11 @@ pub const DELTA_SCHEMA_VERSION: &str = "0.2.0";
 /// report (`registry traceability --json`, `traceability_json`), which also
 /// carries its own `traceabilityVersion` axis. Existing read documents are
 /// unchanged.
-pub const READ_SCHEMA_VERSION: &str = "0.11.0";
+///
+/// `0.12.0` (spec 163): additive. The selected-content omission reason gains
+/// `indeterminate-selector`, and `test` selectors resolve instead of always
+/// answering `unsupported-selector`. No member of an existing document moved.
+pub const READ_SCHEMA_VERSION: &str = "0.12.0";
 
 /// `schemaVersion` of an authority snapshot (spec 070): its own axis, defined
 /// beside the DTO it versions and re-exported here with the others.

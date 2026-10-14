@@ -233,12 +233,12 @@
     },
     {
       "declaredBy": "002-b",
-      "detail": "test selectors require a resolver that binds test attributes to nested functions",
+      "detail": "test 'demo::tests::orders_relations' does not resolve",
       "id": "t-test",
       "identity": "002-b#trace:t-test",
       "obligation": "001-a#R-1",
       "relation": "tested-by",
-      "state": "unsupported",
+      "state": "unresolved",
       "target": {
         "kind": "test",
         "selector": "demo::tests::orders_relations"
@@ -266,13 +266,13 @@
       "withdrawn": false
     }
   ],
-  "schemaVersion": "0.11.0",
+  "schemaVersion": "0.12.0",
   "summary": {
     "ambiguous": 1,
     "resolved": 6,
     "unknown": 0,
-    "unresolved": 4,
-    "unsupported": 2,
+    "unresolved": 5,
+    "unsupported": 1,
     "withdrawn": 2
   },
   "traceabilityVersion": "1.0.0"

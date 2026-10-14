@@ -1341,14 +1341,28 @@ fn qualify(prefix: &str, module: &[String], name: &str) -> String {
     parts.join("::")
 }
 
-/// Return line-bounded signature and body spans for the item beginning on
-/// `start_line`. A projection whose grammar boundary shares a line is omitted:
-/// the selected-content contract cannot represent byte-column fragments.
+/// Which line identifies the item a structural projection reads.
+#[cfg(feature = "symbol-resolution")]
+#[derive(Clone, Copy, Debug)]
+pub enum SpanAnchor {
+    /// The item's node starts on this 1-based line.
+    StartsOn(usize),
+    /// The function item ends on this 1-based line (a test, whose span opens
+    /// on its attribute run; spec 163 D-15).
+    EndsOn(usize),
+}
+
+/// Return line-bounded signature and body spans for the anchored item. A
+/// projection whose grammar boundary shares a line is omitted: the
+/// selected-content contract cannot represent byte-column fragments, so when
+/// the body opens on a line that also holds signature text, neither
+/// projection is returned (spec 163 §3.7). A node with no `body` field has
+/// neither.
 #[cfg(feature = "symbol-resolution")]
 pub fn structural_spans(
     src: &str,
     extension: &str,
-    start_line: usize,
+    anchor: SpanAnchor,
 ) -> Option<(Option<LineSpan>, Option<LineSpan>)> {
     let language: Language = match extension {
         "rs" => tree_sitter_rust::LANGUAGE.into(),
@@ -1357,15 +1371,52 @@ pub fn structural_spans(
     };
     let mut parser = Parser::new();
     parser.set_language(&language).ok()?;
+    let src = src.strip_prefix('\u{feff}').unwrap_or(src);
     let tree = parser.parse(src, None)?;
-    let node = find_node_starting_on(tree.root_node(), start_line.saturating_sub(1))?;
+    let node = match anchor {
+        SpanAnchor::StartsOn(line) => {
+            find_node_starting_on(tree.root_node(), line.saturating_sub(1))?
+        }
+        SpanAnchor::EndsOn(line) => find_fn_ending_on(tree.root_node(), line.saturating_sub(1), 0)?,
+    };
     let body = node.child_by_field_name("body")?;
     let item_start = node.start_position().row + 1;
     let body_start = body.start_position().row + 1;
     let body_end = body.end_position().row + 1;
+    let before_body = src
+        .lines()
+        .nth(body.start_position().row)
+        .and_then(|line| line.get(..body.start_position().column))
+        .unwrap_or("");
+    if !before_body.trim().is_empty() {
+        return Some((None, None));
+    }
     let signature = (body_start > item_start).then(|| LineSpan::new(item_start, body_start - 1));
     let body = (body_end > body_start).then(|| LineSpan::new(body_start, body_end));
     Some((signature, body))
+}
+
+/// The `function_item` ending on `row`, at any inline-module depth.
+#[cfg(feature = "symbol-resolution")]
+fn find_fn_ending_on(node: Node<'_>, row: usize, depth: usize) -> Option<Node<'_>> {
+    if depth > MAX_CONTAINER_DEPTH {
+        return None;
+    }
+    let mut cursor = node.walk();
+    for child in node.named_children(&mut cursor) {
+        if child.kind() == "function_item" && child.end_position().row == row {
+            return Some(child);
+        }
+        if child.kind() == "mod_item"
+            && child.start_position().row <= row
+            && child.end_position().row >= row
+            && let Some(body) = child.child_by_field_name("body")
+            && let Some(found) = find_fn_ending_on(body, row, depth + 1)
+        {
+            return Some(found);
+        }
+    }
+    None
 }
 
 #[cfg(feature = "symbol-resolution")]
@@ -1378,7 +1429,9 @@ fn find_node_starting_on(node: Node<'_>, row: usize) -> Option<Node<'_>> {
             child
         };
         if candidate.start_position().row == row
-            && (RUST_KINDS.contains(&candidate.kind()) || TS_KINDS.contains(&candidate.kind()))
+            && (RUST_KINDS.contains(&candidate.kind())
+                || TS_KINDS.contains(&candidate.kind())
+                || candidate.kind() == "method_definition")
         {
             return Some(candidate);
         }

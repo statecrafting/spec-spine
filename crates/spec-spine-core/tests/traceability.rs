@@ -279,6 +279,12 @@ fn every_state_is_reached_and_none_stands_in_for_another() {
     assert_eq!(state("t-inv-kind"), TraceState::Unresolved);
     assert_eq!(state("t-inv-gone"), TraceState::Withdrawn);
     assert_eq!(state("t-gone"), TraceState::Withdrawn);
+    // Spec 163 binds test identities, so a test target the fixture never
+    // defines no longer reads `unsupported` (169 §3.3), except where the
+    // build has no resolver at all.
+    #[cfg(feature = "symbol-resolution")]
+    assert_eq!(state("t-test"), TraceState::Unresolved);
+    #[cfg(not(feature = "symbol-resolution"))]
     assert_eq!(state("t-test"), TraceState::Unsupported);
     assert_eq!(state("t-doc-proj"), TraceState::Unsupported);
     #[cfg(feature = "symbol-resolution")]

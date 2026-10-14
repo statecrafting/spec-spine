@@ -620,6 +620,7 @@ fn resolve_selector(inputs: &Inputs<'_>, selector: &ContentSelector) -> Result<R
         ContentSelector::OwnedUnit { .. }
             | ContentSelector::Symbol { .. }
             | ContentSelector::Module { .. }
+            | ContentSelector::Test { .. }
     );
     // A build without the `symbol-resolution` feature (spec 025) resolves no
     // symbol or module: the form is outside this build's matrix, which is
@@ -627,11 +628,16 @@ fn resolve_selector(inputs: &Inputs<'_>, selector: &ContentSelector) -> Result<R
     #[cfg(not(feature = "symbol-resolution"))]
     if matches!(
         selector,
-        ContentSelector::Symbol { .. } | ContentSelector::Module { .. }
+        ContentSelector::Symbol { .. }
+            | ContentSelector::Module { .. }
+            | ContentSelector::Test { .. }
     ) {
         return Ok((
             TraceState::Unsupported,
-            Some("this build resolves no symbols or modules (symbol-resolution is off)".into()),
+            Some(
+                "this build resolves no symbols, modules or tests (symbol-resolution is off)"
+                    .into(),
+            ),
         ));
     }
     if needs_index && inputs.index.is_none() {
@@ -671,7 +677,9 @@ fn resolve_selector(inputs: &Inputs<'_>, selector: &ContentSelector) -> Result<R
         Err(Error::Refused(m))
             if matches!(
                 selector,
-                ContentSelector::Symbol { .. } | ContentSelector::Module { .. }
+                ContentSelector::Symbol { .. }
+                    | ContentSelector::Module { .. }
+                    | ContentSelector::Test { .. }
             ) =>
         {
             return Ok((TraceState::Ambiguous, Some(m)));
@@ -686,7 +694,10 @@ fn resolve_selector(inputs: &Inputs<'_>, selector: &ContentSelector) -> Result<R
         Err((
             ContentOmissionReason::UnsupportedSelector
             | ContentOmissionReason::UnsupportedProjection
-            | ContentOmissionReason::BinaryContent,
+            | ContentOmissionReason::BinaryContent
+            // Spec 163 D-17: an identity the resolver cannot enumerate stays
+            // outside the matrix, which 169 §3.3 reports `unsupported`.
+            | ContentOmissionReason::IndeterminateSelector,
             m,
         )) => (TraceState::Unsupported, Some(m)),
     })

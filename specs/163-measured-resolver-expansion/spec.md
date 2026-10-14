@@ -36,7 +36,7 @@ amends:
   - "155-selected-content-accessor"
 establishes:
   - { kind: file, path: "crates/spec-spine-core/tests/resolver_matrix.rs" }
-  - { kind: file, path: "crates/spec-spine-cli/tests/resolver_matrix.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-cli/tests/resolver_matrix.rs" }
 extends:
   - { spec: "004-codebase-index", unit: { kind: file, path: "crates/spec-spine-core/src/symbols.rs" }, nature: additive }
   - { spec: "004-codebase-index", unit: { kind: file, path: "crates/spec-spine-core/src/index.rs" }, nature: additive }
@@ -44,6 +44,14 @@ extends:
   - { spec: "155-selected-content-accessor", unit: { kind: file, path: "crates/spec-spine-types/src/content.rs" }, nature: additive }
   - { spec: "155-selected-content-accessor", unit: { kind: file, path: "crates/spec-spine-core/tests/content.rs" }, nature: corrective }
   - { spec: "155-selected-content-accessor", unit: { kind: file, path: "crates/spec-spine-cli/tests/content.rs" }, nature: additive }
+  # D-17: the downstream mappings of the new omission reason.
+  - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "crates/spec-spine-core/src/context_packet.rs" }, nature: additive }
+  - { spec: "169-declared-obligation-traceability", unit: { kind: file, path: "crates/spec-spine-core/src/traceability.rs" }, nature: additive }
+  # 169 §3.3 anticipated it: a `test` target the fixtures never define now
+  # reads `unresolved`, not the blanket `unsupported`, and needs the index.
+  - { spec: "169-declared-obligation-traceability", unit: { kind: file, path: "crates/spec-spine-core/tests/traceability.rs" }, nature: corrective }
+  - { spec: "169-declared-obligation-traceability", unit: { kind: directory, path: "crates/spec-spine-core/tests/fixtures/traceability/" }, nature: corrective }
+  - { spec: "169-declared-obligation-traceability", unit: { kind: file, path: "crates/spec-spine-cli/tests/traceability.rs" }, nature: corrective }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-core/tests/read.rs" }, nature: additive }
   - { spec: "108-a-work-scope-is-declared", unit: { kind: file, path: "crates/spec-spine-core/tests/scope.rs" }, nature: additive }
   - { spec: "108-a-work-scope-is-declared", unit: { kind: file, path: "crates/spec-spine-cli/tests/scope.rs" }, nature: additive }
@@ -74,7 +82,7 @@ obligations:
     anchor: "3-7-projections-follow-the-grammar"
   - id: "R-5"
     kind: requirement
-    text: "The read schema advances to 0.11.0, the index schema advances to 1.3.0 in the change that moves the engine pin to the first release carrying this resolver, and any later matrix change follows the §3.8 compatibility rule."
+    text: "The read schema advances one MINOR (0.12.0, D-16), the index schema advances to 1.3.0 in the change that moves the engine pin to the first release carrying this resolver, and any later matrix change follows the §3.8 compatibility rule."
     anchor: "3-8-compatibility-gate"
   - id: "I-1"
     kind: invariant
@@ -368,9 +376,9 @@ written.
   `required_version` pin's job.
 - `INDEX_SCHEMA_VERSION` moves in the change that moves this repository's
   engine pin to the first release carrying this resolver, not before (D-9).
-- `READ_SCHEMA_VERSION` becomes `0.11.0` (MINOR): one new omission reason, and
-  `test` selectors that resolve. (`0.10.0` was taken by spec 158 after this
-  spec was drafted.)
+- `READ_SCHEMA_VERSION` becomes `0.12.0` (MINOR): one new omission reason, and
+  `test` selectors that resolve. (`0.10.0` was taken by spec 158 and `0.11.0`
+  by spec 169 after this spec was drafted; D-16.)
 - It is MINOR only because of I-1. For every later matrix change: adding a
   construct is an index MINOR and MUST preserve §3.3 against the then-current
   L. Removing a construct, re-spelling an id grammar, or changing a legacy
@@ -413,7 +421,7 @@ reachability, or test execution. Resolving a test identity never runs it.
 4. A plain unresolved unit's diagnostic is byte-identical to 0.28.0.
 5. Feature off: `symbol`, `module`, and `test` lookups report
    `unknown`/`resolver-disabled`, and the crate builds without tree-sitter.
-6. The two version constants read `1.3.0` and `0.11.0`, and conformance
+6. The two version constants read `1.3.0` and `0.12.0` (D-16), and conformance
    passes. The read constant moves with the build; the index constant moves at
    the pin change (D-9).
 7. `determinism.yml` runs the resolver_matrix test on all four triples.
@@ -527,6 +535,23 @@ node.** A test span opens on its attribute run, so the projection finds the
 function item ending on the span's last line rather than one starting on its
 first.
 
+**D-16 (2026-10-13): the read constant is `0.12.0`.** §3.8 named `0.11.0`
+after `0.10.0` went to spec 158; spec 169 then took `0.11.0` for the
+traceability report before this build reached the constant. The requirement
+is one read MINOR for the new omission reason and resolving `test` selectors,
+so the constant takes the next free MINOR, and §3.8, criterion 6 and the
+Verification line name it.
+
+**D-17 (2026-10-13): what an indeterminate selector is downstream.** Specs 159
+and 169 consume 155's omission reasons and were filed after this spec, which
+is silent on them. A context packet's closed vocabulary has no `unknown`, so
+`indeterminate-selector` becomes the packet's `unresolved`, the reason token
+riding in its detail; a `test` selector that does not resolve is `unresolved`
+there too, as `symbol` and `module` already are. The traceability report
+keeps 169 §3.3's rule that an identity outside the resolver's matrix is
+`unsupported`, so `indeterminate-selector` maps to `unsupported` beside
+`unsupported-selector`. Neither document's own version axis moves.
+
 Status (2026-10-10): built in five changes so each stays reviewable (ai-review
 timed out at its 15-minute limit on the larger splits). They are: (1) the
 resolver, its Rust `src/` constructs and reasons, and the index messages, with
@@ -555,17 +580,24 @@ records `member`, `re-export`, `ts-namespace`, `ts-destructuring`,
 site, because its text is an expression and gives no would-be id; a private
 `#name` records `ts-computed-name` under `<Class>::#name`.
 
+Status (2026-10-13, content slice): change (5) maps every lookup outcome onto
+`content select` (§3.5), resolves `test` selectors (§3.4), applies §3.7's
+projection corrections, moves the read constant (D-16, D-17), and adds the CLI
+resolver_matrix test and the template's id forms. What remains is the index
+constant and its restamp, which wait for the engine pin to move to the first
+release carrying this resolver (D-9).
+
 ## Verification
 
 Every line but the last fails before the build: the test targets do not exist and the
-constants read `1.2.0` and `0.10.0`.
+constants read `1.2.0` and `0.11.0`.
 
 ```verify:cli
 cargo test -p spec-spine-core --test resolver_matrix --locked
 cargo test -p spec-spine-core --no-default-features --test resolver_matrix --locked
 cargo test -p spec-spine-cli --test resolver_matrix --locked
 grep -q 'INDEX_SCHEMA_VERSION: &str = "1.3.0"' crates/spec-spine-types/src/version.rs
-grep -q 'READ_SCHEMA_VERSION: &str = "0.11.0"' crates/spec-spine-types/src/version.rs
+grep -q 'READ_SCHEMA_VERSION: &str = "0.12.0"' crates/spec-spine-types/src/version.rs
 grep -q 'resolver_matrix' .github/workflows/determinism.yml
 cargo test --workspace --locked
 ```

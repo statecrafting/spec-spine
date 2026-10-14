@@ -199,14 +199,17 @@ pub(crate) fn bind_selector(
     let root_real = fs::canonicalize(repo_root).map_err(|error| Error::Io(error.to_string()))?;
     #[cfg(feature = "symbol-resolution")]
     let resolver = match (selector, index) {
-        (ContentSelector::Symbol { .. } | ContentSelector::Module { .. }, Some(idx)) => {
-            Some(crate::symbols::build_resolver(
-                repo_root,
-                &idx.packages,
-                &cfg.index.resolver_exclusions,
-                &cfg.layout,
-            ))
-        }
+        (
+            ContentSelector::Symbol { .. }
+            | ContentSelector::Module { .. }
+            | ContentSelector::Test { .. },
+            Some(idx),
+        ) => Some(crate::symbols::build_resolver(
+            repo_root,
+            &idx.packages,
+            &cfg.index.resolver_exclusions,
+            &cfg.layout,
+        )),
         _ => None,
     };
     let context = SelectorContext {
@@ -282,6 +285,7 @@ pub(crate) fn resolve_selectors(
             ContentSelector::OwnedUnit { .. }
                 | ContentSelector::Symbol { .. }
                 | ContentSelector::Module { .. }
+                | ContentSelector::Test { .. }
         )
     });
 
@@ -306,7 +310,9 @@ pub(crate) fn resolve_selectors(
         .any(|s| {
             matches!(
                 s,
-                ContentSelector::Symbol { .. } | ContentSelector::Module { .. }
+                ContentSelector::Symbol { .. }
+                    | ContentSelector::Module { .. }
+                    | ContentSelector::Test { .. }
             )
         })
         .then(|| {
@@ -569,32 +575,70 @@ fn resolve_selector(
             );
             Ok((identity, selected))
         }
-        ContentSelector::Test { id, .. } => Ok((
-            format!("test:{id}"),
-            Err((
-                ContentOmissionReason::UnsupportedSelector,
-                "test selectors require a resolver that binds test attributes to nested functions"
-                    .into(),
-            )),
-        )),
-        ContentSelector::Symbol { id, .. } | ContentSelector::Module { id, .. } => {
+        ContentSelector::Symbol { id, .. }
+        | ContentSelector::Module { id, .. }
+        | ContentSelector::Test { id, .. } => {
             let kind = match selector {
                 ContentSelector::Symbol { .. } => "symbol",
                 ContentSelector::Module { .. } => "module",
-                _ => unreachable!(),
+                _ => "test",
             };
             let identity = format!("{kind}:{id}");
             #[cfg(feature = "symbol-resolution")]
-            let locations = {
-                let ns = if kind == "module" {
-                    crate::symbols::Namespace::Module
-                } else {
-                    crate::symbols::Namespace::Symbol
+            let (lookup, is_symbol) = {
+                use crate::symbols::Namespace;
+                let ns = match kind {
+                    "symbol" => Namespace::Symbol,
+                    "module" => Namespace::Module,
+                    _ => Namespace::Test,
                 };
-                context.resolver.expect("resolver built").resolve(ns, id)
+                let resolver = context.resolver.expect("resolver built");
+                let is_symbol = ns == Namespace::Test
+                    && matches!(
+                        resolver.lookup(Namespace::Symbol, id),
+                        crate::symbols::Lookup::Resolved(_)
+                    );
+                (resolver.lookup(ns, id), is_symbol)
             };
             #[cfg(not(feature = "symbol-resolution"))]
-            let locations: Vec<ResolvedLocation> = Vec::new();
+            let (lookup, is_symbol) = (
+                crate::symbols::Lookup::Unknown(crate::symbols::reason::RESOLVER_DISABLED),
+                false,
+            );
+            // Each outcome maps to exactly one omission (spec 163 §3.5), and
+            // its reason token rides in the message.
+            let locations = match lookup {
+                crate::symbols::Lookup::Resolved(locations) => locations,
+                crate::symbols::Lookup::Unsupported(reason) => {
+                    return Ok((
+                        identity,
+                        Err((
+                            ContentOmissionReason::UnsupportedSelector,
+                            format!("{kind} '{id}' is unsupported: {reason}"),
+                        )),
+                    ));
+                }
+                crate::symbols::Lookup::Unknown(reason) => {
+                    return Ok((
+                        identity,
+                        Err((
+                            ContentOmissionReason::IndeterminateSelector,
+                            format!("{kind} '{id}' is unknown: {reason}"),
+                        )),
+                    ));
+                }
+                crate::symbols::Lookup::Unresolved => {
+                    let message = if is_symbol {
+                        format!("{kind} '{id}' is not a test function")
+                    } else {
+                        format!("{kind} '{id}' does not resolve")
+                    };
+                    return Ok((
+                        identity,
+                        Err((ContentOmissionReason::MissingContent, message)),
+                    ));
+                }
+            };
             if locations.len() > 1 {
                 return Err(Error::Refused(format!(
                     "{kind} selector '{id}' is ambiguous"
@@ -609,7 +653,8 @@ fn resolve_selector(
                     )),
                 ));
             };
-            let selected = read_structural(cfg, root, root_real, location, projection);
+            let selected =
+                read_structural(cfg, root, root_real, location, projection, kind == "test");
             Ok((identity, selected))
         }
     }
@@ -903,12 +948,9 @@ fn structural_projection(
                     "the grammar does not expose a line-bounded signature".into(),
                 ));
             };
-            let mut signature = select_lines(
-                selected.path,
-                &selected.content,
-                1,
-                span.end_line - span.start_line + 1,
-            );
+            let start = span.start_line - selected.span.start_line + 1;
+            let end = span.end_line - selected.span.start_line + 1;
+            let mut signature = select_lines(selected.path, &selected.content, start, end);
             signature.span = ContentSpan {
                 start_line: span.start_line,
                 end_line: span.end_line,
@@ -944,6 +986,7 @@ fn read_structural(
     root_real: &Path,
     location: &ResolvedLocation,
     projection: ContentProjection,
+    test: bool,
 ) -> Result<Selected, (ContentOmissionReason, String)> {
     let path =
         RepoPath::parse(&location.file).map_err(|m| (ContentOmissionReason::MissingContent, m))?;
@@ -960,13 +1003,17 @@ fn read_structural(
     let whole = read_path(cfg, root, root_real, &path, None, Some(8 * 1024 * 1024))?;
     let lines: Vec<&str> = whole.content.lines().collect();
     if projection == ContentProjection::Documentation {
-        let Some((start, end)) = attached_documentation_span(&lines, span.start_line) else {
-            return Err((
+        return match documentation(&lines, span.start_line) {
+            Documentation::Span(start, end) => Ok(select_lines(path, &whole.content, start, end)),
+            Documentation::Attribute => Err((
+                ContentOmissionReason::UnsupportedProjection,
+                "attribute documentation".into(),
+            )),
+            Documentation::None => Err((
                 ContentOmissionReason::MissingContent,
                 "no attached documentation comments".into(),
-            ));
+            )),
         };
-        return Ok(select_lines(path, &whole.content, start, end));
     }
     let selected = select_lines(path.clone(), &whole.content, span.start_line, span.end_line);
     #[cfg(feature = "symbol-resolution")]
@@ -976,14 +1023,78 @@ fn read_structural(
             .rsplit_once('.')
             .map(|(_, ext)| ext)
             .unwrap_or(""),
-        span.start_line,
+        // A test's span opens on its attribute run, so its function is the
+        // item ending on the span's last line (spec 163 D-15).
+        if test {
+            crate::symbols::SpanAnchor::EndsOn(span.end_line)
+        } else {
+            crate::symbols::SpanAnchor::StartsOn(span.start_line)
+        },
     );
     #[cfg(not(feature = "symbol-resolution"))]
-    let spans = None;
+    let spans = {
+        let _ = test;
+        None
+    };
     structural_projection(selected, projection, spans)
 }
 
-fn attached_documentation_span(lines: &[&str], item_start_line: usize) -> Option<(usize, usize)> {
+/// What sits above an item as its documentation (spec 163 §3.7).
+#[derive(Debug, PartialEq, Eq)]
+enum Documentation {
+    /// A comment run, as 1-based inclusive lines.
+    Span(usize, usize),
+    /// A contiguous `#[doc = …]` attribute, which is not a comment span.
+    Attribute,
+    None,
+}
+
+/// The 0.28.0 scan first, and its span unchanged when it finds one; only when
+/// it finds nothing do the one-line `/** … */` block, a multi-line block whose
+/// closing line carries text, and the `#[doc = …]` report apply (spec 163
+/// D-13). A blank line still ends the run (D-6).
+fn documentation(lines: &[&str], item_start_line: usize) -> Documentation {
+    if let Some((start, end)) = attached_documentation_span(lines, item_start_line) {
+        return Documentation::Span(start, end);
+    }
+    let end = skip_attributes(lines, item_start_line);
+    if end > 0 {
+        let closing = lines[end - 1].trim();
+        // One line: `/** text */`.
+        if closing.starts_with("/**") && closing.ends_with("*/") && closing.len() > 4 {
+            return Documentation::Span(end, end);
+        }
+        // Several lines, the closing one carrying text before its `*/`.
+        if closing.ends_with("*/") && !closing.starts_with("*/") && !closing.starts_with("/*") {
+            let mut cursor = end - 1;
+            while cursor > 0 {
+                let line = lines[cursor - 1].trim();
+                if line.is_empty() || line.contains("*/") {
+                    break;
+                }
+                if line.starts_with("/**") {
+                    return Documentation::Span(cursor, end);
+                }
+                if line.starts_with("/*") {
+                    break;
+                }
+                cursor -= 1;
+            }
+        }
+    }
+    let attributes = &lines[end..item_start_line.saturating_sub(1)];
+    if attributes
+        .iter()
+        .any(|line| line.trim_start().starts_with("#[doc"))
+    {
+        return Documentation::Attribute;
+    }
+    Documentation::None
+}
+
+/// The 1-based line just above the attribute run that precedes an item (0 when
+/// the run reaches the top of the file).
+fn skip_attributes(lines: &[&str], item_start_line: usize) -> usize {
     let mut cursor = item_start_line.saturating_sub(1);
     let mut attribute_depth = 0isize;
     while cursor > 0 {
@@ -996,6 +1107,11 @@ fn attached_documentation_span(lines: &[&str], item_start_line: usize) -> Option
             break;
         }
     }
+    cursor
+}
+
+fn attached_documentation_span(lines: &[&str], item_start_line: usize) -> Option<(usize, usize)> {
+    let mut cursor = skip_attributes(lines, item_start_line);
     let end = cursor;
     let mut in_doc_block = false;
     while cursor > 0 {
@@ -1204,5 +1320,38 @@ mod tests {
         ];
         assert_eq!(attached_documentation_span(&lines, 3), Some((1, 1)));
         assert_eq!(attached_documentation_span(&lines, 6), None);
+    }
+
+    /// Spec 163 §3.7 and D-13: the forms 0.28.0 missed, its own spans kept.
+    #[test]
+    fn documentation_recognizes_every_outer_doc_comment_form() {
+        let lines = [
+            "/** single */",           // 1
+            "pub fn a() {}",           // 2
+            "/**",                     // 3
+            " * several",              // 4
+            " */",                     // 5
+            "pub fn b() {}",           // 6
+            "/** opens",               // 7
+            "    closes with text */", // 8
+            "#[inline]",               // 9
+            "pub fn c() {}",           // 10
+            "#[doc = \"attr\"]",       // 11
+            "pub fn d() {}",           // 12
+            "/// separated",           // 13
+            "",                        // 14
+            "pub fn e() {}",           // 15
+            "/* not a doc */",         // 16
+            "pub fn f() {}",           // 17
+        ];
+        assert_eq!(documentation(&lines, 2), Documentation::Span(1, 1));
+        // A 0.28.0 span is returned unchanged.
+        assert_eq!(attached_documentation_span(&lines, 6), Some((3, 5)));
+        assert_eq!(documentation(&lines, 6), Documentation::Span(3, 5));
+        assert_eq!(documentation(&lines, 10), Documentation::Span(7, 8));
+        assert_eq!(documentation(&lines, 12), Documentation::Attribute);
+        // A blank line still ends the run (D-6).
+        assert_eq!(documentation(&lines, 15), Documentation::None);
+        assert_eq!(documentation(&lines, 17), Documentation::None);
     }
 }
