@@ -22,8 +22,8 @@ use clap::Subcommand;
 use spec_spine_types::{
     CAPABILITIES_SCHEMA_VERSION, CATALOG_SCHEMA_VERSION, CONFIG_VERSION,
     CONTEXT_PACKET_SCHEMA_VERSION, Capabilities, CapabilityVerifyRequest, DELTA_SCHEMA_VERSION,
-    Error, Operation, READ_SCHEMA_VERSION, SchemaAxis, TRACEABILITY_SCHEMA_VERSION,
-    VERDICT_SCHEMA_VERSION, VerbCapability, Verdict, verdict::verb,
+    DOCUMENTATION_MANIFEST_SCHEMA_VERSION, Error, Operation, READ_SCHEMA_VERSION, SchemaAxis,
+    TRACEABILITY_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, VerbCapability, Verdict, verdict::verb,
 };
 
 #[derive(Subcommand)]
@@ -289,6 +289,10 @@ pub fn json_axes(path: &str) -> Vec<SchemaAxis> {
         "capabilities" => vec![axis("capabilities", CAPABILITIES_SCHEMA_VERSION)],
         "capabilities verify" => vec![verdict()],
         "context packet" => vec![axis("context-packet", CONTEXT_PACKET_SCHEMA_VERSION)],
+        "documentation manifest validate" | "documentation manifest freshness" => vec![axis(
+            "documentation-manifest",
+            DOCUMENTATION_MANIFEST_SCHEMA_VERSION,
+        )],
         _ => Vec::new(),
     }
 }

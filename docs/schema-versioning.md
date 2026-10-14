@@ -22,6 +22,7 @@
 | capabilities document (`capabilities --json`, spec 170) | `schemaVersion` | `0.2.0` | library |
 | capability catalog (the document's `catalog`, `capability_catalog_json()`, spec 162) | `schemaVersion` | `1.0.0` | library |
 | context packet (`context packet --json`, `context_packet_json`, spec 159) | `schemaVersion` | `1.0.0` | library |
+| documentation manifest and freshness result (`documentation manifest validate\|freshness --json`, spec 160) | `schemaVersion` | `1.0.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
 | `spec-spine.toml` | `config_version` (optional) | `0.1.0` | library |
 | verifier fixture set (`fixtures/verifier/`, spec 103) | `schemaVersion` | `1.0.0` | library (test data, not emitted at runtime) |
@@ -411,6 +412,25 @@ reinterpreted member, ordering rule, digest input or enum value. PATCH changes
 only descriptions or constraints and accepts and emits the same instances. A
 request names the version it reads in `consumerSchemaVersion`; the producer
 refuses another major or a minor above its own.
+
+## The documentation-manifest axis: spec 160
+
+A documentation manifest and its freshness result share one axis of their own:
+both carry `schemaVersion` = `DOCUMENTATION_MANIFEST_SCHEMA_VERSION`, starting
+at `1.0.0`. Their schema is embedded as `DOCUMENTATION_MANIFEST_SCHEMA`
+(`schemas/documentation-manifest.schema.json`), whose `$defs/manifest` and
+`$defs/freshness` are the two documents.
+
+**`1.0.0` (spec 160).** The first manifest (packet page set, local, interface
+and external inputs, generator identity, outputs with regions and examples,
+omissions, `manifestDigest`) and freshness result (both snapshots,
+`repositoryTreeChanged`, `status`, ordered findings, `freshnessDigest`).
+
+Adding an optional member moves MINOR. Removing or reinterpreting a member,
+ordering rule, limit, digest input, status or enum value moves MAJOR. PATCH is
+reserved for description changes that alter no accepted or emitted instance.
+A manifest whose major differs, or whose minor is above the binary's, is a
+usage error. No existing document moved.
 
 ## Migration note: spec 034, the verdict envelope
 

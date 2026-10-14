@@ -925,7 +925,7 @@ fn the_json_facades_round_trip() {
     let manifest_json = documentation_manifest_document(&m).unwrap();
     let pages_json = serde_json::to_string(&p).unwrap();
     let snap_json = serde_json::to_string(&snapshot('2')).unwrap();
-    let validated = spec_spine_core::documentation_manifest::documentation_manifest_json(
+    let validated = spec_spine_core::documentation_manifest_json(
         &cfg,
         root,
         &manifest_json,
@@ -940,7 +940,7 @@ fn the_json_facades_round_trip() {
     })
     .to_string();
     let resolutions_json = serde_json::to_string(&resolutions()).unwrap();
-    let fresh = spec_spine_core::documentation_manifest::documentation_freshness_json(
+    let fresh = spec_spine_core::documentation_freshness_json(
         &cfg,
         root,
         &manifest_json,

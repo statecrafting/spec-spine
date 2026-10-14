@@ -4,7 +4,7 @@ title: "Declare documentation inputs and freshness"
 status: approved
 kind: "governance"
 created: "2026-09-26"
-implementation: in-progress
+implementation: complete
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -25,19 +25,24 @@ establishes:
   - { kind: file, path: "crates/spec-spine-core/src/documentation_manifest.rs" }
   - { kind: file, path: "crates/spec-spine-core/tests/documentation_manifest.rs" }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/documentation-manifest/" }
-  - { kind: file, path: "crates/spec-spine-cli/src/cmd_documentation.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-cli/tests/documentation_manifest.rs", planned: true }
-  - { kind: file, path: "docs/documentation-manifests.md", planned: true }
+  - { kind: file, path: "crates/spec-spine-cli/src/cmd_documentation.rs" }
+  - { kind: file, path: "crates/spec-spine-cli/tests/documentation_manifest.rs" }
+  - { kind: section, file: "docs/documentation-manifests.md", anchor: "documentation-manifests" }
 extends:
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
   - { spec: "110-an-interface-reference-is-digest-pinned", unit: { kind: file, path: "crates/spec-spine-core/src/interface.rs" }, nature: additive }
   - { spec: "002-registry-query", unit: { kind: file, path: "crates/spec-spine-cli/src/main.rs" }, nature: additive }
+  - { spec: "034-machine-readable-verdicts", unit: { kind: file, path: "crates/spec-spine-types/src/verdict.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/tests/capability_catalog.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-cli/tests/capability_catalog.rs" }, nature: additive }
+  - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_capabilities.rs" }, nature: additive }
+  - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/tests/capabilities.rs" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/api.md" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: section, file: "docs/cli-reference.md", anchor: "cli-reference" }, nature: additive }
   - { spec: "057-the-docs-name-what-adopters-derived", unit: { kind: file, path: "docs/schema-versioning.md" }, nature: additive }
-  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap" }
 obligations:
@@ -631,6 +636,25 @@ example argument vectors keep their order; every other collection, `uses` and
 resolutions for one key are a usage error. An output path is refused beneath
 `.git` and beneath the configured derived and state directories unless the
 caller's output root is itself inside that directory.
+
+**D-19 (2026-10-10, build): the CLI surface, the catalog records and the docs
+claim.** The two verbs are `documentation manifest validate` and
+`documentation manifest freshness`, each taking `--manifest`, one `--packet`
+per page in page order, `--repository`, optional `--revision` and
+`--output-root` (default `.`), and `--json`; `freshness` adds repeatable
+`--export <corpus>=<dir>` (spec 110's form) and `--resolutions <file>`. Both
+bind the snapshot through the binding `content select` and `context packet`
+share, so they also execute `git` and write a private temporary export, and
+the catalog records added under D-9 state those effects as read from the code
+rather than D-9's forecast that neither writes or executes. `validate` prints
+the canonical manifest; `freshness` prints a `fresh` result at exit 0 and
+reports any other status as a finding (exit 1) in the
+`documentation.manifest.freshness` envelope. The two verbs add verdict tokens
+to spec 034's list, and a `documentation-manifest` axis to 162's
+compatibility map and to spec 170's `capabilities` table.
+`docs/documentation-manifests.md` is claimed as its top-level section, as spec
+159 claims its page, because L-008 refuses a file claim that no content hash
+covers.
 
 ## Verification
 

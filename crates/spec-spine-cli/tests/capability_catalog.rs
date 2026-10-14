@@ -217,6 +217,13 @@ fn module_operations() -> BTreeMap<&'static str, Vec<&'static str>> {
         ("cmd_couple.rs", vec!["couple"]),
         ("cmd_delta.rs", vec!["delta"]),
         (
+            "cmd_documentation.rs",
+            vec![
+                "documentation.manifest.freshness",
+                "documentation.manifest.validate",
+            ],
+        ),
+        (
             "cmd_index.rs",
             vec![
                 "index.build",
@@ -454,6 +461,8 @@ fn the_capabilities_document_carries_the_catalog() {
         "context.packet",
         "couple",
         "delta",
+        "documentation.manifest.freshness",
+        "documentation.manifest.validate",
         "index.build",
         "index.check",
         "index.coverage",

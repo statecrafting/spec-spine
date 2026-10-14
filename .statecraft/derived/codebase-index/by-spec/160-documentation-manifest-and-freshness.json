@@ -8,7 +8,27 @@
     ],
     "implementingPaths": [
       {
+        "path": "crates/spec-spine-cli/src/cmd_capabilities.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/src/cmd_documentation.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-cli/src/main.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/capabilities.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/capability_catalog.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/documentation_manifest.rs",
         "source": "spec-edge"
       },
       {
@@ -25,6 +45,10 @@
       },
       {
         "path": "crates/spec-spine-core/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/capability_catalog.rs",
         "source": "spec-edge"
       },
       {
@@ -48,6 +72,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-types/src/verdict.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/src/version.rs",
         "source": "spec-edge"
       },
@@ -57,6 +85,10 @@
       },
       {
         "path": "docs/cli-reference.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/documentation-manifests.md",
         "source": "spec-edge"
       },
       {
@@ -79,7 +111,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_documentation.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -88,7 +124,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/documentation_manifest.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -149,12 +189,34 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "docs/documentation-manifests.md",
+            "span": {
+              "endLine": 164,
+              "startLine": 1
+            }
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
+          "anchor": "documentation-manifests",
+          "file": "docs/documentation-manifests.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/src/cmd_capabilities.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
           "kind": "file",
-          "path": "docs/documentation-manifests.md"
+          "path": "crates/spec-spine-cli/src/cmd_capabilities.rs"
         }
       },
       {
@@ -168,6 +230,32 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/capabilities.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capabilities.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/capability_catalog.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/tests/capability_catalog.rs"
         }
       },
       {
@@ -212,6 +300,19 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/capability_catalog.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/capability_catalog.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-types/src/lib.rs"
           }
         ],
@@ -220,6 +321,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/verdict.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/verdict.rs"
         }
       },
       {
@@ -266,7 +380,7 @@
           {
             "file": "docs/cli-reference.md",
             "span": {
-              "endLine": 532,
+              "endLine": 554,
               "startLine": 1
             }
           }
@@ -297,5 +411,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "b0c06b1d7e14143c4c903ec0f07f632932553331ac813c6c114df108cc56af4e"
+  "shardHash": "b485731deab9a2530b125bb8c6462d85bc37d059d87372a970a7b3dbe6d01234"
 }

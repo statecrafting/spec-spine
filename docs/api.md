@@ -238,6 +238,38 @@ request_json, snapshot_json)` is the JSON facade; it has no build identity to
 supply, so its packets record `unverified`. `packet_digest(&ContextPacket)`
 recomputes `packetDigest`. See `docs/context-packets.md`.
 
+### Documentation manifests
+
+`parse_documentation_manifest(text)` reads a manifest (spec 160), checking the
+4 MiB limit before deserializing and refusing a `continuation` member and any
+unknown member as `Usage`. `validate_documentation_manifest(&manifest, pages,
+&PacketSnapshot, &OutputBytes)` checks it against the snapshot it records: its
+structure, ids, citations, regions and `manifestDigest` (`Usage` when wrong),
+then the complete page set, every input against the packet and every output's
+bytes and regions (`Refused` when they disagree). It returns the canonical
+manifest. `documentation_freshness(&manifest, &current_snapshot, pages,
+&Exports, &[ExternalResolution], &OutputBytes)` evaluates freshness and returns
+a `DocumentationFreshness` whose `status` is `fresh`, `unverified`, `stale` or
+`incomplete`; a result above 4 MiB is refused as `result-too-large`. Neither
+reads anything but its arguments.
+
+`read_documentation_outputs(&Config, repo_root, output_root, &manifest)` is
+the one I/O step: it reads each declared output beneath the output root and
+refuses a path escape, a `.git` path, an unselected generated root, or a link
+out of the root. `canonical_manifest`, `manifest_digest`, `freshness_digest`,
+`documentation_manifest_document` and `documentation_freshness_document` give
+the canonical forms and digests; `packet_snapshot(&ContentSnapshot)` drops the
+binding. `verify_reference(declared_by, &InterfaceReference, &Exports)` is the
+spec 110 verifier for one pin, which freshness uses for interface inputs.
+
+`documentation_manifest_json(config_json, repo_root, manifest_json,
+pages_json, snapshot_json, output_root)` and
+`documentation_freshness_json(config_json, repo_root, manifest_json,
+pages_json, snapshot_json, exports_json, resolutions_json, output_root)` are
+the JSON facades; `pages_json` is an array of packet pages and `exports_json`
+maps a corpus to its specs by id, each `{path, text}`. See
+`docs/documentation-manifests.md`.
+
 ---
 
 ### Deletions and the prior snapshot (spec 100)
