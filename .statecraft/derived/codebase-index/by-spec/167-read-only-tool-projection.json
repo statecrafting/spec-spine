@@ -29,11 +29,23 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/projection.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/tests/capability_catalog.rs",
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/projection.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/schemas/capability-catalog.schema.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/schemas/tool-projection.schema.json",
         "source": "spec-edge"
       },
       {
@@ -46,6 +58,10 @@
       },
       {
         "path": "crates/spec-spine-types/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/projection.rs",
         "source": "spec-edge"
       },
       {
@@ -89,7 +105,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/projection.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -98,7 +118,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/projection.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -107,7 +131,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/schemas/tool-projection.schema.json"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -116,7 +144,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/projection.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -351,5 +383,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "767c40d6d596ac391059ff6a4c39b1d1f5c89e765bb10b2f09537a25b61f9403"
+  "shardHash": "0650ddd9e5f944b0c0f7a541edea0e0f4f5aecc8dcfd3efa08703beff2ac78f7"
 }

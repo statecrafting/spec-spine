@@ -37,6 +37,7 @@ pub mod manifest;
 mod markdown;
 pub mod moves;
 pub mod pathutil;
+pub mod projection;
 pub mod query;
 pub mod read;
 pub mod relocation;
@@ -139,6 +140,7 @@ pub use moves::{
     AmbiguousCandidate, Hop, MoveEntry, MoveLookup, Terminal as MoveTerminal, flattened_moves,
     lookup as lookup_move,
 };
+pub use projection::{HOST_PATH_ARGUMENTS, STDIN_REQUESTS, project, tool_name, tool_projection};
 pub use query::{
     BlockedSpec, Blocker, ListFilter, ObligationView, Plan, ReadySpec, RelationshipView,
     StatusReport, StatusReportNonzero, list, list_ids, load_index, load_registry, obligation, plan,
@@ -1198,6 +1200,13 @@ fn to_json<T: serde::Serialize>(value: &T) -> Result<String, Error> {
 /// data: reads nothing and takes nothing.
 pub fn capability_catalog_json() -> Result<String, Error> {
     canonical_json::to_string(&capability_catalog()?)
+}
+
+/// The read-only tool projection (spec 167 §3.1), as canonical JSON on its
+/// own axis: the catalog's judging-tier reads described as tools. Static data
+/// derived from the catalog: reads nothing and takes nothing.
+pub fn tool_projection_json() -> Result<String, Error> {
+    canonical_json::to_string(&tool_projection()?)
 }
 
 /// Check pinned operation digests against this build's catalog (spec 162
