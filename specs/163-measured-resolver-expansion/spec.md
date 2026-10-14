@@ -543,6 +543,11 @@ spans. The determinism workflow runs it on each release triple. The following
 slices extend this same matrix with integration-test identities, TypeScript
 constructs and the CLI content-selection surface.
 
+Status (2026-10-13, test-identity slice): changes (1) and (2) merged as #451
+and #454. Change (3) adds the integration-test roots, the test identities and
+their `unrooted-test-file`, `declared-test-targets` and
+`framework-test-attribute` sites to the same golden.
+
 ## Verification
 
 Every line but the last fails before the build: the test targets do not exist and the
