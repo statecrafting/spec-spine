@@ -23,8 +23,8 @@ establishes:
   - { kind: file, path: "crates/spec-spine-types/src/documentation_manifest.rs" }
   - { kind: file, path: "crates/spec-spine-types/schemas/documentation-manifest.schema.json" }
   - { kind: file, path: "crates/spec-spine-core/src/documentation_manifest.rs" }
-  - { kind: file, path: "crates/spec-spine-core/tests/documentation_manifest.rs", planned: true }
-  - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/documentation-manifest/", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/tests/documentation_manifest.rs" }
+  - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/documentation-manifest/" }
   - { kind: file, path: "crates/spec-spine-cli/src/cmd_documentation.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/tests/documentation_manifest.rs", planned: true }
   - { kind: file, path: "docs/documentation-manifests.md", planned: true }
