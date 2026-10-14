@@ -139,7 +139,7 @@
       "contentHash": "b212ff512e2b09ce2ac840b56bb63f82bdb591d8d6ba00069af26a3e0941f712"
     },
     "crates/spec-spine-types/schemas/tool-projection.schema.json": {
-      "contentHash": "fa87bf9a365f26d0088c782b8b86cb65c8da48126cb349a55373ec9792aed52a"
+      "contentHash": "e3568e11185eb946c086a0ff13365674f0691a73579b883a399593570c66a2a9"
     },
     "crates/spec-spine-types/schemas/traceability.schema.json": {
       "contentHash": "122eaed6a19eb2837691c3d6929e8266efb34bbebe0760d8d1f87c2f0dc0a7c8"

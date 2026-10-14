@@ -490,6 +490,9 @@ fn the_document_is_canonical_digested_and_valid() {
     let mut bad = v.clone();
     bad["tools"][0]["hints"]["destructive"] = Value::Bool(true);
     assert!(!validator.is_valid(&bad), "a destructive tool validated");
+    let mut bad = v.clone();
+    bad["tools"][0]["inputSchema"]["patternProperties"] = serde_json::json!({".*": {}});
+    assert!(!validator.is_valid(&bad), "an open inputSchema validated");
     let mut bad = v;
     bad["tools"][0]["inputSchema"]["properties"]["repo"] = serde_json::json!({"type": "string"});
     assert!(!validator.is_valid(&bad), "a repo property validated");
