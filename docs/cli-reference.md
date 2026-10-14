@@ -504,6 +504,7 @@ floor merged with the adopter's list and attributed to its source. See
 
 ```sh
 spec-spine capabilities [--json] [--operation <name>]
+spec-spine capabilities --projection [--json]
 spec-spine capabilities verify --expect <name>=sha256:<hex>... [--json]
 ```
 
@@ -523,7 +524,7 @@ See `docs/capability-catalog.md`. `--operation <name>` prints one record
 
 ```json
 {
-  "catalog": { "catalogDigest": "sha256:...", "operations": ["..."], "schemaVersion": "1.0.0" },
+  "catalog": { "catalogDigest": "sha256:...", "operations": ["..."], "schemaVersion": "1.1.0" },
   "schemaVersion": "0.2.0",
   "verbs": [
     { "flags": ["json", "plan"], "json": [
@@ -533,6 +534,15 @@ See `docs/capability-catalog.md`. `--operation <name>` prints one record
   "version": "0.29.0"
 }
 ```
+
+`--projection` prints the read-only tool projection (spec 167): the
+catalog's judging-tier reads described as tools a transport adapter (an MCP
+server, say) can serve unchanged. Each tool has a closed input schema and the
+exact invocation of the existing verb a call maps to, so a tool's answer is
+that verb's `--json` stdout and exit code. Without `--json` it prints one line
+per tool, `<tool>  <operation>`. It reads no repository, writes nothing and
+cannot be combined with `--operation` or `verify` (exit 3). See
+`docs/read-only-projection.md`.
 
 `capabilities verify` checks the operation digests a consumer pinned against
 this binary: `current` (exit 0), `changed` or `missing` (exit 1). A malformed,

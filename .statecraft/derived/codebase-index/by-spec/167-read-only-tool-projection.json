@@ -21,6 +21,14 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/tests/fixtures/projection/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-cli/tests/projection.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/capability.rs",
         "source": "spec-edge"
       },
@@ -81,13 +89,21 @@
         "source": "spec-edge"
       },
       {
+        "path": "docs/read-only-projection.md",
+        "source": "spec-edge"
+      },
+      {
         "path": "docs/schema-versioning.md",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/fixtures/projection/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -96,7 +112,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-cli/tests/projection.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -157,12 +177,21 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "docs/read-only-projection.md",
+            "span": {
+              "endLine": 107,
+              "startLine": 1
+            }
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
-          "kind": "file",
-          "path": "docs/read-only-projection.md"
+          "anchor": "the-read-only-tool-projection",
+          "file": "docs/read-only-projection.md",
+          "kind": "section"
         }
       },
       {
@@ -339,7 +368,7 @@
           {
             "file": "docs/cli-reference.md",
             "span": {
-              "endLine": 554,
+              "endLine": 564,
               "startLine": 1
             }
           }
@@ -383,5 +412,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "0650ddd9e5f944b0c0f7a541edea0e0f4f5aecc8dcfd3efa08703beff2ac78f7"
+  "shardHash": "30fb83eaa536f46c13f472fb433d00bdf1bb79a52cfc9fad8620f4b0cd0727ac"
 }

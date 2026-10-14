@@ -702,6 +702,14 @@ pub fn verify_spec_attestation_json(request_json: &str)         -> Result<String
   takes `{ "expect": { "<operation>": "sha256:<hex>" } }` and answers one
   `current`, `changed` or `missing` result per pin, sorted by name; a malformed
   request or digest is `Error::Usage`. See `docs/capability-catalog.md`.
+- `tool_projection_json()` (spec 167) returns the read-only tool projection
+  derived from that catalog: one descriptor per judging-tier read an adapter
+  may offer as a tool, the excluded operations with their reason, and the
+  adapter's closed error vocabulary. Static data, byte-identical to
+  `capabilities --projection --json`. `tool_projection()` returns the typed
+  document and `project(&catalog)` derives one from a given catalog. A tool
+  call is an invocation of the verb, never of a facade function (167 D-1). See
+  `docs/read-only-projection.md`.
 
 All emitted JSON is **pretty-printed with sorted keys, LF line endings, and a
 trailing newline** (diffability over compactness; see

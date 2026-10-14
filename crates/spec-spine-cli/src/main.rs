@@ -72,6 +72,10 @@ enum Command {
         /// instead of the whole document.
         #[arg(long, value_name = "NAME")]
         operation: Option<String>,
+        /// Show the read-only tool projection (spec 167): the catalog's
+        /// judging-tier reads described as tools an adapter can serve.
+        #[arg(long)]
+        projection: bool,
         #[command(subcommand)]
         action: Option<cmd_capabilities::CapabilitiesAction>,
     },
@@ -377,6 +381,7 @@ fn main() -> ExitCode {
     if let Command::Capabilities {
         json,
         operation,
+        projection,
         action,
     } = &cli.command
     {
@@ -385,6 +390,7 @@ fn main() -> ExitCode {
             &Cli::command(),
             *json,
             operation.as_deref(),
+            *projection,
             action.as_ref(),
         ) {
             Ok(code) => ExitCode::from(code),
@@ -419,11 +425,13 @@ fn main() -> ExitCode {
         Command::Capabilities {
             json,
             operation,
+            projection,
             action,
         } => cmd_capabilities::dispatch(
             &Cli::command(),
             *json,
             operation.as_deref(),
+            *projection,
             action.as_ref(),
         ),
         Command::Compile {
