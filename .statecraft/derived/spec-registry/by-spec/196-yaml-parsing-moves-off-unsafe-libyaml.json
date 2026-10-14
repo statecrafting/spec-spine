@@ -140,7 +140,7 @@
       "1-1-the-parser-is-unmaintained": "db7be1dad3da52a670211199743440f67de3052aa96f9a6a8a6e00f84d73e04f",
       "1-2-where-yaml-is-read": "5b92b1adbe9c0f60575994e3b0bf3d03fc048d9c95b1aebecf7f44e22aefee2f",
       "1-purpose": "4d61de42f1d0bbec0c8ad85ecb0d8b437b6d1ad7456ae2739d65599ff1dfb4b4",
-      "196-yaml-parsing-moves-off-unsafe-libyaml": "83509293d6049d4cee0ff4e1d905f0512ef820723e2592e98b60b88737321fa6",
+      "196-yaml-parsing-moves-off-unsafe-libyaml": "e782903278685af03992715f7e9295ee8875d552693351ea92326a9a9ff1aff3",
       "2-territory": "eb37eaf65eb7115cc57d7338ada1622ce5fa857682a83c9f9e16da167c4027ac",
       "3-1-the-parser": "9a9848487ec339fe91e625cb93974a37363e8b304ee5119ce8393ee645d626a3",
       "3-2-the-registry-and-index-do-not-move": "a7d085566085cd01e3221a131375a6dc127a6e189842a87131947e06df2b307e",
@@ -149,7 +149,7 @@
       "3-5-the-ignore-goes": "1f8c399c48c1d4c3bb6e390793067b2e0e1bda6e3c4bdfdeb02a974e77803b14",
       "3-behavior": "f22f3a1f77941ca66fb670590f4a003cf91e81d90c3f88cf627fe1e5bdc5280f",
       "4-out-of-scope": "6d9a9235edef173aa27da699e5afdfe0793d5d6bec3922799f53456f387d279c",
-      "5-resolved-decisions": "77e83d387ec4ad34c66fc25875bda81ed1f647eb5ec86509202d76593077ef09",
+      "5-resolved-decisions": "ff05f44858e2a359a3461867d96c200a4ca1e4bbe2964069c894ee480f9fae86",
       "verification": "66653bb5eccc47187c0b19fbc2d273432aea71a8076acc81e46d7c49cd555e09"
     },
     "sectionHeadings": [
@@ -173,6 +173,6 @@
     "summary": "Every YAML read in the engine (spec frontmatter, compaction plans, the delta classifier, the dependency-only waiver, workflow manifests) goes through `serde_yaml` 0.9, which is deprecated and parses with `unsafe-libyaml`, a c2rust translation of libyaml that RUSTSEC-2024-0449 marks unmaintained. `deny.toml` ignores that advisory by id so `cargo-deny` can pass; this spec removes the reason for the ignore. The engine moves to a YAML crate written in safe Rust, the committed registry and index shard trees stay byte-identical, every refusal the current parser produces on authored frontmatter is kept, and the ignore entry is deleted in the same change.\n",
     "title": "YAML parsing moves off unsafe-libyaml"
   },
-  "shardHash": "2704de9287f061608e049da59c66fd9df01ee53b4ee83b06d12885b2e6990220",
+  "shardHash": "6fcd7784f50ae6176a5b7a47d98f155a02c07a1b62cd02292e5cc0c1f5c4b24a",
   "specVersion": "1.10.0"
 }

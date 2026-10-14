@@ -59,7 +59,7 @@ const ROWS: &[(&str, &str, &[&str], &str, &str)] = &[
         r#"{"x-n":15}"#,
         r#"{"x-n":15}"#,
     ),
-    // D-3: a leading-zero numeral is YAML 1.2's decimal integer.
+    // D-3: a leading-zero numeral is a number, read as the float 17.0.
     (
         "leading zero 017",
         "x-n: 017\n",

@@ -1629,15 +1629,10 @@ fn the_enabler_registers_the_hooks_path_and_says_how_to_undo_it() {
 fn acceptance_triggers() -> BTreeSet<String> {
     let doc = spec_spine_types::yaml::parse(&read(".github/workflows/acceptance.yml"))
         .unwrap_or_else(|e| panic!("acceptance.yml parses as YAML: {e}"));
-    let true_key = spec_spine_types::yaml::YamlValue::Bool(true);
+    // The reader resolves no YAML 1.1 boolean word (spec 196 D-2), so the
+    // `on:` key is the string `on`, never the boolean true.
     let on = doc
         .get("on")
-        .or_else(|| {
-            doc.as_mapping()?
-                .iter()
-                .find(|(k, _)| *k == true_key)
-                .map(|(_, v)| v)
-        })
         .unwrap_or_else(|| panic!("acceptance.yml declares no triggers at all"));
     let map = on
         .as_mapping()

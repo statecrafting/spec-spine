@@ -215,11 +215,12 @@ no line and column; its diagnostic code and exit code are unchanged.
 
 **D-3 (2026-10-14): leading-zero and underscore numerals are numbers.**
 `serde_yaml` kept `017` and `1_000` as strings; the new parser reads them as
-the numbers 17 (YAML 1.2's core schema has no leading-zero octal) and 1000
-(YAML 1.1's digit grouping). No spec frontmatter in this corpus and no
-workflow here writes either form, and matching the old reading would need a
-scan beneath the parser. Both rows are pinned as
-divergences in `yaml_parity.rs`.
+numbers: `017` as the float 17.0 (YAML 1.2's core schema has no
+leading-zero octal, and this parser resolves the numeral as a float) and
+`1_000` as the integer 1000 (YAML 1.1's digit grouping). No spec
+frontmatter in this corpus and no workflow here writes either form, and
+matching the old reading would need a scan beneath the parser. Both rows
+are pinned as divergences in `yaml_parity.rs`.
 
 **D-4 (2026-10-14): a non-finite float is refused by the parser.** Both
 readers refuse `.inf` and `.nan`; the old one refused a declared key's value
