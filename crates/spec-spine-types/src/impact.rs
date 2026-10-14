@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn frontmatter_snake_case_and_registry_camel_case_both_parse() {
-        let snake: Conflict = serde_yaml::from_str(
+        let snake: Conflict = crate::yaml::from_str(
             "obligation: \"005#R-1\"\nreason: \"why\"\nresolution: pending\nsettled_by: \"006\"\n",
         )
         .unwrap();

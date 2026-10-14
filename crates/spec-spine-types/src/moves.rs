@@ -115,11 +115,11 @@ mod tests {
 
     #[test]
     fn a_bare_scalar_and_a_sequence_both_parse() {
-        let one: MovePaths = serde_yaml::from_str("\"a/b.rs\"").unwrap();
+        let one: MovePaths = crate::yaml::from_str("\"a/b.rs\"").unwrap();
         assert_eq!(one, MovePaths::One("a/b.rs".to_string()));
         assert_eq!(one.paths(), vec!["a/b.rs"]);
 
-        let many: MovePaths = serde_yaml::from_str("[\"a/b.rs\", \"a/c.rs\"]").unwrap();
+        let many: MovePaths = crate::yaml::from_str("[\"a/b.rs\", \"a/c.rs\"]").unwrap();
         assert_eq!(
             many,
             MovePaths::Many(vec!["a/b.rs".to_string(), "a/c.rs".to_string()])
@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn a_removed_entry_round_trips_an_explicit_null() {
-        let decl: MoveDeclaration = serde_yaml::from_str(
+        let decl: MoveDeclaration = crate::yaml::from_str(
             "from: \"a/b.rs\"\nto: null\nkind: removed\nanswered_by: \"001\"\n",
         )
         .unwrap();
@@ -142,13 +142,13 @@ mod tests {
     #[test]
     fn a_missing_to_key_parses_the_same_as_an_explicit_null() {
         let decl: MoveDeclaration =
-            serde_yaml::from_str("from: \"a/b.rs\"\nkind: removed\n").unwrap();
+            crate::yaml::from_str("from: \"a/b.rs\"\nkind: removed\n").unwrap();
         assert_eq!(decl.to, None);
     }
 
     #[test]
     fn an_unknown_member_is_refused() {
-        let err = serde_yaml::from_str::<MoveDeclaration>(
+        let err = crate::yaml::from_str::<MoveDeclaration>(
             "from: \"a/b.rs\"\nto: \"a/c.rs\"\nkind: relocated\nreviewed_by: \"someone\"\n",
         )
         .unwrap_err();

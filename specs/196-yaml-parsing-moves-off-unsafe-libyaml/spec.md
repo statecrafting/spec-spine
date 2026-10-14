@@ -14,17 +14,21 @@ summary: >
   YAML crate written in safe Rust, the committed registry and index shard trees
   stay byte-identical, every refusal the current parser produces on authored
   frontmatter is kept, and the ignore entry is deleted in the same change.
-implementation: pending
+implementation: complete
 owner: "The spec-spine Authors"
 risk: high
 depends_on:
   - "135-the-toolchain-floor-and-dependencies-are-checked"
 establishes:
+  # D-2: the one YAML reader every site calls.
+  - { kind: file, path: "crates/spec-spine-types/src/yaml.rs" }
   # 3.3: the refusal and acceptance parity table, run against both parsers.
-  - { kind: file, path: "crates/spec-spine-types/tests/yaml_parity.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-types/tests/yaml_parity.rs" }
   # 3.4: workflow parity for the dependency-only waiver and the manifest projection.
-  - { kind: file, path: "crates/spec-spine-core/tests/yaml_workflow_parity.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/tests/yaml_workflow_parity.rs" }
 extends:
+  # D-2: the crate root declares the reader module.
+  - { spec: "001-compile-registry", unit: "crates/spec-spine-types/src/lib.rs", nature: additive }
   # The frontmatter reader: the parse every registry shard is built from.
   - { spec: "012-declared-extra-frontmatter-passthrough", unit: "crates/spec-spine-types/src/frontmatter.rs", nature: corrective }
   - { spec: "096-compaction-is-a-verb-not-a-session", unit: "crates/spec-spine-core/src/compact.rs", nature: corrective }
@@ -180,7 +184,70 @@ cases the corpus never uses unless a decision under §3.3 says so.
 
 ## 5. Resolved decisions
 
-None yet.
+**D-1 (2026-10-14): `serde-saphyr` 1.3.0, deserializer only.** The crate and
+its parser, `granit-parser` 1.3.0, both declare `#![forbid(unsafe_code)]`;
+nothing below them parses YAML. It is pinned exactly (`=1.3.0`) with default
+features off and `deserialize` on, so no serializer, include resolver or
+robotics extension is built. Its MSRV is 1.89, under this workspace's 1.90.
+Its new transitive dependencies (`granit-parser`, `annotate-snippets`,
+`encoding_rs`, `encoding_rs_io`, `arraydeque`, `simdutf8`, `core_detect`,
+`multiversion_no_op`, `unicode-width`) all carry licenses inside
+`deny.toml`'s allow-list (`cargo deny check licenses advisories` passes with
+the ignore removed), so the list does not change. `BSL-1.0` is no longer
+encountered, because `ryu` left the tree with `serde_yaml`; the allowance
+stays, as an unmatched allowance is a warning, not a failure. Version 2.0.0
+was published on 2026-10-13, the day before this build, and is not taken:
+a release that new has had no time to draw an advisory.
+
+**D-2 (2026-10-14): one reader, `spec_spine_types::yaml`.** Every site in
+§1.2 calls `yaml::parse` (a `YamlValue` tree) or `yaml::from_str` (a typed
+value), so the parser's configuration is written once: booleans are only
+`true`/`false`, a merge key `<<` is an ordinary key, an unknown tag, a
+duplicate key, a second document and a non-finite float are refused, and a
+leading byte-order mark is stripped. A typed value is read by a serde
+`Deserializer` over that tree which keeps `serde_yaml`'s `Value` rules: a
+null where a sequence or mapping is expected is an empty one, and a null
+where an option is expected is `None`. The rule is load-bearing: specs 057
+and 061 carry an `extends:` key holding only comments, which both readers see
+as null, and a first build that read typed values through their JSON form
+refused both as V-002. A refusal's wording is now this reader's and carries
+no line and column; its diagnostic code and exit code are unchanged.
+
+**D-3 (2026-10-14): leading-zero and underscore numerals are numbers.**
+`serde_yaml` kept `017` and `1_000` as strings; the new parser reads them as
+numbers: `017` as the float 17.0 (YAML 1.2's core schema has no
+leading-zero octal, and this parser resolves the numeral as a float) and
+`1_000` as the integer 1000 (YAML 1.1's digit grouping). No spec
+frontmatter in this corpus and no workflow here writes either form, and
+matching the old reading would need a scan beneath the parser. Both rows
+are pinned as divergences in `yaml_parity.rs`.
+
+**D-4 (2026-10-14): a non-finite float is refused by the parser.** Both
+readers refuse `.inf` and `.nan`; the old one refused a declared key's value
+as V-013 and the new one refuses the document as V-002, because the parser
+does not reach the declared path. With the parser told to accept them, it
+returns the text `.inf`, indistinguishable from a quoted string, which would
+turn a refusal into an acceptance. A refusal is kept; its code moves.
+
+**D-5 (2026-10-14): an unknown tag is refused everywhere.** `serde_yaml`
+refused `!custom` on an extra key (V-002, or V-013 when declared) but dropped
+it silently on a known key and kept the value. The new parser refuses the
+document (V-002) wherever the tag sits. Core tags (`!!str`) still apply. A
+workflow carrying an unknown tag, which none here does, now folds as raw
+bytes rather than as a tagged projection.
+
+**D-6 (2026-10-14): the parity tables were captured from the old reader.**
+`yaml_parity.rs` and `yaml_workflow_parity.rs` were run against `serde_yaml`
+0.9.34 on main before the removal; their `serde_yaml` column and their pinned
+projections and waiver answers are what it gave. Every row where the two
+readers differ is D-3, D-4 or D-5, and a test asserts the differing rows are
+exactly those.
+
+**D-7 (2026-10-14): NaN is equal to itself.** `serde_yaml` 0.9 compared
+two NaN numbers as equal (YAML has one NaN), and `YamlValue`'s equality
+keeps that, so a value holding NaN still equals its own copy. The parser
+refuses an untagged non-finite float (D-4); this covers a value that reaches
+the comparison any other way. A unit test in `yaml.rs` pins it.
 
 ## Verification
 
@@ -201,6 +268,6 @@ cargo build --release --locked -p spec-spine-cli
 target/release/spec-spine check
 # 3.3 and 3.4: the parity tables run and pass. The build records each
 # target's exact test count here (spec 153).
-cargo test -p spec-spine-types --locked --test yaml_parity
-cargo test -p spec-spine-core --locked --test yaml_workflow_parity
+sh -c 'cargo test -p spec-spine-types --locked --test yaml_parity 2>&1 | grep -q "test result: ok. 3 passed; 0 failed"'
+sh -c 'cargo test -p spec-spine-core --locked --test yaml_workflow_parity 2>&1 | grep -q "test result: ok. 3 passed; 0 failed"'
 ```
