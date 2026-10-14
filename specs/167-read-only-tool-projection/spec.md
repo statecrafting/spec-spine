@@ -4,7 +4,7 @@ title: "Project cataloged reads as read-only tools"
 status: draft
 kind: "governance"
 created: "2026-10-10"
-implementation: pending
+implementation: in-progress
 owner: "The spec-spine Authors"
 risk: medium
 depends_on:
@@ -30,8 +30,16 @@ establishes:
   - { kind: file, path: "crates/spec-spine-cli/tests/projection.rs", planned: true }
   - { kind: directory, path: "crates/spec-spine-cli/tests/fixtures/projection/", planned: true }
   - { kind: file, path: "docs/read-only-projection.md", planned: true }
+amends:
+  - "162-capability-catalog"   # D-14: a CLI binding names the flags that select its operation
 extends:
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-types/src/capability.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-types/schemas/capability-catalog.schema.json" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/tests/capability_catalog.rs" }, nature: additive }
+  - { spec: "162-capability-catalog", unit: { kind: file, path: "docs/capability-catalog.md" }, nature: additive }
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-types/src/lib.rs" }, nature: additive }
+  - { spec: "002-registry-query", unit: { kind: file, path: "crates/spec-spine-cli/src/main.rs" }, nature: additive }
   - { spec: "074-a-governed-read-names-its-version", unit: { kind: file, path: "crates/spec-spine-types/src/version.rs" }, nature: additive }
   - { spec: "001-compile-registry", unit: { kind: file, path: "crates/spec-spine-core/src/lib.rs" }, nature: additive }
   - { spec: "170-a-consumer-is-served-answers-not-access", unit: { kind: file, path: "crates/spec-spine-cli/src/cmd_capabilities.rs" }, nature: additive }
@@ -459,6 +467,33 @@ selected those specs failed once this spec merged. The readiness concern D-10
 named does not arise, because spec 170 is already implemented. The relation
 stays declared where ownership needs it, in the `extends` edges on 170's two
 units, as spec 162 D-18 did for the same edge.
+
+**D-14 (2026-10-14, owner): a variant names the flags that select it, in
+the catalog.** `compile.check`, `compile.spec`, `verify.plan`,
+`verify.affected` and `compact.plan` share their verb's argv with the base
+operation, and 162 §3.3's binding (`argv`, `flags`, `output`) did not say
+which flag makes an invocation the variant. A literal §3.5 mapping of
+`verify.plan` (argv `verify`, `--plan` an optional boolean) could therefore be
+called without `--plan` and run the declared commands, breaking I-1. The owner
+chose to record the selecting flags in spec 162's catalog rather than in this
+projection, so every consumer of the catalog can tell the variants apart.
+This spec therefore amends 162 §3.3: a `cli` binding gains `selector`, the
+sorted flags whose presence selects that operation among those sharing its
+`argv`, empty for the one operation no flag selects. An argv selects the
+operation whose selector flags are all present, with the most of them
+(`verify --affected-by X --plan` is `verify.affected`, `verify 002 --plan` is
+`verify.plan`). The catalog's schema axis moves to `1.1.0` (an optional member,
+162 §3.13) and every operation digest moves with it. A core test holds every
+example's argv to the operation it is cataloged under. The projection (§3.4,
+§3.5) passes a switch selector as a fixed token, makes a valued selector a
+required property, and omits a sibling variant's selector flags from the
+input schema, so a call cannot change which operation runs.
+
+The five variants also get their own `summary`. Each had copied its base
+operation's (`verify.plan` read "Run a spec's declared acceptance"), and §3.3
+makes the summary a tool's description, so a read-only tool would have
+described itself as running commands. 162 §3.10 item 1 now holds only the
+operation no flag selects to the command's clap `about`.
 
 ## Verification
 

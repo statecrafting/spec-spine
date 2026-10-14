@@ -161,7 +161,18 @@ impl Op {
             argv: argv.split_whitespace().map(str::to_string).collect(),
             flags: parsed,
             output: output.to_string(),
+            selector: Vec::new(),
         });
+        self
+    }
+
+    /// The flags that select this operation among those sharing its `argv`
+    /// (spec 167 D-14). Call after `cli`.
+    fn selector(mut self, flags: &[&str]) -> Self {
+        if let Some(cli) = self.0.cli.as_mut() {
+            cli.selector = strings(flags);
+            cli.selector.sort();
+        }
         self
     }
 
@@ -586,10 +597,11 @@ fn operations() -> Vec<Operation> {
         .done(),
         op(
             "compact.plan",
-            "Rewrite the corpus under an authored compaction plan (spec 096)",
+            "Report what an authored compaction plan would change, without rewriting the corpus (spec 096)",
             &["096-compaction-is-a-verb-not-a-session"],
         )
         .cli("compact", "text", compact_flags())
+        .selector(&["--plan"])
         .reads(&["caller-file", "config", "corpus", "derived-ledger", "source-tree"])
         .finding(&["not-found", "validation"])
         .request_document()
@@ -626,10 +638,11 @@ fn operations() -> Vec<Operation> {
         .done(),
         op(
             "compile.check",
-            "Compile specs/*/spec.md into a deterministic registry",
+            "Check that the committed registry is what compiling the corpus would write, writing nothing",
             &["001-compile-registry", "062-one-name-one-freshness-verb"],
         )
         .cli("compile", "verdict-envelope", compile_flags())
+        .selector(&["--check"])
         .reads(&["config", "corpus", "derived-ledger"])
         .finding(&["stale", "validation"])
         .verdict()
@@ -645,10 +658,11 @@ fn operations() -> Vec<Operation> {
         .done(),
         op(
             "compile.spec",
-            "Compile specs/*/spec.md into a deterministic registry",
+            "Validate one spec as compile would, writing nothing",
             &["001-compile-registry", "049-compile-one-spec"],
         )
         .cli("compile", "verdict-envelope", compile_flags())
+        .selector(&["--spec"])
         .reads(&["config", "corpus"])
         .finding(&["not-found", "validation"])
         .verdict()
@@ -1315,10 +1329,11 @@ fn operations() -> Vec<Operation> {
         .done(),
         op(
             "verify.affected",
-            "Run a spec's declared acceptance: the `verify:cli` commands under its `## Verification` heading, in order, stopping at the first failure",
+            "Select the specs whose declared acceptance a change affects, without running any of it",
             &["158-the-affected-selection-is-a-governed-read"],
         )
         .cli("verify", "read-document", verify_flags())
+        .selector(&["--affected-by", "--plan"])
         .reads(&["clock", "config", "corpus", "derived-ledger", "source-tree"])
         .writes(&["temporary"])
         .executes(&["git"])
@@ -1338,10 +1353,11 @@ fn operations() -> Vec<Operation> {
         .done(),
         op(
             "verify.plan",
-            "Run a spec's declared acceptance: the `verify:cli` commands under its `## Verification` heading, in order, stopping at the first failure",
+            "Show the commands a spec's declared acceptance would run, without running them",
             &["043-verify-declared-acceptance"],
         )
         .cli("verify", "verdict-envelope", verify_flags())
+        .selector(&["--plan"])
         .reads(&["config", "corpus"])
         .finding(&["not-found", "validation"])
         .verdict()

@@ -1,5 +1,8 @@
 {
   "record": {
+    "amends": [
+      "162-capability-catalog"
+    ],
     "created": "2026-10-10",
     "dependsOn": [
       "074-a-governed-read-names-its-version",
@@ -49,10 +52,58 @@
     "extends": [
       {
         "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/capability.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/capability-catalog.schema.json"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/capability.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/capability_catalog.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "162-capability-catalog",
+        "unit": {
+          "kind": "file",
+          "path": "docs/capability-catalog.md"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "001-compile-registry",
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "002-registry-query",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
         }
       },
       {
@@ -114,7 +165,7 @@
       }
     ],
     "id": "167-read-only-tool-projection",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "intent": {
       "goal": "let any tool transport, MCP first, offer spec-spine's read-only answers without inventing descriptions or a second path to an answer",
       "nonGoals": [
@@ -181,7 +232,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "f714a4fc432d73f4af52a16ffa63fe9ba6695a35da0496a55ce43d7b83e667ea",
-      "167-project-cataloged-reads-as-read-only-tools": "d95102efe0434af1ed3b04d77bcfec60945f2652118580923c8478757ec7a004",
+      "167-project-cataloged-reads-as-read-only-tools": "929665c8d653500a0fe023577bbd615a467956d70358c23980b80b05cd60f675",
       "2-territory": "a2fa93fb6b531739a9b4752aba6fea570cd8e6f2183e78fd632884c6ce42c1bd",
       "3-1-the-projection-is-derived-never-authored": "1c3c758fa28e88aa66af9651608a911c4fc3ee65396ad19c1f424e2e9071207e",
       "3-10-authority-security-and-disclosure-boundary": "a903efa00eb88c57f37bd65166283a6413ef6fb3d4467dd508366b0c2e7ed40d",
@@ -197,7 +248,7 @@
       "3-behavior": "10fa69a18244bb1f231a8aab7fc69699d6fdc7ff52ce642c45e5583378241a30",
       "4-acceptance-criteria": "efe802fc3dd7dc5270e53564d734639b9903851ccb52e933f0cf64c307002b2a",
       "5-out-of-scope": "dea4a18be1b125b4c970f5b491e933524bd980d8caca25a40a24cd1f80c7a364",
-      "6-resolved-decisions": "a445d516e3448b1bffb186a5a7f1fe4bbe4c68aa1022230c2af2027d2c8551c6",
+      "6-resolved-decisions": "f1560221d00774d60e0a7d5f3b1a54e6a4a1cdcd7681fdb0572e1bb18511c903",
       "verification": "61784cfb41b4469953879ef8ea25ed17db309fcfca8aadf75e84c8b9c26aa5fe"
     },
     "sectionHeadings": [
@@ -226,6 +277,6 @@
     "summary": "Adds a transport-neutral, read-only tool projection derived from the spec-162 capability catalog: one tool descriptor per eligible judging-tier read, with a closed input schema, the exact argv it maps to, budget and pagination members, trust marking, and a closed error vocabulary. A tool call is one invocation of the pinned binary's existing verb, so its answer is that verb's bytes. spec-spine ships the descriptors and their tests; it runs no server, holds no session, and adds no write tool.\n",
     "title": "Project cataloged reads as read-only tools"
   },
-  "shardHash": "0a970d65c118fd7e898a2471595b235566d36af25e5a3c1b72c23e4ea2c42dfd",
+  "shardHash": "3337e37eaaa689813c8be2e955001d42b458cd25af8a0d22fba56b057ee3d9f3",
   "specVersion": "1.10.0"
 }

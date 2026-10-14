@@ -1,5 +1,8 @@
 {
   "mapping": {
+    "amends": [
+      "162-capability-catalog"
+    ],
     "dependsOn": [
       "074-a-governed-read-names-its-version",
       "132-one-exit-contract-for-the-family",
@@ -14,11 +17,31 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-cli/src/main.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/capability.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/lib.rs",
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/tests/capability_catalog.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/schemas/capability-catalog.schema.json",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-types/src/capabilities.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-types/src/capability.rs",
         "source": "spec-edge"
       },
       {
@@ -31,6 +54,10 @@
       },
       {
         "path": "docs/api.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "docs/capability-catalog.md",
         "source": "spec-edge"
       },
       {
@@ -122,6 +149,32 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-cli/src/main.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-cli/src/main.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/capability.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/capability.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-core/src/lib.rs"
           }
         ],
@@ -135,6 +188,32 @@
       {
         "locations": [
           {
+            "file": "crates/spec-spine-core/tests/capability_catalog.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/tests/capability_catalog.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/schemas/capability-catalog.schema.json"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/schemas/capability-catalog.schema.json"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/spec-spine-types/src/capabilities.rs"
           }
         ],
@@ -143,6 +222,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-types/src/capabilities.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-types/src/capability.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-types/src/capability.rs"
         }
       },
       {
@@ -182,6 +274,19 @@
         "unit": {
           "kind": "file",
           "path": "docs/api.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/capability-catalog.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "docs/capability-catalog.md"
         }
       },
       {
@@ -246,5 +351,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "4c2e8c31584476b08ff3d247f3d97b7fe13eb627e4e3a7e91753783943e03d5d"
+  "shardHash": "767c40d6d596ac391059ff6a4c39b1d1f5c89e765bb10b2f09537a25b61f9403"
 }
