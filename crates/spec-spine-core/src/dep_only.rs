@@ -27,6 +27,8 @@
 //! index) lives in spec 004 §3.5's governance-projection hashing
 //! (`manifest.rs::npm_hash_projection` / `cargo_hash_projection`).
 
+use spec_spine_types::yaml::YamlValue;
+
 use crate::couple::Waiver;
 
 /// The `package.json` tables whose **values** (version strings) may change
@@ -282,8 +284,8 @@ pub fn is_workflow_yaml(path: &str) -> bool {
 /// harmless. Parse failure is `false` (fail-closed).
 pub fn workflow_dependency_only_change(base: &str, head: &str) -> bool {
     let (Ok(base), Ok(head)) = (
-        serde_yaml::from_str::<serde_yaml::Value>(base),
-        serde_yaml::from_str::<serde_yaml::Value>(head),
+        spec_spine_types::yaml::parse(base),
+        spec_spine_types::yaml::parse(head),
     ) else {
         return false;
     };
@@ -292,15 +294,15 @@ pub fn workflow_dependency_only_change(base: &str, head: &str) -> bool {
 
 /// Structural equality over two YAML values, allowing only the `@ref` of a
 /// `uses:` scalar to differ (via [`uses_ref_only_differs`]).
-fn yaml_eq_except_uses_ref(base: &serde_yaml::Value, head: &serde_yaml::Value) -> bool {
-    use serde_yaml::Value::{Mapping, Sequence};
+fn yaml_eq_except_uses_ref(base: &YamlValue, head: &YamlValue) -> bool {
+    use YamlValue::{Mapping, Sequence};
     match (base, head) {
         (Mapping(b), Mapping(h)) => {
             if b.len() != h.len() {
                 return false; // a key added or removed
             }
             for (k, bv) in b {
-                let Some(hv) = h.get(k) else {
+                let Some((_, hv)) = h.iter().find(|(hk, _)| hk == k) else {
                     return false;
                 };
                 if k.as_str() == Some("uses") {
@@ -327,7 +329,7 @@ fn yaml_eq_except_uses_ref(base: &serde_yaml::Value, head: &serde_yaml::Value) -
 /// the form `owner/action@ref` with an identical, non-empty `owner/action` and
 /// both pinned (both contain `@`); the ref after `@` may differ. A pin added or
 /// removed, a changed action path, or a non-string value refuses.
-fn uses_ref_only_differs(base: &serde_yaml::Value, head: &serde_yaml::Value) -> bool {
+fn uses_ref_only_differs(base: &YamlValue, head: &YamlValue) -> bool {
     let (Some(b), Some(h)) = (base.as_str(), head.as_str()) else {
         return base == head; // non-string `uses`: require exact equality
     };

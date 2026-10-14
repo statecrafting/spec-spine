@@ -24,6 +24,7 @@ use std::path::{Component, Path};
 
 use sha2::{Digest, Sha256};
 use spec_spine_types::delta::CLASSIFIED_UNDER_BASE;
+use spec_spine_types::yaml::YamlValue;
 use spec_spine_types::{
     AuthorityDelta, ChangeKind, CodebaseIndex, Config, DELTA_SCHEMA_VERSION, DeltaChange,
     DeltaClass, DeltaCommits, DeltaReport, Error, Frontmatter, PriorPolicy, RelocationCheck,
@@ -472,7 +473,8 @@ struct SpecDelta {
 /// mapping, and the body.
 struct SpecSide {
     typed: Option<Frontmatter>,
-    raw: Option<serde_yaml::Mapping>,
+    /// The frontmatter as parsed, always a mapping when present.
+    raw: Option<YamlValue>,
     body: Option<String>,
 }
 
@@ -481,8 +483,8 @@ impl SpecSide {
         let split = split_frontmatter(text).ok();
         let raw = split
             .as_ref()
-            .and_then(|(yaml, _)| serde_yaml::from_str::<serde_yaml::Value>(yaml).ok())
-            .and_then(|v| v.as_mapping().cloned());
+            .and_then(|(yaml, _)| spec_spine_types::yaml::parse(yaml).ok())
+            .filter(|v| v.as_mapping().is_some());
         SpecSide {
             typed: parse_frontmatter_with(text, &cfg.frontmatter.extra_known_keys).ok(),
             raw,
@@ -495,8 +497,8 @@ impl SpecSide {
             .as_ref()
             .and_then(|m| m.get(UNAMENDABLE_KEY))
             .is_some_and(|v| match v {
-                serde_yaml::Value::Null => false,
-                serde_yaml::Value::Sequence(items) => !items.is_empty(),
+                YamlValue::Null => false,
+                YamlValue::Sequence(items) => !items.is_empty(),
                 _ => true,
             })
     }
@@ -574,15 +576,17 @@ fn classify_spec_md(
         });
     }
 
-    let null = serde_yaml::Value::Null;
+    let null = YamlValue::Null;
     let base_raw = base_side.as_ref().and_then(|s| s.raw.as_ref());
     let head_raw = head_side.as_ref().and_then(|s| s.raw.as_ref());
     let mut keys: BTreeSet<String> = BTreeSet::new();
     for mapping in base_raw.iter().chain(head_raw.iter()) {
         keys.extend(
             mapping
-                .keys()
-                .filter_map(|k| k.as_str().map(str::to_string)),
+                .as_mapping()
+                .into_iter()
+                .flatten()
+                .filter_map(|(k, _)| k.as_str().map(str::to_string)),
         );
     }
     let mut authority_moved = false;
@@ -725,8 +729,9 @@ fn items_only_in(a: &[serde_json::Value], b: &[serde_json::Value]) -> Vec<serde_
 }
 
 /// A raw frontmatter value as JSON. `null` stands for absent.
-fn yaml_value(v: &serde_yaml::Value) -> serde_json::Value {
-    serde_json::to_value(v).unwrap_or_else(|_| serde_json::Value::String(format!("{v:?}")))
+fn yaml_value(v: &YamlValue) -> serde_json::Value {
+    v.to_json()
+        .unwrap_or_else(|_| serde_json::Value::String(format!("{v:?}")))
 }
 
 #[cfg(test)]

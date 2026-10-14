@@ -172,10 +172,26 @@ fn managed_workflow_calls_the_base_review_script_without_secret_inheritance() {
     let text = fs::read_to_string(repo_root().join(WORKFLOW)).unwrap();
     let caller =
         fs::read_to_string(repo_root().join(".github/workflows/statecraft-ci.yml")).unwrap();
-    let workflow: serde_yaml::Value = serde_yaml::from_str(&text).unwrap();
+    let workflow = spec_spine_types::yaml::parse(&text)
+        .unwrap()
+        .to_json()
+        .unwrap();
     let review = &workflow["jobs"]["review"];
     assert_eq!(review["timeout-minutes"].as_u64(), Some(15));
-    let rendered = serde_yaml::to_string(review).unwrap();
+    // Every string the job carries, unescaped, one per line.
+    fn strings(v: &serde_json::Value, out: &mut String) {
+        match v {
+            serde_json::Value::String(s) => {
+                out.push_str(s);
+                out.push('\n');
+            }
+            serde_json::Value::Array(items) => items.iter().for_each(|i| strings(i, out)),
+            serde_json::Value::Object(map) => map.values().for_each(|i| strings(i, out)),
+            _ => {}
+        }
+    }
+    let mut rendered = String::new();
+    strings(review, &mut rendered);
     assert!(rendered.contains("scripts/statecraft/ai-review.sh"));
     assert!(rendered.contains("git show"));
     assert!(rendered.contains("bash \"$script\""));

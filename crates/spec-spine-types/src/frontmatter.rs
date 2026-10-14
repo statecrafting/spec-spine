@@ -26,6 +26,7 @@ use crate::interface::InterfaceReference;
 use crate::moves::MoveDeclaration;
 use crate::obligation::Obligation;
 use crate::unit::Unit;
+use crate::yaml::YamlValue;
 
 /// Lifecycle status of a spec.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -320,7 +321,7 @@ pub fn parse_frontmatter_with(
         })
     })?;
 
-    let value: serde_yaml::Value = serde_yaml::from_str(&yaml)
+    let value = crate::yaml::parse(&yaml)
         .map_err(|e| malformed(format!("invalid YAML frontmatter: {e}")))?;
 
     let mapping = value
@@ -328,7 +329,7 @@ pub fn parse_frontmatter_with(
         .ok_or_else(|| malformed("frontmatter must be a YAML mapping".into()))?;
 
     // Known keys (unknown keys are ignored here; collected below).
-    let mut frontmatter: Frontmatter = serde_yaml::from_value(value.clone())
+    let mut frontmatter: Frontmatter = crate::yaml::from_value(&value)
         .map_err(|e| malformed(format!("invalid frontmatter: {e}")))?;
 
     // Overflow: every key not in KNOWN_KEYS becomes an extra_frontmatter entry.
@@ -373,26 +374,25 @@ pub fn parse_frontmatter_with(
 }
 
 /// The UNDECLARED-key path: scalars and string lists only (`Null` drops the
-/// key); a nested map, mixed list, or tag is a grammar violation, exactly
-/// the pre-013 guard.
-fn yaml_to_extra(v: &serde_yaml::Value) -> std::result::Result<serde_json::Value, String> {
-    use serde_yaml::Value;
+/// key); a nested map or mixed list is a grammar violation, exactly the
+/// pre-013 guard. (A tag never reaches here: the parser refuses it, spec 196.)
+fn yaml_to_extra(v: &YamlValue) -> std::result::Result<serde_json::Value, String> {
     match v {
-        Value::Null => Ok(serde_json::Value::Null),
-        Value::Bool(b) => Ok(serde_json::Value::Bool(*b)),
-        Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                Ok(serde_json::Value::from(i))
-            } else if let Some(f) = n.as_f64() {
-                serde_json::Number::from_f64(f)
-                    .map(serde_json::Value::Number)
-                    .ok_or_else(|| "unsupported numeric extra-frontmatter value".to_string())
-            } else {
-                Err("unsupported numeric extra-frontmatter value".to_string())
-            }
-        }
-        Value::String(s) => Ok(serde_json::Value::String(s.clone())),
-        Value::Sequence(seq) => {
+        YamlValue::Null => Ok(serde_json::Value::Null),
+        YamlValue::Bool(b) => Ok(serde_json::Value::Bool(*b)),
+        YamlValue::Int(i) => Ok(serde_json::Value::from(*i)),
+        // Past `i64`, the pre-196 reader fell back to a float; so does this.
+        YamlValue::UInt(u) => match i64::try_from(*u) {
+            Ok(i) => Ok(serde_json::Value::from(i)),
+            Err(_) => serde_json::Number::from_f64(*u as f64)
+                .map(serde_json::Value::Number)
+                .ok_or_else(|| "unsupported numeric extra-frontmatter value".to_string()),
+        },
+        YamlValue::Float(f) => serde_json::Number::from_f64(*f)
+            .map(serde_json::Value::Number)
+            .ok_or_else(|| "unsupported numeric extra-frontmatter value".to_string()),
+        YamlValue::String(s) => Ok(serde_json::Value::String(s.clone())),
+        YamlValue::Sequence(seq) => {
             let mut list = Vec::with_capacity(seq.len());
             for item in seq {
                 match item.as_str() {
@@ -404,54 +404,22 @@ fn yaml_to_extra(v: &serde_yaml::Value) -> std::result::Result<serde_json::Value
             }
             Ok(serde_json::Value::Array(list))
         }
-        Value::Mapping(_) | Value::Tagged(_) => Err(
+        YamlValue::Mapping(_) => Err(
             "extra-frontmatter values must be scalars or string lists, not nested maps".to_string(),
         ),
     }
 }
 
 /// The DECLARED-key path (spec 012 §3.2): full YAML → JSON conversion.
-/// Mappings require string keys; tags and non-finite numbers are
-/// unrepresentable. Map key order is canonicalized by the sorted
-/// `serde_json::Map` (authoring order is not preserved: the price of
-/// byte-identical registries).
-fn yaml_to_json(v: &serde_yaml::Value) -> std::result::Result<serde_json::Value, String> {
-    use serde_yaml::Value;
-    match v {
-        Value::Null => Ok(serde_json::Value::Null),
-        Value::Bool(b) => Ok(serde_json::Value::Bool(*b)),
-        Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                Ok(serde_json::Value::from(i))
-            } else if let Some(u) = n.as_u64() {
-                Ok(serde_json::Value::from(u))
-            } else if let Some(f) = n.as_f64() {
-                serde_json::Number::from_f64(f)
-                    .map(serde_json::Value::Number)
-                    .ok_or_else(|| format!("non-finite number {f} is not JSON-representable"))
-            } else {
-                Err("unsupported YAML number".to_string())
-            }
+/// Mappings require string keys and numbers must be finite. Map key order is
+/// canonicalized by the sorted `serde_json::Map` (authoring order is not
+/// preserved: the price of byte-identical registries).
+fn yaml_to_json(v: &YamlValue) -> std::result::Result<serde_json::Value, String> {
+    v.to_json().map_err(|e| {
+        if e == "mapping keys must be strings" {
+            "non-string mapping key is not JSON-representable".to_string()
+        } else {
+            e
         }
-        Value::String(s) => Ok(serde_json::Value::String(s.clone())),
-        Value::Sequence(seq) => seq
-            .iter()
-            .map(yaml_to_json)
-            .collect::<std::result::Result<Vec<_>, _>>()
-            .map(serde_json::Value::Array),
-        Value::Mapping(map) => {
-            let mut out = serde_json::Map::new();
-            for (mk, mv) in map {
-                let Some(key) = mk.as_str() else {
-                    return Err("non-string mapping key is not JSON-representable".to_string());
-                };
-                out.insert(key.to_string(), yaml_to_json(mv)?);
-            }
-            Ok(serde_json::Value::Object(out))
-        }
-        Value::Tagged(tagged) => Err(format!(
-            "YAML tag '{}' is not JSON-representable",
-            tagged.tag
-        )),
-    }
+    })
 }

@@ -204,7 +204,7 @@ struct Target {
 
 /// Parse an authored plan (YAML).
 pub fn parse_plan(src: &str) -> Result<CompactPlan, Error> {
-    serde_yaml::from_str(src).map_err(|e| Error::Config(format!("compact plan: {e}")))
+    spec_spine_types::yaml::from_str(src).map_err(|e| Error::Config(format!("compact plan: {e}")))
 }
 
 /// Compact `repo_root`'s corpus under `plan`, returning the rewritten files as

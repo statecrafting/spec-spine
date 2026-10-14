@@ -11,7 +11,7 @@ fn fm_with_edges(edges_yaml: &str) -> Frontmatter {
 
 #[test]
 fn bare_string_is_file_unit() {
-    let u: Unit = serde_yaml::from_str("\"src/lib.rs\"").unwrap();
+    let u: Unit = spec_spine_types::yaml::from_str("\"src/lib.rs\"").unwrap();
     assert_eq!(
         u,
         Unit::File {
@@ -23,7 +23,7 @@ fn bare_string_is_file_unit() {
 
 #[test]
 fn tagged_units_parse() {
-    let file: Unit = serde_yaml::from_str("{ kind: file, path: \"a.rs\" }").unwrap();
+    let file: Unit = spec_spine_types::yaml::from_str("{ kind: file, path: \"a.rs\" }").unwrap();
     assert_eq!(
         file,
         Unit::File {
@@ -32,8 +32,10 @@ fn tagged_units_parse() {
         }
     );
 
-    let section: Unit =
-        serde_yaml::from_str("{ kind: section, file: \"Makefile\", anchor: \"build\" }").unwrap();
+    let section: Unit = spec_spine_types::yaml::from_str(
+        "{ kind: section, file: \"Makefile\", anchor: \"build\" }",
+    )
+    .unwrap();
     assert_eq!(
         section,
         Unit::Section {
@@ -43,7 +45,8 @@ fn tagged_units_parse() {
         }
     );
 
-    let symbol: Unit = serde_yaml::from_str("{ kind: symbol, id: \"crate::run\" }").unwrap();
+    let symbol: Unit =
+        spec_spine_types::yaml::from_str("{ kind: symbol, id: \"crate::run\" }").unwrap();
     assert_eq!(
         symbol,
         Unit::Symbol {
@@ -56,7 +59,8 @@ fn tagged_units_parse() {
 #[test]
 fn directory_crate_module_units_parse() {
     // Spec 016: the three reserved unit kinds now parse from their tagged form.
-    let dir: Unit = serde_yaml::from_str("{ kind: directory, path: \"src/api\" }").unwrap();
+    let dir: Unit =
+        spec_spine_types::yaml::from_str("{ kind: directory, path: \"src/api\" }").unwrap();
     assert_eq!(
         dir,
         Unit::Directory {
@@ -64,7 +68,8 @@ fn directory_crate_module_units_parse() {
             planned: false
         }
     );
-    let krate: Unit = serde_yaml::from_str("{ kind: crate, id: \"factory-engine\" }").unwrap();
+    let krate: Unit =
+        spec_spine_types::yaml::from_str("{ kind: crate, id: \"factory-engine\" }").unwrap();
     assert_eq!(
         krate,
         Unit::Crate {
@@ -72,7 +77,8 @@ fn directory_crate_module_units_parse() {
             planned: false
         }
     );
-    let module: Unit = serde_yaml::from_str("{ kind: module, id: \"my_crate::tests\" }").unwrap();
+    let module: Unit =
+        spec_spine_types::yaml::from_str("{ kind: module, id: \"my_crate::tests\" }").unwrap();
     assert_eq!(
         module,
         Unit::Module {
@@ -82,7 +88,8 @@ fn directory_crate_module_units_parse() {
     );
     // The wrapper form (spec 014) composes with the new kinds.
     let wrapped: Unit =
-        serde_yaml::from_str("{ unit: { kind: directory, path: \"crates/x\" } }").unwrap();
+        spec_spine_types::yaml::from_str("{ unit: { kind: directory, path: \"crates/x\" } }")
+            .unwrap();
     assert_eq!(
         wrapped,
         Unit::Directory {
@@ -96,7 +103,7 @@ fn directory_crate_module_units_parse() {
 fn unit_wrapper_form_unwraps() {
     // Spec 014 §3.1: `{ unit: <unit> }` is a 1:1 wrapper that normalizes to the
     // inner unit. The inner may itself be a bare string or a tagged map.
-    let bare: Unit = serde_yaml::from_str("{ unit: \"src/lib.rs\" }").unwrap();
+    let bare: Unit = spec_spine_types::yaml::from_str("{ unit: \"src/lib.rs\" }").unwrap();
     assert_eq!(
         bare,
         Unit::File {
@@ -105,7 +112,7 @@ fn unit_wrapper_form_unwraps() {
         }
     );
     let tagged: Unit =
-        serde_yaml::from_str("{ unit: { kind: symbol, id: \"crate::f\" } }").unwrap();
+        spec_spine_types::yaml::from_str("{ unit: { kind: symbol, id: \"crate::f\" } }").unwrap();
     assert_eq!(
         tagged,
         Unit::Symbol {
@@ -114,7 +121,7 @@ fn unit_wrapper_form_unwraps() {
         }
     );
     // The inner unit inherits its own validation (empty path still rejected).
-    assert!(serde_yaml::from_str::<Unit>("{ unit: \"\" }").is_err());
+    assert!(spec_spine_types::yaml::from_str::<Unit>("{ unit: \"\" }").is_err());
 }
 
 #[test]
@@ -133,12 +140,12 @@ fn directory_subtree_detection() {
 
 #[test]
 fn empty_unit_path_is_rejected() {
-    assert!(serde_yaml::from_str::<Unit>("\"\"").is_err());
+    assert!(spec_spine_types::yaml::from_str::<Unit>("\"\"").is_err());
 }
 
 #[test]
 fn unknown_unit_kind_is_rejected() {
-    assert!(serde_yaml::from_str::<Unit>("{ kind: galaxy, id: x }").is_err());
+    assert!(spec_spine_types::yaml::from_str::<Unit>("{ kind: galaxy, id: x }").is_err());
 }
 
 #[test]

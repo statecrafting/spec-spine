@@ -11,6 +11,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use spec_spine_types::yaml::YamlValue;
 use spec_spine_types::{Config, Diagnostic, PackageKind, PackageRecord};
 
 use crate::pathutil::{is_excluded, rel_posix};
@@ -219,7 +220,7 @@ fn discover_npm(
             }
         } else {
             // pnpm-workspace.yaml: a `packages` list.
-            if let Ok(doc) = serde_yaml::from_str::<serde_yaml::Value>(&src) {
+            if let Ok(doc) = spec_spine_types::yaml::parse(&src) {
                 manifests.push(decl_path.clone());
                 if let Some(arr) = doc.get("packages").and_then(|p| p.as_sequence()) {
                     globs.extend(
@@ -345,7 +346,7 @@ pub fn cargo_hash_projection(content: &str) -> Option<String> {
 /// to raw bytes: over-hashing is the fail-closed direction, and a workflow the
 /// parser rejects stales on every edit rather than silently on none.
 pub fn workflow_hash_projection(content: &str) -> Option<String> {
-    let mut doc: serde_yaml::Value = serde_yaml::from_str(content).ok()?;
+    let mut doc = spec_spine_types::yaml::parse(content).ok()?;
     doc.as_mapping()?;
     strip_uses_refs(&mut doc);
     serde_json::to_string(&yaml_to_json(&doc)).ok()
@@ -438,16 +439,14 @@ pub fn npm_input_projection(content: &str) -> Option<String> {
 /// A `uses:` whose value is not a string is left alone entirely, and not
 /// descended into: `dep_only::uses_ref_only_differs` requires exact equality
 /// there, and the two rules have to agree case for case (spec 060 3.2).
-fn strip_uses_refs(value: &mut serde_yaml::Value) {
-    use serde_yaml::Value::{Mapping, Sequence};
+fn strip_uses_refs(value: &mut YamlValue) {
+    use YamlValue::{Mapping, Sequence};
     match value {
         Mapping(m) => {
-            let keys: Vec<serde_yaml::Value> = m.keys().cloned().collect();
-            for k in keys {
+            for (k, v) in m.iter_mut() {
                 let is_uses = k.as_str() == Some("uses");
-                let Some(v) = m.get_mut(&k) else { continue };
                 match (is_uses, projected_uses(v)) {
-                    (true, Some(stripped)) => *v = serde_yaml::Value::String(stripped),
+                    (true, Some(stripped)) => *v = YamlValue::String(stripped),
                     (true, None) => {}
                     (false, _) => strip_uses_refs(v),
                 }
@@ -473,7 +472,7 @@ fn strip_uses_refs(value: &mut serde_yaml::Value) {
 /// `owner/action`, which is how 060 3.1 words the rule, would collide the two
 /// and make unpinning invisible, contradicting the same spec's 3.5 and its
 /// summary; the marker is the reading that satisfies all three.
-fn projected_uses(value: &serde_yaml::Value) -> Option<String> {
+fn projected_uses(value: &YamlValue) -> Option<String> {
     let s = value.as_str()?;
     let (path, _) = s.split_once('@')?;
     if path.is_empty() {
@@ -491,22 +490,18 @@ fn projected_uses(value: &serde_yaml::Value) -> Option<String> {
 /// Mapping keys are tagged by kind, so a key that differs in the document
 /// cannot collide here. YAML 1.2 reads `on` as a string rather than a boolean,
 /// which is the case that would otherwise matter most in a workflow.
-fn yaml_to_json(value: &serde_yaml::Value) -> serde_json::Value {
-    use serde_yaml::Value as Y;
+fn yaml_to_json(value: &YamlValue) -> serde_json::Value {
+    use YamlValue as Y;
     match value {
         Y::Null => serde_json::Value::Null,
         Y::Bool(b) => serde_json::Value::Bool(*b),
-        Y::Number(n) => n
-            .as_i64()
-            .map(serde_json::Value::from)
-            .or_else(|| n.as_u64().map(serde_json::Value::from))
-            .or_else(|| {
-                n.as_f64()
-                    .and_then(serde_json::Number::from_f64)
-                    .map(serde_json::Value::Number)
-            })
-            // A non-finite float has no JSON spelling; cargo manifests fold the
-            // same way (`toml_to_json`), and a workflow carries none.
+        Y::Int(i) => serde_json::Value::from(*i),
+        Y::UInt(u) => serde_json::Value::from(*u),
+        // The parser refuses a non-finite float (spec 196), so this fold to
+        // null, as cargo manifests fold the same way (`toml_to_json`), is
+        // unreachable from a workflow.
+        Y::Float(f) => serde_json::Number::from_f64(*f)
+            .map(serde_json::Value::Number)
             .unwrap_or(serde_json::Value::Null),
         Y::String(s) => serde_json::Value::String(s.clone()),
         Y::Sequence(s) => serde_json::Value::Array(s.iter().map(yaml_to_json).collect()),
@@ -515,25 +510,14 @@ fn yaml_to_json(value: &serde_yaml::Value) -> serde_json::Value {
                 .map(|(k, v)| (yaml_key(k), yaml_to_json(v)))
                 .collect(),
         ),
-        Y::Tagged(t) => serde_json::Value::Object(
-            [
-                (
-                    "!tag".to_string(),
-                    serde_json::Value::String(t.tag.to_string()),
-                ),
-                ("!value".to_string(), yaml_to_json(&t.value)),
-            ]
-            .into_iter()
-            .collect(),
-        ),
     }
 }
 
 /// A mapping key as a JSON object key, prefixed by kind so the rendering is
 /// injective: a string key `1` and a number key `1` must not fold together.
-fn yaml_key(k: &serde_yaml::Value) -> String {
+fn yaml_key(k: &YamlValue) -> String {
     match k {
-        serde_yaml::Value::String(s) => format!("s:{s}"),
+        YamlValue::String(s) => format!("s:{s}"),
         other => format!(
             "y:{}",
             serde_json::to_string(&yaml_to_json(other)).unwrap_or_default()

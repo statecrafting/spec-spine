@@ -50,6 +50,7 @@ pub mod unit;
 pub mod verdict;
 pub mod verify;
 pub mod version;
+pub mod yaml;
 
 // --- curated public prelude (the names callers reach for most) ---
 
