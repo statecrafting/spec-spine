@@ -186,6 +186,7 @@ impl<'de> de::Deserialize<'de> for YamlValue {
 fn options() -> serde_saphyr::Options {
     let mut options = serde_saphyr::Options::default();
     options.strict_booleans = true;
+    options.duplicate_keys = serde_saphyr::DuplicateKeyPolicy::Error;
     options.merge_keys = serde_saphyr::MergeKeyPolicy::AsOrdinary;
     options.reject_unsupported_tags = true;
     options.reject_non_finite_typeless_float = true;
