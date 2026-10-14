@@ -656,6 +656,14 @@ compatibility map and to spec 170's `capabilities` table.
 159 claims its page, because L-008 refuses a file claim that no content hash
 covers.
 
+**D-20 (2026-10-14, review): `freshness` branches on its status once.** Review
+of the CLI found the D-19 split written as an early return for `fresh`
+followed by a match that still listed `fresh`, an arm no input could reach.
+The status is matched once: the `fresh` arm prints the result and exits 0,
+and every other arm names the status for the finding's summary. Behavior is
+unchanged, and `docs/cli-reference.md`'s `documentation` section is reflowed
+in the same change.
+
 ## Verification
 
 Each named test target fails before the build, because it does not exist while

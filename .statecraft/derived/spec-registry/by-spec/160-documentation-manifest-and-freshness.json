@@ -217,7 +217,7 @@
     "risk": "medium",
     "sectionDigests": {
       "1-purpose": "24ca2dd0032410028aa616fb743ef93beeb7bbfddc471646030676e563682f1e",
-      "160-declare-documentation-inputs-and-freshness": "281ee2abb2e04f0d6a362ba1af52e1f18e200efa78c9f914593c18d5ce62510a",
+      "160-declare-documentation-inputs-and-freshness": "e4361df7289a454f99e5705621610dd6144aacb9294584f0bd3fc18b08756da9",
       "2-territory": "644ec21ed99e1f7417de2aece544efe415ac2991059212195015f0535cb352ac",
       "3-1-one-manifest-one-packet-and-generator-run": "be66e5ec02df7688c916db2f64b9a90a6603593575afee416ff4b1158b5634f1",
       "3-10-freshness-evaluation": "29b6ce10aa2472e752d92c1ddc7ed12748ac37590f8615a53a59e83b15960a61",
@@ -238,7 +238,7 @@
       "3-behavior": "b7130a225cce77d4e8e3e4eae6f1f2e44cfda334b463ee2256cbde6128f71be1",
       "4-acceptance-criteria": "9290b3708db07afef6c48918f1cec5ae18bd969818f893a0b7715dd8d378b9a5",
       "5-out-of-scope": "ffe1303c4782c97e7b32310519b61771d33a0eb982906fea25c17a21e95b076f",
-      "6-resolved-decisions": "f176cfdb6ec060bd37d225f56d4f957ed7ab1e20665e1f5517cd60646787743d",
+      "6-resolved-decisions": "38f0191e05b491b904476debdefd839b03d5e1df65a56a320992623a041246e7",
       "verification": "566f2e31c6775fa3ee58b82ba584de9121fadc44e4507ed7c89064b8b3c857e5"
     },
     "sectionHeadings": [
@@ -272,6 +272,6 @@
     "summary": "Adds a deterministic documentation-manifest document and a read-only freshness evaluation. A manifest binds one repository-scoped context packet, declared local and external inputs, generator identity, output bytes, generated and human-authored regions, and executable-example identities. Freshness names every changed, missing, unresolved, or unverified declared input without claiming that unchanged inputs make narrative text correct.\n",
     "title": "Declare documentation inputs and freshness"
   },
-  "shardHash": "33c04da3b31b688dbd0df90322d3bc4b2fe3c5077e0c4109d8bf578883e15f74",
+  "shardHash": "1cfda41e4766ca9633670ff7ed55a72bdca618426f35553ce8d5ead10488554b",
   "specVersion": "1.10.0"
 }
