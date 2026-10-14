@@ -387,6 +387,10 @@ pub fn project(catalog: &CapabilityCatalog) -> Result<ToolProjection, Error> {
     for t in &tools {
         let valid = t.name.len() <= 64
             && t.name
+                .as_bytes()
+                .first()
+                .is_some_and(u8::is_ascii_lowercase)
+            && t.name
                 .bytes()
                 .all(|b: u8| b.is_ascii_lowercase() || b.is_ascii_digit() || b == b'_');
         if !valid || !seen.insert(t.name.as_str()) {
