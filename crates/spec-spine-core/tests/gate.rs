@@ -405,8 +405,8 @@ struct WorkflowStep {
 
 /// Every step of every job, in document order.
 fn workflow_steps(yaml: &str) -> Vec<WorkflowStep> {
-    let doc: serde_yaml::Value =
-        serde_yaml::from_str(yaml).unwrap_or_else(|e| panic!("the workflow parses as YAML: {e}"));
+    let doc = spec_spine_types::yaml::parse(yaml)
+        .unwrap_or_else(|e| panic!("the workflow parses as YAML: {e}"));
     let mut out = Vec::new();
     let Some(jobs) = doc.get("jobs").and_then(|j| j.as_mapping()) else {
         return out;
@@ -1627,17 +1627,23 @@ fn the_enabler_registers_the_hooks_path_and_says_how_to_undo_it() {
 /// lookup failing is a failure rather than an empty set, because a test that
 /// reads no triggers would pass on a workflow that declares any.
 fn acceptance_triggers() -> BTreeSet<String> {
-    let doc: serde_yaml::Value = serde_yaml::from_str(&read(".github/workflows/acceptance.yml"))
+    let doc = spec_spine_types::yaml::parse(&read(".github/workflows/acceptance.yml"))
         .unwrap_or_else(|e| panic!("acceptance.yml parses as YAML: {e}"));
+    let true_key = spec_spine_types::yaml::YamlValue::Bool(true);
     let on = doc
         .get("on")
-        .or_else(|| doc.get(serde_yaml::Value::Bool(true)))
+        .or_else(|| {
+            doc.as_mapping()?
+                .iter()
+                .find(|(k, _)| *k == true_key)
+                .map(|(_, v)| v)
+        })
         .unwrap_or_else(|| panic!("acceptance.yml declares no triggers at all"));
     let map = on
         .as_mapping()
         .unwrap_or_else(|| panic!("acceptance.yml's triggers are not a mapping: {on:?}"));
-    map.keys()
-        .filter_map(|k| k.as_str().map(str::to_string))
+    map.iter()
+        .filter_map(|(k, _)| k.as_str().map(str::to_string))
         .collect()
 }
 
@@ -1695,15 +1701,18 @@ fn the_acceptance_workflow_is_outside_the_required_check() {
 #[test]
 fn the_acceptance_workflow_carries_a_read_only_token_and_no_secret() {
     let wf = read(".github/workflows/acceptance.yml");
-    let doc: serde_yaml::Value = serde_yaml::from_str(&wf).unwrap();
+    let doc = spec_spine_types::yaml::parse(&wf).unwrap();
     let perms = doc
         .get("permissions")
         .and_then(|p| p.as_mapping())
         .unwrap_or_else(|| panic!("acceptance.yml declares no workflow-level permissions"));
     assert_eq!(perms.len(), 1, "exactly one permission: {perms:?}");
     assert_eq!(
-        perms.get(serde_yaml::Value::String("contents".into())),
-        Some(&serde_yaml::Value::String("read".into())),
+        perms
+            .iter()
+            .find(|(k, _)| k.as_str() == Some("contents"))
+            .map(|(_, v)| v.as_str()),
+        Some(Some("read")),
         "spec 099 §3.4: contents: read and nothing else"
     );
     // Comment lines are skipped, exactly as `invocations` skips them: this
