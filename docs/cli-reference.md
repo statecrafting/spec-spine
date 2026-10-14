@@ -217,8 +217,8 @@ when it is `fresh`, and otherwise exits `1` with the
 result. `--export` supplies a corpus an interface input cites, and
 `--resolutions` a JSON array of external resolutions; an input with neither is
 `unverified`. Malformed documents, unknown members, duplicate ids, invalid
-digests or regions and limit excesses exit `3`; a dirty or moving snapshot, a mismatched packet, input or output, and a
-path escape exit `2`. Nothing either verb names is run or fetched.
+digests or regions and limit excesses exit `3`; a dirty or moving snapshot,
+a mismatched packet, input or output, and a path escape exit `2`. Nothing either verb names is run or fetched.
 
 ## registry
 

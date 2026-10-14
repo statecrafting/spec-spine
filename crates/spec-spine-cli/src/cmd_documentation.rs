@@ -201,14 +201,14 @@ fn freshness(
         &resolutions,
         &outputs,
     )?;
-    if result.status == FreshnessStatus::Fresh {
-        out!("{}", documentation_freshness_document(&result)?);
-        return Ok(0);
-    }
-    // Spec 160 3.15: a stale, incomplete or unverified result is a finding,
-    // and the envelope carries the whole result.
+    // Spec 160 3.15: a fresh result exits 0; a stale, incomplete or
+    // unverified result is a finding, and the envelope carries the whole
+    // result.
     let status = match result.status {
-        FreshnessStatus::Fresh => "fresh",
+        FreshnessStatus::Fresh => {
+            out!("{}", documentation_freshness_document(&result)?);
+            return Ok(0);
+        }
         FreshnessStatus::Unverified => "unverified",
         FreshnessStatus::Stale => "stale",
         FreshnessStatus::Incomplete => "incomplete",
