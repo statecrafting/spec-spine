@@ -109,6 +109,7 @@
         "inputSchema": {
           "type": "object",
           "required": ["type", "additionalProperties", "properties"],
+          "additionalProperties": false,
           "properties": {
             "type": { "const": "object" },
             "additionalProperties": { "const": false },
