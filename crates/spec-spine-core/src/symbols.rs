@@ -5,8 +5,7 @@
 //! The construct matrix is spec 163 §3.2: items at any inline-module depth,
 //! inline modules as modules, integration-test roots, impl and trait members,
 //! `macro_rules!` definitions, and Rust test functions bound to a bare
-//! `#[test]` (§3.4). The TypeScript constructs arrive in the next change;
-//! until then TypeScript resolves its legacy kinds.
+//! `#[test]` (§3.4), and TypeScript class methods and top-level variables.
 //! Everything the walk recognizes but does not support is recorded with a
 //! closed reason, so a lookup answers `unsupported` or `unknown` instead of
 //! looking like an absence (§3.5). The 0.28.0 construct set (top-level items of
@@ -524,16 +523,16 @@ fn index_rust_package(
     }
 }
 
-/// Everything one walked Rust file needs to know about where it is.
+/// Everything one walked source file needs to know about where it is.
 #[cfg(feature = "symbol-resolution")]
-struct RustFile<'a> {
+struct SourceFile<'a> {
     src: &'a str,
     rel: String,
     sink: Sink,
 }
 
 #[cfg(feature = "symbol-resolution")]
-impl RustFile<'_> {
+impl SourceFile<'_> {
     fn loc(&self, span: LineSpan) -> ResolvedLocation {
         ResolvedLocation {
             file: self.rel.clone(),
@@ -572,7 +571,7 @@ fn index_rust_file(
     let Some(tree) = parse(content, tree_sitter_rust::LANGUAGE.into()) else {
         return;
     };
-    let f = RustFile {
+    let f = SourceFile {
         src: content.strip_prefix('\u{feff}').unwrap_or(content),
         rel,
         sink,
@@ -584,7 +583,7 @@ fn index_rust_file(
 
 /// Record why a scope cannot be enumerated, if it cannot (§3.5).
 #[cfg(feature = "symbol-resolution")]
-fn mark_scope(b: &mut Builder, f: &RustFile, container: Node, scope: &str) {
+fn mark_scope(b: &mut Builder, f: &SourceFile, container: Node, scope: &str) {
     if matches!(f.sink, Sink::Unsupported(_)) {
         return;
     }
@@ -609,7 +608,7 @@ fn mark_scope(b: &mut Builder, f: &RustFile, container: Node, scope: &str) {
 #[cfg(feature = "symbol-resolution")]
 fn walk_rust_items(
     b: &mut Builder,
-    f: &RustFile,
+    f: &SourceFile,
     container: Node,
     root: &str,
     module: &[String],
@@ -783,7 +782,7 @@ fn use_bindings(node: Node, src: &str) -> Vec<String> {
 #[cfg(feature = "symbol-resolution")]
 fn walk_impl(
     b: &mut Builder,
-    f: &RustFile,
+    f: &SourceFile,
     item: Node,
     root: &str,
     module: &[String],
@@ -846,7 +845,7 @@ fn walk_impl(
 
 /// A trait body's members: provided and required `fn`, `const`, `type` (§3.2).
 #[cfg(feature = "symbol-resolution")]
-fn walk_trait(b: &mut Builder, f: &RustFile, item: Node, id: &str, depth: usize) {
+fn walk_trait(b: &mut Builder, f: &SourceFile, item: Node, id: &str, depth: usize) {
     if !matches!(f.sink, Sink::Unsupported(_)) {
         b.scopes.insert(id.to_string());
     }
@@ -920,7 +919,7 @@ fn nested_items(b: &mut Builder, node: Node, fn_id: &str, src: &str, depth: usiz
 /// the function. Any other attribute whose path ends in `test` records a
 /// `framework-test-attribute` site.
 #[cfg(feature = "symbol-resolution")]
-fn test_identity(b: &mut Builder, f: &RustFile, item: Node, id: &str) {
+fn test_identity(b: &mut Builder, f: &SourceFile, item: Node, id: &str) {
     let mut first = item;
     let mut bare = false;
     let mut framework = false;
@@ -1020,11 +1019,21 @@ fn index_ts_package(
         };
         let module = ts_module_path(pkg_dir, &file);
         let rel = rel_posix(repo_root, &file);
-        // The legacy `.tsx` result keeps the TypeScript grammar (D-5).
+        // The legacy `.tsx` result keeps the TypeScript grammar (D-5); the
+        // constructs §3.2 adds are not supported there.
         let Some(tree) = parse(&content, tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into()) else {
             continue;
         };
-        let src = content.strip_prefix('\u{feff}').unwrap_or(&content);
+        let sink = if file.extension().is_some_and(|e| e == "tsx") {
+            Sink::Unsupported(reason::TSX_GRAMMAR)
+        } else {
+            Sink::Source
+        };
+        let f = SourceFile {
+            src: content.strip_prefix('\u{feff}').unwrap_or(&content),
+            rel,
+            sink,
+        };
         let root = tree.root_node();
         let mut cursor = root.walk();
         for child in root.named_children(&mut cursor) {
@@ -1033,18 +1042,273 @@ fn index_ts_package(
             } else {
                 child
             };
-            if TS_KINDS.contains(&decl.kind())
-                && let Some(name) = name_of(decl, src)
-            {
-                let id = qualify(&pkg.name, &module, name);
-                let loc = ResolvedLocation {
-                    file: rel.clone(),
-                    span: Some(span_of(decl)),
-                };
-                b.put(Namespace::Symbol, true, Sink::Source, id, loc);
+            // A bare `namespace X {}` is an expression statement around it.
+            let decl = if decl.kind() == "expression_statement" {
+                decl.named_child(0).unwrap_or(decl)
+            } else {
+                decl
+            };
+            match decl.kind() {
+                k if TS_KINDS.contains(&k) => {
+                    let Some(name) = name_of(decl, f.src) else {
+                        continue;
+                    };
+                    let id = qualify(&pkg.name, &module, name);
+                    // The top-level legacy kinds resolve in `.tsx` too (D-5).
+                    b.put(
+                        Namespace::Symbol,
+                        true,
+                        Sink::Source,
+                        id.clone(),
+                        f.loc(span_of(decl)),
+                    );
+                    match k {
+                        "class_declaration" => ts_class(b, &f, decl, &id),
+                        "interface_declaration" => ts_interface(b, decl, &id, f.src),
+                        _ => {}
+                    }
+                }
+                "lexical_declaration" | "variable_declaration" => {
+                    ts_declarators(b, &f, decl, &pkg.name, &module);
+                }
+                "internal_module" | "module" => {
+                    ts_namespace(b, decl, &qualify(&pkg.name, &module, ""), f.src, 0);
+                }
+                "export_statement" => {
+                    for bound in ts_export_bindings(decl, f.src) {
+                        b.site(
+                            Namespace::Symbol,
+                            qualify(&pkg.name, &module, &bound),
+                            reason::RE_EXPORT,
+                        );
+                    }
+                }
+                _ => {}
             }
         }
     }
+}
+
+/// A top-level class's members (§3.2, §3.5): a method with a plain name
+/// resolves, a private or computed name is `ts-computed-name`, and a field is
+/// a `member`.
+#[cfg(feature = "symbol-resolution")]
+fn ts_class(b: &mut Builder, f: &SourceFile, class: Node, id: &str) {
+    if !matches!(f.sink, Sink::Unsupported(_)) {
+        b.scopes.insert(id.to_string());
+        if class.has_error() {
+            b.unknown(id, reason::PARSE_ERROR_IN_SCOPE);
+        }
+    }
+    let Some(body) = class.child_by_field_name("body") else {
+        return;
+    };
+    let mut cursor = body.walk();
+    for member in body.named_children(&mut cursor) {
+        let Some(name) = member.child_by_field_name("name") else {
+            continue;
+        };
+        let written = text(name, f.src);
+        match (member.kind(), name.kind()) {
+            ("method_definition", "property_identifier") => {
+                b.put(
+                    Namespace::Symbol,
+                    false,
+                    f.sink,
+                    format!("{id}::{written}"),
+                    f.loc(span_of(member)),
+                );
+            }
+            ("method_definition" | "public_field_definition", "private_property_identifier") => {
+                b.site(
+                    Namespace::Symbol,
+                    format!("{id}::{written}"),
+                    reason::TS_COMPUTED_NAME,
+                );
+            }
+            ("public_field_definition", "property_identifier") => {
+                b.site(
+                    Namespace::Symbol,
+                    format!("{id}::{written}"),
+                    reason::MEMBER,
+                );
+            }
+            // A computed name has no would-be id: its text is an expression.
+            _ => {}
+        }
+    }
+}
+
+/// An interface's members are `member` sites (§3.5).
+#[cfg(feature = "symbol-resolution")]
+fn ts_interface(b: &mut Builder, interface: Node, id: &str, src: &str) {
+    let Some(body) = interface.child_by_field_name("body") else {
+        return;
+    };
+    let mut cursor = body.walk();
+    for member in body.named_children(&mut cursor) {
+        if let Some(name) = member.child_by_field_name("name")
+            && name.kind() == "property_identifier"
+        {
+            b.site(
+                Namespace::Symbol,
+                format!("{id}::{}", text(name, src)),
+                reason::MEMBER,
+            );
+        }
+    }
+}
+
+/// A top-level `const`/`let`/`var`: a declarator binding one identifier
+/// resolves with the declarator's span, and every name a destructuring
+/// declarator binds is `ts-destructuring` (§3.2, §3.5).
+#[cfg(feature = "symbol-resolution")]
+fn ts_declarators(b: &mut Builder, f: &SourceFile, decl: Node, pkg: &str, module: &[String]) {
+    let mut cursor = decl.walk();
+    for declarator in decl.named_children(&mut cursor) {
+        if declarator.kind() != "variable_declarator" {
+            continue;
+        }
+        let Some(name) = declarator.child_by_field_name("name") else {
+            continue;
+        };
+        if name.kind() == "identifier" {
+            b.put(
+                Namespace::Symbol,
+                false,
+                f.sink,
+                qualify(pkg, module, text(name, f.src)),
+                f.loc(span_of(declarator)),
+            );
+            continue;
+        }
+        let mut bound = Vec::new();
+        pattern_names(name, f.src, &mut bound, 0);
+        for n in bound {
+            b.site(
+                Namespace::Symbol,
+                qualify(pkg, module, &n),
+                reason::TS_DESTRUCTURING,
+            );
+        }
+    }
+}
+
+/// The identifiers a destructuring pattern binds, in source order.
+#[cfg(feature = "symbol-resolution")]
+fn pattern_names(node: Node, src: &str, out: &mut Vec<String>, depth: usize) {
+    if depth > MAX_CONTAINER_DEPTH {
+        return;
+    }
+    match node.kind() {
+        "identifier" | "shorthand_property_identifier_pattern" => {
+            out.push(text(node, src).to_string());
+        }
+        // `{ key: value }` binds the value side only.
+        "pair_pattern" => {
+            if let Some(value) = node.child_by_field_name("value") {
+                pattern_names(value, src, out, depth + 1);
+            }
+        }
+        // `x = default` binds its left side only.
+        "assignment_pattern" | "object_assignment_pattern" => {
+            if let Some(left) = node.child_by_field_name("left") {
+                pattern_names(left, src, out, depth + 1);
+            }
+        }
+        _ => {
+            let mut cursor = node.walk();
+            for child in node.named_children(&mut cursor) {
+                pattern_names(child, src, out, depth + 1);
+            }
+        }
+    }
+}
+
+/// A namespace and every declaration it holds are `ts-namespace` sites (§3.5).
+/// `prefix` ends in `::`.
+#[cfg(feature = "symbol-resolution")]
+fn ts_namespace(b: &mut Builder, ns: Node, prefix: &str, src: &str, depth: usize) {
+    let Some(name) = ns.child_by_field_name("name") else {
+        return;
+    };
+    let id = format!("{prefix}{}", text(name, src));
+    b.site(Namespace::Symbol, id.clone(), reason::TS_NAMESPACE);
+    if depth + 1 > MAX_CONTAINER_DEPTH {
+        return;
+    }
+    let Some(body) = ns.child_by_field_name("body") else {
+        return;
+    };
+    let mut cursor = body.walk();
+    for child in body.named_children(&mut cursor) {
+        let decl = if child.kind() == "export_statement" {
+            child.child_by_field_name("declaration").unwrap_or(child)
+        } else {
+            child
+        };
+        let decl = if decl.kind() == "expression_statement" {
+            decl.named_child(0).unwrap_or(decl)
+        } else {
+            decl
+        };
+        match decl.kind() {
+            "internal_module" | "module" => {
+                ts_namespace(b, decl, &format!("{id}::"), src, depth + 1);
+            }
+            "lexical_declaration" | "variable_declaration" => {
+                let mut c = decl.walk();
+                for declarator in decl.named_children(&mut c) {
+                    let mut bound = Vec::new();
+                    if let Some(n) = declarator.child_by_field_name("name") {
+                        pattern_names(n, src, &mut bound, 0);
+                    }
+                    for n in bound {
+                        b.site(
+                            Namespace::Symbol,
+                            format!("{id}::{n}"),
+                            reason::TS_NAMESPACE,
+                        );
+                    }
+                }
+            }
+            _ => {
+                if let Some(n) = name_of(decl, src) {
+                    b.site(
+                        Namespace::Symbol,
+                        format!("{id}::{n}"),
+                        reason::TS_NAMESPACE,
+                    );
+                }
+            }
+        }
+    }
+}
+
+/// The names an `export { a, b as c }` clause binds: each specifier's alias,
+/// or its name. Ids name definitions, never re-exports (§3.5).
+#[cfg(feature = "symbol-resolution")]
+fn ts_export_bindings(stmt: Node, src: &str) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut cursor = stmt.walk();
+    for clause in stmt.named_children(&mut cursor) {
+        if clause.kind() != "export_clause" {
+            continue;
+        }
+        let mut c = clause.walk();
+        for spec in clause.named_children(&mut c) {
+            if spec.kind() != "export_specifier" {
+                continue;
+            }
+            let bound = spec
+                .child_by_field_name("alias")
+                .or_else(|| spec.child_by_field_name("name"));
+            if let Some(n) = bound {
+                out.push(text(n, src).to_string());
+            }
+        }
+    }
+    out
 }
 
 /// TS module path from a file under the package dir: components minus extension,

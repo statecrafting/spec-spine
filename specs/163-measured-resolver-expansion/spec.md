@@ -548,6 +548,13 @@ and #454. Change (3) adds the integration-test roots, the test identities and
 their `unrooted-test-file`, `declared-test-targets` and
 `framework-test-attribute` sites to the same golden.
 
+Status (2026-10-13, TypeScript slice): change (4) resolves TypeScript class
+methods with a plain name and top-level single-identifier declarators, and
+records `member`, `re-export`, `ts-namespace`, `ts-destructuring`,
+`ts-computed-name` and `tsx-grammar` sites. A computed member name records no
+site, because its text is an expression and gives no would-be id; a private
+`#name` records `ts-computed-name` under `<Class>::#name`.
+
 ## Verification
 
 Every line but the last fails before the build: the test targets do not exist and the
