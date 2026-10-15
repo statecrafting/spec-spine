@@ -402,8 +402,8 @@
       }
     ],
     "specId": "162-capability-catalog",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "c905f9e0c3fd15093cb7be99e97b7c136c31bfede029351cf51fce431ba9c0ac"
+  "shardHash": "d7f3258f108e9a2765e07defe1632163732feb6939a3a03be2acb53642886cc5"
 }

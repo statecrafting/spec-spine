@@ -278,10 +278,10 @@
       "Verification"
     ],
     "specPath": "specs/162-capability-catalog/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Adds a versioned, canonical, digest-bearing capability catalog compiled into the binary: every CLI and facade operation with its summary, schema references, exact effects, preconditions, exit outcomes, budgets, pagination, stability, deprecation and examples. The catalog rides the one `capabilities` answer spec 170 established, as an additive member, so a binary still states what it supports through one path. Census tests hold it to the clap tree, the facade, the verdict verbs and the managed gate; the examples run against the built binary. `capabilities verify` checks pinned operation digests. The catalog describes; it authorizes nothing.\n",
     "title": "Every operation is described once, and the description is tested"
   },
-  "shardHash": "16ffcca22518ca98bdf29f4b471ebe17e717f81e2d6fff59e57fa7b426306b80",
+  "shardHash": "9e3dc7bfa4a5840e268fd32a53b728b23a31e4eafe3d391a9a205b12fe27fb3d",
   "specVersion": "1.10.0"
 }

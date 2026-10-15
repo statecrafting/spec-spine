@@ -1,7 +1,7 @@
 ---
 id: "162-capability-catalog"
 title: "Every operation is described once, and the description is tested"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-27"
 implementation: complete

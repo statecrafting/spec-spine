@@ -1,7 +1,7 @@
 ---
 id: "169-declared-obligation-traceability"
 title: "Declare qualified obligation traceability"
-status: draft
+status: approved
 kind: "governance"
 created: "2026-09-28"
 implementation: complete
