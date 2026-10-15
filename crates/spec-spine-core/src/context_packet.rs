@@ -478,6 +478,14 @@ pub fn context_packet_pages(
     loop {
         let page = context_packet(cfg, repo_root, &next, snapshot, producer_build)?;
         let continuation = page.continuation.clone();
+        // A continuation resumes strictly after the page's last member, so a
+        // page that carries one and no member would never advance.
+        if continuation.is_some() && page.members.is_empty() {
+            return Err(Error::Internal(format!(
+                "context packet page {} carries a continuation and no member",
+                pages.len() + 1
+            )));
+        }
         pages.push(page);
         match continuation {
             Some(token) => next.continuation = Some(token),
