@@ -33,11 +33,23 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/spec-spine-core/src/context_packet_delta.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/src/documentation_manifest.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/spec-spine-core/src/lib.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/spec-spine-core/tests/context_packet.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/spec-spine-core/tests/context_packet_delta.rs",
         "source": "spec-edge"
       },
       {
@@ -118,7 +130,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/context_packet_delta.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -127,7 +143,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/tests/context_packet_delta.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -237,6 +257,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/spec-spine-core/src/context_packet.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/spec-spine-core/src/documentation_manifest.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/documentation_manifest.rs"
         }
       },
       {
@@ -457,5 +490,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "287fc0bc400d50ec732a92f1890a0e750fbeb68861b9a62368908346840c7649"
+  "shardHash": "de00e6f7900ef235e6131feb04fc0b6ce545f577a3e3e145c855de1372579860"
 }
