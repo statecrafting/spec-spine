@@ -214,6 +214,10 @@ fn module_operations() -> BTreeMap<&'static str, Vec<&'static str>> {
         ("cmd_config.rs", vec!["config.show"]),
         ("cmd_content.rs", vec!["content.select"]),
         ("cmd_context.rs", vec!["context.packet"]),
+        (
+            "cmd_context_delta.rs",
+            vec!["context.apply", "context.delta"],
+        ),
         ("cmd_couple.rs", vec!["couple"]),
         ("cmd_delta.rs", vec!["delta"]),
         (
@@ -458,6 +462,8 @@ fn the_capabilities_document_carries_the_catalog() {
         "compile.spec",
         "config.show",
         "content.select",
+        "context.apply",
+        "context.delta",
         "context.packet",
         "couple",
         "delta",

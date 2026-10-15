@@ -381,6 +381,41 @@ pub fn context_packet_delta_document(result: &ContextDeltaResult) -> Result<Stri
     read_document(result, Versioning::Preexisting("schemaVersion"))
 }
 
+/// JSON facade for [`context_packet_delta`]. Like spec 159's facade it has no
+/// build identity to supply, so its target pages record `unverified`.
+pub fn context_packet_delta_json(
+    config_json: &str,
+    repo_root: &str,
+    request_json: &str,
+    snapshot_json: &str,
+) -> Result<String, Error> {
+    let cfg: Config = serde_json::from_str(config_json)
+        .map_err(|e| Error::Usage(format!("invalid config JSON: {e}")))?;
+    let request: ContextDeltaRequest = serde_json::from_str(request_json)
+        .map_err(|e| Error::Usage(format!("invalid context-delta request: {e}")))?;
+    let snapshot: ContentSnapshot = serde_json::from_str(snapshot_json)
+        .map_err(|e| Error::Usage(format!("invalid content snapshot: {e}")))?;
+    let result = context_packet_delta(&cfg, Path::new(repo_root), &request, &snapshot, None)?;
+    context_packet_delta_document(&result)
+}
+
+/// JSON facade for [`context_packet_apply`]: `predecessor_pages_json` is a JSON
+/// array of page strings, and the result is a JSON array of the reproduced
+/// page documents, in order.
+pub fn context_packet_apply_json(
+    predecessor_pages_json: &str,
+    delta_json: &str,
+) -> Result<String, Error> {
+    let pages: Vec<String> = serde_json::from_str(predecessor_pages_json).map_err(|e| {
+        Error::Usage(format!(
+            "predecessor pages must be an array of strings: {e}"
+        ))
+    })?;
+    let delta = parse_delta(delta_json)?;
+    let out = context_packet_apply(&pages, &delta)?;
+    canonical_json::to_string(&out)
+}
+
 /// Parse a delta document for `apply`. A fallback, or anything else that is
 /// not a delta, is a usage error.
 pub fn parse_delta(text: &str) -> Result<ContextPacketDelta, Error> {

@@ -26,6 +26,7 @@ mod cmd_compile;
 mod cmd_config;
 mod cmd_content;
 mod cmd_context;
+mod cmd_context_delta;
 mod cmd_couple;
 mod cmd_delta;
 mod cmd_documentation;
@@ -142,7 +143,8 @@ enum Command {
         #[command(subcommand)]
         action: cmd_content::ContentAction,
     },
-    /// Assemble one bounded context packet from one clean repository snapshot.
+    /// Assemble one bounded context packet from one clean repository snapshot,
+    /// or compute and apply a delta between two of its page sets.
     Context {
         #[command(subcommand)]
         action: cmd_context::ContextAction,
@@ -649,6 +651,12 @@ impl Command {
             Command::Context {
                 action: cmd_context::ContextAction::Packet { json: true, .. },
             } => Some(verb::CONTEXT_PACKET),
+            Command::Context {
+                action: cmd_context::ContextAction::Delta { json: true, .. },
+            } => Some(verb::CONTEXT_DELTA),
+            Command::Context {
+                action: cmd_context::ContextAction::Apply { json: true, .. },
+            } => Some(verb::CONTEXT_APPLY),
             Command::Documentation {
                 action: cmd_documentation::DocumentationAction::Manifest { action },
             } => match action {

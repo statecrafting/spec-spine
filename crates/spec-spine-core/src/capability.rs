@@ -800,6 +800,79 @@ fn operations() -> Vec<Operation> {
         .pinned_example(&["context", "packet", "--request", "packet-request.json", "--repository", "example/fixture", "--json"])
         .done(),
         op(
+            "context.delta",
+            "Compute the delta from caller-held predecessor pages to the packet this snapshot yields for the same request (spec 164)",
+            &["164-incremental-context-packets"],
+        )
+        .experimental()
+        .cli(
+            "context delta",
+            "read-document",
+            &[
+                "--request=FILE!",
+                "--predecessor=FILE!*",
+                "--manifest=FILE*",
+                "--repository=REPOSITORY!",
+                "--revision=REVISION",
+                "--json!",
+            ],
+        )
+        .reads(&["caller-file", "clock", "config", "corpus", "derived-ledger", "source-tree"])
+        .writes(&["temporary"])
+        .executes(&["git"])
+        .pre("clean-tree", &[2])
+        .pre("git-repository", &[4])
+        .finding(&["not-found", "stale", "validation"])
+        .request_document()
+        .response(
+            None,
+            "context-packet-delta",
+            "context-packet-delta",
+            schema_id("context-packet-delta.schema.json"),
+        )
+        .verdict()
+        .facade("context_packet_delta_json", None, true)
+        .pinned_example(&[
+            "context",
+            "delta",
+            "--request",
+            "packet-request.json",
+            "--predecessor",
+            "page.json",
+            "--repository",
+            "example/fixture",
+            "--json",
+        ])
+        .done(),
+        op(
+            "context.apply",
+            "Apply a delta to the predecessor pages it names and write every reproduced page, or refuse and write nothing (spec 164)",
+            &["164-incremental-context-packets"],
+        )
+        .experimental()
+        .cli(
+            "context apply",
+            "read-document",
+            &["--predecessor=FILE!*", "--delta=FILE!", "--out-dir=DIR!", "--json"],
+        )
+        .reads(&["caller-file"])
+        .writes(&["caller-path"])
+        .request_document()
+        .response(None, "unversioned", "written-paths", None)
+        .verdict()
+        .facade("context_packet_apply_json", None, false)
+        .pinned_example(&[
+            "context",
+            "apply",
+            "--predecessor",
+            "page.json",
+            "--delta",
+            "delta.json",
+            "--out-dir",
+            "out",
+        ])
+        .done(),
+        op(
             "documentation.manifest.validate",
             "Validate a documentation manifest against the snapshot it records: its packet pages, inputs, outputs and regions",
             &["160-documentation-manifest-and-freshness"],
