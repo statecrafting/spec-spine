@@ -487,6 +487,14 @@ pub fn context_packet_pages(
             )));
         }
         pages.push(page);
+        // One complete set is what a delta names as its predecessor, so it
+        // holds no more pages than a delta request may carry (spec 164 3.2).
+        if continuation.is_some() && pages.len() == spec_spine_types::DELTA_MAX_PREDECESSOR_PAGES {
+            return Err(Error::Refused(format!(
+                "limit-exceeded: the page set exceeds {} pages",
+                spec_spine_types::DELTA_MAX_PREDECESSOR_PAGES
+            )));
+        }
         match continuation {
             Some(token) => next.continuation = Some(token),
             None => return Ok(pages),

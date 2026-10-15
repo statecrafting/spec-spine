@@ -546,7 +546,7 @@ two for 159's core and CLI test files, whose version assertions move with the
 MINOR, so 164 owns every 159 file it edits.
 
 **D-19 (2026-10-15, build): what the build fixed that 3.3 to 3.9 leave
-open.** Seven choices, none changing a stated behavior:
+open.** Eight choices, none changing a stated behavior:
 
 1. Row 3's structural check also requires every page to carry the same
    omission list (spec 159 repeats the complete list on each page) and no key
@@ -571,7 +571,10 @@ open.** Seven choices, none changing a stated behavior:
    for another key, a carried record no layout uses, a layout key neither
    side holds, an envelope carrying `members`, `omissions` or `closure`) as
    a usage error. A fallback document is not a delta and is a usage error.
-7. The delta document has no `completeness`. `context delta` exits 1 when
+7. `context_packet_pages` refuses a page set longer than the 512 pages a
+   delta request may carry as its predecessor, as `limit-exceeded` (exit 2),
+   rather than assembling one no later delta could name.
+8. The delta document has no `completeness`. `context delta` exits 1 when
    any target layout's envelope records `incomplete`, which
    `delta_target_incomplete` reads.
 
