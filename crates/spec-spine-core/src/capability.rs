@@ -17,9 +17,9 @@ use spec_spine_types::{
     CONTEXT_PACKET_DELTA_SCHEMA_VERSION, CONTEXT_PACKET_SCHEMA_VERSION, CapabilitiesDiscovery,
     CapabilityCatalog, CapabilityVerifyReport, CapabilityVerifyRequest, CatalogDiscovery,
     CliBinding, ConditionalEffects, DELTA_SCHEMA_VERSION, DOCUMENTATION_MANIFEST_SCHEMA_VERSION,
-    Effects, Error, Example, ExitOutcome, FacadeBinding, Flag, INDEX_SCHEMA_VERSION,
-    InterfaceDiscovery, Operation, PinResult, Precondition, READ_SCHEMA_VERSION,
-    REGISTRY_SCHEMA_VERSION, RequestRef, ResponseRef, SNAPSHOT_SCHEMA_VERSION,
+    EDIT_PLAN_SCHEMA_VERSION, Effects, Error, Example, ExitOutcome, FacadeBinding, Flag,
+    INDEX_SCHEMA_VERSION, InterfaceDiscovery, Operation, PinResult, Precondition,
+    READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, RequestRef, ResponseRef, SNAPSHOT_SCHEMA_VERSION,
     SPEC_ATTESTATION_SCHEMA_VERSION, TOOL_PROJECTION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
 };
 
@@ -48,6 +48,7 @@ pub fn compatibility() -> BTreeMap<String, String> {
             "documentation-manifest",
             DOCUMENTATION_MANIFEST_SCHEMA_VERSION,
         ),
+        ("edit-plan", EDIT_PLAN_SCHEMA_VERSION),
         ("index", INDEX_SCHEMA_VERSION),
         ("read", READ_SCHEMA_VERSION),
         ("registry", REGISTRY_SCHEMA_VERSION),

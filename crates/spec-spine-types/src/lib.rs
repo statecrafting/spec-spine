@@ -34,6 +34,7 @@ pub mod coverage;
 pub mod delta;
 pub mod documentation_manifest;
 pub mod edges;
+pub mod edit_plan;
 pub mod error;
 pub mod frontmatter;
 pub mod impact;
@@ -119,6 +120,11 @@ pub use edges::{
     CoAuthorityItem, ConstrainItem, ExtendItem, Origin, Provenance, ReferenceItem, RefineItem,
     SupersedeItem, SupersedeScope, SupersedeScoped,
 };
+pub use edit_plan::{
+    AuthorityEffect, ClaimEdge, ConflictKind, EDIT_PLAN_MAX_BYTES, EDIT_PLAN_MAX_OPERATIONS,
+    EXPECTED_ABSENT, EditOperation, EditPlan, EditPlanRequest, FilePreview, PlanConflict,
+    PlanRefusal, PlanStatus, PlannedOperation, PredictedFinding, RefusalReason,
+};
 pub use error::{Error, Result, outcome};
 pub use frontmatter::{
     Frontmatter, FrontmatterIssue, Implementation, KNOWN_KEYS, Risk, Status, parse_frontmatter,
@@ -145,8 +151,9 @@ pub use relocation::Relocation;
 pub use repo_path::{RepoPath, is_device_name, repo_path_problem};
 pub use schema::{
     AFFECTED_SCHEMA, BUILD_META_SCHEMA, CAPABILITY_CATALOG_SCHEMA, CONTEXT_PACKET_DELTA_SCHEMA,
-    CONTEXT_PACKET_SCHEMA, INDEX_INPUTS_SCHEMA, INDEX_PACKAGE_SHARD_SCHEMA, INDEX_SCHEMA,
-    INDEX_SPEC_SHARD_SCHEMA, REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA, TRACEABILITY_SCHEMA,
+    CONTEXT_PACKET_SCHEMA, EDIT_PLAN_SCHEMA, INDEX_INPUTS_SCHEMA, INDEX_PACKAGE_SHARD_SCHEMA,
+    INDEX_SCHEMA, INDEX_SPEC_SHARD_SCHEMA, REGISTRY_SCHEMA, REGISTRY_SPEC_SHARD_SCHEMA,
+    TRACEABILITY_SCHEMA,
 };
 pub use snapshot::{
     AuthoritySnapshot, CommittedTree, FRAME_DIGEST, NON_UTF8_DIRECT_CLAIM, SnapshotCommitted,
@@ -164,7 +171,8 @@ pub use verify::{SkippedBlocks, VerifyFailure, VerifyOutcome, VerifyPlan, Verify
 pub use version::{
     BUILD_META_SCHEMA_VERSION, CAPABILITIES_SCHEMA_VERSION, CATALOG_SCHEMA_VERSION, CONFIG_VERSION,
     CONTEXT_PACKET_DELTA_SCHEMA_VERSION, CONTEXT_PACKET_SCHEMA_VERSION, DELTA_SCHEMA_VERSION,
-    DOCUMENTATION_MANIFEST_SCHEMA_VERSION, INDEX_SCHEMA_VERSION, READ_SCHEMA_VERSION,
-    REGISTRY_SCHEMA_VERSION, SNAPSHOT_SCHEMA_VERSION, SPEC_ATTESTATION_SCHEMA_VERSION,
-    TOOL_PROJECTION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION, parse_semver,
+    DOCUMENTATION_MANIFEST_SCHEMA_VERSION, EDIT_PLAN_SCHEMA_VERSION, INDEX_SCHEMA_VERSION,
+    READ_SCHEMA_VERSION, REGISTRY_SCHEMA_VERSION, SNAPSHOT_SCHEMA_VERSION,
+    SPEC_ATTESTATION_SCHEMA_VERSION, TOOL_PROJECTION_SCHEMA_VERSION, VERDICT_SCHEMA_VERSION,
+    parse_semver,
 };

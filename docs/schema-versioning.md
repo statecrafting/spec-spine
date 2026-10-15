@@ -23,6 +23,7 @@
 | capability catalog (the document's `catalog`, `capability_catalog_json()`, spec 162) | `schemaVersion` | `1.1.0` | library |
 | context packet (`context packet --json`, `context_packet_json`, spec 159) | `schemaVersion` | `1.1.0` | library |
 | context-packet delta (`context delta --json`, `context_packet_delta_json`, spec 164) | `schemaVersion` | `1.0.0` | library |
+| edit plan (`edit-plan --json`, `edit_plan_json`, spec 165) | `schemaVersion` | `1.0.0` | library |
 | read-only tool projection (`capabilities --projection --json`, `tool_projection_json()`, spec 167) | `schemaVersion` | `1.0.0` | library |
 | documentation manifest and freshness result (`documentation manifest validate\|freshness --json`, spec 160) | `schemaVersion` | `1.0.0` | library |
 | `build-meta.json` | `schemaVersion` | `0.1.0` | library (non-deterministic; excluded from goldens) |
@@ -455,6 +456,22 @@ target snapshot, candidates, `deltaDigest`).
 
 Additive optional members are MINOR. Removing or reinterpreting a member,
 change kind, basis, fallback reason, ordering rule or digest input is MAJOR.
+
+## The edit-plan axis: spec 165
+
+An edit plan carries `schemaVersion` = `EDIT_PLAN_SCHEMA_VERSION`, starting at
+`1.0.0`. Its schema is embedded as `EDIT_PLAN_SCHEMA`
+(`schemas/edit-plan.schema.json`): the root validates a plan, and
+`$defs/request` is the request.
+
+**`1.0.0` (spec 165).** The first plan: status, snapshot, subject, request
+digest, the greatest authority effect, operations in canonical order,
+refusals, conflicts, file previews, predicted findings, the derived trees it
+would stale, and `planDigest`.
+
+Additive optional members move MINOR. A new operation, effect or refusal
+reason, or any change to ordering, digest input or overlap rules, moves
+MAJOR.
 
 ## The documentation-manifest axis: spec 160
 
