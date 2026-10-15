@@ -246,6 +246,11 @@ pub fn context_packet_apply(
         .collect::<Result<Vec<_>, _>>()?;
 
     let malformed = |why: String| Error::Usage(format!("malformed delta: {why}"));
+    if delta.target.pages.len() > DELTA_MAX_PREDECESSOR_PAGES {
+        return Err(malformed(format!(
+            "the target names more than {DELTA_MAX_PREDECESSOR_PAGES} pages"
+        )));
+    }
     if delta.target.pages.is_empty() || delta.target.pages.len() != delta.target.page_digests.len()
     {
         return Err(malformed(
