@@ -315,9 +315,12 @@ mod tests {
             .pointer(pointer)
             .unwrap_or_else(|| panic!("no {pointer}"))
             .as_array()
-            .unwrap()
+            .unwrap_or_else(|| panic!("{pointer} is not an enum array"))
             .iter()
-            .map(|v| v.as_str().unwrap().to_string())
+            .map(|v| match v {
+                serde_json::Value::String(name) => name.clone(),
+                other => panic!("{pointer} lists a non-string member {other}"),
+            })
             .collect()
     }
 

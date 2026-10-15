@@ -50,10 +50,16 @@
           "type": "string"
         },
         "requirement": {
-          "enum": [
-            "required",
-            "optional",
-            null
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "enum": [
+                "required",
+                "optional"
+              ]
+            }
           ]
         },
         "uses": {
