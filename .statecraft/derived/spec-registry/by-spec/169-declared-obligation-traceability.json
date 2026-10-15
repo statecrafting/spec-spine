@@ -394,10 +394,10 @@
       "Verification"
     ],
     "specPath": "specs/169-declared-obligation-traceability/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Adds optional, qualified relations from declared obligations to implementation units, tests, invariants, documentation sources, and producer or consumer interfaces. Declarations and their deterministic resolution remain distinct from execution, evidence, acceptance, release, adoption, and observation; every unsupported, unknown, ambiguous, withdrawn, or unresolved target is explicit, and ownership is never behavioral proof.\n",
     "title": "Declare qualified obligation traceability"
   },
-  "shardHash": "7e931c80ab22acf391775c8b94061a0e7ba1809ad920ff0e6aeda9c4a22f0264",
+  "shardHash": "ddbda9ff4ad1e6d31054d0c60099bcd64f002159d332898c5ef65e0f709d16b9",
   "specVersion": "1.10.0"
 }
