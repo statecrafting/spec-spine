@@ -188,14 +188,6 @@
           "kind": "file",
           "path": "crates/spec-spine-core/src/capability.rs"
         }
-      },
-      {
-        "nature": "additive",
-        "spec": "160-documentation-manifest-and-freshness",
-        "unit": {
-          "kind": "file",
-          "path": "crates/spec-spine-core/src/documentation_manifest.rs"
-        }
       }
     ],
     "id": "164-incremental-context-packets",
@@ -340,6 +332,6 @@
     "summary": "A deterministic delta from caller-supplied predecessor packet pages to spec 159's pages on a target snapshot, in six closed change kinds, that reproduces the target byte for byte or falls back explicitly, plus pure invalidation candidates over spec-160 manifests. No session state.\n",
     "title": "A packet delta reproduces the packet it names"
   },
-  "shardHash": "7953abc068813cca399d06890ce095ab00b8b049caa86c5bc54ccd2bb0fef3c8",
+  "shardHash": "ce0562ba46a94eb4f662e1ce00e2e71481fd4585553be3b3e536c0681caad275",
   "specVersion": "1.10.0"
 }

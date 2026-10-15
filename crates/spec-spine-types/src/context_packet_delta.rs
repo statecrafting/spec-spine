@@ -42,14 +42,6 @@ pub struct ContextDeltaRequest {
     pub consumer_schema_version: String,
 }
 
-/// Whether a document is a delta or an explicit fallback.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum DeltaOutcome {
-    Delta,
-    Fallback,
-}
-
 /// Why a delta request fell back to a full packet (spec 164 3.3), in row
 /// order.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -239,7 +231,6 @@ pub struct InvalidationCandidates {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ContextPacketDelta {
     pub schema_version: String,
-    pub outcome: DeltaOutcome,
     pub producer: PacketProducer,
     pub producer_changed: bool,
     pub request_digest: String,
@@ -271,7 +262,6 @@ pub struct FallbackTarget {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct ContextPacketFallback {
     pub schema_version: String,
-    pub outcome: DeltaOutcome,
     pub reason: DeltaFallbackReason,
     pub request_digest: String,
     pub predecessor: FallbackPredecessor,
@@ -280,9 +270,11 @@ pub struct ContextPacketFallback {
     pub delta_digest: String,
 }
 
-/// What `context delta` answers: a delta or a fallback.
+/// What `context delta` answers: a delta or a fallback, discriminated by the
+/// document's `outcome` member, so a document's outcome and its shape cannot
+/// disagree.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(untagged)]
+#[serde(tag = "outcome", rename_all = "kebab-case")]
 pub enum ContextDeltaResult {
     Delta(Box<ContextPacketDelta>),
     Fallback(ContextPacketFallback),
@@ -321,6 +313,42 @@ mod tests {
         assert_eq!(
             serde_json::to_string(&fields).unwrap(),
             r#"["content","span","origins"]"#
+        );
+    }
+
+    #[test]
+    fn the_outcome_member_decides_the_shape() {
+        let fallback = ContextDeltaResult::Fallback(ContextPacketFallback {
+            schema_version: "1.0.0".into(),
+            reason: DeltaFallbackReason::BudgetChanged,
+            request_digest: "sha256:r".into(),
+            predecessor: FallbackPredecessor {
+                page_digests: vec!["sha256:p".into()],
+            },
+            target: FallbackTarget {
+                snapshot: crate::PacketSnapshot {
+                    repository: "r".into(),
+                    revision: "1".repeat(40),
+                    tree: "2".repeat(40),
+                    dirty_state: crate::ContentDirtyState::CleanExport,
+                },
+            },
+            invalidation_candidates: InvalidationCandidates {
+                coverage: CandidateCoverage::PacketMembers,
+                items: Vec::new(),
+            },
+            delta_digest: "sha256:d".into(),
+        });
+        let mut value = serde_json::to_value(&fallback).unwrap();
+        assert_eq!(value["outcome"], "fallback");
+        assert_eq!(
+            serde_json::from_value::<ContextDeltaResult>(value.clone()).unwrap(),
+            fallback
+        );
+        value["outcome"] = "delta".into();
+        assert!(
+            serde_json::from_value::<ContextDeltaResult>(value).is_err(),
+            "a fallback's shape under outcome delta is not a delta"
         );
     }
 

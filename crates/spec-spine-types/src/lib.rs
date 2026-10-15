@@ -95,8 +95,8 @@ pub use context_packet_delta::{
     CandidateCoverage, ChangeBasis, ChangedField, ContextDeltaRequest, ContextDeltaResult,
     ContextPacketDelta, ContextPacketFallback, DELTA_MAX_BYTES, DELTA_MAX_MANIFESTS,
     DELTA_MAX_PREDECESSOR_PAGES, DeltaCounts, DeltaEntry, DeltaFallbackReason, DeltaMemberState,
-    DeltaOutcome, DeltaPageLayout, DeltaPredecessor, DeltaTarget, FallbackPredecessor,
-    FallbackTarget, InvalidationCandidate, InvalidationCandidates, MemberChange, MemberKey,
+    DeltaPageLayout, DeltaPredecessor, DeltaTarget, FallbackPredecessor, FallbackTarget,
+    InvalidationCandidate, InvalidationCandidates, MemberChange, MemberKey,
 };
 pub use coverage::{
     CoverageReport, Enumeration, Inventory, InventoryProvenance, NearMissHeader, NearMissReason,
