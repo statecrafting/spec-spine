@@ -20,8 +20,21 @@ use spec_spine_types::{
 
 const BODY: &str = "# 001\n\n## 3. Behavior\n\n### 3.1 The rule\n\nThe rule text.\n\n### 3.2 Other\n\nOther text.\n";
 const OBLIGATIONS: &str = "obligations:\n  - id: \"R-1\"\n    kind: requirement\n    text: \"The rule holds.\"\n    anchor: \"3-1-the-rule\"\n";
-const BUILD: &str = "sha256:abababababababababababababababababababababababababababababababab";
-const OTHER_BUILD: &str = "sha256:cdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd";
+// Four visible 16-digit chunks: 64 hex digits.
+const BUILD: &str = concat!(
+    "sha256:",
+    "abababababababab",
+    "abababababababab",
+    "abababababababab",
+    "abababababababab"
+);
+const OTHER_BUILD: &str = concat!(
+    "sha256:",
+    "cdcdcdcdcdcdcdcd",
+    "cdcdcdcdcdcdcdcd",
+    "cdcdcdcdcdcdcdcd",
+    "cdcdcdcdcdcdcdcd"
+);
 
 /// `BUILD` and `OTHER_BUILD` are well-formed: `sha256:` and 64 lowercase
 /// hex digits, as `context_packet` requires of a producer build.
