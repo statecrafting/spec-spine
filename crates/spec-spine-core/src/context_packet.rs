@@ -403,7 +403,9 @@ fn assign_interfaces(
                 )
             }
             ContentSelector::Symbol { .. } => {
-                let resolution = signatures.next().expect("one signature per symbol member");
+                let resolution = signatures.next().ok_or_else(|| {
+                    Error::Internal("the resolver returned fewer signatures than symbols".into())
+                })?;
                 match resolution.outcome {
                     Ok(selected) => {
                         let mut set = PieceSet::new();
@@ -416,7 +418,7 @@ fn assign_interfaces(
                             "projection".into(),
                             PieceKind::Text,
                             serde_json::to_string(&ContentProjection::Signature)
-                                .unwrap_or_default()
+                                .map_err(|e| Error::Internal(e.to_string()))?
                                 .into_bytes(),
                         );
                         set.insert(
