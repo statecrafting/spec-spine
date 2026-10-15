@@ -19,13 +19,11 @@
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/src/context_packet_delta.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/src/context_packet_delta.rs"
       },
       {
         "kind": "file",
-        "path": "crates/spec-spine-core/tests/context_packet_delta.rs",
-        "planned": true
+        "path": "crates/spec-spine-core/tests/context_packet_delta.rs"
       },
       {
         "kind": "directory",
@@ -183,6 +181,14 @@
       },
       {
         "nature": "additive",
+        "spec": "160-documentation-manifest-and-freshness",
+        "unit": {
+          "kind": "file",
+          "path": "crates/spec-spine-core/src/documentation_manifest.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "162-capability-catalog",
         "unit": {
           "kind": "file",
@@ -332,6 +338,6 @@
     "summary": "A deterministic delta from caller-supplied predecessor packet pages to spec 159's pages on a target snapshot, in six closed change kinds, that reproduces the target byte for byte or falls back explicitly, plus pure invalidation candidates over spec-160 manifests. No session state.\n",
     "title": "A packet delta reproduces the packet it names"
   },
-  "shardHash": "ce0562ba46a94eb4f662e1ce00e2e71481fd4585553be3b3e536c0681caad275",
+  "shardHash": "996844479ce20fe677fc6549fc748ae94afdc4ce8176a52a7fc60b63137d7c0e",
   "specVersion": "1.10.0"
 }

@@ -21,8 +21,8 @@ summary: >
 establishes:
   - { kind: file, path: "crates/spec-spine-types/src/context_packet_delta.rs" }
   - { kind: file, path: "crates/spec-spine-types/schemas/context-packet-delta.schema.json" }
-  - { kind: file, path: "crates/spec-spine-core/src/context_packet_delta.rs", planned: true }
-  - { kind: file, path: "crates/spec-spine-core/tests/context_packet_delta.rs", planned: true }
+  - { kind: file, path: "crates/spec-spine-core/src/context_packet_delta.rs" }
+  - { kind: file, path: "crates/spec-spine-core/tests/context_packet_delta.rs" }
   - { kind: directory, path: "crates/spec-spine-core/tests/fixtures/context-packet-delta/", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/src/cmd_context_delta.rs", planned: true }
   - { kind: file, path: "crates/spec-spine-cli/tests/context_packet_delta.rs", planned: true }
@@ -44,6 +44,7 @@ extends:
   - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "crates/spec-spine-cli/tests/context_packet.rs" }, nature: additive }
   - { spec: "159-repository-scoped-context-packet", unit: { kind: file, path: "docs/context-packets.md" }, nature: additive }
   - { spec: "022-index-sharding", unit: "crates/spec-spine-types/src/schema.rs", nature: additive }
+  - { spec: "160-documentation-manifest-and-freshness", unit: { kind: file, path: "crates/spec-spine-core/src/documentation_manifest.rs" }, nature: additive }
   - { spec: "162-capability-catalog", unit: { kind: file, path: "crates/spec-spine-core/src/capability.rs" }, nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/09-disposition-2026-09-21.md" }, role: "roadmap rows L and M" }

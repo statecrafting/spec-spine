@@ -605,7 +605,9 @@ pub fn packet_snapshot(snapshot: &ContentSnapshot) -> PacketSnapshot {
 
 /// Every check that needs only the manifest (spec 160 3.2 to 3.9, 3.13):
 /// returns the canonical manifest, or a usage error naming the first defect.
-fn check_structure(manifest: &DocumentationManifest) -> Result<DocumentationManifest, Error> {
+pub(crate) fn check_structure(
+    manifest: &DocumentationManifest,
+) -> Result<DocumentationManifest, Error> {
     let m = canonical_manifest(manifest);
     match parse_semver(&m.schema_version) {
         Some((major, minor, _))
