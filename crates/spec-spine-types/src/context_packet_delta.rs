@@ -9,6 +9,8 @@
 //! [`crate::CONTEXT_PACKET_DELTA_SCHEMA_VERSION`], distinct from spec 071's
 //! `DELTA_SCHEMA_VERSION`.
 
+use std::collections::BTreeSet;
+
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -145,9 +147,10 @@ pub struct DeltaEntry {
     /// The target omission reason, for `newly-unresolved` and
     /// `newly-omitted`.
     pub reason: Option<PacketOmissionReason>,
-    /// For `changed`: which of content, span, requirement and origins differ.
-    /// Empty when the difference lies elsewhere in the record (D-19).
-    pub fields: Vec<ChangedField>,
+    /// For `changed`: which of content, span, requirement and origins differ,
+    /// each once and in declaration order. Empty when the difference lies
+    /// elsewhere in the record (D-19).
+    pub fields: BTreeSet<ChangedField>,
     /// For `interface-changed`: both interfaces, so a spec 110 pin holder can
     /// match either digest.
     pub prior_interface: Option<PacketInterface>,
@@ -309,6 +312,16 @@ mod tests {
             .iter()
             .map(|v| v.as_str().unwrap().to_string())
             .collect()
+    }
+
+    #[test]
+    fn changed_fields_are_a_set_in_declaration_order() {
+        let fields: BTreeSet<ChangedField> =
+            serde_json::from_str(r#"["origins","content","content","span"]"#).unwrap();
+        assert_eq!(
+            serde_json::to_string(&fields).unwrap(),
+            r#"["content","span","origins"]"#
+        );
     }
 
     #[test]
