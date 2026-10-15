@@ -127,7 +127,7 @@
       "contentHash": "2e415a74b666b21d114ef0aebb656e22b6b634f4d66b2fbc5f3c422b1a57ac3e"
     },
     "crates/spec-spine-types/schemas/context-packet-delta.schema.json": {
-      "contentHash": "e5c7666cd88e8d6aa7083d52f0b5bb486d90379e32493d38fa5a23bbf5481a44"
+      "contentHash": "6b77c048a5250c5c06595f413aa13e4f8f8ffeb4505218f194724a9b6689590d"
     },
     "crates/spec-spine-types/schemas/context-packet.schema.json": {
       "contentHash": "40f90708e99fbfee79ac405218dd687168f0b6e8b8285395a788f3efcc261a18"

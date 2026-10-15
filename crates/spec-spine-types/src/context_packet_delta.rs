@@ -289,12 +289,13 @@ pub enum ContextDeltaResult {
 mod tests {
     use super::*;
 
-    fn wire<T: Serialize>(value: T) -> String {
-        serde_json::to_value(value)
-            .unwrap()
-            .as_str()
-            .unwrap()
-            .to_string()
+    /// The wire name of a closed-vocabulary value, which serializes as a
+    /// JSON string.
+    fn wire<T: Serialize + std::fmt::Debug>(value: T) -> String {
+        match serde_json::to_value(&value) {
+            Ok(serde_json::Value::String(name)) => name,
+            other => panic!("{value:?} does not serialize as a string: {other:?}"),
+        }
     }
 
     fn schema_enum(pointer: &str) -> Vec<String> {

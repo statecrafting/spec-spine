@@ -141,42 +141,7 @@
           "type": "array"
         },
         "counts": {
-          "additionalProperties": false,
-          "properties": {
-            "changed": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "interfaceChanged": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "newlyAvailable": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "newlyOmitted": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "newlyUnresolved": {
-              "minimum": 0,
-              "type": "integer"
-            },
-            "removed": {
-              "minimum": 0,
-              "type": "integer"
-            }
-          },
-          "required": [
-            "interfaceChanged",
-            "changed",
-            "removed",
-            "newlyUnresolved",
-            "newlyOmitted",
-            "newlyAvailable"
-          ],
-          "type": "object"
+          "$ref": "#/$defs/counts"
         },
         "deltaDigest": {
           "pattern": "^sha256:[0-9a-f]{64}$",
