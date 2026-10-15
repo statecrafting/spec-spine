@@ -121,9 +121,10 @@ pub use edges::{
     SupersedeItem, SupersedeScope, SupersedeScoped,
 };
 pub use edit_plan::{
-    AuthorityEffect, ClaimEdge, ConflictKind, EDIT_PLAN_MAX_BYTES, EDIT_PLAN_MAX_OPERATIONS,
-    EXPECTED_ABSENT, EditOperation, EditPlan, EditPlanRequest, FilePreview, PlanConflict,
-    PlanRefusal, PlanStatus, PlannedOperation, PredictedFinding, RefusalReason,
+    AuthorityEffect, ClaimEdge, ConflictKind, DerivedTree, EDIT_PLAN_MAX_BYTES,
+    EDIT_PLAN_MAX_OPERATIONS, EXPECTED_ABSENT, EditOperation, EditPlan, EditPlanRequest,
+    FilePreview, FindingSeverity, PlanConflict, PlanRefusal, PlanStatus, PlannedOperation,
+    PredictedFinding, RefusalReason,
 };
 pub use error::{Error, Result, outcome};
 pub use frontmatter::{

@@ -236,14 +236,31 @@ pub struct FilePreview {
     pub diff: String,
 }
 
-/// One compile or lint finding predicted on a post-image.
+/// How severe a predicted finding is. An error is never predicted: it
+/// refuses the plan as `post-image-invalid`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum FindingSeverity {
+    Warning,
+    Info,
+}
+
+/// One compile finding predicted on a post-image.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct PredictedFinding {
     pub path: String,
     pub code: String,
-    pub severity: String,
+    pub severity: FindingSeverity,
     pub message: String,
+}
+
+/// A committed derived tree a change would stale (spec 165 3.12).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum DerivedTree {
+    SpecRegistry,
+    CodebaseIndex,
 }
 
 /// An edit plan (spec 165 3.15). A refused plan lists every refusal and
@@ -264,8 +281,9 @@ pub struct EditPlan {
     pub conflicts: Vec<PlanConflict>,
     pub previews: Vec<FilePreview>,
     pub predicted_findings: Vec<PredictedFinding>,
-    /// The derived trees the change would stale; none is regenerated.
-    pub stales: Vec<String>,
+    /// The derived trees the change would stale, in canonical order; none is
+    /// regenerated.
+    pub stales: Vec<DerivedTree>,
     pub plan_digest: String,
 }
 
@@ -281,6 +299,22 @@ mod tests {
         assert!(serde_json::from_str::<EditOperation>(sixth).is_err());
         let extra = ok.replacen('{', r#"{"apply":true,"#, 1);
         assert!(serde_json::from_str::<EditOperation>(&extra).is_err());
+    }
+
+    #[test]
+    fn severities_and_derived_trees_are_closed() {
+        let finding = |severity: &str| {
+            serde_json::from_value::<PredictedFinding>(serde_json::json!({
+                "path": "p", "code": "L-001", "severity": severity, "message": "m",
+            }))
+        };
+        assert!(finding("warning").is_ok());
+        assert!(
+            finding("error").is_err(),
+            "an error refuses; it is never predicted"
+        );
+        assert!(serde_json::from_str::<DerivedTree>(r#""spec-registry""#).is_ok());
+        assert!(serde_json::from_str::<DerivedTree>(r#""attestation""#).is_err());
     }
 
     #[test]
